@@ -68,9 +68,9 @@ def test_selection_prefers_v8_and_payload_available_marker_p2() -> None:
         "recorded_public_tier1_passed": True,
         "real_dev_tier1_passed": False,
         "adapter_path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
-        "adapter_sha256": "28793e4a743cfb76441137d7b2580082b7034d8b2d930c4543c8c01e67329f88",
+        "adapter_sha256": rescore_module._sha256(rescore_module.MARKER_ADAPTER_PATH),
         "adapter_test_path": "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs",
-        "adapter_test_sha256": "727df4878c0d60a7059d5090d90fd0705fabd1fd57f173577f5992d0fe6cd79c",
+        "adapter_test_sha256": rescore_module._sha256(rescore_module.MARKER_ADAPTER_TEST_PATH),
     }
     assert result["selected_adapter_compatibility"] == {"ocr": True, "marker": True}
     assert result["recorded_public_detection_candidates_clear_tier1"] is True
@@ -251,7 +251,7 @@ def test_marker_selected_threshold_source_mismatch_fails_closed() -> None:
 def test_marker_aggregate_source_checksum_mismatch_fails_closed() -> None:
     policy = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
     candidate = dict(MARKER_CANDIDATES[0])
-    candidate["result_sha256"] = "0" * 64
+    candidate["ledger_entry_sha256"] = "0" * 64
     with pytest.raises(RuntimeError, match="Aggregate evidence checksum mismatch"):
         _score(candidate, policy["tier1_reviewable_error"])
 

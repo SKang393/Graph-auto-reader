@@ -1,12 +1,13 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 <!-- Copyright 2026 Sungwoo Kang -->
 
-# Validation scoreboard
+# Validation surfaces
 
-The validation harness is the single quality scoreboard for public synthetic
-fixtures, contract-safe recorded results, and release licensing. It reports
-case-level failures as well as aggregate metrics. It does not tune detector
-parameters or read private research data during the public run.
+The public validation harness is the quality scoreboard for synthetic
+metric-contract fixtures and release-license plumbing. Goal 22 model acceptance
+uses `ml/policy/evidence-policy.json` and `ml/policy/acceptance-bars.json` as its
+sole policy and threshold sources. Real acceptance uses the dedicated guarded
+workflow evaluator described below.
 
 The checked-in public suite is a synthetic metric-contract smoke. It exercises
 calculators, gates, report generation, split metadata, and manifest-policy
@@ -42,10 +43,12 @@ the case and module identity, measured value, required threshold, gate result,
 timing, and peak managed memory. A failed run also writes each failure to
 standard error as `FAIL [module/case] gate: detail`.
 
-## Regression thresholds
+## Synthetic smoke thresholds
 
-The checked-in threshold catalog is authoritative. Threshold comparisons use
-the direction shown below. A value equal to its threshold passes.
+The checked-in benchmark catalog governs this synthetic calculator smoke only.
+It does not override the shared 95 percent Tier 1 model bars or the structural
+export-safety rules. Threshold comparisons use the direction shown below. A
+value equal to its threshold passes.
 
 | Metric ID | Pass condition |
 | --- | ---: |
@@ -79,9 +82,8 @@ the direction shown below. A value equal to its threshold passes.
 | `confidence_expected_calibration_error` | at most `0.10` |
 | `confidence_brier_score` | at most `0.10` |
 
-Thresholds are release gates, not detector tuning knobs. Change them only as a
-reviewed validation-policy change supported by held-out evidence. Never lower a
-threshold to make one fixture pass.
+These thresholds are smoke regressions, not detector tuning knobs or production
+model approval. Never lower a threshold to make one fixture pass.
 
 ## Dataset and split safety
 
@@ -96,16 +98,24 @@ image-level random splitting is not an acceptable substitute. Private study
 data is evaluation-only unless separate, explicit permission authorizes
 training.
 
-## Private evaluation safety
+## Real and private evaluation safety
 
-Private evaluation is deliberately unavailable by default. The local adapter
-returns availability only when all of these conditions hold:
+The public scoreboard cannot select private evaluation. Goal 22's explicitly
+authorized real corpus is the Git-ignored `data/manual data/` tree documented in
+`AGENTS.md` Section 8.1. Only the dedicated local acceptance harness may read it,
+and it must keep images, truth rows, study names, participant names, and per-case
+predictions out of Git and release artifacts. Real development diagnosis may be
+case-level; real sealed evaluation remains aggregate-only.
+
+The general-purpose private adapter for any other dataset remains unavailable by
+default and returns availability only when all of these conditions hold:
 
 1. The caller explicitly opts in for the current invocation.
 2. No supported continuous-integration environment variable is enabled.
 3. The configured directory exists.
 4. Both the configured path and its resolved link target are outside the
-   repository.
+   repository. This rule does not relocate or supersede the explicitly
+   authorized Goal 22 corpus.
 
 Unavailable runs return structured reason codes:
 
@@ -116,12 +126,10 @@ Unavailable runs return structured reason codes:
 - `ExternalDirectoryMustBeOutsideRepository`
 - `ExternalDirectoryCouldNotBeResolved`
 
-The adapter does not enumerate, read, copy, or write private case data. Keep
-private images, annotations, and evaluator outputs in the external directory.
-Do not place them under the repository, include them in public reports, or use
-them in CI. The supplied-example specification records expected roles and
-exclusions only. It includes no image and leaves unobserved point counts,
-coordinates, graph y values, and scientific series labels unspecified.
+The general adapter does not enumerate, read, copy, or write private case data.
+Keep other private datasets in their approved external directories. Neither
+path may be used in CI, training, fine-tuning, candidate selection, or public
+reports.
 
 ## License release gate
 

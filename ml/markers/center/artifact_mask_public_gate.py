@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import Any
 
+from ml.policy.evidence_policy import tier1_acceptance_bars
+
 
 PROFILE = "marker-center-artifact-mask-public-gate-v1"
 PROHIBITED_STRUCTURE_KINDS = (
@@ -58,6 +60,8 @@ def evaluate_fixture(row: Mapping[str, Any]) -> dict[str, Any]:
     )
     return {
         "fixture_id": fixture_id,
+        "expected_count": expected_count,
+        "predicted_count": predicted_count,
         "exact_count": exact_count,
         "false_positive_count": false_positive_count,
         "false_negative_count": false_negative_count,
@@ -79,12 +83,20 @@ def evaluate_public_gate(rows: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
     false_positive_count = sum(row["false_positive_count"] for row in fixtures)
     false_negative_count = sum(row["false_negative_count"] for row in fixtures)
     duplicate_count = sum(row["duplicate_count"] for row in fixtures)
+    expected_count = sum(row["expected_count"] for row in fixtures)
+    predicted_count = sum(row["predicted_count"] for row in fixtures)
+    true_positive_count = expected_count - false_negative_count
+    if true_positive_count < 0 or predicted_count != true_positive_count + false_positive_count:
+        raise ValueError("aggregate TP, FP, FN, expected, and predicted counts are inconsistent")
+    precision = true_positive_count / predicted_count if predicted_count else 0.0
+    recall = true_positive_count / expected_count if expected_count else 0.0
+    prohibited_hit_count = sum(aggregate_hits.values())
+    prohibited_hit_rate = prohibited_hit_count / predicted_count if predicted_count else 0.0
+    bars = tier1_acceptance_bars()
     passed = (
-        exact_fixture_count == len(fixtures)
-        and false_positive_count == 0
-        and false_negative_count == 0
-        and duplicate_count == 0
-        and not any(aggregate_hits.values())
+        precision >= bars["marker_center_precision_minimum"]
+        and recall >= bars["marker_center_recall_minimum"]
+        and prohibited_hit_rate <= bars["prohibited_structure_hit_rate_maximum"]
     )
     return {
         "profile": PROFILE,
@@ -94,6 +106,12 @@ def evaluate_public_gate(rows: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
         "downstream_false_positive_count": false_positive_count,
         "downstream_false_negative_count": false_negative_count,
         "downstream_duplicate_count": duplicate_count,
+        "true_positive_count": true_positive_count,
+        "false_positive_count": false_positive_count,
+        "false_negative_count": false_negative_count,
+        "artifact_precision": precision,
+        "artifact_recall": recall,
+        "prohibited_structure_hit_rate": prohibited_hit_rate,
         "prohibited_structure_hits": aggregate_hits,
         "fixture_results": fixtures,
     }

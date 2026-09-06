@@ -48,24 +48,37 @@ internal sealed record ProductionArtifactMaskGateEvidence(
     int ExactFixtureCount,
     int DownstreamFalsePositiveCount,
     int DownstreamFalseNegativeCount,
-    int DownstreamDuplicateCount);
+    int DownstreamDuplicateCount,
+    double MarkerPrecision,
+    double MarkerRecall,
+    double ProhibitedStructureHitRate,
+    bool LegacyApprovalCompatibility,
+    int[] ProhibitedStructureHits);
 
 internal sealed record ProductionArtifactMaskEmbeddedResource(
     string Sha256,
     byte[] Bytes);
 
+internal sealed record QualityMetrics(
+    double MarkerPrecision,
+    double MarkerRecall,
+    double ProhibitedStructureHitRate);
+
 /// <summary>
 /// Uses the independently gated dense artifact head of the checksum-resolved
 /// marker-center model. The adapter is not created unless the same packaged
-/// benchmark evidence proves full-frame, seed-only artifact masking with exact
-/// downstream marker counts and zero prohibited-structure hits.
+/// benchmark evidence proves full-frame, seed-only artifact masking with the
+/// shared Tier 1 marker precision, recall, and prohibited-structure bars.
 /// </summary>
 public sealed class ProductionMarkerArtifactMaskAdapter : IProductionArtifactMaskAdapter
 {
     public const string ApprovalBenchmarkProfile = "marker-center-artifact-mask-public-gate-v1";
     public const string SeedMaskScope = "ocr_axis_tick_divider_ambiguous_only";
     internal const string FrozenEvaluatorSourceSha256 =
-        "58c3cd9ec6bf2255c4b5d2cc9d865e2d37f58b0688a8bceda78ff523398a9f5f";
+        "de425e476ff25a94387d7be1761f998ca4c3bb0291e0e860db0fe6c8e030d967";
+    internal const double Tier1MarkerPrecisionMinimum = 0.95;
+    internal const double Tier1MarkerRecallMinimum = 0.95;
+    internal const double Tier1ProhibitedStructureHitRateMaximum = 0.02;
     private static readonly string[] RequiredInputChannels =
         ["ink_probability", "text_mask", "artifact_mask"];
     private static readonly string[] RequiredOutputChannels =
@@ -511,14 +524,22 @@ public sealed class ProductionMarkerArtifactMaskAdapter : IProductionArtifactMas
                 "Artifact-mask manifest metrics do not match the checksum-bound direct benchmark report.");
         }
 
-        JsonElement prohibitedHits = RequiredObject(approval, "prohibited_structure_hits");
-        foreach (string kind in ProhibitedStructureKinds)
+        if (!directEvidence.LegacyApprovalCompatibility)
         {
-            if (RequiredInt32(prohibitedHits, kind) != 0)
-            {
-                throw new InvalidDataException(
-                    $"Artifact-mask approval contains a prohibited '{kind}' marker hit.");
-            }
+            RequireMatchingMetric(approval, "artifact_precision", directEvidence.MarkerPrecision);
+            RequireMatchingMetric(approval, "artifact_recall", directEvidence.MarkerRecall);
+            RequireMatchingMetric(
+                approval,
+                "prohibited_structure_hit_rate",
+                directEvidence.ProhibitedStructureHitRate);
+        }
+
+        JsonElement prohibitedHits = RequiredObject(approval, "prohibited_structure_hits");
+        int[] approvalHits = ReadProhibitedHits(prohibitedHits, "manifest");
+        if (!approvalHits.SequenceEqual(directEvidence.ProhibitedStructureHits))
+        {
+            throw new InvalidDataException(
+                "Artifact-mask manifest prohibited-structure metrics do not match the checksum-bound direct benchmark report.");
         }
 
         string evidenceSha256 = RequiredString(approval, "evidence_sha256");
@@ -539,7 +560,7 @@ public sealed class ProductionMarkerArtifactMaskAdapter : IProductionArtifactMas
             Timeout: TimeSpan.FromSeconds(30));
     }
 
-    private static ProductionArtifactMaskGateEvidence ReadDirectGateEvidence(
+    internal static ProductionArtifactMaskGateEvidence ReadDirectGateEvidence(
         string evidencePath,
         string modelSha256)
     {
@@ -592,14 +613,16 @@ public sealed class ProductionMarkerArtifactMaskAdapter : IProductionArtifactMas
         int falsePositiveCount = RequiredInt32(root, "downstream_false_positive_count");
         int falseNegativeCount = RequiredInt32(root, "downstream_false_negative_count");
         int duplicateCount = RequiredInt32(root, "downstream_duplicate_count");
-        if (fixtureCount < 3 || exactFixtureCount != fixtureCount ||
-            falsePositiveCount != 0 || falseNegativeCount != 0 || duplicateCount != 0)
+        if (fixtureCount < 3 || exactFixtureCount < 0 || exactFixtureCount > fixtureCount ||
+            falsePositiveCount < 0 || falseNegativeCount < 0 || duplicateCount < 0)
         {
             throw new InvalidDataException(
-                "Direct artifact-mask evidence requires at least three exact fixtures with zero false positives, false negatives, and duplicates.");
+                "Direct artifact-mask evidence requires at least three fixtures and nonnegative aggregate counts.");
         }
 
-        RequireZeroProhibitedHits(RequiredObject(root, "prohibited_structure_hits"));
+        int[] aggregateHits = ReadProhibitedHits(
+            RequiredObject(root, "prohibited_structure_hits"),
+            "aggregate");
         JsonElement[] fixtureResults = RequiredArray(root, "fixture_results").EnumerateArray().ToArray();
         if (fixtureResults.Length != fixtureCount)
         {
@@ -608,6 +631,7 @@ public sealed class ProductionMarkerArtifactMaskAdapter : IProductionArtifactMas
         }
 
         var fixtureIds = new HashSet<string>(StringComparer.Ordinal);
+        var fixtureHits = new int[ProhibitedStructureKinds.Length];
         foreach (JsonElement fixture in fixtureResults)
         {
             if (fixture.ValueKind != JsonValueKind.Object)
@@ -616,17 +640,22 @@ public sealed class ProductionMarkerArtifactMaskAdapter : IProductionArtifactMas
             }
 
             string fixtureId = RequiredString(fixture, "fixture_id");
-            RequireBoolean(fixture, "exact_count", expected: true);
-            if (!fixtureIds.Add(fixtureId) ||
-                RequiredInt32(fixture, "false_positive_count") != 0 ||
-                RequiredInt32(fixture, "false_negative_count") != 0 ||
-                RequiredInt32(fixture, "duplicate_count") != 0)
+            if (!fixtureIds.Add(fixtureId))
             {
                 throw new InvalidDataException(
-                    "Direct artifact-mask fixture results require unique IDs, exact counts, and zero errors.");
+                    "Direct artifact-mask fixture result IDs must be unique.");
             }
 
-            RequireZeroProhibitedHits(RequiredObject(fixture, "prohibited_structure_hits"));
+            RequireNonnegativeInt32(fixture, "false_positive_count");
+            RequireNonnegativeInt32(fixture, "false_negative_count");
+            RequireNonnegativeInt32(fixture, "duplicate_count");
+            int[] hits = ReadProhibitedHits(
+                RequiredObject(fixture, "prohibited_structure_hits"),
+                $"fixture '{fixtureId}'");
+            for (int index = 0; index < fixtureHits.Length; index++)
+            {
+                fixtureHits[index] = checked(fixtureHits[index] + hits[index]);
+            }
         }
 
         if (!fixtureIds.SetEquals(datasetFixtureIds))
@@ -634,6 +663,29 @@ public sealed class ProductionMarkerArtifactMaskAdapter : IProductionArtifactMas
             throw new InvalidDataException(
                 "Direct artifact-mask report fixture IDs do not match the frozen sealed dataset split.");
         }
+
+        if (!fixtureHits.SequenceEqual(aggregateHits))
+        {
+            throw new InvalidDataException(
+                "Direct artifact-mask aggregate prohibited-structure metrics do not match fixture results.");
+        }
+
+        bool hasAnyQualityMetric = HasProperty(root, "artifact_precision") ||
+                                    HasProperty(root, "artifact_recall") ||
+                                    HasProperty(root, "prohibited_structure_hit_rate") ||
+                                    HasProperty(root, "true_positive_count") ||
+                                    HasProperty(root, "false_positive_count") ||
+                                    HasProperty(root, "false_negative_count");
+        bool legacyCompatibility = !hasAnyQualityMetric &&
+                                   exactFixtureCount == fixtureCount &&
+                                   falsePositiveCount == 0 &&
+                                   falseNegativeCount == 0 &&
+                                   duplicateCount == 0 &&
+                                   aggregateHits.All(static hit => hit == 0);
+        QualityMetrics quality = ReadQualityMetrics(
+            root,
+            aggregateHits.Sum(),
+            legacyCompatibility);
 
         return new ProductionArtifactMaskGateEvidence(
             modelSha256.ToLowerInvariant(),
@@ -644,7 +696,12 @@ public sealed class ProductionMarkerArtifactMaskAdapter : IProductionArtifactMas
             exactFixtureCount,
             falsePositiveCount,
             falseNegativeCount,
-            duplicateCount);
+            duplicateCount,
+            quality.MarkerPrecision,
+            quality.MarkerRecall,
+            quality.ProhibitedStructureHitRate,
+            legacyCompatibility,
+            aggregateHits);
     }
 
     private static ProductionArtifactMaskEmbeddedResource ValidateEmbeddedResource(
@@ -773,15 +830,188 @@ public sealed class ProductionMarkerArtifactMaskAdapter : IProductionArtifactMas
         }
     }
 
-    private static void RequireZeroProhibitedHits(JsonElement prohibitedHits)
+    private static QualityMetrics ReadQualityMetrics(
+        JsonElement root,
+        int prohibitedHitCount,
+        bool legacyCompatibility)
     {
-        foreach (string kind in ProhibitedStructureKinds)
+        if (legacyCompatibility)
         {
-            if (RequiredInt32(prohibitedHits, kind) != 0)
+            return new QualityMetrics(1, 1, 0);
+        }
+
+        bool hasPrecision = TryReadMetric(root, "artifact_precision", out double precision);
+        bool hasRecall = TryReadMetric(root, "artifact_recall", out double recall);
+        bool hasHitRate = TryReadMetric(root, "prohibited_structure_hit_rate", out double hitRate);
+        bool hasTruePositive = TryReadNonnegativeMetricCount(root, "true_positive_count", out int truePositive);
+        bool hasFalsePositive = TryReadNonnegativeMetricCount(root, "false_positive_count", out int falsePositive);
+        bool hasFalseNegative = TryReadNonnegativeMetricCount(root, "false_negative_count", out int falseNegative);
+
+        if (hasPrecision != hasRecall)
+        {
+            throw new InvalidDataException(
+                "Direct artifact-mask evidence must provide both marker precision and recall.");
+        }
+
+        if (!hasPrecision)
+        {
+            if (!hasTruePositive || !hasFalsePositive || !hasFalseNegative)
             {
                 throw new InvalidDataException(
-                    $"Artifact-mask approval contains a prohibited '{kind}' marker hit.");
+                    "Direct artifact-mask evidence must provide marker precision and recall or unambiguous TP, FP, and FN counts.");
             }
+
+            int predicted = checked(truePositive + falsePositive);
+            int actual = checked(truePositive + falseNegative);
+            if (predicted == 0 || actual == 0)
+            {
+                throw new InvalidDataException(
+                    "Direct artifact-mask TP, FP, and FN counts do not define precision and recall.");
+            }
+
+            precision = (double)truePositive / predicted;
+            recall = (double)truePositive / actual;
+        }
+        else if (hasTruePositive || hasFalsePositive || hasFalseNegative)
+        {
+            if (!hasTruePositive || !hasFalsePositive || !hasFalseNegative)
+            {
+                throw new InvalidDataException(
+                    "Direct artifact-mask evidence must provide TP, FP, and FN together.");
+            }
+
+            int predicted = checked(truePositive + falsePositive);
+            int actual = checked(truePositive + falseNegative);
+            if (predicted == 0 || actual == 0 ||
+                Math.Abs(precision - ((double)truePositive / predicted)) > 1e-12 ||
+                Math.Abs(recall - ((double)truePositive / actual)) > 1e-12)
+            {
+                throw new InvalidDataException(
+                    "Direct artifact-mask precision and recall do not match TP, FP, and FN counts.");
+            }
+        }
+
+        if (!hasHitRate)
+        {
+            if (!hasTruePositive || !hasFalsePositive)
+            {
+                throw new InvalidDataException(
+                    "Direct artifact-mask evidence must provide prohibited_structure_hit_rate or unambiguous TP and FP counts.");
+            }
+
+            int predicted = checked(truePositive + falsePositive);
+            if (predicted == 0)
+            {
+                throw new InvalidDataException(
+                    "Direct artifact-mask TP and FP counts do not define prohibited-structure hit rate.");
+            }
+
+            hitRate = (double)prohibitedHitCount / predicted;
+        }
+        else if (hasTruePositive && hasFalsePositive)
+        {
+            int predicted = checked(truePositive + falsePositive);
+            if (predicted == 0 ||
+                Math.Abs(hitRate - ((double)prohibitedHitCount / predicted)) > 1e-12)
+            {
+                throw new InvalidDataException(
+                    "Direct artifact-mask prohibited hit rate does not match aggregate counts.");
+            }
+        }
+
+        ValidateMetric(precision, 0, 1, "artifact_precision");
+        ValidateMetric(recall, 0, 1, "artifact_recall");
+        ValidateMetric(hitRate, 0, 1, "prohibited_structure_hit_rate");
+        if (precision < Tier1MarkerPrecisionMinimum || recall < Tier1MarkerRecallMinimum ||
+            hitRate > Tier1ProhibitedStructureHitRateMaximum)
+        {
+            throw new InvalidDataException(
+                $"Direct artifact-mask evidence fails shared Tier 1 bars: precision {precision:R}, recall {recall:R}, prohibited hit rate {hitRate:R}.");
+        }
+
+        return new QualityMetrics(precision, recall, hitRate);
+    }
+
+    private static int[] ReadProhibitedHits(JsonElement prohibitedHits, string scope)
+    {
+        var values = new int[ProhibitedStructureKinds.Length];
+        for (int index = 0; index < ProhibitedStructureKinds.Length; index++)
+        {
+            string kind = ProhibitedStructureKinds[index];
+            values[index] = RequiredInt32(prohibitedHits, kind);
+            if (values[index] < 0)
+            {
+                throw new InvalidDataException(
+                    $"Artifact-mask {scope} prohibited-structure hit count '{kind}' must be nonnegative.");
+            }
+        }
+
+        return values;
+    }
+
+    private static bool HasProperty(JsonElement parent, string propertyName) =>
+        parent.TryGetProperty(propertyName, out _);
+
+    private static bool TryReadMetric(JsonElement parent, string propertyName, out double result)
+    {
+        result = 0;
+        if (!parent.TryGetProperty(propertyName, out JsonElement value))
+        {
+            return false;
+        }
+
+        if (value.ValueKind != JsonValueKind.Number || !value.TryGetDouble(out result) || !double.IsFinite(result))
+        {
+            throw new InvalidDataException($"Artifact-mask metric '{propertyName}' must be a finite number.");
+        }
+
+        return true;
+    }
+
+    private static bool TryReadNonnegativeMetricCount(
+        JsonElement parent,
+        string propertyName,
+        out int result)
+    {
+        result = 0;
+        if (!parent.TryGetProperty(propertyName, out _))
+        {
+            return false;
+        }
+
+        result = RequiredInt32(parent, propertyName);
+        if (result < 0)
+        {
+            throw new InvalidDataException($"Artifact-mask metric '{propertyName}' must be nonnegative.");
+        }
+
+        return true;
+    }
+
+    private static void RequireMatchingMetric(JsonElement parent, string propertyName, double expected)
+    {
+        if (!TryReadMetric(parent, propertyName, out double actual) ||
+            actual != expected)
+        {
+            throw new InvalidDataException(
+                $"Artifact-mask manifest metric '{propertyName}' does not match the checksum-bound direct benchmark report.");
+        }
+    }
+
+    private static void ValidateMetric(double value, double minimum, double maximum, string propertyName)
+    {
+        if (value < minimum || value > maximum)
+        {
+            throw new InvalidDataException(
+                $"Artifact-mask metric '{propertyName}' must be between {minimum:R} and {maximum:R}.");
+        }
+    }
+
+    private static void RequireNonnegativeInt32(JsonElement parent, string propertyName)
+    {
+        if (RequiredInt32(parent, propertyName) < 0)
+        {
+            throw new InvalidDataException($"Artifact-mask count '{propertyName}' must be nonnegative.");
         }
     }
 

@@ -38,6 +38,7 @@ from ml.markers.gate_seal import (
     complete_gate_seal,
     sha256_bytes,
     sha256_file,
+    void_candidate,
 )
 
 
@@ -84,6 +85,7 @@ def _evaluate_opened_gate(
     split_seal_path: Path,
     seal: GateSeal,
 ) -> dict[str, object]:
+    seal.consume_sealed_split()
     archive = read_archive(archive_path)
     session = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
     if session.get_providers() != ["CPUExecutionProvider"]:
@@ -152,8 +154,12 @@ def _evaluate_opened_gate(
         "downstream_duplicate_count": metric_report["downstream_duplicate_count"],
         "prohibited_structure_hits": metric_report["prohibited_structure_hits"],
         "fixture_results": metric_report["fixture_results"],
-        "artifact_precision": aggregate["artifact_precision"],
-        "artifact_recall": aggregate["artifact_recall"],
+        "true_positive_count": metric_report["true_positive_count"],
+        "false_positive_count": metric_report["false_positive_count"],
+        "false_negative_count": metric_report["false_negative_count"],
+        "artifact_precision": metric_report["artifact_precision"],
+        "artifact_recall": metric_report["artifact_recall"],
+        "prohibited_structure_hit_rate": metric_report["prohibited_structure_hit_rate"],
         "marker_artifact_hits": aggregate["marker_artifact_hits"],
         "direct_execution_inference_calls": archive["inputs"].shape[0] * 2,
         "input_tensor_stream_sha256": input_stream.hexdigest(),
@@ -212,11 +218,14 @@ def _run_opened_gate(
         }
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_bytes(canonical_json_bytes(failure))
-        complete_gate_seal(
-            seal,
-            status="failed_runner",
-            report_sha256=sha256_file(output_path),
-        )
+        if seal.consumed_path.exists():
+            complete_gate_seal(
+                seal,
+                status="failed_runner",
+                report_sha256=sha256_file(output_path),
+            )
+        else:
+            void_candidate(seal, error)
         raise
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_bytes(canonical_json_bytes(report))

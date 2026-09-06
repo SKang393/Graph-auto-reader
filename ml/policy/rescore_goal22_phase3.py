@@ -18,7 +18,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 POLICY_PATH = REPO_ROOT / "ml/policy/acceptance-bars.json"
 RESULT_PATH = REPO_ROOT / "ml/policy/goal22-phase3-rescore-result.json"
 TRAINING_BUDGET_PATH = REPO_ROOT / "ml/markers/training-budgets/production-repair-v1.json"
-TRAINING_BUDGET_SHA256 = "518f0289dbaba81ef7740774b660e7d0a0fb8997035158eec1b5ba8f473f2009"
+MARKER_ADAPTER_PATH = REPO_ROOT / "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs"
+MARKER_ADAPTER_TEST_PATH = REPO_ROOT / "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs"
 
 
 def _sha256(path: Path) -> str:
@@ -27,6 +28,11 @@ def _sha256(path: Path) -> str:
 
 def _read(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _canonical_sha256(value: object) -> str:
+    encoded = (json.dumps(value, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 OCR_CANDIDATES: tuple[dict[str, Any], ...] = (
@@ -155,7 +161,7 @@ MARKER_CANDIDATES: tuple[dict[str, Any], ...] = (
         "candidate_id": "P3",
         "evidence_split": "sealed",
         "result_path": "ml/markers/training-budgets/production-repair-v1.json",
-        "result_sha256": TRAINING_BUDGET_SHA256,
+        "ledger_entry_sha256": "87ab2e662531772af92529a92dd69269522134f4cd5132c283b85930ded6d1bd",
         "aggregate": {"scene_count": 3, "exact_scene_count": 2, "true_positives": 18, "false_positives": 1, "false_negatives": 0, "prohibited_structure_hits": 0},
         "aggregate_report_sha256": "6f92923bcc54dd60e4cb0e69a2ad759437abc99c0314e496c37b4c285bd99386",
         "ledger_revision": "marker-center-production-repair-v2",
@@ -175,7 +181,7 @@ MARKER_CANDIDATES: tuple[dict[str, Any], ...] = (
         "candidate_id": "P1",
         "evidence_split": "sealed",
         "result_path": "ml/markers/training-budgets/production-repair-v1.json",
-        "result_sha256": TRAINING_BUDGET_SHA256,
+        "ledger_entry_sha256": "08159eca15106683dd3272d8f51b0df9497d618fecb4e4946bc532f2107f92af",
         "ledger_revision": "marker-center-normalized-training-v4",
         "aggregate_fields": {"scene_count": "p1_public_scene_count", "exact_scene_count": "p1_public_exact_scene_count", "true_positives": "p1_public_true_positives", "false_positives": "p1_public_false_positives", "false_negatives": "p1_public_false_negatives", "prohibited_structure_hits": "p1_public_prohibited_structure_hits"},
         "selected_threshold": 0.6,
@@ -190,7 +196,7 @@ MARKER_CANDIDATES: tuple[dict[str, Any], ...] = (
         "candidate_id": "P2",
         "evidence_split": "sealed",
         "result_path": "ml/markers/training-budgets/production-repair-v1.json",
-        "result_sha256": TRAINING_BUDGET_SHA256,
+        "ledger_entry_sha256": "fd14d09904b72cd9411ea5563fd0a5700d301357e549848fb296254afba1f110",
         "ledger_revision": "marker-center-runtime-consistency-v2",
         "aggregate_fields": {"scene_count": "p2_public_scene_count", "exact_scene_count": "p2_public_exact_scene_count", "true_positives": "p2_public_true_positives", "false_positives": "p2_public_false_positives", "false_negatives": "p2_public_false_negatives", "prohibited_structure_hits": "p2_public_prohibited_structure_hits"},
         "selected_threshold": 0.25,
@@ -363,7 +369,16 @@ def _validate_optional_approved_classifier_evidence() -> None:
 
 def _score(candidate: dict[str, Any], bars: dict[str, Any]) -> dict[str, Any]:
     path = REPO_ROOT / candidate["result_path"]
-    if _sha256(path) != candidate["result_sha256"]:
+    record = _read(path)
+    ledger_entry: dict[str, Any] | None = None
+    if "ledger_revision" in candidate:
+        ledger_entry = next(
+            item for item in record["revisions"]
+            if item["revision"] == candidate["ledger_revision"]
+        )
+        if _canonical_sha256(ledger_entry) != candidate["ledger_entry_sha256"]:
+            raise RuntimeError(f"Aggregate evidence checksum mismatch: {path}")
+    elif _sha256(path) != candidate["result_sha256"]:
         raise RuntimeError(f"Aggregate evidence checksum mismatch: {path}")
     if "protocol_path" in candidate:
         protocol = REPO_ROOT / candidate["protocol_path"]
@@ -373,10 +388,9 @@ def _score(candidate: dict[str, Any], bars: dict[str, Any]) -> dict[str, Any]:
         factory = REPO_ROOT / candidate["adapter_factory_path"]
         if _sha256(factory) != candidate["adapter_factory_sha256"]:
             raise RuntimeError(f"Adapter factory checksum mismatch: {factory}")
-    record = _read(path)
     threshold_record = record
-    if "ledger_revision" in candidate:
-        threshold_record = next(item for item in record["revisions"] if item["revision"] == candidate["ledger_revision"])
+    if ledger_entry is not None:
+        threshold_record = ledger_entry
     selected_threshold = _extract_selected_threshold(threshold_record, candidate)
     if "optional_evidence_path" in candidate:
         optional = REPO_ROOT / candidate["optional_evidence_path"]
@@ -396,7 +410,7 @@ def _score(candidate: dict[str, Any], bars: dict[str, Any]) -> dict[str, Any]:
         }
         return {
             "task": candidate["task"], "name": candidate["name"], "revision": candidate["revision"], "candidate_id": candidate["candidate_id"], "evidence_split": candidate["evidence_split"],
-            "result_path": candidate["result_path"], "result_sha256": candidate["result_sha256"], "selected_threshold": selected_threshold,
+            "result_path": candidate["result_path"], "ledger_entry_sha256": candidate["ledger_entry_sha256"], "selected_threshold": selected_threshold,
             **({"protocol_path": candidate["protocol_path"], "protocol_sha256": candidate["protocol_sha256"], "adapter_factory_path": candidate["adapter_factory_path"], "adapter_factory_sha256": candidate["adapter_factory_sha256"], "operating_configuration": candidate["operating_configuration"]} if "protocol_path" in candidate else {}),
             "metrics": {**metrics, "detected_region_count": detected, "marker_center_precision": precision, "marker_center_recall": recall, "prohibited_structure_hit_rate": prohibited_rate},
             "gates": gates, "tier1_passed": all(gates.values()), "payloads": _payloads(candidate), "payload_available_at_phase3_run": candidate.get("payload_available_at_phase3_run", True), "payload_identity_recorded": bool(candidate.get("payloads") or candidate.get("payload_path")), "payload_reason": candidate.get("payload_reason"),
@@ -468,9 +482,9 @@ def rescore() -> dict[str, Any]:
             "recorded_public_tier1_passed": selected_marker["tier1_passed"],
             "real_dev_tier1_passed": False,
             "adapter_path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
-            "adapter_sha256": "28793e4a743cfb76441137d7b2580082b7034d8b2d930c4543c8c01e67329f88",
+            "adapter_sha256": _sha256(MARKER_ADAPTER_PATH),
             "adapter_test_path": "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs",
-            "adapter_test_sha256": "727df4878c0d60a7059d5090d90fd0705fabd1fd57f173577f5992d0fe6cd79c",
+            "adapter_test_sha256": _sha256(MARKER_ADAPTER_TEST_PATH),
         },
         "selected_adapter_compatibility": {"ocr": True, "marker": True},
         "recorded_public_detection_candidates_clear_tier1": selected_ocr["tier1_passed"] and selected_marker["tier1_passed"],

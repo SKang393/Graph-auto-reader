@@ -32,6 +32,13 @@ def _training_fixture(root: Path) -> tuple[Path, Path, Path]:
     config_path = Path("candidate.json")
     runner_path = Path("runner.py")
     ledger_path = root / CANONICAL_LEDGER_PATH
+    for policy_path in (
+        Path("ml/policy/evidence-policy.json"),
+        Path("ml/policy/acceptance-bars.json"),
+    ):
+        target = root / policy_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text('{"schema_version": 1}\n', encoding="utf-8")
     runner = root / runner_path
     config = root / config_path
     runner.write_text("# fixed runner\n", encoding="utf-8")
@@ -74,6 +81,13 @@ def _gate_fixture(root: Path) -> tuple[Path, Path, dict[str, object]]:
     source_path = Path("evaluator.py")
     split_path = Path("split.json")
     retired_path = root / "ml/markers/gate-seals/retired-historical-pairs.json"
+    for policy_path in (
+        Path("ml/policy/evidence-policy.json"),
+        Path("ml/policy/acceptance-bars.json"),
+    ):
+        target = root / policy_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text('{"schema_version": 1}\n', encoding="utf-8")
     (root / source_path).write_text("value = 1\n", encoding="utf-8")
     retired_path.parent.mkdir(parents=True, exist_ok=True)
     retired_path.write_text('{"schema_version": 1, "pairs": []}\n', encoding="utf-8")
@@ -94,7 +108,7 @@ def test_injected_type_error_voids_training_candidate_without_consuming(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     config_path, runner_path, _ = _training_fixture(tmp_path)
-    monkeypatch.setattr("ml.markers.training_budget.require_committed_sources", lambda *_a, **_k: None)
+    monkeypatch.setattr("ml.markers.gate_seal._current_base_commit", lambda *_a, **_k: "a" * 40)
     authorization = acquire_training_candidate(
         tmp_path,
         task="marker-center",
@@ -130,7 +144,7 @@ def test_training_candidate_consumes_only_when_explicitly_reading_sealed_split(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     config_path, runner_path, _ = _training_fixture(tmp_path)
-    monkeypatch.setattr("ml.markers.training_budget.require_committed_sources", lambda *_a, **_k: None)
+    monkeypatch.setattr("ml.markers.gate_seal._current_base_commit", lambda *_a, **_k: "a" * 40)
     authorization = acquire_training_candidate(
         tmp_path,
         task="marker-center",
@@ -146,11 +160,44 @@ def test_training_candidate_consumes_only_when_explicitly_reading_sealed_split(
         void_training_candidate(authorization, TypeError("too late"))
 
 
+def test_training_snapshot_binds_preregistration_and_rejects_changed_source(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config_path, runner_path, _ = _training_fixture(tmp_path)
+    monkeypatch.setattr("ml.markers.gate_seal._current_base_commit", lambda *_a, **_k: "a" * 40)
+
+    authorization = acquire_training_candidate(
+        tmp_path,
+        task="marker-center",
+        revision="test-v1",
+        candidate_id="P1",
+        config_path=config_path,
+        runner_source_paths=(runner_path,),
+    )
+
+    snapshot = json.loads(authorization.snapshot_path.read_text(encoding="utf-8"))
+    assert snapshot["base_commit"] == "a" * 40
+    assert snapshot["preregistered_ledger_entry"]["authorized_candidate_id"] == "P1"
+    assert {row["path"] for row in snapshot["sources"]} == {
+        "candidate.json",
+        "runner.py",
+        "ml/markers/training-budgets/production-repair-v1.json",
+        "ml/policy/acceptance-bars.json",
+        "ml/policy/evidence-policy.json",
+    }
+    assert authorization.binding["source_binding_mode"] == "immutable_pre_run_snapshot"
+
+    (tmp_path / runner_path).write_text("# changed runner\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="changed after snapshot capture: runner.py"):
+        consume_training_split(authorization)
+    assert not authorization.consumed_path.exists()
+
+
 def test_completed_dev_attempt_does_not_consume_or_block_retry(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     config_path, runner_path, _ = _training_fixture(tmp_path)
-    monkeypatch.setattr("ml.markers.training_budget.require_committed_sources", lambda *_a, **_k: None)
+    monkeypatch.setattr("ml.markers.gate_seal._current_base_commit", lambda *_a, **_k: "a" * 40)
     authorization = acquire_training_candidate(
         tmp_path,
         task="marker-center",
@@ -178,7 +225,7 @@ def test_injected_type_error_voids_gate_without_consuming(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     source_path, split_path, gate_config = _gate_fixture(tmp_path)
-    monkeypatch.setattr("ml.markers.gate_seal.require_committed_sources", lambda *_a, **_k: None)
+    monkeypatch.setattr("ml.markers.gate_seal._current_base_commit", lambda *_a, **_k: "a" * 40)
     seal = acquire_gate_seal(
         repo_root=tmp_path,
         task="marker-center",
@@ -221,7 +268,7 @@ def test_completed_dev_gate_does_not_consume_or_block_retry(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     source_path, split_path, gate_config = _gate_fixture(tmp_path)
-    monkeypatch.setattr("ml.markers.gate_seal.require_committed_sources", lambda *_a, **_k: None)
+    monkeypatch.setattr("ml.markers.gate_seal._current_base_commit", lambda *_a, **_k: "a" * 40)
     seal = acquire_gate_seal(
         repo_root=tmp_path,
         task="marker-center",
@@ -249,3 +296,26 @@ def test_completed_dev_gate_does_not_consume_or_block_retry(
     )
     assert retry.opened_path.exists()
     assert len(list((seal.directory / "dev-attempts").glob("*/result.json"))) == 1
+
+
+def test_gate_snapshot_rejects_split_change_before_sealed_read(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_path, split_path, gate_config = _gate_fixture(tmp_path)
+    monkeypatch.setattr("ml.markers.gate_seal._current_base_commit", lambda *_a, **_k: "b" * 40)
+    seal = acquire_gate_seal(
+        repo_root=tmp_path,
+        task="marker-center",
+        revision="test-v1",
+        candidate_hashes={"onnx_sha256": "b" * 64},
+        dataset_manifest_sha256="a" * 64,
+        split_config_path=split_path,
+        evaluator_source_paths=(source_path,),
+        gate_config=gate_config,
+    )
+
+    assert seal.binding["source_binding_mode"] == "immutable_pre_run_snapshot"
+    (tmp_path / split_path).write_text("{}\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="changed after snapshot capture: split.json"):
+        consume_gate_split(seal)
+    assert not seal.consumed_path.exists()

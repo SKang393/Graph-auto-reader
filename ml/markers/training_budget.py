@@ -14,9 +14,10 @@ from uuid import uuid4
 
 from ml.markers.gate_seal import (
     canonical_json_bytes,
-    require_committed_sources,
+    capture_source_snapshot,
     sha256_file,
     source_bundle_sha256,
+    verify_bound_source_snapshot,
 )
 from ml.policy.evidence_policy import evidence_policy_reference
 
@@ -29,6 +30,8 @@ class TrainingAuthorization:
     directory: Path
     opened_path: Path
     binding: dict[str, object]
+    repo_root: Path | None = None
+    snapshot_path: Path | None = None
 
     @property
     def consumed_path(self) -> Path:
@@ -46,6 +49,12 @@ class TrainingAuthorization:
             raise RuntimeError("Training candidate sealed split was already consumed")
         if (self.directory / "void.json").exists():
             raise RuntimeError("Training candidate was voided before sealed-split read")
+        if self.repo_root is not None and self.snapshot_path is not None:
+            verify_bound_source_snapshot(
+                self.repo_root,
+                self.snapshot_path,
+                self.binding.get("source_snapshot_sha256"),
+            )
         payload = {
             "schema_version": 1,
             "status": "consumed",
@@ -69,7 +78,6 @@ def require_training_budget(repo_root: Path, *, task: str, revision: str) -> Non
     ledger_path = repo_root / CANONICAL_LEDGER_PATH
     if not ledger_path.is_file():
         raise RuntimeError(f"Canonical marker training-budget ledger is missing: {ledger_path}")
-    require_committed_sources(repo_root, (CANONICAL_LEDGER_PATH,))
     ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
     match = next(
         (
@@ -102,7 +110,6 @@ def acquire_training_candidate(
 ) -> TrainingAuthorization:
     ledger_path = repo_root / CANONICAL_LEDGER_PATH
     evidence_paths = (CANONICAL_LEDGER_PATH, config_path, *runner_source_paths)
-    require_committed_sources(repo_root, evidence_paths)
     ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
     entry = next(
         (
@@ -154,12 +161,26 @@ def acquire_training_candidate(
         archive.mkdir(parents=True, exist_ok=True)
         shutil.move(str(prior_opened), str(archive / "opened.json"))
         shutil.move(str(prior_result), str(archive / "result.json"))
+        prior_snapshot = directory / "source-snapshot.json"
+        if prior_snapshot.exists():
+            shutil.move(str(prior_snapshot), str(archive / "source-snapshot.json"))
     prior_void = directory / "void.json"
     if prior_void.exists() and not (directory / "opened.json").exists() and not (directory / "consumed.json").exists():
         archive = directory / "void-attempts" / uuid4().hex
         archive.mkdir(parents=True, exist_ok=True)
         shutil.move(str(prior_void), str(archive / "void.json"))
     opened_path = directory / "opened.json"
+    snapshot_path = directory / "source-snapshot.json"
+    if opened_path.exists() or snapshot_path.exists():
+        raise RuntimeError(f"Training candidate was already opened: {task}/{revision}/{candidate_id}")
+    snapshot = capture_source_snapshot(
+        repo_root,
+        identity={"task": task, "revision": revision, "candidate_id": candidate_id},
+        paths=evidence_paths,
+        preregistration=entry,
+    )
+    with snapshot_path.open("xb") as stream:
+        stream.write(canonical_json_bytes(snapshot))
     binding: dict[str, object] = {
         "task": task,
         "revision": revision,
@@ -170,7 +191,10 @@ def acquire_training_candidate(
         "runner_source_bundle_sha256": runner_sha256,
         "training_budget_ledger_sha256": sha256_file(ledger_path),
         "evidence_policy": evidence_policy_reference(),
-        "committed_source_enforcement": True,
+        "source_snapshot_path": snapshot_path.relative_to(repo_root).as_posix(),
+        "source_snapshot_sha256": sha256_file(snapshot_path),
+        "source_binding_mode": "immutable_pre_run_snapshot",
+        "base_commit": snapshot["base_commit"],
     }
     opened = {
         "schema_version": 1,
@@ -184,7 +208,7 @@ def acquire_training_candidate(
             stream.write(canonical_json_bytes(opened))
     except FileExistsError as error:
         raise RuntimeError(f"Training candidate was already opened: {task}/{revision}/{candidate_id}") from error
-    return TrainingAuthorization(directory, opened_path, binding)
+    return TrainingAuthorization(directory, opened_path, binding, repo_root, snapshot_path)
 
 
 def consume_sealed_split(authorization: TrainingAuthorization) -> Path:
@@ -225,6 +249,8 @@ def void_candidate(
         archive = authorization.directory / "void-attempts" / uuid4().hex
         archive.mkdir(parents=True, exist_ok=True)
         shutil.move(str(authorization.opened_path), str(archive / "opened.json"))
+        if authorization.snapshot_path is not None and authorization.snapshot_path.exists():
+            shutil.move(str(authorization.snapshot_path), str(archive / "source-snapshot.json"))
     return void_path
 
 
@@ -234,6 +260,12 @@ def complete_training_candidate(
     status: str,
     report_sha256: str,
 ) -> Path:
+    if authorization.repo_root is not None and authorization.snapshot_path is not None:
+        verify_bound_source_snapshot(
+            authorization.repo_root,
+            authorization.snapshot_path,
+            authorization.binding.get("source_snapshot_sha256"),
+        )
     result_path = authorization.directory / "result.json"
     result = {
         "schema_version": 1,

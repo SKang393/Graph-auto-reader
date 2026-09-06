@@ -17,6 +17,12 @@ from uuid import uuid4
 from ml.policy.evidence_policy import evidence_policy_reference, split_rule
 
 
+POLICY_SOURCE_PATHS = (
+    Path("ml/policy/evidence-policy.json"),
+    Path("ml/policy/acceptance-bars.json"),
+)
+
+
 def canonical_json_bytes(value: object) -> bytes:
     return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
 
@@ -36,6 +42,82 @@ def source_bundle_sha256(repo_root: Path, paths: Sequence[Path]) -> str:
         relative = resolved.relative_to(repo_root).as_posix()
         rows.append(f"{relative}={sha256_file(resolved)}\n")
     return sha256_bytes("".join(rows).encode("utf-8"))
+
+
+def _current_base_commit(repo_root: Path) -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo_root,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    commit = result.stdout.strip()
+    if result.returncode != 0 or len(commit) != 40:
+        raise RuntimeError("Evidence snapshot requires a repository with a valid HEAD commit")
+    return commit
+
+
+def capture_source_snapshot(
+    repo_root: Path,
+    *,
+    identity: Mapping[str, object],
+    paths: Sequence[Path],
+    preregistration: Mapping[str, object] | None = None,
+    inline_hashes: Mapping[str, str] | None = None,
+) -> dict[str, object]:
+    """Bind an attempt to exact pre-run bytes without requiring a preparation commit."""
+
+    rows: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for path in sorted((*paths, *POLICY_SOURCE_PATHS), key=lambda item: item.as_posix()):
+        resolved = path if path.is_absolute() else repo_root / path
+        try:
+            relative = resolved.resolve().relative_to(repo_root.resolve()).as_posix()
+        except ValueError as error:
+            raise RuntimeError(f"Evidence source is outside the repository: {path}") from error
+        if relative in seen:
+            continue
+        if not resolved.is_file():
+            raise RuntimeError(f"Evidence source is missing: {relative}")
+        seen.add(relative)
+        rows.append({"path": relative, "sha256": sha256_file(resolved)})
+    snapshot: dict[str, object] = {
+        "schema_version": 1,
+        "captured_utc": datetime.now(timezone.utc).isoformat(),
+        "base_commit": _current_base_commit(repo_root),
+        "identity": dict(identity),
+        "sources": rows,
+        "inline_hashes": dict(sorted((inline_hashes or {}).items())),
+    }
+    if preregistration is not None:
+        snapshot["preregistered_ledger_entry"] = dict(preregistration)
+    return snapshot
+
+
+def verify_source_snapshot(repo_root: Path, snapshot: Mapping[str, object]) -> None:
+    sources = snapshot.get("sources")
+    if not isinstance(sources, list) or not sources:
+        raise RuntimeError("Evidence source snapshot has no bound sources")
+    for row in sources:
+        if not isinstance(row, dict) or not isinstance(row.get("path"), str) or not isinstance(row.get("sha256"), str):
+            raise RuntimeError("Evidence source snapshot contains an invalid source row")
+        path = repo_root / row["path"]
+        if not path.is_file() or sha256_file(path) != row["sha256"]:
+            raise RuntimeError(f"Evidence source changed after snapshot capture: {row['path']}")
+
+
+def verify_bound_source_snapshot(
+    repo_root: Path,
+    snapshot_path: Path,
+    expected_sha256: object,
+) -> None:
+    if not isinstance(expected_sha256, str) or sha256_file(snapshot_path) != expected_sha256:
+        raise RuntimeError("Evidence source snapshot changed after capture")
+    verify_source_snapshot(
+        repo_root,
+        json.loads(snapshot_path.read_text(encoding="utf-8")),
+    )
 
 
 def require_committed_sources(repo_root: Path, paths: Sequence[Path]) -> None:
@@ -61,6 +143,8 @@ class GateSeal:
     directory: Path
     opened_path: Path
     binding: dict[str, object]
+    repo_root: Path | None = None
+    snapshot_path: Path | None = None
 
     @property
     def consumed_path(self) -> Path:
@@ -75,6 +159,12 @@ class GateSeal:
             raise RuntimeError(f"Gate sealed split was already consumed: {self.key}")
         if (self.directory / "void.json").exists():
             raise RuntimeError(f"Gate was voided before sealed-split read: {self.key}")
+        if self.repo_root is not None and self.snapshot_path is not None:
+            verify_bound_source_snapshot(
+                self.repo_root,
+                self.snapshot_path,
+                self.binding.get("source_snapshot_sha256"),
+            )
         payload = {
             "schema_version": 1,
             "status": "consumed",
@@ -137,7 +227,6 @@ def acquire_gate_seal(
         split_config_path,
         retired_path.relative_to(repo_root),
     )
-    require_committed_sources(repo_root, source_paths)
     split_config = json.loads((repo_root / split_config_path).read_text(encoding="utf-8"))
     split_rule(evidence_split)
     expected_task = split_config.get("task")
@@ -220,12 +309,35 @@ def acquire_gate_seal(
         archive.mkdir(parents=True, exist_ok=True)
         shutil.move(str(prior_opened), str(archive / "opened.json"))
         shutil.move(str(prior_result), str(archive / "result.json"))
+        prior_snapshot = directory / "source-snapshot.json"
+        if prior_snapshot.exists():
+            shutil.move(str(prior_snapshot), str(archive / "source-snapshot.json"))
     prior_void = directory / "void.json"
     if prior_void.exists() and not (directory / "opened.json").exists() and not (directory / "consumed.json").exists():
         archive = directory / "void-attempts" / uuid4().hex
         archive.mkdir(parents=True, exist_ok=True)
         shutil.move(str(prior_void), str(archive / "void.json"))
     opened_path = directory / "opened.json"
+    snapshot_path = directory / "source-snapshot.json"
+    if opened_path.exists() or snapshot_path.exists():
+        raise RuntimeError(f"Gate candidate/revision pair was already opened: {key}")
+    snapshot = capture_source_snapshot(
+        repo_root,
+        identity={"task": task, "revision": revision, "gate_key": key},
+        paths=source_paths,
+        inline_hashes={
+            "candidate_hashes": sha256_bytes(canonical_json_bytes(dict(sorted(candidate_hashes.items())))),
+            "dataset_manifest": dataset_manifest_sha256,
+            "gate_config": gate_config_sha256,
+        },
+    )
+    with snapshot_path.open("xb") as stream:
+        stream.write(canonical_json_bytes(snapshot))
+    binding["source_snapshot_path"] = snapshot_path.relative_to(repo_root).as_posix()
+    binding["source_snapshot_sha256"] = sha256_file(snapshot_path)
+    binding["source_binding_mode"] = "immutable_pre_run_snapshot"
+    binding["base_commit"] = snapshot["base_commit"]
+    binding.pop("committed_source_enforcement", None)
     opened = {
         "schema_version": 1,
         "status": "opened",
@@ -240,7 +352,7 @@ def acquire_gate_seal(
             stream.write(canonical_json_bytes(opened))
     except FileExistsError as error:
         raise RuntimeError(f"Gate candidate/revision pair was already opened: {key}") from error
-    return GateSeal(key, directory, opened_path, binding)
+    return GateSeal(key, directory, opened_path, binding, repo_root, snapshot_path)
 
 
 def consume_sealed_split(seal: GateSeal) -> Path:
@@ -275,6 +387,8 @@ def void_candidate(seal: GateSeal, exception: BaseException) -> Path:
         archive = seal.directory / "void-attempts" / uuid4().hex
         archive.mkdir(parents=True, exist_ok=True)
         shutil.move(str(seal.opened_path), str(archive / "opened.json"))
+        if seal.snapshot_path is not None and seal.snapshot_path.exists():
+            shutil.move(str(seal.snapshot_path), str(archive / "source-snapshot.json"))
     return void_path
 
 
@@ -284,6 +398,12 @@ def complete_gate_seal(seal: GateSeal, *, status: str, report_sha256: str) -> Pa
         raise RuntimeError("Sealed split must be consumed at first read before gate completion")
     if evidence_split == "dev" and seal.consumed_path.exists():
         raise RuntimeError("Dev split must not consume gate budget")
+    if seal.repo_root is not None and seal.snapshot_path is not None:
+        verify_bound_source_snapshot(
+            seal.repo_root,
+            seal.snapshot_path,
+            seal.binding.get("source_snapshot_sha256"),
+        )
     result_path = seal.directory / "result.json"
     result = {
         "schema_version": 1,
@@ -306,6 +426,7 @@ __all__ = [
     "GateSeal",
     "acquire_gate_seal",
     "canonical_json_bytes",
+    "capture_source_snapshot",
     "consume_sealed_split",
     "complete_gate_seal",
     "require_evaluator_identity",
@@ -313,5 +434,7 @@ __all__ = [
     "sha256_bytes",
     "sha256_file",
     "source_bundle_sha256",
+    "verify_source_snapshot",
+    "verify_bound_source_snapshot",
     "void_candidate",
 ]

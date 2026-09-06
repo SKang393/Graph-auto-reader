@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -68,11 +69,14 @@ def test_sealed_execution_policy_is_cpu_only_and_optimization_disabled() -> None
 
 
 def test_all_revision_protocols_reference_the_shared_policy() -> None:
-    protocols = sorted(
-        path
-        for root in (REPO_ROOT / "ml/ocr", REPO_ROOT / "ml/markers")
-        for path in root.rglob("protocol.py")
-    )
+    tracked = subprocess.run(
+        ["git", "ls-files", "ml/ocr/**/protocol.py", "ml/markers/**/protocol.py"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout.splitlines()
+    protocols = [REPO_ROOT / path for path in tracked]
 
     assert protocols
     missing = [
@@ -84,11 +88,14 @@ def test_all_revision_protocols_reference_the_shared_policy() -> None:
 
 
 def test_revision_protocols_do_not_override_dev_inspection_policy() -> None:
-    protocols = [
-        path
-        for root in (REPO_ROOT / "ml/ocr", REPO_ROOT / "ml/markers")
-        for path in root.rglob("protocol.py")
-    ]
+    tracked = subprocess.run(
+        ["git", "ls-files", "ml/ocr/**/protocol.py", "ml/markers/**/protocol.py"],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        check=True,
+        text=True,
+    ).stdout.splitlines()
+    protocols = [REPO_ROOT / path for path in tracked]
 
     stale = [
         path.relative_to(REPO_ROOT).as_posix()

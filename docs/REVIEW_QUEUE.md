@@ -59,7 +59,12 @@ Items stay here until resolved. Newest items are appended last.
 - **Blocks:** OCR V39 candidate creation and OCR production approval
 - **Effort:** about 10 minutes
 - **Action:** choose whether the production workflow may add a raster-derived
-  structural provider before OCR to estimate marker and connecting-line masks
+  structural provider before OCR. The proposed internal provider consumes only
+  immutable Gray8 raster evidence plus the existing axis/tick/divider mask and
+  emits marker-like blob and thin-connector probability masks in original
+  pixels. It cannot consume OCR boxes, marker results, connections, or truth.
+  Approval includes requiring synthetic text-preservation precision/recall tests
+  before the provider can enter the Production composition.
 - **Why:** V38 attributes 40,722 false-positive pixels to marker or connecting
   lines, but marker centers and connection graphs currently run after OCR;
   available axis, tick, and divider geometry is already masked
@@ -68,6 +73,24 @@ Items stay here until resolved. Newest items are appended last.
   [current readiness](1.0-READINESS.md)
 - **Unblocks when:** the maintainer approves one pre-OCR input contract or
   explicitly rejects this direction
+
+## REV-006 — define which executions advance the build ledger
+
+- **Status:** open
+- **Blocks:** Goal 22 integrated portable build and any claim that every build
+  is accounted for
+- **Effort:** about 5 minutes
+- **Action:** confirm whether the version rule applies only to packaged or
+  runnable application artifacts, or also to compiler outputs produced by local
+  tests and CI
+- **Why:** `VERSIONING.md` says every produced build advances the version, while
+  routine validation compiles test binaries many times. Counting every test or
+  CI compilation would require a different ledger workflow than the existing
+  portable-build ledger.
+- **Files:** [versioning policy](../VERSIONING.md),
+  [current readiness](1.0-READINESS.md),
+  [build ledger](BUILD_LEDGER.json)
+- **Unblocks when:** the maintainer defines the ledger unit in one sentence
 
 ## REV-005 — renew Git write approval after service failure
 

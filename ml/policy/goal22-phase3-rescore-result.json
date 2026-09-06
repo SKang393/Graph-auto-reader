@@ -37,6 +37,7 @@
         "marker_center_recall": true,
         "prohibited_structure_hit_rate": true
       },
+      "ledger_entry_sha256": "87ab2e662531772af92529a92dd69269522134f4cd5132c283b85930ded6d1bd",
       "metrics": {
         "detected_region_count": 19,
         "exact_scene_count": 2,
@@ -55,7 +56,6 @@
       "payload_reason": "No selected production-repair-v2 P3 payload is present in the current promotion context.",
       "payloads": [],
       "result_path": "ml/markers/training-budgets/production-repair-v1.json",
-      "result_sha256": "518f0289dbaba81ef7740774b660e7d0a0fb8997035158eec1b5ba8f473f2009",
       "revision": "marker-center-production-repair-v2",
       "selected_threshold": 0.2,
       "task": "marker-center",
@@ -69,6 +69,7 @@
         "marker_center_recall": true,
         "prohibited_structure_hit_rate": true
       },
+      "ledger_entry_sha256": "08159eca15106683dd3272d8f51b0df9497d618fecb4e4946bc532f2107f92af",
       "metrics": {
         "detected_region_count": 168,
         "exact_scene_count": 20,
@@ -87,7 +88,6 @@
       "payload_reason": "Public aggregate is recorded, but no payload is eligible for this rescore selection.",
       "payloads": [],
       "result_path": "ml/markers/training-budgets/production-repair-v1.json",
-      "result_sha256": "518f0289dbaba81ef7740774b660e7d0a0fb8997035158eec1b5ba8f473f2009",
       "revision": "marker-center-normalized-training-v4",
       "selected_threshold": 0.6,
       "task": "marker-center",
@@ -101,6 +101,7 @@
         "marker_center_recall": true,
         "prohibited_structure_hit_rate": true
       },
+      "ledger_entry_sha256": "fd14d09904b72cd9411ea5563fd0a5700d301357e549848fb296254afba1f110",
       "metrics": {
         "detected_region_count": 167,
         "exact_scene_count": 13,
@@ -125,7 +126,6 @@
         }
       ],
       "result_path": "ml/markers/training-budgets/production-repair-v1.json",
-      "result_sha256": "518f0289dbaba81ef7740774b660e7d0a0fb8997035158eec1b5ba8f473f2009",
       "revision": "marker-center-runtime-consistency-v2",
       "selected_threshold": 0.25,
       "task": "marker-center",
@@ -495,9 +495,9 @@
   "selected_detection_candidates_clear_current_tier1": false,
   "selected_marker": {
     "adapter_path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
-    "adapter_sha256": "28793e4a743cfb76441137d7b2580082b7034d8b2d930c4543c8c01e67329f88",
+    "adapter_sha256": "b33d4d9e634b8251603be4fdbc2c7070512596f4f9723e6b6ce3ef83fbfeecf1",
     "adapter_test_path": "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs",
-    "adapter_test_sha256": "727df4878c0d60a7059d5090d90fd0705fabd1fd57f173577f5992d0fe6cd79c",
+    "adapter_test_sha256": "b8467d5be0910af7db0de7146c241b4bf5f0da20c090500d401aba4066b3d24b",
     "candidate_id": "P2",
     "real_dev_tier1_passed": false,
     "recorded_public_tier1_passed": true,

@@ -3,6 +3,8 @@
 
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
+using System.IO;
+using System.Text.Json;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.Inference;
 using GraphReader.Markers.Detection;
@@ -137,6 +139,82 @@ public sealed class ProductionMarkerArtifactMaskAdapterTests
     }
 
     [TestMethod]
+    public void DirectEvidenceAcceptsTier1MetricsWithoutExactScenes()
+    {
+        string evidencePath = WriteGateEvidence(
+            markerPrecision: 0.95,
+            markerRecall: 0.95,
+            prohibitedHitRate: 0.01,
+            includeQualityMetrics: true);
+        try
+        {
+            ProductionArtifactMaskGateEvidence evidence =
+                ProductionMarkerArtifactMaskAdapter.ReadDirectGateEvidence(
+                    evidencePath,
+                    new string('a', 64));
+
+            Assert.AreEqual(0, evidence.ExactFixtureCount);
+            Assert.AreEqual(0.95, evidence.MarkerPrecision, 0.0000001);
+            Assert.AreEqual(0.95, evidence.MarkerRecall, 0.0000001);
+            Assert.AreEqual(0.01, evidence.ProhibitedStructureHitRate, 0.0000001);
+            Assert.IsFalse(evidence.LegacyApprovalCompatibility);
+        }
+        finally
+        {
+            File.Delete(evidencePath);
+        }
+    }
+
+    [TestMethod]
+    public void DirectEvidenceRejectsBelowTier1Metric()
+    {
+        string evidencePath = WriteGateEvidence(
+            markerPrecision: 0.949,
+            markerRecall: 0.95,
+            prohibitedHitRate: 0.01,
+            includeQualityMetrics: true);
+        try
+        {
+            InvalidDataException exception = Assert.ThrowsExactly<InvalidDataException>(() =>
+                ProductionMarkerArtifactMaskAdapter.ReadDirectGateEvidence(
+                    evidencePath,
+                    new string('a', 64)));
+
+            StringAssert.Contains(exception.Message, "shared Tier 1 bars");
+        }
+        finally
+        {
+            File.Delete(evidencePath);
+        }
+    }
+
+    [TestMethod]
+    public void DirectEvidenceRetainsHistoricalExactPayloadCompatibility()
+    {
+        string evidencePath = WriteGateEvidence(
+            markerPrecision: null,
+            markerRecall: null,
+            prohibitedHitRate: null,
+            includeQualityMetrics: false);
+        try
+        {
+            ProductionArtifactMaskGateEvidence evidence =
+                ProductionMarkerArtifactMaskAdapter.ReadDirectGateEvidence(
+                    evidencePath,
+                    new string('a', 64));
+
+            Assert.IsTrue(evidence.LegacyApprovalCompatibility);
+            Assert.AreEqual(1d, evidence.MarkerPrecision);
+            Assert.AreEqual(1d, evidence.MarkerRecall);
+            Assert.AreEqual(0d, evidence.ProhibitedStructureHitRate);
+        }
+        finally
+        {
+            File.Delete(evidencePath);
+        }
+    }
+
+    [TestMethod]
     [DoNotParallelize]
     public void ProductionSizeSeedFramesReuseImmutableFullResolutionPlanes()
     {
@@ -266,6 +344,138 @@ public sealed class ProductionMarkerArtifactMaskAdapterTests
                 new MemoryDiagnostics(0, 0, 0, 0, output.Length)),
             null,
             [new ProviderAttempt(provider, true, null)]);
+
+    private static string WriteGateEvidence(
+        double? markerPrecision,
+        double? markerRecall,
+        double? prohibitedHitRate,
+        bool includeQualityMetrics)
+    {
+        string[] fixtureIds = ["fixture-01", "fixture-02", "fixture-03"];
+        byte[] evaluatorBytes = File.ReadAllBytes(Path.Combine(
+            FindRepositoryRoot(),
+            "ml",
+            "markers",
+            "center",
+            "artifact_mask_public_gate.py"));
+        string evaluatorSha256 = Convert.ToHexStringLower(SHA256.HashData(evaluatorBytes));
+        var dataset = new Dictionary<string, object?>
+        {
+            ["schema"] = "graphreader.marker-artifact-mask-dataset.v1",
+            ["scope"] = "public_synthetic",
+            ["private_data"] = false,
+            ["chandler_used"] = false,
+            ["seed"] = 393,
+            ["fixtures"] = fixtureIds.Select(id => new Dictionary<string, object?>
+            {
+                ["fixture_id"] = id,
+                ["family"] = id,
+                ["image_sha256"] = HashText($"image:{id}"),
+                ["ground_truth_sha256"] = HashText($"truth:{id}"),
+            }).ToArray(),
+        };
+        byte[] datasetBytes = JsonSerializer.SerializeToUtf8Bytes(dataset);
+        string datasetSha256 = Convert.ToHexStringLower(SHA256.HashData(datasetBytes));
+        var splitSeal = new Dictionary<string, object?>
+        {
+            ["schema"] = "graphreader.marker-artifact-mask-split-seal.v1",
+            ["profile"] = ProductionMarkerArtifactMaskAdapter.ApprovalBenchmarkProfile,
+            ["sealed"] = true,
+            ["selection_locked_before_inference"] = true,
+            ["private_data"] = false,
+            ["chandler_used"] = false,
+            ["dataset_manifest_sha256"] = datasetSha256,
+            ["evaluator_source_sha256"] = evaluatorSha256,
+            ["fixture_count"] = fixtureIds.Length,
+            ["fixture_ids"] = fixtureIds,
+        };
+        byte[] splitBytes = JsonSerializer.SerializeToUtf8Bytes(splitSeal);
+        string splitSha256 = Convert.ToHexStringLower(SHA256.HashData(splitBytes));
+        static Dictionary<string, int> Hits(int axis = 0) => new()
+        {
+            ["text"] = 0,
+            ["axis"] = axis,
+            ["tick"] = 0,
+            ["divider"] = 0,
+            ["bracket"] = 0,
+            ["arrow_shaft"] = 0,
+            ["arrowhead"] = 0,
+            ["legend"] = 0,
+            ["line_intersection"] = 0,
+        };
+        var report = new Dictionary<string, object?>
+        {
+            ["schema"] = "graphreader.marker-artifact-mask-gate.v1",
+            ["profile"] = ProductionMarkerArtifactMaskAdapter.ApprovalBenchmarkProfile,
+            ["status"] = "pass",
+            ["scope"] = "public_synthetic_sealed",
+            ["provider"] = "cpu",
+            ["seed_mask_scope"] = ProductionMarkerArtifactMaskAdapter.SeedMaskScope,
+            ["coordinate_space"] = "original_pixels",
+            ["release_eligible"] = true,
+            ["production_approval"] = true,
+            ["private_data"] = false,
+            ["chandler_used"] = false,
+            ["model_sha256"] = new string('a', 64),
+            ["fixture_count"] = 3,
+            ["exact_fixture_count"] = includeQualityMetrics ? 0 : 3,
+            ["downstream_false_positive_count"] = includeQualityMetrics ? 3 : 0,
+            ["downstream_false_negative_count"] = includeQualityMetrics ? 3 : 0,
+            ["downstream_duplicate_count"] = includeQualityMetrics ? 1 : 0,
+            ["prohibited_structure_hits"] = Hits(axis: includeQualityMetrics ? 1 : 0),
+            ["fixture_results"] = fixtureIds.Select((id, index) => new Dictionary<string, object?>
+            {
+                ["fixture_id"] = id,
+                ["exact_count"] = !includeQualityMetrics,
+                ["false_positive_count"] = includeQualityMetrics ? 1 : 0,
+                ["false_negative_count"] = includeQualityMetrics ? 1 : 0,
+                ["duplicate_count"] = includeQualityMetrics && index == 0 ? 1 : 0,
+                ["prohibited_structure_hits"] = Hits(axis: includeQualityMetrics && index == 0 ? 1 : 0),
+            }).ToArray(),
+            ["reviewed_resources"] = new Dictionary<string, object?>
+            {
+                ["dataset_manifest"] = Embedded("application/json", datasetBytes, datasetSha256),
+                ["evaluator_source"] = Embedded("text/x-python", evaluatorBytes, evaluatorSha256),
+                ["split_seal"] = Embedded("application/json", splitBytes, splitSha256),
+            },
+        };
+        if (includeQualityMetrics)
+        {
+            report["artifact_precision"] = markerPrecision;
+            report["artifact_recall"] = markerRecall;
+            report["prohibited_structure_hit_rate"] = prohibitedHitRate;
+        }
+
+        string path = Path.Combine(Path.GetTempPath(), $"graphreader-artifact-mask-{Guid.NewGuid():N}.json");
+        File.WriteAllBytes(path, JsonSerializer.SerializeToUtf8Bytes(report));
+        return path;
+    }
+
+    private static Dictionary<string, object?> Embedded(
+        string mediaType,
+        byte[] bytes,
+        string sha256) => new()
+        {
+            ["media_type"] = mediaType,
+            ["encoding"] = "base64",
+            ["sha256"] = sha256,
+            ["content_base64"] = Convert.ToBase64String(bytes),
+        };
+
+    private static string HashText(string value) =>
+        Convert.ToHexStringLower(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value)));
+
+    private static string FindRepositoryRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null &&
+               !File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName ?? throw new DirectoryNotFoundException("Repository root not found.");
+    }
 
     private sealed record TestContextData(
         ProductionWorkflowDetectionRequest Request,

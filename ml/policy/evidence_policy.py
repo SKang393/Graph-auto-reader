@@ -12,6 +12,7 @@ from typing import Any
 
 
 POLICY_PATH = Path(__file__).with_name("evidence-policy.json")
+ACCEPTANCE_BARS_PATH = Path(__file__).with_name("acceptance-bars.json")
 POLICY_REPOSITORY_PATH = "ml/policy/evidence-policy.json"
 
 
@@ -49,6 +50,16 @@ def load_evidence_policy() -> dict[str, Any]:
     """Return an independent copy of the checked authoritative policy."""
 
     return deepcopy(_read_policy())
+
+
+def tier1_acceptance_bars() -> dict[str, Any]:
+    """Return the canonical reviewable-error thresholds."""
+
+    document = json.loads(ACCEPTANCE_BARS_PATH.read_text(encoding="utf-8"))
+    bars = document.get("tier1_reviewable_error")
+    if not isinstance(bars, dict):
+        raise ValueError("acceptance bars must define tier1_reviewable_error")
+    return deepcopy(bars)
 
 
 def evidence_policy_reference() -> dict[str, object]:
@@ -104,6 +115,7 @@ def classify_candidate_failure(*, sealed_read_started: bool) -> str:
 
 __all__ = [
     "POLICY_PATH",
+    "ACCEPTANCE_BARS_PATH",
     "POLICY_REPOSITORY_PATH",
     "classify_candidate_failure",
     "consumes_candidate_budget",
@@ -112,4 +124,5 @@ __all__ = [
     "execution_provider_rule",
     "load_evidence_policy",
     "split_rule",
+    "tier1_acceptance_bars",
 ]

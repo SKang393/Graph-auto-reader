@@ -5,6 +5,7 @@
 TASK = "marker-center"
 REVISION = "marker-center-multiradius-geometry-v23"
 CANDIDATE_ID = "P1"
+EVIDENCE_POLICY_PATH = "ml/policy/evidence-policy.json"
 V21_RESULT_PATH = "ml/markers/center/focal_confidence_v21/P1_RESULT.json"
 V21_RESULT_SHA256 = "a78710ee13da02ec45c26a216524a90b261b0fbc17017491d525a59fe9ecdacb"
 V21_DIAGNOSTIC_PATH = "ml/markers/center/focal_confidence_v21/diagnostics/V21_DIAGNOSTIC.json"
