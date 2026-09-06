@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\GraphReader.App\GraphReader.App.csproj" />
+    <ProjectReference Include="..\..\src\GraphReader.Export\GraphReader.Export.csproj" />
     <ProjectReference Include="..\..\src\GraphReader.Markers\GraphReader.Markers.csproj" />
     <ProjectReference Include="..\..\src\GraphReader.Ocr\GraphReader.Ocr.csproj" />
     <ProjectReference Include="..\..\src\GraphReader.Inference\GraphReader.Inference.csproj" />

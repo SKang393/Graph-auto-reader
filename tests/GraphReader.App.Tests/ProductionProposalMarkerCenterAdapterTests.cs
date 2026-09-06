@@ -175,6 +175,55 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
     }
 
     [TestMethod]
+    public async Task ApprovedV24PathProducesCpuBoundWorkflowEvidence()
+    {
+        var runner = new FakeRunner(static count => Enumerable.Repeat(1f, count * 4).ToArray());
+        var adapter = CreateMaskPreservingAdapter(runner, isApproved: true);
+        ProductionWorkflowDetectionRequest request = CreateRequest();
+
+        ProductionMarkerCenterEvidence evidence = await adapter.DetectAsync(
+            request,
+            FrameWithMarkers(),
+            MarkerPolygon.FromRectangle(new(0, 0, 512, 512)),
+            enhancedImage: null,
+            enhancedTransforms: null,
+            CancellationToken.None);
+
+        Assert.IsTrue(adapter.IsApproved);
+        Assert.AreEqual("markers", evidence.Envelope.Stage);
+        Assert.AreEqual("cpu", evidence.Envelope.Model?.Provider);
+        Assert.AreEqual(request.Image.Sha256, evidence.Envelope.InputSha256);
+        Assert.IsTrue(evidence.Markers.Count > 0);
+        Assert.AreEqual(1, evidence.Frames.Count);
+        Assert.AreEqual(InferenceProvider.Cpu, evidence.Frames[0].Provider);
+        Assert.AreEqual(evidence.Markers.Count, evidence.Frames[0].AcceptedCandidateCount);
+        Assert.IsTrue(runner.TotalCalls > 0);
+    }
+
+    [TestMethod]
+    public async Task ApprovedV24PathRejectsTransformedOrEnhancedFramesBeforeInference()
+    {
+        var runner = new FakeRunner(static count => Enumerable.Repeat(1f, count * 4).ToArray());
+        var adapter = CreateMaskPreservingAdapter(runner, isApproved: true);
+        MarkerImageFrame transformed = FrameWithMarkers() with
+        {
+            OriginalToFrame = new MarkerAffineTransform(1, 0, 1, 0, 1, 0),
+        };
+
+        ProductionWorkflowStageException exception =
+            await Assert.ThrowsAsync<ProductionWorkflowStageException>(() => adapter.DetectAsync(
+                CreateRequest(),
+                transformed,
+                MarkerPolygon.FromRectangle(new(0, 0, 512, 512)),
+                enhancedImage: null,
+                enhancedTransforms: null,
+                CancellationToken.None));
+
+        Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, exception.Failure.Code);
+        Assert.AreEqual(0, runner.TotalCalls);
+    }
+
+    [TestMethod]
     public async Task CancellationStopsBeforeInference()
     {
         var runner = new FakeRunner(static count => Enumerable.Repeat(1f, count * 4).ToArray());
@@ -415,7 +464,9 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             maximumDecodedCandidates: maximumDecodedCandidates,
             multiradiusGeometry: true);
 
-    private static ProductionProposalMarkerCenterAdapter CreateMaskPreservingAdapter(FakeRunner runner) =>
+    private static ProductionProposalMarkerCenterAdapter CreateMaskPreservingAdapter(
+        FakeRunner runner,
+        bool isApproved = false) =>
         new(new ModelIdentity(
             ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
             ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
@@ -423,7 +474,8 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             "candidate-v24.onnx"),
             runner,
             multiradiusGeometry: true,
-            maskPreservingCandidate: true);
+            maskPreservingCandidate: true,
+            isApproved: isApproved);
 
     private static MarkerImageFrame FrameWithMarkers()
     {

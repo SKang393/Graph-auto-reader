@@ -3,6 +3,8 @@
 
 using System.IO;
 using System.Security.Cryptography;
+using System.Diagnostics;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using GraphReader.Inference;
 using GraphReader.Markers.Detection;
@@ -72,9 +74,9 @@ public sealed record ProposalMarkerMorphologyScoreSummary(
     int MaximumRingSupportCount);
 
 /// <summary>
-/// Candidate-only integration for the checksum-bound runtime-consistency-v2 P2
-/// proposal payload. It is intentionally never composed into production unless
-/// a future maintainer supplies an explicit approval boundary.
+/// Checksum-bound proposal-marker integration. Candidate factories remain
+/// unapproved. The production factory can only be reached through a model that
+/// the production store has already resolved as CPU-approved.
 /// </summary>
 public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCenterAdapter
 {
@@ -139,12 +141,45 @@ public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCen
             maskPreservingCandidate: true);
     }
 
+    public static ProductionProposalMarkerCenterAdapter Create(
+        ResolvedProductionModel resolvedModel,
+        ProductionInferenceRuntimeHost runtimeHost)
+    {
+        ArgumentNullException.ThrowIfNull(resolvedModel);
+        ArgumentNullException.ThrowIfNull(runtimeHost);
+        if (!string.Equals(resolvedModel.Task, "marker_center", StringComparison.Ordinal))
+        {
+            throw new InvalidDataException(
+                $"Resolved model task '{resolvedModel.Task}' is not marker_center.");
+        }
+
+        if (!resolvedModel.AvailableProviders.Contains(InferenceProvider.Cpu))
+        {
+            throw new InvalidDataException(
+                "The proposal marker model lacks mandatory CPU provider approval.");
+        }
+
+        VerifyMaskPreservingPayload(resolvedModel.Identity);
+        VerifyChecksum(
+            resolvedModel.ManifestPath,
+            resolvedModel.ManifestSha256,
+            "proposal marker manifest");
+        VerifyMaskPreservingManifest(resolvedModel.ManifestPath);
+        return new ProductionProposalMarkerCenterAdapter(
+            resolvedModel.Identity,
+            new RuntimeProposalMarkerInferenceRunner(runtimeHost.Runtime),
+            multiradiusGeometry: true,
+            maskPreservingCandidate: true,
+            isApproved: true);
+    }
+
     internal ProductionProposalMarkerCenterAdapter(
         ModelIdentity model,
         IProposalMarkerInferenceRunner inference,
         bool multiradiusGeometry = false,
         int? maximumDecodedCandidates = null,
-        bool maskPreservingCandidate = false)
+        bool maskPreservingCandidate = false,
+        bool isApproved = false)
     {
         Model = model ?? throw new ArgumentNullException(nameof(model));
         Model.Validate();
@@ -163,7 +198,7 @@ public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCen
         }
 
         this.inference = inference ?? throw new ArgumentNullException(nameof(inference));
-        IsApproved = false;
+        IsApproved = isApproved;
         this.maximumDecodedCandidates = maximumDecodedCandidates ?? MaximumDecodedCandidates;
         if (this.maximumDecodedCandidates <= 0)
         {
@@ -249,7 +284,82 @@ public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCen
         }
     }
 
-    public Task<ProductionMarkerCenterEvidence> DetectAsync(
+    private static void VerifyChecksum(string path, string expectedSha256, string description)
+    {
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException($"The checksum-bound {description} is missing.", path);
+        }
+
+        string actual = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+        if (!string.Equals(actual, expectedSha256, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException($"The {description} bytes do not match the production model store.");
+        }
+    }
+
+    private static void VerifyMaskPreservingManifest(string manifestPath)
+    {
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(manifestPath));
+        JsonElement input = SingleTensor(document.RootElement, "inputs");
+        JsonElement output = SingleTensor(document.RootElement, "outputs");
+        RequireTensor(input, "candidate_patches", [-1, 3, PatchSize, PatchSize]);
+        RequireTensor(output, "candidate_predictions", [-1, 4]);
+    }
+
+    private static JsonElement SingleTensor(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out JsonElement values) ||
+            values.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidDataException($"Proposal marker manifest field '{propertyName}' must be an array.");
+        }
+
+        JsonElement[] tensors = values.EnumerateArray().ToArray();
+        if (tensors.Length != 1 || tensors[0].ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidDataException(
+                $"Proposal marker manifest field '{propertyName}' must contain one tensor.");
+        }
+
+        return tensors[0];
+    }
+
+    private static void RequireTensor(JsonElement tensor, string expectedName, int[] expectedShape)
+    {
+        if (!tensor.TryGetProperty("name", out JsonElement name) ||
+            name.ValueKind != JsonValueKind.String ||
+            !string.Equals(name.GetString(), expectedName, StringComparison.Ordinal) ||
+            !tensor.TryGetProperty("element_type", out JsonElement elementType) ||
+            elementType.ValueKind != JsonValueKind.String ||
+            !string.Equals(elementType.GetString(), "float32", StringComparison.Ordinal) ||
+            !tensor.TryGetProperty("shape", out JsonElement shape) ||
+            shape.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidDataException(
+                $"Proposal marker tensor '{expectedName}' must declare its name, float32 type, and shape.");
+        }
+
+        int[] actualShape;
+        try
+        {
+            actualShape = shape.EnumerateArray().Select(static value => value.GetInt32()).ToArray();
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or FormatException)
+        {
+            throw new InvalidDataException(
+                $"Proposal marker tensor '{expectedName}' shape must contain integers.",
+                exception);
+        }
+
+        if (!actualShape.SequenceEqual(expectedShape))
+        {
+            throw new InvalidDataException(
+                $"Proposal marker tensor '{expectedName}' does not match the frozen V24 shape.");
+        }
+    }
+
+    public async Task<ProductionMarkerCenterEvidence> DetectAsync(
         ProductionWorkflowDetectionRequest request,
         MarkerImageFrame originalImage,
         MarkerPolygon plotPolygon,
@@ -261,11 +371,83 @@ public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCen
         ArgumentNullException.ThrowIfNull(originalImage);
         ArgumentNullException.ThrowIfNull(plotPolygon);
         cancellationToken.ThrowIfCancellationRequested();
-        throw Failure(
-            ProductionWorkflowFailureCodes.DetectionModelsUnavailable,
-            "Errors.ModelNotFound",
-            $"Marker-center adapter '{AdapterId}' is candidate-only and not production-approved.",
-            "Use the candidate-only evaluation method or continue in manual mode.");
+        if (!IsApproved)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionModelsUnavailable,
+                "Errors.ModelNotFound",
+                $"Marker-center adapter '{AdapterId}' is candidate-only and not production-approved.",
+                "Use the candidate-only evaluation method or continue in manual mode.");
+        }
+
+        if (!maskPreservingCandidate ||
+            request.ImageVariant != WorkflowImageVariant.Original ||
+            originalImage.SourceImage != MarkerSourceImage.Original ||
+            originalImage.OriginalToFrame != MarkerAffineTransform.Identity ||
+            originalImage.Width != request.Image.Width ||
+            originalImage.Height != request.Image.Height ||
+            enhancedImage is not null ||
+            (enhancedTransforms?.Count ?? 0) != 0)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                "The approved proposal marker path requires the immutable original frame with no enhanced derivative.",
+                "Regenerate marker evidence from the retained original panel image.");
+        }
+
+        var total = Stopwatch.StartNew();
+        ProposalMarkerCandidateDiagnosticResult diagnostic;
+        try
+        {
+            diagnostic = await DetectCandidateWithDiagnosticsAsync(
+                    originalImage,
+                    plotPolygon,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                $"Proposal marker detection failed: {exception.Message}",
+                "Retry on CPU or continue with manual marker editing.");
+        }
+
+        total.Stop();
+        var timing = new MarkerDetectionTiming(0, 0, 0, total.Elapsed.TotalMilliseconds);
+        double confidence = diagnostic.Candidates.Count == 0
+            ? 0
+            : diagnostic.Candidates.Average(static marker => marker.CenterConfidence);
+        var envelope = new WorkflowVisionEnvelope(
+            MarkerContract.Version,
+            request.RunId,
+            request.ProjectId,
+            request.Panel.ImportedPanel.PanelId,
+            MarkerContract.Stage,
+            $"proposal-marker-v24:{Model.Version}",
+            request.Image.Sha256,
+            new WorkflowVisionModel(Model.ModelId, Model.Version, Model.Sha256, "cpu"),
+            new WorkflowVisionTiming(0, 0, 0, total.Elapsed.TotalMilliseconds),
+            confidence,
+            [$"proposal_marker_counts:{diagnostic.StageCounters.CandidatesBeforeNms}:{diagnostic.StageCounters.FinalCandidates}"],
+            []);
+        var report = new MarkerFrameReport(
+            MarkerSourceImage.Original,
+            $"proposal-v24:{request.Image.Sha256}:{Model.Sha256}",
+            InferenceProvider.Cpu,
+            [new ProviderAttempt(InferenceProvider.Cpu, true, null)],
+            timing,
+            diagnostic.StageCounters.CandidatesBeforeNms,
+            diagnostic.StageCounters.FinalCandidates,
+            CacheHit: false,
+            Failure: null);
+        return new ProductionMarkerCenterEvidence(envelope, diagnostic.Candidates, [report]);
     }
 
     /// <summary>
@@ -597,11 +779,16 @@ public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCen
     {
         string prefix = maskPreservingCandidate ? "candidate-v24-p1" : multiradiusGeometry ? "candidate-v23-p1" : "candidate-p2";
         string markerId = $"{prefix}{(suffix is null ? string.Empty : $"-{suffix}")}-{index.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+        int centerX = (int)Math.Round(candidate.Center.X);
+        int centerY = (int)Math.Round(candidate.Center.Y);
+        double artifactProbability = Math.Max(
+            WindowMax(frame.OcrMask.Values, frame.Width, frame.Height, centerX, centerY, 2),
+            WindowMax(frame.ArtifactMask.Values, frame.Width, frame.Height, centerX, centerY, 2));
         return new MarkerCenter(
             markerId,
             frame.OriginalToFrame.MapToOriginal(candidate.Center),
             frame.OriginalToFrame.MapFrameRadiusToOriginal(candidate.Radius),
-            0,
+            artifactProbability,
             candidate.Confidence,
             frame.SourceImage,
             MarkerContract.CoordinateSpace);

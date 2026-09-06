@@ -160,7 +160,7 @@ public static class ApplicationComposition
         ProductionAxisGeometryAdapter? axisAdapter = CreateApprovedAxisAdapter(
             runtimeAvailability,
             rasterFrameDecoder);
-        (ProductionMarkerCenterAdapter? Adapter, DomainError? Error) markerCenter =
+        (IProductionMarkerCenterAdapter? Adapter, DomainError? Error) markerCenter =
             CreateApprovedMarkerCenterAdapter(modelAvailability, inference?.Value);
         (ProductionMarkerArtifactMaskAdapter? Adapter, DomainError? Error) artifactMask =
             CreateApprovedArtifactMaskAdapter(modelAvailability, inference?.Value);
@@ -482,7 +482,7 @@ public static class ApplicationComposition
         }
     }
 
-    private static (ProductionMarkerCenterAdapter? Adapter, DomainError? Error)
+    private static (IProductionMarkerCenterAdapter? Adapter, DomainError? Error)
         CreateApprovedMarkerCenterAdapter(
             ProductionModelAvailabilitySnapshot? modelAvailability,
             ProductionInferenceRuntimeHost? runtimeHost)
@@ -498,7 +498,17 @@ public static class ApplicationComposition
 
         try
         {
-            return (ProductionMarkerCenterAdapter.Create(model, runtimeHost), null);
+            IProductionMarkerCenterAdapter adapter = string.Equals(
+                    model.Identity.ModelId,
+                    ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
+                    StringComparison.Ordinal) &&
+                string.Equals(
+                    model.Identity.Version,
+                    ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
+                    StringComparison.Ordinal)
+                ? ProductionProposalMarkerCenterAdapter.Create(model, runtimeHost)
+                : ProductionMarkerCenterAdapter.Create(model, runtimeHost);
+            return (adapter, null);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)
         {

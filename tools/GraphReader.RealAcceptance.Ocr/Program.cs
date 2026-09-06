@@ -15,6 +15,7 @@ using GraphReader.Inference;
 using GraphReader.Ocr;
 using GraphReader.Markers.Detection;
 using GraphReader.App.Integration.Workflow;
+using GraphReader.Export;
 
 namespace GraphReader.RealAcceptance.Ocr;
 
@@ -31,8 +32,8 @@ internal static class Program
     {
         if (args.Contains("--self-test", StringComparer.Ordinal))
         {
-            SelfTest();
-            Console.WriteLine("{\"status\":\"pass\",\"self_test\":true,\"private_corpus_access\":false,\"model_inference_runs\":0}");
+            SelfTestReport selfTest = SelfTest();
+            Console.WriteLine(JsonSerializer.Serialize(selfTest, JsonOptions));
             return 0;
         }
         if (!args.Contains("--explicit-opt-in", StringComparer.Ordinal))
@@ -1277,6 +1278,59 @@ internal static class Program
     private sealed record AxisAnchor(double ScreenX, double ScreenY, double GraphX, double GraphY);
     private sealed record CurvePoint(double ScreenX, double ScreenY);
     private sealed record Raster(int Width, int Height, byte[] Gray, byte[] Bgr);
+    private enum SyntheticExportVariant
+    {
+        Valid,
+        Empty,
+        Subset,
+        Duplicate,
+        WrongScale,
+        MixedSeries,
+        InvalidCalibration,
+    }
+
+    private sealed record SyntheticExportCase(
+        string CaseId,
+        Guid ProjectId,
+        Guid PanelId,
+        IReadOnlyList<ExportPhase> Phases,
+        IReadOnlyList<ExportSeries> Series,
+        IReadOnlyList<ExportPoint> WorkflowPoints,
+        IReadOnlyList<ExportSeriesRelation> Relations,
+        IReadOnlyList<ExportEvaluationRow> ExpectedRows,
+        Guid SubsetPointId,
+        Guid DuplicatePointId,
+        Guid MixedSeriesPointId,
+        Guid OtherSeriesId);
+
+    private sealed record ExportEvaluationRow(Guid TargetSeriesId, double XValue, double YValue, string Phase);
+
+    private sealed record ExportEvaluation(
+        double OutputPrecision,
+        double TruthCoverage,
+        double MatchedRowYAccuracy,
+        int UnmatchedRows,
+        int DuplicateRows,
+        int MissingRows,
+        int WrongScaleRows,
+        int FailedCases,
+        bool InvalidCalibrationBlocked);
+
+    private sealed record SelfTestReport(
+        string Status,
+        bool SelfTest,
+        bool PrivateCorpusAccess,
+        int ModelInferenceRuns,
+        int SyntheticCases,
+        double OutputPrecision,
+        double TruthCoverage,
+        double MatchedRowYAccuracy,
+        int UnmatchedRows,
+        int DuplicateRows,
+        int MissingRows,
+        int WrongScaleRows,
+        int FailedCases,
+        bool InvalidCalibrationBlocked);
     private sealed class Calibration
     {
         public List<(double ScreenY, double Value)> Ticks { get; } = [];
@@ -1388,8 +1442,9 @@ internal static class Program
         ["official_alphabet"] = OcrV8ProductionCompositionFactory.OfficialAlphabetSha256,
     };
 
-    private static void SelfTest()
+    private static SelfTestReport SelfTest()
     {
+        SelfTestReport exportSelfTest = ExportWorkflowEvaluatorSelfTest();
         AxisAnchor[] anchors = [new(0, 0, 0, 100), new(0, 10, 0, 80), new(20, 0, 1, 100)];
         Calibration calibration = Fit(anchors);
         if (Math.Abs(calibration.GraphY(5) - 90) > 1e-9 ||
@@ -1404,6 +1459,7 @@ internal static class Program
             RasterizeAxisMask(32, 32, [new AxisAnchor(4, 4, 0, 0), new AxisAnchor(4, 28, 0, 1), new AxisAnchor(28, 4, 1, 0)], 1).All(static value => value == 0) ||
             !MarkerTruthPatchSelfTest() ||
             !NegativePatchFeatureSelfTest() ||
+            !exportSelfTest.SelfTest ||
             ProductionProposalMarkerCenterAdapter.MultiradiusCandidateRevision != "marker-center-multiradius-geometry-v23" ||
             ProductionProposalMarkerCenterAdapter.MultiradiusCandidateId != "P1" ||
             ProductionProposalMarkerCenterAdapter.ExpectedMultiradiusModelSha256 != "0b413db48f8e6707ee5ec99afff4cd8ec3d25c6b8a8d9f165bd416deb4578a38" ||
@@ -1413,7 +1469,196 @@ internal static class Program
         {
             throw new InvalidOperationException("SELF_TEST_CALIBRATION_FAILED");
         }
+
+        return exportSelfTest;
     }
+
+    /// <summary>
+    /// Runs the local acceptance boundary against artifacts produced by the real
+    /// ExportService. Truth is supplied only to the evaluator, never to the
+    /// workflow/export request.
+    /// </summary>
+    private static SelfTestReport ExportWorkflowEvaluatorSelfTest()
+    {
+        SyntheticExportCase truth = CreateSyntheticExportCase();
+        ExportEvaluation valid = EvaluateSyntheticExport(truth, SyntheticExportVariant.Valid);
+        ExportEvaluation empty = EvaluateSyntheticExport(truth, SyntheticExportVariant.Empty);
+        ExportEvaluation subset = EvaluateSyntheticExport(truth, SyntheticExportVariant.Subset);
+        ExportEvaluation duplicate = EvaluateSyntheticExport(truth, SyntheticExportVariant.Duplicate);
+        ExportEvaluation wrongScale = EvaluateSyntheticExport(truth, SyntheticExportVariant.WrongScale);
+        ExportEvaluation mixedSeries = EvaluateSyntheticExport(truth, SyntheticExportVariant.MixedSeries);
+        ExportEvaluation invalidCalibration = EvaluateSyntheticExport(truth, SyntheticExportVariant.InvalidCalibration);
+
+        bool passed = valid.OutputPrecision == 1 && valid.TruthCoverage == 1 && valid.MatchedRowYAccuracy == 1 &&
+            valid.UnmatchedRows == 0 && valid.DuplicateRows == 0 && valid.MissingRows == 0 && valid.WrongScaleRows == 0 && valid.FailedCases == 0 &&
+            empty.FailedCases == 1 && empty.MissingRows == truth.ExpectedRows.Count &&
+            subset.TruthCoverage < 1 && subset.MissingRows > 0 &&
+            duplicate.DuplicateRows > 0 && duplicate.OutputPrecision < 1 &&
+            wrongScale.WrongScaleRows > 0 && wrongScale.MatchedRowYAccuracy < 1 &&
+            mixedSeries.FailedCases == 1 && mixedSeries.TruthCoverage < 1 &&
+            invalidCalibration.FailedCases == 1 && invalidCalibration.InvalidCalibrationBlocked;
+        ExportEvaluation[] evaluations = [valid, empty, subset, duplicate, wrongScale, mixedSeries, invalidCalibration];
+        return new SelfTestReport(
+            passed ? "pass" : "fail", true, false, 0, evaluations.Length,
+            valid.OutputPrecision, valid.TruthCoverage, valid.MatchedRowYAccuracy,
+            evaluations.Sum(item => item.UnmatchedRows), evaluations.Sum(item => item.DuplicateRows),
+            evaluations.Sum(item => item.MissingRows), evaluations.Sum(item => item.WrongScaleRows),
+            evaluations.Sum(item => item.FailedCases), invalidCalibration.InvalidCalibrationBlocked);
+    }
+
+    private static ExportEvaluation EvaluateSyntheticExport(
+        SyntheticExportCase truth,
+        SyntheticExportVariant variant)
+    {
+        IReadOnlyList<ExportPoint> predicted = variant == SyntheticExportVariant.Empty
+            ? Array.Empty<ExportPoint>()
+            : truth.WorkflowPoints.Select(point => variant switch
+            {
+                SyntheticExportVariant.Subset when point.PointId == truth.SubsetPointId => null,
+                SyntheticExportVariant.Subset => point,
+                SyntheticExportVariant.Duplicate when point.PointId == truth.DuplicatePointId => point with { GraphX = 3, PrintedXValue = 3 },
+                SyntheticExportVariant.WrongScale => point with { GraphY = point.GraphY * 10 },
+                SyntheticExportVariant.MixedSeries when point.PointId == truth.MixedSeriesPointId => point with { SeriesId = truth.OtherSeriesId },
+                _ => point,
+            }).Where(static point => point is not null).Cast<ExportPoint>().ToArray();
+
+        ExportCalibration calibration = variant == SyntheticExportVariant.InvalidCalibration
+            ? new(ExportCalibrationStatus.NeedsReview, hasYCalibration: false, hasPrintedSessionCalibration: false,
+                hasAbsoluteSessionOrigin: false, firstObservedSession: null, confidence: 0,
+                reasons: ["synthetic-invalid-calibration"])
+            : new(ExportCalibrationStatus.Valid, hasYCalibration: true, hasPrintedSessionCalibration: true,
+                hasAbsoluteSessionOrigin: true, firstObservedSession: 1, confidence: 0.99);
+
+        HashSet<Guid> predictedIds = predicted.Select(point => point.PointId).ToHashSet();
+        ExportSeries[] series = truth.Series
+            .Select(item => new ExportSeries(item.SeriesId, item.Symbol, item.DisplayName, item.SemanticRole,
+                item.PointIds.Where(predictedIds.Contains), item.Confidence, item.LegendText))
+            .ToArray();
+
+        string outputDirectory = Path.Combine(Path.GetTempPath(), "graph-reader-real-acceptance-self-test", Guid.NewGuid().ToString("N"));
+        ExportRequest request = new(
+            Guid.NewGuid(), truth.ProjectId, truth.PanelId, outputDirectory, truth.CaseId,
+            ExportMode.PrintedSession, ExportAuditMode.None, ExportOperation.WriteFiles,
+            calibration, ExportSessionOriginPolicy.Default, truth.Phases, series,
+            predicted, truth.Relations);
+        ExportResult result;
+        List<ExportEvaluationRow> actual = [];
+        try
+        {
+            result = new ExportService().ExportAsync(request, CancellationToken.None).GetAwaiter().GetResult();
+            foreach (MinimalCsvArtifact artifact in result.MinimalArtifacts)
+            {
+                if (artifact.WrittenPath is null || !File.Exists(artifact.WrittenPath))
+                {
+                    throw new InvalidOperationException("ExportService reported a minimal artifact without a written CSV");
+                }
+                actual.AddRange(ReadMinimalCsv(artifact.WrittenPath, artifact.InterventionSeriesId));
+            }
+        }
+        finally
+        {
+            if (Directory.Exists(outputDirectory))
+            {
+                Directory.Delete(outputDirectory, recursive: true);
+            }
+        }
+        List<ExportEvaluationRow> expected = truth.ExpectedRows.ToList();
+        HashSet<int> matchedExpected = [];
+        int matched = 0, within = 0, wrongScale = 0;
+        foreach (ExportEvaluationRow row in actual)
+        {
+            int index = -1;
+            for (int candidateIndex = 0; candidateIndex < expected.Count; candidateIndex++)
+            {
+                ExportEvaluationRow candidate = expected[candidateIndex];
+                if (!matchedExpected.Contains(candidateIndex) && candidate.TargetSeriesId == row.TargetSeriesId &&
+                    Math.Abs(candidate.XValue - row.XValue) < 1e-9 &&
+                    string.Equals(candidate.Phase, row.Phase, StringComparison.Ordinal))
+                {
+                    index = candidateIndex;
+                    break;
+                }
+            }
+            if (index < 0) continue;
+            matchedExpected.Add(index); matched++;
+            double error = Math.Abs(expected[index].YValue - row.YValue);
+            if (error <= 5) within++; else wrongScale++;
+        }
+
+        int duplicates = actual.GroupBy(row => (row.TargetSeriesId, row.XValue, row.Phase))
+            .Sum(group => Math.Max(0, group.Count() - 1));
+        int unmatched = actual.Count - matched;
+        int missing = expected.Count - matched;
+        return new ExportEvaluation(
+            actual.Count == 0 ? 1 : (matched - duplicates) / (double)actual.Count,
+            expected.Count == 0 ? 1 : matched / (double)expected.Count,
+            matched == 0 ? 0 : within / (double)matched,
+            unmatched, duplicates, missing, wrongScale,
+            result.Succeeded && actual.Count == 0 ? 1 : (result.Succeeded ? 0 : 1),
+            !result.Succeeded && result.Failures.Any(failure => failure.Code.Contains("CALIBRATION", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static IEnumerable<ExportEvaluationRow> ReadMinimalCsv(string path, Guid targetSeriesId)
+    {
+        string[] lines = File.ReadAllLines(path, Encoding.UTF8);
+        if (lines.Length == 0 || !string.Equals(lines[0], ExportContract.MinimalCsvHeader, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("ExportService wrote an invalid minimal CSV header");
+        }
+        foreach (string line in lines.Skip(1).Where(static line => line.Length > 0))
+        {
+            string[] fields = line.Split(',');
+            if (fields.Length != 3 ||
+                !double.TryParse(fields[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double x) ||
+                !double.TryParse(fields[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
+            {
+                throw new InvalidOperationException("ExportService wrote an invalid minimal CSV row");
+            }
+            yield return new ExportEvaluationRow(targetSeriesId, x, y, fields[2]);
+        }
+    }
+
+    private static SyntheticExportCase CreateSyntheticExportCase()
+    {
+        Guid projectId = Guid.NewGuid();
+        Guid panelId = Guid.NewGuid();
+        Guid phaseA = Guid.NewGuid();
+        Guid phaseB = Guid.NewGuid();
+        Guid baseline = Guid.NewGuid();
+        Guid intervention = Guid.NewGuid();
+        Guid otherSeries = Guid.NewGuid();
+        Guid baselineOne = Guid.NewGuid();
+        Guid baselineTwo = Guid.NewGuid();
+        Guid interventionOne = Guid.NewGuid();
+        Guid interventionTwo = Guid.NewGuid();
+        ExportPhase[] phases =
+        [
+            new(phaseA, 1, "a", ExportPhaseType.Baseline, "a", 1, 2, 0.99),
+            new(phaseB, 2, "b", ExportPhaseType.Intervention, "b", 3, 4, 0.99),
+        ];
+        ExportPoint[] points =
+        [
+            SyntheticPoint(baselineOne, baseline, phaseA, 1, 10),
+            SyntheticPoint(baselineTwo, baseline, phaseA, 2, 12),
+            SyntheticPoint(interventionOne, intervention, phaseB, 3, 30),
+            SyntheticPoint(interventionTwo, intervention, phaseB, 4, 32),
+        ];
+        ExportSeries[] series =
+        [
+            new(baseline, "■", "Baseline", ExportSeriesRole.Baseline, [baselineOne, baselineTwo], 0.99),
+            new(intervention, "●", "Intervention", ExportSeriesRole.Intervention, [interventionOne, interventionTwo], 0.99),
+        ];
+        return new SyntheticExportCase(
+            "synthetic-case-01", projectId, panelId, phases, series, points,
+            [new ExportSeriesRelation(intervention, baseline)],
+            points.Select(point => new ExportEvaluationRow(intervention, point.GraphX!.Value, point.GraphY!.Value, point.PhaseId == phaseA ? "a" : "b"))
+                .ToArray(),
+            baselineOne, interventionTwo, interventionOne, otherSeries);
+    }
+
+    private static ExportPoint SyntheticPoint(Guid pointId, Guid seriesId, Guid phaseId, double x, double y) =>
+        new(pointId, pointId, seriesId, phaseId, new ExportPixelPoint(x * 10, 100 - y), x, y, (int)x, x, null,
+            ExportXValueSource.Printed, 0.99, 0.99, 0.99, ExportReviewStatus.Accepted, "synthetic-detector", "self-test");
 
     private static bool MarkerTruthPatchSelfTest()
     {
