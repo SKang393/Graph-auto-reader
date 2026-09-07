@@ -48,6 +48,20 @@ def test_independent_layouts_are_repeatable_and_do_not_reuse_training_geometry()
         assert all(0 <= x < 224 and 0 <= y < 168 for x, y in scene.centers)
 
 
+def test_independent_layout_audit_records_family_and_layout_disjointness():
+    result = audit(independent_layout=True)
+    evidence = result["layout_family_audit"]
+    assert evidence["independent_layout_required"] is True
+    assert evidence["train_dev_family_disjoint"] is True
+    assert evidence["train_dev_layout_disjoint"] is True
+    assert evidence["train_dev_seed_disjoint"] is True
+    assert evidence["family_overlap_count"] == 0
+    assert evidence["layout_overlap_count"] == 0
+    assert len(evidence["train_layout_sha256"]) == 64
+    assert len(evidence["dev_layout_sha256"]) == 64
+    assert evidence["family_identity"] == "sha256(centers,diameters)"
+
+
 def test_range_and_masks_match_required_aggregate() -> None:
     result = audit()
     for split in result["splits"].values():

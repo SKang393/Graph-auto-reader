@@ -64,3 +64,14 @@ def test_feasibility_result_is_non_consuming_and_startable():
     assert report["metrics"]["recall"] < 0.95
     assert report["binding"]["v21_onnx_sha256"] == protocol.V21_ONNX_SHA256
     assert not Path(report["binding"]["v21_onnx_path"]).is_absolute()
+
+
+def test_active_gate_reads_shared_marker_center_bars():
+    from ml.markers.center.mask_preserving_v24.train_p1 import _shared_marker_acceptance_bar
+
+    assert _shared_marker_acceptance_bar() == {
+        "proposal_recall_minimum": 0.95,
+        "precision_minimum": 0.95,
+        "recall_minimum": 0.95,
+        "prohibited_structure_hit_rate_maximum": 0.02,
+    }

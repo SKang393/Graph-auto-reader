@@ -355,6 +355,64 @@ def _hash_scenes(scenes: tuple[Scene, ...]) -> str:
     return digest.hexdigest()
 
 
+def _hash_layouts(scenes: tuple[Scene, ...]) -> str:
+    """Hash only layout/family inputs, without emitting scene identities."""
+    digest = hashlib.sha256()
+    for scene in scenes:
+        digest.update(json.dumps(
+            {"centers": scene.centers, "diameters": scene.diameters},
+            sort_keys=True,
+        ).encode("utf-8"))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
+def _layout_family_fingerprint(scene: Scene) -> str:
+    """Return an aggregate-only identity for one synthetic layout family."""
+    payload = json.dumps(
+        {"centers": scene.centers, "diameters": scene.diameters},
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def layout_family_audit(
+    train: tuple[Scene, ...],
+    dev: tuple[Scene, ...],
+    *,
+    independent_layout: bool,
+) -> dict[str, object]:
+    """Prove deterministic, family-disjoint train/dev geometry in aggregate.
+
+    The audit deliberately reports counts and hashes only.  It does not emit
+    scene identifiers, truth rows, or pixels.
+    """
+    train_families = {_layout_family_fingerprint(scene) for scene in train}
+    dev_families = {_layout_family_fingerprint(scene) for scene in dev}
+    train_layouts = {tuple(scene.centers) for scene in train}
+    dev_layouts = {tuple(scene.centers) for scene in dev}
+    train_scene_families = {scene.family for scene in train}
+    dev_scene_families = {scene.family for scene in dev}
+    return {
+        "independent_layout_required": independent_layout,
+        "train_scene_count": len(train),
+        "dev_scene_count": len(dev),
+        "train_family_count": len(train_families),
+        "dev_family_count": len(dev_families),
+        "family_overlap_count": len(train_families & dev_families),
+        "scene_family_name_overlap_count": len(train_scene_families & dev_scene_families),
+        "layout_overlap_count": len(train_layouts & dev_layouts),
+        "train_dev_family_disjoint": not bool(train_families & dev_families),
+        "train_dev_layout_disjoint": not bool(train_layouts & dev_layouts),
+        "train_dev_seed_disjoint": set(scene.seed for scene in train).isdisjoint(
+            scene.seed for scene in dev
+        ),
+        "train_layout_sha256": _hash_layouts(train),
+        "dev_layout_sha256": _hash_layouts(dev),
+        "family_identity": "sha256(centers,diameters)",
+    }
+
+
 def _patch_distribution(scenes: tuple[Scene, ...]) -> dict[str, object]:
     ink_means: list[float] = []
     ocr_means: list[float] = []
@@ -380,9 +438,10 @@ def _patch_distribution(scenes: tuple[Scene, ...]) -> dict[str, object]:
             "aggregate_sha256": _hash_scenes(scenes)}
 
 
-@lru_cache(maxsize=1)
-def audit() -> dict[str, object]:
-    train, dev = build_split("train"), build_split("dev")
+@lru_cache(maxsize=2)
+def audit(*, independent_layout: bool = False) -> dict[str, object]:
+    train = build_split("train")
+    dev = build_split("dev", independent_layout=independent_layout)
     all_scenes = train + dev
     dev_markers = sum(len(scene.centers) for scene in dev)
     def mask_hits(scenes: tuple[Scene, ...], channel: int) -> int:
@@ -459,6 +518,9 @@ def audit() -> dict[str, object]:
                                                                 if ANTI_ALIAS_BLUR_RADII[index % len(ANTI_ALIAS_BLUR_RADII)] == 0.0],
                            "masks_centers_labels_unchanged": True},
         "splits": {"train": train_record, "dev": dev_record},
+        "layout_family_audit": layout_family_audit(
+            train, dev, independent_layout=independent_layout
+        ),
         "mask_overlap_scenarios": {"markers_per_split": dev_markers,
             "ocr_hard_hits": dev_record["mask_center_hits"]["ocr"],
             "artifact_hard_hits": dev_record["mask_center_hits"]["artifact"],
