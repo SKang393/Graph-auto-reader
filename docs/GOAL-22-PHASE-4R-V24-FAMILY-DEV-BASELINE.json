@@ -1,0 +1,143 @@
+{
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "candidate_id": "P1-retry9-frozen",
+  "dev_tensor_set_sha256": "37af91be1bf16e47d8bc9a2eba36911737b099d6d2b5fd603f6e64a606047f8f",
+  "elapsed_ms": 30794.034,
+  "failure_mode": "held-out synthetic families produce reviewable false positives, misses, and prohibited-structure hits at the shipped threshold",
+  "family_holdout": {
+    "axes": {
+      "degradation": {
+        "dev_family_count": 1,
+        "dev_family_set_sha256": "1103bd33b27ed15862b67bab249d94953f154b76824d30d289f9a38b9b084f8f",
+        "overlap_count": 0,
+        "train_dev_disjoint": true,
+        "train_family_count": 2,
+        "train_family_set_sha256": "8c12cdd90c1f79a856490d20622cd4ea5526dd7bfa48e22dde27f2e12d2326e1"
+      },
+      "font": {
+        "dev_family_count": 1,
+        "dev_family_set_sha256": "c2ffdc9b39edd75ed05ad51571f0936abfffb8dfeb8ef9060057342a2b882e0a",
+        "overlap_count": 0,
+        "train_dev_disjoint": true,
+        "train_family_count": 2,
+        "train_family_set_sha256": "982c26908250aade7fd5c42139edda2ee8a7f7ad6b608cf1d51f64dbe59092e5"
+      },
+      "marker": {
+        "dev_family_count": 1,
+        "dev_family_set_sha256": "6d34afea60616867893b0ec056c8384b8661cf8595d578630525511e62434d11",
+        "overlap_count": 0,
+        "train_dev_disjoint": true,
+        "train_family_count": 2,
+        "train_family_set_sha256": "28ec64a8b4b56398223da8f7135bdee3df8c884441f3fb6bafeb5027613ed805"
+      },
+      "renderer": {
+        "dev_family_count": 1,
+        "dev_family_set_sha256": "fa50e55c61077a5e26f8e5bb757e48e384805132cb2497aab0f322d31529043a",
+        "overlap_count": 0,
+        "train_dev_disjoint": true,
+        "train_family_count": 2,
+        "train_family_set_sha256": "05e5f2065ea8bf206eecfd662f67ed839361b9c0c94c7aafd1f1be2db89b4581"
+      },
+      "template": {
+        "dev_family_count": 1,
+        "dev_family_set_sha256": "add2a814ee89041588c00f634eebcc2ae363eb4014ec2e7bb378cd86b887291d",
+        "overlap_count": 0,
+        "train_dev_disjoint": true,
+        "train_family_count": 2,
+        "train_family_set_sha256": "433c731ba694a6bbec87ec578a6ebb1316da5b0bbcafcd4eef639215ec29630c"
+      }
+    },
+    "dev_split": "validation",
+    "held_out_axes": [
+      "renderer",
+      "font",
+      "degradation",
+      "template",
+      "marker"
+    ],
+    "schema": "graphreader.synthetic-family-holdout-audit.v1",
+    "scope": {
+      "model_loaded": false,
+      "pixels_emitted": false,
+      "private_or_article_images": false,
+      "scene_ids_emitted": false,
+      "sealed_reads": 0,
+      "synthetic_only": true,
+      "training_performed": false,
+      "truth_rows_emitted": false
+    },
+    "seed": 393,
+    "splits": {
+      "dev": {
+        "aggregate_sha256": "f6cbeaf05dc40fa8be10b2120846d26db78a0a0836a92d5cc05ebb276bba445c",
+        "marker_count": 206,
+        "scene_count": 3
+      },
+      "train": {
+        "aggregate_sha256": "dd8348657d54317d8cfec420cf9791bc91ed7205e03e62dc9df7b9d7fae4ef7c",
+        "marker_count": 100,
+        "scene_count": 4
+      }
+    },
+    "train_dev_family_disjoint": true,
+    "train_split": "train"
+  },
+  "gates": {
+    "precision": false,
+    "prohibited_structure_hit_rate": false,
+    "recall": false
+  },
+  "inference": {
+    "provider": "CPUExecutionProvider",
+    "scene_count": 3,
+    "threshold": 0.25
+  },
+  "model_sha256": "4dece2eeb87229d5d57e0d2d714c1915ebecf8e9475b0d466a03dd970993fdb4",
+  "model_source_result": "ml/markers/center/mask_preserving_v24/P1_RETRY9_RESULT.json",
+  "production_approval": false,
+  "release_eligible": false,
+  "responsible_subsystem": "marker-center family coverage and training distribution",
+  "revision": "marker-center-mask-preserving-v24",
+  "schema": "graphreader.marker-v24-family-dev-diagnostic.v1",
+  "scope": {
+    "candidate_selection": false,
+    "case_ids_or_pixels_emitted": false,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "synthetic_only": true
+  },
+  "selected": {
+    "duplicate_count": 0,
+    "f1": 0.6225165562913907,
+    "false_negatives": 18,
+    "false_positives": 210,
+    "precision": 0.4723618090452261,
+    "prohibited_structure_hit_rate": 0.02512562814070352,
+    "prohibited_structure_hits": 10,
+    "proposal_recall": 1.0,
+    "proposal_true_positives": 206,
+    "recall": 0.912621359223301,
+    "scene_count": 3,
+    "threshold": 0.25,
+    "true_positives": 188
+  },
+  "source_bundle_sha256": "ed7dd167da0cb19433c788d6fc07b85c8eb1e0d4d67b71cde1887fe84407d96c",
+  "source_sha256": {
+    "ml/markers/center/mask_preserving_v24/P1_RETRY9_RESULT.json": "5dee4ac84639597faac2d2bdf4f74db10d8225e858d8f884f34b7c5725dc2255",
+    "ml/markers/center/mask_preserving_v24/diagnose_family_dev.py": "c014dbae237153d7fb9e2abed8d2711d12060feb63d446bab69b40bb7a906c6c",
+    "ml/markers/center/mask_preserving_v24/family_scenes.py": "0872091244ebe4a2e87192c74b0720a911255816ced4b4fb55df811305a92686",
+    "ml/markers/center/mask_preserving_v24/mask_preserving.py": "171ddcc2efbd2742f5699dad8d16ecec217ca983ee06cec4bc63e1f17e3120e2",
+    "ml/markers/center/mask_preserving_v24/train_p1.py": "5d54a9c76a13d556e58ac01001cc545615f1c4676b202ac1ad70c690ce858e19",
+    "ml/policy/acceptance-bars.json": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "ml/synthetic/dataset.py": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+    "ml/synthetic/renderer.py": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+    "ml/synthetic/templates.py": "6fb22f1d0d204ceb277b24629d62f8bae5b1843e087c60b058c897b132e86d10"
+  },
+  "status": "failed_dev"
+}
