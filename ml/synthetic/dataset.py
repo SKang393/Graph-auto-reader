@@ -14,7 +14,7 @@ from typing import Any, Iterable, Mapping, Sequence
 from PIL import Image
 
 from .contact_sheet import build_contact_sheet
-from .io import sha256, write_csv, write_json, write_png
+from .io import canonical_json_bytes, sha256, write_csv, write_json, write_png
 from .renderer import production_resize_dimensions, render_scene
 from .schema import validate_scene
 from .templates import (
@@ -854,6 +854,114 @@ def _assert_split_isolation(
                 )
 
 
+def family_holdout_audit(seed: int = 393) -> dict[str, Any]:
+    """Return aggregate proof that synthetic train and dev families are disjoint.
+
+    This reuses the existing declarative scene machinery and stops before
+    rendering.  The returned record contains only counts, booleans, and hashes;
+    it never emits scene IDs, labels, truth rows, or pixels.
+    """
+
+    if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
+        raise ValueError("seed must be a non-negative integer")
+    scenes = _build_scenes(
+        PRESETS["smoke"],
+        seed,
+        require_complete_style_catalog=True,
+    )
+    split_scenes = {
+        "train": [scene for scene in scenes if _scene_split(scene) == "train"],
+        "dev": [scene for scene in scenes if _scene_split(scene) == "validation"],
+    }
+    if not split_scenes["train"] or not split_scenes["dev"]:
+        raise AssertionError("Synthetic smoke matrix must provide train and dev scenes")
+
+    family_sets = {
+        split: {
+            axis: {str(scene["families"][axis]["key"]) for scene in selected}
+            for axis in FAMILY_AXES
+        }
+        for split, selected in split_scenes.items()
+    }
+
+    def set_hash(values: set[str]) -> str:
+        return sha256(canonical_json_bytes(sorted(values)))
+
+    def split_hash(selected: Sequence[Mapping[str, Any]]) -> str:
+        records = []
+        for scene in selected:
+            records.append(
+                {
+                    "seed": int(scene["seed"]),
+                    "families": {
+                        axis: str(scene["families"][axis]["key"])
+                        for axis in FAMILY_AXES
+                    },
+                    "marker_count": sum(
+                        len(panel["points"]) for panel in scene["panels"]
+                    ),
+                }
+            )
+        return sha256(canonical_json_bytes(sorted(records, key=lambda item: item["seed"])))
+
+    axes: dict[str, dict[str, Any]] = {}
+    for axis in FAMILY_AXES:
+        train_families = family_sets["train"][axis]
+        dev_families = family_sets["dev"][axis]
+        overlap = train_families & dev_families
+        axes[axis] = {
+            "train_family_count": len(train_families),
+            "dev_family_count": len(dev_families),
+            "overlap_count": len(overlap),
+            "train_dev_disjoint": not overlap,
+            "train_family_set_sha256": set_hash(train_families),
+            "dev_family_set_sha256": set_hash(dev_families),
+        }
+
+    train_count = sum(
+        len(panel["points"])
+        for scene in split_scenes["train"]
+        for panel in scene["panels"]
+    )
+    dev_count = sum(
+        len(panel["points"])
+        for scene in split_scenes["dev"]
+        for panel in scene["panels"]
+    )
+    all_axes_disjoint = all(item["train_dev_disjoint"] for item in axes.values())
+    return {
+        "schema": "graphreader.synthetic-family-holdout-audit.v1",
+        "seed": seed,
+        "train_split": "train",
+        "dev_split": "validation",
+        "held_out_axes": list(FAMILY_AXES),
+        "splits": {
+            "train": {
+                "scene_count": len(split_scenes["train"]),
+                "marker_count": train_count,
+                "aggregate_sha256": split_hash(split_scenes["train"]),
+            },
+            "dev": {
+                "scene_count": len(split_scenes["dev"]),
+                "marker_count": dev_count,
+                "aggregate_sha256": split_hash(split_scenes["dev"]),
+            },
+        },
+        "axes": axes,
+        "train_dev_family_disjoint": all_axes_disjoint,
+        "scope": {
+            "synthetic_only": True,
+            "model_loaded": False,
+            "training_performed": False,
+            "private_or_article_images": False,
+            "sealed_reads": 0,
+            "scene_ids_emitted": False,
+            "truth_rows_emitted": False,
+            "pixels_emitted": False,
+        },
+    }
+
+
 def _validate_rendered_case(
     scene: Mapping[str, Any],
     annotation: Mapping[str, Any],
@@ -1234,5 +1342,6 @@ __all__ = [
     "HARD_NEGATIVE_KINDS",
     "PRESETS",
     "REQUIRED_TEXT_ROLES",
+    "family_holdout_audit",
     "generate_dataset",
 ]

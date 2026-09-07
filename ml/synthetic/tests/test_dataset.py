@@ -14,6 +14,7 @@ from ml.synthetic.dataset import (
     FAMILY_AXES,
     HARD_NEGATIVE_KINDS,
     REQUIRED_TEXT_ROLES,
+    family_holdout_audit,
 )
 from ml.synthetic.tests.conftest import read_json
 from ml.synthetic.templates import FILL_STATES, LINE_STYLES, MARKER_SHAPES, SCENE_FEATURES
@@ -112,6 +113,35 @@ def test_split_manifests_isolate_all_family_axes(smoke_root: Path) -> None:
         assert train.isdisjoint(validation)
         assert train.isdisjoint(test)
         assert validation.isdisjoint(test)
+
+
+def test_family_holdout_audit_is_aggregate_only_and_deterministic() -> None:
+    first = family_holdout_audit()
+    second = family_holdout_audit()
+    assert first == second
+    assert first["held_out_axes"] == list(FAMILY_AXES)
+    assert first["train_dev_family_disjoint"] is True
+    assert first["scope"] == {
+        "synthetic_only": True,
+        "model_loaded": False,
+        "training_performed": False,
+        "private_or_article_images": False,
+        "sealed_reads": 0,
+        "scene_ids_emitted": False,
+        "truth_rows_emitted": False,
+        "pixels_emitted": False,
+    }
+    for axis in FAMILY_AXES:
+        evidence = first["axes"][axis]
+        assert evidence["overlap_count"] == 0
+        assert evidence["train_dev_disjoint"] is True
+        assert len(evidence["train_family_set_sha256"]) == 64
+        assert len(evidence["dev_family_set_sha256"]) == 64
+    for split in ("train", "dev"):
+        evidence = first["splits"][split]
+        assert evidence["scene_count"] > 0
+        assert evidence["marker_count"] > 0
+        assert len(evidence["aggregate_sha256"]) == 64
 
 
 def test_contact_sheet_and_annotations_are_reviewable(smoke_root: Path) -> None:

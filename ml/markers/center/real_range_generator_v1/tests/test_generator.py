@@ -1,6 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Sungwoo Kang
-from ml.markers.center.real_range_generator_v1.generator import TOPOLOGY_TARGETS, audit, build_split
+from ml.markers.center.real_range_generator_v1.generator import (
+    TOPOLOGY_TARGETS,
+    audit,
+    build_split,
+    family_holdout_audit,
+)
 from ml.markers.center.real_range_generator_v1.negative_proposal_audit import audit as negative_proposal_audit
 
 
@@ -60,6 +65,22 @@ def test_independent_layout_audit_records_family_and_layout_disjointness():
     assert len(evidence["train_layout_sha256"]) == 64
     assert len(evidence["dev_layout_sha256"]) == 64
     assert evidence["family_identity"] == "sha256(centers,diameters)"
+
+
+def test_shared_family_holdout_audit_covers_marker_train_and_dev_without_truth():
+    evidence = family_holdout_audit()
+    assert evidence["schema"] == "graphreader.marker-center-family-holdout-audit.v1"
+    assert evidence["marker_generator"] == "real_range_generator_v1"
+    assert evidence["train_dev_family_disjoint"] is True
+    assert evidence["scope"]["model_loaded"] is False
+    assert evidence["scope"]["training_performed"] is False
+    assert evidence["scope"]["sealed_reads"] == 0
+    assert evidence["scope"]["scene_ids_emitted"] is False
+    assert evidence["scope"]["truth_rows_emitted"] is False
+    assert evidence["scope"]["pixels_emitted"] is False
+    for axis in ("renderer", "font", "degradation", "template", "marker"):
+        assert evidence["axes"][axis]["overlap_count"] == 0
+        assert evidence["axes"][axis]["train_dev_disjoint"] is True
 
 
 def test_range_and_masks_match_required_aggregate() -> None:

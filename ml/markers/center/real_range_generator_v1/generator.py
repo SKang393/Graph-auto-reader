@@ -20,6 +20,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFilter
 
 from ml.markers.center.dataset import _artifact_geometry, _draw_marker
+from ml.synthetic.dataset import family_holdout_audit as _synthetic_family_holdout_audit
 
 WIDTH, HEIGHT, PATCH = 224, 168, 33
 SCENE_COUNT = 167
@@ -413,6 +414,16 @@ def layout_family_audit(
     }
 
 
+@lru_cache(maxsize=2)
+def family_holdout_audit(seed: int = 393) -> dict[str, object]:
+    """Expose the shared five-axis family audit for marker evidence."""
+
+    evidence = dict(_synthetic_family_holdout_audit(seed))
+    evidence["schema"] = "graphreader.marker-center-family-holdout-audit.v1"
+    evidence["marker_generator"] = "real_range_generator_v1"
+    return evidence
+
+
 def _patch_distribution(scenes: tuple[Scene, ...]) -> dict[str, object]:
     ink_means: list[float] = []
     ocr_means: list[float] = []
@@ -521,6 +532,7 @@ def audit(*, independent_layout: bool = False) -> dict[str, object]:
         "layout_family_audit": layout_family_audit(
             train, dev, independent_layout=independent_layout
         ),
+        "family_holdout_audit": family_holdout_audit(),
         "mask_overlap_scenarios": {"markers_per_split": dev_markers,
             "ocr_hard_hits": dev_record["mask_center_hits"]["ocr"],
             "artifact_hard_hits": dev_record["mask_center_hits"]["artifact"],
