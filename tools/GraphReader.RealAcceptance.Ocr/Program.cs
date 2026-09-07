@@ -34,7 +34,7 @@ internal static class Program
         {
             SelfTestReport selfTest = SelfTest();
             Console.WriteLine(JsonSerializer.Serialize(selfTest, JsonOptions));
-            return 0;
+            return string.Equals(selfTest.Status, "pass", StringComparison.Ordinal) ? 0 : 1;
         }
         if (!args.Contains("--explicit-opt-in", StringComparer.Ordinal))
         {
@@ -1330,7 +1330,16 @@ internal static class Program
         int MissingRows,
         int WrongScaleRows,
         int FailedCases,
-        bool InvalidCalibrationBlocked);
+        bool InvalidCalibrationBlocked,
+        bool WorkflowDetectionRan,
+        bool WorkflowStepsComplete,
+        bool WorkflowSyntheticBoundaryAccepted,
+        bool WorkflowExportSucceeded,
+        bool WorkflowSourceUnchanged,
+        int WorkflowExportRows,
+        double WorkflowOutputPrecision,
+        double WorkflowTruthCoverage,
+        double WorkflowMatchedRowYAccuracy);
     private sealed class Calibration
     {
         public List<(double ScreenY, double Value)> Ticks { get; } = [];
@@ -1480,6 +1489,15 @@ internal static class Program
     /// </summary>
     private static SelfTestReport ExportWorkflowEvaluatorSelfTest()
     {
+        WorkflowSyntheticExportResult workflow = WorkflowSyntheticAcceptance.RunAsync()
+            .GetAwaiter()
+            .GetResult();
+        WorkflowSelfTestMetrics workflowMetrics = EvaluateWorkflowExport(
+            workflow,
+            [
+                new WorkflowSyntheticExportRow(1, 100d / 6d, "a"),
+                new WorkflowSyntheticExportRow(2, 80, "b"),
+            ]);
         SyntheticExportCase truth = CreateSyntheticExportCase();
         ExportEvaluation valid = EvaluateSyntheticExport(truth, SyntheticExportVariant.Valid);
         ExportEvaluation empty = EvaluateSyntheticExport(truth, SyntheticExportVariant.Empty);
@@ -1496,15 +1514,74 @@ internal static class Program
             duplicate.DuplicateRows > 0 && duplicate.OutputPrecision < 1 &&
             wrongScale.WrongScaleRows > 0 && wrongScale.MatchedRowYAccuracy < 1 &&
             mixedSeries.FailedCases == 1 && mixedSeries.TruthCoverage < 1 &&
-            invalidCalibration.FailedCases == 1 && invalidCalibration.InvalidCalibrationBlocked;
+            invalidCalibration.FailedCases == 1 && invalidCalibration.InvalidCalibrationBlocked &&
+            workflow.DetectionRan && workflow.SyntheticBoundaryAccepted && workflow.ExportSucceeded && workflow.SourceUnchanged &&
+            workflow.Steps.SequenceEqual([WorkflowStep.Import, WorkflowStep.Prepare, WorkflowStep.Detect, WorkflowStep.Review]) &&
+            workflowMetrics.OutputPrecision >= 0.95 && workflowMetrics.TruthCoverage >= 0.95 &&
+            workflowMetrics.MatchedRowYAccuracy >= 0.95;
         ExportEvaluation[] evaluations = [valid, empty, subset, duplicate, wrongScale, mixedSeries, invalidCalibration];
         return new SelfTestReport(
-            passed ? "pass" : "fail", true, false, 0, evaluations.Length,
+            passed ? "pass" : "fail", passed, false, 0, evaluations.Length,
             valid.OutputPrecision, valid.TruthCoverage, valid.MatchedRowYAccuracy,
             evaluations.Sum(item => item.UnmatchedRows), evaluations.Sum(item => item.DuplicateRows),
             evaluations.Sum(item => item.MissingRows), evaluations.Sum(item => item.WrongScaleRows),
-            evaluations.Sum(item => item.FailedCases), invalidCalibration.InvalidCalibrationBlocked);
+            evaluations.Sum(item => item.FailedCases), invalidCalibration.InvalidCalibrationBlocked,
+            workflow.DetectionRan,
+            workflow.Steps.SequenceEqual([WorkflowStep.Import, WorkflowStep.Prepare, WorkflowStep.Detect, WorkflowStep.Review]),
+            workflow.SyntheticBoundaryAccepted, workflow.ExportSucceeded, workflow.SourceUnchanged,
+            workflow.Rows.Count, workflowMetrics.OutputPrecision, workflowMetrics.TruthCoverage,
+            workflowMetrics.MatchedRowYAccuracy);
     }
+
+    private static WorkflowSelfTestMetrics EvaluateWorkflowExport(
+        WorkflowSyntheticExportResult workflow,
+        IReadOnlyList<WorkflowSyntheticExportRow> truthRows)
+    {
+        List<WorkflowSyntheticExportRow> expected = truthRows.ToList();
+        HashSet<int> matchedExpected = [];
+        int matched = 0;
+        int within = 0;
+        foreach (WorkflowSyntheticExportRow row in workflow.Rows)
+        {
+            int index = -1;
+            for (int candidateIndex = 0; candidateIndex < expected.Count; candidateIndex++)
+            {
+                WorkflowSyntheticExportRow candidate = expected[candidateIndex];
+                if (!matchedExpected.Contains(candidateIndex) &&
+                    string.Equals(candidate.Phase, row.Phase, StringComparison.Ordinal) &&
+                    Math.Abs(candidate.X - row.X) <= 1e-9)
+                {
+                    index = candidateIndex;
+                    break;
+                }
+            }
+
+            if (index < 0)
+            {
+                continue;
+            }
+
+            matchedExpected.Add(index);
+            matched++;
+            if (Math.Abs(expected[index].Y - row.Y) <= MorphologyPositiveLabelDistancePx)
+            {
+                within++;
+            }
+        }
+
+        int duplicates = workflow.Rows
+            .GroupBy(row => (row.X, row.Phase))
+            .Sum(group => Math.Max(0, group.Count() - 1));
+        return new WorkflowSelfTestMetrics(
+            workflow.Rows.Count == 0 ? 1 : (matched - duplicates) / (double)workflow.Rows.Count,
+            expected.Count == 0 ? 1 : matched / (double)expected.Count,
+            matched == 0 ? 0 : within / (double)matched);
+    }
+
+    private sealed record WorkflowSelfTestMetrics(
+        double OutputPrecision,
+        double TruthCoverage,
+        double MatchedRowYAccuracy);
 
     private static ExportEvaluation EvaluateSyntheticExport(
         SyntheticExportCase truth,
