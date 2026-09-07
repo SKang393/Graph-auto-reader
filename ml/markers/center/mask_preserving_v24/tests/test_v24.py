@@ -28,6 +28,23 @@ def test_nms_shared_csharp_distance_and_radius_boundaries(distance, radius, expe
     output[19] = [.8, (distance-4)/4, 0, radius]
     assert len(postprocess(SimpleNamespace(tensor=tensor), proposals, output)) == expected
 
+
+def test_consensus_shared_csharp_does_not_move_decoded_point():
+    from ml.markers.center.mask_preserving_v24.mask_preserving import postprocess
+
+    tensor = torch.zeros((3, 32, 32))
+    for x, y in (
+        (6, 8), (12, 8), (9, 5), (9, 11),
+        (6, 5), (12, 5), (6, 11), (12, 11),
+    ):
+        tensor[0, y, x] = 1
+    proposals = extract_proposals(tensor)
+    target = proposals.coordinates.tolist().index([8, 8])
+    output = np.zeros((len(proposals.coordinates), 4), dtype=np.float32)
+    output[target] = [.9, 0, 0, 3]
+
+    assert postprocess(SimpleNamespace(tensor=tensor), proposals, output) == ()
+
 def test_masks_do_not_remove_ink_supported_proposals():
     scene = build_split("dev")[0]
     proposals = extract_proposals(scene.tensor)

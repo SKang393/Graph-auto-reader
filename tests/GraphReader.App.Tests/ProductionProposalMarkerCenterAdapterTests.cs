@@ -412,6 +412,68 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
     }
 
     [TestMethod]
+    public async Task MaskPreservingProposalLatticeMatchesPythonFullFrameUnfold()
+    {
+        var runner = new FakeRunner(static count => new float[count * 4]);
+        var frame = new MarkerImageFrame(32, 32, 1, new float[32 * 32],
+            MarkerSourceImage.Original, MarkerAffineTransform.Identity,
+            MarkerMask.Empty(32, 32), MarkerMask.Empty(32, 32));
+
+        ProposalMarkerCandidateDiagnosticResult result =
+            await CreateMaskPreservingAdapter(runner).DetectCandidateWithDiagnosticsAsync(
+                frame,
+                MarkerPolygon.FromRectangle(new(12, 12, 4, 4)),
+                CancellationToken.None);
+
+        // ceil(32 / 4)^2, identical to V24 torch.unfold and max-pool output.
+        Assert.AreEqual(64, result.StageCounters.ProposalGridPositionsConsidered);
+        Assert.AreEqual(64, result.StageCounters.EmittedProposals);
+        Assert.AreEqual(64, runner.TotalPatches);
+    }
+
+    [TestMethod]
+    public async Task MaskPreservingConsensusDoesNotMoveDecodedPoint()
+    {
+        float[] luminance = Enumerable.Repeat(1f, 32 * 32).ToArray();
+        foreach ((int x, int y) in new[]
+                 {
+                     (6, 8), (12, 8), (9, 5), (9, 11),
+                     (6, 5), (12, 5), (6, 11), (12, 11),
+                 })
+        {
+            luminance[(y * 32) + x] = 0;
+        }
+        var frame = new MarkerImageFrame(32, 32, 1, luminance,
+            MarkerSourceImage.Original, MarkerAffineTransform.Identity,
+            MarkerMask.Empty(32, 32), MarkerMask.Empty(32, 32));
+        MarkerPolygon plot = MarkerPolygon.FromRectangle(new(0, 0, 32, 32));
+        ProposalMarkerNegativePatchDiagnosticResult proposalDiagnostic =
+            ProductionProposalMarkerCenterAdapter.DiagnoseMaskPreservingProposals(
+                frame, plot, CancellationToken.None);
+        int targetIndex = proposalDiagnostic.EmittedProposalFeatures
+            .Select((feature, index) => (feature, index))
+            .Single(item => item.feature.OriginalBaseCenter == new MarkerPoint(8, 8))
+            .index;
+        var runner = new FakeRunner(count =>
+        {
+            Assert.AreEqual(proposalDiagnostic.EmittedProposalFeatures.Count, count);
+            float[] output = new float[count * 4];
+            output[targetIndex * 4] = 0.9f; // Grid point (8,8), one pixel left of consensus.
+            output[targetIndex * 4 + 3] = 3f;
+            return output;
+        });
+
+        ProposalMarkerCandidateDiagnosticResult result =
+            await CreateMaskPreservingAdapter(runner).DetectCandidateWithDiagnosticsAsync(
+                frame,
+                plot,
+                CancellationToken.None);
+
+        Assert.AreEqual(0, result.Candidates.Count);
+        Assert.AreEqual(1, result.StageCounters.GeometryConsensusRejectsAfterRefinementAttempts);
+    }
+
+    [TestMethod]
     public void NegativePatchDiagnosticSummarizesWithoutInferenceOrPixels()
     {
         MarkerImageFrame frame = FrameWithOuterRadiusMarker() with

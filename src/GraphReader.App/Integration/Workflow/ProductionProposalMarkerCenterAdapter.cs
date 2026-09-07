@@ -850,10 +850,22 @@ public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCen
         int gridWidth = (width + ProposalStride - 1) / ProposalStride;
         int gridHeight = (height + ProposalStride - 1) / ProposalStride;
         var framePolygon = plotPolygon.Points.Select(frame.OriginalToFrame.MapFromOriginal).ToArray();
-        int minimumX = Math.Max(0, (int)Math.Floor(framePolygon.Min(static point => point.X)) - PatchSize / 2);
-        int maximumX = Math.Min(width - 1, (int)Math.Ceiling(framePolygon.Max(static point => point.X)) + PatchSize / 2);
-        int minimumY = Math.Max(0, (int)Math.Floor(framePolygon.Min(static point => point.Y)) - PatchSize / 2);
-        int maximumY = Math.Min(height - 1, (int)Math.Ceiling(framePolygon.Max(static point => point.Y)) + PatchSize / 2);
+        // V24 was trained and gated with torch.unfold across the complete frame.
+        // Retain that exact proposal lattice, then apply the plot polygon to
+        // decoded centers below. Older diagnostic candidates keep their scoped
+        // lattice to preserve their historical behavior.
+        int minimumX = maskPreservingCandidate
+            ? 0
+            : Math.Max(0, (int)Math.Floor(framePolygon.Min(static point => point.X)) - PatchSize / 2);
+        int maximumX = maskPreservingCandidate
+            ? width - 1
+            : Math.Min(width - 1, (int)Math.Ceiling(framePolygon.Max(static point => point.X)) + PatchSize / 2);
+        int minimumY = maskPreservingCandidate
+            ? 0
+            : Math.Max(0, (int)Math.Floor(framePolygon.Min(static point => point.Y)) - PatchSize / 2);
+        int maximumY = maskPreservingCandidate
+            ? height - 1
+            : Math.Min(height - 1, (int)Math.Ceiling(framePolygon.Max(static point => point.Y)) + PatchSize / 2);
         int minimumGridX = Math.Max(0, (minimumX - ProposalStride + 1) / ProposalStride);
         int maximumGridX = Math.Min(gridWidth - 1, maximumX / ProposalStride);
         int minimumGridY = Math.Max(0, (minimumY - ProposalStride + 1) / ProposalStride);
@@ -963,6 +975,16 @@ public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCen
             refined = new MarkerPoint(x, y);
             failure = default;
             return true;
+        }
+
+        // V24's sealed postprocessor evaluates consensus only at the decoded
+        // point. Moving a failed point would make production behavior differ
+        // from the Python gate that approved the model.
+        if (maskPreservingCandidate)
+        {
+            refined = default;
+            failure = RefinementFailure.GeometryConsensus;
+            return false;
         }
 
         var candidates = new List<(double Distance, double AbsY, double AbsX, double Dy, double Dx, double X, double Y)>();

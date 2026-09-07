@@ -341,14 +341,11 @@ public sealed class ProductionRasterFrameDecoder : IProductionRasterFrameDecoder
         byte[] bgrPixels;
         try
         {
-            grayscalePixels = DecodeGray8(
+            (grayscalePixels, bgrPixels) = DecodePixels(
                 encodedBytes,
                 request.Image.Width,
-                request.Image.Height);
-            bgrPixels = DecodeBgr24(
-                encodedBytes,
-                request.Image.Width,
-                request.Image.Height);
+                request.Image.Height,
+                cancellationToken);
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidDataException or
             IOException or NotSupportedException or FileFormatException)
@@ -416,10 +413,11 @@ public sealed class ProductionRasterFrameDecoder : IProductionRasterFrameDecoder
         }
     }
 
-    private static byte[] DecodeGray8(
+    private static (byte[] Grayscale, byte[] Bgr) DecodePixels(
         byte[] encodedBytes,
         int expectedWidth,
-        int expectedHeight)
+        int expectedHeight,
+        CancellationToken cancellationToken)
     {
         using var stream = new MemoryStream(encodedBytes, writable: false);
         BitmapDecoder decoder = BitmapDecoder.Create(
@@ -438,42 +436,43 @@ public sealed class ProductionRasterFrameDecoder : IProductionRasterFrameDecoder
                 "Decoded image dimensions do not match retained image evidence.");
         }
 
-        var grayscale = new FormatConvertedBitmap(source, PixelFormats.Gray8, null, 0);
-        grayscale.Freeze();
-        var pixels = new byte[checked(grayscale.PixelWidth * grayscale.PixelHeight)];
-        grayscale.CopyPixels(pixels, grayscale.PixelWidth, 0);
-        return pixels;
-    }
-
-    private static byte[] DecodeBgr24(
-        byte[] encodedBytes,
-        int expectedWidth,
-        int expectedHeight)
-    {
-        using var stream = new MemoryStream(encodedBytes, writable: false);
-        BitmapDecoder decoder = BitmapDecoder.Create(
-            stream,
-            BitmapCreateOptions.PreservePixelFormat,
-            BitmapCacheOption.OnLoad);
-        if (decoder.Frames.Count == 0)
+        // The V24 training input uses Pillow RGB-to-L conversion. Decode once,
+        // composite transparency onto the graph's white paper background, and
+        // apply the same integer BT.601 coefficients explicitly so WPF pixel
+        // format choices cannot change the inference tensor.
+        var bgra = new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+        bgra.Freeze();
+        int pixelCount = checked(bgra.PixelWidth * bgra.PixelHeight);
+        var bgraPixels = new byte[checked(pixelCount * 4)];
+        bgra.CopyPixels(bgraPixels, checked(bgra.PixelWidth * 4), 0);
+        var bgrPixels = new byte[checked(pixelCount * 3)];
+        var grayscalePixels = new byte[pixelCount];
+        for (int index = 0; index < pixelCount; index++)
         {
-            throw new InvalidDataException("The image contains no decodable frame.");
+            if ((index & 0x3fff) == 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            int bgraOffset = index * 4;
+            byte alpha = bgraPixels[bgraOffset + 3];
+            byte blue = CompositeOntoWhite(bgraPixels[bgraOffset], alpha);
+            byte green = CompositeOntoWhite(bgraPixels[bgraOffset + 1], alpha);
+            byte red = CompositeOntoWhite(bgraPixels[bgraOffset + 2], alpha);
+            int bgrOffset = index * 3;
+            bgrPixels[bgrOffset] = blue;
+            bgrPixels[bgrOffset + 1] = green;
+            bgrPixels[bgrOffset + 2] = red;
+            grayscalePixels[index] = (byte)(((299 * red) + (587 * green) +
+                (114 * blue) + 500) / 1000);
         }
 
-        BitmapSource source = decoder.Frames[0];
-        if (source.PixelWidth != expectedWidth || source.PixelHeight != expectedHeight)
-        {
-            throw new InvalidDataException(
-                "Decoded image dimensions do not match retained image evidence.");
-        }
-
-        var bgr = new FormatConvertedBitmap(source, PixelFormats.Bgr24, null, 0);
-        bgr.Freeze();
-        int stride = checked(bgr.PixelWidth * 3);
-        var pixels = new byte[checked(stride * bgr.PixelHeight)];
-        bgr.CopyPixels(pixels, stride, 0);
-        return pixels;
+        return (grayscalePixels, bgrPixels);
     }
+
+    private static byte CompositeOntoWhite(byte channel, byte alpha) =>
+        (byte)(((channel * alpha) + (byte.MaxValue * (byte.MaxValue - alpha)) + 127) /
+            byte.MaxValue);
 
     private static (MarkerAffineTransform Marker, OcrFrameTransform Ocr) ResolveTransforms(
         ProductionWorkflowDetectionRequest request)
