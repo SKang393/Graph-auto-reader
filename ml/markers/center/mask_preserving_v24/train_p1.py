@@ -14,11 +14,14 @@ from ml.markers.center.real_range_generator_v1.negative_sampler import CONNECTOR
 from ml.markers.center.metrics import center_metrics
 from ml.markers.gate_seal import canonical_json_bytes, sha256_file
 from ml.markers.training_budget import acquire_training_candidate, complete_training_candidate, void_candidate
+from ml.synthetic.dataset import family_holdout_audit
+from .family_scenes import FamilyScene, build_family_split
 from .mask_preserving import extract_proposals, postprocess, prohibited_hits
 from . import protocol
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 CONFIG_PATH = Path("ml/markers/center/mask_preserving_v24/training/p1.json")
+FAMILY_HARD_NEGATIVE_RADIUS_PX = 8.0
 RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/protocol.py"),
     Path("ml/markers/center/mask_preserving_v24/mask_preserving.py"),
@@ -29,6 +32,10 @@ RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/train_p1.py"),
     Path("ml/markers/center/focal_confidence_v21/focal_loss.py"),
     Path("ml/markers/center/scale_classifier_v16/model.py"),
+    Path("ml/markers/center/dataset.py"),
+    Path("ml/markers/center/line_aware_v1/pipeline.py"),
+    Path("ml/markers/center/line_aware_v1/dataset.py"),
+    Path("ml/markers/center/postprocess.py"),
     Path("ml/markers/center/real_range_generator_v1/generator.py"),
     Path("ml/markers/center/real_range_generator_v1/negative_sampler.py"),
     Path("ml/markers/center/real_range_generator_v1/AUDIT.json"),
@@ -46,9 +53,20 @@ RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY7_MORPHOLOGY_DIAGNOSIS.json"),
     Path("ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY8_DIAGNOSIS.json"),
     Path("ml/markers/center/mask_preserving_v24/P1_RETRY8_RESULT.json"),
+    Path("ml/markers/center/mask_preserving_v24/family_scenes.py"),
+    Path("ml/synthetic/dataset.py"),
+    Path("ml/synthetic/fonts.py"),
+    Path("ml/synthetic/schema.py"),
+    Path("ml/synthetic/scene.schema.json"),
+    Path("ml/synthetic/io.py"),
+    Path("ml/synthetic/contact_sheet.py"),
+    Path("ml/synthetic/templates.py"),
+    Path("ml/synthetic/renderer.py"),
+    Path("docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json"),
     Path("ml/markers/center/metrics.py"),
     Path("ml/policy/evidence-policy.json"),
     Path("ml/policy/acceptance-bars.json"),
+    Path("ml/policy/evidence_policy.py"),
     Path("ml/markers/gate_seal.py"),
     Path("ml/markers/training_budget.py"),
 )
@@ -56,6 +74,44 @@ RUNNER_SOURCE_PATHS = (
 def _sha(path: Path) -> str: return hashlib.sha256(path.read_bytes()).hexdigest()
 def _configure(seed: int) -> None:
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed); torch.set_num_threads(1); torch.use_deterministic_algorithms(True)
+
+
+def _hard_negative_radius(scene, kind: str) -> float | None:
+    if kind in {"text", "line_intersection", "axis"}:
+        return 8.0
+    if kind in TOPOLOGY_KINDS:
+        return TOPOLOGY_HARD_RADIUS_PX
+    if isinstance(scene, FamilyScene):
+        return FAMILY_HARD_NEGATIVE_RADIUS_PX
+    return None
+
+
+def _tensor_set_sha256(scenes) -> str:
+    hashes = sorted(
+        hashlib.sha256(scene.tensor.numpy().tobytes(order="C")).hexdigest()
+        for scene in scenes
+    )
+    return hashlib.sha256(canonical_json_bytes(hashes)).hexdigest()
+
+
+def _passes_marker_bar(metrics: dict[str, float], bar: dict[str, float]) -> bool:
+    return (
+        metrics["proposal_recall"] >= bar["proposal_recall_minimum"]
+        and metrics["precision"] >= bar["precision_minimum"]
+        and metrics["recall"] >= bar["recall_minimum"]
+        and metrics["prohibited_structure_hit_rate"]
+        <= bar["prohibited_structure_hit_rate_maximum"]
+    )
+
+
+def _passes_required_dev_gates(
+    real_range_metrics: dict[str, float],
+    family_metrics: dict[str, float],
+    bar: dict[str, float],
+) -> bool:
+    return _passes_marker_bar(real_range_metrics, bar) and _passes_marker_bar(
+        family_metrics, bar
+    )
 
 
 def _shared_marker_acceptance_bar() -> dict[str, float]:
@@ -71,13 +127,41 @@ def _shared_marker_acceptance_bar() -> dict[str, float]:
         ),
     }
 
-def _examples_with_report(scenes, maximum_negative_per_positive: int, generator: torch.Generator):
+
+def _selected_index_sha256(scenes, selections) -> str:
+    identities = [
+        f"{scene.split}:{scene.family}:{scene.seed}:{index}"
+        for scene, indices in zip(scenes, selections, strict=True)
+        for index in indices
+    ]
+    return hashlib.sha256(canonical_json_bytes(identities)).hexdigest()
+
+
+def _examples_with_report(
+    scenes,
+    maximum_negative_per_positive: int,
+    generator: torch.Generator,
+    *,
+    sampling_mode: str,
+):
     if maximum_negative_per_positive != 10:
         raise ValueError("V24 retry requires maximum_negative_per_positive=10")
+    if sampling_mode not in {"real-range-train", "family-train", "subset-test"}:
+        raise ValueError("sampling_mode must be 'real-range-train', 'family-train', or 'subset-test'")
+    if not scenes:
+        raise ValueError("scenes must not be empty")
+    if sampling_mode == "real-range-train" and (
+        len(scenes) != 167 or not all(scene.split == "train" for scene in scenes)
+    ):
+        raise ValueError("real-range production sampling requires the complete 167-scene train split")
+    if sampling_mode == "family-train" and (
+        not all(isinstance(scene, FamilyScene) for scene in scenes)
+        or not all(scene.split == "train" for scene in scenes)
+    ):
+        raise ValueError("family production sampling requires train FamilyScene inputs")
     values = [[] for _ in range(5)]
-    if len(scenes) != 167:
-        # Focused unit tests may pass one scene; production training is always the
-        # complete 167-scene train split and uses the exact global sampler below.
+    if sampling_mode != "real-range-train":
+        selections = []
         for scene in scenes:
             proposals = extract_proposals(scene.tensor)
             centers = torch.tensor(scene.centers, dtype=torch.float32)
@@ -87,17 +171,40 @@ def _examples_with_report(scenes, maximum_negative_per_positive: int, generator:
             labels = nearest.le(3.0).float()
             hard = torch.zeros(len(proposals.coordinates), dtype=torch.bool)
             for kind, x, y in scene.hard_negatives:
-                if kind in {"text", "line_intersection", "axis"}:
-                    hard |= torch.cdist(proposals.coordinates, torch.tensor(((x, y),), dtype=torch.float32)).squeeze(1).le(8.0)
-                elif kind in TOPOLOGY_KINDS:
-                    hard |= torch.cdist(proposals.coordinates, torch.tensor(((x, y),), dtype=torch.float32)).squeeze(1).le(TOPOLOGY_HARD_RADIUS_PX)
+                radius = _hard_negative_radius(scene, kind)
+                if radius is not None:
+                    hard |= torch.cdist(proposals.coordinates, torch.tensor(((x, y),), dtype=torch.float32)).squeeze(1).le(radius)
             positive = torch.nonzero(labels > .5).flatten()
+            hard_negative = torch.nonzero(hard & (labels <= .5)).flatten()
+            negative_budget = len(positive) * maximum_negative_per_positive
+            if len(hard_negative) > negative_budget:
+                hard_negative = hard_negative[
+                    torch.randperm(len(hard_negative), generator=generator)[:negative_budget]
+                ]
             negative = torch.nonzero((labels <= .5) & ~hard).flatten()
-            limit = max(0, len(positive) * maximum_negative_per_positive - int(hard.sum()))
-            negative = negative[:limit]
-            selected = torch.cat((positive, torch.nonzero(hard & (labels <= .5)).flatten(), negative)).unique(sorted=True)
+            negative = negative[:max(0, negative_budget - len(hard_negative))]
+            selected = torch.cat((positive, hard_negative, negative)).unique(sorted=True)
+            selections.append(tuple(int(index) for index in selected.tolist()))
             values[0].append(proposals.patches[selected]); values[1].append(labels[selected]); values[2].append((centers[nearest_index]-proposals.coordinates).index_select(0, selected)/4.0); values[3].append(radii[nearest_index].index_select(0, selected)); values[4].append(hard[selected])
-        return tuple(torch.cat(part) for part in values) + (SampledNegatives(tuple(), {}, {}, "subset-test"),)
+        selected_count = sum(len(indices) for indices in selections)
+        positive_count = sum(int((part > .5).sum()) for part in values[1])
+        hard_count = sum(
+            int((hard_part & (label_part <= .5)).sum())
+            for label_part, hard_part in zip(values[1], values[4], strict=True)
+        )
+        report = SampledNegatives(
+            tuple(selections),
+            {"selected": selected_count},
+            {
+                "positive": positive_count,
+                "hard_negative": hard_count,
+                "other_negative": selected_count - positive_count - hard_count,
+            },
+            _selected_index_sha256(scenes, selections)
+            if sampling_mode == "family-train"
+            else "subset-test",
+        )
+        return tuple(torch.cat(part) for part in values) + (report,)
     records = []
     prepared = []
     for scene in scenes:
@@ -106,10 +213,9 @@ def _examples_with_report(scenes, maximum_negative_per_positive: int, generator:
         distance = torch.cdist(coords, centers); nearest, nearest_index = distance.min(dim=1); labels = nearest.le(3.0).float()
         hard = torch.zeros(len(coords), dtype=torch.bool)
         for kind, x, y in scene.hard_negatives:
-            if kind in {"text", "line_intersection", "axis"}:
-                hard |= torch.cdist(coords, torch.tensor(((x, y),), dtype=torch.float32)).squeeze(1).le(8.0)
-            elif kind in TOPOLOGY_KINDS:
-                hard |= torch.cdist(coords, torch.tensor(((x, y),), dtype=torch.float32)).squeeze(1).le(TOPOLOGY_HARD_RADIUS_PX)
+            radius = _hard_negative_radius(scene, kind)
+            if radius is not None:
+                hard |= torch.cdist(coords, torch.tensor(((x, y),), dtype=torch.float32)).squeeze(1).le(radius)
         positive = torch.nonzero(labels > .5).flatten()
         records.append((scene, proposals, labels, hard))
         prepared.append((scene, proposals, labels, hard, centers, nearest_index, radii))
@@ -122,7 +228,12 @@ def _examples_with_report(scenes, maximum_negative_per_positive: int, generator:
     return tuple(torch.cat(part) for part in values) + (sampled,)
 
 def _examples(scenes, maximum_negative_per_positive: int, generator: torch.Generator):
-    return _examples_with_report(scenes, maximum_negative_per_positive, generator)[:5]
+    return _examples_with_report(
+        scenes,
+        maximum_negative_per_positive,
+        generator,
+        sampling_mode="subset-test",
+    )[:5]
 
 def _evaluate(scenes, model, threshold):
     tp=fp=fn=dup=hits=truth=proposal_tp=0
@@ -150,12 +261,14 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
     config=json.loads((REPO_ROOT/CONFIG_PATH).read_text(encoding="utf-8"))
     if _sha(checkpoint) != config["checkpoint_sha256"]: raise ValueError("V21 checkpoint hash changed")
     if _sha(v21_onnx) != config["v21_onnx_sha256"]: raise ValueError("V21 ONNX hash changed")
-    for path_key, hash_key in (("feasibility_path","feasibility_sha256"),("retry_diagnosis_path","retry_diagnosis_sha256"),("morphology_diagnosis_path","morphology_diagnosis_sha256"),("morphology_gap_path","morphology_gap_sha256"),("retry3_morphology_gap_path","retry3_morphology_gap_sha256"),("retry4_diagnosis_path","retry4_diagnosis_sha256"),("retry4_generic_fp_diagnosis_path","retry4_generic_fp_diagnosis_sha256"),("retry5_diagnosis_path","retry5_diagnosis_sha256"),("retry5_generic_fp_diagnosis_path","retry5_generic_fp_diagnosis_sha256"),("retry6_diagnosis_path","retry6_diagnosis_sha256"),("retry7_diagnosis_path","retry7_diagnosis_sha256"),("retry7_morphology_diagnosis_path","retry7_morphology_diagnosis_sha256"),("retry7_morphology_gap_path","retry7_morphology_gap_sha256"),("retry8_result_path","retry8_result_sha256"),("retry8_diagnosis_path","retry8_diagnosis_sha256"),("generator_audit_path","generator_audit_sha256"),("negative_audit_path","negative_audit_sha256"),("negative_gap_path","negative_gap_sha256"),("evidence_policy_path","evidence_policy_sha256"),("acceptance_bars_path","acceptance_bars_sha256")):
+    for path_key, hash_key in (("feasibility_path","feasibility_sha256"),("retry_diagnosis_path","retry_diagnosis_sha256"),("morphology_diagnosis_path","morphology_diagnosis_sha256"),("morphology_gap_path","morphology_gap_sha256"),("retry3_morphology_gap_path","retry3_morphology_gap_sha256"),("retry4_diagnosis_path","retry4_diagnosis_sha256"),("retry4_generic_fp_diagnosis_path","retry4_generic_fp_diagnosis_sha256"),("retry5_diagnosis_path","retry5_diagnosis_sha256"),("retry5_generic_fp_diagnosis_path","retry5_generic_fp_diagnosis_sha256"),("retry6_diagnosis_path","retry6_diagnosis_sha256"),("retry7_diagnosis_path","retry7_diagnosis_sha256"),("retry7_morphology_diagnosis_path","retry7_morphology_diagnosis_sha256"),("retry7_morphology_gap_path","retry7_morphology_gap_sha256"),("retry8_result_path","retry8_result_sha256"),("retry8_diagnosis_path","retry8_diagnosis_sha256"),("generator_audit_path","generator_audit_sha256"),("negative_audit_path","negative_audit_sha256"),("negative_gap_path","negative_gap_sha256"),("family_dev_baseline_path","family_dev_baseline_sha256"),("evidence_policy_path","evidence_policy_sha256"),("acceptance_bars_path","acceptance_bars_sha256")):
         if _sha(REPO_ROOT/str(config[path_key])) != config[hash_key]: raise ValueError(f"bound input changed: {config[path_key]}")
     if _sha(REPO_ROOT/config["negative_sampler"]["source_path"]) != config["negative_sampler"]["source_sha256"]: raise ValueError("negative sampler source changed")
     anti_aliasing = config.get("anti_aliasing")
     if anti_aliasing is None or tuple(float(value) for value in anti_aliasing.get("blur_radii_px", ())) != ANTI_ALIAS_BLUR_RADII or anti_aliasing.get("scene_index_schedule") != "ANTI_ALIAS_BLUR_RADII[index % len(ANTI_ALIAS_BLUR_RADII)]":
         raise ValueError("anti-aliasing schedule does not match generator constant")
+    if float(config["family_hard_negative_radius_px"]) != FAMILY_HARD_NEGATIVE_RADIUS_PX:
+        raise ValueError("five-axis family hard-negative radius changed")
     authorization=acquire_training_candidate(REPO_ROOT,task=protocol.TASK,revision=protocol.TRAINING_REVISION,candidate_id=protocol.TRAINING_CANDIDATE_ID,config_path=CONFIG_PATH,runner_source_paths=RUNNER_SOURCE_PATHS)
     output_dir.mkdir(parents=True); report_path=output_dir/"candidate-report.json"; started=time.perf_counter(); phase="initialization"
     try:
@@ -163,7 +276,27 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
         layout_audit = split_audit["layout_family_audit"]
         if not layout_audit["independent_layout_required"] or not layout_audit["train_dev_family_disjoint"] or not layout_audit["train_dev_layout_disjoint"]:
             raise RuntimeError("independent family-disjoint dev layout contract failed")
-        train=build_split("train"); dev=build_split("dev", independent_layout=True); gen=torch.Generator().manual_seed(config["seed"]+1); patches,labels,offsets,radii,hard,sampling=_examples_with_report(train,config["maximum_negative_per_positive"],gen)
+        family_audit = family_holdout_audit()
+        if not family_audit["train_dev_family_disjoint"]:
+            raise RuntimeError("five-axis synthetic family holdout is not disjoint")
+        if family_audit["splits"]["train"]["aggregate_sha256"] != config["family_train_split_sha256"] or family_audit["splits"]["dev"]["aggregate_sha256"] != config["family_dev_split_sha256"]:
+            raise RuntimeError("five-axis synthetic family split changed")
+        train=build_split("train"); dev=build_split("dev", independent_layout=True)
+        family_train=build_family_split("train"); family_dev=build_family_split("dev")
+        if _tensor_set_sha256(family_train) != config["family_train_tensor_set_sha256"] or _tensor_set_sha256(family_dev) != config["family_dev_tensor_set_sha256"]:
+            raise RuntimeError("five-axis synthetic family tensors changed")
+        gen=torch.Generator().manual_seed(config["seed"]+1)
+        real_values=_examples_with_report(train,config["maximum_negative_per_positive"],gen,sampling_mode="real-range-train")
+        family_values=_examples_with_report(family_train,config["maximum_negative_per_positive"],gen,sampling_mode="family-train")
+        real_patches,real_labels,real_offsets,real_radii,real_hard,sampling=real_values
+        family_patches,family_labels,family_offsets,family_radii,family_hard,family_sampling=family_values
+        if len(real_labels) != config["real_range_training_example_count_expected"] or int((real_labels>.5).sum()) != config["real_range_positive_example_count_expected"] or int(real_hard.sum()) != config["real_range_hard_negative_example_count_expected"]:
+            raise RuntimeError("real-range training example contract changed")
+        if len(family_labels) != config["family_training_example_count_expected"] or int((family_labels>.5).sum()) != config["family_positive_example_count_expected"] or int(family_hard.sum()) != config["family_hard_negative_example_count_expected"]:
+            raise RuntimeError("five-axis family training example contract changed")
+        if family_sampling.selected_index_sha256 != config["family_selected_index_sha256"]:
+            raise RuntimeError("five-axis family selected indices changed")
+        patches=torch.cat((real_patches,family_patches)); labels=torch.cat((real_labels,family_labels)); offsets=torch.cat((real_offsets,family_offsets)); radii=torch.cat((real_radii,family_radii)); hard=torch.cat((real_hard,family_hard))
         sampler_config = config["negative_sampler"]
         if sampling.capacities != sampler_config["expected_capacities"] or sampling.selected_index_sha256 != sampler_config["selected_index_sha256"] or sampling.counts != sampler_config["quotas"]:
             raise RuntimeError("negative sampler contract changed")
@@ -196,13 +329,13 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
             for start in range(0,len(labels),config["batch_size"]):
                 index=order[start:start+config["batch_size"]]; loss=v21_loss(model.forward_raw(patches[index]),labels[index],offsets[index],radii[index],hard[index],positive_weight=config["positive_loss_weight"],hard_weight=config["hard_negative_loss_weight"],alpha=config["focal_alpha"],gamma=config["focal_gamma"]); optimizer.zero_grad(set_to_none=True); loss.backward(); torch.nn.utils.clip_grad_norm_(model.parameters(),5.0); optimizer.step(); steps+=1
         if steps != config["optimizer_steps_expected"] or steps > config["optimizer_steps_maximum"]: raise RuntimeError(f"optimizer step contract changed: {steps}")
-        phase="dev"; model.eval(); comparisons=[_evaluate(dev,model,t) for t in [0.25,*config["selection_thresholds"]]]; selected=comparisons[0]; bar=_shared_marker_acceptance_bar(); dev_passed=selected["proposal_recall"]>=bar["proposal_recall_minimum"] and selected["precision"]>=bar["precision_minimum"] and selected["recall"]>=bar["recall_minimum"] and selected["prohibited_structure_hit_rate"]<=bar["prohibited_structure_hit_rate_maximum"]
+        phase="dev"; model.eval(); comparisons=[_evaluate(dev,model,t) for t in [0.25,*config["selection_thresholds"]]]; family_comparisons=[_evaluate(family_dev,model,t) for t in [0.25,*config["selection_thresholds"]]]; selected=comparisons[0]; family_selected=family_comparisons[0]; bar=_shared_marker_acceptance_bar(); real_range_dev_passed=_passes_marker_bar(selected,bar); family_dev_passed=_passes_marker_bar(family_selected,bar); dev_passed=_passes_required_dev_gates(selected,family_selected,bar)
         phase="export"; out_pt=output_dir/"marker-center-mask-preserving-v24-p1.pt"; torch.save({"state_dict":model.state_dict(),"config":model.export_contract()},out_pt); out_onnx=output_dir/"marker-center-mask-preserving-v24-p1.onnx"; torch.onnx.export(model,torch.zeros((1,3,33,33)),out_onnx,input_names=["candidate_patches"],output_names=["candidate_predictions"],dynamic_axes={"candidate_patches":{0:"candidate_count"},"candidate_predictions":{0:"candidate_count"}},opset_version=18,dynamo=False); onnx.checker.check_model(onnx.load(out_onnx)); session=ort.InferenceSession(str(out_onnx),providers=[protocol.PROVIDER]);
         if session.get_providers()[0] != protocol.PROVIDER: raise RuntimeError("CPUExecutionProvider was not selected")
         parity=[]; parity_source=extract_proposals(dev[0].tensor).patches
         for count in [1,8,37]:
             x=parity_source[:count].contiguous(); expected=model(x).detach().numpy(); actual=session.run(["candidate_predictions"],{"candidate_patches":x.numpy()})[0]; parity.append({"candidate_count":count,"maximum_absolute_error":float(np.max(np.abs(expected-actual)))})
-        report={"schema":"graphreader.marker-center-mask-preserving-v24-candidate.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"status":"dev_passed" if dev_passed and max(r["maximum_absolute_error"] for r in parity)<=config["onnx_parity_tolerance"] else "failed_dev","synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0,"optimizer_steps":steps,"training_example_count":len(labels),"positive_example_count":int((labels>.5).sum()),"hard_negative_example_count":int(hard.sum()),"negative_sampling":{"seed":20260904,"split":"train","capacities":sampling.capacities,"counts":sampling.counts,"selected_index_sha256":sampling.selected_index_sha256,"topology_radius_px":topology_config["radius_px"],"topology_capacity":sampling.topology_capacity,"topology_selected":sampling.topology_selected,"topology_selected_index_sha256":sampling.topology_selected_index_sha256,"topology_hard_radius_px":topology_hard_config["radius_px"],"topology_hard_capacity":sampling.topology_hard_capacity,"topology_hard_selected":sampling.topology_hard_selected,"hard_training_total":sampling.hard_training_total,"connector_endpoint_offset_px":connector_config["endpoint_offset_px"],"connector_anchor_max_distance_px":connector_config["max_distance_px"],"connector_anchor_target_count":sampling.connector_anchor_target_count,"connector_anchor_capacity":sampling.connector_anchor_capacity,"connector_anchor_selected":sampling.connector_anchor_selected,"connector_anchor_selected_index_sha256":sampling.connector_anchor_selected_index_sha256,"generic_connector_band_radius_px":band_config["radius_px"],"generic_connector_band_capacity":sampling.capacities["generic_connector_band"],"generic_connector_band_selected":sampling.counts["generic_connector_band"],"generic_connector_band_selected_index_sha256":sampling.generic_connector_band_selected_index_sha256,"generic_remainder_selected":sampling.generic_remainder_selected},"generator_layout_family_audit":layout_audit,"acceptance_bar":bar,"dev_comparisons":comparisons,"selected":selected,"dev_gate_passed":dev_passed,"checkpoint_sha256":_sha(out_pt),"onnx_sha256":_sha(out_onnx),"v21_checkpoint_sha256":config["checkpoint_sha256"],"v21_onnx_sha256":config["v21_onnx_sha256"],"onnx_provider":protocol.PROVIDER,"onnx_dynamic_candidate_counts":parity,"onnx_parity_maximum_absolute_error":max(r["maximum_absolute_error"] for r in parity),"elapsed_ms":round((time.perf_counter()-started)*1000,3),"production_approval":False,"release_eligible":False}
+        report={"schema":"graphreader.marker-center-mask-preserving-v24-candidate.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"status":"dev_passed" if dev_passed and max(r["maximum_absolute_error"] for r in parity)<=config["onnx_parity_tolerance"] else "failed_dev","synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0,"optimizer_steps":steps,"training_example_count":len(labels),"positive_example_count":int((labels>.5).sum()),"hard_negative_example_count":int(hard.sum()),"real_range_training_example_count":len(real_labels),"family_training_example_count":len(family_labels),"family_positive_example_count":int((family_labels>.5).sum()),"family_hard_negative_example_count":int(family_hard.sum()),"negative_sampling":{"seed":20260904,"split":"train","capacities":sampling.capacities,"counts":sampling.counts,"selected_index_sha256":sampling.selected_index_sha256,"topology_radius_px":topology_config["radius_px"],"topology_capacity":sampling.topology_capacity,"topology_selected":sampling.topology_selected,"topology_selected_index_sha256":sampling.topology_selected_index_sha256,"topology_hard_radius_px":topology_hard_config["radius_px"],"topology_hard_capacity":sampling.topology_hard_capacity,"topology_hard_selected":sampling.topology_hard_selected,"hard_training_total":sampling.hard_training_total,"connector_endpoint_offset_px":connector_config["endpoint_offset_px"],"connector_anchor_max_distance_px":connector_config["max_distance_px"],"connector_anchor_target_count":sampling.connector_anchor_target_count,"connector_anchor_capacity":sampling.connector_anchor_capacity,"connector_anchor_selected":sampling.connector_anchor_selected,"connector_anchor_selected_index_sha256":sampling.connector_anchor_selected_index_sha256,"generic_connector_band_radius_px":band_config["radius_px"],"generic_connector_band_capacity":sampling.capacities["generic_connector_band"],"generic_connector_band_selected":sampling.counts["generic_connector_band"],"generic_connector_band_selected_index_sha256":sampling.generic_connector_band_selected_index_sha256,"generic_remainder_selected":sampling.generic_remainder_selected},"family_sampling":{"mode":"family-train","capacities":family_sampling.capacities,"counts":family_sampling.counts,"selected_index_sha256":family_sampling.selected_index_sha256},"generator_layout_family_audit":layout_audit,"five_axis_family_audit":family_audit,"family_train_tensor_set_sha256":config["family_train_tensor_set_sha256"],"family_dev_tensor_set_sha256":config["family_dev_tensor_set_sha256"],"acceptance_bar":bar,"dev_comparisons":comparisons,"family_dev_comparisons":family_comparisons,"selected":selected,"family_selected":family_selected,"real_range_dev_gate_passed":real_range_dev_passed,"family_dev_gate_passed":family_dev_passed,"dev_gate_passed":dev_passed,"checkpoint_sha256":_sha(out_pt),"onnx_sha256":_sha(out_onnx),"v21_checkpoint_sha256":config["checkpoint_sha256"],"v21_onnx_sha256":config["v21_onnx_sha256"],"onnx_provider":protocol.PROVIDER,"onnx_dynamic_candidate_counts":parity,"onnx_parity_maximum_absolute_error":max(r["maximum_absolute_error"] for r in parity),"elapsed_ms":round((time.perf_counter()-started)*1000,3),"production_approval":False,"release_eligible":False}
     except Exception as error:
         report={"schema":"graphreader.marker-center-mask-preserving-v24-failure.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"status":"failed_runner","phase":phase,"exception_type":type(error).__name__,"exception_message":str(error),"synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0}
         report_path.write_bytes(canonical_json_bytes(report)); void_candidate(authorization,error); raise

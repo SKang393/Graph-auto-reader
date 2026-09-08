@@ -77,8 +77,9 @@ Items stay here until resolved. Newest items are appended last.
 ## REV-006 — define which executions advance the build ledger
 
 - **Status:** open
-- **Blocks:** Goal 22 integrated portable build and any claim that every build
-  is accounted for
+- **Blocks:** Goal 22 integrated portable build, local synthetic seed-boundary
+  compilation/tests and runtime-derived marker inputs, and any claim that every
+  build is accounted for
 - **Effort:** about 5 minutes
 - **Action:** confirm whether the version rule applies only to packaged or
   runnable application artifacts, or also to compiler outputs produced by local

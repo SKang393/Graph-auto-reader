@@ -1,0 +1,61 @@
+{
+  "schema": "graphreader.goal22-retry10-input-review.v1",
+  "status": "waiting_production_input_contract",
+  "revision": "marker-center-mask-preserving-v24",
+  "candidate_id": "P1",
+  "retry_count": 10,
+  "finding": "Family OCR and artifact input channels are rasterized from renderer annotations, not actual upstream stage predictions. Preserve this as oracle-mask diagnostic evidence; it does not establish the intended Production input distribution.",
+  "evidence_paths": [
+    "ml/markers/center/mask_preserving_v24/family_scenes.py",
+    "ml/markers/center/mask_preserving_v24/train_p1.py",
+    "src/GraphReader.App/Integration/Workflow/ProductionDetectionMaskComposer.cs"
+  ],
+  "historical_diagnostic": "docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json",
+  "historical_result_modified": false,
+  "required_before_training": [
+    "Explicit family sampler with deterministic selected-index binding",
+    "Immutable original raster decoded by the shared runtime decoder",
+    "OCR mask from actual OCR output and structural seed from actual axis/tick/divider evidence",
+    "No annotation or future-stage geometry supplied as model input",
+    "Bind input tensor, source, upstream model, and sampling identities; recheck input contracts"
+  ],
+  "production_approval_unchanged": true,
+  "production_composer_approval_gate_must_remain": true,
+  "scope": {
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "new_revision": false,
+    "synthetic_only": true
+  },
+  "preflight": {
+    "real_range_examples": 35838,
+    "family_examples": 1936,
+    "family_positives": 176,
+    "family_hard_weighted_examples": 348,
+    "meaning": "sampling counts only; not production input acceptance"
+  },
+  "unblocks_when": "The intended upstream raster/OCR/axis mask path supplies checksum-bound family tensors and passes its synthetic boundary tests.",
+  "sampler_repair": {
+    "explicit_modes": [
+      "real-range-train",
+      "family-train",
+      "subset-test"
+    ],
+    "production_dev_rejected": true,
+    "family_selected_index_sha256": "bf08ffe66bcdf7a86d2d1c1046ff3af8bf993954d7c74416a9650f49e0292a92",
+    "runner_source_bundle_sha256": "e8358ea50eea1470eb363a17d9b2f5a678a46061333cf54e45b27e426475406d",
+    "production_input_hold_tested": true
+  },
+  "validation": {
+    "full_command": "python -m pytest ml/markers/center/mask_preserving_v24/tests -q -p no:cacheprovider",
+    "initial_result": "34 passed, 1 failed because ignored historical candidate-report.json was absent in isolated worktree",
+    "initial_elapsed_seconds": 36.28,
+    "fixture_repair": "Copied the existing local retry9 aggregate report after verifying its SHA-256 equals tracked P1_RETRY9_RESULT.json; no report content changed",
+    "fixture_sha256": "5dee4ac84639597faac2d2bdf4f74db10d8225e858d8f884f34b7c5725dc2255",
+    "focused_command": "python -m pytest ml/markers/center/mask_preserving_v24/tests/test_training_contract.py::test_current_evidence_bindings_and_authorization_match_files -q -p no:cacheprovider",
+    "focused_result": "1 passed",
+    "focused_elapsed_seconds": 3.21,
+    "all_35_tests_verified": true
+  }
+}
