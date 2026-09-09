@@ -1,0 +1,209 @@
+{
+  "schema": "graphreader.goal22-engauge-workflow-outcome.v1",
+  "scope": "Synthetic development of the real whole-workflow acceptance harness",
+  "implementation": [
+    "Read embedded image bytes, three calibration anchors and all Engauge curve points into evaluator-only reference records. Fail closed on malformed, ambiguous or unsupported scientific truth.",
+    "Group exact shared image bytes once, namespace each project series/point identity, retain all reference points and original graph values, and record coincident cross-project coordinates without inferring shared baselines.",
+    "Validate complete bounded PNG data and materialize all pixels before invoking the image-only callback. No anchors, points, curves, names or truth paths are passed to the workflow.",
+    "Use actual import, preparation, automatic detection, untouched Review and ExportService. Verify original bytes and reject repeated source execution.",
+    "Evaluate actual CSV/audit artifacts against the isolated references. Retain import, workflow, empty/subset and invalid-output failures in full denominators. Emit sanitized aggregate counters only."
+  ],
+  "source_sha256": {
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapter.cs": "70ed84f4646572ce40cddca0672fb5c280a16ae8950d3247da6c5c7d6abc9d1c",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapterSelfTest.cs": "4c6ea7b43bfa19b202e7404b7ddaa4ac5caa646203580030fb750bef7e6ac9de",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowGrouping.cs": "b71d9f7148116003c8b3f4bc857081de5dda1b1d4250c2a773f68e69c7bda22c",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowGroupingSelfTest.cs": "dbf398c9ba8cec7fcf935793a75420c615e213622227cea8a11989443294d615",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeGroupedWorkflowExecutor.cs": "94759e52be82411cd640660c7674a98bfa32355e05f158bc5a4ec31d08b682d1",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeGroupedWorkflowExecutorSelfTest.cs": "79ee32a8c74ecb83d5979b6497476e58cc6b1ee42179f23ff7e18296bf62b5b1",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateGroupedWorkflowAdapter.cs": "247b6cbd75465279333218b4903f04e6746a34bf8c33eda8141260036e93392e",
+    "tools/GraphReader.RealAcceptance.Ocr/WorkflowSyntheticAcceptance.cs": "2ce8ff9b38681888165702a4dc97109e5cc779178c38e717142d13ae928889ce",
+    "tools/GraphReader.RealAcceptance.Ocr/Program.cs": "7281b208f98082ada1d779739087d3b320acaa570436015ae1680ce0cb9e7efe"
+  },
+  "verification": {
+    "report_sha256": "cd68f7cceb970b3b1995e5a19ee960fc770cc8e83bfc245a3c28109232f52ce8",
+    "tool_sha256": "c635f7f5b9bcaafb5bf0a16fe18766f569e67a754044371c14f7f6bb8124c208",
+    "commands": [
+      {
+        "command": [
+          "dotnet",
+          "build",
+          "tools/GraphReader.RealAcceptance.Ocr/GraphReader.RealAcceptance.Ocr.csproj",
+          "-c",
+          "Release",
+          "-r",
+          "win-x64",
+          "--self-contained",
+          "false",
+          "--no-restore",
+          "--verbosity",
+          "quiet"
+        ],
+        "exit_code": 0,
+        "elapsed_ms": 2769.036,
+        "stdout_sha256": "ab68a6e917c00147d3fc6e5308ec36f966ef42aea4756cae402c8f23beb4a1d3",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": [
+          "dotnet",
+          "tools/GraphReader.RealAcceptance.Ocr/bin/Release/net10.0-windows/win-x64/GraphReader.RealAcceptance.Ocr.dll",
+          "--self-test-engauge-workflow-truth"
+        ],
+        "exit_code": 0,
+        "elapsed_ms": 235.582,
+        "stdout_sha256": "c16b4a097f3afc0423664c702bf08892ba492f42505ea134b1d3a2815b81c040",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": {
+          "status": "pass",
+          "check_count": 24,
+          "checks": [
+            "valid_exact_curve_and_point_inventory",
+            "three_anchor_affine_mapping",
+            "source_image_identity_and_immutability",
+            "relations_and_phases_explicitly_unavailable",
+            "failed_runtime_retains_full_truth_denominator",
+            "pre_canceled_read_rejected",
+            "calibration_degeneracy_is_translation_invariant",
+            "every_nonempty_curve_identity_preserved_exactly",
+            "empty_curve_rejected_without_silent_drop",
+            "dtd_and_entities_rejected",
+            "exact_three_anchor_count",
+            "duplicate_curve_identity_rejected",
+            "missing_curve_identity_rejected",
+            "malformed_curve_point_rejected",
+            "ambiguous_curve_point_rejected",
+            "degenerate_calibration_rejected",
+            "nearly_collinear_calibration_rejected",
+            "detected_nonlinear_scale_rejected",
+            "out_of_source_point_rejected",
+            "declared_image_dimension_mismatch_rejected",
+            "declared_image_format_mismatch_rejected",
+            "curve_graph_coordinate_ambiguity_rejected",
+            "complete_png_container_required",
+            "project_byte_limit_enforced_before_parse"
+          ],
+          "private_reads": 0,
+          "sealed_reads": 0,
+          "model_runs": 0,
+          "truth_relations_available": false,
+          "phase_truth_available": false
+        }
+      },
+      {
+        "command": [
+          "dotnet",
+          "tools/GraphReader.RealAcceptance.Ocr/bin/Release/net10.0-windows/win-x64/GraphReader.RealAcceptance.Ocr.dll",
+          "--self-test-engauge-workflow-grouping"
+        ],
+        "exit_code": 0,
+        "elapsed_ms": 228.631,
+        "stdout_sha256": "60392ddc8c3a2e9c5aa72c7eb59f7037c05ddd78c8fe0dc0a3260ce064184e69",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": {
+          "status": "pass",
+          "check_count": 11,
+          "checks": [
+            "complete_inventory_grouped_by_exact_image",
+            "coincident_points_counted_and_never_deduplicated",
+            "per_project_calibration_is_preserved",
+            "colliding_names_get_distinct_ids_without_role_inference",
+            "input_order_does_not_change_truth_identity",
+            "immutable_shared_source",
+            "runtime_failures_keep_all_project_points",
+            "duplicate_case_inventory_rejected",
+            "duplicate_project_inventory_rejected",
+            "conflicting_shared_image_dimensions_rejected",
+            "cancellation_is_propagated"
+          ],
+          "private_reads": 0,
+          "sealed_reads": 0,
+          "model_runs": 0
+        }
+      },
+      {
+        "command": [
+          "dotnet",
+          "tools/GraphReader.RealAcceptance.Ocr/bin/Release/net10.0-windows/win-x64/GraphReader.RealAcceptance.Ocr.dll",
+          "--self-test-engauge-workflow-executor"
+        ],
+        "exit_code": 0,
+        "elapsed_ms": 426.704,
+        "stdout_sha256": "e958f4d2aa94cc5a71679200776c5f7c10e37cbe76f4302d03e45d3dbf842143",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": {
+          "status": "pass",
+          "check_count": 14,
+          "checks": [
+            "shared_image_runs_once_and_keeps_every_project_point",
+            "crc_valid_invalid_idat_fails_decode_without_dropping_denominator",
+            "valid_zlib_with_short_scanline_is_rejected",
+            "valid_zlib_with_excess_scanline_is_rejected",
+            "truncated_zlib_checksum_is_rejected",
+            "common_16bit_rgba_and_adam7_pngs_decode",
+            "export_failure_is_sanitized_and_retained",
+            "null_output_is_full_denominator_failure",
+            "foreign_or_subset_output_is_replaced_and_failure_text_is_not_exposed",
+            "successful_empty_artifact_output_fails_closed",
+            "partial_artifact_output_is_graded_as_full_denominator_failure",
+            "aggregate_report_contains_no_names_paths_truth_rows_or_predictions",
+            "pre_cancellation_is_propagated",
+            "mid_flight_cancellation_is_propagated"
+          ],
+          "private_reads": 0,
+          "sealed_reads": 0,
+          "model_runs": 0
+        }
+      },
+      {
+        "command": [
+          "dotnet",
+          "tools/GraphReader.RealAcceptance.Ocr/bin/Release/net10.0-windows/win-x64/GraphReader.RealAcceptance.Ocr.dll",
+          "--self-test-grouped-workflow-adapter"
+        ],
+        "exit_code": 0,
+        "elapsed_ms": 751.541,
+        "stdout_sha256": "2bb59c50b90d92b629650ff648fe6dedf4d6dc471e4887d683c9545362ed65d1",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "result": {
+          "status": "pass",
+          "actual_workflow_import_prepare_detect_review_export": true,
+          "artifact_count": 3,
+          "source_unchanged": true,
+          "repeated_source_rejected": true,
+          "reference_truth_sent_to_adapter": false,
+          "stage_adapters": "deterministic-fictitious-test-only",
+          "model_runs": 0,
+          "private_reads": 0,
+          "sealed_reads": 0,
+          "production_approved": false,
+          "evidence_directory": "artifacts/goal22-runs/grouped-workflow-adapter-selftest/3e557277ecca44aab4e522cc1dec84d1"
+        }
+      }
+    ]
+  },
+  "preserved_pre_sealed_failures": [
+    {
+      "report_sha256": "986c8908e53cbe734d27acbf57634e63c4cf12a1113f69dd1c87ec646f82dedb",
+      "reason": "Compiler failure: executor refactor omitted System.IO import; zero model/private/sealed execution.",
+      "budget_status": "void"
+    },
+    {
+      "report_sha256": "5374585e0963c6fc8f6d4bb50593b96c28751f86ceedcd4daaf658dba52a8b9b",
+      "reason": "WIC accepted corrupt CRC-valid IDAT data; the executor fixture failed before the final adapter test. Preserved as a failed synthetic plumbing check.",
+      "budget_status": "void"
+    }
+  ],
+  "limitations": [
+    "These fixtures use fictitious project data and deterministic test stage adapters. They establish harness behavior, not automatic model accuracy.",
+    "Engauge truth supplies calibration and curve values; authoritative phase labels and shared-baseline relations are unavailable and remain unscored rather than inferred.",
+    "The new image-only adapter is not a private/sealed command. Frozen-candidate admission, first-read budget accounting and private execution remain subsequent work.",
+    "No real-corpus or sealed evaluation, production activation, packaged build or release occurred."
+  ],
+  "license_review": "Apache-2.0 project code and in-memory fictitious fixtures only; no added dependency or external asset.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_runs": 0,
+  "production_approved": false,
+  "packaged_application_build": false,
+  "goal22_acceptance": "incomplete"
+}

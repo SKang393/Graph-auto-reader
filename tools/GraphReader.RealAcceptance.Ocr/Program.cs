@@ -31,6 +31,22 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--self-test-grouped-workflow-adapter")
+        {
+            return await RunEngaugeSelfTestAsync(WorkflowSyntheticAcceptance.RunGroupedAdapterAsync);
+        }
+        if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-executor")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeGroupedWorkflowExecutorSelfTest.Run()));
+        }
+        if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-grouping")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeDigWholeWorkflowGroupingSelfTest.Run()));
+        }
+        if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-truth")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeDigWholeWorkflowTruthAdapterSelfTest.Run()));
+        }
         if (args.Length == 1 && args[0] == "--self-test-frozen-workflow-csv-binding")
         {
             Console.WriteLine(JsonSerializer.Serialize(FrozenWorkflowCsvScoringSelfTest.Run(), JsonOptions));
@@ -225,6 +241,26 @@ internal static class Program
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+
+    private static async Task<int> RunEngaugeSelfTestAsync(Func<Task<object>> test)
+    {
+        try
+        {
+            object result = await test().ConfigureAwait(false);
+            Console.WriteLine(JsonSerializer.Serialize(result, JsonOptions));
+            return 0;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Console.Error.WriteLine(JsonSerializer.Serialize(new
+            {
+                status = "failed", scope = "fictitious-self-test-only",
+                error = exception.Message, error_type = exception.GetType().Name,
+                private_reads = 0, sealed_reads = 0, model_runs = 0,
+            }, JsonOptions));
+            return 1;
+        }
+    }
 
     private static string? GetOption(string[] args, string name)
     {

@@ -39,6 +39,72 @@ internal static class WorkflowSyntheticAcceptance
 {
     private static readonly string[] ExpectedStages = ["axis", "ocr", "ocr", "markers", "markers", "markers", "legends", "phases"];
 
+    internal static async Task<object> RunGroupedAdapterAsync()
+    {
+        string root = Path.Combine(Path.GetFullPath("artifacts/goal22-runs/grouped-workflow-adapter-selftest"),
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        string imagePath = Path.Combine(root, "fictitious-source.png");
+        WriteSyntheticPng(imagePath, 100, 100);
+        byte[] source = await File.ReadAllBytesAsync(imagePath).ConfigureAwait(false);
+        string sourceSha256 = Convert.ToHexStringLower(SHA256.HashData(source));
+        var store = new ProductionWorkflowPanelStore();
+        var detector = new ProductionAutomaticDetectionAdapter(
+            store,
+            new ProductionRasterFrameDecoder(),
+            new SyntheticAxisAdapter(),
+            CreateSyntheticOcrAdapter(),
+            new ProductionDetectionMaskComposer(new SyntheticArtifactMaskAdapter()),
+            new SyntheticCenterAdapter(),
+            new SyntheticClassificationAdapter(),
+            new SyntheticLegendAdapter(),
+            new SyntheticPhaseAdapter(),
+            new SyntheticConnectionBuilder());
+        var orchestrator = new WorkflowOrchestrator(new WorkflowServiceSet(
+            new ProductionWorkflowImportStage(store, new ImageImportService()),
+            new ProductionWorkflowPrepareStage(store),
+            new ProductionWorkflowDetectionStage(store, detector),
+            new ProductionWorkflowExportStage(store, new ExportService())));
+        var adapter = new FrozenCandidateGroupedWorkflowAdapter(orchestrator, root,
+            Path.Combine(root, "artifacts", "private-acceptance", "synthetic-run"),
+            "fictitious-integration-candidate");
+        var image = new EngaugeGroupedWorkflowImageInput(
+            "fictitious-image", sourceSha256, 100, 100, source);
+        WholeWorkflowCaseOutput result = await adapter.ExecuteAsync(image, CancellationToken.None)
+            .ConfigureAwait(false) ?? throw new InvalidOperationException("Grouped adapter returned no result.");
+        if (!result.WorkflowSucceeded || result.CaseKey != image.CaseKey || result.SourceSha256 != sourceSha256 ||
+            result.Artifacts.Count < 3 || result.Artifacts.Any(static artifact =>
+                !File.Exists(artifact.WrittenPath) || artifact.RowCount == 0))
+        {
+            throw new InvalidOperationException("Grouped adapter did not write actual workflow exports.");
+        }
+        foreach (WholeWorkflowCsvArtifact artifact in result.Artifacts)
+        {
+            byte[] bytes = await File.ReadAllBytesAsync(artifact.WrittenPath).ConfigureAwait(false);
+            if (artifact.Sha256 != Convert.ToHexStringLower(SHA256.HashData(bytes)))
+            {
+                throw new InvalidOperationException("Grouped adapter artifact checksum mismatch.");
+            }
+        }
+        WholeWorkflowCaseOutput duplicate = await adapter.ExecuteAsync(image, CancellationToken.None)
+            .ConfigureAwait(false) ?? throw new InvalidOperationException("Grouped adapter lost duplicate failure.");
+        if (duplicate.WorkflowSucceeded || duplicate.FailureCode != "GROUPED_WORKFLOW_SOURCE_ALREADY_EXECUTED" ||
+            sourceSha256 != Convert.ToHexStringLower(SHA256.HashData(
+                await File.ReadAllBytesAsync(imagePath).ConfigureAwait(false))))
+        {
+            throw new InvalidOperationException("Grouped adapter source preservation failed.");
+        }
+        return new
+        {
+            status = "pass", actual_workflow_import_prepare_detect_review_export = true,
+            artifact_count = result.Artifacts.Count, source_unchanged = true,
+            repeated_source_rejected = true, reference_truth_sent_to_adapter = false,
+            stage_adapters = "deterministic-fictitious-test-only", model_runs = 0,
+            private_reads = 0, sealed_reads = 0, production_approved = false,
+            evidence_directory = Path.GetRelativePath(Environment.CurrentDirectory, root).Replace('\\', '/'),
+        };
+    }
+
     public static async Task<WorkflowSyntheticExportResult> RunAsync()
     {
         string root = Path.Combine(Path.GetTempPath(), $"graphreader-goal22-workflow-{Guid.NewGuid():N}");
