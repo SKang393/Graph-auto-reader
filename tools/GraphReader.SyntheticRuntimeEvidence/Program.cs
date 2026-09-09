@@ -32,6 +32,11 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--self-test-advisory-structure")
+        {
+            AdvisoryStructureExperiment.SelfTest();
+            return 0;
+        }
         if (args.Length == 1 && args[0] == "--self-test-initial-contour")
         {
             InitialContourOutputExperiment.SelfTest();
@@ -105,7 +110,8 @@ internal static class Program
             throw new InvalidDataException("An explicitly unapproved local candidate descriptor is required.");
         }
         (GraphStructureModelInput modelInput, string? modelInputProtocolSha256,
-            string? initialContourProtocolSha256) = InitialContourOutputExperiment.Read(
+            string? initialContourProtocolSha256, GraphStructureConsensusAdmission admission,
+            string? admissionProtocolSha256) = AdvisoryStructureExperiment.Read(
                 config, Text(inputs, "split"), inputPath, inputManifestSha256, RepositoryRoot());
         DbGeometryDiagnosticBinding? dbGeometryDiagnostic = args.Length == 7
             ? ValidateDbGeometryDiagnostic(
@@ -224,7 +230,7 @@ internal static class Program
         var total = Stopwatch.StartNew();
         ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForLocalSyntheticCandidateEvaluationAsync(
             Descriptor(config.GetProperty("detector")), Descriptor(config.GetProperty("recognizer")),
-            runtime, nativeSha, cancellationToken, outputGeometry, modelInput).ConfigureAwait(false);
+            runtime, nativeSha, cancellationToken, outputGeometry, modelInput, admission).ConfigureAwait(false);
         LocalSyntheticOcrModelDescriptor diagnosticDescriptor = Descriptor(config.GetProperty("detector"));
         var dbGeometryObservations = new List<OcrDbGeometryObservation>();
         LocalOnnxTextRegionDetectorOptions diagnosticDetectionOptions =
@@ -665,6 +671,13 @@ internal static class Program
             JsonObject document = JsonNode.Parse(reportJson)!.AsObject();
             document["model_input_protocol_sha256"] = modelInputProtocolSha256;
             document["model_input"] = "original";
+            reportJson = document.ToJsonString(JsonOptions);
+        }
+        if (admissionProtocolSha256 is not null)
+        {
+            JsonObject document = JsonNode.Parse(reportJson)!.AsObject();
+            document["structure_admission"] = "advisory";
+            document["admission_protocol_sha256"] = admissionProtocolSha256;
             reportJson = document.ToJsonString(JsonOptions);
         }
         _ = await WriteBytesAsync(outputRoot, "report.json", System.Text.Encoding.UTF8.GetBytes(

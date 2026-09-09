@@ -190,7 +190,8 @@ public sealed class ProductionOcrAdapter :
         string openCvRuntimeSha256,
         ProductionOcrConfigurationScope configurationScope,
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
-        GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked)
+        GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
+        GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required)
     {
         ArgumentNullException.ThrowIfNull(pipelineFactory);
         pipeline = new Lazy<OcrPipeline>(
@@ -202,10 +203,11 @@ public sealed class ProductionOcrAdapter :
         this.recognitionProvider = ValidateProvider(recognitionProvider, nameof(recognitionProvider));
         OpenCvRuntimeSha256 = ValidateSha256(openCvRuntimeSha256, nameof(openCvRuntimeSha256));
         this.modelInput = modelInput;
-        compositionVersion = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput);
+        compositionVersion = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput, admission);
         if (configurationScope == ProductionOcrConfigurationScope.ApprovedProduction &&
             (outputGeometry != GraphStructureConsensusGeometry.ModelPolygon ||
-             modelInput != GraphStructureModelInput.AxisMasked))
+             modelInput != GraphStructureModelInput.AxisMasked ||
+             admission != GraphStructureConsensusAdmission.Required))
         {
             throw new InvalidOperationException("Experimental OCR geometry or model input cannot acquire production approval.");
         }
@@ -275,17 +277,24 @@ public sealed class ProductionOcrAdapter :
         string reviewedOpenCvRuntimeSha256,
         CancellationToken cancellationToken,
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
-        GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked)
+        GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
+        GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
         ArgumentNullException.ThrowIfNull(runtimeHost);
+        if (admission == GraphStructureConsensusAdmission.Advisory &&
+            (outputGeometry != GraphStructureConsensusGeometry.InitialDbContour ||
+             modelInput != GraphStructureModelInput.Original))
+        {
+            throw new InvalidOperationException("Advisory structure requires the preregistered original-input initial-contour mode.");
+        }
         if (outputGeometry == GraphStructureConsensusGeometry.InitialDbContour &&
             modelInput != GraphStructureModelInput.Original)
         {
             throw new InvalidOperationException("Initial-contour experimentation requires the frozen original detector input.");
         }
-        _ = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput);
+        _ = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput, admission);
         if (modelInput == GraphStructureModelInput.Original &&
             outputGeometry is not (GraphStructureConsensusGeometry.ModelPolygon or GraphStructureConsensusGeometry.InitialDbContour))
         {
@@ -328,7 +337,8 @@ public sealed class ProductionOcrAdapter :
                 ProductionOcrConfigurationScope.UnapprovedLocalSyntheticCandidate,
                 cancellationToken,
                 outputGeometry,
-                modelInput)
+                modelInput,
+                admission)
             .ConfigureAwait(false);
     }
 
@@ -404,7 +414,8 @@ public sealed class ProductionOcrAdapter :
         ProductionOcrConfigurationScope configurationScope,
         CancellationToken cancellationToken,
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
-        GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked)
+        GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
+        GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required)
     {
         LocalOnnxTextRegionDetectorOptions detectorOptions = ReadDetectionOptions(
             detectionModel,
@@ -420,6 +431,7 @@ public sealed class ProductionOcrAdapter :
                 runtime,
                 outputGeometry,
                 modelInput,
+                admission,
                 cancellationToken)
             .ConfigureAwait(false);
         return new ProductionOcrAdapter(
@@ -433,6 +445,7 @@ public sealed class ProductionOcrAdapter :
                     {
                         OutputGeometry = outputGeometry,
                         ModelInput = modelInput,
+                        Admission = admission,
                     });
                 ITextRecognizer recognizer = new LocalOnnxTextRecognizer(
                     runtime,
@@ -454,7 +467,8 @@ public sealed class ProductionOcrAdapter :
             reviewedOpenCvRuntimeSha256,
             configurationScope,
             outputGeometry,
-            modelInput);
+            modelInput,
+            admission);
     }
 
     private static Task ValidateExecutablePairAsync(
@@ -463,6 +477,7 @@ public sealed class ProductionOcrAdapter :
         InferenceRuntime runtime,
         GraphStructureConsensusGeometry outputGeometry,
         GraphStructureModelInput modelInput,
+        GraphStructureConsensusAdmission admission,
         CancellationToken cancellationToken) =>
         Task.Run(async () =>
         {
@@ -477,6 +492,7 @@ public sealed class ProductionOcrAdapter :
                 {
                     OutputGeometry = outputGeometry,
                     ModelInput = modelInput,
+                    Admission = admission,
                 });
             const int detectorProbeSize = 32;
             var detectorImage = new OcrImage(

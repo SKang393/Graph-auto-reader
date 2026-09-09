@@ -1,0 +1,608 @@
+{
+  "acceptance": {
+    "both_detection_bars_pass": false,
+    "dev_truth": 183,
+    "full_truth": 329,
+    "minimum_precision": 0.95,
+    "minimum_recall": 0.95,
+    "policy": "ml/policy/acceptance-bars.json",
+    "train_truth": 146
+  },
+  "current_source_sha256": {
+    "ml/ocr/official_bakeoff/advisory_structure_dev_protocol.json": "3210a4312b83531d1192f50eafe47c54407e10cd3411558a5c45dd7c709846eb",
+    "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs": "d899bc1a6f492b1d2e90801d2428fe7e5ddd67a528f57e537b062932c4e88a61",
+    "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs": "9d7df54faa7de48d965d91c36ef6cec660cdba7c367e9b9da259033bc158e38c",
+    "tests/GraphReader.App.Tests/ProductionOcrLocalCandidateFactoryTests.cs": "679622e7d7e474eda9c01ead8ab935f99192875dd0c22e441ce2f93661440a82",
+    "tests/GraphReader.Ocr.Tests/GraphStructureAdvisoryInitialDbContourTests.cs": "256dc98568db1a9b4e382e3c21ad5a1a9783af85caeea2e3f6f9e619e1557b05",
+    "tools/GraphReader.SyntheticRuntimeEvidence/AdvisoryStructureExperiment.cs": "a6bfb681385fa688bdb4261247f5ff6a22ba23ab1aa7b95c7b743d9e999c8db4",
+    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "7fba41171306e0ceb4f4b6acd3fe1cce4a6cbd22b5a3f49814401741c834b5bb",
+    "tools/GraphReader.SyntheticRuntimeEvidence/score_advisory_structure.py": "95d9197f8a09032dcf7f59989b81455b5e2252d9b306885aefe9384c1d6b1fc7",
+    "tools/GraphReader.SyntheticRuntimeEvidence/test_score_advisory_structure.py": "d791eeb7eebff151274fea4a20a78a6beda2657d6bce395c1a9c94ddd6e87992"
+  },
+  "evaluator_repairs": {
+    "additional_preflight_repairs": [
+      "Validate each exact ancestor and its matching expanded or initial panel, rather than comparing different candidate generations directly.",
+      "Final OcrPipeline output uses ordinal region-ID order; detector geometric order is not imposed on that final DTO."
+    ],
+    "final_output_guard": "new path inside repository artifacts, checked before truth; exclusive write",
+    "model_runs_repeated": false,
+    "preserved_failures": [
+      {
+        "action": "Repair ancestry normalization under the same synthetic authorization; preserve actual model runs.",
+        "candidate_sha256": "eed14ce421d56b8251213043337b2867ab7f96410404544341e512b27ffabbdd",
+        "dev_report_sha256": "67c1532dd1da4bc44e1ea100c5f341f418ff90f285fcd7978adb550102bd9d5f",
+        "evaluator_sha256": "9a3d9790c036ab10f7dbbc7b2d08c8c3be0637d25c082554905400f720a88034",
+        "exception": "score_family_ocr.EvidenceError: DB observer candidate differs from the initial-contour baseline ancestry",
+        "execution_manifest_sha256": "0bbb569ed9c403590f2a73ed897bf96967f4b45a8e51ca6ba3496ff552b0d291",
+        "location": "score_advisory_structure.py:511",
+        "model_runs": 0,
+        "path": "artifacts/synthetic-runtime-evidence/advisory-scorer-preflight-void-v1.json",
+        "private_reads": 0,
+        "score_written": false,
+        "sealed_reads": 0,
+        "sha256": "a47e20003485d90c5d8d3ab6edcc37ee2860f68ed91371f6c974d101a4f7ca6e",
+        "status": "void_before_truth_regeneration",
+        "train_report_sha256": "b374934981aa7e46d483792930ec15a0aaf585ecf13f0417622129a03506dad7",
+        "truth_regenerations": 0
+      },
+      {
+        "action": "Replace nonexistent helper with a tested local output guard; rescore the preserved actual model results under the same authorization.",
+        "candidate_sha256": "eed14ce421d56b8251213043337b2867ab7f96410404544341e512b27ffabbdd",
+        "evaluator_sha256": "9d73a181112617feb2591aa2b2f01606a40ba21c6665b959d4766833aaa4e36e",
+        "exception": "AttributeError: module 'score_family_ocr' has no attribute '_require_new_output'",
+        "location": "score_advisory_structure.py:844",
+        "model_runs": 0,
+        "path": "artifacts/synthetic-runtime-evidence/advisory-scorer-write-void-v1.json",
+        "private_reads": 0,
+        "score_written": false,
+        "sealed_reads": 0,
+        "sha256": "8a3d966d06dfa2c08d9ee4dbc3a81f5f6b69c5c9858b6044c2ddd4de94ed877a",
+        "status": "void_at_output_write",
+        "synthetic_truth_regeneration_completed": true
+      }
+    ]
+  },
+  "existing_mode_parity": {
+    "comparisons": [
+      {
+        "baseline_report_sha256": "6cf24b0e38caf219c1b72edcbda5a0b9d598aab130b4427e38e3bbff02bafcc4",
+        "current_report_sha256": "1ed550012c9441b44518f775f25338036d3b5bbdaa27580efc103ee043ab208c",
+        "mode": "default",
+        "panels": 4,
+        "split": "train"
+      },
+      {
+        "baseline_report_sha256": "bc5282569a818deea192cd5b820c5aab52aded0b91e1e86e655a67b702578c7b",
+        "current_report_sha256": "3378638dc76d29f8beffa2fab1935d9fe4a8c94136a8bda953c9d93a3d619bdf",
+        "mode": "default",
+        "panels": 9,
+        "split": "dev"
+      },
+      {
+        "baseline_report_sha256": "6f4c3f4b4a0aa5f7c1ea784daadad479ffea7c07a262cae9a5c2bf9a7e1f7595",
+        "current_report_sha256": "c7441dadd80fdffd46005f607436df99eed1c1c4a2fbdcad4e9b103205f719aa",
+        "mode": "original",
+        "panels": 4,
+        "split": "train"
+      },
+      {
+        "baseline_report_sha256": "0b596de96aea4cc83f8fda359d8b0beb14125ac05d38558a7a1b275ebb6d0d60",
+        "current_report_sha256": "a4ad0711f8784e306693df5dc173015457853812865508e4d58429613904bd37",
+        "mode": "original",
+        "panels": 9,
+        "split": "dev"
+      },
+      {
+        "baseline_report_sha256": "00b2910903d1bace5cfef06ab9e94a7275debe54eb1e897bf75b32ee64dd09f1",
+        "current_report_sha256": "8a68fd7dcccb9a46e4b3a28ae09e7b18cadb6d54ee0ec89162343e8e0f465974",
+        "mode": "initial",
+        "panels": 4,
+        "split": "train"
+      },
+      {
+        "baseline_report_sha256": "b63b3abc31b2ef9bc9c085f105f912ff2e914aa4437e07a95ca62b8c33cf004a",
+        "current_report_sha256": "3e51b6858429fa614734b725ee609b748267cc53410c00c46dec6ddefd0a2a97",
+        "mode": "initial",
+        "panels": 9,
+        "split": "dev"
+      },
+      {
+        "baseline_report_sha256": "53722bc5836bdff6eba2a2dc3bebafed008ef5100441a9187931b59a36f5630d",
+        "current_report_sha256": "81578eb711567077b3203f27a2c07ddc268ba5a1b01f7e7a5982ce363679ef12",
+        "mode": "component",
+        "panels": 4,
+        "split": "train"
+      },
+      {
+        "baseline_report_sha256": "7329743a39e9c13b519e2a396d6045ba9711cc322512b61e10eab47c870f0aaf",
+        "current_report_sha256": "e63eda6c7f98dbdb2896a621f763c0c37dcb25ab3a969094e30936b2178e6a8d",
+        "mode": "component",
+        "panels": 9,
+        "split": "dev"
+      }
+    ],
+    "difference_classes": {
+      "authenticated_build_provenance": 468,
+      "measured_elapsed_time": 1608,
+      "opaque_run_id": 52
+    },
+    "elapsed_milliseconds": 6242.528,
+    "execution_manifests": [
+      "cb4c6b50d1e64213c20b8389cebe6ed6493e72c01f2fe0aeaf010f0b925b7f0b",
+      "0bbb569ed9c403590f2a73ed897bf96967f4b45a8e51ca6ba3496ff552b0d291"
+    ],
+    "panels": 52,
+    "path": "artifacts/synthetic-runtime-evidence/advisory-required-modes-parity-v1.json",
+    "private_reads": 0,
+    "production_approved": false,
+    "run_binding_sha256": "b52e6aa44c7ecfc70c053f5579351c4eff5ea8aa2ae3f3b2b54fba64df74313b",
+    "schema": "graphreader.advisory-required-modes-parity.v1",
+    "scientific_mutation_checks": [
+      {
+        "mutated_path": "/axis/geometry/ticks/0/tick_id",
+        "name": "scientific_tick_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/axis/geometry/phase_dividers/0/divider_id",
+        "name": "scientific_divider_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/ocr/regions/0/region_id",
+        "name": "scientific_ocr_region_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/source_width",
+        "name": "source_width_numeric",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/residual_artifact_candidate_envelope/confidence",
+        "name": "residual_confidence_numeric",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/pre_ocr_diagnostic/source_gray/byte_count",
+        "name": "pre_ocr_byte_count_numeric",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/axis/envelope/model/sha256",
+        "name": "wrong_value_at_allowed_native_path",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/elapsed_milliseconds",
+        "name": "invalid_negative_timing",
+        "unexpected_difference_detected": true
+      }
+    ],
+    "sealed_reads": 0,
+    "sha256": "d6c837480cca7e642f1f0ca5195f7d5ea0db634cc787cad10a68cbcd50c12121",
+    "source_sha256": "b9ca30788a33825fb0be38f4a0c90d0bd64820c3aec4a32feb4fb68b490c2433",
+    "status": "exact_scientific_output_parity",
+    "unchanged_referenced_files_per_side": 416,
+    "verified_files_per_executable": 35
+  },
+  "integrity": {
+    "advisory_selected": 346,
+    "alternatives_changed": 109,
+    "baseline_selected": 205,
+    "baseline_selected_compared": 205,
+    "baseline_selected_recognition_failures": 0,
+    "candidate_diff_is_admission_only": true,
+    "complete_identity_verification": true,
+    "completed_panel_raw_model_ids_expanded_geometry_and_confidence_unchanged": true,
+    "completed_panel_successful_region_order_directly_observed": true,
+    "completed_panels": 13,
+    "confidence_changed_unscored": 113,
+    "every_accepted_atomic_initial_contour_emitted_exactly_once": true,
+    "failed_panels": 0,
+    "failed_sources": 0,
+    "final_recognition_trace_complete": true,
+    "full_source_truth_count": 329,
+    "imported_initial_scorer_authenticated_before_use": true,
+    "newly_admitted_recognized": 141,
+    "old_db_reports_and_every_contour_sidecar_verified_before_truth": true,
+    "orientation_confidence_and_advisory_evidence_directly_observed": false,
+    "orientation_confidence_and_advisory_evidence_source_backed": true,
+    "raw_contours": 346,
+    "recognition_failures": 0,
+    "role_changed_unscored": 4,
+    "source_panel_and_runtime_artifacts_verified_before_truth": true,
+    "text_changed": 24,
+    "truth_dependencies_authenticated_before_regeneration": true
+  },
+  "license_review": "Existing hash-verified Apache-2.0 Paddle OCR payloads/notices and reviewed source-built native runtime; no new weights, dependency or approval.",
+  "limitations": [
+    "Synthetic train/dev evidence cannot approve a model, production stage, or release.",
+    "Recognition strings and roles are not scored by this protocol.",
+    "Structure associations remain diagnostic evidence and do not establish semantic correctness.",
+    "The runtime report does not serialize detector orientation, detection confidence, or advisory evidence reasons; preservation of those fields is backed by the authenticated executable source rather than directly observed telemetry."
+  ],
+  "metrics": {
+    "advisory_initial": {
+      "combined": {
+        "false_negatives": 92,
+        "false_positives": 109,
+        "precision": 0.684971098265896,
+        "predicted_region_count": 346,
+        "recall": 0.7203647416413373,
+        "true_positives": 237,
+        "truth_region_count": 329
+      },
+      "train": {
+        "false_negatives": 53,
+        "false_positives": 45,
+        "precision": 0.6739130434782609,
+        "predicted_region_count": 138,
+        "recall": 0.636986301369863,
+        "true_positives": 93,
+        "truth_region_count": 146
+      },
+      "validation": {
+        "false_negatives": 39,
+        "false_positives": 64,
+        "precision": 0.6923076923076923,
+        "predicted_region_count": 208,
+        "recall": 0.7868852459016393,
+        "true_positives": 144,
+        "truth_region_count": 183
+      }
+    },
+    "baseline_initial": {
+      "combined": {
+        "false_negatives": 174,
+        "false_positives": 50,
+        "precision": 0.7560975609756098,
+        "predicted_region_count": 205,
+        "recall": 0.47112462006079026,
+        "true_positives": 155,
+        "truth_region_count": 329
+      },
+      "train": {
+        "false_negatives": 73,
+        "false_positives": 17,
+        "precision": 0.8111111111111111,
+        "predicted_region_count": 90,
+        "recall": 0.5,
+        "true_positives": 73,
+        "truth_region_count": 146
+      },
+      "validation": {
+        "false_negatives": 101,
+        "false_positives": 33,
+        "precision": 0.7130434782608696,
+        "predicted_region_count": 115,
+        "recall": 0.44808743169398907,
+        "true_positives": 82,
+        "truth_region_count": 183
+      }
+    },
+    "raw_expanded": {
+      "combined": {
+        "false_negatives": 223,
+        "false_positives": 240,
+        "precision": 0.3063583815028902,
+        "predicted_region_count": 346,
+        "recall": 0.3221884498480243,
+        "true_positives": 106,
+        "truth_region_count": 329
+      },
+      "train": {
+        "false_negatives": 111,
+        "false_positives": 103,
+        "precision": 0.2536231884057971,
+        "predicted_region_count": 138,
+        "recall": 0.23972602739726026,
+        "true_positives": 35,
+        "truth_region_count": 146
+      },
+      "validation": {
+        "false_negatives": 112,
+        "false_positives": 137,
+        "precision": 0.34134615384615385,
+        "predicted_region_count": 208,
+        "recall": 0.3879781420765027,
+        "true_positives": 71,
+        "truth_region_count": 183
+      }
+    }
+  },
+  "protocol": {
+    "acceptance_bar_reference": "ml/policy/acceptance-bars.json tier1_reviewable_error: text-region precision and recall minimum0.95. Both are required. Removing a harmful filter, counterfactual results or relative improvement is not acceptance.",
+    "hypothesis": "The completed initial-contour experiment retains 82 of183 dev truths with33 false detections, while authenticated raw unmasked initial contours retain144 of183 with64 false detections. Required structure admission loses a net62 matches to remove31 false detections. Its hard eligibility, overlap and one-to-one decisions are the dominant current recall loss. Evidence: docs/GOAL-22-INITIAL-CONTOUR-OUTCOME.json SHA2561fab18f4768dabc5831015fcf92af3ac2991ddcd74763aa12dbf6d5eff4e9bf7; artifacts/synthetic-runtime-evidence/initial-contour-output-score-run2.json SHA25608d4c1a277655c113afec77ef5b430c7dbc37d3a949ed8c620c5b7b22992424d; artifacts/synthetic-runtime-evidence/db-initial-error-diagnosis/report-v2.json SHA2562dba2990ce9ede6f2af1ff66521d4757c1c88134c2331fdc9d07f174cdb2ce0c. Raw initial contours still fail both95percent bars; this diagnosis does not approve them.",
+    "isolated_change": "Starting from the frozen original-input initial-contour candidate, make graph-structure admission advisory. Emit every atomically authenticated accepted initial DB contour exactly once. Preserve model weights, original learned-detector pixels, axis-masked structural pixels, resize, detector thresholds, DB contour acceptance, unclip, initial geometry, model confidence and recognizer preprocessing. Keep structural associations available as evidence, but do not let structure classification, text likelihood, overlap or one-to-one admission suppress a model contour. Give advisory selection a distinct composition, configuration, cache and region identity. Normal Production continues to reject this unapproved candidate. Preserve every existing required-consensus mode. Do not combine resolution, tiling, threshold, role, training or upstream-provider changes.",
+    "path": "ml/ocr/official_bakeoff/advisory_structure_dev_protocol.json",
+    "sha256": "3210a4312b83531d1192f50eafe47c54407e10cd3411558a5c45dd7c709846eb"
+  },
+  "recognition_and_role_changes_unscored": {
+    "alternatives_changed_count": 109,
+    "baseline_selected_compared": 205,
+    "baseline_selected_recognition_failures": 0,
+    "confidence_changed_count_unscored": 113,
+    "interpretation": "Recognition and role fields are descriptive changes only and receive no correctness credit.",
+    "newly_admitted_regions_recognized": 141,
+    "recognition_failure_count": 0,
+    "role_changed_count_unscored": 4,
+    "text_changed_count": 24
+  },
+  "schema": "graphreader.goal22-advisory-structure-outcome.v1",
+  "scope": {
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "production_approved": false,
+    "release_eligible": false,
+    "sealed_reads": 0,
+    "synthetic_train_dev_only": true
+  },
+  "source_evidence": {
+    "candidate": {
+      "detector": {
+        "manifest_path": "C:\\Users\\Sungwoo\\Desktop\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\synthetic-runtime-evidence\\official-metadata-source-c96\\detector.json",
+        "manifest_sha256": "2ddb1599df210da50bf097383b1f691ee6e1bed27ba9c98b6695a6b06e7e8d51",
+        "model_id": "PP-OCRv5_mobile_det",
+        "model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+        "model_version": "5.0.0"
+      },
+      "native_scope": "reviewed-source-runtime-local-diagnostic",
+      "native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+      "path": "artifacts/synthetic-runtime-evidence/advisory-structure-source-c96/candidate.json",
+      "recognizer": {
+        "manifest_path": "C:\\Users\\Sungwoo\\Desktop\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\synthetic-runtime-evidence\\official-metadata-source-c96\\recognizer.json",
+        "manifest_sha256": "17259b3260c0d39b292be70b36e68d53a067992de3afeaf0809d4d981de4327a",
+        "model_id": "en_PP-OCRv5_mobile_rec",
+        "model_sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+        "model_version": "5.0.0"
+      },
+      "sha256": "eed14ce421d56b8251213043337b2867ab7f96410404544341e512b27ffabbdd"
+    },
+    "evaluator": {
+      "intersection_over_union_minimum": 0.5,
+      "matching": "existing maximum-cardinality one-to-one IoU matching",
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_advisory_structure.py",
+      "recognition_scored": false,
+      "reviewed_bytes_authenticated_before_truth": true,
+      "roles_scored": false,
+      "sha256": "95d9197f8a09032dcf7f59989b81455b5e2252d9b306885aefe9384c1d6b1fc7",
+      "truth_denominator": "all 146 train plus 183 development regions including failed cases"
+    },
+    "execution_manifest": {
+      "all_declared_files_verified": true,
+      "path": "artifacts/synthetic-runtime-evidence/advisory-structure-source-c96-executable-v1/execution-files.json",
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "2cc069c9b6b0d2a5638eaf62a7796261a76721bee332b791933059d219af8fbc"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "5a0880aefc4531b38405130e2090f5d7062317be431c9818b34f90f9dff0517f"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "fe95122e70f918fb14158f485f3262aea8f86e13441fcd30982ee2fda92ef349"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "4f2cade296fe3a12c317c7a85ee26b4bb278934352ca53e60838dba707ae32c8"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "1ea333965b631c2d9ea925580b2f3568a4bc1752ebcc2312823fc5ad02f313d0"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "e6c243d5787d77c5a86d32efe6e327295239c9c7e7ac86406c5790c1edc40108"
+        }
+      ],
+      "sha256": "0bbb569ed9c403590f2a73ed897bf96967f4b45a8e51ca6ba3496ff552b0d291"
+    },
+    "runs": {
+      "train": {
+        "advisory_report": {
+          "path": "artifacts/synthetic-runtime-evidence/train393-advisory-after-advisory-run1/report.json",
+          "sha256": "b374934981aa7e46d483792930ec15a0aaf585ecf13f0417622129a03506dad7"
+        },
+        "advisory_selected": 138,
+        "alternatives_changed": 44,
+        "baseline_report": {
+          "path": "artifacts/synthetic-runtime-evidence/train393-initial-contour-source-c96-run1/report.json",
+          "sha256": "00b2910903d1bace5cfef06ab9e94a7275debe54eb1e897bf75b32ee64dd09f1"
+        },
+        "baseline_selected": 90,
+        "baseline_selected_compared": 90,
+        "baseline_selected_recognition_failures": 0,
+        "completed_panels": 4,
+        "confidence_changed_unscored": 47,
+        "db_geometry_report": {
+          "path": "artifacts/synthetic-runtime-evidence/train393-db-geometry-source-c96-run1/report.json",
+          "sha256": "679effc25d675879a47a742685d0d891f21bf177246251d32ec9ea88e9dff207"
+        },
+        "failed_panels": 0,
+        "failed_sources": 0,
+        "manifest": {
+          "path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json",
+          "sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37"
+        },
+        "newly_admitted_recognized": 48,
+        "raw_contours": 138,
+        "recognition_failures": 0,
+        "role_changed_unscored": 0,
+        "source_count": 4,
+        "text_changed": 11,
+        "truth_region_count": 146
+      },
+      "validation": {
+        "advisory_report": {
+          "path": "artifacts/synthetic-runtime-evidence/dev393-advisory-after-advisory-run1/report.json",
+          "sha256": "67c1532dd1da4bc44e1ea100c5f341f418ff90f285fcd7978adb550102bd9d5f"
+        },
+        "advisory_selected": 208,
+        "alternatives_changed": 65,
+        "baseline_report": {
+          "path": "artifacts/synthetic-runtime-evidence/dev393-initial-contour-source-c96-run1/report.json",
+          "sha256": "b63b3abc31b2ef9bc9c085f105f912ff2e914aa4437e07a95ca62b8c33cf004a"
+        },
+        "baseline_selected": 115,
+        "baseline_selected_compared": 115,
+        "baseline_selected_recognition_failures": 0,
+        "completed_panels": 9,
+        "confidence_changed_unscored": 66,
+        "db_geometry_report": {
+          "path": "artifacts/synthetic-runtime-evidence/dev393-db-geometry-source-c96-run1/report.json",
+          "sha256": "a0c07332ce44baa6b1513c865af17404207edf6c19332bf4014cd1bfaf81483f"
+        },
+        "failed_panels": 0,
+        "failed_sources": 0,
+        "manifest": {
+          "path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+          "sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7"
+        },
+        "newly_admitted_recognized": 93,
+        "raw_contours": 208,
+        "recognition_failures": 0,
+        "role_changed_unscored": 4,
+        "source_count": 3,
+        "text_changed": 13,
+        "truth_region_count": 183
+      }
+    },
+    "score": {
+      "path": "artifacts/synthetic-runtime-evidence/advisory-structure-score-run1.json",
+      "sha256": "a3c2d913245acba7fbb5c17eac29adf96fc3368583af4c08f6fda548c2f2d154"
+    },
+    "source_snapshot": {
+      "path": "artifacts/synthetic-runtime-evidence/advisory-structure-source-c96-executable-v1/source-files.json",
+      "preserved_source_files": 208,
+      "sha256": "5fbe81533cc79d89463976b56d6b0120a13482f30abd27f9176fef76bbcb72b2"
+    },
+    "truth_environment": {
+      "fonts": [
+        {
+          "alias": "sans",
+          "bundled": false,
+          "filename": "arial.ttf",
+          "sha256": "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a",
+          "size_px": 14
+        },
+        {
+          "alias": "serif",
+          "bundled": false,
+          "filename": "times.ttf",
+          "sha256": "931c5de5c70401d9324d5014c123802b4fb753000360ceb2f56c589403cd58c5",
+          "size_px": 14
+        },
+        {
+          "alias": "mono",
+          "bundled": false,
+          "filename": "consola.ttf",
+          "sha256": "cf00b507b3286870cc5064ebd0633c303f70b491a4af25eec2d32df413db0179",
+          "size_px": 14
+        }
+      ],
+      "packages": [
+        {
+          "name": "Pillow",
+          "version": "12.3.0"
+        },
+        {
+          "name": "jsonschema",
+          "version": "4.26.0"
+        }
+      ],
+      "source_dependencies": [
+        {
+          "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_original_model_input.py",
+          "sha256": "a36245ec82dcba0bc4f1a29ae04fc4c1417bf2d9ad113ff5b30d9ac93385b756"
+        },
+        {
+          "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_db_geometry_observation.py",
+          "sha256": "12569c6e68581d57959cf226eb91c8d1cc429ea5cf9cc111727bc9e52e9bea10"
+        },
+        {
+          "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py",
+          "sha256": "431392d074e985f953a1444982076466f461d3445c018a5c307f174ebc0a959e"
+        },
+        {
+          "path": "ml/synthetic/dataset.py",
+          "sha256": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b"
+        },
+        {
+          "path": "ml/synthetic/templates.py",
+          "sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+        },
+        {
+          "path": "ml/synthetic/renderer.py",
+          "sha256": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b"
+        },
+        {
+          "path": "ml/synthetic/fonts.py",
+          "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+        },
+        {
+          "path": "ml/synthetic/schema.py",
+          "sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98"
+        },
+        {
+          "path": "ml/synthetic/scene.schema.json",
+          "sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f"
+        },
+        {
+          "path": "ml/synthetic/io.py",
+          "sha256": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2"
+        },
+        {
+          "path": "ml/markers/center/mask_preserving_v24/family_scenes.py",
+          "sha256": "0872091244ebe4a2e87192c74b0720a911255816ced4b4fb55df811305a92686"
+        },
+        {
+          "path": "ml/ocr/component_region_detector_v6/dataset.py",
+          "sha256": "cfc1760cfe0f5231d34960100bed3b24bbd54bab6ab69919c3eae43fddc22f59"
+        },
+        {
+          "path": "ml/ocr/real_range_proposal_v34/pipeline.py",
+          "sha256": "7cfc997de0ceb39edfbc4f50c0ea5f07fb058f8eb65ceb21745ef099e291afa5"
+        },
+        {
+          "path": "ml/ocr/component_context_detector_v7/dataset.py",
+          "sha256": "96bebccedc58404e369a1ac3ef6fe3d4d8baa657872543f8958ed73e902d595f"
+        },
+        {
+          "path": "ml/synthetic/requirements.txt",
+          "sha256": "e7566b9f1fd194d241e4c758976cc2f3b2062b3a9481a7383c05949c5ed6e078"
+        }
+      ]
+    }
+  },
+  "status": "failed_dev",
+  "timing_ms": {
+    "dev_runtime": 9547.5141,
+    "existing_mode_parity": 6242.528,
+    "train_runtime": 6808.0423,
+    "truth_scoring": 20112.158100004308
+  },
+  "validation": {
+    "app_suite": {
+      "failed": 0,
+      "passed": 221,
+      "skipped": 0
+    },
+    "candidate_guard_mutations_rejected": 10,
+    "default_candidate_preserved": true,
+    "diagnostic_build_errors": 0,
+    "diagnostic_build_warnings": 0,
+    "independent_parity_review": "clear",
+    "independent_runtime_review": "clear",
+    "independent_scorer_review": "clear",
+    "ocr_suite": {
+      "failed": 0,
+      "passed": 225,
+      "skip_scope": "existing opt-in model tests",
+      "skipped": 16
+    },
+    "scorer_safeguards_passed": 17
+  }
+}

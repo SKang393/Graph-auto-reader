@@ -1,0 +1,24 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The completed initial-contour experiment retains 82 of183 dev truths with33 false detections, while authenticated raw unmasked initial contours retain144 of183 with64 false detections. Required structure admission loses a net62 matches to remove31 false detections. Its hard eligibility, overlap and one-to-one decisions are the dominant current recall loss. Evidence: docs/GOAL-22-INITIAL-CONTOUR-OUTCOME.json SHA2561fab18f4768dabc5831015fcf92af3ac2991ddcd74763aa12dbf6d5eff4e9bf7; artifacts/synthetic-runtime-evidence/initial-contour-output-score-run2.json SHA25608d4c1a277655c113afec77ef5b430c7dbc37d3a949ed8c620c5b7b22992424d; artifacts/synthetic-runtime-evidence/db-initial-error-diagnosis/report-v2.json SHA2562dba2990ce9ede6f2af1ff66521d4757c1c88134c2331fdc9d07f174cdb2ce0c. Raw initial contours still fail both95percent bars; this diagnosis does not approve them.",
+  "isolated_change": "Starting from the frozen original-input initial-contour candidate, make graph-structure admission advisory. Emit every atomically authenticated accepted initial DB contour exactly once. Preserve model weights, original learned-detector pixels, axis-masked structural pixels, resize, detector thresholds, DB contour acceptance, unclip, initial geometry, model confidence and recognizer preprocessing. Keep structural associations available as evidence, but do not let structure classification, text likelihood, overlap or one-to-one admission suppress a model contour. Give advisory selection a distinct composition, configuration, cache and region identity. Normal Production continues to reject this unapproved candidate. Preserve every existing required-consensus mode. Do not combine resolution, tiling, threshold, role, training or upstream-provider changes.",
+  "split_identities": {
+    "baseline_candidate_path": "artifacts/synthetic-runtime-evidence/initial-contour-source-c96/candidate.json",
+    "baseline_candidate_sha256": "15dc39a373942278bec23f029cb59f1f13d63b845204f1f238ae2a52e2119958",
+    "baseline_protocol_path": "ml/ocr/official_bakeoff/initial_contour_output_dev_protocol.json",
+    "baseline_protocol_sha256": "8e2305ac8632e0bbf675bd36cc25129ba12285cd772cded326560624915abdfb",
+    "train_manifest_path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json",
+    "train_manifest_sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37",
+    "dev_manifest_path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+    "dev_manifest_sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7",
+    "train_source_count": 4,
+    "train_panel_count": 4,
+    "train_truth_count": 146,
+    "dev_source_count": 3,
+    "dev_panel_count": 9,
+    "dev_truth_count": 183
+  },
+  "metric": "Run the actual candidate on all fixed synthetic train/dev sources before separate truth regeneration. Authenticate exact evaluator, truth sources, fonts, packages, protocol, candidate, executable and report bytes first. Verify that final detections trace one-to-one to every accepted original-input atomic initial contour, with no added or omitted model contour. Score IoU0.5 maximum-cardinality one-to-one detection precision and recall using all146train plus183dev truths. Failed cases retain full truth and zero predictions. Recognition and role changes remain descriptive until separately scored. Verify scientific-output parity of all prior required-consensus modes separately.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json tier1_reviewable_error: text-region precision and recall minimum0.95. Both are required. Removing a harmful filter, counterfactual results or relative improvement is not acceptance.",
+  "budget": {"synthetic_train_dev_runs": "unlimited", "optimizer_steps": 0, "private_reads": 0, "sealed_runs": 0, "production_approval": false, "release_eligible": false}
+}

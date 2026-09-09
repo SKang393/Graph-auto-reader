@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
@@ -20,6 +21,12 @@ public enum GraphStructureModelInput
     Original = 1,
 }
 
+public enum GraphStructureConsensusAdmission
+{
+    Required = 0,
+    Advisory = 1,
+}
+
 public sealed record GraphStructureConsensusTextRegionDetectorOptions
 {
     public double MinimumOverlapCoefficient { get; init; } = 0.50;
@@ -31,13 +38,16 @@ public sealed record GraphStructureConsensusTextRegionDetectorOptions
 
     public GraphStructureModelInput ModelInput { get; init; } =
         GraphStructureModelInput.AxisMasked;
+
+    public GraphStructureConsensusAdmission Admission { get; init; } =
+        GraphStructureConsensusAdmission.Required;
 }
 
 /// <summary>
-/// Keeps at most one model detection for each independently derived
-/// connected-component text candidate. Candidate regions must carry explicit
-/// non-structure evidence. This boundary rejects graph-shaped detections
-/// without substituting heuristic regions for model detections.
+/// Combines model detections with independently derived connected-component
+/// evidence. Required admission keeps at most one model detection for each
+/// eligible text candidate. Advisory admission retains every accepted atomic
+/// DB contour and records any association as evidence only.
 /// </summary>
 public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRegionDetector
 {
@@ -54,6 +64,9 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
 
     public const string InitialDbContourOriginalModelInputCompositionVersion =
         "graph-structure-consensus-initial-db-contour-original-model-input-v1";
+
+    public const string AdvisoryInitialDbContourOriginalModelInputCompositionVersion =
+        "graph-structure-consensus-advisory-initial-db-contour-original-model-input-v1";
 
     private readonly ITextRegionDetector modelDetector;
     private readonly ITextRegionDetector structureCandidateDetector;
@@ -73,7 +86,8 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
             !double.IsFinite(this.options.MinimumTextLikelihood) ||
             this.options.MinimumTextLikelihood is < 0 or > 1 ||
             !Enum.IsDefined(this.options.OutputGeometry) ||
-            !Enum.IsDefined(this.options.ModelInput))
+            !Enum.IsDefined(this.options.ModelInput) ||
+            !Enum.IsDefined(this.options.Admission))
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
@@ -86,11 +100,21 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
                 "Initial DB contour geometry requires an atomic DB detector with original model input.",
                 nameof(options));
         }
+
+        if (this.options.Admission == GraphStructureConsensusAdmission.Advisory &&
+            (this.options.OutputGeometry != GraphStructureConsensusGeometry.InitialDbContour ||
+             this.options.ModelInput != GraphStructureModelInput.Original ||
+             modelDetector is not IAtomicDbGeometryTextRegionDetector { SupportsAtomicDbGeometry: true }))
+        {
+            throw new ArgumentException(
+                "Advisory structure admission requires atomic initial DB contour geometry with original model input.",
+                nameof(options));
+        }
     }
 
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
-        $"{GetCompositionVersion(options.OutputGeometry, options.ModelInput)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
+        $"{GetCompositionVersion(options.OutputGeometry, options.ModelInput, options.Admission)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
 
     public static string GetCompositionVersion(GraphStructureConsensusGeometry geometry) => geometry switch
     {
@@ -121,6 +145,35 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
             throw new ArgumentOutOfRangeException(nameof(modelInput)),
         _ => throw new ArgumentOutOfRangeException(nameof(geometry)),
     };
+
+    public static string GetCompositionVersion(
+        GraphStructureConsensusGeometry geometry,
+        GraphStructureModelInput modelInput,
+        GraphStructureConsensusAdmission admission)
+    {
+        if (!Enum.IsDefined(admission))
+        {
+            throw new ArgumentOutOfRangeException(nameof(admission));
+        }
+
+        if (admission == GraphStructureConsensusAdmission.Required)
+        {
+            return GetCompositionVersion(geometry, modelInput);
+        }
+
+        return (geometry, modelInput) switch
+        {
+            (GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original) =>
+                AdvisoryInitialDbContourOriginalModelInputCompositionVersion,
+            (_, var invalidInput) when !Enum.IsDefined(invalidInput) =>
+                throw new ArgumentOutOfRangeException(nameof(modelInput)),
+            (var invalidGeometry, _) when !Enum.IsDefined(invalidGeometry) =>
+                throw new ArgumentOutOfRangeException(nameof(geometry)),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(admission),
+                "Advisory admission supports only initial DB contour geometry with original model input."),
+        };
+    }
 
     public async ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
         OcrImage image,
@@ -223,6 +276,16 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
             .ThenBy(match => candidateRegions[match.CandidateIndex].RegionId, StringComparer.Ordinal)
             .ToArray();
 
+        if (options.Admission == GraphStructureConsensusAdmission.Advisory)
+        {
+            return BuildAdvisoryOutput(
+                modelRegions,
+                candidateRegions,
+                matches,
+                atomicDbDetection,
+                cancellationToken);
+        }
+
         var usedModels = new HashSet<int>();
         var usedCandidates = new HashSet<int>();
         var output = new List<OcrDetectedRegion>();
@@ -271,6 +334,51 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
                 },
                 _ => throw new InvalidOperationException("Unsupported consensus output geometry."),
             });
+        }
+
+        return Array.AsReadOnly(output
+            .OrderBy(static region => region.Polygon.Bounds.Top)
+            .ThenBy(static region => region.Polygon.Bounds.Left)
+            .ThenBy(static region => region.RegionId, StringComparer.Ordinal)
+            .ToArray());
+    }
+
+    private static ReadOnlyCollection<OcrDetectedRegion> BuildAdvisoryOutput(
+        IReadOnlyList<OcrDetectedRegion> modelRegions,
+        IReadOnlyList<OcrDetectedRegion> candidateRegions,
+        IReadOnlyList<Match> matches,
+        OcrAtomicDbDetection? atomicDbDetection,
+        CancellationToken cancellationToken)
+    {
+        var candidateByModel = new Dictionary<int, int>();
+        var usedCandidates = new HashSet<int>();
+        foreach (Match match in matches)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (candidateByModel.ContainsKey(match.ModelIndex) ||
+                !usedCandidates.Add(match.CandidateIndex))
+            {
+                continue;
+            }
+
+            candidateByModel.Add(match.ModelIndex, match.CandidateIndex);
+        }
+
+        var output = new OcrDetectedRegion[modelRegions.Count];
+        for (var modelIndex = 0; modelIndex < modelRegions.Count; modelIndex++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            OcrDetectedRegion model = modelRegions[modelIndex];
+            OcrPolygon initialPolygon = InitialPolygon(atomicDbDetection, model.RegionId);
+            OcrDetectedRegion? candidate = candidateByModel.TryGetValue(modelIndex, out int candidateIndex)
+                ? candidateRegions[candidateIndex]
+                : null;
+            output[modelIndex] = model with
+            {
+                RegionId = AdvisoryInitialDbContourRegionId(model, initialPolygon),
+                Polygon = initialPolygon,
+                Evidence = AdvisoryInitialDbContourEvidence(model, candidate),
+            };
         }
 
         return Array.AsReadOnly(output
@@ -534,6 +642,27 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
         return new Guid(hash.AsSpan(0, 16)).ToString("D");
     }
 
+    private static string AdvisoryInitialDbContourRegionId(
+        OcrDetectedRegion model,
+        OcrPolygon initialPolygon)
+    {
+        using var material = new MemoryStream();
+        using (var writer = new BinaryWriter(material, Encoding.UTF8, leaveOpen: true))
+        {
+            writer.Write(AdvisoryInitialDbContourOriginalModelInputCompositionVersion);
+            writer.Write(model.RegionId);
+            writer.Write(initialPolygon.Points.Count);
+            foreach (OcrPoint point in initialPolygon.Points)
+            {
+                writer.Write(BitConverter.DoubleToInt64Bits(point.X));
+                writer.Write(BitConverter.DoubleToInt64Bits(point.Y));
+            }
+        }
+
+        byte[] hash = SHA256.HashData(material.ToArray());
+        return new Guid(hash.AsSpan(0, 16)).ToString("D");
+    }
+
     private static OcrRegionEvidence MatchedComponentEvidence(
         OcrDetectedRegion model,
         OcrDetectedRegion candidate)
@@ -565,6 +694,28 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
                     $"consensus_model_region_id:{model.RegionId}",
                     $"consensus_component_region_id:{candidate.RegionId}",
                 ])
+                .ToArray()),
+        };
+    }
+
+    private static OcrRegionEvidence AdvisoryInitialDbContourEvidence(
+        OcrDetectedRegion model,
+        OcrDetectedRegion? candidate)
+    {
+        OcrRegionEvidence evidence = model.Evidence ??
+            throw new InvalidOperationException("Atomic DB model evidence is missing.");
+        string[] association = candidate is null
+            ? []
+            : [$"consensus_component_region_id:{candidate.RegionId}"];
+        return evidence with
+        {
+            Reasons = Array.AsReadOnly(evidence.Reasons
+                .Concat([
+                    "consensus_admission:advisory",
+                    "consensus_geometry:initial_db_contour",
+                    $"consensus_model_region_id:{model.RegionId}",
+                ])
+                .Concat(association)
                 .ToArray()),
         };
     }

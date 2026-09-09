@@ -16,13 +16,15 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionOcrLocalCandidateFactoryTests
 {
     [TestMethod]
-    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.AxisMasked)]
-    [DataRow(GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.AxisMasked)]
-    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original)]
-    [DataRow(GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original)]
+    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.AxisMasked, GraphStructureConsensusAdmission.Required)]
+    [DataRow(GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.AxisMasked, GraphStructureConsensusAdmission.Required)]
+    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Required)]
+    [DataRow(GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Required)]
+    [DataRow(GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Advisory)]
     public async Task ExactPinnedPairCreatesUnapprovedAdapterThroughSharedPreflight(
         GraphStructureConsensusGeometry outputGeometry,
-        GraphStructureModelInput modelInput)
+        GraphStructureModelInput modelInput,
+        GraphStructureConsensusAdmission admission)
     {
         string root = CreateTemporaryDirectory();
         var sessionFactory = new ShapeAwareSessionFactory();
@@ -39,15 +41,40 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                     new string('d', 64),
                     CancellationToken.None,
                     outputGeometry,
-                    modelInput);
+                    modelInput,
+                    admission);
 
             Assert.IsFalse(adapter.IsApproved);
             Assert.AreEqual(2, sessionFactory.CreatedCount);
             Assert.AreEqual(2, sessionFactory.RunCount);
             StringAssert.Contains(adapter.AdapterId,
-                GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput));
+                GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput, admission));
             StringAssert.Contains(adapter.AdapterId, pair.Detection.Identity.Sha256[..12]);
             StringAssert.Contains(adapter.AdapterId, pair.Recognition.Identity.Sha256[..12]);
+        }
+        finally
+        {
+            await host.DisposeAsync();
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task AdvisoryStructureRejectsExpandedGeometryBeforeRuntimeInitialization()
+    {
+        string root = CreateTemporaryDirectory();
+        var sessionFactory = new ShapeAwareSessionFactory();
+        await using ProductionInferenceRuntimeHost host = CreateRuntimeHost(root, sessionFactory);
+        try
+        {
+            CandidatePair pair = WriteCandidatePair(root);
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                ProductionOcrAdapter.CreateForLocalSyntheticCandidateEvaluationAsync(
+                    pair.Detection, pair.Recognition, host, new string('d', 64), CancellationToken.None,
+                    GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original,
+                    GraphStructureConsensusAdmission.Advisory));
+            Assert.IsFalse(host.IsInitialized);
+            Assert.AreEqual(0, sessionFactory.CreatedCount);
         }
         finally
         {
