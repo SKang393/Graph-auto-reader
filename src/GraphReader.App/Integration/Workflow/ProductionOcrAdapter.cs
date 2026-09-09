@@ -144,7 +144,7 @@ internal sealed record FrozenCandidateOcrModelDescriptor(
 /// Composition remains disabled until both payloads have independently passed
 /// the production model-store, benchmark, provider, notice, and checksum gates.
 /// </summary>
-public sealed class ProductionOcrAdapter :
+public sealed partial class ProductionOcrAdapter :
     IProductionOcrAdapter,
     IProductionCandidateOcrAdapter
 {

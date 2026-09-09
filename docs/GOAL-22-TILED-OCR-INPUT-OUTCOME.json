@@ -1,0 +1,99 @@
+{
+  "bridge": {
+    "contract": {
+      "normalization": "1-gray8/255-float32",
+      "panel_target": "visible intersection of source truth with each actual encoded crop",
+      "partial_tile_padding": "white-255-top-left-valid",
+      "source_truth_denominator": "one full rendered source text box",
+      "tile_overlap": 64,
+      "tile_size": 256,
+      "tile_step": 192
+    },
+    "dev": {
+      "full_source_text_truths": 183,
+      "ordered_gray8_sha256": "6a1a03ce948f13d061b371200117fa428507a6757785c1d561f484fa02214c41",
+      "ordered_tile_inputs_sha256": "a08462aabbe1efb4dc0e728db7d35de37cd9246d653f9dd718e1b6ea75802e50",
+      "ordered_tile_targets_sha256": "fbcd198b2029254f4e965cf9a57b8ea991b12791ff504c5c37ac8cc9df23c9e6",
+      "outside_runtime_crop_truths": 0,
+      "overlapping_source_truths": 0,
+      "panels": 9,
+      "partial_source_truths": 0,
+      "projected_source_truths": 183,
+      "sources": 3,
+      "tiles": 108,
+      "tiles_with_visible_truth": 108
+    },
+    "elapsed_ms": 113176.31619999884,
+    "identities": {
+      "helper_sha256": "6a5cfb72e0f3c7e62649ab34a306110460870dda452c27bf7316376034d4ba19",
+      "production_tiled_inputs_sha256": "b2ee5dba050790b504f7d35b129d882d4d5bcf011d87a3b21a4431202d3fdc35",
+      "runtime_domain_binding_v3_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a"
+    },
+    "limitations": [
+      "This bridge exposes training and evaluation inputs but does not open or authorize an OCR model revision.",
+      "A panel projection is a crop-visible training target and never a second source truth item.",
+      "Source truths outside completed runtime crops remain in the evaluator denominator with no panel target.",
+      "Predictions from overlapping panels require later source-coordinate duplicate handling during evaluation."
+    ],
+    "schema": "graphreader.production-tiled-ocr-input-bridge.v1",
+    "scope": {
+      "model_forward_calls": 0,
+      "model_loaded": false,
+      "optimizer_steps": 0,
+      "private_reads": 0,
+      "production_approved": false,
+      "project_owned_synthetic_train_dev_only": true,
+      "sealed_reads": 0,
+      "training_authorized": false
+    },
+    "status": "validated",
+    "train": {
+      "full_source_text_truths": 709,
+      "ordered_gray8_sha256": "0cd1500592cb6cf12d67e9af39b2d6dcee66a846cd4fbc69f59066e61cf2da17",
+      "ordered_tile_inputs_sha256": "435408d9c2ed9a7de3a54499997cddfaadd10a482edc2eb61dc2bfedca0e6f81",
+      "ordered_tile_targets_sha256": "1e4b443a5479f7fccdfc2b9d4fe9bb1722a10c76287a3f09accb94954c4c148e",
+      "outside_runtime_crop_truths": 0,
+      "overlapping_source_truths": 0,
+      "panels": 28,
+      "partial_source_truths": 0,
+      "projected_source_truths": 709,
+      "sources": 20,
+      "tiles": 348,
+      "tiles_with_visible_truth": 328
+    }
+  },
+  "bridge_report_sha256": "eb5f7659a033e3bc18d8e688b1c7502ffb085b925031a29d8c527438b346b407",
+  "implementation_checks": "PASS",
+  "limitations": [
+    "The retained V38 model remains failed, unselected and unapproved. No new OCR revision or optimizer is opened by this input bridge.",
+    "The Gray8 tiled contract is distinct from the original BGR DB detector. Its targets must not be reused for the proposed pretrained DB head.",
+    "Initial import-path and generator split-name failures are retained in the local void-attempt record."
+  ],
+  "model_acceptance": "not_established",
+  "new_dependencies": [],
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "production_approved": false,
+  "schema": "graphreader.goal22-tiled-ocr-input-outcome.v1",
+  "scope": "Unapproved original-Gray8 tiled detector composition and authenticated synthetic input bridge",
+  "sealed_reads": 0,
+  "source_sha256": {
+    "ml/ocr/production_tiled_inputs.py": "b2ee5dba050790b504f7d35b129d882d4d5bcf011d87a3b21a4431202d3fdc35",
+    "ml/ocr/tests/test_production_tiled_inputs.py": "8da0de2a8bb68353a1ac9e7dd425c08a2e07cdc045866f3a12a45b862e31b133",
+    "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs": "7bc9d9c2c9ffcf98d452d4356e125cc8f3ebe3363a8fb5e03e528a9c8c28cf1c",
+    "src/GraphReader.App/Integration/Workflow/ProductionTiledProbabilityOcrCandidate.cs": "135a7a17655b489ec5fbf7e008fbf39d7591c00a4ab13f71235b59dcc99db773",
+    "src/GraphReader.Ocr/LocalOnnxTiledProbabilityTextRegionDetector.cs": "1a9fa848c65ae365700e32211379febad796ab90648deeea886ef5b3caef9143",
+    "tests/GraphReader.App.Tests/ProductionTiledProbabilityOcrCandidateTests.cs": "ddd371c6afda6a89294fc29582da328aae7b531efec96f73717dfd440ef63d24",
+    "tests/GraphReader.Ocr.Tests/LocalOnnxTiledProbabilityTextRegionDetectorTests.cs": "4f195cb36d5d211d62391c81c5e630b2dbf4d1a6eca7f29ba501cd398813ad8c"
+  },
+  "verification": {
+    "existing_opt_in_skips": 16,
+    "independent_review": "CLEAR",
+    "input_bridge_report_sha256": "b2362aa5ad9ff44f273a0e61826b86802d2d34e1410d188d049bffd577bedbbe",
+    "input_bridge_test_seconds": 4.34,
+    "input_bridge_tests": 9,
+    "ocr_report_sha256": "acead031851bb74dcb5ae0e495330d7362001556ce74d4fb22f1d3833692cc01",
+    "ocr_tests": 238
+  },
+  "void_attempts_sha256": "86ea16b03913ea2ed8ea968f86e4d0785bec2ae947008fc732cc4e5858cf1068"
+}
