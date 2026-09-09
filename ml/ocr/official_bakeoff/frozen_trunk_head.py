@@ -127,6 +127,7 @@ class StepZeroParityResult:
     source_sha256: str
     feature_model_sha256: str
     provider: str
+    torch_backend: str
     errors_by_shape: tuple[tuple[tuple[int, int, int, int], float], ...]
     maximum_absolute_error: float
     tolerance: float
@@ -338,7 +339,17 @@ class FrozenDbHead(nn.Module):
             raise FrozenTrunkHeadError(
                 f"DB head requires NCHW features with {FEATURE_CHANNELS} channels"
             )
-        value = F.conv2d(features, self.conv_weight, bias=None, stride=1, padding=1)
+        # Torch's float32 CPU accumulators exceed the fixed ONNX parity bound on
+        # retained production tensors. Accumulate the reviewed Conv.61 in
+        # float64, then restore its float32 ONNX tensor boundary. Parameters and
+        # gradients remain attached to the original float32 tensors.
+        value = F.conv2d(
+            features.to(torch.float64),
+            self.conv_weight.to(torch.float64),
+            bias=None,
+            stride=1,
+            padding=1,
+        ).to(torch.float32)
         value = F.batch_norm(
             value,
             self.bn0_running_mean,
@@ -604,7 +615,7 @@ def run_step_zero_parity(
             raise FrozenTrunkHeadError("Step-zero parity requires CPUExecutionProvider only")
         errors: list[tuple[tuple[int, int, int, int], float]] = []
         bundle.head.eval()
-        with torch.inference_mode():
+        with torch.inference_mode(), torch.backends.mkldnn.flags(enabled=False):
             for index, shape in enumerate(shapes):
                 values = deterministic_production_tensor(shape, seed + index)
                 expected = np.asarray(
@@ -624,6 +635,7 @@ def run_step_zero_parity(
         source_sha256=expected_source_sha256,
         feature_model_sha256=feature_sha256,
         provider="CPUExecutionProvider",
+        torch_backend="cpu-mkldnn-disabled-float64-conv0",
         errors_by_shape=tuple(errors),
         maximum_absolute_error=maximum,
         tolerance=tolerance,

@@ -97,6 +97,27 @@ def test_extracts_exact_trainable_head_and_frozen_batch_norm(tmp_path: Path) -> 
     assert "filled truth-box targets are incompatible" in bundle.metadata.target_contract
 
 
+def test_head_accumulates_first_convolution_in_float64_then_restores_float32(
+    tmp_path: Path, monkeypatch
+) -> None:
+    model_path = tmp_path / "model.onnx"
+    identity = _fixture_model(model_path)
+    head = subject.extract_frozen_trunk_head(model_path, identity).head
+    observed: list[tuple[torch.dtype, torch.dtype]] = []
+    original = subject.F.conv2d
+
+    def inspect(input_tensor, weight, *args, **kwargs):
+        observed.append((input_tensor.dtype, weight.dtype))
+        return original(input_tensor, weight, *args, **kwargs)
+
+    monkeypatch.setattr(subject.F, "conv2d", inspect)
+    output = head.forward_logits(torch.zeros((1, 96, 1, 1), dtype=torch.float32))
+
+    assert observed == [(torch.float64, torch.float64)]
+    assert output.dtype == torch.float32
+    assert all(parameter.dtype == torch.float32 for parameter in head.parameters())
+
+
 def test_rejects_changed_head_topology(tmp_path: Path) -> None:
     model_path = tmp_path / "changed.onnx"
     identity = _fixture_model(model_path, mutate_topology=True)
@@ -162,18 +183,30 @@ def test_patch_rejects_changed_frozen_batch_norm_state(tmp_path: Path) -> None:
         subject.patch_head_constants(source, tmp_path / "invalid.onnx", head, source_identity)
 
 
-def test_step_zero_cpu_parity_uses_production_normalized_inputs(tmp_path: Path) -> None:
+def test_step_zero_cpu_parity_uses_production_normalized_inputs(tmp_path: Path, monkeypatch) -> None:
     source = tmp_path / "source.onnx"
     source_identity = _fixture_model(source)
+    observed_backends: list[bool] = []
+    original_forward = subject.FrozenDbHead.forward
 
-    result = subject.run_step_zero_parity(
-        source,
-        [(1, 3, 128, 128), (2, 3, 128, 128)],
-        expected_source_sha256=source_identity,
-        tolerance=1e-5,
-    )
+    def observed_forward(self, features):
+        observed_backends.append(torch.backends.mkldnn.enabled)
+        return original_forward(self, features)
+
+    monkeypatch.setattr(subject.FrozenDbHead, "forward", observed_forward)
+
+    with torch.backends.mkldnn.flags(enabled=True):
+        result = subject.run_step_zero_parity(
+            source,
+            [(1, 3, 128, 128), (2, 3, 128, 128)],
+            expected_source_sha256=source_identity,
+            tolerance=1e-5,
+        )
+        assert torch.backends.mkldnn.enabled is True
 
     assert result.provider == "CPUExecutionProvider"
+    assert result.torch_backend == "cpu-mkldnn-disabled-float64-conv0"
+    assert observed_backends and not any(observed_backends)
     assert result.passed
     assert result.maximum_absolute_error <= 1e-5
     first = subject.deterministic_production_tensor((1, 3, 128, 128), 7)
@@ -190,6 +223,25 @@ def test_step_zero_cpu_parity_uses_production_normalized_inputs(tmp_path: Path) 
     assert production_bounded.shape == (1, 3, 960, 32)
     with pytest.raises(subject.FrozenTrunkHeadError, match="shape or seed"):
         subject.deterministic_production_tensor((1, 3, 31, 128), 7)
+
+
+def test_step_zero_restores_mkldnn_after_torch_failure(tmp_path: Path, monkeypatch) -> None:
+    source = tmp_path / "source.onnx"
+    source_identity = _fixture_model(source)
+
+    def fail_forward(self, features):
+        assert torch.backends.mkldnn.enabled is False
+        raise RuntimeError("injected head failure")
+
+    monkeypatch.setattr(subject.FrozenDbHead, "forward", fail_forward)
+    with torch.backends.mkldnn.flags(enabled=True):
+        with pytest.raises(RuntimeError, match="injected head failure"):
+            subject.run_step_zero_parity(
+                source,
+                [(1, 3, 128, 128)],
+                expected_source_sha256=source_identity,
+            )
+        assert torch.backends.mkldnn.enabled is True
 
 
 def test_rejects_existing_output_and_wrong_source_identity(tmp_path: Path) -> None:

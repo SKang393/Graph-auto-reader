@@ -114,11 +114,17 @@ internal static class OfficialHeadCandidateEvaluation
 
         byte[] candidateBytes = ReadVerified(candidatePath, candidateSha, null, "head candidate");
         using var candidateDocument = JsonDocument.Parse(candidateBytes);
+        BoundAssembly[] executionAssemblies = ReadExecutionAssemblies(
+            candidateDocument.RootElement.GetProperty("execution_assemblies"), root);
         CandidateBinding candidate = ReadCandidate(candidateDocument.RootElement, root);
         var locks = new List<FileStream>();
         nint nativeHandle = nint.Zero;
         try
         {
+            foreach (BoundAssembly assembly in executionAssemblies)
+            {
+                LockAndVerify(assembly.Path, assembly.Sha256, "execution assembly", locks);
+            }
             LockAndVerify(candidate.Detector.ModelPath, candidate.Detector.ModelSha256,
                 "detector model", locks);
             LockAndVerify(candidate.Detector.ManifestPath, candidate.Detector.ManifestSha256,
@@ -250,6 +256,12 @@ internal static class OfficialHeadCandidateEvaluation
                 OptimizerSteps = 0,
                 ProductionApproved = false,
                 TrainingInputReady = false,
+                ExecutionAssemblies = executionAssemblies.Select(assembly => new
+                {
+                    assembly.Name,
+                    Path = Relative(root, assembly.Path),
+                    assembly.Sha256,
+                }).ToArray(),
                 Request = new
                 {
                     Path = Relative(root, requestPath),
@@ -484,7 +496,7 @@ internal static class OfficialHeadCandidateEvaluation
         RequireProperties(root,
             "schema", "scope", "production_approved", "training_input_ready",
             "composition_version", "native_path", "native_sha256", "native_scope",
-            "license_inputs", "detector", "recognizer");
+            "license_inputs", "detector", "recognizer", "execution_assemblies");
         if (Text(root, "schema") != CandidateSchema || Text(root, "scope") != CandidateScope ||
             root.GetProperty("production_approved").GetBoolean() ||
             root.GetProperty("training_input_ready").GetBoolean() ||
@@ -524,6 +536,38 @@ internal static class OfficialHeadCandidateEvaluation
             RepositoryPath(repositoryRoot, Text(root, "native_path")),
             RequireSha(Text(root, "native_sha256"), "native runtime"),
             licenses.AsReadOnly());
+    }
+
+    internal static BoundAssembly[] ReadExecutionAssemblies(JsonElement records, string root)
+    {
+        var executing = new[]
+        {
+            typeof(OfficialHeadCandidateEvaluation).Assembly,
+            typeof(ProductionRasterFrameDecoder).Assembly,
+            typeof(LocalOnnxTextRegionDetector).Assembly,
+            typeof(InferenceRuntime).Assembly,
+        }.ToDictionary(assembly => assembly.GetName().Name!, StringComparer.Ordinal);
+        if (records.GetArrayLength() != executing.Count)
+        {
+            throw new InvalidDataException("Candidate execution assembly inventory is incomplete.");
+        }
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var output = new List<BoundAssembly>();
+        foreach (JsonElement record in records.EnumerateArray())
+        {
+            RequireProperties(record, "name", "path", "sha256");
+            string name = Text(record, "name");
+            string path = RepositoryPath(root, Text(record, "path"));
+            string sha = RequireSha(Text(record, "sha256"), "execution assembly");
+            if (!seen.Add(name) || !executing.TryGetValue(name, out var assembly) ||
+                !string.Equals(path, Path.GetFullPath(assembly.Location), StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException("Candidate is not executing the bound assembly identity and path.");
+            }
+            ReadVerified(path, sha, null, "execution assembly");
+            output.Add(new BoundAssembly(name, path, sha));
+        }
+        return output.OrderBy(item => item.Name, StringComparer.Ordinal).ToArray();
     }
 
     private static CandidateModel ReadModel(JsonElement record, string root, string expectedTask)
@@ -918,6 +962,8 @@ internal static class OfficialHeadCandidateEvaluation
     }
 
     private sealed record BoundFile(string Path, string Sha256);
+
+    internal sealed record BoundAssembly(string Name, string Path, string Sha256);
 
     private sealed record CandidateModel(
         string ModelPath,

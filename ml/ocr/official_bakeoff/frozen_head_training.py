@@ -28,6 +28,7 @@ BATCH_SIZE = 1
 LEARNING_RATE = 1e-4
 WEIGHT_DECAY = 1e-4
 DICE_EPSILON = 1e-6
+TORCH_BACKEND = "cpu-mkldnn-disabled-float64-conv0"
 
 TRAINABLE_PARAMETER_NAMES = (
     "conv_weight", "bn0_weight", "bn0_bias", "deconv0_weight",
@@ -82,6 +83,7 @@ class TrainingResult:
     learning_rate: float
     weight_decay: float
     dice_epsilon: float
+    torch_backend: str
     trainable_parameter_names: tuple[str, ...]
     frozen_batch_norm_sha256_before: str
     frozen_batch_norm_sha256_after: str
@@ -165,15 +167,16 @@ def train_frozen_head(
             for sample_index in order:
                 _check_cancellation(cancellation_check)
                 sample = samples[sample_index]
-                optimizer.zero_grad(set_to_none=True)
-                loss, _ = masked_db_dice_loss(
-                    head.forward_logits(sample.features), sample.target, sample.mask
-                )
-                _require_finite_scalar(loss, "Training loss")
-                loss.backward()
-                _validate_gradients(head)
-                optimizer.step()
-                _validate_parameters(head)
+                with torch.backends.mkldnn.flags(enabled=False):
+                    optimizer.zero_grad(set_to_none=True)
+                    loss, _ = masked_db_dice_loss(
+                        head.forward_logits(sample.features), sample.target, sample.mask
+                    )
+                    _require_finite_scalar(loss, "Training loss")
+                    loss.backward()
+                    _validate_gradients(head)
+                    optimizer.step()
+                    _validate_parameters(head)
                 optimizer_steps += 1
                 step_losses.append(float(loss.detach()))
 
@@ -224,6 +227,7 @@ def train_frozen_head(
             learning_rate=LEARNING_RATE,
             weight_decay=WEIGHT_DECAY,
             dice_epsilon=DICE_EPSILON,
+            torch_backend=TORCH_BACKEND,
             trainable_parameter_names=TRAINABLE_PARAMETER_NAMES,
             frozen_batch_norm_sha256_before=frozen_before,
             frozen_batch_norm_sha256_after=frozen_after,
@@ -263,8 +267,6 @@ def _prepare_samples(panels: Sequence[TrainingPanel]) -> tuple[_Sample, ...]:
         expected = (1, features.shape[2] * 4, features.shape[3] * 4)
         if target.shape != expected or mask.shape != expected:
             raise FrozenHeadTrainingError("Target and mask must match the DB head output shape")
-        if np.any((target > 0) & (mask <= 0)):
-            raise FrozenHeadTrainingError("Positive targets cannot lie outside supervision")
         if not np.any(mask > 0):
             raise FrozenHeadTrainingError("An all-zero supervision mask cannot enter optimization")
         samples.append(
@@ -302,8 +304,6 @@ def _validate_loss_tensors(logits: Tensor, target: Tensor, mask: Tensor) -> None
         raise FrozenHeadTrainingError("DB loss tensors must be finite")
     if not bool(torch.all((target == 0) | (target == 1))) or not bool(torch.all((mask == 0) | (mask == 1))):
         raise FrozenHeadTrainingError("DB targets and masks must be binary")
-    if bool(torch.any((target > 0) & (mask <= 0))):
-        raise FrozenHeadTrainingError("Positive targets cannot lie outside supervision")
 
 
 def _validate_head(head: frozen_trunk_head.FrozenDbHead) -> None:
@@ -334,9 +334,10 @@ def _full_train_losses(
     with torch.no_grad():
         for sample in samples:
             _check_cancellation(cancellation_check)
-            loss, category = masked_db_dice_loss(
-                head.forward_logits(sample.features), sample.target, sample.mask
-            )
+            with torch.backends.mkldnn.flags(enabled=False):
+                loss, category = masked_db_dice_loss(
+                    head.forward_logits(sample.features), sample.target, sample.mask
+                )
             _require_finite_scalar(loss, "Full-train loss")
             scalar = float(loss)
             all_losses.append(scalar)
@@ -405,6 +406,6 @@ def _optional_mean(values: Sequence[float]) -> float | None:
 __all__ = [
     "BATCH_SIZE", "DICE_EPSILON", "EPOCHS", "EpochLoss",
     "FrozenHeadTrainingCancelledError", "FrozenHeadTrainingError",
-    "LEARNING_RATE", "SEED", "TRAINABLE_PARAMETER_NAMES", "TrainingPanel",
+    "LEARNING_RATE", "SEED", "TORCH_BACKEND", "TRAINABLE_PARAMETER_NAMES", "TrainingPanel",
     "TrainingResult", "WEIGHT_DECAY", "masked_db_dice_loss", "train_frozen_head",
 ]

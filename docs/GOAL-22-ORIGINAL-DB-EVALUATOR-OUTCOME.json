@@ -4,11 +4,11 @@
   "sources": [
     {
       "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluation.cs",
-      "sha256": "388119c24771982cccc91741de4216705675a05336ca70b2f8796277eda3b786"
+      "sha256": "6eaad336d7d81f579f773b9f8ef4e96cbf697b7a3b528279c874575bbdd9740b"
     },
     {
       "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluationSelfTest.cs",
-      "sha256": "127ea4010b3ef75618bd8aac89355990b2eaac7ff778ad2a1fa184a90b7656c3"
+      "sha256": "7f00a12167eaa0753691876e08de6c4d7fb0db219f9ffad8586093a4fcbae6b8"
     },
     {
       "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
@@ -21,11 +21,11 @@
     "total_panels": 37
   },
   "validation": {
-    "release_compile_seconds": 2.03,
+    "release_compile_seconds": 2.27,
     "release_compile_errors": 0,
     "selftest_command": "dotnet run --project tools/GraphReader.SyntheticRuntimeEvidence/GraphReader.SyntheticRuntimeEvidence.csproj -c Release -r win-x64 --no-build -- --self-test-official-head-candidate",
     "release_compile_warnings": 0,
-    "model_free_selftest_passed": 8
+    "model_free_selftest_passed": 10
   },
   "review": "Lead reviewed immutable model and manifest locks, original-pixel identities, one-time coordinate mapping, complete detector inventory and explicit recognition failures. Both logical detector requests use the same CPU options and input cache material.",
   "limitations": [
@@ -37,5 +37,7 @@
   "private_reads": 0,
   "sealed_reads": 0,
   "production_approval": false,
-  "goal22_acceptance": "FAIL"
+  "goal22_acceptance": "FAIL",
+  "execution_binding": "Candidate descriptor binds the exact four loaded tool/App/OCR/Inference assembly paths and hashes; mismatches fail before model loading and files remain locked during execution.",
+  "repaired_test_fixture": "Initial corrupted-assembly test expected different exception wording. The guard correctly rejected altered bytes; the test now checks the actual failure text."
 }

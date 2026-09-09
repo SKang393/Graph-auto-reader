@@ -77,6 +77,19 @@ def test_empty_target_uses_useful_masked_mean_probability() -> None:
     assert torch.all(logits.grad[~mask.bool()] == 0)
 
 
+def test_masked_positive_pixel_contributes_no_loss_or_gradient() -> None:
+    logits = torch.zeros((1, 1, 1, 2), requires_grad=True)
+    target = torch.ones_like(logits)
+    mask = torch.tensor([[[[1.0, 0.0]]]])
+
+    loss, category = training.masked_db_dice_loss(logits, target, mask)
+    loss.backward()
+
+    assert category == "positive_dice"
+    assert logits.grad[0, 0, 0, 0] != 0
+    assert logits.grad[0, 0, 0, 1] == 0
+
+
 @pytest.mark.parametrize("split", ["dev", "validation"])
 def test_non_train_panel_is_rejected_before_optimizer(monkeypatch, split: str) -> None:
     constructed = False
@@ -135,13 +148,24 @@ def test_arrays_must_be_immutable_and_parameter_inventory_exact(monkeypatch) -> 
     assert constructed is False
 
 
-def test_training_is_deterministic_selects_full_train_epoch_and_preserves_bn() -> None:
+def test_training_is_deterministic_selects_full_train_epoch_and_preserves_bn(monkeypatch) -> None:
     panels = [_panel("panel-b", positive=False), _panel("panel-a", positive=True)]
     first = _head()
     second = _head()
+    observed_backends: list[bool] = []
+    original_forward = frozen_trunk_head.FrozenDbHead.forward_logits
 
-    first_result = training.train_frozen_head(first, panels)
-    second_result = training.train_frozen_head(second, list(reversed(panels)))
+    def observed_forward(self, features):
+        observed_backends.append(torch.backends.mkldnn.enabled)
+        return original_forward(self, features)
+
+    monkeypatch.setattr(frozen_trunk_head.FrozenDbHead, "forward_logits", observed_forward)
+
+    with torch.backends.mkldnn.flags(enabled=True):
+        first_result = training.train_frozen_head(first, panels)
+        assert torch.backends.mkldnn.enabled is True
+        second_result = training.train_frozen_head(second, list(reversed(panels)))
+        assert torch.backends.mkldnn.enabled is True
 
     assert first_result == second_result
     assert first_result.optimizer_steps == 120
@@ -155,6 +179,8 @@ def test_training_is_deterministic_selects_full_train_epoch_and_preserves_bn() -
     assert all(item.full_empty_negative_loss is not None for item in first_result.epoch_losses)
     assert first_result.frozen_batch_norm_sha256_before == first_result.frozen_batch_norm_sha256_after
     assert first_result.trainable_parameter_names == training.TRAINABLE_PARAMETER_NAMES
+    assert first_result.torch_backend == "cpu-mkldnn-disabled-float64-conv0"
+    assert observed_backends and not any(observed_backends)
     for left, right in zip(first.parameters(), second.parameters(), strict=True):
         assert torch.equal(left, right)
 
@@ -172,8 +198,10 @@ def test_cancellation_restores_original_head_and_does_not_change_global_rng() ->
         if calls == 4:
             raise training.FrozenHeadTrainingCancelledError("cancelled")
 
-    with pytest.raises(training.FrozenHeadTrainingCancelledError):
-        training.train_frozen_head(head, [_panel("cancel", positive=True)], cancellation_check=cancel)
+    with torch.backends.mkldnn.flags(enabled=True):
+        with pytest.raises(training.FrozenHeadTrainingCancelledError):
+            training.train_frozen_head(head, [_panel("cancel", positive=True)], cancellation_check=cancel)
+        assert torch.backends.mkldnn.enabled is True
 
     assert torch.equal(torch.random.get_rng_state(), rng_before)
     assert head.training is True

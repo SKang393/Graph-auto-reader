@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Security.Cryptography;
+using System.Text.Json;
 using GraphReader.Ocr;
 
 namespace GraphReader.SyntheticRuntimeEvidence;
@@ -76,6 +77,27 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
             ExpectFailure(
                 () => OfficialHeadCandidateEvaluation.ValidateOcrCoverage([detected], failed),
                 "structurally unsuccessful");
+            checks++;
+
+            var assemblyRecords = new[]
+            {
+                typeof(OfficialHeadCandidateEvaluation).Assembly,
+                typeof(GraphReader.App.Integration.Workflow.ProductionRasterFrameDecoder).Assembly,
+                typeof(LocalOnnxTextRegionDetector).Assembly,
+                typeof(GraphReader.Inference.InferenceRuntime).Assembly,
+            }.Select(assembly => new Dictionary<string, string>
+            {
+                ["name"] = assembly.GetName().Name!,
+                ["path"] = Path.GetFileName(assembly.Location),
+                ["sha256"] = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(assembly.Location))),
+            }).ToArray();
+            Require(OfficialHeadCandidateEvaluation.ReadExecutionAssemblies(
+                JsonSerializer.SerializeToElement(assemblyRecords), AppContext.BaseDirectory).Length == 4,
+                "bound executing assemblies");
+            checks++;
+            assemblyRecords[0]["sha256"] = new string('0', 64);
+            ExpectFailure(() => OfficialHeadCandidateEvaluation.ReadExecutionAssemblies(
+                JsonSerializer.SerializeToElement(assemblyRecords), AppContext.BaseDirectory), "bytes differ");
             checks++;
 
             return new

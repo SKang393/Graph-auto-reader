@@ -1,6 +1,6 @@
 {
   "schema": "graphreader.goal22-pretrained-detector-finetune-feasibility.v2",
-  "recorded_utc": "2026-09-09T22:34:08.520240+00:00",
+  "recorded_utc": "2026-09-09T18:34:08.52024-04:00",
   "decision": "Use the reviewed ONNX detector as a frozen trunk with a trainable DB shrink-map head, subject to captured-input parity and a separate synthetic candidate preregistration.",
   "official_inference_alternative": {
     "model_id": "PP-OCRv5_mobile_det",
@@ -34,7 +34,7 @@
       "opset": 11,
       "input": "dynamic NCHW three-channel tensor",
       "output": "one-channel DB probability tensor",
-      "maximum_cpu_absolute_difference": 1.349323213162279e-07,
+      "maximum_cpu_absolute_difference": 1.349323213162279E-07,
       "reproducible_conversion": true
     },
     "disposition": "Preserve this exact reviewed inference artifact and its Apache-2.0 notice evidence. Its failed accuracy evidence and absent production approval remain unchanged. This record does not authorize a model-store entry, packaging, or production use."
@@ -80,7 +80,7 @@
     "output": "Original one-channel DB probability output fetch_name_0, unchanged graph topology and postprocessing.",
     "patch_containment": "Only the nine allowlisted head Constant tensors may change. Frozen BN statistics and every other graph node remain unchanged. A no-op patch preserves the original model bytes.",
     "source_file": "ml/ocr/official_bakeoff/frozen_trunk_head.py",
-    "source_sha256": "07f2c7640bbfd1666012b0f9c8bd359f18f5b9ffb37351986d0967530368af70",
+    "source_sha256": "6171df9298f785360695353087344229a8f761cfda51bb3aa728ddab10997703",
     "new_dependencies": [],
     "new_external_weights": [],
     "modification_notice_required_on_promotion": true,
@@ -89,8 +89,8 @@
   "historical_step_zero_check": {
     "report_sha256": "f12adeb040dbca61b8958bc1d916eb5648607449f75539a6f65cf88472827407",
     "source_sha256": "121e7f038b6eed71b7cd8d186fd2e8ca6d25f8b5cfa1fc06d820edcafa847743",
-    "maximum_absolute_error": 1.373180253949613e-07,
-    "tolerance": 1e-05,
+    "maximum_absolute_error": 1.373180253949613E-07,
+    "tolerance": 1E-05,
     "elapsed_ms": 3632.918,
     "limitation": "Historical deterministic input fixture. Its normalization helper changed afterward, including one float32 reciprocal, so it does not certify the later captured production inputs.",
     "dimension_correction": "The class default is 32 but the pinned production manifest uses 128. A rounded 1024 side can be an actual production dimension; the earlier stress-only interpretation was incorrect."
@@ -106,9 +106,8 @@
   "superseded_scratch_plan": "The earlier V38 data-loader-only proposal is not selected. The completed Gray8 tiled bridge remains a separate unapproved implementation; it cannot replace BGR DB tensors or shrink targets.",
   "earlier_draft_sha256": "bd5ba7e809f89e3242350c9f469d680bc9d2a9ac521833c14f0e51144ab0456d",
   "pending": [
-    "Repair and verify captured-input head numerical parity before optimization.",
     "Freeze separate candidate configuration and shared-budget authorization.",
-    "Run actual application candidate evaluation with complete source truth."
+    "Run trained-head export parity and actual application candidate evaluation with complete source truth."
   ],
   "private_or_sealed_reads": 0,
   "optimizer_steps": 0,
@@ -116,18 +115,60 @@
   "goal22_acceptance": "FAIL",
   "captured_step_zero_check": {
     "report": {
-      "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/captured-parity-v1/report.json",
-      "sha256": "55215e92d5972ad198c45688c55b7fa1e51672a06c0d12e8c3e6b2cb21d83598"
+      "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/captured-parity-v3/report.json",
+      "sha256": "8d5210aebaf1e6a0f51e4bdd48974ff67fe3fa0c4b9f6c49bc368f92ce66fe4c"
     },
-    "source_code_sha256": "07f2c7640bbfd1666012b0f9c8bd359f18f5b9ffb37351986d0967530368af70",
+    "source_code_sha256": "6171df9298f785360695353087344229a8f761cfda51bb3aa728ddab10997703",
+    "helper_sha256": "20c4387b23e8bd7bf9e699efbac9cd619663d74f367fd8f1934f04e35c1274f0",
     "capture_report_sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482",
     "feature_model_sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081",
     "no_op_model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
     "panel_count": 37,
-    "maximum_absolute_error": 2.086162567138672e-05,
-    "tolerance": 1e-05,
-    "passed": false,
-    "elapsed_ms": 9961.974500009092,
-    "disposition": "Numerical diagnosis required before optimization. Failed parity is retained and tolerance remains unchanged."
+    "maximum_absolute_error": 6.943941116333008E-06,
+    "tolerance": 1E-05,
+    "passed": true,
+    "elapsed_ms": 12187.13239999488
+  },
+  "retained_failed_captured_checks": [
+    {
+      "report": {
+        "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/captured-parity-v1/report.json",
+        "sha256": "55215e92d5972ad198c45688c55b7fa1e51672a06c0d12e8c3e6b2cb21d83598"
+      },
+      "source_code_sha256": "07f2c7640bbfd1666012b0f9c8bd359f18f5b9ffb37351986d0967530368af70",
+      "helper_sha256": "4467b97e8e5295bebd9e71b8b09a21c0498e20047fee6441dfa0afba1834e90d",
+      "capture_report_sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482",
+      "feature_model_sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081",
+      "no_op_model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+      "panel_count": 37,
+      "maximum_absolute_error": 2.086162567138672E-05,
+      "tolerance": 1E-05,
+      "passed": false,
+      "elapsed_ms": 9961.974500009092
+    },
+    {
+      "report": {
+        "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/captured-parity-v2/report.json",
+        "sha256": "f581ba8b2bc2a51734e053568d6dd4a3e240d00fde2b16216e7de2eb64a1a753"
+      },
+      "source_code_sha256": "a812abc2a751aade2e91f621f0fd489e4bf3ca7660a3a17e6fb2d6d4ca7f4902",
+      "helper_sha256": "20c4387b23e8bd7bf9e699efbac9cd619663d74f367fd8f1934f04e35c1274f0",
+      "capture_report_sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482",
+      "feature_model_sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081",
+      "no_op_model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+      "panel_count": 37,
+      "maximum_absolute_error": 1.2606382369995117E-05,
+      "tolerance": 1E-05,
+      "passed": false,
+      "elapsed_ms": 10781.256700007361
+    }
+  ],
+  "numerical_repair": {
+    "layer_diagnosis_sha256": "1996107eea2c23ceda1344eaaacb79738771ba6b68d8374a04580f67ee1852ad",
+    "actual_optimizer_steps": 0,
+    "focused_tests_seconds": 11.66,
+    "layer_diagnosis_path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/numeric-diagnosis-v1/layer-report-v3.json",
+    "focused_tests_passed": 19,
+    "implementation": "Disable MKLDNN and accumulate only the first reviewed convolution in float64, then cast to float32 before unchanged downstream operations. Float32 parameters and gradients are retained."
   }
 }
