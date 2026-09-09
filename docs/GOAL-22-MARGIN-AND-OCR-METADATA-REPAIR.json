@@ -1,0 +1,457 @@
+{
+  "base_commit": "c429641f84640571b32aafdc3bbb7d8ee064e1e2",
+  "changes": [
+    "Standalone raster import preserves full outer margins only after local evidence scoring and overlap selection retain one all-raster figure.",
+    "Normal PDF crops and multiple retained figures preserve their existing local bounds.",
+    "Internal full-source raster panel boundaries snap once to shared integer pixels; original bytes, coordinate transforms and evidence remain intact.",
+    "The diagnostic metadata selects the existing preregistered finite 1e-5 probability tolerance. The measured failure is one positive float ULP, with no nonfinite values. No probability threshold or runtime guard changes."
+  ],
+  "crop_baseline_text_omissions": {
+    "dev": {
+      "omitted": 7,
+      "truth": 183
+    },
+    "train": {
+      "omitted": 17,
+      "truth": 146
+    }
+  },
+  "crop_coverage_evidence": {
+    "path": "artifacts/synthetic-runtime-evidence/margin-final-crop-check/crop-omission-diagnosis.json",
+    "sha256": "bcbc9d922c58e2fd98be38f5264ae8a93e5888208dc523d6104e4f80eb967156"
+  },
+  "date": "2026-09-09",
+  "fixed_source_detection": {
+    "dev": {
+      "detection_metrics": {
+        "by_truth_role": {
+          "annotation": {
+            "false_negative_count": 8,
+            "matched_truth_count": 10,
+            "recall": 0.5555555555555556,
+            "truth_region_count": 18
+          },
+          "axis_title": {
+            "false_negative_count": 12,
+            "matched_truth_count": 0,
+            "recall": 0.0,
+            "truth_region_count": 12
+          },
+          "condition_label": {
+            "false_negative_count": 29,
+            "matched_truth_count": 1,
+            "recall": 0.03333333333333333,
+            "truth_region_count": 30
+          },
+          "legend_text": {
+            "false_negative_count": 9,
+            "matched_truth_count": 2,
+            "recall": 0.18181818181818182,
+            "truth_region_count": 11
+          },
+          "participant": {
+            "false_negative_count": 1,
+            "matched_truth_count": 8,
+            "recall": 0.8888888888888888,
+            "truth_region_count": 9
+          },
+          "phase_heading": {
+            "false_negative_count": 11,
+            "matched_truth_count": 19,
+            "recall": 0.6333333333333333,
+            "truth_region_count": 30
+          },
+          "x_tick": {
+            "false_negative_count": 46,
+            "matched_truth_count": 2,
+            "recall": 0.041666666666666664,
+            "truth_region_count": 48
+          },
+          "y_tick": {
+            "false_negative_count": 18,
+            "matched_truth_count": 7,
+            "recall": 0.28,
+            "truth_region_count": 25
+          }
+        },
+        "case_count": 3,
+        "false_negatives": 134,
+        "false_positives": 86,
+        "panel_count": 9,
+        "precision": 0.362962962962963,
+        "predicted_region_count": 135,
+        "recall": 0.2677595628415301,
+        "true_positives": 49,
+        "truth_region_count": 183,
+        "truth_regions_not_fully_covered_by_completed_panels": 0,
+        "truth_regions_outside_all_emitted_panel_crops": 0
+      },
+      "path": "artifacts/synthetic-runtime-evidence/dev393-margin-crops-run2/ocr-detection-score.json",
+      "sha256": "c02fe238c3549c95bd56427b40a32328d34775e0a20a07a0e5e001a7d91aac18",
+      "text_truth_count": 183,
+      "text_truths_omitted_by_crop": 0
+    },
+    "train": {
+      "detection_metrics": {
+        "by_truth_role": {
+          "annotation": {
+            "false_negative_count": 6,
+            "matched_truth_count": 6,
+            "recall": 0.5,
+            "truth_region_count": 12
+          },
+          "axis_title": {
+            "false_negative_count": 8,
+            "matched_truth_count": 2,
+            "recall": 0.2,
+            "truth_region_count": 10
+          },
+          "condition_label": {
+            "false_negative_count": 15,
+            "matched_truth_count": 1,
+            "recall": 0.0625,
+            "truth_region_count": 16
+          },
+          "legend_text": {
+            "false_negative_count": 5,
+            "matched_truth_count": 1,
+            "recall": 0.16666666666666666,
+            "truth_region_count": 6
+          },
+          "participant": {
+            "false_negative_count": 1,
+            "matched_truth_count": 5,
+            "recall": 0.8333333333333334,
+            "truth_region_count": 6
+          },
+          "phase_heading": {
+            "false_negative_count": 6,
+            "matched_truth_count": 10,
+            "recall": 0.625,
+            "truth_region_count": 16
+          },
+          "x_tick": {
+            "false_negative_count": 33,
+            "matched_truth_count": 2,
+            "recall": 0.05714285714285714,
+            "truth_region_count": 35
+          },
+          "y_tick": {
+            "false_negative_count": 44,
+            "matched_truth_count": 1,
+            "recall": 0.022222222222222223,
+            "truth_region_count": 45
+          }
+        },
+        "case_count": 4,
+        "false_negatives": 118,
+        "false_positives": 71,
+        "panel_count": 4,
+        "precision": 0.2828282828282828,
+        "predicted_region_count": 99,
+        "recall": 0.1917808219178082,
+        "true_positives": 28,
+        "truth_region_count": 146,
+        "truth_regions_not_fully_covered_by_completed_panels": 0,
+        "truth_regions_outside_all_emitted_panel_crops": 0
+      },
+      "path": "artifacts/synthetic-runtime-evidence/train393-margin-crops-run2/ocr-detection-score.json",
+      "sha256": "6861d5c26dc1f5aa901622e1426c31c76129bd721d3c281a39c56b9f3e44a0e7",
+      "text_truth_count": 146,
+      "text_truths_omitted_by_crop": 0
+    }
+  },
+  "goal22_acceptance": "FAIL",
+  "metadata_confirmation": {
+    "path": "artifacts/synthetic-runtime-evidence/official-metadata-margin-v2/verification.json",
+    "sha256": "422d6777cf9e5816b5ea102661e431a521976fae1164f9934af274d8e8af397b"
+  },
+  "probability_boundary_evidence": {
+    "path": "artifacts/synthetic-runtime-evidence/probability-boundary-diagnosis/report.json",
+    "sha256": "8eea1a8902cf0c94020303b22a700521859ba6d2d32e333da27b11f10cec25ed"
+  },
+  "remaining": [
+    "Default OCR detection remains below 95 percent; recognition and role acceptance are not established by this diagnostic.",
+    "Marker retry10 remains failed dev. Broader fixed train seeds are prepared but no replacement model has trained.",
+    "Fresh native runtime scientific parity, real/sealed workflow, stage promotion, normal UI and final 2.0 distribution acceptance remain incomplete."
+  ],
+  "runtime_runs": [
+    {
+      "candidate_sha256": "5b8f204bb125b2327ec2767d074859dcce4e17c89dd5d76cd82b05b55844a197",
+      "completed": 4,
+      "completed_panels": 4,
+      "count": 4,
+      "elapsed_milliseconds": 5795.6869,
+      "input_manifest_sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37",
+      "panel_count": 4,
+      "path": "artifacts/synthetic-runtime-evidence/train393-margin-crops-run2/report.json",
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "53b15e1171b68a4b94935043a7bde539fe40dab7f68160a03a12fc3695288622"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "784e3d5147afe3e8139ad37f038186688586100d0440cea2680ed5f89e435113"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "a4f434a8071efd95b11742f31465f3f350d977b77bc47f3fac869a500d0314c7"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "a14f3c5509a5bc638211c082a94c0ae44860312c4c955ac704cd7fa926104ae6"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "061a9fa142da48284ea9d92aa421a843a11122037b60759b5ba46b6c4946610f"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "8fed534edcb1a5b77d06f3d87ecacb550c8c8e90ab4245e82b725afc831f4603"
+        }
+      ],
+      "sha256": "01b093f54a050464294f65bd88f42d3bd7a2d1abc43c2b3e4282c89d75d225be"
+    },
+    {
+      "candidate_sha256": "5b8f204bb125b2327ec2767d074859dcce4e17c89dd5d76cd82b05b55844a197",
+      "completed": 3,
+      "completed_panels": 9,
+      "count": 3,
+      "elapsed_milliseconds": 8477.7711,
+      "input_manifest_sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7",
+      "panel_count": 9,
+      "path": "artifacts/synthetic-runtime-evidence/dev393-margin-crops-run2/report.json",
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "53b15e1171b68a4b94935043a7bde539fe40dab7f68160a03a12fc3695288622"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "784e3d5147afe3e8139ad37f038186688586100d0440cea2680ed5f89e435113"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "a4f434a8071efd95b11742f31465f3f350d977b77bc47f3fac869a500d0314c7"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "a14f3c5509a5bc638211c082a94c0ae44860312c4c955ac704cd7fa926104ae6"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "061a9fa142da48284ea9d92aa421a843a11122037b60759b5ba46b6c4946610f"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "8fed534edcb1a5b77d06f3d87ecacb550c8c8e90ab4245e82b725afc831f4603"
+        }
+      ],
+      "sha256": "70855a480f698687f6f0dff151b0fcafe74122720f575a0c73fb2d374bb2c83d"
+    },
+    {
+      "candidate_sha256": "5b8f204bb125b2327ec2767d074859dcce4e17c89dd5d76cd82b05b55844a197",
+      "completed": 4,
+      "completed_panels": 4,
+      "count": 4,
+      "elapsed_milliseconds": 5308.1193,
+      "input_manifest_sha256": "de33999009727b359d5c19796e6898e25c20595abcb6a745a6d5122ea77013ef",
+      "panel_count": 4,
+      "path": "artifacts/synthetic-runtime-evidence/train394-margin-coverage-run1/report.json",
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "53b15e1171b68a4b94935043a7bde539fe40dab7f68160a03a12fc3695288622"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "784e3d5147afe3e8139ad37f038186688586100d0440cea2680ed5f89e435113"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "a4f434a8071efd95b11742f31465f3f350d977b77bc47f3fac869a500d0314c7"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "a14f3c5509a5bc638211c082a94c0ae44860312c4c955ac704cd7fa926104ae6"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "061a9fa142da48284ea9d92aa421a843a11122037b60759b5ba46b6c4946610f"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "8fed534edcb1a5b77d06f3d87ecacb550c8c8e90ab4245e82b725afc831f4603"
+        }
+      ],
+      "sha256": "046fe202f69db7826afb57096e7690bae8affc2fe31a63b6f15654170c4264a1"
+    },
+    {
+      "candidate_sha256": "5b8f204bb125b2327ec2767d074859dcce4e17c89dd5d76cd82b05b55844a197",
+      "completed": 4,
+      "completed_panels": 6,
+      "count": 4,
+      "elapsed_milliseconds": 7042.5883,
+      "input_manifest_sha256": "a5b8801351a5fbd65f9f42799b65f88e61e5b952f91a0802765c8539b8523d2a",
+      "panel_count": 6,
+      "path": "artifacts/synthetic-runtime-evidence/train395-margin-coverage-run1/report.json",
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "53b15e1171b68a4b94935043a7bde539fe40dab7f68160a03a12fc3695288622"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "784e3d5147afe3e8139ad37f038186688586100d0440cea2680ed5f89e435113"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "a4f434a8071efd95b11742f31465f3f350d977b77bc47f3fac869a500d0314c7"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "a14f3c5509a5bc638211c082a94c0ae44860312c4c955ac704cd7fa926104ae6"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "061a9fa142da48284ea9d92aa421a843a11122037b60759b5ba46b6c4946610f"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "8fed534edcb1a5b77d06f3d87ecacb550c8c8e90ab4245e82b725afc831f4603"
+        }
+      ],
+      "sha256": "cb9c3f1e100f3b2804a62e0e66694c12a8eb60efa547ef7ca431bb4378bab2a9"
+    },
+    {
+      "candidate_sha256": "5b8f204bb125b2327ec2767d074859dcce4e17c89dd5d76cd82b05b55844a197",
+      "completed": 4,
+      "completed_panels": 4,
+      "count": 4,
+      "elapsed_milliseconds": 4582.3954,
+      "input_manifest_sha256": "c8da445f21c0e0b55e4fce5996e50e638edea5b8c90d41ce3920ffc6df157506",
+      "panel_count": 4,
+      "path": "artifacts/synthetic-runtime-evidence/train396-margin-coverage-run1/report.json",
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "53b15e1171b68a4b94935043a7bde539fe40dab7f68160a03a12fc3695288622"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "784e3d5147afe3e8139ad37f038186688586100d0440cea2680ed5f89e435113"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "a4f434a8071efd95b11742f31465f3f350d977b77bc47f3fac869a500d0314c7"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "a14f3c5509a5bc638211c082a94c0ae44860312c4c955ac704cd7fa926104ae6"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "061a9fa142da48284ea9d92aa421a843a11122037b60759b5ba46b6c4946610f"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "8fed534edcb1a5b77d06f3d87ecacb550c8c8e90ab4245e82b725afc831f4603"
+        }
+      ],
+      "sha256": "982b98ce1651db6f5d5b5472767dc2bbfe52b0b8f9bc62e5aa9865b98c4cc542"
+    },
+    {
+      "candidate_sha256": "5b8f204bb125b2327ec2767d074859dcce4e17c89dd5d76cd82b05b55844a197",
+      "completed": 4,
+      "completed_panels": 5,
+      "count": 4,
+      "elapsed_milliseconds": 7894.8424,
+      "input_manifest_sha256": "0c44ba6020c7ad83e98c0fdf440911664a4f6ac96b740f317af1e8058f92793b",
+      "panel_count": 5,
+      "path": "artifacts/synthetic-runtime-evidence/train397-margin-coverage-run1/report.json",
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "53b15e1171b68a4b94935043a7bde539fe40dab7f68160a03a12fc3695288622"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "784e3d5147afe3e8139ad37f038186688586100d0440cea2680ed5f89e435113"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "a4f434a8071efd95b11742f31465f3f350d977b77bc47f3fac869a500d0314c7"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "a14f3c5509a5bc638211c082a94c0ae44860312c4c955ac704cd7fa926104ae6"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "061a9fa142da48284ea9d92aa421a843a11122037b60759b5ba46b6c4946610f"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "8fed534edcb1a5b77d06f3d87ecacb550c8c8e90ab4245e82b725afc831f4603"
+        }
+      ],
+      "sha256": "063c77094e18ddae0dc9f4b85998d260c3fd6871fbf75cfd1dfa636dfe34045d"
+    }
+  ],
+  "sampling_finding": "The exact single-thread deterministic training setup reproduces retry10 counts and selected-index hash. The unconstrained diagnostic invocation caused the discrepancy; historical outcome remains unchanged.",
+  "sampling_reproduction": {
+    "path": "artifacts/goal22-runs/marker-v24-retry10-runtime/reproduction-diagnosis/diagnosis.json",
+    "sha256": "fadf19ecd25df5475dd1e242d2eefa8c2251b9beb05f4911b60a7061bd2b89e4"
+  },
+  "schema": "graphreader.goal22-margin-and-ocr-metadata-repair.v1",
+  "scope": {
+    "optimizer_steps": 0,
+    "packaged_builds": 0,
+    "portable_deleted": 0,
+    "private_reads": 0,
+    "production_approval_changed": false,
+    "public_releases": 0,
+    "sealed_reads": 0,
+    "synthetic_only": true
+  },
+  "status": "crop_and_execution_repairs_verified_accuracy_failed",
+  "validation": {
+    "app": {
+      "failed": 0,
+      "passed": 207,
+      "path": "artifacts/test-temp/crop-final/crop-app-final.trx",
+      "sha256": "3313a993301f12745ae5fe48bd4b91c6c17972a7b926139bb8a38b6613f06af9",
+      "skipped": 0
+    },
+    "diagnostic_compilation": {
+      "elapsed_seconds": 9.71,
+      "errors": 0,
+      "warnings": 0
+    },
+    "independent_crop_review": "clear; opt-in scope, post-selection expansion, immutable evidence, coordinate transforms and deterministic identity reviewed",
+    "metadata_helper": {
+      "failed": 0,
+      "passed": 1
+    },
+    "pdf": {
+      "failed": 0,
+      "passed": 59,
+      "path": "artifacts/test-temp/crop-final/crop-final.trx",
+      "sha256": "e7ca6cf14d7d90eee96696cb8a95614aae196342a954ab1f4716e5f7cd2102a4",
+      "skipped": 1
+    },
+    "prior_checkpoint_ci": {
+      "commit": "c429641f84640571b32aafdc3bbb7d8ee064e1e2",
+      "run": 34316056875,
+      "status": "success",
+      "url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/34316056875"
+    },
+    "probability_guards": {
+      "failed": 0,
+      "passed": 2,
+      "path": "artifacts/test-temp/crop-final/probability-boundary.trx",
+      "sha256": "0d89b46506f228edd6974900cbb3394b5689240b6122ed20d851501e7025ad3b"
+    }
+  }
+}

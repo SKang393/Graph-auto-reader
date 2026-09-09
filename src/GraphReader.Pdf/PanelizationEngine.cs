@@ -47,6 +47,25 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
     private const double TableLikePenalty = 0.35d;
     private const double TextHeavyPenalty = 0.25d;
 
+    private readonly bool extendSingleRasterGroupToSourceEdges;
+
+    public PanelizationEngine()
+        : this(extendSingleRasterGroupToSourceEdges: false)
+    {
+    }
+
+    private PanelizationEngine(bool extendSingleRasterGroupToSourceEdges) =>
+        this.extendSingleRasterGroupToSourceEdges = extendSingleRasterGroupToSourceEdges;
+
+    /// <summary>
+    /// Creates an engine for an immutable standalone raster source. When the
+    /// raster retains one figure after proposal selection, its outer panel bounds retain
+    /// the complete source margins while internal panel boundaries remain
+    /// derived from the detected plot geometry.
+    /// </summary>
+    public static IPdfPanelizationEngine CreateForStandaloneRasterSource() =>
+        new PanelizationEngine(extendSingleRasterGroupToSourceEdges: true);
+
     /// <inheritdoc />
     public Task<PdfPanelizationResult> ProposeAsync(
         PdfPanelizationInput input,
@@ -65,6 +84,11 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
                 [failure!],
                 elapsedMilliseconds: stopwatch.Elapsed.TotalMilliseconds));
         }
+
+        context = context! with
+        {
+            ExtendSingleRasterGroupToSourceEdges = extendSingleRasterGroupToSourceEdges,
+        };
 
         List<string> warnings = [];
         if (input.RenderedPage is not null)
@@ -108,6 +132,18 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             ref rejectedCount));
 
         List<CandidateDraft> selected = SelectNonOverlappingCandidates(drafts, cancellationToken);
+        if (context!.ExtendSingleRasterGroupToSourceEdges &&
+            selected.Count == 1 &&
+            selected[0].Figure.SourceKind == PdfFigureSourceKind.RenderedPage &&
+            selected[0].Axes.Count > 0 &&
+            selected[0].Axes.All(static axis => axis.FromRaster))
+        {
+            // Score and de-duplicate local proposals before expanding the sole
+            // retained raster figure. A nested legend proposal is not a second
+            // source figure, and must not cause disconnected labels to be lost.
+            selected[0] = ExtendRasterFigureToSourceEdges(context, selected[0]);
+        }
+
         selected.Sort(CandidateLayoutComparer.Instance);
 
         List<PdfPanelRecord> panels = [];
@@ -597,14 +633,15 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
         ref int rejectedCount)
     {
         List<CandidateDraft> candidates = [];
-        foreach (IReadOnlyList<AxisPair> group in GroupAlignedAxes(
+        List<IReadOnlyList<AxisPair>> groups = GroupAlignedAxes(
             axes,
             context.Options.MaximumPanelsPerFigure,
-            cancellationToken))
+            cancellationToken);
+        foreach (IReadOnlyList<AxisPair> group in groups)
         {
             cancellationToken.ThrowIfCancellationRequested();
             PdfRectD plotUnion = Union(group.Select(static axis => axis.PlotBoundsPagePoints));
-            PdfRectD boundsPoints = ExpandAndClip(
+            PdfRectD evidenceBoundsPoints = ExpandAndClip(
                 plotUnion,
                 Math.Max(12d, plotUnion.Width * 0.12d),
                 Math.Max(8d, plotUnion.Width * 0.05d),
@@ -614,7 +651,7 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
                 context.Page.HeightPoints);
             CandidateEvidence evidence = EvaluateEvidence(
                 context,
-                boundsPoints,
+                evidenceBoundsPoints,
                 group,
                 isEmbedded: false);
             if (evidence.Confidence < context.Options.MinimumFigureConfidence)
@@ -623,6 +660,7 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
                 continue;
             }
 
+            PdfRectD boundsPoints = evidenceBoundsPoints;
             PdfRectD boundsPixels = context.Transform.PagePointsToPixels(boundsPoints);
             PdfFigureSourceKind sourceKind = group.Any(static axis => axis.FromRaster)
                 ? PdfFigureSourceKind.RenderedPage
@@ -652,6 +690,37 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
         }
 
         return candidates;
+    }
+
+    private static CandidateDraft ExtendRasterFigureToSourceEdges(
+        PanelizationContext context,
+        CandidateDraft draft)
+    {
+        PdfRectD boundsPoints = new(0d, 0d, context.Page.WidthPoints, context.Page.HeightPoints);
+        PdfRectD boundsPixels = context.Transform.PagePointsToPixels(boundsPoints);
+        PdfFigureCandidate original = draft.Figure;
+        PdfFigureCandidate expanded = new(
+            CreateDeterministicGuid(FormatIdentity(
+                context.Input.DocumentSha256,
+                original.PageNumber,
+                original.SourceKind,
+                Guid.Empty,
+                boundsPixels)),
+            original.PageNumber,
+            original.SourceKind,
+            original.EmbeddedImageId,
+            boundsPixels,
+            boundsPoints,
+            original.SourcePixelWidth,
+            original.SourcePixelHeight,
+            original.EncodedSource,
+            original.MediaType,
+            original.Caption,
+            original.Evidence,
+            original.Confidence,
+            original.PagePointsToPagePixels,
+            original.SourcePixelsToPagePoints);
+        return new CandidateDraft(expanded, draft.Axes);
     }
 
     private static CandidateEvidence EvaluateEvidence(
@@ -863,6 +932,12 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
                 .OrderBy(static bounds => bounds.Y)
                 .ThenBy(static bounds => bounds.X)
                 .ToArray();
+            bool snapSharedRasterBoundary = context.ExtendSingleRasterGroupToSourceEdges &&
+                draft.Figure.SourceKind == PdfFigureSourceKind.RenderedPage &&
+                draft.Figure.BoundsPagePixels.X == 0d &&
+                draft.Figure.BoundsPagePixels.Y == 0d &&
+                draft.Figure.BoundsPagePixels.Width == context.Transform.PixelWidth &&
+                draft.Figure.BoundsPagePixels.Height == context.Transform.PixelHeight;
             List<double> boundaries = [];
             for (int index = 0; index < plots.Length - 1; index++)
             {
@@ -873,6 +948,11 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
                     ? (lowerEdge + upperEdge) / 2d
                     : ((plots[index].Y + (plots[index].Height / 2d)) +
                         (plots[index + 1].Y + (plots[index + 1].Height / 2d))) / 2d;
+                if (snapSharedRasterBoundary)
+                {
+                    boundary = Math.Round(boundary, MidpointRounding.AwayFromZero);
+                }
+
                 boundary = Math.Clamp(
                     boundary,
                     draft.Figure.BoundsPagePixels.Y + MinimumPanelHeightPixels,
@@ -1798,7 +1878,8 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
     private sealed record PanelizationContext(
         PdfPanelizationInput Input,
         PdfPageCoordinateTransform Transform,
-        RasterAnalysis? Raster = null)
+        RasterAnalysis? Raster = null,
+        bool ExtendSingleRasterGroupToSourceEdges = false)
     {
         public PdfPageSnapshot Page => Input.Page;
 

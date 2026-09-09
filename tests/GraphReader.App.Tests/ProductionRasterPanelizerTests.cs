@@ -45,6 +45,8 @@ public sealed class ProductionRasterPanelizerTests
             first.Panels.Select(static panel => panel.PanelId).ToArray(),
             second.Panels.Select(static panel => panel.PanelId).ToArray());
         Assert.AreEqual(3, first.Panels.Select(static panel => panel.PanelId).Distinct().Count());
+        Assert.AreEqual(0d, first.Panels[0].EncodedCropInSourcePixels.Y);
+        Assert.AreEqual(900d, first.Panels[^1].EncodedCropInSourcePixels.Bottom);
 
         for (int index = 0; index < first.Panels.Count; index++)
         {
@@ -57,6 +59,8 @@ public sealed class ProductionRasterPanelizerTests
             Assert.IsGreaterThanOrEqualTo(0d, panel.EncodedCropInSourcePixels.Y);
             Assert.IsLessThanOrEqualTo(640d, panel.EncodedCropInSourcePixels.Right);
             Assert.IsLessThanOrEqualTo(900d, panel.EncodedCropInSourcePixels.Bottom);
+            Assert.AreEqual(0d, panel.EncodedCropInSourcePixels.X);
+            Assert.AreEqual(640d, panel.EncodedCropInSourcePixels.Width);
 
             var sourcePoint = new PdfPointD(
                 panel.EncodedCropInSourcePixels.X + 10.25d,
@@ -86,11 +90,63 @@ public sealed class ProductionRasterPanelizerTests
             Assert.AreNotEqual(0, panel.CopyEncodedBytes()[0]);
             if (index > 0)
             {
-                Assert.IsLessThanOrEqualTo(
+                Assert.AreEqual(
                     first.Panels[index - 1].EncodedCropInSourcePixels.Bottom,
                     panel.EncodedCropInSourcePixels.Y);
             }
         }
+    }
+
+    [TestMethod]
+    public async Task SingleRasterFigureRetainsDisconnectedTopBottomAndRightMarginGlyphs()
+    {
+        const int width = 1200;
+        const int height = 350;
+        byte[] source = CreateGraphWithDisconnectedMarginGlyphsPng(width, height);
+        string sourceSha256 = Convert.ToHexStringLower(SHA256.HashData(source));
+
+        ProductionRasterPanelizationResult result = await new ProductionRasterPanelizer().PanelizeAsync(
+            new ImmutableByteBuffer(source),
+            sourceSha256,
+            width,
+            height,
+            CancellationToken.None);
+
+        Assert.HasCount(1, result.Panels);
+        ProductionRasterPanel panel = result.Panels[0];
+        Assert.AreEqual(new PdfRectD(0d, 0d, width, height), panel.RequestedCropInSourcePixels);
+        Assert.AreEqual(new PdfRectD(0d, 0d, width, height), panel.EncodedCropInSourcePixels);
+        Assert.AreEqual(new PdfPointD(1170d, 150d), panel.MapPanelToSource(new PdfPointD(1170d, 150d)));
+        Assert.AreEqual(new PdfPointD(350d, 330d), panel.MapSourceToPanel(new PdfPointD(350d, 330d)));
+        CollectionAssert.AreEqual(source, panel.CopyEncodedBytes(),
+            "A full-source crop must preserve the exact immutable source PNG bytes.");
+    }
+
+    [TestMethod]
+    public async Task OddPixelPlotGapUsesOneSharedNonoverlappingEncodedBoundary()
+    {
+        const int width = 640;
+        const int height = 600;
+        byte[] source = CreateOddGapStackedGraphPng(width, height);
+        string sourceSha256 = Convert.ToHexStringLower(SHA256.HashData(source));
+
+        ProductionRasterPanelizationResult result = await new ProductionRasterPanelizer().PanelizeAsync(
+            new ImmutableByteBuffer(source),
+            sourceSha256,
+            width,
+            height,
+            CancellationToken.None);
+
+        Assert.HasCount(2, result.Panels);
+        Assert.AreEqual(0d, result.Panels[0].EncodedCropInSourcePixels.Y);
+        Assert.AreEqual(height, result.Panels[1].EncodedCropInSourcePixels.Bottom);
+        Assert.AreEqual(
+            result.Panels[0].EncodedCropInSourcePixels.Bottom,
+            result.Panels[1].EncodedCropInSourcePixels.Y,
+            "Both encoded crops must use the same integer source-pixel boundary.");
+        Assert.AreEqual(
+            result.Panels[0].RequestedCropInSourcePixels.Bottom,
+            result.Panels[1].RequestedCropInSourcePixels.Y);
     }
 
     [TestMethod]
@@ -372,6 +428,33 @@ public sealed class ProductionRasterPanelizerTests
             DrawHorizontal(scanlines, width, height, 220, 340, baseline - 110, thickness: 1);
             DrawHorizontal(scanlines, width, height, 340, 460, baseline - 80, thickness: 1);
             DrawVertical(scanlines, width, height, 300, baseline - 150, baseline, thickness: 1);
+        }
+
+        return EncodeGrayscalePng(width, height, scanlines);
+    }
+
+    private static byte[] CreateGraphWithDisconnectedMarginGlyphsPng(int width, int height)
+    {
+        byte[] scanlines = CreateWhiteScanlines(width, height);
+        DrawHorizontal(scanlines, width, height, 105, 960, 260, thickness: 2);
+        DrawVertical(scanlines, width, height, 105, 96, 260, thickness: 2);
+        DrawHorizontal(scanlines, width, height, 220, 420, 205, thickness: 1);
+        DrawHorizontal(scanlines, width, height, 450, 690, 160, thickness: 1);
+        DrawHorizontal(scanlines, width, height, 400, 520, 24, thickness: 2);
+        DrawHorizontal(scanlines, width, height, 350, 470, 330, thickness: 2);
+        DrawVertical(scanlines, width, height, 1170, 105, 150, thickness: 2);
+        return EncodeGrayscalePng(width, height, scanlines);
+    }
+
+    private static byte[] CreateOddGapStackedGraphPng(int width, int height)
+    {
+        byte[] scanlines = CreateWhiteScanlines(width, height);
+        (int Top, int Baseline)[] plots = [(80, 250), (331, 501)];
+        foreach ((int top, int baseline) in plots)
+        {
+            DrawHorizontal(scanlines, width, height, 80, 580, baseline, thickness: 2);
+            DrawVertical(scanlines, width, height, 80, top, baseline, thickness: 2);
+            DrawHorizontal(scanlines, width, height, 140, 330, baseline - 70, thickness: 2);
         }
 
         return EncodeGrayscalePng(width, height, scanlines);

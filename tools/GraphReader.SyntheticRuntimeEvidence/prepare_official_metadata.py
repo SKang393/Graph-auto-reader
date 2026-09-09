@@ -69,7 +69,7 @@ def prepare(root: Path, output: Path, native: Path) -> Path:
     det = manifest(detector, "ocr_detection", DETECTOR)
     det.update({
         "inputs": [{"name": "x", "element_type": "float32", "layout": "NCHW", "shape": [1, 3, "H", "W"], "channels": ["b", "g", "r"]}],
-        "outputs": [{"name": "fetch_name_0", "element_type": "float32", "layout": "NCHW", "shape": [1, 1, "H", "W"], "channels": ["text_probability"], "activation": "probability"}],
+        "outputs": [{"name": "fetch_name_0", "element_type": "float32", "layout": "NCHW", "shape": [1, 1, "H", "W"], "channels": ["text_probability"], "activation": "probability_with_1e-5_clamp"}],
         "preprocessing": {"channel_order": "BGR", "channel_means": [0.485, 0.456, 0.406], "channel_scales": [1 / 0.229, 1 / 0.224, 1 / 0.225], "maximum_side_length": 960, "dimension_multiple": 128},
         "postprocessing": {"algorithm": "db_postprocess_v1", "score_mode": "fast", "probability_threshold": 0.30, "box_confidence_threshold": 0.60, "unclip_ratio": 1.5, "minimum_side_length": 3, "maximum_regions": 1000},
     })

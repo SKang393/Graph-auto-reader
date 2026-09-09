@@ -362,6 +362,75 @@ public sealed class Session04AcceptanceTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task StandaloneRasterSourceRetainsDisconnectedOuterGlyphsWithoutChangingPdfDefaultCrop(
+        bool includeOverlappingFrame)
+    {
+        const int width = 1200;
+        const int height = 350;
+        byte[] png = CreateGraphWithDisconnectedMarginGlyphsPng(width, height, includeOverlappingFrame);
+        var page = new PdfPageSnapshot(
+            pageNumber: 1,
+            widthPoints: width / 2d,
+            heightPoints: height / 2d,
+            textBlocks: [],
+            embeddedImages: [],
+            vectorLines: []);
+        var input = new PdfPanelizationInput(
+            new string('9', 64),
+            page,
+            new PdfRenderedPage(new ImmutableByteBuffer(png), width, height),
+            new PdfPanelizationOptions(RenderDpi: 144));
+
+        PdfPanelizationResult pdfDefault = await new PanelizationEngine().ProposeAsync(
+            input,
+            CancellationToken.None);
+        PdfPanelizationResult standaloneRaster = await PanelizationEngine
+            .CreateForStandaloneRasterSource()
+            .ProposeAsync(input, CancellationToken.None);
+
+        Assert.IsTrue(pdfDefault.Succeeded, PanelizationFailureSummary(pdfDefault));
+        Assert.IsTrue(standaloneRaster.Succeeded, PanelizationFailureSummary(standaloneRaster));
+        Assert.HasCount(1, pdfDefault.Panels);
+        Assert.HasCount(1, standaloneRaster.Panels);
+        Assert.AreNotEqual(new PdfRectD(0d, 0d, width, height), pdfDefault.Panels[0].CropInSourcePixels,
+            "The default PDF proposal must retain its plot-relative article crop.");
+        Assert.AreEqual(
+            new PdfRectD(0d, 0d, width, height),
+            standaloneRaster.Panels[0].CropInSourcePixels,
+            "The standalone raster proposal must retain top, bottom, and right source-margin glyphs.");
+        Assert.AreEqual(new PdfRectD(0d, 0d, width, height), standaloneRaster.Figures[0].BoundsPagePixels);
+    }
+
+    [TestMethod]
+    public async Task StandaloneRasterSourceDoesNotAssignWholeSourceToIndependentFigureGroups()
+    {
+        const int width = 1200;
+        const int height = 350;
+        byte[] png = CreateIndependentGraphGroupsPng(width, height);
+        var input = new PdfPanelizationInput(
+            new string('a', 64),
+            new PdfPageSnapshot(1, width / 2d, height / 2d, [], [], []),
+            new PdfRenderedPage(new ImmutableByteBuffer(png), width, height),
+            new PdfPanelizationOptions(RenderDpi: 144));
+
+        PdfPanelizationResult result = await PanelizationEngine
+            .CreateForStandaloneRasterSource()
+            .ProposeAsync(input, CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded, PanelizationFailureSummary(result));
+        Assert.HasCount(2, result.Figures);
+        Assert.HasCount(2, result.Panels);
+        Assert.IsTrue(result.Figures.All(figure =>
+            figure.BoundsPagePixels != new PdfRectD(0d, 0d, width, height)));
+        Assert.AreNotEqual(
+            result.Panels[0].CropInSourcePixels,
+            result.Panels[1].CropInSourcePixels,
+            "Independent raster figure groups must retain their distinct local crops.");
+    }
+
+    [TestMethod]
     public async Task BlankScannedRenderedPageIsRejectedInsteadOfAcceptedAsAFigure()
     {
         var page = new PdfPageSnapshot(
@@ -1411,6 +1480,46 @@ public sealed class Session04AcceptanceTests
         DrawHorizontal(scanlines, width, height, xMin: 978, xMax: 1128, y: 138, thickness: 1);
         DrawVertical(scanlines, width, height, x: 978, yMin: 104, yMax: 138, thickness: 1);
         DrawVertical(scanlines, width, height, x: 1128, yMin: 104, yMax: 138, thickness: 1);
+        return EncodeGrayscalePng(width, height, scanlines);
+    }
+
+    private static byte[] CreateGraphWithDisconnectedMarginGlyphsPng(
+        int width,
+        int height,
+        bool includeOverlappingFrame)
+    {
+        byte[] scanlines = CreateWhiteScanlines(width, height);
+        DrawHorizontal(scanlines, width, height, xMin: 105, xMax: 960, y: 260, thickness: 2);
+        DrawVertical(scanlines, width, height, x: 105, yMin: 96, yMax: 260, thickness: 2);
+        DrawHorizontal(scanlines, width, height, xMin: 220, xMax: 420, y: 205, thickness: 1);
+        DrawHorizontal(scanlines, width, height, xMin: 450, xMax: 690, y: 160, thickness: 1);
+
+        // These short disconnected strokes represent titles, labels, and legends
+        // outside the plot-relative crop without becoming additional axes.
+        DrawHorizontal(scanlines, width, height, xMin: 400, xMax: 520, y: 24, thickness: 2);
+        DrawHorizontal(scanlines, width, height, xMin: 350, xMax: 470, y: 330, thickness: 2);
+        DrawVertical(scanlines, width, height, x: 1170, yMin: 105, yMax: 150, thickness: 2);
+        if (includeOverlappingFrame)
+        {
+            // This larger legend corner creates a separate axis group which
+            // overlaps the retained plot. It must not suppress source margins
+            // after duplicate figure selection has removed the extra group.
+            DrawHorizontal(scanlines, width, height, xMin: 720, xMax: 900, y: 200, thickness: 1);
+            DrawVertical(scanlines, width, height, x: 720, yMin: 135, yMax: 200, thickness: 1);
+        }
+
+        return EncodeGrayscalePng(width, height, scanlines);
+    }
+
+    private static byte[] CreateIndependentGraphGroupsPng(int width, int height)
+    {
+        byte[] scanlines = CreateWhiteScanlines(width, height);
+        DrawHorizontal(scanlines, width, height, xMin: 70, xMax: 500, y: 280, thickness: 2);
+        DrawVertical(scanlines, width, height, x: 70, yMin: 90, yMax: 280, thickness: 2);
+        DrawHorizontal(scanlines, width, height, xMin: 130, xMax: 350, y: 190, thickness: 2);
+        DrawHorizontal(scanlines, width, height, xMin: 650, xMax: 1100, y: 280, thickness: 2);
+        DrawVertical(scanlines, width, height, x: 650, yMin: 90, yMax: 280, thickness: 2);
+        DrawHorizontal(scanlines, width, height, xMin: 710, xMax: 940, y: 190, thickness: 2);
         return EncodeGrayscalePng(width, height, scanlines);
     }
 

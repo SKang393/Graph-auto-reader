@@ -201,7 +201,7 @@ internal sealed class ProductionRasterPanelizer
     private readonly IPdfPanelizationEngine panelizationEngine;
 
     public ProductionRasterPanelizer(IPdfPanelizationEngine? panelizationEngine = null) =>
-        this.panelizationEngine = panelizationEngine ?? new PanelizationEngine();
+        this.panelizationEngine = panelizationEngine ?? PanelizationEngine.CreateForStandaloneRasterSource();
 
     public Task<ProductionRasterPanelizationResult> PanelizeAsync(
         ImmutableByteBuffer encodedPngBytes,
