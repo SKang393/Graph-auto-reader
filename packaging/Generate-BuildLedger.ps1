@@ -11,6 +11,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'VersionPolicy.ps1')
 
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if ([string]::IsNullOrWhiteSpace($BuildRoot)) {
@@ -114,20 +115,26 @@ if ($directories.Count -eq 0) {
 
 $priorBuilds = [System.Collections.Generic.List[object]]::new()
 $priorByDirectory = @{}
+$previousVersion = $null
 if (Test-Path -LiteralPath $OutputPath -PathType Leaf) {
     $priorLedger = Get-Content -LiteralPath $OutputPath -Raw | ConvertFrom-Json
     if ($priorLedger.schemaVersion -ne 1) {
         throw "Existing ledger has unsupported schemaVersion: $($priorLedger.schemaVersion)"
     }
     $priorRows = @($priorLedger.builds)
-    $expectedNumber = 1
     foreach ($priorRow in $priorRows | Sort-Object buildNumber) {
         $number = [int]$priorRow.buildNumber
-        if ($number -ne $expectedNumber) {
-            throw "Existing ledger build numbers are not contiguous at $number."
+        $currentVersion = (ConvertTo-GraphReaderVersion -Version ([string]$priorRow.version)).Value
+        $currentOrdinal = (ConvertTo-GraphReaderVersion -Version $currentVersion).Ordinal
+        if ($number -ne $currentOrdinal) {
+            throw "Existing ledger build number $number does not equal version '$currentVersion' ordinal $currentOrdinal."
         }
-        if ((ConvertTo-BuildVersion -BuildNumber $number) -cne ([string]$priorRow.version)) {
-            throw "Existing ledger version mapping is invalid for build $number."
+        if ($priorBuilds.Count -eq 0 -and ($number -ne 1 -or $currentVersion -cne '0.0.1')) {
+            throw "Existing ledger first version must be 0.0.1, found '$currentVersion'."
+        }
+        if ($null -ne $previousVersion -and
+            -not (Test-GraphReaderVersionTransition -FromVersion $previousVersion -ToVersion $currentVersion)) {
+            throw "Existing ledger has an invalid version transition at build ${number}: '$previousVersion' -> '$currentVersion'."
         }
         $directoryName = Get-OptionalString -Object $priorRow -Name 'directory'
         if ($null -eq $directoryName -or $priorByDirectory.ContainsKey($directoryName)) {
@@ -135,10 +142,16 @@ if (Test-Path -LiteralPath $OutputPath -PathType Leaf) {
         }
         $priorByDirectory[$directoryName] = $priorRow
         $priorBuilds.Add($priorRow)
-        $expectedNumber++
+        $previousVersion = $currentVersion
     }
 }
-$priorMaxBuildNumber = $priorBuilds.Count
+$priorMaxBuildNumber = if ($priorBuilds.Count -eq 0) {
+    0
+}
+else {
+    [int]$priorBuilds[$priorBuilds.Count - 1].buildNumber
+}
+$lastAssignedVersion = $previousVersion
 $computedRecords = [System.Collections.Generic.List[object]]::new()
 $buildNumber = 0
 $nextBuildNumber = $priorMaxBuildNumber + 1
@@ -146,10 +159,11 @@ foreach ($directory in $directories) {
     $isNewDirectory = -not $priorByDirectory.ContainsKey($directory.Name)
     if ($priorByDirectory.ContainsKey($directory.Name)) {
         $buildNumber = [int]$priorByDirectory[$directory.Name].buildNumber
+        $assignedVersion = [string]$priorByDirectory[$directory.Name].version
     }
     else {
-        $buildNumber = $nextBuildNumber
-        $nextBuildNumber++
+        $buildNumber = 0
+        $assignedVersion = $null
     }
     $nameMatch = [regex]::Match(
         $directory.Name,
@@ -182,10 +196,24 @@ foreach ($directory in $directories) {
     if ($null -ne $stampedVersion -and $stampedVersion -cne $directoryVersion) {
         throw "Stamped version '$stampedVersion' does not match directory '$($directory.Name)'."
     }
-    if ($isNewDirectory -and $priorBuilds.Count -gt 0 -and
-        $null -ne $stampedVersion -and
-        $stampedVersion -cne (ConvertTo-BuildVersion -BuildNumber $buildNumber)) {
-        throw "New build '$($directory.Name)' stamped version '$stampedVersion' reuses a prior ordinal instead of '$((ConvertTo-BuildVersion -BuildNumber $buildNumber))'."
+    if ($isNewDirectory) {
+        if ($priorBuilds.Count -eq 0) {
+            $buildNumber = $nextBuildNumber
+            $nextBuildNumber++
+            $assignedVersion = ConvertTo-BuildVersion -BuildNumber $buildNumber
+        }
+        else {
+            $expectedSuccessor = Get-NextGraphReaderVersion -Version $lastAssignedVersion
+            $candidateVersion = if ($null -eq $stampedVersion) { $expectedSuccessor } else { $stampedVersion }
+            if (-not (Test-GraphReaderVersionTransition -FromVersion $lastAssignedVersion -ToVersion $candidateVersion)) {
+                throw "New build '$($directory.Name)' has an invalid version transition from '$lastAssignedVersion' to '$candidateVersion'; it reuses a prior ordinal or skips the required successor '$expectedSuccessor'."
+            }
+            $assignedRecord = ConvertTo-GraphReaderVersion -Version $candidateVersion
+            $assignedVersion = $assignedRecord.Value
+            $buildNumber = $assignedRecord.Ordinal
+            $nextBuildNumber = $buildNumber + 1
+            $lastAssignedVersion = $assignedVersion
+        }
     }
     $shortCommit = Get-OptionalString -Object $info -Name 'shortCommit'
     if ($null -ne $shortCommit -and $shortCommit.ToLowerInvariant() -cne $directoryShortCommit) {
@@ -246,7 +274,12 @@ foreach ($directory in $directories) {
 
     $isRetained = $directory.Name -ceq $retainedDirectory
     $recordIncomplete = $missing.Count -gt 0
-    $releaseEligible = ($buildNumber % 20) -eq 1
+    $releaseEligible = if ($priorBuilds.Count -eq 0 -and $buildNumber -le 432) {
+        ($buildNumber % 20) -eq 1
+    }
+    else {
+        Test-GraphReaderReleaseVersion -Version $assignedVersion
+    }
     $releaseStatus = if ($releaseEligible -and $buildNumber -le 432) {
         'missed-historical'
     }
@@ -258,7 +291,7 @@ foreach ($directory in $directories) {
     }
     $computedRecords.Add([ordered]@{
             buildNumber = $buildNumber
-            version = ConvertTo-BuildVersion -BuildNumber $buildNumber
+            version = $assignedVersion
             directory = $directory.Name
             stampedVersion = $stampedVersion
             commit = if ($null -eq $commit) { $null } else { $commit.ToLowerInvariant() }
@@ -325,7 +358,7 @@ else {
 }
 $ledger = [ordered]@{
     schemaVersion = 1
-    policy = 'one produced build consumes one build number; ordinal equals build number'
+    policy = 'one packaged application build consumes one build number; build number equals version ordinal; 2.0.0 promotion allocates build 20000 without intermediate records'
     assignedUtc = $assigned
     builds = @($records)
 }

@@ -87,9 +87,11 @@ function Assert-PreparedBuildVersion {
         throw 'The tracked build ledger contains no builds.'
     }
     $latestBuild = $builds | Sort-Object { [int]$_.buildNumber } -Descending | Select-Object -First 1
-    $expectedVersion = Get-NextGraphReaderVersion -Version ([string]$latestBuild.version)
-    if ($Version -cne $expectedVersion) {
-        throw "Central version '$Version' would reuse a build number. Prepare and commit '$expectedVersion' before building."
+    $latestVersion = [string]$latestBuild.version
+    $expectedVersion = Get-NextGraphReaderVersion -Version $latestVersion
+    $stablePromotion = Test-GraphReaderStablePromotion -FromVersion $latestVersion -ToVersion $Version
+    if ($Version -cne $expectedVersion -and -not $stablePromotion) {
+        throw "Central version '$Version' would reuse or skip a packaged-build version. Prepare and commit '$expectedVersion', or the explicit '$(Get-GraphReaderStablePromotionVersion)' promotion, before building."
     }
 }
 

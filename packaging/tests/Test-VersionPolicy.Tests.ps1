@@ -20,8 +20,11 @@ $rolloverRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('GraphReader-Versio
 $identicalRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('GraphReader-VersionIdentical-' + [Guid]::NewGuid().ToString('N'))
 $releaseRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('GraphReader-VersionRelease-' + [Guid]::NewGuid().ToString('N'))
 $ledgerRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('GraphReader-VersionLedger-' + [Guid]::NewGuid().ToString('N'))
-$testRoots = @($testRoot, $ordinaryRoot, $promotionRoot, $invalidPromotionRoot, $rolloverRoot, $identicalRoot, $releaseRoot, $ledgerRoot)
+$ledgerPromotionRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('GraphReader-VersionLedgerPromotion-' + [Guid]::NewGuid().ToString('N'))
+$gitConfigRoot = Join-Path ([System.IO.Path]::GetTempPath()) ('GraphReader-GitConfig-' + [Guid]::NewGuid().ToString('N'))
+$testRoots = @($testRoot, $ordinaryRoot, $promotionRoot, $invalidPromotionRoot, $rolloverRoot, $identicalRoot, $releaseRoot, $ledgerRoot, $ledgerPromotionRoot, $gitConfigRoot)
 $passed = 0
+$previousXdgConfigHome = [Environment]::GetEnvironmentVariable('XDG_CONFIG_HOME', 'Process')
 . $policyScript
 
 function Assert-Equal {
@@ -126,17 +129,20 @@ function Write-TestLedger {
         [Parameter(Mandatory)][string]$MaxVersion
     )
 
+    $maximum = ConvertTo-GraphReaderVersion -Version $MaxVersion
     $builds = @(
-        1..431 | ForEach-Object {
-            [ordered]@{ buildNumber = $_; version = '0.0.1' }
+        1..([Math]::Min($maximum.Ordinal, 432)) | ForEach-Object {
+            [ordered]@{ buildNumber = $_; version = (ConvertTo-BuildVersionForTest -BuildNumber $_) }
         }
     )
-    $builds += [ordered]@{ buildNumber = 432; version = $MaxVersion }
+    if ($maximum.Ordinal -gt 432) {
+        $builds += [ordered]@{ buildNumber = $maximum.Ordinal; version = $maximum.Value }
+    }
     $ledgerPath = Join-Path $Root 'docs\BUILD_LEDGER.json'
     New-Item -ItemType Directory -Path (Split-Path -Parent $ledgerPath) -Force | Out-Null
     $ledger = [ordered]@{
         schemaVersion = 1
-        policy = 'one produced build consumes one build number; ordinal equals build number'
+        policy = 'one packaged application build consumes one build number; build number equals version ordinal; 2.0.0 promotion allocates build 20000 without intermediate records'
         assignedUtc = '2026-08-19T00:00:00.0000000+00:00'
         builds = $builds
     }
@@ -154,18 +160,33 @@ function Assert-CanonicalBuildLedger {
     $builds = @($ledger.builds)
     Assert-True ($builds.Count -ge 432) 'Canonical build ledger has fewer than 432 historical builds.'
     for ($index = 0; $index -lt $builds.Count; $index++) {
-        $expectedNumber = $index + 1
-        $expectedVersion = ConvertTo-GraphReaderVersion -Version (Get-NextGraphReaderVersion `
-            -Version (ConvertTo-BuildVersionForTest -BuildNumber ($expectedNumber - 1)))
         $entry = $builds[$index]
-        Assert-Equal ([int]$entry.buildNumber) $expectedNumber "Build ledger number differs at index $index."
-        Assert-Equal ([string]$entry.version) $expectedVersion.Value "Build ledger version differs at build $expectedNumber."
+        $versionRecord = ConvertTo-GraphReaderVersion -Version ([string]$entry.version)
+        $expectedNumber = $versionRecord.Ordinal
+        Assert-Equal ([int]$entry.buildNumber) $expectedNumber `
+            "Build ledger number does not equal the version ordinal at index $index."
+        if ($index -eq 0) {
+            Assert-Equal ([string]$entry.version) '0.0.1' 'The first build ledger version differs.'
+        }
+        else {
+            $previousVersion = [string]$builds[$index - 1].version
+            $expectedVersion = Get-NextGraphReaderVersion -Version $previousVersion
+            $validTransition = [string]$entry.version -ceq $expectedVersion -or
+                (Test-GraphReaderStablePromotion -FromVersion $previousVersion -ToVersion ([string]$entry.version))
+            Assert-True $validTransition "Build ledger version transition is invalid at build $expectedNumber."
+        }
         Assert-True (-not [string]::IsNullOrWhiteSpace([string]$entry.commit)) "Build $expectedNumber lacks a commit."
         Assert-True (-not [string]::IsNullOrWhiteSpace([string]$entry.buildTimeUtc)) "Build $expectedNumber lacks a build time."
         Assert-True ([string]$entry.executableSha256 -match '^[0-9a-f]{64}$') "Build $expectedNumber lacks an executable SHA-256."
         Assert-True ($entry.recordIncomplete -eq $false) "Build $expectedNumber is marked incomplete."
-        Assert-Equal ([bool]$entry.releaseEligible) (($expectedNumber % 20) -eq 1) `
-            "Release eligibility differs at build $expectedNumber."
+        if ($expectedNumber -le 432) {
+            Assert-Equal ([bool]$entry.releaseEligible) (($expectedNumber % 20) -eq 1) `
+                "Historical release eligibility differs at build $expectedNumber."
+        }
+        else {
+            Assert-Equal ([bool]$entry.releaseEligible) (Test-GraphReaderReleaseVersion -Version ([string]$entry.version)) `
+                "Release eligibility differs at build $expectedNumber."
+        }
     }
     Assert-Equal @($builds | Where-Object { $_.retained }).Count 1 'Canonical ledger retained count differs.'
     Assert-Equal @($builds | Select-Object -First 432 | Where-Object { $_.releaseStatus -eq 'missed-historical' }).Count 22 `
@@ -188,6 +209,9 @@ function ConvertTo-BuildVersionForTest {
 }
 
 try {
+    New-Item -ItemType Directory -Path (Join-Path $gitConfigRoot 'git') -Force | Out-Null
+    [Environment]::SetEnvironmentVariable('XDG_CONFIG_HOME', $gitConfigRoot, 'Process')
+
     Assert-CanonicalBuildLedger
     $passed++
 
@@ -203,29 +227,34 @@ try {
         $passed++
     }
 
-    foreach ($version in @('0.0.1', '0.0.21', '0.0.41', '0.0.61', '0.0.81', '0.1.1', '1.0.0', '1.0.1')) {
+    foreach ($version in @('2.0.0', '2.0.1', '2.0.21', '2.1.1')) {
         Assert-True (Test-GraphReaderReleaseVersion -Version $version) "Expected release eligibility for $version."
         $passed++
     }
-    foreach ($version in @('0.0.0', '0.0.20', '0.0.99', '0.1.0', '0.1.2')) {
+    foreach ($version in @('0.0.0', '0.0.1', '0.0.21', '0.4.41', '1.0.0', '1.0.1', '1.99.81', '2.0.20')) {
         Assert-True (-not (Test-GraphReaderReleaseVersion -Version $version)) "Unexpected release eligibility for $version."
         $passed++
     }
 
-    $stableRecord = ConvertTo-GraphReaderVersion -Version '1.0.0'
-    Assert-True $stableRecord.StablePromotionRelease '1.0.0 was not classified as the stable-promotion release.'
-    Assert-True (-not $stableRecord.CadenceEligible) '1.0.0 must not alter the twentieth-checkpoint cadence.'
-    Assert-True (Test-GraphReaderStablePromotion -FromVersion '0.23.58' -ToVersion '1.0.0') 'Arbitrary pre-1.0 stable promotion was rejected.'
+    $stableRecord = ConvertTo-GraphReaderVersion -Version '2.0.0'
+    Assert-Equal $stableRecord.Ordinal 20000 '2.0.0 ordinal differs from its allocated build number.'
+    Assert-Equal (ConvertTo-GraphReaderVersion -Version '2.0.1').Ordinal 20001 '2.0.1 ordinal differs from its allocated build number.'
+    Assert-True $stableRecord.StablePromotionRelease '2.0.0 was not classified as the stable-promotion release.'
+    Assert-True (-not $stableRecord.CadenceEligible) '2.0.0 must not alter the twentieth-checkpoint cadence.'
+    Assert-True (Test-GraphReaderStablePromotion -FromVersion '0.23.58' -ToVersion '2.0.0') 'Generation-zero promotion to 2.0.0 was rejected.'
+    Assert-True (Test-GraphReaderStablePromotion -FromVersion '1.23.58' -ToVersion '2.0.0') 'Generation-one promotion to 2.0.0 was rejected.'
     foreach ($transition in @(
-            @{ From = '0.23.58'; To = '1.0.1' },
-            @{ From = '0.23.58'; To = '1.1.0' },
-            @{ From = '1.0.0'; To = '1.0.0' })) {
+            @{ From = '0.23.58'; To = '1.0.0' },
+            @{ From = '1.23.58'; To = '2.0.1' },
+            @{ From = '2.0.0'; To = '2.0.0' },
+            @{ From = '2.0.1'; To = '2.0.0' },
+            @{ From = '3.0.0'; To = '2.0.0' })) {
         Assert-True `
             (-not (Test-GraphReaderStablePromotion -FromVersion $transition.From -ToVersion $transition.To)) `
             "Invalid stable promotion was accepted: $($transition.From) -> $($transition.To)."
         $passed++
     }
-    $passed += 3
+    $passed += 7
 
     foreach ($invalid in @('-1.0.0', '0.0.100', '0.01.1', '1.0', 'v1.0.0')) {
         $failed = $false
@@ -279,7 +308,7 @@ try {
 
     Initialize-TestRepository -Root $releaseRoot -Version '0.0.21'
     Invoke-Git -Root $releaseRoot -Arguments @('tag', '-a', 'v0.0.21', '-m', 'Release 0.0.21')
-    Invoke-Child -Script $releaseTagScript -Arguments @('-RepositoryRoot', $releaseRoot, '-TagName', 'v0.0.21') -ShouldPass $true
+    Invoke-Child -Script $releaseTagScript -Arguments @('-RepositoryRoot', $releaseRoot, '-TagName', 'v0.0.21') -ShouldPass $false
     Invoke-Git -Root $releaseRoot -Arguments @('tag', '-d', 'v0.0.21')
     Invoke-Git -Root $releaseRoot -Arguments @('tag', 'v0.0.21')
     Invoke-Child -Script $releaseTagScript -Arguments @('-RepositoryRoot', $releaseRoot, '-TagName', 'v0.0.21') -ShouldPass $false
@@ -299,6 +328,19 @@ try {
     Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $ledgerRoot, '-CheckHead') -ShouldPass $false
     $passed += 4
 
+    Initialize-TestRepository -Root $ledgerPromotionRoot -Version '0.4.33'
+    Write-TestLedger -Root $ledgerPromotionRoot -MaxVersion '0.4.33'
+    Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $ledgerPromotionRoot, '-PromoteStable') -ShouldPass $true
+    Invoke-Git -Root $ledgerPromotionRoot -Arguments @('add', 'Directory.Build.props')
+    Invoke-Git -Root $ledgerPromotionRoot -Arguments @('commit', '-m', 'Promote ledger checkpoint to generation two')
+    Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $ledgerPromotionRoot, '-CheckHead') -ShouldPass $true
+    Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $ledgerPromotionRoot, '-PrepareNext') -ShouldPass $false
+    Write-TestLedger -Root $ledgerPromotionRoot -MaxVersion '2.0.0'
+    Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $ledgerPromotionRoot, '-PrepareNext') -ShouldPass $true
+    Assert-Equal (Get-GraphReaderCentralVersion -RepositoryRoot $ledgerPromotionRoot).Value '2.0.1' `
+        'Ledger-backed successor after 2.0.0 differs.'
+    $passed += 4
+
     Initialize-TestRepository -Root $ordinaryRoot -Version '0.23.58'
     Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $ordinaryRoot, '-PrepareNext') -ShouldPass $true
     Assert-Equal (Get-GraphReaderCentralVersion -RepositoryRoot $ordinaryRoot).Value '0.23.59' 'Ordinary pre-1.0 preparation jumped versions.'
@@ -307,17 +349,17 @@ try {
 
     Initialize-TestRepository -Root $promotionRoot -Version '0.23.58'
     Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $promotionRoot, '-PromoteStable') -ShouldPass $true
-    Assert-Equal (Get-GraphReaderCentralVersion -RepositoryRoot $promotionRoot).Value '1.0.0' 'Explicit stable promotion differs.'
+    Assert-Equal (Get-GraphReaderCentralVersion -RepositoryRoot $promotionRoot).Value '2.0.0' 'Explicit stable promotion differs.'
     Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $promotionRoot, '-PromoteStable') -ShouldPass $true
     Invoke-Git -Root $promotionRoot -Arguments @('add', 'Directory.Build.props')
     Invoke-Git -Root $promotionRoot -Arguments @('commit', '-m', 'Promote first stable release')
     Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $promotionRoot, '-CheckHead') -ShouldPass $true
-    Invoke-Git -Root $promotionRoot -Arguments @('tag', '-a', 'v1.0.0', '-m', 'Release 1.0.0')
-    Invoke-Child -Script $releaseTagScript -Arguments @('-RepositoryRoot', $promotionRoot, '-TagName', 'v1.0.0') -ShouldPass $true
-    Invoke-Git -Root $promotionRoot -Arguments @('tag', '-d', 'v1.0.0')
+    Invoke-Git -Root $promotionRoot -Arguments @('tag', '-a', 'v2.0.0', '-m', 'Release 2.0.0')
+    Invoke-Child -Script $releaseTagScript -Arguments @('-RepositoryRoot', $promotionRoot, '-TagName', 'v2.0.0') -ShouldPass $true
+    Invoke-Git -Root $promotionRoot -Arguments @('tag', '-d', 'v2.0.0')
     Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $promotionRoot, '-PromoteStable') -ShouldPass $false
     Invoke-Child -Script $prepareScript -Arguments @('-RepositoryRoot', $promotionRoot, '-PrepareNext') -ShouldPass $true
-    Assert-Equal (Get-GraphReaderCentralVersion -RepositoryRoot $promotionRoot).Value '1.0.1' 'Normal successor after 1.0.0 differs.'
+    Assert-Equal (Get-GraphReaderCentralVersion -RepositoryRoot $promotionRoot).Value '2.0.1' 'Normal successor after 2.0.0 differs.'
     $passed += 7
 
     Initialize-TestRepository -Root $invalidPromotionRoot -Version '0.23.58'
@@ -332,6 +374,7 @@ try {
     Write-Host "Version policy tests passed: $passed"
 }
 finally {
+    [Environment]::SetEnvironmentVariable('XDG_CONFIG_HOME', $previousXdgConfigHome, 'Process')
     foreach ($root in $testRoots) {
         if (Test-Path -LiteralPath $root) {
             Remove-Item -LiteralPath $root -Recurse -Force

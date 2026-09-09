@@ -1728,7 +1728,7 @@ if ($AuditOnly) {
 }
 
 if (-not $version.ReleaseEligible) {
-    throw "Version $($version.Value) is an internal build. Windows release artifacts require z in 1, 21, 41, 61, or 81, or the explicit stable 1.0.0 milestone."
+    throw "Version $($version.Value) is an internal build. Public Windows artifacts begin with the explicit 2.0.0 milestone; later releases follow the twentieth-checkpoint cadence."
 }
 
 if ($releaseBlockers.Count -gt 0) {

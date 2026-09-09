@@ -255,6 +255,100 @@ try {
         '-OutputPath', $fixtureOutput) -ShouldPass $false -ExpectedMessage 'reuses a prior ordinal'
     $passed++
 
+    Remove-Item -LiteralPath $reusedDir -Recurse -Force
+    $stableName = '2.0.0-20260804T000000000Z-dddddddd'
+    $stableDir = Join-Path $fixtureBuildRoot $stableName
+    New-Item -ItemType Directory -Path $stableDir -Force | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $stableDir 'GraphReader.App.exe'), 'stable')
+    $stableExecutableHash = (Get-FileHash -InputStream ([IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes('stable'))) -Algorithm SHA256).Hash.ToLowerInvariant()
+    [System.IO.File]::WriteAllText((Join-Path $stableDir 'build-info.json'), (@{
+                schemaVersion = 2
+                version = '2.0.0'
+                commit = ('d' * 40)
+                shortCommit = 'dddddddd'
+                buildTimeUtc = '2026-08-04T00:00:00.0000000+00:00'
+                executableSha256 = $stableExecutableHash
+            } | ConvertTo-Json -Depth 5))
+    [System.IO.File]::WriteAllText($fixtureLatestPath, (@{
+                schemaVersion = 2
+                version = '2.0.0'
+                commit = ('d' * 40)
+                buildTimeUtc = '2026-08-04T00:00:00.0000000+00:00'
+                buildDirectory = "builds/$stableName"
+                executable = "builds/$stableName/GraphReader.App.exe"
+                executableSha256 = $stableExecutableHash
+            } | ConvertTo-Json -Depth 5))
+    Invoke-Child -Arguments @(
+        '-BuildRoot', $fixtureBuildRoot,
+        '-LatestPath', $fixtureLatestPath,
+        '-OutputPath', $fixtureOutput) -ShouldPass $true
+    $promotionLedger = Get-Content -LiteralPath $fixtureOutput -Raw | ConvertFrom-Json
+    Assert-Equal $promotionLedger.builds.Count 4 'Stable promotion did not append exactly one ledger record.'
+    Assert-Equal $promotionLedger.builds[-1].buildNumber 20000 'Stable promotion build number differs from the 2.0.0 ordinal.'
+    Assert-Equal $promotionLedger.builds[-1].version '2.0.0' 'Stable promotion ledger version differs.'
+    Assert-True ([bool]$promotionLedger.builds[-1].releaseEligible) 'Stable 2.0.0 build was not release eligible.'
+    $passed++
+
+    $successorName = '2.0.1-20260805T000000000Z-eeeeeeee'
+    $successorDir = Join-Path $fixtureBuildRoot $successorName
+    New-Item -ItemType Directory -Path $successorDir -Force | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $successorDir 'GraphReader.App.exe'), 'successor')
+    $successorExecutableHash = (Get-FileHash -InputStream ([IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes('successor'))) -Algorithm SHA256).Hash.ToLowerInvariant()
+    [System.IO.File]::WriteAllText((Join-Path $successorDir 'build-info.json'), (@{
+                schemaVersion = 2
+                version = '2.0.1'
+                commit = ('e' * 40)
+                shortCommit = 'eeeeeeee'
+                buildTimeUtc = '2026-08-05T00:00:00.0000000+00:00'
+                executableSha256 = $successorExecutableHash
+            } | ConvertTo-Json -Depth 5))
+    [System.IO.File]::WriteAllText($fixtureLatestPath, (@{
+                schemaVersion = 2
+                version = '2.0.1'
+                commit = ('e' * 40)
+                buildTimeUtc = '2026-08-05T00:00:00.0000000+00:00'
+                buildDirectory = "builds/$successorName"
+                executable = "builds/$successorName/GraphReader.App.exe"
+                executableSha256 = $successorExecutableHash
+            } | ConvertTo-Json -Depth 5))
+    Invoke-Child -Arguments @(
+        '-BuildRoot', $fixtureBuildRoot,
+        '-LatestPath', $fixtureLatestPath,
+        '-OutputPath', $fixtureOutput) -ShouldPass $true
+    $successorLedger = Get-Content -LiteralPath $fixtureOutput -Raw | ConvertFrom-Json
+    Assert-Equal $successorLedger.builds.Count 5 'Post-promotion rebuild did not append exactly one ledger record.'
+    Assert-Equal $successorLedger.builds[-1].buildNumber 20001 'Post-promotion build number differs from the 2.0.1 ordinal.'
+    Assert-Equal $successorLedger.builds[-1].version '2.0.1' 'Post-promotion successor version differs.'
+    $passed++
+
+    $backwardName = '1.99.99-20260806T000000000Z-ffffffff'
+    $backwardDir = Join-Path $fixtureBuildRoot $backwardName
+    New-Item -ItemType Directory -Path $backwardDir -Force | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $backwardDir 'GraphReader.App.exe'), 'backward')
+    $backwardExecutableHash = (Get-FileHash -InputStream ([IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes('backward'))) -Algorithm SHA256).Hash.ToLowerInvariant()
+    [System.IO.File]::WriteAllText((Join-Path $backwardDir 'build-info.json'), (@{
+                schemaVersion = 2
+                version = '1.99.99'
+                commit = ('f' * 40)
+                shortCommit = 'ffffffff'
+                buildTimeUtc = '2026-08-06T00:00:00.0000000+00:00'
+                executableSha256 = $backwardExecutableHash
+            } | ConvertTo-Json -Depth 5))
+    [System.IO.File]::WriteAllText($fixtureLatestPath, (@{
+                schemaVersion = 2
+                version = '1.99.99'
+                commit = ('f' * 40)
+                buildTimeUtc = '2026-08-06T00:00:00.0000000+00:00'
+                buildDirectory = "builds/$backwardName"
+                executable = "builds/$backwardName/GraphReader.App.exe"
+                executableSha256 = $backwardExecutableHash
+            } | ConvertTo-Json -Depth 5))
+    Invoke-Child -Arguments @(
+        '-BuildRoot', $fixtureBuildRoot,
+        '-LatestPath', $fixtureLatestPath,
+        '-OutputPath', $fixtureOutput) -ShouldPass $false -ExpectedMessage 'invalid version transition'
+    $passed++
+
     Write-Host "Build ledger generator tests passed: $passed"
 }
 finally {

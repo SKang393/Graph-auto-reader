@@ -121,7 +121,7 @@ if ($CheckHead.IsPresent) {
         $ledgerSuccessor = Get-NextGraphReaderVersion -Version $ledgerVersion
         $committedVersionForCheck = Get-CommittedVersion -Revision 'HEAD'
         $stablePromotion = Test-GraphReaderStablePromotion `
-            -FromVersion $committedVersionForCheck.Value `
+            -FromVersion $ledgerVersion `
             -ToVersion $workingVersion.Value
         $validTransition = $workingVersion.Value -ceq $ledgerVersion -or
             $workingVersion.Value -ceq $ledgerSuccessor -or
@@ -152,7 +152,7 @@ if ($CheckHead.IsPresent) {
             ''
         }
         else {
-            " The only nonsequential transition is an explicit pre-1.0 promotion to '$(Get-GraphReaderStablePromotionVersion)'."
+            " The only nonsequential transition is an explicit pre-2.0 promotion to '$(Get-GraphReaderStablePromotionVersion)'."
         }
         $sourceHint = if ($null -ne $ledger) { ' from the checkpoint ledger.' } else { ' from its first parent.' }
         throw "Checkpoint version '$($workingVersion.Value)' is invalid for HEAD. Expected '$expected'$sourceHint$promotionHint Run packaging/Prepare-CheckpointVersion.ps1 before committing."
@@ -169,7 +169,7 @@ $ledger = Get-CheckpointLedgerState
 
 if ($PromoteStable.IsPresent) {
     if (-not (Test-GraphReaderStablePromotion -FromVersion $committedVersion.Value -ToVersion $stableVersion)) {
-        throw "Stable promotion is permitted only from a committed 0.y.z version to '$stableVersion'. Current committed version: '$($committedVersion.Value)'."
+        throw "Stable promotion is permitted only from a committed version below '$stableVersion' to '$stableVersion'. Current committed version: '$($committedVersion.Value)'."
     }
     if ($workingVersion.Value -eq $stableVersion) {
         Write-Host "Stable promotion version already prepared: $($committedVersion.Value) -> $stableVersion"

@@ -30,7 +30,7 @@ if ($TagName -cne $expectedTag) {
     throw "Release tag '$TagName' does not match central version '$expectedTag'."
 }
 if (-not $version.ReleaseEligible) {
-    throw "Version '$($version.Value)' is not eligible under the twentieth-checkpoint cadence or the stable 1.0.0 promotion exception."
+    throw "Version '$($version.Value)' is not eligible. Public releases begin with the 2.0.0 promotion exception and then follow the twentieth-checkpoint cadence."
 }
 
 $tagRef = "refs/tags/$TagName"

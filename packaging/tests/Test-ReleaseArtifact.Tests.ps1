@@ -529,8 +529,8 @@ function Add-TestPayloadEntryAndSynchronize {
         }
     }
 
-    $installerName = 'GraphAutoReader-0.0.21-win-x64-setup.exe'
-    $portableName = 'GraphAutoReader-0.0.21-win-x64-portable.zip'
+    $installerName = 'GraphAutoReader-2.0.0-win-x64-setup.exe'
+    $portableName = 'GraphAutoReader-2.0.0-win-x64-portable.zip'
     $installerPath = Join-Path $Fixture.ReleaseRoot $installerName
     $portablePath = Join-Path $Fixture.ReleaseRoot $portableName
     Remove-Item -LiteralPath $installerPath, $portablePath -Force
@@ -607,7 +607,7 @@ function Add-TestPayloadEntryAndSynchronize {
 function New-ReleaseFixture {
     param([Parameter(Mandatory)][string]$Name)
 
-    $fixture = New-PackagingFixture -Name $Name -Version '0.0.21'
+    $fixture = New-PackagingFixture -Name $Name -Version '2.0.0'
     $buildRoot = Join-Path $fixture.Root 'build'
     $commonRoot = Join-Path $buildRoot 'common/publish'
     $installerRoot = Join-Path $buildRoot 'installer/staging'
@@ -638,7 +638,7 @@ function New-ReleaseFixture {
                 @{
                     id = 'fixture-app'
                     component = 'Fixture application and installer'
-                    version = '0.0.21'
+                    version = '2.0.0'
                     source = 'synthetic'
                     sourceRevision = 'fixture'
                     license = 'Apache-2.0'
@@ -796,8 +796,8 @@ function New-ReleaseFixture {
     Copy-TestTree -Source $commonRoot -Destination $portableRoot
     [IO.File]::WriteAllBytes((Join-Path $portableRoot 'portable.mode'), [byte[]]::new(0))
 
-    $installerName = 'GraphAutoReader-0.0.21-win-x64-setup.exe'
-    $portableName = 'GraphAutoReader-0.0.21-win-x64-portable.zip'
+    $installerName = 'GraphAutoReader-2.0.0-win-x64-setup.exe'
+    $portableName = 'GraphAutoReader-2.0.0-win-x64-portable.zip'
     $installerPath = Join-Path $releaseRoot $installerName
     $portablePath = Join-Path $releaseRoot $portableName
     New-TestInstaller -PayloadRoot $installerRoot -Destination $installerPath
@@ -811,7 +811,7 @@ function New-ReleaseFixture {
     Write-JsonFile -Path (Join-Path $releaseRoot 'release-metadata.json') -Value ([ordered]@{
             schemaVersion = 1
             product = 'Graph Auto Reader'
-            version = '0.0.21'
+            version = '2.0.0'
             versionSource = 'Directory.Build.props#Project/PropertyGroup/Version'
             rid = 'win-x64'
             gitCommit = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
@@ -841,7 +841,7 @@ function New-ReleaseFixture {
             }
             versionPolicy = @{
                 releaseBuilds = @(1, 21, 41, 61, 81)
-                stablePromotionRelease = '1.0.0'
+                stablePromotionRelease = '2.0.0'
                 upgrade = 'allowed'
                 repair = 'same-version reinstall'
                 downgrade = 'blocked by default'
@@ -884,7 +884,7 @@ function New-ReleaseFixture {
             bomFormat = 'CycloneDX'
             specVersion = '1.6'
             version = 1
-            metadata = @{ component = @{ type = 'application'; name = 'Graph Auto Reader'; version = '0.0.21' } }
+            metadata = @{ component = @{ type = 'application'; name = 'Graph Auto Reader'; version = '2.0.0' } }
             components = $sbomComponents
         })
     Update-TestChecksums -ReleaseRoot $releaseRoot
@@ -910,7 +910,7 @@ function New-ReleaseFixture {
 function New-ModelAuditFixture {
     param([Parameter(Mandatory)][string]$Name)
 
-    $fixture = New-PackagingFixture -Name $Name -Version '0.0.21'
+    $fixture = New-PackagingFixture -Name $Name -Version '2.0.0'
     foreach ($directory in @('contracts', 'models/manifest', 'models', 'LICENSES')) {
         $null = New-Item -ItemType Directory -Path (Join-Path $fixture.Root $directory) -Force
     }
@@ -940,7 +940,7 @@ function New-ModelAuditFixture {
             components = @(@{
                     id = 'fixture-app'
                     component = 'Fixture app'
-                    version = '0.0.21'
+                    version = '2.0.0'
                     source = 'synthetic'
                     sourceRevision = 'fixture'
                     license = 'Apache-2.0'
@@ -1026,7 +1026,7 @@ function New-ValidModelBuildFixture {
         [switch]$IncludeNoto
     )
 
-    $fixture = New-PackagingFixture -Name $Name -Version '0.0.21'
+    $fixture = New-PackagingFixture -Name $Name -Version '2.0.0'
     foreach ($directory in @('contracts', 'models/manifest', 'models', 'LICENSES')) {
         $null = New-Item -ItemType Directory -Path (Join-Path $fixture.Root $directory) -Force
     }
@@ -1080,7 +1080,7 @@ function New-ValidModelBuildFixture {
                 @{
                     id = 'fixture-app'
                     component = 'Fixture application'
-                    version = '0.0.21'
+                    version = '2.0.0'
                     source = 'synthetic'
                     sourceRevision = 'fixture'
                     license = 'Apache-2.0'
@@ -1474,14 +1474,14 @@ try {
         Assert-ExitCode -Result $result -Expected 1 -Contains 'cannot be published'
     }
 
-    Assert-Case 'Release cadence build passes the release gate' {
-        $fixture = New-PackagingFixture -Name 'release' -Version '0.0.21'
+    Assert-Case 'Post-milestone release cadence build passes the release gate' {
+        $fixture = New-PackagingFixture -Name 'release' -Version '2.0.1'
         $result = Invoke-Gate -Arguments @('-ManifestPath', $fixture.Manifest, '-RequireReleaseVersion')
         Assert-ExitCode -Result $result -Expected 0 -Contains 'PASS'
     }
 
-    Assert-Case 'Stable 1.0.0 promotion passes the release gate' {
-        $fixture = New-PackagingFixture -Name 'stable-release' -Version '1.0.0'
+    Assert-Case 'Stable 2.0.0 promotion passes the release gate' {
+        $fixture = New-PackagingFixture -Name 'stable-release' -Version '2.0.0'
         $result = Invoke-Gate -Arguments @('-ManifestPath', $fixture.Manifest, '-RequireReleaseVersion')
         Assert-ExitCode -Result $result -Expected 0 -Contains 'PASS'
     }
@@ -1731,7 +1731,7 @@ try {
 
     Assert-Case 'A four-byte MZ fake installer is rejected' {
         $fixture = New-ReleaseFixture -Name 'fake-installer'
-        $installerName = 'GraphAutoReader-0.0.21-win-x64-setup.exe'
+        $installerName = 'GraphAutoReader-2.0.0-win-x64-setup.exe'
         [IO.File]::WriteAllBytes(
             (Join-Path $fixture.ReleaseRoot $installerName),
             [byte[]](0x4d, 0x5a, 0x00, 0x00))
@@ -2116,7 +2116,7 @@ try {
         $fixture = New-ReleaseFixture -Name 'installer-sbom-provenance'
         $sbomPath = Join-Path $fixture.ReleaseRoot 'sbom.cdx.json'
         $sbom = Get-Content -LiteralPath $sbomPath -Raw | ConvertFrom-Json
-        $installerName = 'GraphAutoReader-0.0.21-win-x64-setup.exe'
+        $installerName = 'GraphAutoReader-2.0.0-win-x64-setup.exe'
         $installerComponent = @($sbom.components | Where-Object { [string]$_.name -eq $installerName })
         $installerComponent[0].properties = @($installerComponent[0].properties | Where-Object {
                 [string]$_.name -ne 'graphreader:noticePaths'

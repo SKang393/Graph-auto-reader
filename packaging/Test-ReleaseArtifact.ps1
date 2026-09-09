@@ -358,7 +358,7 @@ function Assert-BuildVersion {
 
     $record = ConvertTo-GraphReaderVersion -Version $Version
     if ($ReleaseRequired -and -not $record.ReleaseEligible) {
-        throw "Version '$Version' is an internal checkpoint and cannot be published. Eligible versions use z 1, 21, 41, 61, or 81, or the explicit stable 1.0.0 milestone."
+        throw "Version '$Version' is an internal checkpoint and cannot be published. Public releases begin with the explicit 2.0.0 milestone and then follow the twentieth-checkpoint cadence."
     }
 }
 

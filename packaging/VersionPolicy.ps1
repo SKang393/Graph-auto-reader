@@ -24,6 +24,7 @@ function ConvertTo-GraphReaderVersion {
     $value = "$major.$minor.$build"
     $cadenceEligible = ($ordinal % 20) -eq 1
     $stablePromotionRelease = $value -ceq (Get-GraphReaderStablePromotionVersion)
+    $publicCadenceEligible = $ordinal -gt (Get-GraphReaderStablePromotionOrdinal) -and $cadenceEligible
 
     return [pscustomobject][ordered]@{
         Value = $value
@@ -33,12 +34,16 @@ function ConvertTo-GraphReaderVersion {
         Ordinal = $ordinal
         CadenceEligible = $cadenceEligible
         StablePromotionRelease = $stablePromotionRelease
-        ReleaseEligible = $cadenceEligible -or $stablePromotionRelease
+        ReleaseEligible = $publicCadenceEligible -or $stablePromotionRelease
     }
 }
 
 function Get-GraphReaderStablePromotionVersion {
-    return '1.0.0'
+    return '2.0.0'
+}
+
+function Get-GraphReaderStablePromotionOrdinal {
+    return 20000
 }
 
 function Test-GraphReaderStablePromotion {
@@ -53,7 +58,7 @@ function Test-GraphReaderStablePromotion {
 
     $from = ConvertTo-GraphReaderVersion -Version $FromVersion
     $to = ConvertTo-GraphReaderVersion -Version $ToVersion
-    return $from.Major -eq 0 -and
+    return $from.Ordinal -lt (Get-GraphReaderStablePromotionOrdinal) -and
         $to.Value -ceq (Get-GraphReaderStablePromotionVersion)
 }
 
@@ -75,6 +80,24 @@ function Get-NextGraphReaderVersion {
     $minor = [Math]::Floor($remainder / 100)
     $build = $remainder % 100
     return "$major.$minor.$build"
+}
+
+function Test-GraphReaderVersionTransition {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$FromVersion,
+
+        [Parameter(Mandatory)]
+        [string]$ToVersion
+    )
+
+    if (Test-GraphReaderStablePromotion -FromVersion $FromVersion -ToVersion $ToVersion) {
+        return $true
+    }
+
+    return (Get-NextGraphReaderVersion -Version $FromVersion) -ceq
+        (ConvertTo-GraphReaderVersion -Version $ToVersion).Value
 }
 
 function Test-GraphReaderReleaseVersion {

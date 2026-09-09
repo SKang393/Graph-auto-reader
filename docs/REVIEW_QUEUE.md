@@ -5,6 +5,26 @@
 
 Items stay here until resolved. Newest items are appended last.
 
+## Current maintainer decisions, 2026-09-08
+
+The maintainer approved REV-004 and REV-006 and authorized completion of the
+model-integrated product as **2.0.0**. Existing basic/manual functionality is
+the first product generation. The previous proposed 1.0.0 finish is superseded.
+
+Final production activation and the 2.0.0 GitHub installer/portable release
+are authorized conditionally on all required accuracy, scientific-safety,
+privacy, license, runtime, and distribution checks passing. This decision does
+not approve an unverified candidate or waive any gate. No intermediate public
+release is authorized. Routine implementation decisions do not require another
+confirmation; present a short demonstration, results, and limitations at the
+finish. An actual frozen-contract incompatibility still requires its concrete
+impact and migration proposal to be reviewed before changing the contract.
+
+The current repository's GitHub release list was empty when checked on
+2026-09-08. The local ledger does record portable builds. Preserve that history;
+do not invent earlier 1.x tags or renumber existing artifacts. See
+[version and publication policy](VERSIONING-AND-RELEASES.md).
+
 ## REV-001 — supply additional real graphs
 
 - **Status:** resolved
@@ -55,11 +75,15 @@ Items stay here until resolved. Newest items are appended last.
 
 ## REV-004 — approve a pre-OCR structural provider design
 
-- **Status:** open
-- **Blocks:** OCR V39 candidate creation and OCR production approval
-- **Effort:** about 10 minutes
-- **Action:** choose whether the production workflow may add a raster-derived
-  structural provider before OCR. The proposed internal provider consumes only
+- **Status:** resolved
+- **Resolution:** on 2026-09-08 the maintainer approved building and testing
+  the proposed raster-derived pre-OCR structural provider, including synthetic
+  text-preservation checks. Production activation remains conditional on all
+  required acceptance evidence.
+- **Blocks:** none requiring maintainer input; implementation and validation remain
+- **Effort:** complete
+- **Action:** no further design confirmation is needed. Implement and validate
+  the approved structural provider before OCR. The internal provider consumes only
   immutable Gray8 raster evidence plus the existing axis/tick/divider mask and
   emits marker-like blob and thin-connector probability masks in original
   pixels. It cannot consume OCR boxes, marker results, connections, or truth.
@@ -71,19 +95,20 @@ Items stay here until resolved. Newest items are appended last.
 - **Files:** [blocked V39 design](../ml/ocr/structural_suppression_v39/BLOCKED_DESIGN_REPORT.json),
   [V38 attribution](../ml/ocr/dice_loss_detector_v38/diagnostics/fp_attribution/ATTRIBUTION.json),
   [current readiness](1.0-READINESS.md)
-- **Unblocks when:** the maintainer approves one pre-OCR input contract or
-  explicitly rejects this direction
+- **Unblocks when:** resolved by the explicit design approval above
 
 ## REV-006 — define which executions advance the build ledger
 
-- **Status:** open
-- **Blocks:** Goal 22 integrated portable build, local synthetic seed-boundary
-  compilation/tests and runtime-derived marker inputs, and any claim that every
-  build is accounted for
-- **Effort:** about 5 minutes
-- **Action:** confirm whether the version rule applies only to packaged or
-  runnable application artifacts, or also to compiler outputs produced by local
-  tests and CI
+- **Status:** resolved
+- **Resolution:** on 2026-09-08 the maintainer approved counting packaged
+  application builds and rebuilds. Routine local-test and CI compiler outputs
+  do not advance the product version. Matching installer and portable packages
+  from one common publish output count as one build and share a version.
+- **Blocks:** none requiring maintainer input; compilation/tests and integrated
+  packaging may proceed under the clarified unit
+- **Effort:** complete
+- **Action:** no further build-unit confirmation is needed. Apply the packaged
+  application build unit consistently in versioning guidance and validation
 - **Why:** `VERSIONING.md` says every produced build advances the version, while
   routine validation compiles test binaries many times. Counting every test or
   CI compilation would require a different ledger workflow than the existing
@@ -91,7 +116,7 @@ Items stay here until resolved. Newest items are appended last.
 - **Files:** [versioning policy](../VERSIONING.md),
   [current readiness](1.0-READINESS.md),
   [build ledger](BUILD_LEDGER.json)
-- **Unblocks when:** the maintainer defines the ledger unit in one sentence
+- **Unblocks when:** resolved by the explicit build-unit decision above
 
 ## REV-005 — renew Git write approval after service failure
 
