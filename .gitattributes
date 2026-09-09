@@ -52,3 +52,6 @@ ml/markers/classifier/manifests/confirmation-v3.json text eol=lf
 ml/markers/training-seals/marker-classifier/marker-classifier-production-runtime-repair-v2/P1/** text eol=lf
 ml/markers/gate-seals/marker-classifier/** text eol=lf
 ml/synthetic/LICENSES/*.txt text eol=lf
+# Retry11's completed run binds these exact JSON bytes, including line endings.
+docs/GOAL-22-V24-COVERAGE-PREFLIGHT.json -text whitespace=cr-at-eol
+ml/markers/center/mask_preserving_v24/training/p1_retry11.json -text whitespace=cr-at-eol

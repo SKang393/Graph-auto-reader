@@ -1,6 +1,6 @@
 {
-  "base_commit": "423fa65099e8391dea2d974aeaa10f0501d62061",
-  "captured_utc": "2026-09-09T07:50:39.202476+00:00",
+  "base_commit": "c87281b481e06f3be05027bcfd143412f1f796ad",
+  "captured_utc": "2026-09-09T05:04:48.537844+00:00",
   "identity": {
     "candidate_id": "P1",
     "revision": "marker-center-mask-preserving-v24",
@@ -13,10 +13,10 @@
     "architecture": "scale-separated-multiscale-patch-cnn-v16",
     "authorized_candidate_id": "P1",
     "candidate_config_paths": {
-      "P1": "ml/markers/center/mask_preserving_v24/training/p1_retry11.json"
+      "P1": "ml/markers/center/mask_preserving_v24/training/p1.json"
     },
     "candidate_config_sha256": {
-      "P1": "bd51706625938cbd6673416257bdb16158ee5269cda188ae676f93fbe4bec523"
+      "P1": "12dc7245a1d9ccb0083f342bdba7d8f509464dc5b2d080ba22b086625808dd79"
     },
     "candidate_consumed": false,
     "consumed_candidate_ids": [],
@@ -26,11 +26,10 @@
       "proposal_recall_minimum": 0.95,
       "recall_minimum": 0.95
     },
-    "current_candidate_result_path": null,
-    "current_candidate_result_sha256": null,
-    "current_candidate_status": "retry11_preregistered",
     "defect_class": "The frozen V21 classifier fails corrected mask-preserving synthetic dev at precision 0.69369, recall 0.49950, and 167 prohibited hits despite complete ink-supported proposal coverage",
-    "dev_passed_candidate_ids": [],
+    "dev_passed_candidate_ids": [
+      "P1"
+    ],
     "dev_scene_count": 167,
     "dev_split_sha256": "72dda9b9031f3050d72f5946105576cad89fe938f36f619f84ef4c9cafa8e566",
     "duplicates_maximum": 0,
@@ -38,7 +37,7 @@
     "evidence_policy_sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed",
     "execution_authorized": true,
     "execution_blocker": null,
-    "expected_runner_source_bundle_sha256": "107520b1a3373db4bb08314b64d5063daeee524bf891d25dd49021143c1c3749",
+    "expected_runner_source_bundle_sha256": "ca5f214ab8978e91867e4fee2a526e7d7506ef3d3afe8096b0841b5401c59966",
     "experiment_budget": 1,
     "family_dev_baseline_path": "docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json",
     "family_dev_baseline_sha256": "c42011acaab800fffad92f92c4d4fa67775d2998dde4845aea0622f431795479",
@@ -46,16 +45,16 @@
     "family_dev_panel_count": 9,
     "family_dev_scene_count": 3,
     "family_dev_split_sha256": "f6cbeaf05dc40fa8be10b2120846d26db78a0a0836a92d5cc05ebb276bba445c",
-    "family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
-    "family_hard_negative_example_count_expected": 1492,
-    "family_positive_example_count_expected": 828,
-    "family_selected_index_sha256": "70edc5a4eb07202ad73a826232edc83070959df5b6ec453597d065fd542fb3c9",
-    "family_train_marker_count": 500,
-    "family_train_panel_count": 23,
-    "family_train_scene_count": 20,
+    "family_dev_tensor_set_sha256": "26d8b67ad914d22ccbaa96247364e489096af7ab76adfbac36cd7223de578a81",
+    "family_hard_negative_example_count_expected": 346,
+    "family_positive_example_count_expected": 173,
+    "family_selected_index_sha256": "684c66087df1083b22502bb96c7f886d385d66261d460d07d9daa7874de24cc9",
+    "family_train_marker_count": 100,
+    "family_train_panel_count": 4,
+    "family_train_scene_count": 4,
     "family_train_split_sha256": "dd8348657d54317d8cfec420cf9791bc91ed7205e03e62dc9df7b9d7fae4ef7c",
-    "family_train_tensor_set_sha256": "28c5f0b752beaff8273082fe6bab0be121547218cfa7462a0665374941fe0c7c",
-    "family_training_example_count_expected": 9108,
+    "family_train_tensor_set_sha256": "f65a31b084055ebae0c4279b07b2a771c899efd31155185f1f65ff605496c598",
+    "family_training_example_count_expected": 1903,
     "fixed_confidence_threshold": 0.25,
     "generator_audit_path": "ml/markers/center/real_range_generator_v1/AUDIT.json",
     "generator_audit_sha256": "1d71d76956e24f0c1a230c9c27e59aecc0d0cd64a04ca9c0d26ef171838ce26b",
@@ -63,15 +62,12 @@
     "generic_connector_band_radius_px": 4.0,
     "generic_connector_band_selected": 6720,
     "generic_connector_band_selected_index_sha256": "4e58e9e353a0ff912bccb28845e7e1d619d4903929f9cf49c6244dc5017fc96a",
-    "hard_negative_example_count_expected": 8348,
+    "hard_negative_example_count_expected": 7202,
     "historical_model_perfection_gate_fields": [
       "duplicates_maximum",
       "prohibited_hits_maximum"
     ],
-    "isolated_change": "Increase family training coverage from four seed393 sources to twenty sources from ordered seeds393,394,395,396,397, using the validated margin-preserving c96 runtime exchanges. Preserve the 33x33 model architecture, V21 initialization, sampler algorithm, loss, optimizer settings, epoch count, confidence threshold0.25, masks, offsets, radius output, consensus and NMS. Keep the 167-scene independent development set and seed393 family development source PNGs fixed. The corrected crop/runtime binding is held common for a frozen retry10 family baseline and the new candidate. Do not change sampling or patch context in this candidate.",
-    "last_completed_candidate_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY10_RESULT.json",
-    "last_completed_candidate_result_sha256": "7ccece10ce0520a5e98bed86be31b1a91551bdedd8dbbab8c65c355dfd4bf84c",
-    "legacy_p1_fields_scope": "Historical retry9 outcome only. Current outcome is identified by current_candidate_result_path and retry10 fields.",
+    "isolated_change": "supplement the unchanged real-range V24 train set with the fixed five-axis family-disjoint synthetic train split and require both independent-layout and family dev at the shared bars; retain the exact V21 checkpoint, architecture, three-channel input, focal loss, 0.25 fixed gate threshold, offset and radius contract, V23 multiradius geometry, and NMS",
     "markers_per_split": 2004,
     "model_license": "Apache-2.0",
     "morphology_diagnosis_path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY2_MORPHOLOGY_DIAGNOSIS.json",
@@ -155,8 +151,8 @@
     },
     "negative_sampler_topology_selected_index_sha256": "671e6e7c7affbbb79171cc31d76863fe8b541904b3727cfd633da2bed7fab95c",
     "onnx_parity_tolerance": 1e-05,
-    "optimizer_steps_expected": 12672,
-    "optimizer_steps_maximum": 12672,
+    "optimizer_steps_expected": 10620,
+    "optimizer_steps_maximum": 10620,
     "p1_candidate_report_path": "artifacts/goal22-runs/marker-v24-retry9/P1-rerun/candidate-report.json",
     "p1_candidate_report_sha256": "5dee4ac84639597faac2d2bdf4f74db10d8225e858d8f884f34b7c5725dc2255",
     "p1_checkpoint_sha256": "357119c66f0c6fba2c73478d458f900521b475c1af8722814fac4e758c61a3b1",
@@ -186,7 +182,7 @@
     "p1_void_record_sha256": "5e6554a33929075606c948a95a595f8be163a10d72e6502ae2361582f5a746d8",
     "parent_checkpoint_sha256": "ba9722ebd3091c91749c175607a480500d3b651e6719d19b69c7e48cee4ef6c9",
     "parent_onnx_sha256": "0b413db48f8e6707ee5ec99afff4cd8ec3d25c6b8a8d9f165bd416deb4578a38",
-    "positive_example_count_expected": 4086,
+    "positive_example_count_expected": 3431,
     "precision_minimum": 0.95,
     "preregistered_candidate_ids": [
       "P1"
@@ -238,63 +234,10 @@
     "recall_minimum": 0.95,
     "refusal_required_before_output": false,
     "release_eligible": false,
-    "retry10_closed_candidate_config_paths": {
-      "P1": "ml/markers/center/mask_preserving_v24/training/p1.json"
-    },
-    "retry10_closed_candidate_config_sha256": {
-      "P1": "12dc7245a1d9ccb0083f342bdba7d8f509464dc5b2d080ba22b086625808dd79"
-    },
-    "retry10_closed_expected_runner_source_bundle_sha256": "ca5f214ab8978e91867e4fee2a526e7d7506ef3d3afe8096b0841b5401c59966",
-    "retry10_closed_utc_date": "2026-09-09",
     "retry10_defect_class": "Frozen retry9 fails the five-axis family-disjoint synthetic dev at precision 0.4723618090452261, recall 0.912621359223301, and prohibited-structure hit rate 0.02512562814070352 despite proposal recall 1.0",
     "retry10_input_hold_config_sha256": "019766271c4070e3ac11778916d15c7a56b625b148dbc7367eebd9731923844f",
     "retry10_input_hold_resolved_by": "docs/GOAL-22-V24-RUNTIME-INPUT-PREFLIGHT.json",
     "retry10_input_hold_status": "waiting_production_input_contract",
-    "retry10_p1_candidate_report_path": "artifacts/goal22-runs/marker-v24-retry10-runtime/P1-run/candidate-report.json",
-    "retry10_p1_checkpoint_sha256": "5bcd068f9c3d221215b82ca2703c00b56125d564a961839ab7899a21dbfaf393",
-    "retry10_p1_elapsed_ms": 1630886.261,
-    "retry10_p1_family_selected": {
-      "duplicate_count": 0,
-      "f1": 0.8008213552361396,
-      "false_negatives": 11,
-      "false_positives": 86,
-      "precision": 0.693950177935943,
-      "prohibited_structure_hit_rate": 0.0,
-      "prohibited_structure_hits": 0,
-      "proposal_recall": 1.0,
-      "proposal_true_positives": 206,
-      "recall": 0.9466019417475728,
-      "scene_count": 9,
-      "threshold": 0.25,
-      "true_positives": 195
-    },
-    "retry10_p1_onnx_parity_maximum_absolute_error": 1.9073486328125e-06,
-    "retry10_p1_onnx_sha256": "22ac392acaf94bb034f89161191389f34304635a1663f189a6f96e56379da706",
-    "retry10_p1_opened_seal_sha256": "fe9d53e36f19fd5c92208e3637b53990032d47a7ac3b921a908a962a5f711d42",
-    "retry10_p1_optimizer_steps": 10620,
-    "retry10_p1_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY10_RESULT.json",
-    "retry10_p1_result_seal_sha256": "f2f3723f297a9d0606e71ab84101c0aa175eef5d49e62b8ccee8d46bbd69bb1b",
-    "retry10_p1_result_sha256": "7ccece10ce0520a5e98bed86be31b1a91551bdedd8dbbab8c65c355dfd4bf84c",
-    "retry10_p1_selected": {
-      "duplicate_count": 0,
-      "f1": 0.8994082840236686,
-      "false_negatives": 180,
-      "false_positives": 228,
-      "precision": 0.8888888888888888,
-      "prohibited_structure_hit_rate": 0.0004873294346978557,
-      "prohibited_structure_hits": 1,
-      "proposal_recall": 1.0,
-      "proposal_true_positives": 2004,
-      "recall": 0.9101796407185628,
-      "scene_count": 167,
-      "threshold": 0.25,
-      "true_positives": 1824
-    },
-    "retry10_p1_source_snapshot_sha256": "35a8a930a382335b34347dfb0e8a12ccd49c76031b626a18fb91cd494d113531",
-    "retry11_hypothesis": "Retry10 fails independent synthetic dev precision/recall (0.8888888888888888/0.9101796407185628) and family dev precision/recall (0.693950177935943/0.9466019417475728). The fixed seed393 family training sources contain no faint/sparse positive examples; the four contiguous successor seeds add 86 such positive proposals without changing generator parameter ranges or train family identities. Increasing actual-runtime training coverage may improve family generalization. Large-marker independent-dev errors may remain and are not claimed solved by this experiment. Evidence: artifacts/goal22-runs/marker-v24-retry10-runtime/coverage-design/coverage-design.json, SHA256 ecdcbc1a63995fb0d19948ff1c192508436a7f1669e412fed19a789231d980c2.",
-    "retry11_optimizer_steps": 0,
-    "retry11_protocol_path": "ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json",
-    "retry11_protocol_sha256": "6582091a0aaea0ee6eedb6476bf17936bd0bda2234bffff9de721ad66b00269c",
     "retry1_candidate_report_sha256": "134ea318ade95882e52352a899da57ab9f9dbdd05b772a17a4321dd9eaa11696",
     "retry1_checkpoint_sha256": "070b77bb7503e6b8c0445059c9b5e20e96705b000b4abd271cfdc07ac53af401",
     "retry1_dev_gate_passed": false,
@@ -731,9 +674,6 @@
     "retry9_accepted_false_positive_topology_fragment": 0,
     "retry9_accepted_false_positive_topology_junction": 1,
     "retry9_authorized_candidate_id": null,
-    "retry9_dev_passed_candidate_ids": [
-      "P1"
-    ],
     "retry9_diagnosis_candidate_selection": false,
     "retry9_diagnosis_case_level_output": false,
     "retry9_diagnosis_optimizer_steps": 0,
@@ -817,21 +757,21 @@
     "retry9_void_seal_path": "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1/void-attempts/daafc116b94145f784240a8d824d5955/void.json",
     "retry9_void_seal_sha256": "5e6554a33929075606c948a95a595f8be163a10d72e6502ae2361582f5a746d8",
     "retry9_void_sealed_split_read": false,
-    "retry_count": 11,
+    "retry_count": 10,
     "retry_prior_p1_result_sha256": "b4e68dde10024e60a122edad3f7645dfe1e5e2f5888dbfe4ef522383de4c6175",
     "retry_reason": "add five-axis family-disjoint synthetic coverage after frozen retry9 failed family dev precision, recall, and prohibited-hit gates",
     "revision": "marker-center-mask-preserving-v24",
     "runtime_adapter_path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
     "runtime_adapter_sha256": "bc710a71e9948c4dfbfba4b0548743c2b7b6799451fcdb8180b448e4188610c5",
     "runtime_focused_tests_passed": 17,
-    "runtime_input_preflight_path": "docs/GOAL-22-V24-COVERAGE-PREFLIGHT.json",
-    "runtime_input_preflight_sha256": "7deefdb7e03643cc0e774fa500685fab037890de6bc14cdc7f40c8cce8778471",
-    "runtime_input_scope": "Synthetic train/dev only, ordered five-seed coverage, incomplete artifact mask, no production approval",
+    "runtime_input_preflight_path": "docs/GOAL-22-V24-RUNTIME-INPUT-PREFLIGHT.json",
+    "runtime_input_preflight_sha256": "74b8470ccc1e8003911d8e1183dba4a2427089489332fda5f6dd09b718955c57",
+    "runtime_input_scope": "synthetic train/dev only; incomplete artifact mask; no production approval",
     "runtime_integration_passed": true,
     "runtime_test_path": "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs",
     "runtime_test_sha256": "2f0cbee0029b00ab037a75703952f031aa3a85672ee5efcc5086fff52756a8b0",
-    "runtime_training_input_binding_path": "artifacts/synthetic-runtime-evidence/margin-v2-input-preflight/source-c96-observable-guard/binding-v2.json",
-    "runtime_training_input_binding_sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+    "runtime_training_input_binding_path": "artifacts/synthetic-runtime-evidence/runtime-training-layout2-run3.json",
+    "runtime_training_input_binding_sha256": "5f1f6023313a8c1d3669b168eecb21bca3b983f228ba53c53c7b9b2c3c4b1e93",
     "sealed_runs": 0,
     "spatial_morphology_diagnostic_required": false,
     "status": "candidate_1_preregistered",
@@ -843,7 +783,7 @@
     "train_scene_count": 167,
     "train_split_sha256": "57dc4850c6882ab1ddabe0c4e76bc03f1cb03963c3d0de16b703152071e773d9",
     "training_candidate_registered": true,
-    "training_example_count_expected": 44946,
+    "training_example_count_expected": 37741,
     "trigger_result_path": "ml/markers/center/mask_preserving_v24/FEASIBILITY.json",
     "trigger_result_sha256": "b653d2a0a18ce07bd68f3e3519e9fc55bc4da83e8a8279f3d48ac04aff15033a"
   },
@@ -896,10 +836,6 @@
     {
       "path": "ml/markers/center/mask_preserving_v24/P1_RETRY8_RESULT.json",
       "sha256": "483f5f989ad73d5280da4cf248cc71c2c2f315dec24827b5cb7a2a59512f37cf"
-    },
-    {
-      "path": "ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json",
-      "sha256": "6582091a0aaea0ee6eedb6476bf17936bd0bda2234bffff9de721ad66b00269c"
     },
     {
       "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY2_MORPHOLOGY_DIAGNOSIS.json",
@@ -966,10 +902,6 @@
       "sha256": "0b4a23a39289b2872cfbc1e6def3dff2915d46ceade02e3277c68bb73ae07ce4"
     },
     {
-      "path": "ml/markers/center/mask_preserving_v24/runtime_binding_v2.py",
-      "sha256": "b7a4e4cd330d8033113c75c9cfd0f89fc2b4cea9cdfeaeec2c8a2049997ca1cc"
-    },
-    {
       "path": "ml/markers/center/mask_preserving_v24/runtime_family_scenes.py",
       "sha256": "59233739c4eae55865d16ad8367f4c013c1b372b7feee2715fe3be57493673a0"
     },
@@ -979,11 +911,11 @@
     },
     {
       "path": "ml/markers/center/mask_preserving_v24/train_p1.py",
-      "sha256": "32a6d29091bfd715ba772978d901f724e2ac843013bd2d56d13503f95c21bbb8"
+      "sha256": "9ae658be0fc42d1a520c0f3e6a106ea2e38523ddb155ef4d4168433f2576ef49"
     },
     {
-      "path": "ml/markers/center/mask_preserving_v24/training/p1_retry11.json",
-      "sha256": "bd51706625938cbd6673416257bdb16158ee5269cda188ae676f93fbe4bec523"
+      "path": "ml/markers/center/mask_preserving_v24/training/p1.json",
+      "sha256": "12dc7245a1d9ccb0083f342bdba7d8f509464dc5b2d080ba22b086625808dd79"
     },
     {
       "path": "ml/markers/center/metrics.py",
@@ -1019,7 +951,7 @@
     },
     {
       "path": "ml/markers/training-budgets/production-repair-v1.json",
-      "sha256": "5c519562c5a14836051a4de70e3c1745a5fdfea2cfd463ea043d9ef1708a01a2"
+      "sha256": "d53343bde697b0267d95ef181c6dde1196001b9ebb31ba149b795b785c1748c4"
     },
     {
       "path": "ml/markers/training_budget.py",

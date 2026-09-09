@@ -1,0 +1,24 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "Retry10 fails independent synthetic dev precision/recall (0.8888888888888888/0.9101796407185628) and family dev precision/recall (0.693950177935943/0.9466019417475728). The fixed seed393 family training sources contain no faint/sparse positive examples; the four contiguous successor seeds add 86 such positive proposals without changing generator parameter ranges or train family identities. Increasing actual-runtime training coverage may improve family generalization. Large-marker independent-dev errors may remain and are not claimed solved by this experiment. Evidence: artifacts/goal22-runs/marker-v24-retry10-runtime/coverage-design/coverage-design.json, SHA256 ecdcbc1a63995fb0d19948ff1c192508436a7f1669e412fed19a789231d980c2.",
+  "isolated_change": "Increase family training coverage from four seed393 sources to twenty sources from ordered seeds393,394,395,396,397, using the validated margin-preserving c96 runtime exchanges. Preserve the 33x33 model architecture, V21 initialization, sampler algorithm, loss, optimizer settings, epoch count, confidence threshold0.25, masks, offsets, radius output, consensus and NMS. Keep the 167-scene independent development set and seed393 family development source PNGs fixed. The corrected crop/runtime binding is held common for a frozen retry10 family baseline and the new candidate. Do not change sampling or patch context in this candidate.",
+  "split_identities": {
+    "runtime_binding": {
+      "path": "artifacts/synthetic-runtime-evidence/margin-v2-input-preflight/source-c96-observable-guard/binding-v2.json",
+      "sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+      "train_dataset_seeds": [393, 394, 395, 396, 397],
+      "development_dataset_seed": 393
+    },
+    "family_development_source_manifest": {
+      "path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+      "sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7"
+    },
+    "independent_development_layout_sha256": "5cba3edee7ea19a788efe6554c5c437ed99e2fb5820e5a908b1f99f668e81e5a"
+  },
+  "metric": "Existing train_p1._evaluate marker-center proposal recall, precision, recall, and prohibited-structure hit rate at the shipped confidence threshold0.25 and fixed5-pixel matching tolerance. Score the complete independent development and family development sets separately, with all truth points retained. Report other existing thresholds as sensitivity only. Verify ONNX parity at the existing tolerance and candidate counts.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json: tier1_reviewable_error marker-center precision and recall minimum0.95 and prohibited_structure_hit_rate_maximum. Both development sets must pass. This declaration adds no acceptance criterion or production approval.",
+  "budget": {
+    "train_dev_runs": "unlimited under the shared policy; this configuration identifies one coverage-only candidate",
+    "sealed_runs": 0
+  }
+}

@@ -1,8 +1,8 @@
 {
   "binding": {
-    "base_commit": "423fa65099e8391dea2d974aeaa10f0501d62061",
-    "candidate_config_path": "ml/markers/center/mask_preserving_v24/training/p1_retry11.json",
-    "candidate_config_sha256": "bd51706625938cbd6673416257bdb16158ee5269cda188ae676f93fbe4bec523",
+    "base_commit": "c87281b481e06f3be05027bcfd143412f1f796ad",
+    "candidate_config_path": "ml/markers/center/mask_preserving_v24/training/p1.json",
+    "candidate_config_sha256": "12dc7245a1d9ccb0083f342bdba7d8f509464dc5b2d080ba22b086625808dd79",
     "candidate_id": "P1",
     "evidence_policy": {
       "path": "ml/policy/evidence-policy.json",
@@ -11,7 +11,7 @@
       "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
     },
     "revision": "marker-center-mask-preserving-v24",
-    "runner_source_bundle_sha256": "107520b1a3373db4bb08314b64d5063daeee524bf891d25dd49021143c1c3749",
+    "runner_source_bundle_sha256": "ca5f214ab8978e91867e4fee2a526e7d7506ef3d3afe8096b0841b5401c59966",
     "runner_source_paths": [
       "docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json",
       "docs/GOAL-22-PHASE-4R-V24-MORPHOLOGY-GAP.json",
@@ -25,7 +25,6 @@
       "ml/markers/center/line_aware_v1/pipeline.py",
       "ml/markers/center/mask_preserving_v24/FEASIBILITY.json",
       "ml/markers/center/mask_preserving_v24/P1_RETRY8_RESULT.json",
-      "ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json",
       "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY2_MORPHOLOGY_DIAGNOSIS.json",
       "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY4_DIAGNOSIS.json",
       "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY4_GENERIC_FP_DIAGNOSIS.json",
@@ -42,7 +41,6 @@
       "ml/markers/center/mask_preserving_v24/mask_preserving.py",
       "ml/markers/center/mask_preserving_v24/protocol.py",
       "ml/markers/center/mask_preserving_v24/runtime_binding.py",
-      "ml/markers/center/mask_preserving_v24/runtime_binding_v2.py",
       "ml/markers/center/mask_preserving_v24/runtime_family_scenes.py",
       "ml/markers/center/mask_preserving_v24/runtime_inputs.py",
       "ml/markers/center/mask_preserving_v24/train_p1.py",
@@ -70,12 +68,12 @@
     ],
     "source_binding_mode": "immutable_pre_run_snapshot",
     "source_snapshot_path": "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1/source-snapshot.json",
-    "source_snapshot_sha256": "b89fc497cf2b41525f71c228b2bc35df7035f8b86a4a534fb4fd29ed6b13df23",
+    "source_snapshot_sha256": "35a8a930a382335b34347dfb0e8a12ccd49c76031b626a18fb91cd494d113531",
     "task": "marker-center",
-    "training_budget_ledger_sha256": "5c519562c5a14836051a4de70e3c1745a5fdfea2cfd463ea043d9ef1708a01a2"
+    "training_budget_ledger_sha256": "d53343bde697b0267d95ef181c6dde1196001b9ebb31ba149b795b785c1748c4"
   },
   "budget_status": "pending_sealed_read",
-  "opened_utc": "2026-09-09T07:50:39.251231+00:00",
+  "opened_utc": "2026-09-09T05:04:48.585838+00:00",
   "schema_version": 1,
   "status": "opened"
 }

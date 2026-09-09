@@ -1,0 +1,123 @@
+{
+  "schema": "graphreader.goal22-marker-coverage-input-preflight.v1",
+  "status": "verified_training_inputs_not_training_outcome",
+  "scope": {
+    "synthetic_only": true,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "training_authorized": false,
+    "production_approved": false
+  },
+  "preflight": {
+    "path": "artifacts/goal22-runs/marker-v24-retry11-coverage/preflight/preflight.json",
+    "sha256": "6b19f18ba6949a4bbaf0c48efc4cc60d564d7986749ccb1fdfb48db8b4dd875c"
+  },
+  "runtime_binding": {
+    "path": "artifacts/synthetic-runtime-evidence/margin-v2-input-preflight/source-c96-observable-guard/binding-v2.json",
+    "sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f"
+  },
+  "prior_engineering_preflight": {
+    "path": "artifacts/synthetic-runtime-evidence/margin-v2-input-preflight/source-c96-observable-guard/preflight-report.json",
+    "sha256": "6e711b498ce85fb4aeebe5e1c01813deb4201f35647247b1180a96cf4ba52190"
+  },
+  "native_full_record_parity": {
+    "path": "artifacts/synthetic-runtime-evidence/source-c96-scientific-parity-v3.json",
+    "sha256": "e937fddf5cdaa23e461c69f49008804730affa757bcba30c22e516ca2c33d192"
+  },
+  "coverage_protocol": {
+    "path": "ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json",
+    "sha256": "6582091a0aaea0ee6eedb6476bf17936bd0bda2234bffff9de721ad66b00269c"
+  },
+  "ordered_train_seeds": [
+    393,
+    394,
+    395,
+    396,
+    397
+  ],
+  "fixed_family_dev_seed": 393,
+  "train_sources": 20,
+  "train_panels": 23,
+  "dev_sources": 3,
+  "dev_panels": 9,
+  "train_markers_mapped": 500,
+  "train_markers_total": 500,
+  "dev_markers_mapped": 206,
+  "dev_markers_total": 206,
+  "nonmarker_omissions": {
+    "count": 39,
+    "kind": "bracket description with unmappable geometry",
+    "crop_omissions": 0
+  },
+  "binding_validation": {
+    "duplicate_train_image_and_tensor_guard": true,
+    "train_dev_image_and_tensor_separation": true,
+    "independent_review": "clear",
+    "focused_v1_v2_tests_passed": 41
+  },
+  "real_range_sampling": {
+    "examples": 35838,
+    "positive": 3258,
+    "hard": 6856,
+    "selected_index_sha256": "d7460b95bbdbb89d79a12cafe7632604f02b8087e9986fb7a9d3ea940287567f",
+    "capacities": {
+      "hard_existing": 6012,
+      "faint_low": 8384,
+      "faint_p05": 5497,
+      "ocr_heavy": 20547,
+      "artifact": 14469,
+      "generic_connector_band": 50373,
+      "generic": 127516
+    },
+    "counts": {
+      "hard_existing": 6012,
+      "faint_low": 326,
+      "faint_p05": 1303,
+      "ocr_heavy": 1629,
+      "artifact": 1629,
+      "generic_connector_band": 6720,
+      "generic": 14961
+    }
+  },
+  "family_sampling": {
+    "examples": 9108,
+    "positive": 828,
+    "hard": 1492,
+    "selected_index_sha256": "70edc5a4eb07202ad73a826232edc83070959df5b6ec453597d065fd542fb3c9",
+    "capacities": {
+      "selected": 9108
+    },
+    "counts": {
+      "positive": 828,
+      "hard_negative": 1492,
+      "other_negative": 6788
+    }
+  },
+  "second_process_sampling_identity_matches": true,
+  "sampling_context": {
+    "seed": 20260903,
+    "torch_threads": 1,
+    "deterministic_algorithms": true,
+    "generator_seed": 20260904,
+    "real_range_does_not_consume_family_rng": true
+  },
+  "frozen_retry10_current_family_dev": {
+    "threshold": 0.25,
+    "scene_count": 9,
+    "proposal_true_positives": 206,
+    "proposal_recall": 1.0,
+    "true_positives": 194,
+    "false_positives": 91,
+    "false_negatives": 12,
+    "precision": 0.6807017543859649,
+    "recall": 0.941747572815534,
+    "f1": 0.790224032586558,
+    "duplicate_count": 0,
+    "prohibited_structure_hits": 0,
+    "prohibited_structure_hit_rate": 0.0
+  },
+  "frozen_retry10_checkpoint_sha256": "5bcd068f9c3d221215b82ca2703c00b56125d564a961839ab7899a21dbfaf393",
+  "elapsed_seconds": 191.39337109999906,
+  "limitation": "Input and baseline evidence only. Both complete development sets, runtime parity, private/sealed acceptance, production availability and final application checks remain required. The original semantic family-definition audit is unchanged; this exact binding identifies all actual train and development tensors."
+}

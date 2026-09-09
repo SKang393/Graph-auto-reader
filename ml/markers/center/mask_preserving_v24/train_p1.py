@@ -16,7 +16,8 @@ from ml.markers.gate_seal import canonical_json_bytes, sha256_file
 from ml.markers.training_budget import acquire_training_candidate, complete_training_candidate, void_candidate
 from ml.synthetic.dataset import family_holdout_audit
 from .family_scenes import FamilyScene
-from .runtime_binding import load_runtime_family_binding, tensor_set_sha256
+from . import runtime_binding, runtime_binding_v2, runtime_inputs
+from .runtime_binding import tensor_set_sha256
 from .mask_preserving import extract_proposals, postprocess, prohibited_hits
 from . import protocol
 
@@ -59,6 +60,8 @@ RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/runtime_inputs.py"),
     Path("ml/markers/center/mask_preserving_v24/runtime_family_scenes.py"),
     Path("ml/markers/center/mask_preserving_v24/runtime_binding.py"),
+    Path("ml/markers/center/mask_preserving_v24/runtime_binding_v2.py"),
+    Path("ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json"),
     Path("tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py"),
     Path("ml/synthetic/dataset.py"),
     Path("ml/synthetic/fonts.py"),
@@ -81,6 +84,89 @@ RUNNER_SOURCE_PATHS = (
 def _sha(path: Path) -> str: return hashlib.sha256(path.read_bytes()).hexdigest()
 def _configure(seed: int) -> None:
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed); torch.set_num_threads(1); torch.use_deterministic_algorithms(True)
+
+
+def _repository_config_path(config_path: Path) -> tuple[Path, Path]:
+    relative = Path(config_path)
+    if (
+        relative == Path(".")
+        or relative.is_absolute()
+        or relative.drive
+        or ".." in relative.parts
+    ):
+        raise ValueError("training config must be a repository-relative path")
+    root = REPO_ROOT.resolve()
+    resolved = (root / relative).resolve()
+    if root not in resolved.parents or not resolved.is_file():
+        raise ValueError("training config must be an existing file inside the repository")
+    return Path(relative.as_posix()), resolved
+
+
+def _load_config(config_path: Path) -> tuple[Path, str, dict]:
+    relative, resolved = _repository_config_path(config_path)
+    payload = resolved.read_bytes()
+    try:
+        config = json.loads(payload)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("training config is not valid JSON") from error
+    if not isinstance(config, dict):
+        raise ValueError("training config must be a JSON object")
+    return relative, hashlib.sha256(payload).hexdigest(), config
+
+
+def _load_bound_family_inputs(config: dict):
+    binding_value = config.get("runtime_training_input_binding_path")
+    binding_sha256 = config.get("runtime_training_input_binding_sha256")
+    if not binding_value or not binding_sha256:
+        raise RuntimeError("training requires a frozen actual-runtime family input binding")
+    binding_path = runtime_binding._relative_path(
+        binding_value, REPO_ROOT.resolve(), "runtime training input binding"
+    )
+    _, payload = runtime_inputs._read_bound_artifact(
+        binding_path,
+        binding_sha256,
+        REPO_ROOT.resolve(),
+        "runtime training input binding",
+    )
+    document = runtime_inputs._json_object(payload, "runtime training input binding")
+    schema = document.get("schema")
+    if schema == runtime_binding.BINDING_SCHEMA:
+        loader = runtime_binding.load_runtime_family_binding
+    elif schema == runtime_binding_v2.BINDING_SCHEMA:
+        loader = runtime_binding_v2.load_runtime_family_binding_v2
+    else:
+        raise RuntimeError(f"unsupported runtime training input binding schema: {schema!r}")
+    return loader(binding_path, binding_sha256), schema
+
+
+def _acquire_candidate(config_path: Path, config_sha256: str):
+    authorization = acquire_training_candidate(
+        REPO_ROOT,
+        task=protocol.TASK,
+        revision=protocol.TRAINING_REVISION,
+        candidate_id=protocol.TRAINING_CANDIDATE_ID,
+        config_path=config_path,
+        runner_source_paths=RUNNER_SOURCE_PATHS,
+    )
+    if (
+        authorization.binding.get("candidate_config_path") != config_path.as_posix()
+        or authorization.binding.get("candidate_config_sha256") != config_sha256
+    ):
+        error = RuntimeError("training authorization captured a different configuration identity")
+        void_candidate(authorization, error)
+        raise error
+    return authorization
+
+
+def _prepare_bound_family_inputs(
+    config: dict, config_path: Path, config_sha256: str
+):
+    binding_started = time.perf_counter()
+    _configure(config["seed"])
+    family_join, binding_schema = _load_bound_family_inputs(config)
+    binding_elapsed_ms = round((time.perf_counter() - binding_started) * 1000, 3)
+    authorization = _acquire_candidate(config_path, config_sha256)
+    return family_join, binding_schema, binding_elapsed_ms, authorization
 
 
 def _hard_negative_radius(scene, kind: str) -> float | None:
@@ -285,9 +371,14 @@ def _evaluate(scenes, model, threshold):
     precision=tp/max(1,tp+fp); recall=tp/max(1,truth); f1=2*precision*recall/max(1e-12,precision+recall)
     return {"threshold":threshold,"scene_count":len(scenes),"proposal_true_positives":proposal_tp,"proposal_recall":proposal_tp/max(1,truth),"true_positives":tp,"false_positives":fp,"false_negatives":fn,"precision":precision,"recall":recall,"f1":f1,"duplicate_count":dup,"prohibited_structure_hits":hits,"prohibited_structure_hit_rate":hits/max(1,tp+fp)}
 
-def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
+def run(
+    output_dir: Path,
+    checkpoint: Path,
+    v21_onnx: Path,
+    config_path: Path = CONFIG_PATH,
+) -> dict:
     if output_dir.exists(): raise RuntimeError(f"candidate output already exists: {output_dir}")
-    config=json.loads((REPO_ROOT/CONFIG_PATH).read_text(encoding="utf-8"))
+    config_path, config_sha256, config = _load_config(config_path)
     if _sha(checkpoint) != config["checkpoint_sha256"]: raise ValueError("V21 checkpoint hash changed")
     if _sha(v21_onnx) != config["v21_onnx_sha256"]: raise ValueError("V21 ONNX hash changed")
     for path_key, hash_key in (("feasibility_path","feasibility_sha256"),("retry_diagnosis_path","retry_diagnosis_sha256"),("morphology_diagnosis_path","morphology_diagnosis_sha256"),("morphology_gap_path","morphology_gap_sha256"),("retry3_morphology_gap_path","retry3_morphology_gap_sha256"),("retry4_diagnosis_path","retry4_diagnosis_sha256"),("retry4_generic_fp_diagnosis_path","retry4_generic_fp_diagnosis_sha256"),("retry5_diagnosis_path","retry5_diagnosis_sha256"),("retry5_generic_fp_diagnosis_path","retry5_generic_fp_diagnosis_sha256"),("retry6_diagnosis_path","retry6_diagnosis_sha256"),("retry7_diagnosis_path","retry7_diagnosis_sha256"),("retry7_morphology_diagnosis_path","retry7_morphology_diagnosis_sha256"),("retry7_morphology_gap_path","retry7_morphology_gap_sha256"),("retry8_result_path","retry8_result_sha256"),("retry8_diagnosis_path","retry8_diagnosis_sha256"),("generator_audit_path","generator_audit_sha256"),("negative_audit_path","negative_audit_sha256"),("negative_gap_path","negative_gap_sha256"),("family_dev_baseline_path","family_dev_baseline_sha256"),("evidence_policy_path","evidence_policy_sha256"),("acceptance_bars_path","acceptance_bars_sha256")):
@@ -298,18 +389,11 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
         raise ValueError("anti-aliasing schedule does not match generator constant")
     if float(config["family_hard_negative_radius_px"]) != FAMILY_HARD_NEGATIVE_RADIUS_PX:
         raise ValueError("five-axis family hard-negative radius changed")
-    if not config.get("runtime_training_input_binding_path") or not config.get("runtime_training_input_binding_sha256"):
-        raise RuntimeError("training requires a frozen actual-runtime family input binding")
     if _sha(REPO_ROOT / config["runtime_input_preflight_path"]) != config["runtime_input_preflight_sha256"]:
         raise RuntimeError("runtime input preflight identity changed")
-    binding_started = time.perf_counter()
-    _configure(config["seed"])
-    family_join = load_runtime_family_binding(
-        REPO_ROOT / config["runtime_training_input_binding_path"],
-        config["runtime_training_input_binding_sha256"],
+    family_join, binding_schema, binding_elapsed_ms, authorization = (
+        _prepare_bound_family_inputs(config, config_path, config_sha256)
     )
-    binding_elapsed_ms = round((time.perf_counter() - binding_started) * 1000, 3)
-    authorization=acquire_training_candidate(REPO_ROOT,task=protocol.TASK,revision=protocol.TRAINING_REVISION,candidate_id=protocol.TRAINING_CANDIDATE_ID,config_path=CONFIG_PATH,runner_source_paths=RUNNER_SOURCE_PATHS)
     output_dir.mkdir(parents=True); report_path=output_dir/"candidate-report.json"; started=time.perf_counter(); phase="initialization"
     try:
         _configure(config["seed"]); split_audit=generator_audit(independent_layout=True)
@@ -379,10 +463,11 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
         parity=[]; parity_source=extract_proposals(dev[0].tensor).patches
         for count in [1,8,37]:
             x=parity_source[:count].contiguous(); expected=model(x).detach().numpy(); actual=session.run(["candidate_predictions"],{"candidate_patches":x.numpy()})[0]; parity.append({"candidate_count":count,"maximum_absolute_error":float(np.max(np.abs(expected-actual)))})
-        report={"schema":"graphreader.marker-center-mask-preserving-v24-candidate.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"status":"dev_passed" if dev_passed and max(r["maximum_absolute_error"] for r in parity)<=config["onnx_parity_tolerance"] else "failed_dev","synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0,"optimizer_steps":steps,"training_example_count":len(labels),"positive_example_count":int((labels>.5).sum()),"hard_negative_example_count":int(hard.sum()),"real_range_training_example_count":len(real_labels),"family_training_example_count":len(family_labels),"family_positive_example_count":int((family_labels>.5).sum()),"family_hard_negative_example_count":int(family_hard.sum()),"negative_sampling":{"seed":20260904,"split":"train","capacities":sampling.capacities,"counts":sampling.counts,"selected_index_sha256":sampling.selected_index_sha256,"topology_radius_px":topology_config["radius_px"],"topology_capacity":sampling.topology_capacity,"topology_selected":sampling.topology_selected,"topology_selected_index_sha256":sampling.topology_selected_index_sha256,"topology_hard_radius_px":topology_hard_config["radius_px"],"topology_hard_capacity":sampling.topology_hard_capacity,"topology_hard_selected":sampling.topology_hard_selected,"hard_training_total":sampling.hard_training_total,"connector_endpoint_offset_px":connector_config["endpoint_offset_px"],"connector_anchor_max_distance_px":connector_config["max_distance_px"],"connector_anchor_target_count":sampling.connector_anchor_target_count,"connector_anchor_capacity":sampling.connector_anchor_capacity,"connector_anchor_selected":sampling.connector_anchor_selected,"connector_anchor_selected_index_sha256":sampling.connector_anchor_selected_index_sha256,"generic_connector_band_radius_px":band_config["radius_px"],"generic_connector_band_capacity":sampling.capacities["generic_connector_band"],"generic_connector_band_selected":sampling.counts["generic_connector_band"],"generic_connector_band_selected_index_sha256":sampling.generic_connector_band_selected_index_sha256,"generic_remainder_selected":sampling.generic_remainder_selected},"family_sampling":{"mode":"family-train","capacities":family_sampling.capacities,"counts":family_sampling.counts,"selected_index_sha256":family_sampling.selected_index_sha256},"generator_layout_family_audit":layout_audit,"five_axis_family_audit":family_audit,"family_train_tensor_set_sha256":config["family_train_tensor_set_sha256"],"family_dev_tensor_set_sha256":config["family_dev_tensor_set_sha256"],"acceptance_bar":bar,"dev_comparisons":comparisons,"family_dev_comparisons":family_comparisons,"selected":selected,"family_selected":family_selected,"real_range_dev_gate_passed":real_range_dev_passed,"family_dev_gate_passed":family_dev_passed,"dev_gate_passed":dev_passed,"checkpoint_sha256":_sha(out_pt),"onnx_sha256":_sha(out_onnx),"v21_checkpoint_sha256":config["checkpoint_sha256"],"v21_onnx_sha256":config["v21_onnx_sha256"],"onnx_provider":protocol.PROVIDER,"onnx_dynamic_candidate_counts":parity,"onnx_parity_maximum_absolute_error":max(r["maximum_absolute_error"] for r in parity),"elapsed_ms":round((time.perf_counter()-started)*1000,3),"production_approval":False,"release_eligible":False}
+        report={"schema":"graphreader.marker-center-mask-preserving-v24-candidate.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"candidate_config_path":config_path.as_posix(),"candidate_config_sha256":config_sha256,"status":"dev_passed" if dev_passed and max(r["maximum_absolute_error"] for r in parity)<=config["onnx_parity_tolerance"] else "failed_dev","synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0,"optimizer_steps":steps,"training_example_count":len(labels),"positive_example_count":int((labels>.5).sum()),"hard_negative_example_count":int(hard.sum()),"real_range_training_example_count":len(real_labels),"family_training_example_count":len(family_labels),"family_positive_example_count":int((family_labels>.5).sum()),"family_hard_negative_example_count":int(family_hard.sum()),"negative_sampling":{"seed":20260904,"split":"train","capacities":sampling.capacities,"counts":sampling.counts,"selected_index_sha256":sampling.selected_index_sha256,"topology_radius_px":topology_config["radius_px"],"topology_capacity":sampling.topology_capacity,"topology_selected":sampling.topology_selected,"topology_selected_index_sha256":sampling.topology_selected_index_sha256,"topology_hard_radius_px":topology_hard_config["radius_px"],"topology_hard_capacity":sampling.topology_hard_capacity,"topology_hard_selected":sampling.topology_hard_selected,"hard_training_total":sampling.hard_training_total,"connector_endpoint_offset_px":connector_config["endpoint_offset_px"],"connector_anchor_max_distance_px":connector_config["max_distance_px"],"connector_anchor_target_count":sampling.connector_anchor_target_count,"connector_anchor_capacity":sampling.connector_anchor_capacity,"connector_anchor_selected":sampling.connector_anchor_selected,"connector_anchor_selected_index_sha256":sampling.connector_anchor_selected_index_sha256,"generic_connector_band_radius_px":band_config["radius_px"],"generic_connector_band_capacity":sampling.capacities["generic_connector_band"],"generic_connector_band_selected":sampling.counts["generic_connector_band"],"generic_connector_band_selected_index_sha256":sampling.generic_connector_band_selected_index_sha256,"generic_remainder_selected":sampling.generic_remainder_selected},"family_sampling":{"mode":"family-train","capacities":family_sampling.capacities,"counts":family_sampling.counts,"selected_index_sha256":family_sampling.selected_index_sha256},"generator_layout_family_audit":layout_audit,"five_axis_family_audit":family_audit,"family_train_tensor_set_sha256":config["family_train_tensor_set_sha256"],"family_dev_tensor_set_sha256":config["family_dev_tensor_set_sha256"],"acceptance_bar":bar,"dev_comparisons":comparisons,"family_dev_comparisons":family_comparisons,"selected":selected,"family_selected":family_selected,"real_range_dev_gate_passed":real_range_dev_passed,"family_dev_gate_passed":family_dev_passed,"dev_gate_passed":dev_passed,"checkpoint_sha256":_sha(out_pt),"onnx_sha256":_sha(out_onnx),"v21_checkpoint_sha256":config["checkpoint_sha256"],"v21_onnx_sha256":config["v21_onnx_sha256"],"onnx_provider":protocol.PROVIDER,"onnx_dynamic_candidate_counts":parity,"onnx_parity_maximum_absolute_error":max(r["maximum_absolute_error"] for r in parity),"elapsed_ms":round((time.perf_counter()-started)*1000,3),"production_approval":False,"release_eligible":False}
         report["runtime_training_inputs"] = {
             "binding_path": config["runtime_training_input_binding_path"],
             "binding_sha256": config["runtime_training_input_binding_sha256"],
+            "binding_schema": binding_schema,
             "preflight_elapsed_ms": binding_elapsed_ms,
             "family_train_panel_count": len(family_join.train),
             "family_dev_panel_count": len(family_join.dev),
@@ -393,10 +478,10 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
             "production_approved": False,
         }
     except Exception as error:
-        report={"schema":"graphreader.marker-center-mask-preserving-v24-failure.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"status":"failed_runner","phase":phase,"exception_type":type(error).__name__,"exception_message":str(error),"synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0}
+        report={"schema":"graphreader.marker-center-mask-preserving-v24-failure.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"candidate_config_path":config_path.as_posix(),"candidate_config_sha256":config_sha256,"status":"failed_runner","phase":phase,"exception_type":type(error).__name__,"exception_message":str(error),"synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0}
         report_path.write_bytes(canonical_json_bytes(report)); void_candidate(authorization,error); raise
     report_path.write_bytes(canonical_json_bytes(report)); complete_training_candidate(authorization,status=report["status"],report_sha256=sha256_file(report_path)); return report
 
 def main():
-    p=argparse.ArgumentParser(); p.add_argument("--output-dir",type=Path,required=True); p.add_argument("--checkpoint",type=Path,required=True); p.add_argument("--onnx",type=Path,required=True); a=p.parse_args(); print(json.dumps(run(a.output_dir.resolve(),a.checkpoint.resolve(),a.onnx.resolve()),indent=2,sort_keys=True))
+    p=argparse.ArgumentParser(); p.add_argument("--output-dir",type=Path,required=True); p.add_argument("--checkpoint",type=Path,required=True); p.add_argument("--onnx",type=Path,required=True); p.add_argument("--config",type=Path,default=CONFIG_PATH); a=p.parse_args(); print(json.dumps(run(a.output_dir.resolve(),a.checkpoint.resolve(),a.onnx.resolve(),a.config),indent=2,sort_keys=True))
 if __name__ == "__main__": main()
