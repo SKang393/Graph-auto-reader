@@ -1,0 +1,291 @@
+{
+  "interpretation": "All seven actual workflow cases failed calibration. The scorer preserves 306 source points and 324 required rows including shared-baseline copies; all are missing. No export accuracy or production acceptance is established.",
+  "license_review": "Project-owned synthetic truth and existing reviewed dependencies only; no new model, library, private data or font binary is bundled.",
+  "limitations": [
+    "Synthetic fixture tests validate the evaluator, not model accuracy.",
+    "This fixed saved run produced no CSV. The stage accuracy, guarded real/sealed execution, actual Production workflow and final paired packages remain required."
+  ],
+  "reporting_repair": {
+    "change": "No exported points or rows now gives undefined precision (null), with zero full-truth coverage. The preceding model-free report used a vacuous 1.0 precision for empty output; all counts and full-truth coverage are unchanged.",
+    "model_rerun": false,
+    "prior_result_path": "artifacts/frozen-workflow-candidate-inputs/csv-evaluation/workflow-v2-csv-evaluation-report-v1.json",
+    "prior_result_preserved": true,
+    "prior_result_sha256": "485c2401000f454f2f3dd013e0e2ded58c6cd59df5e182b64658e890f0dbc958"
+  },
+  "result": {
+    "acceptance_evaluated": false,
+    "elapsed_milliseconds": 95.2663,
+    "evaluation_input_sha256": "5466fe8b224d904d9f29c9319cee46a3032e8030983bda38bf802136e8cd3886",
+    "metrics": {
+      "actual_rows": 0,
+      "artifact_integrity_valid": true,
+      "completed_cases": 0,
+      "correct_rows": 0,
+      "duplicate_rows": 0,
+      "expected_rows": 324,
+      "extra_rows": 0,
+      "failed_cases": 7,
+      "failure_kinds": {
+        "workflow_failed": 7
+      },
+      "integrity_failure_cases": 0,
+      "matched_points": 0,
+      "matched_relational_graph_value_accuracy": null,
+      "matched_relational_phase_accuracy": null,
+      "matched_series": 0,
+      "matched_unique_point_value_accuracy": null,
+      "missing_rows": 324,
+      "output_cases": 7,
+      "predicted_points": 0,
+      "predicted_series": 0,
+      "relational_phase_metrics_available": true,
+      "relational_row_coverage": 0,
+      "relational_row_metrics_available": true,
+      "relational_row_precision": null,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "structurally_matched_rows": 0,
+      "truth_cases": 7,
+      "truth_points": 306,
+      "truth_series": 17,
+      "unexpected_cases": 0,
+      "unique_point_extra": 0,
+      "unique_point_missing": 306,
+      "unique_point_structural_coverage": 0,
+      "unique_point_structural_precision": 0,
+      "unique_point_value_correct": 0,
+      "unique_point_value_coverage": 0,
+      "unique_point_value_incorrect": 0,
+      "unique_point_value_metrics_available": true,
+      "unique_point_value_precision": null,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_wrong_scale": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 0,
+      "wrong_relation_rows": 0,
+      "wrong_scale_rows": 0
+    },
+    "model_inference_runs": 0,
+    "options": {
+      "graph_x_absolute_tolerance": 0.5,
+      "graph_y_absolute_tolerance": 5,
+      "source_pixel_match_tolerance": 5
+    },
+    "private_corpus_access": false,
+    "production_approved": false,
+    "schema": "graphreader.frozen-workflow-csv-evaluation-report.v1",
+    "scope": "project-owned-synthetic-only",
+    "sealed_corpus_access": false,
+    "source_count": 7,
+    "status": "diagnostic-completed",
+    "truth_consumed_by_inference": false,
+    "workflow_report": {
+      "path": "artifacts/frozen-workflow-candidate-inputs/workflow-run-v2/report.json",
+      "sha256": "3f5e2a840252d98c3f1af6bd8d87ca9e79b64f57829f3b9b7b9dd7abf45c83ef"
+    }
+  },
+  "schema": "graphreader.goal22-whole-workflow-csv-outcome.v1",
+  "scope": {
+    "acceptance_evaluated": false,
+    "model_inference_runs_for_scoring": 0,
+    "private_reads": 0,
+    "production_approved": false,
+    "sealed_reads": 0,
+    "synthetic_only": true
+  },
+  "source_evidence": {
+    "evaluation_input": {
+      "path": "artifacts/frozen-workflow-candidate-inputs/csv-evaluation/workflow-v2-csv-evaluation-input-v2.json",
+      "sha256": "5466fe8b224d904d9f29c9319cee46a3032e8030983bda38bf802136e8cd3886",
+      "truth_rows_committed": false
+    },
+    "executable": {
+      "byte_count": 38949214,
+      "execution_manifest_sha256": "9a4fd202f8714cbe84045acc464262bc03450ac69c08dcbfbf9e90fc9df77328",
+      "file_count": 35,
+      "model_inference_runs": 0,
+      "packaged_application": false,
+      "private_reads": 0,
+      "reviewed_native_copied_but_not_exercised_by_csv_scoring": true,
+      "scope": "framework-dependent-model-free-evaluator",
+      "script_sha256": "985a72540c148f6a14edc2391c6747c6b983130c6e7db182608c2989b70e1f3a",
+      "sealed_reads": 0,
+      "source_count": 216,
+      "source_manifest_sha256": "eec52ed70b5fc581cacfeab5839b7433c3f901a0ba662b866413ee5e46abb60f"
+    },
+    "executable_path": "artifacts/frozen-workflow-candidate-inputs/csv-evaluator-executable-v2",
+    "report": {
+      "path": "artifacts/frozen-workflow-candidate-inputs/csv-evaluation/workflow-v2-csv-evaluation-report-v2.json",
+      "sha256": "cd5c5dd19971befdbc240149a6b804448ff7d17770b82338661a2c957331b1fb"
+    },
+    "source_sha256": {
+      "tools/GraphReader.RealAcceptance.Ocr/FrozenWorkflowCsvScoring.cs": "ab3218cb36ba23efadf9dfa4304eb1065dd4032305567cf7e07a13a690b652d2",
+      "tools/GraphReader.RealAcceptance.Ocr/FrozenWorkflowCsvScoringSelfTest.cs": "0cc7297ca3bac68c5c989a45ff3524b98a0ecfcf34ee8d715d85b1542869d3a1",
+      "tools/GraphReader.RealAcceptance.Ocr/Program.cs": "9e17b905e0758b25faae5d1abeb27d33392d5572a84a6ef2d53cb38bd24365e2",
+      "tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs": "ee7edce8b5c9c07e646b4d6a294b2bac5ed5575764bc5036b37729667d659308",
+      "tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluatorSelfTest.cs": "dc0d204e5adef3127e1e688f1f5103833a344b360e6b0880a9ff2afc8e4b2e0f",
+      "tools/GraphReader.RealAcceptance.Ocr/build_frozen_workflow_truth.py": "df5e1a0794077485d9de6e01f6a714abe2a2afab0b68f63f0a28303daf0762a8",
+      "tools/GraphReader.RealAcceptance.Ocr/test_build_frozen_workflow_truth.py": "dcfa264d3e4d51db49c365d52a626546c46ba3e7c103673b0155a6ee3eb6ef54"
+    },
+    "truth_provenance": {
+      "acceptance_evaluated": false,
+      "builder": {
+        "path": "tools/GraphReader.RealAcceptance.Ocr/build_frozen_workflow_truth.py",
+        "sha256": "df5e1a0794077485d9de6e01f6a714abe2a2afab0b68f63f0a28303daf0762a8"
+      },
+      "candidate_binding": {
+        "path": "artifacts/frozen-workflow-candidate-inputs/workflow-candidate-v2/candidate-binding.json",
+        "sha256": "f6d87c77f7f436726f43906160488babca1457e0f769d564a0696da36738bf4e"
+      },
+      "counts": {
+        "failed_workflow_cases": 7,
+        "panels": 13,
+        "points": 306,
+        "relations": 16,
+        "series": 17,
+        "sources": 7
+      },
+      "expected_export_mode": "printed_session proved independently for every fixed panel",
+      "model_inference_runs": 0,
+      "production_approved": false,
+      "protocol": {
+        "path": "tools/GraphReader.RealAcceptance.Ocr/frozen_candidate_synthetic_protocol.json",
+        "sha256": "56f75cdbba1a634d6bf5f0012ec2c48cec58f0e8fc47d5a8f886e6ef72ccd9af"
+      },
+      "purpose": "offline synthetic workflow CSV diagnosis only",
+      "source_manifests": [
+        {
+          "path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json",
+          "sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37"
+        },
+        {
+          "path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+          "sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7"
+        }
+      ],
+      "truth_environment": {
+        "fonts": [
+          {
+            "alias": "sans",
+            "bundled": false,
+            "filename": "arial.ttf",
+            "sha256": "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a",
+            "size_px": 14
+          },
+          {
+            "alias": "serif",
+            "bundled": false,
+            "filename": "times.ttf",
+            "sha256": "931c5de5c70401d9324d5014c123802b4fb753000360ceb2f56c589403cd58c5",
+            "size_px": 14
+          },
+          {
+            "alias": "mono",
+            "bundled": false,
+            "filename": "consola.ttf",
+            "sha256": "cf00b507b3286870cc5064ebd0633c303f70b491a4af25eec2d32df413db0179",
+            "size_px": 14
+          }
+        ],
+        "packages": [
+          {
+            "name": "Pillow",
+            "version": "12.3.0"
+          },
+          {
+            "name": "jsonschema",
+            "version": "4.26.0"
+          }
+        ],
+        "source_dependencies": [
+          {
+            "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_original_model_input.py",
+            "sha256": "a36245ec82dcba0bc4f1a29ae04fc4c1417bf2d9ad113ff5b30d9ac93385b756"
+          },
+          {
+            "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_db_geometry_observation.py",
+            "sha256": "12569c6e68581d57959cf226eb91c8d1cc429ea5cf9cc111727bc9e52e9bea10"
+          },
+          {
+            "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py",
+            "sha256": "431392d074e985f953a1444982076466f461d3445c018a5c307f174ebc0a959e"
+          },
+          {
+            "path": "ml/synthetic/dataset.py",
+            "sha256": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b"
+          },
+          {
+            "path": "ml/synthetic/templates.py",
+            "sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+          },
+          {
+            "path": "ml/synthetic/renderer.py",
+            "sha256": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b"
+          },
+          {
+            "path": "ml/synthetic/fonts.py",
+            "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+          },
+          {
+            "path": "ml/synthetic/schema.py",
+            "sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98"
+          },
+          {
+            "path": "ml/synthetic/scene.schema.json",
+            "sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f"
+          },
+          {
+            "path": "ml/synthetic/io.py",
+            "sha256": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2"
+          },
+          {
+            "path": "ml/markers/center/mask_preserving_v24/family_scenes.py",
+            "sha256": "0872091244ebe4a2e87192c74b0720a911255816ced4b4fb55df811305a92686"
+          },
+          {
+            "path": "ml/ocr/component_region_detector_v6/dataset.py",
+            "sha256": "cfc1760cfe0f5231d34960100bed3b24bbd54bab6ab69919c3eae43fddc22f59"
+          },
+          {
+            "path": "ml/ocr/real_range_proposal_v34/pipeline.py",
+            "sha256": "7cfc997de0ceb39edfbc4f50c0ea5f07fb058f8eb65ceb21745ef099e291afa5"
+          },
+          {
+            "path": "ml/ocr/component_context_detector_v7/dataset.py",
+            "sha256": "96bebccedc58404e369a1ac3ef6fe3d4d8baa657872543f8958ed73e902d595f"
+          },
+          {
+            "path": "ml/synthetic/requirements.txt",
+            "sha256": "e7566b9f1fd194d241e4c758976cc2f3b2062b3a9481a7383c05949c5ed6e078"
+          }
+        ]
+      },
+      "truth_environment_guard": {
+        "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_initial_contour_output.py",
+        "sha256": "b8c705659c7816d333ca03618461bba82f2c0fb45098e682d86360aabff48502"
+      },
+      "workflow_input_manifest": {
+        "path": "artifacts/frozen-workflow-candidate-inputs/workflow-run-v2/frozen-inputs/input-manifest.json",
+        "sha256": "e06973c1ae2def6b774111c5d2673c2349e187c965a1ef5429ed3076498d29b5"
+      }
+    }
+  },
+  "status": "failed_synthetic_workflow_diagnostic",
+  "validation": {
+    "csv_evaluator_scenarios_passed": 25,
+    "independent_empty_output_precision_review": "clear",
+    "independent_frozen_snapshot_review": {
+      "execution_files_verified": 35,
+      "source_files_verified": 216
+    },
+    "independent_scorer_review": "clear",
+    "release_tool_build": {
+      "elapsed_seconds": 18.82,
+      "errors": 0,
+      "warnings": 0
+    },
+    "saved_workflow_binding_scenarios_passed": 10,
+    "truth_builder_review": "Astra verified source extraction, full denominator and pre-truth identity checks",
+    "truth_builder_seconds": 22.71,
+    "truth_builder_tests_passed": 8
+  }
+}

@@ -31,6 +31,25 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--self-test-frozen-workflow-csv-binding")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(FrozenWorkflowCsvScoringSelfTest.Run(), JsonOptions));
+            return 0;
+        }
+        if (args.Length == 7 && args[0] == "--score-frozen-workflow-csv" &&
+            args[1] == "--evaluation-input" && args[3] == "--evaluation-input-sha256" && args[5] == "--output")
+        {
+            object result = FrozenWorkflowCsvScoring.Run(
+                Environment.CurrentDirectory, Path.GetFullPath(args[2]), args[4], Path.GetFullPath(args[6]),
+                CancellationToken.None);
+            Console.WriteLine(JsonSerializer.Serialize(result, JsonOptions));
+            return 0;
+        }
+        if (args.Length == 1 && args[0] == "--self-test-whole-workflow-csv")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(WholeWorkflowCsvEvaluatorSelfTest.Run(), JsonOptions));
+            return 0;
+        }
         if (args.Contains("--self-test", StringComparer.Ordinal))
         {
             SelfTestReport selfTest = SelfTest();
