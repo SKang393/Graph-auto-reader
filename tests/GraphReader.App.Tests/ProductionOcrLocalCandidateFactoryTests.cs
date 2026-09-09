@@ -16,15 +16,17 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionOcrLocalCandidateFactoryTests
 {
     [TestMethod]
-    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.AxisMasked, GraphStructureConsensusAdmission.Required)]
-    [DataRow(GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.AxisMasked, GraphStructureConsensusAdmission.Required)]
-    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Required)]
-    [DataRow(GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Required)]
-    [DataRow(GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Advisory)]
+    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.AxisMasked, GraphStructureConsensusAdmission.Required, 0)]
+    [DataRow(GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.AxisMasked, GraphStructureConsensusAdmission.Required, 0)]
+    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Required, 0)]
+    [DataRow(GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Required, 0)]
+    [DataRow(GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Advisory, 0)]
+    [DataRow(GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Advisory, 1920)]
     public async Task ExactPinnedPairCreatesUnapprovedAdapterThroughSharedPreflight(
         GraphStructureConsensusGeometry outputGeometry,
         GraphStructureModelInput modelInput,
-        GraphStructureConsensusAdmission admission)
+        GraphStructureConsensusAdmission admission,
+        int maximumSideLength)
     {
         string root = CreateTemporaryDirectory();
         var sessionFactory = new ShapeAwareSessionFactory();
@@ -42,7 +44,8 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                     CancellationToken.None,
                     outputGeometry,
                     modelInput,
-                    admission);
+                    admission,
+                    maximumSideLength == 0 ? null : maximumSideLength);
 
             Assert.IsFalse(adapter.IsApproved);
             Assert.AreEqual(2, sessionFactory.CreatedCount);
@@ -51,6 +54,44 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                 GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput, admission));
             StringAssert.Contains(adapter.AdapterId, pair.Detection.Identity.Sha256[..12]);
             StringAssert.Contains(adapter.AdapterId, pair.Recognition.Identity.Sha256[..12]);
+            Assert.IsNotNull(sessionFactory.DetectionInputShape);
+            Assert.AreEqual(maximumSideLength == 0 ? 1024L : 1920L,
+                sessionFactory.DetectionInputShape.Max());
+            Assert.AreEqual(maximumSideLength == 1920,
+                adapter.AdapterId.Contains("-detector-max-1920", StringComparison.Ordinal));
+        }
+        finally
+        {
+            await host.DisposeAsync();
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(0, GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Advisory)]
+    [DataRow(960, GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Advisory)]
+    [DataRow(2048, GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Advisory)]
+    [DataRow(1920, GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Required)]
+    [DataRow(1920, GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Required)]
+    [DataRow(1920, GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.AxisMasked, GraphStructureConsensusAdmission.Required)]
+    public async Task ResolutionExperimentRejectsUnregisteredOptionsBeforeRuntimeInitialization(
+        int maximumSideLength,
+        GraphStructureConsensusGeometry geometry,
+        GraphStructureModelInput input,
+        GraphStructureConsensusAdmission admission)
+    {
+        string root = CreateTemporaryDirectory();
+        var sessionFactory = new ShapeAwareSessionFactory();
+        await using ProductionInferenceRuntimeHost host = CreateRuntimeHost(root, sessionFactory);
+        try
+        {
+            CandidatePair pair = WriteCandidatePair(root);
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                ProductionOcrAdapter.CreateForLocalSyntheticCandidateEvaluationAsync(
+                    pair.Detection, pair.Recognition, host, new string('d', 64), CancellationToken.None,
+                    geometry, input, admission, maximumSideLength));
+            Assert.IsFalse(host.IsInitialized);
+            Assert.AreEqual(0, sessionFactory.CreatedCount);
         }
         finally
         {
@@ -516,6 +557,8 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
 
         public int RunCount => Volatile.Read(ref runCount);
 
+        public long[]? DetectionInputShape { get; private set; }
+
         public ValueTask<IInferenceSession> CreateAsync(
             ModelIdentity model,
             InferenceProvider provider,
@@ -528,14 +571,21 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                 new ShapeAwareSession(
                     provider,
                     isDetection: model.ModelId.Contains("det", StringComparison.Ordinal),
-                    () => Interlocked.Increment(ref runCount)));
+                    (input, isDetection) =>
+                    {
+                        Interlocked.Increment(ref runCount);
+                        if (isDetection)
+                        {
+                            DetectionInputShape = input.Shape.ToArray();
+                        }
+                    }));
         }
     }
 
     private sealed class ShapeAwareSession(
         InferenceProvider provider,
         bool isDetection,
-        Action recordRun) : IInferenceSession
+        Action<InferenceInput, bool> recordRun) : IInferenceSession
     {
         public InferenceProvider Provider { get; } = provider;
 
@@ -544,7 +594,7 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            recordRun();
+            recordRun(input, isDetection);
             int outputLength = isDetection
                 ? checked((int)(input.Shape[^2] * input.Shape[^1]))
                 : checked((int)input.Shape[0] * 4);

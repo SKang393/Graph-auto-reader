@@ -32,6 +32,11 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--self-test-high-resolution")
+        {
+            HighResolutionExperiment.SelfTest();
+            return 0;
+        }
         if (args.Length == 1 && args[0] == "--self-test-advisory-structure")
         {
             AdvisoryStructureExperiment.SelfTest();
@@ -109,11 +114,20 @@ internal static class Program
         {
             throw new InvalidDataException("An explicitly unapproved local candidate descriptor is required.");
         }
+        var resolutionExperiment = HighResolutionExperiment.Read(
+            config, Text(inputs, "split"), inputPath, inputManifestSha256, RepositoryRoot());
+        using JsonDocument normalizedCandidate = JsonDocument.Parse(resolutionExperiment.NormalizedCandidateJson);
         (GraphStructureModelInput modelInput, string? modelInputProtocolSha256,
             string? initialContourProtocolSha256, GraphStructureConsensusAdmission admission,
             string? admissionProtocolSha256) = AdvisoryStructureExperiment.Read(
-                config, Text(inputs, "split"), inputPath, inputManifestSha256, RepositoryRoot());
-        DbGeometryDiagnosticBinding? dbGeometryDiagnostic = args.Length == 7
+                normalizedCandidate.RootElement, Text(inputs, "split"), inputPath, inputManifestSha256, RepositoryRoot());
+        if (resolutionExperiment.MaximumSideLength is not null && args.Length == 7)
+        {
+            throw new InvalidDataException("The resolution experiment already binds its own DB geometry observation protocol.");
+        }
+        DbGeometryDiagnosticBinding? dbGeometryDiagnostic = resolutionExperiment.MaximumSideLength is not null
+            ? new DbGeometryDiagnosticBinding(resolutionExperiment.ProtocolPath!, resolutionExperiment.ProtocolSha256!)
+            : args.Length == 7
             ? ValidateDbGeometryDiagnostic(
                 args[5],
                 args[6],
@@ -230,13 +244,21 @@ internal static class Program
         var total = Stopwatch.StartNew();
         ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForLocalSyntheticCandidateEvaluationAsync(
             Descriptor(config.GetProperty("detector")), Descriptor(config.GetProperty("recognizer")),
-            runtime, nativeSha, cancellationToken, outputGeometry, modelInput, admission).ConfigureAwait(false);
+            runtime, nativeSha, cancellationToken, outputGeometry, modelInput, admission,
+            resolutionExperiment.MaximumSideLength).ConfigureAwait(false);
         LocalSyntheticOcrModelDescriptor diagnosticDescriptor = Descriptor(config.GetProperty("detector"));
         var dbGeometryObservations = new List<OcrDbGeometryObservation>();
         LocalOnnxTextRegionDetectorOptions diagnosticDetectionOptions =
             ProductionOcrAdapter.ReadDetectionOptions(
                 diagnosticDescriptor.Identity,
                 diagnosticDescriptor.ManifestPath);
+        if (resolutionExperiment.MaximumSideLength is not null)
+        {
+            diagnosticDetectionOptions = diagnosticDetectionOptions with
+            {
+                MaximumSideLength = resolutionExperiment.MaximumSideLength.Value,
+            };
+        }
         if (dbGeometryDiagnostic is not null)
         {
             diagnosticDetectionOptions = diagnosticDetectionOptions with
@@ -678,6 +700,13 @@ internal static class Program
             JsonObject document = JsonNode.Parse(reportJson)!.AsObject();
             document["structure_admission"] = "advisory";
             document["admission_protocol_sha256"] = admissionProtocolSha256;
+            reportJson = document.ToJsonString(JsonOptions);
+        }
+        if (resolutionExperiment.MaximumSideLength is not null)
+        {
+            JsonObject document = JsonNode.Parse(reportJson)!.AsObject();
+            document["detector_maximum_side_length"] = resolutionExperiment.MaximumSideLength.Value;
+            document["detector_resolution_protocol_sha256"] = resolutionExperiment.ProtocolSha256;
             reportJson = document.ToJsonString(JsonOptions);
         }
         _ = await WriteBytesAsync(outputRoot, "report.json", System.Text.Encoding.UTF8.GetBytes(

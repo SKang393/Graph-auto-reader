@@ -191,7 +191,8 @@ public sealed class ProductionOcrAdapter :
         ProductionOcrConfigurationScope configurationScope,
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
         GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
-        GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required)
+        GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required,
+        int? detectorMaximumSideLength = null)
     {
         ArgumentNullException.ThrowIfNull(pipelineFactory);
         pipeline = new Lazy<OcrPipeline>(
@@ -204,6 +205,11 @@ public sealed class ProductionOcrAdapter :
         OpenCvRuntimeSha256 = ValidateSha256(openCvRuntimeSha256, nameof(openCvRuntimeSha256));
         this.modelInput = modelInput;
         compositionVersion = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput, admission);
+        RequireResolutionExperiment(detectorMaximumSideLength, configurationScope, outputGeometry, modelInput, admission);
+        if (detectorMaximumSideLength is not null)
+        {
+            compositionVersion += "-detector-max-1920";
+        }
         if (configurationScope == ProductionOcrConfigurationScope.ApprovedProduction &&
             (outputGeometry != GraphStructureConsensusGeometry.ModelPolygon ||
              modelInput != GraphStructureModelInput.AxisMasked ||
@@ -278,11 +284,15 @@ public sealed class ProductionOcrAdapter :
         CancellationToken cancellationToken,
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
         GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
-        GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required)
+        GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required,
+        int? detectorMaximumSideLength = null)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
         ArgumentNullException.ThrowIfNull(runtimeHost);
+        RequireResolutionExperiment(detectorMaximumSideLength,
+            ProductionOcrConfigurationScope.UnapprovedLocalSyntheticCandidate,
+            outputGeometry, modelInput, admission);
         if (admission == GraphStructureConsensusAdmission.Advisory &&
             (outputGeometry != GraphStructureConsensusGeometry.InitialDbContour ||
              modelInput != GraphStructureModelInput.Original))
@@ -338,7 +348,8 @@ public sealed class ProductionOcrAdapter :
                 cancellationToken,
                 outputGeometry,
                 modelInput,
-                admission)
+                admission,
+                detectorMaximumSideLength)
             .ConfigureAwait(false);
     }
 
@@ -415,11 +426,17 @@ public sealed class ProductionOcrAdapter :
         CancellationToken cancellationToken,
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
         GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
-        GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required)
+        GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required,
+        int? detectorMaximumSideLength = null)
     {
+        RequireResolutionExperiment(detectorMaximumSideLength, configurationScope, outputGeometry, modelInput, admission);
         LocalOnnxTextRegionDetectorOptions detectorOptions = ReadDetectionOptions(
             detectionModel,
             detectionManifestPath);
+        if (detectorMaximumSideLength is not null)
+        {
+            detectorOptions = detectorOptions with { MaximumSideLength = detectorMaximumSideLength.Value };
+        }
         (LocalOnnxTextRecognizerOptions Recognizer, OcrPipelineOptions Pipeline) recognition =
             ReadRecognitionOptions(recognitionModel, recognitionManifestPath);
         bool usesOfficialSpacingV2 = UsesOfficialRecognitionSpacingV2Manifest(
@@ -468,7 +485,30 @@ public sealed class ProductionOcrAdapter :
             configurationScope,
             outputGeometry,
             modelInput,
-            admission);
+            admission,
+            detectorMaximumSideLength);
+    }
+
+    private static void RequireResolutionExperiment(
+        int? maximumSideLength,
+        ProductionOcrConfigurationScope scope,
+        GraphStructureConsensusGeometry geometry,
+        GraphStructureModelInput input,
+        GraphStructureConsensusAdmission admission)
+    {
+        if (maximumSideLength is null)
+        {
+            return;
+        }
+        if (maximumSideLength != 1920 ||
+            scope != ProductionOcrConfigurationScope.UnapprovedLocalSyntheticCandidate ||
+            geometry != GraphStructureConsensusGeometry.InitialDbContour ||
+            input != GraphStructureModelInput.Original ||
+            admission != GraphStructureConsensusAdmission.Advisory)
+        {
+            throw new InvalidOperationException(
+                "The 1920-pixel detector experiment requires the unapproved local original-input advisory initial-contour composition.");
+        }
     }
 
     private static Task ValidateExecutablePairAsync(

@@ -1,0 +1,26 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The completed advisory initial-contour run finds144 of183dev truths with64false detections and39misses. Across329train/dev truths it finds237, with109false detections and92misses. Both95percent bars fail. Earlier authenticated localization diagnosis attributes56 of92misses to ticks; missed glyph tensor heights range7.36to15.36pixels with median9.87. Doubling the detector maximum input side may recover small text. Evidence: docs/GOAL-22-ADVISORY-STRUCTURE-OUTCOME.json SHA2565befdf09e73544271a110d0503557a5db1ddd6effb61959402525f307b510bea and artifacts/synthetic-runtime-evidence/db-initial-error-diagnosis/report-v2.json SHA2562dba2990ce9ede6f2af1ff66521d4757c1c88134c2331fdc9d07f174cdb2ce0c. More resolution may also increase false detections or fragmentation; improvement is not assumed.",
+  "isolated_change": "Starting from the frozen Original+InitialDbContour+Advisory candidate, change only the detector maximum side from960to1920 using an explicit local-synthetic override. Keep the existing official manifest at960 and record the override in candidate, adapter identity, configuration and cache evidence. Preserve weights, color order, normalization, official uint8 OpenCV resize algorithm,128alignment, DB thresholds/acceptance/unclip, initial output geometry, advisory admission, structural inputs and recognizer preprocessing. Apply1920to both actual pipeline detector and its independent raw diagnostic calls. Record actual accepted initial/expanded DB geometry as observer evidence under this same synthetic protocol so higher-resolution detections are scored from their own pixels, never reconstructed from a960run. Keep all old modes unchanged. No tiling, threshold, role, upstream mask, architecture or training change is combined with this experiment.",
+  "split_identities": {
+    "baseline_candidate_path": "artifacts/synthetic-runtime-evidence/advisory-structure-source-c96/candidate.json",
+    "baseline_candidate_sha256": "eed14ce421d56b8251213043337b2867ab7f96410404544341e512b27ffabbdd",
+    "baseline_protocol_path": "ml/ocr/official_bakeoff/advisory_structure_dev_protocol.json",
+    "baseline_protocol_sha256": "3210a4312b83531d1192f50eafe47c54407e10cd3411558a5c45dd7c709846eb",
+    "baseline_score_path": "artifacts/synthetic-runtime-evidence/advisory-structure-score-run1.json",
+    "baseline_score_sha256": "a3c2d913245acba7fbb5c17eac29adf96fc3368583af4c08f6fda548c2f2d154",
+    "train_manifest_path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json",
+    "train_manifest_sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37",
+    "dev_manifest_path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+    "dev_manifest_sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7",
+    "train_source_count": 4,
+    "train_panel_count": 4,
+    "train_truth_count": 146,
+    "dev_source_count": 3,
+    "dev_panel_count": 9,
+    "dev_truth_count": 183
+  },
+  "metric": "Run the actual candidate on every fixed synthetic source before isolated truth regeneration. Authenticate evaluator/helper/truth-source/font/package/protocol/candidate/executable/report identities before use. Use the current1920observer sidecars to verify raw contour provenance and the actual final successful/failed-region identity accounting. Score fixedIoU0.5 maximum-cardinality detection precision and recall over all146train plus183dev truths; failed sources retain their truth and zero predictions. Record detector dimensions, runtime and pixel allocation separately. Final OCR order follows existing ordinal region-ID ordering; detector order and unexposed metadata are source-backed only. Recognition and role changes remain descriptive. Compare all five prior modes against their own exact saved outputs.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json tier1_reviewable_error: text-region precision and recall minimum0.95, both required. Runtime and input-size growth are reported, not invented acceptance gates.",
+  "budget": {"synthetic_train_dev_runs": "unlimited", "optimizer_steps": 0, "private_reads": 0, "sealed_runs": 0, "production_approval": false, "release_eligible": false}
+}
