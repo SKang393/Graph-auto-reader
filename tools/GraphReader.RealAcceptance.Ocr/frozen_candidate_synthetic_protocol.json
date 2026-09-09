@@ -1,0 +1,48 @@
+{
+  "schema": "graphreader.frozen-workflow-synthetic-diagnostic-protocol.v1",
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "purpose": "Exercise the complete actual desktop workflow with a frozen unapproved model composition on existing project-owned synthetic rasters. This is integration diagnosis, not acceptance, model selection, or promotion.",
+  "workflow": ["Import", "Prepare", "Auto Detect", "untouched Review", "minimal and audit CSV Export"],
+  "fixed_models": {
+    "ocr_detection_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+    "ocr_recognition_sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+    "marker_center_sha256": "26bcf5757c68f0d823c55e6b3ef06d501c4e3ac5c7475df325d23869dc66b895",
+    "marker_center_outcome": "V24 retry12 failed both required synthetic dev gates. Its use here does not approve it or permit private or sealed evaluation.",
+    "marker_classifier_sha256": "26f9304f1689053a0b94aa896a1e239f6ade1e5c1920736a3535c1b32f803b8a"
+  },
+  "runtime": {
+    "provider": "cpu",
+    "graph_optimization": "disabled",
+    "intra_operation_threads": 1,
+    "inter_operation_threads": 1,
+    "queue_capacity": 1,
+    "worker_count": 1,
+    "opencv_native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+    "ocr_input": "default axis-masked input",
+    "ocr_geometry": "default expanded model polygon",
+    "marker_operating_threshold": 0.25,
+    "enhancement": false,
+    "manual_anchors": false,
+    "manual_points": false,
+    "manual_corrections": false,
+    "fallback_truth_or_calibration": false,
+    "executable_and_algorithm_identities": "Freeze every actual managed/native executable and static algorithm identity in the candidate binding before runtime initialization."
+  },
+  "input_identity": {
+    "train_manifest": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json",
+    "train_manifest_sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37",
+    "dev_manifest": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+    "dev_manifest_sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7",
+    "source_count": 7,
+    "expected_prepared_panels_from_prior_upstream_run": 13,
+    "source_selection": "Every source from both existing manifests in their declared order. The inference manifest includes only raster path, checksum, width and height, never annotations, panels, masks, calibrations or values."
+  },
+  "metrics": "Report all seven source outcomes, failures, untouched-review corrections, prepared panels, actual minimal/audit CSV artifact hashes and row counts, elapsed time and warnings. Retain failed sources. Successful file writing does not establish scientific accuracy; truth matching and complete end-to-end acceptance remain separate required work.",
+  "safety_properties": [
+    "Original source bytes remain unchanged",
+    "Calibration must be validated or export fails closed",
+    "No manual or inferred default values enter the workflow",
+    "Normal Production continues to reject unapproved stages"
+  ],
+  "budget": {"synthetic_diagnostic_runs": "unlimited", "optimizer_steps": 0, "private_reads": 0, "sealed_reads": 0, "production_approval": false, "release_approval": false}
+}

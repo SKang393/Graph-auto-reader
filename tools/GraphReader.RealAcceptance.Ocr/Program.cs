@@ -37,6 +37,39 @@ internal static class Program
             Console.WriteLine(JsonSerializer.Serialize(selfTest, JsonOptions));
             return string.Equals(selfTest.Status, "pass", StringComparison.Ordinal) ? 0 : 1;
         }
+        if (args.Contains("--describe-frozen-candidate-runtime", StringComparer.Ordinal))
+        {
+            FrozenCandidateRuntimeDescription description =
+                FrozenCandidateRuntimeDescription.Create();
+            Console.WriteLine(JsonSerializer.Serialize(description, JsonOptions));
+            return 0;
+        }
+        if (args.Contains("--run-frozen-candidate-synthetic", StringComparer.Ordinal))
+        {
+            string? bindingPath = GetOption(args, "--candidate-binding");
+            string? bindingSha256 = GetOption(args, "--candidate-binding-sha256");
+            string? inputPath = GetOption(args, "--input-manifest");
+            string? inputSha256 = GetOption(args, "--input-manifest-sha256");
+            string? outputPath = GetOption(args, "--output");
+            if (new[] { bindingPath, bindingSha256, inputPath, inputSha256, outputPath }
+                .Any(string.IsNullOrWhiteSpace))
+            {
+                Console.Error.WriteLine(
+                    "FROZEN_CANDIDATE_BINDING_INPUT_AND_OUTPUT_REQUIRED");
+                return 2;
+            }
+
+            FrozenCandidateSyntheticExecution execution = await FrozenCandidateSyntheticRunner.RunAsync(
+                Environment.CurrentDirectory,
+                Path.GetFullPath(bindingPath!),
+                bindingSha256!,
+                Path.GetFullPath(inputPath!),
+                inputSha256!,
+                Path.GetFullPath(outputPath!),
+                CancellationToken.None);
+            Console.WriteLine(JsonSerializer.Serialize(execution.Report, JsonOptions));
+            return execution.FailedCount == 0 ? 0 : 1;
+        }
         if (!args.Contains("--explicit-opt-in", StringComparer.Ordinal))
         {
             Console.Error.WriteLine("PRIVATE_CORPUS_EXPLICIT_OPT_IN_REQUIRED");
@@ -1502,6 +1535,8 @@ internal static class Program
     private static SelfTestReport SelfTest()
     {
         FrozenRealAssignmentSelfTest();
+        FrozenCandidateSelfTest.Run(Environment.CurrentDirectory);
+        FrozenCandidateBindingSelfTest.Run(Environment.CurrentDirectory);
         SelfTestReport exportSelfTest = ExportWorkflowEvaluatorSelfTest();
         AxisAnchor[] anchors = [new(0, 0, 0, 100), new(0, 10, 0, 80), new(20, 0, 1, 100)];
         Calibration calibration = Fit(anchors);

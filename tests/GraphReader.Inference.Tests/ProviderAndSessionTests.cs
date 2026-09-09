@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 
 using GraphReader.Inference;
+using Microsoft.ML.OnnxRuntime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GraphReader.Inference.Tests;
@@ -12,6 +13,42 @@ public sealed class ProviderAndSessionTests
     private static readonly string[] CpuAndDirectMlProviders = ["CPUExecutionProvider", "DmlExecutionProvider"];
 
     public TestContext TestContext { get; set; } = null!;
+
+    [TestMethod]
+    public void OnnxFactoryPreservesRuntimeDefaultGraphOptimizationForExistingCallers()
+    {
+        var factory = new OnnxInferenceSessionFactory(NoUiThreadGuard.Instance);
+        using var defaults = new SessionOptions();
+        using SessionOptions actual = factory.CreateSessionOptions(
+            InferenceProvider.Cpu,
+            CpuThreadConfiguration.Create(1, new FixedCoreDetector(2)));
+
+        Assert.AreEqual(defaults.GraphOptimizationLevel, actual.GraphOptimizationLevel);
+        Assert.AreEqual(OnnxGraphOptimizationMode.RuntimeDefault, factory.GraphOptimizationMode);
+    }
+
+    [TestMethod]
+    public void OnnxFactoryCanBindDisabledGraphOptimizationWithoutRunningInference()
+    {
+        var factory = new OnnxInferenceSessionFactory(
+            NoUiThreadGuard.Instance,
+            OnnxGraphOptimizationMode.Disabled);
+        using SessionOptions actual = factory.CreateSessionOptions(
+            InferenceProvider.Cpu,
+            CpuThreadConfiguration.Create(1, new FixedCoreDetector(2)));
+
+        Assert.AreEqual(GraphOptimizationLevel.ORT_DISABLE_ALL, actual.GraphOptimizationLevel);
+        Assert.AreEqual(OnnxGraphOptimizationMode.Disabled, factory.GraphOptimizationMode);
+    }
+
+    [TestMethod]
+    public void OnnxFactoryRejectsUnknownGraphOptimizationMode()
+    {
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            new OnnxInferenceSessionFactory(
+                NoUiThreadGuard.Instance,
+                (OnnxGraphOptimizationMode)int.MaxValue));
+    }
 
     [TestMethod]
     public void RuntimeProviderDiscoveryFindsMandatoryCpuProvider()

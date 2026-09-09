@@ -344,14 +344,31 @@ internal sealed class DrainingInferenceSession : IInferenceSession
     }
 }
 
+public enum OnnxGraphOptimizationMode
+{
+    RuntimeDefault,
+    Disabled,
+}
+
 public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
 {
     private readonly IUiThreadGuard _uiThreadGuard;
 
-    public OnnxInferenceSessionFactory(IUiThreadGuard uiThreadGuard)
+    public OnnxInferenceSessionFactory(
+        IUiThreadGuard uiThreadGuard,
+        OnnxGraphOptimizationMode graphOptimizationMode = OnnxGraphOptimizationMode.RuntimeDefault)
     {
         _uiThreadGuard = uiThreadGuard ?? throw new ArgumentNullException(nameof(uiThreadGuard));
+        GraphOptimizationMode = graphOptimizationMode is
+            OnnxGraphOptimizationMode.RuntimeDefault or OnnxGraphOptimizationMode.Disabled
+            ? graphOptimizationMode
+            : throw new ArgumentOutOfRangeException(
+                nameof(graphOptimizationMode),
+                graphOptimizationMode,
+                "Unsupported ONNX graph optimization mode.");
     }
+
+    public OnnxGraphOptimizationMode GraphOptimizationMode { get; }
 
     public async ValueTask<IInferenceSession> CreateAsync(
         ModelIdentity model,
@@ -369,7 +386,29 @@ public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
         cancellationToken.ThrowIfCancellationRequested();
         await VerifyChecksumAsync(model, cancellationToken).ConfigureAwait(false);
 
-        using var options = new SessionOptions();
+        using SessionOptions options = CreateSessionOptions(provider, cpuConfiguration);
+        var stopwatch = Stopwatch.StartNew();
+        var session = new InferenceSession(model.FilePath, options);
+        stopwatch.Stop();
+        return new OnnxInferenceSession(session, provider, _uiThreadGuard, stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    internal SessionOptions CreateSessionOptions(
+        InferenceProvider provider,
+        CpuThreadConfiguration cpuConfiguration)
+    {
+        ArgumentNullException.ThrowIfNull(cpuConfiguration);
+        if (provider is not (InferenceProvider.DirectMl or InferenceProvider.Cpu))
+        {
+            throw new ArgumentOutOfRangeException(nameof(provider), "The ONNX factory supports DirectML and CPU only.");
+        }
+
+        var options = new SessionOptions();
+        if (GraphOptimizationMode == OnnxGraphOptimizationMode.Disabled)
+        {
+            options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_DISABLE_ALL;
+        }
+
         if (provider == InferenceProvider.DirectMl)
         {
             // Required by the DirectML execution provider contract.
@@ -385,10 +424,7 @@ public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
             options.AppendExecutionProvider_CPU(1);
         }
 
-        var stopwatch = Stopwatch.StartNew();
-        var session = new InferenceSession(model.FilePath, options);
-        stopwatch.Stop();
-        return new OnnxInferenceSession(session, provider, _uiThreadGuard, stopwatch.Elapsed.TotalMilliseconds);
+        return options;
     }
 
     private static async Task VerifyChecksumAsync(ModelIdentity model, CancellationToken cancellationToken)

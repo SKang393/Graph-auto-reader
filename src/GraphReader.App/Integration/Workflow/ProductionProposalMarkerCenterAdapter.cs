@@ -21,6 +21,11 @@ internal sealed record ProposalMarkerPrediction(
     double Radius,
     double Confidence);
 
+internal sealed record FrozenCandidateMarkerCenterModelDescriptor(
+    ModelIdentity Identity,
+    string ManifestPath,
+    string ManifestSha256);
+
 public sealed record ProposalMarkerStageCounters(
     int ProposalGridPositionsConsidered,
     int LowInkRejects,
@@ -106,6 +111,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     private readonly int maximumDecodedCandidates;
     private readonly bool multiradiusGeometry;
     private readonly bool maskPreservingCandidate;
+    private readonly string maskPreservingRevision;
+    private readonly string maskPreservingCandidateId;
 
     public static ProductionProposalMarkerCenterAdapter CreateCandidate(
         ModelIdentity model,
@@ -141,6 +148,33 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             new RuntimeProposalMarkerInferenceRunner(runtime),
             multiradiusGeometry: true,
             maskPreservingCandidate: true);
+    }
+
+    internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidateEvaluation(
+        FrozenCandidateMarkerCenterModelDescriptor descriptor,
+        InferenceRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(runtime);
+        return CreateForFrozenCandidateEvaluation(
+            descriptor,
+            new RuntimeProposalMarkerInferenceRunner(runtime));
+    }
+
+    internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidateEvaluation(
+        FrozenCandidateMarkerCenterModelDescriptor descriptor,
+        IProposalMarkerInferenceRunner inference)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(inference);
+        ValidateFrozenCandidateDescriptor(descriptor);
+        return new ProductionProposalMarkerCenterAdapter(
+            descriptor.Identity,
+            inference,
+            multiradiusGeometry: true,
+            maskPreservingCandidate: true,
+            expectedMaskPreservingSha256: descriptor.Identity.Sha256,
+            maskPreservingRevision: descriptor.Identity.ModelId,
+            maskPreservingCandidateId: descriptor.Identity.Version);
     }
 
     public static ProductionProposalMarkerCenterAdapter Create(
@@ -181,14 +215,17 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         bool multiradiusGeometry = false,
         int? maximumDecodedCandidates = null,
         bool maskPreservingCandidate = false,
-        bool isApproved = false)
+        bool isApproved = false,
+        string? expectedMaskPreservingSha256 = null,
+        string? maskPreservingRevision = null,
+        string? maskPreservingCandidateId = null)
     {
         Model = model ?? throw new ArgumentNullException(nameof(model));
         Model.Validate();
         this.multiradiusGeometry = multiradiusGeometry;
         this.maskPreservingCandidate = maskPreservingCandidate;
         string expectedModelSha256 = maskPreservingCandidate
-            ? ExpectedMaskPreservingModelSha256
+            ? expectedMaskPreservingSha256 ?? ExpectedMaskPreservingModelSha256
             : multiradiusGeometry ? ExpectedMultiradiusModelSha256 : ExpectedModelSha256;
         if (!string.Equals(Model.Sha256, expectedModelSha256, StringComparison.OrdinalIgnoreCase))
         {
@@ -201,6 +238,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
 
         this.inference = inference ?? throw new ArgumentNullException(nameof(inference));
         IsApproved = isApproved;
+        this.maskPreservingRevision = maskPreservingRevision ?? MaskPreservingCandidateRevision;
+        this.maskPreservingCandidateId = maskPreservingCandidateId ?? MaskPreservingCandidateId;
         this.maximumDecodedCandidates = maximumDecodedCandidates ?? MaximumDecodedCandidates;
         if (this.maximumDecodedCandidates <= 0)
         {
@@ -307,6 +346,113 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         JsonElement output = SingleTensor(document.RootElement, "outputs");
         RequireTensor(input, "candidate_patches", [-1, 3, PatchSize, PatchSize]);
         RequireTensor(output, "candidate_predictions", [-1, 4]);
+    }
+
+    private static void ValidateFrozenCandidateDescriptor(
+        FrozenCandidateMarkerCenterModelDescriptor descriptor)
+    {
+        descriptor.Identity.Validate();
+        VerifyChecksum(
+            descriptor.Identity.FilePath,
+            descriptor.Identity.Sha256,
+            "frozen candidate proposal marker payload");
+        VerifyChecksum(
+            descriptor.ManifestPath,
+            descriptor.ManifestSha256,
+            "frozen candidate proposal marker manifest");
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(descriptor.ManifestPath));
+        JsonElement root = document.RootElement;
+        RequireExactString(root, "task", "marker_center", "Frozen candidate proposal marker manifest");
+        RequireExactString(root, "model_id", descriptor.Identity.ModelId, "Frozen candidate proposal marker manifest");
+        RequireExactString(root, "model_version", descriptor.Identity.Version, "Frozen candidate proposal marker manifest");
+        RequireExactString(root, "sha256", descriptor.Identity.Sha256, "Frozen candidate proposal marker manifest", ignoreCase: true);
+        JsonElement files = RequiredArray(root, "files", "Frozen candidate proposal marker manifest");
+        if (!files.EnumerateArray().Any(item => item.ValueKind == JsonValueKind.String &&
+            string.Equals(Path.GetFileName(item.GetString()), Path.GetFileName(descriptor.Identity.FilePath), StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidDataException("Frozen candidate proposal marker manifest does not identify its payload.");
+        }
+        VerifyMaskPreservingManifest(descriptor.ManifestPath);
+        JsonElement preprocessing = RequiredObject(root, "preprocessing", "Frozen candidate proposal marker manifest");
+        RequireExactString(preprocessing, "architecture", "scale-separated-multiscale-patch-cnn-v16", "Frozen candidate preprocessing");
+        RequireStringArray(preprocessing, "channels", ["ink_probability", "ocr_mask", "artifact_mask"], "Frozen candidate preprocessing");
+        RequireExactNumber(preprocessing, "patch_size", PatchSize, "Frozen candidate preprocessing");
+        RequireExactNumber(preprocessing, "proposal_stride", ProposalStride, "Frozen candidate preprocessing");
+        RequireExactNumber(preprocessing, "ink_support_window_size", 17, "Frozen candidate preprocessing");
+        RequireExactNumber(preprocessing, "ink_support_threshold", 0.11, "Frozen candidate preprocessing");
+        JsonElement postprocessing = RequiredObject(root, "postprocessing", "Frozen candidate proposal marker manifest");
+        RequireExactString(postprocessing, "algorithm", "mask_preserving_multiradius_v24", "Frozen candidate postprocessing");
+        RequireExactNumber(postprocessing, "center_threshold", CenterThreshold, "Frozen candidate postprocessing");
+        RequireExactNumber(postprocessing, "offset_scale", ProposalStride, "Frozen candidate postprocessing");
+        RequireExactNumber(postprocessing, "minimum_radius_pixels", 2.5, "Frozen candidate postprocessing");
+        RequireExactNumber(postprocessing, "maximum_radius_pixels", 8.0, "Frozen candidate postprocessing");
+        RequireExactNumber(postprocessing, "mask_rejection_threshold", 0.35, "Frozen candidate postprocessing");
+        RequireExactNumber(postprocessing, "minimum_center_separation_pixels", 5.0, "Frozen candidate postprocessing");
+        RequireExactNumber(postprocessing, "radius_suppression_scale", RadiusSuppressionScale, "Frozen candidate postprocessing");
+        RequireExactNumber(postprocessing, "maximum_decoded_candidates", MaximumDecodedCandidates, "Frozen candidate postprocessing");
+    }
+
+    private static JsonElement RequiredObject(JsonElement parent, string name, string label)
+    {
+        if (!parent.TryGetProperty(name, out JsonElement value) || value.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidDataException($"{label} field '{name}' must be an object.");
+        }
+        return value;
+    }
+
+    private static JsonElement RequiredArray(JsonElement parent, string name, string label)
+    {
+        if (!parent.TryGetProperty(name, out JsonElement value) || value.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidDataException($"{label} field '{name}' must be an array.");
+        }
+        return value;
+    }
+
+    private static void RequireExactString(
+        JsonElement parent,
+        string name,
+        string expected,
+        string label,
+        bool ignoreCase = false)
+    {
+        if (!parent.TryGetProperty(name, out JsonElement value) || value.ValueKind != JsonValueKind.String ||
+            !string.Equals(value.GetString(), expected,
+                ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+        {
+            throw new InvalidDataException($"{label} field '{name}' does not match the frozen V24 contract.");
+        }
+    }
+
+    private static void RequireStringArray(
+        JsonElement parent,
+        string name,
+        string[] expected,
+        string label)
+    {
+        JsonElement value = RequiredArray(parent, name, label);
+        string?[] actual = value.EnumerateArray()
+            .Select(static item => item.ValueKind == JsonValueKind.String ? item.GetString() : null)
+            .ToArray();
+        if (!actual.SequenceEqual(expected, StringComparer.Ordinal))
+        {
+            throw new InvalidDataException($"{label} field '{name}' does not match the frozen V24 contract.");
+        }
+    }
+
+    private static void RequireExactNumber(
+        JsonElement parent,
+        string name,
+        double expected,
+        string label)
+    {
+        if (!parent.TryGetProperty(name, out JsonElement value) ||
+            value.ValueKind != JsonValueKind.Number || !value.TryGetDouble(out double actual) ||
+            !double.IsFinite(actual) || actual != expected)
+        {
+            throw new InvalidDataException($"{label} field '{name}' does not match the frozen V24 contract.");
+        }
     }
 
     private static JsonElement SingleTensor(JsonElement root, string propertyName)
@@ -554,10 +700,10 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                             "proposal-patches",
                             frame.SourceImage.ToString(),
                             maskPreservingCandidate ? "marker_center_candidate_v24" : multiradiusGeometry ? "marker_center_candidate_v23" : "marker_center_candidate_p2",
-                            maskPreservingCandidate ? MaskPreservingCandidateRevision : multiradiusGeometry ? MultiradiusCandidateRevision : CandidateRevision,
+                            maskPreservingCandidate ? maskPreservingRevision : multiradiusGeometry ? MultiradiusCandidateRevision : CandidateRevision,
                             new Dictionary<string, object?>(StringComparer.Ordinal)
                             {
-                                ["candidate_id"] = maskPreservingCandidate ? MaskPreservingCandidateId : multiradiusGeometry ? MultiradiusCandidateId : CandidateId,
+                                ["candidate_id"] = maskPreservingCandidate ? maskPreservingCandidateId : multiradiusGeometry ? MultiradiusCandidateId : CandidateId,
                                 ["threshold"] = CenterThreshold,
                                 ["batch_offset"] = batchOffset,
                                 ["batch_count"] = count,
@@ -731,8 +877,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             InferenceResponse response = await inference.RunAsync(new InferenceRequest(
                 Model,
                 new InferenceInput(input, [proposals.Count, 3, PatchSize, PatchSize], "candidate_patches", "candidate_predictions"),
-                new StageCacheMaterial("candidate-only", "proposal-patches", frame.SourceImage.ToString(), "marker_center_candidate_v24_morphology", MaskPreservingCandidateRevision,
-                    new Dictionary<string, object?>(StringComparer.Ordinal) { ["candidate_id"] = MaskPreservingCandidateId, ["threshold"] = CenterThreshold, ["batch_offset"] = offset }, MarkerContract.Version),
+                new StageCacheMaterial("candidate-only", "proposal-patches", frame.SourceImage.ToString(), "marker_center_candidate_v24_morphology", maskPreservingRevision,
+                    new Dictionary<string, object?>(StringComparer.Ordinal) { ["candidate_id"] = maskPreservingCandidateId, ["threshold"] = CenterThreshold, ["batch_offset"] = offset }, MarkerContract.Version),
                 TimeSpan.FromSeconds(30), [InferenceProvider.Cpu], BypassCache: true), cancellationToken).ConfigureAwait(false);
             if (!response.Succeeded || response.Execution is null || response.Execution.Provider != InferenceProvider.Cpu || response.Execution.Output.Count != proposals.Count * 4)
                 throw new InvalidDataException("The V24 morphology diagnostic requires successful CPU inference with [N,4] output.");

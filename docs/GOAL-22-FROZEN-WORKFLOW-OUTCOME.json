@@ -1,0 +1,484 @@
+{
+  "candidate_binding": {
+    "binding": {
+      "algorithms": {
+        "artifact_algorithm_id": "raster-residual-artifacts",
+        "artifact_algorithm_version": "1",
+        "artifact_app_assembly_sha256": "16b9e103576d42d1f1a674b07181d34bfe713e52b5ce97ed436f7ebaf8e1ba8d",
+        "artifact_configuration_sha256": "51099824c38bb50a08685f67d84fd8f0862c9ffc0d52f89c7122e8281de25125",
+        "artifact_ocr_assembly_sha256": "3590e6fa619bb5f612151edd4b0760bd261309ba017036578b20a631f76ad050",
+        "axis_stage_version": "axis-opencv-v1",
+        "legend_adapter_id": "graphreader-legends:0.1.0",
+        "marker_center_candidate_id": "0.0.12",
+        "marker_center_revision": "marker-center-mask-preserving-v24",
+        "marker_classifier_adapter_id": "graphreader-marker-classifier:26f9304f1689",
+        "ocr_composition_version": "graph-structure-consensus-v1",
+        "ocr_output_geometry": "model_polygon",
+        "phase_adapter_id": "graphreader-phases:0.1.0"
+      },
+      "candidate_id": "synthetic-workflow-retry12-default-ocr-v1",
+      "managed_files": [
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.App.dll",
+          "sha256": "16b9e103576d42d1f1a674b07181d34bfe713e52b5ce97ed436f7ebaf8e1ba8d"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Axis.dll",
+          "sha256": "a2aa863d2c16ac239883e468df74e27fa3ac708f3e70b1f883a5e13b93ccec86"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Domain.dll",
+          "sha256": "171cefed85a0f8c8d8a9191bf1b53d76db24baea2e6b2d30fd2a7e705183141c"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Export.dll",
+          "sha256": "8e94f04cf2d4b96bacf6c1a674d1168534ada28e59a92e485865a367270b6391"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Imaging.dll",
+          "sha256": "b50849fc45f78f400de3aa4512d1f71ddbc593b7945287f0c53ff8b6254c0338"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Inference.dll",
+          "sha256": "056bf8f214d7f56014ec98b3bb3ff71515acbc8177782b70c6c3e89581514a59"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Legends.dll",
+          "sha256": "e535e465c19733b61a35d78c9a421d8a633c3a2a2d24ec19e0321ae413c5da24"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Markers.dll",
+          "sha256": "e93f47f518848f5b35fee44c816105c57aad05569566725aa76f6b993cb8846c"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Ocr.dll",
+          "sha256": "3590e6fa619bb5f612151edd4b0760bd261309ba017036578b20a631f76ad050"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Pdf.dll",
+          "sha256": "c44d0e469b192062965126bdc147dd1fbc743933cdeeebc9e33e358d95fc74fe"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.Phases.dll",
+          "sha256": "843d81981d415ead573a0493481cf4fccf50c2e8298e2c8a1e3b9570d4a252d2"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.RealAcceptance.Ocr.deps.json",
+          "sha256": "3554fff6d577e1dded6b024d160fe4447bb5ed527714ffb42e34b5d1d9f3d98d"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.RealAcceptance.Ocr.dll",
+          "sha256": "7319b50fdb71ea414f184cd4baba445d350263e39d43c2f7b79b867afc84f589"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.RealAcceptance.Ocr.runtimeconfig.json",
+          "sha256": "96bc2946dff8790400d652ec7f8de7bb043e954980d59470c112788b68a1fbd3"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/GraphReader.SuperResolution.dll",
+          "sha256": "a07527b9bde40f289e2835c5e32da21ce0d643e1f491e7f55f70ac58dbb11b38"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/Imazen.WebP.dll",
+          "sha256": "249ea68229527a3dc7dd516c2bdfe44b1cdfe6d644951ae8f48d0de858723f34"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/Microsoft.ML.OnnxRuntime.dll",
+          "sha256": "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/OpenCvSharp.dll",
+          "sha256": "a26fd4bfff04fe2a351b3b0b417cc9847ef8e10721a8e484e3b33850f510b509"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/System.Numerics.Tensors.dll",
+          "sha256": "9d96dc759fdb54cbc3c26ee65cfd78ff32e3745f418119cc0811e63d3f29ecb9"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/UglyToad.PdfPig.Core.dll",
+          "sha256": "70d93534a6573cb6674d94f6d3c2235c09a6a9e09d1d13b032a2a4a1c3b19818"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/UglyToad.PdfPig.dll",
+          "sha256": "e062781488d3a8557bcf670c57d6776ea7e723faa683b49ec4c6d449c087f5a1"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/UglyToad.PdfPig.DocumentLayoutAnalysis.dll",
+          "sha256": "3a763e3afd8b290fd46bbc91750459d057d6f64b8dc11ecd6527c977044086be"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/UglyToad.PdfPig.Fonts.dll",
+          "sha256": "aade3f7c3211c961303b136d78888da4194c183a1ea6503b72818b24cbd3a72a"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/UglyToad.PdfPig.Package.dll",
+          "sha256": "6da637d4a06099adf02036d632c3f4a7ea93f01c37145534e6d061725b0361b5"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/UglyToad.PdfPig.Tokenization.dll",
+          "sha256": "ad06282eb18bed04e3da01c757bcc16bc6fbfd8471660c1cddb5f75cbd643758"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/UglyToad.PdfPig.Tokens.dll",
+          "sha256": "128195b9c82ecf521ba2ddbfb358ff033c6d0a67938c87493ca8bf0991fff91d"
+        }
+      ],
+      "marker_center": {
+        "manifest": {
+          "file": "artifacts/frozen-workflow-candidate-inputs/marker-retry12-v1/marker-center.json",
+          "sha256": "3df58d8c844c339bf9b721f30853c4b33c835b8d1f3c0aee39aede3087dd767b"
+        },
+        "model_id": "marker-center-mask-preserving-v24",
+        "payload": {
+          "file": "artifacts/frozen-workflow-candidate-inputs/marker-retry12-v1/marker-center-mask-preserving-v24-p1.onnx",
+          "sha256": "26bcf5757c68f0d823c55e6b3ef06d501c4e3ac5c7475df325d23869dc66b895"
+        },
+        "reviewed_license_inputs": [
+          {
+            "declared_path": "LICENSE",
+            "file": "artifacts/frozen-workflow-candidate-inputs/marker-retry12-v1/Apache-2.0.txt",
+            "role": "license_text",
+            "sha256": "a59b18d0733b03daad84f60cacb7a2c5cbfbf89e46c5acc7bbaa83cff8b0a7f8"
+          },
+          {
+            "declared_path": "artifacts/frozen-workflow-candidate-inputs/marker-retry12-v1/MODEL_NOTICE.md",
+            "file": "artifacts/frozen-workflow-candidate-inputs/marker-retry12-v1/MODEL_NOTICE.md",
+            "role": "notice",
+            "sha256": "7661bc9519e0b86e47fc6c4b48654cc5e6cf23af129e630044016d471dff6359"
+          }
+        ],
+        "task": "marker_center",
+        "version": "0.0.12"
+      },
+      "marker_classifier": {
+        "benchmark_sha256": "c4fb25e45e9c6d77100de8230a30443231445fa71751d685ba66c65da370e7a3",
+        "manifest_sha256": "205081aa881c9ddbafc421ce79952316683e97a74a78a46c69f1b8f76a5542d0",
+        "model_id": "graph-marker-classifier",
+        "model_sha256": "26f9304f1689053a0b94aa896a1e239f6ade1e5c1920736a3535c1b32f803b8a",
+        "notice_sha256": "f230fbdf609db272f82e57aecc9de5f33d122bdfa5c0c1b4c773b289ee91e8ac",
+        "package_index_sha256": "d6610970680cb3fe7944f4725e0c54aa6e8ad81031bdb31a200f380b0c8ddbe4",
+        "store_root": "artifacts/frozen-workflow-candidate-inputs/static-v1/classifier-store",
+        "version": "0.1.0"
+      },
+      "native_files": [
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/libsharpyuv.dll",
+          "role": "native_dependency",
+          "sha256": "ceba59e40848e8e14960fc8c0f6ed125a6bfae216b3814c5ad202cb36d6a2a0d"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/libwebp.dll",
+          "role": "native_dependency",
+          "sha256": "3de66254c8c0f47f299c7d55750589bf0e9fb6ab65778ed004a81e958ad1c024"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/libwebpdemux.dll",
+          "role": "native_dependency",
+          "sha256": "af9124fc82821b7bef5d526d4dc4d857de7601833305f5d01ad68089706852c9"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/libwebpmux.dll",
+          "role": "native_dependency",
+          "sha256": "60947b85e84cb1e96f12e5863dab742641e51846713857063274eb93326672a6"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/onnxruntime.dll",
+          "role": "native_dependency",
+          "sha256": "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/onnxruntime_providers_shared.dll",
+          "role": "native_dependency",
+          "sha256": "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6"
+        },
+        {
+          "file": "artifacts/frozen-workflow-candidate-inputs/workflow-executable-v2/OpenCvSharpExtern.dll",
+          "role": "opencvsharp_extern",
+          "sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31"
+        }
+      ],
+      "ocr_detection": {
+        "manifest": {
+          "file": "artifacts/frozen-workflow-candidate-inputs/static-v1/ocr/detector/detector.json",
+          "sha256": "2ddb1599df210da50bf097383b1f691ee6e1bed27ba9c98b6695a6b06e7e8d51"
+        },
+        "model_id": "PP-OCRv5_mobile_det",
+        "payload": {
+          "file": "artifacts/frozen-workflow-candidate-inputs/static-v1/ocr/detector/PP-OCRv5_mobile_det.onnx",
+          "sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb"
+        },
+        "reviewed_license_inputs": [
+          {
+            "declared_path": "LICENSES/PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt",
+            "file": "artifacts/frozen-workflow-candidate-inputs/static-v1/licenses/PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt",
+            "role": "license_text",
+            "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+          },
+          {
+            "declared_path": "LICENSES/PaddlePaddle-PP-OCRv5-Models-Notice.txt",
+            "file": "artifacts/frozen-workflow-candidate-inputs/static-v1/licenses/PaddlePaddle-PP-OCRv5-Models-Notice.txt",
+            "role": "notice",
+            "sha256": "8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729"
+          }
+        ],
+        "task": "ocr_detection",
+        "version": "5.0.0"
+      },
+      "ocr_recognition": {
+        "manifest": {
+          "file": "artifacts/frozen-workflow-candidate-inputs/static-v1/ocr/recognizer/recognizer.json",
+          "sha256": "17259b3260c0d39b292be70b36e68d53a067992de3afeaf0809d4d981de4327a"
+        },
+        "model_id": "en_PP-OCRv5_mobile_rec",
+        "payload": {
+          "file": "artifacts/frozen-workflow-candidate-inputs/static-v1/ocr/recognizer/en_PP-OCRv5_mobile_rec.onnx",
+          "sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743"
+        },
+        "reviewed_license_inputs": [
+          {
+            "declared_path": "LICENSES/PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt",
+            "file": "artifacts/frozen-workflow-candidate-inputs/static-v1/licenses/PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt",
+            "role": "license_text",
+            "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+          },
+          {
+            "declared_path": "LICENSES/PaddlePaddle-PP-OCRv5-Models-Notice.txt",
+            "file": "artifacts/frozen-workflow-candidate-inputs/static-v1/licenses/PaddlePaddle-PP-OCRv5-Models-Notice.txt",
+            "role": "notice",
+            "sha256": "8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729"
+          }
+        ],
+        "task": "ocr_recognition",
+        "version": "5.0.0"
+      },
+      "protocol": {
+        "file": "tools/GraphReader.RealAcceptance.Ocr/frozen_candidate_synthetic_protocol.json",
+        "sha256": "56f75cdbba1a634d6bf5f0012ec2c48cec58f0e8fc47d5a8f886e6ef72ccd9af"
+      },
+      "revision": "goal22-frozen-workflow-diagnostic-v1",
+      "runtime": {
+        "execution_provider": "cpu",
+        "graph_optimization": "disabled",
+        "inter_operation_threads": 1,
+        "intra_operation_threads": 1,
+        "queue_capacity": 1,
+        "worker_count": 1
+      },
+      "schema": "graphreader.real-acceptance-frozen-candidate.v1"
+    },
+    "path": "artifacts/frozen-workflow-candidate-inputs/workflow-candidate-v2/candidate-binding.json",
+    "sha256": "f6d87c77f7f436726f43906160488babca1457e0f769d564a0696da36738bf4e"
+  },
+  "executed_report": {
+    "path": "artifacts/frozen-workflow-candidate-inputs/workflow-run-v2/report.json",
+    "report": {
+      "candidate_binding_sha256": "f6d87c77f7f436726f43906160488babca1457e0f769d564a0696da36738bf4e",
+      "candidate_id": "synthetic-workflow-retry12-default-ocr-v1",
+      "cases": [
+        {
+          "artifacts": [],
+          "correction_count": 0,
+          "error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+          "failure_type": "ProductionWorkflowStageException",
+          "height": 350,
+          "image_sha256": "54e80b935066ad15deaab2fa922c2e584da8a6ab7ac7e614dea79898f19a05dc",
+          "panel_count": 1,
+          "source_id": "e58e9606-6f3a-0c59-a475-401286b42c6a",
+          "status": "failed",
+          "warnings": [],
+          "width": 1200
+        },
+        {
+          "artifacts": [],
+          "correction_count": 0,
+          "error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+          "failure_type": "ProductionWorkflowStageException",
+          "height": 350,
+          "image_sha256": "d41b0af0347b9a5405942b35b0db4a8029a2693fdc045b80d51ad4ebe43d7e0d",
+          "panel_count": 1,
+          "source_id": "428bb372-6826-345e-9f8e-3146784cf359",
+          "status": "failed",
+          "warnings": [],
+          "width": 1200
+        },
+        {
+          "artifacts": [],
+          "correction_count": 0,
+          "error": "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | Numeric tick evidence is ambiguous because competing alternative models have equal support. | Independent session-origin sources disagree beyond the configured tolerance. | The first observed column maps to session 10, not session 1.",
+          "failure_type": "ProductionWorkflowStageException",
+          "height": 350,
+          "image_sha256": "1dc740828973744d8d98f58d60ee8ae6fa311e21044cf309faedc9b8f3de68d6",
+          "panel_count": 1,
+          "source_id": "38daf41c-3159-1c58-b611-0b0292b4f2bf",
+          "status": "failed",
+          "warnings": [],
+          "width": 1200
+        },
+        {
+          "artifacts": [],
+          "correction_count": 0,
+          "error": "Automatic calibration is incomplete: Numeric tick evidence is ambiguous because no transform has a strict majority of evidence weight. | Y-axis graph values must increase upward while original-pixel y coordinates increase downward. | No printed, shared-panel, expected, or manual session-1 origin is available. | The final printed session is unavailable, so the sessionmax_y0 anchor was not invented. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+          "failure_type": "ProductionWorkflowStageException",
+          "height": 890,
+          "image_sha256": "54247a62687e96f3ce41506551fc90007d0e5e8f0e987489cf0813f37ee09644",
+          "panel_count": 1,
+          "source_id": "1ca0d901-726f-b15e-aac1-b246a1fb5596",
+          "status": "failed",
+          "warnings": [],
+          "width": 1200
+        },
+        {
+          "artifacts": [],
+          "correction_count": 0,
+          "error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | Independent session-origin sources disagree beyond the configured tolerance. | Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance. | The first observed column maps to session -32, not session 1.",
+          "failure_type": "ProductionWorkflowStageException",
+          "height": 620,
+          "image_sha256": "cbba7fa549f142715bb20e1f1c7db75c8a8e4e8db25720c05ae544e5166e941d",
+          "panel_count": 2,
+          "source_id": "f8109735-5731-f452-855f-fccaeb6dac5c",
+          "status": "failed",
+          "warnings": [],
+          "width": 1200
+        },
+        {
+          "artifacts": [],
+          "correction_count": 0,
+          "error": "Automatic calibration is incomplete: Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance. | The first observed column maps to session -1, not session 1.",
+          "failure_type": "ProductionWorkflowStageException",
+          "height": 350,
+          "image_sha256": "6a7ad56e56a38017d28b9d02a9a12345ccbd52dca3c0d3be6f9f80901731f7bf",
+          "panel_count": 1,
+          "source_id": "a4cf4e6b-3e4f-6a51-a49d-d526e2249857",
+          "status": "failed",
+          "warnings": [],
+          "width": 1200
+        },
+        {
+          "artifacts": [],
+          "correction_count": 0,
+          "error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | Printed x-axis tick evidence does not define a valid left-to-right session transform. | Numeric tick evidence is ambiguous because competing alternative models have equal support. | Independent session-origin sources disagree beyond the configured tolerance. | Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance.",
+          "failure_type": "ProductionWorkflowStageException",
+          "height": 1700,
+          "image_sha256": "6931d8c5a85f5b59d426d4cac1b23a6ea50eab6fd6b3fbe3414ce4a8f82354eb",
+          "panel_count": 6,
+          "source_id": "7e9cff7d-6a3d-ed5a-ab72-39d8877746c7",
+          "status": "failed",
+          "warnings": [],
+          "width": 1200
+        }
+      ],
+      "completed_count": 0,
+      "elapsed_milliseconds": 34287.6583,
+      "execution_provider": "cpu",
+      "failed_count": 7,
+      "graph_optimization": "disabled",
+      "input_manifest_sha256": "e06973c1ae2def6b774111c5d2673c2349e187c965a1ef5429ed3076498d29b5",
+      "model_selection_performed": false,
+      "ocr_configuration_scope": "unapproved_frozen_candidate",
+      "private_corpus_access": false,
+      "production_approved": false,
+      "protocol_sha256": "56f75cdbba1a634d6bf5f0012ec2c48cec58f0e8fc47d5a8f886e6ef72ccd9af",
+      "revision": "goal22-frozen-workflow-diagnostic-v1",
+      "schema": "graphreader.real-acceptance-frozen-synthetic-report.v1",
+      "scope": "local-synthetic-frozen-candidate-diagnostic",
+      "sealed_corpus_access": false,
+      "source_count": 7,
+      "truth_consumed_by_inference": false
+    },
+    "sha256": "3f5e2a840252d98c3f1af6bd8d87ca9e79b64f57829f3b9b7b9dd7abf45c83ef"
+  },
+  "execution_snapshot": {
+    "contains_apphost_or_portable_mode": false,
+    "copied_dll_json_files": 35,
+    "framework_dependent_diagnostic": true,
+    "managed_binding_files": 26,
+    "manifest_sha256": "6614c56161bb76b23f269aa1390b488e3e37db609cbb63d7c6d54a13a51a30bf",
+    "native_binding_files": 7,
+    "runtime_description_sha256": "d09551ec00e6a34030347af982da02b54a55af13b1bb32bf37236c1085ab13c3",
+    "source_manifest_sha256": "20ff8d03986d6fd042588292e9957964da8dfac3fd21524d8aa3185c38042071",
+    "source_snapshot_files": 212
+  },
+  "license_review": "Existing reviewed Apache-2.0 OCR models and project-owned marker weights, checksum-bound notices and approved classifier store; reviewed source-built native runtime. No new dependency or distribution artifact.",
+  "limitations": [
+    "All seven inputs fail automatic calibration; actual scientific CSV accuracy remains unverified.",
+    "The marker payload previously failed synthetic dev; this diagnostic grants no model approval.",
+    "No real-corpus, sealed, normal Production UI, clean-machine or distribution acceptance occurred."
+  ],
+  "outcome": {
+    "all_sources_preserved_in_report": true,
+    "csv_files": 0,
+    "elapsed_ms": 34287.6583,
+    "failed_sources": 7,
+    "failure_stage": "automatic calibration during Auto Detect, before Review or Export",
+    "invalid_calibration_exports_blocked": 7,
+    "prepared_panels": 13,
+    "source_bytes_unchanged": true,
+    "source_count": 7,
+    "sources_exported": 0
+  },
+  "repairs_verified": [
+    "Dispose snapshot writer before exact-byte read-back",
+    "Authenticate protocol-declared complete ordered train/dev source manifests before runtime initialization"
+  ],
+  "schema": "graphreader.goal22-frozen-workflow-outcome.v1",
+  "scope": {
+    "manual_corrections": 0,
+    "packaged_application": false,
+    "private_reads": 0,
+    "production_approved": false,
+    "release_eligible": false,
+    "sealed_reads": 0,
+    "synthetic_only": true
+  },
+  "source_sha256": {
+    "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs": "6a0390ecec61f2cbb4de15c657a89bf431a6e872a5c89f1f3891e1298e524407",
+    "src/GraphReader.Inference/OnnxSessionRegistry.cs": "53a96215ded1232ef729193eade96f2e01181595737773efbd8d67a2ef3b35d4",
+    "tests/GraphReader.App.Tests/ProductionMarkerFrozenCandidateFactoryTests.cs": "14311986cd5882ac41b178198bc334c112cb16ea8469dd9d917c870af01a1425",
+    "tests/GraphReader.Inference.Tests/ProviderAndSessionTests.cs": "70a0bf5bc945e38cafabacb2434d5e9ebccf147f7a849985fb31cb1be0f3e920",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBinding.cs": "b5b71f0dd526916d2767ae1524d2f8c0b320d9b8ff1be74b6b91b0831e51f49e",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBindingSelfTest.cs": "b905b8d96353a48a3f9014f3be269a4c539bf0603f1011eb85b6c59b334967a9",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateRuntimeDescription.cs": "d2741e2f22291df512d50bb677dc0f1261122f7704a3e9646f09959c17de433b",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSelfTest.cs": "f44610970624f3ff19f5753cb33489836316a15dbb3d6a174a9642015cd298df",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs": "816997e08902a729d22be459c4b2c101822107528dd237db7d3ff0c14a4df9b1",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateWorkflowFactory.cs": "00ea5feb0aa5a50ecb0eca655471686b613d37556801433febe96546f93fea08",
+    "tools/GraphReader.RealAcceptance.Ocr/Program.cs": "8e1ff2bd7f0a5beec121ba006d83ad747784d6e03ec1428a745da7b266862def"
+  },
+  "startup_void": {
+    "path": "artifacts/frozen-workflow-candidate-inputs/workflow-run-v1/startup-void.json",
+    "record": {
+      "acceptance_budget_consumed": false,
+      "candidate_binding_sha256": "bae5d5af4c8d4999bd650d4bbfc4fa4719df9588b7b4874bcd68ffdaf9c28708",
+      "diagnosis": "File.ReadAllBytes attempts to reopen a file while the same method still owns an exclusive FileShare.None writer. Dispose the writer before read-back verification.",
+      "exception": "The process cannot access frozen-inputs/candidate-binding.json because it is being used by another process.",
+      "exception_type": "System.IO.IOException",
+      "execution_manifest_sha256": "6f729a3fac062d31eb4f5f0a6e1ed0f5da759d8a2341d16dda1568eae49c1af1",
+      "input_manifest_sha256": "e06973c1ae2def6b774111c5d2673c2349e187c965a1ef5429ed3076498d29b5",
+      "model_inference_runs": 0,
+      "model_runtime_initialized": false,
+      "next_action": "Repair the write helper and exact protocol source-set validation, rebuild the framework-dependent diagnostic executable, freeze a new binding, and rerun the same seven-source diagnostic.",
+      "optimizer_steps": 0,
+      "partial_snapshot_preserved": true,
+      "private_reads": 0,
+      "process_exit": "Unhandled exception was emitted; the lingering owned command was interrupted and exited with code 1.",
+      "protocol_sha256": "56f75cdbba1a634d6bf5f0012ec2c48cec58f0e8fc47d5a8f886e6ef72ccd9af",
+      "responsible_method": "FrozenCandidateSyntheticRunner.WriteNew",
+      "schema": "graphreader.frozen-workflow-startup-void.v1",
+      "sealed_reads": 0,
+      "status": "void"
+    },
+    "sha256": "962ea8885c402aa0e7cf43dee6326e0933e2bf79f85729eb2ebb31b0e6c93972"
+  },
+  "status": "failed_automatic_calibration",
+  "validation": {
+    "existing_app_suite_passed": 217,
+    "independent_composition_review": "clear after write and source-set repairs",
+    "inference_existing_opt_in_skips": 1,
+    "inference_suite_passed": 84,
+    "model_free_tool_self_test": "pass",
+    "tool_release_win_x64_build": {
+      "elapsed_seconds": 3.84,
+      "errors": 0,
+      "warnings": 0
+    }
+  }
+}
