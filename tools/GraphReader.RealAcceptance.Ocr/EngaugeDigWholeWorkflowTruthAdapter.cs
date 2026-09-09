@@ -102,6 +102,23 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
     internal static EngaugeDigWholeWorkflowTruth Read(
         string path,
         string caseKey,
+        CancellationToken cancellationToken) =>
+        ReadCore(path, caseKey, beforeFirstPayloadRead: null, cancellationToken);
+
+    internal static EngaugeDigWholeWorkflowTruth Read(
+        string path,
+        string caseKey,
+        Action beforeFirstPayloadRead,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(beforeFirstPayloadRead);
+        return ReadCore(path, caseKey, beforeFirstPayloadRead, cancellationToken);
+    }
+
+    private static EngaugeDigWholeWorkflowTruth ReadCore(
+        string path,
+        string caseKey,
+        Action? beforeFirstPayloadRead,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -114,7 +131,7 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
             throw new EngaugeDigTruthException("DIG_PROJECT_SIZE_UNSUPPORTED");
         }
 
-        string projectSha256 = Hash(stream, cancellationToken);
+        string projectSha256 = Hash(stream, beforeFirstPayloadRead, cancellationToken);
         stream.Position = 0;
         var settings = new XmlReaderSettings
         {
@@ -267,10 +284,15 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
             truthCase);
     }
 
-    private static string Hash(Stream stream, CancellationToken cancellationToken)
+    private static string Hash(
+        Stream stream,
+        Action? beforeFirstPayloadRead,
+        CancellationToken cancellationToken)
     {
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         var buffer = new byte[64 * 1024];
+        cancellationToken.ThrowIfCancellationRequested();
+        beforeFirstPayloadRead?.Invoke();
         int read;
         while ((read = stream.Read(buffer, 0, buffer.Length)) != 0)
         {

@@ -68,20 +68,90 @@ internal static class EngaugeDigWholeWorkflowTruthAdapterSelfTest
             checks.Add("source_image_identity_and_immutability");
             checks.Add("relations_and_phases_explicitly_unavailable");
             checks.Add("failed_runtime_retains_full_truth_denominator");
+
+            int validReadCallbacks = 0;
+            bool streamWasOpenDuringCallback = false;
+            EngaugeDigWholeWorkflowTruth callbackParsed = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                path,
+                "anonymous-case-callback",
+                () =>
+                {
+                    validReadCallbacks++;
+                    try
+                    {
+                        using var exclusive = new FileStream(
+                            path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                    }
+                    catch (IOException)
+                    {
+                        streamWasOpenDuringCallback = true;
+                    }
+                },
+                CancellationToken.None);
+            Require(validReadCallbacks == 1 && streamWasOpenDuringCallback &&
+                callbackParsed.ProjectSha256 == parsed.ProjectSha256 &&
+                callbackParsed.TruthCase.Points.SequenceEqual(parsed.TruthCase.Points),
+                "first payload callback runs once after open without changing output");
+            checks.Add("first_payload_callback_runs_once_after_open_without_changing_output");
+
+            int throwingCallbacks = 0;
+            var callbackFailure = new InvalidOperationException("fixture-ledger-failure");
+            try
+            {
+                _ = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                    path,
+                    "anonymous-case-callback-failure",
+                    () =>
+                    {
+                        throwingCallbacks++;
+                        throw callbackFailure;
+                    },
+                    CancellationToken.None);
+                throw new InvalidOperationException("Expected first payload callback failure.");
+            }
+            catch (InvalidOperationException exception) when (ReferenceEquals(exception, callbackFailure))
+            {
+            }
+            using (var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+                Require(exclusive.Length > 0, "callback failure closes unopened payload stream");
+            }
+            Require(throwingCallbacks == 1, "throwing callback runs exactly once");
+            checks.Add("callback_failure_prevents_payload_read_and_closes_stream");
+
             using (var canceled = new CancellationTokenSource())
             {
                 canceled.Cancel();
+                int canceledCallbacks = 0;
                 try
                 {
                     _ = EngaugeDigWholeWorkflowTruthAdapter.Read(
-                        path, "canceled-case", canceled.Token);
+                        path, "canceled-case", () => canceledCallbacks++, canceled.Token);
                     throw new InvalidOperationException("Expected cancellation.");
                 }
                 catch (OperationCanceledException)
                 {
                 }
+                Require(canceledCallbacks == 0, "pre-canceled read does not invoke callback");
             }
-            checks.Add("pre_canceled_read_rejected");
+            checks.Add("pre_canceled_read_rejected_without_callback");
+
+            int preReadFailureCallbacks = 0;
+            string missingPath = Path.Combine(directory, "missing.dig");
+            try
+            {
+                _ = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                    missingPath, "missing-case", () => preReadFailureCallbacks++, CancellationToken.None);
+                throw new InvalidOperationException("Expected missing project failure.");
+            }
+            catch (FileNotFoundException)
+            {
+            }
+            string emptyPath = Path.Combine(directory, "empty.dig");
+            File.WriteAllBytes(emptyPath, []);
+            ExpectFailureWithoutCallback(emptyPath, "DIG_PROJECT_SIZE_UNSUPPORTED", ref preReadFailureCallbacks);
+            Require(preReadFailureCallbacks == 0, "missing and empty inputs do not invoke callback");
+            checks.Add("missing_and_empty_inputs_fail_before_callback");
 
             EngaugeDigWholeWorkflowTruth translated = EngaugeDigWholeWorkflowTruthAdapter.Read(
                 Write(directory, "translated-calibration.dig", Document(
@@ -201,8 +271,11 @@ internal static class EngaugeDigWholeWorkflowTruthAdapterSelfTest
             {
                 stream.SetLength(EngaugeDigWholeWorkflowTruthAdapter.MaximumProjectBytes + 1);
             }
-            ExpectFailure(oversized, "DIG_PROJECT_SIZE_UNSUPPORTED");
-            checks.Add("project_byte_limit_enforced_before_parse");
+            int oversizedCallbacks = 0;
+            ExpectFailureWithoutCallback(
+                oversized, "DIG_PROJECT_SIZE_UNSUPPORTED", ref oversizedCallbacks);
+            Require(oversizedCallbacks == 0, "oversized input does not invoke callback");
+            checks.Add("project_byte_limit_enforced_before_callback_and_parse");
 
             return new
             {
@@ -239,6 +312,26 @@ internal static class EngaugeDigWholeWorkflowTruthAdapterSelfTest
             exception.Message.StartsWith(code, StringComparison.Ordinal) &&
             code.StartsWith(exception.Code, StringComparison.Ordinal))
         {
+        }
+    }
+
+    private static void ExpectFailureWithoutCallback(string path, string code, ref int callbackCount)
+    {
+        int observedCallbacks = callbackCount;
+        try
+        {
+            _ = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                path,
+                "fixture-case",
+                () => observedCallbacks++,
+                CancellationToken.None);
+            throw new InvalidOperationException($"Expected adapter failure '{code}'.");
+        }
+        catch (EngaugeDigTruthException exception) when (
+            exception.Message.StartsWith(code, StringComparison.Ordinal) &&
+            code.StartsWith(exception.Code, StringComparison.Ordinal))
+        {
+            callbackCount = observedCallbacks;
         }
     }
 

@@ -1,0 +1,140 @@
+{
+  "schema": "graphreader.goal22-real-inventory-read-boundary-outcome.v1",
+  "scope": "Synthetic verification of real-corpus inventory and payload-read accounting boundary",
+  "implementation": [
+    "Select the existing frozen study-disjoint 171-project corpus from metadata only: 120 real-dev and 51 real-sealed. Verify the exact historical assignment hash before returning immutable anonymized selected identities.",
+    "Reject partial, duplicate, changed, escaped, reparse-point and unsupported split inventories without opening project contents.",
+    "Keep the Engauge reader API compatible and provide an optional callback after successful open, size checks, hash initialization, buffer allocation and cancellation check, directly before the first payload read.",
+    "A callback failure prevents the read. Missing, empty, oversized or pre-canceled input does not invoke it. The callback fires once per project; the outer runner still owns once-per-candidate accounting."
+  ],
+  "frozen_assignment_sha256": "decdac87c0c6d8ee8350b4e26bee2256c551ce20c518732f62fb6d990ea5850a",
+  "source_sha256": {
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenRealCorpusInventory.cs": "1eafaa5f7906de3343bd5bc2a64f8665380ae9723f2d80f6ccaa999646c8b6ec",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenRealCorpusInventorySelfTest.cs": "8671f8c647732a81588929fc83a88d820de642bc1a771eb9bf108b5d451b1e0f",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapter.cs": "0da4a03a3205d0ce98fb8d8634190f15bee4a938d4dea478361d7b83a0f7ce33",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapterSelfTest.cs": "049f0b978ee9ea14a8115f82b1b4c01781cce152976ee33444386b55ed5882a9",
+    "tools/GraphReader.RealAcceptance.Ocr/Program.cs": "e91684623911acd124e7685bf36696944bce83949357bdd69c9f061929ff4dc0"
+  },
+  "verification_report_sha256": "84eea04d2a4c7c6019fcbbc4d78a353e8ef331fdd9b55b40b791ff724a4b20a0",
+  "verification": {
+    "schema": "graphreader.real-inventory-boundary-verification.v1",
+    "source_sha256": {
+      "tools/GraphReader.RealAcceptance.Ocr/FrozenRealCorpusInventory.cs": "1eafaa5f7906de3343bd5bc2a64f8665380ae9723f2d80f6ccaa999646c8b6ec",
+      "tools/GraphReader.RealAcceptance.Ocr/FrozenRealCorpusInventorySelfTest.cs": "8671f8c647732a81588929fc83a88d820de642bc1a771eb9bf108b5d451b1e0f",
+      "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapter.cs": "0da4a03a3205d0ce98fb8d8634190f15bee4a938d4dea478361d7b83a0f7ce33",
+      "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapterSelfTest.cs": "049f0b978ee9ea14a8115f82b1b4c01781cce152976ee33444386b55ed5882a9",
+      "tools/GraphReader.RealAcceptance.Ocr/Program.cs": "e91684623911acd124e7685bf36696944bce83949357bdd69c9f061929ff4dc0"
+    },
+    "executable_sha256": "c7c75bb5b45585cb027fc3947ac44ca91490013051dd99f26a38b00b1a1d844f",
+    "runs": [
+      {
+        "command": [
+          "dotnet",
+          "tools/GraphReader.RealAcceptance.Ocr/bin/Release/net10.0-windows/win-x64/GraphReader.RealAcceptance.Ocr.dll",
+          "--self-test-frozen-real-corpus-inventory"
+        ],
+        "exit_code": 0,
+        "elapsed_ms": 192.369,
+        "report": {
+          "status": "pass",
+          "checks": [
+            "excluded_sealed_payloads_are_never_opened",
+            "anonymized_selected_inventory_is_immutable_and_bound",
+            "whole_studies_are_assigned_to_one_split",
+            "same_count_assignment_drift_rejected",
+            "partial_inventory_rejected",
+            "duplicate_inventory_rejected",
+            "path_escape_rejected",
+            "reparse_target_rejected",
+            "arbitrary_split_rejected",
+            "production_assignment_constants_are_frozen"
+          ],
+          "check_count": 10,
+          "private_payload_reads": 0,
+          "sealed_payload_reads": 0,
+          "model_runs": 0,
+          "authorization_created": false
+        },
+        "stdout_sha256": "70fd61316f476e5a62f10493efb6f5adf73777378bf16263c4bbbe1d3b77507e",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "command": [
+          "dotnet",
+          "tools/GraphReader.RealAcceptance.Ocr/bin/Release/net10.0-windows/win-x64/GraphReader.RealAcceptance.Ocr.dll",
+          "--self-test-engauge-workflow-truth"
+        ],
+        "exit_code": 0,
+        "elapsed_ms": 195.075,
+        "report": {
+          "status": "pass",
+          "check_count": 27,
+          "checks": [
+            "valid_exact_curve_and_point_inventory",
+            "three_anchor_affine_mapping",
+            "source_image_identity_and_immutability",
+            "relations_and_phases_explicitly_unavailable",
+            "failed_runtime_retains_full_truth_denominator",
+            "first_payload_callback_runs_once_after_open_without_changing_output",
+            "callback_failure_prevents_payload_read_and_closes_stream",
+            "pre_canceled_read_rejected_without_callback",
+            "missing_and_empty_inputs_fail_before_callback",
+            "calibration_degeneracy_is_translation_invariant",
+            "every_nonempty_curve_identity_preserved_exactly",
+            "empty_curve_rejected_without_silent_drop",
+            "dtd_and_entities_rejected",
+            "exact_three_anchor_count",
+            "duplicate_curve_identity_rejected",
+            "missing_curve_identity_rejected",
+            "malformed_curve_point_rejected",
+            "ambiguous_curve_point_rejected",
+            "degenerate_calibration_rejected",
+            "nearly_collinear_calibration_rejected",
+            "detected_nonlinear_scale_rejected",
+            "out_of_source_point_rejected",
+            "declared_image_dimension_mismatch_rejected",
+            "declared_image_format_mismatch_rejected",
+            "curve_graph_coordinate_ambiguity_rejected",
+            "complete_png_container_required",
+            "project_byte_limit_enforced_before_callback_and_parse"
+          ],
+          "private_reads": 0,
+          "sealed_reads": 0,
+          "model_runs": 0,
+          "truth_relations_available": false,
+          "phase_truth_available": false
+        },
+        "stdout_sha256": "f659d004a80942dd0350d88feb9f14196d43507ed3da437e03afbe6419bf5829",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "private_payload_reads": 0,
+    "sealed_payload_reads": 0,
+    "model_runs": 0
+  },
+  "build": {
+    "command": "dotnet build tools/GraphReader.RealAcceptance.Ocr/GraphReader.RealAcceptance.Ocr.csproj -c Release -r win-x64 --self-contained false --no-restore",
+    "exit_code": 0,
+    "warnings": 0,
+    "errors": 0,
+    "reported_seconds": 8.36,
+    "packaged_application_build": false
+  },
+  "preserved_repairs": [
+    "Initial inventory compilation required an authorized restore after sandbox NU1301, then two local test-source compilation corrections.",
+    "Independent review moved the callback after hash and buffer initialization so pre-read allocation failures cannot consume the budget. Final verification covers the corrected source."
+  ],
+  "license_review": "Apache-2.0 project code. No new dependency, external asset or model.",
+  "limitations": [
+    "This is harness verification, not real-corpus evaluation or model acceptance.",
+    "No payload inventory checksums are computed here because that would read held-out contents.",
+    "Durable sealed-use ledger, outer candidate/protocol admission and aggregate-only execution remain to be integrated.",
+    "Engauge phase and shared-baseline semantics remain unavailable unless independently authoritative; they are never inferred from names."
+  ],
+  "private_payload_reads": 0,
+  "sealed_payload_reads": 0,
+  "model_runs": 0,
+  "authorization_created": false,
+  "production_approved": false,
+  "goal22_status": "FAIL"
+}

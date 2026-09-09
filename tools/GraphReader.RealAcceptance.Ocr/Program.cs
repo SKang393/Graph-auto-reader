@@ -35,6 +35,10 @@ internal static class Program
         {
             return await RunEngaugeSelfTestAsync(WorkflowSyntheticAcceptance.RunGroupedAdapterAsync);
         }
+        if (args.Length == 1 && args[0] == "--self-test-frozen-real-corpus-inventory")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(FrozenRealCorpusInventorySelfTest.Run()));
+        }
         if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-executor")
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeGroupedWorkflowExecutorSelfTest.Run()));
