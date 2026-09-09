@@ -1,5 +1,21 @@
 # Marker-center mask-preserving V24 feasibility
 
+## Current runtime-input repair
+
+Retry10 is held before training because family OCR/artifact channels currently
+come from renderer annotations. Those diagnostic masks cannot prove production
+compatibility. `export_family_rasters` exports only project-owned train/dev PNGs
+and their image identities for the local C# upstream pipeline. It exports no
+truth, masks, or sealed split. Actual runtime-derived mask export, binding, and
+training integration remain required before lifting the hold.
+
+```powershell
+python -m ml.markers.center.mask_preserving_v24.export_family_rasters --split train --output-root artifacts/goal22-synthetic-inputs/family-train
+```
+
+Existing different output is preserved and rejected. The sections below describe
+the original feasibility checkpoint, not current execution authorization.
+
 This is a zero-optimizer, non-consuming feasibility artifact. It reuses the
 exact V21 P1 ONNX payload at confidence threshold `0.25`, with CPU
 `CPUExecutionProvider`, unchanged `[N,3,33,33] -> [N,4]` tensors, offset/radius

@@ -75,6 +75,30 @@ public sealed class ProductionAxisGeometryAdapter : IProductionAxisGeometryAdapt
                 "Continue with manual calibration or install the exact approved runtime.");
         }
 
+        return await DetectCoreAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+
+    internal Task<ProductionAxisGeometryEvidence> DetectForLocalSyntheticCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (IsApproved)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                "Local candidate evaluation requires an explicitly unapproved axis adapter.",
+                "Use normal production execution for an approved adapter.");
+        }
+        return DetectCoreAsync(request, cancellationToken);
+    }
+
+    private async Task<ProductionAxisGeometryEvidence> DetectCoreAsync(
+        ProductionWorkflowDetectionRequest request,
+        CancellationToken cancellationToken)
+    {
         if (request.ImageVariant != WorkflowImageVariant.Original ||
             request.Image.Variant != WorkflowImageVariant.Original)
         {

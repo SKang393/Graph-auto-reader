@@ -194,6 +194,28 @@ public sealed class AxisGeometryAcceptanceTests
     }
 
     [TestMethod]
+    public async Task EmptyRefinedLineFamilyReturnsStructuredDetectionFailure()
+    {
+        AxisGeometryRequest request = new AxisFixtureBuilder()
+            .Line(100, 300, 110, 300, id: "fragment-left")
+            .Line(115, 304, 125, 304, id: "fragment-right")
+            .Line(100, 300, 100, 50, id: "vertical-evidence")
+            .Build(new AxisGeometryOptions
+            {
+                MergeAngleToleranceDegrees = 4,
+                MergeDistancePixels = 3,
+            });
+
+        AxisGeometryDetectionException failure = await Assert.ThrowsExactlyAsync<AxisGeometryDetectionException>(
+            async () => await new AxisGeometryDetector().DetectAsync(request));
+
+        Assert.AreEqual("AXIS_GEOMETRY_NOT_FOUND", failure.Code);
+        Assert.AreEqual("Errors.AxisGeometryNotFound", failure.UserMessageKey);
+        Assert.IsTrue(failure.Recoverable);
+        Assert.AreEqual("select_manual_calibration", failure.SuggestedAction);
+    }
+
+    [TestMethod]
     public async Task FullHeightGridlinesAndFrameDoNotReplaceAxesOrDividers()
     {
         AxisGeometryRequest request = new AxisFixtureBuilder()

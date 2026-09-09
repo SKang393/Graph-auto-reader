@@ -266,6 +266,31 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
 
     public bool IsApproved => artifactMaskAdapter?.IsApproved == true;
 
+    /// <summary>
+    /// Builds the validated OCR and structural seed masks used by the production
+    /// composer for local synthetic candidate evaluation. This does not compose
+    /// residual artifact evidence or bypass the production approval gate.
+    /// </summary>
+    internal static ProductionDetectionMaskSeed BuildSeedForLocalSyntheticCandidateEvaluation(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster raster,
+        ProductionAxisGeometryEvidence axisEvidence,
+        IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
+        OcrResult ocrResult,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(raster);
+        ArgumentNullException.ThrowIfNull(axisEvidence);
+        ArgumentNullException.ThrowIfNull(ocrModelEvidence);
+        ArgumentNullException.ThrowIfNull(ocrResult);
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateRaster(request, raster);
+        ValidateAxisEvidence(request, axisEvidence);
+        _ = ValidateOcrEvidence(request, ocrModelEvidence, ocrResult);
+        return BuildSeedMasks(raster, axisEvidence, ocrResult, cancellationToken);
+    }
+
     public async Task<ProductionDetectionMaskEvidence> ComposeAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster raster,

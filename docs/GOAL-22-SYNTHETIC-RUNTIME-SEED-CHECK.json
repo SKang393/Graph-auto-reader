@@ -1,0 +1,126 @@
+{
+  "schema": "graphreader.goal22.synthetic-runtime-seed-check.v1",
+  "scope": "engineering preparation and synthetic train smoke, not model acceptance",
+  "recorded_date": "2026-09-08",
+  "base_commit": "fcd51033d49a62191805e10bbfc9ba9f4bc0e03f",
+  "production_approved": false,
+  "training_input_ready": false,
+  "complete_artifact_mask": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "application_tests": {
+    "skipped": 0,
+    "failed": 0,
+    "passed": 146,
+    "command": "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore"
+  },
+  "ocr_tests": {
+    "skipped": 16,
+    "failed": 0,
+    "passed": 193,
+    "command": "dotnet test tests/GraphReader.Ocr.Tests/GraphReader.Ocr.Tests.csproj -c Release --no-restore"
+  },
+  "axis_tests": {
+    "skipped": 0,
+    "failed": 0,
+    "passed": 37,
+    "command": "dotnet test tests/GraphReader.Axis.Tests/GraphReader.Axis.Tests.csproj -c Release --no-restore"
+  },
+  "synthetic_export_tests": {
+    "failed": 0,
+    "scope": "V24 suite including annotation-free raster exporter",
+    "passed": 38
+  },
+  "input_boundary_tests": {
+    "failed": 0,
+    "report_sha256": "463b602c8b34d55438e685aa05d26afd257ba77928c722466548070f50cf3132",
+    "passed": 9
+  },
+  "preocr_provider": {
+    "scaled_rotated_preservation_recall": 0.9900249376558603,
+    "preservation_precision": 0.9727891156462585,
+    "scope": "six focused unit fixtures, no representative acceptance",
+    "preservation_recall": 1.0,
+    "enabled_in_production": false,
+    "scores_calibrated": false
+  },
+  "runtime_smoke": {
+    "input_count": 4,
+    "before_axis_repair_completed": 1,
+    "candidate_sha256": "a1dcc5456048f196bf3c497b6300650cc72d9278fb7251d08385f4cf2bdd3046",
+    "after_axis_repair_completed": 3,
+    "runtime_assemblies": [
+      {
+        "name": "GraphReader.SyntheticRuntimeEvidence",
+        "sha256": "abb1e794712d74b3fbb9640c4e7efc16a642052ecc95213c6f035354cc14801b"
+      },
+      {
+        "name": "GraphReader.App",
+        "sha256": "24f7e3a011f0f551fe40f9c9102dbbb5e2e4feb63c550618bba33732f17ffe4f"
+      },
+      {
+        "name": "GraphReader.Axis",
+        "sha256": "4a25012cbe64b602968411d08851ca560344031150bb0b57ade2974401f2de5c"
+      },
+      {
+        "name": "GraphReader.Ocr",
+        "sha256": "ad1f78321f9ac6c19b00bab46e3cd60e382dff0c17b2b20cc618a002f6d94045"
+      },
+      {
+        "name": "GraphReader.Inference",
+        "sha256": "f78316a76659aa6e66e6a0f7e7a340baae7e47ea006b58fc8a1d5ab2cbf8a608"
+      }
+    ],
+    "split": "train",
+    "report_sha256": "28ff39d4599ef67325cd63a07b0c90a946cb28e2e14fe617134a64d9e553eb8e",
+    "input_manifest_sha256": "0002b4705e725f34f32f7e93fc89b0636bd93f6d9487e7115dfbbfb96f3c2c61",
+    "elapsed_milliseconds": 3751.0861,
+    "failed": 1
+  },
+  "remaining_empty_ocr": {
+    "raw_db_regions": 1,
+    "connected_component_candidates": 69,
+    "runtime_assemblies": [
+      {
+        "name": "GraphReader.SyntheticRuntimeEvidence",
+        "sha256": "4259dcff3963acd524f1ab13c5dda3de03ebe6dbd87508789e1bdd4d05178ee4"
+      },
+      {
+        "name": "GraphReader.App",
+        "sha256": "24f7e3a011f0f551fe40f9c9102dbbb5e2e4feb63c550618bba33732f17ffe4f"
+      },
+      {
+        "name": "GraphReader.Axis",
+        "sha256": "4a25012cbe64b602968411d08851ca560344031150bb0b57ade2974401f2de5c"
+      },
+      {
+        "name": "GraphReader.Ocr",
+        "sha256": "ad1f78321f9ac6c19b00bab46e3cd60e382dff0c17b2b20cc618a002f6d94045"
+      },
+      {
+        "name": "GraphReader.Inference",
+        "sha256": "f78316a76659aa6e66e6a0f7e7a340baae7e47ea006b58fc8a1d5ab2cbf8a608"
+      }
+    ],
+    "recognition_crops": 0,
+    "split": "train",
+    "detected_regions": 0,
+    "cases": 1,
+    "no_substitute_mask": true,
+    "failure_stage": "seed-composition",
+    "diagnostic_report_sha256": "040045d9df82654d92ace565feae247612dc6a3d2316dcade1ef1a4ee33e432c"
+  },
+  "native_runtime": {
+    "sha256": "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd",
+    "scope": "existing-development-runtime-unapproved-for-release",
+    "production_approval_changed": false
+  },
+  "remaining": [
+    "Representative synthetic pre-OCR text-preservation gate",
+    "Actual OCR accuracy and empty-result diagnosis",
+    "Residual arrow/bracket/legend/intersection artifact provider",
+    "Full upstream runtime input binding before V24 retry10",
+    "Synthetic and real acceptance, promotion, complete production workflow and packaged distribution"
+  ]
+}

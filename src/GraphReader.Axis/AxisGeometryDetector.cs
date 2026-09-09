@@ -448,6 +448,11 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                         options.MergeDistancePixels + candidate.Candidate.StrokeWidthPixels))
                 .ToArray();
 
+            if (refined.Length == 0)
+            {
+                continue;
+            }
+
             fitted = FitFamily(refined, orientation);
             var key = string.Join(
                 '\u001f',

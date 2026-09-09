@@ -25,6 +25,11 @@ public sealed class OfficialOcrProductionStatusTests
                 "c17cbd77bc646f7646f2f3f60b2120be735201b79c0b32a48318a30464b0aa38",
             ["src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs"] =
                 "e57550f89e7eff4656ea6b9d74f0f2f0473da852471c8dcfa9647bb2e9f9e1fd",
+            // Goal 22 commit 48c25d6 repaired current raster preprocessing.
+            // Keep the consumed run bound to its exact historical source;
+            // that failed run does not approve the repaired implementation.
+            ["src/GraphReader.App/Integration/Workflow/ProductionRasterFrameDecoder.cs"] =
+                "29e93889ca0da9f98d2070aaa8a22d24d6b9975a7bb873a3c82832f8eff1a931",
         };
 
     [TestMethod]

@@ -39,6 +39,15 @@ public sealed class ProductionOcrEvidence
 }
 
 /// <summary>
+/// Pins local synthetic evaluation to exact model and manifest bytes. The
+/// caller remains responsible for reviewed license, notice, and provenance.
+/// </summary>
+internal sealed record LocalSyntheticOcrModelDescriptor(
+    ModelIdentity Identity,
+    string ManifestPath,
+    string ManifestSha256);
+
+/// <summary>
 /// Binds the existing OCR pipeline to exact detector and recognizer identities.
 /// Composition remains disabled until both payloads have independently passed
 /// the production model-store, benchmark, provider, notice, and checksum gates.
@@ -120,31 +129,106 @@ public sealed class ProductionOcrAdapter : IProductionOcrAdapter
         RequireTask(recognitionModel, "ocr_recognition");
         RequireCpu(detectionModel);
         RequireCpu(recognitionModel);
-        VerifyChecksum(
+        await VerifyChecksumAsync(
             detectionModel.ManifestPath,
             detectionModel.ManifestSha256,
-            "OCR detection manifest");
-        VerifyChecksum(
+            "OCR detection manifest",
+            cancellationToken).ConfigureAwait(false);
+        await VerifyChecksumAsync(
             recognitionModel.ManifestPath,
             recognitionModel.ManifestSha256,
-            "OCR recognition manifest");
+            "OCR recognition manifest",
+            cancellationToken).ConfigureAwait(false);
         ProductionOcrApprovalGate.Validate(detectionModel, recognitionModel);
 
-        LocalOnnxTextRegionDetectorOptions detectorOptions = ReadDetectionOptions(detectionModel);
+        return await CreateFromPinnedModelsAsync(
+                detectionModel.Identity,
+                detectionModel.ManifestPath,
+                recognitionModel.Identity,
+                recognitionModel.ManifestPath,
+                runtimeHost,
+                reviewedOpenCvRuntimeSha256,
+                isApproved: true,
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    internal static async Task<ProductionOcrAdapter> CreateForLocalSyntheticCandidateEvaluationAsync(
+        LocalSyntheticOcrModelDescriptor detectionModel,
+        LocalSyntheticOcrModelDescriptor recognitionModel,
+        ProductionInferenceRuntimeHost runtimeHost,
+        string reviewedOpenCvRuntimeSha256,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(detectionModel);
+        ArgumentNullException.ThrowIfNull(recognitionModel);
+        ArgumentNullException.ThrowIfNull(runtimeHost);
+        cancellationToken.ThrowIfCancellationRequested();
+        reviewedOpenCvRuntimeSha256 = ValidateSha256(
+            reviewedOpenCvRuntimeSha256,
+            nameof(reviewedOpenCvRuntimeSha256));
+        await ValidateLocalSyntheticDescriptorAsync(
+                detectionModel,
+                "ocr_detection",
+                cancellationToken)
+            .ConfigureAwait(false);
+        await ValidateLocalSyntheticDescriptorAsync(
+                recognitionModel,
+                "ocr_recognition",
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (string.Equals(
+                detectionModel.Identity.Sha256,
+                recognitionModel.Identity.Sha256,
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                Path.GetFullPath(detectionModel.Identity.FilePath),
+                Path.GetFullPath(recognitionModel.Identity.FilePath),
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                "Local synthetic OCR evaluation requires distinct pinned detection and recognition payloads.");
+        }
+
+        return await CreateFromPinnedModelsAsync(
+                detectionModel.Identity,
+                detectionModel.ManifestPath,
+                recognitionModel.Identity,
+                recognitionModel.ManifestPath,
+                runtimeHost,
+                reviewedOpenCvRuntimeSha256,
+                isApproved: false,
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private static async Task<ProductionOcrAdapter> CreateFromPinnedModelsAsync(
+        ModelIdentity detectionModel,
+        string detectionManifestPath,
+        ModelIdentity recognitionModel,
+        string recognitionManifestPath,
+        ProductionInferenceRuntimeHost runtimeHost,
+        string reviewedOpenCvRuntimeSha256,
+        bool isApproved,
+        CancellationToken cancellationToken)
+    {
+        LocalOnnxTextRegionDetectorOptions detectorOptions = ReadDetectionOptions(
+            detectionModel,
+            detectionManifestPath);
         (LocalOnnxTextRecognizerOptions Recognizer, OcrPipelineOptions Pipeline) recognition =
-            ReadRecognitionOptions(recognitionModel.Identity, recognitionModel.ManifestPath);
+            ReadRecognitionOptions(recognitionModel, recognitionManifestPath);
         bool usesOfficialSpacingV2 = UsesOfficialRecognitionSpacingV2Manifest(
-            recognitionModel.ManifestPath);
+            recognitionManifestPath);
+        InferenceRuntime runtime = runtimeHost.Runtime;
         await ValidateExecutablePairAsync(
                 detectorOptions,
                 recognition.Recognizer,
-                runtimeHost.Runtime,
+                runtime,
                 cancellationToken)
             .ConfigureAwait(false);
         return new ProductionOcrAdapter(
             () =>
             {
-                InferenceRuntime runtime = runtimeHost.Runtime;
                 var modelDetector = new LocalOnnxTextRegionDetector(runtime, detectorOptions);
                 var detector = new GraphStructureConsensusTextRegionDetector(
                     modelDetector,
@@ -162,12 +246,12 @@ public sealed class ProductionOcrAdapter : IProductionOcrAdapter
                     new MemoryOcrResultCache(),
                     recognition.Pipeline);
             },
-            detectionModel.Identity,
+            detectionModel,
             InferenceProvider.Cpu,
-            recognitionModel.Identity,
+            recognitionModel,
             InferenceProvider.Cpu,
             reviewedOpenCvRuntimeSha256,
-            isApproved: true);
+            isApproved);
     }
 
     private static Task ValidateExecutablePairAsync(
@@ -259,6 +343,49 @@ public sealed class ProductionOcrAdapter : IProductionOcrAdapter
                 "Install checksum-verified approved OCR detection and recognition models or continue in manual mode.");
         }
 
+        return await RecognizeCoreAsync(
+                request,
+                originalRaster,
+                plotBounds,
+                detectorImage,
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    internal Task<ProductionOcrEvidence> RecognizeForLocalSyntheticCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        OcrRectangle plotBounds,
+        OcrDetectorImage detectorImage,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(originalRaster);
+        ArgumentNullException.ThrowIfNull(detectorImage);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (IsApproved)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                "Local candidate evaluation requires an explicitly unapproved OCR adapter.",
+                "Use normal production execution for an approved adapter.");
+        }
+        return RecognizeCoreAsync(
+            request,
+            originalRaster,
+            plotBounds,
+            detectorImage,
+            cancellationToken);
+    }
+
+    private async Task<ProductionOcrEvidence> RecognizeCoreAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        OcrRectangle plotBounds,
+        OcrDetectorImage detectorImage,
+        CancellationToken cancellationToken)
+    {
         ValidateInput(request, originalRaster, plotBounds);
         var ocrRequest = new OcrRequest(
             request.ProjectId.ToString("D"),
@@ -472,10 +599,13 @@ public sealed class ProductionOcrAdapter : IProductionOcrAdapter
         _ => throw new ArgumentOutOfRangeException(nameof(provider)),
     };
 
-    private static LocalOnnxTextRegionDetectorOptions ReadDetectionOptions(
-        ResolvedProductionModel resolvedModel)
+    internal static LocalOnnxTextRegionDetectorOptions ReadDetectionOptions(
+        ModelIdentity identity,
+        string manifestPath)
     {
-        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(resolvedModel.ManifestPath));
+        ArgumentNullException.ThrowIfNull(identity);
+        ArgumentException.ThrowIfNullOrWhiteSpace(manifestPath);
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(manifestPath));
         JsonElement root = document.RootElement;
         JsonElement input = SingleObject(root, "inputs", "OCR detection");
         JsonElement output = SingleObject(root, "outputs", "OCR detection");
@@ -547,7 +677,7 @@ public sealed class ProductionOcrAdapter : IProductionOcrAdapter
             "maximum_regions",
             1000,
             "OCR detection postprocessing");
-        var options = new LocalOnnxTextRegionDetectorOptions(resolvedModel.Identity)
+        var options = new LocalOnnxTextRegionDetectorOptions(identity)
         {
             MaximumSideLength = maximumSideLength,
             DimensionMultiple = dimensionMultiple,
@@ -558,7 +688,7 @@ public sealed class ProductionOcrAdapter : IProductionOcrAdapter
             ChannelScales = scales,
             InputName = RequiredString(input, "name", "OCR detection input"),
             OutputName = RequiredString(output, "name", "OCR detection output"),
-            StageVersion = resolvedModel.Identity.Version,
+            StageVersion = identity.Version,
             OutputActivation = outputActivation,
             PostprocessAlgorithm = OcrDetectionPostprocessAlgorithm.DbPostprocessV1,
             DbScoreMode = OcrDbScoreMode.FastMiniBox,
@@ -1041,17 +1171,121 @@ public sealed class ProductionOcrAdapter : IProductionOcrAdapter
         value.ValueKind == JsonValueKind.String &&
         string.Equals(value.GetString(), expected, StringComparison.Ordinal);
 
-    private static void VerifyChecksum(string path, string expectedSha256, string label)
+    private static async Task ValidateLocalSyntheticDescriptorAsync(
+        LocalSyntheticOcrModelDescriptor descriptor,
+        string expectedTask,
+        CancellationToken cancellationToken)
+    {
+        descriptor.Identity.Validate();
+        ArgumentException.ThrowIfNullOrWhiteSpace(descriptor.ManifestPath);
+        string manifestSha256 = ValidateSha256(
+            descriptor.ManifestSha256,
+            nameof(descriptor.ManifestSha256));
+        await VerifyChecksumAsync(
+                descriptor.Identity.FilePath,
+                descriptor.Identity.Sha256,
+                $"local synthetic {expectedTask} model",
+                cancellationToken)
+            .ConfigureAwait(false);
+        await VerifyChecksumAsync(
+                descriptor.ManifestPath,
+                manifestSha256,
+                $"local synthetic {expectedTask} manifest",
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        using JsonDocument document = JsonDocument.Parse(
+            await File.ReadAllTextAsync(descriptor.ManifestPath, cancellationToken).ConfigureAwait(false));
+        JsonElement root = document.RootElement;
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidDataException("Local synthetic OCR manifest root must be an object.");
+        }
+
+        var propertyNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (JsonProperty property in root.EnumerateObject())
+        {
+            if (!propertyNames.Add(property.Name))
+            {
+                throw new InvalidDataException(
+                    $"Local synthetic OCR manifest contains duplicate root field '{property.Name}'.");
+            }
+        }
+
+        RequireString(root, "model_id", descriptor.Identity.ModelId, "Local synthetic OCR manifest");
+        RequireString(root, "model_version", descriptor.Identity.Version, "Local synthetic OCR manifest");
+        RequireString(root, "task", expectedTask, "Local synthetic OCR manifest");
+        string declaredModelSha256 = RequiredString(
+            root,
+            "sha256",
+            "Local synthetic OCR manifest");
+        if (!string.Equals(
+                declaredModelSha256,
+                descriptor.Identity.Sha256,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                "Local synthetic OCR manifest field 'sha256' does not match the pinned model bytes.");
+        }
+
+        JsonElement files = RequiredArray(root, "files", "Local synthetic OCR manifest");
+        string expectedFileName = Path.GetFileName(descriptor.Identity.FilePath);
+        var declaredFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        bool modelFileDeclared = false;
+        foreach (JsonElement item in files.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(item.GetString()))
+            {
+                throw new InvalidDataException(
+                    "Local synthetic OCR manifest files must be non-empty relative paths.");
+            }
+
+            string declaredPath = item.GetString()!.Replace('\\', '/');
+            string[] segments = declaredPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (Path.IsPathRooted(declaredPath) || segments.Length == 0 ||
+                segments.Any(static segment => segment is "." or "..") ||
+                !declaredFiles.Add(declaredPath))
+            {
+                throw new InvalidDataException(
+                    $"Local synthetic OCR manifest contains invalid or duplicate payload path '{declaredPath}'.");
+            }
+
+            modelFileDeclared |= string.Equals(
+                Path.GetFileName(declaredPath),
+                expectedFileName,
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        if (!modelFileDeclared)
+        {
+            throw new InvalidDataException(
+                $"Local synthetic OCR manifest files do not identify pinned model '{expectedFileName}'.");
+        }
+    }
+
+    private static async Task VerifyChecksumAsync(
+        string path,
+        string expectedSha256,
+        string label,
+        CancellationToken cancellationToken)
     {
         if (!File.Exists(path))
         {
             throw new InvalidDataException($"The checksum-resolved {label} is missing: {path}");
         }
 
-        string actual = Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+        await using var stream = new FileStream(
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            64 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        string actual = Convert.ToHexStringLower(
+            await SHA256.HashDataAsync(stream, cancellationToken).ConfigureAwait(false));
         if (!string.Equals(actual, expectedSha256, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidDataException($"The checksum-resolved {label} changed after model-store validation.");
+            throw new InvalidDataException($"The checksum-resolved {label} does not match its pinned SHA-256.");
         }
     }
 
