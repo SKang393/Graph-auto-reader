@@ -1,0 +1,17 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "Retry11 reproduces 200 true positives, 517 false positives and six misses on the frozen nine-panel family development set. Its generic-negative prefix sampler has normalized selected-order median 0.0300 and p95 0.2933. Of 181 eligible dense-border train negatives, only one is selected; however none of the 517 false positives has that exact dense-ink-and-border phenotype, so its omission alone does not explain the regression. False-positive patch maximum-row-density median and p95 are 1.0, consistent with thin connecting lines. Uniform sampling across the complete eligible family background pool may improve representation without using development labels for selection. Evidence: artifacts/goal22-runs/marker-v24-retry11-coverage/family-fp-diagnosis/diagnosis.json SHA256 a9f53d946aa5b6c1b16c6c9b9b8e51ea9b210c3154496c813355502cb6529438.",
+  "isolated_change": "For family-train generic negatives only, replace ordered-prefix selection with uniform sampling without replacement at the unchanged per-panel budget. Use a separate CPU torch.Generator seeded 20260909 so hard-negative selection and optimizer shuffle RNG streams remain unchanged. Retain all positive and hard-negative indices, all sample counts, the five train seeds, runtime input planes, V21 initialization, 33x33 model architecture, loss, optimizer settings, 36 epochs, threshold 0.25, offsets, radius, consensus and NMS. Preserve historical prefix behavior as the default for existing configurations. No architecture, context, mask, hard-negative labeling, real-range sampling or operating-threshold change is included.",
+  "split_identities": {
+    "runtime_binding_path": "artifacts/synthetic-runtime-evidence/margin-v2-input-preflight/source-c96-observable-guard/binding-v2.json",
+    "runtime_binding_sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+    "family_train_tensor_set_sha256": "28c5f0b752beaff8273082fe6bab0be121547218cfa7462a0665374941fe0c7c",
+    "family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
+    "ordered_train_seeds": [393, 394, 395, 396, 397],
+    "family_dev_seed": 393,
+    "independent_dev": "Unchanged 167-scene, 2004-marker independent-layout development set bound by retry11 p1_retry11.json and its source snapshot."
+  },
+  "metric": "At the unchanged threshold 0.25, measure marker-center precision, recall, proposal recall and prohibited-structure hit rate independently on the complete independent-layout and family development sets. Before training, verify unchanged positive/hard indices, sample counts, original RNG state and runtime tensor identities; report generic-negative proposal-order and line-like coverage descriptively, without optimizing a coverage threshold.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json tier1_reviewable_error: precision and recall at least 0.95, prohibited structure hit rate at most 0.02; proposal recall at least 0.95. Both development sets must pass. This protocol authorizes no private or sealed acceptance, production activation, or release.",
+  "budget": {"train_dev_runs": "unlimited", "sealed_runs": 0}
+}

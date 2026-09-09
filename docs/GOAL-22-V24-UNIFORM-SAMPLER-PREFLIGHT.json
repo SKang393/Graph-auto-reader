@@ -1,0 +1,342 @@
+{
+  "schema": "graphreader.marker-uniform-sampler-preflight-evidence.v1",
+  "source_path": "artifacts/goal22-runs/marker-v24-retry12-uniform/preflight/preflight.json",
+  "source_sha256": "637216a78675c013975418d21a10f7614ea21391b7840843fc5d73632c085f61",
+  "preflight": {
+    "elapsed_ms": 185386.564,
+    "environment": {
+      "deterministic_algorithms": true,
+      "numpy": "2.3.5",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+      "torch": "2.13.0+cpu",
+      "torch_threads": 1
+    },
+    "identities": {
+      "family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
+      "family_train_tensor_set_sha256": "28c5f0b752beaff8273082fe6bab0be121547218cfa7462a0665374941fe0c7c",
+      "protocol_sha256": "c831d010dab52d12f1856c99a848c21e7dbe9f99547a8f1c6644ffe009ddee8b",
+      "retry11_diagnosis_sha256": "a9f53d946aa5b6c1b16c6c9b9b8e51ea9b210c3154496c813355502cb6529438",
+      "retry11_input_config_sha256": "bd51706625938cbd6673416257bdb16158ee5269cda188ae676f93fbe4bec523",
+      "runner_source_bundle_sha256": "d7323541c9f29f0cb54d6a5376a7e91a5325144417a28c8f3fed1b24c2b70403",
+      "runner_source_sha256": {
+        "docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json": "c42011acaab800fffad92f92c4d4fa67775d2998dde4845aea0622f431795479",
+        "docs/GOAL-22-PHASE-4R-V24-MORPHOLOGY-GAP.json": "23203100f1eab38b7132de43f524f86e2795e86bb66cb539f5569da54de7961f",
+        "docs/GOAL-22-PHASE-4R-V24-NEGATIVE-PATCH-GAP.json": "6a1cc4ca1cfac0fa0f2401d40f3c6c9f1c2ecfa98695e8e36e2808a799dfb9df",
+        "docs/GOAL-22-PHASE-4R-V24-RETRY3-MORPHOLOGY-GAP.json": "3b0e9981eb3d21787679f1df1151a3c0bc395ce7966e6c681c6de5755c3fb769",
+        "docs/GOAL-22-PHASE-4R-V24-RETRY7-MORPHOLOGY-GAP.json": "163ae1471792925b6b23c3a6fd26d1ae6d16637864180eaafd179875964afa36",
+        "docs/GOAL-22-V24-RUNTIME-INPUT-PREFLIGHT.json": "74b8470ccc1e8003911d8e1183dba4a2427089489332fda5f6dd09b718955c57",
+        "ml/markers/center/dataset.py": "95623cd99d54fbb374e5046c510a7307eeb89f72c10311d267eadd0f9304bc47",
+        "ml/markers/center/focal_confidence_v21/focal_loss.py": "81b7367ef84cad25d3563c058459c7ef67d831f1c3b06bddb62bf546125a23f8",
+        "ml/markers/center/line_aware_v1/dataset.py": "4b31a98233c74770669def38ed5367411f810e1476faa519d3b8c2a1b8d2f0b3",
+        "ml/markers/center/line_aware_v1/pipeline.py": "6af504d5f952bff6b7201fc2ce6a961ba87525b5bee6424229962ba1f2b17407",
+        "ml/markers/center/mask_preserving_v24/FEASIBILITY.json": "b653d2a0a18ce07bd68f3e3519e9fc55bc4da83e8a8279f3d48ac04aff15033a",
+        "ml/markers/center/mask_preserving_v24/P1_RETRY8_RESULT.json": "483f5f989ad73d5280da4cf248cc71c2c2f315dec24827b5cb7a2a59512f37cf",
+        "ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json": "6582091a0aaea0ee6eedb6476bf17936bd0bda2234bffff9de721ad66b00269c",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY2_MORPHOLOGY_DIAGNOSIS.json": "01c7fc31f393feaff2c46a46670a73095cf5c5a6111d7fff745f166cb1cf3a24",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY4_DIAGNOSIS.json": "a19745f7904c8ec316a78a4e220e3133fc5f77fa80f471ed5337976bdbb6594b",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY4_GENERIC_FP_DIAGNOSIS.json": "24d86878dc335803b2aacd6bab5105496cbb2fb51734b4eb0d8ead4feea5d172",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY5_DIAGNOSIS.json": "8f38fd10be6130c34b05aa9544491f59c9c95d8b962bd0010f9dbdf287c8228a",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY5_GENERIC_FP_DIAGNOSIS.json": "701f43ec266ae63689200610ea68d4e5a18b1017fd0951d88f496252ef1076d8",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY6_DIAGNOSIS.json": "34a3bbdf68cd049162b40964ad66c4bfe17cf0f46c306f969497002755e12b0e",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY7_DIAGNOSIS.json": "1761fd27f0cd1aa9e6a1e3b2b8f0d3c4fa84cb5195dd8c72cea3f17d042683ac",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY7_MORPHOLOGY_DIAGNOSIS.json": "16b9ed50655b6767affdb927106c5b2661d2fce388849d8c80aa5ac0165ebf78",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY8_DIAGNOSIS.json": "0d26acdc0f7eb00b9a053a3bedfbba4f7de4dc755d7a78d3275629e3972577ff",
+        "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY_DIAGNOSIS.json": "6d135b6d22cc1d016337fdadff439919a5934eeea34a71cb66c876471ac3c763",
+        "ml/markers/center/mask_preserving_v24/diagnostics/diagnose_retry.py": "960e6388f00f5ae83612025b600ad5314a2c602a08fdd007ddf5fb50f39c240e",
+        "ml/markers/center/mask_preserving_v24/export_family_rasters.py": "c97eb80dfd5da04cdd87fea5cd9713d2fced8ff3bf01e35cbc9347ba4826ff8d",
+        "ml/markers/center/mask_preserving_v24/family_scenes.py": "0872091244ebe4a2e87192c74b0720a911255816ced4b4fb55df811305a92686",
+        "ml/markers/center/mask_preserving_v24/mask_preserving.py": "171ddcc2efbd2742f5699dad8d16ecec217ca983ee06cec4bc63e1f17e3120e2",
+        "ml/markers/center/mask_preserving_v24/protocol.py": "885ec7b63ab27b1db6301be12410cb06b9874efbcd0656289a999bd6b20679fe",
+        "ml/markers/center/mask_preserving_v24/runtime_binding.py": "0b4a23a39289b2872cfbc1e6def3dff2915d46ceade02e3277c68bb73ae07ce4",
+        "ml/markers/center/mask_preserving_v24/runtime_binding_v2.py": "b7a4e4cd330d8033113c75c9cfd0f89fc2b4cea9cdfeaeec2c8a2049997ca1cc",
+        "ml/markers/center/mask_preserving_v24/runtime_family_scenes.py": "59233739c4eae55865d16ad8367f4c013c1b372b7feee2715fe3be57493673a0",
+        "ml/markers/center/mask_preserving_v24/runtime_inputs.py": "17d8df01e4ef25ad77ad7bac6652724282054b29947b7e81be0c424977e9c3f0",
+        "ml/markers/center/mask_preserving_v24/train_p1.py": "20b4e84a3be5726d855c7d857ccefc6fe2061953b6fb94ae740f076339839bd9",
+        "ml/markers/center/mask_preserving_v24/uniform_background_dev_protocol.json": "c831d010dab52d12f1856c99a848c21e7dbe9f99547a8f1c6644ffe009ddee8b",
+        "ml/markers/center/metrics.py": "022720e567388feed569b88cf9a7d47e76c83391e8cba344e3c71af4f74ca3d0",
+        "ml/markers/center/postprocess.py": "66eadf851952678ad82f57f65a1bd404cd235ed629b4a52128804c9edcc23105",
+        "ml/markers/center/real_range_generator_v1/AUDIT.json": "1d71d76956e24f0c1a230c9c27e59aecc0d0cd64a04ca9c0d26ef171838ce26b",
+        "ml/markers/center/real_range_generator_v1/NEGATIVE_PROPOSAL_AUDIT.json": "364b0e62a5261581bca519e4f740cf9b4c9ec6fc120edee817f0275c1ff224e0",
+        "ml/markers/center/real_range_generator_v1/generator.py": "2244094e8d8e3a8cacb83e11c5e7189ded46b25b1ce9ecdad1bd80e5dec78b41",
+        "ml/markers/center/real_range_generator_v1/negative_sampler.py": "80625357ae4bf6167963c66d0fd6a215fe00c5c936d4542994fb32a275e71a43",
+        "ml/markers/center/scale_classifier_v16/model.py": "899dfbed25707f121f657f4138f8a50060bc554acfbac48b7e2f93bc3668587f",
+        "ml/markers/gate_seal.py": "b310789162c06ca11cb348cbf2fcece877a25ce6173ec0dee70bdc29d33ef6d7",
+        "ml/markers/training_budget.py": "73a7b977833ca52fbdb246e2c64bb26ea44da0ca818e9f97551e3a930ce349ba",
+        "ml/policy/acceptance-bars.json": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+        "ml/policy/evidence-policy.json": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed",
+        "ml/policy/evidence_policy.py": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7",
+        "ml/synthetic/contact_sheet.py": "db98be281e76bc9ce75cb9f23d99190b8539a82b677f91e466e57434d4d15ecb",
+        "ml/synthetic/dataset.py": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+        "ml/synthetic/fonts.py": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+        "ml/synthetic/io.py": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2",
+        "ml/synthetic/renderer.py": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+        "ml/synthetic/scene.schema.json": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+        "ml/synthetic/schema.py": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+        "ml/synthetic/templates.py": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c",
+        "tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py": "431392d074e985f953a1444982076466f461d3445c018a5c307f174ebc0a959e"
+      },
+      "runtime_binding_sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+      "script_sha256": "2968df4cb514edf2b581c4056d5bb22b812d42c08d3dd6f7b32846dbf0872fff",
+      "train_p1_sha256": "20b4e84a3be5726d855c7d857ccefc6fe2061953b6fb94ae740f076339839bd9"
+    },
+    "sampling": {
+      "caller_generator_seed": 20260904,
+      "caller_rng_state_unchanged_relative_to_prefix": true,
+      "coverage": {
+        "capacity_counts": {
+          "hard_negative": 1912,
+          "other_negative": 135325,
+          "positive": 828
+        },
+        "eligible_other_negative_features": {
+          "border_density": {
+            "count": 135325,
+            "maximum": 0.6796875,
+            "median": 0.046875,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p90": 0.1953125,
+            "p95": 0.2578125
+          },
+          "count": 135325,
+          "dense_border_count": 181,
+          "full_column_support_count": 9573,
+          "full_row_support_count": 62103,
+          "ink_mean": {
+            "count": 135325,
+            "maximum": 0.6675849556922913,
+            "median": 0.06115343049168587,
+            "minimum": 0.0001944579416885972,
+            "p05": 0.019726678729057312,
+            "p90": 0.16712580621242523,
+            "p95": 0.2170906960964203
+          },
+          "maximum_column_density": {
+            "count": 135325,
+            "maximum": 1.0,
+            "median": 0.3030303120613098,
+            "minimum": 0.0,
+            "p05": 0.03030303120613098,
+            "p90": 0.7575757503509521,
+            "p95": 1.0
+          },
+          "maximum_row_density": {
+            "count": 135325,
+            "maximum": 1.0,
+            "median": 0.7878788113594055,
+            "minimum": 0.0,
+            "p05": 0.12121212482452393,
+            "p90": 1.0,
+            "p95": 1.0
+          },
+          "normalized_proposal_order": {
+            "count": 135325,
+            "maximum": 1.0,
+            "median": 0.5009758472442627,
+            "minimum": 0.0,
+            "p05": 0.048934544622898105,
+            "p90": 0.9017606735229492,
+            "p95": 0.9509281992912292
+          }
+        },
+        "hard_negative_selection_sha256": {
+          "prefix": "cfc1ee0987c240993fa2a0fe5d87ef9fb65715df14c540fead653a4092dbf64d",
+          "uniform_without_replacement": "cfc1ee0987c240993fa2a0fe5d87ef9fb65715df14c540fead653a4092dbf64d"
+        },
+        "positive_selection_sha256": {
+          "prefix": "2aeb3f8b8972fadb4bac3cecc5415fe778614c6dc0ee16e6d2a04b7872678971",
+          "uniform_without_replacement": "2aeb3f8b8972fadb4bac3cecc5415fe778614c6dc0ee16e6d2a04b7872678971"
+        },
+        "property_definitions": {
+          "acceptance_thresholds": false,
+          "dark_pixel_minimum": 0.12,
+          "dense_border": {
+            "border_density_minimum": 0.4,
+            "ink_mean_minimum": 0.4
+          },
+          "full_column_support": "maximum column dark-pixel fraction equals 1.0",
+          "full_row_support": "maximum row dark-pixel fraction equals 1.0",
+          "normalized_proposal_order": "proposal index / (panel proposal count - 1)"
+        },
+        "selected_other_negative_features": {
+          "prefix": {
+            "border_density": {
+              "count": 6788,
+              "maximum": 0.4375,
+              "median": 0.0390625,
+              "minimum": 0.0,
+              "p05": 0.0,
+              "p90": 0.1796875,
+              "p95": 0.2265625
+            },
+            "count": 6788,
+            "dense_border_count": 1,
+            "full_column_support_count": 0,
+            "full_row_support_count": 2853,
+            "ink_mean": {
+              "count": 6788,
+              "maximum": 0.5482093691825867,
+              "median": 0.059730999171733856,
+              "minimum": 0.0001944579416885972,
+              "p05": 0.017648858949542046,
+              "p90": 0.13774104416370392,
+              "p95": 0.19263202175497987
+            },
+            "maximum_column_density": {
+              "count": 6788,
+              "maximum": 0.7272727489471436,
+              "median": 0.27272728085517883,
+              "minimum": 0.03030303120613098,
+              "p05": 0.03030303120613098,
+              "p90": 0.39393940567970276,
+              "p95": 0.42424243688583374
+            },
+            "maximum_row_density": {
+              "count": 6788,
+              "maximum": 1.0,
+              "median": 0.7272727489471436,
+              "minimum": 0.03030303120613098,
+              "p05": 0.21212121844291687,
+              "p90": 1.0,
+              "p95": 1.0
+            },
+            "normalized_proposal_order": {
+              "count": 6788,
+              "maximum": 0.49959710240364075,
+              "median": 0.030032594688236713,
+              "minimum": 0.0,
+              "p05": 0.002886580978520215,
+              "p90": 0.21376907527446753,
+              "p95": 0.2933069735765457
+            }
+          },
+          "uniform_without_replacement": {
+            "border_density": {
+              "count": 6788,
+              "maximum": 0.59375,
+              "median": 0.03125,
+              "minimum": 0.0,
+              "p05": 0.0,
+              "p90": 0.171875,
+              "p95": 0.2265625
+            },
+            "count": 6788,
+            "dense_border_count": 3,
+            "full_column_support_count": 350,
+            "full_row_support_count": 2422,
+            "ink_mean": {
+              "count": 6788,
+              "maximum": 0.6299357414245605,
+              "median": 0.06060606241226196,
+              "minimum": 0.0001944579416885972,
+              "p05": 0.00312933255918324,
+              "p90": 0.15023674964904785,
+              "p95": 0.19130377396941184
+            },
+            "maximum_column_density": {
+              "count": 6788,
+              "maximum": 1.0,
+              "median": 0.3030303120613098,
+              "minimum": 0.0,
+              "p05": 0.03030303120613098,
+              "p90": 0.6363636255264282,
+              "p95": 1.0
+            },
+            "maximum_row_density": {
+              "count": 6788,
+              "maximum": 1.0,
+              "median": 0.5151515007019043,
+              "minimum": 0.0,
+              "p05": 0.06060606241226196,
+              "p90": 1.0,
+              "p95": 1.0
+            },
+            "normalized_proposal_order": {
+              "count": 6788,
+              "maximum": 1.0,
+              "median": 0.4997183531522751,
+              "minimum": 0.0,
+              "p05": 0.047591815888881686,
+              "p90": 0.899829638004303,
+              "p95": 0.9499500751495361
+            }
+          }
+        }
+      },
+      "family_prefix": {
+        "capacities": {
+          "selected": 9108
+        },
+        "counts": {
+          "hard_negative": 1492,
+          "other_negative": 6788,
+          "positive": 828
+        },
+        "examples": 9108,
+        "hard_negative": 1492,
+        "other_negative": 6788,
+        "positive": 828,
+        "selected_index_sha256": "70edc5a4eb07202ad73a826232edc83070959df5b6ec453597d065fd542fb3c9"
+      },
+      "family_uniform_without_replacement": {
+        "capacities": {
+          "selected": 9108
+        },
+        "counts": {
+          "hard_negative": 1492,
+          "other_negative": 6788,
+          "positive": 828
+        },
+        "examples": 9108,
+        "hard_negative": 1492,
+        "other_negative": 6788,
+        "positive": 828,
+        "selected_index_sha256": "4b2cdb3ce7ac79bff83e4febae9cd7f9f32ea38798eddbc67e1851d2561be025"
+      },
+      "global_torch_rng_unchanged": true,
+      "maximum_negative_per_positive": 10,
+      "positive_and_hard_indices_unchanged": true,
+      "real_range": {
+        "capacities": {
+          "artifact": 14469,
+          "faint_low": 8384,
+          "faint_p05": 5497,
+          "generic": 127516,
+          "generic_connector_band": 50373,
+          "hard_existing": 6012,
+          "ocr_heavy": 20547
+        },
+        "counts": {
+          "artifact": 1629,
+          "faint_low": 326,
+          "faint_p05": 1303,
+          "generic": 14961,
+          "generic_connector_band": 6720,
+          "hard_existing": 6012,
+          "ocr_heavy": 1629
+        },
+        "examples": 35838,
+        "hard_negative": 6856,
+        "other_negative": 25724,
+        "positive": 3258,
+        "selected_index_sha256": "d7460b95bbdbb89d79a12cafe7632604f02b8087e9986fb7a9d3ea940287567f"
+      },
+      "uniform_background_generator_seed": 20260909
+    },
+    "schema": "graphreader.marker-v24-retry12-uniform-sampler-preflight.v1",
+    "scope": {
+      "dev_inference_runs": 0,
+      "input_config_for_unchanged_values_only": "p1_retry11.json",
+      "model_forward_calls": 0,
+      "model_loaded": false,
+      "optimizer_steps": 0,
+      "private_reads": 0,
+      "production_approved": false,
+      "sealed_reads": 0,
+      "synthetic_train_only": true,
+      "training_authorized": false
+    },
+    "status": "pass"
+  }
+}

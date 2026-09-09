@@ -1,8 +1,8 @@
 {
   "binding": {
-    "base_commit": "08160d452e7de750aa0a29153fc01e74b8981fc4",
-    "candidate_config_path": "ml/markers/center/mask_preserving_v24/training/p1_retry12.json",
-    "candidate_config_sha256": "9f911f1bef2ea838db34502246e9a968ea8f35ef268d82ffd981bfefa5be7ff9",
+    "base_commit": "423fa65099e8391dea2d974aeaa10f0501d62061",
+    "candidate_config_path": "ml/markers/center/mask_preserving_v24/training/p1_retry11.json",
+    "candidate_config_sha256": "bd51706625938cbd6673416257bdb16158ee5269cda188ae676f93fbe4bec523",
     "candidate_id": "P1",
     "evidence_policy": {
       "path": "ml/policy/evidence-policy.json",
@@ -11,7 +11,7 @@
       "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
     },
     "revision": "marker-center-mask-preserving-v24",
-    "runner_source_bundle_sha256": "d7323541c9f29f0cb54d6a5376a7e91a5325144417a28c8f3fed1b24c2b70403",
+    "runner_source_bundle_sha256": "107520b1a3373db4bb08314b64d5063daeee524bf891d25dd49021143c1c3749",
     "runner_source_paths": [
       "docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json",
       "docs/GOAL-22-PHASE-4R-V24-MORPHOLOGY-GAP.json",
@@ -46,7 +46,6 @@
       "ml/markers/center/mask_preserving_v24/runtime_family_scenes.py",
       "ml/markers/center/mask_preserving_v24/runtime_inputs.py",
       "ml/markers/center/mask_preserving_v24/train_p1.py",
-      "ml/markers/center/mask_preserving_v24/uniform_background_dev_protocol.json",
       "ml/markers/center/metrics.py",
       "ml/markers/center/postprocess.py",
       "ml/markers/center/real_range_generator_v1/AUDIT.json",
@@ -71,12 +70,12 @@
     ],
     "source_binding_mode": "immutable_pre_run_snapshot",
     "source_snapshot_path": "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1/source-snapshot.json",
-    "source_snapshot_sha256": "b432059deb4673dda32aabb1169b2cc95bd2f6e6752c38b5f665b772e111026c",
+    "source_snapshot_sha256": "b89fc497cf2b41525f71c228b2bc35df7035f8b86a4a534fb4fd29ed6b13df23",
     "task": "marker-center",
-    "training_budget_ledger_sha256": "988ab0c1e96ffa9ef98b39fc5a4d7af3cc972195b4731e13d0600ede4bcf627c"
+    "training_budget_ledger_sha256": "5c519562c5a14836051a4de70e3c1745a5fdfea2cfd463ea043d9ef1708a01a2"
   },
   "budget_status": "pending_sealed_read",
-  "opened_utc": "2026-09-09T09:31:11.802135+00:00",
+  "opened_utc": "2026-09-09T07:50:39.251231+00:00",
   "schema_version": 1,
   "status": "opened"
 }

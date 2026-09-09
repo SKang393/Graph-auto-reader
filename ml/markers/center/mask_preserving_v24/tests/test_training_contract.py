@@ -19,6 +19,20 @@ REAL_DEV_REPORT_PATH = ROOT / REAL_DEV_REPORT_RELATIVE
 REAL_DEV_REPORT_SHA256 = "64984bb2ffd25fa596a41965fb4975e6991446fe80cc4df389649303717d5019"
 REAL_DEV_BLOCKER = "Retry9 passes synthetic dev but fails the aggregate-only real-dev marker gate at precision 0.07516660639561916 and recall 0.7260479041916168. Aggregate morphology diagnosis measures a 5.496320014967361 real-to-synthetic negative threshold-crossing ratio and confirms sparse, anti-aliased, elongated, off-center negative coverage is still insufficient. Repair the synthetic generator and train-only sampler, re-pass synthetic gates, then run another real-dev check; do not tune thresholds or select candidates on private data."
 
+def _current_state(entry):
+    if entry["execution_authorized"]:
+        assert entry["status"] == "candidate_1_preregistered"
+        assert entry["current_candidate_status"] == "retry12_preregistered"
+        assert entry["authorized_candidate_id"] == "P1"
+        assert entry["current_candidate_result_path"] is None
+        assert entry["current_candidate_result_sha256"] is None
+        assert entry["dev_passed_candidate_ids"] == []
+    else:
+        assert entry["authorized_candidate_id"] is None
+        assert entry["current_candidate_status"] in {"failed_dev", "dev_passed"}
+        assert entry["status"] == "candidate_1_" + entry["current_candidate_status"]
+
+
 def test_retry10_training_contract_is_fixed_and_preregistered():
     config = json.loads((ROOT / "ml/markers/center/mask_preserving_v24/training/p1.json").read_text())
     assert config["seed"] == 20260903
@@ -71,6 +85,63 @@ def test_retry10_training_contract_is_fixed_and_preregistered():
     assert config["negative_sampler"]["connector"]["endpoint_offset_px"] == CONNECTOR_ENDPOINT_OFFSET_PX
 
 
+def test_uniform_retry_changes_only_preregistered_sampling_and_evidence_binding():
+    old = json.loads((ROOT / "ml/markers/center/mask_preserving_v24/training/p1_retry11.json").read_bytes())
+    current = json.loads((ROOT / "ml/markers/center/mask_preserving_v24/training/p1_retry12.json").read_bytes())
+    changed = {key for key in old.keys() | current.keys() if old.get(key) != current.get(key)}
+    assert changed == {
+        "retry_count", "retry_reason", "family_generic_negative_mode", "family_generic_negative_seed",
+        "family_selected_index_sha256", "expected_runner_source_bundle_sha256",
+        "runtime_input_preflight_path", "runtime_input_preflight_sha256",
+        "uniform_background_protocol_path", "uniform_background_protocol_sha256",
+    }
+    assert current["family_generic_negative_mode"] == "uniform_without_replacement"
+    assert current["family_generic_negative_seed"] == 20260909
+    assert current["family_selected_index_sha256"] == "4b2cdb3ce7ac79bff83e4febae9cd7f9f32ea38798eddbc67e1851d2561be025"
+    assert current["sealed_runs"] == current["real_dev_reads"] == current["real_sealed_reads"] == 0
+    for prefix in ("uniform_background_protocol", "runtime_input_preflight"):
+        assert hashlib.sha256((ROOT / current[prefix + "_path"]).read_bytes()).hexdigest() == current[prefix + "_sha256"]
+
+
+def test_uniform_outcome_keeps_failed_dev_and_startup_void_bound():
+    ledger = json.loads((ROOT / "ml/markers/training-budgets/production-repair-v1.json").read_bytes())
+    entry = next(item for item in ledger["revisions"] if item["revision"] == "marker-center-mask-preserving-v24")
+    outcome = ROOT / entry["retry12_p1_result_path"]
+    digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+    assert outcome.name == "P1_RETRY12_RESULT.json"
+    assert digest(outcome) == entry["retry12_p1_result_sha256"] == "f1391e2029e4220f650de2ad3d702f7bd84cd2288262dae0de3e25818e41b4df"
+    report = json.loads(outcome.read_bytes())
+    config_path = ROOT / report["candidate_config_path"]
+    config = json.loads(config_path.read_bytes())
+    candidate_root = ROOT / "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1"
+    candidates = [candidate_root, *sorted((candidate_root / "dev-attempts").glob("*"))]
+    matches = [path for path in candidates if (path / "opened.json").is_file() and digest(path / "opened.json") == entry["retry12_p1_opened_seal_sha256"]]
+    assert len(matches) == 1
+    seal_root = matches[0]
+    opened = json.loads((seal_root / "opened.json").read_bytes())
+    closed = json.loads((seal_root / "result.json").read_bytes())
+    assert closed["opened_sha256"] == digest(seal_root / "opened.json")
+    assert closed["report_sha256"] == digest(outcome)
+    assert opened["binding"]["source_snapshot_sha256"] == digest(seal_root / "source-snapshot.json")
+    assert digest(config_path) == report["candidate_config_sha256"] == opened["binding"]["candidate_config_sha256"]
+    assert report["family_sampling"]["generic_negative_mode"] == config["family_generic_negative_mode"] == "uniform_without_replacement"
+    assert report["family_sampling"]["generic_negative_seed"] == config["family_generic_negative_seed"] == 20260909
+    assert report["family_sampling"]["selected_index_sha256"] == config["family_selected_index_sha256"]
+    assert report["optimizer_steps"] == 12672
+    for key, truth_count, counts in (("selected", 2004, (1856, 152, 148)), ("family_selected", 206, (198, 119, 8))):
+        row = report[key]
+        assert tuple(row[field] for field in ("true_positives", "false_positives", "false_negatives")) == counts
+        assert row["true_positives"] + row["false_negatives"] == truth_count
+        assert row["threshold"] == config["confidence_threshold"] == .25
+    assert not _passes_required_dev_gates(report["selected"], report["family_selected"], report["acceptance_bar"])
+    assert report["status"] == closed["status"] == entry["retry12_status"] == "failed_dev"
+    assert report["dev_gate_passed"] is False
+    assert digest(ROOT / entry["retry12_startup_void_path"]) == entry["retry12_startup_void_sha256"] == "827dcb3e5113138daa23f5041e53a609b54cd93aaefbfbc19f86b69304fed5ac"
+    assert report["sealed_runs"] == report["real_dev_reads"] == report["real_sealed_reads"] == 0
+    assert not (seal_root / "consumed.json").exists()
+    _current_state(entry)
+
+
 def test_both_independent_dev_gates_are_required():
     bar = {
         "proposal_recall_minimum": 0.95,
@@ -93,20 +164,17 @@ def test_both_independent_dev_gates_are_required():
 def test_runner_source_bundle_is_relative_and_present():
     assert all(not path.is_absolute() for path in RUNNER_SOURCE_PATHS)
     assert all((ROOT / path).is_file() for path in RUNNER_SOURCE_PATHS)
-    # Retry10 keeps its historical configuration; the coverage candidate binds
-    # the current dispatcher and v2 input loader through its separate config.
-    config = json.loads((ROOT / "ml/markers/center/mask_preserving_v24/training/p1_retry11.json").read_text())
     ledger = json.loads((ROOT / "ml/markers/training-budgets/production-repair-v1.json").read_text())
-    entry = next(item for item in ledger["revisions"] if item["revision"] == config["revision"])
+    entry = next(item for item in ledger["revisions"] if item["revision"] == "marker-center-mask-preserving-v24")
+    config = json.loads((ROOT / entry["candidate_config_paths"]["P1"]).read_bytes())
     assert entry["p1_runner_source_bundle_sha256"] == "b8736824df79aadeacded8fec996c932b92f8c1802fd6aced73907958c6f1cf3"
-    assert entry["execution_authorized"] is False
-    assert entry["authorized_candidate_id"] is None
-    assert entry["current_candidate_status"] in {"failed_dev", "dev_passed"}
-    assert entry["status"] == "candidate_1_" + entry["current_candidate_status"]
+    _current_state(entry)
     assert source_bundle_sha256(ROOT, RUNNER_SOURCE_PATHS) == config["expected_runner_source_bundle_sha256"]
 
 def test_current_evidence_bindings_and_authorization_match_files():
-    config_path = ROOT / "ml/markers/center/mask_preserving_v24/training/p1_retry11.json"
+    ledger = json.loads((ROOT / "ml/markers/training-budgets/production-repair-v1.json").read_bytes())
+    entry = next(item for item in ledger["revisions"] if item["revision"] == "marker-center-mask-preserving-v24")
+    config_path = ROOT / entry["candidate_config_paths"]["P1"]
     config = json.loads(config_path.read_text())
     digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
     for path_key, hash_key in (
@@ -139,10 +207,7 @@ def test_current_evidence_bindings_and_authorization_match_files():
     assert entry["synthetic_negative_proposal_count"] == 232798
     assert entry["morphology_diagnosis_sha256"] == config["morphology_diagnosis_sha256"]
     assert entry["morphology_gap_sha256"] == config["morphology_gap_sha256"]
-    assert entry["current_candidate_status"] in {"failed_dev", "dev_passed"}
-    assert entry["status"] == "candidate_1_" + entry["current_candidate_status"]
-    assert entry["execution_authorized"] is False
-    assert entry["authorized_candidate_id"] is None
+    _current_state(entry)
     assert entry["real_dev_authorized"] is False
     assert entry["real_dev_reads"] == 120
     assert entry["real_sealed_authorized"] is False
@@ -772,7 +837,7 @@ def test_retry10_outcome_is_bound_and_cannot_inherit_retry9_dev_approval():
     assert opened["binding"]["source_snapshot_sha256"] == digest(seal_root / "source-snapshot.json")
     assert report["status"] == result_seal["status"] == "failed_dev"
     assert not _passes_required_dev_gates(report["selected"], report["family_selected"], report["acceptance_bar"])
-    assert entry["execution_authorized"] is False
+    _current_state(entry)
     assert entry["retry9_dev_passed_candidate_ids"] == ["P1"]
     assert entry["real_dev_authorized"] is entry["real_sealed_authorized"] is False
     assert report["sealed_runs"] == report["real_dev_reads"] == report["real_sealed_reads"] == 0
@@ -784,12 +849,16 @@ def test_retry10_outcome_is_bound_and_cannot_inherit_retry9_dev_approval():
 def test_coverage_outcome_matches_its_own_config_seals_and_dev_gates():
     ledger = json.loads((ROOT / "ml/markers/training-budgets/production-repair-v1.json").read_bytes())
     entry = next(item for item in ledger["revisions"] if item["revision"] == "marker-center-mask-preserving-v24")
-    result_path = ROOT / entry["current_candidate_result_path"]
+    result_path = ROOT / entry["retry11_p1_result_path"]
     result_bytes = result_path.read_bytes()
     report = json.loads(result_bytes)
-    config_path = ROOT / entry["candidate_config_paths"]["P1"]
+    config_path = ROOT / "ml/markers/center/mask_preserving_v24/training/p1_retry11.json"
     config = json.loads(config_path.read_bytes())
-    seal_root = ROOT / "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1"
+    candidate_root = ROOT / "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1"
+    seal_candidates = [candidate_root, *sorted((candidate_root / "dev-attempts").glob("*"))]
+    matches = [path for path in seal_candidates if (path / "opened.json").is_file() and hashlib.sha256((path / "opened.json").read_bytes()).hexdigest() == entry["retry11_p1_opened_seal_sha256"]]
+    assert len(matches) == 1
+    seal_root = matches[0]
     closed = json.loads((seal_root / "result.json").read_bytes())
     opened = json.loads((seal_root / "opened.json").read_bytes())
     snapshot = json.loads((seal_root / "source-snapshot.json").read_bytes())
@@ -803,7 +872,7 @@ def test_coverage_outcome_matches_its_own_config_seals_and_dev_gates():
     assert snapshot["identity"] == identity
     assert opened["binding"]["candidate_config_path"] == config_path.relative_to(ROOT).as_posix()
     assert opened["binding"]["runner_source_bundle_sha256"] == config["expected_runner_source_bundle_sha256"]
-    assert digest(result_path) == entry["current_candidate_result_sha256"] == entry["retry11_p1_result_sha256"] == closed["report_sha256"]
+    assert digest(result_path) == entry["retry11_p1_result_sha256"] == closed["report_sha256"]
     assert digest(config_path) == report["candidate_config_sha256"] == opened["binding"]["candidate_config_sha256"]
     assert closed["opened_sha256"] == digest(seal_root / "opened.json")
     assert opened["binding"]["source_snapshot_sha256"] == digest(seal_root / "source-snapshot.json")
@@ -834,11 +903,11 @@ def test_coverage_outcome_matches_its_own_config_seals_and_dev_gates():
     passed = _passes_required_dev_gates(report["selected"], report["family_selected"], report["acceptance_bar"])
     assert report["dev_gate_passed"] == passed
     expected_status = "dev_passed" if passed and report["onnx_parity_maximum_absolute_error"] <= config["onnx_parity_tolerance"] else "failed_dev"
-    assert report["status"] == closed["status"] == entry["current_candidate_status"] == expected_status
-    assert entry["dev_passed_candidate_ids"] == (["P1"] if expected_status == "dev_passed" else [])
+    assert report["status"] == closed["status"] == entry["retry11_status"] == expected_status
+    assert entry["retry11_status"] == "failed_dev"
     assert report["sealed_runs"] == report["real_dev_reads"] == report["real_sealed_reads"] == 0
     assert all(runtime[key] is False for key in ("annotation_masks_used", "complete_artifact_mask", "production_approved"))
     assert report["production_approval"] is report["private_data"] is False
-    assert entry["execution_authorized"] is entry["real_dev_authorized"] is entry["real_sealed_authorized"] is False
+    assert entry["real_dev_authorized"] is entry["real_sealed_authorized"] is False
     assert all(entry[key] is False for key in ("public_gate_authorized", "candidate_consumed", "production_approval", "release_eligible"))
     assert not (seal_root / "consumed.json").exists()

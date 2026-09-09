@@ -24,6 +24,15 @@ from . import protocol
 REPO_ROOT = Path(__file__).resolve().parents[4]
 CONFIG_PATH = Path("ml/markers/center/mask_preserving_v24/training/p1.json")
 FAMILY_HARD_NEGATIVE_RADIUS_PX = 8.0
+FAMILY_GENERIC_NEGATIVE_PREFIX = "prefix"
+FAMILY_GENERIC_NEGATIVE_UNIFORM = "uniform_without_replacement"
+FAMILY_GENERIC_NEGATIVE_UNIFORM_SEED = 20260909
+UNIFORM_BACKGROUND_PROTOCOL_PATH = Path(
+    "ml/markers/center/mask_preserving_v24/uniform_background_dev_protocol.json"
+)
+UNIFORM_BACKGROUND_PROTOCOL_SHA256 = (
+    "c831d010dab52d12f1856c99a848c21e7dbe9f99547a8f1c6644ffe009ddee8b"
+)
 RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/protocol.py"),
     Path("ml/markers/center/mask_preserving_v24/mask_preserving.py"),
@@ -62,6 +71,7 @@ RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/runtime_binding.py"),
     Path("ml/markers/center/mask_preserving_v24/runtime_binding_v2.py"),
     Path("ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json"),
+    UNIFORM_BACKGROUND_PROTOCOL_PATH,
     Path("tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py"),
     Path("ml/synthetic/dataset.py"),
     Path("ml/synthetic/fonts.py"),
@@ -240,17 +250,61 @@ def _selected_index_sha256(scenes, selections, proposal_coordinates=None) -> str
     return hashlib.sha256(canonical_json_bytes(identities)).hexdigest()
 
 
+def _validate_family_generic_negative_options(
+    sampling_mode: str,
+    family_generic_negative_mode: str,
+    family_generic_negative_seed: int | None,
+) -> None:
+    if type(family_generic_negative_mode) is not str or family_generic_negative_mode not in {
+        FAMILY_GENERIC_NEGATIVE_PREFIX,
+        FAMILY_GENERIC_NEGATIVE_UNIFORM,
+    }:
+        raise ValueError("unsupported family generic-negative mode")
+    if sampling_mode != "family-train" and (
+        family_generic_negative_mode != FAMILY_GENERIC_NEGATIVE_PREFIX
+        or family_generic_negative_seed is not None
+    ):
+        raise ValueError("family generic-negative options require family-train sampling")
+    if family_generic_negative_mode == FAMILY_GENERIC_NEGATIVE_PREFIX:
+        if family_generic_negative_seed is not None:
+            raise ValueError("prefix family generic-negative sampling does not accept a seed")
+        return
+    if (
+        type(family_generic_negative_seed) is not int
+        or family_generic_negative_seed != FAMILY_GENERIC_NEGATIVE_UNIFORM_SEED
+    ):
+        raise ValueError(
+            "uniform family generic-negative sampling requires seed 20260909"
+        )
+    if _sha(REPO_ROOT / UNIFORM_BACKGROUND_PROTOCOL_PATH) != UNIFORM_BACKGROUND_PROTOCOL_SHA256:
+        raise RuntimeError("uniform family background protocol identity changed")
+
+
+def _family_generic_negative_config(config: dict) -> tuple[str, int | None]:
+    mode = config.get("family_generic_negative_mode", FAMILY_GENERIC_NEGATIVE_PREFIX)
+    seed = config.get("family_generic_negative_seed")
+    _validate_family_generic_negative_options("family-train", mode, seed)
+    return mode, seed
+
+
 def _examples_with_report(
     scenes,
     maximum_negative_per_positive: int,
     generator: torch.Generator,
     *,
     sampling_mode: str,
+    family_generic_negative_mode: str = FAMILY_GENERIC_NEGATIVE_PREFIX,
+    family_generic_negative_seed: int | None = None,
 ):
     if maximum_negative_per_positive != 10:
         raise ValueError("V24 retry requires maximum_negative_per_positive=10")
     if sampling_mode not in {"real-range-train", "family-train", "subset-test"}:
         raise ValueError("sampling_mode must be 'real-range-train', 'family-train', or 'subset-test'")
+    _validate_family_generic_negative_options(
+        sampling_mode,
+        family_generic_negative_mode,
+        family_generic_negative_seed,
+    )
     if not scenes:
         raise ValueError("scenes must not be empty")
     if sampling_mode == "real-range-train" and (
@@ -264,6 +318,11 @@ def _examples_with_report(
         raise ValueError("family production sampling requires train FamilyScene inputs")
     values = [[] for _ in range(5)]
     if sampling_mode != "real-range-train":
+        background_generator = None
+        if family_generic_negative_mode == FAMILY_GENERIC_NEGATIVE_UNIFORM:
+            background_generator = torch.Generator(device="cpu").manual_seed(
+                family_generic_negative_seed
+            )
         selections = []
         proposal_coordinates = []
         for scene in scenes:
@@ -297,7 +356,15 @@ def _examples_with_report(
                     torch.randperm(len(hard_negative), generator=generator)[:negative_budget]
                 ]
             negative = torch.nonzero((labels <= .5) & ~hard).flatten()
-            negative = negative[:max(0, negative_budget - len(hard_negative))]
+            generic_budget = max(0, negative_budget - len(hard_negative))
+            if (
+                background_generator is not None
+                and len(negative) > generic_budget
+            ):
+                order = torch.randperm(len(negative), generator=background_generator)
+                negative = negative.index_select(0, order[:generic_budget])
+            else:
+                negative = negative[:generic_budget]
             selected = torch.cat((positive, hard_negative, negative)).unique(sorted=True)
             selections.append(tuple(int(index) for index in selected.tolist()))
             values[0].append(proposals.patches[selected]); values[1].append(labels[selected]); values[2].append(offsets[selected]); values[3].append(target_radii[selected]); values[4].append(hard[selected])
@@ -379,6 +446,9 @@ def run(
 ) -> dict:
     if output_dir.exists(): raise RuntimeError(f"candidate output already exists: {output_dir}")
     config_path, config_sha256, config = _load_config(config_path)
+    family_generic_negative_mode, family_generic_negative_seed = (
+        _family_generic_negative_config(config)
+    )
     if _sha(checkpoint) != config["checkpoint_sha256"]: raise ValueError("V21 checkpoint hash changed")
     if _sha(v21_onnx) != config["v21_onnx_sha256"]: raise ValueError("V21 ONNX hash changed")
     for path_key, hash_key in (("feasibility_path","feasibility_sha256"),("retry_diagnosis_path","retry_diagnosis_sha256"),("morphology_diagnosis_path","morphology_diagnosis_sha256"),("morphology_gap_path","morphology_gap_sha256"),("retry3_morphology_gap_path","retry3_morphology_gap_sha256"),("retry4_diagnosis_path","retry4_diagnosis_sha256"),("retry4_generic_fp_diagnosis_path","retry4_generic_fp_diagnosis_sha256"),("retry5_diagnosis_path","retry5_diagnosis_sha256"),("retry5_generic_fp_diagnosis_path","retry5_generic_fp_diagnosis_sha256"),("retry6_diagnosis_path","retry6_diagnosis_sha256"),("retry7_diagnosis_path","retry7_diagnosis_sha256"),("retry7_morphology_diagnosis_path","retry7_morphology_diagnosis_sha256"),("retry7_morphology_gap_path","retry7_morphology_gap_sha256"),("retry8_result_path","retry8_result_sha256"),("retry8_diagnosis_path","retry8_diagnosis_sha256"),("generator_audit_path","generator_audit_sha256"),("negative_audit_path","negative_audit_sha256"),("negative_gap_path","negative_gap_sha256"),("family_dev_baseline_path","family_dev_baseline_sha256"),("evidence_policy_path","evidence_policy_sha256"),("acceptance_bars_path","acceptance_bars_sha256")):
@@ -411,7 +481,14 @@ def run(
             raise RuntimeError("five-axis synthetic family tensors changed")
         gen=torch.Generator().manual_seed(config["seed"]+1)
         real_values=_examples_with_report(train,config["maximum_negative_per_positive"],gen,sampling_mode="real-range-train")
-        family_values=_examples_with_report(family_train,config["maximum_negative_per_positive"],gen,sampling_mode="family-train")
+        family_values=_examples_with_report(
+            family_train,
+            config["maximum_negative_per_positive"],
+            gen,
+            sampling_mode="family-train",
+            family_generic_negative_mode=family_generic_negative_mode,
+            family_generic_negative_seed=family_generic_negative_seed,
+        )
         real_patches,real_labels,real_offsets,real_radii,real_hard,sampling=real_values
         family_patches,family_labels,family_offsets,family_radii,family_hard,family_sampling=family_values
         if len(real_labels) != config["real_range_training_example_count_expected"] or int((real_labels>.5).sum()) != config["real_range_positive_example_count_expected"] or int(real_hard.sum()) != config["real_range_hard_negative_example_count_expected"]:
@@ -420,6 +497,17 @@ def run(
             raise RuntimeError("five-axis family training example contract changed")
         if family_sampling.selected_index_sha256 != config["family_selected_index_sha256"]:
             raise RuntimeError("five-axis family selected indices changed")
+        family_sampling_outcome = {
+            "mode": "family-train",
+            "capacities": family_sampling.capacities,
+            "counts": family_sampling.counts,
+            "selected_index_sha256": family_sampling.selected_index_sha256,
+        }
+        if family_generic_negative_mode == FAMILY_GENERIC_NEGATIVE_UNIFORM:
+            family_sampling_outcome.update({
+                "generic_negative_mode": family_generic_negative_mode,
+                "generic_negative_seed": family_generic_negative_seed,
+            })
         patches=torch.cat((real_patches,family_patches)); labels=torch.cat((real_labels,family_labels)); offsets=torch.cat((real_offsets,family_offsets)); radii=torch.cat((real_radii,family_radii)); hard=torch.cat((real_hard,family_hard))
         sampler_config = config["negative_sampler"]
         if sampling.capacities != sampler_config["expected_capacities"] or sampling.selected_index_sha256 != sampler_config["selected_index_sha256"] or sampling.counts != sampler_config["quotas"]:
@@ -463,7 +551,7 @@ def run(
         parity=[]; parity_source=extract_proposals(dev[0].tensor).patches
         for count in [1,8,37]:
             x=parity_source[:count].contiguous(); expected=model(x).detach().numpy(); actual=session.run(["candidate_predictions"],{"candidate_patches":x.numpy()})[0]; parity.append({"candidate_count":count,"maximum_absolute_error":float(np.max(np.abs(expected-actual)))})
-        report={"schema":"graphreader.marker-center-mask-preserving-v24-candidate.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"candidate_config_path":config_path.as_posix(),"candidate_config_sha256":config_sha256,"status":"dev_passed" if dev_passed and max(r["maximum_absolute_error"] for r in parity)<=config["onnx_parity_tolerance"] else "failed_dev","synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0,"optimizer_steps":steps,"training_example_count":len(labels),"positive_example_count":int((labels>.5).sum()),"hard_negative_example_count":int(hard.sum()),"real_range_training_example_count":len(real_labels),"family_training_example_count":len(family_labels),"family_positive_example_count":int((family_labels>.5).sum()),"family_hard_negative_example_count":int(family_hard.sum()),"negative_sampling":{"seed":20260904,"split":"train","capacities":sampling.capacities,"counts":sampling.counts,"selected_index_sha256":sampling.selected_index_sha256,"topology_radius_px":topology_config["radius_px"],"topology_capacity":sampling.topology_capacity,"topology_selected":sampling.topology_selected,"topology_selected_index_sha256":sampling.topology_selected_index_sha256,"topology_hard_radius_px":topology_hard_config["radius_px"],"topology_hard_capacity":sampling.topology_hard_capacity,"topology_hard_selected":sampling.topology_hard_selected,"hard_training_total":sampling.hard_training_total,"connector_endpoint_offset_px":connector_config["endpoint_offset_px"],"connector_anchor_max_distance_px":connector_config["max_distance_px"],"connector_anchor_target_count":sampling.connector_anchor_target_count,"connector_anchor_capacity":sampling.connector_anchor_capacity,"connector_anchor_selected":sampling.connector_anchor_selected,"connector_anchor_selected_index_sha256":sampling.connector_anchor_selected_index_sha256,"generic_connector_band_radius_px":band_config["radius_px"],"generic_connector_band_capacity":sampling.capacities["generic_connector_band"],"generic_connector_band_selected":sampling.counts["generic_connector_band"],"generic_connector_band_selected_index_sha256":sampling.generic_connector_band_selected_index_sha256,"generic_remainder_selected":sampling.generic_remainder_selected},"family_sampling":{"mode":"family-train","capacities":family_sampling.capacities,"counts":family_sampling.counts,"selected_index_sha256":family_sampling.selected_index_sha256},"generator_layout_family_audit":layout_audit,"five_axis_family_audit":family_audit,"family_train_tensor_set_sha256":config["family_train_tensor_set_sha256"],"family_dev_tensor_set_sha256":config["family_dev_tensor_set_sha256"],"acceptance_bar":bar,"dev_comparisons":comparisons,"family_dev_comparisons":family_comparisons,"selected":selected,"family_selected":family_selected,"real_range_dev_gate_passed":real_range_dev_passed,"family_dev_gate_passed":family_dev_passed,"dev_gate_passed":dev_passed,"checkpoint_sha256":_sha(out_pt),"onnx_sha256":_sha(out_onnx),"v21_checkpoint_sha256":config["checkpoint_sha256"],"v21_onnx_sha256":config["v21_onnx_sha256"],"onnx_provider":protocol.PROVIDER,"onnx_dynamic_candidate_counts":parity,"onnx_parity_maximum_absolute_error":max(r["maximum_absolute_error"] for r in parity),"elapsed_ms":round((time.perf_counter()-started)*1000,3),"production_approval":False,"release_eligible":False}
+        report={"schema":"graphreader.marker-center-mask-preserving-v24-candidate.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"candidate_config_path":config_path.as_posix(),"candidate_config_sha256":config_sha256,"status":"dev_passed" if dev_passed and max(r["maximum_absolute_error"] for r in parity)<=config["onnx_parity_tolerance"] else "failed_dev","synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0,"optimizer_steps":steps,"training_example_count":len(labels),"positive_example_count":int((labels>.5).sum()),"hard_negative_example_count":int(hard.sum()),"real_range_training_example_count":len(real_labels),"family_training_example_count":len(family_labels),"family_positive_example_count":int((family_labels>.5).sum()),"family_hard_negative_example_count":int(family_hard.sum()),"negative_sampling":{"seed":20260904,"split":"train","capacities":sampling.capacities,"counts":sampling.counts,"selected_index_sha256":sampling.selected_index_sha256,"topology_radius_px":topology_config["radius_px"],"topology_capacity":sampling.topology_capacity,"topology_selected":sampling.topology_selected,"topology_selected_index_sha256":sampling.topology_selected_index_sha256,"topology_hard_radius_px":topology_hard_config["radius_px"],"topology_hard_capacity":sampling.topology_hard_capacity,"topology_hard_selected":sampling.topology_hard_selected,"hard_training_total":sampling.hard_training_total,"connector_endpoint_offset_px":connector_config["endpoint_offset_px"],"connector_anchor_max_distance_px":connector_config["max_distance_px"],"connector_anchor_target_count":sampling.connector_anchor_target_count,"connector_anchor_capacity":sampling.connector_anchor_capacity,"connector_anchor_selected":sampling.connector_anchor_selected,"connector_anchor_selected_index_sha256":sampling.connector_anchor_selected_index_sha256,"generic_connector_band_radius_px":band_config["radius_px"],"generic_connector_band_capacity":sampling.capacities["generic_connector_band"],"generic_connector_band_selected":sampling.counts["generic_connector_band"],"generic_connector_band_selected_index_sha256":sampling.generic_connector_band_selected_index_sha256,"generic_remainder_selected":sampling.generic_remainder_selected},"family_sampling":family_sampling_outcome,"generator_layout_family_audit":layout_audit,"five_axis_family_audit":family_audit,"family_train_tensor_set_sha256":config["family_train_tensor_set_sha256"],"family_dev_tensor_set_sha256":config["family_dev_tensor_set_sha256"],"acceptance_bar":bar,"dev_comparisons":comparisons,"family_dev_comparisons":family_comparisons,"selected":selected,"family_selected":family_selected,"real_range_dev_gate_passed":real_range_dev_passed,"family_dev_gate_passed":family_dev_passed,"dev_gate_passed":dev_passed,"checkpoint_sha256":_sha(out_pt),"onnx_sha256":_sha(out_onnx),"v21_checkpoint_sha256":config["checkpoint_sha256"],"v21_onnx_sha256":config["v21_onnx_sha256"],"onnx_provider":protocol.PROVIDER,"onnx_dynamic_candidate_counts":parity,"onnx_parity_maximum_absolute_error":max(r["maximum_absolute_error"] for r in parity),"elapsed_ms":round((time.perf_counter()-started)*1000,3),"production_approval":False,"release_eligible":False}
         report["runtime_training_inputs"] = {
             "binding_path": config["runtime_training_input_binding_path"],
             "binding_sha256": config["runtime_training_input_binding_sha256"],

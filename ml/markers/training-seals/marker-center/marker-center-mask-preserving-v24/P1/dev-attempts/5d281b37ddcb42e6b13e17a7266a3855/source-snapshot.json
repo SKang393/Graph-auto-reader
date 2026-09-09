@@ -1,6 +1,6 @@
 {
-  "base_commit": "08160d452e7de750aa0a29153fc01e74b8981fc4",
-  "captured_utc": "2026-09-09T09:31:11.752924+00:00",
+  "base_commit": "423fa65099e8391dea2d974aeaa10f0501d62061",
+  "captured_utc": "2026-09-09T07:50:39.202476+00:00",
   "identity": {
     "candidate_id": "P1",
     "revision": "marker-center-mask-preserving-v24",
@@ -13,10 +13,10 @@
     "architecture": "scale-separated-multiscale-patch-cnn-v16",
     "authorized_candidate_id": "P1",
     "candidate_config_paths": {
-      "P1": "ml/markers/center/mask_preserving_v24/training/p1_retry12.json"
+      "P1": "ml/markers/center/mask_preserving_v24/training/p1_retry11.json"
     },
     "candidate_config_sha256": {
-      "P1": "9f911f1bef2ea838db34502246e9a968ea8f35ef268d82ffd981bfefa5be7ff9"
+      "P1": "bd51706625938cbd6673416257bdb16158ee5269cda188ae676f93fbe4bec523"
     },
     "candidate_consumed": false,
     "consumed_candidate_ids": [],
@@ -28,7 +28,7 @@
     },
     "current_candidate_result_path": null,
     "current_candidate_result_sha256": null,
-    "current_candidate_status": "retry12_preregistered",
+    "current_candidate_status": "retry11_preregistered",
     "defect_class": "The frozen V21 classifier fails corrected mask-preserving synthetic dev at precision 0.69369, recall 0.49950, and 167 prohibited hits despite complete ink-supported proposal coverage",
     "dev_passed_candidate_ids": [],
     "dev_scene_count": 167,
@@ -38,7 +38,7 @@
     "evidence_policy_sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed",
     "execution_authorized": true,
     "execution_blocker": null,
-    "expected_runner_source_bundle_sha256": "d7323541c9f29f0cb54d6a5376a7e91a5325144417a28c8f3fed1b24c2b70403",
+    "expected_runner_source_bundle_sha256": "107520b1a3373db4bb08314b64d5063daeee524bf891d25dd49021143c1c3749",
     "experiment_budget": 1,
     "family_dev_baseline_path": "docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json",
     "family_dev_baseline_sha256": "c42011acaab800fffad92f92c4d4fa67775d2998dde4845aea0622f431795479",
@@ -47,11 +47,9 @@
     "family_dev_scene_count": 3,
     "family_dev_split_sha256": "f6cbeaf05dc40fa8be10b2120846d26db78a0a0836a92d5cc05ebb276bba445c",
     "family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
-    "family_generic_negative_mode": "uniform_without_replacement",
-    "family_generic_negative_seed": 20260909,
     "family_hard_negative_example_count_expected": 1492,
     "family_positive_example_count_expected": 828,
-    "family_selected_index_sha256": "4b2cdb3ce7ac79bff83e4febae9cd7f9f32ea38798eddbc67e1851d2561be025",
+    "family_selected_index_sha256": "70edc5a4eb07202ad73a826232edc83070959df5b6ec453597d065fd542fb3c9",
     "family_train_marker_count": 500,
     "family_train_panel_count": 23,
     "family_train_scene_count": 20,
@@ -70,10 +68,10 @@
       "duplicates_maximum",
       "prohibited_hits_maximum"
     ],
-    "isolated_change": "For family-train generic negatives only, replace ordered-prefix selection with uniform sampling without replacement at the unchanged per-panel budget. Use a separate CPU torch.Generator seeded 20260909 so hard-negative selection and optimizer shuffle RNG streams remain unchanged. Retain all positive and hard-negative indices, all sample counts, the five train seeds, runtime input planes, V21 initialization, 33x33 model architecture, loss, optimizer settings, 36 epochs, threshold 0.25, offsets, radius, consensus and NMS. Preserve historical prefix behavior as the default for existing configurations. No architecture, context, mask, hard-negative labeling, real-range sampling or operating-threshold change is included.",
-    "last_completed_candidate_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY11_RESULT.json",
-    "last_completed_candidate_result_sha256": "bb9d7a941395493271c5f08929516946de55a640ebaf85c5b77f29586b7bc818",
-    "legacy_p1_fields_scope": "Historical retry9 outcome only. Current outcome is identified by current_candidate_result_path; retry10 and retry11 fields retain their separately identified outcomes.",
+    "isolated_change": "Increase family training coverage from four seed393 sources to twenty sources from ordered seeds393,394,395,396,397, using the validated margin-preserving c96 runtime exchanges. Preserve the 33x33 model architecture, V21 initialization, sampler algorithm, loss, optimizer settings, epoch count, confidence threshold0.25, masks, offsets, radius output, consensus and NMS. Keep the 167-scene independent development set and seed393 family development source PNGs fixed. The corrected crop/runtime binding is held common for a frozen retry10 family baseline and the new candidate. Do not change sampling or patch context in this candidate.",
+    "last_completed_candidate_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY10_RESULT.json",
+    "last_completed_candidate_result_sha256": "7ccece10ce0520a5e98bed86be31b1a91551bdedd8dbbab8c65c355dfd4bf84c",
+    "legacy_p1_fields_scope": "Historical retry9 outcome only. Current outcome is identified by current_candidate_result_path and retry10 fields.",
     "markers_per_split": 2004,
     "model_license": "Apache-2.0",
     "morphology_diagnosis_path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY2_MORPHOLOGY_DIAGNOSIS.json",
@@ -277,7 +275,6 @@
     "retry10_p1_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY10_RESULT.json",
     "retry10_p1_result_seal_sha256": "f2f3723f297a9d0606e71ab84101c0aa175eef5d49e62b8ccee8d46bbd69bb1b",
     "retry10_p1_result_sha256": "7ccece10ce0520a5e98bed86be31b1a91551bdedd8dbbab8c65c355dfd4bf84c",
-    "retry10_p1_seal_archive_path": "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1/dev-attempts/15f8f899c18a4ba4945cd8fd36102884",
     "retry10_p1_selected": {
       "duplicate_count": 0,
       "f1": 0.8994082840236686,
@@ -294,64 +291,10 @@
       "true_positives": 1824
     },
     "retry10_p1_source_snapshot_sha256": "35a8a930a382335b34347dfb0e8a12ccd49c76031b626a18fb91cd494d113531",
-    "retry11_closed_candidate_config_paths": {
-      "P1": "ml/markers/center/mask_preserving_v24/training/p1_retry11.json"
-    },
-    "retry11_closed_candidate_config_sha256": {
-      "P1": "bd51706625938cbd6673416257bdb16158ee5269cda188ae676f93fbe4bec523"
-    },
-    "retry11_closed_expected_runner_source_bundle_sha256": "107520b1a3373db4bb08314b64d5063daeee524bf891d25dd49021143c1c3749",
-    "retry11_closed_utc_date": "2026-09-09",
     "retry11_hypothesis": "Retry10 fails independent synthetic dev precision/recall (0.8888888888888888/0.9101796407185628) and family dev precision/recall (0.693950177935943/0.9466019417475728). The fixed seed393 family training sources contain no faint/sparse positive examples; the four contiguous successor seeds add 86 such positive proposals without changing generator parameter ranges or train family identities. Increasing actual-runtime training coverage may improve family generalization. Large-marker independent-dev errors may remain and are not claimed solved by this experiment. Evidence: artifacts/goal22-runs/marker-v24-retry10-runtime/coverage-design/coverage-design.json, SHA256 ecdcbc1a63995fb0d19948ff1c192508436a7f1669e412fed19a789231d980c2.",
-    "retry11_optimizer_steps": 12672,
-    "retry11_p1_candidate_report_path": "artifacts/goal22-runs/marker-v24-retry11-coverage/P1-run/candidate-report.json",
-    "retry11_p1_checkpoint_sha256": "dcdba743eeea28827d1fdcd8aaf8a3f83d164eabffa0e67ab35d22511f8652d0",
-    "retry11_p1_elapsed_ms": 1882938.002,
-    "retry11_p1_family_selected": {
-      "duplicate_count": 0,
-      "f1": 0.4333694474539545,
-      "false_negatives": 6,
-      "false_positives": 517,
-      "precision": 0.2789400278940028,
-      "prohibited_structure_hit_rate": 0.008368200836820083,
-      "prohibited_structure_hits": 6,
-      "proposal_recall": 1.0,
-      "proposal_true_positives": 206,
-      "recall": 0.970873786407767,
-      "scene_count": 9,
-      "threshold": 0.25,
-      "true_positives": 200
-    },
-    "retry11_p1_onnx_parity_maximum_absolute_error": 9.5367431640625e-07,
-    "retry11_p1_onnx_sha256": "b54f1833a3cd9b23025bd2f0b0aeb9d964b63c522e423b733c1766e786909626",
-    "retry11_p1_opened_seal_sha256": "aa0da6d271a61689a45bdbfdbf2532e57d0e361286a50e6ecccdce44b12807e2",
-    "retry11_p1_optimizer_steps": 12672,
-    "retry11_p1_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY11_RESULT.json",
-    "retry11_p1_result_seal_sha256": "45a064b2bbafec0da0f972c1e7e8d60931f284d025ca9b2d00e1c5df50e752e0",
-    "retry11_p1_result_sha256": "bb9d7a941395493271c5f08929516946de55a640ebaf85c5b77f29586b7bc818",
-    "retry11_p1_selected": {
-      "duplicate_count": 1,
-      "f1": 0.9254979100073765,
-      "false_negatives": 122,
-      "false_positives": 181,
-      "precision": 0.9122636936500242,
-      "prohibited_structure_hit_rate": 0.0,
-      "prohibited_structure_hits": 0,
-      "proposal_recall": 1.0,
-      "proposal_true_positives": 2004,
-      "recall": 0.9391217564870259,
-      "scene_count": 167,
-      "threshold": 0.25,
-      "true_positives": 1882
-    },
-    "retry11_p1_source_snapshot_sha256": "b89fc497cf2b41525f71c228b2bc35df7035f8b86a4a534fb4fd29ed6b13df23",
+    "retry11_optimizer_steps": 0,
     "retry11_protocol_path": "ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json",
     "retry11_protocol_sha256": "6582091a0aaea0ee6eedb6476bf17936bd0bda2234bffff9de721ad66b00269c",
-    "retry11_status": "failed_dev",
-    "retry12_hypothesis": "Retry11 reproduces 200 true positives, 517 false positives and six misses on the frozen nine-panel family development set. Its generic-negative prefix sampler has normalized selected-order median 0.0300 and p95 0.2933. Of 181 eligible dense-border train negatives, only one is selected; however none of the 517 false positives has that exact dense-ink-and-border phenotype, so its omission alone does not explain the regression. False-positive patch maximum-row-density median and p95 are 1.0, consistent with thin connecting lines. Uniform sampling across the complete eligible family background pool may improve representation without using development labels for selection. Evidence: artifacts/goal22-runs/marker-v24-retry11-coverage/family-fp-diagnosis/diagnosis.json SHA256 a9f53d946aa5b6c1b16c6c9b9b8e51ea9b210c3154496c813355502cb6529438.",
-    "retry12_optimizer_steps": 0,
-    "retry12_protocol_path": "ml/markers/center/mask_preserving_v24/uniform_background_dev_protocol.json",
-    "retry12_protocol_sha256": "c831d010dab52d12f1856c99a848c21e7dbe9f99547a8f1c6644ffe009ddee8b",
     "retry1_candidate_report_sha256": "134ea318ade95882e52352a899da57ab9f9dbdd05b772a17a4321dd9eaa11696",
     "retry1_checkpoint_sha256": "070b77bb7503e6b8c0445059c9b5e20e96705b000b4abd271cfdc07ac53af401",
     "retry1_dev_gate_passed": false,
@@ -874,16 +817,16 @@
     "retry9_void_seal_path": "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1/void-attempts/daafc116b94145f784240a8d824d5955/void.json",
     "retry9_void_seal_sha256": "5e6554a33929075606c948a95a595f8be163a10d72e6502ae2361582f5a746d8",
     "retry9_void_sealed_split_read": false,
-    "retry_count": 12,
+    "retry_count": 11,
     "retry_prior_p1_result_sha256": "b4e68dde10024e60a122edad3f7645dfe1e5e2f5888dbfe4ef522383de4c6175",
     "retry_reason": "add five-axis family-disjoint synthetic coverage after frozen retry9 failed family dev precision, recall, and prohibited-hit gates",
     "revision": "marker-center-mask-preserving-v24",
     "runtime_adapter_path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
     "runtime_adapter_sha256": "bc710a71e9948c4dfbfba4b0548743c2b7b6799451fcdb8180b448e4188610c5",
     "runtime_focused_tests_passed": 17,
-    "runtime_input_preflight_path": "docs/GOAL-22-V24-UNIFORM-SAMPLER-PREFLIGHT.json",
-    "runtime_input_preflight_sha256": "d3cbc4f494a92c7ae6119bfcd6e110858b88f32fd911342666a65dfa70fcd427",
-    "runtime_input_scope": "Synthetic train/dev only, uniform family background sampling, incomplete artifact mask, no production approval",
+    "runtime_input_preflight_path": "docs/GOAL-22-V24-COVERAGE-PREFLIGHT.json",
+    "runtime_input_preflight_sha256": "7deefdb7e03643cc0e774fa500685fab037890de6bc14cdc7f40c8cce8778471",
+    "runtime_input_scope": "Synthetic train/dev only, ordered five-seed coverage, incomplete artifact mask, no production approval",
     "runtime_integration_passed": true,
     "runtime_test_path": "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs",
     "runtime_test_sha256": "2f0cbee0029b00ab037a75703952f031aa3a85672ee5efcc5086fff52756a8b0",
@@ -1036,15 +979,11 @@
     },
     {
       "path": "ml/markers/center/mask_preserving_v24/train_p1.py",
-      "sha256": "20b4e84a3be5726d855c7d857ccefc6fe2061953b6fb94ae740f076339839bd9"
+      "sha256": "32a6d29091bfd715ba772978d901f724e2ac843013bd2d56d13503f95c21bbb8"
     },
     {
-      "path": "ml/markers/center/mask_preserving_v24/training/p1_retry12.json",
-      "sha256": "9f911f1bef2ea838db34502246e9a968ea8f35ef268d82ffd981bfefa5be7ff9"
-    },
-    {
-      "path": "ml/markers/center/mask_preserving_v24/uniform_background_dev_protocol.json",
-      "sha256": "c831d010dab52d12f1856c99a848c21e7dbe9f99547a8f1c6644ffe009ddee8b"
+      "path": "ml/markers/center/mask_preserving_v24/training/p1_retry11.json",
+      "sha256": "bd51706625938cbd6673416257bdb16158ee5269cda188ae676f93fbe4bec523"
     },
     {
       "path": "ml/markers/center/metrics.py",
@@ -1080,7 +1019,7 @@
     },
     {
       "path": "ml/markers/training-budgets/production-repair-v1.json",
-      "sha256": "988ab0c1e96ffa9ef98b39fc5a4d7af3cc972195b4731e13d0600ede4bcf627c"
+      "sha256": "5c519562c5a14836051a4de70e3c1745a5fdfea2cfd463ea043d9ef1708a01a2"
     },
     {
       "path": "ml/markers/training_budget.py",
