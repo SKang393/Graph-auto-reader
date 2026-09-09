@@ -25,6 +25,41 @@ internal static class FrozenCandidateBindingSelfTest
             var fixture = new Fixture(repositoryRoot, root);
             JsonObject valid = fixture.CreateBinding();
             FrozenCandidateBinding loaded = fixture.Load(valid);
+            Require(loaded.Algorithms.MarkerProposalDomain == "full_frame_v24",
+                "FROZEN_CANDIDATE_LEGACY_MARKER_DOMAIN_CHANGED");
+            JsonObject plotDomain = Clone(valid);
+            RequiredObject(plotDomain, "algorithms")["marker_proposal_domain"] = "axis_polygon_or_16px_v25";
+            Require(fixture.Load(plotDomain).Algorithms.MarkerProposalDomain == "axis_polygon_or_16px_v25",
+                "FROZEN_CANDIDATE_EXPLICIT_MARKER_DOMAIN_NOT_BOUND");
+            JsonObject invalidDomain = Clone(valid);
+            RequiredObject(invalidDomain, "algorithms")["marker_proposal_domain"] = "arbitrary_polygon";
+            fixture.ExpectRejected(invalidDomain, "unsupported marker proposal domain");
+            Require(!FrozenCandidateWorkflowFactory.IsTiledProbabilityComposition(loaded.Algorithms),
+                "FROZEN_CANDIDATE_LEGACY_OCR_COMPOSITION_CHANGED");
+            FrozenCandidateAlgorithms tiled = loaded.Algorithms with
+            {
+                OcrCompositionVersion = GraphReader.App.Integration.Workflow.ProductionOcrAdapter.TiledProbabilityCandidateCompositionVersion,
+                OcrOutputGeometry = "tiled_probability_components",
+            };
+            Require(FrozenCandidateWorkflowFactory.IsTiledProbabilityComposition(tiled),
+                "FROZEN_CANDIDATE_TILED_OCR_COMPOSITION_NOT_BOUND");
+            foreach (FrozenCandidateAlgorithms mismatched in new[]
+                     {
+                         tiled with { OcrOutputGeometry = "model_polygon" },
+                         loaded.Algorithms with { OcrOutputGeometry = "tiled_probability_components" },
+                     })
+            {
+                bool rejected = false;
+                try
+                {
+                    _ = FrozenCandidateWorkflowFactory.IsTiledProbabilityComposition(mismatched);
+                }
+                catch (InvalidDataException)
+                {
+                    rejected = true;
+                }
+                Require(rejected, "FROZEN_CANDIDATE_MIXED_OCR_COMPOSITION_ACCEPTED");
+            }
             Require(
                 loaded.OcrDetection.ReviewedLicenseInputs
                     .Select(static input => input.File.RelativePath)

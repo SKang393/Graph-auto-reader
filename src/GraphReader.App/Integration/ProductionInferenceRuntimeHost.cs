@@ -29,7 +29,8 @@ public sealed class ProductionInferenceRuntimeHost : IAsyncDisposable
         IReadOnlyList<InferenceProvider> providerOrder,
         string cacheRoot,
         int queueCapacity,
-        int workerCount)
+        int workerCount,
+        IStageCache? stageCache = null)
     {
         ArgumentNullException.ThrowIfNull(discovery);
         ArgumentNullException.ThrowIfNull(providerPolicy);
@@ -53,7 +54,7 @@ public sealed class ProductionInferenceRuntimeHost : IAsyncDisposable
             () =>
             {
                 ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
-                var cache = new ContentAddressedStageCache(CacheRoot);
+                IStageCache cache = stageCache ?? new ContentAddressedStageCache(CacheRoot);
                 var registry = new OnnxSessionRegistry(
                     discovery,
                     providerPolicy,

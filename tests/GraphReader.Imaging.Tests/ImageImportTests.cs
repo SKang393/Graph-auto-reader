@@ -70,6 +70,83 @@ public sealed class ImageImportTests
     }
 
     [TestMethod]
+    public async Task ImportBytesAsyncUsesFileValidationWithoutReadingSourceReference()
+    {
+        string directory = TestImageFixtures.CreateDirectory();
+        try
+        {
+            string path = TestImageFixtures.Write(directory, ImageFileFormat.Png);
+            byte[] bytes = await File.ReadAllBytesAsync(path);
+            var service = new ImageImportService();
+            ImageImportResult fileResult = await service.ImportAsync(path, CancellationToken.None);
+            string sourceReference = Path.Combine(directory, "does-not-exist.png");
+
+            ImageImportResult memoryResult = await service.ImportBytesAsync(
+                sourceReference,
+                new ImmutableImageBytes(bytes),
+                CancellationToken.None);
+
+            Assert.IsTrue(memoryResult.IsSuccess, memoryResult.Error?.TechnicalMessage);
+            Assert.IsNotNull(memoryResult.Image);
+            Assert.AreEqual(sourceReference, memoryResult.Image.SourcePath);
+            Assert.AreEqual(fileResult.Image?.Sha256, memoryResult.Image.Sha256);
+            Assert.AreEqual(fileResult.Image?.Metadata, memoryResult.Image.Metadata);
+            CollectionAssert.AreEqual(bytes, memoryResult.Image.OriginalBytes.Copy());
+            Assert.IsFalse(File.Exists(sourceReference));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task ImportBytesAsyncKeepsCallerAndReturnedCopiesImmutable()
+    {
+        string directory = TestImageFixtures.CreateDirectory();
+        try
+        {
+            string path = TestImageFixtures.Write(directory, ImageFileFormat.Png);
+            byte[] expected = await File.ReadAllBytesAsync(path);
+            byte[] callerBytes = (byte[])expected.Clone();
+            var immutable = new ImmutableImageBytes(callerBytes);
+            callerBytes[0] ^= 0xff;
+
+            ImageImportResult result = await new ImageImportService().ImportBytesAsync(
+                "memory-source.png",
+                immutable,
+                CancellationToken.None);
+
+            Assert.IsNotNull(result.Image);
+            byte[] returned = result.Image.OriginalBytes.Copy();
+            returned[1] ^= 0xff;
+            CollectionAssert.AreEqual(expected, result.Image.OriginalBytes.Copy());
+            Assert.IsFalse(result.Image.OriginalBytes.OpenRead().CanWrite);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task ImportBytesAsyncReturnsStructuredDecodeFailureAndObservesCancellation()
+    {
+        var service = new ImageImportService();
+        ImageImportResult corrupt = await service.ImportBytesAsync(
+            "corrupt.png",
+            new ImmutableImageBytes([1, 2, 3, 4, 5]),
+            CancellationToken.None);
+
+        Assert.AreEqual(ImageImportErrorCode.CorruptImage, corrupt.Error?.Code);
+        Assert.AreEqual("Errors.ImageCorrupt", corrupt.Error?.UserMessageKey);
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => service.ImportBytesAsync(
+            "cancelled.png",
+            new ImmutableImageBytes([1, 2, 3]),
+            new CancellationToken(canceled: true)));
+    }
+
+    [TestMethod]
     public async Task ImportBatchAsyncIsOrderedAndFindsHashDuplicates()
     {
         string directory = TestImageFixtures.CreateDirectory();

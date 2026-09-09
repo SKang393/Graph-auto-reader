@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.App.Integration.Workflow;
+using GraphReader.App.Integration;
 using GraphReader.Axis;
 using GraphReader.Export;
 using GraphReader.Inference;
@@ -80,7 +81,7 @@ internal static class WorkflowSyntheticAcceptance
         }
         foreach (WholeWorkflowCsvArtifact artifact in result.Artifacts)
         {
-            byte[] bytes = await File.ReadAllBytesAsync(artifact.WrittenPath).ConfigureAwait(false);
+            byte[] bytes = await File.ReadAllBytesAsync(artifact.WrittenPath!).ConfigureAwait(false);
             if (artifact.Sha256 != Convert.ToHexStringLower(SHA256.HashData(bytes)))
             {
                 throw new InvalidOperationException("Grouped adapter artifact checksum mismatch.");
@@ -94,11 +95,58 @@ internal static class WorkflowSyntheticAcceptance
         {
             throw new InvalidOperationException("Grouped adapter source preservation failed.");
         }
+        string memoryRoot = Path.Combine(root, "artifacts", "private-acceptance", "memory-only-run");
+        var memoryAdapter = new FrozenCandidateGroupedWorkflowAdapter(orchestrator, root,
+            memoryRoot, "fictitious-in-memory-candidate", aggregateOnly: true);
+        WholeWorkflowCaseOutput memoryResult = await memoryAdapter.ExecuteAsync(image, CancellationToken.None)
+            .ConfigureAwait(false) ?? throw new InvalidOperationException("In-memory adapter returned no result.");
+        if (!memoryResult.WorkflowSucceeded || memoryResult.Artifacts.Count != result.Artifacts.Count ||
+            Directory.Exists(memoryRoot) || memoryResult.Artifacts.Any(static artifact =>
+                artifact.WrittenPath is not null || artifact.Content is null ||
+                artifact.Sha256 != Convert.ToHexStringLower(SHA256.HashData(artifact.Content.CopyBytes()))))
+        {
+            throw new InvalidOperationException("In-memory workflow persisted or changed an export artifact.");
+        }
+        string[] expectedMinimalHashes = result.Artifacts.Where(static artifact =>
+                artifact.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) &&
+                !artifact.FileName.EndsWith(".audit.csv", StringComparison.OrdinalIgnoreCase))
+            .Select(static artifact => artifact.Sha256).Order(StringComparer.Ordinal).ToArray();
+        string[] memoryMinimalHashes = memoryResult.Artifacts.Where(static artifact =>
+                artifact.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) &&
+                !artifact.FileName.EndsWith(".audit.csv", StringComparison.OrdinalIgnoreCase))
+            .Select(static artifact => artifact.Sha256).Order(StringComparer.Ordinal).ToArray();
+        WholeWorkflowCaseOutput memoryDuplicate = await memoryAdapter.ExecuteAsync(image, CancellationToken.None)
+            .ConfigureAwait(false) ?? throw new InvalidOperationException("In-memory adapter lost duplicate failure.");
+        if (!expectedMinimalHashes.SequenceEqual(memoryMinimalHashes, StringComparer.Ordinal) ||
+            memoryDuplicate.WorkflowSucceeded || memoryDuplicate.FailureCode != "GROUPED_WORKFLOW_SOURCE_ALREADY_EXECUTED" ||
+            Directory.Exists(memoryRoot))
+        {
+            throw new InvalidOperationException("In-memory workflow changed CSV values or repeated an image.");
+        }
+        string unusedCacheRoot = Path.Combine(root, "no-persistence-cache");
+        var noPersistenceCache = new NoPersistenceStageCache();
+        var cacheKey = new StageCacheKey("fictitious-test-key");
+        await noPersistenceCache.PutAsync(cacheKey, new byte[] { 1, 2, 3 }, CancellationToken.None).ConfigureAwait(false);
+        await using (var runtime = new ProductionInferenceRuntimeHost(
+            new OrtExecutionProviderDiscovery(), new WindowsExecutionProviderPolicy(),
+            new OnnxInferenceSessionFactory(NoUiThreadGuard.Instance, OnnxGraphOptimizationMode.Disabled),
+            CpuThreadConfiguration.Create(1), [InferenceProvider.Cpu], unusedCacheRoot, 1, 1, noPersistenceCache))
+        {
+            _ = runtime.Runtime;
+            if (await noPersistenceCache.TryGetAsync(cacheKey, CancellationToken.None).ConfigureAwait(false) is not null ||
+                Directory.Exists(unusedCacheRoot))
+            {
+                throw new InvalidOperationException("Aggregate inference cache retained case bytes.");
+            }
+        }
         return new
         {
             status = "pass", actual_workflow_import_prepare_detect_review_export = true,
             artifact_count = result.Artifacts.Count, source_unchanged = true,
             repeated_source_rejected = true, reference_truth_sent_to_adapter = false,
+            in_memory_workflow_verified = true, in_memory_case_artifacts_persisted = false,
+            in_memory_minimal_csv_matches_file_export = true,
+            inference_cache_persistence_disabled = true,
             stage_adapters = "deterministic-fictitious-test-only", model_runs = 0,
             private_reads = 0, sealed_reads = 0, production_approved = false,
             evidence_directory = Path.GetRelativePath(Environment.CurrentDirectory, root).Replace('\\', '/'),

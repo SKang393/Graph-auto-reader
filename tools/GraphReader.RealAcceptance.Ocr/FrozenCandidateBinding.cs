@@ -58,7 +58,8 @@ internal sealed record FrozenCandidateAlgorithms(
     string MarkerCenterCandidateId,
     string MarkerClassifierAdapterId,
     string LegendAdapterId,
-    string PhaseAdapterId);
+    string PhaseAdapterId,
+    string MarkerProposalDomain = "full_frame_v24");
 
 internal sealed class FrozenCandidateBinding
 {
@@ -456,14 +457,25 @@ internal sealed class FrozenCandidateBinding
 
     private static FrozenCandidateAlgorithms ReadAlgorithms(JsonElement value)
     {
-        RequireExactProperties(value,
+        string[] fields =
         [
             "axis_stage_version", "ocr_output_geometry", "ocr_composition_version",
             "artifact_algorithm_id", "artifact_algorithm_version", "artifact_configuration_sha256",
             "artifact_app_assembly_sha256", "artifact_ocr_assembly_sha256",
             "marker_center_revision", "marker_center_candidate_id", "marker_classifier_adapter_id",
             "legend_adapter_id", "phase_adapter_id",
-        ], "Frozen candidate algorithms");
+        ];
+        string proposalDomain = "full_frame_v24";
+        if (value.TryGetProperty("marker_proposal_domain", out _))
+        {
+            fields = [.. fields, "marker_proposal_domain"];
+            proposalDomain = RequiredText(value, "marker_proposal_domain", "Frozen candidate algorithms");
+        }
+        if (proposalDomain is not ("full_frame_v24" or "axis_polygon_or_16px_v25"))
+        {
+            throw new InvalidDataException("Frozen candidate marker proposal domain is unsupported.");
+        }
+        RequireExactProperties(value, fields, "Frozen candidate algorithms");
         return new FrozenCandidateAlgorithms(
             RequiredText(value, "axis_stage_version", "Frozen candidate algorithms"),
             RequiredText(value, "ocr_output_geometry", "Frozen candidate algorithms"),
@@ -477,7 +489,8 @@ internal sealed class FrozenCandidateBinding
             RequiredText(value, "marker_center_candidate_id", "Frozen candidate algorithms"),
             RequiredText(value, "marker_classifier_adapter_id", "Frozen candidate algorithms"),
             RequiredText(value, "legend_adapter_id", "Frozen candidate algorithms"),
-            RequiredText(value, "phase_adapter_id", "Frozen candidate algorithms"));
+            RequiredText(value, "phase_adapter_id", "Frozen candidate algorithms"),
+            proposalDomain);
     }
 
     private static FrozenCandidateFile ReadFile(

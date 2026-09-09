@@ -31,6 +31,26 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "--run-frozen-real-workflow-worker")
+        {
+            return await FrozenRealWorkflowWorker.RunAsync(args);
+        }
+        if (args.Length == 1 && args[0] == "--self-test-real-workflow-worker")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(FrozenRealWorkflowWorkerSelfTest.Run()));
+        }
+        if (args.Length == 1 && args[0] == "--self-test-real-workflow-admission")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(FrozenRealWorkflowAdmissionSelfTest.Run()));
+        }
+        if (args.Length == 1 && args[0] == "--self-test-real-workflow-runner")
+        {
+            return await RunEngaugeSelfTestAsync(FrozenRealWorkflowRunnerSelfTest.RunAsync);
+        }
+        if (args.Length == 1 && args[0] == "--self-test-real-first-read-handshake")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(FrozenRealFirstReadHandshakeSelfTest.Run()));
+        }
         if (args.Length == 1 && args[0] == "--self-test-grouped-workflow-adapter")
         {
             return await RunEngaugeSelfTestAsync(WorkflowSyntheticAcceptance.RunGroupedAdapterAsync);

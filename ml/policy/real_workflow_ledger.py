@@ -27,19 +27,29 @@ from ml.policy.evidence_policy import (
 )
 
 
-LEDGER_SCHEMA = "graphreader.real-workflow-sealed-use-ledger.v1"
+LEDGER_SCHEMA = "graphreader.real-workflow-sealed-use-ledger.v2"
+LEGACY_LEDGER_SCHEMA = "graphreader.real-workflow-sealed-use-ledger.v1"
+CORPUS_CONTENT_ALGORITHM = "graphreader.frozen-real-workflow-corpus-content.v1"
 DISCLOSURE_KINDS = frozenset({"case_identity", "truth", "prediction", "pixel"})
 _LEDGER_FIELDS = {
     "schema", "evidence_policy", "assignment_sha256", "selected_inventory_sha256",
-    "split", "generation", "candidates", "retirement", "integrity_sha256",
+    "content_identity", "split", "generation", "candidates", "retirement",
+    "integrity_sha256",
 }
+_LEGACY_LEDGER_FIELDS = _LEDGER_FIELDS - {"content_identity"}
 _CANDIDATE_FIELDS = {
     "revision", "candidate_id", "candidate_sha256", "protocol_sha256",
     "attempts", "consumed_attempt_id",
 }
 _ATTEMPT_FIELDS = {
     "attempt_id", "status", "opened_utc", "first_read_utc", "completed_utc",
-    "aggregate_result_sha256", "exception",
+    "aggregate_result_sha256", "exception", "observed_content_sha256",
+}
+_LEGACY_ATTEMPT_FIELDS = _ATTEMPT_FIELDS - {"observed_content_sha256"}
+_CONTENT_IDENTITY_FIELDS = {
+    "algorithm", "sha256", "first_observed_attempt_id", "first_observed_utc",
+    "first_observed_revision", "first_observed_candidate_id",
+    "legacy_unobserved_consumed_attempts",
 }
 _RETIREMENT_FIELDS = {
     "revision", "candidate_id", "attempt_id", "disclosures",
@@ -293,6 +303,10 @@ def _validate_attempt(raw: Any) -> dict[str, Any]:
             raise RealWorkflowLedgerError(f"ledger attempt {key} is invalid")
     if raw["aggregate_result_sha256"] is not None:
         _sha256(raw["aggregate_result_sha256"], "aggregate result hash")
+    if raw["observed_content_sha256"] is not None:
+        _sha256(raw["observed_content_sha256"], "observed corpus content hash")
+        if raw["first_read_utc"] is None:
+            raise RealWorkflowLedgerError("corpus content was observed before first read")
     exception = raw["exception"]
     if exception is not None:
         if not isinstance(exception, dict) or set(exception) != {"type", "message_sha256"}:
@@ -340,12 +354,53 @@ def _validate_attempt(raw: Any) -> dict[str, Any]:
     return raw
 
 
+def _upgrade_legacy(document: dict[str, Any]) -> dict[str, Any]:
+    if set(document) != _LEGACY_LEDGER_FIELDS:
+        raise RealWorkflowLedgerError("real workflow ledger has an invalid shape")
+    if document.get("schema") != LEGACY_LEDGER_SCHEMA or document.get("split") != "real-sealed":
+        raise RealWorkflowLedgerError("real workflow ledger has an unsupported identity")
+    if document.get("integrity_sha256") != _integrity(document):
+        raise RealWorkflowLedgerError("real workflow ledger integrity check failed")
+    candidates = document.get("candidates")
+    if not isinstance(candidates, list):
+        raise RealWorkflowLedgerError("ledger candidates must be an array")
+    legacy_unobserved = 0
+    for candidate in candidates:
+        if not isinstance(candidate, dict) or set(candidate) != _CANDIDATE_FIELDS:
+            raise RealWorkflowLedgerError("ledger candidate has an invalid shape")
+        attempts = candidate.get("attempts")
+        if not isinstance(attempts, list):
+            raise RealWorkflowLedgerError("ledger candidate attempts must be an array")
+        for attempt in attempts:
+            if not isinstance(attempt, dict) or set(attempt) != _LEGACY_ATTEMPT_FIELDS:
+                raise RealWorkflowLedgerError("ledger attempt has an invalid shape")
+            if attempt.get("first_read_utc") is not None:
+                legacy_unobserved += 1
+            attempt["observed_content_sha256"] = None
+    document["schema"] = LEDGER_SCHEMA
+    document["content_identity"] = {
+        "algorithm": CORPUS_CONTENT_ALGORITHM,
+        "sha256": None,
+        "first_observed_attempt_id": None,
+        "first_observed_utc": None,
+        "first_observed_revision": None,
+        "first_observed_candidate_id": None,
+        "legacy_unobserved_consumed_attempts": legacy_unobserved,
+    }
+    document["integrity_sha256"] = _integrity(document)
+    return document
+
+
 def _load(path: Path) -> dict[str, Any]:
     try:
         document = json.loads(path.read_bytes())
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         raise RealWorkflowLedgerError("real workflow ledger is missing or corrupt") from error
-    if not isinstance(document, dict) or set(document) != _LEDGER_FIELDS:
+    if not isinstance(document, dict):
+        raise RealWorkflowLedgerError("real workflow ledger has an invalid shape")
+    if document.get("schema") == LEGACY_LEDGER_SCHEMA:
+        document = _upgrade_legacy(document)
+    if set(document) != _LEDGER_FIELDS:
         raise RealWorkflowLedgerError("real workflow ledger has an invalid shape")
     if document["schema"] != LEDGER_SCHEMA or document["split"] != "real-sealed":
         raise RealWorkflowLedgerError("real workflow ledger has an unsupported identity")
@@ -354,6 +409,34 @@ def _load(path: Path) -> dict[str, Any]:
         raise RealWorkflowLedgerError("ledger evidence policy differs from the authoritative policy")
     _sha256(document["assignment_sha256"], "assignment hash")
     _sha256(document["selected_inventory_sha256"], "selected inventory hash")
+    content_identity = document["content_identity"]
+    if not isinstance(content_identity, dict) or set(content_identity) != _CONTENT_IDENTITY_FIELDS:
+        raise RealWorkflowLedgerError("ledger corpus content identity has an invalid shape")
+    if content_identity["algorithm"] != CORPUS_CONTENT_ALGORITHM:
+        raise RealWorkflowLedgerError("ledger corpus content algorithm is unsupported")
+    if (
+        type(content_identity["legacy_unobserved_consumed_attempts"]) is not int
+        or content_identity["legacy_unobserved_consumed_attempts"] < 0
+    ):
+        raise RealWorkflowLedgerError("ledger legacy corpus content count is invalid")
+    content_sha256 = content_identity["sha256"]
+    first_observed_attempt_id = content_identity["first_observed_attempt_id"]
+    first_observed_utc = content_identity["first_observed_utc"]
+    first_observed_revision = content_identity["first_observed_revision"]
+    first_observed_candidate_id = content_identity["first_observed_candidate_id"]
+    if content_sha256 is None:
+        if any(value is not None for value in (
+            first_observed_attempt_id, first_observed_utc,
+            first_observed_revision, first_observed_candidate_id,
+        )):
+            raise RealWorkflowLedgerError("ledger corpus content identity is inconsistent")
+    else:
+        _sha256(content_sha256, "corpus content hash")
+        _identity(first_observed_attempt_id, "first corpus content attempt id")
+        _identity(first_observed_revision, "first corpus content revision")
+        _identity(first_observed_candidate_id, "first corpus content candidate id")
+        if not isinstance(first_observed_utc, str) or not first_observed_utc:
+            raise RealWorkflowLedgerError("first corpus content observation time is invalid")
     if type(document["generation"]) is not int or document["generation"] < 0:
         raise RealWorkflowLedgerError("ledger generation is invalid")
     if document["integrity_sha256"] != _integrity(document):
@@ -362,6 +445,7 @@ def _load(path: Path) -> dict[str, Any]:
         raise RealWorkflowLedgerError("ledger candidates must be an array")
     keys: set[tuple[str, str]] = set()
     disclosed_attempts: list[dict[str, Any]] = []
+    observed_attempts: list[tuple[str, str, dict[str, Any]]] = []
     for candidate in document["candidates"]:
         if not isinstance(candidate, dict) or set(candidate) != _CANDIDATE_FIELDS:
             raise RealWorkflowLedgerError("ledger candidate has an invalid shape")
@@ -374,6 +458,10 @@ def _load(path: Path) -> dict[str, Any]:
         if not isinstance(candidate["attempts"], list) or not candidate["attempts"]:
             raise RealWorkflowLedgerError("ledger candidate attempts must be nonempty")
         attempts = [_validate_attempt(item) for item in candidate["attempts"]]
+        observed_attempts.extend(
+            (candidate["revision"], candidate["candidate_id"], item)
+            for item in attempts if item["observed_content_sha256"] is not None
+        )
         if len({item["attempt_id"] for item in attempts}) != len(attempts):
             raise RealWorkflowLedgerError("ledger contains duplicate attempt identities")
         if sum(item["status"] == "active" for item in attempts) > 1:
@@ -412,6 +500,20 @@ def _load(path: Path) -> dict[str, Any]:
             raise RealWorkflowLedgerError("ledger retirement is not bound to its disclosure")
     elif disclosed_attempts:
         raise RealWorkflowLedgerError("disclosed attempt did not retire the corpus")
+    if content_sha256 is None:
+        if observed_attempts:
+            raise RealWorkflowLedgerError("attempt corpus content is not bound to the ledger")
+    elif (
+        any(item["observed_content_sha256"] != content_sha256 for _, _, item in observed_attempts)
+        or sum(
+            (revision, candidate_id, item["attempt_id"]) == (
+                first_observed_revision, first_observed_candidate_id,
+                first_observed_attempt_id,
+            )
+            for revision, candidate_id, item in observed_attempts
+        ) != 1
+    ):
+        raise RealWorkflowLedgerError("attempt corpus content differs from the ledger")
     return document
 
 
@@ -422,6 +524,15 @@ def _new_ledger(descriptor: RealWorkflowCandidateDescriptor) -> dict[str, Any]:
         "evidence_policy": reference,
         "assignment_sha256": descriptor.assignment_sha256,
         "selected_inventory_sha256": descriptor.selected_inventory_sha256,
+        "content_identity": {
+            "algorithm": CORPUS_CONTENT_ALGORITHM,
+            "sha256": None,
+            "first_observed_attempt_id": None,
+            "first_observed_utc": None,
+            "first_observed_revision": None,
+            "first_observed_candidate_id": None,
+            "legacy_unobserved_consumed_attempts": 0,
+        },
         "split": "real-sealed",
         "generation": 0,
         "candidates": [],
@@ -485,6 +596,7 @@ def open_attempt(
                 "completed_utc": None,
                 "aggregate_result_sha256": None,
                 "exception": None,
+                "observed_content_sha256": None,
             })
             _write_transition(path, document)
         return RealWorkflowAttempt(path, descriptor, attempt_id, lease)
@@ -529,6 +641,47 @@ def record_first_sealed_read(attempt: RealWorkflowAttempt) -> dict[str, object]:
         candidate["consumed_attempt_id"] = attempt.attempt_id
         _write_transition(attempt.ledger_path, document)
         return {"status": "consumed", "attempt_id": attempt.attempt_id, "generation": document["generation"]}
+
+
+def record_corpus_content(
+    attempt: RealWorkflowAttempt,
+    content_sha256: str,
+) -> dict[str, object]:
+    """Durably pin or compare the aggregate selected-project byte identity."""
+
+    content = _sha256(content_sha256, "corpus content hash")
+    _require_live(attempt)
+    with _exclusive_lock(attempt.ledger_path):
+        document, candidate, state = _bound_state(attempt)
+        if state["status"] != "consumed" or candidate["consumed_attempt_id"] != attempt.attempt_id:
+            raise RealWorkflowLedgerError("only a consumed live attempt can record corpus content")
+        observed = state["observed_content_sha256"]
+        if observed is not None:
+            if observed != content:
+                raise RealWorkflowLedgerError("attempt corpus content identity differs")
+            return {
+                "status": "content-bound",
+                "attempt_id": attempt.attempt_id,
+                "content_sha256": content,
+                "generation": document["generation"],
+            }
+        identity = document["content_identity"]
+        if identity["sha256"] is not None and identity["sha256"] != content:
+            raise RealWorkflowLedgerError("corpus content identity differs from first observed content")
+        if identity["sha256"] is None:
+            identity["sha256"] = content
+            identity["first_observed_attempt_id"] = attempt.attempt_id
+            identity["first_observed_utc"] = _utc_now()
+            identity["first_observed_revision"] = candidate["revision"]
+            identity["first_observed_candidate_id"] = candidate["candidate_id"]
+        state["observed_content_sha256"] = content
+        _write_transition(attempt.ledger_path, document)
+        return {
+            "status": "content-bound",
+            "attempt_id": attempt.attempt_id,
+            "content_sha256": content,
+            "generation": document["generation"],
+        }
 
 
 def record_attempt_failure(attempt: RealWorkflowAttempt, exception: BaseException) -> str:
@@ -649,6 +802,11 @@ def complete_attempt(
         document, candidate, state = _bound_state(attempt)
         if state["status"] != "consumed" or candidate["consumed_attempt_id"] != attempt.attempt_id:
             raise RealWorkflowLedgerError("only a consumed active attempt can complete")
+        if (
+            state["observed_content_sha256"] is None
+            or state["observed_content_sha256"] != document["content_identity"]["sha256"]
+        ):
+            raise RealWorkflowLedgerError("attempt corpus content identity was not durably bound")
         retirement = document["retirement"]
         if disclosure_list:
             expected_retirement = {
@@ -700,6 +858,7 @@ __all__ = [
     "load_ledger",
     "open_attempt",
     "record_disclosure",
+    "record_corpus_content",
     "record_attempt_failure",
     "record_first_sealed_read",
     "record_interrupted_attempt_failure",

@@ -154,3 +154,15 @@ public interface IImageImportService
 
     Task<BatchImportResult> ImportBatchAsync(IEnumerable<string> paths, CancellationToken cancellationToken);
 }
+
+/// <summary>
+/// Imports immutable encoded image bytes through the same validation path as file-backed input.
+/// The source reference identifies the bytes but is never opened as a file.
+/// </summary>
+public interface IEncodedImageByteImportService
+{
+    Task<ImageImportResult> ImportBytesAsync(
+        string sourceReference,
+        ImmutableImageBytes sourceBytes,
+        CancellationToken cancellationToken);
+}

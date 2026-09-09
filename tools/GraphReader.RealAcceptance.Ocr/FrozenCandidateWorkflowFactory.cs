@@ -54,7 +54,8 @@ internal static class FrozenCandidateWorkflowFactory
         string repositoryRoot,
         string outputRoot,
         FrozenCandidateBinding binding,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool aggregateOnly = false)
     {
         ArgumentNullException.ThrowIfNull(binding);
         cancellationToken.ThrowIfCancellationRequested();
@@ -142,7 +143,8 @@ internal static class FrozenCandidateWorkflowFactory
                 [InferenceProvider.Cpu],
                 Path.Combine(outputRoot, "inference-cache"),
                 binding.Runtime.QueueCapacity,
-                binding.Runtime.WorkerCount);
+                binding.Runtime.WorkerCount,
+                aggregateOnly ? new NoPersistenceStageCache() : null);
 
             var detectionIdentity = new ModelIdentity(
                 binding.OcrDetection.ModelId,
@@ -154,20 +156,18 @@ internal static class FrozenCandidateWorkflowFactory
                 binding.OcrRecognition.Version,
                 binding.OcrRecognition.Payload.Sha256,
                 recognitionPath);
-            ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForFrozenCandidateEvaluationAsync(
-                    new FrozenCandidateOcrModelDescriptor(
-                        detectionIdentity,
-                        detectionManifestPath,
-                        binding.OcrDetection.Manifest.Sha256),
-                    new FrozenCandidateOcrModelDescriptor(
-                        recognitionIdentity,
-                        recognitionManifestPath,
-                        binding.OcrRecognition.Manifest.Sha256),
-                    runtimeHost,
-                    binding.OpenCvNative.Sha256,
-                    cancellationToken,
-                    GraphStructureConsensusGeometry.ModelPolygon)
-                .ConfigureAwait(false);
+            var detectorDescriptor = new FrozenCandidateOcrModelDescriptor(
+                detectionIdentity, detectionManifestPath, binding.OcrDetection.Manifest.Sha256);
+            var recognizerDescriptor = new FrozenCandidateOcrModelDescriptor(
+                recognitionIdentity, recognitionManifestPath, binding.OcrRecognition.Manifest.Sha256);
+            ProductionOcrAdapter ocr = IsTiledProbabilityComposition(binding.Algorithms)
+                ? await ProductionOcrAdapter.CreateForFrozenTiledProbabilityCandidateEvaluationAsync(
+                    detectorDescriptor, recognizerDescriptor, runtimeHost,
+                    binding.OpenCvNative.Sha256, cancellationToken).ConfigureAwait(false)
+                : await ProductionOcrAdapter.CreateForFrozenCandidateEvaluationAsync(
+                    detectorDescriptor, recognizerDescriptor, runtimeHost,
+                    binding.OpenCvNative.Sha256, cancellationToken,
+                    GraphStructureConsensusGeometry.ModelPolygon).ConfigureAwait(false);
             if (ocr.IsApproved || !string.Equals(
                     ocr.ConfigurationScope,
                     "unapproved_frozen_candidate",
@@ -178,16 +178,22 @@ internal static class FrozenCandidateWorkflowFactory
 
             var axis = new ProductionAxisGeometryAdapter(binding.OpenCvNative.Sha256, isApproved: false);
             var masks = new ProductionDetectionMaskComposer(artifact);
-            var marker = ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEvaluation(
-                new FrozenCandidateMarkerCenterModelDescriptor(
+            var markerDescriptor = new FrozenCandidateMarkerCenterModelDescriptor(
                     new ModelIdentity(
                         binding.MarkerCenter.ModelId,
                         binding.MarkerCenter.Version,
                         binding.MarkerCenter.Payload.Sha256,
                         markerPath),
                     markerManifestPath,
-                    binding.MarkerCenter.Manifest.Sha256),
-                runtimeHost.Runtime);
+                    binding.MarkerCenter.Manifest.Sha256);
+            ProductionProposalMarkerCenterAdapter marker = binding.Algorithms.MarkerProposalDomain switch
+            {
+                "full_frame_v24" => ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEvaluation(
+                    markerDescriptor, runtimeHost.Runtime),
+                "axis_polygon_or_16px_v25" => ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidatePlotDomainEvaluation(
+                    markerDescriptor, runtimeHost.Runtime),
+                _ => throw new InvalidDataException("Frozen candidate marker proposal domain is unsupported."),
+            };
             ResolvedProductionModel classifierModel = await ResolveClassifierAsync(
                     repositoryRoot,
                     binding.MarkerClassifier,
@@ -295,7 +301,10 @@ internal static class FrozenCandidateWorkflowFactory
         ProductionPhaseReasoningAdapter phases)
     {
         FrozenCandidateAlgorithms expected = binding.Algorithms;
+        string expectedMarkerAdapterId = $"graphreader-marker-center-proposal:{binding.MarkerCenter.Payload.Sha256[..12]}" +
+            (expected.MarkerProposalDomain == "axis_polygon_or_16px_v25" ? ":plot-domain-v25" : string.Empty);
         if (!ocr.AdapterId.StartsWith($"graphreader-ocr:{expected.OcrCompositionVersion}:", StringComparison.Ordinal) ||
+            !string.Equals(marker.AdapterId, expectedMarkerAdapterId, StringComparison.Ordinal) ||
             !string.Equals(marker.Model.Sha256, binding.MarkerCenter.Payload.Sha256, StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(expected.MarkerClassifierAdapterId, classifier.AdapterId, StringComparison.Ordinal) ||
             !string.Equals(axis.AdapterId, $"graphreader-axis-opencv:{binding.OpenCvNative.Sha256[..12]}", StringComparison.Ordinal))
@@ -316,12 +325,15 @@ internal static class FrozenCandidateWorkflowFactory
         ProductionPhaseReasoningAdapter phases)
     {
         FrozenCandidateAlgorithms expected = binding.Algorithms;
-        string compositionVersion = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(
-            GraphStructureConsensusGeometry.ModelPolygon);
+        bool tiledProbability = IsTiledProbabilityComposition(expected);
+        string compositionVersion = tiledProbability
+            ? ProductionOcrAdapter.TiledProbabilityCandidateCompositionVersion
+            : GraphStructureConsensusTextRegionDetector.GetCompositionVersion(GraphStructureConsensusGeometry.ModelPolygon);
         string expectedClassifierAdapterId =
             $"graphreader-marker-classifier:{binding.MarkerClassifier.ModelSha256[..12]}";
         if (!string.Equals(expected.AxisStageVersion, ProductionAxisGeometryAdapter.StageVersion, StringComparison.Ordinal) ||
-            !string.Equals(expected.OcrOutputGeometry, "model_polygon", StringComparison.Ordinal) ||
+            !string.Equals(expected.OcrOutputGeometry,
+                tiledProbability ? "tiled_probability_components" : "model_polygon", StringComparison.Ordinal) ||
             !string.Equals(expected.OcrCompositionVersion, compositionVersion, StringComparison.Ordinal) ||
             !string.Equals(expected.ArtifactAlgorithmId, artifact.Identity.AlgorithmId, StringComparison.Ordinal) ||
             !string.Equals(expected.ArtifactAlgorithmVersion, artifact.Identity.Version, StringComparison.Ordinal) ||
@@ -336,6 +348,18 @@ internal static class FrozenCandidateWorkflowFactory
         {
             throw new InvalidDataException("Frozen candidate algorithm identities do not match the current executable.");
         }
+    }
+
+    internal static bool IsTiledProbabilityComposition(FrozenCandidateAlgorithms algorithms)
+    {
+        bool tiled = string.Equals(algorithms.OcrCompositionVersion,
+            ProductionOcrAdapter.TiledProbabilityCandidateCompositionVersion, StringComparison.Ordinal);
+        if (tiled != string.Equals(algorithms.OcrOutputGeometry,
+                "tiled_probability_components", StringComparison.Ordinal))
+        {
+            throw new InvalidDataException("Frozen candidate OCR composition and geometry disagree.");
+        }
+        return tiled;
     }
 
     private static string Materialize(

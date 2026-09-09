@@ -204,9 +204,44 @@ public sealed class ProductionWorkflowImportStage : IWorkflowImportStage
         WorkflowSourceRequest source,
         CancellationToken cancellationToken)
     {
-        ImageImportResult result = await imageImportService
-            .ImportAsync(source.Path, cancellationToken)
-            .ConfigureAwait(false);
+        ImageImportResult result;
+        if (source.InMemoryImageSource is { } inMemorySource)
+        {
+            if (imageImportService is not IEncodedImageByteImportService byteImportService)
+            {
+                throw Failure(
+                    ProductionWorkflowFailureCodes.ImageImportFailed,
+                    "Errors.ImageReadFailed",
+                    "The configured image importer does not support immutable encoded source bytes.",
+                    recoverable: false,
+                    "Use the production image importer.");
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            byte[] encodedBytes = inMemorySource.CopyBytes();
+            cancellationToken.ThrowIfCancellationRequested();
+            result = await byteImportService.ImportBytesAsync(
+                    source.Path,
+                    new ImmutableImageBytes(encodedBytes),
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (result.Image is { } importedImage &&
+                !string.Equals(importedImage.Sha256, inMemorySource.Sha256, StringComparison.OrdinalIgnoreCase))
+            {
+                throw Failure(
+                    ProductionWorkflowFailureCodes.ImageImportFailed,
+                    "Errors.ImageCorrupt",
+                    "The imported immutable image bytes do not match their bound SHA-256.",
+                    recoverable: false,
+                    "Reject the inconsistent in-memory source.");
+            }
+        }
+        else
+        {
+            result = await imageImportService
+                .ImportAsync(source.Path, cancellationToken)
+                .ConfigureAwait(false);
+        }
         cancellationToken.ThrowIfCancellationRequested();
         if (!result.IsSuccess || result.Image is null)
         {

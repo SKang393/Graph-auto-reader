@@ -296,7 +296,54 @@ internal static class WholeWorkflowCsvEvaluatorSelfTest
             Require(!rowCount.ArtifactIntegrityValid && rowCount.IntegrityFailureCases == 1,
                 "artifact row-count mismatch");
 
-            const int scenarios = 25;
+            WholeWorkflowCaseOutput diskOutput = WriteOutput(root, "memory-equivalence", validRows);
+            WholeWorkflowCaseOutput memoryOutput = diskOutput with
+            {
+                Artifacts = diskOutput.Artifacts.Select(artifact => artifact with
+                {
+                    WrittenPath = null,
+                    Content = new WholeWorkflowArtifactContent(File.ReadAllBytes(artifact.WrittenPath!)),
+                }).ToArray(),
+            };
+            WholeWorkflowEvaluationOptions memoryOptions = Options with { RequireInMemoryArtifacts = true };
+            WholeWorkflowEvaluationResult memoryResult = WholeWorkflowCsvEvaluator.Evaluate(
+                [truth], [memoryOutput], memoryOptions, CancellationToken.None);
+            Require(JsonSerializer.Serialize(memoryResult) == JsonSerializer.Serialize(valid),
+                "in-memory export matches final-file evaluation exactly");
+
+            WholeWorkflowEvaluationResult diskRejected = WholeWorkflowCsvEvaluator.Evaluate(
+                [truth], [diskOutput], memoryOptions, CancellationToken.None);
+            Require(!diskRejected.ArtifactIntegrityValid && diskRejected.TruthPoints == truth.Points.Count,
+                "aggregate-only evaluator rejects file-backed artifacts without dropping truth");
+
+            WholeWorkflowCaseOutput ambiguousOutput = memoryOutput with
+            {
+                Artifacts = memoryOutput.Artifacts.Select((artifact, index) => index == 0
+                    ? artifact with { WrittenPath = diskOutput.Artifacts[0].WrittenPath }
+                    : artifact).ToArray(),
+            };
+            WholeWorkflowEvaluationResult ambiguous = WholeWorkflowCsvEvaluator.Evaluate(
+                [truth], [ambiguousOutput], memoryOptions, CancellationToken.None);
+            Require(!ambiguous.ArtifactIntegrityValid, "dual artifact storage is rejected");
+
+            byte[] originalContent = memoryOutput.Artifacts[0].Content!.CopyBytes();
+            var immutableContent = new WholeWorkflowArtifactContent(originalContent);
+            originalContent[0] ^= 0xff;
+            byte[] copiedContent = immutableContent.CopyBytes();
+            copiedContent[0] ^= 0xff;
+            Require(Hash(immutableContent.CopyBytes()) == memoryOutput.Artifacts[0].Sha256,
+                "in-memory artifact owns immutable bytes");
+            WholeWorkflowCaseOutput memoryTampered = memoryOutput with
+            {
+                Artifacts = memoryOutput.Artifacts.Select((artifact, index) => index == 0
+                    ? artifact with { Content = new WholeWorkflowArtifactContent(copiedContent) }
+                    : artifact).ToArray(),
+            };
+            WholeWorkflowEvaluationResult tamperedMemory = WholeWorkflowCsvEvaluator.Evaluate(
+                [truth], [memoryTampered], memoryOptions, CancellationToken.None);
+            Require(!tamperedMemory.ArtifactIntegrityValid, "in-memory artifact checksum remains mandatory");
+
+            const int scenarios = 30;
             return new WholeWorkflowCsvEvaluatorSelfTestResult(
                 "pass", true, scenarios, false, 0, true, true, true, true, true);
         }

@@ -65,18 +65,36 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
                     failureCode: failure?.Code ?? "WORKFLOW_EXPORT_FAILED");
             }
 
-            artifacts.AddRange(result.MinimalArtifacts.Select(static artifact =>
-                new WorkflowExportArtifact(
-                    artifact.FileName,
-                    artifact.Sha256,
-                    artifact.Rows.Count,
-                    artifact.WrittenPath)));
-            artifacts.AddRange(result.AuditArtifacts.Select(static artifact =>
-                new WorkflowExportArtifact(
-                    artifact.FileName,
-                    artifact.Sha256,
-                    artifact.Rows.Count,
-                    artifact.WrittenPath)));
+            if (request.Operation == ExportOperation.Preview)
+            {
+                artifacts.AddRange(result.MinimalArtifacts.Select(static artifact =>
+                    WorkflowExportArtifact.CreateInMemory(
+                        artifact.FileName,
+                        artifact.Sha256,
+                        artifact.Rows.Count,
+                        artifact.Content)));
+                artifacts.AddRange(result.AuditArtifacts.Select(static artifact =>
+                    WorkflowExportArtifact.CreateInMemory(
+                        artifact.FileName,
+                        artifact.Sha256,
+                        artifact.Rows.Count,
+                        artifact.Content)));
+            }
+            else
+            {
+                artifacts.AddRange(result.MinimalArtifacts.Select(static artifact =>
+                    new WorkflowExportArtifact(
+                        artifact.FileName,
+                        artifact.Sha256,
+                        artifact.Rows.Count,
+                        artifact.WrittenPath)));
+                artifacts.AddRange(result.AuditArtifacts.Select(static artifact =>
+                    new WorkflowExportArtifact(
+                        artifact.FileName,
+                        artifact.Sha256,
+                        artifact.Rows.Count,
+                        artifact.WrittenPath)));
+            }
         }
 
         return new WorkflowExportResult(
@@ -195,7 +213,7 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             evidence.Participant,
             evidence.Mode,
             evidence.AuditMode,
-            ExportOperation.WriteFiles,
+            workflowRequest.Operation,
             evidence.Calibration,
             evidence.SessionOriginPolicy,
             exportPhases,

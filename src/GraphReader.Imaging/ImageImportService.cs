@@ -9,7 +9,7 @@ using Imazen.WebP;
 
 namespace GraphReader.Imaging;
 
-public sealed class ImageImportService : IImageImportService
+public sealed class ImageImportService : IImageImportService, IEncodedImageByteImportService
 {
     private readonly IImageImportStageObserver? stageObserver;
 
@@ -20,6 +20,24 @@ public sealed class ImageImportService : IImageImportService
 
     public Task<ImageImportResult> ImportAsync(string path, CancellationToken cancellationToken) =>
         ImportCoreAsync(path, inputIndex: 0, cancellationToken);
+
+    public Task<ImageImportResult> ImportBytesAsync(
+        string sourceReference,
+        ImmutableImageBytes sourceBytes,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceReference);
+        ArgumentNullException.ThrowIfNull(sourceBytes);
+        cancellationToken.ThrowIfCancellationRequested();
+        byte[] bytes = sourceBytes.Copy();
+        cancellationToken.ThrowIfCancellationRequested();
+        return ImportValidatedBytesAsync(
+            sourceReference,
+            bytes,
+            inputIndex: 0,
+            preserveSourceReference: true,
+            cancellationToken);
+    }
 
     public async Task<BatchImportResult> ImportBatchAsync(
         IEnumerable<string> paths,
@@ -83,14 +101,30 @@ public sealed class ImageImportService : IImageImportService
             return Failure(ImageImportErrorCode.IoFailure, "Errors.ImageReadFailed", path, inputIndex, exception);
         }
 
+        return await ImportValidatedBytesAsync(
+                path,
+                bytes,
+                inputIndex,
+                preserveSourceReference: false,
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    private Task<ImageImportResult> ImportValidatedBytesAsync(
+        string sourceReference,
+        byte[] bytes,
+        int inputIndex,
+        bool preserveSourceReference,
+        CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
-        Observe(ImageImportStage.BeforeHash, path, cancellationToken);
+        Observe(ImageImportStage.BeforeHash, sourceReference, cancellationToken);
         string hash = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
         cancellationToken.ThrowIfCancellationRequested();
-        Observe(ImageImportStage.BeforeMetadata, path, cancellationToken);
+        Observe(ImageImportStage.BeforeMetadata, sourceReference, cancellationToken);
         bool metadataRead = TryReadMetadata(
             bytes,
-            path,
+            sourceReference,
             cancellationToken,
             out ImageMetadata? metadata,
             out ImageImportErrorCode errorCode,
@@ -98,8 +132,8 @@ public sealed class ImageImportService : IImageImportService
         cancellationToken.ThrowIfCancellationRequested();
         if (!metadataRead)
         {
-            return ImageImportResult.Failure(
-                path,
+            return Task.FromResult(ImageImportResult.Failure(
+                sourceReference,
                 inputIndex,
                 new ImageImportError(
                     errorCode,
@@ -112,18 +146,18 @@ public sealed class ImageImportService : IImageImportService
                     errorCode == ImageImportErrorCode.UnsupportedFormat
                         ? ImageSuggestedAction.SelectManualMode
                         : ImageSuggestedAction.Retry,
-                    path));
+                    sourceReference)));
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        Observe(ImageImportStage.AfterMetadata, path, cancellationToken);
+        Observe(ImageImportStage.AfterMetadata, sourceReference, cancellationToken);
         var imported = new ImportedImage(
-            Path.GetFullPath(path),
+            preserveSourceReference ? sourceReference : Path.GetFullPath(sourceReference),
             hash,
             metadata!,
             new ImmutableImageBytes(bytes),
             inputIndex);
-        return ImageImportResult.Success(imported);
+        return Task.FromResult(ImageImportResult.Success(imported));
     }
 
     private void Observe(ImageImportStage stage, string path, CancellationToken cancellationToken)

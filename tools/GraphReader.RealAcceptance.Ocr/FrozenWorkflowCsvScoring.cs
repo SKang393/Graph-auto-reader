@@ -137,7 +137,8 @@ internal static class FrozenWorkflowCsvScoring
                 JsonElement savedArtifact = artifacts[artifactIndex];
                 WholeWorkflowCsvArtifact artifact = output.Artifacts[artifactIndex];
                 string savedPath = RelativeFileUnder(reportRoot, savedArtifact.GetProperty("path").GetString()!);
-                string inputArtifactPath = RelativeFileUnder(repositoryRoot, artifact.WrittenPath);
+                string inputArtifactPath = RelativeFileUnder(repositoryRoot,
+                    artifact.WrittenPath ?? throw new InvalidDataException("Saved CSV evaluation requires a file artifact."));
                 if (!string.Equals(savedPath, inputArtifactPath, StringComparison.OrdinalIgnoreCase) ||
                     artifact.FileName != savedArtifact.GetProperty("file").GetString() ||
                     artifact.Sha256 != savedArtifact.GetProperty("sha256").GetString() ||

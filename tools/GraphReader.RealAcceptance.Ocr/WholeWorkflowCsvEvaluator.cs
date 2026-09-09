@@ -47,7 +47,17 @@ internal sealed record WholeWorkflowCsvArtifact(
     string FileName,
     string Sha256,
     int RowCount,
-    string WrittenPath);
+    string? WrittenPath,
+    WholeWorkflowArtifactContent? Content = null);
+
+internal sealed class WholeWorkflowArtifactContent
+{
+    private readonly byte[] bytes;
+
+    internal WholeWorkflowArtifactContent(ReadOnlySpan<byte> content) => bytes = content.ToArray();
+
+    internal byte[] CopyBytes() => (byte[])bytes.Clone();
+}
 
 internal sealed record WholeWorkflowCaseOutput(
     string CaseKey,
@@ -63,7 +73,8 @@ internal sealed record WholeWorkflowCaseOutput(
 internal sealed record WholeWorkflowEvaluationOptions(
     double SourcePixelMatchTolerance,
     double GraphXAbsoluteTolerance,
-    double GraphYAbsoluteTolerance);
+    double GraphYAbsoluteTolerance,
+    bool RequireInMemoryArtifacts = false);
 
 internal sealed record WholeWorkflowEvaluationResult(
     int TruthCases,
@@ -244,7 +255,7 @@ internal static class WholeWorkflowCsvEvaluator
             ParsedCase parsed;
             try
             {
-                parsed = ParseArtifacts(output.Artifacts, cancellationToken);
+                parsed = ParseArtifacts(output.Artifacts, options.RequireInMemoryArtifacts, cancellationToken);
                 if (output.WorkflowSucceeded && parsed.Targets.Count == 0)
                 {
                     throw new InvalidDataException("A successful workflow output has no CSV artifact set.");
@@ -680,6 +691,7 @@ internal static class WholeWorkflowCsvEvaluator
 
     private static ParsedCase ParseArtifacts(
         IReadOnlyList<WholeWorkflowCsvArtifact> artifacts,
+        bool requireInMemory,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(artifacts);
@@ -690,13 +702,27 @@ internal static class WholeWorkflowCsvEvaluator
         {
             cancellationToken.ThrowIfCancellationRequested();
             ValidateArtifactDescriptor(artifact);
-            string fullPath = Path.GetFullPath(artifact.WrittenPath);
-            if (!paths.Add(fullPath) || !names.Add(artifact.FileName))
+            if (!names.Add(artifact.FileName))
             {
                 throw new InvalidDataException("Workflow export artifacts reuse a final path or file name.");
             }
-            if (!File.Exists(fullPath)) throw new InvalidDataException("A reported workflow export artifact is missing.");
-            byte[] bytes = File.ReadAllBytes(fullPath);
+            byte[] bytes;
+            if (artifact.Content is not null)
+            {
+                bytes = artifact.Content.CopyBytes();
+            }
+            else
+            {
+                if (requireInMemory)
+                {
+                    throw new InvalidDataException("Aggregate-only evaluation requires in-memory export artifacts.");
+                }
+                string fullPath = Path.GetFullPath(artifact.WrittenPath!);
+                if (!paths.Add(fullPath))
+                    throw new InvalidDataException("Workflow export artifacts reuse a final path.");
+                if (!File.Exists(fullPath)) throw new InvalidDataException("A reported workflow export artifact is missing.");
+                bytes = File.ReadAllBytes(fullPath);
+            }
             cancellationToken.ThrowIfCancellationRequested();
             if (!string.Equals(Hash(bytes), artifact.Sha256, StringComparison.OrdinalIgnoreCase))
             {
@@ -1008,8 +1034,11 @@ internal static class WholeWorkflowCsvEvaluator
     {
         ArgumentNullException.ThrowIfNull(artifact);
         if (string.IsNullOrWhiteSpace(artifact.FileName) || Path.GetFileName(artifact.FileName) != artifact.FileName ||
-            !IsSha256(artifact.Sha256) || artifact.RowCount < 0 || string.IsNullOrWhiteSpace(artifact.WrittenPath) ||
-            !string.Equals(Path.GetFileName(artifact.WrittenPath), artifact.FileName, StringComparison.Ordinal))
+            !IsSha256(artifact.Sha256) || artifact.RowCount < 0 ||
+            (artifact.Content is not null
+                ? artifact.WrittenPath is not null
+                : string.IsNullOrWhiteSpace(artifact.WrittenPath) ||
+                  !string.Equals(Path.GetFileName(artifact.WrittenPath), artifact.FileName, StringComparison.Ordinal)))
             throw new InvalidDataException("Workflow export artifact descriptor is invalid.");
     }
 

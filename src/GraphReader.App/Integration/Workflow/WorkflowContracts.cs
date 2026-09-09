@@ -2,6 +2,9 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.Collections.ObjectModel;
+using System.Security.Cryptography;
+using System.Text;
+using GraphReader.Export;
 
 namespace GraphReader.App.Integration.Workflow;
 
@@ -47,6 +50,32 @@ public sealed record WorkflowSourceRequest(Guid SourceId, WorkflowSourceKind Kin
     // An open workspace keeps its reviewed source crops when Auto Detect reruns.
     // This is an in-process request detail, not part of a frozen file contract.
     internal RetainedRasterSourceRequest? RetainedRaster { get; init; }
+
+    // Aggregate-only runners may provide immutable source bytes without creating a case artifact.
+    // This is an in-process request detail, not part of a frozen file contract.
+    internal WorkflowInMemoryImageSource? InMemoryImageSource { get; init; }
+}
+
+internal sealed class WorkflowInMemoryImageSource
+{
+    private readonly byte[] bytes;
+
+    internal WorkflowInMemoryImageSource(string sha256, ReadOnlySpan<byte> bytes)
+    {
+        WorkflowContractGuards.RequireSha256(sha256, nameof(sha256));
+        this.bytes = bytes.ToArray();
+        string actualSha256 = Convert.ToHexStringLower(SHA256.HashData(this.bytes));
+        if (!string.Equals(actualSha256, sha256, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("The immutable image bytes do not match the declared SHA-256.", nameof(bytes));
+        }
+
+        Sha256 = actualSha256;
+    }
+
+    internal string Sha256 { get; }
+
+    internal byte[] CopyBytes() => (byte[])bytes.Clone();
 }
 
 public sealed class WorkflowImportRequest
@@ -76,6 +105,14 @@ public sealed class WorkflowImportRequest
         if (Sources.Select(static source => source.SourceId).Distinct().Count() != Sources.Count)
         {
             throw new ArgumentException("Source IDs must be unique.", nameof(sources));
+        }
+
+        if (Sources.Any(static source => source.InMemoryImageSource is not null &&
+                (source.Kind != WorkflowSourceKind.Image || source.RetainedRaster is not null)))
+        {
+            throw new ArgumentException(
+                "Immutable source bytes require an image source and cannot be combined with retained raster restoration.",
+                nameof(sources));
         }
 
         EnhancementEnabled = enhancementEnabled;
@@ -802,9 +839,51 @@ public sealed class WorkflowReviewState
     public IReadOnlyList<string> Warnings { get; }
 }
 
-public sealed record WorkflowExportRequest(Guid RunId, string OutputDirectory);
+public sealed record WorkflowExportRequest(Guid RunId, string OutputDirectory)
+{
+    // Preview materialization keeps serialized artifacts in memory and performs no file writes.
+    // This is an in-process request detail, not part of a frozen file contract.
+    internal ExportOperation Operation { get; init; } = ExportOperation.WriteFiles;
+}
 
-public sealed record WorkflowExportArtifact(string FileName, string Sha256, int RowCount, string? WrittenPath);
+public sealed record WorkflowExportArtifact(string FileName, string Sha256, int RowCount, string? WrittenPath)
+{
+    private static readonly UTF8Encoding Utf8 = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+    private readonly byte[]? contentBytes;
+
+    private WorkflowExportArtifact(
+        string fileName,
+        string sha256,
+        int rowCount,
+        byte[] contentBytes)
+        : this(fileName, sha256, rowCount, WrittenPath: null)
+    {
+        this.contentBytes = (byte[])contentBytes.Clone();
+    }
+
+    internal bool HasInMemoryContent => contentBytes is not null;
+
+    internal byte[] CopyContentBytes() => contentBytes is null
+        ? throw new InvalidOperationException("This workflow artifact has no in-memory content.")
+        : (byte[])contentBytes.Clone();
+
+    internal static WorkflowExportArtifact CreateInMemory(
+        string fileName,
+        string sha256,
+        int rowCount,
+        string content)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        byte[] bytes = Utf8.GetBytes(content);
+        string actualSha256 = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        if (!string.Equals(actualSha256, sha256, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("The serialized export content does not match its declared SHA-256.", nameof(content));
+        }
+
+        return new WorkflowExportArtifact(fileName, actualSha256, rowCount, bytes);
+    }
+}
 
 public sealed class WorkflowExportResult
 {
