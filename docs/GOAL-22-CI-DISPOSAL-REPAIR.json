@@ -23,8 +23,14 @@
   },
   "private_reads": 0,
   "sealed_reads": 0,
-  "model_runs": 0,
+  "candidate_model_evaluations": 0,
+  "test_inference_scope": "The suite includes synthetic identity-model and fake-session executions; these are regression fixtures, not candidate accuracy evaluations.",
   "packaged_application_build": false,
   "production_approved": false,
-  "goal22_acceptance": "incomplete"
+  "goal22_acceptance": "incomplete",
+  "ci_confirmation": {
+    "commit": "aa0738104f42ba8b9548ba28e8cd255c6db1e1df",
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/34377310192",
+    "conclusion": "success"
+  }
 }
