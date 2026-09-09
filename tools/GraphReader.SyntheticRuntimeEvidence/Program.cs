@@ -36,6 +36,10 @@ internal static class Program
         {
             return await AxisContactReplay.RunCommandAsync(args, RepositoryRoot()).ConfigureAwait(false);
         }
+        if (args.Length == 4 && args[0] == "--replay-db-postprocess")
+        {
+            return await DbPostprocessReplay.RunCommandAsync(args, RepositoryRoot()).ConfigureAwait(false);
+        }
         if (args.Length == 1 && args[0] == "--self-test-high-resolution")
         {
             HighResolutionExperiment.SelfTest();

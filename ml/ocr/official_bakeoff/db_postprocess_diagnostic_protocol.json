@@ -1,0 +1,23 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The fixed 1920-input development diagnostic lost 51 previously matched text regions and gained 7. Among 83 misses, 38 had no accepted initial or expanded contour overlap. Accepted-contour evidence cannot distinguish absent probability support from pre-acceptance rejection. The authenticated diagnosis is artifacts/synthetic-runtime-evidence/high-resolution-error-diagnosis/report.json SHA256 0c61b0e26429f50c297a0a655d732c8a5f5a1e5c3b1724819c17e49a351aeb87.",
+  "isolated_change": "Add output-neutral, opt-in DB postprocess telemetry: the exact binary mask at the existing probability threshold and each contour's rejection or acceptance stage. Replay saved exact source and axis-masked BGR/gray bytes at the two already evaluated 960 and 1920 configurations. Reconstruct the historical two-pixel exclusion mask from frozen axis/tick/divider geometry where the saved gray-difference mask omits already-white gray pixels with nonwhite BGR channels; both reconstructed planes must match the historical checksums. Do not rerun import, panelization or axis selection, use current geometry, or change model weights, thresholds, geometry, region admission, recognition, production configuration or model approval.",
+  "split_identities": {
+    "train_manifest_sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37",
+    "dev_manifest_sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7",
+    "train_960_report_sha256": "679effc25d675879a47a742685d0d891f21bf177246251d32ec9ea88e9dff207",
+    "dev_960_report_sha256": "a0c07332ce44baa6b1513c865af17404207edf6c19332bf4014cd1bfaf81483f",
+    "train_1920_report_sha256": "30fa8755b08ee933d3684071c5a6438bec965a71562f6cf83080fe1fdb1e3486",
+    "dev_1920_report_sha256": "c97f7baec20402cd038648768fd02d3a9d94a69c4e481e439ad9b0f74ee7d1b9",
+    "train_text_truths": 146,
+    "dev_text_truths": 183,
+    "panels_per_configuration": 13,
+    "planes_per_panel": 2,
+    "detector_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+    "detector_manifest_sha256": "2ddb1599df210da50bf097383b1f691ee6e1bed27ba9c98b6695a6b06e7e8d51",
+    "native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31"
+  },
+  "metric": "Authenticate all saved inputs and source/executable/model/native identities before replay. Require exact returned regions and accepted contour geometry parity with frozen observations on all 52 invocations. Diagnose support at the fixed operating point and rejection categories against all 146 train and 183 dev truths after replay. Preserve missing outputs as failures and full denominators. Binary-mask evidence does not support threshold selection or claims about sub-threshold probability margins.",
+  "acceptance_bar": "Output-neutral observer regression and actual frozen-output parity must pass. Text detection requirements remain precision and recall >=0.95 from ml/policy/acceptance-bars.json; this diagnostic does not constitute an acceptance pass.",
+  "budget": {"synthetic_train_dev_runs": "unlimited", "optimizer_steps": 0, "private_reads": 0, "sealed_runs": 0, "production_approval": false, "release_eligible": false}
+}

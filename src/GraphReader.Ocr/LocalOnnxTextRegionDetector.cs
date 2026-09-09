@@ -84,6 +84,14 @@ public sealed record LocalOnnxTextRegionDetectorOptions(ModelIdentity Model)
     /// observation is bound to the current execution and implementation.
     /// </summary>
     public Action<OcrDbGeometryObservation>? DbGeometryObserver { get; init; }
+
+    /// <summary>
+    /// Optional output-neutral observation of the fixed-threshold support map
+    /// and every DB contour disposition before acceptance. Diagnostics must
+    /// bypass cached inference so the observation is bound to the current
+    /// execution and implementation.
+    /// </summary>
+    public Action<OcrDbPostprocessObservation>? DbPostprocessObserver { get; init; }
 }
 
 public sealed record OcrDbAcceptedContourGeometry(
@@ -124,6 +132,185 @@ public sealed record OcrDbGeometryObservation
     public int TensorHeight { get; }
 
     public IReadOnlyList<OcrDbAcceptedContourGeometry> AcceptedContours { get; }
+}
+
+public enum OcrDbContourDisposition
+{
+    NotEvaluatedMaximumRegions,
+    RejectedInsufficientPoints,
+    RejectedInitialSideLength,
+    RejectedBoxConfidence,
+    RejectedUnclipGeometry,
+    RejectedExpandedSideLength,
+    RejectedMappedGeometry,
+    Accepted,
+}
+
+public sealed record OcrDbContourEvaluation
+{
+    internal OcrDbContourEvaluation(
+        int contourIndex,
+        int pointCount,
+        OcrDbContourDisposition disposition,
+        OcrPolygon? initialPolygon = null,
+        OcrPolygon? expandedPolygon = null,
+        double? initialShortSide = null,
+        double? expandedShortSide = null,
+        double? boxConfidence = null,
+        double? inkDensity = null,
+        string? returnedRegionId = null)
+    {
+        if (contourIndex < 0 || pointCount < 0 || !Enum.IsDefined(disposition) ||
+            !IsFinite(initialShortSide) || !IsFinite(expandedShortSide) ||
+            !IsProbability(boxConfidence) || !IsProbability(inkDensity) ||
+            (disposition == OcrDbContourDisposition.Accepted) !=
+                !string.IsNullOrWhiteSpace(returnedRegionId))
+        {
+            throw new ArgumentException("DB contour evaluation is invalid.");
+        }
+
+        ContourIndex = contourIndex;
+        PointCount = pointCount;
+        Disposition = disposition;
+        InitialPolygon = initialPolygon;
+        ExpandedPolygon = expandedPolygon;
+        InitialShortSide = initialShortSide;
+        ExpandedShortSide = expandedShortSide;
+        BoxConfidence = boxConfidence;
+        InkDensity = inkDensity;
+        ReturnedRegionId = returnedRegionId;
+    }
+
+    public int ContourIndex { get; }
+
+    public int PointCount { get; }
+
+    public OcrDbContourDisposition Disposition { get; }
+
+    public OcrPolygon? InitialPolygon { get; }
+
+    public OcrPolygon? ExpandedPolygon { get; }
+
+    public double? InitialShortSide { get; }
+
+    public double? ExpandedShortSide { get; }
+
+    public double? BoxConfidence { get; }
+
+    public double? InkDensity { get; }
+
+    public string? ReturnedRegionId { get; }
+
+    private static bool IsFinite(double? value) => value is null || double.IsFinite(value.Value);
+
+    private static bool IsProbability(double? value) =>
+        value is null || (double.IsFinite(value.Value) && value.Value is >= 0 and <= 1);
+}
+
+public sealed record OcrDbPostprocessObservation
+{
+    private readonly byte[] thresholdMask;
+
+    internal OcrDbPostprocessObservation(
+        string inputSha256,
+        int imageWidth,
+        int imageHeight,
+        int tensorWidth,
+        int tensorHeight,
+        float probabilityThreshold,
+        float boxConfidenceThreshold,
+        OcrDbScoreMode scoreMode,
+        double unclipRatio,
+        int minimumSideLength,
+        int maximumRegions,
+        byte[] thresholdMask,
+        int aboveThresholdPixelCount,
+        int totalContourCount,
+        int evaluatedContourCount,
+        IReadOnlyList<OcrDbContourEvaluation> contours)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(inputSha256);
+        ArgumentNullException.ThrowIfNull(thresholdMask);
+        ArgumentNullException.ThrowIfNull(contours);
+        int truncatedContourCount = totalContourCount - evaluatedContourCount;
+        OcrDbContourEvaluation[] ordered = contours
+            .OrderBy(static item => item.ContourIndex)
+            .ToArray();
+        bool invalid = inputSha256.Length != 64 || !inputSha256.All(Uri.IsHexDigit) ||
+            imageWidth <= 0 || imageHeight <= 0 || tensorWidth <= 0 || tensorHeight <= 0 ||
+            probabilityThreshold is < 0 or > 1 || boxConfidenceThreshold is < 0 or > 1 ||
+            !Enum.IsDefined(scoreMode) || !double.IsFinite(unclipRatio) || unclipRatio is < 0 or > 10 ||
+            minimumSideLength <= 0 || maximumRegions <= 0 ||
+            thresholdMask.Length != checked(tensorWidth * tensorHeight) ||
+            aboveThresholdPixelCount < 0 || aboveThresholdPixelCount > thresholdMask.Length ||
+            thresholdMask.Count(static value => value == byte.MaxValue) != aboveThresholdPixelCount ||
+            thresholdMask.Any(static value => value is not (0 or byte.MaxValue)) ||
+            totalContourCount < 0 || evaluatedContourCount < 0 || truncatedContourCount < 0 ||
+            ordered.Length != totalContourCount ||
+            ordered.Select(static item => item.ContourIndex).Distinct().Count() != totalContourCount ||
+            ordered.Where(static item =>
+                item.Disposition == OcrDbContourDisposition.NotEvaluatedMaximumRegions).Count() !=
+                truncatedContourCount ||
+            ordered.Where(static item =>
+                item.Disposition != OcrDbContourDisposition.NotEvaluatedMaximumRegions).Count() !=
+                evaluatedContourCount;
+        if (invalid)
+        {
+            throw new ArgumentException("DB postprocess observation is invalid.");
+        }
+
+        InputSha256 = inputSha256;
+        ImageWidth = imageWidth;
+        ImageHeight = imageHeight;
+        TensorWidth = tensorWidth;
+        TensorHeight = tensorHeight;
+        ProbabilityThreshold = probabilityThreshold;
+        BoxConfidenceThreshold = boxConfidenceThreshold;
+        ScoreMode = scoreMode;
+        UnclipRatio = unclipRatio;
+        MinimumSideLength = minimumSideLength;
+        MaximumRegions = maximumRegions;
+        this.thresholdMask = (byte[])thresholdMask.Clone();
+        AboveThresholdPixelCount = aboveThresholdPixelCount;
+        TotalContourCount = totalContourCount;
+        EvaluatedContourCount = evaluatedContourCount;
+        TruncatedContourCount = truncatedContourCount;
+        Contours = Array.AsReadOnly(ordered);
+    }
+
+    public string InputSha256 { get; }
+
+    public int ImageWidth { get; }
+
+    public int ImageHeight { get; }
+
+    public int TensorWidth { get; }
+
+    public int TensorHeight { get; }
+
+    public float ProbabilityThreshold { get; }
+
+    public float BoxConfidenceThreshold { get; }
+
+    public OcrDbScoreMode ScoreMode { get; }
+
+    public double UnclipRatio { get; }
+
+    public int MinimumSideLength { get; }
+
+    public int MaximumRegions { get; }
+
+    public int AboveThresholdPixelCount { get; }
+
+    public int TotalContourCount { get; }
+
+    public int EvaluatedContourCount { get; }
+
+    public int TruncatedContourCount { get; }
+
+    public IReadOnlyList<OcrDbContourEvaluation> Contours { get; }
+
+    public byte[] CopyThresholdMask() => (byte[])thresholdMask.Clone();
 }
 
 /// <summary>
@@ -376,6 +563,8 @@ public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDet
         cancellationToken.ThrowIfCancellationRequested();
         using var binary = new Mat(tensorHeight, tensorWidth, MatType.CV_8UC1);
         var binaryPixels = new byte[probabilities.Length];
+        bool observePostprocess = options.DbPostprocessObserver is not null;
+        int aboveThresholdPixelCount = 0;
         for (var index = 0; index < probabilities.Length; index++)
         {
             if ((index & 4095) == 0)
@@ -386,6 +575,10 @@ public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDet
             binaryPixels[index] = probabilities[index] > options.ProbabilityThreshold
                 ? byte.MaxValue
                 : (byte)0;
+            if (observePostprocess && binaryPixels[index] == byte.MaxValue)
+            {
+                aboveThresholdPixelCount++;
+            }
         }
 
         Marshal.Copy(binaryPixels, 0, binary.Data, binaryPixels.Length);
@@ -400,18 +593,34 @@ public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDet
 
         int candidateCount = Math.Min(contours.Length, options.MaximumRegions);
         var candidates = new List<DbCandidate>(candidateCount);
+        List<OcrDbContourEvaluation>? contourEvaluations = observePostprocess
+            ? new List<OcrDbContourEvaluation>(contours.Length)
+            : null;
         for (var contourIndex = 0; contourIndex < candidateCount; contourIndex++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             Point[] contour = contours[contourIndex];
             if (contour.Length < 3)
             {
+                contourEvaluations?.Add(new OcrDbContourEvaluation(
+                    contourIndex,
+                    contour.Length,
+                    OcrDbContourDisposition.RejectedInsufficientPoints));
                 continue;
             }
 
             MiniBox initial = GetMiniBox(contour);
+            OcrPolygon? observedInitial = observePostprocess
+                ? MapPolygonToOriginal(initial.Points, image, tensorWidth, tensorHeight)
+                : null;
             if (initial.ShortSide < options.MinimumSideLength)
             {
+                contourEvaluations?.Add(new OcrDbContourEvaluation(
+                    contourIndex,
+                    contour.Length,
+                    OcrDbContourDisposition.RejectedInitialSideLength,
+                    initialPolygon: observedInitial,
+                    initialShortSide: initial.ShortSide));
                 continue;
             }
 
@@ -424,33 +633,80 @@ public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDet
                 cancellationToken);
             if (score.Confidence < options.BoxConfidenceThreshold)
             {
+                contourEvaluations?.Add(new OcrDbContourEvaluation(
+                    contourIndex,
+                    contour.Length,
+                    OcrDbContourDisposition.RejectedBoxConfidence,
+                    initialPolygon: observedInitial,
+                    initialShortSide: initial.ShortSide,
+                    boxConfidence: score.Confidence,
+                    inkDensity: score.InkDensity));
                 continue;
             }
 
             Point2f[][] offsetPaths = UnclipRound(initial.Points, options.UnclipRatio);
             if (offsetPaths.Length != 1)
             {
+                contourEvaluations?.Add(new OcrDbContourEvaluation(
+                    contourIndex,
+                    contour.Length,
+                    OcrDbContourDisposition.RejectedUnclipGeometry,
+                    initialPolygon: observedInitial,
+                    initialShortSide: initial.ShortSide,
+                    boxConfidence: score.Confidence,
+                    inkDensity: score.InkDensity));
                 continue;
             }
 
             MiniBox expanded = GetMiniBox(offsetPaths[0]);
+            OcrPolygon? observedExpanded = observePostprocess
+                ? MapPolygonToOriginal(expanded.Points, image, tensorWidth, tensorHeight)
+                : null;
             if (expanded.ShortSide < options.MinimumSideLength + 2)
             {
+                contourEvaluations?.Add(new OcrDbContourEvaluation(
+                    contourIndex,
+                    contour.Length,
+                    OcrDbContourDisposition.RejectedExpandedSideLength,
+                    initialPolygon: observedInitial,
+                    expandedPolygon: observedExpanded,
+                    initialShortSide: initial.ShortSide,
+                    expandedShortSide: expanded.ShortSide,
+                    boxConfidence: score.Confidence,
+                    inkDensity: score.InkDensity));
                 continue;
             }
 
-            OcrPolygon polygon = MapPolygonToOriginal(
+            OcrPolygon polygon = observedExpanded ?? MapPolygonToOriginal(
                 expanded.Points,
                 image,
                 tensorWidth,
                 tensorHeight);
             if (!polygon.Bounds.IsValid)
             {
+                contourEvaluations?.Add(new OcrDbContourEvaluation(
+                    contourIndex,
+                    contour.Length,
+                    OcrDbContourDisposition.RejectedMappedGeometry,
+                    initialPolygon: observedInitial,
+                    expandedPolygon: observedExpanded,
+                    initialShortSide: initial.ShortSide,
+                    expandedShortSide: expanded.ShortSide,
+                    boxConfidence: score.Confidence,
+                    inkDensity: score.InkDensity));
                 continue;
             }
 
             candidates.Add(new DbCandidate(
-                MapPolygonToOriginal(initial.Points, image, tensorWidth, tensorHeight),
+                contourIndex,
+                contour.Length,
+                initial.ShortSide,
+                expanded.ShortSide,
+                observedInitial ?? MapPolygonToOriginal(
+                    initial.Points,
+                    image,
+                    tensorWidth,
+                    tensorHeight),
                 polygon,
                 OrientationDegrees(polygon.Points.ToArray()),
                 score.Confidence,
@@ -483,8 +739,29 @@ public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDet
                 candidate.ExpandedPolygon,
                 candidate.Confidence,
                 candidate.InkDensity));
+            contourEvaluations?.Add(new OcrDbContourEvaluation(
+                candidate.ContourIndex,
+                candidate.PointCount,
+                OcrDbContourDisposition.Accepted,
+                candidate.InitialPolygon,
+                candidate.ExpandedPolygon,
+                candidate.InitialShortSide,
+                candidate.ExpandedShortSide,
+                candidate.Confidence,
+                candidate.InkDensity,
+                regionId));
             return region;
         }).ToArray();
+        if (contourEvaluations is not null)
+        {
+            for (var contourIndex = candidateCount; contourIndex < contours.Length; contourIndex++)
+            {
+                contourEvaluations.Add(new OcrDbContourEvaluation(
+                    contourIndex,
+                    contours[contourIndex].Length,
+                    OcrDbContourDisposition.NotEvaluatedMaximumRegions));
+            }
+        }
         cancellationToken.ThrowIfCancellationRequested();
         var geometry = new OcrDbGeometryObservation(
             inputSha256,
@@ -493,8 +770,30 @@ public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDet
             tensorWidth,
             tensorHeight,
             observations);
+        var detection = new OcrAtomicDbDetection(Array.AsReadOnly(regions), geometry);
         options.DbGeometryObserver?.Invoke(geometry);
-        return new OcrAtomicDbDetection(Array.AsReadOnly(regions), geometry);
+        if (contourEvaluations is not null)
+        {
+            options.DbPostprocessObserver!(new OcrDbPostprocessObservation(
+                inputSha256,
+                image.Width,
+                image.Height,
+                tensorWidth,
+                tensorHeight,
+                options.ProbabilityThreshold,
+                options.BoxConfidenceThreshold,
+                options.DbScoreMode,
+                options.UnclipRatio,
+                options.MinimumSideLength,
+                options.MaximumRegions,
+                binaryPixels,
+                aboveThresholdPixelCount,
+                contours.Length,
+                candidateCount,
+                contourEvaluations));
+        }
+
+        return detection;
     }
 
     private static IEnumerable<Component> FindComponents(
@@ -1183,7 +1482,7 @@ public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDet
             options.MinimumSideLength is < 1 or > 4096 ||
             options.MaximumRegions is < 1 or > 10_000 ||
             options.Timeout <= TimeSpan.Zero || options.Timeout > TimeSpan.FromMinutes(5) || invalidProviders ||
-            (options.DbGeometryObserver is not null &&
+            ((options.DbGeometryObserver is not null || options.DbPostprocessObserver is not null) &&
              (options.PostprocessAlgorithm != OcrDetectionPostprocessAlgorithm.DbPostprocessV1 ||
               !options.BypassCache)))
         {
@@ -1273,6 +1572,10 @@ public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDet
     }
 
     private sealed record DbCandidate(
+        int ContourIndex,
+        int PointCount,
+        double InitialShortSide,
+        double ExpandedShortSide,
         OcrPolygon InitialPolygon,
         OcrPolygon ExpandedPolygon,
         double OrientationDegrees,

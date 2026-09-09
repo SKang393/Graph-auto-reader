@@ -1,0 +1,346 @@
+{
+  "schema": "graphreader.db-postprocess-diagnostic-outcome.v1",
+  "status": "output-neutral-observation-verified-accuracy-not-accepted",
+  "baseline_commit": "65cc190ed9dc0a87409c5c81553f02f8fe1de30c",
+  "problem": "Accepted contours alone cannot distinguish absent detector support from rejected contours or insufficient overlap with text.",
+  "implementation": "An explicit uncached DB observer records an immutable exact threshold mask and every contour disposition. Default output, thresholds and configuration fingerprints are unchanged.",
+  "protocol": {
+    "path": "ml/ocr/official_bakeoff/db_postprocess_diagnostic_protocol.json",
+    "sha256": "63bc5a706c610d55e3f25136c1e5083c6a84b2af70449a56a677a155169f0c1c"
+  },
+  "sources": [
+    {
+      "path": "src/GraphReader.Ocr/LocalOnnxTextRegionDetector.cs",
+      "sha256": "26a558a893f11fcd2de8f142e99956485e04f942f9505755520ae54055f52754"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/LocalOnnxTextRegionDetectorDbPostprocessObservationTests.cs",
+      "sha256": "a8fe6ceac9451d5a349b30d7d3ead1ee027cd6e408031fbfb17fa30734544076"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/DbPostprocessReplay.cs",
+      "sha256": "37f2f48d836f347663b66107728804606d770faa2d0d8cca5c61e3b3b2219579"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "1e69cb495b24136deafdcf56f3f21de53dc04b8c2e732fc4db88277bec8c68a9"
+    }
+  ],
+  "replay": {
+    "path": "artifacts/goal22-runs/db-postprocess-replay/run1/report.json",
+    "sha256": "91b29bcf5fa4295defb50fd4b8c6188801227a936ef1d8b6f44ff103812b2d35",
+    "requests": 52,
+    "detector_attempts": 52,
+    "detector_completions": 52,
+    "failures": 0,
+    "exact_output_parity": true,
+    "elapsed_ms": 11500.8137,
+    "input_manifest": {
+      "path": "artifacts/goal22-runs/db-postprocess-replay/input-v2/input-manifest.json",
+      "sha256": "277d6962553da1593980e15f2188300573ff5a6fac70f8efc1ba445886e590b6"
+    },
+    "exporter": {
+      "path": "artifacts/goal22-runs/prepare_db_postprocess_replay.py",
+      "sha256": "08ebe9ee89024f2819bb29a0beb47ef3142328cf015d6cbaa6ccb45f72500f9b"
+    },
+    "export_void": {
+      "path": "artifacts/goal22-runs/db-postprocess-replay/export-v1-void.json",
+      "sha256": "c08e528d8ca9a7f099693b6b02dce7599a0b67315f3b2c9d2f10a29bbee7d6e3"
+    },
+    "void_repair": "The saved gray difference omitted pixels whose gray was already white but whose BGR channels were not. Reconstructing the historical two-pixel geometry mask reproduces both original plane hashes before any inference; the failed export remains preserved.",
+    "execution_manifest": {
+      "path": "artifacts/goal22-runs/db-postprocess-replay/executable-v1/execution-files.json",
+      "sha256": "e60e2fd47210d04df387769dc035e565a4ab9bf5996c4ba4c9efff6050ad4795"
+    },
+    "source_manifest": {
+      "path": "artifacts/goal22-runs/db-postprocess-replay/executable-v1/source-files.json",
+      "sha256": "925b0e98c1478ac16ad1ef604c7fb802b8041459fd25ec45a39276e33fc4bcc1"
+    },
+    "assemblies": [
+      {
+        "name": "GraphReader.SyntheticRuntimeEvidence",
+        "sha256": "05838141582e9c9778add9265663608182b59ae04b81e3d1fe526c943fc77966"
+      },
+      {
+        "name": "GraphReader.Ocr",
+        "sha256": "8ff752999ed09f4a1f3352785d4d1f86a17847b3d9bc0dbf1e61cbeb8895912c"
+      },
+      {
+        "name": "GraphReader.Inference",
+        "sha256": "9115f371a0a5d598c31a05e3067ffd82d7f6ad7fce7b1d6ea2a7b4ac925f391b"
+      },
+      {
+        "name": "GraphReader.App",
+        "sha256": "a3ac7a65df0a7ef18db5c841b93e9380f527d927a11dd51623a57fb76ada6443"
+      }
+    ],
+    "native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+    "detector_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+    "configuration_fingerprints": {
+      "960": "7a8eb59f3b6980096e80247a6b195e25b3e0b887240e700aaf77cf5a1d64bc81",
+      "1920": "dfa3e7befff1dcd6e9a975254ab905acf54b50f7d72dd057b31d116414ba1823"
+    },
+    "contour_dispositions": {
+      "Accepted": 1389,
+      "RejectedBoxConfidence": 232,
+      "RejectedInsufficientPoints": 420,
+      "RejectedInitialSideLength": 378
+    }
+  },
+  "diagnosis": {
+    "path": "artifacts/goal22-runs/db-postprocess-replay/diagnosis/report-v3.json",
+    "sha256": "604661e362e59d753956c349c9269161164476d2f37937817f351c3af0964ac7",
+    "evaluator": {
+      "path": "artifacts/goal22-runs/db-postprocess-replay/diagnosis/diagnose.py",
+      "sha256": "229290d28c2ba42ece542f89c214217b11520d5c1e626807e5ca392291ee6d0f"
+    },
+    "elapsed_ms": 20140.21800000046,
+    "truth_regions": 329,
+    "model_runs": 0,
+    "metrics": {
+      "1920_axis_masked": {
+        "combined": {
+          "false_negatives": 141,
+          "false_positives": 178,
+          "predicted_regions": 366,
+          "true_positives": 188,
+          "truth_regions": 329
+        },
+        "train": {
+          "false_negatives": 57,
+          "false_positives": 100,
+          "predicted_regions": 189,
+          "true_positives": 89,
+          "truth_regions": 146
+        },
+        "validation": {
+          "false_negatives": 84,
+          "false_positives": 78,
+          "predicted_regions": 177,
+          "true_positives": 99,
+          "truth_regions": 183
+        }
+      },
+      "1920_unmasked": {
+        "combined": {
+          "false_negatives": 139,
+          "false_positives": 127,
+          "predicted_regions": 317,
+          "true_positives": 190,
+          "truth_regions": 329
+        },
+        "train": {
+          "false_negatives": 56,
+          "false_positives": 82,
+          "predicted_regions": 172,
+          "true_positives": 90,
+          "truth_regions": 146
+        },
+        "validation": {
+          "false_negatives": 83,
+          "false_positives": 45,
+          "predicted_regions": 145,
+          "true_positives": 100,
+          "truth_regions": 183
+        }
+      },
+      "960_axis_masked": {
+        "combined": {
+          "false_negatives": 123,
+          "false_positives": 154,
+          "predicted_regions": 360,
+          "true_positives": 206,
+          "truth_regions": 329
+        },
+        "train": {
+          "false_negatives": 59,
+          "false_positives": 60,
+          "predicted_regions": 147,
+          "true_positives": 87,
+          "truth_regions": 146
+        },
+        "validation": {
+          "false_negatives": 64,
+          "false_positives": 94,
+          "predicted_regions": 213,
+          "true_positives": 119,
+          "truth_regions": 183
+        }
+      },
+      "960_unmasked": {
+        "combined": {
+          "false_negatives": 92,
+          "false_positives": 109,
+          "predicted_regions": 346,
+          "true_positives": 237,
+          "truth_regions": 329
+        },
+        "train": {
+          "false_negatives": 53,
+          "false_positives": 45,
+          "predicted_regions": 138,
+          "true_positives": 93,
+          "truth_regions": 146
+        },
+        "validation": {
+          "false_negatives": 39,
+          "false_positives": 64,
+          "predicted_regions": 208,
+          "true_positives": 144,
+          "truth_regions": 183
+        }
+      }
+    },
+    "truth_classifications": {
+      "1920_axis_masked": {
+        "accepted_geometry_overlap_below_iou_0_5": 93,
+        "accepted_match_iou_at_least_0_5": 188,
+        "localized_rejected_box_confidence_overlap": 13,
+        "localized_rejected_initial_side_length_overlap": 1,
+        "no_threshold_support_inside_truth_box": 32,
+        "threshold_support_without_localizable_contour_trace": 2
+      },
+      "1920_unmasked": {
+        "accepted_geometry_overlap_below_iou_0_5": 65,
+        "accepted_match_iou_at_least_0_5": 190,
+        "localized_rejected_box_confidence_overlap": 21,
+        "localized_rejected_initial_side_length_overlap": 3,
+        "no_threshold_support_inside_truth_box": 47,
+        "threshold_support_without_localizable_contour_trace": 3
+      },
+      "960_axis_masked": {
+        "accepted_geometry_overlap_below_iou_0_5": 82,
+        "accepted_match_iou_at_least_0_5": 206,
+        "localized_rejected_box_confidence_overlap": 9,
+        "localized_rejected_initial_side_length_overlap": 3,
+        "no_threshold_support_inside_truth_box": 29
+      },
+      "960_unmasked": {
+        "accepted_geometry_overlap_below_iou_0_5": 45,
+        "accepted_match_iou_at_least_0_5": 237,
+        "localized_rejected_box_confidence_overlap": 10,
+        "localized_rejected_initial_side_length_overlap": 6,
+        "no_threshold_support_inside_truth_box": 29,
+        "threshold_support_without_localizable_contour_trace": 2
+      }
+    },
+    "resolution_match_transitions": {
+      "axis_masked": {
+        "gained_at_1920": 16,
+        "lost_at_1920": 34,
+        "missed_both": 107,
+        "retained_match": 172
+      },
+      "unmasked": {
+        "gained_at_1920": 17,
+        "lost_at_1920": 64,
+        "missed_both": 75,
+        "retained_match": 173
+      }
+    },
+    "resolution_transition_details": {
+      "axis_masked": {
+        "gained_at_1920_by_960_outcome": {
+          "accepted_geometry_overlap_below_iou_0_5": 11,
+          "localized_rejected_box_confidence_overlap": 4,
+          "no_threshold_support_inside_truth_box": 1
+        },
+        "lost_at_1920_by_1920_outcome": {
+          "accepted_geometry_overlap_below_iou_0_5": 24,
+          "localized_rejected_box_confidence_overlap": 5,
+          "localized_rejected_initial_side_length_overlap": 1,
+          "no_threshold_support_inside_truth_box": 3,
+          "threshold_support_without_localizable_contour_trace": 1
+        },
+        "missed_both_by_1920_outcome": {
+          "accepted_geometry_overlap_below_iou_0_5": 69,
+          "localized_rejected_box_confidence_overlap": 8,
+          "no_threshold_support_inside_truth_box": 29,
+          "threshold_support_without_localizable_contour_trace": 1
+        }
+      },
+      "unmasked": {
+        "gained_at_1920_by_960_outcome": {
+          "accepted_geometry_overlap_below_iou_0_5": 11,
+          "localized_rejected_box_confidence_overlap": 4,
+          "localized_rejected_initial_side_length_overlap": 1,
+          "no_threshold_support_inside_truth_box": 1
+        },
+        "lost_at_1920_by_1920_outcome": {
+          "accepted_geometry_overlap_below_iou_0_5": 32,
+          "localized_rejected_box_confidence_overlap": 12,
+          "localized_rejected_initial_side_length_overlap": 2,
+          "no_threshold_support_inside_truth_box": 16,
+          "threshold_support_without_localizable_contour_trace": 2
+        },
+        "missed_both_by_1920_outcome": {
+          "accepted_geometry_overlap_below_iou_0_5": 33,
+          "localized_rejected_box_confidence_overlap": 9,
+          "localized_rejected_initial_side_length_overlap": 1,
+          "no_threshold_support_inside_truth_box": 31,
+          "threshold_support_without_localizable_contour_trace": 1
+        }
+      }
+    },
+    "interpretation_limits": [
+      "Threshold support means at least one shipped binary-mask pixel inside the exact truth bounding box.",
+      "Contours rejected for insufficient points and maximum-region truncation have no location in this trace and are never attributed to an individual truth.",
+      "Support without a localized contour remains unresolved; global rejection totals are not used as per-truth causes.",
+      "Overlap classifications are geometric observations, not causal claims or threshold recommendations.",
+      "Synthetic train/dev evidence does not approve a model, production stage, or release."
+    ],
+    "guard_repair": {
+      "prior_report": {
+        "path": "artifacts/goal22-runs/db-postprocess-replay/diagnosis/report-v2.json",
+        "sha256": "d384a96d04bf1541dd6b49d6343dc2b8696486ec273fffc1de8d494b33d0ef21"
+      },
+      "prior_source_snapshot": {
+        "path": "artifacts/goal22-runs/db-postprocess-replay/diagnosis/diagnose-v2-snapshot.py",
+        "sha256": "10936c8c50698913e25c3bd0ea11b988b5ee7604f0a54f407ad0fde8e9b19f7a"
+      },
+      "reason": "Replace a chained length comparison with two independent exact-52 checks. Fixed artifact hashes and coverage checks already protected the recorded v2 result.",
+      "unchanged_scientific_and_provenance_sections": 18,
+      "new_model_runs": 0
+    }
+  },
+  "validation": {
+    "ocr": {
+      "path": "artifacts/test-results/db-postprocess/Sungwoo_DESKTOP-KL9RVOO_2026-09-09_11_22_58_net10.0.trx",
+      "sha256": "6ddff526d7b514b0ad9e0d1be45098a649f5f1f8434a6f6f0d3456274a62be2d",
+      "passed": 230,
+      "failed": 0,
+      "existing_opt_in_skips": 16
+    },
+    "app": {
+      "path": "artifacts/test-results/axis-contact-app/Sungwoo_DESKTOP-KL9RVOO_2026-09-09_10_58_53_net10.0.trx",
+      "sha256": "ff46cbc15584f4538280f4faeba341e2358372f9d906362661a9ca6435691967",
+      "passed": 228,
+      "failed": 0,
+      "existing_opt_in_skips": 0
+    },
+    "app_scope": "The prior integration run already included this observer. No unchanged App run was repeated.",
+    "compiler": {
+      "warnings": 0,
+      "errors": 0,
+      "elapsed_seconds": 2.79
+    },
+    "independent_review": "Default-output, immutable-observer, replay and complete-denominator diagnostic reviews are clear. The nonmaterial exact-count guard defect was repaired and a fresh model-free run preserves all 18 scientific and provenance sections."
+  },
+  "limitations": [
+    "Both fixed configurations fail the applicable 95 percent detection bars.",
+    "The combined train/dev comparison loses 64 truths and gains 17 at 1920. The earlier development-only comparison lost 51 and gained 7; these are different denominators.",
+    "Missing threshold support, poor accepted geometry and localized rejections coexist. This evidence does not justify threshold selection or a postprocess-only remedy.",
+    "Insufficient-point contours lack location and are never assigned to individual truths using global counts.",
+    "No private, sealed, whole-workflow, clean-machine or release acceptance is established."
+  ],
+  "scope": {
+    "synthetic_train_dev_only": true,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approved": false,
+    "packaged_application_build": false,
+    "goal22_pass": false
+  },
+  "license_review": "Project Apache-2.0 code and previously recorded detector/native runtime only. No new dependency, model weights, external asset or redistribution decision."
+}
