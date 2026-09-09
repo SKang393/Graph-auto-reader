@@ -204,16 +204,23 @@ public sealed class CacheAndSchedulerTests
             },
             Timeout.InfiniteTimeSpan,
             CancellationToken.None).AsTask();
-        await started.Task;
-        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            await started.Task.WaitAsync(TimeSpan.FromSeconds(10));
 
-        await scheduler.DisposeAsync();
+            // Verify disposal can finish while native work remains blocked. The outer
+            // deadline catches an unbounded join without grading shared CI CPU latency.
+            await scheduler.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(10));
 
-        Assert.IsTrue(stopwatch.Elapsed < TimeSpan.FromSeconds(1));
-        Assert.IsFalse(finished.Task.IsCompleted);
-        release.SetResult();
-        await finished.Task.WaitAsync(TimeSpan.FromSeconds(1));
-        await Assert.ThrowsExactlyAsync<TaskCanceledException>(async () => await work);
+            Assert.IsFalse(finished.Task.IsCompleted);
+            await Assert.ThrowsExactlyAsync<TaskCanceledException>(async () =>
+                await work.WaitAsync(TimeSpan.FromSeconds(10)));
+        }
+        finally
+        {
+            release.TrySetResult();
+            await finished.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        }
     }
 
     [TestMethod]

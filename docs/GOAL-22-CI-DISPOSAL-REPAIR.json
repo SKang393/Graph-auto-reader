@@ -1,0 +1,30 @@
+{
+  "schema": "graphreader.goal22-ci-disposal-repair.v1",
+  "scope": "test-only; no runtime or packaged-build change",
+  "trigger": {
+    "commit": "72a7eb8ca57aa266775b7e1e1ef0572ef97bc423",
+    "ci_run": "https://github.com/SKang393/Graph-auto-reader/actions/runs/34373457622",
+    "failure": "DisposalIsBoundedWhenOperationIgnoresCancellation: elapsed < 1 second assertion failed under full parallel CI",
+    "diagnosis": "The test graded shared-runner wall-clock latency. Production already detaches outstanding workers after its configured shutdown timeout."
+  },
+  "repair": {
+    "behavior": "Require disposal and caller cancellation to finish while the operation remains blocked; release the operation in finally. Use 10-second outer hang guards for scheduling tolerance. Production shutdown timeout remains 40 milliseconds in this fixture.",
+    "source": "tests/GraphReader.Inference.Tests/CacheAndSchedulerTests.cs",
+    "sha256": "7f3592623d94d9340b73f6d8ad2181c2fe93bfb9242911d886c00fc05b419908"
+  },
+  "validation": {
+    "command": "dotnet test tests/GraphReader.Inference.Tests/GraphReader.Inference.Tests.csproj --configuration Release --no-restore --nologo --logger trx --results-directory artifacts/test-results/inference-disposal-repair",
+    "passed": 84,
+    "skipped": 1,
+    "failed": 0,
+    "test_duration_seconds_reported": 3,
+    "command_wall_seconds": 6.349647,
+    "trx_sha256": "4a5abef27c1a7b79d919a8e6587cbf95108530c38678c14a1afe451832ecb5e9"
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_runs": 0,
+  "packaged_application_build": false,
+  "production_approved": false,
+  "goal22_acceptance": "incomplete"
+}
