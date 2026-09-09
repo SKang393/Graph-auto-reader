@@ -1,0 +1,133 @@
+{
+  "schema": "graphreader.goal22-pretrained-detector-finetune-feasibility.v2",
+  "recorded_utc": "2026-09-09T22:34:08.520240+00:00",
+  "decision": "Use the reviewed ONNX detector as a frozen trunk with a trainable DB shrink-map head, subject to captured-input parity and a separate synthetic candidate preregistration.",
+  "official_inference_alternative": {
+    "model_id": "PP-OCRv5_mobile_det",
+    "artifact_kind": "Paddle inference export",
+    "status": "license-and-conversion-reviewed_accuracy-failed-unapproved",
+    "official_archive_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_infer.tar",
+    "official_archive_sha256": "50446e5d01ac2a73d5319c89513281f6578414c888c602f9af13f93feefffc58",
+    "archive_members": [
+      {
+        "path": "inference.json",
+        "sha256": "05feef1acb00aa4cd7362b15f7f501fc4f99d7b1fa73c1c871e0c7b1504b0f5c"
+      },
+      {
+        "path": "inference.pdiparams",
+        "sha256": "afa1820cb16c1fd0dad589d0f8b389139061c1ef6d68019685fd07be997dda5b"
+      },
+      {
+        "path": "inference.yml",
+        "sha256": "98069072e1b6b37d727fd9d9f11725faa46d6ea0de012f2ed26caea011c37699"
+      }
+    ],
+    "artifact_scoped_license_evidence": {
+      "official_repository": "PaddlePaddle/PP-OCRv5_mobile_det",
+      "immutable_revision": "0d63e78e2b680928f6b1747d76a08db6e645efb7",
+      "model_card_sha256": "4cc20ad6d41af86b3ce9885ffb0956e152574a2eb14179aeb07fd2d3956161ca",
+      "license": "Apache-2.0",
+      "scope": "the three byte-identical inference files listed above"
+    },
+    "converted_onnx_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+    "conversion": {
+      "opset": 11,
+      "input": "dynamic NCHW three-channel tensor",
+      "output": "one-channel DB probability tensor",
+      "maximum_cpu_absolute_difference": 1.349323213162279e-07,
+      "reproducible_conversion": true
+    },
+    "disposition": "Preserve this exact reviewed inference artifact and its Apache-2.0 notice evidence. Its failed accuracy evidence and absent production approval remain unchanged. This record does not authorize a model-store entry, packaging, or production use."
+  },
+  "official_training_checkpoint_route": {
+    "artifact_kind": "Paddle training checkpoint",
+    "official_checkpoint_url": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_pretrained_model/PP-OCRv5_mobile_det_pretrained.pdparams",
+    "source_code_revision": "PaddleOCR@33cbdd9deb2e00f61e7966db70669b249c005a37",
+    "official_training_config": "configs/det/PP-OCRv5/PP-OCRv5_mobile_det.yml",
+    "documented_architecture": {
+      "algorithm": "DB",
+      "backbone": "PPLCNetV3",
+      "backbone_scale": 0.75,
+      "neck": "RSEFPN",
+      "head": "DBHead",
+      "epoch_num": 500,
+      "training_crop": "640x640"
+    },
+    "current_local_inventory": {
+      "checkpoint_present": false,
+      "checkpoint_sha256_known": false,
+      "checkpoint_artifact_scoped_license_present": false,
+      "checkpoint_immutable_repository_identity_present": false,
+      "paddleocr_training_source_checkout_present": false,
+      "training_environment_present": false
+    },
+    "license_finding": "The PaddleOCR Apache-2.0 repository license governs the pinned repository source. It does not by itself establish redistributable terms for the separately hosted training checkpoint. The reviewed immutable model repository contains only inference files, so its artifact-scoped Apache-2.0 model card does not bind the absent .pdparams bytes.",
+    "intake_finding": "No exact training-checkpoint bytes, SHA-256, immutable artifact revision, complete inventory, or artifact-scoped license record is retained. Existing Goal 22 authorization covers reuse of previously reviewed pretrained options and does not create provenance for an unidentified external checkpoint.",
+    "decision": "rejected-under-current-evidence",
+    "hard_stop_if_attempted": "Do not download, fine-tune, redistribute, or package this checkpoint unless a future task separately establishes its exact bytes, immutable origin, redistributable license scope, privacy status, and Git eligibility before use.",
+    "review_queue": "No review-queue item is needed because this optional route is rejected rather than awaiting approval."
+  },
+  "reviewed_onnx_derivative_route": {
+    "parent_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+    "license": "Apache-2.0",
+    "trainable_parameters": 23257,
+    "trainable_constant_tensors": 9,
+    "frozen_batch_normalization_statistic_tensors": 4,
+    "feature_tensor": "p2o.pd_op.concat.0.0",
+    "feature_channels": 96,
+    "input": "Exact production BGR float32 NCHW input, maximum side 960 then ceiling alignment to 128.",
+    "target": "DB shrink-map using fixed shrink ratio 0.4; collapsed projections are explicitly loss-masked and remain in the full evaluation denominator.",
+    "output": "Original one-channel DB probability output fetch_name_0, unchanged graph topology and postprocessing.",
+    "patch_containment": "Only the nine allowlisted head Constant tensors may change. Frozen BN statistics and every other graph node remain unchanged. A no-op patch preserves the original model bytes.",
+    "source_file": "ml/ocr/official_bakeoff/frozen_trunk_head.py",
+    "source_sha256": "07f2c7640bbfd1666012b0f9c8bd359f18f5b9ffb37351986d0967530368af70",
+    "new_dependencies": [],
+    "new_external_weights": [],
+    "modification_notice_required_on_promotion": true,
+    "production_approved": false
+  },
+  "historical_step_zero_check": {
+    "report_sha256": "f12adeb040dbca61b8958bc1d916eb5648607449f75539a6f65cf88472827407",
+    "source_sha256": "121e7f038b6eed71b7cd8d186fd2e8ca6d25f8b5cfa1fc06d820edcafa847743",
+    "maximum_absolute_error": 1.373180253949613e-07,
+    "tolerance": 1e-05,
+    "elapsed_ms": 3632.918,
+    "limitation": "Historical deterministic input fixture. Its normalization helper changed afterward, including one float32 reciprocal, so it does not certify the later captured production inputs.",
+    "dimension_correction": "The class default is 32 but the pinned production manifest uses 128. A rounded 1024 side can be an actual production dimension; the earlier stress-only interpretation was incorrect."
+  },
+  "synthetic_input_scope": {
+    "train_sources": 20,
+    "train_panels": 28,
+    "train_truth_regions": 709,
+    "dev_sources": 3,
+    "dev_panels": 9,
+    "dev_truth_regions": 183
+  },
+  "superseded_scratch_plan": "The earlier V38 data-loader-only proposal is not selected. The completed Gray8 tiled bridge remains a separate unapproved implementation; it cannot replace BGR DB tensors or shrink targets.",
+  "earlier_draft_sha256": "bd5ba7e809f89e3242350c9f469d680bc9d2a9ac521833c14f0e51144ab0456d",
+  "pending": [
+    "Repair and verify captured-input head numerical parity before optimization.",
+    "Freeze separate candidate configuration and shared-budget authorization.",
+    "Run actual application candidate evaluation with complete source truth."
+  ],
+  "private_or_sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approval": false,
+  "goal22_acceptance": "FAIL",
+  "captured_step_zero_check": {
+    "report": {
+      "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/captured-parity-v1/report.json",
+      "sha256": "55215e92d5972ad198c45688c55b7fa1e51672a06c0d12e8c3e6b2cb21d83598"
+    },
+    "source_code_sha256": "07f2c7640bbfd1666012b0f9c8bd359f18f5b9ffb37351986d0967530368af70",
+    "capture_report_sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482",
+    "feature_model_sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081",
+    "no_op_model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+    "panel_count": 37,
+    "maximum_absolute_error": 2.086162567138672e-05,
+    "tolerance": 1e-05,
+    "passed": false,
+    "elapsed_ms": 9961.974500009092,
+    "disposition": "Numerical diagnosis required before optimization. Failed parity is retained and tolerance remains unchanged."
+  }
+}

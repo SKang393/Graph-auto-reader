@@ -1,0 +1,42 @@
+{
+  "schema": "graphreader.goal22-original-db-candidate-outcome.v1",
+  "scope": "Explicitly unapproved application candidate composition on original BGR pixels.",
+  "composition": "original-db-head-candidate-v1",
+  "sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "sha256": "8c703a7ba7e88b2a4fcd3e862867e5695c501002e2b89987546f10c6d71a1f77"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionTiledProbabilityOcrCandidate.cs",
+      "sha256": "a2b40ba6efae9b6200d51653f15322ef7a9be7c2557129a78e6105383d1ac21c"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/OriginalDbInputDetectorTests.cs",
+      "sha256": "c326255881d52d27132fccb2854065de078de96aee10aa6cf3d5fc737875457e"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOcrLocalCandidateFactoryTests.cs",
+      "sha256": "bf0dc39bfe9d826d756ec7bd1292d42224ddfe88b7bb41c98d36706b0301ef49"
+    }
+  ],
+  "tests": {
+    "app_passed": 250,
+    "failed": 0,
+    "skipped": 0,
+    "trx": {
+      "path": "artifacts/test-results/goal22-original-db-app-final.trx",
+      "sha256": "5710b972ee6af9387bede5957633d56525e41e262f0ae4a82b5bf6daaa5f43bd"
+    },
+    "focused_passed": 4,
+    "focused_duration_ms": 493
+  },
+  "independent_review": "No material issue. Original pixels, source mapping, model-bound cache identity, exact manifest contract and CPU-only execution preserved.",
+  "limitations": [
+    "Fake inference verifies composition behavior, not learned accuracy.",
+    "Fixture reciprocal normalization is not exact production tensor evidence; the authenticated captured-input report is authoritative.",
+    "Normal Production execution continues to reject this candidate."
+  ],
+  "production_approval": false,
+  "goal22_acceptance": "FAIL"
+}

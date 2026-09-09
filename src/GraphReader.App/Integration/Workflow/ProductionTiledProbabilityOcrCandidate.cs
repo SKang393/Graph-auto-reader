@@ -96,7 +96,8 @@ public sealed partial class ProductionOcrAdapter
         Func<OcrPipeline> pipelineFactory,
         ModelIdentity detectionModel,
         ModelIdentity recognitionModel,
-        string reviewedOpenCvRuntimeSha256)
+        string reviewedOpenCvRuntimeSha256,
+        string candidateCompositionVersion = TiledProbabilityCandidateCompositionVersion)
     {
         ArgumentNullException.ThrowIfNull(pipelineFactory);
         pipeline = new Lazy<OcrPipeline>(
@@ -110,7 +111,7 @@ public sealed partial class ProductionOcrAdapter
             reviewedOpenCvRuntimeSha256,
             nameof(reviewedOpenCvRuntimeSha256));
         modelInput = GraphStructureModelInput.Original;
-        compositionVersion = TiledProbabilityCandidateCompositionVersion;
+        compositionVersion = candidateCompositionVersion;
         configuredModels = new ProductionOcrConfigurationEvidence(
         [
             new ProductionOcrConfiguredModel(

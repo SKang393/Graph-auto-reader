@@ -1,0 +1,69 @@
+{
+  "schema": "graphreader.goal22-original-db-baseline-outcome.v1",
+  "scope": "Saved original-input official DB geometry, full synthetic source denominator; no new model inference.",
+  "report": {
+    "path": "artifacts/goal22-runs/ocr-v3-original-unmasked-baseline/report.json",
+    "sha256": "c3c543d8cee73e86bbe51faa5f5f2259ee54e5fd98220297278f37e0d364747d"
+  },
+  "provenance_correction": {
+    "path": "artifacts/goal22-runs/ocr-v3-original-unmasked-baseline/provenance-correction.json",
+    "sha256": "92b680f0fe65acb05d6288004f83680c4ad2574e33d57d3811e7567e9ea16d9f"
+  },
+  "executed_source_sha256": "956db6dcc1c55eaa446bb054d2ba78a5a59daa02e136b08d3d8353b63e40d840",
+  "current_source": {
+    "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_v3_original_ocr.py",
+    "sha256": "5962c97e2b1ff2b79969d53d28554e62533c151bc0550d82fa5f97b888f1405d"
+  },
+  "metrics": {
+    "combined": {
+      "false_negatives": 690,
+      "false_positives": 631,
+      "precision": 0.2424969987995198,
+      "predicted_region_count": 833,
+      "recall": 0.226457399103139,
+      "source_count": 23,
+      "true_positives": 202,
+      "truth_region_count": 892
+    },
+    "train": {
+      "false_negatives": 578,
+      "false_positives": 494,
+      "panel_count": 28,
+      "precision": 0.2096,
+      "predicted_region_count": 625,
+      "recall": 0.1847672778561354,
+      "source_count": 20,
+      "true_positives": 131,
+      "truth_region_count": 709,
+      "truth_regions_outside_all_emitted_crops": 0
+    },
+    "validation": {
+      "false_negatives": 112,
+      "false_positives": 137,
+      "panel_count": 9,
+      "precision": 0.34134615384615385,
+      "predicted_region_count": 208,
+      "recall": 0.3879781420765027,
+      "source_count": 3,
+      "true_positives": 71,
+      "truth_region_count": 183,
+      "truth_regions_outside_all_emitted_crops": 0
+    }
+  },
+  "elapsed_ms": 113919.217,
+  "verification": {
+    "focused_tests_passed": 6,
+    "failed": 0,
+    "duration_seconds": 4.17
+  },
+  "evidence_order": "Each split was authenticated before its own regeneration, and all reports before aggregate acceptance. The later source adds an earlier global preauthentication guard; the recorded metrics were not rerun.",
+  "limitations": [
+    "Detection only; recognition, roles, calibration and export are not graded.",
+    "This original BGR DB baseline is distinct from masked consensus and Gray8 tiled routes."
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approval": false,
+  "goal22_acceptance": "FAIL"
+}

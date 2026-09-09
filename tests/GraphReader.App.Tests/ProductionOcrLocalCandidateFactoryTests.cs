@@ -16,6 +16,41 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionOcrLocalCandidateFactoryTests
 {
     [TestMethod]
+    public async Task FrozenDbHeadPairCreatesUnapprovedOriginalInputCandidate()
+    {
+        string root = CreateTemporaryDirectory();
+        var sessionFactory = new ShapeAwareSessionFactory();
+        await using ProductionInferenceRuntimeHost host = CreateRuntimeHost(root, sessionFactory);
+        try
+        {
+            CandidatePair pair = WriteCandidatePair(root);
+            System.Text.Json.Nodes.JsonObject manifest = System.Text.Json.Nodes.JsonNode
+                .Parse(File.ReadAllText(pair.Detection.ManifestPath))!.AsObject();
+            manifest["outputs"]![0]!["activation"] = "probability_with_1e-5_clamp";
+            File.WriteAllText(pair.Detection.ManifestPath, manifest.ToJsonString());
+            ProductionOcrAdapter adapter = await ProductionOcrAdapter
+                .CreateForFrozenDbHeadCandidateEvaluationAsync(
+                    new FrozenCandidateOcrModelDescriptor(pair.Detection.Identity,
+                        pair.Detection.ManifestPath, Sha256(pair.Detection.ManifestPath)),
+                    new FrozenCandidateOcrModelDescriptor(pair.Recognition.Identity,
+                        pair.Recognition.ManifestPath, pair.Recognition.ManifestSha256),
+                    host, new string('d', 64), CancellationToken.None);
+            Assert.IsFalse(adapter.IsApproved);
+            Assert.AreEqual("unapproved_frozen_candidate", adapter.ConfigurationScope);
+            StringAssert.Contains(adapter.AdapterId, ProductionOcrAdapter.OriginalDbCandidateCompositionVersion);
+            Assert.AreEqual(2, sessionFactory.CreatedCount);
+            Assert.AreEqual(2, sessionFactory.RunCount);
+            Assert.IsNotNull(sessionFactory.DetectionInputShape);
+            Assert.AreEqual(1024L, sessionFactory.DetectionInputShape.Max());
+        }
+        finally
+        {
+            await host.DisposeAsync();
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.AxisMasked, GraphStructureConsensusAdmission.Required, 0)]
     [DataRow(GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.AxisMasked, GraphStructureConsensusAdmission.Required, 0)]
     [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original, GraphStructureConsensusAdmission.Required, 0)]

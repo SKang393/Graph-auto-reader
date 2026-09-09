@@ -1,0 +1,179 @@
+{
+  "schema": "graphreader.goal22-production-head-input-outcome.v1",
+  "verification": {
+    "path": "artifacts/goal22-runs/ocr-production-head-inputs/verification-v1.json",
+    "sha256": "0d4345637e608a3d6308267134aa4952a0005bb791393cb38c2f4228119bb35f"
+  },
+  "binding": {
+    "path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a"
+  },
+  "capture": {
+    "completed_panels": 37,
+    "elapsed_milliseconds": 2474.7772,
+    "failed_panels": 0,
+    "model_inference": false,
+    "panel_count": 37,
+    "source_count": 23
+  },
+  "capture_report": {
+    "path": "artifacts/goal22-runs/ocr-production-head-inputs/capture-run3/report.json",
+    "sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482"
+  },
+  "capture_request": {
+    "path": "artifacts/goal22-runs/ocr-production-head-inputs/preflight-v3/capture-request.json",
+    "sha256": "1586f7fd28ffbc6024e07fb0b12b2fb79f0d4dc2dc790aba2d963813b0686675"
+  },
+  "capture_source": {
+    "path": "artifacts/goal22-runs/ocr-production-head-inputs/executable-v1/source/OfficialHeadTensorCapture.cs",
+    "sha256": "ada4110d386581e87de8f8693c86e045e41566270d601a836c79d41c86faf3a4"
+  },
+  "executable_snapshot": {
+    "byte_count": 87435145,
+    "file_count": 52,
+    "path": "artifacts/goal22-runs/ocr-production-head-inputs/executable-v1/execution-files.json",
+    "sha256": "b82669adf77d644ca7fdc9c68ce908be39abdc1ee492a0bfd3aa9ec54a093e60"
+  },
+  "assemblies": [
+    {
+      "name": "GraphReader.SyntheticRuntimeEvidence",
+      "path": "artifacts/goal22-runs/ocr-production-head-inputs/executable-v1/GraphReader.SyntheticRuntimeEvidence.dll",
+      "sha256": "f5d6fd1044faf0393e6c584521c7e51aca37e24068a1a6b2564986c50054095b"
+    },
+    {
+      "name": "GraphReader.App",
+      "path": "artifacts/goal22-runs/ocr-production-head-inputs/executable-v1/GraphReader.App.dll",
+      "sha256": "050097eb4eb6c2d3210a33e9f0ed2759266202add49174d6a80db7a4ffd0053b"
+    },
+    {
+      "name": "GraphReader.Ocr",
+      "path": "artifacts/goal22-runs/ocr-production-head-inputs/executable-v1/GraphReader.Ocr.dll",
+      "sha256": "bf2221c240e4c48471f992b31ee2850d29ba06fbc29edc75e8c9f961e0e64895"
+    },
+    {
+      "name": "GraphReader.Inference",
+      "path": "artifacts/goal22-runs/ocr-production-head-inputs/executable-v1/GraphReader.Inference.dll",
+      "sha256": "0de1614d8b9a020066dc3f684f1b397217c217b836b95ed8142002857d53cc80"
+    }
+  ],
+  "detector": {
+    "manifest_path": "artifacts/synthetic-runtime-evidence/official-metadata-source-c96/detector.json",
+    "manifest_sha256": "2ddb1599df210da50bf097383b1f691ee6e1bed27ba9c98b6695a6b06e7e8d51",
+    "model_id": "PP-OCRv5_mobile_det",
+    "model_path": "C:\\Users\\Sungwoo\\Desktop\\Graph-auto-reader\\ml\\ocr\\official_bakeoff\\runs\\conversion\\PP-OCRv5_mobile_det.onnx",
+    "model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+    "model_version": "5.0.0"
+  },
+  "detector_configuration_fingerprint": "7a8eb59f3b6980096e80247a6b195e25b3e0b887240e700aaf77cf5a1d64bc81",
+  "loader": {
+    "elapsed_seconds": 105.68241550000675,
+    "train": {
+      "degenerate_source_truth_count": 16,
+      "degenerate_supervised_region_count": 16,
+      "full_source_truth_count": 709,
+      "outside_runtime_crop_truth_count": 0,
+      "overlapping_source_truth_count": 0,
+      "panel_count": 28,
+      "partial_source_truth_count": 0,
+      "projected_source_truth_count": 709,
+      "source_count": 20,
+      "supervised_pixels": 9829308,
+      "target_positive_pixels": 37424,
+      "tensor_byte_count": 117964800,
+      "tensor_shapes": [
+        [
+          1,
+          3,
+          256,
+          1024
+        ],
+        [
+          1,
+          3,
+          384,
+          1024
+        ],
+        [
+          1,
+          3,
+          512,
+          1024
+        ]
+      ]
+    },
+    "validation": {
+      "degenerate_source_truth_count": 0,
+      "degenerate_supervised_region_count": 0,
+      "full_source_truth_count": 183,
+      "outside_runtime_crop_truth_count": 0,
+      "overlapping_source_truth_count": 0,
+      "panel_count": 9,
+      "partial_source_truth_count": 0,
+      "projected_source_truth_count": 183,
+      "source_count": 3,
+      "supervised_pixels": 2490368,
+      "target_positive_pixels": 9507,
+      "tensor_byte_count": 29884416,
+      "tensor_shapes": [
+        [
+          1,
+          3,
+          256,
+          1024
+        ],
+        [
+          1,
+          3,
+          384,
+          1024
+        ]
+      ]
+    }
+  },
+  "independent_python_opencv_parity": {
+    "byte_exact_panels": 37,
+    "elapsed_seconds": 1.0529492999921786,
+    "maximum_absolute_error": 0.0,
+    "mismatch_count": 0,
+    "panels_checked": 37,
+    "shape_counts": {
+      "1x3x256x1024": 19,
+      "1x3x384x1024": 16,
+      "1x3x512x1024": 2
+    },
+    "tensor_byte_count": 147849216
+  },
+  "maximum_side_length": 960,
+  "dimension_multiple": 128,
+  "db_shrink_ratio": 0.4,
+  "sources": [
+    {
+      "path": "ml/ocr/official_bakeoff/production_head_inputs.py",
+      "sha256": "51800bcddfd9fc02c538bba04015312f94fb88113ea14c563616db58a61cff90"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/tests/test_production_head_inputs.py",
+      "sha256": "527fae7da2bccc0ed5f7fedcb96cb927c580471d843840e2ef74c774d6640c47"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadTensorCapture.cs",
+      "sha256": "ada4110d386581e87de8f8693c86e045e41566270d601a836c79d41c86faf3a4"
+    }
+  ],
+  "focused_tests": {
+    "passed": 13,
+    "failed": 0,
+    "duration_seconds": 4.34
+  },
+  "limitations": [
+    "Unmasked BGR identity is reconstructed from authenticated panel PNGs, not a historically recorded BGR invocation hash.",
+    "Sixteen train truths have collapsed shrink targets, are loss-masked and remain in the full denominator.",
+    "The less-than-64 combined-dimension padding branch is outside these fixed panels; it is not certified as general training supervision."
+  ],
+  "model_inference": false,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "goal22_acceptance": "FAIL"
+}
