@@ -1,0 +1,174 @@
+{
+  "component_dev": {
+    "counts": {
+      "domain_omitted_ink_proposals": 0,
+      "false_negative": 141,
+      "false_positive": 152,
+      "prediction_count": 2015,
+      "proposal_count": 224840,
+      "scene_count": 167,
+      "true_positive": 1863,
+      "truth_count": 2004
+    },
+    "false_negative_cause": {
+      "classification_below_threshold": 111,
+      "consensus_rejection": 3,
+      "nms_suppression": 27
+    },
+    "false_negative_nearest_proposal_distance_px": {
+      "count": 141,
+      "maximum": 2.8284270763397217,
+      "median": 1.4142135381698608,
+      "minimum": 0.0,
+      "p05": 0.0,
+      "p90": 2.2360680103302,
+      "p95": 2.2360680103302
+    },
+    "false_positive_artifact_mask_distance_bins_px": {
+      "gt16_or_unavailable": 111,
+      "gt3_le5": 11,
+      "gt5_le8": 15,
+      "gt8_le16": 11,
+      "le3": 4
+    },
+    "false_positive_descriptive_distance_bins_px": {
+      "axis": {
+        "gt16_or_unavailable": 10
+      },
+      "connector": {
+        "gt16_or_unavailable": 126
+      },
+      "text": {
+        "gt16_or_unavailable": 16
+      }
+    },
+    "false_positive_nearest_descriptive_category": {
+      "axis": 10,
+      "connector": 126,
+      "text": 16
+    },
+    "false_positive_nearest_truth_distance_bins_px": {
+      "gt16_or_unavailable": 36,
+      "gt3_le5": 1,
+      "gt5_le8": 47,
+      "gt8_le16": 68
+    },
+    "false_positive_ocr_mask_distance_bins_px": {
+      "gt16_or_unavailable": 147,
+      "gt3_le5": 1,
+      "gt5_le8": 1,
+      "gt8_le16": 3
+    },
+    "model_forward_ms": 9592.0,
+    "precision": 0.9245657568238214,
+    "recall": 0.9296407185628742
+  },
+  "diagnostic_reproduction": "PASS",
+  "elapsed_ms": 219161.443,
+  "family_dev": {
+    "counts": {
+      "domain_omitted_ink_proposals": 20364,
+      "false_negative": 9,
+      "false_positive": 59,
+      "prediction_count": 256,
+      "proposal_count": 45396,
+      "scene_count": 9,
+      "true_positive": 197,
+      "truth_count": 206
+    },
+    "false_negative_cause": {
+      "classification_below_threshold": 7,
+      "nms_suppression": 2
+    },
+    "false_negative_nearest_proposal_distance_px": {
+      "count": 9,
+      "maximum": 2.4690802097320557,
+      "median": 1.6334019899368286,
+      "minimum": 0.5850793719291687,
+      "p05": 0.7295925259590149,
+      "p90": 2.1533213138580325,
+      "p95": 2.311200761795044
+    },
+    "false_positive_artifact_mask_distance_bins_px": {
+      "gt16_or_unavailable": 47,
+      "gt3_le5": 1,
+      "gt5_le8": 1,
+      "gt8_le16": 5,
+      "le3": 5
+    },
+    "false_positive_descriptive_distance_bins_px": {
+      "divider": {
+        "gt16_or_unavailable": 1
+      },
+      "legend": {
+        "le3": 49
+      },
+      "marker": {
+        "gt3_le5": 1,
+        "gt5_le8": 1
+      },
+      "text": {
+        "le3": 6
+      },
+      "tick": {
+        "le3": 1
+      }
+    },
+    "false_positive_nearest_descriptive_category": {
+      "divider": 1,
+      "legend": 49,
+      "marker": 2,
+      "text": 6,
+      "tick": 1
+    },
+    "false_positive_nearest_truth_distance_bins_px": {
+      "gt16_or_unavailable": 54,
+      "gt5_le8": 2,
+      "gt8_le16": 3
+    },
+    "false_positive_ocr_mask_distance_bins_px": {
+      "gt16_or_unavailable": 23,
+      "gt3_le5": 1,
+      "gt5_le8": 1,
+      "gt8_le16": 5,
+      "le3": 29
+    },
+    "model_forward_ms": 1830.805,
+    "precision": 0.76953125,
+    "recall": 0.9563106796116505
+  },
+  "inputs": {
+    "binding_path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "binding_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+    "candidate_report_path": "artifacts/goal22-runs/marker-v25-plot-domain/P1-run/candidate-report.json",
+    "candidate_report_sha256": "e5347d33313147d57c4d6ce80bcf06a020a1a70ddd52ef4bb8a2e0c623b7a64b",
+    "config_path": "ml/markers/center/plot_domain_v25/training/p1.json",
+    "config_sha256": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2",
+    "diagnostic_source_sha256": "ad6c8cd67f395cc9243333eacaa7e955cdd5c3805b46dd6cd232057158c53edb",
+    "onnx_path": "artifacts/goal22-runs/marker-v25-plot-domain/P1-run/marker-center-plot-domain-v25-p1.onnx",
+    "onnx_sha256": "77293a9fef2656aba4955e3e8d0676e2fac811666061484527af31f7a00349b9",
+    "result_path": "ml/markers/center/plot_domain_v25/P1_RESULT.json",
+    "result_sha256": "fb64443005b6ca4c26d4e5f1d8b37d8882a93a186d9b2b92fffc476a8c823a63",
+    "runner_source_bundle_sha256": "a87debb4ca2b1cff4323a5be48c39d8b11f3c784496d067f2462cc54d2781659"
+  },
+  "interpretation_limits": [
+    "Attribution uses synthetic annotations only after model input validation; annotations never enter inference.",
+    "Nearest descriptive geometry is diagnostic proximity, not proof that a structure caused a prediction.",
+    "Component fixtures expose named hard-negative centers rather than full semantic geometry.",
+    "No threshold, candidate, architecture, private, sealed, or production decision is made by this report."
+  ],
+  "model_acceptance": "FAIL",
+  "next_work": "Inspect automatic legend-region availability and center refinement/NMS supervision for concrete defects before selecting a new repair.",
+  "operating_threshold": 0.25,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "production_approval": false,
+  "report_sha256": "c0911d7d730098eabb223431c36fad16f5659918f19635e33e6865bab27a7cf6",
+  "schema": "graphreader.goal22-v25-dev-diagnosis-outcome.v1",
+  "sealed_runs": 0,
+  "tests": {
+    "elapsed_seconds": 4.8,
+    "passed": 3,
+    "source_sha256": "b0ab5631f489e403e823b06221dede1fa40ccf1433b8e9091e965f1440c6d84c"
+  }
+}

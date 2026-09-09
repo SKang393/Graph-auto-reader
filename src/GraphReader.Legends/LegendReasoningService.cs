@@ -99,7 +99,12 @@ public sealed class LegendReasoningService : ILegendReasoningService
         cancellationToken.ThrowIfCancellationRequested();
 
         var metadataTimer = Stopwatch.StartNew();
-        HashSet<string> artifactMarkerIds = ResolveArtifactMarkerIds(request.PlotMarkers, artifacts);
+        HashSet<string> artifactMarkerIds = ResolveArtifactMarkerIds(
+            request.PanelId,
+            request.PlotMarkers,
+            request.Glyphs,
+            artifacts,
+            regions);
         MatchResult match = MatchSeries(request, regions, artifactMarkerIds, warnings, cancellationToken);
         LegendRegion[] normalizedRegions = NormalizeRegions(regions, match.SeriesIdByEntryId);
         LegendParticipantMetadata[] participants = ResolveParticipants(
@@ -376,17 +381,39 @@ public sealed class LegendReasoningService : ILegendReasoningService
     }
 
     private static HashSet<string> ResolveArtifactMarkerIds(
+        string panelId,
         IReadOnlyList<LegendPlotMarker> markers,
-        IReadOnlyList<LegendArtifact> artifacts)
+        IReadOnlyList<LegendGlyphCandidate> glyphs,
+        IReadOnlyList<LegendArtifact> artifacts,
+        IReadOnlyList<LegendRegion> regions)
     {
         LegendRectangle[] arrowheads = artifacts
             .Where(static artifact => artifact.Kind == LegendArtifactKind.Arrowhead)
             .Select(static artifact => artifact.Bounds)
             .ToArray();
-        return markers
+        HashSet<string> artifactMarkerIds = markers
             .Where(marker => arrowheads.Any(bounds => bounds.Contains(marker.Center)))
             .Select(static marker => marker.MarkerId)
             .ToHashSet(StringComparer.Ordinal);
+        HashSet<string> plotMarkerIds = markers
+            .Select(static marker => marker.MarkerId)
+            .ToHashSet(StringComparer.Ordinal);
+        HashSet<string> localGlyphIds = glyphs
+            .Select(static glyph => glyph.GlyphId)
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (LegendEntry entry in regions.SelectMany(static region => region.Entries))
+        {
+            if (entry.Source == LegendEvidenceSource.DetectedLegend &&
+                string.Equals(entry.SourcePanelId, panelId, StringComparison.Ordinal) &&
+                localGlyphIds.Contains(entry.GlyphId) &&
+                plotMarkerIds.Contains(entry.GlyphId))
+            {
+                artifactMarkerIds.Add(entry.GlyphId);
+            }
+        }
+
+        return artifactMarkerIds;
     }
 
     private static LegendRegion[] NormalizeRegions(

@@ -64,6 +64,83 @@ public sealed class LegendReasoningServiceTests
         Assert.AreEqual("generalization", series.Semantic.NormalizedText);
         Assert.IsGreaterThanOrEqualTo(0.60, series.Semantic.Confidence);
         Assert.AreEqual(LegendTestFixtures.OpenSeriesId, result.Regions.Single().Entries.Single().NormalizedSeriesId);
+        Assert.IsEmpty(result.ExcludedArtifactMarkerIds);
+    }
+
+    [TestMethod]
+    public async Task ResolvedLocalLegendGlyphIsExcludedWhileItsSeriesDataMarkerRemains()
+    {
+        const string dataMarkerId = "00000000-0000-0000-0000-000000000014";
+        var openSeries = new LegendSeriesCandidate(
+            LegendTestFixtures.OpenSeriesId,
+            MarkerShape.Circle,
+            MarkerFill.Open,
+            "○",
+            "open circle",
+            [LegendTestFixtures.OpenMarkerId, dataMarkerId],
+            [0f, 1f, 0f]);
+        var request = LegendTestFixtures.Request(
+            textRegions: [LegendTestFixtures.Text("generalization", 105, 80, "Generalization")],
+            glyphs:
+            [
+                LegendTestFixtures.Glyph(
+                    LegendTestFixtures.OpenMarkerId,
+                    85,
+                    82,
+                    MarkerShape.Circle,
+                    MarkerFill.Open,
+                    [0f, 1f, 0f]),
+            ],
+            series: [openSeries],
+            markers:
+            [
+                new LegendPlotMarker(
+                    LegendTestFixtures.OpenMarkerId,
+                    LegendTestFixtures.OpenSeriesId,
+                    new LegendPoint(90, 87),
+                    MarkerShape.Circle,
+                    MarkerFill.Open),
+                new LegendPlotMarker(
+                    dataMarkerId,
+                    LegendTestFixtures.OpenSeriesId,
+                    new LegendPoint(250, 180),
+                    MarkerShape.Circle,
+                    MarkerFill.Open),
+            ]);
+
+        var result = await ResolveAsync(request);
+
+        CollectionAssert.AreEquivalent(
+            new[] { LegendTestFixtures.OpenMarkerId },
+            result.ExcludedArtifactMarkerIds.ToArray());
+        var series = result.Series.Single();
+        Assert.AreEqual("Generalization", series.Name);
+        Assert.AreEqual(LegendEvidenceSource.DetectedLegend, series.Source);
+    }
+
+    [TestMethod]
+    public async Task UnresolvedLegendGlyphRemainsAReviewablePlotMarker()
+    {
+        var request = LegendTestFixtures.Request(
+            textRegions: [LegendTestFixtures.Text("annotation", 105, 80, "Generalization", OcrTextRole.Annotation)],
+            glyphs:
+            [
+                LegendTestFixtures.Glyph(
+                    LegendTestFixtures.OpenMarkerId,
+                    85,
+                    82,
+                    MarkerShape.Circle,
+                    MarkerFill.Open,
+                    [0f, 1f, 0f]),
+            ],
+            series: [LegendTestFixtures.DefaultSeries()[1]],
+            markers: [LegendTestFixtures.DefaultMarkers()[1]]);
+
+        var result = await ResolveAsync(request);
+
+        Assert.IsEmpty(result.ExcludedArtifactMarkerIds);
+        Assert.HasCount(1, result.Series);
+        Assert.AreEqual(LegendEvidenceSource.SymbolFallback, result.Series[0].Source);
     }
 
     [TestMethod]

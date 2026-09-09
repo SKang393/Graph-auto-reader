@@ -28,6 +28,61 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private static readonly string[] ExpectedPhaseCodes = ["a", "b"];
 
     [TestMethod]
+    public async Task ResolvedLegendGlyphRemainsAuditableButIsNotAnExportedPoint()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graphreader-legend-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            string imagePath = Path.Combine(root, "synthetic.png");
+            WriteSyntheticPng(imagePath, 100, 100);
+            var store = new ProductionWorkflowPanelStore();
+            var adapter = new ProductionAutomaticDetectionAdapter(
+                store, new RasterDecoder(), new AxisAdapter(),
+                new OcrAdapter("Synthetic participant", includeLegendText: true),
+                new MaskComposer(), new CenterAdapter(includeLegendGlyph: true),
+                new ClassificationAdapter(), new ProductionLegendReasoningAdapter(),
+                new ProductionPhaseReasoningAdapter(), new EmptyConnectionBuilder());
+            var workflow = new WorkflowOrchestrator(new WorkflowServiceSet(
+                new ProductionWorkflowImportStage(store, new ImageImportService()),
+                new ProductionWorkflowPrepareStage(store),
+                new ProductionWorkflowDetectionStage(store, adapter),
+                new ProductionWorkflowExportStage(store, new ExportService())));
+            WorkflowRunResult run = await workflow.RunThroughReviewAsync(
+                new WorkflowRunRequest(Guid.NewGuid(), new WorkflowImportRequest(
+                    Guid.NewGuid(), [new WorkflowSourceRequest(Guid.NewGuid(),
+                        WorkflowSourceKind.Image, imagePath)], enhancementEnabled: false)),
+                null, CancellationToken.None);
+            WorkflowReviewPanel panel = run.Review.Panels.Single();
+            Assert.HasCount(2, panel.Points);
+            Assert.IsFalse(panel.Points.Any(static point =>
+                point.OriginalPixelX == 20 && point.OriginalPixelY == 20));
+            ProductionPanelExportEvidence evidence = store.Get(panel.PanelId).ExportEvidence!;
+            Assert.IsNotNull(evidence.ProjectionEvidence);
+            Assert.HasCount(3, evidence.ProjectionEvidence.Markers);
+            Assert.AreEqual(1, evidence.ProjectionEvidence.Markers.Count(static marker =>
+                marker.ReviewStatus == GraphReader.Domain.ReviewStatus.Rejected));
+            Assert.HasCount(2, evidence.ProjectionEvidence.Points);
+            WorkflowExportResult export = await workflow.ExportAsync(run.Review,
+                new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(root, "unused-export"))
+                {
+                    Operation = ExportOperation.Preview,
+                }, CancellationToken.None);
+            Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+            WorkflowExportArtifact minimal = export.Artifacts.Single(static artifact =>
+                artifact.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) &&
+                !artifact.FileName.Contains("audit", StringComparison.OrdinalIgnoreCase));
+            Assert.AreEqual(2, minimal.RowCount);
+            Assert.IsTrue(minimal.HasInMemoryContent);
+            Assert.IsFalse(Directory.Exists(Path.Combine(root, "unused-export")));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task ApprovedCompositePersistsExactProjectionAndReturnsRealCandidates()
     {
         Guid runId = Guid.Parse("10000000-0000-0000-0000-000000000019");
@@ -393,8 +448,13 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private sealed class OcrAdapter : IProductionOcrAdapter
     {
         private readonly string participant;
+        private readonly bool includeLegendText;
 
-        public OcrAdapter(string participant = "Chandler") => this.participant = participant;
+        public OcrAdapter(string participant = "Chandler", bool includeLegendText = false)
+        {
+            this.participant = participant;
+            this.includeLegendText = includeLegendText;
+        }
 
         public string AdapterId => "test-ocr";
 
@@ -439,6 +499,10 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 Region("y100", 1, 18, "100", OcrTextRole.YTick),
                 Region("participant", 82, 84, participant, OcrTextRole.Participant),
             ];
+            if (includeLegendText)
+            {
+                regions = [.. regions, Region("legend-label", 28, 18, "Series one", OcrTextRole.LegendText)];
+            }
             var result = new OcrResult(
                 OcrContract.Version,
                 request.RunId.ToString("D"),
@@ -527,7 +591,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         }
     }
 
-    private sealed class CenterAdapter : IProductionMarkerCenterAdapter
+    private sealed class CenterAdapter(bool includeLegendGlyph = false) : IProductionMarkerCenterAdapter
     {
         public string AdapterId => "test-centers";
 
@@ -553,6 +617,11 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 new("raw-1", new MarkerPoint(20, 70), 3, 0.01, 0.98, MarkerSourceImage.Original),
                 new("raw-2", new MarkerPoint(80, 30), 3, 0.01, 0.97, MarkerSourceImage.Original),
             ];
+            if (includeLegendGlyph)
+            {
+                markers = [.. markers, new MarkerCenter("legend-glyph", new MarkerPoint(20, 20),
+                    3, 0.01, 0.98, MarkerSourceImage.Original)];
+            }
             return Task.FromResult(new ProductionMarkerCenterEvidence(
                 Envelope(request, "markers", "center-v1", "test-center", 'd'),
                 markers,
@@ -602,6 +671,12 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     0.97,
                     Enumerable.Repeat(0.2f, 12)),
             ];
+            if (markers.Count == 3)
+            {
+                classified = [.. classified, new ClassifiedMarker(markers[2], MarkerShape.Circle,
+                    MarkerFill.Filled, "●", "filled circle", 0.01, 0.98, 0.98,
+                    Enumerable.Repeat(0.1f, 12))];
+            }
             return Task.FromResult(new ProductionMarkerClassificationEvidence(
                 Envelope(request, "markers", "classifier-v1", "test-classifier", 'e'),
                 classified));

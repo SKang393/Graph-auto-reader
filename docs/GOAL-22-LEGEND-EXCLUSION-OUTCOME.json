@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "scope": "Resolved local legend glyph exclusion",
+  "implementation": "Union actual resolved local legend glyph IDs with arrowhead exclusions before series matching; retain rejected marker audit records and exclude their point rows.",
+  "files": [
+    {
+      "path": "src/GraphReader.Legends/LegendReasoningService.cs",
+      "sha256": "390cd3e35cc83e60844be8d3df4a966496c82e284935b16c8f59713a933cbf0e"
+    },
+    {
+      "path": "tests/GraphReader.Legends.Tests/LegendReasoningServiceTests.cs",
+      "sha256": "bc39437f4aa36ec5a07d56f21a1ead7230c97b5a1444c39c1fa90e9a0cad368e"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs",
+      "sha256": "bdad70f072a6da703daf62f2f0d86424dd94a2f2b32ce304e74d56f63d7fa955"
+    }
+  ],
+  "validation": {
+    "legends_tests": 37,
+    "app_tests": 246,
+    "failures": 0,
+    "skipped": 0,
+    "app_trx": "artifacts/test-results/goal22-legend-app-final.trx",
+    "app_trx_sha256": "48d53ef14b275f727da7446500620f94af254e7f44266ffc528fe50f161b8312",
+    "workflow": {
+      "auditable_markers": 3,
+      "rejected_legend_markers": 1,
+      "review_points": 2,
+      "csv_rows": 2,
+      "export_in_memory": true
+    }
+  },
+  "limitations": [
+    "Synthetic adapter workflow test, not a model accuracy result.",
+    "No V25 predictions were rescored and no private or sealed input was read.",
+    "Unresolved symbols remain reviewable."
+  ],
+  "production_approval": false,
+  "goal22_acceptance": "FAIL"
+}
