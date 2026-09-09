@@ -1,0 +1,41 @@
+{
+  "schema": "graphreader.goal22-original-db-evaluator-outcome.v1",
+  "scope": "Unapproved original-BGR candidate evaluation on the fixed project-owned synthetic corpus",
+  "sources": [
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluation.cs",
+      "sha256": "388119c24771982cccc91741de4216705675a05336ca70b2f8796277eda3b786"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluationSelfTest.cs",
+      "sha256": "127ea4010b3ef75618bd8aac89355990b2eaac7ff778ad2a1fa184a90b7656c3"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "0c0d3ed2c0c0f6ef137c0c83f70a51cc459bf7fa329e5e97ce10afebac57cca5"
+    }
+  ],
+  "inventory": {
+    "dev_panels": 9,
+    "train_panels": 28,
+    "total_panels": 37
+  },
+  "validation": {
+    "release_compile_seconds": 2.03,
+    "release_compile_errors": 0,
+    "selftest_command": "dotnet run --project tools/GraphReader.SyntheticRuntimeEvidence/GraphReader.SyntheticRuntimeEvidence.csproj -c Release -r win-x64 --no-build -- --self-test-official-head-candidate",
+    "release_compile_warnings": 0,
+    "model_free_selftest_passed": 8
+  },
+  "review": "Lead reviewed immutable model and manifest locks, original-pixel identities, one-time coordinate mapping, complete detector inventory and explicit recognition failures. Both logical detector requests use the same CPU options and input cache material.",
+  "limitations": [
+    "No candidate inference or accuracy measurement has run.",
+    "Actual runtime cache reuse remains to be observed during candidate evaluation.",
+    "The focused self-test covers command validation, coordinate mapping and complete region inventory; it is not an exhaustive corruption test."
+  ],
+  "model_inference": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "goal22_acceptance": "FAIL"
+}
