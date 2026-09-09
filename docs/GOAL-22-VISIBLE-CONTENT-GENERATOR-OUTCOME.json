@@ -1,0 +1,131 @@
+{
+  "schema": "graphreader.goal22-visible-content-generator-outcome.v1",
+  "scope": "Project-owned synthetic source repair and unchanged automatic upstream runtime verification",
+  "implementation": [
+    "Preserve physical axis/tick stroke width under declared erosion and integrate whole halftone cells instead of sampling one corner.",
+    "Render complete clean ink through one shared V3 physical source core. Preserve semantic centers, radii and boxes even when visual mask-conditioned stages alter their working annotation.",
+    "Keep optional isolated-process element attribution separate from runtime pixels. Mark stochastic attribution unavailable while retaining every source and truth element.",
+    "Pass only immutable PNG source bytes through unchanged import, panelization, axis and OCR stages. Do not inject truth geometry or precomputed masks."
+  ],
+  "source_sha256": {
+    "ml/synthetic/runtime_graph_axis_preserving_v2.py": "1de947fed6278166cd2c5f63bef6ef2337644ae51da6c9d9bfdb485e517a7afa",
+    "ml/synthetic/runtime_graph_axis_preserving_v2_protocol.json": "6e4407fef6ce6ba8c6e76013602b108a39aaf443ce91ac0898f3ff31f5049be6",
+    "ml/synthetic/runtime_graph_visible_content_v3.py": "eb358f9fe6b06c538d792794e8e28a2f751b55fefa7dd5c9da04e83673dc1cca",
+    "ml/synthetic/runtime_graph_visible_content_v3_protocol.json": "94ad7b7d3476ce5143af4e7f973a31baf59dbc113cbbeda66f099619b55f99a8",
+    "ml/synthetic/tests/test_runtime_graph_axis_preserving_v2.py": "1c181a082f0d1d4e0c25a93e29f38dd2608807f3c218eedb934b09d9fb5450f7",
+    "ml/synthetic/tests/test_runtime_graph_visible_content_v3.py": "a0cf0fbbad6be1072c395d8f689868c48e35c93c76e5c1bb3d6867772072879c"
+  },
+  "source_generation": {
+    "report_sha256": "050481aee02474f5d2c6e9a05cfb68581ca710fcd2341bd4f5fba036d16b7e48",
+    "elapsed_ms": 296319.885,
+    "denominators": {
+      "definitely_erased_markers": 0,
+      "definitely_erased_texts": 0,
+      "elements_with_attributed_overlap": 78,
+      "markers": 706,
+      "markers_with_ungraded_attribution": 144,
+      "open_marker_interiors_lost": 32,
+      "plots": 39,
+      "sources": 23,
+      "sources_with_failures": 9,
+      "sources_with_ungraded_attribution": 1,
+      "text_counter_topology_changes": 285,
+      "texts": 892,
+      "texts_with_ungraded_attribution": 127
+    },
+    "axis_class_counts": {
+      "fragmented_or_occluded": 4,
+      "supported": 74
+    },
+    "graded_markers": 562,
+    "graded_texts": 765,
+    "interpretation": "Zero definite erasures applies only to graded elements. Support, topology and overlap do not establish readability. All nine sources with recorded defects remain in later denominators."
+  },
+  "ancestry_verification": {
+    "report_sha256": "4dc184880a4e36661fa8cd1ecb4002c78c66ca541c27c3b6fb08c2333b11f43e",
+    "elapsed_ms": 45480.862,
+    "exact_source_png_matches": 23,
+    "source_png_sha256_set": "94f78fc65ebc9ed2c229341abf1929df1c50cffdb42c643c3a88266b3690db88",
+    "pins": {
+      "artifacts/goal22-runs/marker-v25-plot-domain/axis-preserving-v3-sources-run2/generation-report.json": "050481aee02474f5d2c6e9a05cfb68581ca710fcd2341bd4f5fba036d16b7e48",
+      "artifacts/synthetic-runtime-evidence/margin-v2-input-preflight/source-c96-observable-guard/binding-v2.json": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+      "ml/synthetic/runtime_graph_visible_content_v3.py": "eb358f9fe6b06c538d792794e8e28a2f751b55fefa7dd5c9da04e83673dc1cca",
+      "ml/synthetic/runtime_graph_visible_content_v3_protocol.json": "94ad7b7d3476ce5143af4e7f973a31baf59dbc113cbbeda66f099619b55f99a8",
+      "ml/synthetic/runtime_graph_axis_preserving_v2.py": "1de947fed6278166cd2c5f63bef6ef2337644ae51da6c9d9bfdb485e517a7afa",
+      "ml/synthetic/runtime_graph_axis_preserving_v2_protocol.json": "6e4407fef6ce6ba8c6e76013602b108a39aaf443ce91ac0898f3ff31f5049be6",
+      "ml/policy/evidence-policy.json": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed",
+      "ml/markers/center/mask_preserving_v24/export_family_rasters.py": "c97eb80dfd5da04cdd87fea5cd9713d2fced8ff3bf01e35cbc9347ba4826ff8d",
+      "ml/markers/center/mask_preserving_v24/family_scenes.py": "0872091244ebe4a2e87192c74b0720a911255816ced4b4fb55df811305a92686",
+      "ml/synthetic/contact_sheet.py": "db98be281e76bc9ce75cb9f23d99190b8539a82b677f91e466e57434d4d15ecb",
+      "ml/synthetic/dataset.py": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+      "ml/synthetic/fonts.py": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+      "ml/synthetic/io.py": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2",
+      "ml/synthetic/renderer.py": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+      "ml/synthetic/scene.schema.json": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+      "ml/synthetic/schema.py": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+      "ml/synthetic/templates.py": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+    },
+    "limitation": "Run2 optional glyph audit did not pre-pin every historical dependency. A later independent current-source attestation found no drift. Fresh fully pinned source-only regeneration proves actual runtime PNG ancestry but does not retroactively regrade that audit."
+  },
+  "actual_runtime": {
+    "execution_summary_sha256": "e3eaba0116cd1b4bd2a9b8b483375f03c8354b2cc973111bdb4c0b1a4dd0eb51",
+    "candidate_sha256": "154d40615bd54f5744e20bb5b4482b86e05f0e3d709c8ac8d794e8d3371a4e38",
+    "run_count": 6,
+    "source_count": 23,
+    "completed_panels": 37,
+    "train_panels": 28,
+    "dev_panels": 9,
+    "reference_plots": 39,
+    "stage_failures": 0,
+    "elapsed_ms": 45067.913,
+    "report_sha256": [
+      "f7379f5d79fab26178c52f297e64ad0c23625e0d4e151d7de90fe5c50ae6e393",
+      "d2d2a118a80cb0c7078e432959321a28a23bd8034ab9c9a6d0f70beef03bd0e0",
+      "cedc668c2cd75a9fcde2ab4336df7bc37c239964a38f83800d14a896a40c36a0",
+      "04ebb3b1233eb0139c5933e208db930a4dbe5f38fd3fc14a0e8c35ab43e8ed29",
+      "f0e3c29d86f87bf0f6b6abb5011f8e299711b556a3a93a11a0075cf1a752a5a5",
+      "49180202649678bcb130db2a2a33838cda2dcd91f505c9ac2953591c97c8f1ca"
+    ],
+    "interpretation": "Execution completeness only. Panel count is actual detected inventory, not reference plot count. Marker proposal coverage, OCR accuracy and whole-workflow CSV acceptance are not scored by this report."
+  },
+  "tests": {
+    "initial_command": "python -m pytest ml/synthetic/tests/test_runtime_graph_axis_preserving_v2.py ml/synthetic/tests/test_runtime_graph_visible_content_v3.py ml/markers/center/plot_domain_v25/tests -q",
+    "initial_passed": 56,
+    "initial_failed": 4,
+    "initial_elapsed_seconds": 183.28,
+    "failure": "Four newly added stochastic fixtures omitted parameters required by the existing scene schema. No generator or model change was needed.",
+    "repair_command": "python -m pytest ml/synthetic/tests/test_runtime_graph_visible_content_v3.py -k stochastic_audit -q --junitxml=artifacts/test-results/visible-content-v3-stochastic-repair.xml",
+    "repair_passed": 4,
+    "repair_deselected": 11,
+    "repair_elapsed_seconds": 6.03,
+    "repair_junit_sha256": "398aa642c438ca667c3302f1c05dfeaf482a0f299cd479f27d6023e2c54d87df",
+    "covered_checks": 60,
+    "generator_checks": 31,
+    "separate_uncommitted_plot_domain_checks": 29,
+    "interpretation": "Positive evidence comes from the initial passing checks and focused repaired checks. The initial combined command failed; it is not relabeled as a clean pass. Plot-domain implementation is a separate unfinished work package."
+  },
+  "preserved_attempts": [
+    {
+      "report_sha256": "5002443972f23a14a4b4e11d6c7514a93fba7fbfe76cf8718c05dc37051799b0",
+      "status": "void_interrupted_after_reviewed_guard_failure",
+      "completed_pngs": 22,
+      "expected_pngs": 23,
+      "eligible_as_runtime_binding": false,
+      "reason": "Incorrect mask-conditioned attribution, mutated semantic targets and unbounded per-element stochastic work. Partial files retained; repaired run uses a new directory."
+    }
+  ],
+  "license_review": "Apache-2.0 project code. Existing synthetic renderer, Pillow and project-owned scenes only. No external artifact or dependency added.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_application_build": false,
+  "acceptance": {
+    "source_only_parity_verified": true,
+    "actual_upstream_execution_verified": true,
+    "accuracy_gate_evaluated": false,
+    "whole_workflow_accepted": false,
+    "goal22_status": "FAIL"
+  }
+}

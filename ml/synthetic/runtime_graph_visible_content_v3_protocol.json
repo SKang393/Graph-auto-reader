@@ -1,0 +1,91 @@
+{
+  "schema": "graphreader.synthetic-runtime-graph-visible-content-protocol.v1",
+  "generator_version": "runtime-graph-visible-content-v3",
+  "scope": "physical_full_ink_source_and_element_attribution_diagnostic",
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "hypothesis": "The authenticated v2 inventory definitively loses all source-owned support for 19 marker glyphs and 141 text glyphs under declared erosion because only axes and ticks receive a physically sufficient source width.",
+  "isolated_change": "Widen the complete clean ink layer before the unchanged non-geometric degradation recipe. A shared source-only core preserves semantic target centers, radii and boxes; optional isolated-process element attribution never changes runtime pixels or reference annotations. Retain every source and failure; never retry, replace or filter a recipe.",
+  "implementation": {
+    "path": "ml/synthetic/runtime_graph_visible_content_v3.py",
+    "sha256": "eb358f9fe6b06c538d792794e8e28a2f751b55fefa7dd5c9da04e83673dc1cca"
+  },
+  "axis_v2": {
+    "path": "ml/synthetic/runtime_graph_axis_preserving_v2.py",
+    "sha256": "1de947fed6278166cd2c5f63bef6ef2337644ae51da6c9d9bfdb485e517a7afa",
+    "protocol_path": "ml/synthetic/runtime_graph_axis_preserving_v2_protocol.json",
+    "protocol_sha256": "6e4407fef6ce6ba8c6e76013602b108a39aaf443ce91ac0898f3ff31f5049be6"
+  },
+  "fixed_splits": {
+    "historical_runtime_binding_path": "artifacts/synthetic-runtime-evidence/margin-v2-input-preflight/source-c96-observable-guard/binding-v2.json",
+    "historical_runtime_binding_sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+    "train": {
+      "dataset_seeds": [
+        393,
+        394,
+        395,
+        396,
+        397
+      ],
+      "scene_seeds": [
+        39300,
+        39301,
+        39302,
+        39303,
+        39400,
+        39401,
+        39402,
+        39403,
+        39500,
+        39501,
+        39502,
+        39503,
+        39600,
+        39601,
+        39602,
+        39603,
+        39700,
+        39701,
+        39702,
+        39703
+      ],
+      "scene_count": 20,
+      "plot_count": 30,
+      "marker_truth_count": 500,
+      "resolved_scene_identity_set_sha256": "36bb2b1285c592483a8a7cde8ecd636c8c95463756084b25ea5347e97c9db342"
+    },
+    "dev": {
+      "dataset_seeds": [
+        393
+      ],
+      "scene_seeds": [
+        39304,
+        39305,
+        39306
+      ],
+      "scene_count": 3,
+      "plot_count": 9,
+      "marker_truth_count": 206,
+      "resolved_scene_identity_set_sha256": "5af3bee05ea0d7937b65475ee5488dfe840e5395cfbfb83c7d9deef88edc8678"
+    }
+  },
+  "audit_contract": {
+    "attribution": "Each exact per-element RGB layer retains its original color, grayscale and antialiasing through the same luma-sensitive degradation recipe; a separate binary mask measures clean support. Element layers are never composited into the runtime raster. Overlap with other ink cannot establish that a glyph is visibly distinct in the composite.",
+    "bounds": "Semantic target boxes and clean renderer metadata remain unchanged in the source annotation. Attributed final bounds are separate audit fields and are null when the audit is ungraded.",
+    "topology": "Report marker open-interior retention, element component counts, pairwise attributed overlaps and text hole-count changes. Morphological closing can fill counters in 0, 6, 8 or 9 even when dark support remains.",
+    "readability": "Dark-pixel survival and unchanged topology do not establish text readability. Any definite erasure, lost open-marker interior or changed text counter topology remains a visible source failure; other overlap and readability limitations remain explicit diagnostics.",
+    "bounded_work": "Gaussian, Poisson, impulse noise and paper texture run once in the shared physical source core. Per-element support, topology and overlap are explicitly ungraded/null for those stages; every marker/text remains in the inventory. This avoids hundreds of redundant full-canvas stochastic passes.",
+    "threading": "The instrumented diagnostic API runs only in an isolated single-threaded process; shared processes use the source-only API.",
+    "source_only_parity": "Source-only and audited paths share the same physical render core. Synthetic regressions compare exact RGB bytes, marker masks and annotations, including mask-conditioned outline/contact and stochastic recipes."
+  },
+  "acceptance_bar": "This is source-generation plumbing and diagnostic evidence only. It does not create a universal content-perfection gate. The existing 95 percent reviewable marker/OCR bars and zero silently exported unvalidated calibration runtime property remain unchanged.",
+  "budget": {
+    "model_free_train_dev_iterations": "unlimited",
+    "optimizer_steps_authorized": 0,
+    "private_reads": 0,
+    "sealed_runs": 0,
+    "production_approval": false
+  }
+}

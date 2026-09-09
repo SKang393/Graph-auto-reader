@@ -1,0 +1,49 @@
+{
+  "schema": "graphreader.synthetic-runtime-graph-axis-preserving-protocol.v1",
+  "generator_version": "runtime-graph-axis-preserving-v2",
+  "scope": "axis_and_tick_structure_preservation_only",
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "hypothesis": "The fixed family source generator applies size3 or size5 dark-ink erosion to one-pixel axes and samples halftone cells at one corner. In the authenticated 20-source train inventory, non-geometric degradation removes 10 of 26 clean-detectable plot-axis pairs while all 30 plot coordinates and 500 marker truths remain unchanged.",
+  "isolated_change": "Use a new generator source that computes the physical axis and tick source width needed before declared morphology, without shrinking a wider declared source stroke, and replaces top-left halftone sampling with complete-cell mean-luma integration. Marker and text rendering remain unchanged and their erasures remain failures. Preserve scene selection, degradation kind, order, parameters, labels, coordinates and all v1 source code. Do not redraw after degradation, retry a recipe, or filter a failed source.",
+  "implementation": {
+    "path": "ml/synthetic/runtime_graph_axis_preserving_v2.py",
+    "sha256": "1de947fed6278166cd2c5f63bef6ef2337644ae51da6c9d9bfdb485e517a7afa",
+    "legacy_templates_sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c",
+    "legacy_renderer_sha256": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+    "legacy_dataset_sha256": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+    "scene_schema_sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f"
+  },
+  "fixed_splits": {
+    "historical_runtime_binding_path": "artifacts/synthetic-runtime-evidence/margin-v2-input-preflight/source-c96-observable-guard/binding-v2.json",
+    "historical_runtime_binding_sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+    "train": {
+      "dataset_seeds": [393, 394, 395, 396, 397],
+      "scene_seeds": [39300, 39301, 39302, 39303, 39400, 39401, 39402, 39403, 39500, 39501, 39502, 39503, 39600, 39601, 39602, 39603, 39700, 39701, 39702, 39703],
+      "scene_count": 20,
+      "plot_count": 30,
+      "marker_truth_count": 500,
+      "resolved_scene_identity_set_sha256": "36bb2b1285c592483a8a7cde8ecd636c8c95463756084b25ea5347e97c9db342"
+    },
+    "dev": {
+      "dataset_seeds": [393],
+      "scene_seeds": [39304, 39305, 39306],
+      "scene_count": 3,
+      "plot_count": 9,
+      "marker_truth_count": 206,
+      "resolved_scene_identity_set_sha256": "5af3bee05ea0d7937b65475ee5488dfe840e5395cfbfb83c7d9deef88edc8678"
+    }
+  },
+  "metric": "For every fixed source, report every declared axis final cross-section and longest unsupported run. Marker and text bounding-box dark-pixel counts are a coarse support proxy only: zero degraded support after positive clean support proves erasure inside that box, while positive support is inconclusive because unrelated axes, connectors or overlapping glyphs may contribute ink. Then run normal immutable-source import, panelization and axis detection and retain every failure and the full 500-train and 206-dev truth denominators. Runtime inference receives only the rendered raster.",
+  "source_validity": "Any fully erased clean-supported axis or definite zero bounding-box marker/text support is a source-validity failure. Positive marker/text bounding-box support never establishes complete visible content; source-owned element masks are required for that conclusion. Every case remains in the audit and is never retried, replaced, relabeled or dropped. This v2 path establishes axis and tick preservation only. Fragmented or occluded structure remains a separate measured limitation and receives no truth-derived geometry fallback.",
+  "acceptance_bar": "Source validity is preparation only. The existing ml/policy/acceptance-bars.json 95 percent marker precision, recall and proposal-recall bars remain unchanged. Axis-only validity, synthetic data or model-free preflight grants no candidate or production pass.",
+  "budget": {
+    "model_free_train_dev_iterations": "unlimited",
+    "optimizer_steps_authorized": 0,
+    "private_reads": 0,
+    "sealed_runs": 0,
+    "production_approval": false
+  }
+}
