@@ -1175,11 +1175,11 @@ public sealed class ProductionWorkflowStagesTests
         OcrRegionId ocrRegionId = OcrRegionId.New();
         var transform = new TransformRecord(
             TransformId.New(),
-            TransformKind.Affine,
+            TransformKind.Scale,
             CoordinateSpace.OriginalPixels,
-            CoordinateSpace.PanelPixels,
-            [1, 0, 0, 0, 1, 0, 0, 0, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 1],
+            CoordinateSpace.EnhancedPixels,
+            [2, 0, 0, 0, 2, 0, 0, 0, 1],
+            [0.5, 0, 0, 0, 0.5, 0, 0, 0, 1],
             JsonSerializer.SerializeToElement(new { source = "approved-production-fixture" }),
             Lossy: false);
         var ocrEvidence = new OcrEvidence(
@@ -1276,14 +1276,22 @@ public sealed class ProductionWorkflowStagesTests
         Assert.IsNotNull(tab.Calibration);
         Assert.AreSame(immutableImage, tab.ImageSource);
         PanelRecord projectedPanel = workspace.CurrentProject.Panels.Single();
-        Assert.AreEqual(calibration, projectedPanel.Calibration);
+        Assert.IsTrue(
+            JsonElement.DeepEquals(
+                JsonSerializer.SerializeToElement(calibration),
+                JsonSerializer.SerializeToElement(projectedPanel.Calibration)),
+            "Projection must preserve every calibration value even when mapping creates new nested collections.");
         Assert.AreEqual(phase.Code, projectedPanel.Phases.Single().Code);
         Assert.AreEqual(series.SeriesId, projectedPanel.Series.Single().SeriesId);
         Assert.AreEqual(series.Shape, projectedPanel.Series.Single().Shape);
         Assert.AreEqual(series.Fill, projectedPanel.Series.Single().Fill);
-        CollectionAssert.AreEqual(new[] { domainPoint }, projectedPanel.Points.ToArray());
+        Assert.IsTrue(
+            JsonElement.DeepEquals(
+                JsonSerializer.SerializeToElement(domainPoint),
+                JsonSerializer.SerializeToElement(projectedPanel.Points.Single())),
+            "Projection must preserve the exact point and modification evidence values.");
         Assert.AreEqual("Participant fixture", projectedPanel.Participant);
-        Assert.AreEqual(transform.TransformId, projectedPanel.Transforms.Single().TransformId);
+        AssertSourceBoundTransformChain(projectedPanel, transform);
         Assert.AreEqual(ocrRegionId, projectedPanel.OcrRegions.Single().RegionId);
         Assert.AreEqual(markerId, projectedPanel.Markers.Single().MarkerId);
         Assert.AreEqual(imported.Original.Sha256, tab.SourceSha256);
@@ -1340,7 +1348,7 @@ public sealed class ProductionWorkflowStagesTests
         Assert.IsTrue(JsonElement.DeepEquals(projectionDetails, reopenedProjectionDetails));
         PanelRecord persistedProjectedPanel = workspace.CurrentProject.Panels.Single();
         Assert.AreEqual("Participant fixture", persistedProjectedPanel.Participant);
-        Assert.AreEqual(transform.TransformId, persistedProjectedPanel.Transforms.Single().TransformId);
+        AssertSourceBoundTransformChain(persistedProjectedPanel, transform);
         Assert.AreEqual(ocrRegionId, persistedProjectedPanel.OcrRegions.Single().RegionId);
         Assert.AreEqual(markerId, persistedProjectedPanel.Markers.Single().MarkerId);
         Assert.AreEqual(calibration.CalibrationId, persistedProjectedPanel.Calibration!.CalibrationId);
@@ -1348,7 +1356,7 @@ public sealed class ProductionWorkflowStagesTests
         Assert.AreEqual("1", persistedProjectedPanel.Points.Single().ModelVersion);
         Assert.AreEqual(ReviewStatus.Accepted, persistedProjectedPanel.Points.Single().ReviewStatus);
         PanelRecord reopenedPersistedPanel = reopenedProvenanceWorkspace.CurrentProject.Panels.Single();
-        Assert.AreEqual(transform.TransformId, reopenedPersistedPanel.Transforms.Single().TransformId);
+        AssertSourceBoundTransformChain(reopenedPersistedPanel, transform);
         Assert.AreEqual(ocrRegionId, reopenedPersistedPanel.OcrRegions.Single().RegionId);
         Assert.AreEqual(markerId, reopenedPersistedPanel.Markers.Single().MarkerId);
         Assert.AreEqual("markers", reopenedPersistedPanel.Points.Single().SourceStage);
@@ -1368,7 +1376,7 @@ public sealed class ProductionWorkflowStagesTests
         Assert.AreEqual("1", exportedAuditRow.ModelVersion);
         Assert.AreEqual(ExportReviewStatus.Accepted, exportedAuditRow.ReviewStatus);
         persistedProjectedPanel = workspace.CurrentProject.Panels.Single();
-        Assert.AreEqual(transform.TransformId, persistedProjectedPanel.Transforms.Single().TransformId);
+        AssertSourceBoundTransformChain(persistedProjectedPanel, transform);
         Assert.AreEqual(ocrRegionId, persistedProjectedPanel.OcrRegions.Single().RegionId);
         Assert.AreEqual(markerId, persistedProjectedPanel.Markers.Single().MarkerId);
         Assert.AreEqual("markers", persistedProjectedPanel.Points.Single().SourceStage);
@@ -1865,6 +1873,8 @@ public sealed class ProductionWorkflowStagesTests
         Guid sourceId = Guid.Parse("20000000-0000-0000-0000-000000000004");
         var store = new ProductionWorkflowPanelStore();
         WorkflowImportedPanel imported = await ImportOneAsync(store, projectId, sourceId, imagePath);
+        Assert.AreEqual(1, imported.Original.Width);
+        Assert.AreEqual(1, imported.Original.Height);
         var prepared = new WorkflowPreparedPanel(imported, imported.Original, enhanced: null);
         Guid pointId = Guid.Parse("30000000-0000-0000-0000-000000000004");
         Guid phaseId = Guid.Parse("40000000-0000-0000-0000-000000000004");
@@ -1873,8 +1883,8 @@ public sealed class ProductionWorkflowStagesTests
         var point = new WorkflowPoint(
             pointId.ToString("D"),
             "detected-point-1",
-            originalPixelX: 5,
-            originalPixelY: 5,
+            originalPixelX: 0.5,
+            originalPixelY: 0.5,
             confidence: 0.98,
             WorkflowImageVariant.Original,
             WorkflowReviewStatus.Corrected,
@@ -1903,7 +1913,7 @@ public sealed class ProductionWorkflowStagesTests
             imported.PanelId,
             new ProductionPanelExportEvidence(
                 new ExportCalibration(ExportCalibrationStatus.Valid, true, true, true, 1, 1),
-                [new ExportPhase(phaseId, 1, "b", ExportPhaseType.Intervention, "Intervention", 0, 10, 1)],
+                [new ExportPhase(phaseId, 1, "b", ExportPhaseType.Intervention, "Intervention", 0, 1, 1)],
                 [new ExportSeries(seriesId, "●", "Intervention", ExportSeriesRole.Intervention, [pointId], 1)],
                 [new ExportSeriesRelation(seriesId, null)],
                 [new ProductionPointExportEvidence(
@@ -2178,6 +2188,54 @@ public sealed class ProductionWorkflowStagesTests
         string[] Points,
         string[] Series,
         string[] Dividers);
+
+    private static void AssertSourceBoundTransformChain(
+        PanelRecord panel,
+        TransformRecord expectedPreparation)
+    {
+        Assert.HasCount(2, panel.Transforms);
+        TransformRecord crop = panel.Transforms.Single(transform =>
+            transform.Parameters.ValueKind == JsonValueKind.Object &&
+            transform.Parameters.TryGetProperty("schema", out JsonElement schema) &&
+            schema.GetString() == "graphreader.raster_source_crop.v1");
+        Assert.AreEqual(TransformKind.Crop, crop.Kind);
+        Assert.AreEqual(CoordinateSpace.OriginalPixels, crop.SourceSpace);
+        Assert.AreEqual(CoordinateSpace.PanelPixels, crop.TargetSpace);
+        Assert.IsFalse(crop.Lossy);
+        Assert.IsNotNull(crop.InverseMatrix3x3);
+
+        TransformRecord preparation = panel.Transforms.Single(transform =>
+            transform.TransformId == expectedPreparation.TransformId);
+        Assert.AreEqual(expectedPreparation.Kind, preparation.Kind);
+        Assert.AreEqual(crop.TargetSpace, preparation.SourceSpace);
+        Assert.AreEqual(expectedPreparation.TargetSpace, preparation.TargetSpace);
+        Assert.AreEqual(expectedPreparation.Lossy, preparation.Lossy);
+        CollectionAssert.AreEqual(expectedPreparation.Matrix3x3.ToArray(), preparation.Matrix3x3.ToArray());
+        CollectionAssert.AreEqual(
+            expectedPreparation.InverseMatrix3x3!.ToArray(),
+            preparation.InverseMatrix3x3!.ToArray());
+        Assert.IsTrue(JsonElement.DeepEquals(expectedPreparation.Parameters, preparation.Parameters));
+
+        double[] composed = MultiplyMatrix3x3(preparation.Matrix3x3, crop.Matrix3x3);
+        CollectionAssert.AreEqual(expectedPreparation.Matrix3x3.ToArray(), composed,
+            "The retained full-source crop followed by panel preparation must reproduce the original preparation mapping.");
+    }
+
+    private static double[] MultiplyMatrix3x3(
+        IReadOnlyList<double> left,
+        IReadOnlyList<double> right)
+    {
+        var result = new double[9];
+        for (var row = 0; row < 3; row++)
+        {
+            for (var column = 0; column < 3; column++)
+            {
+                result[(row * 3) + column] = Enumerable.Range(0, 3)
+                    .Sum(index => left[(row * 3) + index] * right[(index * 3) + column]);
+            }
+        }
+        return result;
+    }
 
     private static async Task<ProductionPanelEvidence> ImportOneAsync(
         Guid projectId,

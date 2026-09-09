@@ -469,7 +469,7 @@ public sealed class ProductionMarkerArtifactMaskAdapterTests
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null &&
-               !File.Exists(Path.Combine(directory.FullName, "AGENTS.md")))
+               !File.Exists(Path.Combine(directory.FullName, "GraphAutoReader.slnx")))
         {
             directory = directory.Parent;
         }

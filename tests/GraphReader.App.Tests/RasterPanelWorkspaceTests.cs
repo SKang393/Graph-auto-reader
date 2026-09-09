@@ -211,7 +211,6 @@ public sealed class RasterPanelWorkspaceTests
         Guid seriesId = Guid.NewGuid();
         Guid phase1Id = Guid.NewGuid();
         Guid phase2Id = Guid.NewGuid();
-        Guid dividerId = Guid.NewGuid();
         double dividerX = tab.PixelWidth / 2d;
         var calibration = new CalibrationRecord(
             CalibrationId.New(),
@@ -231,9 +230,9 @@ public sealed class RasterPanelWorkspaceTests
         PhaseRecord[] phases =
         [
             new(PhaseId.FromGuid(phase1Id), 1, "a", GraphReader.Domain.PhaseNormalizedType.Baseline, "Baseline",
-                0, dividerX, null, PhaseId.FromGuid(dividerId), 0.96, PhaseSource.Ocr, false),
+                0, dividerX, null, PhaseId.FromGuid(phase2Id), 0.96, PhaseSource.Ocr, false),
             new(PhaseId.FromGuid(phase2Id), 2, "b", GraphReader.Domain.PhaseNormalizedType.Intervention, "Intervention",
-                dividerX, tab.PixelWidth, PhaseId.FromGuid(dividerId), null, 0.96, PhaseSource.Ocr, false),
+                dividerX, tab.PixelWidth, PhaseId.FromGuid(phase2Id), null, 0.96, PhaseSource.Ocr, false),
         ];
         var series = new SeriesRecord(
             SeriesId.FromGuid(seriesId), "●", MarkerShape.Circle, MarkerFill.Filled, "Series", SemanticRole.Intervention,
@@ -286,15 +285,29 @@ public sealed class RasterPanelWorkspaceTests
         Assert.IsTrue(first.Succeeded, first.Failure?.TechnicalMessage);
         Assert.AreEqual(1, first.ProjectedPointCount);
         AssertProjectionCoordinates(workspace.CurrentProject.Panels.Single(panel => panel.PanelId == seeded.PanelId), seeded.Crop,
-            pointId, markerId, dividerX, tab.PixelWidth, tab.PixelHeight);
+            pointId, markerId, tab.PixelWidth, tab.PixelHeight);
         ProductionPanelProjectionEvidence localEvidence = store.Get(workflowPanel.PanelId).ExportEvidence!.ProjectionEvidence!;
         Assert.AreEqual(20, localEvidence.Points.Single().OriginalPixel.X, 0);
         Assert.AreEqual(30, localEvidence.Points.Single().OriginalPixel.Y, 0);
 
         ProductionReviewProjectionResult second = workspace.Project(run, store);
         Assert.IsTrue(second.Succeeded, second.Failure?.TechnicalMessage);
-        AssertProjectionCoordinates(workspace.CurrentProject.Panels.Single(panel => panel.PanelId == seeded.PanelId), seeded.Crop,
-            pointId, markerId, dividerX, tab.PixelWidth, tab.PixelHeight);
+        PanelRecord repeatedPanel = workspace.CurrentProject.Panels.Single(panel => panel.PanelId == seeded.PanelId);
+        AssertProjectionCoordinates(repeatedPanel, seeded.Crop,
+            pointId, markerId, tab.PixelWidth, tab.PixelHeight);
+        Assert.AreEqual(PhaseId.FromGuid(phase1Id), repeatedPanel.Points.Single().PhaseId);
+        Assert.IsTrue(repeatedPanel.Phases.Any(phase => phase.PhaseId.Value == phase1Id));
+
+        string projectPath = Path.Combine(directory.Path, "projection-roundtrip.garproj");
+        DomainResult<ProjectSaveReceipt> saved = await workspace.SaveProjectAsync(projectPath, CancellationToken.None);
+        Assert.IsTrue(saved.IsSuccess, string.Join(" | ", saved.Errors.Select(static error => error.TechnicalMessage)));
+        var reopened = new ManualPreviewWorkspaceService();
+        _ = await reopened.OpenProjectAsync(projectPath, CancellationToken.None);
+        PanelRecord reopenedPanel = reopened.CurrentProject.Panels.Single(panel => panel.PanelId == seeded.PanelId);
+        Assert.AreEqual(PhaseId.FromGuid(phase1Id), reopenedPanel.Points.Single().PhaseId);
+        Assert.IsTrue(reopenedPanel.Phases.Any(phase => phase.PhaseId.Value == phase1Id));
+        AssertProjectionCoordinates(reopenedPanel, seeded.Crop,
+            pointId, markerId, tab.PixelWidth, tab.PixelHeight);
     }
 
     [TestMethod]
@@ -451,7 +464,6 @@ public sealed class RasterPanelWorkspaceTests
         CropRectangle crop,
         Guid pointId,
         Guid markerId,
-        double dividerX,
         int panelWidth,
         int panelHeight)
     {
@@ -469,9 +481,10 @@ public sealed class RasterPanelWorkspaceTests
         Assert.AreEqual(10 + crop.X, panel.Calibration!.Anchors[0].Screen.X, 0);
         Assert.AreEqual(panelHeight - 10 + crop.Y, panel.Calibration.Anchors[0].Screen.Y, 0);
         Assert.AreEqual(10 + crop.X, panel.Calibration.SessionLattice!.Session1PixelX, 0);
+        Assert.HasCount(2, panel.Phases);
         Assert.AreEqual(crop.X, panel.Phases[0].ScreenXMin, 0);
-        Assert.AreEqual(dividerX + crop.X, panel.Phases[0].ScreenXMax, 0);
-        Assert.AreEqual(dividerX + crop.X, panel.Phases[1].ScreenXMin, 0);
+        Assert.AreEqual(panelWidth / 2d + crop.X, panel.Phases[0].ScreenXMax, 0);
+        Assert.AreEqual(panelWidth / 2d + crop.X, panel.Phases[1].ScreenXMin, 0);
         Assert.AreEqual(panelWidth + crop.X, panel.Phases[1].ScreenXMax, 0);
         Assert.AreEqual(30 + crop.X, panel.OcrRegions.Single().Polygon[0].X, 0);
         Assert.AreEqual(40 + crop.Y, panel.OcrRegions.Single().Polygon[0].Y, 0);

@@ -1,0 +1,89 @@
+{
+  "schema": "graphreader.goal22.save-and-ci-repair.v1",
+  "recorded_date": "2026-09-08",
+  "source_base_commit": "06005ffeafa7e561cef48f513de17da3b9e08095",
+  "scope": "project persistence and clean-checkout test correctness",
+  "failure_evidence": {
+    "run": "https://github.com/SKang393/Graph-auto-reader/actions/runs/34305993623",
+    "app_failures": 3,
+    "integration_failures": 2,
+    "log": {
+      "path": "artifacts/validation/raster-panels/ci-34305993623-failed.log",
+      "sha256": "7b1ccc09e9fba4fc5083fa8c16cb920656a5efa3db1217ace34867d7df6f2e99"
+    }
+  },
+  "source_files": [
+    {
+      "path": "src/GraphReader.App/Services/ManualPreviewWorkspaceService.cs",
+      "sha256": "b4f1bcafca561a9978d7994b986cb21ca28d241453bb5b0318d60470bde0b0de"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionMarkerArtifactMaskAdapterTests.cs",
+      "sha256": "fe8b69879c773ac559ff77d51577c89dbdfbc37f621e2420cddc6e4391ca0a0a"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/RasterPanelWorkspaceTests.cs",
+      "sha256": "665b9663d355772e3b53504ffa20b972d0c062a93b5941f96a7333a9b1896f15"
+    },
+    {
+      "path": "tests/GraphReader.Integration.Tests/IntegrationSmoke/ProductionWorkflowStagesTests.cs",
+      "sha256": "ee76cb86c03e8def37fbe52315eb4342cf9c3fac2270d020af954dbeb707b52e"
+    }
+  ],
+  "repairs": [
+    "Find the repository by its tracked solution file, not ignored local AGENTS.md.",
+    "Preserve exact retained production PhaseIds when resolving points in a matching workspace layout, using panel-local phase bounds.",
+    "Preserve prior source-space point history when the workspace supplies no replacement history.",
+    "Compare nested evidence values structurally and verify both retained crop and preparation transforms.",
+    "Use valid coordinates inside the 1x1 export fixture while retaining expected CSV x=1,y=42."
+  ],
+  "validation": {
+    "app_full_run": {
+      "passed": 190,
+      "failed": 1,
+      "evidence": {
+        "path": "artifacts/validation/raster-panels/ci-raster-app-final.trx",
+        "sha256": "fbbd4b28e65f3a5529f1de8d1a68504f484b0b21e1f7eced66105b0326fb2530"
+      },
+      "failure": "Two-phase fixture referenced different IDs for its shared divider; production uses one shared divider identity."
+    },
+    "corrected_two_phase_roundtrip": {
+      "passed": 1,
+      "failed": 0,
+      "evidence": {
+        "path": "artifacts/validation/raster-panels/raster-two-phase-roundtrip.trx",
+        "sha256": "ae008b716fec113823c3dd85cb6bbe6297db5c2d64254d731b3d530184476a4f"
+      },
+      "scope": "Nonzero source crop; repeated projection, save, reopen, exact phase IDs, graph values, point history and pixel mappings."
+    },
+    "all_191_app_checks_verified_across_full_and_focused_runs": true,
+    "integration_full_run": {
+      "passed": 152,
+      "failed": 0,
+      "skipped": 7,
+      "duration_seconds_reported": 9,
+      "evidence": {
+        "path": "artifacts/validation/raster-panels/ci-raster-integration-final.trx",
+        "sha256": "d75609893327ec6f806ba8a36adf36ff56478eb0303b4fb4c6aebb10788cb2a2"
+      }
+    },
+    "root_finder_checks": {
+      "passed": 9,
+      "failed": 0,
+      "evidence": {
+        "path": "artifacts/validation/raster-panels/ci-repository-root.trx",
+        "sha256": "5090651f230c0fd340fa4e222c58aefa9ea178b3a4e903fd772509efec243099"
+      }
+    }
+  },
+  "environment_note": "The isolated sandbox account failed Git ownership checks; the full integration suite passed under the repository owner without changing global Git configuration or disabling privacy checks.",
+  "production_approval": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "packaged_builds": 0,
+  "limitations": [
+    "Latest remote CI must be verified after push.",
+    "No model accuracy or installed/portable acceptance is claimed."
+  ]
+}

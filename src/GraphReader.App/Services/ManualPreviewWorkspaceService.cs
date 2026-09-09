@@ -3023,6 +3023,15 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         PhaseRecord[] phases = preservePhaseEvidence
             ? existingPanel!.Phases.ToArray()
             : generatedPhases;
+        PhaseRecord[] workspacePhasesForPointResolution = preservePhaseEvidence
+            ? phases.Select(phase => MapPhaseSourceToPanel(existingPanel, phase)).ToArray()
+            : workspaceRegionPhases.Concat(workspaceSemanticProbePhases).ToArray();
+        PhaseRecord[] workspaceRegionPhasesForPointResolution = workspacePhasesForPointResolution
+            .Take(workspaceRegionPhases.Length)
+            .ToArray();
+        PhaseRecord[] workspaceSemanticProbePhasesForPointResolution = workspacePhasesForPointResolution
+            .Skip(workspaceRegionPhases.Length)
+            .ToArray();
         Dictionary<SeriesId, SeriesRecord> existingSeries = existingPanel?
             .Series.ToDictionary(static series => series.SeriesId)
             ?? new Dictionary<SeriesId, SeriesRecord>();
@@ -3031,7 +3040,11 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             ?? new Dictionary<PointId, PointRecord>();
         Dictionary<string, PhaseRecord> pointPhases = tab.Points.ToDictionary(
             static point => point.PointId,
-            point => ResolvePointPhase(tab, point, workspaceRegionPhases, workspaceSemanticProbePhases));
+            point => ResolvePointPhase(
+                tab,
+                point,
+                workspaceRegionPhasesForPointResolution,
+                workspaceSemanticProbePhasesForPointResolution));
         HashSet<SeriesId> validBaselineIds = tab.SeriesCards
             .Where(static item => item.SemanticRole == SemanticRole.Baseline)
             .Select(item => SeriesId.FromGuid(Guid.Parse(item.SeriesId)))
@@ -3088,9 +3101,13 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             SeriesId seriesId = SeriesId.FromGuid(Guid.Parse(point.SeriesId));
             double? graphX = xState.HasGraphX ? point.GraphX : null;
             double? graphY = tab.Calibration is null ? null : point.GraphY;
-            PointModification[] modificationHistory = GetPointModificationHistory(point.PointId)
+            PointModification[] workspaceModificationHistory = GetPointModificationHistory(point.PointId)
                 .Select(modification => MapModificationPanelToSource(existingPanel, modification))
                 .ToArray();
+            PointModification[] modificationHistory = workspaceModificationHistory.Length == 0 &&
+                prior?.ModificationHistory.Count > 0
+                    ? prior.ModificationHistory.ToArray()
+                    : workspaceModificationHistory;
             bool manuallyCorrected = prior is null ||
                 modificationHistory.Length > 0 ||
                 prior.SeriesId != seriesId ||
