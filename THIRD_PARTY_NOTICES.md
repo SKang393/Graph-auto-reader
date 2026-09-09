@@ -120,11 +120,12 @@ Current release blockers are:
   description: the Windows slim workflow disables only contrib, `videoio`,
   `highgui`, and `dnn`; artifact inspection finds additional OpenCV modules and
   embedded build metadata reports non-free algorithms enabled.
-- A pinned minimal replacement source build now has two byte-identical retained
-  builds. `OpenCvSharpExtern.dll` is 7,965,696 bytes with SHA-256
-  `87c12460daba638b36e916ea2bb832d0759fbf094b8639919a7ce11b0cca5791`.
+- The current pinned minimal source build has two retained builds with
+  byte-identical final DLLs and linker maps. `OpenCvSharpExtern.dll` is
+  7,964,672 bytes with SHA-256
+  `c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31`.
   The linker map SHA-256 is
-  `e7f9f768b82172b9f2021b2a469de371962655bd0833c8f214bbefdad05a8a77`.
+  `091c6c7e8f536472be4ed469938b4454b624a4fe98834882a4d2baba69185d21`.
   Its 15-entry inventory covers OpenCV core/imgproc/imgcodecs, zlib, SoftFloat,
   FDLIBM, Microsoft static runtimes, and Windows imports. The private
   maintainer attestation validates the five Microsoft static-runtime entries.
@@ -135,7 +136,9 @@ Current release blockers are:
 - Internal portable status: the checksum-bound packaging seam validates the
   complete source-build evidence and private attestation, replaces exactly one
   published native DLL, records the exact runtime hash, and keeps
-  `releaseApproved=false`. Application parity and public axis benchmarks pass.
+  `releaseApproved=false`. The new runtime passes synthetic scientific parity
+  and integration checks. Packaged application smoke and fresh clean-machine
+  validation remain required; older runtime results remain historical.
 - Public audit status: the source-built binary is the only accepted native
   release input and uses an exact-binary checksum policy. The production common
   publish does not yet consume it, and the mandatory clean-machine workflow gate
@@ -307,7 +310,7 @@ Current release blockers are:
 | System.Numerics.Tensors | 9.0.0 | NuGet / dotnet/runtime | MIT + notices | `b750243c36002a62b28b1ac5d3fbc284ad340ba1494cc36aca110611a0b1f959` | Yes | Exact license and third-party notices | Yes |
 | OpenCvSharp managed bindings | 4.13.0.20260627 | NuGet / shimat/opencvsharp `b161e7e012f5101f6d5dc68a835c59db6cc88b18` | Apache-2.0 | `8acee778364e5eee6495d923732cacd8d895c7f683d2144f622b54418623d12c` | Yes | `LICENSES/OpenCvSharp-4.13.0.20260627-License.txt` | Yes, managed package only |
 | OpenCvSharp Windows x64 slim runtime | 4.13.0.20260627 | NuGet / shimat/opencvsharp, OpenCV `fe38fc608f6acb8b68953438a62305d8318f4fcd` | Apache-2.0 plus unresolved published-binary closure | `281551a6c032d1aab316db9c1817bcded5a85188b24b2efd12c02665e7233817` | No | OpenCvSharp and OpenCV source licenses only | Historical package input; rejected by exact-binary release coverage |
-| OpenCvSharpExtern minimal source-built runtime | `4.13.0.20260627-source` | OpenCvSharp `b161e7e012f5101f6d5dc68a835c59db6cc88b18`; OpenCV `fe38fc608f6acb8b68953438a62305d8318f4fcd`; vcpkg `1e199d36a2b4109fecc04cc7ee67c2dd2e02a234` | Apache-2.0, zlib, BSD-3-Clause, FDLIBM notice, Microsoft attested static runtime | `87c12460daba638b36e916ea2bb832d0759fbf094b8639919a7ce11b0cca5791` | Selected exact release input; production replacement pending | `LICENSES/OpenCvSharpExtern-SourceBuilt-ThirdPartyNotices.txt` plus public Microsoft redistribution reference; ignored private attestation is not distributed | Provenance and parity reviewed; mandatory clean-machine gate blocked |
+| OpenCvSharpExtern minimal source-built runtime | `4.13.0.20260627-source` | OpenCvSharp `b161e7e012f5101f6d5dc68a835c59db6cc88b18`; OpenCV `fe38fc608f6acb8b68953438a62305d8318f4fcd`; vcpkg `1e199d32ad53aab1defda61ce41c380302e3f95c` | Apache-2.0, zlib, BSD-3-Clause, FDLIBM notice, Microsoft attested static runtime | `c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31` | Selected exact release input; production replacement pending | `LICENSES/OpenCvSharpExtern-SourceBuilt-ThirdPartyNotices.txt` plus public Microsoft redistribution reference; ignored private attestation is not distributed | Provenance and synthetic scientific parity reviewed; fresh clean-machine gate blocked |
 | .NET / WPF runtime | 10.0.10 | Microsoft .NET installed by SDK 10.0.302 | `LicenseRef-Microsoft-DotNet-Library` plus third-party notices | Per-file hashes required in release SBOM | Yes | Exact license and third-party notices | Source notice reviewed; artifact gate pending |
 | Imazen.WebP | 11.0.0 | NuGet / imazen/libwebp-net | MIT | `f78a8f874f127bfa4688595950aa6292a8e20ea55fc2b60321523e1d005d5dff` | Yes | `LICENSES/Imazen.WebP-11.0.0-License.txt` | Yes |
 | Imazen WebP native runtime win-x64 | 1.6.1 | NuGet / imazen/libwebp-net | MIT + libwebp BSD-3-Clause | `32df07f31f18b5f4e35409a73621d776d97761f4b601cbbbdc4efbacb6ab62f6` | Yes | Imazen MIT and libwebp BSD-3-Clause texts | Yes |

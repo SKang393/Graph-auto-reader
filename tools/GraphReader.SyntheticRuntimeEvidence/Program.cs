@@ -160,6 +160,8 @@ internal static class Program
                 "existing-development-runtime-unapproved-for-release",
             "87c12460daba638b36e916ea2bb832d0759fbf094b8639919a7ce11b0cca5791" =>
                 "reviewed-source-runtime-local-diagnostic",
+            "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31" =>
+                "reviewed-source-runtime-local-diagnostic",
             _ => throw new InvalidDataException("Native runtime has no recorded local diagnostic scope."),
         };
         if (Text(config, "native_scope") != nativeScope)

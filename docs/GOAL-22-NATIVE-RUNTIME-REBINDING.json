@@ -1,0 +1,137 @@
+{
+  "base_commit": "8cfe81420577c8671acb7c64d7cc414d929a8623",
+  "current_gate_change": "opencv-clean-machine-load is blocked. The retained passing 0.0.21 record covers historical runtime87, not current runtimec96.",
+  "current_native": {
+    "all_intermediate_archives_byte_identical": false,
+    "byte_count": 7964672,
+    "final_dll_and_map_byte_identical": true,
+    "historical_native_sha256": "87c12460daba638b36e916ea2bb832d0759fbf094b8639919a7ce11b0cca5791",
+    "linker_map_sha256": "091c6c7e8f536472be4ed469938b4454b624a4fe98834882a4d2baba69185d21",
+    "retained_builds": 2,
+    "review_scope": "reviewed-provenance-only",
+    "sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+    "unchanged_dependency_identities": 15
+  },
+  "date": "2026-09-09",
+  "goal22_acceptance": "FAIL",
+  "history_preserved": [
+    "docs/BUILD_LEDGER.json",
+    "packaging/evidence/opencv-clean-machine.json",
+    "docs/GOAL-19-COMPLETION.md"
+  ],
+  "integration": {
+    "axis_parity": {
+      "baseline_evidence_sha256": "cafb1df2d8b3d959d3de6e7221115634585ed6c7dc9e34994075003f67f85ac7",
+      "baseline_test": {
+        "failed": 0,
+        "passed": 1,
+        "trx_sha256": "1956337d9aebebe605aef31f90c960a98b6eaa0c1aeca8a6b6dfb2143d3acdd7"
+      },
+      "exact_canonical_match": true,
+      "fixture_count": 4,
+      "maximum_origin_error_pixels": 5.0,
+      "source_evidence_sha256": "cafb1df2d8b3d959d3de6e7221115634585ed6c7dc9e34994075003f67f85ac7",
+      "source_test": {
+        "failed": 0,
+        "passed": 1,
+        "trx_sha256": "b70465c168a9adf5a4b51dd5e33757d66b59e4eddece7d6fc88c64413f4583f6"
+      }
+    },
+    "baseline_restored_sha256": "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd",
+    "path": "artifacts/goal22-clean-machine/native-parity/run-20260909T064628204Z/final-summary.json",
+    "retained_environment_failures": "Two runs failed only the Git ownership contract. A run-local protected Git configuration resolved it without rebuilding or altering global settings.",
+    "sha256": "af45164ba3b9343a94a6b9d6568d17a88c4be901fb8650eb59cf737a314bdb38",
+    "tests": {
+      "elapsed_ms": 11826.142,
+      "executed": 152,
+      "failed": 0,
+      "passed": 152,
+      "skipped": 7,
+      "total": 159,
+      "trx_sha256": "c9c455680126313841b4bbcf6256a14b071b613f8cceed325255d7343d0f23a5"
+    }
+  },
+  "public_source_policy": {
+    "path": "packaging/opencv-source/review/source-build-review-policy.json",
+    "sha256": "1da05079d0c3b980265bc8699ab3ff04fb5b67b2a4fdda42acacecfb1cd54898"
+  },
+  "remaining": [
+    "Broader source-runtime training input binding and model quality repair.",
+    "Real/sealed end-to-end acceptance and complete production-stage availability.",
+    "Properly versioned application package smoke and fresh exact-payload clean-machine checks.",
+    "Final 2.0.0 installer and portable release after all mandatory gates."
+  ],
+  "schema": "graphreader.goal22-current-native-runtime-rebinding.v1",
+  "scientific_parity": {
+    "all_persisted_bytes_identical": true,
+    "axis_and_ocr_outputs_identical": true,
+    "complete_raw_panel_records_compared": true,
+    "scientific_structure_ids_compared": true,
+    "adversarial_mutations_rejected": 8,
+    "validated_non_scientific_difference_paths": 55,
+    "excluded_non_scientific_fields": [
+      "validated run UUIDs at exact listed paths",
+      "validated processing durations at exact listed paths",
+      "exact bound native runtime hashes",
+      "exact bound managed assembly and configuration provenance warnings"
+    ],
+    "normalization_diagnosis": {
+      "path": "artifacts/synthetic-runtime-evidence/source-c96-parity-difference-diagnosis.json",
+      "sha256": "1bcc820e09cce164db16511e82e3ea19546fac632f28563e954cf19682997617"
+    },
+    "panels": 32,
+    "path": "artifacts/synthetic-runtime-evidence/source-c96-scientific-parity-v3.json",
+    "persisted_files_compared_per_runtime": 256,
+    "sha256": "e937fddf5cdaa23e461c69f49008804730affa757bcba30c22e516ca2c33d192",
+    "comparison_source_sha256": "b2a285f3f7b49ea0f693641a6e6c9ae2cb39a742b78a80ca845c5f220f2bfcb8",
+    "superseded_comparison": {
+      "path": "artifacts/synthetic-runtime-evidence/source-c96-scientific-parity-v2.json",
+      "sha256": "bce5c7aa73468e05d516d5bc2cab0e8152ffcea68eeb291663da55285e1e5f5b",
+      "limitation": "V2 removed scientific IDs too broadly and used a partial projection. Independent review required V3 full-record comparison; prior artifacts remain unchanged."
+    }
+  },
+  "scope": {
+    "clean_machine_validated": false,
+    "models_approved": false,
+    "optimizer_steps": 0,
+    "packaged_builds": 0,
+    "portable_deleted": 0,
+    "private_acceptance_reads": 0,
+    "production_approved": false,
+    "public_releases": 0,
+    "sealed_reads": 0
+  },
+  "source_review_record": {
+    "path": "artifacts/goal22-clean-machine/native-review/review.json",
+    "sha256": "1521c581b1a67aa7b4d875134a35347af4a78edfb3c09da31a4bcd83902e591a"
+  },
+  "status": "provenance_and_synthetic_parity_verified",
+  "validation": {
+    "current_source_provenance_policy": "pass",
+    "development_portable_script_scenarios": {
+      "actual_packaged_builds": 0,
+      "failed": 0,
+      "passed": 10
+    },
+    "diagnostic_compilation": {
+      "elapsed_seconds": 20.61,
+      "errors": 0,
+      "warnings": 0
+    },
+    "diagnostic_metadata_guard": {
+      "failed": 0,
+      "passed": 1
+    },
+    "release_audit": {
+      "artifacts_emitted": false,
+      "path": "artifacts/goal22-clean-machine/native-review/release-audit-only.json",
+      "ready": false,
+      "sha256": "4af737b97d861c74a9bd3909a635abe0bb43be7133b145137bf23144a3b21bc5"
+    },
+    "reviewed_runtime_installation_guards": {
+      "failed": 0,
+      "passed": 13
+    },
+    "source_review_mutation_guards": "pass"
+  }
+}

@@ -249,7 +249,7 @@ try {
         }
         $openCvRuntime = Get-Content -LiteralPath (Join-Path $stagingDirectory 'reviewed-opencv-runtime.json') -Raw | ConvertFrom-Json
         if ([bool]$openCvRuntime.releaseApproved -or
-            [string]$openCvRuntime.binarySha256 -ne '87c12460daba638b36e916ea2bb832d0759fbf094b8639919a7ce11b0cca5791') {
+            [string]$openCvRuntime.binarySha256 -ne 'c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31') {
             throw 'Reviewed OpenCV runtime metadata is invalid or unexpectedly release-approved.'
         }
     }

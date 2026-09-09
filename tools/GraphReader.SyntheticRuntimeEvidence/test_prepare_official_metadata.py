@@ -7,6 +7,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 import prepare_official_metadata as metadata
 
 
@@ -91,3 +93,11 @@ def test_prepare_binds_existing_probability_tolerance_without_approval(tmp_path,
 
     assert metadata.prepare(tmp_path, output, native) == candidate_path
     assert (output / "detector.json").read_bytes() == detector_bytes_first
+
+    # A different native payload cannot inherit a known runtime's scope or
+    # leave partially bound metadata behind.
+    native.write_bytes(b"unreviewed-native-runtime")
+    unknown_output = tmp_path / "unknown-runtime"
+    with pytest.raises(ValueError, match="not an existing checksum-recorded"):
+        metadata.prepare(tmp_path, unknown_output, native)
+    assert not unknown_output.exists()

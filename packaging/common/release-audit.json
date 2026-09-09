@@ -54,14 +54,14 @@
     {
       "id": "opencv-clean-machine-load",
       "description": "The exact reviewed source-built OpenCvSharpExtern binary loads and passes application smoke on a clean Windows machine.",
-      "status": "pass",
+      "status": "blocked",
       "evidence": [
         {
           "path": "packaging/evidence/opencv-clean-machine.json",
           "sha256": "c2725f3f64b86cc37af00541a832bacbae5f5e30e0b5d23d8e534374de50a670"
         }
       ],
-      "notes": "The exact reviewed source-built OpenCvSharpExtern binary loaded in a fresh offline Windows 11 Enterprise Evaluation VM and the checksum-bound 0.0.21 portable smoke exited 0."
+      "notes": "The retained passing record is historical: runtime 87c12460 and portable 0.0.21. It does not validate the newly source-reviewed c96f91b3 runtime. Fresh evidence must bind the current runtime, application, version, commit, and harness before this gate can pass."
     },
     {
       "id": "pdfium-clean-machine-load",
@@ -308,18 +308,18 @@
       "component": "OpenCvSharpExtern minimal source-built Windows x64 runtime",
       "version": "4.13.0.20260627-source",
       "source": "https://github.com/shimat/opencvsharp",
-      "sourceRevision": "OpenCvSharp b161e7e012f5101f6d5dc68a835c59db6cc88b18; OpenCV fe38fc608f6acb8b68953438a62305d8318f4fcd; vcpkg 1e199d36a2b4109fecc04cc7ee67c2dd2e02a234",
+      "sourceRevision": "OpenCvSharp b161e7e012f5101f6d5dc68a835c59db6cc88b18; OpenCV fe38fc608f6acb8b68953438a62305d8318f4fcd; vcpkg 1e199d32ad53aab1defda61ce41c380302e3f95c",
       "license": "Apache-2.0 AND Zlib AND BSD-3-Clause AND LicenseRef-FDLIBM-Notice AND LicenseRef-Microsoft-VisualStudio-2022 AND LicenseRef-Microsoft-Windows-SDK-10.0.26100.0",
       "bundledOrDownloaded": "bundled",
-      "artifactSha256": "87c12460daba638b36e916ea2bb832d0759fbf094b8639919a7ce11b0cca5791",
+      "artifactSha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
       "checksumPolicy": "exact-binary",
       "noticePaths": ["LICENSES/OpenCvSharpExtern-SourceBuilt-ThirdPartyNotices.txt", "LICENSES/Microsoft-Visual-Cpp-2022-Redistribution-Reference.md"],
       "commercialUse": true,
       "redistribution": true,
       "reviewStatus": "reviewed",
-      "reviewer": "Goal 19",
-      "reviewDate": "2026-08-04",
-      "notes": "Exact byte-reproducible source build with reviewed 15-entry linked-component inventory and public notice bundle. Maintainer authority for the scoped Microsoft static runtime entries is recorded only in ignored private provenance. The separate mandatory clean-machine gate remains blocked."
+      "reviewer": "Goal 22",
+      "reviewDate": "2026-09-09",
+      "notes": "Fresh A/B final DLL and linker map are byte-identical. All 15 dependency identities, source revisions, notices, and attested toolchain match the prior provenance policy; exact build inputs are retained. Synthetic scientific parity passes across 32 runtime panels and the integration benchmark. This component review does not approve production; fresh clean-machine and packaged workflow evidence remain required."
     },
     {
       "id": "imazen-webp-managed",

@@ -18,6 +18,7 @@ ALPHABET = "8b31115bc8675a58b670879950b550e7d9840984954d9584d251fd72a764477a"
 NATIVE_HASHES = {
     "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd": "existing-development-runtime-unapproved-for-release",
     "87c12460daba638b36e916ea2bb832d0759fbf094b8639919a7ce11b0cca5791": "reviewed-source-runtime-local-diagnostic",
+    "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31": "reviewed-source-runtime-local-diagnostic",
 }
 
 
