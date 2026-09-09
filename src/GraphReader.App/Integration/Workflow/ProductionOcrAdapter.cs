@@ -280,11 +280,16 @@ public sealed class ProductionOcrAdapter :
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
         ArgumentNullException.ThrowIfNull(runtimeHost);
+        if (outputGeometry == GraphStructureConsensusGeometry.InitialDbContour &&
+            modelInput != GraphStructureModelInput.Original)
+        {
+            throw new InvalidOperationException("Initial-contour experimentation requires the frozen original detector input.");
+        }
         _ = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput);
         if (modelInput == GraphStructureModelInput.Original &&
-            outputGeometry != GraphStructureConsensusGeometry.ModelPolygon)
+            outputGeometry is not (GraphStructureConsensusGeometry.ModelPolygon or GraphStructureConsensusGeometry.InitialDbContour))
         {
-            throw new InvalidOperationException("The original-input experiment must preserve model output geometry.");
+            throw new InvalidOperationException("The original-input candidate does not authorize matched-component output geometry.");
         }
         cancellationToken.ThrowIfCancellationRequested();
         reviewedOpenCvRuntimeSha256 = ValidateSha256(
@@ -338,6 +343,10 @@ public sealed class ProductionOcrAdapter :
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
         ArgumentNullException.ThrowIfNull(runtimeHost);
+        if (outputGeometry == GraphStructureConsensusGeometry.InitialDbContour)
+        {
+            throw new InvalidOperationException("Initial-contour output is limited to the preregistered local synthetic factory.");
+        }
         _ = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry);
         cancellationToken.ThrowIfCancellationRequested();
         reviewedOpenCvRuntimeSha256 = ValidateSha256(

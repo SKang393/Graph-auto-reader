@@ -32,6 +32,11 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--self-test-initial-contour")
+        {
+            InitialContourOutputExperiment.SelfTest();
+            return 0;
+        }
         if (args.Length == 1 && args[0] == "--self-test-original-input")
         {
             OriginalModelInputExperiment.SelfTest();
@@ -99,8 +104,8 @@ internal static class Program
         {
             throw new InvalidDataException("An explicitly unapproved local candidate descriptor is required.");
         }
-        (GraphStructureModelInput modelInput, string? modelInputProtocolSha256) =
-            OriginalModelInputExperiment.Read(
+        (GraphStructureModelInput modelInput, string? modelInputProtocolSha256,
+            string? initialContourProtocolSha256) = InitialContourOutputExperiment.Read(
                 config, Text(inputs, "split"), inputPath, inputManifestSha256, RepositoryRoot());
         DbGeometryDiagnosticBinding? dbGeometryDiagnostic = args.Length == 7
             ? ValidateDbGeometryDiagnostic(
@@ -118,10 +123,11 @@ internal static class Program
                 {
                     "model_polygon" => GraphStructureConsensusGeometry.ModelPolygon,
                     "matched_component" => GraphStructureConsensusGeometry.MatchedComponent,
+                    "initial_db_contour" => GraphStructureConsensusGeometry.InitialDbContour,
                     _ => throw new InvalidDataException("Unsupported synthetic OCR output geometry."),
                 }
                 : GraphStructureConsensusGeometry.ModelPolygon;
-        string? geometryProtocolSha256 = null;
+        string? geometryProtocolSha256 = initialContourProtocolSha256;
         if (outputGeometry == GraphStructureConsensusGeometry.MatchedComponent)
         {
             if (!config.TryGetProperty("geometry_protocol", out JsonElement protocol))

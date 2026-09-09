@@ -1,0 +1,587 @@
+{
+  "acceptance": {
+    "both_detection_bars_pass": false,
+    "dev_truth": 183,
+    "full_truth": 329,
+    "minimum_precision": 0.95,
+    "minimum_recall": 0.95,
+    "policy": "ml/policy/acceptance-bars.json",
+    "train_truth": 146
+  },
+  "current_source_sha256": {
+    "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs": "242f718bb59a5ef21e92a0f9df16a4733d360ed87739082a8204ee9f6a91a7ce",
+    "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs": "079b90ba0007f43a31396d6bd4521b8569f23bba35b14c4a1ae63fcc9fc059d0",
+    "src/GraphReader.Ocr/LocalOnnxTextRegionDetector.cs": "de0c9706167ab8c6868b31ec350563b96173a25b82ebf72cb2b2f664670b4a87",
+    "src/GraphReader.Ocr/OcrContracts.cs": "c25ab8ba3e943fdce79381e41ec6a2ce3bdd8a1258a2fccece6ceb0d47690e51",
+    "tests/GraphReader.App.Tests/ProductionOcrLocalCandidateFactoryTests.cs": "cddd7fae292c1657616c76cd75cea1b25058ed59ebdbab635784946476811ffc",
+    "tests/GraphReader.Ocr.Tests/GraphStructureConsensusInitialDbContourTests.cs": "d2fdebda8bcad217e441716ffe838a79ec0d0d8358f865db73c2c3c96923960a",
+    "tools/GraphReader.SyntheticRuntimeEvidence/InitialContourOutputExperiment.cs": "da3680d2874db5472ada822e1132adc141a52c744a4330effc751ad9cb59f113",
+    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "a97f35af2ecd236798adc23210b97b19a22cbe75a2af898b93201865f280a781",
+    "tools/GraphReader.SyntheticRuntimeEvidence/score_initial_contour_output.py": "b8c705659c7816d333ca03618461bba82f2c0fb45098e682d86360aabff48502",
+    "tools/GraphReader.SyntheticRuntimeEvidence/test_score_initial_contour_output.py": "d21150b0b5866d0062241b111570f000a8dcb6d647856902630e6008356cb4f3"
+  },
+  "evaluator_repair": {
+    "all_detection_metrics_and_descriptive_crop_changes_unchanged": true,
+    "model_free_rescore": true,
+    "prior_diagnostic_preserved": true,
+    "prior_diagnostic_score_path": "artifacts/synthetic-runtime-evidence/initial-contour-output-score-run1.json",
+    "prior_diagnostic_score_sha256": "f5aec8341d2127c2b34efdf6008862fd969bfdcc1e422125a2f7a1327ec1c566",
+    "reason": "Independent review required exact transitive truth-source, font, package and externally reviewed evaluator-byte checks before regeneration."
+  },
+  "existing_mode_parity": {
+    "comparisons": [
+      {
+        "baseline_report_sha256": "c959125993e08ec2ebe58481104a8ff6370871d32d568472d240e8515c72a424",
+        "current_report_sha256": "6cf24b0e38caf219c1b72edcbda5a0b9d598aab130b4427e38e3bbff02bafcc4",
+        "mode": "default",
+        "panels": 4,
+        "split": "train"
+      },
+      {
+        "baseline_report_sha256": "b212a5bc1a494c4cefae8f8b736c88237b99e66bca987588ce0ae06bf03b0e35",
+        "current_report_sha256": "bc5282569a818deea192cd5b820c5aab52aded0b91e1e86e655a67b702578c7b",
+        "mode": "default",
+        "panels": 9,
+        "split": "dev"
+      },
+      {
+        "baseline_report_sha256": "3170337076d74d16b0c2f59e073eb50e4e8fc0347218ba0e68219cd5f171c20d",
+        "current_report_sha256": "6f4c3f4b4a0aa5f7c1ea784daadad479ffea7c07a262cae9a5c2bf9a7e1f7595",
+        "mode": "original",
+        "panels": 4,
+        "split": "train"
+      },
+      {
+        "baseline_report_sha256": "273ff697a2440e8c60ed664c58283ba7516a84187e6ba91367c34c790026ce57",
+        "current_report_sha256": "0b596de96aea4cc83f8fda359d8b0beb14125ac05d38558a7a1b275ebb6d0d60",
+        "mode": "original",
+        "panels": 9,
+        "split": "dev"
+      }
+    ],
+    "difference_classes": {
+      "authenticated_build_provenance": 234,
+      "measured_elapsed_time": 804,
+      "opaque_run_id": 26
+    },
+    "elapsed_milliseconds": 3243.726,
+    "execution_manifests": [
+      "75985af76e6675a48a33eea256487cdcff6e8e9224112dd11084267e725a766a",
+      "cb4c6b50d1e64213c20b8389cebe6ed6493e72c01f2fe0aeaf010f0b925b7f0b"
+    ],
+    "panels": 26,
+    "path": "artifacts/synthetic-runtime-evidence/initial-contour-existing-modes-parity.json",
+    "private_reads": 0,
+    "production_approved": false,
+    "run_binding_sha256": "a379b1728ce2570e55143ebe0587525895c4e89c1ebd67930290a6aea4354203",
+    "schema": "graphreader.initial-contour-existing-modes-parity.v1",
+    "scientific_mutation_checks": [
+      {
+        "mutated_path": "/axis/geometry/ticks/0/tick_id",
+        "name": "scientific_tick_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/axis/geometry/phase_dividers/0/divider_id",
+        "name": "scientific_divider_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/ocr/regions/0/region_id",
+        "name": "scientific_ocr_region_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/source_width",
+        "name": "source_width_numeric",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/residual_artifact_candidate_envelope/confidence",
+        "name": "residual_confidence_numeric",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/pre_ocr_diagnostic/source_gray/byte_count",
+        "name": "pre_ocr_byte_count_numeric",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/axis/envelope/model/sha256",
+        "name": "wrong_value_at_allowed_native_path",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/elapsed_milliseconds",
+        "name": "invalid_negative_timing",
+        "unexpected_difference_detected": true
+      }
+    ],
+    "sealed_reads": 0,
+    "sha256": "19d0683ccd6c0a637487c8c049b041562f72950cf89c111036d61964f7b9a8af",
+    "source_sha256": "58fb8de133bc903c5cc5236d5891fbfd9b8db54486faeeb7d9a9f3c820c2a890",
+    "status": "exact_scientific_output_parity",
+    "unchanged_referenced_files_per_side": 208,
+    "verified_files_per_executable": 35
+  },
+  "integrity": {
+    "complete_selected_identity_verification": true,
+    "consensus_selected_expanded_ids_equal_frozen_original_run_for_completed_panels": true,
+    "failed_panel_count": 0,
+    "failed_source_count": 0,
+    "final_initial_polygons_and_ids_trace_to_atomic_raw_contours": true,
+    "full_source_truth_count": 329,
+    "old_db_reports_and_every_contour_sidecar_verified_before_truth": true,
+    "protocol_candidate_models_native_licenses_and_execution_files_verified": true,
+    "raw_original_input_regions_expanded_geometry_and_confidence_equal_old_atomic_contours": true,
+    "source_and_panel_artifact_bytes_verified_before_truth": true,
+    "truth_created_only_after_all_runtime_and_supporting_evidence_validation": true,
+    "truth_sources_packages_and_fonts_authenticated_before_regeneration": true,
+    "unavailable_baseline_selected_count": 0,
+    "verified_selected_region_count": 205
+  },
+  "license_review": "Existing hash-verified Apache-2.0 Paddle OCR payloads/notices and reviewed source-built native runtime. No new weights, dependency or approval.",
+  "limitations": [
+    "This synthetic train/dev result cannot approve a model, production stage, or release.",
+    "Recognition strings and roles are reported only as changes because this protocol does not score recognition or role truth.",
+    "Failed sources or panels keep their full truth denominator and contribute no predictions; identity verification is marked incomplete when any are unavailable.",
+    "The initial contour comparison covers contours accepted by the unchanged DB detector and unchanged consensus selection only."
+  ],
+  "metrics": {
+    "frozen_original_model_input": {
+      "consensus": {
+        "combined": {
+          "false_negatives": 250,
+          "false_positives": 126,
+          "precision": 0.3853658536585366,
+          "predicted_region_count": 205,
+          "recall": 0.24012158054711247,
+          "true_positives": 79,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 117,
+          "false_positives": 61,
+          "precision": 0.32222222222222224,
+          "predicted_region_count": 90,
+          "recall": 0.19863013698630136,
+          "true_positives": 29,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 133,
+          "false_positives": 65,
+          "precision": 0.43478260869565216,
+          "predicted_region_count": 115,
+          "recall": 0.273224043715847,
+          "true_positives": 50,
+          "truth_region_count": 183
+        }
+      },
+      "final_ocr_regions": {
+        "combined": {
+          "false_negatives": 250,
+          "false_positives": 126,
+          "precision": 0.3853658536585366,
+          "predicted_region_count": 205,
+          "recall": 0.24012158054711247,
+          "true_positives": 79,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 117,
+          "false_positives": 61,
+          "precision": 0.32222222222222224,
+          "predicted_region_count": 90,
+          "recall": 0.19863013698630136,
+          "true_positives": 29,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 133,
+          "false_positives": 65,
+          "precision": 0.43478260869565216,
+          "predicted_region_count": 115,
+          "recall": 0.273224043715847,
+          "true_positives": 50,
+          "truth_region_count": 183
+        }
+      },
+      "raw_expanded": {
+        "combined": {
+          "false_negatives": 223,
+          "false_positives": 240,
+          "precision": 0.3063583815028902,
+          "predicted_region_count": 346,
+          "recall": 0.3221884498480243,
+          "true_positives": 106,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 111,
+          "false_positives": 103,
+          "precision": 0.2536231884057971,
+          "predicted_region_count": 138,
+          "recall": 0.23972602739726026,
+          "true_positives": 35,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 112,
+          "false_positives": 137,
+          "precision": 0.34134615384615385,
+          "predicted_region_count": 208,
+          "recall": 0.3879781420765027,
+          "true_positives": 71,
+          "truth_region_count": 183
+        }
+      }
+    },
+    "initial_contour_output": {
+      "final_initial": {
+        "combined": {
+          "false_negatives": 174,
+          "false_positives": 50,
+          "precision": 0.7560975609756098,
+          "predicted_region_count": 205,
+          "recall": 0.47112462006079026,
+          "true_positives": 155,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 73,
+          "false_positives": 17,
+          "precision": 0.8111111111111111,
+          "predicted_region_count": 90,
+          "recall": 0.5,
+          "true_positives": 73,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 101,
+          "false_positives": 33,
+          "precision": 0.7130434782608696,
+          "predicted_region_count": 115,
+          "recall": 0.44808743169398907,
+          "true_positives": 82,
+          "truth_region_count": 183
+        }
+      },
+      "raw_expanded": {
+        "combined": {
+          "false_negatives": 223,
+          "false_positives": 240,
+          "precision": 0.3063583815028902,
+          "predicted_region_count": 346,
+          "recall": 0.3221884498480243,
+          "true_positives": 106,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 111,
+          "false_positives": 103,
+          "precision": 0.2536231884057971,
+          "predicted_region_count": 138,
+          "recall": 0.23972602739726026,
+          "true_positives": 35,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 112,
+          "false_positives": 137,
+          "precision": 0.34134615384615385,
+          "predicted_region_count": 208,
+          "recall": 0.3879781420765027,
+          "true_positives": 71,
+          "truth_region_count": 183
+        }
+      }
+    }
+  },
+  "protocol": {
+    "acceptance_bar_reference": "ml/policy/acceptance-bars.json tier1_reviewable_error: text-region precision and recall minimum0.95. Both must pass; an improvement or counterfactual alone is not acceptance.",
+    "hypothesis": "The original-input experiment still fails the full 183-region dev gate at final precision0.43478260869565216 and recall0.273224043715847. Authenticated saved-output geometry comparison holds the same205 consensus-selected region identities across all329 train/dev truths. Expanded polygons give79TP/126FP; matched components127TP/78FP; initial DB polygons155TP/50FP, with initial dev82TP/33FP/101FN. Initial polygons have substantially less surrounding area. Evidence: artifacts/synthetic-runtime-evidence/initial-output-counterfactual/report.json SHA256 cf47aa87d5784023d7ad5b2e41d6c88f0479a3d15bcb87d6a689f22944e9f1a7; diagnose.py SHA256 dd57083a0ca53e7685d75da4685032ab2d10e340dc604cdf8748b87851a5d3eb. This is a model-free counterfactual, not an executed recognition or acceptance result.",
+    "isolated_change": "Starting from the frozen original learned-detector-input candidate, preserve expanded DB polygons for all contour acceptance and consensus pairing, then substitute the atomically associated initial DB polygon only after the unchanged pairing decision. Keep model weights, original learned-detector pixels, axis-masked structural pixels, resizing, confidence/ink thresholds, unclip and post-unclip eligibility, consensus overlap/order/one-to-one selection, recognizer weights and existing recognition preprocessing unchanged. Recognition receives the resulting tighter region crops and may change; measure actual crops and outputs, never claim recognition invariance. The internal DB result must carry both geometries together without a diagnostic observer, shared mutable callback state, or a second model inference. Reject unsupported detector/postprocess modes, absent or mismatched contour identities and invalid geometry. Give the experimental geometry distinct region, configuration, composition and cache identities. Preserve the current default and previous original-input path exactly. Do not combine input-resolution, threshold, role, structural-provider or training changes.",
+    "path": "ml/ocr/official_bakeoff/initial_contour_output_dev_protocol.json",
+    "sha256": "8e2305ac8632e0bbf675bd36cc25129ba12285cd772cded326560624915abdfb"
+  },
+  "recognition_crop_changes_unscored": {
+    "alternatives_changed_count": 204,
+    "confidence_changed_count_unscored": 204,
+    "initial_to_expanded_area_ratio": {
+      "maximum": 0.5118411000763942,
+      "median": 0.35714285714285715,
+      "minimum": 0.21428571428571427
+    },
+    "initial_to_expanded_height_ratio": {
+      "maximum": 0.6923076923076923,
+      "median": 0.5,
+      "minimum": 0.38461538461538464
+    },
+    "initial_to_expanded_width_ratio": {
+      "maximum": 0.9333333333333333,
+      "median": 0.7631578947368421,
+      "minimum": 0.5
+    },
+    "interpretation": "Recognition ran on tighter initial-contour crops; changed strings, alternatives, roles, and confidences are descriptive only.",
+    "mapped_region_count": 205,
+    "role_changed_count_unscored": 19,
+    "text_changed_count": 87
+  },
+  "schema": "graphreader.goal22-initial-contour-outcome.v1",
+  "scope": {
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "production_approved": false,
+    "release_eligible": false,
+    "sealed_reads": 0,
+    "synthetic_train_dev_only": true
+  },
+  "source_evidence": {
+    "candidate": {
+      "detector": {
+        "manifest_path": "C:\\Users\\Sungwoo\\Desktop\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\synthetic-runtime-evidence\\official-metadata-source-c96\\detector.json",
+        "manifest_sha256": "2ddb1599df210da50bf097383b1f691ee6e1bed27ba9c98b6695a6b06e7e8d51",
+        "model_id": "PP-OCRv5_mobile_det",
+        "model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+        "model_version": "5.0.0"
+      },
+      "native_scope": "reviewed-source-runtime-local-diagnostic",
+      "native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+      "path": "artifacts/synthetic-runtime-evidence/initial-contour-source-c96/candidate.json",
+      "recognizer": {
+        "manifest_path": "C:\\Users\\Sungwoo\\Desktop\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\synthetic-runtime-evidence\\official-metadata-source-c96\\recognizer.json",
+        "manifest_sha256": "17259b3260c0d39b292be70b36e68d53a067992de3afeaf0809d4d981de4327a",
+        "model_id": "en_PP-OCRv5_mobile_rec",
+        "model_sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+        "model_version": "5.0.0"
+      },
+      "sha256": "15dc39a373942278bec23f029cb59f1f13d63b845204f1f238ae2a52e2119958"
+    },
+    "evaluator": {
+      "intersection_over_union_minimum": 0.5,
+      "matching": "existing maximum-cardinality one-to-one matching",
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_initial_contour_output.py",
+      "recognition_scored": false,
+      "reviewed_bytes_authenticated_before_truth": true,
+      "roles_scored": false,
+      "sha256": "b8c705659c7816d333ca03618461bba82f2c0fb45098e682d86360aabff48502",
+      "truth_denominator": "all 146 train plus 183 development regions, including failed runtime cases"
+    },
+    "execution_manifest": {
+      "all_declared_files_verified": true,
+      "path": "artifacts/synthetic-runtime-evidence/initial-contour-source-c96-executable-v1/execution-files.json",
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "70768f57add3b28b88ae7f54bef64f455d02e36d414e81214965bf48796805bb"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "2a1d9f1c33cb59963108437a808ce36c300bfb4d13decb22757cd48440c4d09f"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "3b3c490577350879e58aaa1e4ab280bc528f8e5b344b566c6f6611b4aade483f"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "efc6f19e77c1983a679aa8b3cf7b284c76d30ae3883130a0630c546a7297c587"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "85741169907a0c4c6991cd8c77a72fcdde8aeb24eaf6a54ae01aa24bb1de12d7"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "e3b2c68730c5c593d9f8029557ade96d1ad3cd61822208a1fa3885814b0c4f80"
+        }
+      ],
+      "sha256": "cb4c6b50d1e64213c20b8389cebe6ed6493e72c01f2fe0aeaf010f0b925b7f0b"
+    },
+    "runs": {
+      "train": {
+        "completed_panel_count": 4,
+        "db_geometry_report": {
+          "path": "artifacts/synthetic-runtime-evidence/train393-db-geometry-source-c96-run1/report.json",
+          "sha256": "679effc25d675879a47a742685d0d891f21bf177246251d32ec9ea88e9dff207"
+        },
+        "failed_panel_count": 0,
+        "failed_source_count": 0,
+        "initial_contour_report": {
+          "path": "artifacts/synthetic-runtime-evidence/train393-initial-contour-source-c96-run1/report.json",
+          "sha256": "00b2910903d1bace5cfef06ab9e94a7275debe54eb1e897bf75b32ee64dd09f1"
+        },
+        "manifest": {
+          "path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json",
+          "sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37"
+        },
+        "original_input_report": {
+          "path": "artifacts/synthetic-runtime-evidence/train393-original-model-input-source-c96-run1/report.json",
+          "sha256": "3170337076d74d16b0c2f59e073eb50e4e8fc0347218ba0e68219cd5f171c20d"
+        },
+        "selected_region_count": 90,
+        "source_count": 4,
+        "truth_region_count": 146,
+        "unavailable_baseline_selected_count": 0
+      },
+      "validation": {
+        "completed_panel_count": 9,
+        "db_geometry_report": {
+          "path": "artifacts/synthetic-runtime-evidence/dev393-db-geometry-source-c96-run1/report.json",
+          "sha256": "a0c07332ce44baa6b1513c865af17404207edf6c19332bf4014cd1bfaf81483f"
+        },
+        "failed_panel_count": 0,
+        "failed_source_count": 0,
+        "initial_contour_report": {
+          "path": "artifacts/synthetic-runtime-evidence/dev393-initial-contour-source-c96-run1/report.json",
+          "sha256": "b63b3abc31b2ef9bc9c085f105f912ff2e914aa4437e07a95ca62b8c33cf004a"
+        },
+        "manifest": {
+          "path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+          "sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7"
+        },
+        "original_input_report": {
+          "path": "artifacts/synthetic-runtime-evidence/dev393-original-model-input-source-c96-run1/report.json",
+          "sha256": "273ff697a2440e8c60ed664c58283ba7516a84187e6ba91367c34c790026ce57"
+        },
+        "selected_region_count": 115,
+        "source_count": 3,
+        "truth_region_count": 183,
+        "unavailable_baseline_selected_count": 0
+      }
+    },
+    "score": {
+      "path": "artifacts/synthetic-runtime-evidence/initial-contour-output-score-run2.json",
+      "sha256": "08d4c1a277655c113afec77ef5b430c7dbc37d3a949ed8c620c5b7b22992424d"
+    },
+    "source_snapshot": {
+      "path": "artifacts/synthetic-runtime-evidence/initial-contour-source-c96-executable-v1/source-files.json",
+      "preserved_source_files": 207,
+      "sha256": "781bc697df91528fb028166a3de42d55beacf978398c726b7417ce5f38d4207d"
+    },
+    "truth_environment": {
+      "fonts": [
+        {
+          "alias": "sans",
+          "bundled": false,
+          "filename": "arial.ttf",
+          "sha256": "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a",
+          "size_px": 14
+        },
+        {
+          "alias": "serif",
+          "bundled": false,
+          "filename": "times.ttf",
+          "sha256": "931c5de5c70401d9324d5014c123802b4fb753000360ceb2f56c589403cd58c5",
+          "size_px": 14
+        },
+        {
+          "alias": "mono",
+          "bundled": false,
+          "filename": "consola.ttf",
+          "sha256": "cf00b507b3286870cc5064ebd0633c303f70b491a4af25eec2d32df413db0179",
+          "size_px": 14
+        }
+      ],
+      "packages": [
+        {
+          "name": "Pillow",
+          "version": "12.3.0"
+        },
+        {
+          "name": "jsonschema",
+          "version": "4.26.0"
+        }
+      ],
+      "source_dependencies": [
+        {
+          "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_original_model_input.py",
+          "sha256": "a36245ec82dcba0bc4f1a29ae04fc4c1417bf2d9ad113ff5b30d9ac93385b756"
+        },
+        {
+          "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_db_geometry_observation.py",
+          "sha256": "12569c6e68581d57959cf226eb91c8d1cc429ea5cf9cc111727bc9e52e9bea10"
+        },
+        {
+          "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py",
+          "sha256": "431392d074e985f953a1444982076466f461d3445c018a5c307f174ebc0a959e"
+        },
+        {
+          "path": "ml/synthetic/dataset.py",
+          "sha256": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b"
+        },
+        {
+          "path": "ml/synthetic/templates.py",
+          "sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+        },
+        {
+          "path": "ml/synthetic/renderer.py",
+          "sha256": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b"
+        },
+        {
+          "path": "ml/synthetic/fonts.py",
+          "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+        },
+        {
+          "path": "ml/synthetic/schema.py",
+          "sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98"
+        },
+        {
+          "path": "ml/synthetic/scene.schema.json",
+          "sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f"
+        },
+        {
+          "path": "ml/synthetic/io.py",
+          "sha256": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2"
+        },
+        {
+          "path": "ml/markers/center/mask_preserving_v24/family_scenes.py",
+          "sha256": "0872091244ebe4a2e87192c74b0720a911255816ced4b4fb55df811305a92686"
+        },
+        {
+          "path": "ml/ocr/component_region_detector_v6/dataset.py",
+          "sha256": "cfc1760cfe0f5231d34960100bed3b24bbd54bab6ab69919c3eae43fddc22f59"
+        },
+        {
+          "path": "ml/ocr/real_range_proposal_v34/pipeline.py",
+          "sha256": "7cfc997de0ceb39edfbc4f50c0ea5f07fb058f8eb65ceb21745ef099e291afa5"
+        },
+        {
+          "path": "ml/ocr/component_context_detector_v7/dataset.py",
+          "sha256": "96bebccedc58404e369a1ac3ef6fe3d4d8baa657872543f8958ed73e902d595f"
+        },
+        {
+          "path": "ml/synthetic/requirements.txt",
+          "sha256": "e7566b9f1fd194d241e4c758976cc2f3b2062b3a9481a7383c05949c5ed6e078"
+        }
+      ]
+    }
+  },
+  "status": "failed_dev",
+  "timing_ms": {
+    "dev_runtime": 10062.7346,
+    "existing_mode_parity": 3243.726,
+    "train_runtime": 5163.8733,
+    "truth_scoring": 20403.012
+  },
+  "validation": {
+    "app_suite": {
+      "failed": 0,
+      "passed": 219,
+      "skipped": 0
+    },
+    "independent_parity_review": "clear",
+    "independent_runtime_review": "clear",
+    "independent_scorer_review": "clear",
+    "initial_candidate_safeguards_passed": 9,
+    "ocr_suite": {
+      "failed": 0,
+      "passed": 221,
+      "skip_scope": "existing opt-in model tests",
+      "skipped": 16
+    },
+    "original_candidate_safeguards_passed": 8,
+    "scorer_safeguards_passed": 27
+  }
+}

@@ -131,7 +131,7 @@ public sealed record OcrDbGeometryObservation
 /// selected deterministic postprocessing geometry back to immutable original
 /// pixels. This adapter contains no weights and does not imply model approval.
 /// </summary>
-public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
+public sealed class LocalOnnxTextRegionDetector : IAtomicDbGeometryTextRegionDetector
 {
     public const float ProbabilityParityTolerance = 0.00001f;
 
@@ -168,7 +168,33 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
 
     public string ConfigurationFingerprint => configurationFingerprint;
 
+    public bool SupportsAtomicDbGeometry =>
+        options.PostprocessAlgorithm == OcrDetectionPostprocessAlgorithm.DbPostprocessV1;
+
     public async ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
+        OcrImage image,
+        CancellationToken cancellationToken)
+    {
+        DetectionOutput output = await DetectCoreAsync(image, cancellationToken).ConfigureAwait(false);
+        return output.Regions;
+    }
+
+    public async ValueTask<OcrAtomicDbDetection> DetectWithAtomicDbGeometryAsync(
+        OcrImage image,
+        CancellationToken cancellationToken)
+    {
+        if (!SupportsAtomicDbGeometry)
+        {
+            throw new InvalidOperationException(
+                "Atomic DB contour geometry requires the DB postprocess algorithm.");
+        }
+
+        DetectionOutput output = await DetectCoreAsync(image, cancellationToken).ConfigureAwait(false);
+        return output.DbDetection ?? throw new InvalidDataException(
+            "The DB postprocessor did not return atomic contour geometry.");
+    }
+
+    private async ValueTask<DetectionOutput> DetectCoreAsync(
         OcrImage image,
         CancellationToken cancellationToken)
     {
@@ -261,16 +287,18 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
         return options.PostprocessAlgorithm switch
         {
             OcrDetectionPostprocessAlgorithm.DenseProbabilityComponentsV1 =>
-                BuildDenseRegions(probabilities, image, tensorWidth, tensorHeight, options, cancellationToken),
+                new DetectionOutput(
+                    BuildDenseRegions(probabilities, image, tensorWidth, tensorHeight, options, cancellationToken),
+                    null),
             OcrDetectionPostprocessAlgorithm.DbPostprocessV1 =>
-                BuildDbRegions(
+                DetectionOutput.FromDb(BuildDbRegions(
                     probabilities,
                     image,
                     tensorWidth,
                     tensorHeight,
                     imageSha256,
                     options,
-                    cancellationToken),
+                    cancellationToken)),
             _ => throw new InvalidOperationException(
                 $"Unsupported OCR detection postprocess algorithm '{options.PostprocessAlgorithm}'."),
         };
@@ -336,7 +364,7 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
         return regions.AsReadOnly();
     }
 
-    private static ReadOnlyCollection<OcrDetectedRegion> BuildDbRegions(
+    private static OcrAtomicDbDetection BuildDbRegions(
         float[] probabilities,
         OcrImage image,
         int tensorWidth,
@@ -458,14 +486,15 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
             return region;
         }).ToArray();
         cancellationToken.ThrowIfCancellationRequested();
-        options.DbGeometryObserver?.Invoke(new OcrDbGeometryObservation(
+        var geometry = new OcrDbGeometryObservation(
             inputSha256,
             image.Width,
             image.Height,
             tensorWidth,
             tensorHeight,
-            observations));
-        return Array.AsReadOnly(regions);
+            observations);
+        options.DbGeometryObserver?.Invoke(geometry);
+        return new OcrAtomicDbDetection(Array.AsReadOnly(regions), geometry);
     }
 
     private static IEnumerable<Component> FindComponents(
@@ -1249,6 +1278,14 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
         double OrientationDegrees,
         double Confidence,
         double InkDensity);
+
+    private sealed record DetectionOutput(
+        IReadOnlyList<OcrDetectedRegion> Regions,
+        OcrAtomicDbDetection? DbDetection)
+    {
+        public static DetectionOutput FromDb(OcrAtomicDbDetection detection) =>
+            new(detection.Regions, detection);
+    }
 
     private readonly record struct PolygonScore(double Confidence, double InkDensity);
 

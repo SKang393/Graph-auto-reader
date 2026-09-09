@@ -1,0 +1,24 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The original-input experiment still fails the full 183-region dev gate at final precision0.43478260869565216 and recall0.273224043715847. Authenticated saved-output geometry comparison holds the same205 consensus-selected region identities across all329 train/dev truths. Expanded polygons give79TP/126FP; matched components127TP/78FP; initial DB polygons155TP/50FP, with initial dev82TP/33FP/101FN. Initial polygons have substantially less surrounding area. Evidence: artifacts/synthetic-runtime-evidence/initial-output-counterfactual/report.json SHA256 cf47aa87d5784023d7ad5b2e41d6c88f0479a3d15bcb87d6a689f22944e9f1a7; diagnose.py SHA256 dd57083a0ca53e7685d75da4685032ab2d10e340dc604cdf8748b87851a5d3eb. This is a model-free counterfactual, not an executed recognition or acceptance result.",
+  "isolated_change": "Starting from the frozen original learned-detector-input candidate, preserve expanded DB polygons for all contour acceptance and consensus pairing, then substitute the atomically associated initial DB polygon only after the unchanged pairing decision. Keep model weights, original learned-detector pixels, axis-masked structural pixels, resizing, confidence/ink thresholds, unclip and post-unclip eligibility, consensus overlap/order/one-to-one selection, recognizer weights and existing recognition preprocessing unchanged. Recognition receives the resulting tighter region crops and may change; measure actual crops and outputs, never claim recognition invariance. The internal DB result must carry both geometries together without a diagnostic observer, shared mutable callback state, or a second model inference. Reject unsupported detector/postprocess modes, absent or mismatched contour identities and invalid geometry. Give the experimental geometry distinct region, configuration, composition and cache identities. Preserve the current default and previous original-input path exactly. Do not combine input-resolution, threshold, role, structural-provider or training changes.",
+  "split_identities": {
+    "baseline_candidate_path": "artifacts/synthetic-runtime-evidence/original-model-input-source-c96/candidate.json",
+    "baseline_candidate_sha256": "b2d09b04e83b8ebe8a8eaed4951487874a5129cbcab0c24c80a3551079a45833",
+    "original_input_protocol_path": "ml/ocr/official_bakeoff/original_model_input_dev_protocol.json",
+    "original_input_protocol_sha256": "ecba1f8ca3c1625c0b47deb6847a7fe9ea9d90e595b7ae8fbd582b39d9c10706",
+    "train_manifest_path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json",
+    "train_manifest_sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37",
+    "dev_manifest_path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+    "dev_manifest_sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7",
+    "train_source_count": 4,
+    "train_panel_count": 4,
+    "train_truth_count": 146,
+    "dev_source_count": 3,
+    "dev_panel_count": 9,
+    "dev_truth_count": 183
+  },
+  "metric": "Run the actual synthetic train/dev pipeline with no truth available to inference. Authenticate all runtime and crop evidence before separate truth regeneration. Score raw expanded detector output and final selected geometry using the existing IoU0.5 one-to-one maximum-cardinality metric and the complete146train plus183dev truths; failed source/panel cases retain their complete truth denominator with no predictions. Verify unchanged pre-substitution consensus-selected identities against the baseline. Report actual crop and recognition output changes without claiming recognition or role accuracy from unscored strings. Report default and previous original-input scientific-output parity separately.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json tier1_reviewable_error: text-region precision and recall minimum0.95. Both must pass; an improvement or counterfactual alone is not acceptance.",
+  "budget": {"synthetic_train_dev_runs": "unlimited", "optimizer_steps": 0, "private_reads": 0, "sealed_runs": 0, "production_approval": false, "release_eligible": false}
+}

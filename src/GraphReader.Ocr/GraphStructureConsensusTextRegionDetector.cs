@@ -11,6 +11,7 @@ public enum GraphStructureConsensusGeometry
 {
     ModelPolygon = 0,
     MatchedComponent = 1,
+    InitialDbContour = 2,
 }
 
 public enum GraphStructureModelInput
@@ -51,6 +52,9 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
     public const string MatchedComponentOriginalModelInputCompositionVersion =
         "graph-structure-consensus-component-geometry-original-model-input-v1";
 
+    public const string InitialDbContourOriginalModelInputCompositionVersion =
+        "graph-structure-consensus-initial-db-contour-original-model-input-v1";
+
     private readonly ITextRegionDetector modelDetector;
     private readonly ITextRegionDetector structureCandidateDetector;
     private readonly GraphStructureConsensusTextRegionDetectorOptions options;
@@ -73,6 +77,15 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
+
+        if (this.options.OutputGeometry == GraphStructureConsensusGeometry.InitialDbContour &&
+            (this.options.ModelInput != GraphStructureModelInput.Original ||
+             modelDetector is not IAtomicDbGeometryTextRegionDetector { SupportsAtomicDbGeometry: true }))
+        {
+            throw new ArgumentException(
+                "Initial DB contour geometry requires an atomic DB detector with original model input.",
+                nameof(options));
+        }
     }
 
     public string ConfigurationFingerprint => string.Create(
@@ -83,6 +96,10 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
     {
         GraphStructureConsensusGeometry.ModelPolygon => CompositionVersion,
         GraphStructureConsensusGeometry.MatchedComponent => MatchedComponentCompositionVersion,
+        GraphStructureConsensusGeometry.InitialDbContour =>
+            throw new ArgumentOutOfRangeException(
+                nameof(geometry),
+                "Initial DB contour geometry requires explicit original model input."),
         _ => throw new ArgumentOutOfRangeException(nameof(geometry)),
     };
 
@@ -98,6 +115,8 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
             OriginalModelInputCompositionVersion,
         (GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.Original) =>
             MatchedComponentOriginalModelInputCompositionVersion,
+        (GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original) =>
+            InitialDbContourOriginalModelInputCompositionVersion,
         (_, var invalidInput) when !Enum.IsDefined(invalidInput) =>
             throw new ArgumentOutOfRangeException(nameof(modelInput)),
         _ => throw new ArgumentOutOfRangeException(nameof(geometry)),
@@ -145,9 +164,31 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        IReadOnlyList<OcrDetectedRegion> modelRegions = await modelDetector
-            .DetectAsync(modelImage, cancellationToken)
-            .ConfigureAwait(false);
+        OcrAtomicDbDetection? atomicDbDetection = null;
+        IReadOnlyList<OcrDetectedRegion> modelRegions;
+        if (options.OutputGeometry == GraphStructureConsensusGeometry.InitialDbContour)
+        {
+            var atomicDetector = modelDetector as IAtomicDbGeometryTextRegionDetector ??
+                throw new InvalidOperationException(
+                    "Initial DB contour geometry requires an atomic DB detector.");
+            if (!atomicDetector.SupportsAtomicDbGeometry)
+            {
+                throw new InvalidOperationException(
+                    "The model detector does not support atomic DB contour geometry.");
+            }
+
+            atomicDbDetection = await atomicDetector
+                .DetectWithAtomicDbGeometryAsync(modelImage, cancellationToken)
+                .ConfigureAwait(false);
+            modelRegions = atomicDbDetection.Regions;
+            ValidateAtomicDbDetection(atomicDbDetection, modelImage);
+        }
+        else
+        {
+            modelRegions = await modelDetector
+                .DetectAsync(modelImage, cancellationToken)
+                .ConfigureAwait(false);
+        }
         cancellationToken.ThrowIfCancellationRequested();
         if (modelRegions.Count == 0)
         {
@@ -214,6 +255,19 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
                     OrientationDegrees = candidate.OrientationDegrees,
                     Context = model.Context ?? candidate.Context,
                     Evidence = MatchedComponentEvidence(model, candidate),
+                },
+                GraphStructureConsensusGeometry.InitialDbContour => model with
+                {
+                    RegionId = InitialDbContourRegionId(
+                        model,
+                        candidate,
+                        InitialPolygon(atomicDbDetection, model.RegionId)),
+                    Polygon = InitialPolygon(atomicDbDetection, model.RegionId),
+                    OrientationDegrees = Math.Abs(model.OrientationDegrees) <= double.Epsilon
+                        ? candidate.OrientationDegrees
+                        : model.OrientationDegrees,
+                    Context = model.Context ?? candidate.Context,
+                    Evidence = InitialDbContourEvidence(model, candidate),
                 },
                 _ => throw new InvalidOperationException("Unsupported consensus output geometry."),
             });
@@ -327,6 +381,114 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
         return denominator <= 0 ? 0 : intersection / denominator;
     }
 
+    private static void ValidateAtomicDbDetection(
+        OcrAtomicDbDetection detection,
+        OcrImage modelImage)
+    {
+        ArgumentNullException.ThrowIfNull(detection);
+        OcrDbGeometryObservation geometry = detection.Geometry;
+        string grayInputSha256 = Convert.ToHexStringLower(
+            SHA256.HashData(modelImage.Pixels.Span));
+        string? bgrInputSha256 = modelImage.BgrPixels is { } bgr
+            ? Convert.ToHexStringLower(SHA256.HashData(bgr.Pixels.Span))
+            : null;
+        if (geometry.ImageWidth != modelImage.Width ||
+            geometry.ImageHeight != modelImage.Height ||
+            geometry.TensorWidth <= 0 ||
+            geometry.TensorHeight <= 0 ||
+            geometry.InputSha256.Length != 64 ||
+            geometry.InputSha256.Any(static character => !Uri.IsHexDigit(character)) ||
+            (!string.Equals(geometry.InputSha256, grayInputSha256, StringComparison.OrdinalIgnoreCase) &&
+             !string.Equals(geometry.InputSha256, bgrInputSha256, StringComparison.OrdinalIgnoreCase)) ||
+            geometry.AcceptedContours.Count != detection.Regions.Count)
+        {
+            throw new InvalidDataException("Atomic DB contour geometry does not match its model input.");
+        }
+
+        ValidateRegions(detection.Regions, requireEvidence: true, "atomic DB model");
+        var modelById = new Dictionary<string, OcrDetectedRegion>(StringComparer.Ordinal);
+        foreach (OcrDetectedRegion region in detection.Regions)
+        {
+            if (!modelById.TryAdd(region.RegionId, region))
+            {
+                throw new InvalidDataException("Atomic DB model region identities must be unique.");
+            }
+        }
+
+        var contourById = new Dictionary<string, OcrDbAcceptedContourGeometry>(StringComparer.Ordinal);
+        foreach (OcrDbAcceptedContourGeometry contour in geometry.AcceptedContours)
+        {
+            if (string.IsNullOrWhiteSpace(contour.ReturnedRegionId) ||
+                !contourById.TryAdd(contour.ReturnedRegionId, contour) ||
+                !modelById.TryGetValue(contour.ReturnedRegionId, out OcrDetectedRegion? region) ||
+                !IsValidDbPolygon(contour.InitialPolygon) ||
+                !IsValidDbPolygon(contour.ExpandedPolygon) ||
+                !PolygonsMatchExactly(contour.ExpandedPolygon, region.Polygon) ||
+                !double.IsFinite(contour.DetectionConfidence) ||
+                contour.DetectionConfidence is < 0 or > 1 ||
+                contour.DetectionConfidence != region.DetectionConfidence ||
+                !double.IsFinite(contour.InkDensity) ||
+                contour.InkDensity is < 0 or > 1 ||
+                region.Evidence is not { } evidence ||
+                contour.InkDensity != evidence.InkDensity)
+            {
+                throw new InvalidDataException("Atomic DB contour mapping is invalid or inconsistent.");
+            }
+        }
+
+        if (contourById.Count != modelById.Count)
+        {
+            throw new InvalidDataException("Atomic DB contour mapping is incomplete.");
+        }
+    }
+
+    private static bool IsValidDbPolygon(OcrPolygon polygon)
+    {
+        if (polygon is null || polygon.Points.Count != 4 || !polygon.Bounds.IsValid)
+        {
+            return false;
+        }
+
+        double twiceArea = 0;
+        for (var index = 0; index < polygon.Points.Count; index++)
+        {
+            OcrPoint current = polygon.Points[index];
+            OcrPoint next = polygon.Points[(index + 1) % polygon.Points.Count];
+            twiceArea += (current.X * next.Y) - (next.X * current.Y);
+        }
+
+        return double.IsFinite(twiceArea) && Math.Abs(twiceArea) > double.Epsilon;
+    }
+
+    private static bool PolygonsMatchExactly(OcrPolygon left, OcrPolygon right)
+    {
+        if (left.Points.Count != right.Points.Count)
+        {
+            return false;
+        }
+
+        for (var index = 0; index < left.Points.Count; index++)
+        {
+            if (BitConverter.DoubleToInt64Bits(left.Points[index].X) !=
+                    BitConverter.DoubleToInt64Bits(right.Points[index].X) ||
+                BitConverter.DoubleToInt64Bits(left.Points[index].Y) !=
+                    BitConverter.DoubleToInt64Bits(right.Points[index].Y))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static OcrPolygon InitialPolygon(OcrAtomicDbDetection? detection, string regionId)
+    {
+        OcrDbAcceptedContourGeometry contour = detection?.Geometry.AcceptedContours
+            .SingleOrDefault(item => string.Equals(item.ReturnedRegionId, regionId, StringComparison.Ordinal)) ??
+            throw new InvalidDataException("The selected model region has no initial DB contour mapping.");
+        return contour.InitialPolygon;
+    }
+
     private static string MatchedComponentRegionId(
         OcrDetectedRegion model,
         OcrDetectedRegion candidate)
@@ -349,6 +511,29 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
         return new Guid(hash.AsSpan(0, 16)).ToString("D");
     }
 
+    private static string InitialDbContourRegionId(
+        OcrDetectedRegion model,
+        OcrDetectedRegion candidate,
+        OcrPolygon initialPolygon)
+    {
+        using var material = new MemoryStream();
+        using (var writer = new BinaryWriter(material, Encoding.UTF8, leaveOpen: true))
+        {
+            writer.Write(InitialDbContourOriginalModelInputCompositionVersion);
+            writer.Write(model.RegionId);
+            writer.Write(candidate.RegionId);
+            writer.Write(initialPolygon.Points.Count);
+            foreach (OcrPoint point in initialPolygon.Points)
+            {
+                writer.Write(BitConverter.DoubleToInt64Bits(point.X));
+                writer.Write(BitConverter.DoubleToInt64Bits(point.Y));
+            }
+        }
+
+        byte[] hash = SHA256.HashData(material.ToArray());
+        return new Guid(hash.AsSpan(0, 16)).ToString("D");
+    }
+
     private static OcrRegionEvidence MatchedComponentEvidence(
         OcrDetectedRegion model,
         OcrDetectedRegion candidate)
@@ -359,6 +544,24 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
         {
             Reasons = Array.AsReadOnly(evidence.Reasons
                 .Concat([
+                    $"consensus_model_region_id:{model.RegionId}",
+                    $"consensus_component_region_id:{candidate.RegionId}",
+                ])
+                .ToArray()),
+        };
+    }
+
+    private static OcrRegionEvidence InitialDbContourEvidence(
+        OcrDetectedRegion model,
+        OcrDetectedRegion candidate)
+    {
+        OcrRegionEvidence evidence = candidate.Evidence ??
+            throw new InvalidOperationException("Initial DB contour evidence is missing.");
+        return evidence with
+        {
+            Reasons = Array.AsReadOnly(evidence.Reasons
+                .Concat([
+                    "consensus_geometry:initial_db_contour",
                     $"consensus_model_region_id:{model.RegionId}",
                     $"consensus_component_region_id:{candidate.RegionId}",
                 ])

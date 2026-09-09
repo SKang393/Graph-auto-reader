@@ -19,6 +19,7 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
     [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.AxisMasked)]
     [DataRow(GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.AxisMasked)]
     [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original)]
+    [DataRow(GraphStructureConsensusGeometry.InitialDbContour, GraphStructureModelInput.Original)]
     public async Task ExactPinnedPairCreatesUnapprovedAdapterThroughSharedPreflight(
         GraphStructureConsensusGeometry outputGeometry,
         GraphStructureModelInput modelInput)
@@ -69,6 +70,30 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                     pair.Detection, pair.Recognition, host, new string('d', 64),
                     CancellationToken.None, GraphStructureConsensusGeometry.MatchedComponent,
                     GraphStructureModelInput.Original));
+            Assert.IsFalse(host.IsInitialized);
+            Assert.AreEqual(0, sessionFactory.CreatedCount);
+        }
+        finally
+        {
+            await host.DisposeAsync();
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task InitialContourRejectsMaskedInputBeforeRuntimeInitialization()
+    {
+        string root = CreateTemporaryDirectory();
+        var sessionFactory = new ShapeAwareSessionFactory();
+        await using ProductionInferenceRuntimeHost host = CreateRuntimeHost(root, sessionFactory);
+        try
+        {
+            CandidatePair pair = WriteCandidatePair(root);
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                ProductionOcrAdapter.CreateForLocalSyntheticCandidateEvaluationAsync(
+                    pair.Detection, pair.Recognition, host, new string('d', 64),
+                    CancellationToken.None, GraphStructureConsensusGeometry.InitialDbContour,
+                    GraphStructureModelInput.AxisMasked));
             Assert.IsFalse(host.IsInitialized);
             Assert.AreEqual(0, sessionFactory.CreatedCount);
         }

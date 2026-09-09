@@ -311,6 +311,36 @@ public interface ITextRegionDetector
 }
 
 /// <summary>
+/// Optional detector seam that returns accepted DB regions and their pre-unclip
+/// contour geometry as one immutable result from the same inference execution.
+/// </summary>
+public interface IAtomicDbGeometryTextRegionDetector : ITextRegionDetector
+{
+    bool SupportsAtomicDbGeometry { get; }
+
+    ValueTask<OcrAtomicDbDetection> DetectWithAtomicDbGeometryAsync(
+        OcrImage image,
+        CancellationToken cancellationToken);
+}
+
+public sealed record OcrAtomicDbDetection
+{
+    public OcrAtomicDbDetection(
+        IReadOnlyList<OcrDetectedRegion> regions,
+        OcrDbGeometryObservation geometry)
+    {
+        ArgumentNullException.ThrowIfNull(regions);
+        ArgumentNullException.ThrowIfNull(geometry);
+        Regions = OcrCollections.Freeze(regions);
+        Geometry = geometry;
+    }
+
+    public IReadOnlyList<OcrDetectedRegion> Regions { get; }
+
+    public OcrDbGeometryObservation Geometry { get; }
+}
+
+/// <summary>
 /// Optional detector composition seam for stages that require both immutable
 /// original pixels and a coordinate-aligned detector derivative. Implementers
 /// must retain the single-input behavior required by
