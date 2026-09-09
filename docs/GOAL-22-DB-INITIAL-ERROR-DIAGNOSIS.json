@@ -1,0 +1,527 @@
+{
+  "schema": "graphreader.db-initial-error-diagnostic-evidence.v1",
+  "source_path": "artifacts/synthetic-runtime-evidence/db-initial-error-diagnosis/report-v2.json",
+  "source_sha256": "2dba2990ce9ede6f2af1ff66521d4757c1c88134c2331fdc9d07f174cdb2ce0c",
+  "diagnosis": {
+    "axis_mask_effect": {
+      "all_truth_dark_pixels": 55815,
+      "all_truth_erased_dark_pixels": 1519,
+      "axis_mask_pixel_attribution_by_structure": {
+        "phase_divider": 40,
+        "tick": 154,
+        "y_axis": 52
+      },
+      "dark_pixel_definition": "Persisted source Gray8 value below 230 inside independently regenerated tight rendered text box.",
+      "erased_dark_pixel_attribution_by_structure": {
+        "phase_divider": 17,
+        "tick": 79,
+        "y_axis": 20
+      },
+      "erasure_definition": "A source dark pixel changed to 255 in the hash-verified reconstructed axis-masked detector Gray8 input.",
+      "gained_truth_roles": {
+        "axis_title": 1,
+        "condition_label": 1,
+        "legend_text": 2,
+        "participant": 1,
+        "x_tick": 4
+      },
+      "lost_truth_axis_mask_pixels": 230,
+      "lost_truth_dark_pixels": 3447,
+      "lost_truth_erased_dark_pixels": 108,
+      "lost_truth_roles": {
+        "condition_label": 1,
+        "participant": 1,
+        "phase_heading": 2,
+        "x_tick": 31,
+        "y_tick": 5
+      },
+      "lost_truths_with_any_axis_mask_intersection_by_role": {
+        "condition_label": 1,
+        "participant": 1
+      },
+      "lost_truths_with_direct_dark_glyph_erasure_by_role": {
+        "condition_label": 1,
+        "participant": 1
+      },
+      "masked_matches": 206,
+      "net_match_loss": 31,
+      "truths_gained_in_masked_match_set": 9,
+      "truths_lost_from_unmasked_match_set": 40,
+      "unmasked_matches": 237
+    },
+    "elapsed_milliseconds": 19995.552,
+    "initial_unmasked": {
+      "all_miss_dimensions": {
+        "source_height": {
+          "count": 92,
+          "maximum": 14.0,
+          "median": 10.0,
+          "minimum": 9.0,
+          "p95": 13.0
+        },
+        "source_width": {
+          "count": 92,
+          "maximum": 126.0,
+          "median": 14.0,
+          "minimum": 5.0,
+          "p95": 118.0
+        },
+        "tensor_height": {
+          "count": 92,
+          "maximum": 15.36,
+          "median": 9.874285714285714,
+          "minimum": 7.361022364217252,
+          "p95": 12.325925925925926
+        },
+        "tensor_width": {
+          "count": 92,
+          "maximum": 107.52,
+          "median": 11.946666666666667,
+          "minimum": 4.266666666666667,
+          "p95": 100.69333333333333
+        }
+      },
+      "false_negatives": 92,
+      "false_positive_buckets": {
+        "box_offset": 14,
+        "no_overlap": 80,
+        "oversized_or_merged": 2,
+        "undersized": 13
+      },
+      "false_positive_max_iou_by_bucket": {
+        "box_offset": {
+          "count": 14,
+          "maximum": 0.49044585987261147,
+          "median": 0.41961606108404637,
+          "minimum": 0.03479381443298969,
+          "p95": 0.49044585987261147
+        },
+        "no_overlap": {
+          "count": 80,
+          "maximum": 0.0,
+          "median": 0.0,
+          "minimum": 0.0,
+          "p95": 0.0
+        },
+        "oversized_or_merged": {
+          "count": 2,
+          "maximum": 0.375,
+          "median": 0.3605769230769231,
+          "minimum": 0.34615384615384615,
+          "p95": 0.375
+        },
+        "undersized": {
+          "count": 13,
+          "maximum": 0.47619047619047616,
+          "median": 0.3741258741258741,
+          "minimum": 0.06192959582790091,
+          "p95": 0.47619047619047616
+        }
+      },
+      "false_positives": 109,
+      "matches": 237,
+      "miss_bucket_definition": "Exact geometry against the highest-IoU prediction: disjoint, prediction contains truth, truth contains prediction, or overlapping offset/neither contains.",
+      "miss_buckets": {
+        "box_offset": 32,
+        "no_overlap": 46,
+        "oversized_or_merged": 11,
+        "undersized": 3
+      },
+      "miss_max_iou_by_bucket": {
+        "box_offset": {
+          "count": 32,
+          "maximum": 0.49044585987261147,
+          "median": 0.2413793103448276,
+          "minimum": 0.030592734225621414,
+          "p95": 0.4897959183673469
+        },
+        "no_overlap": {
+          "count": 46,
+          "maximum": 0.0,
+          "median": 0.0,
+          "minimum": 0.0,
+          "p95": 0.0
+        },
+        "oversized_or_merged": {
+          "count": 11,
+          "maximum": 0.47619047619047616,
+          "median": 0.3968253968253968,
+          "minimum": 0.23809523809523808,
+          "p95": 0.47619047619047616
+        },
+        "undersized": {
+          "count": 3,
+          "maximum": 0.375,
+          "median": 0.34615384615384615,
+          "minimum": 0.17857142857142858,
+          "p95": 0.375
+        }
+      },
+      "predictions": 346,
+      "truth_by_role": {
+        "annotation": {
+          "matched": 26,
+          "miss_dimensions": {
+            "source_height": {
+              "count": 4,
+              "maximum": 13.0,
+              "median": 10.0,
+              "minimum": 10.0,
+              "p95": 13.0
+            },
+            "source_width": {
+              "count": 4,
+              "maximum": 59.0,
+              "median": 37.5,
+              "minimum": 33.0,
+              "p95": 59.0
+            },
+            "tensor_height": {
+              "count": 4,
+              "maximum": 14.262857142857143,
+              "median": 10.971428571428572,
+              "minimum": 8.338762214983714,
+              "p95": 14.262857142857143
+            },
+            "tensor_width": {
+              "count": 4,
+              "maximum": 50.346666666666664,
+              "median": 32.0,
+              "minimum": 28.16,
+              "p95": 50.346666666666664
+            }
+          },
+          "missed": 4,
+          "truths": 30
+        },
+        "axis_title": {
+          "matched": 17,
+          "miss_dimensions": {
+            "source_height": {
+              "count": 5,
+              "maximum": 11.0,
+              "median": 10.0,
+              "minimum": 9.0,
+              "p95": 11.0
+            },
+            "source_width": {
+              "count": 5,
+              "maximum": 58.0,
+              "median": 55.0,
+              "minimum": 47.0,
+              "p95": 58.0
+            },
+            "tensor_height": {
+              "count": 5,
+              "maximum": 12.06857142857143,
+              "median": 10.971428571428572,
+              "minimum": 7.361022364217252,
+              "p95": 12.06857142857143
+            },
+            "tensor_width": {
+              "count": 5,
+              "maximum": 49.49333333333333,
+              "median": 46.93333333333333,
+              "minimum": 40.10666666666667,
+              "p95": 49.49333333333333
+            }
+          },
+          "missed": 5,
+          "truths": 22
+        },
+        "condition_label": {
+          "matched": 34,
+          "miss_dimensions": {
+            "source_height": {
+              "count": 12,
+              "maximum": 10.0,
+              "median": 9.0,
+              "minimum": 9.0,
+              "p95": 10.0
+            },
+            "source_width": {
+              "count": 12,
+              "maximum": 46.0,
+              "median": 28.0,
+              "minimum": 6.0,
+              "p95": 46.0
+            },
+            "tensor_height": {
+              "count": 12,
+              "maximum": 10.971428571428572,
+              "median": 9.203809523809523,
+              "minimum": 7.361022364217252,
+              "p95": 10.971428571428572
+            },
+            "tensor_width": {
+              "count": 12,
+              "maximum": 39.25333333333333,
+              "median": 23.89333333333333,
+              "minimum": 5.12,
+              "p95": 39.25333333333333
+            }
+          },
+          "missed": 12,
+          "truths": 46
+        },
+        "legend_text": {
+          "matched": 9,
+          "miss_dimensions": {
+            "source_height": {
+              "count": 8,
+              "maximum": 14.0,
+              "median": 13.0,
+              "minimum": 13.0,
+              "p95": 14.0
+            },
+            "source_width": {
+              "count": 8,
+              "maximum": 118.0,
+              "median": 118.0,
+              "minimum": 98.0,
+              "p95": 118.0
+            },
+            "tensor_height": {
+              "count": 8,
+              "maximum": 15.36,
+              "median": 12.325925925925926,
+              "minimum": 10.63258785942492,
+              "p95": 15.36
+            },
+            "tensor_width": {
+              "count": 8,
+              "maximum": 100.69333333333333,
+              "median": 100.69333333333333,
+              "minimum": 83.62666666666667,
+              "p95": 100.69333333333333
+            }
+          },
+          "missed": 8,
+          "truths": 17
+        },
+        "participant": {
+          "matched": 12,
+          "miss_dimensions": {
+            "source_height": {
+              "count": 3,
+              "maximum": 13.0,
+              "median": 13.0,
+              "minimum": 13.0,
+              "p95": 13.0
+            },
+            "source_width": {
+              "count": 3,
+              "maximum": 111.0,
+              "median": 110.0,
+              "minimum": 78.0,
+              "p95": 111.0
+            },
+            "tensor_height": {
+              "count": 3,
+              "maximum": 14.262857142857143,
+              "median": 12.325925925925926,
+              "minimum": 12.325925925925926,
+              "p95": 14.262857142857143
+            },
+            "tensor_width": {
+              "count": 3,
+              "maximum": 94.72,
+              "median": 93.86666666666666,
+              "minimum": 66.56,
+              "p95": 94.72
+            }
+          },
+          "missed": 3,
+          "truths": 15
+        },
+        "phase_heading": {
+          "matched": 42,
+          "miss_dimensions": {
+            "source_height": {
+              "count": 4,
+              "maximum": 10.0,
+              "median": 10.0,
+              "minimum": 10.0,
+              "p95": 10.0
+            },
+            "source_width": {
+              "count": 4,
+              "maximum": 126.0,
+              "median": 67.5,
+              "minimum": 47.0,
+              "p95": 126.0
+            },
+            "tensor_height": {
+              "count": 4,
+              "maximum": 10.971428571428572,
+              "median": 10.971428571428572,
+              "minimum": 10.971428571428572,
+              "p95": 10.971428571428572
+            },
+            "tensor_width": {
+              "count": 4,
+              "maximum": 107.52,
+              "median": 57.6,
+              "minimum": 40.10666666666667,
+              "p95": 107.52
+            }
+          },
+          "missed": 4,
+          "truths": 46
+        },
+        "x_tick": {
+          "matched": 45,
+          "miss_dimensions": {
+            "source_height": {
+              "count": 38,
+              "maximum": 10.0,
+              "median": 10.0,
+              "minimum": 9.0,
+              "p95": 10.0
+            },
+            "source_width": {
+              "count": 38,
+              "maximum": 15.0,
+              "median": 7.0,
+              "minimum": 5.0,
+              "p95": 15.0
+            },
+            "tensor_height": {
+              "count": 38,
+              "maximum": 10.971428571428572,
+              "median": 8.629213483146067,
+              "minimum": 7.361022364217252,
+              "p95": 10.971428571428572
+            },
+            "tensor_width": {
+              "count": 38,
+              "maximum": 12.8,
+              "median": 5.973333333333334,
+              "minimum": 4.266666666666667,
+              "p95": 12.8
+            }
+          },
+          "missed": 38,
+          "truths": 83
+        },
+        "y_tick": {
+          "matched": 52,
+          "miss_dimensions": {
+            "source_height": {
+              "count": 18,
+              "maximum": 10.0,
+              "median": 10.0,
+              "minimum": 9.0,
+              "p95": 10.0
+            },
+            "source_width": {
+              "count": 18,
+              "maximum": 20.0,
+              "median": 14.0,
+              "minimum": 7.0,
+              "p95": 20.0
+            },
+            "tensor_height": {
+              "count": 18,
+              "maximum": 10.971428571428572,
+              "median": 8.629213483146067,
+              "minimum": 7.361022364217252,
+              "p95": 10.971428571428572
+            },
+            "tensor_width": {
+              "count": 18,
+              "maximum": 17.066666666666666,
+              "median": 11.946666666666667,
+              "minimum": 5.973333333333334,
+              "p95": 17.066666666666666
+            }
+          },
+          "missed": 18,
+          "truths": 70
+        }
+      },
+      "truth_regions": 329
+    },
+    "input_identity": {
+      "authenticated_score_report_sha256": "cecb7ce243ec0b941a9b298174558f6abac7738d271463bb89e0703c406db0d1",
+      "diagnosis_source_sha256": "9542eed4e8b60dd7c8ff0461657032d196bdf87248d89176375f1d4bea9d0999",
+      "execution_manifest_sha256": "1239f7dabc5d9d8cebc8d2a5d7b0948aa33f7d39033d2b93f26e1e98773bc5c6",
+      "protocol_sha256": "58bd372a12384c8a86a9f9aa6a5481e799870f73282f0f33c6a512838a7347f0",
+      "scorer_source_sha256": "12569c6e68581d57959cf226eb91c8d1cc429ea5cf9cc111727bc9e52e9bea10",
+      "train_report_sha256": "679effc25d675879a47a742685d0d891f21bf177246251d32ec9ea88e9dff207",
+      "validation_report_sha256": "a0c07332ce44baa6b1513c865af17404207edf6c19332bf4014cd1bfaf81483f"
+    },
+    "limitations": [
+      "Aggregate-only development diagnosis; no threshold, weight, model, or production behavior was selected.",
+      "Containment buckets are exact geometric descriptions, not causal labels.",
+      "A lost matched truth with erased glyph pixels establishes direct input damage, but not that those pixels alone caused the detector outcome.",
+      "Initial rectangles exist only for contours already accepted by DB postprocessing; rejected probability-map contours remain unobserved.",
+      "Recognition and roles are not scored."
+    ],
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "production_approved": false,
+    "schema": "graphreader.db-initial-error-diagnosis.v1",
+    "scope": "aggregate-only authenticated synthetic train-dev diagnosis",
+    "sealed_reads": 0,
+    "splits": {
+      "train": {
+        "false_negatives": 53,
+        "false_positive_buckets": {
+          "box_offset": 3,
+          "no_overlap": 40,
+          "undersized": 2
+        },
+        "false_positives": 45,
+        "masked_initial_matches": 87,
+        "miss_buckets": {
+          "box_offset": 12,
+          "no_overlap": 38,
+          "oversized_or_merged": 2,
+          "undersized": 1
+        },
+        "truth_regions": 146,
+        "truths_gained_in_masked_match_set": 4,
+        "truths_lost_from_unmasked_match_set": 10,
+        "unmasked_initial_matches": 93,
+        "unmasked_initial_predictions": 138,
+        "unmasked_to_masked_net_match_loss": 6
+      },
+      "validation": {
+        "false_negatives": 39,
+        "false_positive_buckets": {
+          "box_offset": 11,
+          "no_overlap": 40,
+          "oversized_or_merged": 2,
+          "undersized": 11
+        },
+        "false_positives": 64,
+        "masked_initial_matches": 119,
+        "miss_buckets": {
+          "box_offset": 20,
+          "no_overlap": 8,
+          "oversized_or_merged": 9,
+          "undersized": 2
+        },
+        "truth_regions": 183,
+        "truths_gained_in_masked_match_set": 5,
+        "truths_lost_from_unmasked_match_set": 30,
+        "unmasked_initial_matches": 144,
+        "unmasked_initial_predictions": 208,
+        "unmasked_to_masked_net_match_loss": 25
+      }
+    },
+    "status": "diagnostic_only_unapproved",
+    "validation": {
+      "axis_masked_gray8_hash_matches_executed_detector_input_for_every_panel": true,
+      "axis_masked_gray8_reconstructed_from_recorded_axis_geometry_and_source_gray8": true,
+      "exchange_and_all_sidecars_validated_before_truth_regeneration": true,
+      "executed_assembly_count": 6,
+      "full_source_truth_count": 329,
+      "fully_covered_truth_count": 329,
+      "matching_iou_minimum": 0.5,
+      "panel_count": 13,
+      "unmasked_gray8_hash_matches_executed_detector_input_for_every_panel": true
+    }
+  }
+}

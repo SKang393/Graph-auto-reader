@@ -16,10 +16,12 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionOcrLocalCandidateFactoryTests
 {
     [TestMethod]
-    [DataRow(GraphStructureConsensusGeometry.ModelPolygon)]
-    [DataRow(GraphStructureConsensusGeometry.MatchedComponent)]
+    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.AxisMasked)]
+    [DataRow(GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.AxisMasked)]
+    [DataRow(GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original)]
     public async Task ExactPinnedPairCreatesUnapprovedAdapterThroughSharedPreflight(
-        GraphStructureConsensusGeometry outputGeometry)
+        GraphStructureConsensusGeometry outputGeometry,
+        GraphStructureModelInput modelInput)
     {
         string root = CreateTemporaryDirectory();
         var sessionFactory = new ShapeAwareSessionFactory();
@@ -35,13 +37,14 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                     host,
                     new string('d', 64),
                     CancellationToken.None,
-                    outputGeometry);
+                    outputGeometry,
+                    modelInput);
 
             Assert.IsFalse(adapter.IsApproved);
             Assert.AreEqual(2, sessionFactory.CreatedCount);
             Assert.AreEqual(2, sessionFactory.RunCount);
             StringAssert.Contains(adapter.AdapterId,
-                GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry));
+                GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput));
             StringAssert.Contains(adapter.AdapterId, pair.Detection.Identity.Sha256[..12]);
             StringAssert.Contains(adapter.AdapterId, pair.Recognition.Identity.Sha256[..12]);
         }
@@ -50,6 +53,54 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
             await host.DisposeAsync();
             Directory.Delete(root, recursive: true);
         }
+    }
+
+    [TestMethod]
+    public async Task OriginalInputRejectsCombinedGeometryChangeBeforeRuntimeInitialization()
+    {
+        string root = CreateTemporaryDirectory();
+        var sessionFactory = new ShapeAwareSessionFactory();
+        await using ProductionInferenceRuntimeHost host = CreateRuntimeHost(root, sessionFactory);
+        try
+        {
+            CandidatePair pair = WriteCandidatePair(root);
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                ProductionOcrAdapter.CreateForLocalSyntheticCandidateEvaluationAsync(
+                    pair.Detection, pair.Recognition, host, new string('d', 64),
+                    CancellationToken.None, GraphStructureConsensusGeometry.MatchedComponent,
+                    GraphStructureModelInput.Original));
+            Assert.IsFalse(host.IsInitialized);
+            Assert.AreEqual(0, sessionFactory.CreatedCount);
+        }
+        finally
+        {
+            await host.DisposeAsync();
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void OriginalInputEvidenceSeparatelyIdentifiesModelAndStructuralPixels()
+    {
+        byte[] originalGray = [10, 20, 30, 40];
+        byte[] originalBgr = [10, 10, 10, 20, 20, 20, 30, 30, 30, 40, 40, 40];
+        var original = new OcrImage(2, 2, 2, originalGray, OcrSourceImage.Original,
+            OcrFrameTransform.Identity, BgrPixels: new OcrBgrBytePixels(6, originalBgr));
+        byte[] maskedGray = [255, 255, 255, 255];
+        var masked = new OcrDetectorImage(original with { Pixels = maskedGray },
+            Convert.ToHexStringLower(SHA256.HashData(maskedGray)));
+        IReadOnlyList<string> warnings = ProductionOcrAdapter.DetectorInputWarnings(
+            GraphStructureModelInput.Original, original, masked);
+        CollectionAssert.Contains(warnings.ToArray(),
+            $"ocr_detector_model_input_sha256:{Convert.ToHexStringLower(SHA256.HashData(originalGray))}");
+        CollectionAssert.Contains(warnings.ToArray(),
+            $"ocr_detector_model_input_bgr_sha256:{Convert.ToHexStringLower(SHA256.HashData(originalBgr))}");
+        CollectionAssert.Contains(warnings.ToArray(), $"ocr_detector_structure_input_sha256:{masked.PixelSha256}");
+        Assert.IsFalse(warnings.Contains("ocr_detector_axis_geometry_mask_applied", StringComparer.Ordinal));
+        CollectionAssert.AreEqual(new[]
+        {
+            "ocr_detector_axis_geometry_mask_applied", $"ocr_detector_input_sha256:{masked.PixelSha256}",
+        }, ProductionOcrAdapter.DetectorInputWarnings(GraphStructureModelInput.AxisMasked, original, masked).ToArray());
     }
 
     [TestMethod]

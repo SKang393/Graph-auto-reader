@@ -13,6 +13,12 @@ public enum GraphStructureConsensusGeometry
     MatchedComponent = 1,
 }
 
+public enum GraphStructureModelInput
+{
+    AxisMasked = 0,
+    Original = 1,
+}
+
 public sealed record GraphStructureConsensusTextRegionDetectorOptions
 {
     public double MinimumOverlapCoefficient { get; init; } = 0.50;
@@ -21,6 +27,9 @@ public sealed record GraphStructureConsensusTextRegionDetectorOptions
 
     public GraphStructureConsensusGeometry OutputGeometry { get; init; } =
         GraphStructureConsensusGeometry.ModelPolygon;
+
+    public GraphStructureModelInput ModelInput { get; init; } =
+        GraphStructureModelInput.AxisMasked;
 }
 
 /// <summary>
@@ -29,12 +38,18 @@ public sealed record GraphStructureConsensusTextRegionDetectorOptions
 /// non-structure evidence. This boundary rejects graph-shaped detections
 /// without substituting heuristic regions for model detections.
 /// </summary>
-public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetector
+public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRegionDetector
 {
     public const string CompositionVersion = "graph-structure-consensus-v1";
 
     public const string MatchedComponentCompositionVersion =
         "graph-structure-consensus-component-geometry-v1";
+
+    public const string OriginalModelInputCompositionVersion =
+        "graph-structure-consensus-original-model-input-v1";
+
+    public const string MatchedComponentOriginalModelInputCompositionVersion =
+        "graph-structure-consensus-component-geometry-original-model-input-v1";
 
     private readonly ITextRegionDetector modelDetector;
     private readonly ITextRegionDetector structureCandidateDetector;
@@ -53,7 +68,8 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
             this.options.MinimumOverlapCoefficient is <= 0 or > 1 ||
             !double.IsFinite(this.options.MinimumTextLikelihood) ||
             this.options.MinimumTextLikelihood is < 0 or > 1 ||
-            !Enum.IsDefined(this.options.OutputGeometry))
+            !Enum.IsDefined(this.options.OutputGeometry) ||
+            !Enum.IsDefined(this.options.ModelInput))
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
@@ -61,12 +77,29 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
 
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
-        $"{GetCompositionVersion(options.OutputGeometry)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
+        $"{GetCompositionVersion(options.OutputGeometry, options.ModelInput)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
 
     public static string GetCompositionVersion(GraphStructureConsensusGeometry geometry) => geometry switch
     {
         GraphStructureConsensusGeometry.ModelPolygon => CompositionVersion,
         GraphStructureConsensusGeometry.MatchedComponent => MatchedComponentCompositionVersion,
+        _ => throw new ArgumentOutOfRangeException(nameof(geometry)),
+    };
+
+    public static string GetCompositionVersion(
+        GraphStructureConsensusGeometry geometry,
+        GraphStructureModelInput modelInput) => (geometry, modelInput) switch
+    {
+        (GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.AxisMasked) =>
+            CompositionVersion,
+        (GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.AxisMasked) =>
+            MatchedComponentCompositionVersion,
+        (GraphStructureConsensusGeometry.ModelPolygon, GraphStructureModelInput.Original) =>
+            OriginalModelInputCompositionVersion,
+        (GraphStructureConsensusGeometry.MatchedComponent, GraphStructureModelInput.Original) =>
+            MatchedComponentOriginalModelInputCompositionVersion,
+        (_, var invalidInput) when !Enum.IsDefined(invalidInput) =>
+            throw new ArgumentOutOfRangeException(nameof(modelInput)),
         _ => throw new ArgumentOutOfRangeException(nameof(geometry)),
     };
 
@@ -76,9 +109,44 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
     {
         ArgumentNullException.ThrowIfNull(image);
         cancellationToken.ThrowIfCancellationRequested();
+        if (options.ModelInput == GraphStructureModelInput.Original)
+        {
+            throw new InvalidOperationException(
+                "Original model input requires both immutable original and detector images.");
+        }
+
+        return await DetectCoreAsync(image, image, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
+        OcrImage originalImage,
+        OcrImage detectorImage,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(originalImage);
+        ArgumentNullException.ThrowIfNull(detectorImage);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        OcrImage modelImage = options.ModelInput switch
+        {
+            GraphStructureModelInput.AxisMasked => detectorImage,
+            GraphStructureModelInput.Original => ValidateAndSelectOriginal(
+                originalImage,
+                detectorImage),
+            _ => throw new InvalidOperationException("Unsupported consensus model input."),
+        };
+        return await DetectCoreAsync(modelImage, detectorImage, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectCoreAsync(
+        OcrImage modelImage,
+        OcrImage structureImage,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
 
         IReadOnlyList<OcrDetectedRegion> modelRegions = await modelDetector
-            .DetectAsync(image, cancellationToken)
+            .DetectAsync(modelImage, cancellationToken)
             .ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         if (modelRegions.Count == 0)
@@ -87,7 +155,7 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
         }
 
         IReadOnlyList<OcrDetectedRegion> candidateRegions = await structureCandidateDetector
-            .DetectAsync(image, cancellationToken)
+            .DetectAsync(structureImage, cancellationToken)
             .ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         ValidateRegions(modelRegions, requireEvidence: false, "model");
@@ -156,6 +224,70 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
             .ThenBy(static region => region.Polygon.Bounds.Left)
             .ThenBy(static region => region.RegionId, StringComparer.Ordinal)
             .ToArray());
+    }
+
+    private static OcrImage ValidateAndSelectOriginal(
+        OcrImage originalImage,
+        OcrImage detectorImage)
+    {
+        ValidateAlignedInputs(originalImage, detectorImage);
+        return originalImage;
+    }
+
+    private static void ValidateAlignedInputs(OcrImage originalImage, OcrImage detectorImage)
+    {
+        if (!HasValidLayout(originalImage) ||
+            !HasValidLayout(detectorImage) ||
+            originalImage.SourceImage != OcrSourceImage.Original ||
+            detectorImage.SourceImage != OcrSourceImage.Original ||
+            !originalImage.OriginalToImage.IsInvertible ||
+            !detectorImage.OriginalToImage.IsInvertible ||
+            !string.Equals(
+                originalImage.CoordinateSpace,
+                OcrContract.CoordinateSpace,
+                StringComparison.Ordinal) ||
+            !string.Equals(
+                detectorImage.CoordinateSpace,
+                OcrContract.CoordinateSpace,
+                StringComparison.Ordinal) ||
+            !HasValidCanonicalDimensions(originalImage) ||
+            !HasValidCanonicalDimensions(detectorImage) ||
+            originalImage.Width != detectorImage.Width ||
+            originalImage.Height != detectorImage.Height ||
+            originalImage.Stride != detectorImage.Stride ||
+            originalImage.OriginalToImage != detectorImage.OriginalToImage ||
+            !string.Equals(
+                originalImage.CoordinateSpace,
+                detectorImage.CoordinateSpace,
+                StringComparison.Ordinal) ||
+            originalImage.CanonicalOriginalWidth != detectorImage.CanonicalOriginalWidth ||
+            originalImage.CanonicalOriginalHeight != detectorImage.CanonicalOriginalHeight ||
+            (originalImage.BgrPixels is null) != (detectorImage.BgrPixels is null))
+        {
+            throw new InvalidDataException(
+                "Original and detector OCR images must have aligned dimensions, transforms, and provenance.");
+        }
+    }
+
+    private static bool HasValidCanonicalDimensions(OcrImage image) =>
+        (image.CanonicalOriginalWidth is null && image.CanonicalOriginalHeight is null) ||
+        (image.CanonicalOriginalWidth > 0 && image.CanonicalOriginalHeight > 0);
+
+    private static bool HasValidLayout(OcrImage image)
+    {
+        if (image.Width <= 0 || image.Height <= 0 || image.Stride < image.Width ||
+            image.Pixels.Length != checked(image.Stride * image.Height))
+        {
+            return false;
+        }
+
+        if (image.BgrPixels is not { } bgr)
+        {
+            return true;
+        }
+
+        return bgr.Stride >= checked(image.Width * 3) &&
+            bgr.Pixels.Length == checked(bgr.Stride * image.Height);
     }
 
     private static void ValidateRegions(

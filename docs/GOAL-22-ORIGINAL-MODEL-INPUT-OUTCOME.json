@@ -1,0 +1,514 @@
+{
+  "acceptance": {
+    "both_detection_bars_pass": false,
+    "dev_truth": 183,
+    "full_truth": 329,
+    "minimum_precision": 0.95,
+    "minimum_recall": 0.95,
+    "policy": "ml/policy/acceptance-bars.json",
+    "train_truth": 146
+  },
+  "current_source_sha256": {
+    "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs": "859d1e77dec9a26960871d80c712ec5eb28721f942d16e661f6e7282a4e90349",
+    "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs": "ac63e944497877ae708d2e4078f03d2f9ba10dd83b98e0c0d319bcec354992e0",
+    "src/GraphReader.Ocr/OcrContracts.cs": "06ea6921e1b057ceca1a01376f5116467d0131883c43d0082ee37cd5f7f8f523",
+    "src/GraphReader.Ocr/OcrPipeline.cs": "0f49578e2314ba537fc3b0876e0f34e95cdcedaaceecd34921c66d87f7872183",
+    "tests/GraphReader.App.Tests/ProductionOcrLocalCandidateFactoryTests.cs": "570c880b5bca78aa937efdcc2b21456e4a04f2831350a80cadaa3d3b361cff0b",
+    "tests/GraphReader.Ocr.Tests/OcrDualInputTextRegionDetectorTests.cs": "8f2c908a96e7ae15d0e0f36ed22cbe157c229a41ef7634a08932173bce7df73b",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalModelInputExperiment.cs": "c43fe4ea6d83b185c1b2c1db4b85403a444246ba212ab865f698cf4fe5bfdba7",
+    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "19e977cd6e490dfdbf7c3c8a61bf6a6dc249e7b0f41eae5747769695c11a3ec2",
+    "tools/GraphReader.SyntheticRuntimeEvidence/score_original_model_input.py": "a36245ec82dcba0bc4f1a29ae04fc4c1417bf2d9ad113ff5b30d9ac93385b756",
+    "tools/GraphReader.SyntheticRuntimeEvidence/test_score_original_model_input.py": "c541df4c84d30addd42fca78c1c8a8e64bbea757c81c14acbc60d95433892c8c"
+  },
+  "default_parity": {
+    "difference_classes": {
+      "authenticated_build_provenance": 117,
+      "measured_elapsed_time": 402,
+      "opaque_run_id": 13
+    },
+    "elapsed_milliseconds": 1662.384,
+    "execution_manifests": [
+      "1239f7dabc5d9d8cebc8d2a5d7b0948aa33f7d39033d2b93f26e1e98773bc5c6",
+      "75985af76e6675a48a33eea256487cdcff6e8e9224112dd11084267e725a766a"
+    ],
+    "panels": 13,
+    "path": "artifacts/synthetic-runtime-evidence/original-model-input-default-parity.json",
+    "private_reads": 0,
+    "production_approved": false,
+    "reports": [
+      {
+        "baseline_report_sha256": "679effc25d675879a47a742685d0d891f21bf177246251d32ec9ea88e9dff207",
+        "current_report_sha256": "c959125993e08ec2ebe58481104a8ff6370871d32d568472d240e8515c72a424",
+        "panels": 4,
+        "split": "train"
+      },
+      {
+        "baseline_report_sha256": "a0c07332ce44baa6b1513c865af17404207edf6c19332bf4014cd1bfaf81483f",
+        "current_report_sha256": "b212a5bc1a494c4cefae8f8b736c88237b99e66bca987588ce0ae06bf03b0e35",
+        "panels": 9,
+        "split": "dev"
+      }
+    ],
+    "schema": "graphreader.original-model-input-default-parity.v1",
+    "scientific_mutation_checks": [
+      {
+        "mutated_path": "/axis/geometry/ticks/0/tick_id",
+        "name": "scientific_tick_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/axis/geometry/phase_dividers/0/divider_id",
+        "name": "scientific_divider_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/ocr/regions/0/region_id",
+        "name": "scientific_ocr_region_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/source_width",
+        "name": "source_width_numeric",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/residual_artifact_candidate_envelope/confidence",
+        "name": "residual_confidence_numeric",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/pre_ocr_diagnostic/source_gray/byte_count",
+        "name": "pre_ocr_byte_count_numeric",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/axis/envelope/model/sha256",
+        "name": "wrong_value_at_allowed_native_path",
+        "unexpected_difference_detected": true
+      },
+      {
+        "mutated_path": "/elapsed_milliseconds",
+        "name": "invalid_negative_timing",
+        "unexpected_difference_detected": true
+      }
+    ],
+    "sealed_reads": 0,
+    "sha256": "3beedf90c35562d24b7d6afb375457255f4feffefbefdd73f6ccea432dfc4c35",
+    "source_sha256": "4a801333646aeb2886b77d15370b1237ce9eb6489cb8f9722b40c5ca7b1b5571",
+    "status": "exact_scientific_output_parity",
+    "unchanged_referenced_files_per_side": 104,
+    "verified_files_per_executable": 35
+  },
+  "executed_source_note": "The preserved execution manifest and its source snapshot identify the measured executable. ProductionOcrAdapter subsequently received a structured-error regression repair in the approved-production rejection path. The synthetic original-input behavior is unchanged; current source bytes must not be represented as the exact executed snapshot.",
+  "integrity": {
+    "baseline_runtime_assemblies_by_split": {
+      "train": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "7655a845a253927ee0eff045e9c69d7ced4fcc652c905c7edd409618b2831a6a"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "d9f5f9df2d16fd7f9b0aa30b60cb07dafb2f139cc3c08d276e25dd985f986334"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "d6f29ab3eae823c7b5b85ad799c3a00b39a55fc5ce5aac7a4b38aed925de09c9"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "639f8de800d1f0f5a9efaed8b4e85966856400a428ddf049e01afc72618ff9f7"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "32164adfda3582b5a85c7ced2e0308e67a6dc726d5d498d6a663aeb67867212e"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "2a713b411a22a5ef195810379be402efb2659592c61b07c3f3ead881b5de288e"
+        }
+      ],
+      "validation": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "7655a845a253927ee0eff045e9c69d7ced4fcc652c905c7edd409618b2831a6a"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "d9f5f9df2d16fd7f9b0aa30b60cb07dafb2f139cc3c08d276e25dd985f986334"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "d6f29ab3eae823c7b5b85ad799c3a00b39a55fc5ce5aac7a4b38aed925de09c9"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "639f8de800d1f0f5a9efaed8b4e85966856400a428ddf049e01afc72618ff9f7"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "32164adfda3582b5a85c7ced2e0308e67a6dc726d5d498d6a663aeb67867212e"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "2a713b411a22a5ef195810379be402efb2659592c61b07c3f3ead881b5de288e"
+        }
+      ]
+    },
+    "candidate_is_exact_baseline_clone_plus_input_mode": true,
+    "compared_panel_count": 13,
+    "failures_by_candidate": {
+      "baseline_axis_masked": {
+        "failed_panels": 0,
+        "failed_sources": 0
+      },
+      "original_model_input": {
+        "failed_panels": 0,
+        "failed_sources": 0
+      }
+    },
+    "final_regions_are_consensus_selected_raw_geometry": true,
+    "full_source_truth_count": 329,
+    "native_model_manifest_license_and_execution_files_verified": true,
+    "original_and_axis_masked_input_hashes_bound": true,
+    "panels_with_distinct_original_and_axis_masked_inputs": 13,
+    "protocol_and_all_bound_files_verified": true,
+    "raw_learned_and_structural_diagnostics_unchanged_between_runs": true,
+    "source_and_crop_png_bytes_verified": true,
+    "truth_created_only_after_all_runtime_evidence_validation": true
+  },
+  "isolated_change": "Original immutable pixels feed only the learned detector; structural components retain axis-masked pixels. Expanded output geometry, payloads, resizing, thresholds, consensus, recognition, roles and artifact logic remain fixed.",
+  "license_review": "Existing hash-verified Apache-2.0 Paddle OCR weights and notices, reviewed source-built native runtime. No new dependency or model weights.",
+  "limitations": [
+    "Consensus geometry is scored from final persisted OCR regions after verifying zero region failures, crop count equality, and exact raw-region identity and polygon equality.",
+    "Failed source or panel executions contribute no predictions while all regenerated source truths remain in the denominator.",
+    "Recognition text, alternatives, semantic roles, confidence, and threshold sensitivity are not scored.",
+    "This synthetic train/dev diagnostic cannot approve a model, product stage, production activation, or release."
+  ],
+  "metrics": {
+    "baseline_axis_masked": {
+      "consensus": {
+        "combined": {
+          "false_negatives": 252,
+          "false_positives": 157,
+          "precision": 0.32905982905982906,
+          "predicted_region_count": 234,
+          "recall": 0.23404255319148937,
+          "true_positives": 77,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 118,
+          "false_positives": 71,
+          "precision": 0.2828282828282828,
+          "predicted_region_count": 99,
+          "recall": 0.1917808219178082,
+          "true_positives": 28,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 134,
+          "false_positives": 86,
+          "precision": 0.362962962962963,
+          "predicted_region_count": 135,
+          "recall": 0.2677595628415301,
+          "true_positives": 49,
+          "truth_region_count": 183
+        }
+      },
+      "final_ocr_regions": {
+        "combined": {
+          "false_negatives": 252,
+          "false_positives": 157,
+          "precision": 0.32905982905982906,
+          "predicted_region_count": 234,
+          "recall": 0.23404255319148937,
+          "true_positives": 77,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 118,
+          "false_positives": 71,
+          "precision": 0.2828282828282828,
+          "predicted_region_count": 99,
+          "recall": 0.1917808219178082,
+          "true_positives": 28,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 134,
+          "false_positives": 86,
+          "precision": 0.362962962962963,
+          "predicted_region_count": 135,
+          "recall": 0.2677595628415301,
+          "true_positives": 49,
+          "truth_region_count": 183
+        }
+      },
+      "raw_expanded": {
+        "combined": {
+          "false_negatives": 236,
+          "false_positives": 267,
+          "precision": 0.25833333333333336,
+          "predicted_region_count": 360,
+          "recall": 0.2826747720364742,
+          "true_positives": 93,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 112,
+          "false_positives": 113,
+          "precision": 0.23129251700680273,
+          "predicted_region_count": 147,
+          "recall": 0.2328767123287671,
+          "true_positives": 34,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 124,
+          "false_positives": 154,
+          "precision": 0.27699530516431925,
+          "predicted_region_count": 213,
+          "recall": 0.3224043715846995,
+          "true_positives": 59,
+          "truth_region_count": 183
+        }
+      }
+    },
+    "original_model_input": {
+      "consensus": {
+        "combined": {
+          "false_negatives": 250,
+          "false_positives": 126,
+          "precision": 0.3853658536585366,
+          "predicted_region_count": 205,
+          "recall": 0.24012158054711247,
+          "true_positives": 79,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 117,
+          "false_positives": 61,
+          "precision": 0.32222222222222224,
+          "predicted_region_count": 90,
+          "recall": 0.19863013698630136,
+          "true_positives": 29,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 133,
+          "false_positives": 65,
+          "precision": 0.43478260869565216,
+          "predicted_region_count": 115,
+          "recall": 0.273224043715847,
+          "true_positives": 50,
+          "truth_region_count": 183
+        }
+      },
+      "final_ocr_regions": {
+        "combined": {
+          "false_negatives": 250,
+          "false_positives": 126,
+          "precision": 0.3853658536585366,
+          "predicted_region_count": 205,
+          "recall": 0.24012158054711247,
+          "true_positives": 79,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 117,
+          "false_positives": 61,
+          "precision": 0.32222222222222224,
+          "predicted_region_count": 90,
+          "recall": 0.19863013698630136,
+          "true_positives": 29,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 133,
+          "false_positives": 65,
+          "precision": 0.43478260869565216,
+          "predicted_region_count": 115,
+          "recall": 0.273224043715847,
+          "true_positives": 50,
+          "truth_region_count": 183
+        }
+      },
+      "raw_expanded": {
+        "combined": {
+          "false_negatives": 223,
+          "false_positives": 240,
+          "precision": 0.3063583815028902,
+          "predicted_region_count": 346,
+          "recall": 0.3221884498480243,
+          "true_positives": 106,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 111,
+          "false_positives": 103,
+          "precision": 0.2536231884057971,
+          "predicted_region_count": 138,
+          "recall": 0.23972602739726026,
+          "true_positives": 35,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 112,
+          "false_positives": 137,
+          "precision": 0.34134615384615385,
+          "predicted_region_count": 208,
+          "recall": 0.3879781420765027,
+          "true_positives": 71,
+          "truth_region_count": 183
+        }
+      }
+    }
+  },
+  "protocol": {
+    "path": "ml/ocr/official_bakeoff/original_model_input_dev_protocol.json",
+    "sha256": "ecba1f8ca3c1625c0b47deb6847a7fe9ea9d90e595b7ae8fbd582b39d9c10706"
+  },
+  "schema": "graphreader.goal22-original-model-input-outcome.v1",
+  "scope": {
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "production_approved": false,
+    "release_eligible": false,
+    "sealed_reads": 0,
+    "synthetic_train_dev_only": true
+  },
+  "source_evidence": {
+    "evaluator": {
+      "geometry": "default expanded learned-detector polygons in original source pixels",
+      "initial_detector_boxes_combined": false,
+      "intersection_over_union_minimum": 0.5,
+      "matching": "existing maximum-cardinality one-to-one matching",
+      "model_input_resolution_changed": false,
+      "recognition_scored": false,
+      "roles_scored": false
+    },
+    "execution_manifest": {
+      "all_declared_files_verified": true,
+      "path": "artifacts/synthetic-runtime-evidence/original-model-input-source-c96-executable-v1/execution-files.json",
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "b6eff0a87b62e5d26a19aa8ee09340e06fbe453b19e33bb23af6fec06b8d5693"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "56aaa864e8a11824636265628fd5e8d5ef57b9f3eeeb69879d5ff9963cabc130"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "aebb51336bf3d62fc547716c3bb8044814c4cd4a70d4e5ef68e914546020bd27"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "b500db8a462008e9a0bc76b20d85c93b27eb0467eaa09fbef9c85b5efbcc98aa"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "9abd3dcdc1f52c90ff43045fff345f25f8b278c5e1a6b65ca3a9fc783e69b90d"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "1ae3fd477e33419d6fd6dc2029b2f5278695a6d61ca29367624e623caaf94843"
+        }
+      ],
+      "sha256": "75985af76e6675a48a33eea256487cdcff6e8e9224112dd11084267e725a766a"
+    },
+    "runs": {
+      "train": {
+        "baseline_report": {
+          "path": "artifacts/synthetic-runtime-evidence/train393-db-geometry-source-c96-run1/report.json",
+          "sha256": "679effc25d675879a47a742685d0d891f21bf177246251d32ec9ea88e9dff207"
+        },
+        "baseline_report_sha256_verified": true,
+        "failures_by_candidate": {
+          "baseline_axis_masked": {
+            "failed_panels": 0,
+            "failed_sources": 0
+          },
+          "original_model_input": {
+            "failed_panels": 0,
+            "failed_sources": 0
+          }
+        },
+        "manifest": {
+          "path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json",
+          "sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37"
+        },
+        "original_input_report": {
+          "path": "artifacts/synthetic-runtime-evidence/train393-original-model-input-source-c96-run1/report.json",
+          "sha256": "3170337076d74d16b0c2f59e073eb50e4e8fc0347218ba0e68219cd5f171c20d"
+        },
+        "panel_counts": {
+          "baseline_axis_masked": 4,
+          "original_model_input": 4
+        },
+        "source_count": 4,
+        "truth_region_count": 146
+      },
+      "validation": {
+        "baseline_report": {
+          "path": "artifacts/synthetic-runtime-evidence/dev393-db-geometry-source-c96-run1/report.json",
+          "sha256": "a0c07332ce44baa6b1513c865af17404207edf6c19332bf4014cd1bfaf81483f"
+        },
+        "baseline_report_sha256_verified": true,
+        "failures_by_candidate": {
+          "baseline_axis_masked": {
+            "failed_panels": 0,
+            "failed_sources": 0
+          },
+          "original_model_input": {
+            "failed_panels": 0,
+            "failed_sources": 0
+          }
+        },
+        "manifest": {
+          "path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+          "sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7"
+        },
+        "original_input_report": {
+          "path": "artifacts/synthetic-runtime-evidence/dev393-original-model-input-source-c96-run1/report.json",
+          "sha256": "273ff697a2440e8c60ed664c58283ba7516a84187e6ba91367c34c790026ce57"
+        },
+        "panel_counts": {
+          "baseline_axis_masked": 9,
+          "original_model_input": 9
+        },
+        "source_count": 3,
+        "truth_region_count": 183
+      }
+    },
+    "score": {
+      "path": "artifacts/synthetic-runtime-evidence/original-model-input-score-run1.json",
+      "sha256": "5071f226f99655785e4e706266fa7764aba7bc4dd465831aabc464421eb96ce7"
+    }
+  },
+  "status": "failed_dev",
+  "timing_ms": {
+    "default_parity_comparison": 1662.384,
+    "dev_runtime": 7228.2092,
+    "train_runtime": 5045.7422,
+    "truth_scoring": 19162.701
+  },
+  "validation": {
+    "app_suite": {
+      "failed": 0,
+      "passed": 217,
+      "skipped": 0
+    },
+    "candidate_input_guards_passed": 8,
+    "independent_default_parity_review": "clear",
+    "ocr_suite": {
+      "failed": 0,
+      "passed": 213,
+      "skip_scope": "existing opt-in model tests",
+      "skipped": 16
+    },
+    "scorer_safeguards_passed": 5
+  }
+}

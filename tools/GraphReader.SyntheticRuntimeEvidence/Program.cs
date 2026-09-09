@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using GraphReader.App.Integration;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.Imaging;
@@ -31,6 +32,11 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--self-test-original-input")
+        {
+            OriginalModelInputExperiment.SelfTest();
+            return 0;
+        }
         if (args.Length is not (4 or 7) ||
             (args.Length == 7 && args[4] != "--db-geometry-protocol"))
         {
@@ -93,6 +99,9 @@ internal static class Program
         {
             throw new InvalidDataException("An explicitly unapproved local candidate descriptor is required.");
         }
+        (GraphStructureModelInput modelInput, string? modelInputProtocolSha256) =
+            OriginalModelInputExperiment.Read(
+                config, Text(inputs, "split"), inputPath, inputManifestSha256, RepositoryRoot());
         DbGeometryDiagnosticBinding? dbGeometryDiagnostic = args.Length == 7
             ? ValidateDbGeometryDiagnostic(
                 args[5],
@@ -209,7 +218,7 @@ internal static class Program
         var total = Stopwatch.StartNew();
         ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForLocalSyntheticCandidateEvaluationAsync(
             Descriptor(config.GetProperty("detector")), Descriptor(config.GetProperty("recognizer")),
-            runtime, nativeSha, cancellationToken, outputGeometry).ConfigureAwait(false);
+            runtime, nativeSha, cancellationToken, outputGeometry, modelInput).ConfigureAwait(false);
         LocalSyntheticOcrModelDescriptor diagnosticDescriptor = Descriptor(config.GetProperty("detector"));
         var dbGeometryObservations = new List<OcrDbGeometryObservation>();
         LocalOnnxTextRegionDetectorOptions diagnosticDetectionOptions =
@@ -644,8 +653,16 @@ internal static class Program
             PanelCount = panelCount, CompletedPanels = completedPanels, FailedPanels = failedPanels,
             ElapsedMilliseconds = total.Elapsed.TotalMilliseconds, Cases = results,
         };
+        string reportJson = JsonSerializer.Serialize(report, JsonOptions);
+        if (modelInputProtocolSha256 is not null)
+        {
+            JsonObject document = JsonNode.Parse(reportJson)!.AsObject();
+            document["model_input_protocol_sha256"] = modelInputProtocolSha256;
+            document["model_input"] = "original";
+            reportJson = document.ToJsonString(JsonOptions);
+        }
         _ = await WriteBytesAsync(outputRoot, "report.json", System.Text.Encoding.UTF8.GetBytes(
-            JsonSerializer.Serialize(report, JsonOptions) + Environment.NewLine), cancellationToken).ConfigureAwait(false);
+            reportJson + Environment.NewLine), cancellationToken).ConfigureAwait(false);
         Console.WriteLine(JsonSerializer.Serialize(new
         {
             Completed = completedSources,

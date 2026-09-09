@@ -311,6 +311,20 @@ public interface ITextRegionDetector
 }
 
 /// <summary>
+/// Optional detector composition seam for stages that require both immutable
+/// original pixels and a coordinate-aligned detector derivative. Implementers
+/// must retain the single-input behavior required by
+/// <see cref="ITextRegionDetector"/>.
+/// </summary>
+public interface IDualInputTextRegionDetector : ITextRegionDetector
+{
+    ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
+        OcrImage originalImage,
+        OcrImage detectorImage,
+        CancellationToken cancellationToken);
+}
+
+/// <summary>
 /// Internal production-composition seam for checksum-bound detectors whose
 /// reviewed acceptance policy includes recognizer-gated rescue bands. Proposal
 /// confidence is retained so the composition can apply those fixed bands

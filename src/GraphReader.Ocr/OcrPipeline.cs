@@ -162,11 +162,10 @@ public sealed class OcrPipeline
         IReadOnlyList<OcrDetectedRegion> detectedRegions;
         try
         {
-            detectedRegions = request.DetectedRegions ??
-                await _detector.DetectAsync(
-                        request.DetectorImage?.Image ?? request.OriginalImage,
-                        cancellationToken)
-                    .ConfigureAwait(false);
+            detectedRegions = request.DetectedRegions ?? await DetectRegionsAsync(
+                    request,
+                    cancellationToken)
+                .ConfigureAwait(false);
             ValidateDetectedRegions(detectedRegions);
             detectedRegions = EnrichGeometry(detectedRegions, request.PlotBounds, _options);
         }
@@ -426,6 +425,24 @@ public sealed class OcrPipeline
             recognitionCacheKey,
             totalStopwatch,
             cancellationToken).ConfigureAwait(false);
+    }
+
+    private ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectRegionsAsync(
+        OcrRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (_detector is IDualInputTextRegionDetector dualInputDetector &&
+            request.DetectorImage is not null)
+        {
+            return dualInputDetector.DetectAsync(
+                request.OriginalImage,
+                request.DetectorImage.Image,
+                cancellationToken);
+        }
+
+        return _detector.DetectAsync(
+            request.DetectorImage?.Image ?? request.OriginalImage,
+            cancellationToken);
     }
 
     private async ValueTask<OcrResult> CacheAndReturnAsync(

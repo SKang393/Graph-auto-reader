@@ -27,6 +27,7 @@ internal enum ProductionOcrConfigurationScope
 {
     ApprovedProduction,
     UnapprovedLocalSyntheticCandidate,
+    UnapprovedFrozenCandidate,
 }
 
 public sealed class ProductionOcrConfiguredModel
@@ -91,6 +92,8 @@ public sealed class ProductionOcrConfigurationEvidence
         ProductionOcrConfigurationScope.ApprovedProduction => "approved_production",
         ProductionOcrConfigurationScope.UnapprovedLocalSyntheticCandidate =>
             "unapproved_local_synthetic_candidate",
+        ProductionOcrConfigurationScope.UnapprovedFrozenCandidate =>
+            "unapproved_frozen_candidate",
         _ => throw new ArgumentOutOfRangeException(nameof(ConfigurationScope)),
     };
 
@@ -127,6 +130,16 @@ internal sealed record LocalSyntheticOcrModelDescriptor(
     string ManifestSha256);
 
 /// <summary>
+/// Pins an externally frozen candidate to exact model and manifest bytes.
+/// Reviewed licenses and the complete executable binding are validated by the
+/// acceptance harness. This descriptor never grants production approval.
+/// </summary>
+internal sealed record FrozenCandidateOcrModelDescriptor(
+    ModelIdentity Identity,
+    string ManifestPath,
+    string ManifestSha256);
+
+/// <summary>
 /// Binds the existing OCR pipeline to exact detector and recognizer identities.
 /// Composition remains disabled until both payloads have independently passed
 /// the production model-store, benchmark, provider, notice, and checksum gates.
@@ -147,6 +160,7 @@ public sealed class ProductionOcrAdapter :
     private readonly InferenceProvider recognitionProvider;
     private readonly ProductionOcrConfigurationEvidence configuredModels;
     private readonly string compositionVersion;
+    private readonly GraphStructureModelInput modelInput;
 
     public ProductionOcrAdapter(
         OcrPipeline pipeline,
@@ -175,7 +189,8 @@ public sealed class ProductionOcrAdapter :
         InferenceProvider recognitionProvider,
         string openCvRuntimeSha256,
         ProductionOcrConfigurationScope configurationScope,
-        GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon)
+        GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
+        GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked)
     {
         ArgumentNullException.ThrowIfNull(pipelineFactory);
         pipeline = new Lazy<OcrPipeline>(
@@ -186,11 +201,13 @@ public sealed class ProductionOcrAdapter :
         this.detectionProvider = ValidateProvider(detectionProvider, nameof(detectionProvider));
         this.recognitionProvider = ValidateProvider(recognitionProvider, nameof(recognitionProvider));
         OpenCvRuntimeSha256 = ValidateSha256(openCvRuntimeSha256, nameof(openCvRuntimeSha256));
-        compositionVersion = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry);
+        this.modelInput = modelInput;
+        compositionVersion = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput);
         if (configurationScope == ProductionOcrConfigurationScope.ApprovedProduction &&
-            outputGeometry != GraphStructureConsensusGeometry.ModelPolygon)
+            (outputGeometry != GraphStructureConsensusGeometry.ModelPolygon ||
+             modelInput != GraphStructureModelInput.AxisMasked))
         {
-            throw new InvalidOperationException("Experimental OCR geometry cannot acquire production approval.");
+            throw new InvalidOperationException("Experimental OCR geometry or model input cannot acquire production approval.");
         }
         configuredModels = new ProductionOcrConfigurationEvidence(
         [
@@ -205,6 +222,8 @@ public sealed class ProductionOcrAdapter :
         $"graphreader-ocr:{compositionVersion}:{detectionModel.Sha256[..12].ToLowerInvariant()}:{recognitionModel.Sha256[..12].ToLowerInvariant()}:{OpenCvRuntimeSha256[..12]}";
 
     public bool IsApproved { get; }
+
+    internal string ConfigurationScope => configuredModels.Scope;
 
     public string OpenCvRuntimeSha256 { get; }
 
@@ -255,12 +274,18 @@ public sealed class ProductionOcrAdapter :
         ProductionInferenceRuntimeHost runtimeHost,
         string reviewedOpenCvRuntimeSha256,
         CancellationToken cancellationToken,
-        GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon)
+        GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
+        GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
         ArgumentNullException.ThrowIfNull(runtimeHost);
-        _ = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry);
+        _ = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry, modelInput);
+        if (modelInput == GraphStructureModelInput.Original &&
+            outputGeometry != GraphStructureConsensusGeometry.ModelPolygon)
+        {
+            throw new InvalidOperationException("The original-input experiment must preserve model output geometry.");
+        }
         cancellationToken.ThrowIfCancellationRequested();
         reviewedOpenCvRuntimeSha256 = ValidateSha256(
             reviewedOpenCvRuntimeSha256,
@@ -297,6 +322,65 @@ public sealed class ProductionOcrAdapter :
                 reviewedOpenCvRuntimeSha256,
                 ProductionOcrConfigurationScope.UnapprovedLocalSyntheticCandidate,
                 cancellationToken,
+                outputGeometry,
+                modelInput)
+            .ConfigureAwait(false);
+    }
+
+    internal static async Task<ProductionOcrAdapter> CreateForFrozenCandidateEvaluationAsync(
+        FrozenCandidateOcrModelDescriptor detectionModel,
+        FrozenCandidateOcrModelDescriptor recognitionModel,
+        ProductionInferenceRuntimeHost runtimeHost,
+        string reviewedOpenCvRuntimeSha256,
+        CancellationToken cancellationToken,
+        GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon)
+    {
+        ArgumentNullException.ThrowIfNull(detectionModel);
+        ArgumentNullException.ThrowIfNull(recognitionModel);
+        ArgumentNullException.ThrowIfNull(runtimeHost);
+        _ = GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry);
+        cancellationToken.ThrowIfCancellationRequested();
+        reviewedOpenCvRuntimeSha256 = ValidateSha256(
+            reviewedOpenCvRuntimeSha256,
+            nameof(reviewedOpenCvRuntimeSha256));
+        await ValidateCandidateDescriptorAsync(
+                detectionModel.Identity,
+                detectionModel.ManifestPath,
+                detectionModel.ManifestSha256,
+                "ocr_detection",
+                "Frozen candidate OCR",
+                cancellationToken)
+            .ConfigureAwait(false);
+        await ValidateCandidateDescriptorAsync(
+                recognitionModel.Identity,
+                recognitionModel.ManifestPath,
+                recognitionModel.ManifestSha256,
+                "ocr_recognition",
+                "Frozen candidate OCR",
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (string.Equals(
+                detectionModel.Identity.Sha256,
+                recognitionModel.Identity.Sha256,
+                StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(
+                Path.GetFullPath(detectionModel.Identity.FilePath),
+                Path.GetFullPath(recognitionModel.Identity.FilePath),
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                "Frozen candidate OCR evaluation requires distinct pinned detection and recognition payloads.");
+        }
+
+        return await CreateFromPinnedModelsAsync(
+                detectionModel.Identity,
+                detectionModel.ManifestPath,
+                recognitionModel.Identity,
+                recognitionModel.ManifestPath,
+                runtimeHost,
+                reviewedOpenCvRuntimeSha256,
+                ProductionOcrConfigurationScope.UnapprovedFrozenCandidate,
+                cancellationToken,
                 outputGeometry)
             .ConfigureAwait(false);
     }
@@ -310,7 +394,8 @@ public sealed class ProductionOcrAdapter :
         string reviewedOpenCvRuntimeSha256,
         ProductionOcrConfigurationScope configurationScope,
         CancellationToken cancellationToken,
-        GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon)
+        GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
+        GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked)
     {
         LocalOnnxTextRegionDetectorOptions detectorOptions = ReadDetectionOptions(
             detectionModel,
@@ -325,6 +410,7 @@ public sealed class ProductionOcrAdapter :
                 recognition.Recognizer,
                 runtime,
                 outputGeometry,
+                modelInput,
                 cancellationToken)
             .ConfigureAwait(false);
         return new ProductionOcrAdapter(
@@ -334,7 +420,11 @@ public sealed class ProductionOcrAdapter :
                 var detector = new GraphStructureConsensusTextRegionDetector(
                     modelDetector,
                     new ConnectedComponentTextRegionDetector(),
-                    new GraphStructureConsensusTextRegionDetectorOptions { OutputGeometry = outputGeometry });
+                    new GraphStructureConsensusTextRegionDetectorOptions
+                    {
+                        OutputGeometry = outputGeometry,
+                        ModelInput = modelInput,
+                    });
                 ITextRecognizer recognizer = new LocalOnnxTextRecognizer(
                     runtime,
                     recognition.Recognizer);
@@ -354,7 +444,8 @@ public sealed class ProductionOcrAdapter :
             InferenceProvider.Cpu,
             reviewedOpenCvRuntimeSha256,
             configurationScope,
-            outputGeometry);
+            outputGeometry,
+            modelInput);
     }
 
     private static Task ValidateExecutablePairAsync(
@@ -362,6 +453,7 @@ public sealed class ProductionOcrAdapter :
         LocalOnnxTextRecognizerOptions recognizerOptions,
         InferenceRuntime runtime,
         GraphStructureConsensusGeometry outputGeometry,
+        GraphStructureModelInput modelInput,
         CancellationToken cancellationToken) =>
         Task.Run(async () =>
         {
@@ -372,7 +464,11 @@ public sealed class ProductionOcrAdapter :
             var detector = new GraphStructureConsensusTextRegionDetector(
                 modelDetector,
                 new ConnectedComponentTextRegionDetector(),
-                new GraphStructureConsensusTextRegionDetectorOptions { OutputGeometry = outputGeometry });
+                new GraphStructureConsensusTextRegionDetectorOptions
+                {
+                    OutputGeometry = outputGeometry,
+                    ModelInput = modelInput,
+                });
             const int detectorProbeSize = 32;
             var detectorImage = new OcrImage(
                 detectorProbeSize,
@@ -388,7 +484,9 @@ public sealed class ProductionOcrAdapter :
                         detectorProbeSize * 3,
                         new byte[detectorProbeSize * detectorProbeSize * 3])
                     : null);
-            _ = await detector.DetectAsync(detectorImage, cancellationToken).ConfigureAwait(false);
+            _ = modelInput == GraphStructureModelInput.Original
+                ? await detector.DetectAsync(detectorImage, detectorImage, cancellationToken).ConfigureAwait(false)
+                : await detector.DetectAsync(detectorImage, cancellationToken).ConfigureAwait(false);
 
             var recognizer = new LocalOnnxTextRecognizer(
                 runtime,
@@ -463,12 +561,21 @@ public sealed class ProductionOcrAdapter :
         OcrRectangle plotBounds,
         OcrDetectorImage detectorImage,
         CancellationToken cancellationToken)
-        => RecognizeForCandidateEvaluationAsync(
+    {
+        if (configuredModels.ConfigurationScope ==
+            ProductionOcrConfigurationScope.UnapprovedFrozenCandidate)
+        {
+            throw new InvalidOperationException(
+                "Local synthetic OCR execution requires the local synthetic candidate configuration scope.");
+        }
+
+        return RecognizeForCandidateEvaluationAsync(
             request,
             originalRaster,
             plotBounds,
             detectorImage,
             cancellationToken);
+    }
 
     Task<ProductionOcrEvidence> IProductionCandidateOcrAdapter.RecognizeForCandidateEvaluationAsync(
         ProductionWorkflowDetectionRequest request,
@@ -510,6 +617,39 @@ public sealed class ProductionOcrAdapter :
             cancellationToken);
     }
 
+    internal static IReadOnlyList<string> DetectorInputWarnings(
+        GraphStructureModelInput modelInput,
+        OcrImage originalImage,
+        OcrDetectorImage detectorImage)
+    {
+        ArgumentNullException.ThrowIfNull(originalImage);
+        ArgumentNullException.ThrowIfNull(detectorImage);
+        if (modelInput == GraphStructureModelInput.AxisMasked)
+        {
+            return Array.AsReadOnly(new[]
+            {
+                "ocr_detector_axis_geometry_mask_applied",
+                $"ocr_detector_input_sha256:{detectorImage.PixelSha256.ToLowerInvariant()}",
+            });
+        }
+        if (modelInput != GraphStructureModelInput.Original)
+        {
+            throw new ArgumentOutOfRangeException(nameof(modelInput));
+        }
+        var warnings = new List<string>
+        {
+            "ocr_detector_model_input_original",
+            $"ocr_detector_model_input_sha256:{Convert.ToHexStringLower(SHA256.HashData(originalImage.Pixels.Span))}",
+            "ocr_detector_structure_input_axis_masked",
+            $"ocr_detector_structure_input_sha256:{detectorImage.PixelSha256.ToLowerInvariant()}",
+        };
+        if (originalImage.BgrPixels is { } bgr)
+        {
+            warnings.Add($"ocr_detector_model_input_bgr_sha256:{Convert.ToHexStringLower(SHA256.HashData(bgr.Pixels.Span))}");
+        }
+        return warnings.AsReadOnly();
+    }
+
     private async Task<ProductionOcrEvidence> RecognizeCoreAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster originalRaster,
@@ -536,12 +676,10 @@ public sealed class ProductionOcrAdapter :
         cancellationToken.ThrowIfCancellationRequested();
         ValidateOutput(request, originalRaster, result);
 
-        string detectorInputWarning = $"ocr_detector_input_sha256:{detectorImage.PixelSha256.ToLowerInvariant()}";
         result = result with
         {
             Warnings = Array.AsReadOnly(result.Warnings
-                .Append("ocr_detector_axis_geometry_mask_applied")
-                .Append(detectorInputWarning)
+                .Concat(DetectorInputWarnings(modelInput, ocrRequest.OriginalImage, detectorImage))
                 .Distinct(StringComparer.Ordinal)
                 .ToArray()),
         };
@@ -1328,32 +1466,48 @@ public sealed class ProductionOcrAdapter :
     private static async Task ValidateLocalSyntheticDescriptorAsync(
         LocalSyntheticOcrModelDescriptor descriptor,
         string expectedTask,
+        CancellationToken cancellationToken) =>
+        await ValidateCandidateDescriptorAsync(
+                descriptor.Identity,
+                descriptor.ManifestPath,
+                descriptor.ManifestSha256,
+                expectedTask,
+                "Local synthetic OCR",
+                cancellationToken)
+            .ConfigureAwait(false);
+
+    private static async Task ValidateCandidateDescriptorAsync(
+        ModelIdentity identity,
+        string manifestPath,
+        string expectedManifestSha256,
+        string expectedTask,
+        string label,
         CancellationToken cancellationToken)
     {
-        descriptor.Identity.Validate();
-        ArgumentException.ThrowIfNullOrWhiteSpace(descriptor.ManifestPath);
+        identity.Validate();
+        ArgumentException.ThrowIfNullOrWhiteSpace(manifestPath);
         string manifestSha256 = ValidateSha256(
-            descriptor.ManifestSha256,
-            nameof(descriptor.ManifestSha256));
+            expectedManifestSha256,
+            nameof(expectedManifestSha256));
         await VerifyChecksumAsync(
-                descriptor.Identity.FilePath,
-                descriptor.Identity.Sha256,
-                $"local synthetic {expectedTask} model",
+                identity.FilePath,
+                identity.Sha256,
+                $"{label} {expectedTask} model",
                 cancellationToken)
             .ConfigureAwait(false);
         await VerifyChecksumAsync(
-                descriptor.ManifestPath,
+                manifestPath,
                 manifestSha256,
-                $"local synthetic {expectedTask} manifest",
+                $"{label} {expectedTask} manifest",
                 cancellationToken)
             .ConfigureAwait(false);
 
         using JsonDocument document = JsonDocument.Parse(
-            await File.ReadAllTextAsync(descriptor.ManifestPath, cancellationToken).ConfigureAwait(false));
+            await File.ReadAllTextAsync(manifestPath, cancellationToken).ConfigureAwait(false));
         JsonElement root = document.RootElement;
         if (root.ValueKind != JsonValueKind.Object)
         {
-            throw new InvalidDataException("Local synthetic OCR manifest root must be an object.");
+            throw new InvalidDataException($"{label} manifest root must be an object.");
         }
 
         var propertyNames = new HashSet<string>(StringComparer.Ordinal);
@@ -1362,28 +1516,28 @@ public sealed class ProductionOcrAdapter :
             if (!propertyNames.Add(property.Name))
             {
                 throw new InvalidDataException(
-                    $"Local synthetic OCR manifest contains duplicate root field '{property.Name}'.");
+                    $"{label} manifest contains duplicate root field '{property.Name}'.");
             }
         }
 
-        RequireString(root, "model_id", descriptor.Identity.ModelId, "Local synthetic OCR manifest");
-        RequireString(root, "model_version", descriptor.Identity.Version, "Local synthetic OCR manifest");
-        RequireString(root, "task", expectedTask, "Local synthetic OCR manifest");
+        RequireString(root, "model_id", identity.ModelId, label);
+        RequireString(root, "model_version", identity.Version, label);
+        RequireString(root, "task", expectedTask, label);
         string declaredModelSha256 = RequiredString(
             root,
             "sha256",
-            "Local synthetic OCR manifest");
+            label);
         if (!string.Equals(
                 declaredModelSha256,
-                descriptor.Identity.Sha256,
+                identity.Sha256,
                 StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidDataException(
-                "Local synthetic OCR manifest field 'sha256' does not match the pinned model bytes.");
+                $"{label} manifest field 'sha256' does not match the pinned model bytes.");
         }
 
-        JsonElement files = RequiredArray(root, "files", "Local synthetic OCR manifest");
-        string expectedFileName = Path.GetFileName(descriptor.Identity.FilePath);
+        JsonElement files = RequiredArray(root, "files", label);
+        string expectedFileName = Path.GetFileName(identity.FilePath);
         var declaredFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         bool modelFileDeclared = false;
         foreach (JsonElement item in files.EnumerateArray())
@@ -1391,7 +1545,7 @@ public sealed class ProductionOcrAdapter :
             if (item.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(item.GetString()))
             {
                 throw new InvalidDataException(
-                    "Local synthetic OCR manifest files must be non-empty relative paths.");
+                    $"{label} manifest files must be non-empty relative paths.");
             }
 
             string declaredPath = item.GetString()!.Replace('\\', '/');
@@ -1401,7 +1555,7 @@ public sealed class ProductionOcrAdapter :
                 !declaredFiles.Add(declaredPath))
             {
                 throw new InvalidDataException(
-                    $"Local synthetic OCR manifest contains invalid or duplicate payload path '{declaredPath}'.");
+                    $"{label} manifest contains invalid or duplicate payload path '{declaredPath}'.");
             }
 
             modelFileDeclared |= string.Equals(
@@ -1413,7 +1567,7 @@ public sealed class ProductionOcrAdapter :
         if (!modelFileDeclared)
         {
             throw new InvalidDataException(
-                $"Local synthetic OCR manifest files do not identify pinned model '{expectedFileName}'.");
+                $"{label} manifest files do not identify pinned model '{expectedFileName}'.");
         }
     }
 
