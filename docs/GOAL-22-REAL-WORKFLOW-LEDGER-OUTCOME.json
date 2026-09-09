@@ -1,0 +1,56 @@
+{
+  "schema": "graphreader.goal22-real-workflow-ledger-outcome.v1",
+  "scope": "Synthetic verification of sealed-use accounting; no actual evaluation ledger created",
+  "implementation": [
+    "Use the existing shared evidence-policy module for consumption, void classification and aggregate-only corpus reuse limits. Bind candidate, protocol, policy, assignment and selected-inventory checksums.",
+    "Hold an exclusive live execution lease throughout an attempt. Serialize ledger transitions and atomically replace flushed state before acknowledging the first-read callback.",
+    "A repeated callback is idempotent only through the same live attempt. A concurrent or restarted process cannot reopen an old attempt for evaluation.",
+    "Recover interrupted attempts through bookkeeping only: pre-read failures become void and retain candidate authorization; consumed attempts remain consumed.",
+    "Record disclosures immediately and retire the corpus even when a later failure occurs. Refuse further read acknowledgements after retirement. Aggregate-only completion preserves reuse.",
+    "Store only identities, state, result hashes and digested exception messages, without private names, paths, truth or predictions."
+  ],
+  "source_sha256": {
+    "ml/policy/real_workflow_ledger.py": "f3c39e1f09466ff34b57226dd89f149987881a280c496d0f067f2572a67800d4",
+    "ml/policy/tests/test_real_workflow_ledger.py": "2d08a46e6eefbee7a2d0752e775e92e06f3ba31b8d6b31a2593da32fd94d6769",
+    "ml/policy/evidence_policy.py": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7",
+    "ml/policy/evidence-policy.json": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "verification": {
+    "command": "python -m pytest ml/policy/tests/test_real_workflow_ledger.py ml/policy/tests/test_evidence_policy.py -q --junitxml=artifacts/test-results/real-workflow-ledger-final.xml",
+    "process_local_git_configuration": true,
+    "exit_code": 0,
+    "passed": 27,
+    "reported_seconds": 2.35,
+    "junit_sha256": "c334408c37cac3681389a5c6a941bb88e066d9ba865646a74d7025d8ba4a4927",
+    "checks": [
+      "cross-process live attempt exclusion",
+      "consumed restart rejection",
+      "bookkeeping-only crash recovery",
+      "void retry",
+      "identity drift rejection",
+      "partial-write protection",
+      "immediate disclosure then failure",
+      "post-retirement acknowledgement rejection",
+      "aggregate-only reuse",
+      "shared maximum distinct revisions"
+    ]
+  },
+  "independent_review_repairs": [
+    "The initial per-transition lock allowed a restarted runner to reuse a consumed attempt ID. A live execution lease and bookkeeping-only recovery close that gap.",
+    "The initial completion-only disclosure API missed disclosures followed by failure. Immediate durable retirement now persists across failure."
+  ],
+  "license_review": "Apache-2.0 project code; Python standard library and existing shared policy only. No dependency or external asset added.",
+  "limitations": [
+    "Outer checksum-bound run admission and the C# callback bridge remain unimplemented.",
+    "The outer runner must retain the live lease and must never treat bookkeeping recovery as permission to evaluate again.",
+    "This component does not validate candidate accuracy, grant approval or read corpus contents."
+  ],
+  "actual_ledger_mutations": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_runs": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_application_build": false,
+  "goal22_status": "FAIL"
+}
