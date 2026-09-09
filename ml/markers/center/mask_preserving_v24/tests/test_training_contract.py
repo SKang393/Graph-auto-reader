@@ -24,15 +24,15 @@ def test_retry10_training_contract_is_fixed_and_preregistered():
     assert config["seed"] == 20260903
     assert config["confidence_threshold"] == 0.25
     assert config["selection_thresholds"] == [0.40, 0.55, 0.70]
-    assert config["optimizer_steps_expected"] == 10656
-    assert config["optimizer_steps_maximum"] == 10656
-    assert config["training_example_count_expected"] == 37774
-    assert config["positive_example_count_expected"] == 3434
-    assert config["hard_negative_example_count_expected"] == 7204
+    assert config["optimizer_steps_expected"] == 10620
+    assert config["optimizer_steps_maximum"] == 10620
+    assert config["training_example_count_expected"] == 37741
+    assert config["positive_example_count_expected"] == 3431
+    assert config["hard_negative_example_count_expected"] == 7202
     assert config["real_range_training_example_count_expected"] == 35838
-    assert config["family_training_example_count_expected"] == 1936
-    assert config["family_positive_example_count_expected"] == 176
-    assert config["family_hard_negative_example_count_expected"] == 348
+    assert config["family_training_example_count_expected"] == 1903
+    assert config["family_positive_example_count_expected"] == 173
+    assert config["family_hard_negative_example_count_expected"] == 346
     assert config["family_hard_negative_radius_px"] == FAMILY_HARD_NEGATIVE_RADIUS_PX
     assert config["retry_count"] == 10
     assert config["retry_reason"] == "add five-axis family-disjoint synthetic coverage after frozen retry9 failed family dev precision, recall, and prohibited-hit gates"
@@ -60,7 +60,7 @@ def test_retry10_training_contract_is_fixed_and_preregistered():
     assert config["retry7_morphology_gap_sha256"] == "163ae1471792925b6b23c3a6fd26d1ae6d16637864180eaafd179875964afa36"
     assert config["retry8_result_sha256"] == "483f5f989ad73d5280da4cf248cc71c2c2f315dec24827b5cb7a2a59512f37cf"
     assert config["retry8_diagnosis_sha256"] == "0d26acdc0f7eb00b9a053a3bedfbba4f7de4dc755d7a78d3275629e3972577ff"
-    assert config["expected_runner_source_bundle_sha256"] == "e8358ea50eea1470eb363a17d9b2f5a678a46061333cf54e45b27e426475406d"
+    assert config["expected_runner_source_bundle_sha256"] == "ca5f214ab8978e91867e4fee2a526e7d7506ef3d3afe8096b0841b5401c59966"
     assert config["retry4_diagnosis_sha256"] == "a19745f7904c8ec316a78a4e220e3133fc5f77fa80f471ed5337976bdbb6594b"
     assert config["retry4_generic_fp_diagnosis_sha256"] == "24d86878dc335803b2aacd6bab5105496cbb2fb51734b4eb0d8ead4feea5d172"
     assert config["retry5_diagnosis_sha256"] == "8f38fd10be6130c34b05aa9544491f59c9c95d8b962bd0010f9dbdf287c8228a"
@@ -99,7 +99,7 @@ def test_runner_source_bundle_is_relative_and_present():
     assert entry["p1_runner_source_bundle_sha256"] == "b8736824df79aadeacded8fec996c932b92f8c1802fd6aced73907958c6f1cf3"
     assert entry["execution_authorized"] is False
     assert entry["authorized_candidate_id"] is None
-    assert entry["status"] == "waiting_production_input_contract"
+    assert entry["status"] == "candidate_1_failed_dev"
     assert source_bundle_sha256(ROOT, RUNNER_SOURCE_PATHS) == config["expected_runner_source_bundle_sha256"]
 
 def test_current_evidence_bindings_and_authorization_match_files():
@@ -136,7 +136,7 @@ def test_current_evidence_bindings_and_authorization_match_files():
     assert entry["synthetic_negative_proposal_count"] == 232798
     assert entry["morphology_diagnosis_sha256"] == config["morphology_diagnosis_sha256"]
     assert entry["morphology_gap_sha256"] == config["morphology_gap_sha256"]
-    assert entry["status"] == "waiting_production_input_contract"
+    assert entry["status"] == "candidate_1_failed_dev"
     assert entry["execution_authorized"] is False
     assert entry["authorized_candidate_id"] is None
     assert entry["real_dev_authorized"] is False
@@ -145,7 +145,8 @@ def test_current_evidence_bindings_and_authorization_match_files():
     assert entry["real_sealed_reads"] == 0
     assert entry["sealed_runs"] == 0
     assert entry["consumed_candidate_ids"] == []
-    assert entry["dev_passed_candidate_ids"] == ["P1"]
+    assert entry["dev_passed_candidate_ids"] == []
+    assert entry["retry9_dev_passed_candidate_ids"] == ["P1"]
     assert entry["candidate_consumed"] is False
     assert entry["p1_result_path"].endswith("P1_RETRY9_RESULT.json")
     assert digest(ROOT / entry["p1_result_path"]) == entry["p1_result_sha256"]
@@ -415,7 +416,7 @@ def test_retry8_failed_dev_binding_is_unconsumed_and_closed():
     assert entry["retry9_execution_authorized"] is False
     assert entry["retry9_authorized_candidate_id"] is None
     assert entry["consumed_candidate_ids"] == []
-    assert entry["dev_passed_candidate_ids"] == ["P1"]
+    assert entry["retry9_dev_passed_candidate_ids"] == ["P1"]
     assert entry["candidate_consumed"] is False
     assert entry["p1_dev_gate_passed"] is True
     assert entry["real_dev_reads"] == 120
@@ -491,7 +492,7 @@ def test_retry9_void_records_sampler_capacity_mismatch_without_consuming_budget(
     assert entry["retry9_authorized_candidate_id"] is None
     assert entry["candidate_consumed"] is False
     assert entry["consumed_candidate_ids"] == []
-    assert entry["dev_passed_candidate_ids"] == ["P1"]
+    assert entry["retry9_dev_passed_candidate_ids"] == ["P1"]
     assert entry["p1_dev_gate_passed"] is True
     assert entry["real_dev_reads"] == 120
     assert entry["real_sealed_reads"] == 0
@@ -557,7 +558,7 @@ def test_retry7_records_unconsumed_synthetic_dev_pass():
     assert result["sealed_runs"] == 0
     assert digest(result_path) == "6fc74bc7e0aa6c36d7dd0aac51af014ad5875261f9e7a1cb113e13727287d9be"
     assert entry["retry9_status"] == "dev_passed_retry9_unconsumed_real_dev_failed"
-    assert entry["dev_passed_candidate_ids"] == ["P1"]
+    assert entry["retry9_dev_passed_candidate_ids"] == ["P1"]
     assert entry["consumed_candidate_ids"] == []
     assert entry["candidate_consumed"] is False
     assert entry["retry9_execution_authorized"] is False
@@ -723,16 +724,53 @@ def test_retry7_records_unconsumed_synthetic_dev_pass():
     assert entry["retry9_execution_blocker"] == REAL_DEV_BLOCKER
 
 
-def test_oracle_mask_input_hold_rejects_training_before_reservation():
+def test_unapproved_input_hold_rejects_training_before_reservation(tmp_path: Path):
     import pytest
     from ml.markers.training_budget import acquire_training_candidate
 
+    # Exercise a held authorization in an isolated fixture. The real repository
+    # owns retry10 evidence, so a rejection test must never try to reserve it.
+    ledger_path = tmp_path / "ml/markers/training-budgets/production-repair-v1.json"
+    ledger_path.parent.mkdir(parents=True)
+    ledger_path.write_text(json.dumps({"revisions": [{
+        "task": "marker-center", "revision": "marker-center-mask-preserving-v24",
+        "status": "waiting_production_input_contract", "execution_authorized": False,
+        "authorized_candidate_id": None,
+    }]}))
     with pytest.raises(RuntimeError, match="not authorized by the canonical ledger"):
         acquire_training_candidate(
-            ROOT,
+            tmp_path,
             task="marker-center",
             revision="marker-center-mask-preserving-v24",
             candidate_id="P1",
             config_path=Path("ml/markers/center/mask_preserving_v24/training/p1.json"),
             runner_source_paths=RUNNER_SOURCE_PATHS,
         )
+    assert not (tmp_path / "ml/markers/training-seals").exists()
+
+
+def test_retry10_outcome_is_bound_and_cannot_inherit_retry9_dev_approval():
+    ledger = json.loads((ROOT / "ml/markers/training-budgets/production-repair-v1.json").read_bytes())
+    entry = next(item for item in ledger["revisions"] if item["revision"] == "marker-center-mask-preserving-v24")
+    result_bytes = (ROOT / entry["current_candidate_result_path"]).read_bytes()
+    report = json.loads(result_bytes)
+    seal_root = ROOT / "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1"
+    result_seal = json.loads((seal_root / "result.json").read_bytes())
+    opened = json.loads((seal_root / "opened.json").read_bytes())
+    digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
+
+    assert hashlib.sha256(result_bytes).hexdigest() == entry["current_candidate_result_sha256"]
+    assert result_seal["report_sha256"] == entry["current_candidate_result_sha256"]
+    assert result_seal["opened_sha256"] == digest(seal_root / "opened.json")
+    assert opened["binding"]["candidate_config_sha256"] == entry["candidate_config_sha256"]["P1"]
+    assert opened["binding"]["source_snapshot_sha256"] == digest(seal_root / "source-snapshot.json")
+    assert report["status"] == result_seal["status"] == entry["current_candidate_status"] == "failed_dev"
+    assert not _passes_required_dev_gates(report["selected"], report["family_selected"], report["acceptance_bar"])
+    assert entry["execution_authorized"] is False
+    assert entry["dev_passed_candidate_ids"] == []
+    assert entry["retry9_dev_passed_candidate_ids"] == ["P1"]
+    assert entry["real_dev_authorized"] is entry["real_sealed_authorized"] is False
+    assert report["sealed_runs"] == report["real_dev_reads"] == report["real_sealed_reads"] == 0
+    assert report["production_approval"] is report["private_data"] is False
+    assert report["runtime_training_inputs"]["annotation_masks_used"] is False
+    assert not (seal_root / "consumed.json").exists()

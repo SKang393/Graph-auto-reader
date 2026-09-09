@@ -328,6 +328,40 @@ public sealed class Session04AcceptanceTests
     }
 
     [TestMethod]
+    public async Task ScannedRenderedPageUsesPointMinimumAtRasterDpiAndRejectsShortLegendFrameAxis()
+    {
+        const int width = 1200;
+        const int height = 350;
+        var page = new PdfPageSnapshot(
+            pageNumber: 1,
+            widthPoints: width / 2d,
+            heightPoints: height / 2d,
+            textBlocks: [],
+            embeddedImages: [],
+            vectorLines: []);
+        var rendered = new PdfRenderedPage(
+            new ImmutableByteBuffer(CreateGraphWithShortLegendFramePng(width, height)),
+            Width: width,
+            Height: height);
+
+        PdfPanelizationResult result = await new PanelizationEngine().ProposeAsync(
+            new PdfPanelizationInput(
+                new string('8', 64),
+                page,
+                rendered,
+                new PdfPanelizationOptions(RenderDpi: 144)),
+            CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded, PanelizationFailureSummary(result));
+        Assert.AreEqual(1, result.Figures.Count,
+            "A 34-pixel legend corner is shorter than the 48-pixel rendering of the 24-point axis minimum.");
+        Assert.AreEqual(1, result.Panels.Count);
+        PdfRectD crop = result.Panels[0].CropInSourcePixels;
+        Assert.IsTrue(crop.Contains(new PdfRectD(105, 96, 855, 164)),
+            "The retained proposal must preserve the complete graph plot.");
+    }
+
+    [TestMethod]
     public async Task BlankScannedRenderedPageIsRejectedInsteadOfAcceptedAsAFigure()
     {
         var page = new PdfPageSnapshot(
@@ -1360,6 +1394,23 @@ public sealed class Session04AcceptanceTests
             DrawVertical(scanlines, width, height, x: 300, yMin: baseline - 150, yMax: baseline, thickness: 1);
         }
 
+        return EncodeGrayscalePng(width, height, scanlines);
+    }
+
+    private static byte[] CreateGraphWithShortLegendFramePng(int width, int height)
+    {
+        byte[] scanlines = CreateWhiteScanlines(width, height);
+        DrawHorizontal(scanlines, width, height, xMin: 105, xMax: 960, y: 260, thickness: 2);
+        DrawVertical(scanlines, width, height, x: 105, yMin: 96, yMax: 260, thickness: 2);
+        DrawHorizontal(scanlines, width, height, xMin: 180, xMax: 370, y: 220, thickness: 1);
+        DrawHorizontal(scanlines, width, height, xMin: 420, xMax: 650, y: 180, thickness: 1);
+
+        // At 144 DPI this 34-pixel frame edge is only 17 points tall. It must
+        // not become a second graph proposal that overlaps the real plot crop.
+        DrawHorizontal(scanlines, width, height, xMin: 978, xMax: 1128, y: 104, thickness: 1);
+        DrawHorizontal(scanlines, width, height, xMin: 978, xMax: 1128, y: 138, thickness: 1);
+        DrawVertical(scanlines, width, height, x: 978, yMin: 104, yMax: 138, thickness: 1);
+        DrawVertical(scanlines, width, height, x: 1128, yMin: 104, yMax: 138, thickness: 1);
         return EncodeGrayscalePng(width, height, scanlines);
     }
 

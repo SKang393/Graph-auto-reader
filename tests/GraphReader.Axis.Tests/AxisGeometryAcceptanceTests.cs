@@ -283,6 +283,37 @@ public sealed class AxisGeometryAcceptanceTests
     }
 
     [TestMethod]
+    public async Task FittedShortPlotGeometryIsBoundedToOriginalPixelFrame()
+    {
+        AxisGeometryRequest request = new AxisFixtureBuilder(width: 120, height: 60)
+            .Line(10, 50, 100, 50, id: "x-axis")
+            .Line(10, 50, 11, 0, id: "y-axis-a")
+            .Line(10, 50, 10.8, 0, id: "y-axis-b")
+            .Line(50, 50, 51, 0, id: "divider-a")
+            .Line(50, 50, 50.8, 0, id: "divider-b")
+            .Build();
+
+        AxisGeometryResult result = await new AxisGeometryDetector().DetectAsync(request);
+        GeometryLineSegment[] lines =
+        [
+            result.XAxis.Line,
+            result.YAxis.Line,
+            .. result.Ticks.Select(static item => item.Line),
+            .. result.PhaseDividers.Select(static item => item.Line),
+            .. result.AmbiguousGridOrDividers.Select(static item => item.Line),
+        ];
+
+        Assert.IsNotEmpty(result.PhaseDividers);
+        Assert.IsTrue(lines.All(line =>
+            line.Start.IsFinite && line.End.IsFinite && line.Length > double.Epsilon &&
+            line.Start.X >= 0 && line.Start.X <= request.ImageWidth - 1d &&
+            line.End.X >= 0 && line.End.X <= request.ImageWidth - 1d &&
+            line.Start.Y >= 0 && line.Start.Y <= request.ImageHeight - 1d &&
+            line.End.Y >= 0 && line.End.Y <= request.ImageHeight - 1d));
+        Assert.AreEqual(0d, result.YAxis.Line.End.Y, 1e-9d);
+    }
+
+    [TestMethod]
     public async Task NonOriginalCoordinateSpaceAndCancellationAreRejected()
     {
         AxisFixtureBuilder fixture = new AxisFixtureBuilder().CleanAxes();

@@ -617,9 +617,21 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         var verticalProjections = Endpoints(vertical.Line)
             .Select(point => Project(point, intersection, upDirection))
             .ToArray();
-        var rightDistance = horizontalProjections.Max();
+        var rightDistance = Math.Min(
+            horizontalProjections.Max(),
+            MaximumRayDistanceInsideFrame(intersection, xDirection, imageWidth, imageHeight));
         var leftExtension = Math.Max(0d, -horizontalProjections.Min());
-        var topDistance = verticalProjections.Max();
+        var topDistance = Math.Min(
+            verticalProjections.Max(),
+            MaximumRayDistanceInsideFrame(intersection, upDirection, imageWidth, imageHeight));
+        var topLeft = Add(intersection, upDirection, topDistance);
+        rightDistance = Math.Min(
+            rightDistance,
+            MaximumRayDistanceInsideFrame(topLeft, xDirection, imageWidth, imageHeight));
+        var bottomRight = Add(intersection, xDirection, rightDistance);
+        topDistance = Math.Min(
+            topDistance,
+            MaximumRayDistanceInsideFrame(bottomRight, upDirection, imageWidth, imageHeight));
         var bottomExtension = Math.Max(0d, -verticalProjections.Min());
 
         var horizontalSpanScore = Clamp01(horizontal.Span / (imageWidth * 0.75d));
@@ -1275,6 +1287,30 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
 
     private static PixelPoint Add(PixelPoint point, Vector2 direction, double distance) =>
         new(point.X + (direction.X * distance), point.Y + (direction.Y * distance));
+
+    private static double MaximumRayDistanceInsideFrame(
+        PixelPoint origin,
+        Vector2 direction,
+        int imageWidth,
+        int imageHeight)
+    {
+        var maximum = double.PositiveInfinity;
+        Constrain(origin.X, direction.X, imageWidth - 1d);
+        Constrain(origin.Y, direction.Y, imageHeight - 1d);
+        return Math.Max(0d, maximum);
+
+        void Constrain(double coordinate, double component, double upperBound)
+        {
+            if (component > 1e-12d)
+            {
+                maximum = Math.Min(maximum, (upperBound - coordinate) / component);
+            }
+            else if (component < -1e-12d)
+            {
+                maximum = Math.Min(maximum, -coordinate / component);
+            }
+        }
+    }
 
     private static IEnumerable<PixelPoint> Endpoints(GeometryLineSegment line)
     {

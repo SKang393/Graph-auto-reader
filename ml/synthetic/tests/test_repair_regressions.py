@@ -235,6 +235,125 @@ def test_visible_text_boxes_are_measured_and_contain_rendered_glyphs(
     assert visible_count > 300
 
 
+def test_phase_and_condition_labels_do_not_overlap_in_complete_smoke_catalog(
+    smoke_root: Path,
+) -> None:
+    checked_pairs = 0
+    retained_hard_negatives = 0
+    for annotation_path in sorted((smoke_root / "annotations").glob("*.json")):
+        annotation = _read_json(annotation_path)
+        canvas_width = int(annotation["canvas"]["width"])
+        canvas_height = int(annotation["canvas"]["height"])
+        retained_hard_negatives += len(annotation["hard_negatives"])
+        for panel in annotation["panels"]:
+            phases = [phase for phase in panel["phases"] if phase["label_text"]]
+            phase_headings = [
+                text for text in panel["texts"] if text["role"] == "phase_heading"
+            ]
+            condition_labels = [
+                text for text in panel["texts"] if text["role"] == "condition_label"
+            ]
+
+            assert [text["text"] for text in phase_headings] == [
+                phase["label_text"] for phase in phases
+            ]
+            assert [text["text"] for text in condition_labels] == [
+                phase["code"].upper() for phase in phases
+            ]
+            assert len(condition_labels) == len(panel["top_bars"])
+
+            occupied_header_text = [
+                text
+                for text in panel["texts"]
+                if text["role"] in {"phase_heading", "participant", "annotation"}
+            ]
+            for condition in condition_labels:
+                condition_box = condition["rendered_pixel_box"]
+                assert condition_box is not None
+                assert _box_inside(condition_box, canvas_width, canvas_height)
+                panel_x, panel_y, panel_width, panel_height = panel["box"]
+                condition_x, condition_y, condition_width, condition_height = condition_box
+                assert (
+                    condition_x >= panel_x
+                    and condition_y >= panel_y
+                    and condition_x + condition_width <= panel_x + panel_width
+                    and condition_y + condition_height <= panel_y + panel_height
+                )
+                for heading in phase_headings:
+                    heading_box = heading["rendered_pixel_box"]
+                    assert heading_box is not None
+                    assert not _boxes_overlap(heading_box, condition_box)
+                    checked_pairs += 1
+                for occupied in occupied_header_text:
+                    occupied_box = occupied["rendered_pixel_box"]
+                    assert occupied_box is not None
+                    assert not _boxes_overlap(occupied_box, condition_box)
+
+    assert checked_pairs > 0
+    assert retained_hard_negatives > 0
+
+
+@pytest.mark.parametrize(
+    ("design", "seed", "session_count", "canvas_width", "panel_height", "presentation"),
+    (
+        ("ab", 901, 24, 361, 160, {"font_size_px": 17}),
+        (
+            "changing_criterion",
+            902,
+            24,
+            2400,
+            500,
+            {"font_size_px": 64, "show_arrows": False, "show_brackets": False},
+        ),
+    ),
+    ids=("narrow-panel", "maximum-font-size"),
+)
+def test_condition_labels_preserve_measured_glyphs_in_representative_layouts(
+    design: str,
+    seed: int,
+    session_count: int,
+    canvas_width: int,
+    panel_height: int,
+    presentation: dict[str, Any],
+) -> None:
+    scene = build_scene(
+        design,
+        seed,
+        "vector_clean",
+        session_count=session_count,
+        canvas_width=canvas_width,
+        panel_height=panel_height,
+        presentation=presentation,
+    )
+    _, annotation, _ = render_scene(scene)
+
+    assert scene["hard_negatives"]
+    for panel in annotation["panels"]:
+        headings = [
+            text for text in panel["texts"] if text["role"] == "phase_heading"
+        ]
+        conditions = [
+            text for text in panel["texts"] if text["role"] == "condition_label"
+        ]
+        assert headings
+        assert conditions
+        panel_x, panel_y, panel_width, panel_box_height = panel["box"]
+        for condition in conditions:
+            rendered = condition["rendered_pixel_box"]
+            assert rendered is not None
+            rendered_x, rendered_y, rendered_width, rendered_height = rendered
+            assert rendered_width > 0
+            assert rendered_height > 0
+            assert rendered_x >= panel_x
+            assert rendered_y >= panel_y
+            assert rendered_x + rendered_width <= panel_x + panel_width
+            assert rendered_y + rendered_height <= panel_y + panel_box_height
+            assert all(
+                not _boxes_overlap(rendered, heading["rendered_pixel_box"])
+                for heading in headings
+            )
+
+
 def test_seed_driven_graph_style_variation_is_deterministic() -> None:
     first = build_scene("ab", 393, "vector_clean", session_count=25)
     assert first == build_scene("ab", 393, "vector_clean", session_count=25)

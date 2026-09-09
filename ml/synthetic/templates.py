@@ -12,6 +12,7 @@ import uuid
 from collections.abc import Iterable, Mapping
 from typing import Any
 
+from .fonts import FontResolver
 from .schema import validate_scene
 
 
@@ -380,6 +381,10 @@ def build_scene(
             raise ValueError(f"Unsupported presentation keys: {sorted(unknown)}")
         default_presentation.update(presentation_values)
     default_presentation["features"] = list(resolved_features)
+    layout_font = FontResolver().resolve(
+        _GENERIC_FONT[profile["font"]],
+        int(default_presentation.get("font_size_px", 14)),
+    ).load()
 
     style = _style_variation(
         seed_value,
@@ -422,6 +427,7 @@ def build_scene(
                 annotations=annotations,
                 canvas_width=canvas_width,
                 panel_height=panel_height,
+                layout_font=layout_font,
             )
         )
 
@@ -737,6 +743,7 @@ def _build_panel(
     annotations: dict[str, list[dict[str, Any]]],
     canvas_width: int,
     panel_height: int,
+    layout_font: Any,
 ) -> dict[str, Any]:
     panel_id = _stable_uuid(seed, design, str(panel_index), "panel")
     panel_y = 40 + panel_index * panel_height
@@ -795,7 +802,7 @@ def _build_panel(
                 annotations,
                 seed,
                 panel_id,
-                [max(plot_x, (x_min + x_max) / 2 - 55), plot_y - 25, 110.0, 18.0],
+                _phase_heading_box(plot_x, x_min, x_max, plot_y, label, layout_font),
                 label,
                 "phase_heading",
             )
@@ -938,7 +945,10 @@ def _build_panel(
         seed,
         panel_id,
         phases,
+        panel_box,
+        plot_x,
         plot_y,
+        layout_font,
         presentation["show_top_condition_bars"],
         annotations,
     )
@@ -1449,7 +1459,10 @@ def _condition_bars(
     seed: int,
     panel_id: str,
     phases: list[dict[str, Any]],
+    panel_box: list[float],
+    plot_x: float,
     plot_y: float,
+    layout_font: Any,
     visible: bool,
     annotations: dict[str, list[dict[str, Any]]],
 ) -> list[dict[str, Any]]:
@@ -1474,7 +1487,15 @@ def _condition_bars(
             annotations,
             seed,
             panel_id,
-            [sum(line[::2]) / 2 - 10.0, y - 15.0, 20.0, 13.0],
+            _condition_label_box(
+                panel_id,
+                phase,
+                panel_box,
+                plot_x,
+                plot_y,
+                layout_font,
+                annotations["text_regions"],
+            ),
             label,
             "condition_label",
         )
@@ -1482,6 +1503,127 @@ def _condition_bars(
             annotations, seed, panel_id, "condition_bar", "condition_bar", "line", line
         )
     return bars
+
+
+def _phase_heading_box(
+    plot_x: float,
+    phase_x_min: float,
+    phase_x_max: float,
+    plot_y: float,
+    text: str,
+    layout_font: Any,
+) -> list[float]:
+    width, height = _measured_text_region_size(layout_font, text, 110.0, 18.0)
+    return [
+        max(plot_x, (phase_x_min + phase_x_max) / 2 - width / 2),
+        plot_y - 25.0,
+        width,
+        height,
+    ]
+
+
+def _condition_label_box(
+    panel_id: str,
+    phase: Mapping[str, Any],
+    panel_box: list[float],
+    plot_x: float,
+    plot_y: float,
+    layout_font: Any,
+    text_regions: list[dict[str, Any]],
+) -> list[float]:
+    """Place a compact condition code in unoccupied panel-header geometry."""
+
+    label = str(phase["code"]).upper()
+    label_width, label_height = _measured_text_region_size(
+        layout_font, label, 20.0, 13.0
+    )
+    phase_x_min = float(phase["screen_x_min"])
+    phase_x_max = float(phase["screen_x_max"])
+    label_y = plot_y - 23.0
+    heading_box = _phase_heading_box(
+        plot_x,
+        phase_x_min,
+        phase_x_max,
+        plot_y,
+        str(phase["label_text"]),
+        layout_font,
+    )
+    occupied_boxes = []
+    for item in text_regions:
+        if item["panel_id"] != panel_id:
+            continue
+        box = [float(value) for value in item["box"]]
+        box[2], box[3] = _measured_text_region_size(
+            layout_font, str(item["text"]), box[2], box[3]
+        )
+        occupied_boxes.append(box)
+
+    phase_center = (phase_x_min + phase_x_max) / 2
+    phase_candidates = (
+        [phase_x_min, label_y, label_width, label_height],
+        [phase_x_max - label_width, label_y, label_width, label_height],
+        [phase_center - label_width / 2, label_y, label_width, label_height],
+    )
+    adjacent_candidates = (
+        [heading_box[0] - label_width, label_y, label_width, label_height],
+        [heading_box[0] + heading_box[2], label_y, label_width, label_height],
+    )
+    upper_y = plot_y - 25.0 - label_height
+    upper_candidates = tuple(
+        [candidate[0], upper_y, label_width, label_height]
+        for candidate in (*phase_candidates, *adjacent_candidates)
+    )
+    panel_x, panel_y, panel_width, panel_height = panel_box
+    candidates = (
+        *((candidate, True) for candidate in phase_candidates),
+        *((candidate, False) for candidate in adjacent_candidates),
+        *((candidate, False) for candidate in upper_candidates),
+    )
+
+    def is_inside(candidate: list[float], require_phase_containment: bool) -> bool:
+        if require_phase_containment and (
+            candidate[0] < phase_x_min or candidate[0] + label_width > phase_x_max
+        ):
+            return False
+        if candidate[1] < panel_y or candidate[1] + label_height > panel_y + panel_height:
+            return False
+        if candidate[0] < panel_x or candidate[0] + label_width > panel_x + panel_width:
+            return False
+        return True
+
+    for candidate, require_phase_containment in candidates:
+        if not is_inside(candidate, require_phase_containment):
+            continue
+        if not any(_boxes_overlap(candidate, occupied) for occupied in occupied_boxes):
+            return candidate
+
+    raise RuntimeError(
+        f"Panel header has no non-overlapping space for condition label {label!r}"
+    )
+
+
+def _measured_text_region_size(
+    layout_font: Any,
+    text: str,
+    minimum_width: float,
+    minimum_height: float,
+) -> tuple[float, float]:
+    left, top, right, bottom = layout_font.getbbox(text, anchor="lt")
+    return (
+        max(minimum_width, float(right - left)),
+        max(minimum_height, float(bottom - top)),
+    )
+
+
+def _boxes_overlap(first: list[float], second: list[float]) -> bool:
+    first_x, first_y, first_width, first_height = first
+    second_x, second_y, second_width, second_height = second
+    return (
+        first_x < second_x + second_width
+        and second_x < first_x + first_width
+        and first_y < second_y + second_height
+        and second_y < first_y + first_height
+    )
 
 
 def _hard_negative_requests(

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Sungwoo Kang
-"""Single-use V24 P1 fine-tune runner; execution is explicitly deferred."""
+"""Ledger-authorized V24 P1 fine-tune runner with frozen runtime family inputs."""
 from __future__ import annotations
 import argparse, hashlib, json, random, time
 from datetime import datetime, timezone
@@ -15,7 +15,8 @@ from ml.markers.center.metrics import center_metrics
 from ml.markers.gate_seal import canonical_json_bytes, sha256_file
 from ml.markers.training_budget import acquire_training_candidate, complete_training_candidate, void_candidate
 from ml.synthetic.dataset import family_holdout_audit
-from .family_scenes import FamilyScene, build_family_split
+from .family_scenes import FamilyScene
+from .runtime_binding import load_runtime_family_binding, tensor_set_sha256
 from .mask_preserving import extract_proposals, postprocess, prohibited_hits
 from . import protocol
 
@@ -54,6 +55,11 @@ RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY8_DIAGNOSIS.json"),
     Path("ml/markers/center/mask_preserving_v24/P1_RETRY8_RESULT.json"),
     Path("ml/markers/center/mask_preserving_v24/family_scenes.py"),
+    Path("ml/markers/center/mask_preserving_v24/export_family_rasters.py"),
+    Path("ml/markers/center/mask_preserving_v24/runtime_inputs.py"),
+    Path("ml/markers/center/mask_preserving_v24/runtime_family_scenes.py"),
+    Path("ml/markers/center/mask_preserving_v24/runtime_binding.py"),
+    Path("tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py"),
     Path("ml/synthetic/dataset.py"),
     Path("ml/synthetic/fonts.py"),
     Path("ml/synthetic/schema.py"),
@@ -63,6 +69,7 @@ RUNNER_SOURCE_PATHS = (
     Path("ml/synthetic/templates.py"),
     Path("ml/synthetic/renderer.py"),
     Path("docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json"),
+    Path("docs/GOAL-22-V24-RUNTIME-INPUT-PREFLIGHT.json"),
     Path("ml/markers/center/metrics.py"),
     Path("ml/policy/evidence-policy.json"),
     Path("ml/policy/acceptance-bars.json"),
@@ -87,11 +94,7 @@ def _hard_negative_radius(scene, kind: str) -> float | None:
 
 
 def _tensor_set_sha256(scenes) -> str:
-    hashes = sorted(
-        hashlib.sha256(scene.tensor.numpy().tobytes(order="C")).hexdigest()
-        for scene in scenes
-    )
-    return hashlib.sha256(canonical_json_bytes(hashes)).hexdigest()
+    return tensor_set_sha256(scenes)
 
 
 def _passes_marker_bar(metrics: dict[str, float], bar: dict[str, float]) -> bool:
@@ -128,12 +131,26 @@ def _shared_marker_acceptance_bar() -> dict[str, float]:
     }
 
 
-def _selected_index_sha256(scenes, selections) -> str:
-    identities = [
-        f"{scene.split}:{scene.family}:{scene.seed}:{index}"
-        for scene, indices in zip(scenes, selections, strict=True)
-        for index in indices
-    ]
+def _selected_index_sha256(scenes, selections, proposal_coordinates=None) -> str:
+    identities = []
+    for scene_number, (scene, indices) in enumerate(zip(scenes, selections, strict=True)):
+        panel_identity = getattr(scene, "sampling_identity", None)
+        if panel_identity is None:
+            identities.extend(
+                f"{scene.split}:{scene.family}:{scene.seed}:{index}" for index in indices
+            )
+            continue
+        if proposal_coordinates is None:
+            raise ValueError("runtime panel sampling requires proposal coordinates")
+        coordinates = proposal_coordinates[scene_number]
+        identities.extend(
+            {
+                "panel": panel_identity,
+                "proposal_index": index,
+                "coordinates": [float(value) for value in coordinates[index]],
+            }
+            for index in indices
+        )
     return hashlib.sha256(canonical_json_bytes(identities)).hexdigest()
 
 
@@ -162,13 +179,25 @@ def _examples_with_report(
     values = [[] for _ in range(5)]
     if sampling_mode != "real-range-train":
         selections = []
+        proposal_coordinates = []
         for scene in scenes:
             proposals = extract_proposals(scene.tensor)
-            centers = torch.tensor(scene.centers, dtype=torch.float32)
+            proposal_coordinates.append(proposals.coordinates)
+            centers = torch.tensor(scene.centers, dtype=torch.float32).reshape(-1, 2)
             radii = torch.tensor(scene.diameters, dtype=torch.float32) / 2.0
-            distance = torch.cdist(proposals.coordinates, centers)
-            nearest, nearest_index = distance.min(dim=1)
-            labels = nearest.le(3.0).float()
+            if len(centers):
+                distance = torch.cdist(proposals.coordinates, centers)
+                nearest, nearest_index = distance.min(dim=1)
+                labels = nearest.le(3.0).float()
+                offsets = (centers[nearest_index] - proposals.coordinates) / 4.0
+                target_radii = radii[nearest_index]
+            else:
+                # An actual crop may contain only background/artifacts. Retain
+                # it in the split; the existing per-positive budget selects no
+                # training examples from this panel, without inventing a target.
+                labels = torch.zeros(len(proposals.coordinates), dtype=torch.float32)
+                offsets = torch.zeros_like(proposals.coordinates)
+                target_radii = torch.zeros_like(labels)
             hard = torch.zeros(len(proposals.coordinates), dtype=torch.bool)
             for kind, x, y in scene.hard_negatives:
                 radius = _hard_negative_radius(scene, kind)
@@ -185,7 +214,7 @@ def _examples_with_report(
             negative = negative[:max(0, negative_budget - len(hard_negative))]
             selected = torch.cat((positive, hard_negative, negative)).unique(sorted=True)
             selections.append(tuple(int(index) for index in selected.tolist()))
-            values[0].append(proposals.patches[selected]); values[1].append(labels[selected]); values[2].append((centers[nearest_index]-proposals.coordinates).index_select(0, selected)/4.0); values[3].append(radii[nearest_index].index_select(0, selected)); values[4].append(hard[selected])
+            values[0].append(proposals.patches[selected]); values[1].append(labels[selected]); values[2].append(offsets[selected]); values[3].append(target_radii[selected]); values[4].append(hard[selected])
         selected_count = sum(len(indices) for indices in selections)
         positive_count = sum(int((part > .5).sum()) for part in values[1])
         hard_count = sum(
@@ -200,7 +229,7 @@ def _examples_with_report(
                 "hard_negative": hard_count,
                 "other_negative": selected_count - positive_count - hard_count,
             },
-            _selected_index_sha256(scenes, selections)
+            _selected_index_sha256(scenes, selections, proposal_coordinates)
             if sampling_mode == "family-train"
             else "subset-test",
         )
@@ -269,6 +298,17 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
         raise ValueError("anti-aliasing schedule does not match generator constant")
     if float(config["family_hard_negative_radius_px"]) != FAMILY_HARD_NEGATIVE_RADIUS_PX:
         raise ValueError("five-axis family hard-negative radius changed")
+    if not config.get("runtime_training_input_binding_path") or not config.get("runtime_training_input_binding_sha256"):
+        raise RuntimeError("training requires a frozen actual-runtime family input binding")
+    if _sha(REPO_ROOT / config["runtime_input_preflight_path"]) != config["runtime_input_preflight_sha256"]:
+        raise RuntimeError("runtime input preflight identity changed")
+    binding_started = time.perf_counter()
+    _configure(config["seed"])
+    family_join = load_runtime_family_binding(
+        REPO_ROOT / config["runtime_training_input_binding_path"],
+        config["runtime_training_input_binding_sha256"],
+    )
+    binding_elapsed_ms = round((time.perf_counter() - binding_started) * 1000, 3)
     authorization=acquire_training_candidate(REPO_ROOT,task=protocol.TASK,revision=protocol.TRAINING_REVISION,candidate_id=protocol.TRAINING_CANDIDATE_ID,config_path=CONFIG_PATH,runner_source_paths=RUNNER_SOURCE_PATHS)
     output_dir.mkdir(parents=True); report_path=output_dir/"candidate-report.json"; started=time.perf_counter(); phase="initialization"
     try:
@@ -282,7 +322,7 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
         if family_audit["splits"]["train"]["aggregate_sha256"] != config["family_train_split_sha256"] or family_audit["splits"]["dev"]["aggregate_sha256"] != config["family_dev_split_sha256"]:
             raise RuntimeError("five-axis synthetic family split changed")
         train=build_split("train"); dev=build_split("dev", independent_layout=True)
-        family_train=build_family_split("train"); family_dev=build_family_split("dev")
+        family_train=family_join.train; family_dev=family_join.dev
         if _tensor_set_sha256(family_train) != config["family_train_tensor_set_sha256"] or _tensor_set_sha256(family_dev) != config["family_dev_tensor_set_sha256"]:
             raise RuntimeError("five-axis synthetic family tensors changed")
         gen=torch.Generator().manual_seed(config["seed"]+1)
@@ -324,10 +364,14 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
             raise RuntimeError("generic connector-band sampling contract changed")
         if len(labels) != config["training_example_count_expected"] or int((labels>.5).sum()) != config["positive_example_count_expected"] or int(hard.sum()) != config["hard_negative_example_count_expected"]: raise RuntimeError("training example contract changed")
         payload=torch.load(checkpoint,map_location="cpu",weights_only=False); model=ScaleClassifierNet(ModelConfig(seed=20260902)); model.load_state_dict(payload["state_dict"]); optimizer=torch.optim.AdamW(model.parameters(),lr=config["learning_rate"],weight_decay=config["weight_decay"]); steps=0; phase="training"; model.train()
-        for _ in range(config["epochs"]):
+        for epoch in range(config["epochs"]):
             order=torch.randperm(len(labels),generator=gen)
             for start in range(0,len(labels),config["batch_size"]):
                 index=order[start:start+config["batch_size"]]; loss=v21_loss(model.forward_raw(patches[index]),labels[index],offsets[index],radii[index],hard[index],positive_weight=config["positive_loss_weight"],hard_weight=config["hard_negative_loss_weight"],alpha=config["focal_alpha"],gamma=config["focal_gamma"]); optimizer.zero_grad(set_to_none=True); loss.backward(); torch.nn.utils.clip_grad_norm_(model.parameters(),5.0); optimizer.step(); steps+=1
+            if (epoch + 1) % 6 == 0 or epoch + 1 == config["epochs"]:
+                print(json.dumps({"phase": "training", "epoch": epoch + 1,
+                                  "epochs": config["epochs"], "optimizer_steps": steps,
+                                  "elapsed_seconds": round(time.perf_counter() - started, 3)}), flush=True)
         if steps != config["optimizer_steps_expected"] or steps > config["optimizer_steps_maximum"]: raise RuntimeError(f"optimizer step contract changed: {steps}")
         phase="dev"; model.eval(); comparisons=[_evaluate(dev,model,t) for t in [0.25,*config["selection_thresholds"]]]; family_comparisons=[_evaluate(family_dev,model,t) for t in [0.25,*config["selection_thresholds"]]]; selected=comparisons[0]; family_selected=family_comparisons[0]; bar=_shared_marker_acceptance_bar(); real_range_dev_passed=_passes_marker_bar(selected,bar); family_dev_passed=_passes_marker_bar(family_selected,bar); dev_passed=_passes_required_dev_gates(selected,family_selected,bar)
         phase="export"; out_pt=output_dir/"marker-center-mask-preserving-v24-p1.pt"; torch.save({"state_dict":model.state_dict(),"config":model.export_contract()},out_pt); out_onnx=output_dir/"marker-center-mask-preserving-v24-p1.onnx"; torch.onnx.export(model,torch.zeros((1,3,33,33)),out_onnx,input_names=["candidate_patches"],output_names=["candidate_predictions"],dynamic_axes={"candidate_patches":{0:"candidate_count"},"candidate_predictions":{0:"candidate_count"}},opset_version=18,dynamo=False); onnx.checker.check_model(onnx.load(out_onnx)); session=ort.InferenceSession(str(out_onnx),providers=[protocol.PROVIDER]);
@@ -336,6 +380,18 @@ def run(output_dir: Path, checkpoint: Path, v21_onnx: Path) -> dict:
         for count in [1,8,37]:
             x=parity_source[:count].contiguous(); expected=model(x).detach().numpy(); actual=session.run(["candidate_predictions"],{"candidate_patches":x.numpy()})[0]; parity.append({"candidate_count":count,"maximum_absolute_error":float(np.max(np.abs(expected-actual)))})
         report={"schema":"graphreader.marker-center-mask-preserving-v24-candidate.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"status":"dev_passed" if dev_passed and max(r["maximum_absolute_error"] for r in parity)<=config["onnx_parity_tolerance"] else "failed_dev","synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0,"optimizer_steps":steps,"training_example_count":len(labels),"positive_example_count":int((labels>.5).sum()),"hard_negative_example_count":int(hard.sum()),"real_range_training_example_count":len(real_labels),"family_training_example_count":len(family_labels),"family_positive_example_count":int((family_labels>.5).sum()),"family_hard_negative_example_count":int(family_hard.sum()),"negative_sampling":{"seed":20260904,"split":"train","capacities":sampling.capacities,"counts":sampling.counts,"selected_index_sha256":sampling.selected_index_sha256,"topology_radius_px":topology_config["radius_px"],"topology_capacity":sampling.topology_capacity,"topology_selected":sampling.topology_selected,"topology_selected_index_sha256":sampling.topology_selected_index_sha256,"topology_hard_radius_px":topology_hard_config["radius_px"],"topology_hard_capacity":sampling.topology_hard_capacity,"topology_hard_selected":sampling.topology_hard_selected,"hard_training_total":sampling.hard_training_total,"connector_endpoint_offset_px":connector_config["endpoint_offset_px"],"connector_anchor_max_distance_px":connector_config["max_distance_px"],"connector_anchor_target_count":sampling.connector_anchor_target_count,"connector_anchor_capacity":sampling.connector_anchor_capacity,"connector_anchor_selected":sampling.connector_anchor_selected,"connector_anchor_selected_index_sha256":sampling.connector_anchor_selected_index_sha256,"generic_connector_band_radius_px":band_config["radius_px"],"generic_connector_band_capacity":sampling.capacities["generic_connector_band"],"generic_connector_band_selected":sampling.counts["generic_connector_band"],"generic_connector_band_selected_index_sha256":sampling.generic_connector_band_selected_index_sha256,"generic_remainder_selected":sampling.generic_remainder_selected},"family_sampling":{"mode":"family-train","capacities":family_sampling.capacities,"counts":family_sampling.counts,"selected_index_sha256":family_sampling.selected_index_sha256},"generator_layout_family_audit":layout_audit,"five_axis_family_audit":family_audit,"family_train_tensor_set_sha256":config["family_train_tensor_set_sha256"],"family_dev_tensor_set_sha256":config["family_dev_tensor_set_sha256"],"acceptance_bar":bar,"dev_comparisons":comparisons,"family_dev_comparisons":family_comparisons,"selected":selected,"family_selected":family_selected,"real_range_dev_gate_passed":real_range_dev_passed,"family_dev_gate_passed":family_dev_passed,"dev_gate_passed":dev_passed,"checkpoint_sha256":_sha(out_pt),"onnx_sha256":_sha(out_onnx),"v21_checkpoint_sha256":config["checkpoint_sha256"],"v21_onnx_sha256":config["v21_onnx_sha256"],"onnx_provider":protocol.PROVIDER,"onnx_dynamic_candidate_counts":parity,"onnx_parity_maximum_absolute_error":max(r["maximum_absolute_error"] for r in parity),"elapsed_ms":round((time.perf_counter()-started)*1000,3),"production_approval":False,"release_eligible":False}
+        report["runtime_training_inputs"] = {
+            "binding_path": config["runtime_training_input_binding_path"],
+            "binding_sha256": config["runtime_training_input_binding_sha256"],
+            "preflight_elapsed_ms": binding_elapsed_ms,
+            "family_train_panel_count": len(family_join.train),
+            "family_dev_panel_count": len(family_join.dev),
+            "family_train_source_count": len({scene.source_sha256 for scene in family_join.train}),
+            "family_dev_source_count": len({scene.source_sha256 for scene in family_join.dev}),
+            "annotation_masks_used": False,
+            "complete_artifact_mask": False,
+            "production_approved": False,
+        }
     except Exception as error:
         report={"schema":"graphreader.marker-center-mask-preserving-v24-failure.v1","task":protocol.TASK,"revision":protocol.TRAINING_REVISION,"candidate_id":protocol.TRAINING_CANDIDATE_ID,"status":"failed_runner","phase":phase,"exception_type":type(error).__name__,"exception_message":str(error),"synthetic_only":True,"private_data":False,"real_dev_reads":0,"real_sealed_reads":0,"sealed_runs":0}
         report_path.write_bytes(canonical_json_bytes(report)); void_candidate(authorization,error); raise

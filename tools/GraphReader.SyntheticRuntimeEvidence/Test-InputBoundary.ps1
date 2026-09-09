@@ -99,6 +99,39 @@ $forgedCandidate = Get-Content -LiteralPath $CandidatePath -Raw | ConvertFrom-Js
 $forgedCandidate.native_scope = 'forged-local-diagnostic-scope'
 Write-JsonFile $forgedCandidatePath $forgedCandidate
 $forgedCandidateSha = (Get-FileHash -LiteralPath $forgedCandidatePath -Algorithm SHA256).Hash.ToLowerInvariant()
+$unknownGeometryPath = Join-Path $script:ScratchRoot 'candidate-unknown-geometry.json'
+$unknownGeometry = Get-Content -LiteralPath $CandidatePath -Raw | ConvertFrom-Json
+Add-Member -InputObject $unknownGeometry -MemberType NoteProperty -Name ocr_output_geometry -Value 'unsupported-geometry' -Force
+Write-JsonFile $unknownGeometryPath $unknownGeometry
+$unknownGeometrySha = (Get-FileHash -LiteralPath $unknownGeometryPath -Algorithm SHA256).Hash.ToLowerInvariant()
+$missingProtocolPath = Join-Path $script:ScratchRoot 'candidate-missing-geometry-protocol.json'
+$missingProtocol = Get-Content -LiteralPath $CandidatePath -Raw | ConvertFrom-Json
+Add-Member -InputObject $missingProtocol -MemberType NoteProperty -Name ocr_output_geometry -Value 'matched_component' -Force
+$missingProtocol.PSObject.Properties.Remove('geometry_protocol')
+Write-JsonFile $missingProtocolPath $missingProtocol
+$missingProtocolSha = (Get-FileHash -LiteralPath $missingProtocolPath -Algorithm SHA256).Hash.ToLowerInvariant()
+$reviewedProtocolPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../ml/ocr/official_bakeoff/component_geometry_dev_protocol.json'))
+$reviewedProtocolSha = (Get-FileHash -LiteralPath $reviewedProtocolPath -Algorithm SHA256).Hash.ToLowerInvariant()
+$alteredProtocolPath = Join-Path $script:ScratchRoot 'altered-geometry-protocol.json'
+$alteredProtocol = Get-Content -LiteralPath $reviewedProtocolPath -Raw | ConvertFrom-Json
+$alteredProtocol.budget.sealed_runs = 1
+Write-JsonFile $alteredProtocolPath $alteredProtocol
+$alteredProtocolSha = (Get-FileHash -LiteralPath $alteredProtocolPath -Algorithm SHA256).Hash.ToLowerInvariant()
+$protocolCases = @(
+    @{ Name = 'self-authorized-geometry-protocol'; ProtocolPath = $alteredProtocolPath; ProtocolSha = $alteredProtocolSha; ErrorMarker = 'Experimental OCR geometry requires the reviewed protocol identity.' },
+    @{ Name = 'altered-geometry-protocol-bytes'; ProtocolPath = $alteredProtocolPath; ProtocolSha = $reviewedProtocolSha; ErrorMarker = 'Experimental OCR geometry protocol checksum mismatch.' },
+    @{ Name = 'wrong-geometry-protocol-inputs'; ProtocolPath = $reviewedProtocolPath; ProtocolSha = $reviewedProtocolSha; ErrorMarker = 'Experimental OCR geometry protocol does not bind these train/dev inputs.' }
+)
+foreach ($protocolCase in $protocolCases) {
+    $protocolCandidate = Get-Content -LiteralPath $missingProtocolPath -Raw | ConvertFrom-Json
+    Add-Member -InputObject $protocolCandidate -MemberType NoteProperty -Name geometry_protocol -Value @{
+        path = $protocolCase.ProtocolPath; sha256 = $protocolCase.ProtocolSha
+    }
+    $protocolCase.CandidatePath = Join-Path $script:ScratchRoot ($protocolCase.Name + '-candidate.json')
+    Write-JsonFile $protocolCase.CandidatePath $protocolCandidate
+    $protocolCase.CandidateSha256 = (Get-FileHash -LiteralPath $protocolCase.CandidatePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $protocolCase.Mutate = { param($m) }
+}
 $outsideOutputPath = Join-Path (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))) `
     ('outside-artifacts-input-boundary-' + (Get-Date -Format 'yyyyMMdd-HHmmssfff'))
 
@@ -111,8 +144,11 @@ $cases = @(
     @{ Name = 'corrupt-png-hash'; ErrorMarker = 'Input checksum mismatch:'; Mutate = { param($m) } },
     @{ Name = 'escaped-image-basename'; ErrorMarker = 'Synthetic raster names must be unique local PNG basenames'; Mutate = { param($m) $m.images[0].image = '..\escaped.png' } },
     @{ Name = 'forged-native-scope'; ErrorMarker = 'Native scope does not match the pinned runtime bytes.'; CandidatePath = $forgedCandidatePath; CandidateSha256 = $forgedCandidateSha; Mutate = { param($m) } },
+    @{ Name = 'unknown-ocr-geometry'; ErrorMarker = 'Unsupported synthetic OCR output geometry.'; CandidatePath = $unknownGeometryPath; CandidateSha256 = $unknownGeometrySha; Mutate = { param($m) } },
+    @{ Name = 'missing-geometry-protocol'; ErrorMarker = 'Experimental OCR geometry requires its pinned protocol.'; CandidatePath = $missingProtocolPath; CandidateSha256 = $missingProtocolSha; Mutate = { param($m) } },
     @{ Name = 'outside-artifacts-output'; ErrorMarker = 'Synthetic evidence output must stay under'; OutputPath = $outsideOutputPath; Mutate = { param($m) } }
 )
+$cases += $protocolCases
 
 $results = [System.Collections.Generic.List[object]]::new()
 $failures = [System.Collections.Generic.List[string]]::new()

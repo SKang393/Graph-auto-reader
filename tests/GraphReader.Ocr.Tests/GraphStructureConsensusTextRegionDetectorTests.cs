@@ -176,6 +176,104 @@ public sealed class GraphStructureConsensusTextRegionDetectorTests
     }
 
     [TestMethod]
+    public async Task MatchedComponentGeometryUsesMatchedPolygonOrientationAndSourceIdentityEvidence()
+    {
+        OcrDetectedRegion model = Region(
+            "model-source",
+            new OcrRectangle(10, 10, 20, 14),
+            0.91,
+            orientationDegrees: 17);
+        OcrDetectedRegion candidate = Region(
+            "component-source",
+            new OcrRectangle(12, 11, 9, 8),
+            0.72,
+            Evidence(3, 0.92, 0.08, false),
+            orientationDegrees: -6);
+        var detector = new GraphStructureConsensusTextRegionDetector(
+            new FixedDetector([model], "model"),
+            new FixedDetector([candidate], "candidate"),
+            new GraphStructureConsensusTextRegionDetectorOptions
+            {
+                OutputGeometry = GraphStructureConsensusGeometry.MatchedComponent,
+            });
+
+        OcrDetectedRegion result = AssertExactlyOne(
+            await detector.DetectAsync(Image(), CancellationToken.None));
+
+        Assert.AreSame(candidate.Polygon, result.Polygon);
+        Assert.AreEqual(candidate.OrientationDegrees, result.OrientationDegrees);
+        Assert.AreEqual(model.DetectionConfidence, result.DetectionConfidence);
+        Assert.IsTrue(Guid.TryParseExact(result.RegionId, "D", out _));
+        Assert.AreNotEqual(model.RegionId, result.RegionId);
+        Assert.AreNotEqual(candidate.RegionId, result.RegionId);
+        Assert.IsNotNull(result.Evidence);
+        CollectionAssert.Contains(result.Evidence.Reasons.ToArray(), "consensus_model_region_id:model-source");
+        CollectionAssert.Contains(result.Evidence.Reasons.ToArray(), "consensus_component_region_id:component-source");
+    }
+
+    [TestMethod]
+    public async Task MatchedComponentIdentityDeterministicallyBindsBothSourceIdsAndPolygon()
+    {
+        async Task<string> DetectId(string modelId, string componentId, OcrRectangle componentBounds)
+        {
+            var detector = new GraphStructureConsensusTextRegionDetector(
+                new FixedDetector([Region(modelId, new OcrRectangle(10, 10, 20, 14), 0.91)], "model"),
+                new FixedDetector([
+                    Region(componentId, componentBounds, 0.72, Evidence(3, 0.92, 0.08, false)),
+                ], "candidate"),
+                new GraphStructureConsensusTextRegionDetectorOptions
+                {
+                    OutputGeometry = GraphStructureConsensusGeometry.MatchedComponent,
+                });
+            return AssertExactlyOne(await detector.DetectAsync(Image(), CancellationToken.None)).RegionId;
+        }
+
+        string expected = await DetectId("model-a", "component-a", new OcrRectangle(12, 11, 9, 8));
+
+        Assert.AreEqual(expected, await DetectId("model-a", "component-a", new OcrRectangle(12, 11, 9, 8)));
+        Assert.AreNotEqual(expected, await DetectId("model-b", "component-a", new OcrRectangle(12, 11, 9, 8)));
+        Assert.AreNotEqual(expected, await DetectId("model-a", "component-b", new OcrRectangle(12, 11, 9, 8)));
+        Assert.AreNotEqual(expected, await DetectId("model-a", "component-a", new OcrRectangle(12, 11, 8, 8)));
+    }
+
+    [TestMethod]
+    public void GeometryModePreservesDefaultFingerprintAndRejectsUnknownValues()
+    {
+        var model = new FixedDetector([], "model-fingerprint");
+        var candidate = new FixedDetector([], "candidate-fingerprint");
+        var existing = new GraphStructureConsensusTextRegionDetector(model, candidate);
+        var componentGeometry = new GraphStructureConsensusTextRegionDetector(
+            model,
+            candidate,
+            new GraphStructureConsensusTextRegionDetectorOptions
+            {
+                OutputGeometry = GraphStructureConsensusGeometry.MatchedComponent,
+            });
+
+        Assert.AreEqual(
+            "graph-structure-consensus-v1:0.5:0.45:model=model-fingerprint:candidate=candidate-fingerprint",
+            existing.ConfigurationFingerprint);
+        Assert.AreEqual(
+            "graph-structure-consensus-component-geometry-v1:0.5:0.45:model=model-fingerprint:candidate=candidate-fingerprint",
+            componentGeometry.ConfigurationFingerprint);
+        Assert.AreEqual(
+            GraphStructureConsensusTextRegionDetector.CompositionVersion,
+            GraphStructureConsensusTextRegionDetector.GetCompositionVersion(
+                GraphStructureConsensusGeometry.ModelPolygon));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            GraphStructureConsensusTextRegionDetector.GetCompositionVersion(
+                (GraphStructureConsensusGeometry)99));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            new GraphStructureConsensusTextRegionDetector(
+                model,
+                candidate,
+                new GraphStructureConsensusTextRegionDetectorOptions
+                {
+                    OutputGeometry = (GraphStructureConsensusGeometry)99,
+                }));
+    }
+
+    [TestMethod]
     public async Task CancellationStopsBeforeEitherDetectorRuns()
     {
         var model = new FixedDetector([], "model");
@@ -236,12 +334,19 @@ public sealed class GraphStructureConsensusTextRegionDetectorTests
         string id,
         OcrRectangle bounds,
         double confidence,
-        OcrRegionEvidence? evidence = null) => new(
+        OcrRegionEvidence? evidence = null,
+        double orientationDegrees = 0) => new(
             id,
             OcrPolygon.FromRectangle(bounds),
-            0,
+            orientationDegrees,
             confidence,
             Evidence: evidence);
+
+    private static OcrDetectedRegion AssertExactlyOne(IReadOnlyList<OcrDetectedRegion> regions)
+    {
+        Assert.HasCount(1, regions);
+        return regions[0];
+    }
 
     private static OcrRegionEvidence Evidence(
         int componentCount,

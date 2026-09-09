@@ -88,6 +88,10 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
 {
     public const float ProbabilityParityTolerance = 0.00001f;
 
+    private const string OfficialDbResizeAlgorithm = "opencv-inter-linear-uint8-v1";
+
+    private const string LegacyResizeAlgorithm = "floating-bilinear-v1";
+
     private readonly InferenceRuntime runtime;
     private readonly LocalOnnxTextRegionDetectorOptions options;
     private readonly string configurationFingerprint;
@@ -147,6 +151,7 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
                 {
                     ["input_width"] = tensorWidth,
                     ["input_height"] = tensorHeight,
+                    ["resize_algorithm"] = TensorResizeAlgorithm(options),
                     ["input_channels"] = options.InputChannels,
                     ["input_layout"] = options.InputLayout.ToString(),
                     ["input_color_mode"] = options.InputColorMode.ToString(),
@@ -829,6 +834,18 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
         LocalOnnxTextRegionDetectorOptions options,
         CancellationToken cancellationToken)
     {
+        if (options.PostprocessAlgorithm == OcrDetectionPostprocessAlgorithm.DbPostprocessV1 &&
+            options.InputColorMode == OcrTensorColorMode.Bgr &&
+            options.InputChannels == 3)
+        {
+            return CreateOfficialDbTensor(
+                image,
+                targetWidth,
+                targetHeight,
+                options,
+                cancellationToken);
+        }
+
         int pixelsPerChannel = checked(targetWidth * targetHeight);
         var values = new float[checked(pixelsPerChannel * options.InputChannels)];
         (int sourceWidth, int sourceHeight) = ResizeSourceDimensions(image, options);
@@ -853,6 +870,61 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
                     double bottom = SourceValue(image, x0, y1, channel, options.InputColorMode) * (1 - xWeight) +
                         SourceValue(image, x1, y1, channel, options.InputColorMode) * xWeight;
                     float sample = (float)((top * (1 - yWeight) + bottom * yWeight) / 255d);
+                    int destination = options.InputLayout == OcrTensorLayout.ChannelsFirst
+                        ? checked((channel * pixelsPerChannel) + pixelIndex)
+                        : checked((pixelIndex * options.InputChannels) + channel);
+                    values[destination] =
+                        (sample - options.ChannelMeans[channel]) * options.ChannelScales[channel];
+                }
+            }
+        }
+
+        return values;
+    }
+
+    private static float[] CreateOfficialDbTensor(
+        OcrImage image,
+        int targetWidth,
+        int targetHeight,
+        LocalOnnxTextRegionDetectorOptions options,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        (int sourceWidth, int sourceHeight) = ResizeSourceDimensions(image, options);
+        var sourcePixels = new byte[checked(sourceWidth * sourceHeight * 3)];
+        ReadOnlySpan<byte> inputPixels = image.BgrPixels!.Pixels.Span;
+        for (var y = 0; y < image.Height; y++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            inputPixels.Slice(y * image.BgrPixels.Stride, image.Width * 3)
+                .CopyTo(sourcePixels.AsSpan(y * sourceWidth * 3, image.Width * 3));
+        }
+
+        using var source = new Mat(sourceHeight, sourceWidth, MatType.CV_8UC3);
+        Marshal.Copy(sourcePixels, 0, source.Data, sourcePixels.Length);
+        using var resized = new Mat();
+        cancellationToken.ThrowIfCancellationRequested();
+        Cv2.Resize(
+            source,
+            resized,
+            new Size(targetWidth, targetHeight),
+            interpolation: InterpolationFlags.Linear);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var resizedPixels = new byte[checked(targetWidth * targetHeight * 3)];
+        Marshal.Copy(resized.Data, resizedPixels, 0, resizedPixels.Length);
+        int pixelsPerChannel = checked(targetWidth * targetHeight);
+        var values = new float[checked(pixelsPerChannel * options.InputChannels)];
+        for (var y = 0; y < targetHeight; y++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            for (var x = 0; x < targetWidth; x++)
+            {
+                int sourceIndex = checked(((y * targetWidth) + x) * 3);
+                int pixelIndex = checked((y * targetWidth) + x);
+                for (var channel = 0; channel < options.InputChannels; channel++)
+                {
+                    float sample = resizedPixels[sourceIndex + channel] / 255f;
                     int destination = options.InputLayout == OcrTensorLayout.ChannelsFirst
                         ? checked((channel * pixelsPerChannel) + pixelIndex)
                         : checked((pixelIndex * options.InputChannels) + channel);
@@ -1016,6 +1088,7 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
             options.Model.Sha256.ToLowerInvariant(),
             options.MaximumSideLength.ToString(CultureInfo.InvariantCulture),
             options.DimensionMultiple.ToString(CultureInfo.InvariantCulture),
+            TensorResizeAlgorithm(options),
             options.InputChannels.ToString(CultureInfo.InvariantCulture),
             options.InputLayout,
             options.InputColorMode,
@@ -1043,6 +1116,13 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
             ProviderFingerprint(options.AllowedProviders));
         return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(material)));
     }
+
+    private static string TensorResizeAlgorithm(LocalOnnxTextRegionDetectorOptions options) =>
+        options.PostprocessAlgorithm == OcrDetectionPostprocessAlgorithm.DbPostprocessV1 &&
+        options.InputColorMode == OcrTensorColorMode.Bgr &&
+        options.InputChannels == 3
+            ? OfficialDbResizeAlgorithm
+            : LegacyResizeAlgorithm;
 
     private static string DeterministicRegionId(
         string modelSha256,

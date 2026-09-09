@@ -16,6 +16,8 @@ public sealed class ProductionLocalCandidateEvaluationAdapterTests
 {
     private static readonly string[] ExpectedOcrTasks =
         ["ocr_detection", "ocr_recognition"];
+    private static readonly string[] ExpectedDetectionOnlyOcrTasks =
+        ["ocr_detection"];
 
     [TestMethod]
     public async Task AxisCandidateEvaluationUsesProductionCoreWithoutApprovingAdapter()
@@ -202,18 +204,89 @@ public sealed class ProductionLocalCandidateEvaluationAdapterTests
         Assert.AreEqual(0, recognizer.CallCount);
     }
 
-    private static ProductionOcrAdapter CreateOcrAdapter(
-        TextDetectorStub detector,
-        TextRecognizerStub recognizer,
-        bool isApproved) =>
-        new(
-            new OcrPipeline(detector, recognizer, new MemoryOcrResultCache()),
+    [TestMethod]
+    public async Task ApprovedAdapterReportsBothConfiguredModelsButOnlyExecutedDetectionForEmptyResult()
+    {
+        TestInputs inputs = CreateInputs();
+        var detector = new EmptyTextDetectorStub();
+        var recognizer = new TextRecognizerStub();
+        ProductionOcrAdapter adapter = CreateOcrAdapter(detector, recognizer, isApproved: true);
+
+        ProductionOcrEvidence evidence = await adapter.RecognizeAsync(
+            inputs.Request,
+            inputs.Raster,
+            new OcrRectangle(4, 4, 24, 20),
+            CreateDetectorImage(inputs.Raster),
+            CancellationToken.None);
+
+        Assert.AreEqual(1, detector.CallCount);
+        Assert.AreEqual(0, recognizer.CallCount);
+        Assert.IsTrue(evidence.Result.Succeeded);
+        Assert.AreEqual(0, evidence.Result.Regions.Count);
+        Assert.AreEqual(0, evidence.Result.Masks.Count);
+        Assert.AreEqual(0, evidence.Result.Cache.CropCount);
+        Assert.AreEqual(0, evidence.Result.Cache.BatchCount);
+        Assert.Contains("no_text_regions_detected", evidence.Result.Warnings);
+        CollectionAssert.AreEqual(
+            ExpectedDetectionOnlyOcrTasks,
+            evidence.ModelEvidence.Select(static item => item.Task).ToArray());
+        CollectionAssert.AreEqual(
+            ExpectedOcrTasks,
+            evidence.ConfiguredModels.Models.Select(static item => item.Task).ToArray());
+        Assert.AreEqual("approved_production", evidence.ConfiguredModels.Scope);
+    }
+
+    [TestMethod]
+    public void DirectAdapterConstructionCannotClaimProductionApproval()
+    {
+        var pipeline = new OcrPipeline(
+            new EmptyTextDetectorStub(),
+            new TextRecognizerStub(),
+            new MemoryOcrResultCache());
+
+        Assert.ThrowsExactly<ArgumentException>(() => new ProductionOcrAdapter(
+            pipeline,
             new ModelIdentity("graph-ocr-detector", "0.1.0", new string('b', 64), "detector.onnx"),
             InferenceProvider.Cpu,
             new ModelIdentity("graph-ocr-recognizer", "0.1.0", new string('c', 64), "recognizer.onnx"),
             InferenceProvider.Cpu,
             new string('d', 64),
-            isApproved);
+            isApproved: true));
+    }
+
+    private static ProductionOcrAdapter CreateOcrAdapter(
+        ITextRegionDetector detector,
+        ITextRecognizer recognizer,
+        bool isApproved)
+    {
+        var pipeline = new OcrPipeline(detector, recognizer, new MemoryOcrResultCache());
+        var detectionModel = new ModelIdentity(
+            "graph-ocr-detector",
+            "0.1.0",
+            new string('b', 64),
+            "detector.onnx");
+        var recognitionModel = new ModelIdentity(
+            "graph-ocr-recognizer",
+            "0.1.0",
+            new string('c', 64),
+            "recognizer.onnx");
+        return isApproved
+            ? ProductionOcrAdapter.CreateFromValidatedApprovedPipeline(
+                pipeline,
+                detectionModel,
+                InferenceProvider.Cpu,
+                recognitionModel,
+                InferenceProvider.Cpu,
+                new string('d', 64))
+            : new ProductionOcrAdapter(
+                pipeline,
+                detectionModel,
+                InferenceProvider.Cpu,
+                recognitionModel,
+                InferenceProvider.Cpu,
+                new string('d', 64),
+                isApproved: false);
+    }
 
     private static OcrDetectorImage CreateDetectorImage(ProductionDecodedRaster raster)
     {
@@ -357,6 +430,20 @@ public sealed class ProductionLocalCandidateEvaluationAdapterTests
                     new OcrRegionContext(NumericExpected: true)),
             ];
             return ValueTask.FromResult(regions);
+        }
+    }
+
+    private sealed class EmptyTextDetectorStub : ITextRegionDetector
+    {
+        public int CallCount { get; private set; }
+
+        public ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
+            OcrImage image,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            CallCount++;
+            return ValueTask.FromResult<IReadOnlyList<OcrDetectedRegion>>([]);
         }
     }
 

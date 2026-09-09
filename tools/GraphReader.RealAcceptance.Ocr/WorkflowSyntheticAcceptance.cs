@@ -199,14 +199,16 @@ internal static class WorkflowSyntheticAcceptance
             new SyntheticTextRecognizer(),
             new SyntheticOcrCache(),
             new OcrPipelineOptions { CropPaddingPixels = 0, MaskPaddingPixels = 0 });
-        return new ProductionOcrAdapter(
+        // This private, parameterless self-test generates its own fixed image.
+        // The trusted test seam exercises production-path wiring with fixtures;
+        // it never registers model-store approval or accepts corpus inputs.
+        return ProductionOcrAdapter.CreateFromValidatedApprovedPipeline(
             pipeline,
             new ModelIdentity("synthetic-ocr-detection", "ocr-v1", new string('b', 64), "memory:synthetic-ocr-detection.onnx"),
             InferenceProvider.Cpu,
             new ModelIdentity("synthetic-ocr-recognition", "ocr-v1", new string('c', 64), "memory:synthetic-ocr-recognition.onnx"),
             InferenceProvider.Cpu,
-            new string('a', 64),
-            isApproved: true);
+            new string('a', 64));
     }
 
     private sealed class SyntheticTextDetector : ITextRegionDetector

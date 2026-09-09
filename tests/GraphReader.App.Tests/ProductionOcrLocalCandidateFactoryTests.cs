@@ -7,6 +7,7 @@ using System.Text.Json;
 using GraphReader.App.Integration;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.Inference;
+using GraphReader.Ocr;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GraphReader.App.Tests;
@@ -15,7 +16,10 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionOcrLocalCandidateFactoryTests
 {
     [TestMethod]
-    public async Task ExactPinnedPairCreatesUnapprovedAdapterThroughSharedPreflight()
+    [DataRow(GraphStructureConsensusGeometry.ModelPolygon)]
+    [DataRow(GraphStructureConsensusGeometry.MatchedComponent)]
+    public async Task ExactPinnedPairCreatesUnapprovedAdapterThroughSharedPreflight(
+        GraphStructureConsensusGeometry outputGeometry)
     {
         string root = CreateTemporaryDirectory();
         var sessionFactory = new ShapeAwareSessionFactory();
@@ -30,13 +34,39 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                     pair.Recognition,
                     host,
                     new string('d', 64),
-                    CancellationToken.None);
+                    CancellationToken.None,
+                    outputGeometry);
 
             Assert.IsFalse(adapter.IsApproved);
             Assert.AreEqual(2, sessionFactory.CreatedCount);
             Assert.AreEqual(2, sessionFactory.RunCount);
+            StringAssert.Contains(adapter.AdapterId,
+                GraphStructureConsensusTextRegionDetector.GetCompositionVersion(outputGeometry));
             StringAssert.Contains(adapter.AdapterId, pair.Detection.Identity.Sha256[..12]);
             StringAssert.Contains(adapter.AdapterId, pair.Recognition.Identity.Sha256[..12]);
+        }
+        finally
+        {
+            await host.DisposeAsync();
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task UnknownGeometryIsRejectedBeforeRuntimeInitialization()
+    {
+        string root = CreateTemporaryDirectory();
+        var sessionFactory = new ShapeAwareSessionFactory();
+        await using ProductionInferenceRuntimeHost host = CreateRuntimeHost(root, sessionFactory);
+        try
+        {
+            CandidatePair pair = WriteCandidatePair(root);
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                ProductionOcrAdapter.CreateForLocalSyntheticCandidateEvaluationAsync(
+                    pair.Detection, pair.Recognition, host, new string('d', 64),
+                    CancellationToken.None, (GraphStructureConsensusGeometry)99));
+            Assert.IsFalse(host.IsInitialized);
+            Assert.AreEqual(0, sessionFactory.CreatedCount);
         }
         finally
         {

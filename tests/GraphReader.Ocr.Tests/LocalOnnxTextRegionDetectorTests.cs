@@ -376,6 +376,126 @@ public sealed class LocalOnnxTextRegionDetectorTests
     }
 
     [TestMethod]
+    public async Task DbResizeUpscaleMatchesOfficialCv2TensorAtBorderAndInterior()
+    {
+        string directory = CreateDirectory();
+        string modelPath = Path.Combine(directory, "db-cv2-upscale.onnx");
+        await File.WriteAllBytesAsync(modelPath, [2, 6, 0, 9]);
+        try
+        {
+            const int sourceWidth = 32;
+            const int sourceHeight = 32;
+            const int targetWidth = 64;
+            const int targetHeight = 64;
+            byte[] bgr = PatternedBgr(sourceWidth, sourceHeight);
+            byte[] immutableOriginal = (byte[])bgr.Clone();
+            var factory = new ProbabilityMapSessionFactory(new float[targetWidth * targetHeight]);
+            await using InferenceRuntime runtime = CreateRuntime(directory, factory);
+            var detector = new LocalOnnxTextRegionDetector(
+                runtime,
+                DbOptions(Identity(modelPath)) with
+                {
+                    MaximumSideLength = 64,
+                    DimensionMultiple = 32,
+                    InputColorMode = OcrTensorColorMode.Bgr,
+                    ChannelMeans = [0.485f, 0.456f, 0.406f],
+                    ChannelScales = [4.366812227074235f, 4.464285714285714f, 4.444444444444445f],
+                });
+            var image = new OcrImage(
+                sourceWidth,
+                sourceHeight,
+                sourceWidth,
+                new byte[sourceWidth * sourceHeight],
+                OcrSourceImage.Original,
+                OcrFrameTransform.Identity,
+                CanonicalOriginalWidth: sourceWidth,
+                CanonicalOriginalHeight: sourceHeight,
+                BgrPixels: new OcrBgrBytePixels(sourceWidth * 3, bgr));
+
+            _ = await detector.DetectAsync(image, CancellationToken.None);
+
+            Assert.IsNotNull(factory.LastInput);
+            CollectionAssert.AreEqual(
+                new long[] { 1, 3, targetHeight, targetWidth },
+                factory.LastInput.Shape.ToArray());
+            float[] tensor = factory.LastInput.Values.ToArray();
+            AssertTensorPixel(tensor, targetWidth, targetHeight, 0, 0,
+                -2.0665298f, -1.7030813f, -0.044095784f);
+            AssertTensorPixel(tensor, targetWidth, targetHeight, 32, 32,
+                1.5639181f, -1.2303921f, 2.1519828f);
+            Assert.AreEqual(
+                "d63623eff5d476ec25b35726f786608563fa847d7cb66d6bc9760a6999d62d39",
+                TensorSha256(tensor),
+                "Expected hash was generated independently with official cv2.resize INTER_LINEAR, uint8 output, BGR normalization, and NCHW transpose.");
+            CollectionAssert.AreEqual(immutableOriginal, bgr);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task DbResizeDownscaleMatchesOfficialCv2TensorAtBorderAndInterior()
+    {
+        string directory = CreateDirectory();
+        string modelPath = Path.Combine(directory, "db-cv2-downscale.onnx");
+        await File.WriteAllBytesAsync(modelPath, [7, 1, 0, 5]);
+        try
+        {
+            const int sourceWidth = 64;
+            const int sourceHeight = 32;
+            const int targetWidth = 32;
+            const int targetHeight = 16;
+            byte[] bgr = PatternedBgr(sourceWidth, sourceHeight);
+            byte[] immutableOriginal = (byte[])bgr.Clone();
+            var factory = new ProbabilityMapSessionFactory(new float[targetWidth * targetHeight]);
+            await using InferenceRuntime runtime = CreateRuntime(directory, factory);
+            var detector = new LocalOnnxTextRegionDetector(
+                runtime,
+                DbOptions(Identity(modelPath)) with
+                {
+                    MaximumSideLength = 32,
+                    DimensionMultiple = 16,
+                    InputColorMode = OcrTensorColorMode.Bgr,
+                    ChannelMeans = [0.485f, 0.456f, 0.406f],
+                    ChannelScales = [4.366812227074235f, 4.464285714285714f, 4.444444444444445f],
+                });
+            var image = new OcrImage(
+                sourceWidth,
+                sourceHeight,
+                sourceWidth,
+                new byte[sourceWidth * sourceHeight],
+                OcrSourceImage.Original,
+                OcrFrameTransform.Identity,
+                CanonicalOriginalWidth: sourceWidth,
+                CanonicalOriginalHeight: sourceHeight,
+                BgrPixels: new OcrBgrBytePixels(sourceWidth * 3, bgr));
+
+            _ = await detector.DetectAsync(image, CancellationToken.None);
+
+            Assert.IsNotNull(factory.LastInput);
+            CollectionAssert.AreEqual(
+                new long[] { 1, 3, targetHeight, targetWidth },
+                factory.LastInput.Shape.ToArray());
+            float[] tensor = factory.LastInput.Values.ToArray();
+            AssertTensorPixel(tensor, targetWidth, targetHeight, 0, 0,
+                -1.6726605f, -1.5455183f, 0.025620991f);
+            AssertTensorPixel(tensor, targetWidth, targetHeight, 16, 8,
+                -0.8506721f, 0.97549033f, -1.3687147f);
+            Assert.AreEqual(
+                "239be410a6cea14415ff6710b500f24ed181aaf36ef8b6c7492b3b1c26a86c53",
+                TensorSha256(tensor),
+                "Expected hash was generated independently with official cv2.resize INTER_LINEAR, uint8 output, BGR normalization, and NCHW transpose.");
+            CollectionAssert.AreEqual(immutableOriginal, bgr);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task DbResizePadsSmallSourceWithZeroPixelsBeforeResize()
     {
         string directory = CreateDirectory();
@@ -940,6 +1060,47 @@ public sealed class LocalOnnxTextRegionDetectorTests
         var values = new float[width * height];
         FillRectangle(values, width, left, top, right, bottom, probability);
         return values;
+    }
+
+    private static byte[] PatternedBgr(int width, int height)
+    {
+        var pixels = new byte[checked(width * height * 3)];
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                int index = checked(((y * width) + x) * 3);
+                pixels[index] = (byte)((x * 17 + y * 29 + 3) % 256);
+                pixels[index + 1] = (byte)((x * 7 + y * 11 + 19) % 256);
+                pixels[index + 2] = (byte)((x * 3 + y * 5 + 101) % 256);
+            }
+        }
+
+        return pixels;
+    }
+
+    private static string TensorSha256(float[] values)
+    {
+        var bytes = new byte[checked(values.Length * sizeof(float))];
+        Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
+        return Convert.ToHexStringLower(SHA256.HashData(bytes));
+    }
+
+    private static void AssertTensorPixel(
+        float[] tensor,
+        int width,
+        int height,
+        int x,
+        int y,
+        float expectedB,
+        float expectedG,
+        float expectedR)
+    {
+        int pixelsPerChannel = checked(width * height);
+        int pixel = checked((y * width) + x);
+        Assert.AreEqual(expectedB, tensor[pixel], 0.0000001f);
+        Assert.AreEqual(expectedG, tensor[pixelsPerChannel + pixel], 0.0000001f);
+        Assert.AreEqual(expectedR, tensor[(2 * pixelsPerChannel) + pixel], 0.0000001f);
     }
 
     private static void FillRectangle(

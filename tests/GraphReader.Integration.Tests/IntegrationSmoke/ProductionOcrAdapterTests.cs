@@ -178,23 +178,26 @@ public sealed class ProductionOcrAdapterTests
         Assert.AreEqual(1, recognizer.CallCount);
     }
 
-    private static ProductionOcrAdapter CreateAdapter(OcrPipeline pipeline, bool isApproved) =>
-        new(
-            pipeline,
-            new ModelIdentity(
+    private static ProductionOcrAdapter CreateAdapter(OcrPipeline pipeline, bool isApproved)
+    {
+        var detection = new ModelIdentity(
                 "graph-ocr-detector",
                 "0.1.0",
                 new string('a', 64),
-                "detector.onnx"),
-            InferenceProvider.Cpu,
-            new ModelIdentity(
+                "detector.onnx");
+        var recognition = new ModelIdentity(
                 "graph-ocr-recognizer",
                 "0.1.0",
                 new string('b', 64),
-                "recognizer.onnx"),
-            InferenceProvider.Cpu,
-            new string('c', 64),
-            isApproved);
+                "recognizer.onnx");
+        return isApproved
+            ? ProductionOcrAdapter.CreateFromValidatedApprovedPipeline(
+                pipeline, detection, InferenceProvider.Cpu,
+                recognition, InferenceProvider.Cpu, new string('c', 64))
+            : new ProductionOcrAdapter(
+                pipeline, detection, InferenceProvider.Cpu,
+                recognition, InferenceProvider.Cpu, new string('c', 64), isApproved: false);
+    }
 
     private static OcrDetectorImage DetectorImage(ProductionDecodedRaster raster)
     {

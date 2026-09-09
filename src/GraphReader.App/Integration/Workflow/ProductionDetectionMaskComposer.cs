@@ -219,8 +219,7 @@ public interface IProductionDetectionMaskComposer
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster raster,
         ProductionAxisGeometryEvidence axisEvidence,
-        IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
-        OcrResult ocrResult,
+        ProductionOcrEvidence ocrEvidence,
         CancellationToken cancellationToken);
 }
 
@@ -332,63 +331,57 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster raster,
         ProductionAxisGeometryEvidence axisEvidence,
-        IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
-        OcrResult ocrResult,
+        ProductionOcrEvidence ocrEvidence,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(raster);
         ArgumentNullException.ThrowIfNull(axisEvidence);
-        ArgumentNullException.ThrowIfNull(ocrModelEvidence);
-        ArgumentNullException.ThrowIfNull(ocrResult);
+        ArgumentNullException.ThrowIfNull(ocrEvidence);
         cancellationToken.ThrowIfCancellationRequested();
         ValidateRaster(request, raster);
         ValidateAxisEvidence(request, axisEvidence);
-        _ = ValidateOcrEvidence(request, ocrModelEvidence, ocrResult);
-        return BuildSeedMasks(raster, axisEvidence, ocrResult, cancellationToken);
+        _ = ValidateOcrEvidence(request, ocrEvidence, localCandidate: true);
+        return BuildSeedMasks(raster, axisEvidence, ocrEvidence.Result, cancellationToken);
     }
 
     public Task<ProductionDetectionMaskEvidence> ComposeAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster raster,
         ProductionAxisGeometryEvidence axisEvidence,
-        IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
-        OcrResult ocrResult,
+        ProductionOcrEvidence ocrEvidence,
         CancellationToken cancellationToken) =>
-        ComposeValidatedAsync(request, raster, axisEvidence, ocrModelEvidence,
-            ocrResult, localCandidate: false, cancellationToken);
+        ComposeValidatedAsync(request, raster, axisEvidence, ocrEvidence,
+            localCandidate: false, cancellationToken);
 
     internal Task<ProductionDetectionMaskEvidence> ComposeForLocalSyntheticCandidateEvaluationAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster raster,
         ProductionAxisGeometryEvidence axisEvidence,
-        IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
-        OcrResult ocrResult,
+        ProductionOcrEvidence ocrEvidence,
         CancellationToken cancellationToken) =>
-        ComposeValidatedAsync(request, raster, axisEvidence, ocrModelEvidence,
-            ocrResult, localCandidate: true, cancellationToken);
+        ComposeValidatedAsync(request, raster, axisEvidence, ocrEvidence,
+            localCandidate: true, cancellationToken);
 
     private async Task<ProductionDetectionMaskEvidence> ComposeValidatedAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster raster,
         ProductionAxisGeometryEvidence axisEvidence,
-        IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
-        OcrResult ocrResult,
+        ProductionOcrEvidence ocrEvidence,
         bool localCandidate,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(raster);
         ArgumentNullException.ThrowIfNull(axisEvidence);
-        ArgumentNullException.ThrowIfNull(ocrModelEvidence);
-        ArgumentNullException.ThrowIfNull(ocrResult);
+        ArgumentNullException.ThrowIfNull(ocrEvidence);
         cancellationToken.ThrowIfCancellationRequested();
         ValidateRaster(request, raster);
         ValidateAxisEvidence(request, axisEvidence);
         WorkflowVisionEnvelope[] ocrEnvelopes = ValidateOcrEvidence(
             request,
-            ocrModelEvidence,
-            ocrResult);
+            ocrEvidence,
+            localCandidate);
 
         if (localCandidate && (artifactMaskAdapter is null || artifactMaskAdapter.IsApproved))
         {
@@ -406,7 +399,7 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
         }
 
         ProductionDetectionMaskSeed seed = await Task.Run(
-            () => BuildSeedMasks(raster, axisEvidence, ocrResult, cancellationToken),
+            () => BuildSeedMasks(raster, axisEvidence, ocrEvidence.Result, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         ProductionArtifactMaskEvidence artifactEvidence = await artifactMaskAdapter!
@@ -415,8 +408,8 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
                 raster,
                 seed,
                 axisEvidence,
-                ocrModelEvidence,
-                ocrResult,
+                ocrEvidence.ModelEvidence,
+                ocrEvidence.Result,
                 cancellationToken)
             .ConfigureAwait(false);
         ValidateArtifactEvidence(request, raster, artifactEvidence);
@@ -580,9 +573,10 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
 
     private static WorkflowVisionEnvelope[] ValidateOcrEvidence(
         ProductionWorkflowDetectionRequest request,
-        IReadOnlyList<ProductionOcrModelEvidence> modelEvidence,
-        OcrResult result)
+        ProductionOcrEvidence evidence,
+        bool localCandidate)
     {
+        OcrResult result = evidence.Result;
         if (!result.Succeeded || result.ContractVersion != OcrContract.Version ||
             !string.Equals(result.ProjectId, request.ProjectId.ToString("D"), StringComparison.Ordinal) ||
             !string.Equals(
@@ -596,14 +590,60 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
             throw Failure("OCR mask result does not match the current original panel identity or is unsuccessful.");
         }
 
-        ProductionOcrModelEvidence[] ordered = modelEvidence
-            .OrderBy(static evidence => evidence.Task, StringComparer.Ordinal)
+        ProductionOcrConfiguredModel[] configured = evidence.ConfiguredModels.Models
+            .OrderBy(static model => model.Task, StringComparer.Ordinal)
             .ToArray();
-        if (ordered.Length != RequiredOcrTasks.Length ||
-            !ordered.Select(static evidence => evidence.Task)
+        bool expectedApproved = !localCandidate;
+        if (evidence.ConfiguredModels.IsApproved != expectedApproved ||
+            configured.Length != RequiredOcrTasks.Length ||
+            !configured.Select(static model => model.Task)
                 .SequenceEqual(RequiredOcrTasks, StringComparer.Ordinal))
         {
-            throw Failure("Both approved OCR detection and recognition model envelopes are required.");
+            throw Failure(localCandidate
+                ? "Local OCR composition requires two explicitly unapproved configured models."
+                : "Production OCR composition requires two approved configured models.");
+        }
+
+        var configuredIdentities = new HashSet<string>(StringComparer.Ordinal);
+        foreach (ProductionOcrConfiguredModel configuredModel in configured)
+        {
+            string identity = ConfiguredIdentity(configuredModel);
+            if (!configuredIdentities.Add(identity))
+            {
+                throw Failure("Configured OCR detection and recognition models must have distinct identities.");
+            }
+        }
+
+        bool zeroCropResult = result.Cache.CropCount == 0;
+        if (result.Cache.CropCount < 0 || result.Cache.BatchCount < 0)
+        {
+            throw Failure("OCR crop and batch counts cannot be negative.");
+        }
+        bool exactEmptyResult = zeroCropResult &&
+            result.Cache.BatchCount == 0 &&
+            result.Regions.Count == 0 &&
+            result.Masks.Count == 0 &&
+            (result.RegionFailures is null || result.RegionFailures.Count == 0) &&
+            result.Warnings.Contains("no_text_regions_detected", StringComparer.Ordinal);
+        if (zeroCropResult != exactEmptyResult)
+        {
+            throw Failure(
+                "Zero-crop OCR evidence must be a successful empty detector result with no regions, masks, batches, or region failures.");
+        }
+
+        string[] requiredExecutionTasks = zeroCropResult
+            ? ["ocr_detection"]
+            : RequiredOcrTasks;
+        ProductionOcrModelEvidence[] ordered = evidence.ModelEvidence
+            .OrderBy(static evidence => evidence.Task, StringComparer.Ordinal)
+            .ToArray();
+        if (ordered.Length != requiredExecutionTasks.Length ||
+            !ordered.Select(static evidence => evidence.Task)
+                .SequenceEqual(requiredExecutionTasks, StringComparer.Ordinal))
+        {
+            throw Failure(zeroCropResult
+                ? "A successful empty OCR result requires only its executed detection model envelope."
+                : "OCR detection and recognition execution envelopes are required when crops were recognized.");
         }
 
         var identities = new HashSet<string>(StringComparer.Ordinal);
@@ -612,6 +652,8 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
             WorkflowVisionEnvelope envelope = modelEvidenceItem.Envelope;
             WorkflowVisionModel? model = envelope.Model;
             string identity = $"{model?.ModelId}|{model?.Version}|{model?.Sha256}";
+            ProductionOcrConfiguredModel configuredModel = configured.Single(model =>
+                string.Equals(model.Task, modelEvidenceItem.Task, StringComparison.Ordinal));
             if (!envelope.Stage.Equals(OcrContract.Stage, StringComparison.Ordinal) ||
                 !envelope.StageVersion.Equals(result.StageVersion, StringComparison.Ordinal) ||
                 envelope.RunId != request.RunId || envelope.ProjectId != request.ProjectId ||
@@ -625,15 +667,27 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
                 string.IsNullOrWhiteSpace(model.Version) ||
                 string.IsNullOrWhiteSpace(model.Sha256) ||
                 model.Provider is not ("cpu" or "directml") ||
+                !ExecutionMatchesConfiguration(model, configuredModel) ||
                 !identities.Add(identity))
             {
                 throw Failure(
-                    "OCR model evidence must contain two distinct checksum-bound CPU-compatible envelopes for the current run.");
+                    "OCR execution evidence must be distinct, checksum-bound, CPU-compatible, current-run evidence matching the configured model.");
             }
         }
 
         return ordered.Select(static evidence => evidence.Envelope).ToArray();
     }
+
+    private static string ConfiguredIdentity(ProductionOcrConfiguredModel model) =>
+        $"{model.Identity.ModelId}|{model.Identity.Version}|{model.Identity.Sha256}";
+
+    private static bool ExecutionMatchesConfiguration(
+        WorkflowVisionModel model,
+        ProductionOcrConfiguredModel configured) =>
+        string.Equals(model.ModelId, configured.Identity.ModelId, StringComparison.Ordinal) &&
+        string.Equals(model.Version, configured.Identity.Version, StringComparison.Ordinal) &&
+        string.Equals(model.Sha256, configured.Identity.Sha256, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(model.Provider, configured.ExecutionProvider, StringComparison.Ordinal);
 
     private static void ValidateOriginalPolygon(
         OcrPolygon polygon,

@@ -90,7 +90,9 @@ def test_family_sampling_digest_is_deterministic_and_identity_bound():
             sampling_mode="family-train",
         )[5].selected_index_sha256
 
-    expected = "bf08ffe66bcdf7a86d2d1c1046ff3af8bf993954d7c74416a9650f49e0292a92"
+    # Legacy oracle-mask diagnostic after repairing rendered label collisions.
+    # Actual training binds the separate runtime panel sampling identity.
+    expected = "801477ff5db601a54394f9be5b19441170af3802bf2f73816dbe6913c5acdad7"
     assert digest(scenes) == expected
     assert digest(scenes) == expected
     assert digest((replace(scenes[0], seed=scenes[0].seed + 1), *scenes[1:])) != expected

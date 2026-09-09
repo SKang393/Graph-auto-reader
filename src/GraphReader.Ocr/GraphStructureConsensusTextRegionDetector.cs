@@ -2,14 +2,25 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace GraphReader.Ocr;
+
+public enum GraphStructureConsensusGeometry
+{
+    ModelPolygon = 0,
+    MatchedComponent = 1,
+}
 
 public sealed record GraphStructureConsensusTextRegionDetectorOptions
 {
     public double MinimumOverlapCoefficient { get; init; } = 0.50;
 
     public double MinimumTextLikelihood { get; init; } = 0.45;
+
+    public GraphStructureConsensusGeometry OutputGeometry { get; init; } =
+        GraphStructureConsensusGeometry.ModelPolygon;
 }
 
 /// <summary>
@@ -21,6 +32,9 @@ public sealed record GraphStructureConsensusTextRegionDetectorOptions
 public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetector
 {
     public const string CompositionVersion = "graph-structure-consensus-v1";
+
+    public const string MatchedComponentCompositionVersion =
+        "graph-structure-consensus-component-geometry-v1";
 
     private readonly ITextRegionDetector modelDetector;
     private readonly ITextRegionDetector structureCandidateDetector;
@@ -38,7 +52,8 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
         if (!double.IsFinite(this.options.MinimumOverlapCoefficient) ||
             this.options.MinimumOverlapCoefficient is <= 0 or > 1 ||
             !double.IsFinite(this.options.MinimumTextLikelihood) ||
-            this.options.MinimumTextLikelihood is < 0 or > 1)
+            this.options.MinimumTextLikelihood is < 0 or > 1 ||
+            !Enum.IsDefined(this.options.OutputGeometry))
         {
             throw new ArgumentOutOfRangeException(nameof(options));
         }
@@ -46,7 +61,14 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
 
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
-        $"{CompositionVersion}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
+        $"{GetCompositionVersion(options.OutputGeometry)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
+
+    public static string GetCompositionVersion(GraphStructureConsensusGeometry geometry) => geometry switch
+    {
+        GraphStructureConsensusGeometry.ModelPolygon => CompositionVersion,
+        GraphStructureConsensusGeometry.MatchedComponent => MatchedComponentCompositionVersion,
+        _ => throw new ArgumentOutOfRangeException(nameof(geometry)),
+    };
 
     public async ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
         OcrImage image,
@@ -107,13 +129,25 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
             usedCandidates.Add(match.CandidateIndex);
             OcrDetectedRegion model = modelRegions[match.ModelIndex];
             OcrDetectedRegion candidate = candidateRegions[match.CandidateIndex];
-            output.Add(model with
+            output.Add(options.OutputGeometry switch
             {
-                OrientationDegrees = Math.Abs(model.OrientationDegrees) <= double.Epsilon
-                    ? candidate.OrientationDegrees
-                    : model.OrientationDegrees,
-                Context = model.Context ?? candidate.Context,
-                Evidence = candidate.Evidence,
+                GraphStructureConsensusGeometry.ModelPolygon => model with
+                {
+                    OrientationDegrees = Math.Abs(model.OrientationDegrees) <= double.Epsilon
+                        ? candidate.OrientationDegrees
+                        : model.OrientationDegrees,
+                    Context = model.Context ?? candidate.Context,
+                    Evidence = candidate.Evidence,
+                },
+                GraphStructureConsensusGeometry.MatchedComponent => model with
+                {
+                    RegionId = MatchedComponentRegionId(model, candidate),
+                    Polygon = candidate.Polygon,
+                    OrientationDegrees = candidate.OrientationDegrees,
+                    Context = model.Context ?? candidate.Context,
+                    Evidence = MatchedComponentEvidence(model, candidate),
+                },
+                _ => throw new InvalidOperationException("Unsupported consensus output geometry."),
             });
         }
 
@@ -159,6 +193,45 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
         double intersection = intersectionWidth * intersectionHeight;
         double denominator = Math.Min(left.Width * left.Height, right.Width * right.Height);
         return denominator <= 0 ? 0 : intersection / denominator;
+    }
+
+    private static string MatchedComponentRegionId(
+        OcrDetectedRegion model,
+        OcrDetectedRegion candidate)
+    {
+        using var material = new MemoryStream();
+        using (var writer = new BinaryWriter(material, Encoding.UTF8, leaveOpen: true))
+        {
+            writer.Write(MatchedComponentCompositionVersion);
+            writer.Write(model.RegionId);
+            writer.Write(candidate.RegionId);
+            writer.Write(candidate.Polygon.Points.Count);
+            foreach (OcrPoint point in candidate.Polygon.Points)
+            {
+                writer.Write(BitConverter.DoubleToInt64Bits(point.X));
+                writer.Write(BitConverter.DoubleToInt64Bits(point.Y));
+            }
+        }
+
+        byte[] hash = SHA256.HashData(material.ToArray());
+        return new Guid(hash.AsSpan(0, 16)).ToString("D");
+    }
+
+    private static OcrRegionEvidence MatchedComponentEvidence(
+        OcrDetectedRegion model,
+        OcrDetectedRegion candidate)
+    {
+        OcrRegionEvidence evidence = candidate.Evidence ??
+            throw new InvalidOperationException("Matched component evidence is missing.");
+        return evidence with
+        {
+            Reasons = Array.AsReadOnly(evidence.Reasons
+                .Concat([
+                    $"consensus_model_region_id:{model.RegionId}",
+                    $"consensus_component_region_id:{candidate.RegionId}",
+                ])
+                .ToArray()),
+        };
     }
 
     private readonly record struct IndexedRegion(int Index, OcrDetectedRegion Region);

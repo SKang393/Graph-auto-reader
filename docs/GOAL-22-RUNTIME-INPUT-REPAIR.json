@@ -1,0 +1,97 @@
+{
+  "base_commit": "c87281b481e06f3be05027bcfd143412f1f796ad",
+  "date": "2026-09-09",
+  "goal22_acceptance": "FAIL",
+  "independent_reviews": [
+    "Runtime family input binding and mapping validated independently before training.",
+    "Empty OCR configuration/execution provenance reviewed with no remaining material issue.",
+    "Component geometry default compatibility and approval isolation reviewed.",
+    "Two experimental protocol binding findings repaired; re-review clear; all 14 adversarial guards pass."
+  ],
+  "known_remaining_defects": [
+    "Marker retry10 fails independent-layout and family dev accuracy.",
+    "OCR component geometry still fails detection accuracy; recognition and role acceptance unmeasured.",
+    "Fixed plot padding omits 17/146 train and 7/183 dev text truths. Full-source denominators remain unchanged.",
+    "Representative pre-OCR text preservation, complete artifact provider acceptance, real/sealed workflow, model promotion, normal UI and 2.0 distribution verification remain incomplete."
+  ],
+  "marker_outcome": {
+    "path": "ml/markers/center/mask_preserving_v24/P1_RETRY10_RESULT.json",
+    "sha256": "7ccece10ce0520a5e98bed86be31b1a91551bdedd8dbbab8c65c355dfd4bf84c"
+  },
+  "ocr_outcome": {
+    "path": "ml/ocr/official_bakeoff/component_geometry_dev_result.json",
+    "sha256": "9aa19257da7710c6da7f32e1ea3fa1b46f351e978a400ee5c98af67da28fc4fd"
+  },
+  "repairs": [
+    "Convert PDF-point axis length to raster-pixel units before panel proposal filtering.",
+    "Constrain fitted axis intersections to the immutable decoded raster.",
+    "Place synthetic headings and conditions using measured font bounds without overlap.",
+    "Match official uint8 OpenCV INTER_LINEAR detector resize semantics and cache identity.",
+    "Separate configured OCR models from actual executions; successful zero-crop results retain detector execution only.",
+    "Bind immutable actual raster, crop, model, binary, OCR, geometry and residual mask identities before adding synthetic labels.",
+    "Preregister and isolate matched-component OCR geometry with independently pinned protocol bytes and unchanged production defaults."
+  ],
+  "runtime_training_input_preflight": {
+    "path": "docs/GOAL-22-V24-RUNTIME-INPUT-PREFLIGHT.json",
+    "sha256": "74b8470ccc1e8003911d8e1183dba4a2427089489332fda5f6dd09b718955c57"
+  },
+  "schema": "graphreader.goal22-runtime-input-repair.v1",
+  "scope": {
+    "packaged_builds": 0,
+    "portable_deleted": 0,
+    "private_reads": 0,
+    "production_approval_changed": false,
+    "public_releases": 0,
+    "sealed_reads": 0
+  },
+  "status": "implementation_verified_model_accuracy_failed",
+  "validation": {
+    "input_boundary": {
+      "failed": 0,
+      "passed": 14,
+      "path": "artifacts/test-temp/input-boundary-20260909-012907642/verification-report.json",
+      "sha256": "70de73e0aa44500473e1681e5b774d3fdbb673fa3dc3dd7fc206d32f1afd7b1a"
+    },
+    "other_observed_checks": [
+      "V24: 94 checks verified before training; 11 contract/outcome checks pass after closure.",
+      "Axis: 38 passed. PDF: 56 passed, one opt-in skip. Synthetic label placement/reproducibility: five passed.",
+      "OCR matched-component consensus: 11 focused checks passed.",
+      "RealAcceptance.Ocr isolated synthetic workflow self-test passed.",
+      "SyntheticRuntimeEvidence Release compiler output: zero warnings and errors."
+    ],
+    "recorded_trx": [
+      {
+        "failed": 0,
+        "passed": 203,
+        "path": "artifacts/validation/runtime-input-binding/runtime-empty-ocr-app.trx",
+        "sha256": "2e04c63beb1d8283dfe204ff7b98958cd850038c9a1669620b2967a40985a0da",
+        "skipped": 0,
+        "total": 203
+      },
+      {
+        "failed": 0,
+        "passed": 200,
+        "path": "artifacts/validation/runtime-input-binding/runtime-resize-ocr.trx",
+        "sha256": "74b5d877aed599aab1e7494c160801588175a9cceeb5cf4b9fb48fd575496b5c",
+        "skipped": 16,
+        "total": 216
+      },
+      {
+        "failed": 0,
+        "passed": 152,
+        "path": "artifacts/validation/runtime-input-binding/runtime-empty-ocr-integration.trx",
+        "sha256": "f5bf73dee142c19f13e378a2f5ab4088e98253f784303415ba64bfaba5ce8e15",
+        "skipped": 7,
+        "total": 159
+      },
+      {
+        "failed": 0,
+        "passed": 38,
+        "path": "artifacts/validation/runtime-input-binding/component-geometry-app.trx",
+        "sha256": "74cbcfa284cb49fb79aef7d5e985655818d98fbc8da7319b745592014335894a",
+        "skipped": 0,
+        "total": 38
+      }
+    ]
+  }
+}

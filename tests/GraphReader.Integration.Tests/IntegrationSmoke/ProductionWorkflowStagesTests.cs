@@ -649,14 +649,20 @@ public sealed class ProductionWorkflowStagesTests
             new("ocr_detection", detectionEnvelope),
             new("ocr_recognition", recognitionEnvelope),
         ];
+        var configuredModels = new ProductionOcrConfigurationEvidence(
+        [
+            new("ocr_detection", new ModelIdentity("ocr-detector", "1", new string('a', 64), "fixture-detector.onnx"), InferenceProvider.Cpu),
+            new("ocr_recognition", new ModelIdentity("ocr-recognizer", "1", new string('b', 64), "fixture-recognizer.onnx"), InferenceProvider.Cpu),
+        ],
+        ProductionOcrConfigurationScope.ApprovedProduction);
+        var completeOcrEvidence = new ProductionOcrEvidence(ocrResult, ocrEvidence, configuredModels);
 
         var composer = new ProductionDetectionMaskComposer(new ArtifactMaskAdapter());
         ProductionDetectionMaskEvidence masks = await composer.ComposeAsync(
             request,
             raster,
             axisEvidence,
-            ocrEvidence,
-            ocrResult,
+            completeOcrEvidence,
             CancellationToken.None);
         MarkerDetection.MarkerImageFrame markerFrame = masks.CreateMarkerFrame(raster);
 
@@ -671,8 +677,7 @@ public sealed class ProductionWorkflowStagesTests
             request,
             raster,
             axisEvidence,
-            [ocrEvidence[0]],
-            ocrResult,
+            new ProductionOcrEvidence(ocrResult, [ocrEvidence[0]], configuredModels),
             CancellationToken.None));
 
         var unavailable = new ProductionDetectionMaskComposer();
@@ -682,8 +687,7 @@ public sealed class ProductionWorkflowStagesTests
                 request,
                 raster,
                 axisEvidence,
-                ocrEvidence,
-                ocrResult,
+                completeOcrEvidence,
                 CancellationToken.None));
         Assert.AreEqual(
             ProductionWorkflowFailureCodes.DetectionModelsUnavailable,

@@ -4,6 +4,7 @@
 using System.Security.Cryptography;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.Axis;
+using GraphReader.Inference;
 using GraphReader.Markers.Detection;
 using GraphReader.Ocr;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,25 +14,27 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class ProductionDetectionMaskComposerTests
 {
+    private static readonly string[] ExpectedConfiguredOcrTasks =
+        ["ocr_detection", "ocr_recognition"];
+
     [TestMethod]
     public async Task LocalSyntheticSeedMatchesTheSeedUsedByProductionComposition()
     {
         TestInputs inputs = CreateInputs();
+        ProductionOcrEvidence candidateOcr = WithScope(inputs.OcrEvidence, approved: false);
         var composer = new ProductionDetectionMaskComposer(new SeedOnlyArtifactMaskAdapter());
 
         ProductionDetectionMaskSeed seed = ProductionDetectionMaskComposer.BuildSeedForLocalSyntheticCandidateEvaluation(
             inputs.Request,
             inputs.Raster,
             inputs.AxisEvidence,
-            inputs.OcrEvidence,
-            inputs.OcrResult,
+            candidateOcr,
             CancellationToken.None);
         ProductionDetectionMaskEvidence composed = await composer.ComposeAsync(
             inputs.Request,
             inputs.Raster,
             inputs.AxisEvidence,
             inputs.OcrEvidence,
-            inputs.OcrResult,
             CancellationToken.None);
 
         CollectionAssert.AreEqual(
@@ -64,8 +67,7 @@ public sealed class ProductionDetectionMaskComposerTests
                 inputs.Request,
                 changedRaster,
                 inputs.AxisEvidence,
-                inputs.OcrEvidence,
-                inputs.OcrResult,
+                WithScope(inputs.OcrEvidence, approved: false),
                 CancellationToken.None));
 
         Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, exception.Failure.Code);
@@ -83,8 +85,7 @@ public sealed class ProductionDetectionMaskComposerTests
                 inputs.Request,
                 inputs.Raster,
                 changedAxisEvidence,
-                inputs.OcrEvidence,
-                inputs.OcrResult,
+                WithScope(inputs.OcrEvidence, approved: false),
                 CancellationToken.None));
 
         Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, exception.Failure.Code);
@@ -94,8 +95,8 @@ public sealed class ProductionDetectionMaskComposerTests
     public void LocalSyntheticSeedRejectsChangedOcrEvidenceIdentity()
     {
         TestInputs inputs = CreateInputs();
-        ProductionOcrModelEvidence[] changedOcrEvidence = inputs.OcrEvidence.ToArray();
-        changedOcrEvidence[0] = new ProductionOcrModelEvidence(
+        ProductionOcrModelEvidence[] changedModelEvidence = inputs.OcrEvidence.ModelEvidence.ToArray();
+        changedModelEvidence[0] = new ProductionOcrModelEvidence(
             "ocr_detection",
             Envelope(
                 inputs.Request,
@@ -109,8 +110,10 @@ public sealed class ProductionDetectionMaskComposerTests
                 inputs.Request,
                 inputs.Raster,
                 inputs.AxisEvidence,
-                changedOcrEvidence,
-                inputs.OcrResult,
+                new ProductionOcrEvidence(
+                    inputs.OcrEvidence.Result,
+                    changedModelEvidence,
+                    WithScope(inputs.OcrEvidence, approved: false).ConfiguredModels),
                 CancellationToken.None));
 
         Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, exception.Failure.Code);
@@ -130,7 +133,7 @@ public sealed class ProductionDetectionMaskComposerTests
         var composer = new ProductionDetectionMaskComposer(adapter);
         Task<ProductionDetectionMaskEvidence> Run() => composer.ComposeAsync(
             inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
-            inputs.OcrResult, CancellationToken.None);
+            CancellationToken.None);
 
         if (accepted)
         {
@@ -149,19 +152,19 @@ public sealed class ProductionDetectionMaskComposerTests
     [TestMethod]
     public async Task CandidateCompositionRejectsApprovedAdaptersAndLabelsUnapprovedEvidence()
     {
-        TestInputs inputs = CreateInputs();
+        TestInputs inputs = CreateInputs(approved: false);
         var approved = new DeterministicArtifactFixture(inputs, "valid");
         await Assert.ThrowsAsync<ProductionWorkflowStageException>(() =>
             new ProductionDetectionMaskComposer(approved).ComposeForLocalSyntheticCandidateEvaluationAsync(
                 inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
-                inputs.OcrResult, CancellationToken.None));
+                CancellationToken.None));
         Assert.IsFalse(approved.WasInvoked);
 
         var candidate = new DeterministicArtifactFixture(inputs, "unapproved");
         var composer = new ProductionDetectionMaskComposer(candidate);
         ProductionDetectionMaskEvidence result = await composer.ComposeForLocalSyntheticCandidateEvaluationAsync(
             inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
-            inputs.OcrResult, CancellationToken.None);
+            CancellationToken.None);
         Assert.IsFalse(composer.IsApproved);
         Assert.Contains("artifact_mask_scope:unapproved_candidate_plus_axis_ticks_dividers_ambiguous", result.Warnings);
         Assert.DoesNotContain("artifact_mask_scope:approved_provider_plus_axis_ticks_dividers_ambiguous", result.Warnings);
@@ -175,10 +178,11 @@ public sealed class ProductionDetectionMaskComposerTests
         var composer = new ProductionDetectionMaskComposer(adapter);
         await Assert.ThrowsAsync<ProductionWorkflowStageException>(() => composer.ComposeAsync(
             inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
-            inputs.OcrResult, CancellationToken.None));
+            CancellationToken.None));
+        ProductionOcrEvidence candidateOcr = WithScope(inputs.OcrEvidence, approved: false);
         ProductionDetectionMaskEvidence result = await composer.ComposeForLocalSyntheticCandidateEvaluationAsync(
-            inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
-            inputs.OcrResult, CancellationToken.None);
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, candidateOcr,
+            CancellationToken.None);
         Assert.IsFalse(adapter.IsApproved);
         Assert.IsTrue(adapter.Identity.Matches(result.ArtifactEnvelope));
         Assert.IsNull(result.ArtifactEnvelope.Model);
@@ -189,7 +193,157 @@ public sealed class ProductionDetectionMaskComposerTests
             configuration.RootElement.GetProperty("dependencies")[0].GetProperty("sha256").GetString());
     }
 
-    private static TestInputs CreateInputs()
+    [TestMethod]
+    public async Task ApprovedEmptyDetectorResultProducesZeroOcrMaskWithoutRecognitionEnvelope()
+    {
+        TestInputs inputs = CreateInputs();
+        ProductionOcrEvidence emptyOcr = CreateEmptyOcrEvidence(inputs);
+        var composer = new ProductionDetectionMaskComposer(new SeedOnlyArtifactMaskAdapter());
+
+        ProductionDetectionMaskEvidence result = await composer.ComposeAsync(
+            inputs.Request,
+            inputs.Raster,
+            inputs.AxisEvidence,
+            emptyOcr,
+            CancellationToken.None);
+
+        Assert.AreEqual(0, result.OcrMaskedPixelCount);
+        Assert.IsTrue(result.CopyOcrMask().Values.ToArray().All(static value => value == 0));
+        Assert.AreEqual(3, result.SourceEnvelopes.Count);
+        Assert.IsTrue(result.SourceEnvelopes.Any(envelope =>
+            string.Equals(envelope.Model?.ModelId, "ocr-detection", StringComparison.Ordinal)));
+        Assert.IsFalse(result.SourceEnvelopes.Any(envelope =>
+            string.Equals(envelope.Model?.ModelId, "ocr-recognition", StringComparison.Ordinal)));
+        CollectionAssert.AreEqual(
+            ExpectedConfiguredOcrTasks,
+            emptyOcr.ConfiguredModels.Models.Select(static model => model.Task).ToArray());
+        Assert.AreEqual("approved_production", emptyOcr.ConfiguredModels.Scope);
+    }
+
+    [TestMethod]
+    public async Task LocalCandidateEmptyDetectorResultKeepsBothConfiguredModelsWithoutRecognitionExecution()
+    {
+        TestInputs inputs = CreateInputs(approved: false);
+        ProductionOcrEvidence emptyOcr = CreateEmptyOcrEvidence(inputs);
+        var composer = new ProductionDetectionMaskComposer(new RasterResidualArtifactMaskAdapter());
+
+        ProductionDetectionMaskSeed seed =
+            ProductionDetectionMaskComposer.BuildSeedForLocalSyntheticCandidateEvaluation(
+                inputs.Request,
+                inputs.Raster,
+                inputs.AxisEvidence,
+                emptyOcr,
+                CancellationToken.None);
+        ProductionDetectionMaskEvidence result =
+            await composer.ComposeForLocalSyntheticCandidateEvaluationAsync(
+                inputs.Request,
+                inputs.Raster,
+                inputs.AxisEvidence,
+                emptyOcr,
+                CancellationToken.None);
+
+        Assert.IsTrue(seed.CopyOcrMask().Values.ToArray().All(static value => value == 0));
+        Assert.AreEqual(0, result.OcrMaskedPixelCount);
+        Assert.AreEqual("unapproved_local_synthetic_candidate", emptyOcr.ConfiguredModels.Scope);
+        Assert.HasCount(2, emptyOcr.ConfiguredModels.Models);
+        Assert.HasCount(1, emptyOcr.ModelEvidence);
+        Assert.AreEqual("ocr_detection", emptyOcr.ModelEvidence[0].Task);
+    }
+
+    [TestMethod]
+    [DataRow("recognition-envelope")]
+    [DataRow("missing-warning")]
+    [DataRow("nonempty-region")]
+    [DataRow("nonzero-batch")]
+    [DataRow("region-failure")]
+    [DataRow("unapproved-configuration")]
+    [DataRow("configured-model-mismatch")]
+    public async Task EmptyDetectorResultRejectsInconsistentOrUnapprovedProvenance(string mode)
+    {
+        TestInputs inputs = CreateInputs();
+        ProductionOcrEvidence empty = CreateEmptyOcrEvidence(inputs);
+        OcrResult result = empty.Result;
+        IReadOnlyList<ProductionOcrModelEvidence> executions = empty.ModelEvidence;
+        ProductionOcrConfigurationEvidence configuration = empty.ConfiguredModels;
+        switch (mode)
+        {
+            case "recognition-envelope":
+                executions = inputs.OcrEvidence.ModelEvidence;
+                break;
+            case "missing-warning":
+                result = result with { Warnings = [] };
+                break;
+            case "nonempty-region":
+                result = result with { Regions = inputs.OcrEvidence.Result.Regions };
+                break;
+            case "nonzero-batch":
+                result = result with { Cache = result.Cache with { BatchCount = 1 } };
+                break;
+            case "region-failure":
+                result = result with
+                {
+                    RegionFailures =
+                    [
+                        new OcrRegionFailure(
+                            "region-1",
+                            OcrSourceImage.Original,
+                            new OcrFailure(
+                                "OCR_TEST_FAILURE",
+                                "error",
+                                "Errors.DetectionEvidenceRejected",
+                                "test failure",
+                                true,
+                                "retry")),
+                    ],
+                };
+                break;
+            case "unapproved-configuration":
+                configuration = WithScope(empty, approved: false).ConfiguredModels;
+                break;
+            case "configured-model-mismatch":
+                configuration = new ProductionOcrConfigurationEvidence(
+                [
+                    new ProductionOcrConfiguredModel(
+                        "ocr_detection",
+                        new ModelIdentity("other-detector", "ocr-v1", new string('d', 64), "other.onnx"),
+                        InferenceProvider.Cpu),
+                    configuration.Models.Single(static model => model.Task == "ocr_recognition"),
+                ],
+                ProductionOcrConfigurationScope.ApprovedProduction);
+                break;
+            default:
+                Assert.Fail($"Unknown test mode '{mode}'.");
+                break;
+        }
+
+        var composer = new ProductionDetectionMaskComposer(new SeedOnlyArtifactMaskAdapter());
+        await Assert.ThrowsAsync<ProductionWorkflowStageException>(() => composer.ComposeAsync(
+            inputs.Request,
+            inputs.Raster,
+            inputs.AxisEvidence,
+            new ProductionOcrEvidence(result, executions, configuration),
+            CancellationToken.None));
+    }
+
+    [TestMethod]
+    public async Task RecognizedCropsStillRequireRecognitionExecutionEnvelope()
+    {
+        TestInputs inputs = CreateInputs();
+        var detectorOnly = new ProductionOcrEvidence(
+            inputs.OcrEvidence.Result,
+            [inputs.OcrEvidence.ModelEvidence.Single(static item => item.Task == "ocr_detection")],
+            inputs.OcrEvidence.ConfiguredModels);
+        var composer = new ProductionDetectionMaskComposer(new SeedOnlyArtifactMaskAdapter());
+
+        await Assert.ThrowsAsync<ProductionWorkflowStageException>(() => composer.ComposeAsync(
+            inputs.Request,
+            inputs.Raster,
+            inputs.AxisEvidence,
+            detectorOnly,
+            CancellationToken.None));
+    }
+
+    private static TestInputs CreateInputs(bool approved = true)
     {
         const int width = 32;
         const int height = 32;
@@ -287,7 +441,55 @@ public sealed class ProductionDetectionMaskComposerTests
             new("ocr_detection", Envelope(request, "ocr", "ocr-v1", "ocr-detection", 'b')),
             new("ocr_recognition", Envelope(request, "ocr", "ocr-v1", "ocr-recognition", 'c')),
         ];
-        return new TestInputs(request, raster, axisEvidence, ocrEvidence, ocrResult);
+        var configuredModels = new ProductionOcrConfigurationEvidence(
+        [
+            new ProductionOcrConfiguredModel(
+                "ocr_detection",
+                new ModelIdentity("ocr-detection", "ocr-v1", new string('b', 64), "detection.onnx"),
+                InferenceProvider.Cpu),
+            new ProductionOcrConfiguredModel(
+                "ocr_recognition",
+                new ModelIdentity("ocr-recognition", "ocr-v1", new string('c', 64), "recognition.onnx"),
+                InferenceProvider.Cpu),
+        ],
+        approved
+            ? ProductionOcrConfigurationScope.ApprovedProduction
+            : ProductionOcrConfigurationScope.UnapprovedLocalSyntheticCandidate);
+        return new TestInputs(
+            request,
+            raster,
+            axisEvidence,
+            new ProductionOcrEvidence(ocrResult, ocrEvidence, configuredModels));
+    }
+
+    private static ProductionOcrEvidence WithScope(ProductionOcrEvidence evidence, bool approved) =>
+        new(
+            evidence.Result,
+            evidence.ModelEvidence,
+            new ProductionOcrConfigurationEvidence(
+                evidence.ConfiguredModels.Models.Select(model => new ProductionOcrConfiguredModel(
+                    model.Task,
+                    model.Identity,
+                    model.Provider)),
+                approved
+                    ? ProductionOcrConfigurationScope.ApprovedProduction
+                    : ProductionOcrConfigurationScope.UnapprovedLocalSyntheticCandidate));
+
+    private static ProductionOcrEvidence CreateEmptyOcrEvidence(TestInputs inputs)
+    {
+        OcrResult result = inputs.OcrEvidence.Result with
+        {
+            Regions = [],
+            Masks = [],
+            Confidence = 0,
+            Warnings = ["no_text_regions_detected"],
+            Cache = inputs.OcrEvidence.Result.Cache with { CropCount = 0, BatchCount = 0 },
+            RegionFailures = [],
+        };
+        return new ProductionOcrEvidence(
+            result,
+            [inputs.OcrEvidence.ModelEvidence.Single(static item => item.Task == "ocr_detection")],
+            inputs.OcrEvidence.ConfiguredModels);
     }
 
     private static WorkflowVisionEnvelope Envelope(
@@ -328,8 +530,8 @@ public sealed class ProductionDetectionMaskComposerTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             Assert.AreSame(inputs.AxisEvidence, axisEvidence);
-            Assert.AreSame(inputs.OcrEvidence, ocrModelEvidence);
-            Assert.AreSame(inputs.OcrResult, ocrResult);
+            Assert.AreSame(inputs.OcrEvidence.ModelEvidence, ocrModelEvidence);
+            Assert.AreSame(inputs.OcrEvidence.Result, ocrResult);
             WasInvoked = true;
             var algorithm = new ProductionArtifactAlgorithmEvidence(
                 "fixture-residual-artifacts", "1", new string('d', 64), new string('e', 64));
@@ -387,6 +589,5 @@ public sealed class ProductionDetectionMaskComposerTests
         ProductionWorkflowDetectionRequest Request,
         ProductionDecodedRaster Raster,
         ProductionAxisGeometryEvidence AxisEvidence,
-        IReadOnlyList<ProductionOcrModelEvidence> OcrEvidence,
-        OcrResult OcrResult);
+        ProductionOcrEvidence OcrEvidence);
 }

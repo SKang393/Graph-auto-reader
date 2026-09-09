@@ -105,14 +105,13 @@ internal static class ProductionComponentOcrAdapterFactory
             recognizer,
             new MemoryOcrResultCache(),
             recognition.Pipeline);
-        return new ProductionOcrAdapter(
+        return ProductionOcrAdapter.CreateFromValidatedApprovedPipeline(
             pipeline,
             detectionModel.Identity,
             InferenceProvider.Cpu,
             recognitionModel.Identity,
             InferenceProvider.Cpu,
-            reviewedOpenCvRuntimeSha256,
-            isApproved: true);
+            reviewedOpenCvRuntimeSha256);
     }
 
     internal static (

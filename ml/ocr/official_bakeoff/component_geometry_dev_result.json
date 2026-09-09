@@ -1,0 +1,239 @@
+{
+  "candidate_sha256": "f242f728bf24aad755a5e57644c04726efa6a843fc0d04f58462744274b387ee",
+  "conclusion": "Matched component geometry improves detection overlap on identical inputs but fails the shared 95 percent precision and recall bars. Default production geometry remains unchanged. Further synthetic diagnosis is required.",
+  "date": "2026-09-09",
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "production_approved": false,
+  "protocol": {
+    "path": "ml/ocr/official_bakeoff/component_geometry_dev_protocol.json",
+    "sha256": "efe791352c6dd29b36dc8098ed742b370a0db186c307ed6af851c82e9b54e67e"
+  },
+  "recognition_and_role_metrics": {
+    "reason": "The existing fixed-IoU evaluator scores detection only; no recognition or role pass is claimed.",
+    "scored": false
+  },
+  "release_eligible": false,
+  "schema": "graphreader.ocr-component-geometry-dev-result.v1",
+  "sealed_reads": 0,
+  "split_results": {
+    "dev": {
+      "detection_metrics": {
+        "by_truth_role": {
+          "annotation": {
+            "false_negative_count": 9,
+            "matched_truth_count": 9,
+            "recall": 0.5,
+            "truth_region_count": 18
+          },
+          "axis_title": {
+            "false_negative_count": 3,
+            "matched_truth_count": 9,
+            "recall": 0.75,
+            "truth_region_count": 12
+          },
+          "condition_label": {
+            "false_negative_count": 26,
+            "matched_truth_count": 4,
+            "recall": 0.13333333333333333,
+            "truth_region_count": 30
+          },
+          "legend_text": {
+            "false_negative_count": 11,
+            "matched_truth_count": 0,
+            "recall": 0.0,
+            "truth_region_count": 11
+          },
+          "participant": {
+            "false_negative_count": 0,
+            "matched_truth_count": 9,
+            "recall": 1.0,
+            "truth_region_count": 9
+          },
+          "phase_heading": {
+            "false_negative_count": 0,
+            "matched_truth_count": 30,
+            "recall": 1.0,
+            "truth_region_count": 30
+          },
+          "x_tick": {
+            "false_negative_count": 43,
+            "matched_truth_count": 5,
+            "recall": 0.10416666666666667,
+            "truth_region_count": 48
+          },
+          "y_tick": {
+            "false_negative_count": 24,
+            "matched_truth_count": 1,
+            "recall": 0.04,
+            "truth_region_count": 25
+          }
+        },
+        "case_count": 3,
+        "false_negatives": 116,
+        "false_positives": 58,
+        "panel_count": 9,
+        "precision": 0.536,
+        "predicted_region_count": 125,
+        "recall": 0.366120218579235,
+        "true_positives": 67,
+        "truth_region_count": 183,
+        "truth_regions_not_fully_covered_by_completed_panels": 7,
+        "truth_regions_outside_all_emitted_panel_crops": 7
+      },
+      "detection_score": {
+        "path": "artifacts/synthetic-runtime-evidence/dev393-component-geometry-run1/ocr-detection-score.json",
+        "sha256": "e902217480f975c2a7af1e8533add4677ed2edaca04f17e2bbee0231c5f0f312"
+      },
+      "input_manifest_sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7",
+      "ocr_adapter_id": "graphreader-ocr:graph-structure-consensus-component-geometry-v1:d4aa24d408cd:7839f12b644f:1fa122bdb8e9",
+      "panel_count": 9,
+      "prior_model_polygon_metrics": {
+        "precision": 0.32,
+        "recall": 0.2185792349726776
+      },
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "7d5d89c8c73e8da135e1bf67c85262908310d0388fc75d859172c1b0da77c530"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "d01d04533f4ffa36f7ea073d6f3df174fad644989cf4f1188dcc07facece0e15"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "b2f980e3f282bfbfeab7469f2f0982aa1b5b90be64cdf398e0d832d7362681ef"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "b92702fce5d56f176f0fe5233fcca5c8ba97c0055a395d8824eccb528a378e0a"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "a65c8be4e7d4d05b01faae1376687c314963987ba0c3310838146d06e8e77629"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "ee6e9f6fba24dd44fff79574ee45ddcb5d3b4d2fd52e2335368f7005a8adbccf"
+        }
+      ],
+      "runtime_report": {
+        "path": "artifacts/synthetic-runtime-evidence/dev393-component-geometry-run1/report.json",
+        "sha256": "687e57fefcccc34ef4942dbaf9633eabc9fe2c02d964118b8e26800e1dca5d55"
+      },
+      "score_elapsed_ms": 13902.695,
+      "source_count": 3
+    },
+    "train": {
+      "detection_metrics": {
+        "by_truth_role": {
+          "annotation": {
+            "false_negative_count": 7,
+            "matched_truth_count": 5,
+            "recall": 0.4166666666666667,
+            "truth_region_count": 12
+          },
+          "axis_title": {
+            "false_negative_count": 6,
+            "matched_truth_count": 4,
+            "recall": 0.4,
+            "truth_region_count": 10
+          },
+          "condition_label": {
+            "false_negative_count": 12,
+            "matched_truth_count": 4,
+            "recall": 0.25,
+            "truth_region_count": 16
+          },
+          "legend_text": {
+            "false_negative_count": 6,
+            "matched_truth_count": 0,
+            "recall": 0.0,
+            "truth_region_count": 6
+          },
+          "participant": {
+            "false_negative_count": 1,
+            "matched_truth_count": 5,
+            "recall": 0.8333333333333334,
+            "truth_region_count": 6
+          },
+          "phase_heading": {
+            "false_negative_count": 6,
+            "matched_truth_count": 10,
+            "recall": 0.625,
+            "truth_region_count": 16
+          },
+          "x_tick": {
+            "false_negative_count": 27,
+            "matched_truth_count": 8,
+            "recall": 0.22857142857142856,
+            "truth_region_count": 35
+          },
+          "y_tick": {
+            "false_negative_count": 28,
+            "matched_truth_count": 17,
+            "recall": 0.37777777777777777,
+            "truth_region_count": 45
+          }
+        },
+        "case_count": 4,
+        "false_negatives": 93,
+        "false_positives": 41,
+        "panel_count": 4,
+        "precision": 0.5638297872340425,
+        "predicted_region_count": 94,
+        "recall": 0.363013698630137,
+        "true_positives": 53,
+        "truth_region_count": 146,
+        "truth_regions_not_fully_covered_by_completed_panels": 17,
+        "truth_regions_outside_all_emitted_panel_crops": 17
+      },
+      "detection_score": {
+        "path": "artifacts/synthetic-runtime-evidence/train393-component-geometry-run1/ocr-detection-score.json",
+        "sha256": "aa2bd9e0c0971a9e2125f7b16b1864bd5d9649958003ecd1c534f081ab51290b"
+      },
+      "input_manifest_sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37",
+      "ocr_adapter_id": "graphreader-ocr:graph-structure-consensus-component-geometry-v1:d4aa24d408cd:7839f12b644f:1fa122bdb8e9",
+      "panel_count": 4,
+      "prior_model_polygon_metrics": {
+        "precision": 0.26595744680851063,
+        "recall": 0.17123287671232876
+      },
+      "runtime_assemblies": [
+        {
+          "name": "GraphReader.SyntheticRuntimeEvidence",
+          "sha256": "7d5d89c8c73e8da135e1bf67c85262908310d0388fc75d859172c1b0da77c530"
+        },
+        {
+          "name": "GraphReader.App",
+          "sha256": "d01d04533f4ffa36f7ea073d6f3df174fad644989cf4f1188dcc07facece0e15"
+        },
+        {
+          "name": "GraphReader.Axis",
+          "sha256": "b2f980e3f282bfbfeab7469f2f0982aa1b5b90be64cdf398e0d832d7362681ef"
+        },
+        {
+          "name": "GraphReader.Ocr",
+          "sha256": "b92702fce5d56f176f0fe5233fcca5c8ba97c0055a395d8824eccb528a378e0a"
+        },
+        {
+          "name": "GraphReader.Inference",
+          "sha256": "a65c8be4e7d4d05b01faae1376687c314963987ba0c3310838146d06e8e77629"
+        },
+        {
+          "name": "GraphReader.Pdf",
+          "sha256": "ee6e9f6fba24dd44fff79574ee45ddcb5d3b4d2fd52e2335368f7005a8adbccf"
+        }
+      ],
+      "runtime_report": {
+        "path": "artifacts/synthetic-runtime-evidence/train393-component-geometry-run1/report.json",
+        "sha256": "2ec93b91447846bd2a447fa379af2778999623166339ef732cdfa2aac559f0a4"
+      },
+      "score_elapsed_ms": 5467.259,
+      "source_count": 4
+    }
+  },
+  "status": "failed_dev",
+  "synthetic_only": true
+}

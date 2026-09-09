@@ -1,0 +1,102 @@
+{
+  "candidate_id": "P1",
+  "complete_artifact_mask": false,
+  "family_holdout": {
+    "dev_split_sha256": "f6cbeaf05dc40fa8be10b2120846d26db78a0a0836a92d5cc05ebb276bba445c",
+    "train_dev_family_disjoint": true,
+    "train_split_sha256": "dd8348657d54317d8cfec420cf9791bc91ed7205e03e62dc9df7b9d7fae4ef7c"
+  },
+  "interpretation": {
+    "reason": "Actual checksum-bound runtime planes and complete marker mapping are training-input requirements; residual artifact accuracy is evaluated by downstream dev behavior and remains unapproved for Production.",
+    "residual_artifact_accuracy_gate_applied": false,
+    "training_input_boundary_passed": true
+  },
+  "layout_holdout": {
+    "independent_layout_required": true,
+    "train_dev_family_disjoint": true,
+    "train_dev_layout_disjoint": true
+  },
+  "optimizer_steps_executed": 0,
+  "private_data": false,
+  "production_approved": false,
+  "retry_count": 10,
+  "revision": "marker-center-mask-preserving-v24",
+  "runtime_binding": {
+    "dev_panel_count": 9,
+    "dev_tensor_set_sha256": "26d8b67ad914d22ccbaa96247364e489096af7ab76adfbac36cd7223de578a81",
+    "mapped_hard_negative_count": 62,
+    "mapped_marker_count": 306,
+    "mapping_audit_sha256": "6005e3cd422430a02367505ee1672addfb78f9144341f6321e9af1c006115a49",
+    "omitted_nonmarker_or_hard_negative_record_count": 41,
+    "path": "artifacts/synthetic-runtime-evidence/runtime-training-layout2-run3.json",
+    "sha256": "5f1f6023313a8c1d3669b168eecb21bca3b983f228ba53c53c7b9b2c3c4b1e93",
+    "source_count": 7,
+    "source_hard_negative_count": 63,
+    "source_marker_count": 306,
+    "train_panel_count": 4,
+    "train_tensor_set_sha256": "f65a31b084055ebae0c4279b07b2a771c899efd31155185f1f65ff605496c598"
+  },
+  "sampling": {
+    "combined": {
+      "batch_size": 128,
+      "epochs": 36,
+      "example_count": 37741,
+      "hard_negative_count": 7202,
+      "optimizer_steps_expected": 10620,
+      "positive_count": 3431
+    },
+    "family": {
+      "capacities": {
+        "selected": 1903
+      },
+      "counts": {
+        "hard_negative": 346,
+        "other_negative": 1384,
+        "positive": 173
+      },
+      "example_count": 1903,
+      "hard_negative_count": 346,
+      "positive_count": 173,
+      "selected_index_sha256": "684c66087df1083b22502bb96c7f886d385d66261d460d07d9daa7874de24cc9"
+    },
+    "order": [
+      "real-range-train",
+      "family-train"
+    ],
+    "real_range": {
+      "capacities": {
+        "artifact": 14469,
+        "faint_low": 8384,
+        "faint_p05": 5497,
+        "generic": 127516,
+        "generic_connector_band": 50373,
+        "hard_existing": 6012,
+        "ocr_heavy": 20547
+      },
+      "counts": {
+        "artifact": 1629,
+        "faint_low": 326,
+        "faint_p05": 1303,
+        "generic": 14961,
+        "generic_connector_band": 6720,
+        "hard_existing": 6012,
+        "ocr_heavy": 1629
+      },
+      "example_count": 35838,
+      "hard_negative_count": 6856,
+      "positive_count": 3258,
+      "selected_index_sha256": "d7460b95bbdbb89d79a12cafe7632604f02b8087e9986fb7a9d3ea940287567f"
+    },
+    "seed": 20260904
+  },
+  "schema": "graphreader.marker-v24-runtime-input-preflight.v1",
+  "sealed_runs": 0,
+  "source_bindings": {
+    "config_path": "ml/markers/center/mask_preserving_v24/training/p1.json",
+    "config_sha256_before_update": "019766271c4070e3ac11778916d15c7a56b625b148dbc7367eebd9731923844f",
+    "runner_source_bundle_sha256": "5bb5bf5cfe4414e67c04fe1772aff6edeccc87a550e420f9a923ab67f3ea8458"
+  },
+  "status": "pass",
+  "synthetic_only": true,
+  "task": "marker-center"
+}

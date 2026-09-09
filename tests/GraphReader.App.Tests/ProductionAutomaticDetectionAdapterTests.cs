@@ -468,7 +468,19 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     new ProductionOcrModelEvidence(
                         "ocr_recognition",
                         Envelope(request, "ocr", "ocr-v1", "ocr-recognition", 'c')),
-                ]));
+                ],
+                new ProductionOcrConfigurationEvidence(
+                [
+                    new ProductionOcrConfiguredModel(
+                        "ocr_detection",
+                        new ModelIdentity("ocr-detection", "ocr-v1", new string('b', 64), "detection.onnx"),
+                        InferenceProvider.Cpu),
+                    new ProductionOcrConfiguredModel(
+                        "ocr_recognition",
+                        new ModelIdentity("ocr-recognition", "ocr-v1", new string('c', 64), "recognition.onnx"),
+                        InferenceProvider.Cpu),
+                ],
+                ProductionOcrConfigurationScope.ApprovedProduction)));
         }
 
         private static OcrRegion Region(
@@ -497,8 +509,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             ProductionWorkflowDetectionRequest request,
             ProductionDecodedRaster raster,
             ProductionAxisGeometryEvidence axisEvidence,
-            IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
-            OcrResult ocrResult,
+            ProductionOcrEvidence ocrEvidence,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -507,7 +518,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 100,
                 request.Image.Sha256,
                 request.ImageVariant,
-                new[] { axisEvidence.Envelope }.Concat(ocrModelEvidence.Select(static item => item.Envelope)),
+                new[] { axisEvidence.Envelope }.Concat(
+                    ocrEvidence.ModelEvidence.Select(static item => item.Envelope)),
                 Envelope(request, "markers", "artifact-mask-v1", "test-artifact-mask", 'f'),
                 new float[10_000],
                 new float[10_000],

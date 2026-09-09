@@ -150,8 +150,7 @@ public sealed class ProductionAutomaticDetectionAdapter : IProductionWorkflowDet
                     request,
                     raster,
                     axis,
-                    ocr.ModelEvidence,
-                    ocr.Result,
+                    ocr,
                     cancellationToken)
                 .ConfigureAwait(false);
             chain.Append(masks.ArtifactEnvelope);

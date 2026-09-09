@@ -40,7 +40,7 @@ The exporter serializes the policy's `dev` split as the existing generator's
 
 The native DLL is loaded from its exact checked path and kept read-locked for
 the process lifetime. Reports record its checksum and approval scope, plus the
-executed application, axis, OCR, inference, and tool assembly checksums. The
+executed application, axis, OCR, inference, PDF/panelization, and tool assembly checksums. The
 existing development OpenCV binary can be used for diagnosis, but its result is
 not evidence for the separate reviewed source-runtime binary.
 
@@ -82,13 +82,42 @@ requested panel diagnostic completed. It does not mean accuracy passed, any
 model was approved, or normal Production composition is available. No CSV
 acceptance or sealed evaluation is performed by this tool.
 
-When OCR returns no regions, the failure report also records independent raw DB
-and connected-component proposals for diagnosis. They are never substituted
-into the result or passed to the seed composer as accepted text.
+Every panel records independent raw DB and connected-component proposals for
+diagnosis, bound to the exact detector input. A separate DB pass on original
+panel pixels measures the effect of axis masking. These additional diagnostic passes
+do not substitute proposals into the result or pass them to the seed composer
+as accepted text. Their cost is included in diagnostic timing. Zero-region cases
+retain the historical empty-OCR diagnostic field as well.
+
+Configured OCR identities are recorded separately from actual execution
+envelopes. A successful zero-crop result requires both configured models, but
+records detector execution only because the recognizer did not run. Its OCR
+mask is all zero; this records the detector result without asserting that the
+image contains no text. The OCR pipeline has its own subrun UUID; adapter
+envelopes share the parent workflow run, project, panel, and input identity.
+
+The separate `ml/markers/center/mask_preserving_v24/runtime_binding.py` loader
+validates explicitly frozen train/dev report, source, binary, model, crop, and
+plane identities. It regenerates project-owned sources before joining marker
+labels, rejects lost or multiply mapped markers, and preserves a non-marker
+omission audit. Only a separately validated binding can enable experimental
+training input; diagnostic completion and model approval remain distinct.
 
 `Test-InputBoundary.ps1` exercises rejection before inference using copied
 synthetic inputs. Supply `-ToolPath`, `-InputManifestPath`, `-CandidatePath`, and
-`-CandidateSha256`; its nine checks keep reports under ignored test scratch.
+`-CandidateSha256`; its fourteen checks keep reports under ignored test scratch.
+
+The optional checksum-bound candidate field `ocr_output_geometry` accepts
+`model_polygon` (the default) or `matched_component`. The latter is the
+preregistered unapproved component-geometry experiment; the report records its
+distinct OCR adapter identity. It cannot enter the production factory. Unknown
+geometry values are rejected before inference or output creation.
+The experimental mode also requires `geometry_protocol` with the exact protocol
+path and SHA-256. That declaration must bind the input manifest to train or dev,
+reference the shared evidence policy, and permit zero sealed reads on this route.
+The tool pins the reviewed declaration's SHA-256 independently of the candidate
+and parses the same bytes it hashes, preventing a caller-created replacement
+declaration from authorizing this experiment.
 
 The pre-OCR structural provider emits descriptive marker-like and connector
 planes before OCR. They are **not applied to OCR input**. Its focused unit

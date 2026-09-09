@@ -1,0 +1,12 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The exact component already matched to a DB proposal provides a tighter pixel-supported OCR region than the expanded DB polygon. Run-3 family dev has 113 padded-containment DB misses at fixed IoU 0.5; final precision is 0.32 and recall is 0.2185792349726776. Diagnosis: artifacts/synthetic-runtime-evidence/ocr-layout2-run3-diagnosis/masked-unmasked-stage-diagnosis.json, SHA256 f9c806d423f46643e553e3fe61335a1944f51fb239f21d9c2c5c9de8c1966240.",
+  "isolated_change": "For an explicitly unapproved synthetic candidate only, retain the existing eligible components, one-to-one match ordering, fixed thresholds, model weights, model confidence, and recognizer. Return each matched component polygon and its orientation, with a distinct deterministic output identity and fingerprint. Retain model and component source IDs as evidence. Default production geometry remains the DB polygon. No component without a model match is admitted.",
+  "split_identities": {
+    "train": {"path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json", "sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37"},
+    "dev": {"path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json", "sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7"}
+  },
+  "metric": "Existing score_family_ocr.py final-region precision and recall at fixed IoU 0.5 with the full-source truth denominator; report recognition exact match, character error rate and role accuracy separately. No crop omissions are removed from the denominator.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json: tier1_reviewable_error OCR detection, recognition, and role fields. Diagnostic improvement alone does not constitute a pass.",
+  "budget": {"train_dev_runs": "unlimited", "sealed_runs": 0}
+}

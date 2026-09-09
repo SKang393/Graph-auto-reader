@@ -17,6 +17,9 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 
 internal static class Program
 {
+    private const string ComponentGeometryProtocolSha256 =
+        "efe791352c6dd29b36dc8098ed742b370a0db186c307ed6af851c82e9b54e67e";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -81,6 +84,43 @@ internal static class Program
             config.GetProperty("production_approved").GetBoolean())
         {
             throw new InvalidDataException("An explicitly unapproved local candidate descriptor is required.");
+        }
+        GraphStructureConsensusGeometry outputGeometry =
+            config.TryGetProperty("ocr_output_geometry", out JsonElement geometryOption)
+                ? geometryOption.GetString() switch
+                {
+                    "model_polygon" => GraphStructureConsensusGeometry.ModelPolygon,
+                    "matched_component" => GraphStructureConsensusGeometry.MatchedComponent,
+                    _ => throw new InvalidDataException("Unsupported synthetic OCR output geometry."),
+                }
+                : GraphStructureConsensusGeometry.ModelPolygon;
+        string? geometryProtocolSha256 = null;
+        if (outputGeometry == GraphStructureConsensusGeometry.MatchedComponent)
+        {
+            if (!config.TryGetProperty("geometry_protocol", out JsonElement protocol))
+            {
+                throw new InvalidDataException("Experimental OCR geometry requires its pinned protocol.");
+            }
+            RequireKeys(protocol, "path", "sha256");
+            geometryProtocolSha256 = Text(protocol, "sha256");
+            if (!string.Equals(geometryProtocolSha256, ComponentGeometryProtocolSha256, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException("Experimental OCR geometry requires the reviewed protocol identity.");
+            }
+            byte[] protocolBytes = File.ReadAllBytes(Text(protocol, "path"));
+            if (!string.Equals(Hash(protocolBytes), ComponentGeometryProtocolSha256, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException("Experimental OCR geometry protocol checksum mismatch.");
+            }
+            using JsonDocument declaration = JsonDocument.Parse(protocolBytes);
+            string splitName = Text(inputs, "split") == "train" ? "train" : "dev";
+            JsonElement declaredSplit = declaration.RootElement.GetProperty("split_identities").GetProperty(splitName);
+            if (Text(declaration.RootElement, "evidence_policy") != "ml/policy/evidence-policy.json" ||
+                declaration.RootElement.GetProperty("budget").GetProperty("sealed_runs").GetInt32() != 0 ||
+                !string.Equals(Text(declaredSplit, "sha256"), Hash(inputBytes), StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException("Experimental OCR geometry protocol does not bind these train/dev inputs.");
+            }
         }
         foreach (JsonElement notice in config.GetProperty("license_inputs").EnumerateArray())
         {
@@ -149,7 +189,11 @@ internal static class Program
         var total = Stopwatch.StartNew();
         ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForLocalSyntheticCandidateEvaluationAsync(
             Descriptor(config.GetProperty("detector")), Descriptor(config.GetProperty("recognizer")),
-            runtime, nativeSha, cancellationToken).ConfigureAwait(false);
+            runtime, nativeSha, cancellationToken, outputGeometry).ConfigureAwait(false);
+        LocalSyntheticOcrModelDescriptor diagnosticDescriptor = Descriptor(config.GetProperty("detector"));
+        var diagnosticModelDetector = new LocalOnnxTextRegionDetector(runtime.Runtime,
+            ProductionOcrAdapter.ReadDetectionOptions(diagnosticDescriptor.Identity, diagnosticDescriptor.ManifestPath));
+        var diagnosticComponentDetector = new ConnectedComponentTextRegionDetector();
         var axis = new ProductionAxisGeometryAdapter(nativeSha, isApproved: false);
         var artifactAdapter = new RasterResidualArtifactMaskAdapter();
         var maskComposer = new ProductionDetectionMaskComposer(artifactAdapter);
@@ -224,6 +268,7 @@ internal static class Program
                 int? regionCount = null;
                 int? cropCount = null;
                 object? emptyOcrDiagnostic = null;
+                object? ocrProposalDiagnostic = null;
                 object? preOcrDiagnostic = null;
                 object? panelPng = null;
                 IReadOnlyList<string> importWarnings = Array.Empty<string>();
@@ -308,6 +353,25 @@ internal static class Program
                         ThinConnector = await WritePlaneAsync(panelRoot, "pre-ocr-thin-connector.f32", structure.ThinConnectorProbabilities.ToArray(), cancellationToken).ConfigureAwait(false),
                         AppliedToOcr = false, ProductionApproved = false,
                     };
+                    stage = "ocr-proposal-diagnostic";
+                    // Persist independent stage output for every development panel.
+                    // It is diagnostic only and never substitutes for consensus output.
+                    IReadOnlyList<OcrDetectedRegion> modelRegions = await diagnosticModelDetector
+                        .DetectAsync(detectorImage.Image, cancellationToken).ConfigureAwait(false);
+                    IReadOnlyList<OcrDetectedRegion> componentRegions = await diagnosticComponentDetector
+                        .DetectAsync(detectorImage.Image, cancellationToken).ConfigureAwait(false);
+                    IReadOnlyList<OcrDetectedRegion> unmaskedModelRegions = await diagnosticModelDetector
+                        .DetectAsync(sourceImage, cancellationToken).ConfigureAwait(false);
+                    ocrProposalDiagnostic = new
+                    {
+                        ModelRegions = modelRegions,
+                        ComponentRegions = componentRegions,
+                        DetectorInputSha256 = detectorImage.PixelSha256,
+                        UnmaskedModelRegions = unmaskedModelRegions,
+                        UnmaskedInputSha256 = Hash(sourceImage.Pixels.ToArray()),
+                        CoordinateSpace = "original_pixels",
+                        UsedAsAcceptedEvidence = false,
+                    };
                     stage = "ocr";
                     ProductionOcrEvidence text = await ocr.RecognizeForLocalSyntheticCandidateEvaluationAsync(
                         request, raster, new OcrRectangle(left, top, right - left, bottom - top),
@@ -316,25 +380,16 @@ internal static class Program
                     cropCount = text.Result.Cache.CropCount;
                     if (regionCount == 0)
                     {
-                        // Diagnose a failed stage without changing its result or
-                        // substituting these proposals into the seed composer.
-                        LocalSyntheticOcrModelDescriptor descriptor = Descriptor(config.GetProperty("detector"));
-                        var rawDetector = new LocalOnnxTextRegionDetector(runtime.Runtime,
-                            ProductionOcrAdapter.ReadDetectionOptions(descriptor.Identity, descriptor.ManifestPath));
-                        IReadOnlyList<OcrDetectedRegion> modelRegions = await rawDetector
-                            .DetectAsync(detectorImage.Image, cancellationToken).ConfigureAwait(false);
-                        IReadOnlyList<OcrDetectedRegion> componentRegions = await new ConnectedComponentTextRegionDetector()
-                            .DetectAsync(detectorImage.Image, cancellationToken).ConfigureAwait(false);
                         emptyOcrDiagnostic = new { ModelRegions = modelRegions, ComponentRegions = componentRegions };
                     }
                     stage = "seed-composition";
                     ProductionDetectionMaskSeed seed = ProductionDetectionMaskComposer.BuildSeedForLocalSyntheticCandidateEvaluation(
-                        request, raster, geometry, text.ModelEvidence, text.Result, cancellationToken);
+                        request, raster, geometry, text, cancellationToken);
                     object ocrMask = await WritePlaneAsync(panelRoot, "ocr-seed.f32", seed.CopyOcrMask().Values.ToArray(), cancellationToken).ConfigureAwait(false);
                     object geometryMask = await WritePlaneAsync(panelRoot, "geometry-seed.f32", seed.CopyArtifactMask().Values.ToArray(), cancellationToken).ConfigureAwait(false);
                     stage = "residual-artifact-diagnostic";
                     ProductionDetectionMaskEvidence masks = await maskComposer.ComposeForLocalSyntheticCandidateEvaluationAsync(
-                        request, raster, geometry, text.ModelEvidence, text.Result, cancellationToken).ConfigureAwait(false);
+                        request, raster, geometry, text, cancellationToken).ConfigureAwait(false);
                     object artifactMask = await WritePlaneAsync(panelRoot, "composed-artifact-candidate.f32", masks.CopyArtifactMask().Values.ToArray(), cancellationToken).ConfigureAwait(false);
                     panelResults.Add(new
                     {
@@ -366,6 +421,8 @@ internal static class Program
                         Axis = geometry,
                         Ocr = text.Result,
                         OcrModels = text.ModelEvidence,
+                        OcrConfiguredModels = text.ConfiguredModels,
+                        OcrProposalDiagnostic = ocrProposalDiagnostic,
                     });
                     sourceCompletedPanels++;
                     completedPanels++;
@@ -393,6 +450,7 @@ internal static class Program
                         RecognitionCropCount = cropCount,
                         Error = exception.Message,
                         EmptyOcrDiagnostic = emptyOcrDiagnostic,
+                        OcrProposalDiagnostic = ocrProposalDiagnostic,
                         PreOcrDiagnostic = preOcrDiagnostic,
                         ElapsedMilliseconds = timer.Elapsed.TotalMilliseconds,
                     });
@@ -439,12 +497,15 @@ internal static class Program
             ArtifactCandidateIdentity = artifactAdapter.Identity,
             ArtifactCandidateConfiguration = JsonSerializer.Deserialize<JsonElement>(artifactAdapter.ConfigurationJson),
             InputManifestSha256 = inputManifestSha256, CandidateSha256 = candidateSha256,
+            OcrAdapterId = ocr.AdapterId,
+            GeometryProtocolSha256 = geometryProtocolSha256,
             NativeSha256 = nativeSha, NativeScope = nativeScope,
             RuntimeAssemblies = new[]
             {
                 typeof(Program).Assembly, typeof(ProductionOcrAdapter).Assembly,
                 typeof(GraphReader.Axis.AxisGeometryDetector).Assembly, typeof(OcrPipeline).Assembly,
                 typeof(InferenceRuntime).Assembly,
+                typeof(GraphReader.Pdf.PanelizationEngine).Assembly,
             }.Select(static assembly => new
             {
                 Name = assembly.GetName().Name,

@@ -1851,10 +1851,10 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             CancellationToken cancellationToken)
         {
             int horizontalMinimum = Math.Max(
-                (int)MinimumAxisLengthPoints,
+                (int)Math.Ceiling(MinimumAxisLengthPoints * transform.ScaleX),
                 (int)Math.Ceiling(width * MinimumHorizontalPageFraction));
             int verticalMinimum = Math.Max(
-                (int)MinimumAxisLengthPoints,
+                (int)Math.Ceiling(MinimumAxisLengthPoints * transform.ScaleY),
                 (int)Math.Ceiling(height * MinimumVerticalPageFraction));
             List<RasterStructuralLine> horizontal = DetectLines(
                 width,
