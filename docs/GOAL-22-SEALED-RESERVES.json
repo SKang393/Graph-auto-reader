@@ -1,0 +1,694 @@
+{
+  "evaluator_integration": "Not yet connected. Before evaluation, authenticate candidate budget and atomically record the first sealed read. Two compatible unused sets must remain.",
+  "preparation": {
+    "acceptance_scope": "goal22.five-axis-family.real-range.v1",
+    "archives": [
+      {
+        "acceptance_ready": false,
+        "acceptance_scope": "goal22.five-axis-family.real-range.v1",
+        "archive_byte_count": 1943174,
+        "archive_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609092/reserve.zip",
+        "archive_sha256": "f0c0c74da0c353a678481267a9d5fd0b614417889c8d496da58c24507310407c",
+        "case_count": 21,
+        "config_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609092/generation-config.json",
+        "config_sha256": "77718b5e25b9aa9e570bcffd542a110ad389d68680731acce05a11ad2bf4afdf",
+        "coverage": {
+          "canvas_width_case_counts": {
+            "1200": 11,
+            "1338": 6,
+            "361": 1,
+            "600": 1,
+            "6352": 1,
+            "863": 1
+          },
+          "case_count": 21,
+          "design_counts": {
+            "ab": 7,
+            "aba": 1,
+            "abab": 3,
+            "alternating_treatments": 1,
+            "changing_criterion": 1,
+            "generalization": 1,
+            "maintenance": 1,
+            "multiple_baseline": 2,
+            "multiple_probe": 2,
+            "shared_baseline": 1,
+            "staggered_starts": 1
+          },
+          "marker_count": 838,
+          "marker_style_catalog": [
+            {
+              "fill": "open",
+              "shape": "circle"
+            },
+            {
+              "fill": "filled",
+              "shape": "circle"
+            },
+            {
+              "fill": "degraded",
+              "shape": "circle"
+            },
+            {
+              "fill": "open",
+              "shape": "square"
+            },
+            {
+              "fill": "filled",
+              "shape": "square"
+            },
+            {
+              "fill": "degraded",
+              "shape": "square"
+            },
+            {
+              "fill": "open",
+              "shape": "triangle_up"
+            },
+            {
+              "fill": "filled",
+              "shape": "triangle_up"
+            },
+            {
+              "fill": "degraded",
+              "shape": "triangle_up"
+            },
+            {
+              "fill": "open",
+              "shape": "triangle_down"
+            },
+            {
+              "fill": "filled",
+              "shape": "triangle_down"
+            },
+            {
+              "fill": "degraded",
+              "shape": "triangle_down"
+            },
+            {
+              "fill": "open",
+              "shape": "diamond"
+            },
+            {
+              "fill": "filled",
+              "shape": "diamond"
+            },
+            {
+              "fill": "degraded",
+              "shape": "diamond"
+            },
+            {
+              "fill": "open",
+              "shape": "star"
+            },
+            {
+              "fill": "filled",
+              "shape": "star"
+            },
+            {
+              "fill": "degraded",
+              "shape": "star"
+            },
+            {
+              "fill": "open",
+              "shape": "asterisk"
+            },
+            {
+              "fill": "filled",
+              "shape": "asterisk"
+            },
+            {
+              "fill": "degraded",
+              "shape": "asterisk"
+            },
+            {
+              "fill": "open",
+              "shape": "cross"
+            },
+            {
+              "fill": "filled",
+              "shape": "cross"
+            },
+            {
+              "fill": "degraded",
+              "shape": "cross"
+            },
+            {
+              "fill": "open",
+              "shape": "other"
+            },
+            {
+              "fill": "filled",
+              "shape": "other"
+            },
+            {
+              "fill": "degraded",
+              "shape": "other"
+            }
+          ],
+          "output_mode_case_counts": {
+            "RGB": 20,
+            "RGBA": 1
+          },
+          "panel_count": 31,
+          "panel_count_case_counts": {
+            "1": 17,
+            "2": 1,
+            "3": 2,
+            "6": 1
+          },
+          "panel_height_case_counts": {
+            "160": 1,
+            "270": 11,
+            "315": 1,
+            "412": 6,
+            "4404": 1,
+            "520": 1
+          },
+          "resolved_feature_counts": {
+            "blank_phase_gaps": 2,
+            "irregular_spacing": 21,
+            "missing_sessions": 3,
+            "sparse_probes": 3
+          },
+          "series_count": 37,
+          "session_count_case_counts": {
+            "100": 1,
+            "18": 1,
+            "2": 1,
+            "20": 1,
+            "24": 12,
+            "28": 1,
+            "30": 1,
+            "32": 1,
+            "36": 1,
+            "40": 1
+          }
+        },
+        "coverage_protocol_path": "ml/policy/goal22-sealed-coverage-v1.json",
+        "coverage_protocol_sha256": "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+        "generator_source_bundle_sha256": "be7d5710a2b95cd79e829f158e5c7397ae9cd032daf78b801554b89e1daa5102",
+        "generator_source_paths": [
+          "ml/policy/goal22-sealed-coverage-v1.json",
+          "ml/synthetic/dataset.py",
+          "ml/synthetic/fonts.py",
+          "ml/synthetic/io.py",
+          "ml/synthetic/prepare_sealed_reserve.py",
+          "ml/synthetic/renderer.py",
+          "ml/synthetic/scene.schema.json",
+          "ml/synthetic/schema.py",
+          "ml/synthetic/sealed_acceptance.py",
+          "ml/synthetic/templates.py"
+        ],
+        "generator_source_sha256": [
+          "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+          "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+          "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+          "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2",
+          "0e488087bebd31a5ea92e22034091bcf8d402e07ce0dc179bb6c2f0444601d5d",
+          "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+          "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+          "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+          "811435dc8ab19078d85235a90ac636774b1357d7bb3263627357dc2d5bc0001b",
+          "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+        ],
+        "purpose": "sealed_acceptance",
+        "registration_ready": true,
+        "registry_sha256_after_registration": "e1b64ea8ef7f8bf72e2e18fb08146ed9f3a597cfda4f108f8bc9c9234b9f7d5c",
+        "set_id": "7f7aa94e9fd21a9f905cc7a0aad3a1be2ebd4431dffe0f62828ae94e729b68f5",
+        "state": "unused"
+      },
+      {
+        "acceptance_ready": false,
+        "acceptance_scope": "goal22.five-axis-family.real-range.v1",
+        "archive_byte_count": 1716089,
+        "archive_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609094/reserve.zip",
+        "archive_sha256": "0adbdad388297e8c3b63408906c241e8f01b865474848fd4b77612b6e88e78f7",
+        "case_count": 21,
+        "config_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609094/generation-config.json",
+        "config_sha256": "c7c98f27d33c138d5cd279231d9f5d993ad8d21d12fd17abcc55d399fe703c5c",
+        "coverage": {
+          "canvas_width_case_counts": {
+            "1200": 11,
+            "1338": 6,
+            "361": 1,
+            "600": 1,
+            "6352": 1,
+            "863": 1
+          },
+          "case_count": 21,
+          "design_counts": {
+            "ab": 7,
+            "aba": 1,
+            "abab": 3,
+            "alternating_treatments": 1,
+            "changing_criterion": 1,
+            "generalization": 1,
+            "maintenance": 1,
+            "multiple_baseline": 2,
+            "multiple_probe": 2,
+            "shared_baseline": 1,
+            "staggered_starts": 1
+          },
+          "marker_count": 838,
+          "marker_style_catalog": [
+            {
+              "fill": "open",
+              "shape": "circle"
+            },
+            {
+              "fill": "filled",
+              "shape": "circle"
+            },
+            {
+              "fill": "degraded",
+              "shape": "circle"
+            },
+            {
+              "fill": "open",
+              "shape": "square"
+            },
+            {
+              "fill": "filled",
+              "shape": "square"
+            },
+            {
+              "fill": "degraded",
+              "shape": "square"
+            },
+            {
+              "fill": "open",
+              "shape": "triangle_up"
+            },
+            {
+              "fill": "filled",
+              "shape": "triangle_up"
+            },
+            {
+              "fill": "degraded",
+              "shape": "triangle_up"
+            },
+            {
+              "fill": "open",
+              "shape": "triangle_down"
+            },
+            {
+              "fill": "filled",
+              "shape": "triangle_down"
+            },
+            {
+              "fill": "degraded",
+              "shape": "triangle_down"
+            },
+            {
+              "fill": "open",
+              "shape": "diamond"
+            },
+            {
+              "fill": "filled",
+              "shape": "diamond"
+            },
+            {
+              "fill": "degraded",
+              "shape": "diamond"
+            },
+            {
+              "fill": "open",
+              "shape": "star"
+            },
+            {
+              "fill": "filled",
+              "shape": "star"
+            },
+            {
+              "fill": "degraded",
+              "shape": "star"
+            },
+            {
+              "fill": "open",
+              "shape": "asterisk"
+            },
+            {
+              "fill": "filled",
+              "shape": "asterisk"
+            },
+            {
+              "fill": "degraded",
+              "shape": "asterisk"
+            },
+            {
+              "fill": "open",
+              "shape": "cross"
+            },
+            {
+              "fill": "filled",
+              "shape": "cross"
+            },
+            {
+              "fill": "degraded",
+              "shape": "cross"
+            },
+            {
+              "fill": "open",
+              "shape": "other"
+            },
+            {
+              "fill": "filled",
+              "shape": "other"
+            },
+            {
+              "fill": "degraded",
+              "shape": "other"
+            }
+          ],
+          "output_mode_case_counts": {
+            "RGB": 20,
+            "RGBA": 1
+          },
+          "panel_count": 31,
+          "panel_count_case_counts": {
+            "1": 17,
+            "2": 1,
+            "3": 2,
+            "6": 1
+          },
+          "panel_height_case_counts": {
+            "160": 1,
+            "270": 11,
+            "315": 1,
+            "412": 6,
+            "4404": 1,
+            "520": 1
+          },
+          "resolved_feature_counts": {
+            "blank_phase_gaps": 2,
+            "irregular_spacing": 21,
+            "missing_sessions": 3,
+            "sparse_probes": 3
+          },
+          "series_count": 37,
+          "session_count_case_counts": {
+            "100": 1,
+            "18": 1,
+            "2": 1,
+            "20": 1,
+            "24": 12,
+            "28": 1,
+            "30": 1,
+            "32": 1,
+            "36": 1,
+            "40": 1
+          }
+        },
+        "coverage_protocol_path": "ml/policy/goal22-sealed-coverage-v1.json",
+        "coverage_protocol_sha256": "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+        "generator_source_bundle_sha256": "be7d5710a2b95cd79e829f158e5c7397ae9cd032daf78b801554b89e1daa5102",
+        "generator_source_paths": [
+          "ml/policy/goal22-sealed-coverage-v1.json",
+          "ml/synthetic/dataset.py",
+          "ml/synthetic/fonts.py",
+          "ml/synthetic/io.py",
+          "ml/synthetic/prepare_sealed_reserve.py",
+          "ml/synthetic/renderer.py",
+          "ml/synthetic/scene.schema.json",
+          "ml/synthetic/schema.py",
+          "ml/synthetic/sealed_acceptance.py",
+          "ml/synthetic/templates.py"
+        ],
+        "generator_source_sha256": [
+          "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+          "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+          "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+          "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2",
+          "0e488087bebd31a5ea92e22034091bcf8d402e07ce0dc179bb6c2f0444601d5d",
+          "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+          "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+          "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+          "811435dc8ab19078d85235a90ac636774b1357d7bb3263627357dc2d5bc0001b",
+          "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+        ],
+        "purpose": "sealed_acceptance",
+        "registration_ready": true,
+        "registry_sha256_after_registration": "e26eb7b6d77e7193e140183a8786d1e2ccebec0baba1e5803879225da60a5f43",
+        "set_id": "718541d71255a6a2154a712bad30349535c21897af0658d628bcdcde53b2f8ab",
+        "state": "unused"
+      },
+      {
+        "acceptance_ready": false,
+        "acceptance_scope": "goal22.five-axis-family.real-range.v1",
+        "archive_byte_count": 1901539,
+        "archive_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609095/reserve.zip",
+        "archive_sha256": "9978096e7945cb17a3cbcb97606a3c6dccd90705eae91b7a5c19b5e193408448",
+        "case_count": 21,
+        "config_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609095/generation-config.json",
+        "config_sha256": "1009ea44c5c8f4bfb4551b85d689dbe41ab7cf8298e23ae09c4e9a231aefeb80",
+        "coverage": {
+          "canvas_width_case_counts": {
+            "1200": 11,
+            "1338": 6,
+            "361": 1,
+            "600": 1,
+            "6352": 1,
+            "863": 1
+          },
+          "case_count": 21,
+          "design_counts": {
+            "ab": 7,
+            "aba": 1,
+            "abab": 3,
+            "alternating_treatments": 1,
+            "changing_criterion": 1,
+            "generalization": 1,
+            "maintenance": 1,
+            "multiple_baseline": 2,
+            "multiple_probe": 2,
+            "shared_baseline": 1,
+            "staggered_starts": 1
+          },
+          "marker_count": 838,
+          "marker_style_catalog": [
+            {
+              "fill": "open",
+              "shape": "circle"
+            },
+            {
+              "fill": "filled",
+              "shape": "circle"
+            },
+            {
+              "fill": "degraded",
+              "shape": "circle"
+            },
+            {
+              "fill": "open",
+              "shape": "square"
+            },
+            {
+              "fill": "filled",
+              "shape": "square"
+            },
+            {
+              "fill": "degraded",
+              "shape": "square"
+            },
+            {
+              "fill": "open",
+              "shape": "triangle_up"
+            },
+            {
+              "fill": "filled",
+              "shape": "triangle_up"
+            },
+            {
+              "fill": "degraded",
+              "shape": "triangle_up"
+            },
+            {
+              "fill": "open",
+              "shape": "triangle_down"
+            },
+            {
+              "fill": "filled",
+              "shape": "triangle_down"
+            },
+            {
+              "fill": "degraded",
+              "shape": "triangle_down"
+            },
+            {
+              "fill": "open",
+              "shape": "diamond"
+            },
+            {
+              "fill": "filled",
+              "shape": "diamond"
+            },
+            {
+              "fill": "degraded",
+              "shape": "diamond"
+            },
+            {
+              "fill": "open",
+              "shape": "star"
+            },
+            {
+              "fill": "filled",
+              "shape": "star"
+            },
+            {
+              "fill": "degraded",
+              "shape": "star"
+            },
+            {
+              "fill": "open",
+              "shape": "asterisk"
+            },
+            {
+              "fill": "filled",
+              "shape": "asterisk"
+            },
+            {
+              "fill": "degraded",
+              "shape": "asterisk"
+            },
+            {
+              "fill": "open",
+              "shape": "cross"
+            },
+            {
+              "fill": "filled",
+              "shape": "cross"
+            },
+            {
+              "fill": "degraded",
+              "shape": "cross"
+            },
+            {
+              "fill": "open",
+              "shape": "other"
+            },
+            {
+              "fill": "filled",
+              "shape": "other"
+            },
+            {
+              "fill": "degraded",
+              "shape": "other"
+            }
+          ],
+          "output_mode_case_counts": {
+            "RGB": 20,
+            "RGBA": 1
+          },
+          "panel_count": 31,
+          "panel_count_case_counts": {
+            "1": 17,
+            "2": 1,
+            "3": 2,
+            "6": 1
+          },
+          "panel_height_case_counts": {
+            "160": 1,
+            "270": 11,
+            "315": 1,
+            "412": 6,
+            "4404": 1,
+            "520": 1
+          },
+          "resolved_feature_counts": {
+            "blank_phase_gaps": 2,
+            "irregular_spacing": 21,
+            "missing_sessions": 3,
+            "sparse_probes": 3
+          },
+          "series_count": 37,
+          "session_count_case_counts": {
+            "100": 1,
+            "18": 1,
+            "2": 1,
+            "20": 1,
+            "24": 12,
+            "28": 1,
+            "30": 1,
+            "32": 1,
+            "36": 1,
+            "40": 1
+          }
+        },
+        "coverage_protocol_path": "ml/policy/goal22-sealed-coverage-v1.json",
+        "coverage_protocol_sha256": "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+        "generator_source_bundle_sha256": "be7d5710a2b95cd79e829f158e5c7397ae9cd032daf78b801554b89e1daa5102",
+        "generator_source_paths": [
+          "ml/policy/goal22-sealed-coverage-v1.json",
+          "ml/synthetic/dataset.py",
+          "ml/synthetic/fonts.py",
+          "ml/synthetic/io.py",
+          "ml/synthetic/prepare_sealed_reserve.py",
+          "ml/synthetic/renderer.py",
+          "ml/synthetic/scene.schema.json",
+          "ml/synthetic/schema.py",
+          "ml/synthetic/sealed_acceptance.py",
+          "ml/synthetic/templates.py"
+        ],
+        "generator_source_sha256": [
+          "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+          "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+          "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+          "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2",
+          "0e488087bebd31a5ea92e22034091bcf8d402e07ce0dc179bb6c2f0444601d5d",
+          "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+          "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+          "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+          "811435dc8ab19078d85235a90ac636774b1357d7bb3263627357dc2d5bc0001b",
+          "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+        ],
+        "purpose": "sealed_acceptance",
+        "registration_ready": true,
+        "registry_sha256_after_registration": "55ab9392be8d81b6fcaa0dc10e6cb3c37ea9fc37a4c4ad45c0d523184c452ed9",
+        "set_id": "63f6981c9156d39a3cfd841fef9889e94d98b512e1a20755a4a7ce90a966c20a",
+        "state": "unused"
+      }
+    ],
+    "elapsed_ms": 102697.48,
+    "generation_voids": [
+      {
+        "continuation_reason": "Generation error was RuntimeError rather than ValueError; no config or archive was written.",
+        "dataset_seed": 202609091,
+        "error": "Panel header has no non-overlapping space for condition label 'A'",
+        "exception_type": "RuntimeError",
+        "model_runs": 0,
+        "sealed_evaluations": 0,
+        "status": "void_generation"
+      },
+      {
+        "dataset_seed": 202609093,
+        "error": "Panel header has no non-overlapping space for condition label 'B'",
+        "exception_type": "RuntimeError",
+        "model_runs": 0,
+        "sealed_evaluations": 0,
+        "status": "void_generation"
+      }
+    ],
+    "model_runs": 0,
+    "private_reads": 0,
+    "production_approval": false,
+    "protocol_sha256": "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+    "registry_path": "ml/policy/goal22-marker-sealed-reserve-registry.json",
+    "registry_sha256": "55ab9392be8d81b6fcaa0dc10e6cb3c37ea9fc37a4c4ad45c0d523184c452ed9",
+    "reserve_counts": {
+      "retired": 0,
+      "reusable": 0,
+      "revision_limit": 0,
+      "unused": 3
+    },
+    "schema": "graphreader.goal22-marker-sealed-reserve-preparation.v1",
+    "sealed_evaluations": 0,
+    "status": "ready"
+  },
+  "private_acceptance": "Separate real-corpus acceptance remains required.",
+  "schema": "graphreader.goal22-sealed-reserve-status.v1",
+  "scope": "synthetic marker-center acceptance only",
+  "source_report_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/preparation-result.json",
+  "source_report_sha256": "346049430e06729d2fa84caad9a01dd5ce117a7a69e60690df05974947020cd2",
+  "whole_goal_pass": false
+}

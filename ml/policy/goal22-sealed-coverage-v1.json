@@ -1,0 +1,611 @@
+{
+  "acceptance_scope": "goal22.five-axis-family.real-range.v1",
+  "dataset": {
+    "source_presets": [
+      "smoke",
+      "real_range"
+    ],
+    "transform": "replace_only_renderer_family_with_hand_drawn"
+  },
+  "evidence_use": {
+    "aggregate_only": true,
+    "private_data": false,
+    "production_approval": false,
+    "synthetic_only": true,
+    "training_permitted": false
+  },
+  "font_provenance": {
+    "dependency_bytes_verified_at_generation": true,
+    "disallowed_shared_resolved_files": [
+      "arial.ttf",
+      "dejavusans.ttf"
+    ],
+    "requested": "handwritten",
+    "single_dependency_required": true
+  },
+  "generator_source_paths": [
+    "ml/policy/goal22-sealed-coverage-v1.json",
+    "ml/synthetic/dataset.py",
+    "ml/synthetic/fonts.py",
+    "ml/synthetic/io.py",
+    "ml/synthetic/prepare_sealed_reserve.py",
+    "ml/synthetic/renderer.py",
+    "ml/synthetic/scene.schema.json",
+    "ml/synthetic/schema.py",
+    "ml/synthetic/sealed_acceptance.py",
+    "ml/synthetic/templates.py"
+  ],
+  "held_out_families": {
+    "degradation": {
+      "key": "camera_skew",
+      "split": "test"
+    },
+    "font": {
+      "key": "system_handwritten",
+      "split": "test"
+    },
+    "marker": {
+      "key": "irregular",
+      "split": "test"
+    },
+    "renderer": {
+      "key": "hand_drawn",
+      "split": "test"
+    },
+    "template": {
+      "key": "hand_drawn_grid",
+      "split": "test"
+    }
+  },
+  "ordered_case_specs": [
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "ab",
+      "features": [
+        "missing_sessions"
+      ],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 2,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "aba",
+      "features": [
+        "blank_phase_gaps"
+      ],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 18,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "abab",
+      "features": [],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "multiple_baseline",
+      "features": [
+        "missing_sessions"
+      ],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 3,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 20,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "multiple_probe",
+      "features": [
+        "sparse_probes"
+      ],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 2,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 30,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "alternating_treatments",
+      "features": [
+        "irregular_spacing"
+      ],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 36,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "changing_criterion",
+      "features": [],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 6,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "maintenance",
+      "features": [],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 28,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "generalization",
+      "features": [
+        "sparse_probes"
+      ],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 32,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "staggered_starts",
+      "features": [
+        "irregular_spacing"
+      ],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 3,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 40,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 1200,
+      "degradations": null,
+      "design": "shared_baseline",
+      "features": [
+        "blank_phase_gaps"
+      ],
+      "marker_radius": null,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 270,
+      "presentation": null,
+      "renderer_family": "hand_drawn",
+      "session_count": 100,
+      "stroke_width": null
+    },
+    {
+      "canvas_width": 361,
+      "degradations": null,
+      "design": "ab",
+      "features": [],
+      "marker_radius": 3.0,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 160,
+      "presentation": {
+        "font_size_px": 17
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 1
+    },
+    {
+      "canvas_width": 863,
+      "degradations": null,
+      "design": "multiple_probe",
+      "features": [
+        "sparse_probes"
+      ],
+      "marker_radius": 4.4,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 315,
+      "presentation": {
+        "dense_tick_labels": true,
+        "font_size_px": 18,
+        "grayscale": false,
+        "monochrome": false
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 2
+    },
+    {
+      "canvas_width": 1338,
+      "degradations": null,
+      "design": "multiple_baseline",
+      "features": [],
+      "marker_radius": 12.0,
+      "output_mode": "RGBA",
+      "panel_count": 1,
+      "panel_height": 412,
+      "presentation": {
+        "font_size_px": 18
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 2
+    },
+    {
+      "canvas_width": 6352,
+      "degradations": null,
+      "design": "ab",
+      "features": [],
+      "marker_radius": 6.2,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 520,
+      "presentation": {
+        "font_size_px": 18
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 3
+    },
+    {
+      "canvas_width": 600,
+      "degradations": null,
+      "design": "abab",
+      "features": [],
+      "marker_radius": 5.0,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 4404,
+      "presentation": {
+        "font_size_px": 18
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 2
+    },
+    {
+      "canvas_width": 1338,
+      "degradations": null,
+      "design": "ab",
+      "features": [],
+      "marker_radius": 5.0,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 412,
+      "presentation": {
+        "font_size_px": 18,
+        "grayscale": true,
+        "monochrome": true
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 1
+    },
+    {
+      "canvas_width": 1338,
+      "degradations": null,
+      "design": "abab",
+      "features": [],
+      "marker_radius": 6.2,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 412,
+      "presentation": {
+        "font_size_px": 18
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 3
+    },
+    {
+      "canvas_width": 1338,
+      "degradations": [
+        {
+          "deterministic": true,
+          "family_key": "real-range-jpeg-roundtrip",
+          "kind": "jpeg",
+          "parameters": {
+            "quality": 55
+          },
+          "stage": 1
+        }
+      ],
+      "design": "ab",
+      "features": [],
+      "marker_radius": 4.4,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 412,
+      "presentation": {
+        "font_size_px": 17
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 1
+    },
+    {
+      "canvas_width": 1338,
+      "degradations": [
+        {
+          "deterministic": true,
+          "family_key": "real-range-jpeg-roundtrip",
+          "kind": "jpeg",
+          "parameters": {
+            "quality": 70
+          },
+          "stage": 1
+        }
+      ],
+      "design": "ab",
+      "features": [],
+      "marker_radius": 4.4,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 412,
+      "presentation": {
+        "font_size_px": 17
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 2
+    },
+    {
+      "canvas_width": 1338,
+      "degradations": [
+        {
+          "deterministic": true,
+          "family_key": "real-range-jpeg-roundtrip",
+          "kind": "jpeg",
+          "parameters": {
+            "quality": 85
+          },
+          "stage": 1
+        }
+      ],
+      "design": "ab",
+      "features": [],
+      "marker_radius": 4.4,
+      "output_mode": "RGB",
+      "panel_count": 1,
+      "panel_height": 412,
+      "presentation": {
+        "font_size_px": 17
+      },
+      "renderer_family": "hand_drawn",
+      "session_count": 24,
+      "stroke_width": 2
+    }
+  ],
+  "protocol_id": "goal22-sealed-coverage-v1",
+  "purpose": "aggregate_only_marker_center_acceptance",
+  "required_coverage": {
+    "canvas_width_case_counts": {
+      "1200": 11,
+      "1338": 6,
+      "361": 1,
+      "600": 1,
+      "6352": 1,
+      "863": 1
+    },
+    "case_count": 21,
+    "design_counts": {
+      "ab": 7,
+      "aba": 1,
+      "abab": 3,
+      "alternating_treatments": 1,
+      "changing_criterion": 1,
+      "generalization": 1,
+      "maintenance": 1,
+      "multiple_baseline": 2,
+      "multiple_probe": 2,
+      "shared_baseline": 1,
+      "staggered_starts": 1
+    },
+    "marker_count": 838,
+    "marker_style_catalog": [
+      {
+        "fill": "open",
+        "shape": "circle"
+      },
+      {
+        "fill": "filled",
+        "shape": "circle"
+      },
+      {
+        "fill": "degraded",
+        "shape": "circle"
+      },
+      {
+        "fill": "open",
+        "shape": "square"
+      },
+      {
+        "fill": "filled",
+        "shape": "square"
+      },
+      {
+        "fill": "degraded",
+        "shape": "square"
+      },
+      {
+        "fill": "open",
+        "shape": "triangle_up"
+      },
+      {
+        "fill": "filled",
+        "shape": "triangle_up"
+      },
+      {
+        "fill": "degraded",
+        "shape": "triangle_up"
+      },
+      {
+        "fill": "open",
+        "shape": "triangle_down"
+      },
+      {
+        "fill": "filled",
+        "shape": "triangle_down"
+      },
+      {
+        "fill": "degraded",
+        "shape": "triangle_down"
+      },
+      {
+        "fill": "open",
+        "shape": "diamond"
+      },
+      {
+        "fill": "filled",
+        "shape": "diamond"
+      },
+      {
+        "fill": "degraded",
+        "shape": "diamond"
+      },
+      {
+        "fill": "open",
+        "shape": "star"
+      },
+      {
+        "fill": "filled",
+        "shape": "star"
+      },
+      {
+        "fill": "degraded",
+        "shape": "star"
+      },
+      {
+        "fill": "open",
+        "shape": "asterisk"
+      },
+      {
+        "fill": "filled",
+        "shape": "asterisk"
+      },
+      {
+        "fill": "degraded",
+        "shape": "asterisk"
+      },
+      {
+        "fill": "open",
+        "shape": "cross"
+      },
+      {
+        "fill": "filled",
+        "shape": "cross"
+      },
+      {
+        "fill": "degraded",
+        "shape": "cross"
+      },
+      {
+        "fill": "open",
+        "shape": "other"
+      },
+      {
+        "fill": "filled",
+        "shape": "other"
+      },
+      {
+        "fill": "degraded",
+        "shape": "other"
+      }
+    ],
+    "output_mode_case_counts": {
+      "RGB": 20,
+      "RGBA": 1
+    },
+    "panel_count": 31,
+    "panel_count_case_counts": {
+      "1": 17,
+      "2": 1,
+      "3": 2,
+      "6": 1
+    },
+    "panel_height_case_counts": {
+      "160": 1,
+      "270": 11,
+      "315": 1,
+      "412": 6,
+      "4404": 1,
+      "520": 1
+    },
+    "resolved_feature_counts": {
+      "blank_phase_gaps": 2,
+      "irregular_spacing": 21,
+      "missing_sessions": 3,
+      "sparse_probes": 3
+    },
+    "series_count": 37,
+    "session_count_case_counts": {
+      "100": 1,
+      "18": 1,
+      "2": 1,
+      "20": 1,
+      "24": 12,
+      "28": 1,
+      "30": 1,
+      "32": 1,
+      "36": 1,
+      "40": 1
+    }
+  },
+  "schema": "graphreader.goal22-sealed-coverage.v1",
+  "seed_policy": {
+    "case_seed_formula": "dataset_seed * 100 + ordinal",
+    "distinct_dataset_seeds_produce_distinct_archives": true,
+    "fail_closed_if_any_case_is_infeasible": true,
+    "supplied_at_generation": true
+  }
+}

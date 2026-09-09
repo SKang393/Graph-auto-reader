@@ -1,0 +1,243 @@
+{
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "policy_revision": "2026-08-19",
+    "schema_version": 1,
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "generation": 3,
+  "schema": "graphreader.synthetic-sealed-reserve-registry.v2",
+  "sets": [
+    {
+      "archive": {
+        "byte_count": 1943174,
+        "path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609092/reserve.zip",
+        "sha256": "f0c0c74da0c353a678481267a9d5fd0b614417889c8d496da58c24507310407c"
+      },
+      "chain": {
+        "archive_manifest_sha256": "4ae59305e3e81fee081296b514fbad9d292f05c82e8285e9b68c606be323f4b3",
+        "archive_schema": "graphreader.synthetic-sealed-reserve-archive.v2",
+        "case_count": 21,
+        "case_identity_sha256": [
+          "2e83ce151449001d014a7361de9c01b9011f85a9ebaea3920d9afd05d7f1fbf9",
+          "25b9d9726d3bc3e2248b552433cac0b77688412098f0087542e0ebf3b75b2ea7",
+          "f63590db70023efe29a894cd41aca63bf42c9314ec44800f1f720234632a9f11",
+          "8dda8da4d945f56f8222f6541b2a2de347449dc7152281e3ee25dae1b0fbb11e",
+          "4208f99b2b936a84fdf6b1836b99f7e0850c9503f36bf5e4ce957ffc57e6915b",
+          "04aa67cfd3c05e3b1874fe9d41bb8db8dd80be9e8f8b4d735e327cd47f5aa3b7",
+          "4c9efb53ea95dca032858590ef9c645d90c56fb324c1675d9a21ea77df9fedab",
+          "4de567c9accd618a539631659aa8752c164128bd4e637a1891e18a7a5f4efa99",
+          "59220e25ca972ca6a094130a792205b2a218db194c588692ddcc0c514f77beb8",
+          "ec9cfb28819ab58873e414944c9a2ff1002576671ed87a02aba56c09a0a4adb2",
+          "75f533d9ffc7b1b1dc788bae1737f9c7cbf52c2a023ab94b3a90589b8b0f7b5c",
+          "f4ecffa58ad150dc81e13d67cd76887055bdb43f888b9ac53900f35776cb10b4",
+          "50319e7f0603c2b9c72aeab1f8ca2f201351b5fd6af8baab742009a84e3c4499",
+          "463e33672c35f9118dd16763093981c78ca16f927f52d40f10bbfe8485ec3758",
+          "695577586299ca32501e020c0b6241fe4dc891bec74e8fc3c2699fd7a036f172",
+          "bb0eb96dcc13b8023586a5b258ec77794875b6845ab775498d5bfb629a28516e",
+          "9e3a4ea0fe98a2742239c583d3c403d3497abad487e5992da54cb5decd71ecfe",
+          "0d02742e1544c0480eee11fc18d85dd81811f9af5d62c0a11927d35754f3d53e",
+          "43b0879f6899a998c20ef0143a7f2b6b3ec6028071adc1ab7d482ffd4b8a1448",
+          "b40a5609d6b20fa0a103db07c65537957ad83871824b2a57e3cf8b1136d6c19e",
+          "15c17727f0f91d70eb987a31741fabb6e412766176ed576144f515ebf249ce7b"
+        ],
+        "config_schema": "graphreader.synthetic-sealed-reserve-generation.v2",
+        "payload_bundle_sha256": "fe50df4cee3e595df253742ab157d2af67e69c872afef3b9f1aa0c697ba81dba",
+        "source_snapshot_manifest_sha256": "53ab88e5e1de44d699c704e18c7492af5cae7e0e36807f5e7c32b3dc96b0d1ea"
+      },
+      "generator": {
+        "config_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609092/generation-config.json",
+        "config_sha256": "77718b5e25b9aa9e570bcffd542a110ad389d68680731acce05a11ad2bf4afdf",
+        "source_bundle_sha256": "be7d5710a2b95cd79e829f158e5c7397ae9cd032daf78b801554b89e1daa5102",
+        "source_paths": [
+          "ml/policy/goal22-sealed-coverage-v1.json",
+          "ml/synthetic/dataset.py",
+          "ml/synthetic/fonts.py",
+          "ml/synthetic/io.py",
+          "ml/synthetic/prepare_sealed_reserve.py",
+          "ml/synthetic/renderer.py",
+          "ml/synthetic/scene.schema.json",
+          "ml/synthetic/schema.py",
+          "ml/synthetic/sealed_acceptance.py",
+          "ml/synthetic/templates.py"
+        ],
+        "source_sha256": [
+          "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+          "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+          "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+          "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2",
+          "0e488087bebd31a5ea92e22034091bcf8d402e07ce0dc179bb6c2f0444601d5d",
+          "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+          "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+          "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+          "811435dc8ab19078d85235a90ac636774b1357d7bb3263627357dc2d5bc0001b",
+          "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+        ]
+      },
+      "retirement": null,
+      "scope": {
+        "acceptance_scope": "goal22.five-axis-family.real-range.v1",
+        "coverage_protocol_path": "ml/policy/goal22-sealed-coverage-v1.json",
+        "coverage_protocol_sha256": "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+        "purpose": "sealed_acceptance"
+      },
+      "set_id": "7f7aa94e9fd21a9f905cc7a0aad3a1be2ebd4431dffe0f62828ae94e729b68f5",
+      "state": "unused",
+      "uses": []
+    },
+    {
+      "archive": {
+        "byte_count": 1716089,
+        "path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609094/reserve.zip",
+        "sha256": "0adbdad388297e8c3b63408906c241e8f01b865474848fd4b77612b6e88e78f7"
+      },
+      "chain": {
+        "archive_manifest_sha256": "ab27eba59ab7ecd867934df2ff493b721e98c874dcca883aee221cc51e47e210",
+        "archive_schema": "graphreader.synthetic-sealed-reserve-archive.v2",
+        "case_count": 21,
+        "case_identity_sha256": [
+          "d6d0328b21a2f273bea98e1ff55029012d036f03a614d312f81e633df7b82ff5",
+          "4d84eb7deb78045ac4ae86df19d33bf2d8d110cd2f4658c136aa992f348c6578",
+          "660485778b65412ef3b7bd093d1cf6b04f30b5f8a93a235ee73b05ff6a2ef8fe",
+          "16dcd9e777807e6ff5b0d8f2f779b64e2e08ced469bf5293bdaa8adbe8bd4079",
+          "29a81922a053ba70a2370377fbfce29a191ecdb4f1c7d601a8eb33a1cceb2a3f",
+          "2b31231e0c7abff068d0cfd573426b0f4ac343af0786361d2b8b4aa57d5a5941",
+          "dc70754d385f5ab19808fb9285ba33b582bc6dc4b549333ebd049a91a0a1a48b",
+          "af90a31f465d6e9871fdc333a3044076677b44dde1d390bb2e7e2c0cc67b8706",
+          "cd1295782ad9d576c288a4e15ce6db6399583f3684e3956f4050b398308bd221",
+          "fd6a89b0d8dbebb467845894a96b517b1b0ef6212d198d01a5c7b5d9e8e10125",
+          "6bb0f3355a71c1e46055dba5e5cd96e549645eaa8fb3bc4df17942573d4f1e41",
+          "3228108e8459aa97aeec4c103b4bd5eae2e3088543fdc0a4ca218bdc56d2a15c",
+          "5f9e6f00866cc2ec47eff43634b074a0ac6735f1ae7fb0beb4cb2e7c13f0f1d5",
+          "b101cc6557f9e9c65eb5bf8ee74ebc808d2d65ec5f071322435bf97a154dfef7",
+          "b8832110d83753af2debe2a2a6a488706b22107ef8ca5ed0c5de4bcf515953bc",
+          "0b48b3098262f643e8c33198cafbd4a718e0a8168c17c600595fb339adaa16bd",
+          "fd8677364f607ab1752a6c2b720fb1f2804e2a489ff0a02d52b8d6d0facc4a93",
+          "c4fd8bbdb9a8089529a409778e947bafa11dcb86d2cdec9e524d2a20d83cb906",
+          "c7172851304a1144df4ace82afdc523fef814f1ee6c8eb6351d4d9757be67c2d",
+          "940784b2b6ef927fb3ffc625aa1156ef0f70cdaa8829d8b506f1a9dfb6d23a7e",
+          "7b92afdc244ea28b6de0d80938db8296436723e4d0bb1e8aa2ee3591725539fb"
+        ],
+        "config_schema": "graphreader.synthetic-sealed-reserve-generation.v2",
+        "payload_bundle_sha256": "323fd83435c2ce0005749e097dcc71fe5d211fc6dc59a0177bb0c12e50e6d908",
+        "source_snapshot_manifest_sha256": "53ab88e5e1de44d699c704e18c7492af5cae7e0e36807f5e7c32b3dc96b0d1ea"
+      },
+      "generator": {
+        "config_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609094/generation-config.json",
+        "config_sha256": "c7c98f27d33c138d5cd279231d9f5d993ad8d21d12fd17abcc55d399fe703c5c",
+        "source_bundle_sha256": "be7d5710a2b95cd79e829f158e5c7397ae9cd032daf78b801554b89e1daa5102",
+        "source_paths": [
+          "ml/policy/goal22-sealed-coverage-v1.json",
+          "ml/synthetic/dataset.py",
+          "ml/synthetic/fonts.py",
+          "ml/synthetic/io.py",
+          "ml/synthetic/prepare_sealed_reserve.py",
+          "ml/synthetic/renderer.py",
+          "ml/synthetic/scene.schema.json",
+          "ml/synthetic/schema.py",
+          "ml/synthetic/sealed_acceptance.py",
+          "ml/synthetic/templates.py"
+        ],
+        "source_sha256": [
+          "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+          "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+          "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+          "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2",
+          "0e488087bebd31a5ea92e22034091bcf8d402e07ce0dc179bb6c2f0444601d5d",
+          "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+          "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+          "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+          "811435dc8ab19078d85235a90ac636774b1357d7bb3263627357dc2d5bc0001b",
+          "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+        ]
+      },
+      "retirement": null,
+      "scope": {
+        "acceptance_scope": "goal22.five-axis-family.real-range.v1",
+        "coverage_protocol_path": "ml/policy/goal22-sealed-coverage-v1.json",
+        "coverage_protocol_sha256": "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+        "purpose": "sealed_acceptance"
+      },
+      "set_id": "718541d71255a6a2154a712bad30349535c21897af0658d628bcdcde53b2f8ab",
+      "state": "unused",
+      "uses": []
+    },
+    {
+      "archive": {
+        "byte_count": 1901539,
+        "path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609095/reserve.zip",
+        "sha256": "9978096e7945cb17a3cbcb97606a3c6dccd90705eae91b7a5c19b5e193408448"
+      },
+      "chain": {
+        "archive_manifest_sha256": "c2e0aebfd34d3983a0678bfe0ed946d50fb873527ec5e0e0495d14a61363eed9",
+        "archive_schema": "graphreader.synthetic-sealed-reserve-archive.v2",
+        "case_count": 21,
+        "case_identity_sha256": [
+          "5b2f3461021d24d8ce638963d0369281e6d4adb2dde29410228c7f9ac740d2c6",
+          "401b4f438e02dc7e24f36d4aebf644dc13415e481eb54da4da5c31ae8064443e",
+          "e6639efd6c9e2629f899b60533edb28e16cea92ab3cb5fbd4f6d3153c8652f84",
+          "f10b9b01cac7fbefd4830c61e4ca4587f2383c4d21c3d6093c1e700958758848",
+          "da9f84890588588ae83a96d05aec2d9530ac7eace7121e29956a7a516c73becc",
+          "ec7998e3ed872da85d04369a87a69dc593bf726972f6256fec1187fe285c3ecc",
+          "6e6d0dc3402c0a08f1a9aba52870c9a7aa3051f3946f4f6e3151e7b179e39e22",
+          "152fcd4100f84bdd0547ebfcfe1fb4b9e183330d955b6dc0adc384e47d2e830d",
+          "4e4178f498b8516f0953c303a125046ff2f679312a7ca4e40a4a2e850cc1dda5",
+          "c55207b21e9666d5c29e8efcab9690e5c1935f11a8dd222ec15e96e0054469b6",
+          "05a279fde944f5fb8d623b8863cf6ca651a923a6c337a5882591722388de79c8",
+          "be7b66073373fb02ebc88cf0a7c815e3518fcf33ceb2d4bb8435fd701a5958ba",
+          "b4fcb3ed093cf48f2cb45c8581aca622cfbd6f618fbe6a9309724d195095a654",
+          "bf4f4a906cbad794763c9682106884233279cb1b7487b63db8dc5d6e2a8b8593",
+          "993f8f01ec02cc061d1d574e3cf07b1634911b8377541ee6a05504e448169ab9",
+          "d7a4cb11c7eae5b7ab531786bf041e5259f9ce432e64c71a7662077b489832e1",
+          "f53097102f2d800c1fe251496cf7d302281bfe7388a4e3c9f8eee9fc2300f35f",
+          "4cc6cd6a51df59ce2c4da31ef23624c110a163c17b8b1621bbaecda88ccece38",
+          "6ac4f02fe4d35ac5b0988157283748c9e10961a68c88e07dc5a954cb9e6a35fa",
+          "391fe1425c6c341a144c61d021034fd24f860baf67201903058e78cdde70b9c1",
+          "722bb346a5b845f2fed490834884ccef9276cc3478d07350cefc9ab501a9a175"
+        ],
+        "config_schema": "graphreader.synthetic-sealed-reserve-generation.v2",
+        "payload_bundle_sha256": "20e1f7dc0d3a93a6e4e7c9fa706504865ce1c4ed6f4b085d170edfc42b9ab83a",
+        "source_snapshot_manifest_sha256": "53ab88e5e1de44d699c704e18c7492af5cae7e0e36807f5e7c32b3dc96b0d1ea"
+      },
+      "generator": {
+        "config_path": "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609095/generation-config.json",
+        "config_sha256": "1009ea44c5c8f4bfb4551b85d689dbe41ab7cf8298e23ae09c4e9a231aefeb80",
+        "source_bundle_sha256": "be7d5710a2b95cd79e829f158e5c7397ae9cd032daf78b801554b89e1daa5102",
+        "source_paths": [
+          "ml/policy/goal22-sealed-coverage-v1.json",
+          "ml/synthetic/dataset.py",
+          "ml/synthetic/fonts.py",
+          "ml/synthetic/io.py",
+          "ml/synthetic/prepare_sealed_reserve.py",
+          "ml/synthetic/renderer.py",
+          "ml/synthetic/scene.schema.json",
+          "ml/synthetic/schema.py",
+          "ml/synthetic/sealed_acceptance.py",
+          "ml/synthetic/templates.py"
+        ],
+        "source_sha256": [
+          "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+          "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b",
+          "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+          "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2",
+          "0e488087bebd31a5ea92e22034091bcf8d402e07ce0dc179bb6c2f0444601d5d",
+          "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+          "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+          "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+          "811435dc8ab19078d85235a90ac636774b1357d7bb3263627357dc2d5bc0001b",
+          "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+        ]
+      },
+      "retirement": null,
+      "scope": {
+        "acceptance_scope": "goal22.five-axis-family.real-range.v1",
+        "coverage_protocol_path": "ml/policy/goal22-sealed-coverage-v1.json",
+        "coverage_protocol_sha256": "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f",
+        "purpose": "sealed_acceptance"
+      },
+      "set_id": "63f6981c9156d39a3cfd841fef9889e94d98b512e1a20755a4a7ce90a966c20a",
+      "state": "unused",
+      "uses": []
+    }
+  ]
+}
