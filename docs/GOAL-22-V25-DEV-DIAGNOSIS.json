@@ -170,5 +170,212 @@
     "elapsed_seconds": 4.8,
     "passed": 3,
     "source_sha256": "b0ab5631f489e403e823b06221dede1fa40ccf1433b8e9091e965f1440c6d84c"
+  },
+  "nms_radius_attribution_v2": {
+    "report_path": "artifacts/goal22-runs/marker-v25-plot-domain/diagnosis-v1/nms-radius-attribution-v2/diagnosis.json",
+    "report_sha256": "812c459440ec8f7ec7276305accbc5683f230acb7d9355ba64af1398b8b75212",
+    "helper_path": "ml/markers/center/plot_domain_v25/diagnose_dev.py",
+    "helper_sha256": "7d138c9cb7d29bb97f2d88d7b76f15e90f9bcda32817850d54e263e8203a0bb2",
+    "elapsed_ms": 206750.555,
+    "focused_tests_passed": 5,
+    "component": {
+      "nms_false_negatives": {
+        "actual_suppressor_confidence_advantage": {
+          "count": 27,
+          "maximum": 0.6144250631332397,
+          "median": 0.19972479343414307,
+          "minimum": 0.006722450256347656,
+          "p05": 0.02978877425193787,
+          "p90": 0.4999943017959595,
+          "p95": 0.5120119690895081
+        },
+        "actual_suppressor_distance_to_truth_px": {
+          "count": 27,
+          "maximum": 12.013017036184966,
+          "median": 6.265146891602249,
+          "minimum": 5.022576114865601,
+          "p05": 5.111911546062925,
+          "p90": 9.005588190956349,
+          "p95": 10.750592256793304
+        },
+        "actual_suppressor_error_penalty_px": {
+          "count": 27,
+          "maximum": 9.156024021223052,
+          "median": 4.214440633463606,
+          "minimum": 1.5944443547186413,
+          "p05": 2.267387989972208,
+          "p90": 7.207541883599389,
+          "p95": 8.759383101368615
+        },
+        "actual_suppressor_prediction_outcome": {
+          "false_positive": 25,
+          "true_positive": 2
+        },
+        "actual_suppressor_raw_radius_bins": {
+          "not_clamped": 27
+        },
+        "applicable_nms_exclusion_distance_px": {
+          "count": 27,
+          "maximum": 9.999984502792358,
+          "median": 9.992951154708862,
+          "minimum": 7.171248197555542,
+          "p05": 9.51739364862442,
+          "p90": 9.999817132949829,
+          "p95": 9.999881505966187
+        },
+        "counts": {
+          "false_negative_truths": 27,
+          "highest_and_lowest_share_actual_suppressor": 10,
+          "highest_confidence_candidate_suppressed": 27,
+          "highest_confidence_is_lowest_error": 17,
+          "lowest_error_candidate_suppressed": 27
+        },
+        "ground_truth_radius_bins": {
+          "above_decoder_maximum": 16,
+          "within_decoder_range": 11
+        },
+        "highest_confidence_candidate_distance_px": {
+          "count": 27,
+          "maximum": 4.831051868772995,
+          "median": 3.5239426698556833,
+          "minimum": 0.5348324251830665,
+          "p05": 1.4855600624638554,
+          "p90": 4.3570390050790015,
+          "p95": 4.583788251403599
+        },
+        "lowest_error_candidate_distance_px": {
+          "count": 27,
+          "maximum": 4.331223724150305,
+          "median": 2.4790059979596304,
+          "minimum": 0.15708891547579876,
+          "p05": 0.4304762622217816,
+          "p90": 4.103995810866139,
+          "p95": 4.1947528936036536
+        },
+        "lowest_error_candidate_raw_radius_bins": {
+          "not_clamped": 27
+        },
+        "suppressed_to_actual_suppressor_distance_px": {
+          "count": 27,
+          "maximum": 9.20789402306274,
+          "median": 5.695738636178369,
+          "minimum": 2.2951152712415723,
+          "p05": 2.426766176537009,
+          "p90": 8.979089392377892,
+          "p95": 9.120755831563429
+        }
+      },
+      "prediction_outcomes_by_nearest_truth_and_decoded_radius": {
+        "false_positive|nearest_truth_above_decoder_maximum|not_clamped": 129,
+        "false_positive|nearest_truth_within_decoder_range|not_clamped": 23,
+        "true_positive|nearest_truth_above_decoder_maximum|not_clamped": 636,
+        "true_positive|nearest_truth_within_decoder_range|not_clamped": 1227
+      },
+      "truth_outcomes_by_ground_truth_radius": {
+        "false_negative|above_decoder_maximum": 58,
+        "false_negative|below_decoder_minimum": 10,
+        "false_negative|within_decoder_range": 73,
+        "true_positive|above_decoder_maximum": 636,
+        "true_positive|within_decoder_range": 1227
+      }
+    },
+    "family": {
+      "nms_false_negatives": {
+        "actual_suppressor_confidence_advantage": {
+          "count": 2,
+          "maximum": 0.21846318244934082,
+          "median": 0.21694372594356537,
+          "minimum": 0.21542426943778992,
+          "p05": 0.21557621508836747,
+          "p90": 0.21815929114818572,
+          "p95": 0.21831123679876327
+        },
+        "actual_suppressor_distance_to_truth_px": {
+          "count": 2,
+          "maximum": 7.376797254905614,
+          "median": 7.169779091282782,
+          "minimum": 6.962760927659951,
+          "p05": 6.983462744022234,
+          "p90": 7.335393622181048,
+          "p95": 7.35609543854333
+        },
+        "actual_suppressor_error_penalty_px": {
+          "count": 2,
+          "maximum": 6.448557063822649,
+          "median": 5.804171652168611,
+          "minimum": 5.159786240514573,
+          "p05": 5.224224781679977,
+          "p90": 6.319679981491841,
+          "p95": 6.3841185226572446
+        },
+        "actual_suppressor_prediction_outcome": {
+          "false_positive": 2
+        },
+        "actual_suppressor_raw_radius_bins": {
+          "not_clamped": 2
+        },
+        "applicable_nms_exclusion_distance_px": {
+          "count": 2,
+          "maximum": 8.205859065055847,
+          "median": 7.813601791858673,
+          "minimum": 7.421344518661499,
+          "p05": 7.460570245981216,
+          "p90": 8.127407610416412,
+          "p95": 8.16663333773613
+        },
+        "counts": {
+          "false_negative_truths": 2,
+          "highest_confidence_candidate_suppressed": 2,
+          "highest_confidence_is_lowest_error": 2,
+          "lowest_error_candidate_suppressed": 2
+        },
+        "ground_truth_radius_bins": {
+          "within_decoder_range": 2
+        },
+        "highest_confidence_candidate_distance_px": {
+          "count": 2,
+          "maximum": 1.8029746871453776,
+          "median": 1.3656074391141713,
+          "minimum": 0.9282401910829648,
+          "p05": 0.9719769158860855,
+          "p90": 1.7155012375391363,
+          "p95": 1.759237962342257
+        },
+        "lowest_error_candidate_distance_px": {
+          "count": 2,
+          "maximum": 1.8029746871453776,
+          "median": 1.3656074391141713,
+          "minimum": 0.9282401910829648,
+          "p05": 0.9719769158860855,
+          "p90": 1.7155012375391363,
+          "p95": 1.759237962342257
+        },
+        "lowest_error_candidate_raw_radius_bins": {
+          "not_clamped": 2
+        },
+        "suppressed_to_actual_suppressor_distance_px": {
+          "count": 2,
+          "maximum": 6.9509312918362065,
+          "median": 6.280216739723808,
+          "minimum": 5.609502187611409,
+          "p05": 5.676573642822649,
+          "p90": 6.816788381413727,
+          "p95": 6.883859836624967
+        }
+      },
+      "prediction_outcomes_by_nearest_truth_and_decoded_radius": {
+        "false_positive|nearest_truth_within_decoder_range|not_clamped": 59,
+        "true_positive|nearest_truth_within_decoder_range|not_clamped": 197
+      },
+      "truth_outcomes_by_ground_truth_radius": {
+        "false_negative|within_decoder_range": 9,
+        "true_positive|within_decoder_range": 197
+      }
+    },
+    "interpretation": "Confidence-ranked off-center candidates suppress better localized candidates. Radius clipping did not activate on any of the actual suppressors or lowest-error suppressed candidates. Ground-truth radius strata and nearest-truth associations do not prove a new model repair. Existing fixed counts remain unchanged.",
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_runs": 0,
+    "production_approval": false
   }
 }

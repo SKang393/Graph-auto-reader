@@ -46,8 +46,13 @@ ONNX_PATH = Path(
     "marker-center-plot-domain-v25-p1.onnx"
 )
 OUTPUT_PATH = Path(
+    "artifacts/goal22-runs/marker-v25-plot-domain/diagnosis-v1/"
+    "nms-radius-attribution-v2/diagnosis.json"
+)
+PRIOR_DIAGNOSIS_PATH = Path(
     "artifacts/goal22-runs/marker-v25-plot-domain/diagnosis-v1/diagnosis.json"
 )
+EXPECTED_PRIOR_DIAGNOSIS_SHA256 = "c0911d7d730098eabb223431c36fad16f5659918f19635e33e6865bab27a7cf6"
 EXPECTED_RESULT_SHA256 = "fb64443005b6ca4c26d4e5f1d8b37d8882a93a186d9b2b92fffc476a8c823a63"
 EXPECTED_CONFIG_SHA256 = "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2"
 EXPECTED_REPORT_SHA256 = "e5347d33313147d57c4d6ce80bcf06a020a1a70ddd52ef4bb8a2e0c623b7a64b"
@@ -67,6 +72,22 @@ EXPECTED = {
 class Candidate:
     source_proposal_index: int
     prediction: MarkerPrediction
+    raw_radius: float | None = None
+
+
+@dataclass(frozen=True)
+class Suppression:
+    suppressed: Candidate
+    suppressor: Candidate
+    center_distance: float
+    exclusion_distance: float
+
+
+@dataclass(frozen=True)
+class PostprocessTrace:
+    candidates_before_nms: tuple[Candidate, ...]
+    accepted: tuple[Candidate, ...]
+    suppressions: tuple[Suppression, ...]
 
 
 @dataclass(frozen=True)
@@ -182,6 +203,13 @@ def nearest_primitive(
 def greedy_matches(
     predictions: Sequence[Candidate], truths: Sequence[tuple[float, float]]
 ) -> tuple[set[int], set[int]]:
+    pairs = greedy_match_pairs(predictions, truths)
+    return {prediction for prediction, _ in pairs}, {truth for _, truth in pairs}
+
+
+def greedy_match_pairs(
+    predictions: Sequence[Candidate], truths: Sequence[tuple[float, float]]
+) -> tuple[tuple[int, int], ...]:
     edges = sorted(
         (math.hypot(item.prediction.x - x, item.prediction.y - y), i, j)
         for i, item in enumerate(predictions)
@@ -190,11 +218,45 @@ def greedy_matches(
     )
     used_predictions: set[int] = set()
     used_truths: set[int] = set()
+    pairs: list[tuple[int, int]] = []
     for _, prediction_index, truth_index in edges:
         if prediction_index not in used_predictions and truth_index not in used_truths:
             used_predictions.add(prediction_index)
             used_truths.add(truth_index)
-    return used_predictions, used_truths
+            pairs.append((prediction_index, truth_index))
+    return tuple(pairs)
+
+
+def radius_bin(radius: float) -> str:
+    if not math.isfinite(radius) or radius <= 0:
+        raise ValueError("ground-truth radius must be finite and positive")
+    if radius < 2.5:
+        return "below_decoder_minimum"
+    if radius <= 8.0:
+        return "within_decoder_range"
+    return "above_decoder_maximum"
+
+
+def decoded_radius_bin(radius: float | None) -> str:
+    if radius is None:
+        return "unavailable"
+    if not math.isfinite(radius):
+        raise ValueError("decoded raw radius must be finite")
+    if radius < 2.5:
+        return "clamped_to_minimum"
+    if radius <= 8.0:
+        return "not_clamped"
+    return "clamped_to_maximum"
+
+
+def _truth_radii(scene: Any) -> tuple[float, ...]:
+    raw = getattr(scene, "diameters", None)
+    if raw is None:
+        raw = tuple(2.0 * float(value) for value in getattr(scene, "radii", ()))
+    values = tuple(float(value) / 2.0 for value in raw)
+    if len(values) != len(scene.centers) or any(not math.isfinite(value) or value <= 0 for value in values):
+        raise RuntimeError("diagnostic ground-truth radius inventory is invalid")
+    return values
 
 
 def _final_candidates(
@@ -203,6 +265,15 @@ def _final_candidates(
     output: np.ndarray,
     domain: PlotDomain | None,
 ) -> tuple[Candidate, ...]:
+    return _postprocess_trace(scene, proposals, output, domain).accepted
+
+
+def _postprocess_trace(
+    scene: Any,
+    proposals: ProposalBatch,
+    output: np.ndarray,
+    domain: PlotDomain | None,
+) -> PostprocessTrace:
     candidates: list[Candidate] = []
     for index in np.flatnonzero(output[:, 0] >= THRESHOLD):
         base_x, base_y = proposals.coordinates[index].tolist()
@@ -210,12 +281,18 @@ def _final_candidates(
         y = float(base_y + output[index, 2] * v24.STRIDE)
         if domain is not None and not domain.contains(x, y):
             continue
-        radius = float(np.clip(output[index, 3], 2.5, 8.0))
+        raw_radius = float(output[index, 3])
+        radius = float(np.clip(raw_radius, 2.5, 8.0))
         if _consensus(scene, x, y):
             candidates.append(
-                Candidate(index, MarkerPrediction(x, y, radius, float(output[index, 0])))
+                Candidate(
+                    int(index),
+                    MarkerPrediction(x, y, radius, float(output[index, 0])),
+                    raw_radius,
+                )
             )
     accepted: list[Candidate] = []
+    suppressions: list[Suppression] = []
     for item in sorted(
         candidates,
         key=lambda value: (
@@ -225,13 +302,22 @@ def _final_candidates(
         ),
     ):
         prediction = item.prediction
-        if any(
-            math.hypot(
+        suppressor: Candidate | None = None
+        center_distance = math.inf
+        exclusion_distance = math.inf
+        for previous in accepted:
+            distance = math.hypot(
                 prediction.x - previous.prediction.x,
                 prediction.y - previous.prediction.y,
-            ) < max(5.0, 1.25 * max(prediction.radius, previous.prediction.radius))
-            for previous in accepted
-        ):
+            )
+            exclusion = max(5.0, 1.25 * max(prediction.radius, previous.prediction.radius))
+            if distance < exclusion:
+                suppressor = previous
+                center_distance = distance
+                exclusion_distance = exclusion
+                break
+        if suppressor is not None:
+            suppressions.append(Suppression(item, suppressor, center_distance, exclusion_distance))
             continue
         accepted.append(item)
     accepted.sort(key=lambda item: (
@@ -250,7 +336,7 @@ def _final_candidates(
         and abs(expected.confidence - actual.prediction.confidence) <= 1e-6
         for expected, actual in zip(reference, accepted, strict=True)
     ), "diagnostic postprocess values drifted")
-    return tuple(accepted)
+    return PostprocessTrace(tuple(candidates), tuple(accepted), tuple(suppressions))
 
 
 def categorize_missed_truths(
@@ -315,6 +401,176 @@ def categorize_missed_truths(
         else:
             causes["offset_error"] += 1
     return causes, nearest_proposals, positive_scores, nearest_decoded
+
+
+def summarize_radius_and_nms(
+    scene: Any,
+    trace: PostprocessTrace,
+    match_pairs: Sequence[tuple[int, int]],
+    accumulator: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Attribute radius strata and unmatched truths without changing postprocessing."""
+
+    values = accumulator if accumulator is not None else _new_radius_nms_accumulator()
+    radii = _truth_radii(scene)
+    truth_outcomes: Counter[str] = values["truth_outcomes"]
+    prediction_outcomes: Counter[str] = values["prediction_outcomes"]
+    matched_by_prediction = {prediction: truth for prediction, truth in match_pairs}
+    matched_truths = {truth for _, truth in match_pairs}
+    for truth_index, radius in enumerate(radii):
+        outcome = "true_positive" if truth_index in matched_truths else "false_negative"
+        truth_outcomes[f"{outcome}|{radius_bin(radius)}"] += 1
+
+    for prediction_index, candidate in enumerate(trace.accepted):
+        truth_index = matched_by_prediction.get(prediction_index)
+        if truth_index is None:
+            truth_index = min(
+                range(len(scene.centers)),
+                key=lambda index: math.hypot(
+                    candidate.prediction.x - scene.centers[index][0],
+                    candidate.prediction.y - scene.centers[index][1],
+                ),
+                default=None,
+            )
+            outcome = "false_positive"
+        else:
+            outcome = "true_positive"
+        truth_bin = "no_ground_truth" if truth_index is None else radius_bin(radii[truth_index])
+        prediction_outcomes[
+            f"{outcome}|nearest_truth_{truth_bin}|{decoded_radius_bin(candidate.raw_radius)}"
+        ] += 1
+
+    suppressed_by_index = {
+        item.suppressed.source_proposal_index: item for item in trace.suppressions
+    }
+    accepted_index = {
+        item.source_proposal_index: index for index, item in enumerate(trace.accepted)
+    }
+    nms_counts: Counter[str] = values["nms_counts"]
+    truth_radius_counts: Counter[str] = values["truth_radius_counts"]
+    suppressed_radius_counts: Counter[str] = values["suppressed_radius_counts"]
+    suppressor_radius_counts: Counter[str] = values["suppressor_radius_counts"]
+    suppressor_outcomes: Counter[str] = values["suppressor_outcomes"]
+    lowest_errors: list[float] = values["lowest_errors"]
+    highest_errors: list[float] = values["highest_errors"]
+    suppressor_errors: list[float] = values["suppressor_errors"]
+    confidence_advantages: list[float] = values["confidence_advantages"]
+    error_penalties: list[float] = values["error_penalties"]
+    suppression_center_distances: list[float] = values["suppression_center_distances"]
+    suppression_exclusion_distances: list[float] = values["suppression_exclusion_distances"]
+
+    for truth_index, truth in enumerate(scene.centers):
+        if truth_index in matched_truths:
+            continue
+        near = [
+            candidate for candidate in trace.candidates_before_nms
+            if math.hypot(candidate.prediction.x - truth[0], candidate.prediction.y - truth[1])
+            <= MATCH_TOLERANCE_PX
+        ]
+        if not near or any(candidate.source_proposal_index in accepted_index for candidate in near):
+            continue
+        if any(candidate.source_proposal_index not in suppressed_by_index for candidate in near):
+            raise RuntimeError("NMS attribution lost an eligible unmatched candidate")
+        lowest = min(
+            near,
+            key=lambda candidate: (
+                math.hypot(candidate.prediction.x - truth[0], candidate.prediction.y - truth[1]),
+                -candidate.prediction.confidence,
+                candidate.source_proposal_index,
+            ),
+        )
+        highest = min(
+            near,
+            key=lambda candidate: (
+                -candidate.prediction.confidence,
+                math.hypot(candidate.prediction.x - truth[0], candidate.prediction.y - truth[1]),
+                candidate.source_proposal_index,
+            ),
+        )
+        selected = lowest
+        suppression = suppressed_by_index[selected.source_proposal_index]
+        suppressor = suppression.suppressor
+        lowest_error = math.hypot(lowest.prediction.x - truth[0], lowest.prediction.y - truth[1])
+        highest_error = math.hypot(highest.prediction.x - truth[0], highest.prediction.y - truth[1])
+        suppressor_error = math.hypot(
+            suppressor.prediction.x - truth[0], suppressor.prediction.y - truth[1]
+        )
+        suppressor_prediction_index = accepted_index[suppressor.source_proposal_index]
+
+        nms_counts["false_negative_truths"] += 1
+        nms_counts["lowest_error_candidate_suppressed"] += 1
+        if highest.source_proposal_index in suppressed_by_index:
+            nms_counts["highest_confidence_candidate_suppressed"] += 1
+        if highest.source_proposal_index == lowest.source_proposal_index:
+            nms_counts["highest_confidence_is_lowest_error"] += 1
+        elif (
+            suppressed_by_index[highest.source_proposal_index].suppressor.source_proposal_index
+            == suppressor.source_proposal_index
+        ):
+            nms_counts["highest_and_lowest_share_actual_suppressor"] += 1
+        truth_radius_counts[radius_bin(radii[truth_index])] += 1
+        suppressed_radius_counts[decoded_radius_bin(selected.raw_radius)] += 1
+        suppressor_radius_counts[decoded_radius_bin(suppressor.raw_radius)] += 1
+        suppressor_outcomes[
+            "true_positive" if suppressor_prediction_index in matched_by_prediction else "false_positive"
+        ] += 1
+        lowest_errors.append(lowest_error)
+        highest_errors.append(highest_error)
+        suppressor_errors.append(suppressor_error)
+        confidence_advantages.append(
+            suppressor.prediction.confidence - selected.prediction.confidence
+        )
+        error_penalties.append(suppressor_error - lowest_error)
+        suppression_center_distances.append(suppression.center_distance)
+        suppression_exclusion_distances.append(suppression.exclusion_distance)
+
+    return _radius_nms_report(values)
+
+
+def _new_radius_nms_accumulator() -> dict[str, Any]:
+    return {
+        "truth_outcomes": Counter(),
+        "prediction_outcomes": Counter(),
+        "nms_counts": Counter(),
+        "truth_radius_counts": Counter(),
+        "suppressed_radius_counts": Counter(),
+        "suppressor_radius_counts": Counter(),
+        "suppressor_outcomes": Counter(),
+        "lowest_errors": [],
+        "highest_errors": [],
+        "suppressor_errors": [],
+        "confidence_advantages": [],
+        "error_penalties": [],
+        "suppression_center_distances": [],
+        "suppression_exclusion_distances": [],
+    }
+
+
+def _radius_nms_report(values: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "truth_outcomes_by_ground_truth_radius": dict(sorted(values["truth_outcomes"].items())),
+        "prediction_outcomes_by_nearest_truth_and_decoded_radius": dict(
+            sorted(values["prediction_outcomes"].items())
+        ),
+        "nms_false_negatives": {
+            "counts": dict(sorted(values["nms_counts"].items())),
+            "ground_truth_radius_bins": dict(sorted(values["truth_radius_counts"].items())),
+            "lowest_error_candidate_raw_radius_bins": dict(sorted(values["suppressed_radius_counts"].items())),
+            "actual_suppressor_raw_radius_bins": dict(sorted(values["suppressor_radius_counts"].items())),
+            "actual_suppressor_prediction_outcome": dict(sorted(values["suppressor_outcomes"].items())),
+            "lowest_error_candidate_distance_px": _quantiles(values["lowest_errors"]),
+            "highest_confidence_candidate_distance_px": _quantiles(values["highest_errors"]),
+            "actual_suppressor_distance_to_truth_px": _quantiles(values["suppressor_errors"]),
+            "actual_suppressor_confidence_advantage": _quantiles(values["confidence_advantages"]),
+            "actual_suppressor_error_penalty_px": _quantiles(values["error_penalties"]),
+            "suppressed_to_actual_suppressor_distance_px": _quantiles(
+                values["suppression_center_distances"]
+            ),
+            "applicable_nms_exclusion_distance_px": _quantiles(
+                values["suppression_exclusion_distances"]
+            ),
+        },
+    }
 
 
 def _record_primitive(
@@ -424,6 +680,7 @@ def _diagnose_split(
     fn_scores: list[float] = []
     fn_decoded: list[float] = []
     stage_counts: Counter[str] = Counter()
+    radius_nms = _new_radius_nms_accumulator()
     forward_ms = 0.0
 
     for bound in bound_scenes:
@@ -439,8 +696,12 @@ def _diagnose_split(
         started = time.perf_counter()
         output = _infer(session, proposals.patches)
         forward_ms += (time.perf_counter() - started) * 1000.0
-        predictions = _final_candidates(scene, proposals, output, domain)
-        used_predictions, used_truths = greedy_matches(predictions, scene.centers)
+        trace = _postprocess_trace(scene, proposals, output, domain)
+        predictions = trace.accepted
+        match_pairs = greedy_match_pairs(predictions, scene.centers)
+        used_predictions = {prediction for prediction, _ in match_pairs}
+        used_truths = {truth for _, truth in match_pairs}
+        summarize_radius_and_nms(scene, trace, match_pairs, radius_nms)
         totals.update({
             "scene_count": 1,
             "truth_count": len(scene.centers),
@@ -453,6 +714,8 @@ def _diagnose_split(
         })
         above = np.flatnonzero(output[:, 0] >= THRESHOLD)
         stage_counts["outputs_above_threshold"] += len(above)
+        stage_counts["nms_eligible_candidates"] += len(trace.candidates_before_nms)
+        stage_counts["nms_suppressed_candidates"] += len(trace.suppressions)
         for index in above:
             base_x, base_y = proposals.coordinates[index].tolist()
             x = float(base_x + output[index, 1] * v24.STRIDE)
@@ -499,6 +762,16 @@ def _diagnose_split(
         _require(totals[actual_key] == expected[expected_key], f"{name} {actual_key} drifted")
     _require(sum(fn_causes.values()) == totals["false_negative"], f"{name} FN attribution incomplete")
     _require(sum(fp_categories.values()) == totals["false_positive"], f"{name} FP attribution incomplete")
+    _require(
+        sum(radius_nms["truth_outcomes"].values()) == totals["truth_count"]
+        and sum(radius_nms["prediction_outcomes"].values()) == totals["prediction_count"],
+        f"{name} radius attribution incomplete",
+    )
+    _require(
+        radius_nms["nms_counts"]["false_negative_truths"]
+        == fn_causes["nms_suppression"],
+        f"{name} NMS suppressor attribution differs from the fixed postprocessor",
+    )
     tp, fp, truth = totals["true_positive"], totals["false_positive"], totals["truth_count"]
     return {
         "counts": dict(sorted(totals.items())),
@@ -517,6 +790,7 @@ def _diagnose_split(
         "false_negative_nearest_proposal_distance_px": _quantiles(fn_proposals),
         "false_negative_maximum_positive_proposal_probability": _quantiles(fn_scores),
         "false_negative_nearest_above_threshold_decoded_distance_px": _quantiles(fn_decoded),
+        "radius_and_nms_attribution": _radius_nms_report(radius_nms),
         "model_forward_ms": round(forward_ms, 3),
     }
 
@@ -550,6 +824,7 @@ def run(*, repository_root: Path = REPOSITORY_ROOT, output_path: Path = OUTPUT_P
         "candidate_report": root / CANDIDATE_REPORT_PATH,
         "onnx": root / ONNX_PATH,
         "binding": root / protocol.FAMILY_BINDING_PATH,
+        "prior_diagnosis": root / PRIOR_DIAGNOSIS_PATH,
     }
     expected_hashes = {
         "result": EXPECTED_RESULT_SHA256,
@@ -557,6 +832,7 @@ def run(*, repository_root: Path = REPOSITORY_ROOT, output_path: Path = OUTPUT_P
         "candidate_report": EXPECTED_REPORT_SHA256,
         "onnx": EXPECTED_ONNX_SHA256,
         "binding": protocol.FAMILY_BINDING_SHA256,
+        "prior_diagnosis": EXPECTED_PRIOR_DIAGNOSIS_SHA256,
     }
     actual_hashes = {key: _sha(path) for key, path in paths.items()}
     _require(actual_hashes == expected_hashes, "frozen V25 diagnosis input identity changed")
@@ -588,7 +864,7 @@ def run(*, repository_root: Path = REPOSITORY_ROOT, output_path: Path = OUTPUT_P
     component_result = _diagnose_split("component", component, session, None)
     family_result = _diagnose_split("family", joined.dev, session, annotations)
     report = {
-        "schema": "graphreader.marker-center-plot-domain-v25-dev-diagnosis.v1",
+        "schema": "graphreader.marker-center-plot-domain-v25-dev-diagnosis.v2",
         "scope": "synthetic-dev-fixed-operating-point-diagnosis",
         "candidate_id": "P1",
         "operating_threshold": THRESHOLD,
@@ -604,6 +880,8 @@ def run(*, repository_root: Path = REPOSITORY_ROOT, output_path: Path = OUTPUT_P
             "Attribution uses synthetic annotations only after model input validation; annotations never enter inference.",
             "Nearest descriptive geometry is diagnostic proximity, not proof that a structure caused a prediction.",
             "Component fixtures expose named hard-negative centers rather than full semantic geometry.",
+            "False-positive radius strata use the nearest ground-truth marker only as a descriptive reference; they do not assign that prediction to the marker.",
+            "NMS attribution replays the fixed confidence order and records the first accepted prediction that actually suppresses each eligible candidate.",
             "No threshold, candidate, architecture, private, sealed, or production decision is made by this report.",
         ],
         "synthetic_only": True,
