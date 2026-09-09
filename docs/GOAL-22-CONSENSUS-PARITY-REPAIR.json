@@ -1,0 +1,77 @@
+{
+  "schema": "graphreader.goal22.consensus-parity-repair.v1",
+  "recorded_date": "2026-09-08",
+  "source_base_commit": "06005ffeafa7e561cef48f513de17da3b9e08095",
+  "scope": "C# defect repair to reproduce the existing frozen Python one-to-one matching algorithm",
+  "failure_mode": "A rejected pair with an already-used candidate consumed its previously-unused model before the next available match was examined.",
+  "reference": {
+    "path": "ml/ocr/official_bakeoff/structure_consensus_evaluate.py",
+    "sha256": "65de1c76288c2cd9646386afb941bf641a1a87c5abfec5d76b6cb0f7a818c992"
+  },
+  "reference_modified": false,
+  "source_files": [
+    {
+      "path": "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs",
+      "sha256": "45f0b1baa42cac9c4cb057b93cfc5f8f7f5091a9f078b291133a29fa8a2538f7"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOcrApprovalGate.cs",
+      "sha256": "04d678e6fd1473c224f5bed28e663be17fd400f3ec07a2d004777a678cd5aad7"
+    }
+  ],
+  "historical_source_bindings_preserved": {
+    "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs": "496a2e674cc2ed9393aecbb8df9c95ec0f3e4183312f9857710eb303d1ba7c6e",
+    "src/GraphReader.App/Integration/Workflow/ProductionOcrApprovalGate.cs": "c55175ef6c32a5eaf76e99dea97351611daca953fa0cee354505b71804ea5093"
+  },
+  "regression": {
+    "expected_regions": 2,
+    "before_regions": 1,
+    "after_regions": 2,
+    "python_reference_matches": [
+      [
+        "first-model",
+        "first-candidate",
+        1.0
+      ],
+      [
+        "second-model",
+        "second-candidate",
+        1.0
+      ]
+    ],
+    "red_report": {
+      "path": "artifacts/validation/raster-panels/consensus-claim-red.trx",
+      "sha256": "0ce4a2e735ac455f1482e1cf84922814b86f7a9f87cd22ff5771487f1c9009ff"
+    },
+    "after_report": {
+      "path": "artifacts/validation/raster-panels/consensus-claim-full2.trx",
+      "sha256": "82eae9dc8f2f7b6a6ae53de89bb545a03f6def81b07be437964bbd513cfa6292"
+    },
+    "after_report_scope": "197 passed,16 skipped,1 historical source-binding check failed; that check was subsequently repaired without modifying the historical protocol",
+    "historical_binding_followup": {
+      "passed": 3,
+      "failed": 0,
+      "report": {
+        "path": "artifacts/validation/raster-panels/consensus-historical-bindings.trx",
+        "sha256": "94e8e62ae0ceedb5d0a4621e23dd57b6163697dec7654136d0df5e2fcf688e34"
+      }
+    }
+  },
+  "production_approval": false,
+  "historical_gate_reopened": false,
+  "acceptance_bars_changed": false,
+  "model_weights_changed": false,
+  "new_model_revision": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "packaged_builds": 0,
+  "remaining": "Regenerate current train/dev runtime evidence after generator correction; this fixture is not aggregate OCR or real acceptance.",
+  "frozen_reference_algorithm_changed": false,
+  "csharp_behavior_changed": true,
+  "independent_review": {
+    "material_findings": 0,
+    "scope": "Both C# loops, frozen Python bytes, historical bindings and recorded evidence hashes",
+    "coverage_limit": "Contention regression executes runtime detector; private approval recomposition has general mismatch tests and source review but no direct contention fixture."
+  }
+}

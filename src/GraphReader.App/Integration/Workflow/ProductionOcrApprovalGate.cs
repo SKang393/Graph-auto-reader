@@ -846,12 +846,14 @@ internal static class ProductionOcrApprovalGate
         var finalRegions = new List<EvidenceRegion>();
         foreach (ConsensusCandidate candidate in candidates)
         {
-            if (!usedModels.Add(candidate.Model.RegionId) ||
-                !usedCandidates.Add(candidate.Candidate.RegionId))
+            if (usedModels.Contains(candidate.Model.RegionId) ||
+                usedCandidates.Contains(candidate.Candidate.RegionId))
             {
                 continue;
             }
 
+            usedModels.Add(candidate.Model.RegionId);
+            usedCandidates.Add(candidate.Candidate.RegionId);
             matches.Add(new ConsensusMatch(
                 candidate.Model.RegionId,
                 candidate.Candidate.RegionId,

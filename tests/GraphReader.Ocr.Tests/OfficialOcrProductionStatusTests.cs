@@ -30,6 +30,12 @@ public sealed class OfficialOcrProductionStatusTests
             // that failed run does not approve the repaired implementation.
             ["src/GraphReader.App/Integration/Workflow/ProductionRasterFrameDecoder.cs"] =
                 "29e93889ca0da9f98d2070aaa8a22d24d6b9975a7bb873a3c82832f8eff1a931",
+            // Goal 22 repairs C# matching to the frozen Python composition.
+            // The failed historical execution keeps its original source identity.
+            ["src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs"] =
+                "496a2e674cc2ed9393aecbb8df9c95ec0f3e4183312f9857710eb303d1ba7c6e",
+            ["src/GraphReader.App/Integration/Workflow/ProductionOcrApprovalGate.cs"] =
+                "c55175ef6c32a5eaf76e99dea97351611daca953fa0cee354505b71804ea5093",
         };
 
     [TestMethod]

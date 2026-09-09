@@ -9,6 +9,28 @@ namespace GraphReader.Ocr.Tests;
 public sealed class GraphStructureConsensusTextRegionDetectorTests
 {
     [TestMethod]
+    public async Task RejectedUsedCandidateDoesNotConsumeModelBeforeItsNextMatch()
+    {
+        OcrRegionEvidence firstEvidence = Evidence(3, 0.9, 0.1, false);
+        OcrRegionEvidence secondEvidence = Evidence(3, 0.8, 0.1, false);
+        var detector = new GraphStructureConsensusTextRegionDetector(
+            new FixedDetector([
+                Region("first-model", new OcrRectangle(10, 10, 10, 10), 0.99),
+                Region("second-model", new OcrRectangle(10, 10, 20, 10), 0.9),
+            ], "model"),
+            new FixedDetector([
+                Region("first-candidate", new OcrRectangle(10, 10, 10, 10), 0.9, firstEvidence),
+                Region("second-candidate", new OcrRectangle(20, 10, 10, 10), 0.8, secondEvidence),
+            ], "candidate"));
+
+        IReadOnlyList<OcrDetectedRegion> result = await detector.DetectAsync(Image(), CancellationToken.None);
+
+        Assert.HasCount(2, result);
+        Assert.AreSame(firstEvidence, result.Single(region => region.RegionId == "first-model").Evidence);
+        Assert.AreSame(secondEvidence, result.Single(region => region.RegionId == "second-model").Evidence);
+    }
+
+    [TestMethod]
     public async Task KeepsOneHighestConfidenceModelRegionPerCredibleTextCandidate()
     {
         OcrDetectedRegion textCandidate = Region(

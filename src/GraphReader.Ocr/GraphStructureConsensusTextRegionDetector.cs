@@ -98,11 +98,13 @@ public sealed class GraphStructureConsensusTextRegionDetector : ITextRegionDetec
         foreach (Match match in matches)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!usedModels.Add(match.ModelIndex) || !usedCandidates.Add(match.CandidateIndex))
+            if (usedModels.Contains(match.ModelIndex) || usedCandidates.Contains(match.CandidateIndex))
             {
                 continue;
             }
 
+            usedModels.Add(match.ModelIndex);
+            usedCandidates.Add(match.CandidateIndex);
             OcrDetectedRegion model = modelRegions[match.ModelIndex];
             OcrDetectedRegion candidate = candidateRegions[match.CandidateIndex];
             output.Add(model with
