@@ -149,6 +149,8 @@ internal static class Program
             Descriptor(config.GetProperty("detector")), Descriptor(config.GetProperty("recognizer")),
             runtime, nativeSha, cancellationToken).ConfigureAwait(false);
         var axis = new ProductionAxisGeometryAdapter(nativeSha, isApproved: false);
+        var artifactAdapter = new RasterResidualArtifactMaskAdapter();
+        var maskComposer = new ProductionDetectionMaskComposer(artifactAdapter);
         if (ocr.IsApproved || axis.IsApproved)
         {
             throw new InvalidOperationException("Synthetic evaluation must never approve a production adapter.");
@@ -164,6 +166,7 @@ internal static class Program
             int? regionCount = null;
             int? cropCount = null;
             object? emptyOcrDiagnostic = null;
+            object? preOcrDiagnostic = null;
             try
             {
                 var image = new WorkflowImageEvidence(path, imageSha,
@@ -183,6 +186,32 @@ internal static class Program
                 double right = geometry.Geometry.PlotPolygon.Points.Max(static point => point.X);
                 double bottom = geometry.Geometry.PlotPolygon.Points.Max(static point => point.Y);
                 OcrDetectorImage detectorImage = raster.CreateOcrDetectorImage(geometry.Geometry, cancellationToken);
+                string caseRoot = Path.Combine(outputRoot, imageSha);
+                Directory.CreateDirectory(caseRoot);
+                OcrImage sourceImage = raster.CreateOcrImage();
+                byte[] geometryPixels = new byte[checked(raster.Width * raster.Height)];
+                for (int index = 0; index < geometryPixels.Length; index++)
+                {
+                    if ((index & 0x3fff) == 0) cancellationToken.ThrowIfCancellationRequested();
+                    // Only pixels whitened by the existing pre-OCR axis path
+                    // are excluded here. Original white pixels carry no ink.
+                    geometryPixels[index] = sourceImage.Pixels.Span[index] != detectorImage.Image.Pixels.Span[index]
+                        ? byte.MaxValue : (byte)0;
+                }
+                stage = "pre-ocr-structure-diagnostic";
+                PreOcrStructuralProbabilityResult structure = await new RasterPreOcrStructuralProbabilityProvider()
+                    .AnalyzeAsync(new PreOcrStructuralFrame(raster.Width, raster.Height,
+                        sourceImage.Stride, sourceImage.Pixels, raster.Width, geometryPixels), cancellationToken)
+                    .ConfigureAwait(false);
+                object sourceGray = await WriteBytesAsync(caseRoot, "source-gray8.bin", sourceImage.Pixels.ToArray(), cancellationToken).ConfigureAwait(false);
+                preOcrDiagnostic = new
+                {
+                    SourceGray = sourceGray,
+                    GeometryExcludedInk = await WriteBytesAsync(caseRoot, "pre-ocr-geometry-ink.bin", geometryPixels, cancellationToken).ConfigureAwait(false),
+                    MarkerLike = await WritePlaneAsync(caseRoot, "pre-ocr-marker-like.f32", structure.MarkerLikeProbabilities.ToArray(), cancellationToken).ConfigureAwait(false),
+                    ThinConnector = await WritePlaneAsync(caseRoot, "pre-ocr-thin-connector.f32", structure.ThinConnectorProbabilities.ToArray(), cancellationToken).ConfigureAwait(false),
+                    AppliedToOcr = false, ProductionApproved = false,
+                };
                 stage = "ocr";
                 ProductionOcrEvidence text = await ocr.RecognizeForLocalSyntheticCandidateEvaluationAsync(
                     request, raster, new OcrRectangle(left, top, right - left, bottom - top),
@@ -205,16 +234,20 @@ internal static class Program
                 stage = "seed-composition";
                 ProductionDetectionMaskSeed seed = ProductionDetectionMaskComposer.BuildSeedForLocalSyntheticCandidateEvaluation(
                     request, raster, geometry, text.ModelEvidence, text.Result, cancellationToken);
-                string caseRoot = Path.Combine(outputRoot, imageSha);
-                Directory.CreateDirectory(caseRoot);
-                object ocrMask = WritePlane(caseRoot, "ocr-seed.f32", seed.CopyOcrMask().Values.ToArray());
-                object geometryMask = WritePlane(caseRoot, "geometry-seed.f32", seed.CopyArtifactMask().Values.ToArray());
-                object sourceGray = WriteBytes(caseRoot, "source-gray8.bin", raster.CreateOcrImage().Pixels.ToArray());
+                object ocrMask = await WritePlaneAsync(caseRoot, "ocr-seed.f32", seed.CopyOcrMask().Values.ToArray(), cancellationToken).ConfigureAwait(false);
+                object geometryMask = await WritePlaneAsync(caseRoot, "geometry-seed.f32", seed.CopyArtifactMask().Values.ToArray(), cancellationToken).ConfigureAwait(false);
+                stage = "residual-artifact-diagnostic";
+                ProductionDetectionMaskEvidence masks = await maskComposer.ComposeForLocalSyntheticCandidateEvaluationAsync(
+                    request, raster, geometry, text.ModelEvidence, text.Result, cancellationToken).ConfigureAwait(false);
+                object artifactMask = await WritePlaneAsync(caseRoot, "composed-artifact-candidate.f32", masks.CopyArtifactMask().Values.ToArray(), cancellationToken).ConfigureAwait(false);
                 results.Add(new
                 {
                     ImageSha256 = imageSha, Width = raster.Width, Height = raster.Height,
                     Status = "seed-completed", ElapsedMilliseconds = timer.Elapsed.TotalMilliseconds,
                     OcrMask = ocrMask, GeometryMask = geometryMask, SourceGray = sourceGray,
+                    PreOcrDiagnostic = preOcrDiagnostic, ComposedArtifactCandidateMask = artifactMask,
+                    ResidualArtifactCandidateEnvelope = masks.ArtifactEnvelope,
+                    ComposedMaskSourceEnvelopes = masks.SourceEnvelopes, ArtifactCandidateWarnings = masks.Warnings,
                     DetectorInputSha256 = detectorImage.PixelSha256,
                     DetectorBgrSha256 = detectorImage.BgrPixelSha256,
                     Axis = geometry, Ocr = text.Result, OcrModels = text.ModelEvidence,
@@ -226,6 +259,7 @@ internal static class Program
                 results.Add(new { ImageSha256 = imageSha, Status = "failed", Stage = stage,
                     DetectedRegionCount = regionCount, RecognitionCropCount = cropCount, Error = exception.Message,
                     EmptyOcrDiagnostic = emptyOcrDiagnostic,
+                    PreOcrDiagnostic = preOcrDiagnostic,
                     ElapsedMilliseconds = timer.Elapsed.TotalMilliseconds });
             }
         }
@@ -233,7 +267,9 @@ internal static class Program
         {
             Schema = "graphreader.synthetic-runtime-seed-evidence.v1",
             Scope = "local-synthetic-seed-diagnostic", ProductionApproved = false, TrainingInputReady = false,
-            CompleteArtifactMask = false, MissingStage = "residual-arrow-bracket-legend-intersection-artifact-mask",
+            CompleteArtifactMask = false, MissingStage = "representative-artifact-validation-and-panel-alignment",
+            ArtifactCandidateIdentity = artifactAdapter.Identity,
+            ArtifactCandidateConfiguration = JsonSerializer.Deserialize<JsonElement>(artifactAdapter.ConfigurationJson),
             InputManifestSha256 = Hash(inputBytes), CandidateSha256 = Hash(candidateBytes),
             NativeSha256 = nativeSha, NativeScope = nativeScope,
             RuntimeAssemblies = new[]
@@ -249,8 +285,8 @@ internal static class Program
             Count = images.Count, Completed = completed, Failed = images.Count - completed,
             ElapsedMilliseconds = total.Elapsed.TotalMilliseconds, Cases = results,
         };
-        await File.WriteAllTextAsync(Path.Combine(outputRoot, "report.json"),
-            JsonSerializer.Serialize(report, JsonOptions) + Environment.NewLine, cancellationToken).ConfigureAwait(false);
+        _ = await WriteBytesAsync(outputRoot, "report.json", System.Text.Encoding.UTF8.GetBytes(
+            JsonSerializer.Serialize(report, JsonOptions) + Environment.NewLine), cancellationToken).ConfigureAwait(false);
         Console.WriteLine(JsonSerializer.Serialize(new { Completed = completed, Failed = images.Count - completed,
             ProductionApproved = false, TrainingInputReady = false, Output = outputRoot }, JsonOptions));
         return completed == images.Count ? 0 : 1;
@@ -301,21 +337,55 @@ internal static class Program
         }
     }
 
-    private static object WritePlane(string directory, string name, float[] values)
+    private static Task<object> WritePlaneAsync(string directory, string name, float[] values, CancellationToken cancellationToken)
     {
         if (!BitConverter.IsLittleEndian)
         {
             throw new PlatformNotSupportedException("Float evidence uses little-endian float32.");
         }
-        var bytes = new byte[checked(values.Length * sizeof(float))];
-        Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
-        return WriteBytes(directory, name, bytes);
+        return WriteEvidenceAsync(directory, name, checked(values.Length * sizeof(float)),
+            (offset, buffer, count) => Buffer.BlockCopy(values, offset, buffer, 0, count), cancellationToken);
     }
 
-    private static object WriteBytes(string directory, string name, byte[] bytes)
+    private static Task<object> WriteBytesAsync(string directory, string name, byte[] bytes, CancellationToken cancellationToken) =>
+        WriteEvidenceAsync(directory, name, bytes.Length,
+            (offset, buffer, count) => bytes.AsMemory(offset, count).CopyTo(buffer), cancellationToken);
+
+    private static async Task<object> WriteEvidenceAsync(
+        string directory, string name, int byteCount, Action<int, byte[], int> copyChunk,
+        CancellationToken cancellationToken)
     {
-        using var output = new FileStream(Path.Combine(directory, name), FileMode.CreateNew, FileAccess.Write);
-        output.Write(bytes);
-        return new { File = name, Sha256 = Hash(bytes), ByteCount = bytes.Length };
+        string outputPath = Path.GetFullPath(Path.Combine(directory, name));
+        RequireArtifactOutput(outputPath);
+        string partialPath = outputPath + ".partial";
+        bool partialCreated = false;
+        try
+        {
+            using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            await using (var output = new FileStream(partialPath, FileMode.CreateNew, FileAccess.Write,
+                FileShare.None, 65_536, FileOptions.Asynchronous))
+            {
+                partialCreated = true;
+                var buffer = new byte[65_536];
+                for (int offset = 0; offset < byteCount;)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    int count = Math.Min(buffer.Length, byteCount - offset);
+                    copyChunk(offset, buffer, count);
+                    hash.AppendData(buffer, 0, count);
+                    await output.WriteAsync(buffer.AsMemory(0, count), cancellationToken).ConfigureAwait(false);
+                    offset += count;
+                }
+                await output.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            File.Move(partialPath, outputPath, overwrite: false);
+            return new { File = name, Sha256 = Convert.ToHexStringLower(hash.GetHashAndReset()), ByteCount = byteCount };
+        }
+        catch
+        {
+            if (partialCreated && File.Exists(partialPath)) File.Delete(partialPath);
+            throw;
+        }
     }
 }

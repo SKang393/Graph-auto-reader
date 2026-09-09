@@ -8,7 +8,7 @@ PNGs through the application's real raster decoder, OpenCV axis fitter, official
 DB detector, graph-consensus detector, recognizer, and seed-mask composer.
 Recognition reads the original raster; detection uses the same axis-masked
 derivative as application composition. Model and manifest bytes are checked
-before executable CPU preflight. Both candidate adapters remain unapproved.
+before executable CPU preflight. All candidate adapters remain unapproved.
 
 The input exchange is created by
 `python -m ml.markers.center.mask_preserving_v24.export_family_rasters`.
@@ -46,12 +46,20 @@ not evidence for the separate reviewed source-runtime binary.
 
 Successful cases emit little-endian float32 OCR and **geometry seed** planes,
 original Gray8 bytes, exact checksums, and actual axis/OCR evidence in original
-pixels. Failed cases retain their error and produce no substitute mask.
+pixels. A separate raster algorithm now supplies a candidate residual mask.
+The `composed-artifact-candidate.f32` plane contains that residual mask unioned
+with the geometry seed. Its report includes every source envelope; the residual
+algorithm envelope alone must not be credited for seeded geometry pixels.
+The algorithm carries a null model identity and binds its App assembly plus
+configuration hash, including the exact OCR assembly dependency.
+Failed cases retain their error and produce no substitute accepted mask.
 
 These outputs are deliberately marked `training_input_ready: false` and
-`complete_artifact_mask: false`. A residual arrow/bracket/legend/intersection
-artifact provider is still required before the planes can represent the full
-marker runtime input. A successful exit means every requested seed computation
+`complete_artifact_mask: false`. The residual prototype still needs
+representative accuracy evidence. Current inputs are also whole images,
+including images with multiple graphs. The reusable raster panelizer has
+focused tests but is not yet integrated into this tool or normal image import.
+A successful exit means every requested diagnostic computation
 completed. It does not mean accuracy passed, any model was approved, or normal
 Production composition is available. No CSV acceptance or sealed evaluation is
 performed by this tool.
@@ -64,6 +72,23 @@ into the result or passed to the seed composer as accepted text.
 synthetic inputs. Supply `-ToolPath`, `-InputManifestPath`, `-CandidatePath`, and
 `-CandidateSha256`; its nine checks keep reports under ignored test scratch.
 
-The proposed pre-OCR structural provider is not enabled here. Its focused unit
+The pre-OCR structural provider emits descriptive marker-like and connector
+planes before OCR. They are **not applied to OCR input**. Its focused unit
 fixtures must not be mistaken for the required representative text-preservation
-gate. Truth remains exclusively in a separate synthetic evaluator.
+gate. `score_family_structure.py` checks the saved planes against independently
+regenerated dark ink inside glyph boxes. These explicitly labeled proxy metrics
+include possible overlapping graph ink and cannot satisfy an acceptance gate.
+Preservation recall is conditional on ink left after the existing geometry
+exclusion; it does not count text removed by that earlier geometry step.
+
+`score_family_ocr.py` independently regenerates the exact PNG identities and
+scores final recognized region boxes using the existing fixed IoU 0.5 matcher.
+Tight glyph boxes can penalize legitimate padded detections; the score is not
+a raw-detector-only recall metric. Failed cases remain misses. Neither scorer
+selects a threshold, reads private or sealed data, or approves a candidate.
+Truth remains exclusively in these separate synthetic evaluators.
+
+Evidence files are written in cancellation-aware chunks to a temporary sibling
+and moved into place only after completion. Cancellation removes the writer's
+own in-progress file. Earlier complete diagnostic files remain as an incomplete
+run record without a final report; use a fresh directory when rerunning.

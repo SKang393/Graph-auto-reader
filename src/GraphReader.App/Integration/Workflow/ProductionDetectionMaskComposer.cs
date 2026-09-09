@@ -95,6 +95,59 @@ public interface IProductionArtifactMaskAdapter
         ProductionDecodedRaster raster,
         ProductionDetectionMaskSeed seed,
         CancellationToken cancellationToken);
+
+    Task<ProductionArtifactMaskEvidence> DetectAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster raster,
+        ProductionDetectionMaskSeed seed,
+        ProductionAxisGeometryEvidence axisEvidence,
+        IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
+        OcrResult ocrResult,
+        CancellationToken cancellationToken) =>
+        DetectAsync(request, raster, seed, cancellationToken);
+}
+
+/// <summary>
+/// Exact executable and configuration identity for a deterministic artifact
+/// algorithm. The frozen vision envelope carries model:null and retains these
+/// identities in stage_version and warnings; no model identity is fabricated.
+/// This record does not grant production approval.
+/// </summary>
+public sealed class ProductionArtifactAlgorithmEvidence
+{
+    public ProductionArtifactAlgorithmEvidence(
+        string algorithmId, string version, string assemblySha256, string configurationSha256)
+    {
+        if (string.IsNullOrWhiteSpace(algorithmId) || string.IsNullOrWhiteSpace(version) ||
+            algorithmId.Concat(version).Any(static character =>
+                !char.IsAsciiLetterOrDigit(character) && character is not ('.' or '-' or '_')))
+        {
+            throw new ArgumentException("Artifact algorithm identity must use explicit ASCII identifiers.");
+        }
+        WorkflowContractGuards.RequireSha256(assemblySha256, nameof(assemblySha256));
+        WorkflowContractGuards.RequireSha256(configurationSha256, nameof(configurationSha256));
+        AlgorithmId = algorithmId;
+        Version = version;
+        AssemblySha256 = assemblySha256.ToLowerInvariant();
+        ConfigurationSha256 = configurationSha256.ToLowerInvariant();
+    }
+
+    public string AlgorithmId { get; }
+    public string Version { get; }
+    public string AssemblySha256 { get; }
+    public string ConfigurationSha256 { get; }
+    public string StageVersion => $"{AlgorithmId}:{Version}";
+    public string AssemblyWarning => $"artifact_algorithm_assembly_sha256:{AssemblySha256}";
+    public string ConfigurationWarning => $"artifact_algorithm_configuration_sha256:{ConfigurationSha256}";
+
+    internal bool Matches(WorkflowVisionEnvelope envelope) =>
+        envelope.Model is null && envelope.StageVersion == StageVersion &&
+        envelope.Warnings.Where(static warning => warning.StartsWith(
+            "artifact_algorithm_assembly_sha256:", StringComparison.Ordinal))
+            .SequenceEqual([AssemblyWarning], StringComparer.Ordinal) &&
+        envelope.Warnings.Where(static warning => warning.StartsWith(
+            "artifact_algorithm_configuration_sha256:", StringComparison.Ordinal))
+            .SequenceEqual([ConfigurationWarning], StringComparer.Ordinal);
 }
 
 public sealed class ProductionArtifactMaskEvidence
@@ -108,7 +161,8 @@ public sealed class ProductionArtifactMaskEvidence
         WorkflowImageVariant rasterVariant,
         WorkflowVisionEnvelope envelope,
         float[] mask,
-        IEnumerable<string>? warnings = null)
+        IEnumerable<string>? warnings = null,
+        ProductionArtifactAlgorithmEvidence? algorithm = null)
     {
         if (width <= 0 || height <= 0)
         {
@@ -132,6 +186,7 @@ public sealed class ProductionArtifactMaskEvidence
         Envelope = envelope ?? throw new ArgumentNullException(nameof(envelope));
         this.mask = (float[])mask.Clone();
         Warnings = Array.AsReadOnly((warnings ?? Array.Empty<string>()).ToArray());
+        Algorithm = algorithm;
     }
 
     public int Width { get; }
@@ -145,6 +200,8 @@ public sealed class ProductionArtifactMaskEvidence
     public WorkflowVisionEnvelope Envelope { get; }
 
     public IReadOnlyList<string> Warnings { get; }
+
+    public ProductionArtifactAlgorithmEvidence? Algorithm { get; }
 
     public MarkerMask CopyMask() =>
         new(Width, Height, (float[])mask.Clone());
@@ -291,12 +348,33 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
         return BuildSeedMasks(raster, axisEvidence, ocrResult, cancellationToken);
     }
 
-    public async Task<ProductionDetectionMaskEvidence> ComposeAsync(
+    public Task<ProductionDetectionMaskEvidence> ComposeAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster raster,
         ProductionAxisGeometryEvidence axisEvidence,
         IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
         OcrResult ocrResult,
+        CancellationToken cancellationToken) =>
+        ComposeValidatedAsync(request, raster, axisEvidence, ocrModelEvidence,
+            ocrResult, localCandidate: false, cancellationToken);
+
+    internal Task<ProductionDetectionMaskEvidence> ComposeForLocalSyntheticCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster raster,
+        ProductionAxisGeometryEvidence axisEvidence,
+        IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
+        OcrResult ocrResult,
+        CancellationToken cancellationToken) =>
+        ComposeValidatedAsync(request, raster, axisEvidence, ocrModelEvidence,
+            ocrResult, localCandidate: true, cancellationToken);
+
+    private async Task<ProductionDetectionMaskEvidence> ComposeValidatedAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster raster,
+        ProductionAxisGeometryEvidence axisEvidence,
+        IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence,
+        OcrResult ocrResult,
+        bool localCandidate,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -312,7 +390,12 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
             ocrModelEvidence,
             ocrResult);
 
-        if (artifactMaskAdapter?.IsApproved != true)
+        if (localCandidate && (artifactMaskAdapter is null || artifactMaskAdapter.IsApproved))
+        {
+            throw Failure("Local synthetic artifact evaluation requires an explicitly unapproved adapter.");
+        }
+
+        if (!localCandidate && artifactMaskAdapter?.IsApproved != true)
         {
             throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
                 ProductionWorkflowFailureCodes.DetectionModelsUnavailable,
@@ -326,11 +409,14 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
             () => BuildSeedMasks(raster, axisEvidence, ocrResult, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        ProductionArtifactMaskEvidence artifactEvidence = await artifactMaskAdapter
+        ProductionArtifactMaskEvidence artifactEvidence = await artifactMaskAdapter!
             .DetectAsync(
                 request,
                 raster,
                 seed,
+                axisEvidence,
+                ocrModelEvidence,
+                ocrResult,
                 cancellationToken)
             .ConfigureAwait(false);
         ValidateArtifactEvidence(request, raster, artifactEvidence);
@@ -342,6 +428,7 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
                 ocrEnvelopes,
                 seed,
                 artifactEvidence,
+                localCandidate,
                 cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
@@ -352,6 +439,7 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
         WorkflowVisionEnvelope[] ocrEnvelopes,
         ProductionDetectionMaskSeed seed,
         ProductionArtifactMaskEvidence artifactEvidence,
+        bool localCandidate,
         CancellationToken cancellationToken)
     {
         float[] ocrMask = seed.OcrMaskValues.ToArray();
@@ -381,7 +469,9 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
             artifactMask,
             artifactEvidence.Warnings.Concat(
             [
-                "artifact_mask_scope:approved_provider_plus_axis_ticks_dividers_ambiguous",
+                localCandidate
+                    ? "artifact_mask_scope:unapproved_candidate_plus_axis_ticks_dividers_ambiguous"
+                    : "artifact_mask_scope:approved_provider_plus_axis_ticks_dividers_ambiguous",
             ]));
     }
 
@@ -434,6 +524,11 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
         WorkflowVisionEnvelope envelope = evidence.Envelope;
         ReadOnlySpan<float> mask = evidence.MaskValues.Span;
         WorkflowVisionModel? model = envelope.Model;
+        bool validProvenance = evidence.Algorithm is { } algorithm
+            ? algorithm.Matches(envelope)
+            : model is not null && !string.IsNullOrWhiteSpace(model.ModelId) &&
+                !string.IsNullOrWhiteSpace(model.Version) && !string.IsNullOrWhiteSpace(model.Sha256) &&
+                model.Provider is "cpu" or "directml";
         int expectedPixelCount = checked(raster.Width * raster.Height);
         if (evidence.Width != raster.Width || evidence.Height != raster.Height ||
             evidence.RasterVariant != raster.Variant ||
@@ -445,13 +540,10 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
             envelope.PanelId != request.Panel.ImportedPanel.PanelId ||
             !string.Equals(envelope.InputSha256, request.Image.Sha256, StringComparison.OrdinalIgnoreCase) ||
             !string.Equals(envelope.CoordinateSpace, "original_pixels", StringComparison.Ordinal) ||
-            string.IsNullOrWhiteSpace(model?.ModelId) ||
-            string.IsNullOrWhiteSpace(model.Version) ||
-            string.IsNullOrWhiteSpace(model.Sha256) ||
-            model.Provider is not ("cpu" or "directml"))
+            !validProvenance)
         {
             throw Failure(
-                "Artifact-mask evidence must be normalized, checksum-bound, CPU-compatible original-pixel evidence for the current raster.");
+                "Artifact-mask evidence must be normalized current-raster evidence with a checksum-bound CPU model or deterministic executable/configuration identity.");
         }
     }
 

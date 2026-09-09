@@ -116,6 +116,79 @@ public sealed class ProductionDetectionMaskComposerTests
         Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, exception.Failure.Code);
     }
 
+    [TestMethod]
+    [DataRow("valid", true)]
+    [DataRow("wrong-assembly", false)]
+    [DataRow("missing-algorithm", false)]
+    [DataRow("model-and-algorithm", false)]
+    [DataRow("duplicate-assembly", false)]
+    [DataRow("unapproved", false)]
+    public async Task DeterministicArtifactEvidenceRequiresExactIdentityAndApproval(string mode, bool accepted)
+    {
+        TestInputs inputs = CreateInputs();
+        var adapter = new DeterministicArtifactFixture(inputs, mode);
+        var composer = new ProductionDetectionMaskComposer(adapter);
+        Task<ProductionDetectionMaskEvidence> Run() => composer.ComposeAsync(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
+            inputs.OcrResult, CancellationToken.None);
+
+        if (accepted)
+        {
+            ProductionDetectionMaskEvidence result = await Run();
+            Assert.IsNull(result.ArtifactEnvelope.Model);
+            Assert.AreEqual(1f, result.CopyArtifactMask().Values.Span[20 * inputs.Raster.Width + 20]);
+            Assert.IsGreaterThan(1, result.ArtifactMaskedPixelCount);
+        }
+        else
+        {
+            await Assert.ThrowsAsync<ProductionWorkflowStageException>(Run);
+        }
+        Assert.AreEqual(mode != "unapproved", adapter.WasInvoked);
+    }
+
+    [TestMethod]
+    public async Task CandidateCompositionRejectsApprovedAdaptersAndLabelsUnapprovedEvidence()
+    {
+        TestInputs inputs = CreateInputs();
+        var approved = new DeterministicArtifactFixture(inputs, "valid");
+        await Assert.ThrowsAsync<ProductionWorkflowStageException>(() =>
+            new ProductionDetectionMaskComposer(approved).ComposeForLocalSyntheticCandidateEvaluationAsync(
+                inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
+                inputs.OcrResult, CancellationToken.None));
+        Assert.IsFalse(approved.WasInvoked);
+
+        var candidate = new DeterministicArtifactFixture(inputs, "unapproved");
+        var composer = new ProductionDetectionMaskComposer(candidate);
+        ProductionDetectionMaskEvidence result = await composer.ComposeForLocalSyntheticCandidateEvaluationAsync(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
+            inputs.OcrResult, CancellationToken.None);
+        Assert.IsFalse(composer.IsApproved);
+        Assert.Contains("artifact_mask_scope:unapproved_candidate_plus_axis_ticks_dividers_ambiguous", result.Warnings);
+        Assert.DoesNotContain("artifact_mask_scope:approved_provider_plus_axis_ticks_dividers_ambiguous", result.Warnings);
+    }
+
+    [TestMethod]
+    public async Task RasterCandidateBindsItsExecutableConfigurationAndOcrDependencyWithoutApproval()
+    {
+        TestInputs inputs = CreateInputs();
+        var adapter = new RasterResidualArtifactMaskAdapter();
+        var composer = new ProductionDetectionMaskComposer(adapter);
+        await Assert.ThrowsAsync<ProductionWorkflowStageException>(() => composer.ComposeAsync(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
+            inputs.OcrResult, CancellationToken.None));
+        ProductionDetectionMaskEvidence result = await composer.ComposeForLocalSyntheticCandidateEvaluationAsync(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence,
+            inputs.OcrResult, CancellationToken.None);
+        Assert.IsFalse(adapter.IsApproved);
+        Assert.IsTrue(adapter.Identity.Matches(result.ArtifactEnvelope));
+        Assert.IsNull(result.ArtifactEnvelope.Model);
+        Assert.AreEqual(adapter.Identity.ConfigurationSha256, Convert.ToHexStringLower(
+            SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(adapter.ConfigurationJson))));
+        using System.Text.Json.JsonDocument configuration = System.Text.Json.JsonDocument.Parse(adapter.ConfigurationJson);
+        Assert.AreEqual(adapter.OcrAssemblySha256,
+            configuration.RootElement.GetProperty("dependencies")[0].GetProperty("sha256").GetString());
+    }
+
     private static TestInputs CreateInputs()
     {
         const int width = 32;
@@ -235,6 +308,57 @@ public sealed class ProductionDetectionMaskComposerTests
             new WorkflowVisionTiming(1, 1, 1, 3),
             0.98,
             transforms: request.Transforms);
+
+    private sealed class DeterministicArtifactFixture(TestInputs inputs, string mode) : IProductionArtifactMaskAdapter
+    {
+        public string AdapterId => "test-deterministic-artifact-mask";
+        public bool IsApproved => mode != "unapproved";
+        public bool WasInvoked { get; private set; }
+
+        public Task<ProductionArtifactMaskEvidence> DetectAsync(
+            ProductionWorkflowDetectionRequest request, ProductionDecodedRaster raster,
+            ProductionDetectionMaskSeed seed, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("This fixture requires the actual axis and OCR context.");
+
+        public Task<ProductionArtifactMaskEvidence> DetectAsync(
+            ProductionWorkflowDetectionRequest request, ProductionDecodedRaster raster,
+            ProductionDetectionMaskSeed seed, ProductionAxisGeometryEvidence axisEvidence,
+            IReadOnlyList<ProductionOcrModelEvidence> ocrModelEvidence, OcrResult ocrResult,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Assert.AreSame(inputs.AxisEvidence, axisEvidence);
+            Assert.AreSame(inputs.OcrEvidence, ocrModelEvidence);
+            Assert.AreSame(inputs.OcrResult, ocrResult);
+            WasInvoked = true;
+            var algorithm = new ProductionArtifactAlgorithmEvidence(
+                "fixture-residual-artifacts", "1", new string('d', 64), new string('e', 64));
+            var warnings = new List<string>
+            {
+                mode == "wrong-assembly"
+                    ? $"artifact_algorithm_assembly_sha256:{new string('f', 64)}"
+                    : algorithm.AssemblyWarning,
+                algorithm.ConfigurationWarning,
+            };
+            if (mode == "duplicate-assembly")
+            {
+                warnings.Add(algorithm.AssemblyWarning);
+            }
+            var envelope = new WorkflowVisionEnvelope(
+                1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                "markers", algorithm.StageVersion, raster.InputSha256,
+                mode == "model-and-algorithm"
+                    ? new WorkflowVisionModel("unexpected-model", "1", new string('a', 64), "cpu")
+                    : null,
+                new WorkflowVisionTiming(1, null, 1, 2), 0.98, warnings,
+                request.Transforms);
+            var mask = new float[raster.Width * raster.Height];
+            mask[20 * raster.Width + 20] = 1f;
+            return Task.FromResult(new ProductionArtifactMaskEvidence(
+                raster.Width, raster.Height, raster.InputSha256, raster.Variant,
+                envelope, mask, algorithm: mode == "missing-algorithm" ? null : algorithm));
+        }
+    }
 
     private sealed class SeedOnlyArtifactMaskAdapter : IProductionArtifactMaskAdapter
     {

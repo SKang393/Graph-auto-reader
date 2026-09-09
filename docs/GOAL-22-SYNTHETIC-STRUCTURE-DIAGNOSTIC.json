@@ -1,0 +1,236 @@
+{
+  "schema": "graphreader.goal22.synthetic-structure-diagnostic.v1",
+  "recorded_date": "2026-09-08",
+  "scope": "engineering preparation and visible synthetic dev diagnosis",
+  "source_base_commit": "fe264c624a54819da4dde55c8f6f3491a1225b59",
+  "source_files": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionDetectionMaskComposer.cs",
+      "sha256": "341ebcab0e757e9bea45d77fdcd870b93a984284358b1f287af344c2b49e1ef3"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskAdapter.cs",
+      "sha256": "4f1a7ad11bb0cc7f8e84afe483ef9a23bf0475ce775fffaaba334917f7b3c803"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskProvider.cs",
+      "sha256": "547f6ec8cc06fc3e7c321ebb3201d1bf803117c3952d8b7b39408fb465915337"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionRasterPanelizer.cs",
+      "sha256": "26b9e4446f6ceb0100c9bfe53fa612d773dc83755c9d3d12431f5ced7e62b374"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionWorkflowImportStage.cs",
+      "sha256": "fcdec9d7cd33becd04d45e8c9d49c13120d79beecc57b6ee4947af5af97f5ab2"
+    },
+    {
+      "path": "src/GraphReader.Ocr/RasterPreOcrStructuralProbabilityProvider.cs",
+      "sha256": "ff9a1a1866ee6ca1f58cbf73c01861dbd2d122335e4a2e319283ea48ac141b73"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "27abbed5f984369b05e78c27ddb9a93d49d1d5086ac1bc9445887775c9d5cb7f"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py",
+      "sha256": "479c6fb9227e3f6de6f32e85f75a97b8c312e0e75a7addb3ab381865e7110fc5"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_family_structure.py",
+      "sha256": "919ea2e52dab04580bd3b9b8cc2fa5c98de6ea689e081375a5cbac54376f9864"
+    }
+  ],
+  "production_approved": false,
+  "training_input_ready": false,
+  "complete_artifact_mask": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "packaged_builds": 0,
+  "validation": {
+    "app_tests": {
+      "passed": 167,
+      "failed": 0,
+      "skipped": 0,
+      "report_sha256": "346c73e77f5151d7843e9908b10686ef6079f46a2bd3ad4a418b08ac4169af11"
+    },
+    "evaluator_tests": {
+      "passed": 17,
+      "failed": 0,
+      "elapsed_seconds": 3.94
+    },
+    "input_boundary_checks": {
+      "passed": 9,
+      "failed": 0,
+      "report_sha256": "6dd1c86391e2e6e39d321c437b77148fb6e44f2c5e9668c7741ce1575f342cf1"
+    },
+    "tool_compilation": {
+      "warnings": 0,
+      "errors": 0
+    }
+  },
+  "runtime": {
+    "completed": 3,
+    "failed": 0,
+    "elapsed_milliseconds": 6259.0569,
+    "report_sha256": "5f0233ccfd578d78499cbe634d994b138b5c5021ed56a512f1785af3dd64b8c3",
+    "input_manifest_sha256": "af109c0001f751788c85e2c759ce00316dae4514e8afb907837357f9a13650e4",
+    "candidate_sha256": "a1dcc5456048f196bf3c497b6300650cc72d9278fb7251d08385f4cf2bdd3046",
+    "native_scope": "existing-development-runtime-unapproved-for-release",
+    "native_sha256": "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd",
+    "runtime_assemblies": [
+      {
+        "name": "GraphReader.SyntheticRuntimeEvidence",
+        "sha256": "81278e1e471e89448d97d51f5de05b38477a38301e04744b3412d053bbf3d3dd"
+      },
+      {
+        "name": "GraphReader.App",
+        "sha256": "b0ad8d3801967d6a0532f800d97f94d253d9690b00a2ddbe7cdfbf31ae3e1d2a"
+      },
+      {
+        "name": "GraphReader.Axis",
+        "sha256": "94d6858edfa39e26dabc2c30bbffab170b98c2bfe9279ecec00d7a78f3665298"
+      },
+      {
+        "name": "GraphReader.Ocr",
+        "sha256": "c9e88c0400b9990ee95b63ae34fd09792181f2ff79482b9ed7863976e3911aff"
+      },
+      {
+        "name": "GraphReader.Inference",
+        "sha256": "df50b4e3cd5827b54d9efd6fdfc8e8c4f61ecb2a456afb00285232d62f9bd3c1"
+      }
+    ],
+    "artifact_identity": {
+      "algorithm_id": "raster-residual-artifacts",
+      "version": "1",
+      "assembly_sha256": "b0ad8d3801967d6a0532f800d97f94d253d9690b00a2ddbe7cdfbf31ae3e1d2a",
+      "configuration_sha256": "197f008619728a6a8a16330a0a4a1c3ac456e0138b37cccda42783c229983c17",
+      "stage_version": "raster-residual-artifacts:1",
+      "assembly_warning": "artifact_algorithm_assembly_sha256:b0ad8d3801967d6a0532f800d97f94d253d9690b00a2ddbe7cdfbf31ae3e1d2a",
+      "configuration_warning": "artifact_algorithm_configuration_sha256:197f008619728a6a8a16330a0a4a1c3ac456e0138b37cccda42783c229983c17"
+    },
+    "artifact_plane_scope": "residual candidate unioned with actual axis/tick/divider/ambiguous geometry seed",
+    "all_mask_source_envelopes_recorded": true,
+    "pre_ocr_planes_applied_to_ocr": false
+  },
+  "plane_replay": {
+    "verified_pairs": 21,
+    "verified_files": 42,
+    "mismatches": 0,
+    "report_sha256": "53a99854c8fab18e3d22c73be7e9af621c91bc6c8e2631ba53de16dd5de618b3",
+    "scope": "final writer preserves the previously measured plane bytes"
+  },
+  "final_recognized_ocr_regions": {
+    "source_report_sha256": "3268cff8c6642a87f90f47ebdbfb6ed80db5d5266b31828913e310860528a61b",
+    "metrics": {
+      "by_truth_role": {
+        "annotation": {
+          "false_negative_count": 12,
+          "matched_truth_count": 6,
+          "recall": 0.3333333333333333,
+          "truth_region_count": 18
+        },
+        "axis_title": {
+          "false_negative_count": 12,
+          "matched_truth_count": 0,
+          "recall": 0.0,
+          "truth_region_count": 12
+        },
+        "condition_label": {
+          "false_negative_count": 30,
+          "matched_truth_count": 0,
+          "recall": 0.0,
+          "truth_region_count": 30
+        },
+        "legend_text": {
+          "false_negative_count": 10,
+          "matched_truth_count": 1,
+          "recall": 0.09090909090909091,
+          "truth_region_count": 11
+        },
+        "participant": {
+          "false_negative_count": 5,
+          "matched_truth_count": 4,
+          "recall": 0.4444444444444444,
+          "truth_region_count": 9
+        },
+        "phase_heading": {
+          "false_negative_count": 16,
+          "matched_truth_count": 14,
+          "recall": 0.4666666666666667,
+          "truth_region_count": 30
+        },
+        "x_tick": {
+          "false_negative_count": 48,
+          "matched_truth_count": 0,
+          "recall": 0.0,
+          "truth_region_count": 48
+        },
+        "y_tick": {
+          "false_negative_count": 25,
+          "matched_truth_count": 0,
+          "recall": 0.0,
+          "truth_region_count": 25
+        }
+      },
+      "case_count": 3,
+      "false_negatives": 158,
+      "false_positives": 95,
+      "precision": 0.20833333333333334,
+      "predicted_region_count": 120,
+      "recall": 0.1366120218579235,
+      "true_positives": 25,
+      "truth_region_count": 183
+    },
+    "matching_iou": 0.5,
+    "raw_detector_only": false,
+    "recognition_scored": false,
+    "interpretation": "Tight glyph-box IoU penalizes padded detections. 34 of 73 tick truths overlap final regions below IoU 0.5; 39 have no overlapping final region. Missing final regions cannot yet be attributed to a specific OCR substage."
+  },
+  "pre_ocr_proxy": {
+    "source_report_sha256": "792bcd4b324e323864e87ebdb4a087fc05512ee7174a43ad27b795b83091c1d0",
+    "counts": {
+      "geometry_excluded_ink": 7943,
+      "retained_ink": 276781,
+      "retained_text_box_ink": 27077,
+      "suppressed_ink": 31344,
+      "text_box_ink": 30200,
+      "text_box_ink_suppressed": 3123
+    },
+    "precision": 0.09782824688110817,
+    "recall": 0.89658940397351,
+    "conditional_on": "dark source ink not already excluded by geometry",
+    "exact_glyph_truth": false,
+    "acceptance_gate_satisfied": false,
+    "visual_diagnosis": {
+      "contained_glyph_like_suppressed_pixels": 879,
+      "external_structure_overlap_suppressed_pixels": 2244,
+      "contained_loss_plane": "marker-like",
+      "scope": "descriptive synthetic dev component and visual attribution, not a separate acceptance metric"
+    }
+  },
+  "panelization": {
+    "helper_verified": true,
+    "normal_image_import_integrated": false,
+    "tool_inputs_panelized": false,
+    "full_source_retention_integration_complete": false,
+    "guards": [
+      "source hash",
+      "PNG complete chunks and CRC",
+      "decoded dimensions",
+      "actual encoded crop and inverse mapping",
+      "non-overlap",
+      "cancellation checkpoints"
+    ],
+    "native_codec_limitation": "native WPF decode/encode calls cannot be interrupted mid-call; source bounds and checks around each call apply"
+  },
+  "remaining": [
+    "preserve compact text glyphs before any pre-OCR suppression",
+    "separate padded-box metric effects from missing OCR substages",
+    "integrate actual panel inputs and full-source provenance in normal import, project save/load, and export",
+    "validate residual mask accuracy on representative synthetic evidence",
+    "replace V24 oracle channels with the actual verified runtime planes before training",
+    "frozen real/sealed acceptance, production promotion, application proof and distribution validation"
+  ]
+}

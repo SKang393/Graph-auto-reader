@@ -186,10 +186,10 @@ public sealed class ProductionWorkflowImportStage : IWorkflowImportStage
                     "Render or extract the panel through a reviewed local PDF renderer, or import the panel as an image.");
             }
 
-            EncodedPdfPanel detectorPanel;
+            EncodedRasterCrop detectorPanel;
             try
             {
-                detectorPanel = CreateDetectorReadyPanel(pdfPanel, figure);
+                detectorPanel = CreateDetectorReadyCrop(pdfPanel, figure, cancellationToken);
             }
             catch (Exception exception) when (exception is InvalidDataException or IOException or
                 NotSupportedException or FormatException or ArgumentException or OverflowException)
@@ -202,7 +202,7 @@ public sealed class ProductionWorkflowImportStage : IWorkflowImportStage
                     "Render or extract the panel through a reviewed local PDF renderer, or import the panel as an image.");
             }
 
-            byte[] encoded = detectorPanel.Bytes;
+            byte[] encoded = detectorPanel.CopyBytes();
             string imageSha256 = Convert.ToHexString(SHA256.HashData(encoded)).ToLowerInvariant();
             Guid panelId = ProductionWorkflowPanelStore.CreateStableId(
                 "pdf-panel-v1",
@@ -257,10 +257,13 @@ public sealed class ProductionWorkflowImportStage : IWorkflowImportStage
         return imported;
     }
 
-    private static EncodedPdfPanel CreateDetectorReadyPanel(
+    internal static EncodedRasterCrop CreateDetectorReadyCrop(
         PdfPanelRecord panel,
-        PdfFigureCandidate figure)
+        PdfFigureCandidate figure,
+        CancellationToken cancellationToken,
+        BitmapSource? decodedSource = null)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (figure.EncodedSource is null || figure.EncodedSource.Length == 0 ||
             string.IsNullOrWhiteSpace(figure.MediaType) ||
             !DetectorReadyMediaTypes.Contains(figure.MediaType) ||
@@ -293,11 +296,15 @@ public sealed class ProductionWorkflowImportStage : IWorkflowImportStage
             Math.Abs(normalizedCrop.Height - figure.SourcePixelHeight) <= tolerance;
         if (fullPanel)
         {
-            return new EncodedPdfPanel(
-                figure.EncodedSource.ToArray(),
+            byte[] fullSource = figure.EncodedSource.ToArray();
+            cancellationToken.ThrowIfCancellationRequested();
+            var fullCrop = new EncodedRasterCrop(
+                fullSource,
                 figure.SourcePixelWidth,
                 figure.SourcePixelHeight,
                 new PdfRectD(0d, 0d, figure.SourcePixelWidth, figure.SourcePixelHeight));
+            cancellationToken.ThrowIfCancellationRequested();
+            return fullCrop;
         }
 
         if (!IsAxisAlignedCrop(panel.CropInSourcePixelsQuadrilateral, crop, tolerance))
@@ -317,30 +324,51 @@ public sealed class ProductionWorkflowImportStage : IWorkflowImportStage
             throw new InvalidDataException("The panel crop rounds to an empty detector image.");
         }
 
-        byte[] sourceBytes = figure.EncodedSource.ToArray();
-        using var input = new MemoryStream(sourceBytes, writable: false);
-        BitmapDecoder decoder = BitmapDecoder.Create(
-            input,
-            BitmapCreateOptions.PreservePixelFormat,
-            BitmapCacheOption.OnLoad);
-        BitmapFrame source = decoder.Frames[0];
+        BitmapSource source;
+        if (decodedSource is null)
+        {
+            byte[] sourceBytes = figure.EncodedSource.ToArray();
+            cancellationToken.ThrowIfCancellationRequested();
+            using var input = new MemoryStream(sourceBytes, writable: false);
+            // WPF codec calls cannot be interrupted while native code is running. The
+            // checkpoints bound cancellation latency before and immediately after them.
+            BitmapDecoder decoder = BitmapDecoder.Create(
+                input,
+                BitmapCreateOptions.PreservePixelFormat,
+                BitmapCacheOption.OnLoad);
+            cancellationToken.ThrowIfCancellationRequested();
+            source = decoder.Frames[0];
+        }
+        else
+        {
+            source = decodedSource;
+        }
+
         if (source.PixelWidth != figure.SourcePixelWidth || source.PixelHeight != figure.SourcePixelHeight)
         {
             throw new InvalidDataException(
                 "The encoded figure dimensions do not match the retained PDF figure metadata.");
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var cropped = new CroppedBitmap(source, new Int32Rect(left, top, width, height));
+        cancellationToken.ThrowIfCancellationRequested();
         cropped.Freeze();
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(cropped));
         using var output = new MemoryStream();
+        cancellationToken.ThrowIfCancellationRequested();
         encoder.Save(output);
-        return new EncodedPdfPanel(
-            output.ToArray(),
+        cancellationToken.ThrowIfCancellationRequested();
+        byte[] encodedBytes = output.ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
+        var encodedCrop = new EncodedRasterCrop(
+            encodedBytes,
             width,
             height,
             new PdfRectD(left, top, width, height));
+        cancellationToken.ThrowIfCancellationRequested();
+        return encodedCrop;
     }
 
     private static bool IsAxisAlignedCrop(
@@ -369,9 +397,4 @@ public sealed class ProductionWorkflowImportStage : IWorkflowImportStage
             recoverable,
             suggestedAction));
 
-    private sealed record EncodedPdfPanel(
-        byte[] Bytes,
-        int Width,
-        int Height,
-        PdfRectD EncodedCropInSourcePixels);
 }
