@@ -3,6 +3,7 @@
 """Ledger-authorized V24 P1 fine-tune runner with frozen runtime family inputs."""
 from __future__ import annotations
 import argparse, hashlib, json, random, time
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import numpy as np
@@ -19,6 +20,7 @@ from .family_scenes import FamilyScene
 from . import runtime_binding, runtime_binding_v2, runtime_inputs
 from .runtime_binding import tensor_set_sha256
 from .mask_preserving import extract_proposals, postprocess, prohibited_hits
+from .stratified_background import select_stratified_background
 from . import protocol
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -26,12 +28,22 @@ CONFIG_PATH = Path("ml/markers/center/mask_preserving_v24/training/p1.json")
 FAMILY_HARD_NEGATIVE_RADIUS_PX = 8.0
 FAMILY_GENERIC_NEGATIVE_PREFIX = "prefix"
 FAMILY_GENERIC_NEGATIVE_UNIFORM = "uniform_without_replacement"
+FAMILY_GENERIC_NEGATIVE_STRATIFIED = "global_mask_density_stratified"
 FAMILY_GENERIC_NEGATIVE_UNIFORM_SEED = 20260909
+FAMILY_GENERIC_NEGATIVE_STRATIFIED_SEED = 20260909
+FAMILY_STRATIFIED_BIN_CAPACITIES_CONFIG_KEY = "family_stratified_bin_capacities_expected"
+FAMILY_STRATIFIED_BIN_QUOTAS_CONFIG_KEY = "family_stratified_bin_quotas_expected"
 UNIFORM_BACKGROUND_PROTOCOL_PATH = Path(
     "ml/markers/center/mask_preserving_v24/uniform_background_dev_protocol.json"
 )
 UNIFORM_BACKGROUND_PROTOCOL_SHA256 = (
     "c831d010dab52d12f1856c99a848c21e7dbe9f99547a8f1c6644ffe009ddee8b"
+)
+STRATIFIED_BACKGROUND_PROTOCOL_PATH = Path(
+    "ml/markers/center/mask_preserving_v24/stratified_background_dev_protocol.json"
+)
+STRATIFIED_BACKGROUND_PROTOCOL_SHA256 = (
+    "917980a9014638fc91f696f9ef38c942c15685f8917b09387b5f2693c9d23e41"
 )
 RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/protocol.py"),
@@ -41,6 +53,7 @@ RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY_DIAGNOSIS.json"),
     Path("ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY2_MORPHOLOGY_DIAGNOSIS.json"),
     Path("ml/markers/center/mask_preserving_v24/train_p1.py"),
+    Path("ml/markers/center/mask_preserving_v24/stratified_background.py"),
     Path("ml/markers/center/focal_confidence_v21/focal_loss.py"),
     Path("ml/markers/center/scale_classifier_v16/model.py"),
     Path("ml/markers/center/dataset.py"),
@@ -72,6 +85,7 @@ RUNNER_SOURCE_PATHS = (
     Path("ml/markers/center/mask_preserving_v24/runtime_binding_v2.py"),
     Path("ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json"),
     UNIFORM_BACKGROUND_PROTOCOL_PATH,
+    STRATIFIED_BACKGROUND_PROTOCOL_PATH,
     Path("tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py"),
     Path("ml/synthetic/dataset.py"),
     Path("ml/synthetic/fonts.py"),
@@ -90,6 +104,16 @@ RUNNER_SOURCE_PATHS = (
     Path("ml/markers/gate_seal.py"),
     Path("ml/markers/training_budget.py"),
 )
+
+
+@dataclass(frozen=True)
+class StratifiedFamilySamplingReport:
+    selections: tuple[tuple[int, ...], ...]
+    capacities: dict[str, int]
+    counts: dict[str, int]
+    selected_index_sha256: str
+    stratified_bin_capacities: dict[str, int]
+    stratified_bin_quotas: dict[str, int]
 
 def _sha(path: Path) -> str: return hashlib.sha256(path.read_bytes()).hexdigest()
 def _configure(seed: int) -> None:
@@ -258,6 +282,7 @@ def _validate_family_generic_negative_options(
     if type(family_generic_negative_mode) is not str or family_generic_negative_mode not in {
         FAMILY_GENERIC_NEGATIVE_PREFIX,
         FAMILY_GENERIC_NEGATIVE_UNIFORM,
+        FAMILY_GENERIC_NEGATIVE_STRATIFIED,
     }:
         raise ValueError("unsupported family generic-negative mode")
     if sampling_mode != "family-train" and (
@@ -269,22 +294,154 @@ def _validate_family_generic_negative_options(
         if family_generic_negative_seed is not None:
             raise ValueError("prefix family generic-negative sampling does not accept a seed")
         return
+    expected_seed = (
+        FAMILY_GENERIC_NEGATIVE_UNIFORM_SEED
+        if family_generic_negative_mode == FAMILY_GENERIC_NEGATIVE_UNIFORM
+        else FAMILY_GENERIC_NEGATIVE_STRATIFIED_SEED
+    )
     if (
         type(family_generic_negative_seed) is not int
-        or family_generic_negative_seed != FAMILY_GENERIC_NEGATIVE_UNIFORM_SEED
+        or family_generic_negative_seed != expected_seed
     ):
         raise ValueError(
-            "uniform family generic-negative sampling requires seed 20260909"
+            f"{family_generic_negative_mode} family generic-negative sampling requires seed 20260909"
         )
-    if _sha(REPO_ROOT / UNIFORM_BACKGROUND_PROTOCOL_PATH) != UNIFORM_BACKGROUND_PROTOCOL_SHA256:
-        raise RuntimeError("uniform family background protocol identity changed")
+    if family_generic_negative_mode == FAMILY_GENERIC_NEGATIVE_UNIFORM:
+        if _sha(REPO_ROOT / UNIFORM_BACKGROUND_PROTOCOL_PATH) != UNIFORM_BACKGROUND_PROTOCOL_SHA256:
+            raise RuntimeError("uniform family background protocol identity changed")
+        return
+    if _sha(REPO_ROOT / STRATIFIED_BACKGROUND_PROTOCOL_PATH) != STRATIFIED_BACKGROUND_PROTOCOL_SHA256:
+        raise RuntimeError("stratified family background protocol identity changed")
 
 
 def _family_generic_negative_config(config: dict) -> tuple[str, int | None]:
     mode = config.get("family_generic_negative_mode", FAMILY_GENERIC_NEGATIVE_PREFIX)
     seed = config.get("family_generic_negative_seed")
     _validate_family_generic_negative_options("family-train", mode, seed)
+    if mode == FAMILY_GENERIC_NEGATIVE_STRATIFIED:
+        _validated_stratified_bin_map(config.get(FAMILY_STRATIFIED_BIN_CAPACITIES_CONFIG_KEY), FAMILY_STRATIFIED_BIN_CAPACITIES_CONFIG_KEY)
+        _validated_stratified_bin_map(config.get(FAMILY_STRATIFIED_BIN_QUOTAS_CONFIG_KEY), FAMILY_STRATIFIED_BIN_QUOTAS_CONFIG_KEY)
     return mode, seed
+
+
+def _validated_stratified_bin_map(value, label: str) -> dict[str, int]:
+    expected_keys = {str(bin_id) for bin_id in range(64)}
+    if type(value) is not dict or set(value) != expected_keys:
+        raise ValueError(f"{label} must be an object with exactly numeric keys 0 through 63")
+    if any(type(value[key]) is not int or value[key] < 0 for key in expected_keys):
+        raise ValueError(f"{label} values must be non-negative integers")
+    return value
+
+
+def _validate_stratified_family_sampling_config(
+    config: dict,
+    sampling: StratifiedFamilySamplingReport,
+) -> None:
+    expected_capacities = _validated_stratified_bin_map(
+        config.get(FAMILY_STRATIFIED_BIN_CAPACITIES_CONFIG_KEY),
+        FAMILY_STRATIFIED_BIN_CAPACITIES_CONFIG_KEY,
+    )
+    expected_quotas = _validated_stratified_bin_map(
+        config.get(FAMILY_STRATIFIED_BIN_QUOTAS_CONFIG_KEY),
+        FAMILY_STRATIFIED_BIN_QUOTAS_CONFIG_KEY,
+    )
+    actual_capacities = _validated_stratified_bin_map(
+        sampling.stratified_bin_capacities,
+        "computed stratified bin capacities",
+    )
+    actual_quotas = _validated_stratified_bin_map(
+        sampling.stratified_bin_quotas,
+        "computed stratified bin quotas",
+    )
+    if actual_capacities != expected_capacities:
+        raise RuntimeError("stratified family bin capacities changed")
+    if actual_quotas != expected_quotas:
+        raise RuntimeError("stratified family bin quotas changed")
+
+
+def _stratified_family_examples(
+    scenes,
+    maximum_negative_per_positive: int,
+    generator: torch.Generator,
+    background_seed: int,
+):
+    prepared = []
+    eligible_by_scene = []
+    generic_budget = 0
+    for scene in scenes:
+        proposals = extract_proposals(scene.tensor)
+        centers = torch.tensor(scene.centers, dtype=torch.float32).reshape(-1, 2)
+        radii = torch.tensor(scene.diameters, dtype=torch.float32) / 2.0
+        if len(centers):
+            distance = torch.cdist(proposals.coordinates, centers)
+            nearest, nearest_index = distance.min(dim=1)
+            labels = nearest.le(3.0).float()
+            offsets = (centers[nearest_index] - proposals.coordinates) / 4.0
+            target_radii = radii[nearest_index]
+        else:
+            labels = torch.zeros(len(proposals.coordinates), dtype=torch.float32)
+            offsets = torch.zeros_like(proposals.coordinates)
+            target_radii = torch.zeros_like(labels)
+        hard = torch.zeros(len(proposals.coordinates), dtype=torch.bool)
+        for kind, x, y in scene.hard_negatives:
+            radius = _hard_negative_radius(scene, kind)
+            if radius is not None:
+                point = torch.tensor(((x, y),), dtype=torch.float32)
+                hard |= torch.cdist(proposals.coordinates, point).squeeze(1).le(radius)
+        positive = torch.nonzero(labels > .5).flatten()
+        hard_negative = torch.nonzero(hard & (labels <= .5)).flatten()
+        negative_budget = len(positive) * maximum_negative_per_positive
+        if len(hard_negative) > negative_budget:
+            hard_negative = hard_negative[
+                torch.randperm(len(hard_negative), generator=generator)[:negative_budget]
+            ]
+        generic_budget += max(0, negative_budget - len(hard_negative))
+        eligible = torch.nonzero((labels <= .5) & ~hard).flatten()
+        prepared.append(
+            (proposals, labels, offsets, target_radii, hard, positive, hard_negative)
+        )
+        eligible_by_scene.append(eligible)
+
+    background = select_stratified_background(
+        tuple(item[0].patches for item in prepared),
+        tuple(eligible_by_scene),
+        generic_budget,
+        background_seed,
+    )
+    values = [[] for _ in range(5)]
+    selections = []
+    proposal_coordinates = []
+    for prepared_scene, generic_indices in zip(prepared, background.selections, strict=True):
+        proposals, labels, offsets, target_radii, hard, positive, hard_negative = prepared_scene
+        generic = torch.tensor(generic_indices, dtype=torch.int64)
+        selected = torch.cat((positive, hard_negative, generic)).unique(sorted=True)
+        selections.append(tuple(int(index) for index in selected.tolist()))
+        proposal_coordinates.append(proposals.coordinates)
+        values[0].append(proposals.patches[selected])
+        values[1].append(labels[selected])
+        values[2].append(offsets[selected])
+        values[3].append(target_radii[selected])
+        values[4].append(hard[selected])
+
+    selected_count = sum(len(indices) for indices in selections)
+    positive_count = sum(int((part > .5).sum()) for part in values[1])
+    hard_count = sum(
+        int((hard_part & (label_part <= .5)).sum())
+        for label_part, hard_part in zip(values[1], values[4], strict=True)
+    )
+    report = StratifiedFamilySamplingReport(
+        tuple(selections),
+        {"selected": selected_count},
+        {
+            "positive": positive_count,
+            "hard_negative": hard_count,
+            "other_negative": selected_count - positive_count - hard_count,
+        },
+        _selected_index_sha256(scenes, selections, proposal_coordinates),
+        {str(bin_id): capacity for bin_id, capacity in enumerate(background.capacities)},
+        {str(bin_id): quota for bin_id, quota in enumerate(background.quotas)},
+    )
+    return tuple(torch.cat(part) for part in values) + (report,)
 
 
 def _examples_with_report(
@@ -316,6 +473,13 @@ def _examples_with_report(
         or not all(scene.split == "train" for scene in scenes)
     ):
         raise ValueError("family production sampling requires train FamilyScene inputs")
+    if family_generic_negative_mode == FAMILY_GENERIC_NEGATIVE_STRATIFIED:
+        return _stratified_family_examples(
+            scenes,
+            maximum_negative_per_positive,
+            generator,
+            family_generic_negative_seed,
+        )
     values = [[] for _ in range(5)]
     if sampling_mode != "real-range-train":
         background_generator = None
@@ -497,16 +661,26 @@ def run(
             raise RuntimeError("five-axis family training example contract changed")
         if family_sampling.selected_index_sha256 != config["family_selected_index_sha256"]:
             raise RuntimeError("five-axis family selected indices changed")
+        if family_generic_negative_mode == FAMILY_GENERIC_NEGATIVE_STRATIFIED:
+            _validate_stratified_family_sampling_config(config, family_sampling)
         family_sampling_outcome = {
             "mode": "family-train",
             "capacities": family_sampling.capacities,
             "counts": family_sampling.counts,
             "selected_index_sha256": family_sampling.selected_index_sha256,
         }
-        if family_generic_negative_mode == FAMILY_GENERIC_NEGATIVE_UNIFORM:
+        if family_generic_negative_mode in {
+            FAMILY_GENERIC_NEGATIVE_UNIFORM,
+            FAMILY_GENERIC_NEGATIVE_STRATIFIED,
+        }:
             family_sampling_outcome.update({
                 "generic_negative_mode": family_generic_negative_mode,
                 "generic_negative_seed": family_generic_negative_seed,
+            })
+        if family_generic_negative_mode == FAMILY_GENERIC_NEGATIVE_STRATIFIED:
+            family_sampling_outcome.update({
+                "stratified_bin_capacities": family_sampling.stratified_bin_capacities,
+                "stratified_bin_quotas": family_sampling.stratified_bin_quotas,
             })
         patches=torch.cat((real_patches,family_patches)); labels=torch.cat((real_labels,family_labels)); offsets=torch.cat((real_offsets,family_offsets)); radii=torch.cat((real_radii,family_radii)); hard=torch.cat((real_hard,family_hard))
         sampler_config = config["negative_sampler"]

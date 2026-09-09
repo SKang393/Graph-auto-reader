@@ -1,6 +1,6 @@
 {
-  "base_commit": "5730719f80bac19e9647dacbddbc91c9aedb5fb9",
-  "captured_utc": "2026-09-09T11:17:49.267726+00:00",
+  "base_commit": "08160d452e7de750aa0a29153fc01e74b8981fc4",
+  "captured_utc": "2026-09-09T09:31:11.752924+00:00",
   "identity": {
     "candidate_id": "P1",
     "revision": "marker-center-mask-preserving-v24",
@@ -13,10 +13,10 @@
     "architecture": "scale-separated-multiscale-patch-cnn-v16",
     "authorized_candidate_id": "P1",
     "candidate_config_paths": {
-      "P1": "ml/markers/center/mask_preserving_v24/training/p1_retry13.json"
+      "P1": "ml/markers/center/mask_preserving_v24/training/p1_retry12.json"
     },
     "candidate_config_sha256": {
-      "P1": "adb5a6ff5215757f06e1a35ab08f86a981061c5f242ac87653743ef6847f6ce3"
+      "P1": "9f911f1bef2ea838db34502246e9a968ea8f35ef268d82ffd981bfefa5be7ff9"
     },
     "candidate_consumed": false,
     "consumed_candidate_ids": [],
@@ -28,7 +28,7 @@
     },
     "current_candidate_result_path": null,
     "current_candidate_result_sha256": null,
-    "current_candidate_status": "retry13_preregistered",
+    "current_candidate_status": "retry12_preregistered",
     "defect_class": "The frozen V21 classifier fails corrected mask-preserving synthetic dev at precision 0.69369, recall 0.49950, and 167 prohibited hits despite complete ink-supported proposal coverage",
     "dev_passed_candidate_ids": [],
     "dev_scene_count": 167,
@@ -38,7 +38,7 @@
     "evidence_policy_sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed",
     "execution_authorized": true,
     "execution_blocker": null,
-    "expected_runner_source_bundle_sha256": "69de2ff4ada204e83f9e2c6bed03752300089bcd0bbc3290c6d59cb170bb09bf",
+    "expected_runner_source_bundle_sha256": "d7323541c9f29f0cb54d6a5376a7e91a5325144417a28c8f3fed1b24c2b70403",
     "experiment_budget": 1,
     "family_dev_baseline_path": "docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json",
     "family_dev_baseline_sha256": "c42011acaab800fffad92f92c4d4fa67775d2998dde4845aea0622f431795479",
@@ -47,11 +47,11 @@
     "family_dev_scene_count": 3,
     "family_dev_split_sha256": "f6cbeaf05dc40fa8be10b2120846d26db78a0a0836a92d5cc05ebb276bba445c",
     "family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
-    "family_generic_negative_mode": "global_mask_density_stratified",
+    "family_generic_negative_mode": "uniform_without_replacement",
     "family_generic_negative_seed": 20260909,
     "family_hard_negative_example_count_expected": 1492,
     "family_positive_example_count_expected": 828,
-    "family_selected_index_sha256": "0332ac8d34e17798ed1e4f766ff08e537b2a79fdcf65c3742e828b987534e8e9",
+    "family_selected_index_sha256": "4b2cdb3ce7ac79bff83e4febae9cd7f9f32ea38798eddbc67e1851d2561be025",
     "family_train_marker_count": 500,
     "family_train_panel_count": 23,
     "family_train_scene_count": 20,
@@ -70,9 +70,9 @@
       "duplicates_maximum",
       "prohibited_hits_maximum"
     ],
-    "isolated_change": "Replace only the family generic-negative sampling path with global mask-and-density stratification over the same complete23 train panels. All existing828 positive and1492 selected hard-negative indices and the caller optimizer RNG state remain exactly unchanged. Pool only truth-confirmed negative proposals with no existing hard-negative flag. Retain the total6788 generic-negative budget, including eligible background-only panels in the pool. Define64 fixed bins by four center5x5 mask scenarios (OCR/artifact threshold0.35: neither, OCR only, artifact only, both), four maximum row-ink-density bins and four maximum column-ink-density bins. Ink threshold0.12; density intervals[0,.25),[.25,.5),[.5,.75),[.75,1]. Allocate one example to each nonempty bin when budget allows, then allocate the remainder proportionally to residual bin capacity by floor plus largest fractional remainder, breaking ties by numeric bin ID. Sample without replacement within each bin with a separate CPU torch.Generator seed20260909. Reconstruct per-panel selections in sorted proposal-index order. Freeze exact quotas and selected-index identity in the model-free preflight before optimizer execution. Do not relabel or reject masked positives:389 of828 current positives overlap runtime masks. Preserve all real-range examples, initializer,36epochs,12672steps,loss,optimizer,proposal geometry,confidence threshold0.25,offsets,radii,consensus,NMS and the public runtime path. Keep prefix and uniform modes byte-compatible for historical runs.",
-    "last_completed_candidate_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY12_RESULT.json",
-    "last_completed_candidate_result_sha256": "f1391e2029e4220f650de2ad3d702f7bd84cd2288262dae0de3e25818e41b4df",
+    "isolated_change": "For family-train generic negatives only, replace ordered-prefix selection with uniform sampling without replacement at the unchanged per-panel budget. Use a separate CPU torch.Generator seeded 20260909 so hard-negative selection and optimizer shuffle RNG streams remain unchanged. Retain all positive and hard-negative indices, all sample counts, the five train seeds, runtime input planes, V21 initialization, 33x33 model architecture, loss, optimizer settings, 36 epochs, threshold 0.25, offsets, radius, consensus and NMS. Preserve historical prefix behavior as the default for existing configurations. No architecture, context, mask, hard-negative labeling, real-range sampling or operating-threshold change is included.",
+    "last_completed_candidate_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY11_RESULT.json",
+    "last_completed_candidate_result_sha256": "bb9d7a941395493271c5f08929516946de55a640ebaf85c5b77f29586b7bc818",
     "legacy_p1_fields_scope": "Historical retry9 outcome only. Current outcome is identified by current_candidate_result_path; retry10 and retry11 fields retain their separately identified outcomes.",
     "markers_per_split": 2004,
     "model_license": "Apache-2.0",
@@ -329,7 +329,6 @@
     "retry11_p1_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY11_RESULT.json",
     "retry11_p1_result_seal_sha256": "45a064b2bbafec0da0f972c1e7e8d60931f284d025ca9b2d00e1c5df50e752e0",
     "retry11_p1_result_sha256": "bb9d7a941395493271c5f08929516946de55a640ebaf85c5b77f29586b7bc818",
-    "retry11_p1_seal_archive_path": "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1/dev-attempts/5d281b37ddcb42e6b13e17a7266a3855",
     "retry11_p1_selected": {
       "duplicate_count": 1,
       "f1": 0.9254979100073765,
@@ -349,66 +348,10 @@
     "retry11_protocol_path": "ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json",
     "retry11_protocol_sha256": "6582091a0aaea0ee6eedb6476bf17936bd0bda2234bffff9de721ad66b00269c",
     "retry11_status": "failed_dev",
-    "retry12_closed_candidate_config_paths": {
-      "P1": "ml/markers/center/mask_preserving_v24/training/p1_retry12.json"
-    },
-    "retry12_closed_candidate_config_sha256": {
-      "P1": "9f911f1bef2ea838db34502246e9a968ea8f35ef268d82ffd981bfefa5be7ff9"
-    },
-    "retry12_closed_expected_runner_source_bundle_sha256": "d7323541c9f29f0cb54d6a5376a7e91a5325144417a28c8f3fed1b24c2b70403",
-    "retry12_closed_utc_date": "2026-09-09",
     "retry12_hypothesis": "Retry11 reproduces 200 true positives, 517 false positives and six misses on the frozen nine-panel family development set. Its generic-negative prefix sampler has normalized selected-order median 0.0300 and p95 0.2933. Of 181 eligible dense-border train negatives, only one is selected; however none of the 517 false positives has that exact dense-ink-and-border phenotype, so its omission alone does not explain the regression. False-positive patch maximum-row-density median and p95 are 1.0, consistent with thin connecting lines. Uniform sampling across the complete eligible family background pool may improve representation without using development labels for selection. Evidence: artifacts/goal22-runs/marker-v24-retry11-coverage/family-fp-diagnosis/diagnosis.json SHA256 a9f53d946aa5b6c1b16c6c9b9b8e51ea9b210c3154496c813355502cb6529438.",
-    "retry12_optimizer_steps": 12672,
-    "retry12_p1_candidate_report_path": "artifacts/goal22-runs/marker-v24-retry12-uniform/P1-run/candidate-report.json",
-    "retry12_p1_checkpoint_sha256": "71c67027a76b5771e4e81d63d8087c8d585c9c2b5b69e99276d47cda78db5a3f",
-    "retry12_p1_elapsed_ms": 1777401.782,
-    "retry12_p1_family_selected": {
-      "duplicate_count": 0,
-      "f1": 0.7571701720841301,
-      "false_negatives": 8,
-      "false_positives": 119,
-      "precision": 0.6246056782334385,
-      "prohibited_structure_hit_rate": 0.022082018927444796,
-      "prohibited_structure_hits": 7,
-      "proposal_recall": 1.0,
-      "proposal_true_positives": 206,
-      "recall": 0.9611650485436893,
-      "scene_count": 9,
-      "threshold": 0.25,
-      "true_positives": 198
-    },
-    "retry12_p1_onnx_parity_maximum_absolute_error": 9.5367431640625e-07,
-    "retry12_p1_onnx_sha256": "26bcf5757c68f0d823c55e6b3ef06d501c4e3ac5c7475df325d23869dc66b895",
-    "retry12_p1_opened_seal_sha256": "94ffb8471b7c8ee8c7bf4f4fc9b669b55afe942f9b9193e519c918f39ff5dc4f",
-    "retry12_p1_optimizer_steps": 12672,
-    "retry12_p1_result_path": "ml/markers/center/mask_preserving_v24/P1_RETRY12_RESULT.json",
-    "retry12_p1_result_seal_sha256": "1b7315ba68c05d69d62468aad5bb4ca016a4883c272282c9dd65eeba4ed31967",
-    "retry12_p1_result_sha256": "f1391e2029e4220f650de2ad3d702f7bd84cd2288262dae0de3e25818e41b4df",
-    "retry12_p1_selected": {
-      "duplicate_count": 1,
-      "f1": 0.9252243270189432,
-      "false_negatives": 148,
-      "false_positives": 152,
-      "precision": 0.9243027888446215,
-      "prohibited_structure_hit_rate": 0.0,
-      "prohibited_structure_hits": 0,
-      "proposal_recall": 1.0,
-      "proposal_true_positives": 2004,
-      "recall": 0.9261477045908184,
-      "scene_count": 167,
-      "threshold": 0.25,
-      "true_positives": 1856
-    },
-    "retry12_p1_source_snapshot_sha256": "b432059deb4673dda32aabb1169b2cc95bd2f6e6752c38b5f665b772e111026c",
+    "retry12_optimizer_steps": 0,
     "retry12_protocol_path": "ml/markers/center/mask_preserving_v24/uniform_background_dev_protocol.json",
     "retry12_protocol_sha256": "c831d010dab52d12f1856c99a848c21e7dbe9f99547a8f1c6644ffe009ddee8b",
-    "retry12_startup_void_path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY12_STARTUP_VOID.json",
-    "retry12_startup_void_sha256": "827dcb3e5113138daa23f5041e53a609b54cd93aaefbfbc19f86b69304fed5ac",
-    "retry12_status": "failed_dev",
-    "retry13_hypothesis": "Retry12 failed both dev gates: independent-layout precision/recall 0.9243027888446215/0.9261477045908184; family precision/recall 0.6246056782334385/0.9611650485436893 at threshold0.25. Its authenticated family diagnostic finds75 of119 false detections in runtime masks, with all8 misses caused by classification below threshold. Model-free train coverage finds masked generic negatives selected at4.3544percent versus5.4143percent for unmasked negatives; selected high-row-density share40.09percent versus51.41percent eligible, and high-column share7.62percent versus10.36percent eligible. Per-panel positive-count budgets underrepresent some observable negative strata. Global proportional stratification may reduce that distortion. Evidence: P1_RETRY12_RESULT.json SHA256 f1391e2029e4220f650de2ad3d702f7bd84cd2288262dae0de3e25818e41b4df; family-fp-diagnosis/diagnosis.json SHA25605bfaea085c690d492de8fa024207e661df6da29a6120a109e320ad2510ce487; coverage/coverage.json SHA2561d76af2e49ae90fe3ffdc5bec65efaf32d8e1b62970fceff5368bf86857bed80. These associations are not proof of an accuracy gain.",
-    "retry13_optimizer_steps": 0,
-    "retry13_protocol_path": "ml/markers/center/mask_preserving_v24/stratified_background_dev_protocol.json",
-    "retry13_protocol_sha256": "917980a9014638fc91f696f9ef38c942c15685f8917b09387b5f2693c9d23e41",
     "retry1_candidate_report_sha256": "134ea318ade95882e52352a899da57ab9f9dbdd05b772a17a4321dd9eaa11696",
     "retry1_checkpoint_sha256": "070b77bb7503e6b8c0445059c9b5e20e96705b000b4abd271cfdc07ac53af401",
     "retry1_dev_gate_passed": false,
@@ -931,16 +874,16 @@
     "retry9_void_seal_path": "ml/markers/training-seals/marker-center/marker-center-mask-preserving-v24/P1/void-attempts/daafc116b94145f784240a8d824d5955/void.json",
     "retry9_void_seal_sha256": "5e6554a33929075606c948a95a595f8be163a10d72e6502ae2361582f5a746d8",
     "retry9_void_sealed_split_read": false,
-    "retry_count": 13,
+    "retry_count": 12,
     "retry_prior_p1_result_sha256": "b4e68dde10024e60a122edad3f7645dfe1e5e2f5888dbfe4ef522383de4c6175",
     "retry_reason": "add five-axis family-disjoint synthetic coverage after frozen retry9 failed family dev precision, recall, and prohibited-hit gates",
     "revision": "marker-center-mask-preserving-v24",
     "runtime_adapter_path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
     "runtime_adapter_sha256": "bc710a71e9948c4dfbfba4b0548743c2b7b6799451fcdb8180b448e4188610c5",
     "runtime_focused_tests_passed": 17,
-    "runtime_input_preflight_path": "docs/GOAL-22-V24-STRATIFIED-SAMPLER-PREFLIGHT.json",
-    "runtime_input_preflight_sha256": "a5b40fdbf28b95c6d9fb949997ecfa692ea8a4fa0bc94c8a27412969c61e3d29",
-    "runtime_input_scope": "Synthetic train/dev only, stratified family background sampling, incomplete artifact mask, no production approval",
+    "runtime_input_preflight_path": "docs/GOAL-22-V24-UNIFORM-SAMPLER-PREFLIGHT.json",
+    "runtime_input_preflight_sha256": "d3cbc4f494a92c7ae6119bfcd6e110858b88f32fd911342666a65dfa70fcd427",
+    "runtime_input_scope": "Synthetic train/dev only, uniform family background sampling, incomplete artifact mask, no production approval",
     "runtime_integration_passed": true,
     "runtime_test_path": "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs",
     "runtime_test_sha256": "2f0cbee0029b00ab037a75703952f031aa3a85672ee5efcc5086fff52756a8b0",
@@ -1092,20 +1035,12 @@
       "sha256": "17d8df01e4ef25ad77ad7bac6652724282054b29947b7e81be0c424977e9c3f0"
     },
     {
-      "path": "ml/markers/center/mask_preserving_v24/stratified_background.py",
-      "sha256": "b3d922272c83908ffdfeb3fa0f02bfa24cc83b95d3194d4a105110005e00caaa"
-    },
-    {
-      "path": "ml/markers/center/mask_preserving_v24/stratified_background_dev_protocol.json",
-      "sha256": "917980a9014638fc91f696f9ef38c942c15685f8917b09387b5f2693c9d23e41"
-    },
-    {
       "path": "ml/markers/center/mask_preserving_v24/train_p1.py",
-      "sha256": "875a1c2950977bd5ebff726090d939b9325e8b5722e7bc6d4904d89b3366d1c4"
+      "sha256": "20b4e84a3be5726d855c7d857ccefc6fe2061953b6fb94ae740f076339839bd9"
     },
     {
-      "path": "ml/markers/center/mask_preserving_v24/training/p1_retry13.json",
-      "sha256": "adb5a6ff5215757f06e1a35ab08f86a981061c5f242ac87653743ef6847f6ce3"
+      "path": "ml/markers/center/mask_preserving_v24/training/p1_retry12.json",
+      "sha256": "9f911f1bef2ea838db34502246e9a968ea8f35ef268d82ffd981bfefa5be7ff9"
     },
     {
       "path": "ml/markers/center/mask_preserving_v24/uniform_background_dev_protocol.json",
@@ -1145,7 +1080,7 @@
     },
     {
       "path": "ml/markers/training-budgets/production-repair-v1.json",
-      "sha256": "725358d85bb65948a083a9ec0e14cc2bbd360e7b4b38002fe2fab75d265b9f13"
+      "sha256": "988ab0c1e96ffa9ef98b39fc5a4d7af3cc972195b4731e13d0600ede4bcf627c"
     },
     {
       "path": "ml/markers/training_budget.py",
