@@ -23,6 +23,7 @@ internal static class Program
 {
     private const int SealedTarget = 51;
     private const int ExpectedDev = 120;
+    private const string FrozenRealAssignmentSha256 = "decdac87c0c6d8ee8350b4e26bee2256c551ce20c518732f62fb6d990ea5850a";
     private const string OfficialDbDetectorSha256 = "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb";
     private const string CorrectedRealRangeSeedManifestSha256 = "123f4f6973588b3294b11237e6e6deac1b8f812a5b1bbab55b1315a546ef5329";
     private const double MorphologyPositiveLabelDistancePx = 5.0;
@@ -193,6 +194,7 @@ internal static class Program
         string root = Path.GetFullPath(rootPath);
         string[] paths = Directory.EnumerateFiles(root, "*.dig", SearchOption.AllDirectories).OrderBy(Path.GetFullPath, StringComparer.Ordinal).ToArray();
         Dictionary<string, string> assignments = Assign(paths, root);
+        RequireFrozenRealAssignment(paths, assignments, root);
         string[] dev = paths.Where(path => assignments[Path.GetFullPath(path)] == "real-dev").ToArray();
         if (dev.Length != ExpectedDev) throw new InvalidDataException($"REAL_DEV_COUNT:{dev.Length}");
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -310,6 +312,7 @@ internal static class Program
         string root = Path.GetFullPath(rootPath);
         string[] paths = Directory.EnumerateFiles(root, "*.dig", SearchOption.AllDirectories).OrderBy(path => Path.GetFullPath(path), StringComparer.Ordinal).ToArray();
         Dictionary<string, string> assignments = Assign(paths, root);
+        RequireFrozenRealAssignment(paths, assignments, root);
         string[] dev = paths.Where(path => assignments[Path.GetFullPath(path)] == "real-dev").ToArray();
         if (dev.Length != ExpectedDev) throw new InvalidDataException($"REAL_DEV_COUNT:{dev.Length}");
         await using InferenceRuntime runtime = CreateRuntime();
@@ -353,6 +356,7 @@ internal static class Program
         string[] paths = Directory.EnumerateFiles(root, "*.dig", SearchOption.AllDirectories)
             .OrderBy(path => Path.GetFullPath(path), StringComparer.Ordinal).ToArray();
         Dictionary<string, string> assignments = Assign(paths, root);
+        RequireFrozenRealAssignment(paths, assignments, root);
         string[] dev = paths.Where(path => assignments[Path.GetFullPath(path)] == "real-dev").ToArray();
         if (dev.Length != ExpectedDev) throw new InvalidDataException($"REAL_DEV_COUNT:{dev.Length}");
         await using InferenceRuntime runtime = CreateRuntime();
@@ -423,6 +427,7 @@ internal static class Program
         string[] paths = Directory.EnumerateFiles(root, "*.dig", SearchOption.AllDirectories)
             .OrderBy(path => Path.GetFullPath(path), StringComparer.Ordinal).ToArray();
         Dictionary<string, string> assignments = Assign(paths, root);
+        RequireFrozenRealAssignment(paths, assignments, root);
         string[] dev = paths.Where(path => assignments[Path.GetFullPath(path)] == "real-dev").ToArray();
         if (dev.Length != ExpectedDev) throw new InvalidDataException($"REAL_DEV_COUNT:{dev.Length}");
 
@@ -1438,6 +1443,17 @@ internal static class Program
         string[] paths = source.Select(Path.GetFullPath).OrderBy(path => path, StringComparer.Ordinal).ToArray(); var groups = paths.GroupBy(path => Sha256Hex(Path.GetRelativePath(root, path).Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)[0]), StringComparer.Ordinal).OrderBy(group => group.Key, StringComparer.Ordinal).ToArray(); var sealedPaths = new HashSet<string>(StringComparer.Ordinal); int count = 0; foreach (IGrouping<string, string> group in groups) if (count < target && (count + group.Count() <= target || sealedPaths.Count == 0)) { foreach (string path in group) sealedPaths.Add(path); count += group.Count(); } return paths.ToDictionary(path => path, path => sealedPaths.Contains(path) ? "real-sealed" : "real-dev", StringComparer.Ordinal);
     }
 
+    private static void RequireFrozenRealAssignment(string[] paths, Dictionary<string, string> assignments, string root)
+    {
+        if (paths.Length != ExpectedDev + SealedTarget ||
+            assignments.Values.Count(static split => split == "real-dev") != ExpectedDev ||
+            assignments.Values.Count(static split => split == "real-sealed") != SealedTarget ||
+            !string.Equals(AssignmentHash(paths, assignments, root), FrozenRealAssignmentSha256, StringComparison.Ordinal))
+        {
+            throw new InvalidDataException("FROZEN_REAL_CORPUS_ASSIGNMENT_MISMATCH");
+        }
+    }
+
     private static string AssignmentHash(IEnumerable<string> paths, Dictionary<string, string> assignments, string root) => Sha256Hex(string.Join("\n", paths.OrderBy(path => path, StringComparer.Ordinal).Select(path => $"{Sha256Hex(Path.GetRelativePath(root, path).Replace(Path.DirectorySeparatorChar, '/'))}={assignments[Path.GetFullPath(path)]}")));
     private static string Sha256Hex(string value) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
     private static string AcceptancePolicySha256() => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(Path.GetFullPath("ml/policy/acceptance-bars.json"))));
@@ -1451,8 +1467,41 @@ internal static class Program
         ["official_alphabet"] = OcrV8ProductionCompositionFactory.OfficialAlphabetSha256,
     };
 
+    private static void FrozenRealAssignmentSelfTest()
+    {
+        // Names only. No private directory is enumerated and no project is read.
+        string root = Path.Combine(Path.GetTempPath(), "GraphReaderFrozenAssignmentSyntheticFixture");
+        string[] paths = Enumerable.Range(0, ExpectedDev + SealedTarget)
+            .Select(index => Path.Combine(root, "fixture-study", $"case-{index:D3}.dig"))
+            .ToArray();
+        var assignments = paths.Select((path, index) => (path, split: index < SealedTarget ? "real-sealed" : "real-dev"))
+            .ToDictionary(static item => item.path, static item => item.split, StringComparer.Ordinal);
+        string originalHash = AssignmentHash(paths, assignments, root);
+        ExpectRejected();
+        (assignments[paths[0]], assignments[paths[^1]]) = (assignments[paths[^1]], assignments[paths[0]]);
+        if (AssignmentHash(paths, assignments, root) == originalHash)
+        {
+            throw new InvalidDataException("FROZEN_ASSIGNMENT_SELF_TEST_DID_NOT_BIND_SPLIT_MEMBERSHIP");
+        }
+        ExpectRejected();
+
+        void ExpectRejected()
+        {
+            try
+            {
+                RequireFrozenRealAssignment(paths, assignments, root);
+            }
+            catch (InvalidDataException exception) when (exception.Message == "FROZEN_REAL_CORPUS_ASSIGNMENT_MISMATCH")
+            {
+                return;
+            }
+            throw new InvalidDataException("FROZEN_ASSIGNMENT_SELF_TEST_ACCEPTED_FOREIGN_SAME_COUNT_CORPUS");
+        }
+    }
+
     private static SelfTestReport SelfTest()
     {
+        FrozenRealAssignmentSelfTest();
         SelfTestReport exportSelfTest = ExportWorkflowEvaluatorSelfTest();
         AxisAnchor[] anchors = [new(0, 0, 0, 100), new(0, 10, 0, 80), new(20, 0, 1, 100)];
         Calibration calibration = Fit(anchors);

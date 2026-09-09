@@ -25,7 +25,9 @@ public sealed record ProductionAxisGeometryEvidence(
 /// Decodes immutable original image bytes to a grayscale frame and composes the
 /// production OpenCV line provider with the deterministic axis geometry fitter.
 /// </summary>
-public sealed class ProductionAxisGeometryAdapter : IProductionAxisGeometryAdapter
+public sealed class ProductionAxisGeometryAdapter :
+    IProductionAxisGeometryAdapter,
+    IProductionCandidateAxisGeometryAdapter
 {
     public const string StageVersion = "axis-opencv-v1";
 
@@ -79,6 +81,16 @@ public sealed class ProductionAxisGeometryAdapter : IProductionAxisGeometryAdapt
     }
 
     internal Task<ProductionAxisGeometryEvidence> DetectForLocalSyntheticCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        CancellationToken cancellationToken)
+        => DetectForCandidateEvaluationAsync(request, cancellationToken);
+
+    Task<ProductionAxisGeometryEvidence> IProductionCandidateAxisGeometryAdapter.DetectForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        CancellationToken cancellationToken) =>
+        DetectForCandidateEvaluationAsync(request, cancellationToken);
+
+    internal Task<ProductionAxisGeometryEvidence> DetectForCandidateEvaluationAsync(
         ProductionWorkflowDetectionRequest request,
         CancellationToken cancellationToken)
     {

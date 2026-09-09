@@ -34,7 +34,9 @@ namespace GraphReader.App.Integration.Workflow;
 /// exact review and export projection consumed by the WPF workspace. The
 /// adapter is not composed unless every required component reports approval.
 /// </summary>
-public sealed class ProductionAutomaticDetectionAdapter : IProductionWorkflowDetectionAdapter
+public sealed class ProductionAutomaticDetectionAdapter :
+    IProductionWorkflowDetectionAdapter,
+    IProductionCandidateWorkflowDetectionAdapter
 {
     private const double ArtifactRejectionThreshold = 0.5;
     private readonly ProductionWorkflowPanelStore panelStore;
@@ -109,6 +111,56 @@ public sealed class ProductionAutomaticDetectionAdapter : IProductionWorkflowDet
                 "Install every checksum-resolved approved production component or continue in manual mode.");
         }
 
+        return await DetectCoreAsync(request, candidateEvaluation: false, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    Task<WorkflowDetectionBatch> IProductionCandidateWorkflowDetectionAdapter.DetectForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        CancellationToken cancellationToken) =>
+        DetectForCandidateEvaluationAsync(request, cancellationToken);
+
+    internal Task<WorkflowDetectionBatch> DetectForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (IsApproved)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                "Candidate evaluation requires an explicitly unapproved automatic adapter.",
+                "Use normal production execution for an approved adapter.");
+        }
+        if (axisAdapter is not IProductionCandidateAxisGeometryAdapter candidateAxis ||
+            candidateAxis.IsApproved ||
+            ocrAdapter is not IProductionCandidateOcrAdapter candidateOcr ||
+            candidateOcr.IsApproved ||
+            maskComposer is not IProductionCandidateDetectionMaskComposer candidateMasks ||
+            candidateMasks.IsApproved ||
+            markerCenterAdapter is not IProductionCandidateMarkerCenterAdapter candidateCenters ||
+            candidateCenters.IsApproved ||
+            !markerClassificationAdapter.IsApproved ||
+            !legendAdapter.IsApproved ||
+            !phaseAdapter.IsApproved)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionModelsUnavailable,
+                "Errors.ModelNotFound",
+                "Candidate composition must contain explicit unapproved axis, OCR, mask, and marker-center adapters plus approved fixed downstream reasoners.",
+                "Recreate the candidate composition from its frozen model and runtime binding.");
+        }
+
+        return DetectCoreAsync(request, candidateEvaluation: true, cancellationToken);
+    }
+
+    private async Task<WorkflowDetectionBatch> DetectCoreAsync(
+        ProductionWorkflowDetectionRequest request,
+        bool candidateEvaluation,
+        CancellationToken cancellationToken)
+    {
         if (request.ImageVariant != WorkflowImageVariant.Original)
         {
             throw Failure(
@@ -122,8 +174,10 @@ public sealed class ProductionAutomaticDetectionAdapter : IProductionWorkflowDet
         try
         {
             ProductionDecodedRaster raster = rasterDecoder.Decode(request, cancellationToken);
-            ProductionAxisGeometryEvidence axis = await axisAdapter
-                .DetectAsync(request, cancellationToken)
+            ProductionAxisGeometryEvidence axis = await (candidateEvaluation
+                    ? ((IProductionCandidateAxisGeometryAdapter)axisAdapter)
+                        .DetectForCandidateEvaluationAsync(request, cancellationToken)
+                    : axisAdapter.DetectAsync(request, cancellationToken))
                 .ConfigureAwait(false);
             chain.Append(axis.Envelope);
 
@@ -131,13 +185,20 @@ public sealed class ProductionAutomaticDetectionAdapter : IProductionWorkflowDet
             OcrDetectorImage detectorImage = raster.CreateOcrDetectorImage(
                 axis.Geometry,
                 cancellationToken);
-            ProductionOcrEvidence ocr = await ocrAdapter
-                .RecognizeAsync(
-                    request,
-                    raster,
-                    plotBounds,
-                    detectorImage,
-                    cancellationToken)
+            ProductionOcrEvidence ocr = await (candidateEvaluation
+                    ? ((IProductionCandidateOcrAdapter)ocrAdapter)
+                        .RecognizeForCandidateEvaluationAsync(
+                            request,
+                            raster,
+                            plotBounds,
+                            detectorImage,
+                            cancellationToken)
+                    : ocrAdapter.RecognizeAsync(
+                        request,
+                        raster,
+                        plotBounds,
+                        detectorImage,
+                        cancellationToken))
                 .ConfigureAwait(false);
             foreach (ProductionOcrModelEvidence evidence in ocr.ModelEvidence
                 .OrderBy(static evidence => evidence.Task, StringComparer.Ordinal))
@@ -145,25 +206,38 @@ public sealed class ProductionAutomaticDetectionAdapter : IProductionWorkflowDet
                 chain.Append(evidence.Envelope);
             }
 
-            ProductionDetectionMaskEvidence masks = await maskComposer
-                .ComposeAsync(
-                    request,
-                    raster,
-                    axis,
-                    ocr,
-                    cancellationToken)
+            ProductionDetectionMaskEvidence masks = await (candidateEvaluation
+                    ? ((IProductionCandidateDetectionMaskComposer)maskComposer)
+                        .ComposeForCandidateEvaluationAsync(
+                            request,
+                            raster,
+                            axis,
+                            ocr,
+                            cancellationToken)
+                    : maskComposer.ComposeAsync(
+                        request,
+                        raster,
+                        axis,
+                        ocr,
+                        cancellationToken))
                 .ConfigureAwait(false);
             chain.Append(masks.ArtifactEnvelope);
             MarkerImageFrame markerFrame = masks.CreateMarkerFrame(raster);
             MarkerPolygon markerPlot = ToMarkerPolygon(axis.Geometry.PlotPolygon);
-            ProductionMarkerCenterEvidence centers = await markerCenterAdapter
-                .DetectAsync(
-                    request,
-                    markerFrame,
-                    markerPlot,
-                    enhancedImage: null,
-                    enhancedTransforms: null,
-                    cancellationToken)
+            ProductionMarkerCenterEvidence centers = await (candidateEvaluation
+                    ? ((IProductionCandidateMarkerCenterAdapter)markerCenterAdapter)
+                        .DetectForCandidateEvaluationAsync(
+                            request,
+                            markerFrame,
+                            markerPlot,
+                            cancellationToken)
+                    : markerCenterAdapter.DetectAsync(
+                        request,
+                        markerFrame,
+                        markerPlot,
+                        enhancedImage: null,
+                        enhancedTransforms: null,
+                        cancellationToken))
                 .ConfigureAwait(false);
             chain.Append(centers.Envelope);
 
@@ -228,18 +302,28 @@ public sealed class ProductionAutomaticDetectionAdapter : IProductionWorkflowDet
                     "Errors.DetectionEvidenceRejected",
                     "Marker classification evidence omitted its model version.",
                     "Reject the classifier output and verify the production model manifest."));
-            panelStore.SetExportEvidence(request.Panel.ImportedPanel.PanelId, projection.ExportEvidence);
-
             WorkflowVisionEnvelope outputEnvelope = WithWarnings(
                 classification.Envelope,
                 classification.Envelope.Warnings
                     .Concat(masks.Warnings)
                     .Concat(projection.Warnings)
                     .Distinct(StringComparer.Ordinal));
-            return new WorkflowDetectionBatch(
+            var batch = new WorkflowDetectionBatch(
                 outputEnvelope,
                 WorkflowImageVariant.Original,
-                projection.Candidates);
+                projection.Candidates)
+            {
+                PendingExportEvidence = request.DeferExportEvidenceCommit
+                    ? projection.ExportEvidence
+                    : null,
+            };
+            if (!request.DeferExportEvidenceCommit)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                panelStore.SetExportEvidence(request.Panel.ImportedPanel.PanelId, projection.ExportEvidence);
+            }
+
+            return batch;
         }
         catch (ProductionWorkflowStageException exception)
         {

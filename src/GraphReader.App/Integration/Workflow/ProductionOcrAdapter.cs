@@ -131,7 +131,9 @@ internal sealed record LocalSyntheticOcrModelDescriptor(
 /// Composition remains disabled until both payloads have independently passed
 /// the production model-store, benchmark, provider, notice, and checksum gates.
 /// </summary>
-public sealed class ProductionOcrAdapter : IProductionOcrAdapter
+public sealed class ProductionOcrAdapter :
+    IProductionOcrAdapter,
+    IProductionCandidateOcrAdapter
 {
     public const string ApprovalBenchmarkProfile =
         "graphreader-ocr-structure-consensus-public-gate-v1";
@@ -456,6 +458,32 @@ public sealed class ProductionOcrAdapter : IProductionOcrAdapter
     }
 
     internal Task<ProductionOcrEvidence> RecognizeForLocalSyntheticCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        OcrRectangle plotBounds,
+        OcrDetectorImage detectorImage,
+        CancellationToken cancellationToken)
+        => RecognizeForCandidateEvaluationAsync(
+            request,
+            originalRaster,
+            plotBounds,
+            detectorImage,
+            cancellationToken);
+
+    Task<ProductionOcrEvidence> IProductionCandidateOcrAdapter.RecognizeForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        OcrRectangle plotBounds,
+        OcrDetectorImage detectorImage,
+        CancellationToken cancellationToken) =>
+        RecognizeForCandidateEvaluationAsync(
+            request,
+            originalRaster,
+            plotBounds,
+            detectorImage,
+            cancellationToken);
+
+    internal Task<ProductionOcrEvidence> RecognizeForCandidateEvaluationAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster originalRaster,
         OcrRectangle plotBounds,

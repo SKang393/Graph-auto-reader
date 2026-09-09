@@ -303,7 +303,9 @@ public sealed class ProductionDetectionMaskEvidence
 /// Converts validated original-coordinate OCR, axis, and separately approved
 /// artifact evidence into dense marker exclusion masks.
 /// </summary>
-public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskComposer
+public sealed class ProductionDetectionMaskComposer :
+    IProductionDetectionMaskComposer,
+    IProductionCandidateDetectionMaskComposer
 {
     private const double TextPaddingOriginalPixels = 1;
     private const double StructureHalfWidthOriginalPixels = 2;
@@ -355,6 +357,32 @@ public sealed class ProductionDetectionMaskComposer : IProductionDetectionMaskCo
             localCandidate: false, cancellationToken);
 
     internal Task<ProductionDetectionMaskEvidence> ComposeForLocalSyntheticCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster raster,
+        ProductionAxisGeometryEvidence axisEvidence,
+        ProductionOcrEvidence ocrEvidence,
+        CancellationToken cancellationToken) =>
+        ComposeForCandidateEvaluationAsync(
+            request,
+            raster,
+            axisEvidence,
+            ocrEvidence,
+            cancellationToken);
+
+    Task<ProductionDetectionMaskEvidence> IProductionCandidateDetectionMaskComposer.ComposeForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster raster,
+        ProductionAxisGeometryEvidence axisEvidence,
+        ProductionOcrEvidence ocrEvidence,
+        CancellationToken cancellationToken) =>
+        ComposeForCandidateEvaluationAsync(
+            request,
+            raster,
+            axisEvidence,
+            ocrEvidence,
+            cancellationToken);
+
+    internal Task<ProductionDetectionMaskEvidence> ComposeForCandidateEvaluationAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster raster,
         ProductionAxisGeometryEvidence axisEvidence,

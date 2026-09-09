@@ -569,6 +569,8 @@ public sealed class WorkflowDetectionBatch
     public IReadOnlyList<WorkflowDetectionCandidate> Candidates { get; }
 
     public IReadOnlyList<string> Warnings => Envelope.Warnings;
+
+    internal ProductionPanelExportEvidence? PendingExportEvidence { get; init; }
 }
 
 public sealed record WorkflowConsensusOptions(

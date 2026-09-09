@@ -78,7 +78,9 @@ public sealed record ProposalMarkerMorphologyScoreSummary(
 /// unapproved. The production factory can only be reached through a model that
 /// the production store has already resolved as CPU-approved.
 /// </summary>
-public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCenterAdapter
+public sealed class ProductionProposalMarkerCenterAdapter :
+    IProductionMarkerCenterAdapter,
+    IProductionCandidateMarkerCenterAdapter
 {
     public const string CandidateRevision = "marker-center-runtime-consistency-v2";
     public const string CandidateId = "P2";
@@ -380,6 +382,59 @@ public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCen
                 "Use the candidate-only evaluation method or continue in manual mode.");
         }
 
+        return await DetectValidatedAsync(
+                request,
+                originalImage,
+                plotPolygon,
+                enhancedImage,
+                enhancedTransforms,
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    Task<ProductionMarkerCenterEvidence> IProductionCandidateMarkerCenterAdapter.DetectForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        MarkerImageFrame originalImage,
+        MarkerPolygon plotPolygon,
+        CancellationToken cancellationToken) =>
+        DetectForCandidateEvaluationAsync(request, originalImage, plotPolygon, cancellationToken);
+
+    internal Task<ProductionMarkerCenterEvidence> DetectForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        MarkerImageFrame originalImage,
+        MarkerPolygon plotPolygon,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(originalImage);
+        ArgumentNullException.ThrowIfNull(plotPolygon);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (IsApproved)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                "Candidate evaluation requires an explicitly unapproved marker-center adapter.",
+                "Use normal production execution for an approved adapter.");
+        }
+
+        return DetectValidatedAsync(
+            request,
+            originalImage,
+            plotPolygon,
+            enhancedImage: null,
+            enhancedTransforms: null,
+            cancellationToken);
+    }
+
+    private async Task<ProductionMarkerCenterEvidence> DetectValidatedAsync(
+        ProductionWorkflowDetectionRequest request,
+        MarkerImageFrame originalImage,
+        MarkerPolygon plotPolygon,
+        MarkerImageFrame? enhancedImage,
+        IReadOnlyList<WorkflowTransformProvenance>? enhancedTransforms,
+        CancellationToken cancellationToken)
+    {
         if (!maskPreservingCandidate ||
             request.ImageVariant != WorkflowImageVariant.Original ||
             originalImage.SourceImage != MarkerSourceImage.Original ||
@@ -392,7 +447,7 @@ public sealed class ProductionProposalMarkerCenterAdapter : IProductionMarkerCen
             throw Failure(
                 ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
                 "Errors.DetectionEvidenceRejected",
-                "The approved proposal marker path requires the immutable original frame with no enhanced derivative.",
+                "The proposal marker path requires the immutable original frame with no enhanced derivative.",
                 "Regenerate marker evidence from the retained original panel image.");
         }
 
