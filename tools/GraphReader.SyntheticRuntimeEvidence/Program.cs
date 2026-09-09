@@ -17,6 +17,9 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 
 internal static class Program
 {
+    private const string DbGeometryDiagnosticProtocolPath =
+        "ml/ocr/official_bakeoff/db_geometry_diagnostic_protocol.json";
+
     private const string ComponentGeometryProtocolSha256 =
         "efe791352c6dd29b36dc8098ed742b370a0db186c307ed6af851c82e9b54e67e";
 
@@ -28,9 +31,12 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
-        if (args.Length != 4)
+        if (args.Length is not (4 or 7) ||
+            (args.Length == 7 && args[4] != "--db-geometry-protocol"))
         {
-            Console.Error.WriteLine("Usage: <input-manifest.json> <candidate.json> <candidate-sha256> <new-output-directory>");
+            Console.Error.WriteLine(
+                "Usage: <input-manifest.json> <candidate.json> <candidate-sha256> <new-output-directory> " +
+                "[--db-geometry-protocol <protocol.json> <protocol-sha256>]");
             return 2;
         }
 
@@ -63,6 +69,8 @@ internal static class Program
         RequireArtifactOutput(outputRoot);
         byte[] candidateBytes = File.ReadAllBytes(candidatePath);
         byte[] inputBytes = File.ReadAllBytes(inputPath);
+        string inputManifestSha256 = Hash(inputBytes);
+        string candidateSha256 = Hash(candidateBytes);
         if (!string.Equals(Hash(candidateBytes), args[2], StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidDataException("Candidate descriptor checksum mismatch.");
@@ -85,6 +93,16 @@ internal static class Program
         {
             throw new InvalidDataException("An explicitly unapproved local candidate descriptor is required.");
         }
+        DbGeometryDiagnosticBinding? dbGeometryDiagnostic = args.Length == 7
+            ? ValidateDbGeometryDiagnostic(
+                args[5],
+                args[6],
+                inputPath,
+                inputManifestSha256,
+                Text(inputs, "split"),
+                candidatePath,
+                candidateSha256)
+            : null;
         GraphStructureConsensusGeometry outputGeometry =
             config.TryGetProperty("ocr_output_geometry", out JsonElement geometryOption)
                 ? geometryOption.GetString() switch
@@ -193,8 +211,22 @@ internal static class Program
             Descriptor(config.GetProperty("detector")), Descriptor(config.GetProperty("recognizer")),
             runtime, nativeSha, cancellationToken, outputGeometry).ConfigureAwait(false);
         LocalSyntheticOcrModelDescriptor diagnosticDescriptor = Descriptor(config.GetProperty("detector"));
-        var diagnosticModelDetector = new LocalOnnxTextRegionDetector(runtime.Runtime,
-            ProductionOcrAdapter.ReadDetectionOptions(diagnosticDescriptor.Identity, diagnosticDescriptor.ManifestPath));
+        var dbGeometryObservations = new List<OcrDbGeometryObservation>();
+        LocalOnnxTextRegionDetectorOptions diagnosticDetectionOptions =
+            ProductionOcrAdapter.ReadDetectionOptions(
+                diagnosticDescriptor.Identity,
+                diagnosticDescriptor.ManifestPath);
+        if (dbGeometryDiagnostic is not null)
+        {
+            diagnosticDetectionOptions = diagnosticDetectionOptions with
+            {
+                BypassCache = true,
+                DbGeometryObserver = dbGeometryObservations.Add,
+            };
+        }
+        var diagnosticModelDetector = new LocalOnnxTextRegionDetector(
+            runtime.Runtime,
+            diagnosticDetectionOptions);
         var diagnosticComponentDetector = new ConnectedComponentTextRegionDetector();
         var axis = new ProductionAxisGeometryAdapter(nativeSha, isApproved: false);
         var artifactAdapter = new RasterResidualArtifactMaskAdapter();
@@ -203,8 +235,7 @@ internal static class Program
         {
             throw new InvalidOperationException("Synthetic evaluation must never approve a production adapter.");
         }
-        string inputManifestSha256 = Hash(inputBytes);
-        string candidateSha256 = Hash(candidateBytes);
+        RuntimeAssemblyIdentity[] runtimeAssemblies = RuntimeAssemblyIdentities();
         Guid projectId = ProductionWorkflowPanelStore.CreateStableId(
             "synthetic-runtime-project-v2",
             inputManifestSha256,
@@ -271,6 +302,7 @@ internal static class Program
                 int? cropCount = null;
                 object? emptyOcrDiagnostic = null;
                 object? ocrProposalDiagnostic = null;
+                object? dbGeometryDiagnosticSidecar = null;
                 object? preOcrDiagnostic = null;
                 object? panelPng = null;
                 IReadOnlyList<string> importWarnings = Array.Empty<string>();
@@ -358,22 +390,127 @@ internal static class Program
                     stage = "ocr-proposal-diagnostic";
                     // Persist independent stage output for every development panel.
                     // It is diagnostic only and never substitutes for consensus output.
+                    int maskedObservationStart = dbGeometryObservations.Count;
                     IReadOnlyList<OcrDetectedRegion> modelRegions = await diagnosticModelDetector
                         .DetectAsync(detectorImage.Image, cancellationToken).ConfigureAwait(false);
+                    string? maskedBgrSha256 = detectorImage.BgrPixelSha256;
+                    OcrDbGeometryObservation? maskedObservation = dbGeometryDiagnostic is null
+                        ? null
+                        : RequireSingleDbGeometryObservation(
+                            dbGeometryObservations,
+                            maskedObservationStart,
+                            modelRegions,
+                            detectorImage.Image,
+                            maskedBgrSha256 ?? throw new InvalidDataException(
+                                "Official DB geometry observation requires the detector-consumed BGR masked plane."));
                     IReadOnlyList<OcrDetectedRegion> componentRegions = await diagnosticComponentDetector
                         .DetectAsync(detectorImage.Image, cancellationToken).ConfigureAwait(false);
+                    int unmaskedObservationStart = dbGeometryObservations.Count;
                     IReadOnlyList<OcrDetectedRegion> unmaskedModelRegions = await diagnosticModelDetector
                         .DetectAsync(sourceImage, cancellationToken).ConfigureAwait(false);
-                    ocrProposalDiagnostic = new
+                    string? unmaskedBgrSha256 = sourceImage.BgrPixels is { } sourceBgr
+                        ? Hash(sourceBgr.Pixels.ToArray())
+                        : null;
+                    OcrDbGeometryObservation? unmaskedObservation = dbGeometryDiagnostic is null
+                        ? null
+                        : RequireSingleDbGeometryObservation(
+                            dbGeometryObservations,
+                            unmaskedObservationStart,
+                            unmaskedModelRegions,
+                            sourceImage,
+                            unmaskedBgrSha256 ?? throw new InvalidDataException(
+                                "Official DB geometry observation requires the detector-consumed BGR source plane."));
+                    if (dbGeometryDiagnostic is not null)
                     {
-                        ModelRegions = modelRegions,
-                        ComponentRegions = componentRegions,
-                        DetectorInputSha256 = detectorImage.PixelSha256,
-                        UnmaskedModelRegions = unmaskedModelRegions,
-                        UnmaskedInputSha256 = Hash(sourceImage.Pixels.ToArray()),
-                        CoordinateSpace = "original_pixels",
-                        UsedAsAcceptedEvidence = false,
-                    };
+                        object sidecar = new
+                        {
+                            Schema = "graphreader.synthetic-db-geometry-observation.v1",
+                            Scope = "local-synthetic-train-dev-diagnostic",
+                            ProductionApproved = false,
+                            TrainingInputReady = false,
+                            TruthUsedByRuntime = false,
+                            Protocol = new
+                            {
+                                dbGeometryDiagnostic.Path,
+                                dbGeometryDiagnostic.Sha256,
+                            },
+                            InputManifestSha256 = inputManifestSha256,
+                            CandidateSha256 = candidateSha256,
+                            Source = new
+                            {
+                                ImageSha256 = imageSha,
+                                Width = sourceWidth,
+                                Height = sourceHeight,
+                            },
+                            Panel = new
+                            {
+                                PanelId = panelId,
+                                ImageSha256 = panel.Original.Sha256,
+                                Width = raster.Width,
+                                Height = raster.Height,
+                                Crop = Box(crop),
+                                RequestedCrop = Box(requestedCrop),
+                                SourceToPanelMatrix = sourceToPanel,
+                                PanelToSourceMatrix = panelToSource,
+                            },
+                            DetectorModel = new
+                            {
+                                diagnosticDescriptor.Identity.ModelId,
+                                ModelVersion = diagnosticDescriptor.Identity.Version,
+                                ModelSha256 = diagnosticDescriptor.Identity.Sha256,
+                                ManifestPath = diagnosticDescriptor.ManifestPath,
+                                ManifestSha256 = diagnosticDescriptor.ManifestSha256,
+                            },
+                            NativeSha256 = nativeSha,
+                            NativeScope = nativeScope,
+                            RuntimeAssemblies = runtimeAssemblies,
+                            Invocations = new object[]
+                            {
+                                new
+                                {
+                                    Kind = "axis-masked",
+                                    CanonicalGraySha256 = detectorImage.PixelSha256,
+                                    DetectorBgrSha256 = maskedBgrSha256,
+                                    Observation = maskedObservation,
+                                },
+                                new
+                                {
+                                    Kind = "unmasked",
+                                    CanonicalGraySha256 = Hash(sourceImage.Pixels.ToArray()),
+                                    DetectorBgrSha256 = unmaskedBgrSha256,
+                                    Observation = unmaskedObservation,
+                                },
+                            },
+                        };
+                        dbGeometryDiagnosticSidecar = await WriteBytesAsync(
+                            panelRoot,
+                            "ocr-db-geometry-observations.json",
+                            System.Text.Encoding.UTF8.GetBytes(
+                                JsonSerializer.Serialize(sidecar, JsonOptions) + Environment.NewLine),
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    ocrProposalDiagnostic = dbGeometryDiagnostic is null
+                        ? new
+                        {
+                            ModelRegions = modelRegions,
+                            ComponentRegions = componentRegions,
+                            DetectorInputSha256 = detectorImage.PixelSha256,
+                            UnmaskedModelRegions = unmaskedModelRegions,
+                            UnmaskedInputSha256 = Hash(sourceImage.Pixels.ToArray()),
+                            CoordinateSpace = "original_pixels",
+                            UsedAsAcceptedEvidence = false,
+                        }
+                        : (object)new
+                        {
+                            ModelRegions = modelRegions,
+                            ComponentRegions = componentRegions,
+                            DetectorInputSha256 = detectorImage.PixelSha256,
+                            UnmaskedModelRegions = unmaskedModelRegions,
+                            UnmaskedInputSha256 = Hash(sourceImage.Pixels.ToArray()),
+                            CoordinateSpace = "original_pixels",
+                            UsedAsAcceptedEvidence = false,
+                            DbGeometryDiagnosticSidecar = dbGeometryDiagnosticSidecar,
+                        };
                     stage = "ocr";
                     ProductionOcrEvidence text = await ocr.RecognizeForLocalSyntheticCandidateEvaluationAsync(
                         request, raster, new OcrRectangle(left, top, right - left, bottom - top),
@@ -502,17 +639,7 @@ internal static class Program
             OcrAdapterId = ocr.AdapterId,
             GeometryProtocolSha256 = geometryProtocolSha256,
             NativeSha256 = nativeSha, NativeScope = nativeScope,
-            RuntimeAssemblies = new[]
-            {
-                typeof(Program).Assembly, typeof(ProductionOcrAdapter).Assembly,
-                typeof(GraphReader.Axis.AxisGeometryDetector).Assembly, typeof(OcrPipeline).Assembly,
-                typeof(InferenceRuntime).Assembly,
-                typeof(GraphReader.Pdf.PanelizationEngine).Assembly,
-            }.Select(static assembly => new
-            {
-                Name = assembly.GetName().Name,
-                Sha256 = Hash(File.ReadAllBytes(assembly.Location)),
-            }).ToArray(),
+            RuntimeAssemblies = runtimeAssemblies,
             Count = images.Count, Completed = completedSources, Failed = images.Count - completedSources,
             PanelCount = panelCount, CompletedPanels = completedPanels, FailedPanels = failedPanels,
             ElapsedMilliseconds = total.Elapsed.TotalMilliseconds, Cases = results,
@@ -532,6 +659,183 @@ internal static class Program
         }, JsonOptions));
         return completedSources == images.Count ? 0 : 1;
     }
+
+    private static DbGeometryDiagnosticBinding ValidateDbGeometryDiagnostic(
+        string protocolArgument,
+        string expectedProtocolSha256,
+        string inputPath,
+        string inputSha256,
+        string split,
+        string candidatePath,
+        string candidateSha256)
+    {
+        string repositoryRoot = RepositoryRoot();
+        string protocolPath = Path.GetFullPath(protocolArgument);
+        string expectedProtocolPath = Path.GetFullPath(
+            Path.Combine(repositoryRoot, DbGeometryDiagnosticProtocolPath));
+        if (!string.Equals(protocolPath, expectedProtocolPath, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                "DB geometry observation requires the reviewed repository protocol path.");
+        }
+        byte[] protocolBytes = File.ReadAllBytes(protocolPath);
+        string actualProtocolSha256 = Hash(protocolBytes);
+        if (!string.Equals(actualProtocolSha256, expectedProtocolSha256, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException("DB geometry diagnostic protocol checksum mismatch.");
+        }
+
+        using JsonDocument document = JsonDocument.Parse(protocolBytes);
+        JsonElement root = document.RootElement;
+        RequireKeys(
+            root,
+            "evidence_policy",
+            "hypothesis",
+            "isolated_change",
+            "split_identities",
+            "metric",
+            "acceptance_bar",
+            "budget");
+        if (Text(root, "evidence_policy") != "ml/policy/evidence-policy.json" ||
+            string.IsNullOrWhiteSpace(Text(root, "hypothesis")) ||
+            string.IsNullOrWhiteSpace(Text(root, "isolated_change")) ||
+            string.IsNullOrWhiteSpace(Text(root, "metric")) ||
+            string.IsNullOrWhiteSpace(Text(root, "acceptance_bar")))
+        {
+            throw new InvalidDataException("DB geometry diagnostic protocol metadata is invalid.");
+        }
+        JsonElement budget = root.GetProperty("budget");
+        RequireKeys(budget, "train_dev_runs", "sealed_runs");
+        if (Text(budget, "train_dev_runs") != "unlimited" ||
+            budget.GetProperty("sealed_runs").GetInt32() != 0)
+        {
+            throw new InvalidDataException("DB geometry diagnostic protocol cannot authorize sealed evidence.");
+        }
+
+        JsonElement identities = root.GetProperty("split_identities");
+        RequireKeys(identities, "train_manifest", "dev_manifest", "runtime_candidate");
+        JsonElement train = identities.GetProperty("train_manifest");
+        JsonElement dev = identities.GetProperty("dev_manifest");
+        JsonElement candidate = identities.GetProperty("runtime_candidate");
+        RequireKeys(train, "path", "sha256");
+        RequireKeys(dev, "path", "sha256");
+        RequireKeys(candidate, "path", "sha256");
+        VerifyBoundRepositoryFile(repositoryRoot, train);
+        VerifyBoundRepositoryFile(repositoryRoot, dev);
+        VerifyBoundRepositoryFile(repositoryRoot, candidate);
+
+        JsonElement selected = split switch
+        {
+            "train" => train,
+            "validation" => dev,
+            _ => throw new InvalidDataException(
+                "DB geometry observation is restricted to the bound synthetic train/dev splits."),
+        };
+        if (!PathsEqual(ResolveRepositoryPath(repositoryRoot, Text(selected, "path")), inputPath) ||
+            !string.Equals(Text(selected, "sha256"), inputSha256, StringComparison.OrdinalIgnoreCase) ||
+            !PathsEqual(ResolveRepositoryPath(repositoryRoot, Text(candidate, "path")), candidatePath) ||
+            !string.Equals(Text(candidate, "sha256"), candidateSha256, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                "DB geometry diagnostic protocol does not bind the supplied input manifest and candidate.");
+        }
+
+        return new DbGeometryDiagnosticBinding(
+            DbGeometryDiagnosticProtocolPath,
+            actualProtocolSha256);
+    }
+
+    private static void VerifyBoundRepositoryFile(string repositoryRoot, JsonElement declaration)
+    {
+        string path = ResolveRepositoryPath(repositoryRoot, Text(declaration, "path"));
+        VerifyFile(path, Text(declaration, "sha256"));
+    }
+
+    private static string ResolveRepositoryPath(string repositoryRoot, string relativePath)
+    {
+        if (Path.IsPathRooted(relativePath))
+        {
+            throw new InvalidDataException("Diagnostic protocol paths must be repository-relative.");
+        }
+        string path = Path.GetFullPath(Path.Combine(repositoryRoot, relativePath));
+        if (!path.StartsWith(
+                repositoryRoot + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException("Diagnostic protocol path escaped the repository.");
+        }
+        return path;
+    }
+
+    private static bool PathsEqual(string left, string right) => string.Equals(
+        Path.GetFullPath(left),
+        Path.GetFullPath(right),
+        StringComparison.OrdinalIgnoreCase);
+
+    private static OcrDbGeometryObservation RequireSingleDbGeometryObservation(
+        List<OcrDbGeometryObservation> observations,
+        int start,
+        IReadOnlyList<OcrDetectedRegion> regions,
+        OcrImage image,
+        string expectedInputSha256)
+    {
+        if (start < 0 || start >= observations.Count || observations.Count != start + 1)
+        {
+            throw new InvalidDataException(
+                "DB geometry observer must emit exactly one batch for each detector invocation.");
+        }
+        OcrDbGeometryObservation observation = observations[start];
+        if (!string.Equals(
+                observation.InputSha256,
+                expectedInputSha256,
+                StringComparison.OrdinalIgnoreCase) ||
+            observation.ImageWidth != image.Width ||
+            observation.ImageHeight != image.Height ||
+            observation.TensorWidth <= 0 ||
+            observation.TensorHeight <= 0 ||
+            observation.AcceptedContours.Count != regions.Count)
+        {
+            throw new InvalidDataException(
+                "DB geometry observation input or accepted-contour count differs from detector output.");
+        }
+        for (var index = 0; index < regions.Count; index++)
+        {
+            OcrDetectedRegion region = regions[index];
+            OcrDbAcceptedContourGeometry contour = observation.AcceptedContours[index];
+            if (contour.ReturnedRegionId != region.RegionId ||
+                !contour.ExpandedPolygon.Points.SequenceEqual(region.Polygon.Points) ||
+                contour.DetectionConfidence != region.DetectionConfidence ||
+                contour.InkDensity != region.Evidence?.InkDensity ||
+                !contour.ExpandedPolygon.Bounds.IsValid ||
+                !AllPointsInside(contour.InitialPolygon, image) ||
+                !AllPointsInside(contour.ExpandedPolygon, image))
+            {
+                throw new InvalidDataException(
+                    "DB geometry observation differs from the unchanged returned region.");
+            }
+        }
+        return observation;
+    }
+
+    private static bool AllPointsInside(OcrPolygon polygon, OcrImage image)
+    {
+        double width = image.CanonicalOriginalWidth ?? image.Width;
+        double height = image.CanonicalOriginalHeight ?? image.Height;
+        return polygon.Points.All(point =>
+            point.X >= 0 && point.X <= width && point.Y >= 0 && point.Y <= height);
+    }
+
+    private static RuntimeAssemblyIdentity[] RuntimeAssemblyIdentities() =>
+        new[]
+        {
+            typeof(Program).Assembly, typeof(ProductionOcrAdapter).Assembly,
+            typeof(GraphReader.Axis.AxisGeometryDetector).Assembly, typeof(OcrPipeline).Assembly,
+            typeof(InferenceRuntime).Assembly,
+            typeof(GraphReader.Pdf.PanelizationEngine).Assembly,
+        }.Select(static assembly => new RuntimeAssemblyIdentity(
+            assembly.GetName().Name ?? throw new InvalidDataException("Runtime assembly name is missing."),
+            Hash(File.ReadAllBytes(assembly.Location))))
+        .ToArray();
 
     private static void ValidateImportedPanelSource(
         Guid projectId,
@@ -569,6 +873,17 @@ internal static class Program
 
     private static void RequireArtifactOutput(string outputRoot)
     {
+        string repositoryRoot = RepositoryRoot();
+        if (!outputRoot.StartsWith(
+                Path.Combine(repositoryRoot, "artifacts") + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException("Synthetic evidence output must stay under this repository's ignored artifacts directory.");
+        }
+    }
+
+    private static string RepositoryRoot()
+    {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null &&
                !Directory.Exists(Path.Combine(directory.FullName, ".git")) &&
@@ -576,12 +891,8 @@ internal static class Program
         {
             directory = directory.Parent;
         }
-        if (directory is null || !outputRoot.StartsWith(
-                Path.Combine(directory.FullName, "artifacts") + Path.DirectorySeparatorChar,
-                StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidDataException("Synthetic evidence output must stay under this repository's ignored artifacts directory.");
-        }
+        return directory?.FullName ??
+            throw new InvalidDataException("Synthetic evidence tool could not locate its repository root.");
     }
 
     private static void RequireKeys(JsonElement record, params string[] keys)
@@ -658,4 +969,8 @@ internal static class Program
             throw;
         }
     }
+
+    private sealed record DbGeometryDiagnosticBinding(string Path, string Sha256);
+
+    private sealed record RuntimeAssemblyIdentity(string Name, string Sha256);
 }

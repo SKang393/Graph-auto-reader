@@ -1,0 +1,13 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The DB unclip step contributes substantially to oversized OCR regions. The fixed margin evidence has 192 oversized or merged masked DB localizations among 329 full-source text truths, while only 40 have no masked DB localization. Report artifacts/synthetic-runtime-evidence/ocr-resolution-diagnosis/report.json SHA256 8575a0824809dd2ece6f1012adc150ace029a42feb951e4b6d62042b10a6a225.",
+  "isolated_change": "Observe and persist the initial minimum-area rectangle and expanded rectangle for every contour already accepted by the unchanged DB detector. Both geometries trace to the same actual probability output and accepted contour. Preserve all existing confidence, expanded-box validity, ordering, model, resize, thresholds, returned production regions, consensus, recognition and masks. Score initial and expanded geometry separately as a diagnostic; neither changes the running product. Do not admit rejected contours or infer regions from truth.",
+  "split_identities": {
+    "train_manifest": {"path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json", "sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37"},
+    "dev_manifest": {"path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json", "sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7"},
+    "runtime_candidate": {"path": "artifacts/synthetic-runtime-evidence/official-metadata-source-c96/candidate.json", "sha256": "154d40615bd54f5744e20bb5b4482b86e05f0e3d709c8ac8d794e8d3371a4e38"}
+  },
+  "metric": "Existing fixed-IoU0.5 maximum-cardinality precision and recall over all146 train and183 development truth regions. Compare the initial and expanded rectangles for identical accepted contours. Record observed input sizes and returned-region identity checks. No recognition or role acceptance is claimed by this geometric diagnostic.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json tier1_reviewable_error text detection precision and recall minimum0.95. A diagnostic improvement is not a gate pass or production approval.",
+  "budget": {"train_dev_runs": "unlimited", "sealed_runs": 0}
+}

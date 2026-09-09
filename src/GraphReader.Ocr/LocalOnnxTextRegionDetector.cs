@@ -77,6 +77,53 @@ public sealed record LocalOnnxTextRegionDetectorOptions(ModelIdentity Model)
     public IReadOnlyList<InferenceProvider>? AllowedProviders { get; init; }
 
     public bool BypassCache { get; init; }
+
+    /// <summary>
+    /// Optional output-neutral observation of geometry for contours accepted by
+    /// the DB postprocessor. Diagnostics must bypass cached inference so the
+    /// observation is bound to the current execution and implementation.
+    /// </summary>
+    public Action<OcrDbGeometryObservation>? DbGeometryObserver { get; init; }
+}
+
+public sealed record OcrDbAcceptedContourGeometry(
+    string ReturnedRegionId,
+    OcrPolygon InitialPolygon,
+    OcrPolygon ExpandedPolygon,
+    double DetectionConfidence,
+    double InkDensity);
+
+public sealed record OcrDbGeometryObservation
+{
+    public OcrDbGeometryObservation(
+        string inputSha256,
+        int imageWidth,
+        int imageHeight,
+        int tensorWidth,
+        int tensorHeight,
+        IReadOnlyList<OcrDbAcceptedContourGeometry> acceptedContours)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(inputSha256);
+        ArgumentNullException.ThrowIfNull(acceptedContours);
+        InputSha256 = inputSha256;
+        ImageWidth = imageWidth;
+        ImageHeight = imageHeight;
+        TensorWidth = tensorWidth;
+        TensorHeight = tensorHeight;
+        AcceptedContours = Array.AsReadOnly(acceptedContours.ToArray());
+    }
+
+    public string InputSha256 { get; }
+
+    public int ImageWidth { get; }
+
+    public int ImageHeight { get; }
+
+    public int TensorWidth { get; }
+
+    public int TensorHeight { get; }
+
+    public IReadOnlyList<OcrDbAcceptedContourGeometry> AcceptedContours { get; }
 }
 
 /// <summary>
@@ -216,7 +263,14 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
             OcrDetectionPostprocessAlgorithm.DenseProbabilityComponentsV1 =>
                 BuildDenseRegions(probabilities, image, tensorWidth, tensorHeight, options, cancellationToken),
             OcrDetectionPostprocessAlgorithm.DbPostprocessV1 =>
-                BuildDbRegions(probabilities, image, tensorWidth, tensorHeight, options, cancellationToken),
+                BuildDbRegions(
+                    probabilities,
+                    image,
+                    tensorWidth,
+                    tensorHeight,
+                    imageSha256,
+                    options,
+                    cancellationToken),
             _ => throw new InvalidOperationException(
                 $"Unsupported OCR detection postprocess algorithm '{options.PostprocessAlgorithm}'."),
         };
@@ -287,6 +341,7 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
         OcrImage image,
         int tensorWidth,
         int tensorHeight,
+        string inputSha256,
         LocalOnnxTextRegionDetectorOptions options,
         CancellationToken cancellationToken)
     {
@@ -367,16 +422,23 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
             }
 
             candidates.Add(new DbCandidate(
+                MapPolygonToOriginal(initial.Points, image, tensorWidth, tensorHeight),
                 polygon,
                 OrientationDegrees(polygon.Points.ToArray()),
                 score.Confidence,
                 score.InkDensity));
         }
 
-        OcrDetectedRegion[] regions = candidates
-            .Select(candidate => new OcrDetectedRegion(
-                DeterministicRegionId(options.Model.Sha256, options.PostprocessAlgorithm, candidate.Polygon),
-                candidate.Polygon,
+        var observations = new List<OcrDbAcceptedContourGeometry>(candidates.Count);
+        OcrDetectedRegion[] regions = candidates.Select(candidate =>
+        {
+            string regionId = DeterministicRegionId(
+                options.Model.Sha256,
+                options.PostprocessAlgorithm,
+                candidate.ExpandedPolygon);
+            var region = new OcrDetectedRegion(
+                regionId,
+                candidate.ExpandedPolygon,
                 candidate.OrientationDegrees,
                 candidate.Confidence,
                 CoordinateSpace: OcrContract.CoordinateSpace,
@@ -386,8 +448,23 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
                     TextLikelihood: candidate.Confidence,
                     StructureLikelihood: 1 - candidate.Confidence,
                     LikelyGraphStructure: false,
-                    Reasons: Array.AsReadOnly(["onnx_db_text_probability"]))))
-            .ToArray();
+                    Reasons: Array.AsReadOnly(["onnx_db_text_probability"])));
+            observations.Add(new OcrDbAcceptedContourGeometry(
+                regionId,
+                candidate.InitialPolygon,
+                candidate.ExpandedPolygon,
+                candidate.Confidence,
+                candidate.InkDensity));
+            return region;
+        }).ToArray();
+        cancellationToken.ThrowIfCancellationRequested();
+        options.DbGeometryObserver?.Invoke(new OcrDbGeometryObservation(
+            inputSha256,
+            image.Width,
+            image.Height,
+            tensorWidth,
+            tensorHeight,
+            observations));
         return Array.AsReadOnly(regions);
     }
 
@@ -1076,7 +1153,10 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
             options.MinimumComponentArea is < 1 or > 16_777_216 ||
             options.MinimumSideLength is < 1 or > 4096 ||
             options.MaximumRegions is < 1 or > 10_000 ||
-            options.Timeout <= TimeSpan.Zero || options.Timeout > TimeSpan.FromMinutes(5) || invalidProviders)
+            options.Timeout <= TimeSpan.Zero || options.Timeout > TimeSpan.FromMinutes(5) || invalidProviders ||
+            (options.DbGeometryObserver is not null &&
+             (options.PostprocessAlgorithm != OcrDetectionPostprocessAlgorithm.DbPostprocessV1 ||
+              !options.BypassCache)))
         {
             throw new ArgumentException("Local ONNX OCR detector options are invalid.", nameof(options));
         }
@@ -1164,7 +1244,8 @@ public sealed class LocalOnnxTextRegionDetector : ITextRegionDetector
     }
 
     private sealed record DbCandidate(
-        OcrPolygon Polygon,
+        OcrPolygon InitialPolygon,
+        OcrPolygon ExpandedPolygon,
         double OrientationDegrees,
         double Confidence,
         double InkDensity);

@@ -1,0 +1,324 @@
+{
+  "candidate": {
+    "detector": {
+      "manifest_path": "artifacts/synthetic-runtime-evidence/official-metadata-source-c96/detector.json",
+      "manifest_sha256": "2ddb1599df210da50bf097383b1f691ee6e1bed27ba9c98b6695a6b06e7e8d51",
+      "model_id": "PP-OCRv5_mobile_det",
+      "model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+      "model_version": "5.0.0"
+    },
+    "native_scope": "reviewed-source-runtime-local-diagnostic",
+    "native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+    "path": "artifacts/synthetic-runtime-evidence/official-metadata-source-c96/candidate.json",
+    "sha256": "154d40615bd54f5744e20bb5b4482b86e05f0e3d709c8ac8d794e8d3371a4e38"
+  },
+  "elapsed_milliseconds": 19163.41,
+  "evaluator": {
+    "confidence_scored": false,
+    "coordinate_mapping": "validated integer panel crop translation into full-source pixels",
+    "geometry": "axis-aligned bounds derived from the authenticated four recorded polygon points",
+    "intersection_over_union_minimum": 0.5,
+    "matching": "existing maximum-cardinality one-to-one matching",
+    "recognition_scored": false
+  },
+  "execution_manifest": {
+    "all_declared_files_verified": true,
+    "path": "artifacts/synthetic-runtime-evidence/db-geometry-source-c96-executable-v1/execution-files.json",
+    "sha256": "1239f7dabc5d9d8cebc8d2a5d7b0948aa33f7d39033d2b93f26e1e98773bc5c6"
+  },
+  "geometry_metrics": {
+    "masked": {
+      "expanded": {
+        "combined": {
+          "false_negatives": 236,
+          "false_positives": 267,
+          "precision": 0.25833333333333336,
+          "predicted_region_count": 360,
+          "recall": 0.2826747720364742,
+          "true_positives": 93,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 112,
+          "false_positives": 113,
+          "precision": 0.23129251700680273,
+          "predicted_region_count": 147,
+          "recall": 0.2328767123287671,
+          "true_positives": 34,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 124,
+          "false_positives": 154,
+          "precision": 0.27699530516431925,
+          "predicted_region_count": 213,
+          "recall": 0.3224043715846995,
+          "true_positives": 59,
+          "truth_region_count": 183
+        }
+      },
+      "initial": {
+        "combined": {
+          "false_negatives": 123,
+          "false_positives": 154,
+          "precision": 0.5722222222222222,
+          "predicted_region_count": 360,
+          "recall": 0.6261398176291794,
+          "true_positives": 206,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 59,
+          "false_positives": 60,
+          "precision": 0.5918367346938775,
+          "predicted_region_count": 147,
+          "recall": 0.5958904109589042,
+          "true_positives": 87,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 64,
+          "false_positives": 94,
+          "precision": 0.5586854460093896,
+          "predicted_region_count": 213,
+          "recall": 0.6502732240437158,
+          "true_positives": 119,
+          "truth_region_count": 183
+        }
+      }
+    },
+    "unmasked": {
+      "expanded": {
+        "combined": {
+          "false_negatives": 223,
+          "false_positives": 240,
+          "precision": 0.3063583815028902,
+          "predicted_region_count": 346,
+          "recall": 0.3221884498480243,
+          "true_positives": 106,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 111,
+          "false_positives": 103,
+          "precision": 0.2536231884057971,
+          "predicted_region_count": 138,
+          "recall": 0.23972602739726026,
+          "true_positives": 35,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 112,
+          "false_positives": 137,
+          "precision": 0.34134615384615385,
+          "predicted_region_count": 208,
+          "recall": 0.3879781420765027,
+          "true_positives": 71,
+          "truth_region_count": 183
+        }
+      },
+      "initial": {
+        "combined": {
+          "false_negatives": 92,
+          "false_positives": 109,
+          "precision": 0.684971098265896,
+          "predicted_region_count": 346,
+          "recall": 0.7203647416413373,
+          "true_positives": 237,
+          "truth_region_count": 329
+        },
+        "train": {
+          "false_negatives": 53,
+          "false_positives": 45,
+          "precision": 0.6739130434782609,
+          "predicted_region_count": 138,
+          "recall": 0.636986301369863,
+          "true_positives": 93,
+          "truth_region_count": 146
+        },
+        "validation": {
+          "false_negatives": 39,
+          "false_positives": 64,
+          "precision": 0.6923076923076923,
+          "predicted_region_count": 208,
+          "recall": 0.7868852459016393,
+          "true_positives": 144,
+          "truth_region_count": 183
+        }
+      }
+    }
+  },
+  "integrity": {
+    "expanded_point_sequences_equal_model_regions": true,
+    "full_source_truth_count": 329,
+    "initial_and_expanded_contour_counts_equal": true,
+    "native_model_manifest_and_executed_assembly_hashes_bound": true,
+    "protocol_and_bound_files_verified": true,
+    "runtime_assemblies": [
+      {
+        "name": "GraphReader.SyntheticRuntimeEvidence",
+        "sha256": "7655a845a253927ee0eff045e9c69d7ced4fcc652c905c7edd409618b2831a6a"
+      },
+      {
+        "name": "GraphReader.App",
+        "sha256": "d9f5f9df2d16fd7f9b0aa30b60cb07dafb2f139cc3c08d276e25dd985f986334"
+      },
+      {
+        "name": "GraphReader.Axis",
+        "sha256": "d6f29ab3eae823c7b5b85ad799c3a00b39a55fc5ce5aac7a4b38aed925de09c9"
+      },
+      {
+        "name": "GraphReader.Ocr",
+        "sha256": "639f8de800d1f0f5a9efaed8b4e85966856400a428ddf049e01afc72618ff9f7"
+      },
+      {
+        "name": "GraphReader.Inference",
+        "sha256": "32164adfda3582b5a85c7ced2e0308e67a6dc726d5d498d6a663aeb67867212e"
+      },
+      {
+        "name": "GraphReader.Pdf",
+        "sha256": "2a713b411a22a5ef195810379be402efb2659592c61b07c3f3ead881b5de288e"
+      }
+    ],
+    "sidecar_bytes_and_dimensions_verified": true,
+    "source_and_crop_png_bytes_verified": true,
+    "truth_created_only_after_exchange_validation": true
+  },
+  "limitations": [
+    "This diagnostic compares geometry for contours already accepted by the unchanged DB detector; rejected contours are absent.",
+    "Initial and expanded rotated rectangles are scored by the same axis-aligned bounds representation used by the fixed family OCR evaluator.",
+    "Full-source truth remains the denominator, including text outside emitted panel crops.",
+    "This synthetic train/dev diagnostic cannot approve a model, threshold, product stage, or release.",
+    "Recognition, roles, normal Production composition, private acceptance, and distribution behavior remain unverified by this experiment."
+  ],
+  "optimizer_steps": 0,
+  "private_data": false,
+  "production_approval": false,
+  "protocol": {
+    "hypothesis": "The DB unclip step contributes substantially to oversized OCR regions. The fixed margin evidence has 192 oversized or merged masked DB localizations among 329 full-source text truths, while only 40 have no masked DB localization. Report artifacts/synthetic-runtime-evidence/ocr-resolution-diagnosis/report.json SHA256 8575a0824809dd2ece6f1012adc150ace029a42feb951e4b6d62042b10a6a225.",
+    "isolated_change": "Observe and persist the initial minimum-area rectangle and expanded rectangle for every contour already accepted by the unchanged DB detector. Both geometries trace to the same actual probability output and accepted contour. Preserve all existing confidence, expanded-box validity, ordering, model, resize, thresholds, returned production regions, consensus, recognition and masks. Score initial and expanded geometry separately as a diagnostic; neither changes the running product. Do not admit rejected contours or infer regions from truth.",
+    "path": "ml/ocr/official_bakeoff/db_geometry_diagnostic_protocol.json",
+    "sha256": "58bd372a12384c8a86a9f9aa6a5481e799870f73282f0f33c6a512838a7347f0"
+  },
+  "release_eligible": false,
+  "runs": {
+    "train": {
+      "manifest": {
+        "path": "artifacts/synthetic-runtime-evidence/inputs-train393-layout2/input-manifest.json",
+        "sha256": "3a76a405d8e8eb2512988aba877a6d3cecb9975494c36e403344a197d84d0d37"
+      },
+      "panel_count": 4,
+      "report": {
+        "path": "artifacts/synthetic-runtime-evidence/train393-db-geometry-source-c96-run1/report.json",
+        "sha256": "679effc25d675879a47a742685d0d891f21bf177246251d32ec9ea88e9dff207"
+      },
+      "source_count": 4,
+      "truth_region_count": 146
+    },
+    "validation": {
+      "manifest": {
+        "path": "artifacts/synthetic-runtime-evidence/inputs-dev393-layout2/input-manifest.json",
+        "sha256": "197ac4eda3157f0883b80bb135e13ed41165eac23f0d758309a4823125b865b7"
+      },
+      "panel_count": 9,
+      "report": {
+        "path": "artifacts/synthetic-runtime-evidence/dev393-db-geometry-source-c96-run1/report.json",
+        "sha256": "a0c07332ce44baa6b1513c865af17404207edf6c19332bf4014cd1bfaf81483f"
+      },
+      "source_count": 3,
+      "truth_region_count": 183
+    }
+  },
+  "schema": "graphreader.goal22-db-geometry-diagnostic-outcome.v1",
+  "scope": "local-synthetic-train-dev-diagnostic",
+  "sealed_data": false,
+  "sealed_runs": 0,
+  "status": "failed_detection_accuracy_diagnostic_only",
+  "synthetic_only": true,
+  "score_report": {
+    "path": "artifacts/synthetic-runtime-evidence/db-geometry-source-c96-score-run1.json",
+    "sha256": "cecb7ce243ec0b941a9b298174558f6abac7738d271463bb89e0703c406db0d1"
+  },
+  "default_output_parity": {
+    "path": "artifacts/synthetic-runtime-evidence/db-geometry-source-c96-default-output-parity.json",
+    "sha256": "0811a3cbd2937b1485ef579e762acc66e0bec1346c9ca593e5b3054ea0dff8a4",
+    "status": "exact_scientific_output_parity",
+    "panels": 13,
+    "unchanged_referenced_files_per_comparison_side_across_train_and_dev": 104,
+    "difference_classes": {
+      "authenticated_build_provenance": 117,
+      "measured_elapsed_time": 402,
+      "opaque_run_id": 13,
+      "authenticated_added_observation": 13
+    },
+    "scientific_mutation_checks": [
+      {
+        "name": "scientific_tick_id",
+        "mutated_path": "/axis/geometry/ticks/0/tick_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "name": "scientific_divider_id",
+        "mutated_path": "/axis/geometry/phase_dividers/0/divider_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "name": "scientific_ocr_region_id",
+        "mutated_path": "/ocr/regions/0/region_id",
+        "unexpected_difference_detected": true
+      },
+      {
+        "name": "source_width_numeric",
+        "mutated_path": "/source_width",
+        "unexpected_difference_detected": true
+      },
+      {
+        "name": "residual_confidence_numeric",
+        "mutated_path": "/residual_artifact_candidate_envelope/confidence",
+        "unexpected_difference_detected": true
+      },
+      {
+        "name": "pre_ocr_byte_count_numeric",
+        "mutated_path": "/pre_ocr_diagnostic/source_gray/byte_count",
+        "unexpected_difference_detected": true
+      },
+      {
+        "name": "wrong_value_at_allowed_native_path",
+        "mutated_path": "/axis/envelope/model/sha256",
+        "unexpected_difference_detected": true
+      },
+      {
+        "name": "invalid_negative_timing",
+        "mutated_path": "/elapsed_milliseconds",
+        "unexpected_difference_detected": true
+      }
+    ],
+    "elapsed_milliseconds": 2102.793
+  },
+  "validation": {
+    "ocr_suite": {
+      "passed": 206,
+      "failed": 0,
+      "opt_in_skipped": 16
+    },
+    "observer_focused": {
+      "passed": 3,
+      "elapsed_milliseconds": 262
+    },
+    "scorer_safeguards": {
+      "passed": 23,
+      "elapsed_seconds": 6.63
+    },
+    "diagnostic_release_compile": {
+      "warnings": 0,
+      "errors": 0,
+      "elapsed_seconds": 19.11
+    },
+    "independent_review": "Parent reviewed the delegated observer and scorer; validation-before-truth and executable-byte binding findings were corrected before execution."
+  },
+  "runtime_elapsed_milliseconds": {
+    "train": 5776.0609,
+    "dev": 8425.8771
+  },
+  "interpretation": "Unclip expansion explains substantial localization error: unmasked combined matches increase from 106 to 237 of 329 truths with the same 346 accepted contours. Initial boxes still miss 92 truths and retain 109 false detections, failing both 95 percent bars. Runtime geometry and production availability remain unchanged."
+}
