@@ -1,0 +1,240 @@
+{
+  "diagnosis": {
+    "elapsed_ms": 173024.315,
+    "environment": {
+      "deterministic_algorithms": true,
+      "numpy": "2.3.5",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+      "torch": "2.13.0+cpu",
+      "torch_threads": 1
+    },
+    "family_dev_evaluation": {
+      "counts": {
+        "false_negative": 6,
+        "false_positive": 169,
+        "panel_count": 9,
+        "prediction_count": 369,
+        "proposal_count": 65760,
+        "true_positive": 200,
+        "truth_count": 206
+      },
+      "false_negative_best_above_threshold_decoded_distance_px": {
+        "count": 6,
+        "maximum": 47.79402827238462,
+        "median": 16.39913252532505,
+        "minimum": 5.105586550242466,
+        "p05": 5.12611381879109,
+        "p90": 41.093003362173306,
+        "p95": 44.443515817278964
+      },
+      "false_negative_cause": {
+        "classification_below_threshold": 6
+      },
+      "false_negative_maximum_positive_proposal_probability": {
+        "count": 6,
+        "maximum": 0.1990448385477066,
+        "median": 0.023784671910107136,
+        "minimum": 0.007438268978148699,
+        "p05": 0.010124220862053335,
+        "p90": 0.14521723240613937,
+        "p95": 0.172131035476923
+      },
+      "false_negative_nearest_proposal_distance_px": {
+        "count": 6,
+        "maximum": 1.9829459190368652,
+        "median": 1.4753570556640625,
+        "minimum": 0.6190724968910217,
+        "p05": 0.7659799307584763,
+        "p90": 1.9600696563720703,
+        "p95": 1.9715077877044678
+      },
+      "false_positive_actual_runtime_plot_location": {
+        "inside_actual_runtime_plot": 54,
+        "outside_actual_runtime_plot": 115
+      },
+      "false_positive_confidence": {
+        "count": 169,
+        "maximum": 0.9898688793182373,
+        "median": 0.500113308429718,
+        "minimum": 0.2501525282859802,
+        "p05": 0.25886147022247313,
+        "p90": 0.9268703937530521,
+        "p95": 0.9664032340049743
+      },
+      "false_positive_nearest_synthetic_annotation_category": {
+        "axis": 2,
+        "connector": 1,
+        "divider": 1,
+        "legend": 40,
+        "text": 115,
+        "top_bar": 10
+      },
+      "false_positive_outside_plot_boundary_distance_px": {
+        "gt16_or_unavailable": 80,
+        "gt3_le5": 1,
+        "gt5_le8": 6,
+        "gt8_le16": 27,
+        "le3": 1
+      },
+      "false_positive_plot_boundary_distance_px": {
+        "count": 169,
+        "maximum": 76.41152770366264,
+        "median": 22.484190353918137,
+        "minimum": 0.018517301789606106,
+        "p05": 6.418734756999974,
+        "p90": 52.45148533444277,
+        "p95": 74.9833088867491
+      },
+      "false_positive_runtime_artifact_mask_distance_bins_px": {
+        "gt16_or_unavailable": 147,
+        "gt5_le8": 3,
+        "gt8_le16": 13,
+        "le3": 6
+      },
+      "false_positive_runtime_artifact_mask_distance_px": {
+        "count": 169,
+        "maximum": 205.94139802217845,
+        "median": 47.70072567443752,
+        "minimum": 0.19368217957886688,
+        "p05": 8.53072269628282,
+        "p90": 109.07747321356513,
+        "p95": 125.53044096128991
+      },
+      "false_positive_runtime_ocr_mask_distance_bins_px": {
+        "gt16_or_unavailable": 48,
+        "gt5_le8": 3,
+        "gt8_le16": 12,
+        "le3": 106
+      },
+      "false_positive_runtime_ocr_mask_distance_px": {
+        "count": 169,
+        "maximum": 184.51906163436828,
+        "median": 0.5128114001830741,
+        "minimum": 0.04768092154898706,
+        "p05": 0.20764962055069028,
+        "p90": 34.88138774916943,
+        "p95": 71.47469701342268
+      },
+      "false_positive_synthetic_annotation_distance_bins_px": {
+        "arrow": {
+          "gt16_or_unavailable": 156,
+          "gt3_le5": 2,
+          "gt8_le16": 11
+        },
+        "axis": {
+          "gt16_or_unavailable": 164,
+          "gt3_le5": 1,
+          "gt8_le16": 4
+        },
+        "connector": {
+          "gt16_or_unavailable": 139,
+          "gt8_le16": 14
+        },
+        "divider": {
+          "gt16_or_unavailable": 169
+        },
+        "legend": {
+          "gt16_or_unavailable": 127,
+          "gt8_le16": 5,
+          "le3": 37
+        },
+        "text": {
+          "gt16_or_unavailable": 14,
+          "gt3_le5": 4,
+          "gt5_le8": 4,
+          "gt8_le16": 10,
+          "le3": 137
+        },
+        "tick": {
+          "gt16_or_unavailable": 166,
+          "gt8_le16": 3
+        },
+        "top_bar": {
+          "gt16_or_unavailable": 110,
+          "gt3_le5": 4,
+          "gt5_le8": 4,
+          "gt8_le16": 44,
+          "le3": 7
+        }
+      },
+      "model_forward_ms": 19393.195,
+      "precision": 0.5420054200542005,
+      "recall": 0.970873786407767
+    },
+    "identities": {
+      "candidate_config_sha256": "adb5a6ff5215757f06e1a35ab08f86a981061c5f242ac87653743ef6847f6ce3",
+      "candidate_report_sha256": "8eea427b772d5552415d2c2efe570a84a962eb842e7c656d6e3b82fda4a8723a",
+      "checkpoint_sha256": "0b1d16843df3af7298b9f7660a2aefe525c2ce43d44e487f71780d8e16c6515c",
+      "diagnostic_source_sha256": {
+        "ml/markers/center/mask_preserving_v24/mask_preserving.py": "171ddcc2efbd2742f5699dad8d16ecec217ca983ee06cec4bc63e1f17e3120e2",
+        "ml/markers/center/mask_preserving_v24/runtime_binding.py": "0b4a23a39289b2872cfbc1e6def3dff2915d46ceade02e3277c68bb73ae07ce4",
+        "ml/markers/center/mask_preserving_v24/runtime_binding_v2.py": "b7a4e4cd330d8033113c75c9cfd0f89fc2b4cea9cdfeaeec2c8a2049997ca1cc",
+        "ml/markers/center/mask_preserving_v24/runtime_family_scenes.py": "59233739c4eae55865d16ad8367f4c013c1b372b7feee2715fe3be57493673a0",
+        "ml/markers/center/mask_preserving_v24/runtime_inputs.py": "17d8df01e4ef25ad77ad7bac6652724282054b29947b7e81be0c424977e9c3f0",
+        "ml/markers/center/mask_preserving_v24/train_p1.py": "875a1c2950977bd5ebff726090d939b9325e8b5722e7bc6d4904d89b3366d1c4",
+        "ml/markers/center/scale_classifier_v16/model.py": "899dfbed25707f121f657f4138f8a50060bc554acfbac48b7e2f93bc3668587f"
+      },
+      "family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
+      "helper_sha256": "71e01defa0e5289dd264e154c64de12fa79597fc9f23a7c33ec982a3ab5e7434",
+      "onnx_sha256": "fa6dfa50e4b793681dfde46883e651c4f9a240e7968ab9516a691b2bbf3ecc9b",
+      "runtime_binding_sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f"
+    },
+    "input_contract": {
+      "channels": [
+        "actual_runtime_ink",
+        "actual_runtime_ocr_mask",
+        "actual_runtime_artifact_mask"
+      ],
+      "classifier_shape": [
+        "candidate_count",
+        3,
+        33,
+        33
+      ],
+      "explicit_candidate_coordinates": false,
+      "explicit_panel_dimensions": false,
+      "explicit_runtime_plot_polygon": false,
+      "patch_radius_px": 16,
+      "runtime_plot_use": "diagnostic_attribution_only_after_inference",
+      "synthetic_annotation_use": "diagnostic_attribution_only_after_inference"
+    },
+    "interpretation": {
+      "limitations": "Synthetic text, tick, divider, connector, and marker annotations are evaluator-only attribution. Runtime plot polygons come from the actual axis stage. Distance categories overlap and are descriptive. This run does not select a threshold or candidate, establish causality for local morphology, or authorize production.",
+      "local_context_result": "115 of 169 false positives are outside the actual runtime plot polygon; 80 are more than the 16-pixel classifier patch radius from its boundary. Those far-outside inputs cannot contain the plot boundary and the classifier receives no candidate coordinates, panel dimensions, or runtime plot polygon. This establishes a representation gap for that subset, but does not prove that global context caused every false positive.",
+      "smallest_next_isolated_repair": "Use this aggregate attribution to preregister one isolated representation repair only if false positives materially concentrate outside the runtime plot. Do not implement a truth-derived ROI filter: any future spatial feature must use the already available runtime axis geometry and retain visible failure when geometry is unavailable."
+    },
+    "property_boundaries": {
+      "proximity_bins_px": [
+        3,
+        5,
+        8,
+        16
+      ],
+      "runtime_mask_present": {
+        "acceptance_threshold": false,
+        "minimum": 0.35
+      }
+    },
+    "schema": "graphreader.marker-v24-retry13-family-error-diagnosis.v1",
+    "scope": {
+      "aggregate_output_only": true,
+      "candidate_comparison_run": false,
+      "family_dev_panels_inferred": 9,
+      "fixed_threshold": 0.25,
+      "matching_tolerance_px": 5.0,
+      "optimizer_steps": 0,
+      "private_reads": 0,
+      "production_approval": false,
+      "sealed_reads": 0,
+      "synthetic_only": true,
+      "threshold_sweep": false
+    },
+    "status": "descriptive_failed_dev_diagnosis"
+  },
+  "schema": "graphreader.goal22-marker-context-diagnosis.v1",
+  "source": {
+    "path": "artifacts/goal22-runs/marker-v24-retry13-stratified/family-error-diagnosis/diagnosis.json",
+    "sha256": "ecb6f68b9c8943c17f28b22b896b38314c3c74ec0b00bd29606ccefe621d43f8"
+  }
+}

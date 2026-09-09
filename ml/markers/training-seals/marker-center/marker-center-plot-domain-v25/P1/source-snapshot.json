@@ -1,0 +1,320 @@
+{
+  "base_commit": "dd3ba552e25185ac08c9bb9821477aec2c5b3ce5",
+  "captured_utc": "2026-09-09T20:51:22.607223+00:00",
+  "identity": {
+    "candidate_id": "P1",
+    "revision": "marker-center-plot-domain-v25",
+    "task": "marker-center"
+  },
+  "inline_hashes": {},
+  "preregistered_ledger_entry": {
+    "authorization_scope": "Synthetic train/dev only under Goal22 execution authorization; no sealed/private read or production approval.",
+    "authorized_candidate_id": "P1",
+    "budget_consumption_event": "first_sealed_split_read",
+    "candidate_config_paths": {
+      "P1": "ml/markers/center/plot_domain_v25/training/p1.json"
+    },
+    "candidate_config_sha256": {
+      "P1": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2"
+    },
+    "consumed_candidate_ids": [],
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "execution_authorized": true,
+    "experiment_budget": 1,
+    "isolated_change": "Plot-domain composition with authenticated V3 source inputs; V24 architecture, initializer, optimizer, component benchmark and fixed operating threshold retained.",
+    "optimizer_steps_expected": 12636,
+    "preregistered_candidate_ids": [
+      "P1"
+    ],
+    "protocol_path": "ml/markers/center/plot_domain_v25/dev_protocol.json",
+    "protocol_sha256": "26c790e19e574a71669d940c48497425308d6e53f57e9876d9fb14ac314e24ae",
+    "revision": "marker-center-plot-domain-v25",
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "status": "candidate_1_preregistered",
+    "task": "marker-center"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "docs/GOAL-22-PHASE-4R-V24-FAMILY-DEV-BASELINE.json",
+      "sha256": "c42011acaab800fffad92f92c4d4fa67775d2998dde4845aea0622f431795479"
+    },
+    {
+      "path": "docs/GOAL-22-PHASE-4R-V24-MORPHOLOGY-GAP.json",
+      "sha256": "23203100f1eab38b7132de43f524f86e2795e86bb66cb539f5569da54de7961f"
+    },
+    {
+      "path": "docs/GOAL-22-PHASE-4R-V24-NEGATIVE-PATCH-GAP.json",
+      "sha256": "6a1cc4ca1cfac0fa0f2401d40f3c6c9f1c2ecfa98695e8e36e2808a799dfb9df"
+    },
+    {
+      "path": "docs/GOAL-22-PHASE-4R-V24-RETRY3-MORPHOLOGY-GAP.json",
+      "sha256": "3b0e9981eb3d21787679f1df1151a3c0bc395ce7966e6c681c6de5755c3fb769"
+    },
+    {
+      "path": "docs/GOAL-22-PHASE-4R-V24-RETRY7-MORPHOLOGY-GAP.json",
+      "sha256": "163ae1471792925b6b23c3a6fd26d1ae6d16637864180eaafd179875964afa36"
+    },
+    {
+      "path": "docs/GOAL-22-V24-RUNTIME-INPUT-PREFLIGHT.json",
+      "sha256": "74b8470ccc1e8003911d8e1183dba4a2427089489332fda5f6dd09b718955c57"
+    },
+    {
+      "path": "ml/markers/center/dataset.py",
+      "sha256": "95623cd99d54fbb374e5046c510a7307eeb89f72c10311d267eadd0f9304bc47"
+    },
+    {
+      "path": "ml/markers/center/focal_confidence_v21/focal_loss.py",
+      "sha256": "81b7367ef84cad25d3563c058459c7ef67d831f1c3b06bddb62bf546125a23f8"
+    },
+    {
+      "path": "ml/markers/center/line_aware_v1/dataset.py",
+      "sha256": "4b31a98233c74770669def38ed5367411f810e1476faa519d3b8c2a1b8d2f0b3"
+    },
+    {
+      "path": "ml/markers/center/line_aware_v1/pipeline.py",
+      "sha256": "6af504d5f952bff6b7201fc2ce6a961ba87525b5bee6424229962ba1f2b17407"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/FEASIBILITY.json",
+      "sha256": "b653d2a0a18ce07bd68f3e3519e9fc55bc4da83e8a8279f3d48ac04aff15033a"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/P1_RETRY8_RESULT.json",
+      "sha256": "483f5f989ad73d5280da4cf248cc71c2c2f315dec24827b5cb7a2a59512f37cf"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/coverage_dev_protocol.json",
+      "sha256": "6582091a0aaea0ee6eedb6476bf17936bd0bda2234bffff9de721ad66b00269c"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY2_MORPHOLOGY_DIAGNOSIS.json",
+      "sha256": "01c7fc31f393feaff2c46a46670a73095cf5c5a6111d7fff745f166cb1cf3a24"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY4_DIAGNOSIS.json",
+      "sha256": "a19745f7904c8ec316a78a4e220e3133fc5f77fa80f471ed5337976bdbb6594b"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY4_GENERIC_FP_DIAGNOSIS.json",
+      "sha256": "24d86878dc335803b2aacd6bab5105496cbb2fb51734b4eb0d8ead4feea5d172"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY5_DIAGNOSIS.json",
+      "sha256": "8f38fd10be6130c34b05aa9544491f59c9c95d8b962bd0010f9dbdf287c8228a"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY5_GENERIC_FP_DIAGNOSIS.json",
+      "sha256": "701f43ec266ae63689200610ea68d4e5a18b1017fd0951d88f496252ef1076d8"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY6_DIAGNOSIS.json",
+      "sha256": "34a3bbdf68cd049162b40964ad66c4bfe17cf0f46c306f969497002755e12b0e"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY7_DIAGNOSIS.json",
+      "sha256": "1761fd27f0cd1aa9e6a1e3b2b8f0d3c4fa84cb5195dd8c72cea3f17d042683ac"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY7_MORPHOLOGY_DIAGNOSIS.json",
+      "sha256": "16b9ed50655b6767affdb927106c5b2661d2fce388849d8c80aa5ac0165ebf78"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY8_DIAGNOSIS.json",
+      "sha256": "0d26acdc0f7eb00b9a053a3bedfbba4f7de4dc755d7a78d3275629e3972577ff"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/V24_RETRY_DIAGNOSIS.json",
+      "sha256": "6d135b6d22cc1d016337fdadff439919a5934eeea34a71cb66c876471ac3c763"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/diagnostics/diagnose_retry.py",
+      "sha256": "960e6388f00f5ae83612025b600ad5314a2c602a08fdd007ddf5fb50f39c240e"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/export_family_rasters.py",
+      "sha256": "c97eb80dfd5da04cdd87fea5cd9713d2fced8ff3bf01e35cbc9347ba4826ff8d"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/family_scenes.py",
+      "sha256": "0872091244ebe4a2e87192c74b0720a911255816ced4b4fb55df811305a92686"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/mask_preserving.py",
+      "sha256": "171ddcc2efbd2742f5699dad8d16ecec217ca983ee06cec4bc63e1f17e3120e2"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/protocol.py",
+      "sha256": "885ec7b63ab27b1db6301be12410cb06b9874efbcd0656289a999bd6b20679fe"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/runtime_binding.py",
+      "sha256": "0b4a23a39289b2872cfbc1e6def3dff2915d46ceade02e3277c68bb73ae07ce4"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/runtime_binding_v2.py",
+      "sha256": "b7a4e4cd330d8033113c75c9cfd0f89fc2b4cea9cdfeaeec2c8a2049997ca1cc"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/runtime_family_scenes.py",
+      "sha256": "59233739c4eae55865d16ad8367f4c013c1b372b7feee2715fe3be57493673a0"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/runtime_inputs.py",
+      "sha256": "17d8df01e4ef25ad77ad7bac6652724282054b29947b7e81be0c424977e9c3f0"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/stratified_background.py",
+      "sha256": "b3d922272c83908ffdfeb3fa0f02bfa24cc83b95d3194d4a105110005e00caaa"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/stratified_background_dev_protocol.json",
+      "sha256": "917980a9014638fc91f696f9ef38c942c15685f8917b09387b5f2693c9d23e41"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/train_p1.py",
+      "sha256": "875a1c2950977bd5ebff726090d939b9325e8b5722e7bc6d4904d89b3366d1c4"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/uniform_background_dev_protocol.json",
+      "sha256": "c831d010dab52d12f1856c99a848c21e7dbe9f99547a8f1c6644ffe009ddee8b"
+    },
+    {
+      "path": "ml/markers/center/metrics.py",
+      "sha256": "022720e567388feed569b88cf9a7d47e76c83391e8cba344e3c71af4f74ca3d0"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/dev_protocol.json",
+      "sha256": "26c790e19e574a71669d940c48497425308d6e53f57e9876d9fb14ac314e24ae"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/proposal_domain.py",
+      "sha256": "6c009f1b3bc9b22dbe4467132873286ba6a0f9bd0f39b8faaa22b53ae624c760"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/protocol.py",
+      "sha256": "114cd44e1c8ccceb984bcfb9a5c3db88b13496ab57be71f957d475a56f16d8b0"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/runtime_domain_binding.py",
+      "sha256": "902018759b5e95e0a0ca912d63427a970267cc1101cd6af27cd61da86e0f29fd"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/runtime_domain_binding_v3.py",
+      "sha256": "2e8ad74fe44720b96323a3e927ae0e611b1ef993a565c7abd02bfabdd6446f93"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/train_p1.py",
+      "sha256": "c1f6cdf310dd71170b4936af0a149bbc37af137641410d9cf70a93703cb182c1"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/training/p1.json",
+      "sha256": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2"
+    },
+    {
+      "path": "ml/markers/center/postprocess.py",
+      "sha256": "66eadf851952678ad82f57f65a1bd404cd235ed629b4a52128804c9edcc23105"
+    },
+    {
+      "path": "ml/markers/center/real_range_generator_v1/AUDIT.json",
+      "sha256": "1d71d76956e24f0c1a230c9c27e59aecc0d0cd64a04ca9c0d26ef171838ce26b"
+    },
+    {
+      "path": "ml/markers/center/real_range_generator_v1/NEGATIVE_PROPOSAL_AUDIT.json",
+      "sha256": "364b0e62a5261581bca519e4f740cf9b4c9ec6fc120edee817f0275c1ff224e0"
+    },
+    {
+      "path": "ml/markers/center/real_range_generator_v1/generator.py",
+      "sha256": "2244094e8d8e3a8cacb83e11c5e7189ded46b25b1ce9ecdad1bd80e5dec78b41"
+    },
+    {
+      "path": "ml/markers/center/real_range_generator_v1/negative_sampler.py",
+      "sha256": "80625357ae4bf6167963c66d0fd6a215fe00c5c936d4542994fb32a275e71a43"
+    },
+    {
+      "path": "ml/markers/center/scale_classifier_v16/model.py",
+      "sha256": "899dfbed25707f121f657f4138f8a50060bc554acfbac48b7e2f93bc3668587f"
+    },
+    {
+      "path": "ml/markers/gate_seal.py",
+      "sha256": "b310789162c06ca11cb348cbf2fcece877a25ce6173ec0dee70bdc29d33ef6d7"
+    },
+    {
+      "path": "ml/markers/training-budgets/production-repair-v1.json",
+      "sha256": "4ed342b6d8c2b110633acd607bc8313bea557dc9bf1687b4e6282e8e1eeb3645"
+    },
+    {
+      "path": "ml/markers/training_budget.py",
+      "sha256": "73a7b977833ca52fbdb246e2c64bb26ea44da0ca818e9f97551e3a930ce349ba"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/evidence_policy.py",
+      "sha256": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7"
+    },
+    {
+      "path": "ml/synthetic/contact_sheet.py",
+      "sha256": "db98be281e76bc9ce75cb9f23d99190b8539a82b677f91e466e57434d4d15ecb"
+    },
+    {
+      "path": "ml/synthetic/dataset.py",
+      "sha256": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b"
+    },
+    {
+      "path": "ml/synthetic/fonts.py",
+      "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+    },
+    {
+      "path": "ml/synthetic/io.py",
+      "sha256": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2"
+    },
+    {
+      "path": "ml/synthetic/renderer.py",
+      "sha256": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_axis_preserving_v2.py",
+      "sha256": "1de947fed6278166cd2c5f63bef6ef2337644ae51da6c9d9bfdb485e517a7afa"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_axis_preserving_v2_protocol.json",
+      "sha256": "6e4407fef6ce6ba8c6e76013602b108a39aaf443ce91ac0898f3ff31f5049be6"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_visible_content_v3.py",
+      "sha256": "eb358f9fe6b06c538d792794e8e28a2f751b55fefa7dd5c9da04e83673dc1cca"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_visible_content_v3_protocol.json",
+      "sha256": "94ad7b7d3476ce5143af4e7f973a31baf59dbc113cbbeda66f099619b55f99a8"
+    },
+    {
+      "path": "ml/synthetic/scene.schema.json",
+      "sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f"
+    },
+    {
+      "path": "ml/synthetic/schema.py",
+      "sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98"
+    },
+    {
+      "path": "ml/synthetic/templates.py",
+      "sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_family_ocr.py",
+      "sha256": "431392d074e985f953a1444982076466f461d3445c018a5c307f174ebc0a959e"
+    }
+  ]
+}

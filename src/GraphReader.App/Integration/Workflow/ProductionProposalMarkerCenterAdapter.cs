@@ -100,6 +100,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     public const int PatchSize = 33;
     public const int ProposalStride = 4;
     public const int BatchSize = 256;
+    internal const double PlotDomainBoundaryPixels = 16;
     internal const double MinimumCenterSeparationForTesting = 6.5;
     private const float InkSupportThreshold = 0.11f;
     private const float MaskRejectionThreshold = 0.35f;
@@ -111,6 +112,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     private readonly int maximumDecodedCandidates;
     private readonly bool multiradiusGeometry;
     private readonly bool maskPreservingCandidate;
+    private readonly bool plotDomainProposalFiltering;
     private readonly string maskPreservingRevision;
     private readonly string maskPreservingCandidateId;
 
@@ -177,6 +179,34 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             maskPreservingCandidateId: descriptor.Identity.Version);
     }
 
+    internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidatePlotDomainEvaluation(
+        FrozenCandidateMarkerCenterModelDescriptor descriptor,
+        InferenceRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(runtime);
+        return CreateForFrozenCandidatePlotDomainEvaluation(
+            descriptor,
+            new RuntimeProposalMarkerInferenceRunner(runtime));
+    }
+
+    internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidatePlotDomainEvaluation(
+        FrozenCandidateMarkerCenterModelDescriptor descriptor,
+        IProposalMarkerInferenceRunner inference)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(inference);
+        ValidateFrozenCandidateDescriptor(descriptor);
+        return new ProductionProposalMarkerCenterAdapter(
+            descriptor.Identity,
+            inference,
+            multiradiusGeometry: true,
+            maskPreservingCandidate: true,
+            expectedMaskPreservingSha256: descriptor.Identity.Sha256,
+            maskPreservingRevision: descriptor.Identity.ModelId,
+            maskPreservingCandidateId: descriptor.Identity.Version,
+            plotDomainProposalFiltering: true);
+    }
+
     public static ProductionProposalMarkerCenterAdapter Create(
         ResolvedProductionModel resolvedModel,
         ProductionInferenceRuntimeHost runtimeHost)
@@ -218,12 +248,21 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         bool isApproved = false,
         string? expectedMaskPreservingSha256 = null,
         string? maskPreservingRevision = null,
-        string? maskPreservingCandidateId = null)
+        string? maskPreservingCandidateId = null,
+        bool plotDomainProposalFiltering = false)
     {
         Model = model ?? throw new ArgumentNullException(nameof(model));
         Model.Validate();
         this.multiradiusGeometry = multiradiusGeometry;
         this.maskPreservingCandidate = maskPreservingCandidate;
+        if (plotDomainProposalFiltering &&
+            (!maskPreservingCandidate || !multiradiusGeometry || isApproved))
+        {
+            throw new InvalidOperationException(
+                "V25 plot-domain proposals require an explicitly unapproved mask-preserving multiradius candidate.");
+        }
+
+        this.plotDomainProposalFiltering = plotDomainProposalFiltering;
         string expectedModelSha256 = maskPreservingCandidate
             ? expectedMaskPreservingSha256 ?? ExpectedMaskPreservingModelSha256
             : multiradiusGeometry ? ExpectedMultiradiusModelSha256 : ExpectedModelSha256;
@@ -247,7 +286,9 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         }
     }
 
-    public string AdapterId => $"graphreader-marker-center-proposal:{Model.Sha256[..12].ToLowerInvariant()}";
+    public string AdapterId => string.Concat(
+        $"graphreader-marker-center-proposal:{Model.Sha256[..12].ToLowerInvariant()}",
+        plotDomainProposalFiltering ? ":plot-domain-v25" : string.Empty);
 
     public bool IsApproved { get; }
 
@@ -631,7 +672,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             request.ProjectId,
             request.Panel.ImportedPanel.PanelId,
             MarkerContract.Stage,
-            $"proposal-marker-v24:{Model.Version}",
+            $"{(plotDomainProposalFiltering ? "proposal-marker-v25-plot-domain" : "proposal-marker-v24")}:{Model.Version}",
             request.Image.Sha256,
             new WorkflowVisionModel(Model.ModelId, Model.Version, Model.Sha256, "cpu"),
             new WorkflowVisionTiming(0, 0, 0, total.Elapsed.TotalMilliseconds),
@@ -640,7 +681,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             []);
         var report = new MarkerFrameReport(
             MarkerSourceImage.Original,
-            $"proposal-v24:{request.Image.Sha256}:{Model.Sha256}",
+            $"{(plotDomainProposalFiltering ? "proposal-v25-plot-domain" : "proposal-v24")}:{request.Image.Sha256}:{Model.Sha256}",
             InferenceProvider.Cpu,
             [new ProviderAttempt(InferenceProvider.Cpu, true, null)],
             timing,
@@ -691,6 +732,18 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                 proposals[index].Patch.CopyTo(values.AsSpan(index * 3 * PatchSize * PatchSize));
             }
 
+            var cacheParameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["candidate_id"] = maskPreservingCandidate ? maskPreservingCandidateId : multiradiusGeometry ? MultiradiusCandidateId : CandidateId,
+                ["threshold"] = CenterThreshold,
+                ["batch_offset"] = batchOffset,
+                ["batch_count"] = count,
+            };
+            if (plotDomainProposalFiltering)
+            {
+                cacheParameters["proposal_domain"] = "axis-polygon-or-16px-boundary";
+            }
+
             InferenceResponse response = await inference.RunAsync(
                     new InferenceRequest(
                         Model,
@@ -699,15 +752,9 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                             "candidate-only",
                             "proposal-patches",
                             frame.SourceImage.ToString(),
-                            maskPreservingCandidate ? "marker_center_candidate_v24" : multiradiusGeometry ? "marker_center_candidate_v23" : "marker_center_candidate_p2",
-                            maskPreservingCandidate ? maskPreservingRevision : multiradiusGeometry ? MultiradiusCandidateRevision : CandidateRevision,
-                            new Dictionary<string, object?>(StringComparer.Ordinal)
-                            {
-                                ["candidate_id"] = maskPreservingCandidate ? maskPreservingCandidateId : multiradiusGeometry ? MultiradiusCandidateId : CandidateId,
-                                ["threshold"] = CenterThreshold,
-                                ["batch_offset"] = batchOffset,
-                                ["batch_count"] = count,
-                            },
+                            plotDomainProposalFiltering ? "marker_center_candidate_v25_plot_domain" : maskPreservingCandidate ? "marker_center_candidate_v24" : multiradiusGeometry ? "marker_center_candidate_v23" : "marker_center_candidate_p2",
+                            plotDomainProposalFiltering ? $"{maskPreservingRevision}:plot-domain-v25" : maskPreservingCandidate ? maskPreservingRevision : multiradiusGeometry ? MultiradiusCandidateRevision : CandidateRevision,
+                            cacheParameters,
                             MarkerContract.Version),
                         TimeSpan.FromSeconds(30),
                         [InferenceProvider.Cpu],
@@ -794,7 +841,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                      ocrUnmaskedProposalCenters,
                      emittedProposalCenters,
                      cancellationToken,
-                     maskPreservingCandidate))
+                     maskPreservingCandidate,
+                     plotDomainProposalFiltering))
         {
             batch.Add(proposal);
             if (batch.Count == BatchSize)
@@ -813,13 +861,13 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         counters.NmsSuppressions = nmsSuppressions;
         counters.FinalCandidates = accepted.Count;
         IReadOnlyList<MarkerCenter> preNmsCandidates = predictions
-            .Select((candidate, index) => ToMarkerCenter(frame, candidate, index, multiradiusGeometry, maskPreservingCandidate, "pre-nms"))
+            .Select((candidate, index) => ToMarkerCenter(frame, candidate, index, multiradiusGeometry, maskPreservingCandidate, plotDomainProposalFiltering, "pre-nms"))
             .ToArray();
         IReadOnlyList<MarkerCenter> candidates = accepted
             .OrderBy(candidate => candidate.Center.Y)
             .ThenBy(candidate => candidate.Center.X)
             .ThenByDescending(candidate => candidate.Confidence)
-            .Select((candidate, index) => ToMarkerCenter(frame, candidate, index, multiradiusGeometry, maskPreservingCandidate, suffix: null))
+            .Select((candidate, index) => ToMarkerCenter(frame, candidate, index, multiradiusGeometry, maskPreservingCandidate, plotDomainProposalFiltering, suffix: null))
             .ToArray();
         return new ProposalMarkerCandidateDiagnosticResult(
             candidates,
@@ -874,11 +922,23 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             int plane = PatchSize * PatchSize;
             float[] input = new float[checked(proposals.Count * 3 * plane)];
             for (int i = 0; i < proposals.Count; i++) proposals[i].Patch.CopyTo(input.AsSpan(i * 3 * plane));
+            var cacheParameters = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["candidate_id"] = maskPreservingCandidateId,
+                ["threshold"] = CenterThreshold,
+                ["batch_offset"] = offset,
+            };
+            if (plotDomainProposalFiltering)
+            {
+                cacheParameters["proposal_domain"] = "axis-polygon-or-16px-boundary";
+            }
             InferenceResponse response = await inference.RunAsync(new InferenceRequest(
                 Model,
                 new InferenceInput(input, [proposals.Count, 3, PatchSize, PatchSize], "candidate_patches", "candidate_predictions"),
-                new StageCacheMaterial("candidate-only", "proposal-patches", frame.SourceImage.ToString(), "marker_center_candidate_v24_morphology", maskPreservingRevision,
-                    new Dictionary<string, object?>(StringComparer.Ordinal) { ["candidate_id"] = maskPreservingCandidateId, ["threshold"] = CenterThreshold, ["batch_offset"] = offset }, MarkerContract.Version),
+                new StageCacheMaterial("candidate-only", "proposal-patches", frame.SourceImage.ToString(),
+                    plotDomainProposalFiltering ? "marker_center_candidate_v25_plot_domain_morphology" : "marker_center_candidate_v24_morphology",
+                    plotDomainProposalFiltering ? $"{maskPreservingRevision}:plot-domain-v25" : maskPreservingRevision,
+                    cacheParameters, MarkerContract.Version),
                 TimeSpan.FromSeconds(30), [InferenceProvider.Cpu], BypassCache: true), cancellationToken).ConfigureAwait(false);
             if (!response.Succeeded || response.Execution is null || response.Execution.Provider != InferenceProvider.Cpu || response.Execution.Output.Count != proposals.Count * 4)
                 throw new InvalidDataException("The V24 morphology diagnostic requires successful CPU inference with [N,4] output.");
@@ -889,7 +949,17 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                 scores.Add(SummarizeMorphology(frame, proposals[i], probability));
             }
         }
-        foreach (Proposal proposal in EnumerateProposals(frame, plotPolygon, counters, [], [], [], [], cancellationToken, true))
+        foreach (Proposal proposal in EnumerateProposals(
+                     frame,
+                     plotPolygon,
+                     counters,
+                     [],
+                     [],
+                     [],
+                     [],
+                     cancellationToken,
+                     maskPreservingCandidate: true,
+                     plotDomainProposalFiltering: plotDomainProposalFiltering))
         {
             batch.Add(proposal);
             if (batch.Count == BatchSize) { await InferBatchAsync(batch).ConfigureAwait(false); offset += batch.Count; batch.Clear(); }
@@ -976,9 +1046,12 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         int index,
         bool multiradiusGeometry,
         bool maskPreservingCandidate,
+        bool plotDomainProposalFiltering,
         string? suffix)
     {
-        string prefix = maskPreservingCandidate ? "candidate-v24-p1" : multiradiusGeometry ? "candidate-v23-p1" : "candidate-p2";
+        string prefix = plotDomainProposalFiltering
+            ? "candidate-v25-plot-domain"
+            : maskPreservingCandidate ? "candidate-v24-p1" : multiradiusGeometry ? "candidate-v23-p1" : "candidate-p2";
         string markerId = $"{prefix}{(suffix is null ? string.Empty : $"-{suffix}")}-{index.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
         int centerX = (int)Math.Round(candidate.Center.X);
         int centerY = (int)Math.Round(candidate.Center.Y);
@@ -1044,13 +1117,17 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         List<MarkerPoint> ocrUnmaskedProposalCenters,
         List<MarkerPoint> emittedProposalCenters,
         CancellationToken cancellationToken,
-        bool maskPreservingCandidate = false)
+        bool maskPreservingCandidate = false,
+        bool plotDomainProposalFiltering = false)
     {
         int width = frame.Width;
         int height = frame.Height;
         int gridWidth = (width + ProposalStride - 1) / ProposalStride;
         int gridHeight = (height + ProposalStride - 1) / ProposalStride;
         var framePolygon = plotPolygon.Points.Select(frame.OriginalToFrame.MapFromOriginal).ToArray();
+        MarkerPolygon? framePlotDomain = plotDomainProposalFiltering
+            ? ValidatePlotDomain(framePolygon, width, height)
+            : null;
         // V24 was trained and gated with torch.unfold across the complete frame.
         // Retain that exact proposal lattice, then apply the plot polygon to
         // decoded centers below. Older diagnostic candidates keep their scoped
@@ -1091,6 +1168,12 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                     continue;
                 }
                 inkSupportedProposalCenters.Add(originalCenter);
+                if (framePlotDomain is not null &&
+                    !SupportsPlotDomain(framePlotDomain, new MarkerPoint(x, y)))
+                {
+                    continue;
+                }
+
                 if (!maskPreservingCandidate && WindowMax(text, width, height, x, y, 2) >= MaskRejectionThreshold)
                 {
                     counters.OcrMaskRejects++;
@@ -1126,6 +1209,93 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                 yield return new Proposal(x, y, patch);
             }
         }
+    }
+
+    private static MarkerPolygon ValidatePlotDomain(
+        MarkerPoint[] points,
+        int width,
+        int height)
+    {
+        if (points.Length != 4 ||
+            points.Distinct().Count() != 4 ||
+            points.Any(point => !point.IsFinite ||
+                point.X < 0 || point.X > width || point.Y < 0 || point.Y > height) ||
+            Math.Abs(SignedArea(points)) <= 1e-9 ||
+            SegmentsCross(points[0], points[1], points[2], points[3]) ||
+            SegmentsCross(points[1], points[2], points[3], points[0]))
+        {
+            throw new ArgumentException(
+                "V25 plot-domain proposals require a simple four-point polygon within the detector frame.",
+                nameof(points));
+        }
+
+        return new MarkerPolygon(points);
+    }
+
+    private static bool SupportsPlotDomain(MarkerPolygon polygon, MarkerPoint point)
+    {
+        if (polygon.Contains(point))
+        {
+            return true;
+        }
+
+        for (int index = 0; index < polygon.Points.Count; index++)
+        {
+            MarkerPoint current = polygon.Points[index];
+            MarkerPoint previous = polygon.Points[index == 0 ? polygon.Points.Count - 1 : index - 1];
+            if (DistanceToSegment(point, current, previous) <= PlotDomainBoundaryPixels)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static double SignedArea(MarkerPoint[] points)
+    {
+        double sum = 0;
+        for (int index = 0; index < points.Length; index++)
+        {
+            MarkerPoint current = points[index];
+            MarkerPoint next = points[(index + 1) % points.Length];
+            sum += (current.X * next.Y) - (next.X * current.Y);
+        }
+
+        return 0.5 * sum;
+    }
+
+    private static bool SegmentsCross(
+        MarkerPoint a,
+        MarkerPoint b,
+        MarkerPoint c,
+        MarkerPoint d) =>
+        Orientation(a, b, c) * Orientation(a, b, d) < 0 &&
+        Orientation(c, d, a) * Orientation(c, d, b) < 0;
+
+    private static double Orientation(MarkerPoint a, MarkerPoint b, MarkerPoint c) =>
+        ((b.X - a.X) * (c.Y - a.Y)) - ((b.Y - a.Y) * (c.X - a.X));
+
+    private static double DistanceToSegment(
+        MarkerPoint point,
+        MarkerPoint a,
+        MarkerPoint b)
+    {
+        double deltaX = b.X - a.X;
+        double deltaY = b.Y - a.Y;
+        double denominator = (deltaX * deltaX) + (deltaY * deltaY);
+        if (denominator == 0)
+        {
+            return Distance(point, a);
+        }
+
+        double position = Math.Clamp(
+            (((point.X - a.X) * deltaX) + ((point.Y - a.Y) * deltaY)) / denominator,
+            0,
+            1);
+        return Distance(
+            point,
+            new MarkerPoint(a.X + (position * deltaX), a.Y + (position * deltaY)));
     }
 
     private static float WindowMax(ReadOnlyMemory<float> values, int width, int height, int centerX, int centerY, int radius)

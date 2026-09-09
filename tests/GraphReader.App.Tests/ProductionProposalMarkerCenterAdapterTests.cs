@@ -429,6 +429,149 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
         Assert.AreEqual(64, result.StageCounters.ProposalGridPositionsConsidered);
         Assert.AreEqual(64, result.StageCounters.EmittedProposals);
         Assert.AreEqual(64, runner.TotalPatches);
+        Assert.IsNotNull(runner.LastRequest);
+        Assert.AreEqual("marker_center_candidate_v24", runner.LastRequest.CacheMaterial.StageName);
+        Assert.AreEqual(
+            ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
+            runner.LastRequest.CacheMaterial.StageVersion);
+        Assert.IsFalse(runner.LastRequest.CacheMaterial.Parameters.ContainsKey("proposal_domain"));
+    }
+
+    [TestMethod]
+    public async Task PlotDomainCandidateMatchesPythonSkewedCoordinatesAndPatchBytes()
+    {
+        var runner = new FakeRunner(static count => new float[count * 4]);
+        MarkerImageFrame frame = ParityFrame(48, 40, MarkerAffineTransform.Identity);
+        var polygon = new MarkerPolygon(
+        [
+            new(12, 32),
+            new(36, 32),
+            new(40, 8),
+            new(16, 8),
+        ]);
+
+        ProposalMarkerCandidateDiagnosticResult result =
+            await CreatePlotDomainAdapter(runner).DetectCandidateWithDiagnosticsAsync(
+                frame,
+                polygon,
+                CancellationToken.None);
+
+        Assert.AreEqual(120, result.StageCounters.ProposalGridPositionsConsidered);
+        Assert.AreEqual(120, result.InkSupportedProposalCenters.Count);
+        Assert.AreEqual(118, result.StageCounters.EmittedProposals);
+        Assert.AreEqual(118, runner.TotalPatches);
+        Assert.AreEqual(
+            "b4734b37d85bd2fda0b667560722d055da487cdf5bbfd7a5e4158a96f14fafb9",
+            HashFloat32(result.EmittedProposalCenters.SelectMany(
+                static point => new[] { (float)point.X, (float)point.Y }).ToArray()));
+        Assert.AreEqual(
+            "d5f564e5e002abbf6dbb430f805380d39b1d5bf3ee98c58f2353feda71c331b7",
+            HashFloat32(runner.LastInputValues));
+        Assert.IsNotNull(runner.LastRequest);
+        Assert.AreEqual(
+            "marker_center_candidate_v25_plot_domain",
+            runner.LastRequest.CacheMaterial.StageName);
+        Assert.AreEqual(
+            $"{ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision}:plot-domain-v25",
+            runner.LastRequest.CacheMaterial.StageVersion);
+        Assert.AreEqual(
+            "axis-polygon-or-16px-boundary",
+            runner.LastRequest.CacheMaterial.Parameters["proposal_domain"]);
+    }
+
+    [TestMethod]
+    public async Task PlotDomainCandidateIncludesExact16PixelBoundaryAndRejectsOutside()
+    {
+        var runner = new FakeRunner(static count => new float[count * 4]);
+        MarkerImageFrame frame = ParityFrame(64, 64, MarkerAffineTransform.Identity);
+        MarkerPolygon polygon = MarkerPolygon.FromRectangle(new(20, 20, 24, 24));
+
+        ProposalMarkerCandidateDiagnosticResult result =
+            await CreatePlotDomainAdapter(runner).DetectCandidateWithDiagnosticsAsync(
+                frame,
+                polygon,
+                CancellationToken.None);
+
+        Assert.AreEqual(256, result.InkSupportedProposalCenters.Count);
+        Assert.AreEqual(193, result.EmittedProposalCenters.Count);
+        Assert.IsTrue(result.EmittedProposalCenters.Contains(new MarkerPoint(4, 32)));
+        Assert.IsFalse(result.EmittedProposalCenters.Contains(new MarkerPoint(0, 32)));
+        Assert.AreEqual(
+            "1422dc2ea7d590ec3894748a6cdcc52dfe6a73538cfef74a3dbf1429a3bf3dad",
+            HashFloat32(result.EmittedProposalCenters.SelectMany(
+                static point => new[] { (float)point.X, (float)point.Y }).ToArray()));
+        Assert.AreEqual(
+            "2583951016c8872e2701b0fb12dc555efdda3126e84575e4b28773056948fee7",
+            HashFloat32(runner.LastInputValues));
+    }
+
+    [TestMethod]
+    public async Task PlotDomainCandidateMeasuresBoundaryInTransformedFramePixels()
+    {
+        var runner = new FakeRunner(static count => new float[count * 4]);
+        var transform = new MarkerAffineTransform(2, 0, 4, 0, 2, 4);
+        MarkerImageFrame frame = ParityFrame(64, 64, transform);
+        MarkerPolygon originalPolygon = MarkerPolygon.FromRectangle(new(8, 8, 12, 12));
+
+        ProposalMarkerCandidateDiagnosticResult result =
+            await CreatePlotDomainAdapter(runner).DetectCandidateWithDiagnosticsAsync(
+                frame,
+                originalPolygon,
+                CancellationToken.None);
+
+        Assert.AreEqual(193, result.EmittedProposalCenters.Count);
+        Assert.IsTrue(result.EmittedProposalCenters.Contains(new MarkerPoint(0, 14)));
+        Assert.IsFalse(result.EmittedProposalCenters.Contains(new MarkerPoint(-2, 14)));
+    }
+
+    [TestMethod]
+    public void PlotDomainCandidateHasDistinctIdentityAndRejectsInvalidModeCombinations()
+    {
+        var runner = new FakeRunner(static count => new float[count * 4]);
+        ProductionProposalMarkerCenterAdapter adapter = CreatePlotDomainAdapter(runner);
+
+        Assert.IsFalse(adapter.IsApproved);
+        StringAssert.EndsWith(adapter.AdapterId, ":plot-domain-v25");
+        Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(
+            new ModelIdentity(
+                ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
+                ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
+                ProductionProposalMarkerCenterAdapter.ExpectedMaskPreservingModelSha256,
+                "candidate-v24.onnx"),
+            runner,
+            plotDomainProposalFiltering: true));
+        Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(
+            new ModelIdentity(
+                ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
+                ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
+                ProductionProposalMarkerCenterAdapter.ExpectedMaskPreservingModelSha256,
+                "candidate-v24.onnx"),
+            runner,
+            multiradiusGeometry: true,
+            maskPreservingCandidate: true,
+            isApproved: true,
+            plotDomainProposalFiltering: true));
+    }
+
+    [TestMethod]
+    public async Task PlotDomainCandidateRejectsForeignPolygonBeforeInference()
+    {
+        var runner = new FakeRunner(static count => new float[count * 4]);
+        MarkerImageFrame frame = ParityFrame(64, 64, MarkerAffineTransform.Identity);
+        var selfIntersecting = new MarkerPolygon(
+        [
+            new(20, 20),
+            new(44, 44),
+            new(20, 44),
+            new(44, 20),
+        ]);
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            CreatePlotDomainAdapter(runner).DetectCandidateWithDiagnosticsAsync(
+                frame,
+                selfIntersecting,
+                CancellationToken.None));
+        Assert.AreEqual(0, runner.TotalCalls);
     }
 
     [TestMethod]
@@ -539,6 +682,54 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             maskPreservingCandidate: true,
             isApproved: isApproved);
 
+    private static ProductionProposalMarkerCenterAdapter CreatePlotDomainAdapter(
+        FakeRunner runner) =>
+        new(new ModelIdentity(
+            ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
+            ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
+            ProductionProposalMarkerCenterAdapter.ExpectedMaskPreservingModelSha256,
+            "candidate-v24.onnx"),
+            runner,
+            multiradiusGeometry: true,
+            maskPreservingCandidate: true,
+            plotDomainProposalFiltering: true);
+
+    private static MarkerImageFrame ParityFrame(
+        int width,
+        int height,
+        MarkerAffineTransform transform)
+    {
+        float[] luminance = new float[checked(width * height)];
+        float[] ocr = new float[luminance.Length];
+        float[] artifact = new float[luminance.Length];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = (y * width) + x;
+                ocr[index] = ((x + (2 * y)) % 17) / 16f;
+                artifact[index] = (((3 * x) + y) % 19) / 18f;
+            }
+        }
+
+        return new MarkerImageFrame(
+            width,
+            height,
+            1,
+            luminance,
+            MarkerSourceImage.Original,
+            transform,
+            new MarkerMask(width, height, ocr),
+            new MarkerMask(width, height, artifact));
+    }
+
+    private static string HashFloat32(float[] values)
+    {
+        byte[] bytes = new byte[checked(values.Length * sizeof(float))];
+        Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
+        return Convert.ToHexStringLower(SHA256.HashData(bytes));
+    }
+
     private static MarkerImageFrame FrameWithMarkers()
     {
         float[] ink = new float[512 * 512];
@@ -606,10 +797,12 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
         public int TotalCalls => BatchSizes.Count;
         public int TotalPatches => BatchSizes.Sum();
         public float[] LastInputValues { get; private set; } = [];
+        public InferenceRequest? LastRequest { get; private set; }
 
         public ValueTask<InferenceResponse> RunAsync(InferenceRequest request, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            LastRequest = request;
             int count = checked((int)request.Input.Shape[0]);
             LastInputValues = request.Input.Values.ToArray();
             BatchSizes.Add(count);

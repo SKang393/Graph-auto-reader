@@ -73,7 +73,7 @@
       "minimum_artifact_precision": 0.9,
       "minimum_artifact_recall": 0.95,
       "maximum_marker_artifact_hits": 0,
-      "onnx_parity_tolerance": 0.00001,
+      "onnx_parity_tolerance": 1e-05,
       "split_materialized": true,
       "selection_manifest_path": "ml/markers/center/dense_contract_v5/SELECTION_MANIFEST.json",
       "selection_manifest_sha256": "12210c9917b8139055b24274def9935a3d1e08588e335131c92b724cd784166e",
@@ -115,7 +115,7 @@
       "p1_selection_artifact_precision": 0.9792975259582105,
       "p1_selection_artifact_recall": 0.9907275320970043,
       "p1_selection_marker_artifact_hits": 0,
-      "p1_onnx_parity_maximum_absolute_error": 0.000031888484954833984,
+      "p1_onnx_parity_maximum_absolute_error": 3.1888484954833984e-05,
       "p1_onnx_parity_passed": false,
       "p1_training_opened_seal_sha256": "74e1ce756e4f66f61959fa338bec78088b7d8b38a768d5270a41cd53042e50fb",
       "p1_training_result_seal_sha256": "03a1cea82a4bc963152ddd17f3c6784d2182ced7bfb0960e330a648b895e9c73",
@@ -142,7 +142,7 @@
       "p2_selection_artifact_precision": 0.983707312351793,
       "p2_selection_artifact_recall": 0.9885390999870315,
       "p2_selection_marker_artifact_hits": 0,
-      "p2_onnx_parity_maximum_absolute_error": 0.000014990568161010742,
+      "p2_onnx_parity_maximum_absolute_error": 1.4990568161010742e-05,
       "p2_onnx_parity_passed": false,
       "p2_training_opened_seal_sha256": "3e1024fe7c12132a9b3aaaff4a90281ad828543dc90201fb7413ecfb226d2ad7",
       "p2_training_result_seal_sha256": "db988b97a88ee72805b067e615833751146d1fad2c0f982b1bcc6bf8b198209f",
@@ -171,9 +171,9 @@
       "p3_selection_artifact_precision": 0.9838903968776602,
       "p3_selection_artifact_recall": 0.9930294384645312,
       "p3_selection_marker_artifact_hits": 0,
-      "p3_onnx_parity_maximum_absolute_error": 0.000009506940841674805,
+      "p3_onnx_parity_maximum_absolute_error": 9.506940841674805e-06,
       "p3_onnx_parity_passed": true,
-      "p3_checkpoint_to_inference_graph_maximum_absolute_error": 0.000011861324310302734,
+      "p3_checkpoint_to_inference_graph_maximum_absolute_error": 1.1861324310302734e-05,
       "p3_checkpoint_to_inference_graph_passed": false,
       "p3_training_opened_seal_sha256": "18efae139f3ce84e5fd5ecd8500c8b04ed119d06fd9d896f11d6d404272390a6",
       "p3_training_result_seal_sha256": "b0e80fbed5e741761a5bc90ba47478dc9ec74f65ab9ef171297c330d7973ed04",
@@ -457,7 +457,7 @@
       "p3_training_result_seal_sha256": "55cab05d21568a429eca3988022c2f74a1df42f4181063f21351729666bad04f",
       "p3_optimizer_steps": 180,
       "p3_elapsed_ms": 1809492.742,
-      "p3_onnx_parity_maximum_absolute_error": 7.152557373046875e-7,
+      "p3_onnx_parity_maximum_absolute_error": 7.152557373046875e-07,
       "p3_selected_threshold": 0.65,
       "p3_passing_threshold_window": [],
       "p3_validation_exact_scene_count": 128,
@@ -562,7 +562,7 @@
       "p1_training_opened_seal_sha256": "38ad9fcb3dfa20e67b029f9f721281e31c61b6631e7390250d304d7efecaa915",
       "p1_training_result_seal_sha256": "976ad5e7c17bc5daf1743a2a267701739d205360351a7d742fbfa969bfa04724",
       "p1_elapsed_ms": 1605115.36,
-      "p1_onnx_parity_maximum_absolute_error": 4.76837158203125e-7,
+      "p1_onnx_parity_maximum_absolute_error": 4.76837158203125e-07,
       "p1_onnx_parity_passed": true,
       "p1_passing_threshold_window": [],
       "p1_selected_threshold": 0.35,
@@ -595,7 +595,7 @@
       "p2_training_result_seal_sha256": "b6a454c22483cf951084c3840fff815b0a262ad1a03a38950b740a3441f3e0c7",
       "p2_status": "failed_selection_consumed",
       "p2_elapsed_ms": 1091877.562,
-      "p2_onnx_parity_maximum_absolute_error": 4.76837158203125e-7,
+      "p2_onnx_parity_maximum_absolute_error": 4.76837158203125e-07,
       "p2_onnx_parity_passed": true,
       "p2_passing_threshold_window": [],
       "p2_selected_threshold": 0.45,
@@ -637,7 +637,7 @@
       "p3_status": "failed_selection_consumed",
       "p3_elapsed_ms": 2976030.664,
       "p3_optimizer_steps": 1480,
-      "p3_onnx_parity_maximum_absolute_error": 2.384185791015625e-6,
+      "p3_onnx_parity_maximum_absolute_error": 2.384185791015625e-06,
       "p3_onnx_parity_passed": true,
       "p3_passing_threshold_window": [],
       "p3_selected_threshold": 0.65,
@@ -797,7 +797,7 @@
       "p1_validation_prohibited_structure_hits": 1,
       "p1_validation_role_accuracy": 0.9994212962962963,
       "p1_validation_minimum_per_role_accuracy": 0.9953703703703703,
-      "p1_onnx_parity_maximum_absolute_error": 0.000005245208740234375,
+      "p1_onnx_parity_maximum_absolute_error": 5.245208740234375e-06,
       "p1_onnx_parity_passed": true,
       "p1_role_invariance_maximum_absolute_error": 0.0,
       "p1_role_argmax_mismatch_count": 0,
@@ -827,7 +827,7 @@
       "p2_validation_prohibited_structure_hits": 1,
       "p2_validation_role_accuracy": 0.9994212962962963,
       "p2_validation_minimum_per_role_accuracy": 0.9953703703703703,
-      "p2_onnx_parity_maximum_absolute_error": 0.000005245208740234375,
+      "p2_onnx_parity_maximum_absolute_error": 5.245208740234375e-06,
       "p2_onnx_parity_passed": true,
       "p2_role_invariance_maximum_absolute_error": 0.0,
       "p2_role_argmax_mismatch_count": 0,
@@ -858,7 +858,7 @@
       "p3_validation_prohibited_structure_hits": 1,
       "p3_validation_role_accuracy": 0.9994212962962963,
       "p3_validation_minimum_per_role_accuracy": 0.9953703703703703,
-      "p3_onnx_parity_maximum_absolute_error": 0.000005245208740234375,
+      "p3_onnx_parity_maximum_absolute_error": 5.245208740234375e-06,
       "p3_onnx_parity_passed": true,
       "p3_p2_base_invariance_maximum_absolute_error": 0.0,
       "p3_role_invariance_maximum_absolute_error": 0.0,
@@ -1916,7 +1916,7 @@
       "p2_training_report_sha256": "d4892996554f7dd76e81b524fe7daf4b077035150425cbe1e9ede59f31e7c102",
       "p2_training_opened_seal_sha256": "b754843a3295d895308c17047a6901c81abd1a7a2b3f2e0a19c73d8466d45196",
       "p2_training_result_seal_sha256": "b01dda470ff4173664a26a0bc41e4e5e09526b86eba96cf3628430bd647a096f",
-      "p2_onnx_parity_maximum_absolute_error": 0.0000011920928955078125,
+      "p2_onnx_parity_maximum_absolute_error": 1.1920928955078125e-06,
       "p2_selection_threshold": 0.7,
       "p2_selection_exact_scene_count": 8,
       "p2_selection_scene_count": 9,
@@ -1938,7 +1938,7 @@
       "p3_training_result_seal_sha256": "e0f7c062b6b581673a55525f8dc6b9d0c5ba111d87d9f8278883e6e541c0b215",
       "p3_optimizer_steps": 0,
       "p3_weights_changed": false,
-      "p3_onnx_parity_maximum_absolute_error": 0.0000011920928955078125,
+      "p3_onnx_parity_maximum_absolute_error": 1.1920928955078125e-06,
       "p3_selection_threshold": 0.2,
       "p3_selection_exact_scene_count": 9,
       "p3_selection_scene_count": 9,
@@ -2128,7 +2128,7 @@
       "p1_checkpoint_sha256": "6b670a6f29454d7f63527f57210aa918540a817fca156a71b96872ff09aa2787",
       "p1_onnx_sha256": "924c555e2f27955c644143125d7abd3b05859ea9928ab9d1e741e0544fa19e8b",
       "p1_optimizer_steps": 1620,
-      "p1_onnx_parity_maximum_absolute_error": 0.0000019073486328125,
+      "p1_onnx_parity_maximum_absolute_error": 1.9073486328125e-06,
       "p1_selection_threshold": 0.3,
       "p1_selection_exact_scene_count": 7,
       "p1_selection_scene_count": 9,
@@ -2150,7 +2150,7 @@
       "p2_checkpoint_sha256": "16023ff1ee95fa90f5da449a92e68e0f312956a4d62b0924b4725ac83ac9f88e",
       "p2_onnx_sha256": "64f4c23795ab9e953a2e8aeba1887f8c99785f02385f453c9a46e6885578ff58",
       "p2_optimizer_steps": 1620,
-      "p2_onnx_parity_maximum_absolute_error": 0.00000095367431640625,
+      "p2_onnx_parity_maximum_absolute_error": 9.5367431640625e-07,
       "p2_selection_threshold": 0.15,
       "p2_selection_exact_scene_count": 5,
       "p2_selection_scene_count": 9,
@@ -2173,7 +2173,7 @@
       "p3_onnx_sha256": "924c555e2f27955c644143125d7abd3b05859ea9928ab9d1e741e0544fa19e8b",
       "p3_optimizer_steps": 0,
       "p3_weights_changed": false,
-      "p3_onnx_parity_maximum_absolute_error": 0.0000019073486328125,
+      "p3_onnx_parity_maximum_absolute_error": 1.9073486328125e-06,
       "p3_selection_threshold": 0.3,
       "p3_selection_exact_scene_count": 9,
       "p3_selection_scene_count": 9,
@@ -2255,8 +2255,8 @@
       "p1_selection_fill_macro_f1": 0.9907389542735867,
       "p1_selection_artifact_f1": 1.0,
       "p1_selection_minority_shape_f1": 1.0,
-      "p1_probability_packed_onnx_maximum_absolute_error": 0.0000020265579223632812,
-      "p1_probability_packed_onnx_parity_tolerance": 0.00001,
+      "p1_probability_packed_onnx_maximum_absolute_error": 2.0265579223632812e-06,
+      "p1_probability_packed_onnx_parity_tolerance": 1e-05,
       "execution_authorized": false,
       "authorized_candidate_id": null,
       "public_gate_authorized": false,
@@ -2273,7 +2273,7 @@
       "public_gate_fill_macro_f1": 0.9440313111545988,
       "public_gate_artifact_f1": 1.0,
       "public_gate_minority_shape_f1": 1.0,
-      "public_gate_probability_packed_onnx_maximum_absolute_error": 0.0000017285346984863281,
+      "public_gate_probability_packed_onnx_maximum_absolute_error": 1.7285346984863281e-06,
       "confirmation_gate_authorized": false,
       "confirmation_gate_authorized_candidate_id": "P1",
       "confirmation_gate_evaluations": 1,
@@ -2288,14 +2288,14 @@
       "confirmation_gate_fill_macro_f1": 0.9440559440559441,
       "confirmation_gate_artifact_f1": 1.0,
       "confirmation_gate_minority_shape_f1": 1.0,
-      "confirmation_gate_probability_packed_onnx_maximum_absolute_error": 0.0000010728836059570312,
+      "confirmation_gate_probability_packed_onnx_maximum_absolute_error": 1.0728836059570312e-06,
       "production_approval": true,
       "production_payload_sha256": "26f9304f1689053a0b94aa896a1e239f6ade1e5c1920736a3535c1b32f803b8a",
       "production_evidence_sha256": "c4fb25e45e9c6d77100de8230a30443231445fa71751d685ba66c65da370e7a3",
       "provider_integration_trx_sha256": "24d9ebf38853174ec3ddadba42015b84f4c7ea4aa507b69ec70a42419ea5d247",
       "model_store_canonical_trx_sha256": "2b52ba36a0322a8f0e21df81bd4da307bb3659078cc693a15346300bfde84243",
       "production_model_store_index_sha256": "2cbd8adb51f80307b1ca4f011d54f108a78c3299c901e680ed92696ec46750a8",
-      "cpu_directml_maximum_absolute_difference": 0.00000035762786865234375,
+      "cpu_directml_maximum_absolute_difference": 3.5762786865234375e-07,
       "integration_blocker": "The classifier is approved for production discovery and packaging. Marker-center, OCR, workflow, distribution, and clean-machine release gates remain mandatory.",
       "refusal_required_before_output": true
     },
@@ -2346,7 +2346,7 @@
       "p1_validation_character_error_rate": 0.18483904465212878,
       "p1_validation_role_accuracy": 0.8645833333333334,
       "p1_validation_marker_exclusion_accuracy": 0.890625,
-      "p1_onnx_parity_maximum_absolute_error": 0.00000476837158203125,
+      "p1_onnx_parity_maximum_absolute_error": 4.76837158203125e-06,
       "p1_public_gate_evaluations": 0,
       "p1_failure": "P1 passed CPU ONNX parity but failed every validation quality gate. Max-fit normalization mapped 31 of 111 validation decimal points to reject and 14 divider exclusions to digit one.",
       "p2_preregistration_path": "ml/ocr/component_geometric_v4/P2_PREREGISTRATION.json",
@@ -2366,7 +2366,7 @@
       "p2_validation_character_error_rate": 0.2087227414330218,
       "p2_validation_role_accuracy": 0.8828125,
       "p2_validation_marker_exclusion_accuracy": 0.9609375,
-      "p2_onnx_parity_maximum_absolute_error": 0.00001049041748046875,
+      "p2_onnx_parity_maximum_absolute_error": 1.049041748046875e-05,
       "p2_public_gate_evaluations": 0,
       "p2_failure": "P2 passed CPU ONNX parity but failed every validation quality gate. Absolute-canvas-only encoding rejected 40 positive labels and introduced cross-font zero/eight, minus/decimal, and eight/one confusions plus five accepted exclusion glyphs.",
       "p3_preregistration_path": "ml/ocr/component_geometric_v4/P3_PREREGISTRATION.json",
@@ -2386,7 +2386,7 @@
       "p3_validation_character_error_rate": 0.04361370716510903,
       "p3_validation_role_accuracy": 0.9713541666666666,
       "p3_validation_marker_exclusion_accuracy": 0.9921875,
-      "p3_onnx_parity_maximum_absolute_error": 0.00000476837158203125,
+      "p3_onnx_parity_maximum_absolute_error": 4.76837158203125e-06,
       "p3_public_gate_evaluations": 0,
       "p3_failure": "P3 passed validation exact match, CER, role accuracy, and CPU ONNX parity, but one of 128 divider exclusions was classified as digit one at every frozen confidence threshold. Mandatory exclusion accuracy is 1.0.",
       "execution_authorized": false,
@@ -2529,7 +2529,7 @@
       "p1_validation_character_error_rate": 0.04443282801881861,
       "p1_validation_role_accuracy": 0.9732142857142857,
       "p1_validation_marker_exclusion_accuracy": 1.0,
-      "p1_onnx_parity_maximum_absolute_error": 0.000009298324584960938,
+      "p1_onnx_parity_maximum_absolute_error": 9.298324584960938e-06,
       "expected_runner_source_bundle_sha256": "eb26126206b4e31b52f1f7848936e8502a2a7f8fcbc589ca9c321ecaa2fb0ea8",
       "protocol_path": "ml/ocr/component_ensemble_v5/PROTOCOL.json",
       "protocol_sha256": "3c4a169eb1b51e6895152c00e0ef2ff664e8154abc911a21cbcba17e0346adfa",
@@ -2629,7 +2629,7 @@
       "p2_onnx_sha256": "aeaa923363367a7bc5169dd894ee933b4f4f2bb4c0091454741b1acea1ded464",
       "p2_optimizer_steps": 1536,
       "p2_probability_contract_passed": true,
-      "p2_onnx_parity_maximum_absolute_error": 0.0000022351741790771484,
+      "p2_onnx_parity_maximum_absolute_error": 2.2351741790771484e-06,
       "p2_validation_exact_rate": 0.22916666666666666,
       "p2_validation_false_region_count": 78,
       "p2_validation_exclusion_false_region_count": 2,
@@ -2648,7 +2648,7 @@
       "p3_onnx_sha256": "7c9450a01b9ec3f37d609bf1894f5763ef9a6ebccbe2916ea0450b96cc81fb1f",
       "p3_optimizer_steps": 1536,
       "p3_probability_contract_passed": true,
-      "p3_onnx_parity_maximum_absolute_error": 0.00000268220901489258,
+      "p3_onnx_parity_maximum_absolute_error": 2.68220901489258e-06,
       "p3_validation_exact_rate": 0.65625,
       "p3_validation_text_exact_fixture_count": 39,
       "p3_validation_false_region_count": 10,
@@ -2720,7 +2720,7 @@
       "p1_selection_false_region_count": 38,
       "p1_selection_exclusion_false_region_count": 9,
       "p1_selection_duplicate_region_count": 0,
-      "p1_onnx_parity_maximum_absolute_error": 0.0000034570693969726562,
+      "p1_onnx_parity_maximum_absolute_error": 3.4570693969726562e-06,
       "p1_probability_contract_passed": true,
       "p1_selection_gate_passed": false,
       "p1_failure": "P1 improved recall over exhausted V1 but overfit high-confidence graph structure: only 52/96 selection fixtures were exact, with 38 false regions including nine on exclusions. Rail/legend and nested-bracket families each contributed 17 false regions; nine text fixtures were still missed.",
@@ -2740,7 +2740,7 @@
       "p2_selection_false_region_count": 41,
       "p2_selection_exclusion_false_region_count": 8,
       "p2_selection_duplicate_region_count": 0,
-      "p2_onnx_parity_maximum_absolute_error": 0.0000020265579223632812,
+      "p2_onnx_parity_maximum_absolute_error": 2.0265579223632812e-06,
       "p2_probability_contract_passed": true,
       "p2_selection_gate_passed": false,
       "p2_failure": "P2 passed probability and parity but only 56/96 selection fixtures were exact. It produced 41 false regions including eight on exclusions and missed 20 text fixtures, showing that hard-negative mining on text patches penalized glyph pixels outside the shrunken DB target.",
@@ -2760,7 +2760,7 @@
       "p3_selection_false_region_count": 82,
       "p3_selection_exclusion_false_region_count": 20,
       "p3_selection_duplicate_region_count": 0,
-      "p3_onnx_parity_maximum_absolute_error": 0.000004649162292480469,
+      "p3_onnx_parity_maximum_absolute_error": 4.649162292480469e-06,
       "p3_probability_contract_passed": true,
       "p3_selection_gate_passed": false,
       "p3_failure": "P3 passed probability and parity but only 30/96 selection fixtures were exact. It produced 82 false regions including 20 on exclusions and missed 13 text fixtures. The full three-candidate budget is exhausted without opening the public gate.",
@@ -2829,7 +2829,7 @@
       "p1_selection_false_region_count": 210,
       "p1_selection_exclusion_false_region_count": 36,
       "p1_selection_duplicate_region_count": 0,
-      "p1_onnx_parity_maximum_absolute_error": 0.000007748603820800781,
+      "p1_onnx_parity_maximum_absolute_error": 7.748603820800781e-06,
       "p1_probability_contract_passed": true,
       "p1_selection_gate_passed": false,
       "p1_failure": "P1 passed probability and parity but only 8/112 selection fixtures were exact. It produced 210 false regions, 36 exclusion false regions, 75 text misses, and zero exact text fixtures. Focused-crop training loss approached zero while same-family full-frame diagnostics also failed, showing that the single crop omitted graph-wide negative context.",
@@ -2850,7 +2850,7 @@
       "p2_selection_false_region_count": 115,
       "p2_selection_exclusion_false_region_count": 15,
       "p2_selection_duplicate_region_count": 0,
-      "p2_onnx_parity_maximum_absolute_error": 0.000004708766937255859,
+      "p2_onnx_parity_maximum_absolute_error": 4.708766937255859e-06,
       "p2_probability_contract_passed": true,
       "p2_selection_gate_passed": false,
       "p2_failure": "P2 passed probability and parity but only 27/112 selection fixtures were exact. It produced 115 false regions, 15 exclusion false regions, 76 text misses, and only three exact text fixtures. A single broad diagnostic found centered predictions but median post-unclip size of 1.94 times truth height and 1.28 times truth width, binding P3 to the unconstrained ignored boundary rather than provider or threshold drift.",
@@ -2875,7 +2875,7 @@
       "p3_text_exact_fixture_count": 60,
       "p3_text_missed_fixture_count": 19,
       "p3_text_multi_region_fixture_count": 1,
-      "p3_onnx_parity_maximum_absolute_error": 0.0000015497207641601562,
+      "p3_onnx_parity_maximum_absolute_error": 1.5497207641601562e-06,
       "p3_probability_contract_passed": true,
       "p3_selection_gate_passed": false,
       "p3_failure": "P3 passed probability and CPU parity and removed every exclusion false positive, but only 92/112 selection fixtures were exact. It produced two text false regions and 19 text misses. A single broad diagnosis found failures across all four held-out structure and degradation groups, so the defect is unresolved recall rather than provider drift or exclusion leakage.",
@@ -2951,7 +2951,7 @@
       "p1_selection_exclusion_false_region_count": 0,
       "p1_selection_duplicate_region_count": 0,
       "p1_text_missed_fixture_count": 35,
-      "p1_onnx_parity_maximum_absolute_error": 0.0000013113021850585938,
+      "p1_onnx_parity_maximum_absolute_error": 1.3113021850585938e-06,
       "p1_probability_contract_passed": true,
       "p1_selection_gate_passed": false,
       "p1_failure": "P1 passed probability, CPU parity, and all 40 exclusions, but only 101/136 fixtures were exact. Twenty-one text cases produced no DB-eligible region despite strong activation, and fourteen centered predictions failed IoU with median height expansion 1.845.",
@@ -2974,7 +2974,7 @@
       "p2_selection_duplicate_region_count": 0,
       "p2_text_missed_fixture_count": 24,
       "p2_text_multi_region_fixture_count": 3,
-      "p2_onnx_parity_maximum_absolute_error": 0.00000095367431640625,
+      "p2_onnx_parity_maximum_absolute_error": 9.5367431640625e-07,
       "p2_probability_contract_passed": true,
       "p2_selection_gate_passed": false,
       "p2_diagnosis_path": "ml/ocr/graph_text_stride4_v4/artifacts/P2-run/selection-diagnosis.json",
@@ -3001,7 +3001,7 @@
       "p3_selection_duplicate_region_count": 0,
       "p3_text_missed_fixture_count": 50,
       "p3_text_multi_region_fixture_count": 8,
-      "p3_onnx_parity_maximum_absolute_error": 0.00000095367431640625,
+      "p3_onnx_parity_maximum_absolute_error": 9.5367431640625e-07,
       "p3_probability_contract_passed": true,
       "p3_selection_gate_passed": false,
       "p3_failure": "P3 passed probability and CPU parity but regressed to 82/136 exact, with one exclusion false region, 50 text misses, 39 false regions, and eight multi-region text fixtures. The full-resolution input branch amplified local strokes and compact structures instead of repairing DB continuity.",
@@ -3080,7 +3080,7 @@
       "p1_selection_duplicate_region_count": 0,
       "p1_text_missed_fixture_count": 85,
       "p1_text_multi_region_fixture_count": 8,
-      "p1_onnx_parity_maximum_absolute_error": 0.0000016391277313232422,
+      "p1_onnx_parity_maximum_absolute_error": 1.6391277313232422e-06,
       "p1_probability_contract_passed": true,
       "p1_selection_gate_passed": false,
       "p1_diagnosis_path": "ml/ocr/graph_text_db_objective_v5/artifacts/P1-run/selection-diagnosis.json",
@@ -3110,7 +3110,7 @@
       "p2_selection_duplicate_region_count": 0,
       "p2_text_missed_fixture_count": 51,
       "p2_text_multi_region_fixture_count": 4,
-      "p2_onnx_parity_maximum_absolute_error": 0.00000083446502685546875,
+      "p2_onnx_parity_maximum_absolute_error": 8.344650268554688e-07,
       "p2_probability_contract_passed": true,
       "p2_selection_gate_passed": false,
       "p2_diagnosis_path": "ml/ocr/graph_text_db_objective_v5/artifacts/P2-run/selection-diagnosis.json",
@@ -3139,7 +3139,7 @@
       "p3_selection_duplicate_region_count": 0,
       "p3_text_missed_fixture_count": 22,
       "p3_text_multi_region_fixture_count": 1,
-      "p3_onnx_parity_maximum_absolute_error": 0.00000095367431640625,
+      "p3_onnx_parity_maximum_absolute_error": 9.5367431640625e-07,
       "p3_probability_contract_passed": true,
       "p3_selection_gate_passed": false,
       "p3_failure": "P3 passed probability and CPU parity and retained zero exclusion false regions, but only 113/136 fixtures were exact, with 22 text misses, three text false regions, and one multi-region text fixture at the unchanged production DB thresholds.",
@@ -3223,7 +3223,7 @@
       "p1_selection_duplicate_count": 2,
       "p1_selection_prohibited_structure_hits": 0,
       "p1_selection_f1": 0.9793814432989691,
-      "p1_onnx_parity_maximum_absolute_error": 0.000002384185791015625,
+      "p1_onnx_parity_maximum_absolute_error": 2.384185791015625e-06,
       "p1_onnx_parity_passed": true,
       "p1_selection_gate_passed": false,
       "p1_failure": "P1 passed CPU ONNX parity but only 8/12 validation scenes were exact, with three false positives, one false negative, two duplicates, and zero prohibited-structure hits. P1 is consumed and cannot rerun; the truth-hidden public archive remained unopened.",
@@ -3255,7 +3255,7 @@
       "p2_selection_false_negatives": 0,
       "p2_selection_duplicate_count": 0,
       "p2_selection_prohibited_structure_hits": 0,
-      "p2_onnx_parity_maximum_absolute_error": 0.000002384185791015625,
+      "p2_onnx_parity_maximum_absolute_error": 2.384185791015625e-06,
       "p2_onnx_parity_passed": true,
       "p2_public_exact_scene_count": 13,
       "p2_public_scene_count": 20,
@@ -3487,7 +3487,7 @@
       "p1_selection_false_negatives": 0,
       "p1_selection_duplicate_count": 0,
       "p1_selection_prohibited_structure_hits": 0,
-      "p1_onnx_parity_maximum_absolute_error": 0.00000146031379699707,
+      "p1_onnx_parity_maximum_absolute_error": 1.46031379699707e-06,
       "p1_public_gate_report_sha256": "f8c22631103825eb6fb2e09b2e209304951a10d62adefb5a10b2d823667051e1",
       "p1_public_gate_canonical_seal_key": "10a721892f12295bde836fb6b26e47dc2192be252859c37837def43d66593d87",
       "p1_public_gate_opened_seal_sha256": "d473c5fa6cd582af468b9a1fe157a76c779fa2ef335f6a6e4077828e18778bf6",
@@ -3692,7 +3692,7 @@
       "p1_selection_false_negatives": 0,
       "p1_selection_duplicate_region_count": 0,
       "p1_selection_prohibited_structure_hits": 2,
-      "p1_onnx_parity_maximum_absolute_error": 0.0000057220458984375,
+      "p1_onnx_parity_maximum_absolute_error": 5.7220458984375e-06,
       "p1_onnx_parity_passed": true,
       "p1_optimizer_steps": 828,
       "p1_failure": "P1 passed CPU ONNX parity and retained all 256 validation truth regions, but accepted two compact triangle structures. The negative maximum 0.9855695366859436 exceeded the positive minimum 0.9540948271751404, so threshold-only calibration could not pass.",
@@ -3713,7 +3713,7 @@
       "p2_selection_false_negatives": 0,
       "p2_selection_duplicate_region_count": 0,
       "p2_selection_prohibited_structure_hits": 1,
-      "p2_onnx_parity_maximum_absolute_error": 0.00000762939453125,
+      "p2_onnx_parity_maximum_absolute_error": 7.62939453125e-06,
       "p2_onnx_parity_passed": true,
       "p2_optimizer_steps": 276,
       "p2_failure": "P2 passed CPU ONNX parity and retained all 256 validation truth regions, but accepted one compact triangle structure at every threshold from 0.85 through 0.95.",
@@ -3735,7 +3735,7 @@
       "p3_selection_false_negatives": 3,
       "p3_selection_duplicate_region_count": 0,
       "p3_selection_prohibited_structure_hits": 0,
-      "p3_onnx_parity_maximum_absolute_error": 0.0000011920928955078125,
+      "p3_onnx_parity_maximum_absolute_error": 1.1920928955078125e-06,
       "p3_onnx_parity_passed": true,
       "p3_optimizer_steps": 276,
       "p3_failure": "P3 passed CPU ONNX parity and eliminated validation false regions, but missed three of 256 truth regions at the lowest evaluated threshold, leaving 61 of 64 scenes exact.",
@@ -3826,7 +3826,7 @@
       "candidate_onnx_sha256": {
         "P2": "e0254920b26784a87369aa25cc4ec387c6544db30bda4f9542b7ce9a8712e431"
       },
-      "p2_onnx_parity_maximum_absolute_error": 0.0000057220458984375,
+      "p2_onnx_parity_maximum_absolute_error": 5.7220458984375e-06,
       "p2_selected_threshold": 0.95,
       "p2_selection_scene_count": 72,
       "p2_selection_exact_scene_count": 72,
@@ -3965,7 +3965,7 @@
       "p2_selection_false_negatives": 0,
       "p2_selection_duplicate_region_count": 0,
       "p2_selection_prohibited_structure_hits": 0,
-      "p2_onnx_parity_maximum_absolute_error": 0.000011444091796875,
+      "p2_onnx_parity_maximum_absolute_error": 1.1444091796875e-05,
       "p2_onnx_parity_passed": false,
       "p2_public_gate_evaluations": 0,
       "p3_output_logit_scale": 0.5,
@@ -3989,7 +3989,7 @@
       "p3_selection_direct_execution_inference_calls": 80,
       "p3_selection_direct_execution_input_tensor_stream_sha256": "1d8547905d02aa492ae99775acae573a15b18ecf9cfec6d8d947bedb23a466a6",
       "p3_selection_direct_execution_output_tensor_stream_sha256": "654f497e750fb82e88234bb1d2f0329f328223111bfd41a87e8bddac18ec4248",
-      "p3_onnx_parity_maximum_absolute_error": 0.0000057220458984375,
+      "p3_onnx_parity_maximum_absolute_error": 5.7220458984375e-06,
       "p3_onnx_parity_passed": true,
       "p3_public_gate_evaluations": 1,
       "public_gate_status": "pass",
@@ -4235,7 +4235,7 @@
       "p3_selection_direct_execution_inference_calls": 80,
       "p3_selection_direct_execution_input_tensor_stream_sha256": "c90146b0c24051347b59d13e776be7b9400ac35062872b31bb0ff2a7f1d84e67",
       "p3_selection_direct_execution_output_tensor_stream_sha256": "cbbfcbb5159e451ba4ec4a0717ba3c28e94196f10ed430a3c9310e11e923a44a",
-      "p3_onnx_parity_maximum_absolute_error": 0.0000057220458984375,
+      "p3_onnx_parity_maximum_absolute_error": 5.7220458984375e-06,
       "p3_onnx_parity_passed": true,
       "p3_public_gate_evaluations": 1,
       "public_gate_status": "pass",
@@ -4280,8 +4280,13 @@
       "isolated_change": "raise the source gap to 0.40 of ink height and prohibit recognized nonspace character rewriting while retaining the exact official model, preprocessing, CTC decoder, and partition algorithm",
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1"],
-      "remaining_unregistered_candidate_ids": ["P2", "P3"],
+      "consumed_candidate_ids": [
+        "P1"
+      ],
+      "remaining_unregistered_candidate_ids": [
+        "P2",
+        "P3"
+      ],
       "candidate_config_paths": {
         "P1": "ml/ocr/official_recognition_spacing_v3/training/p1.json"
       },
@@ -4354,12 +4359,22 @@
       "isolated_change": "train a project-owned four-class O/o/l/I classifier from fresh procedural Noto glyph crops with no semantic, graph-position, private, Chandler, or exposed-pixel input",
       "architecture": "compact-ambiguity-glyph-cnn-v1",
       "model_license": "Apache-2.0",
-      "class_order": ["O", "o", "l", "I"],
+      "class_order": [
+        "O",
+        "o",
+        "l",
+        "I"
+      ],
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1", "P2"],
+      "consumed_candidate_ids": [
+        "P1",
+        "P2"
+      ],
       "remaining_unregistered_candidate_ids": [],
-      "retired_unregistered_candidate_ids": ["P3"],
+      "retired_unregistered_candidate_ids": [
+        "P3"
+      ],
       "candidate_config_paths": {
         "P1": "ml/ocr/ambiguity_glyph_classifier_v1/training/p1.json",
         "P2": "ml/ocr/ambiguity_glyph_classifier_v1/training/p2.json"
@@ -4397,8 +4412,13 @@
       "p1_optimizer_steps": 720,
       "p1_selection_accuracy": 0.9328125,
       "p1_selection_macro_accuracy": 0.9328125,
-      "p1_selection_per_class_accuracy": {"O": 0.7375, "o": 0.99375, "l": 1.0, "I": 1.0},
-      "p1_onnx_parity_maximum_absolute_error": 0.0000133514404296875,
+      "p1_selection_per_class_accuracy": {
+        "O": 0.7375,
+        "o": 0.99375,
+        "l": 1.0,
+        "I": 1.0
+      },
+      "p1_onnx_parity_maximum_absolute_error": 1.33514404296875e-05,
       "p1_onnx_parity_passed": false,
       "p1_training_opened_seal_sha256": "3655eb653e0de3facda974bd80b7dbe37d09ae2b72ed62bc7e04d5db1617602f",
       "p1_training_result_seal_sha256": "934db5d98bfcc9db24f746e43ecf6eef3b8f0a6977dfd5d037d4d9f7325e8443",
@@ -4414,8 +4434,13 @@
       "p2_optimizer_steps": 880,
       "p2_selection_accuracy": 0.93125,
       "p2_selection_macro_accuracy": 0.93125,
-      "p2_selection_per_class_accuracy": {"O": 0.96875, "o": 0.75625, "l": 1.0, "I": 1.0},
-      "p2_onnx_parity_maximum_absolute_error": 0.0000152587890625,
+      "p2_selection_per_class_accuracy": {
+        "O": 0.96875,
+        "o": 0.75625,
+        "l": 1.0,
+        "I": 1.0
+      },
+      "p2_onnx_parity_maximum_absolute_error": 1.52587890625e-05,
       "p2_onnx_parity_passed": false,
       "p2_training_opened_seal_sha256": "87800677175c5f926044f7c392e915f4aab2c0d85b9ddf6e6eaf3c4b4838b4ca",
       "p2_training_result_seal_sha256": "590dea99d383cfb683a75bed4906ec1176b8ddb871e0209f4a7fae2f3f521fee",
@@ -4448,11 +4473,21 @@
       "isolated_change": "render and normalize the complete font line box before taking a fixed square glyph-centered crop, preserving case-relative height and baseline; train new project-owned weights from a new seed",
       "architecture": "line-context-profile-cnn-v1",
       "model_license": "Apache-2.0",
-      "class_order": ["O", "o", "l", "I"],
+      "class_order": [
+        "O",
+        "o",
+        "l",
+        "I"
+      ],
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1", "P2"],
-      "remaining_unregistered_candidate_ids": ["P3"],
+      "consumed_candidate_ids": [
+        "P1",
+        "P2"
+      ],
+      "remaining_unregistered_candidate_ids": [
+        "P3"
+      ],
       "candidate_config_paths": {
         "P1": "ml/ocr/ambiguity_context_classifier_v2/training/p1.json",
         "P2": "ml/ocr/ambiguity_context_classifier_v2/training/p2.json"
@@ -4486,8 +4521,13 @@
       "p1_optimizer_steps": 880,
       "p1_selection_accuracy": 1.0,
       "p1_selection_macro_accuracy": 1.0,
-      "p1_selection_per_class_accuracy": {"O": 1.0, "o": 1.0, "l": 1.0, "I": 1.0},
-      "p1_onnx_parity_maximum_absolute_error": 0.0000152587890625,
+      "p1_selection_per_class_accuracy": {
+        "O": 1.0,
+        "o": 1.0,
+        "l": 1.0,
+        "I": 1.0
+      },
+      "p1_onnx_parity_maximum_absolute_error": 1.52587890625e-05,
       "p1_onnx_argmax_mismatch_count": 0,
       "p1_onnx_parity_passed": false,
       "p1_training_opened_seal_sha256": "3ae4796aa9be83f6dd2e213cbe20a6655dd89341829868fbdd1f95f514258a28",
@@ -4503,8 +4543,13 @@
       "p2_weights_changed": false,
       "p2_selection_accuracy": 1.0,
       "p2_selection_macro_accuracy": 1.0,
-      "p2_selection_per_class_accuracy": {"O": 1.0, "o": 1.0, "l": 1.0, "I": 1.0},
-      "p2_onnx_parity_maximum_absolute_error": 0.00000762939453125,
+      "p2_selection_per_class_accuracy": {
+        "O": 1.0,
+        "o": 1.0,
+        "l": 1.0,
+        "I": 1.0
+      },
+      "p2_onnx_parity_maximum_absolute_error": 7.62939453125e-06,
       "p2_onnx_argmax_mismatch_count": 0,
       "p2_onnx_parity_passed": true,
       "p2_training_opened_seal_sha256": "63d016bf130ad956ffa694bb84d4fbebd28259b083c9eee9e46a95e2d3cf0d17",
@@ -4529,7 +4574,12 @@
       "public_gate_sample_count": 960,
       "public_gate_accuracy": 1.0,
       "public_gate_macro_accuracy": 1.0,
-      "public_gate_per_class_accuracy": {"O": 1.0, "o": 1.0, "l": 1.0, "I": 1.0},
+      "public_gate_per_class_accuracy": {
+        "O": 1.0,
+        "o": 1.0,
+        "l": 1.0,
+        "I": 1.0
+      },
       "public_gate_direct_execution_inference_calls": 8,
       "public_gate_direct_execution_input_tensor_stream_sha256": "8c1f2917f687415d380333c85699e645a55fa3452015700bd936b02bbd45dac7",
       "public_gate_direct_execution_output_tensor_stream_sha256": "8444140ca7e276b04aa74e6eec03905d86809aba9cfa6d71d5d05817ff9cb8ae",
@@ -4553,11 +4603,21 @@
       "isolated_change": "train new Apache-2.0 weights on fresh full-line crops transformed by the exact shared source-group adapter",
       "architecture": "source-group-profile-cnn-v1",
       "model_license": "Apache-2.0",
-      "class_order": ["O", "o", "l", "I"],
+      "class_order": [
+        "O",
+        "o",
+        "l",
+        "I"
+      ],
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1", "P2"],
-      "remaining_unregistered_candidate_ids": ["P3"],
+      "consumed_candidate_ids": [
+        "P1",
+        "P2"
+      ],
+      "remaining_unregistered_candidate_ids": [
+        "P3"
+      ],
       "candidate_config_paths": {
         "P1": "ml/ocr/ambiguity_source_group_classifier_v3/training/p1.json",
         "P2": "ml/ocr/ambiguity_source_group_classifier_v3/training/p2.json"
@@ -4591,8 +4651,13 @@
       "p1_optimizer_steps": 880,
       "p1_selection_accuracy": 1.0,
       "p1_selection_macro_accuracy": 1.0,
-      "p1_selection_per_class_accuracy": {"O": 1.0, "o": 1.0, "l": 1.0, "I": 1.0},
-      "p1_onnx_parity_maximum_absolute_error": 0.000030517578125,
+      "p1_selection_per_class_accuracy": {
+        "O": 1.0,
+        "o": 1.0,
+        "l": 1.0,
+        "I": 1.0
+      },
+      "p1_onnx_parity_maximum_absolute_error": 3.0517578125e-05,
       "p1_onnx_argmax_mismatch_count": 0,
       "p1_onnx_parity_passed": false,
       "p1_training_opened_seal_sha256": "ea789b221e65dd0dfbb0796175c970faebbbc1a4f5eaa722c8c2234b7ece1e5d",
@@ -4606,8 +4671,13 @@
       "p2_weights_changed": false,
       "p2_selection_accuracy": 1.0,
       "p2_selection_macro_accuracy": 1.0,
-      "p2_selection_per_class_accuracy": {"O": 1.0, "o": 1.0, "l": 1.0, "I": 1.0},
-      "p2_onnx_parity_maximum_absolute_error": 0.000003814697265625,
+      "p2_selection_per_class_accuracy": {
+        "O": 1.0,
+        "o": 1.0,
+        "l": 1.0,
+        "I": 1.0
+      },
+      "p2_onnx_parity_maximum_absolute_error": 3.814697265625e-06,
       "p2_onnx_argmax_mismatch_count": 0,
       "p2_onnx_parity_passed": true,
       "p2_training_opened_seal_sha256": "b8bf2522551b9896fc79a7e855a5417dd42c337f3ddb93fef847d2fcc2813374",
@@ -4632,7 +4702,12 @@
       "public_gate_sample_count": 960,
       "public_gate_accuracy": 1.0,
       "public_gate_macro_accuracy": 1.0,
-      "public_gate_per_class_accuracy": {"O": 1.0, "o": 1.0, "l": 1.0, "I": 1.0},
+      "public_gate_per_class_accuracy": {
+        "O": 1.0,
+        "o": 1.0,
+        "l": 1.0,
+        "I": 1.0
+      },
       "public_gate_direct_execution_inference_calls": 8,
       "public_gate_direct_execution_input_tensor_stream_sha256": "ab6a2f40d18bb057990efb7c7d0d28f1f87765832bebc91a53c80e140e471af0",
       "public_gate_direct_execution_output_tensor_stream_sha256": "d76136183d0661c05647424cd5d7f3cbf201b7c985e0ebae4873efac230820fc",
@@ -4849,7 +4924,7 @@
       "minimum_artifact_precision": 0.9,
       "minimum_artifact_recall": 0.95,
       "maximum_marker_artifact_hits": 0,
-      "onnx_parity_tolerance": 0.00001,
+      "onnx_parity_tolerance": 1e-05,
       "split_materialized": true,
       "selection_manifest_path": "ml/markers/center/feasible_dense_v6/SELECTION_MANIFEST.json",
       "selection_manifest_sha256": "12d6ba9f6aa5b80a8052ea43ba4971d573b1de08cf338d9e92120ff20079a99d",
@@ -4903,9 +4978,9 @@
       "p1_selection_artifact_precision": 0.9930517209644764,
       "p1_selection_artifact_recall": 0.9974041579689269,
       "p1_selection_marker_artifact_hits": 0,
-      "p1_onnx_parity_maximum_absolute_error": 0.00000616908073425293,
+      "p1_onnx_parity_maximum_absolute_error": 6.16908073425293e-06,
       "p1_onnx_parity_passed": true,
-      "p1_checkpoint_to_inference_graph_maximum_absolute_error": 0.000012755393981933594,
+      "p1_checkpoint_to_inference_graph_maximum_absolute_error": 1.2755393981933594e-05,
       "p1_checkpoint_to_inference_graph_metric_is_selection_gate": false,
       "p1_training_opened_seal_sha256": "e45d1763d6cc61db9e06a146a554bc90672ddf6cf74d59efa00b3bcf14640548",
       "p1_training_result_seal_sha256": "7fd691783bc752b71ce0c4dba70238e82604c0aeae4790b53117510270661c06",
@@ -5041,7 +5116,7 @@
       "minimum_artifact_precision": 0.9,
       "minimum_artifact_recall": 0.95,
       "maximum_marker_artifact_hits": 0,
-      "onnx_parity_tolerance": 0.00001,
+      "onnx_parity_tolerance": 1e-05,
       "split_materialized": true,
       "selection_manifest_path": "ml/markers/center/domain_randomized_v7/SELECTION_MANIFEST.json",
       "selection_manifest_sha256": "0b7c2abf33fc8a03510f4953ad39766c32a0904c1ba44fb7bd61de557650abbc",
@@ -5108,7 +5183,7 @@
       "p2_selection_artifact_precision": 0.8340070217582113,
       "p2_selection_artifact_recall": 0.9549122476437939,
       "p2_selection_marker_artifact_hits": 1,
-      "p2_onnx_parity_maximum_absolute_error": 0.000009298324584960938,
+      "p2_onnx_parity_maximum_absolute_error": 9.298324584960938e-06,
       "p2_onnx_parity_passed": true,
       "p2_training_opened_seal_sha256": "ba35472043b6c27b6ff62335b671904398d4acfc7a0360f0016ee196bd0f0090",
       "p2_training_result_seal_sha256": "57f3a4394d73438311639b589a3fdcffd55d67bbb80716d599cb35f41492e549",
@@ -5133,7 +5208,7 @@
       "p3_selection_artifact_precision": 0.8523057467207811,
       "p3_selection_artifact_recall": 0.9580230017289313,
       "p3_selection_marker_artifact_hits": 1,
-      "p3_onnx_parity_maximum_absolute_error": 0.000011861324310302734,
+      "p3_onnx_parity_maximum_absolute_error": 1.1861324310302734e-05,
       "p3_onnx_parity_passed": false,
       "p3_training_opened_seal_sha256": "cef1b5cd27ada8dc49d7a5f06a63ba531b0b9c4bf5d8c8ab7acd1bfc35b486cc",
       "p3_training_result_seal_sha256": "0a3a4c3f27880317852bc03add9515d6419ddc7645065495bb03a8af70bb2a8d",
@@ -5218,7 +5293,7 @@
       "p1_selection_character_error_rate": 0.0036490296898324765,
       "p1_selection_role_accuracy": 0.9931640625,
       "p1_selection_phase_heading_accuracy": 0.9453125,
-      "p1_onnx_parity_maximum_absolute_error": 0.00000667572021484375,
+      "p1_onnx_parity_maximum_absolute_error": 6.67572021484375e-06,
       "p1_onnx_parity_passed": true,
       "p1_training_opened_seal_sha256": "36e6242a59b21b8a85b3749a5b2a441de3e90c34dd861f8321c17438d5a98380",
       "p1_training_result_seal_sha256": "8c093fc0a534d6fc5687312653467c30fe3345af78f46159ce76df3929b6c53d",
@@ -5248,7 +5323,7 @@
       "p2_selection_character_error_rate": 0.0038148946757339524,
       "p2_selection_role_accuracy": 0.9716796875,
       "p2_selection_annotation_accuracy": 0.828125,
-      "p2_onnx_parity_maximum_absolute_error": 0.000005364418029785156,
+      "p2_onnx_parity_maximum_absolute_error": 5.364418029785156e-06,
       "p2_onnx_parity_passed": true,
       "p2_training_opened_seal_sha256": "42c03bf846f5b389e0bdea6caacece0c9f3955190a0f9999d79420522bf739c5",
       "p2_training_result_seal_sha256": "ba024b998e4d444c458f161eeabdfe8117f3179fe536b132efa225345dcabc7c",
@@ -5278,7 +5353,7 @@
       "p3_selection_character_error_rate": 0.0038148946757339524,
       "p3_selection_role_accuracy": 0.9765625,
       "p3_selection_annotation_accuracy": 0.9296875,
-      "p3_onnx_parity_maximum_absolute_error": 0.000007450580596923828,
+      "p3_onnx_parity_maximum_absolute_error": 7.450580596923828e-06,
       "p3_onnx_parity_passed": true,
       "p3_training_opened_seal_sha256": "504be3d60f9fd1670a5e9bc33a04a2f8ee11da385519b35754074af75ebd6cc7",
       "p3_training_result_seal_sha256": "85d821f96cb3f7eb8807d491ee6e917e46dac63e541f72b4fcfc8097fdce3f65",
@@ -5375,7 +5450,7 @@
       "p1_selection_role_accuracy": 0.99609375,
       "p1_selection_lowest_role": "AxisTitle",
       "p1_selection_lowest_role_accuracy": 0.9765625,
-      "p1_onnx_parity_maximum_absolute_error": 0.0000095367431640625,
+      "p1_onnx_parity_maximum_absolute_error": 9.5367431640625e-06,
       "p1_onnx_parity_passed": true,
       "p1_training_opened_seal_sha256": "ff6315b091b1d53b125d6a49c3c79af4350a9390a88a923d8516aab60abede7f",
       "p1_training_result_seal_sha256": "a8d7256903c69469b37f8ef640cd09d9afb2d908ee50dfccf097644d3449ef49",
@@ -5407,7 +5482,7 @@
       "p2_selection_role_accuracy": 0.87890625,
       "p2_selection_lowest_role": "Annotation",
       "p2_selection_lowest_role_accuracy": 0.6640625,
-      "p2_onnx_parity_maximum_absolute_error": 0.000006198883056640625,
+      "p2_onnx_parity_maximum_absolute_error": 6.198883056640625e-06,
       "p2_onnx_parity_passed": true,
       "p2_training_opened_seal_sha256": "00c8d2025c9ccef4c7da3900b7f15e384cd097ae54131eeda2dcd973189ddd79",
       "p2_training_result_seal_sha256": "f2541b998ed04c26f9292131863f0516c46e7e1557be5e95ef0458e8d36ecfe8",
@@ -5440,7 +5515,7 @@
       "p3_selection_role_accuracy": 0.99609375,
       "p3_selection_lowest_role": "AxisTitle",
       "p3_selection_lowest_role_accuracy": 0.9765625,
-      "p3_onnx_parity_maximum_absolute_error": 0.0000095367431640625,
+      "p3_onnx_parity_maximum_absolute_error": 9.5367431640625e-06,
       "p3_onnx_parity_passed": true,
       "p3_teacher_role_maximum_absolute_error": 0.0,
       "p3_teacher_role_preserved": true,
@@ -5566,7 +5641,7 @@
       "p3_selection_role_accuracy": 0.984375,
       "p3_selection_lowest_role": "Other",
       "p3_selection_lowest_role_accuracy": 0.921875,
-      "p3_onnx_parity_maximum_absolute_error": 0.0000095367431640625,
+      "p3_onnx_parity_maximum_absolute_error": 9.5367431640625e-06,
       "p3_onnx_parity_passed": true,
       "p3_p2_role_maximum_absolute_error": 0.0,
       "p3_p2_roles_preserved": true,
@@ -5659,7 +5734,7 @@
       "p1_selection_marker_artifact_hits": 0,
       "p1_artifact_precision": 0.7864128234384776,
       "p1_artifact_recall": 0.9843701768692439,
-      "p1_onnx_parity_maximum_absolute_error": 0.00002002716064453125,
+      "p1_onnx_parity_maximum_absolute_error": 2.002716064453125e-05,
       "p1_onnx_parity_passed": false,
       "p1_training_opened_seal_sha256": "44ee0c49ea43553803e39383d35d4d355957ea58eb7865b8a79077a558b2f2d8",
       "p1_training_result_seal_sha256": "8b2356370907c58ae28059fa6db2aa6e003ae3f45dbe86092ad5f3e05a0cc46c",
@@ -5679,7 +5754,7 @@
       "p2_selection_marker_artifact_hits": 0,
       "p2_artifact_precision": 0.7872885671271697,
       "p2_artifact_recall": 0.9829926331356857,
-      "p2_onnx_parity_maximum_absolute_error": 0.00001621246337890625,
+      "p2_onnx_parity_maximum_absolute_error": 1.621246337890625e-05,
       "p2_onnx_parity_passed": false,
       "p2_training_opened_seal_sha256": "2740d70d4f3042d75569aed150e4c5fe9d354583938f89f489a0c0ff10c572ef",
       "p2_training_result_seal_sha256": "15b3b8c823605ea4711686ce04d7e4935720e9b0ab7779b8639d82f8c12cfcb3",
@@ -5697,14 +5772,14 @@
       "p3_optimizer_steps": 0,
       "p3_failure_phase": "p2_parity_localization",
       "p3_expected_parity_by_output_channel": [
-        0.0000033080577850341797,
-        0.00001621246337890625,
-        0.000008970499038696289
+        3.3080577850341797e-06,
+        1.621246337890625e-05,
+        8.970499038696289e-06
       ],
       "p3_observed_parity_by_output_channel": [
-        0.000003874301910400391,
-        0.00001621246337890625,
-        0.000008970499038696289
+        3.874301910400391e-06,
+        1.621246337890625e-05,
+        8.970499038696289e-06
       ],
       "p3_training_opened_seal_sha256": "ca153280e4cbee2ef335c53390f54d209cf2058bd17d6de6fbebdc17303247b4",
       "p3_training_result_seal_sha256": "e676945f68616de32d8de6e1d255e881e1849064853ebd19320f4db372bac91d",
@@ -5809,11 +5884,11 @@
       "p2_selection_false_negatives": 23,
       "p2_artifact_precision": 0.7855042494371971,
       "p2_artifact_recall": 0.9870400316973273,
-      "p2_onnx_parity_maximum_absolute_error": 0.000016629695892333984,
+      "p2_onnx_parity_maximum_absolute_error": 1.6629695892333984e-05,
       "p2_onnx_parity_by_output_channel": [
-        0.0000038743019104003906,
+        3.874301910400391e-06,
         0.0,
-        0.000015199184417724609
+        1.519918441772461e-05
       ],
       "p2_training_opened_seal_sha256": "977361641ec82874ba1a8cb7e35524d699ba090b65f14092d75c772463cdb2ab",
       "p2_training_result_seal_sha256": "d237653516273c671a3e205c160f384d24c8f0a248b61e9febe2fe005d5b76f1",
@@ -5828,7 +5903,7 @@
       "p3_selection_false_negatives": 18,
       "p3_artifact_precision": 0.7897035539741141,
       "p3_artifact_recall": 0.980064776805665,
-      "p3_onnx_parity_maximum_absolute_error": 0.000005841255187988281,
+      "p3_onnx_parity_maximum_absolute_error": 5.841255187988281e-06,
       "p3_training_opened_seal_sha256": "e49e87e8a7102042cc18f5b3a600080c6b28a40f3383c98ba0e6d7f863922854",
       "p3_training_result_seal_sha256": "a8720a2320bae5d7c0539912e9e2ef77667748506373ffd2dba7e74ec9f97fba",
       "p3_case_detail_or_pixels_inspected": false,
@@ -5845,8 +5920,8 @@
       "predecessor_checkpoint_sha256": "46eb64a923ff571db14156ca31cdac69adf639b27144e56d4ccf02198ed44122",
       "predecessor_onnx_sha256": "13b6204bec1129490a871987123bc03416c67cac3150c0efbc5c3d8dadce9f8c",
       "predecessor_validation_archive_sha256": "533b32a7da0c12391394cbd7e9fcda011b99f577495e47ffd7f6b1b042f18412",
-      "predecessor_parity_reproduction_tolerance": 0.000001,
-      "model_onnx_parity_tolerance": 0.00001,
+      "predecessor_parity_reproduction_tolerance": 1e-06,
+      "model_onnx_parity_tolerance": 1e-05,
       "fixed_radius_pixels": 2.5,
       "artifact_threshold": 0.35,
       "selection_thresholds": [
@@ -5932,7 +6007,7 @@
       "p1_artifact_precision": 0.7857918313961029,
       "p1_artifact_recall": 0.9770655093456437,
       "p1_passing_threshold_window": [],
-      "p1_onnx_parity_maximum_absolute_error": 0.000009894371032714844,
+      "p1_onnx_parity_maximum_absolute_error": 9.894371032714844e-06,
       "p1_onnx_parity_passed": true,
       "p2_isolated_change": "retrain the exact P1 architecture, loss, optimizer, seed, frozen split, and 1792-step budget from scratch while applying a preregistered four-way reflection schedule to every training tensor, target, center, and hard-negative coordinate",
       "p2_aggregate_design_basis": "P1 aggregate selection counts, artifact precision and recall, threshold-window result, optimizer count, and CPU parity only",
@@ -5956,7 +6031,7 @@
       "p2_artifact_precision": 0.7819652572390059,
       "p2_artifact_recall": 0.9677843660304165,
       "p2_passing_threshold_window": [],
-      "p2_onnx_parity_maximum_absolute_error": 0.000008881092071533203,
+      "p2_onnx_parity_maximum_absolute_error": 8.881092071533203e-06,
       "p2_onnx_parity_passed": true,
       "p3_isolated_change": "retain the exact P2 architecture, optimizer, seed, frozen split, reflection schedule, 1792-step budget, and loss form while changing only the artifact Tversky false-positive and false-negative balance from 0.80/0.20 to 0.95/0.05",
       "p3_aggregate_design_basis": "P2 aggregate selection counts, artifact precision and recall, marker-artifact hit count, threshold-window result, optimizer count, and CPU parity only",
@@ -5980,7 +6055,7 @@
       "p3_artifact_precision": 0.7822080285166708,
       "p3_artifact_recall": 0.9665081800297624,
       "p3_passing_threshold_window": [],
-      "p3_onnx_parity_maximum_absolute_error": 0.000007092952728271484,
+      "p3_onnx_parity_maximum_absolute_error": 7.092952728271484e-06,
       "p3_onnx_parity_passed": true,
       "aggregate_feasibility_report_path": "ml/markers/center/decoupled_heads_v10/AGGREGATE_FEASIBILITY.json",
       "aggregate_feasibility_report_sha256": "c0b580c68346124b878521dc6ef46f1e3ed4fe587c29be35be66d5bb8992b62f",
@@ -6009,7 +6084,7 @@
       "minimum_consecutive_passing_thresholds": 3,
       "minimum_artifact_precision": 0.9,
       "minimum_artifact_recall": 0.95,
-      "model_onnx_parity_tolerance": 0.00001,
+      "model_onnx_parity_tolerance": 1e-05,
       "public_gate_config_path": "ml/markers/center/decoupled_heads_v10/gates/sealed-public-v1.json",
       "public_gate_config_sha256": "badb7ea25d1962361cad678d919d0dd73b41956747e7bc3bed038b1d595300eb",
       "public_gate_evaluator_preregistered": true,
@@ -6053,7 +6128,11 @@
       "model_license": "Apache-2.0",
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1", "P2", "P3"],
+      "consumed_candidate_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "protocol_path": "ml/markers/center/seed_refinement_v11/PROTOCOL.json",
       "protocol_sha256": "1133a4244b70ce27ac44e3fcc6d61d825a959063fc9b70dd30bf3e4d2aa027b2",
@@ -6092,7 +6171,7 @@
       "p1_seed_added_pixels": 250166,
       "p1_seed_removed_pixels": 1175,
       "p1_passing_threshold_window": [],
-      "p1_onnx_parity_maximum_absolute_error": 0.000006377696990966797,
+      "p1_onnx_parity_maximum_absolute_error": 6.377696990966797e-06,
       "p1_onnx_parity_passed": true,
       "p2_isolated_change": "retrain the exact P1 architecture, frozen split, optimizer, seed, four-way reflection schedule, existing losses, 1792-step budget, fixed radius, thresholds, CPU provider, parity limit, and zero-error gates from scratch while adding one weight-3.0 binary-cross-entropy term only on artifact pixels that are both seed-negative and truth-negative",
       "p2_aggregate_design_basis": "P1 aggregate selection counts, artifact precision and recall, seed-added and seed-removed pixel counts, threshold-window result, optimizer count, zero-error exclusions, and CPU parity only",
@@ -6121,7 +6200,7 @@
       "p2_seed_added_pixels": 244692,
       "p2_seed_removed_pixels": 1253,
       "p2_passing_threshold_window": [],
-      "p2_onnx_parity_maximum_absolute_error": 0.000009566545486450195,
+      "p2_onnx_parity_maximum_absolute_error": 9.566545486450195e-06,
       "p2_onnx_parity_passed": true,
       "p3_isolated_change": "retrain the exact P2 architecture, frozen split, optimizer, seed, four-way reflection schedule, P2 losses, 1792-step budget, fixed radius, thresholds, CPU provider, parity limit, and zero-error gates from scratch while adding one weight-6.0 binary-cross-entropy term only on artifact pixels that are seed-positive and truth-negative",
       "p3_aggregate_design_basis": "P2 aggregate selection counts, artifact precision and recall, seed-added and seed-removed pixel counts, threshold-window result, optimizer count, zero-error exclusions, and CPU parity only",
@@ -6150,7 +6229,7 @@
       "p3_seed_added_pixels": 0,
       "p3_seed_removed_pixels": 289107,
       "p3_passing_threshold_window": [],
-      "p3_onnx_parity_maximum_absolute_error": 0.0000032782554626464844,
+      "p3_onnx_parity_maximum_absolute_error": 3.2782554626464844e-06,
       "p3_onnx_parity_passed": true,
       "candidate_config_path": "ml/markers/center/seed_refinement_v11/training/p3.json",
       "candidate_config_sha256": "555102ee0b4105bb8677b3201a6589dc02091da69a7239294fccdc1f323f9576",
@@ -6161,11 +6240,19 @@
       "runtime_pass_count": 1,
       "runtime_postprocess_profile": "nonmonotonic_seed_refinement_v1",
       "artifact_threshold": 0.35,
-      "selection_thresholds": [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6],
+      "selection_thresholds": [
+        0.3,
+        0.35,
+        0.4,
+        0.45,
+        0.5,
+        0.55,
+        0.6
+      ],
       "minimum_consecutive_passing_thresholds": 3,
       "minimum_artifact_precision": 0.9,
       "minimum_artifact_recall": 0.95,
-      "model_onnx_parity_tolerance": 0.00001,
+      "model_onnx_parity_tolerance": 1e-05,
       "public_gate_config_path": "ml/markers/center/seed_refinement_v11/gates/sealed-public-v1.json",
       "public_gate_config_sha256": "15947a33aa923c92d6b62ed6f177b6f49299aa35c153bb3e7925e771a752ac59",
       "public_gate_evaluator_preregistered": true,
@@ -6200,7 +6287,11 @@
       "model_license": "Apache-2.0",
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1", "P2", "P3"],
+      "consumed_candidate_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "protocol_path": "ml/ocr/evidence_rescue_v25/PROTOCOL.json",
       "protocol_sha256": "7e1ab12c1e82bc78a0489f6d7db1abd5b8926667ad68ff1c23b30386c274de8d",
@@ -6303,7 +6394,7 @@
       "selection_character_error_rate": 0.010632995514205018,
       "selection_role_accuracy": 0.9833984375,
       "selection_parent_roles_preserved": true,
-      "selection_onnx_parity_maximum_absolute_error": 0.0000095367431640625,
+      "selection_onnx_parity_maximum_absolute_error": 9.5367431640625e-06,
       "selection_passing_threshold_window": [],
       "public_gate_revision": "graph-text-evidence-rescue-v25-public-v1",
       "public_gate_config_path": "ml/ocr/evidence_rescue_v25/gates/sealed-public-v1.json",
@@ -6349,7 +6440,11 @@
       "model_license": "Apache-2.0",
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1", "P2", "P3"],
+      "consumed_candidate_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "protocol_path": "ml/ocr/scene_topology_proposal_v26/PROTOCOL.json",
       "protocol_sha256": "2aacbb75a7ef02c4f7de5c806681dcf33093ea21f67c2b6185a07807827f19ef",
@@ -6478,7 +6573,7 @@
         "character_error_rate": 0.004640371229698376,
         "role_accuracy": 0.9951171875,
         "parent_role_maximum_absolute_error": 0.0,
-        "onnx_parity_maximum_absolute_error": 0.000011444091796875,
+        "onnx_parity_maximum_absolute_error": 1.1444091796875e-05,
         "passing_threshold_window": []
       },
       "candidate_2_selection_metrics": {
@@ -6495,7 +6590,7 @@
         "role_accuracy": 0.9951171875,
         "parent_role_maximum_absolute_error": 0.0,
         "frozen_p1_features_and_role_parent_preserved": true,
-        "onnx_parity_maximum_absolute_error": 0.000011444091796875,
+        "onnx_parity_maximum_absolute_error": 1.1444091796875e-05,
         "passing_threshold_window": []
       },
       "candidate_3_selection_metrics": {
@@ -6513,7 +6608,7 @@
         "parent_role_maximum_absolute_error": 0.0,
         "frozen_p2_weights_preserved": true,
         "candidate_onnx_graph_optimization_level": "ORT_ENABLE_BASIC",
-        "onnx_parity_maximum_absolute_error": 0.000011444091796875,
+        "onnx_parity_maximum_absolute_error": 1.1444091796875e-05,
         "passing_threshold_window": []
       },
       "selection_evaluations": 3,
@@ -6549,7 +6644,11 @@
       "model_license": "Apache-2.0",
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1", "P2", "P3"],
+      "consumed_candidate_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "protocol_path": "ml/ocr/morphology_veto_proposal_v27/PROTOCOL.json",
       "protocol_sha256": "5c73babf8741d6f6dff1238943608e34ba93d4bba899f42f8f71bebea186489a",
@@ -6609,7 +6708,7 @@
         "parent_role_argmax_mismatch_count": 0,
         "parent_role_argmax_preserved": true,
         "candidate_onnx_graph_optimization_level": "ORT_DISABLE_ALL",
-        "onnx_parity_maximum_absolute_error": 0.00000476837158203125,
+        "onnx_parity_maximum_absolute_error": 4.76837158203125e-06,
         "passing_threshold_window": []
       },
       "candidate_2_architecture": "frozen-p1-final-linear-veto-v1",
@@ -6645,7 +6744,7 @@
         "parent_role_argmax_preserved": true,
         "frozen_p1_weights_preserved": true,
         "candidate_onnx_graph_optimization_level": "ORT_DISABLE_ALL",
-        "onnx_parity_maximum_absolute_error": 0.00000476837158203125,
+        "onnx_parity_maximum_absolute_error": 4.76837158203125e-06,
         "passing_threshold_window": []
       },
       "candidate_3_architecture": "frozen-p2-monotonic-veto-only-v1",
@@ -6683,7 +6782,7 @@
         "monotonic_acceptance_suppression_passed": true,
         "frozen_p2_weights_preserved": true,
         "candidate_onnx_graph_optimization_level": "ORT_DISABLE_ALL",
-        "onnx_parity_maximum_absolute_error": 0.00000476837158203125,
+        "onnx_parity_maximum_absolute_error": 4.76837158203125e-06,
         "passing_threshold_window": []
       },
       "candidate_config_paths": {
@@ -6729,7 +6828,11 @@
       "model_license": "Apache-2.0",
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1", "P2", "P3"],
+      "consumed_candidate_ids": [
+        "P1",
+        "P2",
+        "P3"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "protocol_path": "ml/ocr/relational_neighborhood_proposal_v28/PROTOCOL.json",
       "protocol_sha256": "bbab05ad7d8c991929a87493fff592027c55c0bf734f23c63df786cac23435c1",
@@ -6785,7 +6888,10 @@
       "candidate_3_objective": "zero-optimizer-source-declared-geometry-role-partition-v1",
       "candidate_3_optimizer_step_limit": 0,
       "candidate_3_runtime_numeric_precision": "float32",
-      "candidate_3_relative_center_feature_indices": [25, 26],
+      "candidate_3_relative_center_feature_indices": [
+        25,
+        26
+      ],
       "candidate_3_partition_boundaries": {
         "x_left": 0.0,
         "x_right": 1.0,
@@ -6861,7 +6967,7 @@
         "parent_role_argmax_mismatch_count": 0,
         "parent_role_argmax_preserved": true,
         "candidate_onnx_graph_optimization_level": "ORT_DISABLE_ALL",
-        "onnx_parity_maximum_absolute_error": 0.00000476837158203125,
+        "onnx_parity_maximum_absolute_error": 4.76837158203125e-06,
         "passing_threshold_window": []
       },
       "candidate_2_result": {
@@ -6881,7 +6987,7 @@
         "p1_proposal_decisions_preserved": true,
         "p1_full_output_stream_preserved": true,
         "candidate_onnx_graph_optimization_level": "ORT_DISABLE_ALL",
-        "onnx_parity_maximum_absolute_error": 0.00000476837158203125,
+        "onnx_parity_maximum_absolute_error": 4.76837158203125e-06,
         "passing_threshold_window": []
       },
       "candidate_3_result": {
@@ -6904,8 +7010,14 @@
         "p1_proposal_decisions_preserved": true,
         "p1_full_output_stream_preserved": true,
         "candidate_onnx_graph_optimization_level": "ORT_DISABLE_ALL",
-        "onnx_parity_maximum_absolute_error": 0.000003337860107421875,
-        "passing_threshold_window": [0.35, 0.45, 0.55, 0.65, 0.75]
+        "onnx_parity_maximum_absolute_error": 3.337860107421875e-06,
+        "passing_threshold_window": [
+          0.35,
+          0.45,
+          0.55,
+          0.65,
+          0.75
+        ]
       },
       "selection_evaluations": 3,
       "public_gate_authorized": false,
@@ -6973,7 +7085,9 @@
       "model_license": "Apache-2.0",
       "experiment_budget": 3,
       "preregistered_candidate_ids": [],
-      "consumed_candidate_ids": ["P1"],
+      "consumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "protocol_path": "ml/ocr/dual_route_consensus_proposal_v29/PROTOCOL.json",
       "protocol_sha256": "fbf6c9c88e9b7b0a55b0c64cb657932b3002e1c924eeb6dd382231181d2b4f8a",
@@ -7019,7 +7133,13 @@
       "candidate_1_optimizer_steps": 1280,
       "candidate_1_selection_evaluations": 1,
       "candidate_1_selected_threshold": 0.55,
-      "candidate_1_passing_threshold_window": [0.35, 0.45, 0.55, 0.65, 0.75],
+      "candidate_1_passing_threshold_window": [
+        0.35,
+        0.45,
+        0.55,
+        0.65,
+        0.75
+      ],
       "candidate_1_selection_metrics": {
         "scene_count": 160,
         "exact_scene_count": 160,
@@ -7035,7 +7155,7 @@
         "minimum_role_accuracy": 1.0,
         "direct_stored_fixture_byte_execution": true,
         "deterministic_role_mismatch_count": 0,
-        "onnx_parity_maximum_absolute_error": 0.00000286102294921875
+        "onnx_parity_maximum_absolute_error": 2.86102294921875e-06
       },
       "training_opened_seal_sha256": {
         "P1": "8e5a1194cbfbb4422da6f428b90e7ba0e0b6bd3b680fda11c641b6e76ef01bcc"
@@ -7043,7 +7163,13 @@
       "training_result_seal_sha256": {
         "P1": "25f4407719abc06fd32d160f410af71575a7095dd859173f00b78793e59f21f8"
       },
-      "selection_thresholds": [0.35, 0.45, 0.55, 0.65, 0.75],
+      "selection_thresholds": [
+        0.35,
+        0.45,
+        0.55,
+        0.65,
+        0.75
+      ],
       "minimum_consecutive_passing_thresholds": 3,
       "execution_authorized": false,
       "authorized_candidate_id": null,
@@ -7055,7 +7181,11 @@
       "public_gate_runner_source_sha256": "9524255fc4c37936ca5f391cd874e39a4e898fe67d84ac437a8452b15c8c3a9d",
       "public_gate_expected_manifest_sha256": "c8ec15b43dd42c0ba8da0e9fc3aef7217d13582931bf8ee2fad9bbd00e01002a",
       "public_gate_expected_archive_sha256": "b642bd38d7e30e0a650fde87c7f99e41443ef9d4566880421deeb461f04ae7e9",
-      "public_gate_threshold_window": [0.45, 0.55, 0.65],
+      "public_gate_threshold_window": [
+        0.45,
+        0.55,
+        0.65
+      ],
       "public_gate_authorized": false,
       "public_gate_authorized_candidate_id": null,
       "public_gate_execution_commit": "6b82e400c1e60d1678c8c68e9584ef2c976c4070",
@@ -7111,9 +7241,16 @@
       "architecture": "unanimous-three-route-structure-veto-v1",
       "model_license": "Apache-2.0",
       "experiment_budget": 3,
-      "preregistered_candidate_ids": ["P1"],
-      "consumed_candidate_ids": ["P1"],
-      "remaining_unregistered_candidate_ids": ["P2", "P3"],
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [
+        "P1"
+      ],
+      "remaining_unregistered_candidate_ids": [
+        "P2",
+        "P3"
+      ],
       "protocol_path": "ml/ocr/unanimous_structure_veto_v30/PROTOCOL.json",
       "protocol_sha256": "c8d37af0acede69e95b1705c1fa404d3b0ec1cc7da78e2aa6e4ff6c3003fc81b",
       "split_materialized": true,
@@ -7144,7 +7281,13 @@
       "candidate_config_sha256": {
         "P1": "b26a1d202df39ce16d1b7e2c7ada5fa010ea135c3de27e5589c7af58d2f237bd"
       },
-      "selection_thresholds": [0.35, 0.45, 0.55, 0.65, 0.75],
+      "selection_thresholds": [
+        0.35,
+        0.45,
+        0.55,
+        0.65,
+        0.75
+      ],
       "minimum_consecutive_passing_thresholds": 3,
       "selection_evaluations": 1,
       "candidate_1_result_path": "ml/ocr/unanimous_structure_veto_v30/P1_RESULT.json",
@@ -7153,7 +7296,13 @@
       "candidate_1_checkpoint_sha256": "a91044ee4621fe914377ad522d7ee3d9036f0a5e5714168684c34d2c3b8a9ceb",
       "candidate_1_onnx_sha256": "78425c5b4a45ef2cbf99086243af0ede96c91b2b6afcdac1daa71bfeb5e55c18",
       "candidate_1_selected_threshold": 0.55,
-      "candidate_1_passing_threshold_window": [0.35, 0.45, 0.55, 0.65, 0.75],
+      "candidate_1_passing_threshold_window": [
+        0.35,
+        0.45,
+        0.55,
+        0.65,
+        0.75
+      ],
       "candidate_1_selection_metrics": {
         "scene_count": 192,
         "exact_scene_count": 192,
@@ -7166,7 +7315,7 @@
         "recognition_exact": 0.9713541666666666,
         "character_error_rate": 0.004869411243913236,
         "role_accuracy": 1.0,
-        "onnx_parity_maximum_absolute_error": 0.000003337860107421875,
+        "onnx_parity_maximum_absolute_error": 3.337860107421875e-06,
         "direct_stored_fixture_byte_execution": true,
         "provider": "CPUExecutionProvider"
       },
@@ -7237,10 +7386,19 @@
       "architecture": "two-of-three-robust-route-quorum-v1",
       "model_license": "Apache-2.0",
       "experiment_budget": 3,
-      "preregistered_candidate_ids": ["P3"],
-      "consumed_candidate_ids": ["P2"],
-      "remaining_unregistered_candidate_ids": ["P1"],
-      "void_candidate_ids": ["P1", "P3"],
+      "preregistered_candidate_ids": [
+        "P3"
+      ],
+      "consumed_candidate_ids": [
+        "P2"
+      ],
+      "remaining_unregistered_candidate_ids": [
+        "P1"
+      ],
+      "void_candidate_ids": [
+        "P1",
+        "P3"
+      ],
       "void_runs": [
         {
           "candidate_id": "P1",
@@ -7345,13 +7503,18 @@
         "minimum_per_role_accuracy": 1.0
       },
       "p2_lower_threshold_aggregate": {
-        "thresholds": [0.35, 0.45, 0.55, 0.65],
+        "thresholds": [
+          0.35,
+          0.45,
+          0.55,
+          0.65
+        ],
         "exact_scene_count_each": 191,
         "false_positives_each": 1,
         "false_negatives_each": 0,
         "prohibited_structure_hits_each": 1
       },
-      "p2_onnx_parity_maximum_absolute_error": 0.00000476837158203125,
+      "p2_onnx_parity_maximum_absolute_error": 4.76837158203125e-06,
       "p2_direct_stored_fixture_byte_execution": true,
       "p2_case_detail_or_pixels_inspected": false,
       "p3_isolated_change": "load the exact P2 state and fine-tune only on the frozen V31 training archive with a fixed asymmetric negative-margin objective while retaining the same robust quorum architecture, thresholds, recognition, deterministic roles, parity limit, and all zero-error gates",
@@ -7379,7 +7542,13 @@
       "p3_training_result_seal_created": false,
       "p3_selection_archive_read_count": 0,
       "p3_case_detail_or_pixels_inspected": false,
-      "selection_thresholds": [0.35, 0.45, 0.55, 0.65, 0.75],
+      "selection_thresholds": [
+        0.35,
+        0.45,
+        0.55,
+        0.65,
+        0.75
+      ],
       "minimum_consecutive_passing_thresholds": 3,
       "selection_evaluations": 2,
       "execution_authorized": false,
@@ -7414,7 +7583,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/markers/center/geometry_finetune_v15/training/p1.json"
@@ -7486,7 +7657,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/ocr/real_range_classifier_finetune_v32/training/p1.json"
@@ -7553,7 +7726,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/ocr/real_range_classifier_v33/training/p1.json"
@@ -7578,7 +7753,10 @@
       "p1_training_result_seal_sha256": "3a3169f8900e0ea35d4593b8675bbf29a746f11ac760d82fab57c9ffbc175e80",
       "p1_optimizer_steps_per_attempt": 72,
       "p1_dev_attempt_count": 2,
-      "p1_final_class_weights": [1.0, 8.0],
+      "p1_final_class_weights": [
+        1.0,
+        8.0
+      ],
       "p1_final_precision": 0.8947368421052632,
       "p1_final_recall": 0.5930232558139535,
       "p1_final_true_positives": 51,
@@ -7618,7 +7796,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/markers/center/scale_classifier_v16/training/p1.json"
@@ -7680,7 +7860,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/markers/center/metric_aligned_v17/training/p1.json"
@@ -7743,7 +7925,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/ocr/real_range_detector_v35/training/p1.json"
@@ -7803,7 +7987,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/markers/center/hard_positive_v18/training/p1.json"
@@ -7873,7 +8059,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/markers/center/train_family_v19/training/p1.json"
@@ -7936,7 +8124,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/ocr/shrink_region_detector_v36/training/p1.json"
@@ -8003,7 +8193,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/markers/center/tail_coverage_v20/training/p1.json"
@@ -8071,7 +8263,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/ocr/degradation_coverage_detector_v37/training/p1.json"
@@ -8144,7 +8338,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/markers/center/focal_confidence_v21/training/p1.json"
@@ -8207,13 +8403,15 @@
         "bce_weight": 1.0,
         "dice_weight": 1.0,
         "dice_reduction": "batch",
-        "dice_epsilon": 0.000001
+        "dice_epsilon": 1e-06
       },
       "model_license": "Apache-2.0",
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "retired_unconsumed_candidate_ids": ["P1"],
+      "retired_unconsumed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/ocr/dice_loss_detector_v38/training/p1.json"
@@ -8285,7 +8483,9 @@
       "experiment_budget": 1,
       "preregistered_candidate_ids": [],
       "consumed_candidate_ids": [],
-      "dev_passed_candidate_ids": ["P1"],
+      "dev_passed_candidate_ids": [
+        "P1"
+      ],
       "remaining_unregistered_candidate_ids": [],
       "candidate_config_paths": {
         "P1": "ml/markers/center/multiradius_geometry_v23/candidate_config.json"
@@ -9419,6 +9619,42 @@
       "retry13_p1_optimizer_steps": 12672,
       "retry13_p1_elapsed_ms": 1663536.115,
       "retry13_p1_onnx_parity_maximum_absolute_error": 2.384185791015625e-06
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-plot-domain-v25",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/plot_domain_v25/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2"
+      },
+      "protocol_path": "ml/markers/center/plot_domain_v25/dev_protocol.json",
+      "protocol_sha256": "26c790e19e574a71669d940c48497425308d6e53f57e9876d9fb14ac314e24ae",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "Synthetic train/dev only under Goal22 execution authorization; no sealed/private read or production approval.",
+      "isolated_change": "Plot-domain composition with authenticated V3 source inputs; V24 architecture, initializer, optimizer, component benchmark and fixed operating threshold retained.",
+      "optimizer_steps_expected": 12636,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "outcome_path": "ml/markers/center/plot_domain_v25/P1_RESULT.json",
+      "outcome_sha256": "fb64443005b6ca4c26d4e5f1d8b37d8882a93a186d9b2b92fffc476a8c823a63",
+      "candidate_report_sha256": "e5347d33313147d57c4d6ce80bcf06a020a1a70ddd52ef4bb8a2e0c623b7a64b",
+      "optimizer_steps": 12636,
+      "closed_utc_date": "2026-09-09"
     }
   ]
 }

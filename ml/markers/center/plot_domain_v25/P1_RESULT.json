@@ -1,0 +1,127 @@
+{
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "acceptance_status": "FAIL",
+  "candidate_config_sha256": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2",
+  "candidate_consumed": false,
+  "candidate_id": "P1",
+  "candidate_report_path": "artifacts/goal22-runs/marker-v25-plot-domain/P1-run/candidate-report.json",
+  "candidate_report_sha256": "e5347d33313147d57c4d6ce80bcf06a020a1a70ddd52ef4bb8a2e0c623b7a64b",
+  "checkpoint_sha256": "3e40b6896b0be50a58fedfcde572964df24e6286b9004075c770a44feacfe543",
+  "component_selected": {
+    "duplicate_count": 1,
+    "f1": 0.927096292610102,
+    "false_negatives": 141,
+    "false_positives": 152,
+    "precision": 0.9245657568238214,
+    "prohibited_structure_hit_rate": 0.0,
+    "prohibited_structure_hits": 0,
+    "proposal_recall": 1.0,
+    "proposal_true_positives": 2004,
+    "recall": 0.9296407185628742,
+    "scene_count": 167,
+    "threshold": 0.25,
+    "true_positives": 1863
+  },
+  "elapsed_ms": 1961250.711,
+  "family_selected": {
+    "decoded_outside_plot": 195,
+    "domain_omitted_ink_proposals": 20364,
+    "duplicate_count": 0,
+    "f1": 0.8528138528138528,
+    "false_negatives": 9,
+    "false_positives": 59,
+    "precision": 0.76953125,
+    "prohibited_structure_hit_rate": 0.00390625,
+    "prohibited_structure_hits": 1,
+    "proposal_recall": 1.0,
+    "proposal_true_positives": 206,
+    "recall": 0.9563106796116505,
+    "scene_count": 9,
+    "threshold": 0.25,
+    "true_positives": 197
+  },
+  "isolated_change": "Apply the actual plot-domain proposal composition to authenticated V3 synthetic family inputs while retaining the V24 model, initializer, optimizer and component benchmark.",
+  "limitations": [
+    "Both component precision/recall and full-source-family precision fail the unchanged 95 percent bars.",
+    "V24 and V25 family results use different source renderings and proposal domains; raw changes are not an isolated model comparison.",
+    "Threshold sensitivity is diagnostic only; the operating threshold remains 0.25.",
+    "No real-data, sealed, normal Production composition, or end-to-end CSV acceptance is established."
+  ],
+  "next_work": "Diagnose remaining component and full-source-family errors on synthetic dev before a justified repair.",
+  "onnx_dynamic_candidate_counts": [
+    {
+      "candidate_count": 1,
+      "maximum_absolute_error": 2.384185791015625e-07
+    },
+    {
+      "candidate_count": 8,
+      "maximum_absolute_error": 9.5367431640625e-07
+    },
+    {
+      "candidate_count": 37,
+      "maximum_absolute_error": 1.9073486328125e-06
+    }
+  ],
+  "onnx_parity_maximum_absolute_error": 1.9073486328125e-06,
+  "onnx_parity_passed": true,
+  "onnx_parity_tolerance": 1e-05,
+  "onnx_provider": "CPUExecutionProvider",
+  "onnx_sha256": "77293a9fef2656aba4955e3e8d0676e2fac811666061484527af31f7a00349b9",
+  "opened_seal_sha256": "367c9d12f6c8c815739516b9e1d0e17f59ca5af48a975cd30960a6c94ca2a6da",
+  "operating_threshold": 0.25,
+  "optimizer_steps": 12636,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "26c790e19e574a71669d940c48497425308d6e53f57e9876d9fb14ac314e24ae",
+  "release_eligible": false,
+  "result_seal_sha256": "2e1a6d5e38371136e7bab6ad6a809999f3bc7ff532921e2f3d2354411264c3d0",
+  "revision": "marker-center-plot-domain-v25",
+  "runner_source_bundle_sha256": "a87debb4ca2b1cff4323a5be48c39d8b11f3c784496d067f2462cc54d2781659",
+  "schema": "graphreader.marker-center-plot-domain-v25-outcome.v1",
+  "sealed_runs": 0,
+  "source_snapshot_sha256": "43eff8b8e0d3a7eb768e29fc3d2283a3b126bf7846e2cda3fd1d371975a6ac70",
+  "split_counts": {
+    "component_dev_scenes": 167,
+    "component_dev_truths": 2004,
+    "component_train_scenes": 167,
+    "component_train_truths": 2004,
+    "family_dev_panels": 9,
+    "family_dev_sources": 3,
+    "family_dev_truths": 206,
+    "family_train_panels": 28,
+    "family_train_sources": 20,
+    "family_train_truths": 500
+  },
+  "status": "failed_dev_unconsumed",
+  "task": "marker-center",
+  "training": {
+    "component_hard_negative_examples": 6856,
+    "component_positive_examples": 3258,
+    "component_selected_index_sha256": "d7460b95bbdbb89d79a12cafe7632604f02b8087e9986fb7a9d3ea940287567f",
+    "component_training_examples": 35838,
+    "family_hard_negative_examples": 1761,
+    "family_positive_examples": 823,
+    "family_selected_index_sha256": "89518e6b577efe68f09fac774637f8d5c9f8dc06292c902351718b8de88dd0f0",
+    "family_training_examples": 9053,
+    "hard_negative_examples": 8617,
+    "optimizer_steps": 12636,
+    "positive_examples": 4081,
+    "training_examples": 44891
+  },
+  "verification": {
+    "app_elapsed_seconds": 42,
+    "app_report_sha256": "b2a3929c6d10e93fa9b71f923c6dd58bbe461115570fea8f7f81194cc7490f00",
+    "app_suite_scope": "combined local application regression includes other concurrent Goal22 work; not a pushed-commit CI result",
+    "app_tests": 245,
+    "candidate_adapter_sha256": "811777b7d212976cface653cd355e308a72d8f163fef1d149662c8001cba44ca",
+    "candidate_adapter_tests_sha256": "cb519551ab881bd922bf5ec1fbf585f260a37f6446883d13316227d89eeaf66b",
+    "python_elapsed_seconds": 18.65,
+    "python_report_sha256": "8421edd5ada07594200f8a72312d75e1203cbebc9d7f6c70ac19529909b307a4",
+    "python_tests": 38
+  }
+}

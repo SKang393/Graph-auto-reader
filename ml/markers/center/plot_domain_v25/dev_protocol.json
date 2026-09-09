@@ -1,0 +1,40 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V24 retry13 yields200 true positives,169 false positives and6 misses on206 complete family-dev truths.115 false positives fall outside the actual runtime plot, where the existing C# adapter already rejects decoded centers.80 are farther than16pixels from its boundary, beyond the33pixel classifier patch context. The full-frame Python training and gate operating point spends capacity on regions outside shipped marker output. The production-aligned descriptive precision remains200/254, below95percent, so output clipping alone is not a repair. Evidence: docs/GOAL-22-V24-RETRY13-CONTEXT-DIAGNOSIS.json SHA256 fd838f621af7ce61829fb0e429889f715c2f751d2499671b983c2f376f368572 and docs/GOAL-22-V24-RETRY13-CONTEXT-DIAGNOSIS.json source_evidence. The tiny independent generator lacks complete axes and remains a component fixture, not runtime axis evidence.",
+  "isolated_change": "Introduce one plot-domain input composition. For full graphs, retain stride4 ink-supported proposal centers contained by the actual runtime plot polygon or within16pixels of its boundary before extracting33x33 patches. Use the same predicate and coordinate mapping in Python and C#. Apply the existing production decoded-center plot containment before consensus and NMS in the Python composition too. Runtime polygons come only from authenticated source-bound axis output, never synthetic truth. Keep the frozen167train plus167dev component scenes under an explicitly declared full-canvas fixture domain; their existing full-frame component benchmark remains intact. Preserve3input channels, model architecture, V21 initializer, confidence0.25, ink/consensus/NMS constants, optimizer settings, family stratified-negative algorithm and fixed random seeds. Recompute and bind train sampling capacities under the new domain without using dev truth to choose them. Do not alter OCR, upstream geometry, source bytes or model weights during model-free preflight. This is a new revision; existing V24 evidence and runtime remain unchanged.",
+  "split_identities": {
+    "component_train_count": 167,
+    "component_train_truth_count": 2004,
+    "component_dev_count": 167,
+    "component_dev_truth_count": 2004,
+    "component_config_path": "ml/markers/center/mask_preserving_v24/training/p1_retry13.json",
+    "component_config_sha256": "adb5a6ff5215757f06e1a35ab08f86a981061c5f242ac87653743ef6847f6ce3",
+    "family_binding_path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "family_binding_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+    "superseded_family_binding_sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+    "supersession_reason": "The V2 binding predates reviewed visible-content V3 source pixels and cannot be consumed by V25 training.",
+    "family_train_sources": 20,
+    "family_train_panels": 28,
+    "family_train_truth_count": 500,
+    "family_dev_sources": 3,
+    "family_dev_panels": 9,
+    "family_dev_truth_count": 206,
+    "family_train_tensor_set_sha256": "e56c8f641f9e0d19e9439aeb39d8c10c3edda5657ad4a554ab45ea9ef1261599",
+    "family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
+    "family_panel_inventory_sha256": "05b7358d933e06469de35bec72ebcdc00daa731c57695bbebe1e926091aad8ea",
+    "family_mapping_audit_sha256": "aab24d1be5eabdb2205a735b73e7853fe73a405a541027271ce524bdea0e1895",
+    "family_truth_mapping_sha256": "3e01264e2b7f4fa0483e674f2b938c1ad60eb590df231950133b55efee75cb1d",
+    "visible_content_protocol_sha256": "94ad7b7d3476ce5143af4e7f973a31baf59dbc113cbbeda66f099619b55f99a8"
+  },
+  "metric": "Authenticate source reports, all runtime raster and mask identities, source/executable/configuration identities and polygon mappings before joining independently regenerated synthetic truth. Test Python/C# proposal-coordinate, patch and output parity on shared synthetic fixtures. Preserve every source and all truth, including failed axis cases and domain omissions. Report component and full-graph proposal recall and final center precision/recall separately at the shipped0.25 operating point with existing5pixel matching. Record omitted proposal counts, train sampling changes, runtime and memory. No support-containment surrogate is an acceptance gate. Threshold sensitivity remains descriptive.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json: existing95percent marker-center precision, recall and proposal-recall requirements. Full-source truth denominators cannot be reduced. Model-free domain support alone grants no model or production pass.",
+  "budget": {
+    "model_free_synthetic_train_dev_preflight": "unlimited",
+    "optimizer_steps_authorized_by_this_document": 0,
+    "training_requires_shared_policy_authorization_and_frozen_candidate_config": true,
+    "private_reads": 0,
+    "sealed_runs": 0,
+    "production_approval": false,
+    "release_eligible": false
+  }
+}
