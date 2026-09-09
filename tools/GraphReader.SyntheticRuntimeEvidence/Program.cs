@@ -32,6 +32,10 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 4 && args[0] == "--replay-axis-contact")
+        {
+            return await AxisContactReplay.RunCommandAsync(args, RepositoryRoot()).ConfigureAwait(false);
+        }
         if (args.Length == 1 && args[0] == "--self-test-high-resolution")
         {
             HighResolutionExperiment.SelfTest();

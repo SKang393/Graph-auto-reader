@@ -131,7 +131,9 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                         intersection,
                         request.ImageWidth,
                         request.ImageHeight,
-                        options.MergeDistancePixels * 2d))
+                        options.MergeDistancePixels * 2d) ||
+                    !HasObservedContact(horizontalFamily, intersection, options.MergeDistancePixels * 2d) ||
+                    !HasObservedContact(verticalFamily, intersection, options.MergeDistancePixels * 2d))
                 {
                     continue;
                 }
@@ -1212,6 +1214,24 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             ? Math.Abs(point.Y - (slope * point.X) - intercept)
             : Math.Abs(point.X - (slope * point.Y) - intercept);
         return numerator / Math.Sqrt(1d + (slope * slope));
+    }
+
+    private static bool HasObservedContact(LineFamily family, PixelPoint intersection, double tolerance) =>
+        family.Members.Any(member =>
+            DistanceToFiniteSegment(intersection, member.Candidate.Segment) <= tolerance);
+
+    private static double DistanceToFiniteSegment(PixelPoint point, GeometryLineSegment segment)
+    {
+        var direction = new Vector2(segment.End.X - segment.Start.X, segment.End.Y - segment.Start.Y);
+        var lengthSquared = Dot(direction, direction);
+        if (lengthSquared <= 1e-18d)
+        {
+            return Distance(point, segment.Start);
+        }
+
+        var relative = new Vector2(point.X - segment.Start.X, point.Y - segment.Start.Y);
+        var position = Math.Clamp(Dot(relative, direction) / lengthSquared, 0d, 1d);
+        return Distance(point, Add(segment.Start, direction, position));
     }
 
     private static double DistanceToInfiniteLine(PixelPoint point, GeometryLineSegment line)

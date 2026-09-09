@@ -1,0 +1,34 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The existing fitter assigns confidence 0.967033, alternative margin 1.0 and NeedsReview=false to disconnected horizontal and vertical segments whose infinite lines intersect at (100,320). The observed horizontal segment starts at (300,320), and the vertical segment ends at (100,250). The candidate pair has no observed corner support. A separate train-domain diagnosis also identifies under-panelization; contact repair alone is not assumed to fix that separate problem.",
+  "isolated_change": "Require each fitted axis family to contain an observed finite segment within twice the existing MergeDistancePixels tolerance of the fitted intersection. Use the existing structured geometry failure when no supported pair remains. Preserve line detection, family fitting, scoring weights, plot extents, tick and divider logic, and native payload. Advance the deterministic axis stage identity to axis-opencv-v2 so evidence identifies the changed composition. Do not change panel detection or model weights in this repair.",
+  "split_identities": {
+    "baseline_commit": "b683a8e0606574314f118470b48d93ac603605f2",
+    "baseline_detector_path": "src/GraphReader.Axis/AxisGeometryDetector.cs",
+    "baseline_detector_sha256": "3a99f3616827d55fec33a4ddf7f472807d67d1ec79d3fececfdf4eacea2f71589",
+    "baseline_adapter_path": "src/GraphReader.App/Integration/Workflow/ProductionAxisGeometryAdapter.cs",
+    "baseline_adapter_sha256": "9461bf990e1efa65cdc986150e37bae763db752e8bdf307398d93cbb22c380fc",
+    "reproduction_path": "tests/GraphReader.Axis.Tests/AxisGeometryPairContactTests.cs",
+    "reproduction_sha256": "18ac2c67c4706ced368580ba429f2a988081893a3f7e07e463fcadde65158dec",
+    "original_red_reproduction_path": "artifacts/goal22-runs/axis-contact-replay/red-test-snapshot.cs",
+    "original_red_reproduction_sha256": "51707d05ed4191118b7eec1b391594a9359ebd58f935ef16b86e9c5ac598a3a4",
+    "family_binding_path": "artifacts/synthetic-runtime-evidence/margin-v2-input-preflight/source-c96-observable-guard/binding-v2.json",
+    "family_binding_sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+    "train_sources": 20,
+    "train_panels": 23,
+    "train_marker_truths": 500,
+    "dev_sources": 3,
+    "dev_panels": 9,
+    "dev_marker_truths": 206
+  },
+  "metric": "Run the full axis regression suite, including slanted and partial observed axes, and the application integration checks. Replay the actual native axis provider on all authenticated saved synthetic panel raster bytes. Preserve all failed panels and full marker truth denominators when reporting polygon containment. Compare candidate geometry and failure counts descriptively; do not claim that a smaller returned set improves accuracy. Inputs and source/executable/native identities must authenticate before the isolated synthetic truth comparison.",
+  "acceptance_bar": "The unsupported-corner reproduction must fail structurally or be visibly uncertain; existing axis and application regressions must pass. Model acceptance requirements remain those in ml/policy/acceptance-bars.json. This deterministic correctness repair does not authorize any model, production switch or release.",
+  "budget": {
+    "synthetic_train_dev_runs": "unlimited",
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_runs": 0,
+    "production_approval": false,
+    "release_eligible": false
+  }
+}

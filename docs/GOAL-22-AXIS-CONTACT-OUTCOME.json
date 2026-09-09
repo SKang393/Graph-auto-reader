@@ -1,0 +1,184 @@
+{
+  "schema": "graphreader.axis-contact-correctness-outcome.v1",
+  "status": "correctness-repair-verified-accuracy-not-accepted",
+  "baseline_commit": "b683a8e0606574314f118470b48d93ac603605f2",
+  "problem": "Infinite lines from disconnected finite segments could produce confidence0.967033 with NeedsReview=false. Fitted families could also bridge an unobserved internal corner gap.",
+  "implementation": "A selected pair must have observed finite-segment contact from both families within twice the existing merge-distance tolerance. Existing scoring, provider, plot extents and model weights are unchanged. Axis stage identity advances to axis-opencv-v2.",
+  "protocol": {
+    "path": "docs/GOAL-22-AXIS-CONTACT-PROTOCOL.json",
+    "sha256": "ef900016ed45c8a83908370e6a928ecb4fff8e747abc9e4772e835351a936fcc"
+  },
+  "sources": [
+    {
+      "path": "src/GraphReader.Axis/AxisGeometryDetector.cs",
+      "sha256": "a064e2bf29cf35985027165ce7858406264111f8ca061e30add7d93636a7e6ba"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAxisGeometryAdapter.cs",
+      "sha256": "0cc61f1deca2bc6114cbfa8e46b70ad077674421526019da95f6a02f4dd88207"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/AxisContactReplay.cs",
+      "sha256": "928fa2e984d17be546bb46be737166a1fa598cc19eaf8b238fb58bd54713678c"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "ccc93edf537632c418b816014e60118a01945ce572219e9aed54dc5ed34a0436"
+    },
+    {
+      "path": "tests/GraphReader.Axis.Tests/AxisGeometryPairContactTests.cs",
+      "sha256": "18ac2c67c4706ced368580ba429f2a988081893a3f7e07e463fcadde65158dec"
+    }
+  ],
+  "replay": {
+    "path": "artifacts/goal22-runs/axis-contact-replay/run1/report.json",
+    "sha256": "7a4e76544ce22aadd29ab541b31ac5375453a428b1da0347a1d8c9101cdf24fe",
+    "panels": 32,
+    "failed_panels": 0,
+    "elapsed_ms": 1621.9702,
+    "input_manifest": {
+      "path": "artifacts/goal22-runs/axis-contact-replay/input/input-manifest.json",
+      "sha256": "3960110f02d273a87fb6e0925f1f409464378f4640fa8d766f4f3aadb4600576"
+    },
+    "execution_manifest": {
+      "path": "artifacts/goal22-runs/axis-contact-replay/executable-v2/execution-files.json",
+      "sha256": "cafb0c304fb0470488c6bc572557f207ea2054e8ddd4fec25396834b4b85f99a"
+    },
+    "source_manifest": {
+      "path": "artifacts/goal22-runs/axis-contact-replay/executable-v2/source-files.json",
+      "sha256": "e8067595448f96fc584619c2887ec3e9288e6c3fbe108d859b5c26efe515c77c"
+    },
+    "assemblies": [
+      {
+        "name": "GraphReader.SyntheticRuntimeEvidence",
+        "sha256": "83b4739c306b483ed8cc64e388100406626e58d4d76452a5249ac7ddfb61f6d7"
+      },
+      {
+        "name": "GraphReader.Axis",
+        "sha256": "1da768110bd835b86016c50abcc8ccee13c6311b443275ad26534f9cf442e990"
+      },
+      {
+        "name": "GraphReader.App",
+        "sha256": "722cee10705361f26d68cd97ad71aa4fcf20dd0719d5e124e257647ebf4e53cb"
+      }
+    ],
+    "native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31"
+  },
+  "comparison": {
+    "path": "artifacts/goal22-runs/axis-contact-replay/compare/comparison-v1.json",
+    "sha256": "df11e63cf808554e9f0961079477f2e183c22ebf39121723b192a96b5ef35f6a",
+    "evaluator": {
+      "path": "artifacts/goal22-runs/axis-contact-replay/compare/compare_axis_contact_replay.py",
+      "sha256": "d9ddc158e64bba088dfd379e2679b118af80960005d3f57810b52867a9d9cc6a"
+    },
+    "elapsed_ms": 135582.678,
+    "aggregate": {
+      "train": {
+        "delta_repaired_minus_original": {
+          "retained_ink_proposals": -7855,
+          "truth_centers_inside_polygon": -36,
+          "truth_centers_supported_at_16px": -37,
+          "truths_with_proposal_within_5px": -37
+        },
+        "failed_panels": 0,
+        "original": {
+          "retained_ink_proposals": 100945,
+          "truth_centers_inside_polygon": 363,
+          "truth_centers_supported_at_16px": 384,
+          "truths_with_proposal_within_5px": 384
+        },
+        "panel_count": 23,
+        "repaired": {
+          "retained_ink_proposals": 93090,
+          "truth_centers_inside_polygon": 327,
+          "truth_centers_supported_at_16px": 347,
+          "truths_with_proposal_within_5px": 347
+        },
+        "truth_denominator": 500
+      },
+      "validation": {
+        "delta_repaired_minus_original": {
+          "retained_ink_proposals": 0,
+          "truth_centers_inside_polygon": 0,
+          "truth_centers_supported_at_16px": 0,
+          "truths_with_proposal_within_5px": 0
+        },
+        "failed_panels": 0,
+        "original": {
+          "retained_ink_proposals": 45396,
+          "truth_centers_inside_polygon": 206,
+          "truth_centers_supported_at_16px": 206,
+          "truths_with_proposal_within_5px": 206
+        },
+        "panel_count": 9,
+        "repaired": {
+          "retained_ink_proposals": 45396,
+          "truth_centers_inside_polygon": 206,
+          "truth_centers_supported_at_16px": 206,
+          "truths_with_proposal_within_5px": 206
+        },
+        "truth_denominator": 206
+      }
+    },
+    "parameters": {
+      "boundary_context_pixels": 16.0,
+      "proposal_truth_match_distance_pixels": 5.0,
+      "threshold_selection_performed": false
+    }
+  },
+  "validation": {
+    "axis": {
+      "path": "artifacts/test-results/axis-contact-final/Sungwoo_DESKTOP-KL9RVOO_2026-09-09_10_51_34_net10.0.trx",
+      "sha256": "8f1e8c5dd6c966cde85d63d972603d40bf2e68248837bad7ba7e1173761b51ba",
+      "passed": 41,
+      "failed": 0
+    },
+    "app": {
+      "path": "artifacts/test-results/axis-contact-app/Sungwoo_DESKTOP-KL9RVOO_2026-09-09_10_58_53_net10.0.trx",
+      "sha256": "ff46cbc15584f4538280f4faeba341e2358372f9d906362661a9ca6435691967",
+      "passed": 228,
+      "failed": 0
+    },
+    "app_scope": "Working-tree integration also contains the separately tested output-neutral OCR postprocess observer. The actual axis replay was compiled and frozen before that observer change.",
+    "compiler": {
+      "warnings": 0,
+      "errors": 0,
+      "elapsed_seconds": 3.77
+    },
+    "independent_review": "No blocking guard, coordinate or finite-contact findings. Actual train coverage regression must remain explicit.",
+    "initial_red": {
+      "passed": 1,
+      "failed": 1,
+      "source": {
+        "path": "artifacts/goal22-runs/axis-contact-replay/red-test-snapshot.cs",
+        "sha256": "51707d05ed4191118b7eec1b391594a9359ebd58f935ef16b86e9c5ac598a3a4"
+      }
+    },
+    "comparison_void": {
+      "path": "artifacts/goal22-runs/axis-contact-replay/compare/comparison-voids.json",
+      "sha256": "bf4d7f133b04bcfc01acbf00f3d4957b39c73df4ffee95919f29f3a33047e9e1"
+    },
+    "void": {
+      "path": "artifacts/goal22-runs/axis-contact-replay/executable-v1/void.json",
+      "sha256": "26f28bf09a6c0889ad3edd3250bec08f4c97fa1f3e87c432f335cf87b28afead"
+    }
+  },
+  "limitations": [
+    "This fixes unsupported-corner selection, not automatic scientific reading accuracy.",
+    "Train polygon containment decreases363/500 to327/500; proposal support decreases384/500 to347/500. Development remains206/206. All original truth denominators remain unchanged.",
+    "The saved panels include combined plots and degraded images with erased structural strokes. No panelization or generator change is included here.",
+    "No marker candidate may be trained or accepted from this failed domain-support preflight.",
+    "No whole-workflow, private, sealed, clean-machine or release acceptance is established by this replay."
+  ],
+  "scope": {
+    "synthetic_train_dev_only": true,
+    "model_runs": 0,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approved": false,
+    "packaged_application_build": false,
+    "goal22_pass": false
+  },
+  "license_review": "Project Apache-2.0 code and previously recorded c96 native runtime only. No new dependency, model, external asset or redistribution decision."
+}
