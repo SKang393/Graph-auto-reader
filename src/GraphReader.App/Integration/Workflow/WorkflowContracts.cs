@@ -42,7 +42,12 @@ public enum WorkflowStep
     Export,
 }
 
-public sealed record WorkflowSourceRequest(Guid SourceId, WorkflowSourceKind Kind, string Path);
+public sealed record WorkflowSourceRequest(Guid SourceId, WorkflowSourceKind Kind, string Path)
+{
+    // An open workspace keeps its reviewed source crops when Auto Detect reruns.
+    // This is an in-process request detail, not part of a frozen file contract.
+    internal RetainedRasterSourceRequest? RetainedRaster { get; init; }
+}
 
 public sealed class WorkflowImportRequest
 {

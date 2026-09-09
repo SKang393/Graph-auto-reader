@@ -4,6 +4,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -44,6 +45,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     private const string ProductionDeleteAuditKind = "production_point_deleted";
     private const string ProductionReassignAuditKind = "production_point_reassigned";
     private const string ProductionPhaseAuditKind = "production_phase_corrected";
+    private const string RasterCropTransformSchema = "graphreader.raster_source_crop.v1";
 
     private sealed record DeletedPointTombstone(
         string CorrectionId,
@@ -57,6 +59,15 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     private sealed record PdfWorkspaceImport(
         string DocumentSha256,
         IReadOnlyList<PdfWorkspacePanel> Panels);
+
+    private sealed record RasterWorkspacePanel(
+        WorkflowImportedPanel Panel,
+        ImmutableImageBytes OriginalBytes,
+        RasterPanelSourceProvenance SourceProvenance);
+
+    private sealed record RasterWorkspaceImport(
+        RasterSourceImageEvidence Source,
+        IReadOnlyList<RasterWorkspacePanel> Panels);
 
     private readonly IApplicationPaths? _applicationPaths;
     private readonly IImageImportService _imageImportService;
@@ -75,6 +86,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     private readonly Dictionary<string, Dictionary<string, DeletedPointTombstone>> _deletedPointTombstonesByTab = new(StringComparer.Ordinal);
     private readonly Dictionary<string, JsonElement> _enhancementByTab = new(StringComparer.Ordinal);
     private readonly Dictionary<string, EnhancementEnvelope> _enhancementEnvelopes = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, ImmutableImageBytes> _originalPanelBytesByTab = new(StringComparer.Ordinal);
     private IReadOnlyList<ImageImportError> _lastImportErrors = [];
 
     public ManualPreviewWorkspaceService(
@@ -175,41 +187,41 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         var errors = new List<ImageImportError>();
         _lastImportErrors = [];
         string[] imagePaths = requestedPaths.Where(static path => !IsPdfPath(path)).ToArray();
-        var firstImageIndexByHash = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        for (int imageIndex = 0; imageIndex < imagePaths.Length; imageIndex++)
+        foreach (string imagePath in imagePaths)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ImageImportResult item = await _imageImportService
-                .ImportAsync(imagePaths[imageIndex], cancellationToken)
-                .ConfigureAwait(false);
-            if (item.Error is not null)
+            var sourceId = SourceId.New();
+            try
             {
-                errors.Add(item.Error);
+                RasterWorkspaceImport imported = await LoadRasterPanelsAsync(
+                        CurrentProject.ProjectId.Value,
+                        sourceId,
+                        imagePath,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+                var source = new SourceReference(
+                    sourceId,
+                    SourceKind.Image,
+                    Path.GetFileName(imported.Source.Image.Reference),
+                    imported.Source.Image.Reference,
+                    imported.Source.Image.Sha256,
+                    ArticleMetadata: null);
+                var seededPanels = new List<PanelRecord>(imported.Panels.Count);
+                foreach (RasterWorkspacePanel panel in imported.Panels)
+                {
+                    WorkspaceTabViewModel tab = CreateEmptyRasterTab(source, panel);
+                    RegisterImportedTab(tab, panel.OriginalBytes, addedTabs);
+                    seededPanels.Add(CreateRasterPanelSeed(tab, panel.SourceProvenance));
+                }
+
+                CommitImportedSource(source, seededPanels);
                 _lastImportErrors = errors.ToArray();
-                continue;
             }
-
-            ImportedImage image = item.Image! with { InputIndex = imageIndex };
-            if (firstImageIndexByHash.TryGetValue(image.Sha256, out int duplicateIndex))
+            catch (ProductionWorkflowStageException exception)
             {
-                image = image with { DuplicateOfInputIndex = duplicateIndex };
+                errors.Add(ToImportError(imagePath, exception.Failure));
+                _lastImportErrors = errors.ToArray();
             }
-            else
-            {
-                firstImageIndexByHash.Add(image.Sha256, imageIndex);
-            }
-
-            var source = new SourceReference(
-                SourceId.New(),
-                SourceKind.Image,
-                Path.GetFileName(image.SourcePath),
-                image.SourcePath,
-                image.Sha256,
-                ArticleMetadata: null);
-            WorkspaceTabViewModel tab = CreateEmptyImageTab(PanelId.New(), source, image);
-            RegisterImportedTab(tab, addedTabs);
-            CommitImportedSource(source);
-            _lastImportErrors = errors.ToArray();
         }
 
         foreach (string pdfPath in requestedPaths.Where(IsPdfPath))
@@ -234,7 +246,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 foreach (PdfWorkspacePanel panel in imported.Panels)
                 {
                     WorkspaceTabViewModel tab = CreateEmptyPdfTab(source, panel);
-                    RegisterImportedTab(tab, addedTabs);
+                    RegisterImportedTab(tab, panel.OriginalBytes, addedTabs);
                 }
 
                 CommitImportedSource(source);
@@ -251,12 +263,17 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         return addedTabs;
     }
 
-    private void CommitImportedSource(SourceReference source)
+    private void CommitImportedSource(
+        SourceReference source,
+        IReadOnlyList<PanelRecord>? seededPanels = null)
     {
         CurrentProject = CurrentProject with
         {
             ModifiedUtc = DateTimeOffset.UtcNow,
             Sources = CurrentProject.Sources.Append(source).ToArray(),
+            Panels = seededPanels is null
+                ? CurrentProject.Panels
+                : CurrentProject.Panels.Concat(seededPanels).ToArray(),
         };
         SynchronizeProject(
             DomainEventKind.DetectionAccepted,
@@ -277,7 +294,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         }
 
         ProjectDocument project = loaded.Value;
-        var importedImagesBySource = new Dictionary<SourceId, ImportedImage>();
+        var importedLegacyRasterSources = new Dictionary<SourceId, ImportedImage>();
+        var importedRasterPanelsById = new Dictionary<PanelId, RasterWorkspacePanel>();
         var importedPdfPanelsById = new Dictionary<PanelId, PdfWorkspacePanel>();
         var errors = new List<ImageImportError>();
         foreach (SourceReference source in project.Sources)
@@ -290,22 +308,52 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
             if (source.Kind == SourceKind.Image)
             {
-                ImageImportResult imported = await _imageImportService
-                    .ImportAsync(source.LocalPath, cancellationToken)
-                    .ConfigureAwait(false);
-                if (imported.Image is null)
+                PanelRecord[] sourcePanels = project.Panels
+                    .Where(panel => panel.SourceId == source.SourceId)
+                    .ToArray();
+                TransformRecord?[] cropTransforms = sourcePanels
+                    .Select(panel => panel.Transforms.SingleOrDefault(IsRasterCropTransform))
+                    .ToArray();
+                if (cropTransforms.Any(static transform => transform is not null))
                 {
-                    errors.Add(imported.Error!);
-                    continue;
+                    if (cropTransforms.Any(static transform => transform is null))
+                    {
+                        throw new InvalidOperationException(
+                            $"Source '{source.DisplayName}' mixes legacy and source-bound raster panels.");
+                    }
+                    RetainedRasterPanelReference[] retainedPanels = sourcePanels
+                        .Select(panel => ReadRetainedRasterPanelReference(panel, source))
+                        .ToArray();
+                    RasterWorkspaceImport imported = await RestoreRasterPanelsAsync(
+                            project.ProjectId.Value,
+                            source.SourceId,
+                            source.LocalPath,
+                            source.Sha256,
+                            retainedPanels,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                    foreach (RasterWorkspacePanel panel in imported.Panels)
+                    {
+                        importedRasterPanelsById[PanelId.FromGuid(panel.Panel.PanelId)] = panel;
+                    }
                 }
-
-                if (!string.Equals(imported.Image.Sha256, source.Sha256, StringComparison.OrdinalIgnoreCase))
+                else
                 {
-                    throw new InvalidOperationException(
-                        $"Source '{source.DisplayName}' no longer matches its saved SHA-256.");
+                    ImageImportResult imported = await _imageImportService
+                        .ImportAsync(source.LocalPath, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (!imported.IsSuccess || imported.Image is null)
+                    {
+                        throw new InvalidOperationException(
+                            imported.Error?.TechnicalMessage ?? $"Source '{source.DisplayName}' could not be read.");
+                    }
+                    if (!string.Equals(imported.Image.Sha256, source.Sha256, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException(
+                            $"Source '{source.DisplayName}' no longer matches its saved SHA-256.");
+                    }
+                    importedLegacyRasterSources[source.SourceId] = imported.Image;
                 }
-
-                importedImagesBySource[source.SourceId] = imported.Image;
                 continue;
             }
 
@@ -339,30 +387,56 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
         if (errors.Count > 0)
         {
-            _lastImportErrors = errors;
             throw new InvalidOperationException(string.Join(" | ", errors.Select(static error => error.TechnicalMessage)));
         }
 
-        _tabs.Clear();
-        _phaseOverrides.Clear();
-        _pointXStates.Clear();
-        _pointModificationHistories.Clear();
-        _productionDetectionKeysByTab.Clear();
-        _deletedPointTombstonesByTab.Clear();
-        _enhancementByTab.Clear();
-        _enhancementEnvelopes.Clear();
+        var stagedTabs = new List<WorkspaceTabViewModel>(project.Panels.Count);
+        var stagedPhaseOverrides = new Dictionary<string, PhaseManualOverrides>(StringComparer.Ordinal);
+        var stagedPointXStates = new Dictionary<string, ManualPointXState>(StringComparer.Ordinal);
+        var stagedPointHistories = new Dictionary<string, List<PointModification>>(StringComparer.Ordinal);
+        var stagedDetectionKeys = new Dictionary<string, Dictionary<string, string?>>(StringComparer.Ordinal);
+        var stagedTombstones = new Dictionary<string, Dictionary<string, DeletedPointTombstone>>(StringComparer.Ordinal);
+        var stagedEnhancement = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        var stagedOriginalBytes = new Dictionary<string, ImmutableImageBytes>(StringComparer.Ordinal);
         foreach (PanelRecord panel in project.Panels)
         {
             SourceReference source = project.Sources.Single(item => item.SourceId == panel.SourceId);
             WorkspaceTabViewModel tab;
+            ImmutableImageBytes originalBytes;
             if (source.Kind == SourceKind.Image)
             {
-                if (!importedImagesBySource.TryGetValue(panel.SourceId, out ImportedImage? image))
+                if (importedRasterPanelsById.TryGetValue(panel.PanelId, out RasterWorkspacePanel? rasterPanel))
                 {
-                    continue;
+                    VerifySavedRasterPanel(panel, rasterPanel);
+                    originalBytes = rasterPanel.OriginalBytes;
+                    tab = CreateTabFromProject(
+                        panel,
+                        source,
+                        originalBytes,
+                        rasterPanel.Panel.Original.Width,
+                        rasterPanel.Panel.Original.Height,
+                        rasterPanel.Panel.Original.Sha256);
                 }
-
-                tab = CreateTabFromProject(panel, source, image);
+                else if (importedLegacyRasterSources.TryGetValue(panel.SourceId, out ImportedImage? rasterSource) &&
+                         IsLegacyFullImagePanel(
+                             project.Panels.Count(candidate => candidate.SourceId == panel.SourceId),
+                             panel,
+                             rasterSource))
+                {
+                    originalBytes = rasterSource.OriginalBytes;
+                    tab = CreateTabFromProject(
+                        panel,
+                        source,
+                        originalBytes,
+                        rasterSource.Metadata.Width,
+                        rasterSource.Metadata.Height,
+                        rasterSource.Sha256);
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Saved image panel '{panel.PanelId.Value:D}' was not reproduced by the current source bytes.");
+                }
             }
             else
             {
@@ -372,39 +446,53 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                         $"Saved PDF panel '{panel.PanelId.Value:D}' was not reproduced by the current source bytes.");
                 }
 
+                originalBytes = pdfPanel.OriginalBytes;
                 tab = CreateTabFromProject(
                     panel,
                     source,
-                    pdfPanel.OriginalBytes,
+                    originalBytes,
                     pdfPanel.Panel.Original.Width,
                     pdfPanel.Panel.Original.Height,
                     pdfPanel.Panel.Original.Sha256);
             }
 
             ReindexAllSeries(tab);
-            _tabs.Add(tab);
-            _phaseOverrides[tab.TabId] = CreatePhaseOverrides(tab);
-            _productionDetectionKeysByTab[tab.TabId] = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
-            _deletedPointTombstonesByTab[tab.TabId] = new Dictionary<string, DeletedPointTombstone>(StringComparer.OrdinalIgnoreCase);
+            stagedTabs.Add(tab);
+            stagedOriginalBytes[tab.TabId] = originalBytes;
+            stagedPhaseOverrides[tab.TabId] = CreatePhaseOverrides(tab);
+            stagedDetectionKeys[tab.TabId] = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+            stagedTombstones[tab.TabId] = new Dictionary<string, DeletedPointTombstone>(StringComparer.OrdinalIgnoreCase);
             if (panel.Enhancement is JsonElement enhancement)
             {
-                _enhancementByTab[tab.TabId] = enhancement.Clone();
+                stagedEnhancement[tab.TabId] = enhancement.Clone();
             }
             foreach (PointRecord point in panel.Points)
             {
                 string pointId = point.PointId.Value.ToString("D");
-                _pointXStates[pointId] = new ManualPointXState(
+                stagedPointXStates[pointId] = new ManualPointXState(
                     point.PrintedXValue,
                     point.EstimatedXValue,
                     point.XSource,
                     point.XConfidence,
                     point.GraphX.HasValue);
-                _pointModificationHistories[pointId] = point.ModificationHistory.ToList();
+                stagedPointHistories[pointId] = point.ModificationHistory
+                    .Select(modification => MapModificationSourceToPanel(panel, modification))
+                    .ToList();
             }
         }
 
+        RestoreProductionCorrectionState(project, stagedTabs, stagedDetectionKeys, stagedTombstones);
+        _tabs.Clear();
+        _tabs.AddRange(stagedTabs);
+        ReplaceContents(_phaseOverrides, stagedPhaseOverrides);
+        ReplaceContents(_pointXStates, stagedPointXStates);
+        ReplaceContents(_pointModificationHistories, stagedPointHistories);
+        ReplaceContents(_productionDetectionKeysByTab, stagedDetectionKeys);
+        ReplaceContents(_deletedPointTombstonesByTab, stagedTombstones);
+        ReplaceContents(_enhancementByTab, stagedEnhancement);
+        _enhancementEnvelopes.Clear();
+        ReplaceContents(_originalPanelBytesByTab, stagedOriginalBytes);
         CurrentProject = project;
-        RestoreProductionCorrectionState(project);
         CurrentProjectPath = Path.GetFullPath(path);
         _lastImportErrors = [];
         return CreateWorkspace();
@@ -442,6 +530,19 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 UserMessageKey: backend.Diagnostic?.UserMessageKey ?? LocalizationKeys.EnhancementRuntimeUnavailable);
         }
 
+        if (!_originalPanelBytesByTab.TryGetValue(tab.TabId, out ImmutableImageBytes? originalPanelBytes))
+        {
+            return new WorkspaceEnhancementResult(
+                false,
+                "The immutable panel image is unavailable. The original image remains unchanged.",
+                UserMessageKey: LocalizationKeys.EnhancementStorageUnavailable);
+        }
+
+        string enhancementSourcePath = await MaterializeEnhancementSourceAsync(
+                tab,
+                originalPanelBytes,
+                cancellationToken)
+            .ConfigureAwait(false);
         string derivativeRoot = Path.Combine(_applicationPaths.CacheRoot, "Enhancement", "Derivatives");
         Directory.CreateDirectory(derivativeRoot);
         string outputPath = Path.Combine(
@@ -450,7 +551,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         var request = new EnhancementRequest(
             CurrentProject.ProjectId.Value,
             Guid.Parse(tab.PanelId),
-            tab.SourcePath,
+            enhancementSourcePath,
             outputPath,
             new PixelDimensions(tab.PixelWidth, tab.PixelHeight),
             backend.Model,
@@ -516,6 +617,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         _deletedPointTombstonesByTab.Remove(tab.TabId);
         _enhancementByTab.Remove(tab.TabId);
         _enhancementEnvelopes.Remove(tab.TabId);
+        _originalPanelBytesByTab.Remove(tab.TabId);
         foreach (AppGraphPoint point in tab.Points)
         {
             _pointXStates.Remove(point.PointId);
@@ -759,6 +861,14 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         AppendPointModification(point, previousPixel, previousGraph, "Manual point moved");
         ReindexSeries(tab, point.SeriesId);
         _ = GetProductionDetectionKeys(tab.TabId).TryGetValue(point.PointId, out string? detectionKey);
+        PanelRecord panel = CurrentProject.Panels.Single(candidate =>
+            candidate.PanelId.Value == Guid.Parse(tab.PanelId!));
+        DomainPixelPoint persistedPixel = MapPointPanelToSource(
+            panel,
+            new DomainPixelPoint(point.PixelX, point.PixelY));
+        string? cropTransformId = panel.Transforms
+            .SingleOrDefault(IsRasterCropTransform)?
+            .TransformId.Value.ToString("D");
         SynchronizeProject(
             DomainEventKind.PointEdited,
             Guid.Parse(tab.PanelId!),
@@ -770,8 +880,10 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 correction_id = Guid.NewGuid().ToString("D"),
                 target_point_id = point.PointId,
                 target_detection_key = detectionKey,
-                original_pixel_x = point.PixelX,
-                original_pixel_y = point.PixelY,
+                original_pixel_x = persistedPixel.X,
+                original_pixel_y = persistedPixel.Y,
+                coordinate_space = "original_pixels",
+                crop_transform_id = cropTransformId,
             }));
     }
 
@@ -1158,16 +1270,62 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     {
         WorkflowSourceRequest[] sources = CurrentProject.Sources
             .Where(static source => !string.IsNullOrWhiteSpace(source.LocalPath))
-            .Select(source => new WorkflowSourceRequest(
-                source.SourceId.Value,
-                source.Kind switch
+            .Select(source =>
+            {
+                var request = new WorkflowSourceRequest(
+                    source.SourceId.Value,
+                    source.Kind switch
+                    {
+                        SourceKind.Image => WorkflowSourceKind.Image,
+                        SourceKind.Pdf => WorkflowSourceKind.Pdf,
+                        _ => throw new InvalidOperationException(
+                            $"Source kind '{source.Kind}' is not supported by the production workflow."),
+                    },
+                    source.LocalPath!);
+                if (source.Kind != SourceKind.Image)
                 {
-                    SourceKind.Image => WorkflowSourceKind.Image,
-                    SourceKind.Pdf => WorkflowSourceKind.Pdf,
-                    _ => throw new InvalidOperationException(
-                        $"Source kind '{source.Kind}' is not supported by the production workflow."),
-                },
-                source.LocalPath!))
+                    return request;
+                }
+
+                PanelRecord[] panels = CurrentProject.Panels
+                    .Where(panel => panel.SourceId == source.SourceId)
+                    .ToArray();
+                RetainedRasterPanelReference[] retained;
+                if (panels.Length > 0 && panels.All(panel => panel.Transforms.Any(IsRasterCropTransform)))
+                {
+                    retained = panels.Select(panel => ReadRetainedRasterPanelReference(panel, source)).ToArray();
+                }
+                else if (panels.Length == 1 &&
+                    panels[0].Transforms.All(static transform => !IsRasterCropTransform(transform)) &&
+                    _tabs.SingleOrDefault(tab => string.Equals(
+                        tab.PanelId,
+                        panels[0].PanelId.Value.ToString("D"),
+                        StringComparison.OrdinalIgnoreCase)) is { } legacyTab &&
+                    panels[0].Crop == new CropRectangle(0, 0, legacyTab.PixelWidth, legacyTab.PixelHeight) &&
+                    legacyTab.SourceSha256 is { Length: > 0 } legacyPanelSha256 &&
+                    string.Equals(legacyPanelSha256, source.Sha256, StringComparison.OrdinalIgnoreCase))
+                {
+                    var fullCrop = new PdfRectD(0, 0, legacyTab.PixelWidth, legacyTab.PixelHeight);
+                    retained =
+                    [
+                        new RetainedRasterPanelReference(
+                            panels[0].PanelId.Value,
+                            panels[0].DisplayName,
+                            legacyPanelSha256,
+                            legacyTab.PixelWidth,
+                            legacyTab.PixelHeight,
+                            fullCrop,
+                            fullCrop),
+                    ];
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Image source '{source.DisplayName}' has no complete retained panel identity for automatic detection.");
+                }
+
+                return request with { RetainedRaster = new RetainedRasterSourceRequest(source.Sha256, retained) };
+            })
             .ToArray();
         if (sources.Length == 0)
         {
@@ -1220,6 +1378,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             WorkflowReviewPanel reviewPanel = incomingReviewPanel;
             WorkflowImportedPanel imported = reviewPanel.PreparedPanel.ImportedPanel;
             WorkspaceTabViewModel[] matchingTabs = _tabs.Where(candidate =>
+                    string.Equals(candidate.PanelId, imported.PanelId.ToString("D"), StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(candidate.SourceId, imported.SourceId.ToString("D"), StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(candidate.SourceSha256, imported.Original.Sha256, StringComparison.OrdinalIgnoreCase) &&
                     candidate.PixelWidth == imported.Original.Width &&
@@ -1508,17 +1667,18 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 }
 
                 ProductionPanelProjectionEvidence exact = state.Evidence;
+                ProductionPanelProjectionEvidence persisted = MapProjectionPanelToSource(panel, exact);
                 PanelRecord updated = panel with
                 {
-                    Participant = exact.Participant,
-                    Transforms = exact.Transforms,
-                    Calibration = exact.Calibration,
-                    OcrRegions = exact.OcrRegions,
-                    Markers = exact.Markers,
-                    Points = MergeProjectedPoints(panel.Points, exact.Points),
+                    Participant = persisted.Participant,
+                    Transforms = MergeProjectionTransforms(panel, exact.Transforms),
+                    Calibration = persisted.Calibration,
+                    OcrRegions = persisted.OcrRegions,
+                    Markers = persisted.Markers,
+                    Points = MergeProjectedPoints(panel.Points, persisted.Points),
                 };
                 return state.WasBlank
-                    ? updated with { Phases = exact.Phases, Series = exact.Series }
+                    ? updated with { Phases = persisted.Phases, Series = persisted.Series }
                     : updated;
             }).ToArray(),
         };
@@ -1641,13 +1801,14 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                     when TryReadString(details, "target_point_id", out string? movedPointId) &&
                         TryReadDouble(details, "original_pixel_x", out double movedX) &&
                         TryReadDouble(details, "original_pixel_y", out double movedY):
+                    DomainPixelPoint replayPixel = MapPersistedAuditPointToPanel(currentPanel, details, movedX, movedY);
                     corrections.Add(new MoveWorkflowPointCorrection(
                         correctionId!,
                         exactReviewPanel.PanelId,
                         movedPointId!,
                         TryReadNullableString(details, "target_detection_key"),
-                        movedX,
-                        movedY));
+                        replayPixel.X,
+                        replayPixel.Y));
                     break;
                 case ProductionDeleteAuditKind when TryReadString(details, "target_point_id", out string? deletedPointId):
                     corrections.Add(new DeleteWorkflowPointCorrection(
@@ -1710,11 +1871,13 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             return false;
         }
 
+        DomainPixelPoint workspacePixel = MapPointSourceToPanel(panel, point.OriginalPixel);
+
         workflowPoint = new WorkflowPoint(
             point.PointId.Value.ToString("D"),
             detectionKey: null,
-            point.OriginalPixel.X,
-            point.OriginalPixel.Y,
+            workspacePixel.X,
+            workspacePixel.Y,
             point.PointConfidence,
             WorkflowImageVariant.Original,
             WorkflowReviewStatus.Corrected,
@@ -1773,10 +1936,11 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                     $"Corrected workflow review is missing persisted project point '{pointId}'.");
             }
 
+            DomainPixelPoint workspacePixel = MapPointSourceToPanel(panel, point.OriginalPixel);
             aligned.Add(template with
             {
-                OriginalPixelX = point.OriginalPixel.X,
-                OriginalPixelY = point.OriginalPixel.Y,
+                OriginalPixelX = workspacePixel.X,
+                OriginalPixelY = workspacePixel.Y,
                 GraphX = point.GraphX,
                 GraphY = point.GraphY,
                 SeriesId = seriesId.Value.ToString("D"),
@@ -1794,24 +1958,25 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         ProductionPanelExportEvidence source,
         PanelRecord panel)
     {
+        PanelRecord workspacePanel = MapPanelRecordSourceToPanel(panel);
         var projection = new ProductionPanelProjectionEvidence(
-            panel.Calibration ?? throw new InvalidOperationException("Corrected production panel lost calibration."),
-            panel.Phases,
-            panel.Series,
-            panel.Points,
-            panel.Transforms,
-            panel.OcrRegions,
-            panel.Markers,
-            panel.Participant);
+            workspacePanel.Calibration ?? throw new InvalidOperationException("Corrected production panel lost calibration."),
+            workspacePanel.Phases,
+            workspacePanel.Series,
+            workspacePanel.Points,
+            workspacePanel.Transforms,
+            workspacePanel.OcrRegions,
+            workspacePanel.Markers,
+            workspacePanel.Participant);
         return new ProductionPanelExportEvidence(
             source.Calibration,
-            panel.Phases.Select(ToExportPhase),
-            panel.Series.Select(ToExportSeries),
-            panel.Series.Select(series => new ExportSeriesRelation(
+            workspacePanel.Phases.Select(ToExportPhase),
+            workspacePanel.Series.Select(ToExportSeries),
+            workspacePanel.Series.Select(series => new ExportSeriesRelation(
                 series.SeriesId.Value,
                 series.SharedBaselineSeriesId?.Value,
                 series.ApplicableProbeSeriesIds.Select(static id => id.Value))),
-            panel.Points.Select(point => new ProductionPointExportEvidence(
+            workspacePanel.Points.Select(point => new ProductionPointExportEvidence(
                 point.PointId.Value,
                 point.MarkerId?.Value,
                 point.ObservationIndex,
@@ -1827,7 +1992,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 point.XConfidence,
                 point.YConfidence)),
             source.Provenance,
-            panel.Participant,
+            workspacePanel.Participant,
             source.Mode,
             source.AuditMode,
             source.SessionOriginPolicy,
@@ -2012,7 +2177,11 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             workflow_warnings = result.Review.Warnings.ToArray(),
         });
 
-    private void RestoreProductionCorrectionState(ProjectDocument project)
+    private static void RestoreProductionCorrectionState(
+        ProjectDocument project,
+        IReadOnlyList<WorkspaceTabViewModel> tabs,
+        Dictionary<string, Dictionary<string, string?>> detectionKeysByTab,
+        Dictionary<string, Dictionary<string, DeletedPointTombstone>> tombstonesByTab)
     {
         foreach (AuditEvent auditEvent in project.Audit.Events.OrderBy(static item => item.OccurredUtc))
         {
@@ -2037,7 +2206,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                         continue;
                     }
 
-                    WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(candidate => string.Equals(
+                    WorkspaceTabViewModel? tab = tabs.SingleOrDefault(candidate => string.Equals(
                         candidate.PanelId,
                         panelId,
                         StringComparison.OrdinalIgnoreCase));
@@ -2047,7 +2216,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                     }
 
                     string? detectionKey = TryReadNullableString(identity, "detection_key");
-                    GetProductionDetectionKeys(tab.TabId)[pointId!] = detectionKey;
+                    detectionKeysByTab[tab.TabId][pointId!] = detectionKey;
                 }
             }
             else if (string.Equals(kind, ProductionDeleteAuditKind, StringComparison.Ordinal) &&
@@ -2055,7 +2224,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 TryReadString(details, "correction_id", out string? correctionId) &&
                 TryReadString(details, "target_point_id", out string? targetPointId))
             {
-                WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(candidate => string.Equals(
+                WorkspaceTabViewModel? tab = tabs.SingleOrDefault(candidate => string.Equals(
                     candidate.PanelId,
                     deletedPanelId.Value.ToString("D"),
                     StringComparison.OrdinalIgnoreCase));
@@ -2065,12 +2234,24 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 }
 
                 string? detectionKey = TryReadNullableString(details, "target_detection_key");
-                GetDeletedPointTombstones(tab.TabId)[targetPointId!] = new DeletedPointTombstone(
+                tombstonesByTab[tab.TabId][targetPointId!] = new DeletedPointTombstone(
                     correctionId!,
                     targetPointId!,
                     detectionKey);
-                GetProductionDetectionKeys(tab.TabId).Remove(targetPointId!);
+                detectionKeysByTab[tab.TabId].Remove(targetPointId!);
             }
+        }
+    }
+
+    private static void ReplaceContents<TKey, TValue>(
+        Dictionary<TKey, TValue> destination,
+        IReadOnlyDictionary<TKey, TValue> source)
+        where TKey : notnull
+    {
+        destination.Clear();
+        foreach ((TKey key, TValue value) in source)
+        {
+            destination.Add(key, value);
         }
     }
 
@@ -2104,6 +2285,32 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             property.ValueKind == JsonValueKind.Number &&
             property.TryGetDouble(out result) &&
             double.IsFinite(result);
+    }
+
+    private static bool TryReadPositiveInt(JsonElement value, string propertyName, out int result)
+    {
+        result = 0;
+        return value.ValueKind == JsonValueKind.Object &&
+            value.TryGetProperty(propertyName, out JsonElement property) &&
+            property.ValueKind == JsonValueKind.Number &&
+            property.TryGetInt32(out result) &&
+            result > 0;
+    }
+
+    private static bool TryReadRect(JsonElement value, string propertyName, out PdfRectD result)
+    {
+        result = default;
+        if (value.ValueKind != JsonValueKind.Object ||
+            !value.TryGetProperty(propertyName, out JsonElement rectangle) ||
+            !TryReadDouble(rectangle, "x", out double x) ||
+            !TryReadDouble(rectangle, "y", out double y) ||
+            !TryReadDouble(rectangle, "width", out double width) ||
+            !TryReadDouble(rectangle, "height", out double height))
+        {
+            return false;
+        }
+        result = new PdfRectD(x, y, width, height);
+        return result.IsValid;
     }
 
     private static ProductionReviewProjectionResult RejectProductionProjection(string technicalMessage) =>
@@ -2272,6 +2479,120 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         return $"{Math.Max(0, version.Major)}.{Math.Max(0, version.Minor)}.{Math.Max(0, version.Build)}";
     }
 
+    private async Task<RasterWorkspaceImport> LoadRasterPanelsAsync(
+        Guid projectId,
+        SourceId sourceId,
+        string sourcePath,
+        CancellationToken cancellationToken)
+    {
+        var panelStore = new ProductionWorkflowPanelStore();
+        var stage = new ProductionWorkflowImportStage(
+            panelStore,
+            _imageImportService,
+            _pdfImportService);
+        WorkflowImportSnapshot snapshot = await stage.ImportAsync(
+                new WorkflowImportRequest(
+                    projectId,
+                    [new WorkflowSourceRequest(sourceId.Value, WorkflowSourceKind.Image, Path.GetFullPath(sourcePath))],
+                    enhancementEnabled: false),
+                cancellationToken)
+            .ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        RasterSourceImageEvidence? source = null;
+        var panels = new List<RasterWorkspacePanel>(snapshot.Panels.Count);
+        foreach (WorkflowImportedPanel panel in snapshot.Panels)
+        {
+            ProductionPanelEvidence evidence = panelStore.Get(panel.PanelId);
+            RasterPanelSourceProvenance provenance = evidence.RasterPanelSource ??
+                throw RasterFailure(
+                    $"Image panel '{panel.PanelId:D}' did not retain full-source raster provenance.");
+            if (evidence.SourceKind != WorkflowSourceKind.Image ||
+                panel.SourceId != sourceId.Value ||
+                !string.Equals(provenance.PanelImageSha256, panel.Original.Sha256, StringComparison.OrdinalIgnoreCase))
+            {
+                throw RasterFailure(
+                    $"Image panel '{panel.PanelId:D}' did not match its retained raster source evidence.");
+            }
+
+            if (source is null)
+            {
+                source = provenance.Source;
+            }
+            else if (!string.Equals(source.Image.Reference, provenance.Source.Image.Reference, StringComparison.OrdinalIgnoreCase) ||
+                     !string.Equals(source.Image.Sha256, provenance.Source.Image.Sha256, StringComparison.OrdinalIgnoreCase) ||
+                     source.Image.Width != provenance.Source.Image.Width ||
+                     source.Image.Height != provenance.Source.Image.Height)
+            {
+                throw RasterFailure("Image panels from one import did not share one immutable full-source identity.");
+            }
+
+            panels.Add(new RasterWorkspacePanel(
+                panel,
+                new ImmutableImageBytes(evidence.CopyOriginalBytes()),
+                provenance));
+        }
+
+        if (source is null || panels.Count == 0)
+        {
+            throw RasterFailure("Image workspace import returned no detector-ready panels.");
+        }
+
+        return new RasterWorkspaceImport(source, panels);
+    }
+
+    private async Task<RasterWorkspaceImport> RestoreRasterPanelsAsync(
+        Guid projectId,
+        SourceId sourceId,
+        string sourcePath,
+        string expectedSourceSha256,
+        RetainedRasterPanelReference[] retainedPanels,
+        CancellationToken cancellationToken)
+    {
+        var panelStore = new ProductionWorkflowPanelStore();
+        var stage = new ProductionWorkflowImportStage(panelStore, _imageImportService, _pdfImportService);
+        WorkflowImportSnapshot snapshot = await stage.RestoreRasterPanelsAsync(
+                projectId,
+                new WorkflowSourceRequest(sourceId.Value, WorkflowSourceKind.Image, Path.GetFullPath(sourcePath)),
+                expectedSourceSha256,
+                retainedPanels,
+                cancellationToken)
+            .ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        RasterSourceImageEvidence? source = null;
+        var panels = new List<RasterWorkspacePanel>(snapshot.Panels.Count);
+        foreach (WorkflowImportedPanel panel in snapshot.Panels)
+        {
+            ProductionPanelEvidence evidence = panelStore.Get(panel.PanelId);
+            RasterPanelSourceProvenance provenance = evidence.RasterPanelSource ??
+                throw RasterFailure($"Restored image panel '{panel.PanelId:D}' has no source provenance.");
+            if (panel.SourceId != sourceId.Value ||
+                !string.Equals(provenance.PanelImageSha256, panel.Original.Sha256, StringComparison.OrdinalIgnoreCase))
+            {
+                throw RasterFailure($"Restored image panel '{panel.PanelId:D}' did not match its retained identity.");
+            }
+
+            source ??= provenance.Source;
+            if (!string.Equals(source.Image.Sha256, provenance.Source.Image.Sha256, StringComparison.OrdinalIgnoreCase) ||
+                source.Image.Width != provenance.Source.Image.Width ||
+                source.Image.Height != provenance.Source.Image.Height)
+            {
+                throw RasterFailure("Restored image panels did not share one immutable source identity.");
+            }
+            panels.Add(new RasterWorkspacePanel(
+                panel,
+                new ImmutableImageBytes(evidence.CopyOriginalBytes()),
+                provenance));
+        }
+
+        if (source is null || panels.Count != retainedPanels.Length)
+        {
+            throw RasterFailure("Saved image panel restoration returned an incomplete panel set.");
+        }
+        return new RasterWorkspaceImport(source, panels);
+    }
+
     private async Task<PdfWorkspaceImport> LoadPdfPanelsAsync(
         Guid projectId,
         SourceId sourceId,
@@ -2340,10 +2661,12 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
     private void RegisterImportedTab(
         WorkspaceTabViewModel tab,
+        ImmutableImageBytes originalBytes,
         List<WorkspaceTabViewModel> addedTabs)
     {
         _tabs.Add(tab);
         addedTabs.Add(tab);
+        _originalPanelBytesByTab[tab.TabId] = originalBytes;
         _phaseOverrides[tab.TabId] = new PhaseManualOverrides();
         _productionDetectionKeysByTab[tab.TabId] =
             new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
@@ -2376,31 +2699,50 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             Recoverable: true,
             "Retry the PDF import or select a detector-ready graph image."));
 
+    private static ProductionWorkflowStageException RasterFailure(string technicalMessage) =>
+        new(new ProductionWorkflowFailure(
+            ProductionWorkflowFailureCodes.ImageImportFailed,
+            "Errors.ImageReadFailed",
+            technicalMessage,
+            Recoverable: true,
+            "Retry the image import or keep the source as one full-image panel."));
+
     private static bool IsPdfPath(string path) =>
         string.Equals(Path.GetExtension(path), ".pdf", StringComparison.OrdinalIgnoreCase);
 
-    private static WorkspaceTabViewModel CreateEmptyImageTab(
-        PanelId panelId,
+    private PanelRecord CreateRasterPanelSeed(
+        WorkspaceTabViewModel tab,
+        RasterPanelSourceProvenance provenance)
+    {
+        PanelRecord seed = ToPanelRecord(tab);
+        return seed with
+        {
+            Crop = ToCropRectangle(provenance.EncodedCropInSourcePixels),
+            Transforms = [CreateRasterCropTransform(seed.PanelId, provenance)],
+        };
+    }
+
+    private static WorkspaceTabViewModel CreateEmptyRasterTab(
         SourceReference source,
-        ImportedImage image)
+        RasterWorkspacePanel panel)
     {
         var points = new ObservableCollection<AppGraphPoint>();
         var series = new ObservableCollection<SeriesCardViewModel>();
         var dividers = new ObservableCollection<EditablePhaseDivider>();
         return new WorkspaceTabViewModel(
-            panelId.Value.ToString("D"),
-            source.DisplayName,
+            panel.Panel.PanelId.ToString("D"),
+            panel.Panel.DisplayName,
             points,
             series,
-            CreateBitmap(image.OriginalBytes),
+            CreateBitmap(panel.OriginalBytes),
             enhancedImageSource: null,
             phaseOverlayContent: null,
-            panelId.Value.ToString("D"),
+            panel.Panel.PanelId.ToString("D"),
             source.SourceId.Value.ToString("D"),
             source.LocalPath,
-            source.Sha256,
-            image.Metadata.Width,
-            image.Metadata.Height,
+            panel.Panel.Original.Sha256,
+            panel.Panel.Original.Width,
+            panel.Panel.Original.Height,
             calibration: null,
             dividers);
     }
@@ -2451,17 +2793,18 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         int pixelHeight,
         string panelImageSha256)
     {
-        var points = new ObservableCollection<AppGraphPoint>(panel.Points.Select(point => new AppGraphPoint(
+        PanelRecord workspacePanel = MapPanelRecordSourceToPanel(panel);
+        var points = new ObservableCollection<AppGraphPoint>(workspacePanel.Points.Select(point => new AppGraphPoint(
             point.PointId.Value.ToString("D"),
             point.SeriesId?.Value.ToString("D") ?? string.Empty,
             point.OriginalPixel.X,
             point.OriginalPixel.Y,
             point.GraphX ?? 0,
             point.GraphY ?? 0,
-            panel.Phases.FirstOrDefault(phase => phase.PhaseId == point.PhaseId)?.Code ?? "unknown",
+            workspacePanel.Phases.FirstOrDefault(phase => phase.PhaseId == point.PhaseId)?.Code ?? "unknown",
             point.PhaseId?.Value.ToString("D"),
             point.ObservationIndex)));
-        var series = new ObservableCollection<SeriesCardViewModel>(panel.Series.Select(item =>
+        var series = new ObservableCollection<SeriesCardViewModel>(workspacePanel.Series.Select(item =>
             new SeriesCardViewModel(
                 item.SeriesId.Value.ToString("D"),
                 item.Symbol,
@@ -2472,14 +2815,14 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 item.Shape,
                 item.Fill,
                 item.SemanticRole)));
-        var dividers = new ObservableCollection<EditablePhaseDivider>(panel.Phases
+        var dividers = new ObservableCollection<EditablePhaseDivider>(workspacePanel.Phases
             .Where(static phase => phase.Order > 1 && phase.BoundaryLeftId is not null)
             .Select(phase => new EditablePhaseDivider(
                 phase.BoundaryLeftId!.Value.Value.ToString("D"),
                 phase.ScreenXMin,
                 phase.Code,
                 phase.LabelText ?? phase.Code)));
-        ManualCalibrationState? calibration = FromDomainCalibration(panel.Calibration);
+        ManualCalibrationState? calibration = FromDomainCalibration(workspacePanel.Calibration);
         return new WorkspaceTabViewModel(
             panel.PanelId.Value.ToString("D"),
             panel.DisplayName,
@@ -2509,6 +2852,96 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         bitmap.EndInit();
         bitmap.Freeze();
         return bitmap;
+    }
+
+    private async Task<string> MaterializeEnhancementSourceAsync(
+        WorkspaceTabViewModel tab,
+        ImmutableImageBytes originalBytes,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        byte[] bytes = originalBytes.Copy();
+        string actualSha256 = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        if (!string.Equals(actualSha256, tab.SourceSha256, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"Panel '{tab.PanelId}' immutable bytes no longer match its retained SHA-256.");
+        }
+
+        string sourceRoot = Path.Combine(_applicationPaths!.CacheRoot, "Enhancement", "Sources");
+        Directory.CreateDirectory(sourceRoot);
+        string extension = DetectImageExtension(bytes, tab.SourcePath);
+        string targetPath = Path.Combine(sourceRoot, $"{Guid.Parse(tab.PanelId!):N}-{actualSha256}.{extension}");
+        if (File.Exists(targetPath))
+        {
+            byte[] existing = await File.ReadAllBytesAsync(targetPath, cancellationToken).ConfigureAwait(false);
+            if (!CryptographicOperations.FixedTimeEquals(SHA256.HashData(existing), SHA256.HashData(bytes)))
+            {
+                throw new InvalidOperationException(
+                    $"Enhancement source cache collision for panel '{tab.PanelId}'.");
+            }
+            return targetPath;
+        }
+
+        string temporaryPath = targetPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await File.WriteAllBytesAsync(temporaryPath, bytes, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                File.Move(temporaryPath, targetPath);
+            }
+            catch (IOException) when (File.Exists(targetPath))
+            {
+                byte[] existing = await File.ReadAllBytesAsync(targetPath, cancellationToken).ConfigureAwait(false);
+                if (!CryptographicOperations.FixedTimeEquals(SHA256.HashData(existing), SHA256.HashData(bytes)))
+                {
+                    throw new InvalidOperationException(
+                        $"Enhancement source cache collision for panel '{tab.PanelId}'.");
+                }
+            }
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+            {
+                File.Delete(temporaryPath);
+            }
+        }
+
+        return targetPath;
+    }
+
+    private static string DetectImageExtension(ReadOnlySpan<byte> bytes, string? sourcePath)
+    {
+        if (bytes.Length >= 8 && bytes[0] == 137 && bytes[1] == 80 && bytes[2] == 78 && bytes[3] == 71 &&
+            bytes[4] == 13 && bytes[5] == 10 && bytes[6] == 26 && bytes[7] == 10)
+        {
+            return "png";
+        }
+        if (bytes.Length >= 3 && bytes[0] == 0xff && bytes[1] == 0xd8 && bytes[2] == 0xff)
+        {
+            return "jpg";
+        }
+        if (bytes.Length >= 2 && bytes[0] == 0x42 && bytes[1] == 0x4d)
+        {
+            return "bmp";
+        }
+        if (bytes.Length >= 4 &&
+            ((bytes[0] == 0x49 && bytes[1] == 0x49 && bytes[2] == 0x2a && bytes[3] == 0x00) ||
+             (bytes[0] == 0x4d && bytes[1] == 0x4d && bytes[2] == 0x00 && bytes[3] == 0x2a)))
+        {
+            return "tif";
+        }
+        if (bytes.Length >= 12 && bytes[..4].SequenceEqual("RIFF"u8) && bytes[8..12].SequenceEqual("WEBP"u8))
+        {
+            return "webp";
+        }
+
+        string extension = Path.GetExtension(sourcePath ?? string.Empty).TrimStart('.').ToLowerInvariant();
+        return extension is "png" or "jpg" or "jpeg" or "bmp" or "tif" or "tiff" or "webp"
+            ? extension
+            : "img";
     }
 
     private static ManualCalibrationState? FromDomainCalibration(CalibrationRecord? calibration)
@@ -2577,18 +3010,19 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         SourceId sourceId = SourceId.FromGuid(Guid.Parse(tab.SourceId!));
         PanelRecord? existingPanel = CurrentProject.Panels
             .FirstOrDefault(panel => panel.PanelId == panelId);
-        PhaseRecord[] generatedRegionPhases = BuildRegionPhases(tab);
-        PhaseRecord[] generatedSemanticProbePhases = BuildSemanticProbePhases(
+        PhaseRecord[] workspaceRegionPhases = BuildRegionPhases(tab);
+        PhaseRecord[] workspaceSemanticProbePhases = BuildSemanticProbePhases(
             tab,
-            generatedRegionPhases.Length);
-        PhaseRecord[] generatedPhases = [.. generatedRegionPhases, .. generatedSemanticProbePhases];
+            workspaceRegionPhases.Length);
+        PhaseRecord[] generatedPhases = workspaceRegionPhases
+            .Concat(workspaceSemanticProbePhases)
+            .Select(phase => MapPhasePanelToSource(existingPanel, phase))
+            .ToArray();
         bool preservePhaseEvidence = existingPanel is not null &&
             PhaseLayoutMatches(existingPanel.Phases, generatedPhases);
         PhaseRecord[] phases = preservePhaseEvidence
             ? existingPanel!.Phases.ToArray()
             : generatedPhases;
-        PhaseRecord[] regionPhases = phases.Take(generatedRegionPhases.Length).ToArray();
-        PhaseRecord[] semanticProbePhases = phases.Skip(generatedRegionPhases.Length).ToArray();
         Dictionary<SeriesId, SeriesRecord> existingSeries = existingPanel?
             .Series.ToDictionary(static series => series.SeriesId)
             ?? new Dictionary<SeriesId, SeriesRecord>();
@@ -2597,7 +3031,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             ?? new Dictionary<PointId, PointRecord>();
         Dictionary<string, PhaseRecord> pointPhases = tab.Points.ToDictionary(
             static point => point.PointId,
-            point => ResolvePointPhase(tab, point, regionPhases, semanticProbePhases));
+            point => ResolvePointPhase(tab, point, workspaceRegionPhases, workspaceSemanticProbePhases));
         HashSet<SeriesId> validBaselineIds = tab.SeriesCards
             .Where(static item => item.SemanticRole == SemanticRole.Baseline)
             .Select(item => SeriesId.FromGuid(Guid.Parse(item.SeriesId)))
@@ -2648,11 +3082,15 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             point.PhaseId = phase.PhaseId.Value.ToString("D");
             point.PhaseCode = phase.Code;
             ManualPointXState xState = GetPointXState(tab, point);
-            var originalPixel = new DomainPixelPoint(point.PixelX, point.PixelY);
+            DomainPixelPoint originalPixel = MapPointPanelToSource(
+                existingPanel,
+                new DomainPixelPoint(point.PixelX, point.PixelY));
             SeriesId seriesId = SeriesId.FromGuid(Guid.Parse(point.SeriesId));
             double? graphX = xState.HasGraphX ? point.GraphX : null;
             double? graphY = tab.Calibration is null ? null : point.GraphY;
-            PointModification[] modificationHistory = GetPointModificationHistory(point.PointId);
+            PointModification[] modificationHistory = GetPointModificationHistory(point.PointId)
+                .Select(modification => MapModificationPanelToSource(existingPanel, modification))
+                .ToArray();
             bool manuallyCorrected = prior is null ||
                 modificationHistory.Length > 0 ||
                 prior.SeriesId != seriesId ||
@@ -2688,10 +3126,12 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                     : prior!.ReviewStatus,
                 modificationHistory);
         }).ToArray();
-        CalibrationRecord? generatedCalibration = ToDomainCalibration(tab.Calibration);
+        CalibrationRecord? generatedCalibration = MapCalibrationPanelToSource(
+            existingPanel,
+            ToDomainCalibration(tab.Calibration));
         CalibrationRecord? calibration = existingPanel?.Calibration is { } retainedCalibration &&
             tab.Calibration is { } tabCalibration &&
-            FromDomainCalibration(retainedCalibration) is { } retainedTabCalibration &&
+            FromDomainCalibration(MapCalibrationSourceToPanel(existingPanel, retainedCalibration)) is { } retainedTabCalibration &&
             CalibrationMatches(tabCalibration, retainedTabCalibration)
                 ? retainedCalibration
                 : generatedCalibration;
@@ -2791,6 +3231,376 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             calibration.Confidence,
             Reasons: []);
     }
+
+    private static CropRectangle ToCropRectangle(PdfRectD crop) =>
+        new(crop.X, crop.Y, crop.Width, crop.Height);
+
+    private static TransformRecord CreateRasterCropTransform(
+        PanelId panelId,
+        RasterPanelSourceProvenance provenance) =>
+        new(
+            TransformId.FromGuid(ProductionWorkflowPanelStore.CreateStableId(
+                "raster-source-crop-v1",
+                panelId.Value.ToString("D"),
+                provenance.Source.Image.Sha256,
+                provenance.PanelImageSha256)),
+            TransformKind.Crop,
+            CoordinateSpace.OriginalPixels,
+            CoordinateSpace.PanelPixels,
+            provenance.SourceToPanelMatrix.ToArray(),
+            provenance.PanelToSourceMatrix.ToArray(),
+            JsonSerializer.SerializeToElement(new
+            {
+                schema = RasterCropTransformSchema,
+                source_sha256 = provenance.Source.Image.Sha256,
+                source_width = provenance.Source.Image.Width,
+                source_height = provenance.Source.Image.Height,
+                panel_sha256 = provenance.PanelImageSha256,
+                requested_crop = new
+                {
+                    x = provenance.RequestedCropInSourcePixels.X,
+                    y = provenance.RequestedCropInSourcePixels.Y,
+                    width = provenance.RequestedCropInSourcePixels.Width,
+                    height = provenance.RequestedCropInSourcePixels.Height,
+                },
+                encoded_crop = new
+                {
+                    x = provenance.EncodedCropInSourcePixels.X,
+                    y = provenance.EncodedCropInSourcePixels.Y,
+                    width = provenance.EncodedCropInSourcePixels.Width,
+                    height = provenance.EncodedCropInSourcePixels.Height,
+                },
+            }),
+            Lossy: false);
+
+    private static void VerifySavedRasterPanel(
+        PanelRecord saved,
+        RasterWorkspacePanel imported)
+    {
+        RasterPanelSourceProvenance provenance = imported.SourceProvenance;
+        RetainedRasterPanelReference retained = ReadRetainedRasterPanelReference(
+            saved,
+            provenance.Source.Image.Sha256);
+        if (retained.PanelId != imported.Panel.PanelId ||
+            retained.SourceWidth != provenance.Source.Image.Width ||
+            retained.SourceHeight != provenance.Source.Image.Height ||
+            retained.RequestedCropInSourcePixels != provenance.RequestedCropInSourcePixels ||
+            retained.EncodedCropInSourcePixels != provenance.EncodedCropInSourcePixels ||
+            imported.Panel.Original.Width != retained.EncodedCropInSourcePixels.Width ||
+            imported.Panel.Original.Height != retained.EncodedCropInSourcePixels.Height ||
+            !string.Equals(provenance.PanelImageSha256, imported.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(retained.PanelImageSha256, imported.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"Saved image panel '{saved.PanelId.Value:D}' no longer matches its source crop, checksum, or dimensions.");
+        }
+    }
+
+    private static RetainedRasterPanelReference ReadRetainedRasterPanelReference(
+        PanelRecord panel,
+        SourceReference source) =>
+        ReadRetainedRasterPanelReference(panel, source.Sha256);
+
+    private static RetainedRasterPanelReference ReadRetainedRasterPanelReference(
+        PanelRecord panel,
+        string expectedSourceSha256)
+    {
+        TransformRecord[] matches = panel.Transforms.Where(IsRasterCropTransform).ToArray();
+        if (matches.Length != 1)
+        {
+            throw new InvalidOperationException(
+                $"Saved image panel '{panel.PanelId.Value:D}' requires exactly one source-bound crop transform.");
+        }
+        TransformRecord transform = matches[0];
+        JsonElement parameters = transform.Parameters;
+        if (transform.Kind != TransformKind.Crop ||
+            transform.SourceSpace != CoordinateSpace.OriginalPixels ||
+            transform.TargetSpace != CoordinateSpace.PanelPixels ||
+            transform.Lossy ||
+            !TryReadString(parameters, "source_sha256", out string? sourceSha256) ||
+            !string.Equals(sourceSha256, expectedSourceSha256, StringComparison.OrdinalIgnoreCase) ||
+            !TryReadString(parameters, "panel_sha256", out string? panelSha256) ||
+            !TryReadPositiveInt(parameters, "source_width", out int sourceWidth) ||
+            !TryReadPositiveInt(parameters, "source_height", out int sourceHeight) ||
+            !TryReadRect(parameters, "requested_crop", out PdfRectD requestedCrop) ||
+            !TryReadRect(parameters, "encoded_crop", out PdfRectD encodedCrop) ||
+            panel.Crop != ToCropRectangle(encodedCrop) ||
+            encodedCrop.X < 0 || encodedCrop.Y < 0 || encodedCrop.Right > sourceWidth || encodedCrop.Bottom > sourceHeight ||
+            encodedCrop.X != Math.Floor(encodedCrop.X) || encodedCrop.Y != Math.Floor(encodedCrop.Y) ||
+            encodedCrop.Width != Math.Floor(encodedCrop.Width) || encodedCrop.Height != Math.Floor(encodedCrop.Height) ||
+            requestedCrop.X < encodedCrop.X || requestedCrop.Y < encodedCrop.Y ||
+            requestedCrop.Right > encodedCrop.Right || requestedCrop.Bottom > encodedCrop.Bottom)
+        {
+            throw new InvalidOperationException(
+                $"Saved image panel '{panel.PanelId.Value:D}' has invalid source-bound crop parameters.");
+        }
+
+        double[] expectedMatrix = [1, 0, -encodedCrop.X, 0, 1, -encodedCrop.Y, 0, 0, 1];
+        double[] expectedInverse = [1, 0, encodedCrop.X, 0, 1, encodedCrop.Y, 0, 0, 1];
+        TransformId expectedTransformId = TransformId.FromGuid(ProductionWorkflowPanelStore.CreateStableId(
+            "raster-source-crop-v1",
+            panel.PanelId.Value.ToString("D"),
+            sourceSha256!,
+            panelSha256!));
+        if (transform.TransformId != expectedTransformId || transform.Lossy ||
+            !transform.Matrix3x3.SequenceEqual(expectedMatrix) ||
+            transform.InverseMatrix3x3 is null ||
+            !transform.InverseMatrix3x3.SequenceEqual(expectedInverse))
+        {
+            throw new InvalidOperationException(
+                $"Saved image panel '{panel.PanelId.Value:D}' has an invalid crop transform identity or matrix.");
+        }
+
+        return new RetainedRasterPanelReference(
+            panel.PanelId.Value,
+            panel.DisplayName,
+            panelSha256!,
+            sourceWidth,
+            sourceHeight,
+            requestedCrop,
+            encodedCrop);
+    }
+
+    private static bool IsLegacyFullImagePanel(
+        int panelsForSource,
+        PanelRecord panel,
+        ImportedImage image)
+    {
+        return panelsForSource == 1 &&
+            panel.Crop == new CropRectangle(0, 0, image.Metadata.Width, image.Metadata.Height) &&
+            panel.Transforms.All(static transform => !IsRasterCropTransform(transform));
+    }
+
+    private static bool IsRasterCropTransform(TransformRecord transform) =>
+        TryReadString(transform.Parameters, "schema", out string? schema) &&
+        string.Equals(schema, RasterCropTransformSchema, StringComparison.Ordinal);
+
+    private static bool TryGetRasterCrop(PanelRecord? panel, out CropRectangle crop)
+    {
+        crop = default!;
+        if (panel is null || !panel.Transforms.Any(IsRasterCropTransform))
+        {
+            return false;
+        }
+
+        crop = panel.Crop;
+        return true;
+    }
+
+    private static DomainPixelPoint MapPointPanelToSource(
+        PanelRecord? panel,
+        DomainPixelPoint point) =>
+        TryGetRasterCrop(panel, out CropRectangle crop)
+            ? new DomainPixelPoint(point.X + crop.X, point.Y + crop.Y)
+            : point;
+
+    private static DomainPixelPoint MapPointSourceToPanel(
+        PanelRecord? panel,
+        DomainPixelPoint point) =>
+        TryGetRasterCrop(panel, out CropRectangle crop)
+            ? new DomainPixelPoint(point.X - crop.X, point.Y - crop.Y)
+            : point;
+
+    internal static DomainPixelPoint MapPersistedAuditPointToPanel(
+        PanelRecord panel,
+        JsonElement details,
+        double x,
+        double y)
+    {
+        var point = new DomainPixelPoint(x, y);
+        if (!TryReadString(details, "coordinate_space", out string? coordinateSpace))
+        {
+            return point;
+        }
+
+        if (string.Equals(coordinateSpace, "panel_pixels", StringComparison.Ordinal))
+        {
+            return point;
+        }
+
+        if (!string.Equals(coordinateSpace, "original_pixels", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"Persisted point correction uses unknown coordinate space '{coordinateSpace}'.");
+        }
+
+        string? declaredCropId = TryReadNullableString(details, "crop_transform_id");
+        string? currentCropId = panel.Transforms.SingleOrDefault(IsRasterCropTransform)?
+            .TransformId.Value.ToString("D");
+        if (declaredCropId is not null &&
+            !string.Equals(declaredCropId, currentCropId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "Persisted point correction does not match the panel's retained crop transform.");
+        }
+
+        return MapPointSourceToPanel(panel, point);
+    }
+
+    private static PointModification MapModificationPanelToSource(
+        PanelRecord? panel,
+        PointModification modification) =>
+        modification.PreviousPixel is null
+            ? modification
+            : modification with
+            {
+                PreviousPixel = MapPointPanelToSource(panel, modification.PreviousPixel),
+            };
+
+    private static PointModification MapModificationSourceToPanel(
+        PanelRecord? panel,
+        PointModification modification) =>
+        modification.PreviousPixel is null
+            ? modification
+            : modification with
+            {
+                PreviousPixel = MapPointSourceToPanel(panel, modification.PreviousPixel),
+            };
+
+    private static PhaseRecord MapPhasePanelToSource(PanelRecord? panel, PhaseRecord phase) =>
+        TryGetRasterCrop(panel, out CropRectangle crop)
+            ? phase with
+            {
+                ScreenXMin = phase.ScreenXMin + crop.X,
+                ScreenXMax = phase.ScreenXMax + crop.X,
+            }
+            : phase;
+
+    private static PhaseRecord MapPhaseSourceToPanel(PanelRecord? panel, PhaseRecord phase) =>
+        TryGetRasterCrop(panel, out CropRectangle crop)
+            ? phase with
+            {
+                ScreenXMin = phase.ScreenXMin - crop.X,
+                ScreenXMax = phase.ScreenXMax - crop.X,
+            }
+            : phase;
+
+    private static CalibrationRecord? MapCalibrationPanelToSource(
+        PanelRecord? panel,
+        CalibrationRecord? calibration)
+    {
+        if (calibration is null || !TryGetRasterCrop(panel, out CropRectangle crop))
+        {
+            return calibration;
+        }
+
+        return calibration with
+        {
+            Anchors = calibration.Anchors.Select(anchor => anchor with
+            {
+                Screen = new DomainPixelPoint(anchor.Screen.X + crop.X, anchor.Screen.Y + crop.Y),
+            }).ToArray(),
+            SessionLattice = calibration.SessionLattice is null
+                ? null
+                : calibration.SessionLattice with
+                {
+                    Session1PixelX = calibration.SessionLattice.Session1PixelX + crop.X,
+                },
+        };
+    }
+
+    private static CalibrationRecord? MapCalibrationSourceToPanel(
+        PanelRecord? panel,
+        CalibrationRecord? calibration)
+    {
+        if (calibration is null || !TryGetRasterCrop(panel, out CropRectangle crop))
+        {
+            return calibration;
+        }
+
+        return calibration with
+        {
+            Anchors = calibration.Anchors.Select(anchor => anchor with
+            {
+                Screen = new DomainPixelPoint(anchor.Screen.X - crop.X, anchor.Screen.Y - crop.Y),
+            }).ToArray(),
+            SessionLattice = calibration.SessionLattice is null
+                ? null
+                : calibration.SessionLattice with
+                {
+                    Session1PixelX = calibration.SessionLattice.Session1PixelX - crop.X,
+                },
+        };
+    }
+
+    private static ProductionPanelProjectionEvidence MapProjectionPanelToSource(
+        PanelRecord panel,
+        ProductionPanelProjectionEvidence projection) =>
+        new(
+            MapCalibrationPanelToSource(panel, projection.Calibration)!,
+            projection.Phases.Select(phase => MapPhasePanelToSource(panel, phase)),
+            projection.Series,
+            projection.Points.Select(point => point with
+            {
+                OriginalPixel = MapPointPanelToSource(panel, point.OriginalPixel),
+                ModificationHistory = point.ModificationHistory
+                    .Select(modification => MapModificationPanelToSource(panel, modification))
+                    .ToArray(),
+            }),
+            MergeProjectionTransforms(panel, projection.Transforms),
+            projection.OcrRegions.Select(ocr => ocr with
+            {
+                Polygon = ocr.Polygon.Select(point => MapPointPanelToSource(panel, point)).ToArray(),
+            }),
+            projection.Markers.Select(marker => marker with
+            {
+                Center = MapPointPanelToSource(panel, marker.Center),
+            }),
+            projection.Participant);
+
+    private static PanelRecord MapPanelRecordSourceToPanel(PanelRecord panel)
+    {
+        if (!TryGetRasterCrop(panel, out _))
+        {
+            return panel;
+        }
+
+        return panel with
+        {
+            Calibration = MapCalibrationSourceToPanel(panel, panel.Calibration),
+            Phases = panel.Phases.Select(phase => MapPhaseSourceToPanel(panel, phase)).ToArray(),
+            Points = panel.Points.Select(point => point with
+            {
+                OriginalPixel = MapPointSourceToPanel(panel, point.OriginalPixel),
+                ModificationHistory = point.ModificationHistory
+                    .Select(modification => MapModificationSourceToPanel(panel, modification))
+                    .ToArray(),
+            }).ToArray(),
+            OcrRegions = panel.OcrRegions.Select(ocr => ocr with
+            {
+                Polygon = ocr.Polygon.Select(point => MapPointSourceToPanel(panel, point)).ToArray(),
+            }).ToArray(),
+            Markers = panel.Markers.Select(marker => marker with
+            {
+                Center = MapPointSourceToPanel(panel, marker.Center),
+            }).ToArray(),
+            Transforms = LocalizeProjectionTransforms(panel),
+        };
+    }
+
+    private static TransformRecord[] MergeProjectionTransforms(
+        PanelRecord panel,
+        IEnumerable<TransformRecord> projectionTransforms)
+    {
+        TransformRecord[] cropTransforms = panel.Transforms.Where(IsRasterCropTransform).ToArray();
+        bool hasCrop = cropTransforms.Length > 0;
+        TransformRecord[] prepared = projectionTransforms.Select(transform =>
+            hasCrop && transform.SourceSpace == CoordinateSpace.OriginalPixels
+                ? transform with { SourceSpace = CoordinateSpace.PanelPixels }
+                : transform).ToArray();
+        return cropTransforms.Concat(prepared)
+            .GroupBy(static transform => transform.TransformId)
+            .Select(static group => group.First())
+            .ToArray();
+    }
+
+    private static TransformRecord[] LocalizeProjectionTransforms(PanelRecord panel) =>
+        panel.Transforms
+            .Where(static transform => !IsRasterCropTransform(transform))
+            .Select(transform => transform.SourceSpace == CoordinateSpace.PanelPixels
+                ? transform with { SourceSpace = CoordinateSpace.OriginalPixels }
+                : transform)
+            .ToArray();
 
     private void UpdateEnhancementProvenance(
         WorkspaceTabViewModel tab,

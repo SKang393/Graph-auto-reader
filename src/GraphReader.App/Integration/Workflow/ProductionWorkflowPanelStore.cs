@@ -170,7 +170,8 @@ public sealed class ProductionPanelEvidence
         IEnumerable<WorkflowTransformProvenance>? enhancementTransforms = null,
         IEnumerable<string>? warnings = null,
         ProductionPanelExportEvidence? exportEvidence = null,
-        PdfPanelSourceProvenance? pdfPanelSource = null)
+        PdfPanelSourceProvenance? pdfPanelSource = null,
+        RasterPanelSourceProvenance? rasterPanelSource = null)
     {
         Panel = panel ?? throw new ArgumentNullException(nameof(panel));
         ArgumentNullException.ThrowIfNull(originalBytes);
@@ -205,6 +206,15 @@ public sealed class ProductionPanelEvidence
         }
 
         PdfPanelSource = pdfPanelSource;
+        if (rasterPanelSource is not null &&
+            (sourceKind != WorkflowSourceKind.Image || panel.PageNumber is not null ||
+             rasterPanelSource.PanelImageSha256 != panel.Original.Sha256 ||
+             rasterPanelSource.EncodedCropInSourcePixels.Width != panel.Original.Width ||
+             rasterPanelSource.EncodedCropInSourcePixels.Height != panel.Original.Height))
+        {
+            throw new ArgumentException("Raster source provenance must match the retained image panel.", nameof(rasterPanelSource));
+        }
+        RasterPanelSource = rasterPanelSource;
     }
 
     public WorkflowImportedPanel Panel { get; }
@@ -222,6 +232,8 @@ public sealed class ProductionPanelEvidence
     public ProductionPanelExportEvidence? ExportEvidence { get; }
 
     public PdfPanelSourceProvenance? PdfPanelSource { get; }
+
+    public RasterPanelSourceProvenance? RasterPanelSource { get; }
 
     public byte[] CopyOriginalBytes() => (byte[])originalBytes.Clone();
 
@@ -242,7 +254,8 @@ public sealed class ProductionPanelEvidence
             transforms,
             warnings,
             ExportEvidence,
-            PdfPanelSource);
+            PdfPanelSource,
+            RasterPanelSource);
 
     internal ProductionPanelEvidence WithExportEvidence(ProductionPanelExportEvidence evidence) =>
         new(
@@ -255,7 +268,8 @@ public sealed class ProductionPanelEvidence
             EnhancementTransforms,
             Warnings,
             evidence,
-            PdfPanelSource);
+            PdfPanelSource,
+            RasterPanelSource);
 
     private static void VerifyChecksum(byte[] bytes, string expected, string parameterName)
     {
@@ -450,6 +464,7 @@ public sealed class ProductionWorkflowPanelStore
             string.Equals(left.Panel.Original.Sha256, right.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(left.SourceDocumentSha256, right.SourceDocumentSha256, StringComparison.OrdinalIgnoreCase) &&
             Equals(left.PdfPanelSource, right.PdfPanelSource) &&
+            Equals(left.RasterPanelSource, right.RasterPanelSource) &&
             leftBytes.Length == rightBytes.Length &&
             CryptographicOperations.FixedTimeEquals(leftBytes, rightBytes);
     }

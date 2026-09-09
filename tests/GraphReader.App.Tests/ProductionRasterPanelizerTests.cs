@@ -143,7 +143,7 @@ public sealed class ProductionRasterPanelizerTests
                 900,
                 CancellationToken.None));
 
-        Assert.AreEqual(ProductionRasterPanelizationFailureCodes.PanelUnavailable, exception.Code);
+        Assert.AreEqual(ProductionRasterPanelizationFailureCodes.NoPanelDetected, exception.Code);
         Assert.IsTrue(exception.Warnings.Any(static warning =>
             warning.Contains("No graph-like figure", StringComparison.Ordinal)));
     }

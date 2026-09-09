@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 
 using GraphReader.Export;
+using GraphReader.Pdf;
 
 namespace GraphReader.App.Integration.Workflow;
 
@@ -93,6 +94,10 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
         request = null;
         if (!panelStore.TryGet(reviewPanel.PanelId, out ProductionPanelEvidence? panel) ||
             panel is null ||
+            reviewPanel.PreparedPanel.ImportedPanel.SourceId != panel.Panel.SourceId ||
+            reviewPanel.PreparedPanel.Original.Width != panel.Panel.Original.Width ||
+            reviewPanel.PreparedPanel.Original.Height != panel.Panel.Original.Height ||
+            !string.Equals(reviewPanel.PreparedPanel.Original.Sha256, panel.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase) ||
             panel.ExportEvidence is not { } evidence ||
             evidence.Calibration.Status != ExportCalibrationStatus.Valid ||
             !evidence.Calibration.HasYCalibration ||
@@ -113,6 +118,16 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
         }
 
         var phaseIds = evidence.Phases.Select(static phase => phase.PhaseId).ToHashSet();
+        var exportPhases = new List<ExportPhase>(evidence.Phases.Count);
+        foreach (ExportPhase phase in evidence.Phases)
+        {
+            if (!TryMapOriginalPixel(panel, phase.OriginalXMinimum, 0, out ExportPixelPoint minimum) ||
+                !TryMapOriginalPixel(panel, phase.OriginalXMaximum, 0, out ExportPixelPoint maximum))
+            {
+                return false;
+            }
+            exportPhases.Add(phase with { OriginalXMinimum = minimum.X, OriginalXMaximum = maximum.X });
+        }
         var seriesById = evidence.Series.ToDictionary(static series => series.SeriesId);
         var pointEvidence = evidence.Points.ToDictionary(static point => point.PointId);
         var points = new List<ExportPoint>(reviewPanel.Points.Count);
@@ -126,7 +141,8 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
                 !seriesById.ContainsKey(seriesId) ||
                 !phaseIds.Contains(phaseId) ||
                 !pointEvidence.TryGetValue(pointId, out ProductionPointExportEvidence? retained) ||
-                retained.ObservationIndex < 1)
+                retained.ObservationIndex < 1 ||
+                !TryMapOriginalPixel(panel, point.OriginalPixelX, point.OriginalPixelY, out ExportPixelPoint originalPixel))
             {
                 return false;
             }
@@ -136,7 +152,7 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
                 retained.MarkerId,
                 seriesId,
                 phaseId,
-                new ExportPixelPoint(point.OriginalPixelX, point.OriginalPixelY),
+                originalPixel,
                 point.GraphX,
                 point.GraphY,
                 retained.ObservationIndex,
@@ -182,10 +198,32 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             ExportOperation.WriteFiles,
             evidence.Calibration,
             evidence.SessionOriginPolicy,
-            evidence.Phases,
+            exportPhases,
             overlaidSeries,
             points,
             evidence.Relations);
+        return true;
+    }
+
+    private static bool TryMapOriginalPixel(
+        ProductionPanelEvidence panel, double x, double y, out ExportPixelPoint originalPixel)
+    {
+        originalPixel = default;
+        if (!double.IsFinite(x) || !double.IsFinite(y))
+        {
+            return false;
+        }
+        if (panel.RasterPanelSource is not { } rasterSource)
+        {
+            originalPixel = new ExportPixelPoint(x, y);
+            return true;
+        }
+        if (x < 0 || y < 0 || x > panel.Panel.Original.Width || y > panel.Panel.Original.Height)
+        {
+            return false;
+        }
+        PdfPointD sourcePixel = rasterSource.MapPanelPixelToSource(new PdfPointD(x, y));
+        originalPixel = new ExportPixelPoint(sourcePixel.X, sourcePixel.Y);
         return true;
     }
 

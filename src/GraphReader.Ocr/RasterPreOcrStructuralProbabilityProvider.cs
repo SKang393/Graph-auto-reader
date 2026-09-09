@@ -252,6 +252,7 @@ public sealed class RasterPreOcrStructuralProbabilityProvider :
         CancellationToken cancellationToken)
     {
         var associated = new bool[components.Count];
+        var anchorDependentNeighbors = new List<int>?[components.Count];
         var spatialIndex = new Dictionary<(int X, int Y), List<int>>();
         for (int componentIndex = 0; componentIndex < components.Count; componentIndex++)
         {
@@ -329,11 +330,58 @@ public sealed class RasterPreOcrStructuralProbabilityProvider :
                 }
 
                 Component right = components[rightIndex];
-                if (AreGlyphNeighbors(left, right))
+                if (!AreGlyphNeighbors(
+                        left,
+                        right,
+                        out bool requiresTextAnchor))
+                {
+                    continue;
+                }
+
+                if (requiresTextAnchor)
+                {
+                    // A uniform row of translated marker shapes is not enough evidence of text.
+                    // Repeated dense glyphs may join only after a shape-different neighbor anchors
+                    // the run. Heterogeneous compact markers remain preserved as locally
+                    // ambiguous by design.
+                    (anchorDependentNeighbors[leftIndex] ??= []).Add(rightIndex);
+                    (anchorDependentNeighbors[rightIndex] ??= []).Add(leftIndex);
+                }
+                else
                 {
                     associated[leftIndex] = true;
                     associated[rightIndex] = true;
                 }
+            }
+        }
+
+        var propagationQueue = new Queue<int>();
+        for (int componentIndex = 0; componentIndex < associated.Length; componentIndex++)
+        {
+            if (associated[componentIndex])
+            {
+                propagationQueue.Enqueue(componentIndex);
+            }
+        }
+
+        while (propagationQueue.Count > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            int anchoredIndex = propagationQueue.Dequeue();
+            if (anchorDependentNeighbors[anchoredIndex] is not { } neighbors)
+            {
+                continue;
+            }
+
+            foreach (int neighborIndex in neighbors)
+            {
+                if (associated[neighborIndex])
+                {
+                    continue;
+                }
+
+                associated[neighborIndex] = true;
+                propagationQueue.Enqueue(neighborIndex);
             }
         }
 
@@ -345,12 +393,12 @@ public sealed class RasterPreOcrStructuralProbabilityProvider :
         component.Height <= MaximumGlyphHeight &&
         component.Area <= MaximumGlyphArea;
 
-    private static bool AreGlyphNeighbors(Component first, Component second)
+    private static bool AreGlyphNeighbors(
+        Component first,
+        Component second,
+        out bool requiresTextAnchor)
     {
-        if (IsStrongStructure(first) && IsStrongStructure(second))
-        {
-            return false;
-        }
+        requiresTextAnchor = false;
 
         int horizontalGap = Gap(first.Left, first.Right, second.Left, second.Right);
         int verticalGap = Gap(first.Top, first.Bottom, second.Top, second.Bottom);
@@ -373,7 +421,52 @@ public sealed class RasterPreOcrStructuralProbabilityProvider :
         bool sameRotatedTextColumn = verticalGap <= maximumVerticalGap &&
             Math.Abs(firstCenterX - secondCenterX) <= Math.Max(first.Width, second.Width) * 0.75 &&
             (horizontalOverlap > 0 || horizontalGap <= maximumHorizontalGap);
-        return sameTextRow || sameRotatedTextColumn;
+        if (!sameTextRow && !sameRotatedTextColumn)
+        {
+            return false;
+        }
+
+        if (!IsStrongStructure(first) || !IsStrongStructure(second))
+        {
+            return true;
+        }
+
+        if (!IsFilledMarkerLike(first) || !IsFilledMarkerLike(second))
+        {
+            return false;
+        }
+
+        requiresTextAnchor = HaveEquivalentNormalizedShape(first, second);
+        return true;
+    }
+
+    private static bool HaveEquivalentNormalizedShape(Component first, Component second)
+    {
+        if (first.Width != second.Width || first.Height != second.Height || first.Area != second.Area)
+        {
+            return false;
+        }
+
+        Span<bool> firstShape = stackalloc bool[first.Width * first.Height];
+        firstShape.Clear();
+        foreach (int pixelIndex in first.Pixels)
+        {
+            int x = pixelIndex % first.ImageWidth;
+            int y = pixelIndex / first.ImageWidth;
+            firstShape[((y - first.Top) * first.Width) + x - first.Left] = true;
+        }
+
+        foreach (int pixelIndex in second.Pixels)
+        {
+            int x = pixelIndex % second.ImageWidth;
+            int y = pixelIndex / second.ImageWidth;
+            if (!firstShape[((y - second.Top) * second.Width) + x - second.Left])
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static bool IsStrongStructure(Component component) =>
@@ -566,6 +659,7 @@ public sealed class RasterPreOcrStructuralProbabilityProvider :
     }
 
     private sealed record Component(
+        int ImageWidth,
         IReadOnlyList<int> Pixels,
         int Left,
         int Top,
@@ -609,6 +703,7 @@ public sealed class RasterPreOcrStructuralProbabilityProvider :
             }
 
             return new Component(
+                imageWidth,
                 Array.AsReadOnly(pixels.ToArray()),
                 left,
                 top,

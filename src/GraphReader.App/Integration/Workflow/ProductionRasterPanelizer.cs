@@ -19,6 +19,7 @@ internal static class ProductionRasterPanelizationFailureCodes
     public const string DimensionMismatch = "RASTER_PANEL_DIMENSION_MISMATCH";
     public const string PanelizationFailed = "RASTER_PANELIZATION_FAILED";
     public const string PanelUnavailable = "RASTER_PANEL_UNAVAILABLE";
+    public const string NoPanelDetected = "RASTER_NO_PANEL_DETECTED";
 }
 
 internal sealed class ProductionRasterPanelizationException : InvalidOperationException
@@ -230,9 +231,7 @@ internal sealed class ProductionRasterPanelizer
     {
         cancellationToken.ThrowIfCancellationRequested();
         byte[] sourceBytes = encodedPngBytes.ToArray();
-        ValidateSource(sourceBytes, sourceSha256, sourceWidth, sourceHeight, cancellationToken);
-        cancellationToken.ThrowIfCancellationRequested();
-        BitmapSource decodedSource = DecodeSource(sourceBytes, sourceWidth, sourceHeight, cancellationToken);
+        BitmapSource decodedSource = DecodeValidatedSource(sourceBytes, sourceSha256, sourceWidth, sourceHeight, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         var options = new PdfPanelizationOptions(RenderDpi: AnalysisDpi);
@@ -288,7 +287,7 @@ internal sealed class ProductionRasterPanelizer
         if (proposed.Panels.Count == 0)
         {
             throw Failure(
-                ProductionRasterPanelizationFailureCodes.PanelUnavailable,
+                ProductionRasterPanelizationFailureCodes.NoPanelDetected,
                 "No graph-like raster panel met the deterministic panelization threshold.",
                 warnings);
         }
@@ -384,6 +383,15 @@ internal sealed class ProductionRasterPanelizer
         }
 
         return new ProductionRasterPanelizationResult(output, warnings, proposed.ElapsedMilliseconds);
+    }
+
+    internal static BitmapFrame DecodeValidatedSource(
+        byte[] sourceBytes, string sourceSha256, int sourceWidth, int sourceHeight,
+        CancellationToken cancellationToken)
+    {
+        ValidateSource(sourceBytes, sourceSha256, sourceWidth, sourceHeight, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        return DecodeSource(sourceBytes, sourceWidth, sourceHeight, cancellationToken);
     }
 
     private static void ValidateSource(
@@ -721,7 +729,7 @@ internal sealed class ProductionRasterPanelizer
         }
     }
 
-    private static void EnsureNoOverlap(
+    internal static void EnsureNoOverlap(
         IReadOnlyList<PdfRectD> existing,
         PdfRectD candidate,
         string kind,

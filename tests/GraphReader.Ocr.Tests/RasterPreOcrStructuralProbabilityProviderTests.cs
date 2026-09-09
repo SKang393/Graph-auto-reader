@@ -188,6 +188,109 @@ public sealed class RasterPreOcrStructuralProbabilityProviderTests
     }
 
     [TestMethod]
+    public async Task AnchoredDenseCompactGlyphRunsPreserveRepeatedDigitsAndLetters()
+    {
+        var scene = new SyntheticScene(64, 40);
+        scene.DrawDenseText("ABB", 4, 4, 0);
+        scene.DrawDenseText("100", 4, 16, 0);
+        scene.DrawDenseText("80", 4, 28, 0);
+        var provider = new RasterPreOcrStructuralProbabilityProvider();
+
+        PreOcrStructuralProbabilityResult result = await provider.AnalyzeAsync(
+            scene.CreateFrame(),
+            CancellationToken.None);
+
+        int textPixels = 0;
+        for (int index = 0; index < scene.TextTruth.Length; index++)
+        {
+            if (!scene.TextTruth[index])
+            {
+                continue;
+            }
+
+            textPixels++;
+            Assert.IsTrue(
+                Math.Max(
+                    result.MarkerLikeProbabilities.Span[index],
+                    result.ThinConnectorProbabilities.Span[index]) < SuppressionThreshold,
+                $"Dense compact glyph pixel {index} was classified as suppressible structure.");
+        }
+
+        Assert.IsGreaterThan(0, textPixels);
+    }
+
+    [TestMethod]
+    public async Task UnanchoredDenseStandaloneGlyphRemainsMarkerAmbiguous()
+    {
+        var scene = new SyntheticScene(24, 20);
+        scene.DrawDenseText("0", 8, 6, 0);
+        var provider = new RasterPreOcrStructuralProbabilityProvider();
+
+        PreOcrStructuralProbabilityResult result = await provider.AnalyzeAsync(
+            scene.CreateFrame(),
+            CancellationToken.None);
+
+        foreach (int textPixel in scene.TextTruth
+                     .Select((isText, index) => (isText, index))
+                     .Where(item => item.isText)
+                     .Select(item => item.index))
+        {
+            Assert.IsTrue(
+                result.MarkerLikeProbabilities.Span[textPixel] >= SuppressionThreshold,
+                "A standalone dense glyph remains indistinguishable from an isolated filled marker.");
+        }
+    }
+
+    [TestMethod]
+    public async Task EquivalentAlignedFilledMarkersRemainSuppressibleWithoutTextAnchor()
+    {
+        var scene = new SyntheticScene(40, 28);
+        scene.DrawFilledMarker(6, 10);
+        scene.DrawFilledMarker(12, 10);
+        scene.DrawFilledMarker(18, 10);
+        var provider = new RasterPreOcrStructuralProbabilityProvider();
+
+        PreOcrStructuralProbabilityResult result = await provider.AnalyzeAsync(
+            scene.CreateFrame(),
+            CancellationToken.None);
+
+        foreach (int markerCenter in new[]
+                 {
+                     (12 * scene.Width) + 8,
+                     (12 * scene.Width) + 14,
+                     (12 * scene.Width) + 20,
+                 })
+        {
+            Assert.IsTrue(result.MarkerLikeProbabilities.Span[markerCenter] >= SuppressionThreshold);
+            Assert.IsTrue(result.ThinConnectorProbabilities.Span[markerCenter] < SuppressionThreshold);
+        }
+    }
+
+    [TestMethod]
+    public async Task HeterogeneousAdjacentCompactMarkersRemainRetainedAsKnownLeakage()
+    {
+        var scene = new SyntheticScene(40, 36);
+        scene.DrawAmbiguousFilledMarker(6, 4);
+        scene.DrawAmbiguousDifferentFilledMarker(12, 4);
+        scene.DrawAmbiguousFilledMarker(6, 22);
+        scene.DrawAmbiguousDegradedFilledMarker(12, 22);
+        var provider = new RasterPreOcrStructuralProbabilityProvider();
+
+        PreOcrStructuralProbabilityResult result = await provider.AnalyzeAsync(
+            scene.CreateFrame(),
+            CancellationToken.None);
+
+        foreach (int structurePixel in scene.AmbiguousCompactStructurePixels)
+        {
+            Assert.IsTrue(
+                Math.Max(
+                    result.MarkerLikeProbabilities.Span[structurePixel],
+                    result.ThinConnectorProbabilities.Span[structurePixel]) < SuppressionThreshold,
+                "Known retained-structure leakage: shape-different compact markers resemble a dense glyph run.");
+        }
+    }
+
+    [TestMethod]
     public async Task AnalyzeAsyncRejectsInvalidCoordinateSpaceAndHonorsCancellation()
     {
         var scene = new SyntheticScene(16, 16);
@@ -265,7 +368,9 @@ public sealed class RasterPreOcrStructuralProbabilityProviderTests
                 ['0'] = ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
                 ['1'] = ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
                 ['5'] = ["11111", "10000", "11110", "00001", "00001", "10001", "01110"],
+                ['8'] = ["01110", "11011", "11011", "01110", "11011", "11011", "01110"],
                 ['A'] = ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+                ['B'] = ["11110", "11011", "11011", "11110", "11011", "11011", "11110"],
                 ['E'] = ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
                 ['G'] = ["01110", "10001", "10000", "10111", "10001", "10001", "01110"],
                 ['I'] = ["11111", "00100", "00100", "00100", "00100", "00100", "11111"],
@@ -275,6 +380,16 @@ public sealed class RasterPreOcrStructuralProbabilityProviderTests
                 ['R'] = ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
                 ['T'] = ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
                 ['Z'] = ["11111", "00001", "00010", "00100", "01000", "10000", "11111"],
+            };
+
+        private static readonly Dictionary<char, string[]> DenseGlyphs =
+            new Dictionary<char, string[]>
+            {
+                ['0'] = ["01110", "11011", "11011", "11101", "11011", "11011", "01110"],
+                ['1'] = ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+                ['8'] = ["01110", "11011", "11011", "01110", "11011", "11011", "01110"],
+                ['A'] = ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+                ['B'] = ["11110", "11011", "11011", "11110", "11011", "11011", "11110"],
             };
 
         public SyntheticScene(int width, int height)
@@ -300,6 +415,8 @@ public sealed class RasterPreOcrStructuralProbabilityProviderTests
         public bool[] UnambiguousStructureTruth { get; }
 
         public List<int> AmbiguousOpenCirclePixels { get; } = [];
+
+        public List<int> AmbiguousCompactStructurePixels { get; } = [];
 
         public PreOcrStructuralFrame CreateFrame() => new(
             Width,
@@ -356,10 +473,49 @@ public sealed class RasterPreOcrStructuralProbabilityProviderTests
             }
         }
 
+        public void DrawDenseText(string text, int left, int top, byte ink)
+        {
+            int cursor = left;
+            foreach (char character in text)
+            {
+                string[] glyph = DenseGlyphs[character];
+                for (int y = 0; y < glyph.Length; y++)
+                {
+                    for (int x = 0; x < glyph[y].Length; x++)
+                    {
+                        if (glyph[y][x] == '1')
+                        {
+                            SetInk(cursor + x, top + y, ink, TextTruth);
+                        }
+                    }
+                }
+
+                cursor += 6;
+            }
+        }
+
         public void DrawFilledMarker(int left, int top)
         {
             string[] marker = ["01110", "11111", "11111", "11111", "01110"];
             DrawPattern(marker, left, top, 0, UnambiguousStructureTruth);
+        }
+
+        public void DrawAmbiguousFilledMarker(int left, int top)
+        {
+            string[] marker = ["01110", "11111", "11111", "11111", "01110"];
+            DrawPattern(marker, left, top, 0, null, AmbiguousCompactStructurePixels);
+        }
+
+        public void DrawAmbiguousDifferentFilledMarker(int left, int top)
+        {
+            string[] marker = ["11111", "11011", "10101", "11011", "11111"];
+            DrawPattern(marker, left, top, 0, null, AmbiguousCompactStructurePixels);
+        }
+
+        public void DrawAmbiguousDegradedFilledMarker(int left, int top)
+        {
+            string[] marker = ["01010", "11111", "11111", "11111", "01110"];
+            DrawPattern(marker, left, top, 0, null, AmbiguousCompactStructurePixels);
         }
 
         public void DrawAmbiguousOpenCircle(int left, int top)
