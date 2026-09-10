@@ -1,0 +1,834 @@
+{
+  "elapsed_milliseconds": 142.70940001006238,
+  "inputs": {
+    "application_report": {
+      "path": "artifacts/goal22-runs/ocr-v40-inverse-target/app-evaluation-v1/report.json",
+      "sha256": "553c233e61fead61f2cbd81388897215ee03e86d5d3d2c7bceed0c6fa4c74d54"
+    },
+    "frozen_geometry_scorer": {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_official_head_candidate.py",
+      "sha256": "719bb18c30821cdd44b65fc9ede38f6d111fb3631e07c7c69d98d1116aa575a2"
+    },
+    "full_score": {
+      "path": "artifacts/goal22-runs/ocr-v40-inverse-target/full-score-v1.json",
+      "sha256": "f761a1ef3195bfe842c7bde9fcd4d297ff154f8fcfc120786c996ba49544fefe"
+    },
+    "full_scorer": {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate.py",
+      "sha256": "386a3d8e0b82b3622f7596ab572128f1f9a2242a648d83901f90a0196f2fef8b"
+    },
+    "inverse_target_oracle_score": {
+      "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-score-v1.json",
+      "sha256": "adf316d6298aea4d27bdd99c1807b8f125161036e839232fb835979173189476"
+    },
+    "oracle_request": {
+      "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/target-oracle-inputs-v2/request.json",
+      "sha256": "95dff9c31154eba4439c26657dc7309132af688010089d5214dc7997aa8962a9"
+    },
+    "synthetic_truth": {
+      "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/target-oracle-inputs-v2/synthetic-truth.json",
+      "sha256": "5edb151cbf28b2f1d020db3cafb6c8022d38c4d1b01d57b8f28501482d4b4276"
+    }
+  },
+  "interpretation": {
+    "limits": "Overlap categories describe box geometry after the fixed maximum-cardinality match. They do not inspect probability tensors, choose a new loss, or authorize a candidate.",
+    "next_repair_hypothesis": "Isolate learned DB-mask boundary and extent supervision while holding the original BGR input, inverse targets, postprocessing, and operating point fixed. On validation, 32 of 43 misses overlap a prediction below IoU 0.5 and 35 of 47 extras overlap truth; the fixed perfect-target oracle reaches 181 of 183 truths. This supports an extent and split/merge repair hypothesis, not a proposal-threshold or postprocessor change.",
+    "responsible_subsystems_are_separated": "A no-overlap miss means no emitted box overlaps the truth; probability-map and decoder rejection causes remain unresolved. Positive-overlap subthreshold misses describe extent/localization differences. Multi-truth and multi-prediction overlap describes possible merge/split behavior. These categories do not identify a specific loss-function defect. Role confusion uses the same geometry assignment.",
+    "role_context_diagnosis": "The DB detector constructs OcrDetectedRegion without OcrRegionContext. OcrPipeline only infers AxisTitleExpected for tall text left of the plot. GraphTextRoleClassifier can emit Participant only from InParticipantBand or ExplicitRoleHint, neither of which this candidate path supplies. Therefore 0 of 39 participant truths being role-correct is an unavailable runtime-context path, not evidence that recognition text alone can learn the participant role. This diagnostic does not add a context rule."
+  },
+  "matching": {
+    "algorithm": "same_frozen_order_augmenting_path_maximum_cardinality_as_full_score",
+    "coordinate_space": "source_original_pixels",
+    "intersection_over_union_minimum": 0.5,
+    "text_and_role_do_not_influence_pairing": true
+  },
+  "model_inference": false,
+  "optimizer_steps": 0,
+  "perfect_inverse_target_geometry_reference": {
+    "claim_scope": "Perfect supplied training-target recovery under fixed DB postprocessing. Unmatched truths remain in the denominator. This is not learned-model accuracy, an impossibility proof, or a new acceptance gate.",
+    "full_source_geometry": {
+      "train": {
+        "false_negatives": 32,
+        "false_positives": 3,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.9955882352941177,
+        "predicted_region_count": 680,
+        "recall": 0.9548660084626234,
+        "true_positives": 677,
+        "truth_region_count": 709
+      },
+      "validation": {
+        "false_negatives": 2,
+        "false_positives": 0,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 1.0,
+        "predicted_region_count": 181,
+        "recall": 0.9890710382513661,
+        "true_positives": 181,
+        "truth_region_count": 183
+      }
+    },
+    "interpretation": "This fixed model-free oracle establishes target and postprocessor capacity only; it is not candidate accuracy and does not select thresholds."
+  },
+  "private_data": false,
+  "production_approval": false,
+  "role_context_sources": {
+    "candidate_composition": {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "sha256": "8c703a7ba7e88b2a4fcd3e862867e5695c501002e2b89987546f10c6d71a1f77"
+    },
+    "db_detector": {
+      "path": "src/GraphReader.Ocr/LocalOnnxTextRegionDetector.cs",
+      "sha256": "26a558a893f11fcd2de8f142e99956485e04f942f9505755520ae54055f52754"
+    },
+    "graph_text_role_classifier": {
+      "path": "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "sha256": "847debbc4afb26855c3a63945a326ab080ba2a60dab9ea33b828e1252e70bee7"
+    },
+    "ocr_pipeline": {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "0f49578e2314ba537fc3b0876e0f34e95cdcedaaceecd34921c66d87f7872183"
+    },
+    "production_adapter": {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs",
+      "sha256": "0f2611f38833245364028c2a0de953f372f0210b5de581ed675044e6f1d179dd"
+    }
+  },
+  "schema": "graphreader.ocr-v40-geometry-diagnosis.v2",
+  "sealed_data": false,
+  "splits": {
+    "train": {
+      "by_truth_role": {
+        "annotation": {
+          "full_denominator_role_accuracy": 0.25,
+          "geometry_recall": 0.7833333333333333,
+          "matched_count": 47,
+          "missed_height_summary": {
+            "count": 13,
+            "maximum": 13.0,
+            "mean": 11.153846153846153,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 13,
+            "maximum": 59.0,
+            "mean": 44.23076923076923,
+            "median": 37.0,
+            "minimum": 33.0
+          },
+          "role_correct_count": 15,
+          "truth_count": 60,
+          "truth_height_summary": {
+            "count": 60,
+            "maximum": 13.0,
+            "mean": 11.5,
+            "median": 11.5,
+            "minimum": 10.0
+          },
+          "truth_width_summary": {
+            "count": 60,
+            "maximum": 61.0,
+            "mean": 47.0,
+            "median": 48.0,
+            "minimum": 33.0
+          }
+        },
+        "axis_title": {
+          "full_denominator_role_accuracy": 0.38,
+          "geometry_recall": 0.74,
+          "matched_count": 37,
+          "missed_height_summary": {
+            "count": 13,
+            "maximum": 10.0,
+            "mean": 10.0,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 13,
+            "maximum": 51.0,
+            "mean": 50.69230769230769,
+            "median": 51.0,
+            "minimum": 47.0
+          },
+          "role_correct_count": 19,
+          "truth_count": 50,
+          "truth_height_summary": {
+            "count": 50,
+            "maximum": 11.0,
+            "mean": 10.2,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "truth_width_summary": {
+            "count": 50,
+            "maximum": 58.0,
+            "mean": 52.8,
+            "median": 51.0,
+            "minimum": 47.0
+          }
+        },
+        "condition_label": {
+          "full_denominator_role_accuracy": 0.1375,
+          "geometry_recall": 0.775,
+          "matched_count": 62,
+          "missed_height_summary": {
+            "count": 18,
+            "maximum": 10.0,
+            "mean": 10.0,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 18,
+            "maximum": 10.0,
+            "mean": 9.666666666666666,
+            "median": 10.0,
+            "minimum": 8.0
+          },
+          "role_correct_count": 11,
+          "truth_count": 80,
+          "truth_height_summary": {
+            "count": 80,
+            "maximum": 10.0,
+            "mean": 10.0,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "truth_width_summary": {
+            "count": 80,
+            "maximum": 10.0,
+            "mean": 9.375,
+            "median": 10.0,
+            "minimum": 8.0
+          }
+        },
+        "legend_text": {
+          "full_denominator_role_accuracy": 0.6666666666666666,
+          "geometry_recall": 1.0,
+          "matched_count": 30,
+          "missed_height_summary": {
+            "count": 0,
+            "maximum": null,
+            "mean": null,
+            "median": null,
+            "minimum": null
+          },
+          "missed_width_summary": {
+            "count": 0,
+            "maximum": null,
+            "mean": null,
+            "median": null,
+            "minimum": null
+          },
+          "role_correct_count": 20,
+          "truth_count": 30,
+          "truth_height_summary": {
+            "count": 30,
+            "maximum": 14.0,
+            "mean": 13.333333333333334,
+            "median": 13.0,
+            "minimum": 13.0
+          },
+          "truth_width_summary": {
+            "count": 30,
+            "maximum": 107.0,
+            "mean": 101.0,
+            "median": 98.0,
+            "minimum": 98.0
+          }
+        },
+        "participant": {
+          "full_denominator_role_accuracy": 0.0,
+          "geometry_recall": 0.9,
+          "matched_count": 27,
+          "missed_height_summary": {
+            "count": 3,
+            "maximum": 13.0,
+            "mean": 13.0,
+            "median": 13.0,
+            "minimum": 13.0
+          },
+          "missed_width_summary": {
+            "count": 3,
+            "maximum": 78.0,
+            "mean": 78.0,
+            "median": 78.0,
+            "minimum": 78.0
+          },
+          "role_correct_count": 0,
+          "truth_count": 30,
+          "truth_height_summary": {
+            "count": 30,
+            "maximum": 14.0,
+            "mean": 13.333333333333334,
+            "median": 13.0,
+            "minimum": 13.0
+          },
+          "truth_width_summary": {
+            "count": 30,
+            "maximum": 84.0,
+            "mean": 80.16666666666667,
+            "median": 78.5,
+            "minimum": 78.0
+          }
+        },
+        "phase_heading": {
+          "full_denominator_role_accuracy": 0.4125,
+          "geometry_recall": 0.9125,
+          "matched_count": 73,
+          "missed_height_summary": {
+            "count": 7,
+            "maximum": 10.0,
+            "mean": 10.0,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 7,
+            "maximum": 126.0,
+            "mean": 73.57142857142857,
+            "median": 69.0,
+            "minimum": 47.0
+          },
+          "role_correct_count": 33,
+          "truth_count": 80,
+          "truth_height_summary": {
+            "count": 80,
+            "maximum": 11.0,
+            "mean": 10.25,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "truth_width_summary": {
+            "count": 80,
+            "maximum": 126.0,
+            "mean": 66.75,
+            "median": 69.0,
+            "minimum": 47.0
+          }
+        },
+        "x_tick": {
+          "full_denominator_role_accuracy": 0.5657142857142857,
+          "geometry_recall": 0.7828571428571428,
+          "matched_count": 137,
+          "missed_height_summary": {
+            "count": 38,
+            "maximum": 10.0,
+            "mean": 10.0,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 38,
+            "maximum": 13.0,
+            "mean": 7.473684210526316,
+            "median": 5.0,
+            "minimum": 5.0
+          },
+          "role_correct_count": 99,
+          "truth_count": 175,
+          "truth_height_summary": {
+            "count": 175,
+            "maximum": 10.0,
+            "mean": 10.0,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "truth_width_summary": {
+            "count": 175,
+            "maximum": 16.0,
+            "mean": 10.2,
+            "median": 12.0,
+            "minimum": 5.0
+          }
+        },
+        "y_tick": {
+          "full_denominator_role_accuracy": 0.6078431372549019,
+          "geometry_recall": 0.7696078431372549,
+          "matched_count": 157,
+          "missed_height_summary": {
+            "count": 47,
+            "maximum": 10.0,
+            "mean": 10.0,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 47,
+            "maximum": 20.0,
+            "mean": 13.787234042553191,
+            "median": 14.0,
+            "minimum": 7.0
+          },
+          "role_correct_count": 124,
+          "truth_count": 204,
+          "truth_height_summary": {
+            "count": 204,
+            "maximum": 10.0,
+            "mean": 10.0,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "truth_width_summary": {
+            "count": 204,
+            "maximum": 23.0,
+            "mean": 13.637254901960784,
+            "median": 14.0,
+            "minimum": 7.0
+          }
+        }
+      },
+      "false_negative_best_iou_summary": {
+        "count": 139,
+        "maximum": 0.49266247379454925,
+        "mean": 0.16381580267446538,
+        "median": 0.09259259259259259,
+        "minimum": 0.0
+      },
+      "false_negative_disposition": {
+        "no_prediction_overlap": 65,
+        "positive_overlap_below_iou_0_5": 74
+      },
+      "false_negatives": 139,
+      "false_positive_best_iou_summary": {
+        "count": 67,
+        "maximum": 0.49266247379454925,
+        "mean": 0.29853529326665723,
+        "median": 0.35857877512856473,
+        "minimum": 0.0
+      },
+      "false_positive_disposition": {
+        "no_truth_overlap": 15,
+        "overlaps_multiple_truths_below_iou_0_5": 13,
+        "single_truth_localization_or_extent": 35,
+        "split_or_duplicate_of_one_truth": 4
+      },
+      "false_positives": 67,
+      "matched_role_confusion": {
+        "annotation": {
+          "annotation": 15,
+          "legendtext": 4,
+          "other": 13,
+          "phaseheading": 15
+        },
+        "axistitle": {
+          "axistitle": 19,
+          "other": 18
+        },
+        "legendtext": {
+          "annotation": 10,
+          "legendtext": 20
+        },
+        "other": {
+          "annotation": 1,
+          "legendtext": 1,
+          "other": 11,
+          "phaseheading": 49
+        },
+        "participant": {
+          "other": 27
+        },
+        "phaseheading": {
+          "annotation": 3,
+          "legendtext": 2,
+          "other": 35,
+          "phaseheading": 33
+        },
+        "xtick": {
+          "annotation": 2,
+          "axistitle": 24,
+          "legendtext": 1,
+          "other": 11,
+          "xtick": 99
+        },
+        "ytick": {
+          "axistitle": 11,
+          "other": 21,
+          "phaseheading": 1,
+          "ytick": 124
+        }
+      },
+      "positive_overlap_component_shapes": {
+        "0_truths_1_predictions": 15,
+        "1_truths_0_predictions": 65,
+        "1_truths_1_predictions": 563,
+        "1_truths_2_predictions": 1,
+        "2_truths_1_predictions": 23,
+        "2_truths_2_predictions": 17
+      },
+      "prediction_count": 637,
+      "true_positives": 570,
+      "truth_count": 709
+    },
+    "validation": {
+      "by_truth_role": {
+        "annotation": {
+          "full_denominator_role_accuracy": 0.1111111111111111,
+          "geometry_recall": 0.8888888888888888,
+          "matched_count": 16,
+          "missed_height_summary": {
+            "count": 2,
+            "maximum": 10.0,
+            "mean": 10.0,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 2,
+            "maximum": 38.0,
+            "mean": 38.0,
+            "median": 38.0,
+            "minimum": 38.0
+          },
+          "role_correct_count": 2,
+          "truth_count": 18,
+          "truth_height_summary": {
+            "count": 18,
+            "maximum": 13.0,
+            "mean": 11.5,
+            "median": 11.5,
+            "minimum": 10.0
+          },
+          "truth_width_summary": {
+            "count": 18,
+            "maximum": 70.0,
+            "mean": 54.0,
+            "median": 54.0,
+            "minimum": 38.0
+          }
+        },
+        "axis_title": {
+          "full_denominator_role_accuracy": 0.25,
+          "geometry_recall": 0.9166666666666666,
+          "matched_count": 11,
+          "missed_height_summary": {
+            "count": 1,
+            "maximum": 9.0,
+            "mean": 9.0,
+            "median": 9.0,
+            "minimum": 9.0
+          },
+          "missed_width_summary": {
+            "count": 1,
+            "maximum": 55.0,
+            "mean": 55.0,
+            "median": 55.0,
+            "minimum": 55.0
+          },
+          "role_correct_count": 3,
+          "truth_count": 12,
+          "truth_height_summary": {
+            "count": 12,
+            "maximum": 10.0,
+            "mean": 9.25,
+            "median": 9.0,
+            "minimum": 9.0
+          },
+          "truth_width_summary": {
+            "count": 12,
+            "maximum": 63.0,
+            "mean": 57.0,
+            "median": 55.0,
+            "minimum": 55.0
+          }
+        },
+        "condition_label": {
+          "full_denominator_role_accuracy": 0.0,
+          "geometry_recall": 0.6333333333333333,
+          "matched_count": 19,
+          "missed_height_summary": {
+            "count": 11,
+            "maximum": 9.0,
+            "mean": 9.0,
+            "median": 9.0,
+            "minimum": 9.0
+          },
+          "missed_width_summary": {
+            "count": 11,
+            "maximum": 47.0,
+            "mean": 31.90909090909091,
+            "median": 46.0,
+            "minimum": 6.0
+          },
+          "role_correct_count": 0,
+          "truth_count": 30,
+          "truth_height_summary": {
+            "count": 30,
+            "maximum": 9.0,
+            "mean": 9.0,
+            "median": 9.0,
+            "minimum": 9.0
+          },
+          "truth_width_summary": {
+            "count": 30,
+            "maximum": 47.0,
+            "mean": 22.8,
+            "median": 8.0,
+            "minimum": 6.0
+          }
+        },
+        "legend_text": {
+          "full_denominator_role_accuracy": 0.0,
+          "geometry_recall": 0.2727272727272727,
+          "matched_count": 3,
+          "missed_height_summary": {
+            "count": 8,
+            "maximum": 13.0,
+            "mean": 12.5,
+            "median": 13.0,
+            "minimum": 9.0
+          },
+          "missed_width_summary": {
+            "count": 8,
+            "maximum": 118.0,
+            "mean": 114.125,
+            "median": 118.0,
+            "minimum": 87.0
+          },
+          "role_correct_count": 0,
+          "truth_count": 11,
+          "truth_height_summary": {
+            "count": 11,
+            "maximum": 13.0,
+            "mean": 12.0,
+            "median": 13.0,
+            "minimum": 9.0
+          },
+          "truth_width_summary": {
+            "count": 11,
+            "maximum": 119.0,
+            "mean": 112.45454545454545,
+            "median": 118.0,
+            "minimum": 87.0
+          }
+        },
+        "participant": {
+          "full_denominator_role_accuracy": 0.0,
+          "geometry_recall": 1.0,
+          "matched_count": 9,
+          "missed_height_summary": {
+            "count": 0,
+            "maximum": null,
+            "mean": null,
+            "median": null,
+            "minimum": null
+          },
+          "missed_width_summary": {
+            "count": 0,
+            "maximum": null,
+            "mean": null,
+            "median": null,
+            "minimum": null
+          },
+          "role_correct_count": 0,
+          "truth_count": 9,
+          "truth_height_summary": {
+            "count": 9,
+            "maximum": 13.0,
+            "mean": 13.0,
+            "median": 13.0,
+            "minimum": 13.0
+          },
+          "truth_width_summary": {
+            "count": 9,
+            "maximum": 111.0,
+            "mean": 110.11111111111111,
+            "median": 110.0,
+            "minimum": 110.0
+          }
+        },
+        "phase_heading": {
+          "full_denominator_role_accuracy": 0.43333333333333335,
+          "geometry_recall": 0.8333333333333334,
+          "matched_count": 25,
+          "missed_height_summary": {
+            "count": 5,
+            "maximum": 13.0,
+            "mean": 10.6,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 5,
+            "maximum": 175.0,
+            "mean": 104.6,
+            "median": 87.0,
+            "minimum": 87.0
+          },
+          "role_correct_count": 13,
+          "truth_count": 30,
+          "truth_height_summary": {
+            "count": 30,
+            "maximum": 13.0,
+            "mean": 10.1,
+            "median": 10.0,
+            "minimum": 10.0
+          },
+          "truth_width_summary": {
+            "count": 30,
+            "maximum": 175.0,
+            "mean": 82.9,
+            "median": 87.0,
+            "minimum": 62.0
+          }
+        },
+        "x_tick": {
+          "full_denominator_role_accuracy": 0.7708333333333334,
+          "geometry_recall": 0.7708333333333334,
+          "matched_count": 37,
+          "missed_height_summary": {
+            "count": 11,
+            "maximum": 9.0,
+            "mean": 9.0,
+            "median": 9.0,
+            "minimum": 9.0
+          },
+          "missed_width_summary": {
+            "count": 11,
+            "maximum": 15.0,
+            "mean": 10.636363636363637,
+            "median": 7.0,
+            "minimum": 7.0
+          },
+          "role_correct_count": 37,
+          "truth_count": 48,
+          "truth_height_summary": {
+            "count": 48,
+            "maximum": 9.0,
+            "mean": 9.0,
+            "median": 9.0,
+            "minimum": 9.0
+          },
+          "truth_width_summary": {
+            "count": 48,
+            "maximum": 15.0,
+            "mean": 11.895833333333334,
+            "median": 15.0,
+            "minimum": 7.0
+          }
+        },
+        "y_tick": {
+          "full_denominator_role_accuracy": 0.8,
+          "geometry_recall": 0.8,
+          "matched_count": 20,
+          "missed_height_summary": {
+            "count": 5,
+            "maximum": 9.0,
+            "mean": 9.0,
+            "median": 9.0,
+            "minimum": 9.0
+          },
+          "missed_width_summary": {
+            "count": 5,
+            "maximum": 16.0,
+            "mean": 11.2,
+            "median": 8.0,
+            "minimum": 8.0
+          },
+          "role_correct_count": 20,
+          "truth_count": 25,
+          "truth_height_summary": {
+            "count": 25,
+            "maximum": 9.0,
+            "mean": 9.0,
+            "median": 9.0,
+            "minimum": 9.0
+          },
+          "truth_width_summary": {
+            "count": 25,
+            "maximum": 24.0,
+            "mean": 12.16,
+            "median": 15.0,
+            "minimum": 7.0
+          }
+        }
+      },
+      "false_negative_best_iou_summary": {
+        "count": 43,
+        "maximum": 0.48788927335640137,
+        "mean": 0.24749107248453014,
+        "median": 0.3229665071770335,
+        "minimum": 0.0
+      },
+      "false_negative_disposition": {
+        "no_prediction_overlap": 11,
+        "positive_overlap_below_iou_0_5": 32
+      },
+      "false_negatives": 43,
+      "false_positive_best_iou_summary": {
+        "count": 47,
+        "maximum": 0.48788927335640137,
+        "mean": 0.22929025162529404,
+        "median": 0.2813186813186813,
+        "minimum": 0.0
+      },
+      "false_positive_disposition": {
+        "no_truth_overlap": 12,
+        "overlaps_multiple_truths_below_iou_0_5": 6,
+        "single_truth_localization_or_extent": 14,
+        "split_or_duplicate_of_one_truth": 15
+      },
+      "false_positives": 47,
+      "matched_role_confusion": {
+        "annotation": {
+          "annotation": 2,
+          "other": 6,
+          "phaseheading": 8
+        },
+        "axistitle": {
+          "axistitle": 3,
+          "other": 8
+        },
+        "legendtext": {
+          "annotation": 3
+        },
+        "other": {
+          "phaseheading": 19
+        },
+        "participant": {
+          "other": 9
+        },
+        "phaseheading": {
+          "other": 12,
+          "phaseheading": 13
+        },
+        "xtick": {
+          "xtick": 37
+        },
+        "ytick": {
+          "ytick": 20
+        }
+      },
+      "positive_overlap_component_shapes": {
+        "0_truths_1_predictions": 12,
+        "1_truths_0_predictions": 11,
+        "1_truths_1_predictions": 132,
+        "1_truths_2_predictions": 10,
+        "2_truths_1_predictions": 7,
+        "2_truths_2_predictions": 8
+      },
+      "prediction_count": 187,
+      "true_positives": 140,
+      "truth_count": 183
+    }
+  },
+  "status": "synthetic_dev_diagnosis_only",
+  "synthetic_only": true,
+  "interpretation_correction": "The retained diagnostic originally attributed no-overlap misses to proposal probability failure. That causal attribution is narrowed here because emitted boxes alone cannot distinguish network probabilities from postprocessor rejection.",
+  "evidence_report": {
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/diagnosis-v1/diagnosis-v2.json",
+    "sha256": "af70bb67e479aa6222d6d9614b6a78b7b384afd6be785efb589855008a021791"
+  },
+  "diagnostic_helper": {
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/diagnosis-v1/diagnose_v40_geometry.py",
+    "sha256": "2a25b4d52c97a35e1f405aa24c4db440089a5ec7caf6118cdc09ffa8b1e38f7e"
+  },
+  "validation": {
+    "full_train_and_dev_geometry_reproduced": true,
+    "python_compilation_passed": true,
+    "process_wall_seconds": 4.92,
+    "root_review": "Full denominators, exact role-context source paths and limits of box-only causation reviewed."
+  }
+}
