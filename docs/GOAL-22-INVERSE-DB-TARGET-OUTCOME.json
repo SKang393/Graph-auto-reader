@@ -1,0 +1,88 @@
+{
+  "claim_scope": "Perfect supplied training-target recovery under fixed DB postprocessing. Unmatched truths remain in the denominator. This is not learned-model accuracy, an impossibility proof, or a new acceptance gate.",
+  "contour_dispositions": {
+    "train": {
+      "accepted": 680,
+      "rejected_box_confidence": 6
+    },
+    "validation": {
+      "accepted": 181
+    }
+  },
+  "denominators": {
+    "train": {
+      "degenerate_target_count": 0,
+      "original_v39_degenerate_target_count": 16,
+      "panel_count": 28,
+      "truth_count": 709
+    },
+    "validation": {
+      "degenerate_target_count": 0,
+      "original_v39_degenerate_target_count": 0,
+      "panel_count": 9,
+      "truth_count": 183
+    }
+  },
+  "frozen_geometry_scorer_sha256": "719bb18c30821cdd44b65fc9ede38f6d111fb3631e07c7c69d98d1116aa575a2",
+  "full_source_geometry": {
+    "train": {
+      "false_negatives": 32,
+      "false_positives": 3,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.9955882352941177,
+      "predicted_region_count": 680,
+      "recall": 0.9548660084626234,
+      "true_positives": 677,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 2,
+      "false_positives": 0,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 1.0,
+      "predicted_region_count": 181,
+      "recall": 0.9890710382513661,
+      "true_positives": 181,
+      "truth_region_count": 183
+    }
+  },
+  "model_inference": false,
+  "optimizer_steps": 0,
+  "postprocess_elapsed_ms": 1818.9732,
+  "private_data": false,
+  "production_approval": false,
+  "report": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-evaluation-v1/report.json",
+    "sha256": "1764ad8a0b4d8754a07d3229893f750d242518849928709f32a1fbf32a09136d"
+  },
+  "request": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-inputs-v1/request.json",
+    "sha256": "ee14d67f651e20ec9479fb9e59ce1ea1ef77542b057f3d62312c476685520b0b"
+  },
+  "schema": "graphreader.db-target-oracle-score.v1",
+  "scoring_source_sha256": "48158fa2167b9d57d21fde89a2f8b679f3b04a7a7fef198f4b1332a2a407a43b",
+  "sealed_data": false,
+  "status": "diagnostic_only",
+  "synthetic_only": true,
+  "evidence_score": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-score-v1.json",
+    "sha256": "adf316d6298aea4d27bdd99c1807b8f125161036e839232fb835979173189476"
+  },
+  "target_construction": {
+    "export_elapsed_ms": 403.708,
+    "regions": 892,
+    "translated_to_fit_regions": 0,
+    "contacts": 25,
+    "path": "ml/ocr/official_bakeoff/db_inverse_targets.py",
+    "minimum_extent_clamped_regions": 35,
+    "sha256": "ec273483050ef573853be797e4df38df4c907339dc3b426a939522343ebaeb86"
+  },
+  "validation": {
+    "fixed_manifest_minimum_side": 3,
+    "independent_review": "clear",
+    "focused_tests_passed": 9,
+    "elapsed_seconds": 0.65,
+    "fixed_manifest_expanded_minimum_side": 5
+  },
+  "interpretation": "The repaired perfect targets recover 677/709 training and 181/183 development truths, compared with 103/709 and 1/183 under the old target. This supports a target-construction-only training experiment. It is not learned-model accuracy or production approval. Contacts, six training contour-confidence rejections and all unmatched truths remain visible."
+}
