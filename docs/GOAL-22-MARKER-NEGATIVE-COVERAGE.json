@@ -1,0 +1,311 @@
+{
+  "cache": {
+    "array_count": 18,
+    "arrays": {
+      "component_coordinates": {
+        "dtype": "float32",
+        "sha256": "a18b43723b5afdca2e62f1e10d17ac481cab87f0e15f45c5d16a35816bdb9200",
+        "shape": [
+          236056,
+          2
+        ]
+      },
+      "component_nearest_truth_distance_px": {
+        "dtype": "float32",
+        "sha256": "237632fef4abf3673c568a3031d8fab3a615a86335b68115ac7cbb7b173ef125",
+        "shape": [
+          236056
+        ]
+      },
+      "component_nearest_truth_index": {
+        "dtype": "int32",
+        "sha256": "78743fa81ee2b11659c16f0b3d4dcf08ba120dde63b14b397d2a5ddc15044e4d",
+        "shape": [
+          236056
+        ]
+      },
+      "component_nearest_truth_radius_px": {
+        "dtype": "float32",
+        "sha256": "0834f73445644dcb0686a5bcd75fdfb643e9028f11351b4e291c9c46820d654c",
+        "shape": [
+          236056
+        ]
+      },
+      "component_proposal_index": {
+        "dtype": "int32",
+        "sha256": "8f71240f99636e52fd39ca5cc9f928736a8eed3fa69dd981e3889419cb6a5022",
+        "shape": [
+          236056
+        ]
+      },
+      "component_retention_role_id": {
+        "dtype": "uint8",
+        "sha256": "20cacf4268e1b5efe968726778b0f7f761950dc4d6be71836dff619dfead8039",
+        "shape": [
+          236056
+        ]
+      },
+      "component_scene_index": {
+        "dtype": "int32",
+        "sha256": "09dd02a821cbe2c5aede825c1713b7bfd7f8a009d2673cc58a5b12ccb09199a2",
+        "shape": [
+          236056
+        ]
+      },
+      "component_selected": {
+        "dtype": "bool",
+        "sha256": "02272a7d4783cf39c79b5e355021572f656d0de0c0e64fbf967ce96f59077158",
+        "shape": [
+          236056
+        ]
+      },
+      "component_stratum_id": {
+        "dtype": "uint8",
+        "sha256": "217c28efc3da774dbf0c8ae487153ecc582e78aaba59dc7e280b6e1aa9565e9d",
+        "shape": [
+          236056
+        ]
+      },
+      "family_coordinates": {
+        "dtype": "float32",
+        "sha256": "b323b1726b1f8ea383060f83ca5a5da94831b5a89413884c4081b4c0dfdc81f5",
+        "shape": [
+          122900,
+          2
+        ]
+      },
+      "family_nearest_truth_distance_px": {
+        "dtype": "float32",
+        "sha256": "00fc3833a243221f94c3cf63d7eef42817438a268ec207c5ef6a5d840143eae9",
+        "shape": [
+          122900
+        ]
+      },
+      "family_nearest_truth_index": {
+        "dtype": "int32",
+        "sha256": "b32db9bfd3d3e63f5f77d90500d69ae853de4089ada3e40e8c7ba72eb5d3d846",
+        "shape": [
+          122900
+        ]
+      },
+      "family_nearest_truth_radius_px": {
+        "dtype": "float32",
+        "sha256": "28e63b7bd634392e2708f5d136053d6e60c838cced16b21ce838192825af2ded",
+        "shape": [
+          122900
+        ]
+      },
+      "family_proposal_index": {
+        "dtype": "int32",
+        "sha256": "aad7a18bcf040e5bfa26bf7858e4324e11da8fd90cfe5b76fe483ac390ea2853",
+        "shape": [
+          122900
+        ]
+      },
+      "family_retention_role_id": {
+        "dtype": "uint8",
+        "sha256": "66056649fdc57b23f4968920fcc5afd51c22a8c2afc1355ba619e6d5fc7eaee8",
+        "shape": [
+          122900
+        ]
+      },
+      "family_scene_index": {
+        "dtype": "int32",
+        "sha256": "5d58ea689a6cf8de8ccbbc98c817fddf6a43e4bd4c37b09e1ae57cd2386c44e5",
+        "shape": [
+          122900
+        ]
+      },
+      "family_selected": {
+        "dtype": "bool",
+        "sha256": "90cd695481a06456af2ef7afa67910d73b57e3e335136cc6b001c0c2a0652d82",
+        "shape": [
+          122900
+        ]
+      },
+      "family_stratum_id": {
+        "dtype": "uint8",
+        "sha256": "7a2f9bb2054d43924abc4b7d8dfe7b0441ebb6e3d399e638f9323ee5ef865aa5",
+        "shape": [
+          122900
+        ]
+      }
+    },
+    "path": "frozen-v25-train-proposal-metadata.npz",
+    "retention_role_ids": {
+      "connector_anchor_reserved": 0,
+      "hard_negative_retained": 1,
+      "positive": 2,
+      "quota_ranked": 3,
+      "quota_ranked_connector_band": 4,
+      "stratified_quota_ranked": 5,
+      "topology_reserved": 6
+    },
+    "sha256": "5b8afc209e1c2a6f849ef044056b46903c79692d7264a724651a3a158369576b",
+    "stratum_ids": {
+      "artifact": 0,
+      "faint_low": 1,
+      "faint_p05": 2,
+      "generic": 3,
+      "generic_connector_band": 4,
+      "hard_existing": 5,
+      "hard_negative": 6,
+      "ocr_heavy": 7,
+      "positive": 8,
+      "stratified_bin_00": 9,
+      "stratified_bin_01": 10,
+      "stratified_bin_02": 11,
+      "stratified_bin_03": 12,
+      "stratified_bin_04": 13,
+      "stratified_bin_05": 14,
+      "stratified_bin_06": 15,
+      "stratified_bin_07": 16,
+      "stratified_bin_08": 17,
+      "stratified_bin_09": 18,
+      "stratified_bin_10": 19,
+      "stratified_bin_11": 20,
+      "stratified_bin_12": 21,
+      "stratified_bin_13": 22,
+      "stratified_bin_14": 23,
+      "stratified_bin_15": 24,
+      "stratified_bin_16": 25,
+      "stratified_bin_17": 26,
+      "stratified_bin_18": 27,
+      "stratified_bin_19": 28,
+      "stratified_bin_20": 29,
+      "stratified_bin_21": 30,
+      "stratified_bin_22": 31,
+      "stratified_bin_23": 32,
+      "stratified_bin_24": 33,
+      "stratified_bin_25": 34,
+      "stratified_bin_26": 35,
+      "stratified_bin_27": 36,
+      "stratified_bin_28": 37,
+      "stratified_bin_29": 38,
+      "stratified_bin_30": 39,
+      "stratified_bin_31": 40,
+      "stratified_bin_32": 41,
+      "stratified_bin_33": 42,
+      "stratified_bin_34": 43,
+      "stratified_bin_35": 44,
+      "stratified_bin_36": 45,
+      "stratified_bin_37": 46,
+      "stratified_bin_38": 47,
+      "stratified_bin_39": 48,
+      "stratified_bin_40": 49,
+      "stratified_bin_41": 50,
+      "stratified_bin_42": 51,
+      "stratified_bin_43": 52,
+      "stratified_bin_44": 53,
+      "stratified_bin_45": 54,
+      "stratified_bin_46": 55,
+      "stratified_bin_47": 56,
+      "stratified_bin_49": 57,
+      "stratified_bin_50": 58,
+      "stratified_bin_51": 59,
+      "stratified_bin_53": 60,
+      "stratified_bin_54": 61,
+      "stratified_bin_55": 62,
+      "stratified_bin_56": 63,
+      "stratified_bin_57": 64,
+      "stratified_bin_58": 65,
+      "stratified_bin_59": 66,
+      "stratified_bin_60": 67,
+      "stratified_bin_61": 68,
+      "stratified_bin_62": 69,
+      "stratified_bin_63": 70
+    }
+  },
+  "component_train": {
+    "by_distance": {
+      "negative_gt12": {
+        "eligible": 185849,
+        "selected": 25828,
+        "selection_fraction": 0.13897303725067126
+      },
+      "negative_gt3_le5": {
+        "eligible": 6006,
+        "selected": 642,
+        "selection_fraction": 0.1068931068931069
+      },
+      "negative_gt5_le8": {
+        "eligible": 15934,
+        "selected": 2857,
+        "selection_fraction": 0.1793021212501569
+      },
+      "negative_gt8_le12": {
+        "eligible": 25009,
+        "selected": 3253,
+        "selection_fraction": 0.1300731736574833
+      }
+    },
+    "eligible_negative_count": 232798,
+    "selected_negative_count": 32580,
+    "truth_denominator": 2004
+  },
+  "elapsed_ms": 161831.62,
+  "family_train": {
+    "by_distance": {
+      "negative_gt12": {
+        "eligible": 109420,
+        "selected": 7520,
+        "selection_fraction": 0.06872600987022483
+      },
+      "negative_gt3_le5": {
+        "eligible": 1534,
+        "selected": 89,
+        "selection_fraction": 0.058018252933507174
+      },
+      "negative_gt5_le8": {
+        "eligible": 3619,
+        "selected": 209,
+        "selection_fraction": 0.057750759878419454
+      },
+      "negative_gt8_le12": {
+        "eligible": 7504,
+        "selected": 412,
+        "selection_fraction": 0.05490405117270789
+      }
+    },
+    "eligible_negative_count": 122077,
+    "selected_negative_count": 8230,
+    "truth_denominator": 500
+  },
+  "inputs": {
+    "component_selected_index_sha256": "d7460b95bbdbb89d79a12cafe7632604f02b8087e9986fb7a9d3ea940287567f",
+    "family_selected_index_sha256": "89518e6b577efe68f09fac774637f8d5c9f8dc06292c902351718b8de88dd0f0",
+    "measurement_source_sha256": "82a16abae6df6c0caf3733f07604f1add7c92a948aa6eb58b116937598156985",
+    "selected_row_identity_sha256": "69a830e2992a67e32dc1ff3d42a99d2a5c6854b8fbc921325d750062acca38a7",
+    "selected_tensor_inventory_sha256": "76d10f9c54718ee03cee7226855371c8b6ab81418f8f9e7375dd8cb91196e613",
+    "target_preflight_path": "artifacts/goal22-runs/marker-v26-target-preflight/preflight-v1.json",
+    "target_preflight_sha256": "20bbd7c0c2f8cf999a4dbff68a9fa60a9494acae8b22a04d5b9f45cba7790b70",
+    "v25_config_path": "ml/markers/center/plot_domain_v25/training/p1.json",
+    "v25_config_sha256": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2",
+    "v25_result_path": "ml/markers/center/plot_domain_v25/P1_RESULT.json",
+    "v25_result_sha256": "fb64443005b6ca4c26d4e5f1d8b37d8882a93a186d9b2b92fffc476a8c823a63"
+  },
+  "interpretation_limits": [
+    "Coverage measures the fixed train sampler only and does not select a new sampler or candidate.",
+    "Marker distance is diagnostic metadata derived from synthetic train truth after proposal extraction; it never enters runtime inference.",
+    "Selection fractions describe representation, not model causation or an acceptance bar."
+  ],
+  "model_inference_runs": 0,
+  "optimizer_steps_run": 0,
+  "private_reads": 0,
+  "production_approval": false,
+  "schema": "graphreader.marker-center-v25-train-negative-coverage.v1",
+  "scope": "fixed-v25-synthetic-train-negative-coverage",
+  "sealed_runs": 0,
+  "status": "model_free_complete",
+  "evidence_report": {
+    "path": "artifacts/goal22-runs/marker-v26-target-preflight/negative-coverage-v1/coverage.json",
+    "sha256": "921e6020831055cde224729954a863c23b6804bee232a9431c773bce660ed1d5"
+  },
+  "validation": {
+    "elapsed_seconds": 4.33,
+    "test_source_sha256": "3e49afc310af0ce3c65db61ee4285d63e4a1e8de62d352564413435f5a5c91e7",
+    "source_sha256": "82a16abae6df6c0caf3733f07604f1add7c92a948aa6eb58b116937598156985",
+    "focused_tests_passed": 18
+  },
+  "conclusion": "Near-marker negatives are eligible but sparsely selected: 14.38 percent of component and 5.61 percent of family proposals at distances greater than 3 and at most 12 pixels. The family 8-to-12 pixel band containing the two observed false suppressors has 5.49 percent selection. This supports testing a sampling repair; coverage alone does not prove causation or approve a model."
+}
