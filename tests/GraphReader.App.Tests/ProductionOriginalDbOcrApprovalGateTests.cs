@@ -162,6 +162,33 @@ public sealed class ProductionOriginalDbOcrApprovalGateTests
         }
     }
 
+    [TestMethod]
+    public void Utf8BomPreservesManifestContractAndDuplicateChecks()
+    {
+        string root = CreateTemporaryDirectory();
+        try
+        {
+            string path = Path.Combine(root, "detector.json");
+            byte[] manifest = Serialize(CreateManifest());
+            File.WriteAllBytes(path, manifest);
+            string expected = ProductionOriginalDbOcrApprovalGate
+                .ComputeManifestContractFingerprintForTest(path, "ocr_detection");
+
+            File.WriteAllBytes(path, [0xef, 0xbb, 0xbf, .. manifest]);
+            Assert.AreEqual(expected, ProductionOriginalDbOcrApprovalGate
+                .ComputeManifestContractFingerprintForTest(path, "ocr_detection"));
+
+            File.WriteAllBytes(path,
+                [0xef, 0xbb, 0xbf, .. "{\"task\":\"ocr_detection\",\"task\":\"ocr_detection\"}"u8.ToArray()]);
+            Assert.ThrowsExactly<InvalidDataException>(() => ProductionOriginalDbOcrApprovalGate
+                .ComputeManifestContractFingerprintForTest(path, "ocr_detection"));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static void Validate(EvidenceFixture fixture) =>
         ProductionOriginalDbOcrApprovalGate.ValidateFullOcrDevSourceForTest(
             fixture.Score,

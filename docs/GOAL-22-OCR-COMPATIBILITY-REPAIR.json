@@ -1,0 +1,95 @@
+{
+  "schema": "graphreader.goal22-ocr-compatibility-repair.v1",
+  "date": "2026-09-10",
+  "problem": "CI 34439206055 found 16 integration failures caused by UTF-8 BOM rejection and five App fixture failures caused by a platform-neutral native dependency layout.",
+  "implementation": [
+    "Strip the optional UTF-8 BOM only for parsing; original file bytes remain checksum-bound and duplicate-property checks stay active.",
+    "Target the App test project at win-x64, matching the application, so runtime-identity tests exercise actual Windows native loading.",
+    "Regression check verifies BOM/plain manifest contract equivalence and rejects duplicate properties behind a BOM."
+  ],
+  "validation": [
+    {
+      "path": "artifacts/test-results/goal22-app-ci-layout-v2.trx",
+      "sha256": "16133d4dfc92370c8dbf17d8689e7118389753cf930af7b53bf713c1be935fe2",
+      "counters": {
+        "total": "293",
+        "executed": "293",
+        "passed": "293",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "artifacts/test-results/goal22-integration-bom-v1.trx",
+      "sha256": "5d59c7ebe775afc6fdfdc4edb48b79dcf122a294b80db6f29b5ce4b9cee6ccf1",
+      "counters": {
+        "total": "159",
+        "executed": "152",
+        "passed": "151",
+        "failed": "1",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "path": "artifacts/test-results/goal22-integration-git-config-v1.trx",
+      "sha256": "db303d9b0b79d013c5e1365e6580c0118785dfd2f21a0453495f71f101ca5ab4",
+      "counters": {
+        "total": "1",
+        "executed": "1",
+        "passed": "1",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ],
+  "validation_notes": [
+    "Full App suite passes 293/293.",
+    "Integration suite passes 151 with seven opt-in tests skipped; one Git ownership failure occurred because the existing safe-worktree configuration was omitted.",
+    "The sole Git check passes when rerun with the existing GIT_CONFIG_GLOBAL setting. All 16 prior OCR integration failures are repaired.",
+    "An initial native-file copying approach retained an incorrect loaded-module path and was replaced by the actual win-x64 test target. Its failed evidence remains in goal22-app-ci-layout-v1.trx."
+  ],
+  "files": {
+    "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrApprovalGate.cs": "7281bf9f0e6685e40750b0fd4f8e2f866c6ee097a9a8e535891577554db161b7",
+    "tests/GraphReader.App.Tests/ProductionOriginalDbOcrApprovalGateTests.cs": "17ef35cdf3ccd158ca99b9a7fd9c7e9249e99a050f48cc37fc7cf066d68103e0",
+    "tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj": "55e734e77a8d850f3961e873d8d8defa0de5db468aa6f7e3d9913e8d74e93114"
+  },
+  "license_review": "No new dependency or model. Apache-2.0 project code.",
+  "production_approval": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "packaged_build_created": false,
+  "independent_review": "Unavailable because delegated agents report exhausted workspace credits; lead verified the targeted repair and full affected suites."
+}

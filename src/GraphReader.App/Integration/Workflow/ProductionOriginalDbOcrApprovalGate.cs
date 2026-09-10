@@ -585,7 +585,14 @@ internal static class ProductionOriginalDbOcrApprovalGate
     {
         try
         {
-            JsonDocument document = JsonDocument.Parse(bytes, new JsonDocumentOptions { MaxDepth = 64 });
+            // File hashes bind the original bytes, including any UTF-8 BOM.
+            // Match the existing manifest readers' support for BOM-prefixed files.
+            ReadOnlyMemory<byte> json = bytes.AsMemory();
+            if (json.Span.StartsWith(new byte[] { 0xef, 0xbb, 0xbf }))
+            {
+                json = json[3..];
+            }
+            JsonDocument document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 64 });
             RejectDuplicates(document.RootElement, label);
             if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
