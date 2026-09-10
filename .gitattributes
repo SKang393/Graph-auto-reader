@@ -55,3 +55,13 @@ ml/synthetic/LICENSES/*.txt text eol=lf
 # Retry11's completed run binds these exact JSON bytes, including line endings.
 docs/GOAL-22-V24-COVERAGE-PREFLIGHT.json -text whitespace=cr-at-eol
 ml/markers/center/mask_preserving_v24/training/p1_retry11.json -text whitespace=cr-at-eol
+# Preserve exact bytes referenced by the Goal 22 frozen-source evidence.
+ml/ocr/pretrained_db_head_v39/protocol.json -text whitespace=cr-at-eol
+docs/GOAL-22-V41-RUNTIME-REJECTION-DIAGNOSIS.json -text whitespace=cr-at-eol
+ml/ocr/shape_ohem_db_head_v42/__init__.py -text whitespace=cr-at-eol
+ml/ocr/shape_ohem_db_head_v42/protocol.json -text whitespace=cr-at-eol
+ml/ocr/shape_ohem_db_head_v42/training/p1.json -text whitespace=cr-at-eol
+ml/ocr/extended_db_head_v43/** -text whitespace=cr-at-eol
+ml/ocr/official_bakeoff/extended_head_training.py -text whitespace=cr-at-eol
+docs/GOAL-22-OCR-TRAINING-DURATION-DIAGNOSIS.json -text whitespace=cr-at-eol
+tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate_v2.py -text whitespace=cr-at-eol

@@ -1,0 +1,62 @@
+{
+  "schema": "graphreader.goal22.frozen-source-byte-retention.v1",
+  "finding": "Default LF normalization changed five already-recorded source files when committed. Their original worktree bytes still match experiment bindings.",
+  "repair": "Disable text normalization for these exact evidence-bound paths and new V43 bound sources. Preserve current evidence bytes in Git without changing model logic, outcomes or historical commits.",
+  "verified": [
+    {
+      "path": "ml/ocr/pretrained_db_head_v39/protocol.json",
+      "preserved_worktree_sha256": "5ba2719763980235e325020f0891ba37155cd9ffd7bd5e830078ffd3990da59f",
+      "prior_repository_sha256": "9fa788908fd13fa307e05b6edeb9efc563a9a6a19922bb0ebd6705bdb0faaf8f",
+      "only_line_endings_changed": true,
+      "staged_blob_matches_evidence_bytes": true,
+      "recorded_snapshot": "ml/markers/training-seals/ocr-detection/graph-text-shape-ohem-db-head-v42/P1/source-snapshot.json",
+      "matches_recorded_snapshot": true
+    },
+    {
+      "path": "docs/GOAL-22-V41-RUNTIME-REJECTION-DIAGNOSIS.json",
+      "preserved_worktree_sha256": "02557335a94e484fa2d2f76697e2de596a4b6e3415fbe5d597de3f4adbec2497",
+      "prior_repository_sha256": "4e9ae7303aac5e86191942f32277fefec1cd4dd2804309751c8b7f0081666ea3",
+      "only_line_endings_changed": true,
+      "staged_blob_matches_evidence_bytes": true,
+      "recorded_snapshot": "ml/markers/training-seals/ocr-detection/graph-text-shape-ohem-db-head-v42/P1/source-snapshot.json",
+      "matches_recorded_snapshot": true
+    },
+    {
+      "path": "ml/ocr/shape_ohem_db_head_v42/__init__.py",
+      "preserved_worktree_sha256": "d460fb8b8a5d4432118fd4bc6c674ba74a0595e7a8385bbb5fd3bf6fd7d0e415",
+      "prior_repository_sha256": "520dc84460fd7572cac8efdbf33a26d82279bf28ce127a13b3b5f7d94e04b9e1",
+      "only_line_endings_changed": true,
+      "staged_blob_matches_evidence_bytes": true,
+      "recorded_snapshot": "ml/markers/training-seals/ocr-detection/graph-text-shape-ohem-db-head-v42/P1/source-snapshot.json",
+      "matches_recorded_snapshot": true
+    },
+    {
+      "path": "ml/ocr/shape_ohem_db_head_v42/protocol.json",
+      "preserved_worktree_sha256": "7bfd086f85da3b0b204209ff4d36c9102e97158a2c39dec88a8b8495bea2412c",
+      "prior_repository_sha256": "9a025f2e7e23c8239689d01d0f388d349de0b1a3171b9aab80563f7376ffb122",
+      "only_line_endings_changed": true,
+      "staged_blob_matches_evidence_bytes": true,
+      "recorded_snapshot": "ml/markers/training-seals/ocr-detection/graph-text-shape-ohem-db-head-v42/P1/source-snapshot.json",
+      "matches_recorded_snapshot": true
+    },
+    {
+      "path": "ml/ocr/shape_ohem_db_head_v42/training/p1.json",
+      "preserved_worktree_sha256": "964c97a9a606ef0e66fa63e4f119e14f84c2e96e7ec37a7878482a4252d23cdb",
+      "prior_repository_sha256": "58c95b6c0dc3fae38856c3c165f4b371d403c0cc3f2d9ccaf331a6fc3b132661",
+      "only_line_endings_changed": true,
+      "staged_blob_matches_evidence_bytes": true,
+      "recorded_snapshot": "ml/markers/training-seals/ocr-detection/graph-text-shape-ohem-db-head-v42/P1/source-snapshot.json",
+      "matches_recorded_snapshot": true
+    }
+  ],
+  "active_v43_snapshot_unchanged": true,
+  "training_repeated": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "independent_review": {
+    "status": "CLEAR",
+    "reviewer": "family_ocr_diagnostic",
+    "scope": "All five retained worktree hashes independently match staged Git blobs and V42 snapshot hashes; exact -text attributes preserve them. No model/test/approval claim."
+  }
+}
