@@ -11,6 +11,72 @@ namespace GraphReader.Ocr.Tests;
 public sealed class LocalOnnxTextRegionDetectorDbPostprocessObservationTests
 {
     [TestMethod]
+    public async Task IdealV39ShrinkTargetsDoNotGuaranteeRecoveryOfElongatedTextBoxes()
+    {
+        string directory = CreateDirectory();
+        string modelPath = Path.Combine(directory, "ideal-shrink-target-fixture.onnx");
+        await File.WriteAllBytesAsync(modelPath, [4, 3, 9, 1]);
+        try
+        {
+            // A model-free round trip at the shipped DB operating point. These
+            // are deliberately ideal V39 targets, not actual model predictions.
+            const int canvasWidth = 1024;
+            const int canvasHeight = 256;
+            var cases = new[] { (Width: 96, Height: 12), (Width: 120, Height: 24),
+                (Width: 24, Height: 24), (Width: 16, Height: 8) };
+            var outputs = new Queue<float[]>();
+            foreach (var item in cases)
+            {
+                double distance = item.Width * item.Height * (1 - (0.4 * 0.4)) /
+                    (2 * (item.Width + item.Height));
+                outputs.Enqueue(RectangleMap(canvasWidth, canvasHeight,
+                    (int)Math.Ceiling(100 + distance), (int)Math.Ceiling(100 + distance),
+                    (int)Math.Floor(100 + item.Width - distance),
+                    (int)Math.Floor(100 + item.Height - distance), 1f));
+            }
+            await using InferenceRuntime runtime = CreateRuntime(directory, outputs);
+            var observations = new List<OcrDbPostprocessObservation>();
+            var detector = new LocalOnnxTextRegionDetector(runtime, Options(Identity(modelPath)) with
+            {
+                MaximumSideLength = 960, DimensionMultiple = 128,
+                MinimumSideLength = 3, MaximumRegions = 1000,
+                DbPostprocessObserver = observations.Add,
+            });
+            var overlaps = new List<double>();
+            foreach (var item in cases)
+            {
+                IReadOnlyList<OcrDetectedRegion> regions = await detector.DetectAsync(
+                    Image(canvasWidth, canvasHeight), CancellationToken.None);
+                double overlap = 0;
+                foreach (OcrDetectedRegion region in regions)
+                {
+                    OcrRectangle box = region.Polygon.Bounds;
+                    double intersection = Math.Max(0, Math.Min(100 + item.Width, box.Right) - Math.Max(100, box.Left)) *
+                        Math.Max(0, Math.Min(100 + item.Height, box.Bottom) - Math.Max(100, box.Top));
+                    overlap = Math.Max(overlap, intersection /
+                        ((item.Width * item.Height) + (box.Width * box.Height) - intersection));
+                }
+                overlaps.Add(overlap);
+                Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    width = item.Width, height = item.Height, returned_regions = regions.Count,
+                    maximum_iou = overlap,
+                    dispositions = observations[^1].Contours.Select(value => value.Disposition.ToString()).ToArray(),
+                }));
+                Assert.AreEqual(canvasWidth, observations[^1].TensorWidth);
+                Assert.AreEqual(canvasHeight, observations[^1].TensorHeight);
+            }
+            Assert.IsLessThan(0.5, overlaps[0]);
+            Assert.IsLessThan(0.5, overlaps[1]);
+            Assert.IsGreaterThanOrEqualTo(0.5, overlaps[2]);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task ObserverRecordsThresholdSupportAndEveryReachedDispositionWithoutChangingOutput()
     {
         string directory = CreateDirectory();

@@ -32,6 +32,15 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 4 && args[0] == OfficialDbTargetOracle.Command)
+        {
+            return await OfficialDbTargetOracle.RunCommandAsync(args, RepositoryRoot()).ConfigureAwait(false);
+        }
+        if (args.Length == 1 && args[0] == "--self-test-db-target-oracle")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(OfficialDbTargetOracleSelfTest.Run(), JsonOptions));
+            return 0;
+        }
         if (args.Length == 6 && args[0] == OfficialHeadCandidateEvaluation.Command)
         {
             return await OfficialHeadCandidateEvaluation.RunCommandAsync(args, RepositoryRoot())
