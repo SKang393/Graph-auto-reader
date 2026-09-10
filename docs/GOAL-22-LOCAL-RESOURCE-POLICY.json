@@ -1,0 +1,63 @@
+{
+  "schema": "graphreader.goal22.local-resource-policy.v1",
+  "requested_by": "Maintainer, 2026-09-10: preserve capacity for foreground work during training.",
+  "scope": "This Goal 22 task background training, preflight, evaluation and compiler processes only. Not an application runtime setting or machine-wide policy.",
+  "cpu": "AMD Ryzen 7 5800X",
+  "physical_cores": 8,
+  "logical_processors": 16,
+  "background_priority": "Idle",
+  "allowed_logical_processor_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "affinity_mask": 65535,
+  "excluded_logical_processor_count": 0,
+  "one_heavy_job_at_a_time": true,
+  "numerical_worker_threads": 16,
+  "launcher": {
+    "path": "artifacts/goal22-tools/Run-BackgroundWork.ps1",
+    "sha256": "e5d93568d66e73d433969cadcd198c37e06001b117d525e46383c7a4cd3f2bc0"
+  },
+  "verification": {
+    "child_process_priority_class": 64,
+    "child_process_affinity_mask": 65535,
+    "child_process_allowed_processor_count": 16,
+    "queried_windows_job_cpu_rate": 5000,
+    "queried_windows_job_control_flags": 5
+  },
+  "limitations": [
+    "Parallelizable work may use all 16 logical processors; serial portions cannot be spread automatically.",
+    "The Windows job limits aggregate CPU time to 50%; Idle priority favors foreground work. It does not cap disk or memory.",
+    "The new training thread count requires export parity and is recorded in the candidate recipe. Historical sources and outcomes remain unchanged."
+  ],
+  "private_data": false,
+  "production_approval": false,
+  "total_cpu_hard_cap_percent": 50,
+  "live_training_sample": {
+    "process_id": 51236,
+    "sample_seconds": 3.0676403,
+    "threads_with_cpu_activity": 16,
+    "approximate_total_cpu_percent": 51.15775593051115,
+    "priority": "Idle",
+    "note": "Brief process-time sample has collection and scheduling-interval error; configured Windows job hard cap remains 50%. This confirms actual multithread activity, not just processor eligibility."
+  },
+  "independent_review": {
+    "status": "CLEAR",
+    "reviewer": "family_ocr_diagnostic",
+    "scope": "All-thread affinity, Idle priority, inherited Windows job hard CPU cap; single heavy job required."
+  }
+}

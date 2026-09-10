@@ -1,0 +1,48 @@
+{
+  "schema": "graphreader.goal22.condition-caption-role-repair.v1",
+  "status": "verified",
+  "problem": "V1 incorrectly states that the Production adapter maps generator condition_label to Other. The adapter maps runtime OCR roles, not generator labels. Generator _condition_bars takes phase.code.upper() and places it in header geometry belonging to that phase.",
+  "source_based_decision": "Map condition_label to PhaseHeading because it captions a known generated phase. This decision is grounded in generator semantics, not private answers or a desired candidate score. Keep runtime Other accepted for genuinely unknown text.",
+  "implementation": "Add separate full OCR scorer schema v2, preserving the exact V1 evaluator and all historical reports. Require corrected schema/evaluator and condition-caption role mapping in the original-DB Production approval boundary. Existing unrelated OCR approval profiles remain unchanged.",
+  "metrics_unchanged": [
+    "IoU 0.5 maximum-cardinality matching independent of text/role",
+    "all 709 train and 183 dev truths",
+    "primary text exact matching and full CER insertions/deletions",
+    "central 95% Tier 1 bars"
+  ],
+  "validation": {
+    "python_tests_passed": 6,
+    "python_seconds": 7.14,
+    "counterexample": "A correctly recognized A above its phase scores the PhaseHeading role correctly; changing only its runtime role to Other fails role accuracy without changing geometry or text metrics.",
+    "application_gate_tests": {
+      "passed": 16,
+      "failed": 0,
+      "trx": "artifacts/test-results/goal22-ocr-role-v2-gate.trx"
+    },
+    "historical_v1_bytes_preserved": true
+  },
+  "source_hashes": {
+    "ml/synthetic/templates.py": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c",
+    "src/GraphReader.Ocr/GraphTextRoleClassifier.cs": "10fab9e87709a209a5cda850a96802fdd6c79ef838e68102ad32de6aee402d99",
+    "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs": "d46d619cdf475e1adf24fe8090d732db8c198dd7e2f1e82739557b435523377a",
+    "tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate.py": "386a3d8e0b82b3622f7596ab572128f1f9a2242a648d83901f90a0196f2fef8b",
+    "tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate_v2.py": "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656",
+    "tools/GraphReader.SyntheticRuntimeEvidence/test_score_full_ocr_candidate_v2.py": "9141b31b2dc9a09a4072856855d5d6605e7b409d2f90223fbf27d2effd77ddba",
+    "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrApprovalGate.cs": "cf50f3739cb3229b48fdfb3d0d8f1417eea72443f0f6a55181bd4706a726a8d6",
+    "tests/GraphReader.App.Tests/ProductionOriginalDbOcrApprovalGateTests.cs": "d001bb44b296bf4770e74bf624267673f47a033bd6eb03843d04aaa156397e78"
+  },
+  "model_accuracy_claim": false,
+  "production_approval": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "known_limitations": [
+    "V1 and V2 role scores are not directly comparable without naming the metric version.",
+    "No real or sealed corpus is read for this repair.",
+    "This does not repair missing regions, recognition errors, or ambiguous runtime classifications."
+  ],
+  "independent_review": {
+    "status": "CLEAR",
+    "reviewer": "family_ocr_diagnostic",
+    "scope": "Source semantics, unchanged metrics and inventories, schema/evaluator/mapping gate bindings; no test, accuracy, sealed or production conclusion."
+  }
+}

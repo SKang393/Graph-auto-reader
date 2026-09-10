@@ -28,6 +28,19 @@ public sealed class ProductionOriginalDbOcrApprovalGateTests
     }
 
     [TestMethod]
+    public void FullOcrDevRejectsHistoricalSchemaAndIncorrectConditionCaptionRole()
+    {
+        EvidenceFixture fixture = CreateEvidence();
+        JsonObject score = ParseObject(fixture.Score);
+        score["schema"] = "graphreader.full-ocr-candidate-score.v1";
+        Assert.ThrowsExactly<InvalidDataException>(() => Validate(fixture with { Score = Serialize(score) }));
+
+        score = ParseObject(fixture.Score);
+        score["role_mapping"]!["generator_to_serialized_runtime_ocr_role"]!["condition_label"] = "other";
+        Assert.ThrowsExactly<InvalidDataException>(() => Validate(fixture with { Score = Serialize(score) }));
+    }
+
+    [TestMethod]
     [DataRow("precision")]
     [DataRow("recall")]
     [DataRow("recognition")]
@@ -355,6 +368,14 @@ public sealed class ProductionOriginalDbOcrApprovalGateTests
         byte[] score = Serialize(new Dictionary<string, object?>
         {
             ["schema"] = ProductionOriginalDbOcrApprovalGate.FullOcrDevSchema,
+            ["role_mapping"] = new Dictionary<string, object?>
+            {
+                ["revision"] = "condition-caption-is-phase-heading-v2",
+                ["generator_to_serialized_runtime_ocr_role"] = new Dictionary<string, object?>
+                {
+                    ["condition_label"] = "phaseheading",
+                },
+            },
             ["status"] = "diagnostic_only_unapproved",
             ["synthetic_only"] = true,
             ["private_data"] = false,

@@ -17,9 +17,9 @@ internal static class ProductionOriginalDbOcrApprovalGate
 {
     internal const string Schema = "graphreader.ocr-original-db-production-gate.v1";
     internal const string Profile = "ocr-original-db-production-gate-v1";
-    internal const string FullOcrDevSchema = "graphreader.full-ocr-candidate-score.v1";
+    internal const string FullOcrDevSchema = "graphreader.full-ocr-candidate-score.v2";
     internal const string FullOcrDevEvaluatorSha256 =
-        "386a3d8e0b82b3622f7596ab572128f1f9a2242a648d83901f90a0196f2fef8b";
+        "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656";
     private const int MaximumEvidenceBytes = 32 * 1024 * 1024;
     private const double NumericTolerance = 1e-12;
 
@@ -286,6 +286,13 @@ internal static class ProductionOriginalDbOcrApprovalGate
         using JsonDocument scoreDocument = Parse(scoreBytes, "full OCR synthetic-dev score");
         JsonElement score = scoreDocument.RootElement;
         RequireString(score, "schema", FullOcrDevSchema, "full OCR synthetic-dev score");
+        JsonElement roleMapping = RequireObject(score, "role_mapping", "full OCR synthetic-dev score");
+        RequireString(roleMapping, "revision", "condition-caption-is-phase-heading-v2",
+            "full OCR synthetic-dev role mapping");
+        JsonElement canonicalRoles = RequireObject(roleMapping,
+            "generator_to_serialized_runtime_ocr_role", "full OCR synthetic-dev role mapping");
+        RequireString(canonicalRoles, "condition_label", "phaseheading",
+            "full OCR synthetic-dev condition-caption semantics");
         RequireString(score, "status", "diagnostic_only_unapproved", "full OCR synthetic-dev score");
         RequireBoolean(score, "synthetic_only", true, "full OCR synthetic-dev score");
         RequireBoolean(score, "private_data", false, "full OCR synthetic-dev score");
