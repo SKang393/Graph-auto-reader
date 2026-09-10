@@ -1,0 +1,608 @@
+{
+  "candidate_id": "P1",
+  "elapsed_ms": 137606.444,
+  "inputs": {
+    "binding_path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "binding_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+    "diagnostic_source_sha256": "3841f2b81fbc7c81bbe2ac83f6f5413e7135b3ff1adee6411f04cb79dc472db4",
+    "v25_cache_path": "artifacts/goal22-runs/marker-v26-target-preflight/suppressor-anchor-diagnosis-v1/fixed-v25-dev-outputs.npz",
+    "v25_cache_report_path": "artifacts/goal22-runs/marker-v26-target-preflight/suppressor-anchor-diagnosis-v1/diagnosis.json",
+    "v25_cache_report_sha256": "ad923c8f9c658e4a51b4babf728f30f68e9bf33fb3d4528587b6f3e5998290db",
+    "v25_cache_sha256": "d9247c03dded13b00c582a64152976a9b89f1b01704670cfdc5f226c9d09eb72",
+    "v25_runner_source_bundle_sha256": "a87debb4ca2b1cff4323a5be48c39d8b11f3c784496d067f2462cc54d2781659",
+    "v26_candidate_report_path": "artifacts/goal22-runs/marker-v26-annulus/P1-run/candidate-report.json",
+    "v26_candidate_report_sha256": "37a985d7cd321a53305d715764383e66feaf3bc80adebf038e292e01d0df96fb",
+    "v26_config_path": "ml/markers/center/localization_confidence_v26/training/p1.json",
+    "v26_config_sha256": "31f8fee2ecb4fc01b2c1234761423dcbb668e98c90157abd4e1179c6749236db",
+    "v26_onnx_path": "artifacts/goal22-runs/marker-v26-annulus/P1-run/marker-center-annulus-reservation-v26-p1.onnx",
+    "v26_onnx_sha256": "812ee28a384223ae564c1853ec02ce015be1554440b3de6f41a9327a2f68d147",
+    "v26_result_path": "ml/markers/center/localization_confidence_v26/P1_RESULT.json",
+    "v26_result_sha256": "82f7906c71f6fa09f9850c92c5d373adc9f2611fe015d3562c3fdbcd6516f53e",
+    "v26_runner_source_bundle_sha256": "d94b5dfba37e2958a445df5d385d0d96786153ae2ab2804eff8449f4bb55165a"
+  },
+  "interpretation_limits": [
+    "This is one fixed-threshold synthetic-dev diagnostic, not threshold selection or candidate evaluation.",
+    "Proposal recall and duplicate counts do not exclude score, coordinate, consensus, assignment, or NMS failures.",
+    "False-negative causes replay the frozen Python dev postprocessor; they do not establish C# runtime parity or why the learned model produced its outputs.",
+    "No private, sealed, optimizer, production, or release decision is made by this report."
+  ],
+  "operating_threshold": 0.25,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "production_approval": false,
+  "schema": "graphreader.marker-center-v26-fixed-dev-attribution.v1",
+  "scope": "fixed-v25-proposals-v26-synthetic-dev-attribution",
+  "sealed_runs": 0,
+  "synthetic_only": true,
+  "source_report": {
+    "path": "artifacts/goal22-runs/marker-v26-annulus/diagnosis-v1/diagnosis.json",
+    "sha256": "936a5ae1bca09bd431d94ad7c6acfc6cf521af78e8e45afea3498305a09250f8"
+  },
+  "cache": {
+    "array_count": 176,
+    "contains": "synthetic dev V26 candidate outputs only; proposal coordinates remain in the authenticated V25 cache",
+    "path": "fixed-v26-dev-outputs.npz",
+    "sha256": "ff0d332ef0c7b7c8b3084e2ae2357cb551d5ce698d320e67077bcd2b63cec90d"
+  },
+  "component_dev": {
+    "actual_radius_and_nms_attribution": {
+      "v25": {
+        "nms_false_negatives": {
+          "actual_suppressor_confidence_advantage": {
+            "count": 27,
+            "maximum": 0.6144250631332397,
+            "median": 0.19972479343414307,
+            "minimum": 0.006722450256347656,
+            "p05": 0.02978877425193787,
+            "p90": 0.4999943017959595,
+            "p95": 0.5120119690895081
+          },
+          "actual_suppressor_distance_to_truth_px": {
+            "count": 27,
+            "maximum": 12.013017036184966,
+            "median": 6.265146891602249,
+            "minimum": 5.022576114865601,
+            "p05": 5.111911546062925,
+            "p90": 9.005588190956349,
+            "p95": 10.750592256793304
+          },
+          "actual_suppressor_error_penalty_px": {
+            "count": 27,
+            "maximum": 9.156024021223052,
+            "median": 4.214440633463606,
+            "minimum": 1.5944443547186413,
+            "p05": 2.267387989972208,
+            "p90": 7.207541883599389,
+            "p95": 8.759383101368615
+          },
+          "actual_suppressor_prediction_outcome": {
+            "false_positive": 25,
+            "true_positive": 2
+          },
+          "actual_suppressor_raw_radius_bins": {
+            "not_clamped": 27
+          },
+          "applicable_nms_exclusion_distance_px": {
+            "count": 27,
+            "maximum": 9.999984502792358,
+            "median": 9.992951154708862,
+            "minimum": 7.171248197555542,
+            "p05": 9.51739364862442,
+            "p90": 9.999817132949829,
+            "p95": 9.999881505966187
+          },
+          "counts": {
+            "false_negative_truths": 27,
+            "highest_and_lowest_share_actual_suppressor": 10,
+            "highest_confidence_candidate_suppressed": 27,
+            "highest_confidence_is_lowest_error": 17,
+            "lowest_error_candidate_suppressed": 27
+          },
+          "ground_truth_radius_bins": {
+            "above_decoder_maximum": 16,
+            "within_decoder_range": 11
+          },
+          "highest_confidence_candidate_distance_px": {
+            "count": 27,
+            "maximum": 4.831051868772995,
+            "median": 3.5239426698556833,
+            "minimum": 0.5348324251830665,
+            "p05": 1.4855600624638554,
+            "p90": 4.3570390050790015,
+            "p95": 4.583788251403599
+          },
+          "lowest_error_candidate_distance_px": {
+            "count": 27,
+            "maximum": 4.331223724150305,
+            "median": 2.4790059979596304,
+            "minimum": 0.15708891547579876,
+            "p05": 0.4304762622217816,
+            "p90": 4.103995810866139,
+            "p95": 4.1947528936036536
+          },
+          "lowest_error_candidate_raw_radius_bins": {
+            "not_clamped": 27
+          },
+          "suppressed_to_actual_suppressor_distance_px": {
+            "count": 27,
+            "maximum": 9.20789402306274,
+            "median": 5.695738636178369,
+            "minimum": 2.2951152712415723,
+            "p05": 2.426766176537009,
+            "p90": 8.979089392377892,
+            "p95": 9.120755831563429
+          }
+        },
+        "prediction_outcomes_by_nearest_truth_and_decoded_radius": {
+          "false_positive|nearest_truth_above_decoder_maximum|not_clamped": 129,
+          "false_positive|nearest_truth_within_decoder_range|not_clamped": 23,
+          "true_positive|nearest_truth_above_decoder_maximum|not_clamped": 636,
+          "true_positive|nearest_truth_within_decoder_range|not_clamped": 1227
+        },
+        "truth_outcomes_by_ground_truth_radius": {
+          "false_negative|above_decoder_maximum": 58,
+          "false_negative|below_decoder_minimum": 10,
+          "false_negative|within_decoder_range": 73,
+          "true_positive|above_decoder_maximum": 636,
+          "true_positive|within_decoder_range": 1227
+        }
+      },
+      "v26": {
+        "nms_false_negatives": {
+          "actual_suppressor_confidence_advantage": {
+            "count": 39,
+            "maximum": 0.6966612339019775,
+            "median": 0.29943811893463135,
+            "minimum": 0.0030974149703979492,
+            "p05": 0.014846122264862061,
+            "p90": 0.5575321733951569,
+            "p95": 0.5912485837936402
+          },
+          "actual_suppressor_distance_to_truth_px": {
+            "count": 39,
+            "maximum": 13.307437323761595,
+            "median": 6.734130400348126,
+            "minimum": 5.02697676574931,
+            "p05": 5.154654722115987,
+            "p90": 11.229517901831706,
+            "p95": 12.65418934897963
+          },
+          "actual_suppressor_error_penalty_px": {
+            "count": 39,
+            "maximum": 9.337927931714635,
+            "median": 5.4034455125303005,
+            "minimum": 1.1784182361228979,
+            "p05": 2.457458880594271,
+            "p90": 8.790814038617334,
+            "p95": 8.893746270374878
+          },
+          "actual_suppressor_prediction_outcome": {
+            "false_positive": 33,
+            "true_positive": 6
+          },
+          "actual_suppressor_raw_radius_bins": {
+            "not_clamped": 39
+          },
+          "applicable_nms_exclusion_distance_px": {
+            "count": 39,
+            "maximum": 9.999993443489075,
+            "median": 9.99912142753601,
+            "minimum": 9.878292083740234,
+            "p05": 9.948133826255798,
+            "p90": 9.999974489212036,
+            "p95": 9.999991118907928
+          },
+          "counts": {
+            "false_negative_truths": 39,
+            "highest_and_lowest_share_actual_suppressor": 12,
+            "highest_confidence_candidate_suppressed": 39,
+            "highest_confidence_is_lowest_error": 25,
+            "lowest_error_candidate_suppressed": 39
+          },
+          "ground_truth_radius_bins": {
+            "above_decoder_maximum": 32,
+            "within_decoder_range": 7
+          },
+          "highest_confidence_candidate_distance_px": {
+            "count": 39,
+            "maximum": 4.891248998609185,
+            "median": 2.8965230669279216,
+            "minimum": 0.19401978114125565,
+            "p05": 1.02105507711824,
+            "p90": 4.444691130166542,
+            "p95": 4.525640375739724
+          },
+          "lowest_error_candidate_distance_px": {
+            "count": 39,
+            "maximum": 4.521448534269643,
+            "median": 2.1589261438805813,
+            "minimum": 0.19401978114125565,
+            "p05": 0.30498870664114924,
+            "p90": 3.9668793494667685,
+            "p95": 4.435357153854613
+          },
+          "lowest_error_candidate_raw_radius_bins": {
+            "not_clamped": 39
+          },
+          "suppressed_to_actual_suppressor_distance_px": {
+            "count": 39,
+            "maximum": 9.630732554748784,
+            "median": 5.947782334511204,
+            "minimum": 1.1792499997279693,
+            "p05": 2.5347138266954525,
+            "p90": 9.069838462836032,
+            "p95": 9.167175597130123
+          }
+        },
+        "prediction_outcomes_by_nearest_truth_and_decoded_radius": {
+          "false_positive|nearest_truth_above_decoder_maximum|not_clamped": 201,
+          "false_positive|nearest_truth_within_decoder_range|not_clamped": 23,
+          "true_positive|nearest_truth_above_decoder_maximum|not_clamped": 619,
+          "true_positive|nearest_truth_within_decoder_range|not_clamped": 1218
+        },
+        "truth_outcomes_by_ground_truth_radius": {
+          "false_negative|above_decoder_maximum": 75,
+          "false_negative|below_decoder_minimum": 10,
+          "false_negative|within_decoder_range": 82,
+          "true_positive|above_decoder_maximum": 619,
+          "true_positive|within_decoder_range": 1218
+        }
+      }
+    },
+    "model_forward_ms": 8881.857,
+    "same_proposal_threshold_crossings": {
+      "above_in_both": 4018,
+      "above_to_below": 1244,
+      "below_in_both": 218272,
+      "below_to_above": 1306
+    },
+    "same_proposal_v26_minus_v25": {
+      "confidence": {
+        "count": 224840,
+        "maximum": 0.9663804173469543,
+        "median": -3.6954879760742188e-06,
+        "minimum": -0.9364216923713684,
+        "p05": -0.009806737303733826,
+        "p95": 0.004296588897705053
+      },
+      "decoded_offset_vector_change_px": {
+        "count": 224840,
+        "maximum": 5.020681858062744,
+        "median": 1.0711382031440735,
+        "minimum": 0.000998732284642756,
+        "p05": 0.2024786524474621,
+        "p95": 2.4611002802848816
+      },
+      "positive_anchor_confidence": {
+        "count": 3632,
+        "maximum": 0.9352263808250427,
+        "median": 0.01658022403717041,
+        "minimum": -0.9364216923713684,
+        "p05": -0.3863346293568611,
+        "p95": 0.4490379840135573
+      },
+      "raw_radius": {
+        "count": 224840,
+        "maximum": 4.171823978424072,
+        "median": -0.005300283432006836,
+        "minimum": -5.058155059814453,
+        "p05": -1.9155666112899778,
+        "p95": 1.379569053649902
+      }
+    },
+    "stage_counts": {
+      "v25": {
+        "accepted_predictions": 2015,
+        "nms_eligible_candidates": 5184,
+        "nms_suppressed_candidates": 3169,
+        "outputs_above_threshold": 5262
+      },
+      "v26": {
+        "accepted_predictions": 2061,
+        "nms_eligible_candidates": 5241,
+        "nms_suppressed_candidates": 3180,
+        "outputs_above_threshold": 5324
+      }
+    },
+    "v25_counts": {
+      "false_negative": 141,
+      "false_positive": 152,
+      "proposal_count": 224840,
+      "scene_count": 167,
+      "true_positive": 1863,
+      "truth_count": 2004
+    },
+    "v26_counts": {
+      "false_negative": 167,
+      "false_positive": 224,
+      "proposal_count": 224840,
+      "scene_count": 167,
+      "true_positive": 1837,
+      "truth_count": 2004
+    },
+    "v26_false_negative_cause": {
+      "classification_below_threshold": 124,
+      "consensus_rejection": 4,
+      "nms_suppression": 39
+    },
+    "v26_false_negative_cause_by_v25_outcome": {
+      "classification_below_threshold|v25_miss": 64,
+      "classification_below_threshold|v25_true_positive": 60,
+      "consensus_rejection|v25_miss": 3,
+      "consensus_rejection|v25_true_positive": 1,
+      "nms_suppression|v25_miss": 18,
+      "nms_suppression|v25_true_positive": 21
+    }
+  },
+  "family_dev": {
+    "actual_radius_and_nms_attribution": {
+      "v25": {
+        "nms_false_negatives": {
+          "actual_suppressor_confidence_advantage": {
+            "count": 2,
+            "maximum": 0.21846318244934082,
+            "median": 0.21694372594356537,
+            "minimum": 0.21542426943778992,
+            "p05": 0.21557621508836747,
+            "p90": 0.21815929114818572,
+            "p95": 0.21831123679876327
+          },
+          "actual_suppressor_distance_to_truth_px": {
+            "count": 2,
+            "maximum": 7.376797254905614,
+            "median": 7.169779091282782,
+            "minimum": 6.962760927659951,
+            "p05": 6.983462744022234,
+            "p90": 7.335393622181048,
+            "p95": 7.35609543854333
+          },
+          "actual_suppressor_error_penalty_px": {
+            "count": 2,
+            "maximum": 6.448557063822649,
+            "median": 5.804171652168611,
+            "minimum": 5.159786240514573,
+            "p05": 5.224224781679977,
+            "p90": 6.319679981491841,
+            "p95": 6.3841185226572446
+          },
+          "actual_suppressor_prediction_outcome": {
+            "false_positive": 2
+          },
+          "actual_suppressor_raw_radius_bins": {
+            "not_clamped": 2
+          },
+          "applicable_nms_exclusion_distance_px": {
+            "count": 2,
+            "maximum": 8.205859065055847,
+            "median": 7.813601791858673,
+            "minimum": 7.421344518661499,
+            "p05": 7.460570245981216,
+            "p90": 8.127407610416412,
+            "p95": 8.16663333773613
+          },
+          "counts": {
+            "false_negative_truths": 2,
+            "highest_confidence_candidate_suppressed": 2,
+            "highest_confidence_is_lowest_error": 2,
+            "lowest_error_candidate_suppressed": 2
+          },
+          "ground_truth_radius_bins": {
+            "within_decoder_range": 2
+          },
+          "highest_confidence_candidate_distance_px": {
+            "count": 2,
+            "maximum": 1.8029746871453776,
+            "median": 1.3656074391141713,
+            "minimum": 0.9282401910829648,
+            "p05": 0.9719769158860855,
+            "p90": 1.7155012375391363,
+            "p95": 1.759237962342257
+          },
+          "lowest_error_candidate_distance_px": {
+            "count": 2,
+            "maximum": 1.8029746871453776,
+            "median": 1.3656074391141713,
+            "minimum": 0.9282401910829648,
+            "p05": 0.9719769158860855,
+            "p90": 1.7155012375391363,
+            "p95": 1.759237962342257
+          },
+          "lowest_error_candidate_raw_radius_bins": {
+            "not_clamped": 2
+          },
+          "suppressed_to_actual_suppressor_distance_px": {
+            "count": 2,
+            "maximum": 6.9509312918362065,
+            "median": 6.280216739723808,
+            "minimum": 5.609502187611409,
+            "p05": 5.676573642822649,
+            "p90": 6.816788381413727,
+            "p95": 6.883859836624967
+          }
+        },
+        "prediction_outcomes_by_nearest_truth_and_decoded_radius": {
+          "false_positive|nearest_truth_within_decoder_range|not_clamped": 59,
+          "true_positive|nearest_truth_within_decoder_range|not_clamped": 197
+        },
+        "truth_outcomes_by_ground_truth_radius": {
+          "false_negative|within_decoder_range": 9,
+          "true_positive|within_decoder_range": 197
+        }
+      },
+      "v26": {
+        "nms_false_negatives": {
+          "actual_suppressor_confidence_advantage": {
+            "count": 1,
+            "maximum": 0.039489150047302246,
+            "median": 0.039489150047302246,
+            "minimum": 0.039489150047302246,
+            "p05": 0.039489150047302246,
+            "p90": 0.039489150047302246,
+            "p95": 0.039489150047302246
+          },
+          "actual_suppressor_distance_to_truth_px": {
+            "count": 1,
+            "maximum": 7.131111825519915,
+            "median": 7.131111825519915,
+            "minimum": 7.131111825519915,
+            "p05": 7.131111825519915,
+            "p90": 7.131111825519915,
+            "p95": 7.131111825519915
+          },
+          "actual_suppressor_error_penalty_px": {
+            "count": 1,
+            "maximum": 5.331829899228065,
+            "median": 5.331829899228065,
+            "minimum": 5.331829899228065,
+            "p05": 5.331829899228065,
+            "p90": 5.331829899228065,
+            "p95": 5.331829899228065
+          },
+          "actual_suppressor_prediction_outcome": {
+            "false_positive": 1
+          },
+          "actual_suppressor_raw_radius_bins": {
+            "not_clamped": 1
+          },
+          "applicable_nms_exclusion_distance_px": {
+            "count": 1,
+            "maximum": 7.061838507652283,
+            "median": 7.061838507652283,
+            "minimum": 7.061838507652283,
+            "p05": 7.061838507652283,
+            "p90": 7.061838507652283,
+            "p95": 7.061838507652283
+          },
+          "counts": {
+            "false_negative_truths": 1,
+            "highest_confidence_candidate_suppressed": 1,
+            "highest_confidence_is_lowest_error": 1,
+            "lowest_error_candidate_suppressed": 1
+          },
+          "ground_truth_radius_bins": {
+            "within_decoder_range": 1
+          },
+          "highest_confidence_candidate_distance_px": {
+            "count": 1,
+            "maximum": 1.7992819262918505,
+            "median": 1.7992819262918505,
+            "minimum": 1.7992819262918505,
+            "p05": 1.7992819262918505,
+            "p90": 1.7992819262918505,
+            "p95": 1.7992819262918505
+          },
+          "lowest_error_candidate_distance_px": {
+            "count": 1,
+            "maximum": 1.7992819262918505,
+            "median": 1.7992819262918505,
+            "minimum": 1.7992819262918505,
+            "p05": 1.7992819262918505,
+            "p90": 1.7992819262918505,
+            "p95": 1.7992819262918505
+          },
+          "lowest_error_candidate_raw_radius_bins": {
+            "not_clamped": 1
+          },
+          "suppressed_to_actual_suppressor_distance_px": {
+            "count": 1,
+            "maximum": 6.186041775302506,
+            "median": 6.186041775302506,
+            "minimum": 6.186041775302506,
+            "p05": 6.186041775302506,
+            "p90": 6.186041775302506,
+            "p95": 6.186041775302506
+          }
+        },
+        "prediction_outcomes_by_nearest_truth_and_decoded_radius": {
+          "false_positive|nearest_truth_within_decoder_range|not_clamped": 47,
+          "true_positive|nearest_truth_within_decoder_range|not_clamped": 194
+        },
+        "truth_outcomes_by_ground_truth_radius": {
+          "false_negative|within_decoder_range": 12,
+          "true_positive|within_decoder_range": 194
+        }
+      }
+    },
+    "model_forward_ms": 1743.752,
+    "same_proposal_threshold_crossings": {
+      "above_in_both": 415,
+      "above_to_below": 540,
+      "below_in_both": 44362,
+      "below_to_above": 79
+    },
+    "same_proposal_v26_minus_v25": {
+      "confidence": {
+        "count": 45396,
+        "maximum": 0.8575396537780762,
+        "median": -1.996755599975586e-05,
+        "minimum": -0.9572024345397949,
+        "p05": -0.026181429624557495,
+        "p95": 0.0024822503328323364
+      },
+      "decoded_offset_vector_change_px": {
+        "count": 45396,
+        "maximum": 5.727397441864014,
+        "median": 0.9664986431598663,
+        "minimum": 0.0009527780930511653,
+        "p05": 0.2388693504035473,
+        "p95": 3.5592100620269775
+      },
+      "positive_anchor_confidence": {
+        "count": 355,
+        "maximum": 0.46128201484680176,
+        "median": -0.028641819953918457,
+        "minimum": -0.8885962963104248,
+        "p05": -0.6398005306720733,
+        "p95": 0.16704966425895706
+      },
+      "raw_radius": {
+        "count": 45396,
+        "maximum": 4.216808319091797,
+        "median": -0.059793710708618164,
+        "minimum": -4.231745719909668,
+        "p05": -1.4586427211761475,
+        "p95": 1.2090128660202026
+      }
+    },
+    "stage_counts": {
+      "v25": {
+        "accepted_predictions": 256,
+        "nms_eligible_candidates": 734,
+        "nms_suppressed_candidates": 478,
+        "outputs_above_threshold": 955
+      },
+      "v26": {
+        "accepted_predictions": 241,
+        "nms_eligible_candidates": 462,
+        "nms_suppressed_candidates": 221,
+        "outputs_above_threshold": 494
+      }
+    },
+    "v25_counts": {
+      "false_negative": 9,
+      "false_positive": 59,
+      "proposal_count": 45396,
+      "scene_count": 9,
+      "true_positive": 197,
+      "truth_count": 206
+    },
+    "v26_counts": {
+      "false_negative": 12,
+      "false_positive": 47,
+      "proposal_count": 45396,
+      "scene_count": 9,
+      "true_positive": 194,
+      "truth_count": 206
+    },
+    "v26_false_negative_cause": {
+      "classification_below_threshold": 11,
+      "nms_suppression": 1
+    },
+    "v26_false_negative_cause_by_v25_outcome": {
+      "classification_below_threshold|v25_miss": 4,
+      "classification_below_threshold|v25_true_positive": 7,
+      "nms_suppression|v25_miss": 1
+    }
+  },
+  "next_diagnostic": "Use retained synthetic-dev predictions to inspect the model score and localization objective, preserving the fixed operating threshold and completed candidate outcomes."
+}
