@@ -1,0 +1,106 @@
+{
+  "combined": {
+    "classification_ignored_regression_row_count": 1599,
+    "confidence_positive_row_count": 2482,
+    "regression_positive_row_count": 4081,
+    "selected_row_count": 44891,
+    "truth_count": 2504,
+    "v25_hard_negative_row_count": 8617,
+    "v25_other_negative_row_count": 32193,
+    "v25_positive_row_count": 4081,
+    "zero_eligible_truth_count": 22
+  },
+  "component_train": {
+    "classification_ignored_regression_row_count": 1254,
+    "confidence_positive_row_count": 2004,
+    "outside_5_truth_count": 0,
+    "proposal_only_3_to_5_truth_count": 0,
+    "regression_positive_row_count": 3258,
+    "sampled_row_identity_sha256": "0c727274c1ced49d669d88451f2b2160ca915c635ae31a8ab6eec2def989d822",
+    "scene_count": 167,
+    "selected_row_count": 35838,
+    "target_assignment_sha256": "ad14a3897fa5255681264f8fcd8198c3a52b89ccd05d05f4debebd11fd4b8f53",
+    "truth_count": 2004,
+    "v25_negative_row_count": 32580,
+    "v25_positive_row_count": 3258,
+    "within_3_but_assigned_elsewhere_truth_count": 0,
+    "zero_eligible_truth_count": 0
+  },
+  "elapsed_ms": 151248.535,
+  "exact_patch_label_collisions": {
+    "negative_rows_in_opposing_label_groups": 0,
+    "opposing_label_patch_sha256_count": 0,
+    "positive_rows_by_truth_radius": {
+      "above_8px": 0,
+      "below_2_5px": 0,
+      "within_2_5_to_8px": 0
+    },
+    "positive_rows_in_opposing_label_groups": 0,
+    "unique_patch_sha256_count": 41401
+  },
+  "family_train": {
+    "classification_ignored_regression_row_count": 345,
+    "confidence_positive_row_count": 478,
+    "outside_5_truth_count": 22,
+    "proposal_only_3_to_5_truth_count": 0,
+    "regression_positive_row_count": 823,
+    "sampled_row_identity_sha256": "e1fe212d30c61feb04c6923d6e9f81381061b5a1fdb734c11ef773ce6716c1bf",
+    "scene_count": 28,
+    "selected_row_count": 9053,
+    "target_assignment_sha256": "75432205bfa37ec30f4919471eb462864c40e629075fb59c721001d6472395b5",
+    "truth_count": 500,
+    "v25_negative_row_count": 8230,
+    "v25_positive_row_count": 823,
+    "within_3_but_assigned_elsewhere_truth_count": 0,
+    "zero_eligible_truth_count": 22
+  },
+  "hypothesis_status": "tentative_requires_fixed_output_suppressor_anchor_eligibility",
+  "model_inference_runs": 0,
+  "optimizer_steps_run": 0,
+  "private_reads": 0,
+  "production_approval": false,
+  "sampling_used_dev_truth": false,
+  "schema": "graphreader.marker-center-localization-confidence-v26-target-preflight.v1",
+  "sealed_runs": 0,
+  "source_sha256": "9f6124bd7b200048221cdb5940e4d62308abda6dd952c051e47812c50011d945",
+  "status": "model_free_target_preflight_only",
+  "target_definition": {
+    "canonical_tie_order": [
+      "distance_squared",
+      "x",
+      "y",
+      "proposal_index"
+    ],
+    "classification_ignored": "non-nearest V25 positive proposals",
+    "confidence": "one nearest eligible proposal per reachable truth",
+    "negative_labels": "all unchanged V25 negative proposals",
+    "positive_distance_px": 3.0,
+    "regression": "all unchanged V25 <=3px positive proposals"
+  },
+  "v25": {
+    "component_selected_index_sha256": "d7460b95bbdbb89d79a12cafe7632604f02b8087e9986fb7a9d3ea940287567f",
+    "config_path": "ml/markers/center/plot_domain_v25/training/p1.json",
+    "config_sha256": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2",
+    "family_selected_index_sha256": "89518e6b577efe68f09fac774637f8d5c9f8dc06292c902351718b8de88dd0f0",
+    "result_path": "ml/markers/center/plot_domain_v25/P1_RESULT.json",
+    "result_sha256": "fb64443005b6ca4c26d4e5f1d8b37d8882a93a186d9b2b92fffc476a8c823a63",
+    "selected_row_identity_sha256": "69a830e2992a67e32dc1ff3d42a99d2a5c6854b8fbc921325d750062acca38a7",
+    "selected_tensor_inventory_sha256": "76d10f9c54718ee03cee7226855371c8b6ab81418f8f9e7375dd8cb91196e613",
+    "training_generator_state_sha256": "5b216f26f9d363b074cebec4c4e2cf2ce86c8abf5e190d4e8d11b9376568b2a6"
+  },
+  "evidence_report": {
+    "sha256": "20bbd7c0c2f8cf999a4dbff68a9fa60a9494acae8b22a04d5b9f45cba7790b70",
+    "path": "artifacts/goal22-runs/marker-v26-target-preflight/preflight-v1.json"
+  },
+  "validation": {
+    "elapsed_seconds": 4.39,
+    "independent_review": "clear",
+    "focused_tests_passed": 11,
+    "training_authorized": false
+  },
+  "interpretation": "All original training rows and truths are retained. No opposing exact-byte patch labels were found. The proposed unique-nearest confidence target remains unselected because exact suppressor-anchor diagnosis is still required; this report does not authorize training or establish marker accuracy.",
+  "plumbing_voids": [
+    "Component sampler contains surplus empty selection lists; the preflight now mirrors the V25 scene-count prefix.",
+    "The preflight now uses the exact V25 float32 distance membership, including boundary behavior. All three pre-output failures are retained under the local report directory and performed no model inference or training."
+  ]
+}

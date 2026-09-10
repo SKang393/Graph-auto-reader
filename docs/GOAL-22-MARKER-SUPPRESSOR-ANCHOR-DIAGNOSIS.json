@@ -1,0 +1,110 @@
+{
+  "cache": {
+    "array_count": 352,
+    "contains": "synthetic dev proposal coordinates and fixed V25 candidate outputs only",
+    "path": "fixed-v25-dev-outputs.npz",
+    "sha256": "d9247c03dded13b00c582a64152976a9b89f1b01704670cfdc5f226c9d09eb72"
+  },
+  "candidate_id": "P1",
+  "component_dev": {
+    "actual_suppressor_anchor_training_relation": {
+      "negative": 26,
+      "positive_for_other_truth": 1
+    },
+    "actual_suppressor_prediction_outcome": {
+      "false_positive": 25,
+      "true_positive": 2
+    },
+    "counts": {
+      "false_negative": 141,
+      "false_positive": 152,
+      "prediction_count": 2015,
+      "scene_count": 167,
+      "true_positive": 1863,
+      "truth_count": 2004
+    },
+    "eligible_candidate_anchor_training_relation": {
+      "negative": 30,
+      "positive_for_missed_truth": 27
+    },
+    "false_positive_suppressor_by_anchor_relation_and_missed_truth_radius": {
+      "negative|above_decoder_maximum": 15,
+      "negative|within_decoder_range": 10
+    },
+    "false_positive_suppressor_by_anchor_relation_and_output_radius": {
+      "negative|not_clamped": 25
+    },
+    "model_forward_ms": 9496.233,
+    "nms_missed_truth_count": 27
+  },
+  "elapsed_ms": 134179.757,
+  "family_dev": {
+    "actual_suppressor_anchor_training_relation": {
+      "negative": 2
+    },
+    "actual_suppressor_prediction_outcome": {
+      "false_positive": 2
+    },
+    "counts": {
+      "false_negative": 9,
+      "false_positive": 59,
+      "prediction_count": 256,
+      "scene_count": 9,
+      "true_positive": 197,
+      "truth_count": 206
+    },
+    "eligible_candidate_anchor_training_relation": {
+      "positive_for_missed_truth": 2
+    },
+    "false_positive_suppressor_by_anchor_relation_and_missed_truth_radius": {
+      "negative|within_decoder_range": 2
+    },
+    "false_positive_suppressor_by_anchor_relation_and_output_radius": {
+      "negative|not_clamped": 2
+    },
+    "model_forward_ms": 1870.45,
+    "nms_missed_truth_count": 2
+  },
+  "inputs": {
+    "binding_path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "binding_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+    "candidate_report_path": "artifacts/goal22-runs/marker-v25-plot-domain/P1-run/candidate-report.json",
+    "candidate_report_sha256": "e5347d33313147d57c4d6ce80bcf06a020a1a70ddd52ef4bb8a2e0c623b7a64b",
+    "config_path": "ml/markers/center/plot_domain_v25/training/p1.json",
+    "config_sha256": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2",
+    "diagnostic_source_sha256": "ad19a8c9a77781cf0a925728e51aadd26577da11f917847a2d328e104ae71051",
+    "onnx_path": "artifacts/goal22-runs/marker-v25-plot-domain/P1-run/marker-center-plot-domain-v25-p1.onnx",
+    "onnx_sha256": "77293a9fef2656aba4955e3e8d0676e2fac811666061484527af31f7a00349b9",
+    "prior_diagnosis_path": "artifacts/goal22-runs/marker-v25-plot-domain/diagnosis-v1/nms-radius-attribution-v2/diagnosis.json",
+    "prior_diagnosis_sha256": "812c459440ec8f7ec7276305accbc5683f230acb7d9355ba64af1398b8b75212",
+    "prior_diagnostic_source_path": "ml/markers/center/plot_domain_v25/diagnose_dev.py",
+    "prior_diagnostic_source_sha256": "7d138c9cb7d29bb97f2d88d7b76f15e90f9bcda32817850d54e263e8203a0bb2",
+    "result_path": "ml/markers/center/plot_domain_v25/P1_RESULT.json",
+    "result_sha256": "fb64443005b6ca4c26d4e5f1d8b37d8882a93a186d9b2b92fffc476a8c823a63",
+    "runner_source_bundle_sha256": "a87debb4ca2b1cff4323a5be48c39d8b11f3c784496d067f2462cc54d2781659"
+  },
+  "interpretation_limits": [
+    "Training-anchor relation replays the exact float32 nearest-truth and <=3px V25 labeling rule.",
+    "A negative suppressor can still share local visual features with markers; this report identifies supervision, not causal capacity.",
+    "The proposed unique-nearest positive target cannot directly repair a suppressor whose anchor was trained negative.",
+    "No threshold, NMS rule, radius contract, model, revision, private, sealed, or production decision is changed."
+  ],
+  "operating_threshold": 0.25,
+  "optimizer_steps_run": 0,
+  "private_reads": 0,
+  "production_approval": false,
+  "schema": "graphreader.marker-center-v25-suppressor-anchor-diagnosis.v1",
+  "scope": "fixed-v25-synthetic-dev-suppressor-anchor-diagnosis",
+  "sealed_runs": 0,
+  "synthetic_only": true,
+  "evidence_report": {
+    "path": "artifacts/goal22-runs/marker-v26-target-preflight/suppressor-anchor-diagnosis-v1/diagnosis.json",
+    "sha256": "ad923c8f9c658e4a51b4babf728f30f68e9bf33fb3d4528587b6f3e5998290db"
+  },
+  "decision": "Do not select the unique-nearest-positive target hypothesis. All 27 false-positive suppression events originate at training-negative anchors. Investigate negative sampling and local spatial coverage using the retained outputs before proposing training.",
+  "validation": {
+    "exact_previous_counts_reproduced": true,
+    "elapsed_seconds": 4.48,
+    "combined_tests_passed": 14
+  }
+}
