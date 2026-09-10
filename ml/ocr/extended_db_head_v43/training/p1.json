@@ -1,0 +1,49 @@
+{
+  "schema": "graphreader.ocr-extended-db-head-v43-candidate-config.v1",
+  "task": "ocr-detection",
+  "revision": "graph-text-extended-db-head-v43",
+  "candidate_id": "P1",
+  "stage": "P1",
+  "expected_runner_source_bundle_sha256": "f0111bd2c9f1abb3e3ea3fc05e357ba4984575ede77cb2c5ffd36e112a4c8403",
+  "base_v40_config": {
+    "path": "ml/ocr/inverse_db_target_v40/training/p1.json",
+    "sha256": "c2b4bbd6a5c6d3703c0f8ef30015b922424e60c4e1fc653c244c818cf1474a1f"
+  },
+  "base_v40_result": {
+    "path": "ml/ocr/inverse_db_target_v40/P1_RESULT.json",
+    "sha256": "74d367fd5ed915cda431132d055184d370170d0157e902a05bc0a0b5c525f5aa"
+  },
+  "recipe": {
+    "seed": 20260939,
+    "epochs": 240,
+    "intraop_threads": 16,
+    "batch_size": 1,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "dice_epsilon": 1e-06,
+    "target_definition": "inverse_db_unclip_rectangle_v1",
+    "supervision_mask": "all_ones_full_valid_runtime_crop",
+    "empty_target_objective": "masked_mean_probability",
+    "captured_parity_maximum_absolute_error": 1e-05
+  },
+  "expected_data": {
+    "train": {
+      "source_count": 20,
+      "panel_count": 28,
+      "full_source_truth_count": 709
+    },
+    "validation": {
+      "source_count": 3,
+      "panel_count": 9,
+      "full_source_truth_count": 183
+    }
+  },
+  "synthetic_only": true,
+  "private_data": false,
+  "sealed_data": false,
+  "production_approval": false,
+  "extended_training_source": {
+    "path": "ml/ocr/official_bakeoff/extended_head_training.py",
+    "sha256": "348962cf0800c9c4ea1bf8bf52685159e5876c9cf062510b2ddac84389fd9328"
+  }
+}

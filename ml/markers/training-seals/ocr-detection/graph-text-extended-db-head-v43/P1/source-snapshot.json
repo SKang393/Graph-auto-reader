@@ -1,0 +1,221 @@
+{
+  "base_commit": "4a127b5325289a888f7133a74db8cff8aba5c35a",
+  "captured_utc": "2026-09-10T06:00:58.313212+00:00",
+  "identity": {
+    "candidate_id": "P1",
+    "revision": "graph-text-extended-db-head-v43",
+    "task": "ocr-detection"
+  },
+  "inline_hashes": {},
+  "preregistered_ledger_entry": {
+    "authorization_scope": "Synthetic train/dev only under resumed Goal22 execution authorization; no private/sealed read or production approval.",
+    "authorized_candidate_id": "P1",
+    "budget_consumption_event": "first_sealed_split_read",
+    "candidate_config_paths": {
+      "P1": "ml/ocr/extended_db_head_v43/training/p1.json"
+    },
+    "candidate_config_sha256": {
+      "P1": "0b7b1f53aab79237370391b7c9d91f52270dee1b6a0bc05a4668a1d538a39d05"
+    },
+    "consumed_candidate_ids": [],
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "execution_authorized": true,
+    "experiment_budget": 1,
+    "isolated_change": "Increase V40 Dice duration from 60 to 240 epochs; preserve original parent initialization, targets, features, optimizer, train-only checkpoint selection and decoder.",
+    "optimizer_steps_expected": 6720,
+    "pre_snapshot_authorization_repair": {
+      "optimizer_steps": 0,
+      "previous_config_sha256": "875f8f6b6bc17eb1ef0d713d3256d95147424e8bc2b82c76a93e5ececc37b4ed",
+      "private_reads": 0,
+      "reason": "Snapshot creation failed before optimization because safe-worktree Git configuration was omitted. Maintainer then requested all-thread parallel computation with foreground headroom. Same candidate, no sealed read; record corrected scheduling plumbing.",
+      "sealed_reads": 0
+    },
+    "preregistered_candidate_ids": [
+      "P1"
+    ],
+    "protocol_path": "ml/ocr/extended_db_head_v43/protocol.json",
+    "protocol_sha256": "b0206c5fb390e7f4091e5687b9ac547394a451b2901189a8b30b256c95dde945",
+    "resource_policy": {
+      "affinity_mask": 65535,
+      "cpu_hard_cap_percent": 50,
+      "intraop_threads": 16,
+      "priority": "Idle"
+    },
+    "revision": "graph-text-extended-db-head-v43",
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "status": "candidate_1_preregistered",
+    "task": "ocr-detection"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "docs/GOAL-22-OCR-TRAINING-DURATION-DIAGNOSIS.json",
+      "sha256": "5a43b950f7ee967567bd92bd72605bfb40cc95f24c72525e3d0070a0d84c00d4"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/runtime_inputs.py",
+      "sha256": "17d8df01e4ef25ad77ad7bac6652724282054b29947b7e81be0c424977e9c3f0"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/runtime_domain_binding.py",
+      "sha256": "902018759b5e95e0a0ca912d63427a970267cc1101cd6af27cd61da86e0f29fd"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/runtime_domain_binding_v3.py",
+      "sha256": "2e8ad74fe44720b96323a3e927ae0e611b1ef993a565c7abd02bfabdd6446f93"
+    },
+    {
+      "path": "ml/markers/gate_seal.py",
+      "sha256": "b310789162c06ca11cb348cbf2fcece877a25ce6173ec0dee70bdc29d33ef6d7"
+    },
+    {
+      "path": "ml/markers/training-budgets/production-repair-v1.json",
+      "sha256": "6407b7fac58c391ecb708e041fa8a83e879c91a0f45cff004e19d8fb4ea5e2f6"
+    },
+    {
+      "path": "ml/markers/training_budget.py",
+      "sha256": "73a7b977833ca52fbdb246e2c64bb26ea44da0ca818e9f97551e3a930ce349ba"
+    },
+    {
+      "path": "ml/ocr/extended_db_head_v43/__init__.py",
+      "sha256": "780a0fca98012948df9ad668be09c7ad0d768df4c26c6c6687af37c17100df7b"
+    },
+    {
+      "path": "ml/ocr/extended_db_head_v43/protocol.json",
+      "sha256": "b0206c5fb390e7f4091e5687b9ac547394a451b2901189a8b30b256c95dde945"
+    },
+    {
+      "path": "ml/ocr/extended_db_head_v43/train_p1.py",
+      "sha256": "a5c03e7a4c223d972c859cbe1c92f2ab104d1518b760bd2bb73a8aef043f0816"
+    },
+    {
+      "path": "ml/ocr/extended_db_head_v43/training/p1.json",
+      "sha256": "0b7b1f53aab79237370391b7c9d91f52270dee1b6a0bc05a4668a1d538a39d05"
+    },
+    {
+      "path": "ml/ocr/inverse_db_target_v40/P1_RESULT.json",
+      "sha256": "74d367fd5ed915cda431132d055184d370170d0157e902a05bc0a0b5c525f5aa"
+    },
+    {
+      "path": "ml/ocr/inverse_db_target_v40/__init__.py",
+      "sha256": "23b6c5740feb8f1e104b0017f606911531c8623977cc3e5ec1496100426927c3"
+    },
+    {
+      "path": "ml/ocr/inverse_db_target_v40/protocol.json",
+      "sha256": "bc96810465ce51e81c368f03f946ca3c55cafdc597b295b27b0c00662ecfa1a1"
+    },
+    {
+      "path": "ml/ocr/inverse_db_target_v40/train_p1.py",
+      "sha256": "950d43224c87a57e9e97e6b87c3df7ed7ef69b981fc4ecb9022eabe2dee99d16"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/db_inverse_targets.py",
+      "sha256": "ec273483050ef573853be797e4df38df4c907339dc3b426a939522343ebaeb86"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/extended_head_training.py",
+      "sha256": "348962cf0800c9c4ea1bf8bf52685159e5876c9cf062510b2ddac84389fd9328"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/frozen_head_training.py",
+      "sha256": "ef0f955794e6f5417560af2c752b6523340ee9a86c0a1aa73b299593d4850379"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/frozen_trunk_head.py",
+      "sha256": "6171df9298f785360695353087344229a8f761cfda51bb3aa728ddab10997703"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/production_head_inputs.py",
+      "sha256": "51800bcddfd9fc02c538bba04015312f94fb88113ea14c563616db58a61cff90"
+    },
+    {
+      "path": "ml/ocr/ohem_db_head_v41/P1_RESULT.json",
+      "sha256": "76bfa86e7612f28ae622e51c2d2d6c219ae82210dc6edce2dd76ee4092d1a3f8"
+    },
+    {
+      "path": "ml/ocr/pretrained_db_head_v39/__init__.py",
+      "sha256": "4cedf72cafe88e31bb113965bf253cd236670a57224ca6e8f5950e8d0d98f032"
+    },
+    {
+      "path": "ml/ocr/pretrained_db_head_v39/protocol.json",
+      "sha256": "5ba2719763980235e325020f0891ba37155cd9ffd7bd5e830078ffd3990da59f"
+    },
+    {
+      "path": "ml/ocr/pretrained_db_head_v39/train_p1.py",
+      "sha256": "ad4fca224e04af70da22783b8d7216766d5dac1177d74ca0fa187166d87c1ced"
+    },
+    {
+      "path": "ml/ocr/production_tiled_inputs.py",
+      "sha256": "b2ee5dba050790b504f7d35b129d882d4d5bcf011d87a3b21a4431202d3fdc35"
+    },
+    {
+      "path": "ml/ocr/shape_ohem_db_head_v42/P1_RESULT.json",
+      "sha256": "480e8a4e7be48eb2d35c2a94406992073f97514c3a5aa0674ecf070e388596a4"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/evidence_policy.py",
+      "sha256": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7"
+    },
+    {
+      "path": "ml/synthetic/contact_sheet.py",
+      "sha256": "db98be281e76bc9ce75cb9f23d99190b8539a82b677f91e466e57434d4d15ecb"
+    },
+    {
+      "path": "ml/synthetic/dataset.py",
+      "sha256": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b"
+    },
+    {
+      "path": "ml/synthetic/fonts.py",
+      "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+    },
+    {
+      "path": "ml/synthetic/io.py",
+      "sha256": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2"
+    },
+    {
+      "path": "ml/synthetic/renderer.py",
+      "sha256": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_axis_preserving_v2.py",
+      "sha256": "1de947fed6278166cd2c5f63bef6ef2337644ae51da6c9d9bfdb485e517a7afa"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_axis_preserving_v2_protocol.json",
+      "sha256": "6e4407fef6ce6ba8c6e76013602b108a39aaf443ce91ac0898f3ff31f5049be6"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_visible_content_v3.py",
+      "sha256": "eb358f9fe6b06c538d792794e8e28a2f751b55fefa7dd5c9da04e83673dc1cca"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_visible_content_v3_protocol.json",
+      "sha256": "94ad7b7d3476ce5143af4e7f973a31baf59dbc113cbbeda66f099619b55f99a8"
+    },
+    {
+      "path": "ml/synthetic/scene.schema.json",
+      "sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f"
+    },
+    {
+      "path": "ml/synthetic/schema.py",
+      "sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98"
+    },
+    {
+      "path": "ml/synthetic/templates.py",
+      "sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+    }
+  ]
+}

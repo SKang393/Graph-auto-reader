@@ -1,0 +1,36 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V40 dev geometry remains below 95% (140 correct, 47 extra, 43 missed regions of 183), while train loss fell another 9.11% between epochs 50 and 60 and nine of the final ten epochs set new minima. Fixed-duration undertraining may limit geometry. V41 and V42 also had falling training loss. See docs/GOAL-22-OCR-TRAINING-DURATION-DIAGNOSIS.json. This is not proof of improved generalization.",
+  "isolated_change": "Increase V40 Dice training from 60 to exactly 240 epochs. Restart from the same reviewed pretrained parent, not a selected dev checkpoint. Preserve every other V40 setting, frozen trunk/running statistics, all features/targets/masks, seed, optimizer and fixed Production decoder. Select the earliest minimum full-train-loss epoch; never select duration or checkpoint from dev. Maintainer-requested resource plumbing permits 16 intra-op threads across all 16 logical processors at Idle priority under a 50% total CPU hard cap. This thread-count change is disclosed and requires trained export parity; it does not change the shipped decoder or acceptance bars.",
+  "split_identities": {
+    "base_v40_config_path": "ml/ocr/inverse_db_target_v40/training/p1.json",
+    "base_v40_config_sha256": "c2b4bbd6a5c6d3703c0f8ef30015b922424e60c4e1fc653c244c818cf1474a1f",
+    "base_v40_outcome_path": "ml/ocr/inverse_db_target_v40/P1_RESULT.json",
+    "base_v40_outcome_sha256": "74d367fd5ed915cda431132d055184d370170d0157e902a05bc0a0b5c525f5aa",
+    "v3_binding_path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "v3_binding_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+    "inverse_target_request_path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-inputs-v1/request.json",
+    "inverse_target_request_sha256": "ee14d67f651e20ec9479fb9e59ce1ea1ef77542b057f3d62312c476685520b0b",
+    "train_sources": 20,
+    "train_panels": 28,
+    "train_text_regions": 709,
+    "dev_sources": 3,
+    "dev_panels": 9,
+    "dev_text_regions": 183,
+    "sealed": "Not opened or authorized by this train/dev-only protocol.",
+    "v41_outcome_path": "ml/ocr/ohem_db_head_v41/P1_RESULT.json",
+    "v41_outcome_sha256": "76bfa86e7612f28ae622e51c2d2d6c219ae82210dc6edce2dd76ee4092d1a3f8",
+    "v42_outcome_path": "ml/ocr/shape_ohem_db_head_v42/P1_RESULT.json",
+    "v42_outcome_sha256": "480e8a4e7be48eb2d35c2a94406992073f97514c3a5aa0674ecf070e388596a4"
+  },
+  "metric": "Verify trained-head numerical export parity, then run the frozen patched candidate through the actual original-BGR C# detector on all 37 authenticated panels at the unchanged production operating point. Use the fixed maximum-cardinality one-to-one source-space IoU 0.5 matcher over all 709 train and 183 development text truths. Retain false positives, misses, cross-panel duplicates and failed panels. Report train and development precision and recall separately. Recognition text and role diagnostics must disclose their current runtime revision and cannot be attributed solely to this detector loss change.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json: tier1_reviewable_error.text_region_detection_precision_minimum and text_region_detection_recall_minimum at the product operating point. A passing detector experiment does not independently approve complete OCR or Goal 22.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "training_requires_canonical_authorization": true,
+    "private_reads": 0,
+    "sealed_runs_authorized": 0,
+    "production_approval": false
+  }
+}

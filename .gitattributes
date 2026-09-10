@@ -62,6 +62,6 @@ ml/ocr/shape_ohem_db_head_v42/__init__.py -text whitespace=cr-at-eol
 ml/ocr/shape_ohem_db_head_v42/protocol.json -text whitespace=cr-at-eol
 ml/ocr/shape_ohem_db_head_v42/training/p1.json -text whitespace=cr-at-eol
 ml/ocr/extended_db_head_v43/** -text whitespace=cr-at-eol
-ml/ocr/official_bakeoff/extended_head_training.py -text whitespace=cr-at-eol
+ml/ocr/official_bakeoff/extended_head_training.py -text whitespace=cr-at-eol,-blank-at-eof
 docs/GOAL-22-OCR-TRAINING-DURATION-DIAGNOSIS.json -text whitespace=cr-at-eol
 tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate_v2.py -text whitespace=cr-at-eol

@@ -1,0 +1,63 @@
+{
+  "schema": "graphreader.goal22.ocr-training-duration-diagnosis.v1",
+  "scope": "Existing authenticated synthetic training records only; no inference, optimizer, private or sealed reads.",
+  "records": [
+    {
+      "revision": 40,
+      "stage": {
+        "path": "artifacts/goal22-runs/ocr-v40-inverse-target/P1-run/training-stage.json",
+        "sha256": "27207832aa1a01915f1e5f34cb1a1b0ac8b59f3018db408b9cc53a70f7cf6c3e"
+      },
+      "epochs": 60,
+      "optimizer_steps": 1680,
+      "selected_epoch": 59,
+      "loss_epoch_30": 0.16393027561051504,
+      "loss_epoch_40": 0.13783276081085205,
+      "loss_epoch_50": 0.12302344398839134,
+      "loss_epoch_59": 0.11181492252009255,
+      "loss_epoch_60": 0.1118168341262,
+      "relative_loss_reduction_last_10_epochs": 0.09109328676612898,
+      "new_best_epochs_in_last_10": 9
+    },
+    {
+      "revision": 41,
+      "stage": {
+        "path": "artifacts/goal22-runs/ocr-v41-ohem/P1-run/training-stage.json",
+        "sha256": "553087c89403b7095ea2355c9261b476295a47c4dd42cb8b474934abd13a1b86"
+      },
+      "epochs": 60,
+      "optimizer_steps": 1680,
+      "selected_epoch": 59,
+      "loss_epoch_30": 0.3161999098956585,
+      "loss_epoch_40": 0.265070091933012,
+      "loss_epoch_50": 0.22885848927710736,
+      "loss_epoch_59": 0.20553541316517762,
+      "loss_epoch_60": 0.20574610813387803,
+      "relative_loss_reduction_last_10_epochs": 0.10098983531803492,
+      "new_best_epochs_in_last_10": 9
+    },
+    {
+      "revision": 42,
+      "stage": {
+        "path": "artifacts/goal22-runs/ocr-v42-shape-ohem/P1-run/training-stage.json",
+        "sha256": "30fb7207a6aa7596f70fbf78d54d7b8f31b121cd7e27a1659e041e77768e4311"
+      },
+      "epochs": 60,
+      "optimizer_steps": 1680,
+      "selected_epoch": 59,
+      "loss_epoch_30": 0.26584565373403685,
+      "loss_epoch_40": 0.22353615026388848,
+      "loss_epoch_50": 0.19751741896782601,
+      "loss_epoch_59": 0.17946347780525684,
+      "loss_epoch_60": 0.1801352250788893,
+      "relative_loss_reduction_last_10_epochs": 0.08800334664036967,
+      "new_best_epochs_in_last_10": 9
+    }
+  ],
+  "finding": "All three fixed 60-epoch runs selected epoch 59 and still reduced training loss by approximately nine to ten percent during their final ten epochs. This is evidence of unfinished optimization, not proof that longer training will improve dev accuracy. Losses from different objectives are not directly comparable.",
+  "next_hypothesis": "Test only a fixed increase from 60 to 240 epochs using V40 Dice, the best full-dev geometry among these three closed experiments. Preserve original parent initialization, data, masks, optimizer, draw seed, train-only checkpoint selection and shipped decoder. No early stopping or duration selection from dev.",
+  "acceptance": "Unchanged central 95% precision and recall on all dev truths. No model approval from training loss.",
+  "private_data": false,
+  "sealed_runs": 0,
+  "production_approval": false
+}

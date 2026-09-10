@@ -9835,6 +9835,55 @@
       "candidate_report_sha256": "9fd63a071af44db8eb06b3651547ceb5f4f82afb6d60183f79eb54184ea0b226",
       "optimizer_steps": 1680,
       "closed_utc_date": "2026-09-10"
+    },
+    {
+      "task": "ocr-detection",
+      "revision": "graph-text-extended-db-head-v43",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/ocr/extended_db_head_v43/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "0b7b1f53aab79237370391b7c9d91f52270dee1b6a0bc05a4668a1d538a39d05"
+      },
+      "protocol_path": "ml/ocr/extended_db_head_v43/protocol.json",
+      "protocol_sha256": "b0206c5fb390e7f4091e5687b9ac547394a451b2901189a8b30b256c95dde945",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "Synthetic train/dev only under resumed Goal22 execution authorization; no private/sealed read or production approval.",
+      "isolated_change": "Increase V40 Dice duration from 60 to 240 epochs; preserve original parent initialization, targets, features, optimizer, train-only checkpoint selection and decoder.",
+      "optimizer_steps_expected": 6720,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "pre_snapshot_authorization_repair": {
+        "previous_config_sha256": "875f8f6b6bc17eb1ef0d713d3256d95147424e8bc2b82c76a93e5ececc37b4ed",
+        "reason": "Snapshot creation failed before optimization because safe-worktree Git configuration was omitted. Maintainer then requested all-thread parallel computation with foreground headroom. Same candidate, no sealed read; record corrected scheduling plumbing.",
+        "optimizer_steps": 0,
+        "private_reads": 0,
+        "sealed_reads": 0
+      },
+      "resource_policy": {
+        "intraop_threads": 16,
+        "affinity_mask": 65535,
+        "priority": "Idle",
+        "cpu_hard_cap_percent": 50
+      },
+      "outcome_path": "ml/ocr/extended_db_head_v43/P1_RESULT.json",
+      "outcome_sha256": "2332445b56771e965dfa10b3035c063522976cbfc307a7af77db4fd98e162bb2",
+      "candidate_report_sha256": "98da3bb444a057a7c848ef8687a896dc8f3a4b9e2e6de498669409670f1c50ef",
+      "optimizer_steps": 6720,
+      "closed_utc_date": "2026-09-10"
     }
   ]
 }

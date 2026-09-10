@@ -1,0 +1,79 @@
+{
+  "schema": "graphreader.goal22.v43-generalization-diagnosis.v1",
+  "scope": "Existing synthetic train/dev aggregate reports only",
+  "sources": [
+    {
+      "path": "ml/ocr/inverse_db_target_v40/P1_RESULT.json",
+      "sha256": "74d367fd5ed915cda431132d055184d370170d0157e902a05bc0a0b5c525f5aa"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v43-extended/full-score-v2.json",
+      "sha256": "c29f0d23833c3575ad38f488d3fdb9d232fee71da9b6bfce47e7006e09221933"
+    }
+  ],
+  "v40_geometry": {
+    "train": {
+      "false_negatives": 139,
+      "false_positives": 67,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.8948194662480377,
+      "predicted_region_count": 637,
+      "recall": 0.8039492242595204,
+      "true_positives": 570,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 43,
+      "false_positives": 47,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.7486631016042781,
+      "predicted_region_count": 187,
+      "recall": 0.7650273224043715,
+      "true_positives": 140,
+      "truth_region_count": 183
+    }
+  },
+  "v43_geometry": {
+    "train": {
+      "false_negatives": 78,
+      "false_positives": 15,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.9767801857585139,
+      "predicted_region_count": 646,
+      "recall": 0.8899858956276445,
+      "true_positives": 631,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 48,
+      "false_positives": 50,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.7297297297297297,
+      "predicted_region_count": 185,
+      "recall": 0.7377049180327869,
+      "true_positives": 135,
+      "truth_region_count": 183
+    }
+  },
+  "change_percentage_points": {
+    "train": {
+      "precision": 8.196071951047623,
+      "recall": 8.60366713681241
+    },
+    "validation": {
+      "precision": -1.8933371874548355,
+      "recall": -2.732240437158462
+    }
+  },
+  "finding": "Training geometry improves substantially while held-out dev geometry regresses. The fixed 240-epoch/16-thread recipe does not solve generalization. Do not extend duration again on this evidence.",
+  "limitations": [
+    "Thread count changed from 1 to 16; this is not a duration-only causal comparison.",
+    "V1/V2 geometry and full denominators are unchanged; role scores are intentionally not compared.",
+    "Aggregate separation identifies a generalization gap, not its root cause."
+  ],
+  "next_diagnosis": "Inspect synthetic train/dev representation and failed dev image properties before choosing another isolated change. Complete missing Production evidence routes independently.",
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false
+}
