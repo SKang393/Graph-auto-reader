@@ -1,0 +1,123 @@
+{
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "acceptance_status": "FAIL",
+  "candidate_config_sha256": "31f8fee2ecb4fc01b2c1234761423dcbb668e98c90157abd4e1179c6749236db",
+  "candidate_consumed": false,
+  "candidate_id": "P1",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/marker-v26-annulus/P1-run/candidate-report.json",
+    "sha256": "37a985d7cd321a53305d715764383e66feaf3bc80adebf038e292e01d0df96fb"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-annulus-reservation-v26/P1/result.json",
+    "sha256": "2f3e32cc53108ce5ebc35683dc9e7f09a8816a8bc58ed57ab628a5996b50fd65"
+  },
+  "checkpoint_sha256": "9c961215dd79eb8686309a8234cfb5365a599b385cfb69c3a708568f7c58c81e",
+  "closed_utc": "2026-09-10T02:28:54.017401+00:00",
+  "component_selected": {
+    "duplicate_count": 0,
+    "f1": 0.9038130381303814,
+    "false_negatives": 167,
+    "false_positives": 224,
+    "precision": 0.891314895681708,
+    "prohibited_structure_hit_rate": 0.0,
+    "prohibited_structure_hits": 0,
+    "proposal_recall": 1.0,
+    "proposal_true_positives": 2004,
+    "recall": 0.9166666666666666,
+    "scene_count": 167,
+    "threshold": 0.25,
+    "true_positives": 1837
+  },
+  "elapsed_ms": 1975559.262,
+  "family_selected": {
+    "decoded_outside_plot": 15,
+    "domain_omitted_ink_proposals": 20364,
+    "duplicate_count": 0,
+    "f1": 0.8680089485458613,
+    "false_negatives": 12,
+    "false_positives": 47,
+    "precision": 0.8049792531120332,
+    "prohibited_structure_hit_rate": 0.016597510373443983,
+    "prohibited_structure_hits": 4,
+    "proposal_recall": 1.0,
+    "proposal_true_positives": 206,
+    "recall": 0.941747572815534,
+    "scene_count": 9,
+    "threshold": 0.25,
+    "true_positives": 194
+  },
+  "isolated_change": "Fixed-budget training negative annulus reservations, preserving positives, protected rows and V25 model/loss/recipe. Record 96 required family cross-stratum replacements.",
+  "license_review": "Same reviewed V21 initializer and project-owned synthetic data. No weights, private data, or new dependencies committed.",
+  "limitations": [
+    "Component precision and recall regress versus V25 and fail 95 percent.",
+    "Family precision improves but remains below 95 percent; recall falls below 95 percent.",
+    "Threshold sensitivity is diagnostic only. The operating threshold is unchanged at 0.25.",
+    "No sealed, private, normal Production, or end-to-end CSV acceptance is established."
+  ],
+  "next_work": "Goal is paused. On resumption diagnose saved synthetic dev outputs before a justified repair; do not repeat this completed run.",
+  "onnx_dynamic_candidate_counts": [
+    {
+      "candidate_count": 1,
+      "maximum_absolute_error": 1.7508864402770996e-07
+    },
+    {
+      "candidate_count": 8,
+      "maximum_absolute_error": 9.5367431640625e-07
+    },
+    {
+      "candidate_count": 37,
+      "maximum_absolute_error": 1.9073486328125e-06
+    }
+  ],
+  "onnx_parity_maximum_absolute_error": 1.9073486328125e-06,
+  "onnx_parity_passed": true,
+  "onnx_parity_tolerance": 1e-05,
+  "onnx_sha256": "812ee28a384223ae564c1853ec02ce015be1554440b3de6f41a9327a2f68d147",
+  "opened_seal": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-annulus-reservation-v26/P1/opened.json",
+    "sha256": "c9f98198a34b3d5264fe24868756e243fc48913eb80fcf0a7c36cefa951f1b21"
+  },
+  "operating_threshold": 0.25,
+  "optimizer_steps": 12636,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "410eec2b6936a08bab8bcba341aaf04c6e9ac661215169d74efb57c33358fb7a",
+  "release_eligible": false,
+  "revision": "marker-center-annulus-reservation-v26",
+  "runner_source_bundle_sha256": "d94b5dfba37e2958a445df5d385d0d96786153ae2ab2804eff8449f4bb55165a",
+  "schema": "graphreader.marker-center-annulus-reservation-v26-outcome.v1",
+  "sealed_runs": 0,
+  "selection_evidence": {
+    "component": {
+      "added_rows": 4876,
+      "displaced_rows": 4876,
+      "frozen_selection_sha256": "e5a324090f1c021b7992a9d3e04ec583156fa2a2f593c22250917506972e80dd",
+      "preserved_protected_rows": 18284,
+      "proposed_selection_sha256": "c184a97ae7ad0292361e62a4aaed5a54d8c1ae1bdb0ab3daab9ddeb8d46b1af0",
+      "row_order": "scene_then_ascending_proposal_index",
+      "selected_rows": 35838
+    },
+    "family": {
+      "added_rows": 1331,
+      "displaced_rows": 1331,
+      "frozen_selection_sha256": "76f17a1f7c80543c61076bca8da2d72c68edf2ea68a872ecb8f434c7283708b9",
+      "preserved_protected_rows": 1761,
+      "proposed_selection_sha256": "239b3f2aa14eb9636964c22083e722aba76bd70623a2bbd75362e1db96c527e3",
+      "row_order": "scene_then_ascending_proposal_index",
+      "selected_rows": 9053
+    }
+  },
+  "source_snapshot": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-annulus-reservation-v26/P1/source-snapshot.json",
+    "sha256": "7ac89bec76bf7fed6ff08d2334a5a615128bc5047192a461b63757118f78080d"
+  },
+  "status": "failed_dev_unconsumed",
+  "synthetic_only": true,
+  "task": "marker-center"
+}

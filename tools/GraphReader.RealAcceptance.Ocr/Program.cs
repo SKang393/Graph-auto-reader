@@ -43,6 +43,19 @@ internal static class Program
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(FrozenRealWorkflowAdmissionSelfTest.Run()));
         }
+        if (args.Length == 1 && args[0] == "--self-test-v26-synthetic-dev-adapter")
+        {
+            return await RunEngaugeSelfTestAsync(() =>
+            {
+                V26SyntheticDevSourceAdapterSelfTest.Run();
+                return Task.FromResult<object>(new
+                {
+                    status = "pass",
+                    scope = "fictitious-self-test-only",
+                    adapter = V26SyntheticDevSourceAdapter.SourceSchema,
+                });
+            });
+        }
         if (args.Length == 1 && args[0] == "--self-test-real-workflow-runner")
         {
             return await RunEngaugeSelfTestAsync(FrozenRealWorkflowRunnerSelfTest.RunAsync);

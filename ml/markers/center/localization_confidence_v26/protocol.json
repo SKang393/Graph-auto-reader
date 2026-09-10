@@ -1,0 +1,43 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V25 P1 fails the fixed dev bars: component 1863 correct, 152 false, 141 missed centers; full graphs 197 correct, 59 false, nine missed centers. Exact suppression replay attributes all 27 false-positive suppression events to negative proposal anchors. Frozen training coverage selects only 14.38 percent of component and 5.61 percent of full-graph negatives within distances greater than three and at most 12 pixels from synthetic markers. Reserving examples from this neighborhood may reduce confident false centers and the correct centers they suppress. Evidence: docs/GOAL-22-MARKER-SUPPRESSOR-ANCHOR-DIAGNOSIS.json, docs/GOAL-22-MARKER-NEGATIVE-COVERAGE.json and docs/GOAL-22-MARKER-ANNULUS-RESERVATION-PREFLIGHT.json. Coverage does not establish causation.",
+  "isolated_change": "Apply one fixed-budget negative sampler repair to both component and full-graph training proposals. Reserve the nearest negative per cached nearest-truth assignment in each fixed (3,5], (5,8], (8,12] pixel band, ties by distance, x, y, proposal index. Preserve every positive and protected negative. Replace an unprotected selected nonreserved negative, preferring the same scene and original stratum, then the same stratum globally, then an explicit cross-stratum fallback, ranked by fixed SHA256 identities. The authenticated preflight specifies exactly 6207 identity replacements and 96 full-graph cross-stratum fallbacks. Preserve all 44891 selected rows, 4081 positive rows, 40810 negative rows, model initialization, architecture, target labels, loss, regression, 36-epoch optimizer recipe, checkpoint selection, runtime proposal domain, confidence 0.25, consensus, NMS, five-pixel scoring and export/parity settings. No dev truth selects sampling rows. Do not apply the discarded unique-nearest-positive supervision proposal.",
+  "split_identities": {
+    "component_train_count": 167,
+    "component_train_truth_count": 2004,
+    "component_dev_count": 167,
+    "component_dev_truth_count": 2004,
+    "component_config_path": "ml/markers/center/mask_preserving_v24/training/p1_retry13.json",
+    "component_config_sha256": "adb5a6ff5215757f06e1a35ab08f86a981061c5f242ac87653743ef6847f6ce3",
+    "family_binding_path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "family_binding_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+    "superseded_family_binding_sha256": "ddaccff59347f06045166c02ffa5f7c1488cd485db0a46115ce0411451c7c85f",
+    "supersession_reason": "The V2 binding predates reviewed visible-content V3 source pixels and cannot be consumed by V25 training.",
+    "family_train_sources": 20,
+    "family_train_panels": 28,
+    "family_train_truth_count": 500,
+    "family_dev_sources": 3,
+    "family_dev_panels": 9,
+    "family_dev_truth_count": 206,
+    "family_train_tensor_set_sha256": "e56c8f641f9e0d19e9439aeb39d8c10c3edda5657ad4a554ab45ea9ef1261599",
+    "family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
+    "family_panel_inventory_sha256": "05b7358d933e06469de35bec72ebcdc00daa731c57695bbebe1e926091aad8ea",
+    "family_mapping_audit_sha256": "aab24d1be5eabdb2205a735b73e7853fe73a405a541027271ce524bdea0e1895",
+    "family_truth_mapping_sha256": "3e01264e2b7f4fa0483e674f2b938c1ad60eb590df231950133b55efee75cb1d",
+    "visible_content_protocol_sha256": "94ad7b7d3476ce5143af4e7f973a31baf59dbc113cbbeda66f099619b55f99a8",
+    "annulus_preflight_path": "artifacts/goal22-runs/marker-v26-target-preflight/annulus-reservation-v1/preflight.json",
+    "annulus_preflight_sha256": "1bcece9f371b97c0e38679eb433259894faa2ef5dbad146bef3cd02319bc810b",
+    "annulus_selection_cache_sha256": "4a03c08d1566a1f587910ea2fd9c49069d850c62a558b15f614af1f01c93fa8e"
+  },
+  "metric": "Authenticate source reports, all runtime raster and mask identities, source/executable/configuration identities and polygon mappings before joining independently regenerated synthetic truth. Test Python/C# proposal-coordinate, patch and output parity on shared synthetic fixtures. Preserve every source and all truth, including failed axis cases and domain omissions. Report component and full-graph proposal recall and final center precision/recall separately at the shipped0.25 operating point with existing5pixel matching. Record omitted proposal counts, train sampling changes, runtime and memory. No support-containment surrogate is an acceptance gate. Threshold sensitivity remains descriptive. Evaluate the unchanged complete 2004 component and 206 full-graph dev truth denominators. Record before/after precision and recall, false centers and misses, proposal support, runtime, selected-row identities and exact stratum displacement. The sampler preflight and its distribution changes are descriptive, not additional acceptance gates.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json: existing marker_center_precision_minimum and marker_center_recall_minimum at 0.95, with unchanged existing proposal support requirement. Preserve full truth denominators, including the 22 train truths without runtime-domain proposal support. No model-free preflight or passing dev result independently authorizes production.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "training_requires_canonical_authorization": true,
+    "private_reads": 0,
+    "sealed_runs_authorized": 0,
+    "production_approval": false,
+    "release_eligible": false
+  }
+}

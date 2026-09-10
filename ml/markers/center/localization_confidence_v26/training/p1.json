@@ -1,0 +1,109 @@
+{
+  "schema": "graphreader.marker-center-annulus-reservation-v26-candidate-config.v1",
+  "task": "marker-center",
+  "revision": "marker-center-annulus-reservation-v26",
+  "candidate_id": "P1",
+  "stage": "P1",
+  "expected_runner_source_bundle_sha256": "d94b5dfba37e2958a445df5d385d0d96786153ae2ab2804eff8449f4bb55165a",
+  "base_v25_config": {
+    "path": "ml/markers/center/plot_domain_v25/training/p1.json",
+    "sha256": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2"
+  },
+  "base_v25_result": {
+    "path": "ml/markers/center/plot_domain_v25/P1_RESULT.json",
+    "sha256": "fb64443005b6ca4c26d4e5f1d8b37d8882a93a186d9b2b92fffc476a8c823a63"
+  },
+  "negative_coverage_report": {
+    "path": "artifacts/goal22-runs/marker-v26-target-preflight/negative-coverage-v1/coverage.json",
+    "sha256": "921e6020831055cde224729954a863c23b6804bee232a9431c773bce660ed1d5"
+  },
+  "negative_coverage_cache": {
+    "path": "artifacts/goal22-runs/marker-v26-target-preflight/negative-coverage-v1/frozen-v25-train-proposal-metadata.npz",
+    "sha256": "5b8afc209e1c2a6f849ef044056b46903c79692d7264a724651a3a158369576b"
+  },
+  "annulus_preflight": {
+    "path": "artifacts/goal22-runs/marker-v26-target-preflight/annulus-reservation-v1/preflight.json",
+    "sha256": "1bcece9f371b97c0e38679eb433259894faa2ef5dbad146bef3cd02319bc810b"
+  },
+  "annulus_selection_cache": {
+    "path": "artifacts/goal22-runs/marker-v26-target-preflight/annulus-reservation-v1/proposed-selection-metadata.npz",
+    "sha256": "4a03c08d1566a1f587910ea2fd9c49069d850c62a558b15f614af1f01c93fa8e"
+  },
+  "recipe": {
+    "base_v25_config_sha256": "e84acb31ca4df3204d3894e893b31ba7fede55aa91a6c885f791eee05b7fe9b2",
+    "sampler": "fixed_truth_annulus_reservation_v1",
+    "bands_px": [
+      [
+        3.0,
+        5.0
+      ],
+      [
+        5.0,
+        8.0
+      ],
+      [
+        8.0,
+        12.0
+      ]
+    ],
+    "reservation": "one_closest_negative_per_scene_truth_and_band",
+    "replacement": [
+      "same_scene_and_original_stratum",
+      "same_original_stratum_global",
+      "cross_stratum_global_fallback"
+    ],
+    "seed": 20260903,
+    "epochs": 36,
+    "batch_size": 128,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "positive_loss_weight": 16.0,
+    "hard_negative_loss_weight": 5.0,
+    "focal_alpha": 0.25,
+    "focal_gamma": 2.0,
+    "label_positive_distance_px": 3.0,
+    "confidence_threshold": 0.25,
+    "selection_thresholds": [
+      0.4,
+      0.55,
+      0.7
+    ],
+    "provider": "CPUExecutionProvider",
+    "onnx_dynamic_candidate_counts": [
+      1,
+      8,
+      37
+    ],
+    "onnx_parity_tolerance": 1e-05
+  },
+  "expected_data": {
+    "component_train": {
+      "scene_count": 167,
+      "truth_count": 2004
+    },
+    "family_train": {
+      "source_count": 20,
+      "panel_count": 28,
+      "truth_count": 500
+    },
+    "component_dev": {
+      "scene_count": 167,
+      "truth_count": 2004
+    },
+    "family_dev": {
+      "source_count": 3,
+      "panel_count": 9,
+      "truth_count": 206
+    },
+    "training_example_count": 44891,
+    "positive_example_count": 4081,
+    "negative_example_count": 40810,
+    "hard_negative_example_count": 8617,
+    "optimizer_steps": 12636
+  },
+  "synthetic_only": true,
+  "private_data": false,
+  "sealed_data": false,
+  "production_approval": false,
+  "release_eligible": false
+}

@@ -385,6 +385,13 @@ internal static class FrozenRealWorkflowAdmission
         using JsonDocument sourceDocument = ParseExact(sourceBytes);
         JsonElement source = sourceDocument.RootElement;
         string schema = Text(source, "schema");
+        if (V26SyntheticDevSourceAdapter.IsSupportedSchema(schema))
+        {
+            V26SyntheticDevSourceAdapter.Validate(
+                root, sourceBytes, candidate, envelope, envelopeBenchmarks,
+                envelopeParity, cancellationToken);
+            return;
+        }
         if (schema is not ("graphreader.marker-center-mask-preserving-v24-candidate.v1" or
                            "graphreader.marker-center-plot-domain-v25-candidate.v1"))
         {

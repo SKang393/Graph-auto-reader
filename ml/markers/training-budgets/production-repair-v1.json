@@ -9727,6 +9727,42 @@
       "candidate_report_sha256": "6a4fb03135e4fc0935a8bd7d3f36f8e765cc075abf235fb00774a6aa5e9282cf",
       "optimizer_steps": 1680,
       "closed_utc_date": "2026-09-10"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-annulus-reservation-v26",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/localization_confidence_v26/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "31f8fee2ecb4fc01b2c1234761423dcbb668e98c90157abd4e1179c6749236db"
+      },
+      "protocol_path": "ml/markers/center/localization_confidence_v26/protocol.json",
+      "protocol_sha256": "410eec2b6936a08bab8bcba341aaf04c6e9ac661215169d74efb57c33358fb7a",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "Synthetic train/dev only under Goal22 execution authorization; no private/sealed read or production approval.",
+      "isolated_change": "Fixed-budget training negative annulus reservations, preserving positives, protected rows and V25 model/loss/recipe. Record 96 required family cross-stratum replacements.",
+      "optimizer_steps_expected": 12636,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "outcome_path": "ml/markers/center/localization_confidence_v26/P1_RESULT.json",
+      "outcome_sha256": "82f7906c71f6fa09f9850c92c5d373adc9f2611fe015d3562c3fdbcd6516f53e",
+      "candidate_report_sha256": "37a985d7cd321a53305d715764383e66feaf3bc80adebf038e292e01d0df96fb",
+      "optimizer_steps": 12636,
+      "closed_utc_date": "2026-09-10"
     }
   ]
 }
