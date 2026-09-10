@@ -1,0 +1,46 @@
+{
+  "schema": "graphreader.goal22-original-db-workflow-routing.v1",
+  "status": "verified",
+  "scope": "candidate-composition-routing-only",
+  "private_data": false,
+  "sealed_data": false,
+  "model_inference_runs": 0,
+  "production_approval": false,
+  "release_eligible": false,
+  "implementation": [
+    "Select the original DB candidate factory for its exact composition and model-polygon geometry.",
+    "Retain existing tiled and structure-consensus factories.",
+    "Reject unknown or mixed composition/geometry pairs before runtime initialization."
+  ],
+  "validation": {
+    "command": "dotnet build tools/GraphReader.RealAcceptance.Ocr/GraphReader.RealAcceptance.Ocr.csproj -c Release -r win-x64 --no-restore",
+    "exit_code": 0,
+    "warnings": 0,
+    "errors": 0,
+    "elapsed_seconds": 3.38,
+    "self_test_command": "dotnet tools/GraphReader.RealAcceptance.Ocr/bin/Release/net10.0-windows/win-x64/GraphReader.RealAcceptance.Ocr.dll --self-test",
+    "self_test_exit_code": 0,
+    "self_test_elapsed_seconds": 2.2578346,
+    "self_test_scope": "Synthetic fixture adapters and binding checks, not accepted model inference."
+  },
+  "resolved_validation_attempt": {
+    "command": "dotnet tools/GraphReader.RealAcceptance.Ocr/bin/Release/net10.0-windows/GraphReader.RealAcceptance.Ocr.dll --self-test",
+    "error": "Frozen candidate binding requires one opencvsharp_extern native runtime.",
+    "cause": "The non-RID output has native libraries in runtime subdirectories while the frozen executable binding requires top-level native files.",
+    "resolution": "Build and execute the win-x64 output. No validator was weakened."
+  },
+  "independent_review": "Sol High read-only review: CLEAR for exact factory routing, mismatch rejection, and candidate unapproved status.",
+  "source_files": [
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateWorkflowFactory.cs",
+      "sha256": "662bd2a9adbabd1d867d15463dffae2ab5d935bbd45951c32db109ffb1905059"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBindingSelfTest.cs",
+      "sha256": "0b38d068e5352090a6cd419008f1733bbc9feb75340c1c98b969fdca8afc78ff"
+    }
+  ],
+  "limitations": [
+    "This verifies routing and guards only. Actual trained OCR acceptance and approved Production composition remain separate requirements."
+  ]
+}

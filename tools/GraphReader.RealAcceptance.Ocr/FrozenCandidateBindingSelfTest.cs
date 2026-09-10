@@ -43,10 +43,22 @@ internal static class FrozenCandidateBindingSelfTest
             };
             Require(FrozenCandidateWorkflowFactory.IsTiledProbabilityComposition(tiled),
                 "FROZEN_CANDIDATE_TILED_OCR_COMPOSITION_NOT_BOUND");
+            FrozenCandidateAlgorithms originalDb = loaded.Algorithms with
+            {
+                OcrCompositionVersion = GraphReader.App.Integration.Workflow.ProductionOcrAdapter.OriginalDbCandidateCompositionVersion,
+            };
+            Require(FrozenCandidateWorkflowFactory.ResolveOcrComposition(originalDb) ==
+                    FrozenCandidateWorkflowFactory.OcrCompositionKind.OriginalDb &&
+                FrozenCandidateWorkflowFactory.ResolveOcrComposition(loaded.Algorithms) ==
+                    FrozenCandidateWorkflowFactory.OcrCompositionKind.StructureConsensus,
+                "FROZEN_CANDIDATE_ORIGINAL_DB_ROUTE_NOT_DISTINCT");
             foreach (FrozenCandidateAlgorithms mismatched in new[]
                      {
                          tiled with { OcrOutputGeometry = "model_polygon" },
                          loaded.Algorithms with { OcrOutputGeometry = "tiled_probability_components" },
+                         originalDb with { OcrOutputGeometry = "tiled_probability_components" },
+                         originalDb with { OcrOutputGeometry = "unknown" },
+                         loaded.Algorithms with { OcrCompositionVersion = "unknown" },
                      })
             {
                 bool rejected = false;
@@ -263,7 +275,8 @@ internal static class FrozenCandidateBindingSelfTest
                 {
                     ["axis_stage_version"] = "self-test-axis-v1",
                     ["ocr_output_geometry"] = "model_polygon",
-                    ["ocr_composition_version"] = "self-test-ocr-v1",
+                    ["ocr_composition_version"] = GraphReader.Ocr.GraphStructureConsensusTextRegionDetector.GetCompositionVersion(
+                        GraphReader.Ocr.GraphStructureConsensusGeometry.ModelPolygon),
                     ["artifact_algorithm_id"] = "self-test-artifact",
                     ["artifact_algorithm_version"] = "1",
                     ["artifact_configuration_sha256"] = new string('5', 64),

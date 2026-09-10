@@ -160,14 +160,20 @@ internal static class FrozenCandidateWorkflowFactory
                 detectionIdentity, detectionManifestPath, binding.OcrDetection.Manifest.Sha256);
             var recognizerDescriptor = new FrozenCandidateOcrModelDescriptor(
                 recognitionIdentity, recognitionManifestPath, binding.OcrRecognition.Manifest.Sha256);
-            ProductionOcrAdapter ocr = IsTiledProbabilityComposition(binding.Algorithms)
-                ? await ProductionOcrAdapter.CreateForFrozenTiledProbabilityCandidateEvaluationAsync(
+            ProductionOcrAdapter ocr = await (ResolveOcrComposition(binding.Algorithms) switch
+            {
+                OcrCompositionKind.OriginalDb => ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
                     detectorDescriptor, recognizerDescriptor, runtimeHost,
-                    binding.OpenCvNative.Sha256, cancellationToken).ConfigureAwait(false)
-                : await ProductionOcrAdapter.CreateForFrozenCandidateEvaluationAsync(
+                    binding.OpenCvNative.Sha256, cancellationToken),
+                OcrCompositionKind.TiledProbability => ProductionOcrAdapter.CreateForFrozenTiledProbabilityCandidateEvaluationAsync(
+                    detectorDescriptor, recognizerDescriptor, runtimeHost,
+                    binding.OpenCvNative.Sha256, cancellationToken),
+                OcrCompositionKind.StructureConsensus => ProductionOcrAdapter.CreateForFrozenCandidateEvaluationAsync(
                     detectorDescriptor, recognizerDescriptor, runtimeHost,
                     binding.OpenCvNative.Sha256, cancellationToken,
-                    GraphStructureConsensusGeometry.ModelPolygon).ConfigureAwait(false);
+                    GraphStructureConsensusGeometry.ModelPolygon),
+                _ => throw new InvalidDataException("Frozen candidate OCR composition is unsupported."),
+            }).ConfigureAwait(false);
             if (ocr.IsApproved || !string.Equals(
                     ocr.ConfigurationScope,
                     "unapproved_frozen_candidate",
@@ -325,16 +331,10 @@ internal static class FrozenCandidateWorkflowFactory
         ProductionPhaseReasoningAdapter phases)
     {
         FrozenCandidateAlgorithms expected = binding.Algorithms;
-        bool tiledProbability = IsTiledProbabilityComposition(expected);
-        string compositionVersion = tiledProbability
-            ? ProductionOcrAdapter.TiledProbabilityCandidateCompositionVersion
-            : GraphStructureConsensusTextRegionDetector.GetCompositionVersion(GraphStructureConsensusGeometry.ModelPolygon);
+        _ = ResolveOcrComposition(expected);
         string expectedClassifierAdapterId =
             $"graphreader-marker-classifier:{binding.MarkerClassifier.ModelSha256[..12]}";
         if (!string.Equals(expected.AxisStageVersion, ProductionAxisGeometryAdapter.StageVersion, StringComparison.Ordinal) ||
-            !string.Equals(expected.OcrOutputGeometry,
-                tiledProbability ? "tiled_probability_components" : "model_polygon", StringComparison.Ordinal) ||
-            !string.Equals(expected.OcrCompositionVersion, compositionVersion, StringComparison.Ordinal) ||
             !string.Equals(expected.ArtifactAlgorithmId, artifact.Identity.AlgorithmId, StringComparison.Ordinal) ||
             !string.Equals(expected.ArtifactAlgorithmVersion, artifact.Identity.Version, StringComparison.Ordinal) ||
             !string.Equals(expected.ArtifactConfigurationSha256, artifact.Identity.ConfigurationSha256, StringComparison.OrdinalIgnoreCase) ||
@@ -350,16 +350,35 @@ internal static class FrozenCandidateWorkflowFactory
         }
     }
 
-    internal static bool IsTiledProbabilityComposition(FrozenCandidateAlgorithms algorithms)
+    internal enum OcrCompositionKind
     {
-        bool tiled = string.Equals(algorithms.OcrCompositionVersion,
-            ProductionOcrAdapter.TiledProbabilityCandidateCompositionVersion, StringComparison.Ordinal);
-        if (tiled != string.Equals(algorithms.OcrOutputGeometry,
-                "tiled_probability_components", StringComparison.Ordinal))
+        StructureConsensus,
+        TiledProbability,
+        OriginalDb,
+    }
+
+    internal static bool IsTiledProbabilityComposition(FrozenCandidateAlgorithms algorithms) =>
+        ResolveOcrComposition(algorithms) == OcrCompositionKind.TiledProbability;
+
+    internal static OcrCompositionKind ResolveOcrComposition(FrozenCandidateAlgorithms algorithms)
+    {
+        ArgumentNullException.ThrowIfNull(algorithms);
+        if (algorithms.OcrCompositionVersion == ProductionOcrAdapter.OriginalDbCandidateCompositionVersion &&
+            algorithms.OcrOutputGeometry == "model_polygon")
         {
-            throw new InvalidDataException("Frozen candidate OCR composition and geometry disagree.");
+            return OcrCompositionKind.OriginalDb;
         }
-        return tiled;
+        if (algorithms.OcrCompositionVersion == ProductionOcrAdapter.TiledProbabilityCandidateCompositionVersion &&
+            algorithms.OcrOutputGeometry == "tiled_probability_components")
+        {
+            return OcrCompositionKind.TiledProbability;
+        }
+        if (algorithms.OcrCompositionVersion == GraphStructureConsensusTextRegionDetector.GetCompositionVersion(
+                GraphStructureConsensusGeometry.ModelPolygon) && algorithms.OcrOutputGeometry == "model_polygon")
+        {
+            return OcrCompositionKind.StructureConsensus;
+        }
+        throw new InvalidDataException("Frozen candidate OCR composition is unsupported or its geometry disagrees.");
     }
 
     private static string Materialize(
