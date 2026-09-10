@@ -1,0 +1,983 @@
+{
+  "schema": "graphreader.goal22-v41-runtime-rejection-diagnosis.v1",
+  "date": "2026-09-10",
+  "synthetic_only": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "model_revision_opened": false,
+  "sources": {
+    "geometry-diagnosis-v1.json": {
+      "path": "artifacts/goal22-runs/ocr-v41-ohem/geometry-diagnosis-v1.json",
+      "sha256": "a849e1cfd0301301a9d5961d8b0b7fa9dc6e99efc895b37f26f0c91c445eec43"
+    },
+    "probability-diagnosis-v1/report.json": {
+      "path": "artifacts/goal22-runs/ocr-v41-ohem/probability-diagnosis-v1/report.json",
+      "sha256": "3ee4808f312eb272121329f06fb178534741349a73d42b01b74db394c200e555"
+    },
+    "region-support-v1.json": {
+      "path": "artifacts/goal22-runs/ocr-v41-ohem/region-support-v1.json",
+      "sha256": "e18c315950dc289785f8468cdd3d8ab55366d9830049284587fa62da99b2dd2e"
+    },
+    "csharp-rejection-attribution-v1.json": {
+      "path": "artifacts/goal22-runs/ocr-v41-ohem/csharp-rejection-attribution-v1.json",
+      "sha256": "e80c0080d9f7da48f2b525c709a63ada60fcf6bd13353ada951de18f7d3bfe96"
+    }
+  },
+  "geometry": {
+    "train": {
+      "truth_count": 709,
+      "prediction_count": 420,
+      "true_positives": 381,
+      "false_positives": 39,
+      "false_negatives": 328,
+      "false_negative_disposition": {
+        "no_prediction_overlap": 278,
+        "positive_overlap_below_iou_0_5": 50
+      },
+      "false_positive_disposition": {
+        "no_truth_overlap": 6,
+        "overlaps_multiple_truths_below_iou_0_5": 1,
+        "single_truth_localization_or_extent": 31,
+        "split_or_duplicate_of_one_truth": 1
+      },
+      "false_negative_best_iou_summary": {
+        "count": 328,
+        "minimum": 0.0,
+        "median": 0.0,
+        "mean": 0.04710809472941852,
+        "maximum": 0.497737556561086
+      },
+      "false_positive_best_iou_summary": {
+        "count": 39,
+        "minimum": 0.0,
+        "median": 0.43956043956043955,
+        "mean": 0.35359420889530413,
+        "maximum": 0.497737556561086
+      },
+      "positive_overlap_component_shapes": {
+        "0_truths_1_predictions": 6,
+        "1_truths_0_predictions": 278,
+        "1_truths_1_predictions": 386,
+        "2_truths_1_predictions": 16,
+        "2_truths_2_predictions": 5,
+        "3_truths_2_predictions": 1
+      },
+      "by_truth_role": {
+        "annotation": {
+          "truth_count": 60,
+          "matched_count": 33,
+          "role_correct_count": 9,
+          "truth_width_summary": {
+            "count": 60,
+            "minimum": 33.0,
+            "median": 48.0,
+            "mean": 47.0,
+            "maximum": 61.0
+          },
+          "truth_height_summary": {
+            "count": 60,
+            "minimum": 10.0,
+            "median": 11.5,
+            "mean": 11.5,
+            "maximum": 13.0
+          },
+          "missed_width_summary": {
+            "count": 27,
+            "minimum": 33.0,
+            "median": 37.0,
+            "mean": 40.925925925925924,
+            "maximum": 59.0
+          },
+          "missed_height_summary": {
+            "count": 27,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.777777777777779,
+            "maximum": 13.0
+          },
+          "geometry_recall": 0.55,
+          "full_denominator_role_accuracy": 0.15
+        },
+        "axis_title": {
+          "truth_count": 50,
+          "matched_count": 28,
+          "role_correct_count": 16,
+          "truth_width_summary": {
+            "count": 50,
+            "minimum": 47.0,
+            "median": 51.0,
+            "mean": 52.8,
+            "maximum": 58.0
+          },
+          "truth_height_summary": {
+            "count": 50,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.2,
+            "maximum": 11.0
+          },
+          "missed_width_summary": {
+            "count": 22,
+            "minimum": 47.0,
+            "median": 51.0,
+            "mean": 50.27272727272727,
+            "maximum": 51.0
+          },
+          "missed_height_summary": {
+            "count": 22,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.0,
+            "maximum": 10.0
+          },
+          "geometry_recall": 0.56,
+          "full_denominator_role_accuracy": 0.32
+        },
+        "condition_label": {
+          "truth_count": 80,
+          "matched_count": 38,
+          "role_correct_count": 3,
+          "truth_width_summary": {
+            "count": 80,
+            "minimum": 8.0,
+            "median": 10.0,
+            "mean": 9.375,
+            "maximum": 10.0
+          },
+          "truth_height_summary": {
+            "count": 80,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.0,
+            "maximum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 42,
+            "minimum": 8.0,
+            "median": 10.0,
+            "mean": 9.642857142857142,
+            "maximum": 10.0
+          },
+          "missed_height_summary": {
+            "count": 42,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.0,
+            "maximum": 10.0
+          },
+          "geometry_recall": 0.475,
+          "full_denominator_role_accuracy": 0.0375
+        },
+        "legend_text": {
+          "truth_count": 30,
+          "matched_count": 17,
+          "role_correct_count": 10,
+          "truth_width_summary": {
+            "count": 30,
+            "minimum": 98.0,
+            "median": 98.0,
+            "mean": 101.0,
+            "maximum": 107.0
+          },
+          "truth_height_summary": {
+            "count": 30,
+            "minimum": 13.0,
+            "median": 13.0,
+            "mean": 13.333333333333334,
+            "maximum": 14.0
+          },
+          "missed_width_summary": {
+            "count": 13,
+            "minimum": 98.0,
+            "median": 98.0,
+            "mean": 100.07692307692308,
+            "maximum": 107.0
+          },
+          "missed_height_summary": {
+            "count": 13,
+            "minimum": 13.0,
+            "median": 13.0,
+            "mean": 13.23076923076923,
+            "maximum": 14.0
+          },
+          "geometry_recall": 0.5666666666666667,
+          "full_denominator_role_accuracy": 0.3333333333333333
+        },
+        "participant": {
+          "truth_count": 30,
+          "matched_count": 21,
+          "role_correct_count": 0,
+          "truth_width_summary": {
+            "count": 30,
+            "minimum": 78.0,
+            "median": 78.5,
+            "mean": 80.16666666666667,
+            "maximum": 84.0
+          },
+          "truth_height_summary": {
+            "count": 30,
+            "minimum": 13.0,
+            "median": 13.0,
+            "mean": 13.333333333333334,
+            "maximum": 14.0
+          },
+          "missed_width_summary": {
+            "count": 9,
+            "minimum": 78.0,
+            "median": 78.0,
+            "mean": 78.33333333333333,
+            "maximum": 79.0
+          },
+          "missed_height_summary": {
+            "count": 9,
+            "minimum": 13.0,
+            "median": 13.0,
+            "mean": 13.0,
+            "maximum": 13.0
+          },
+          "geometry_recall": 0.7,
+          "full_denominator_role_accuracy": 0.0
+        },
+        "phase_heading": {
+          "truth_count": 80,
+          "matched_count": 49,
+          "role_correct_count": 32,
+          "truth_width_summary": {
+            "count": 80,
+            "minimum": 47.0,
+            "median": 69.0,
+            "mean": 66.75,
+            "maximum": 126.0
+          },
+          "truth_height_summary": {
+            "count": 80,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.25,
+            "maximum": 11.0
+          },
+          "missed_width_summary": {
+            "count": 31,
+            "minimum": 47.0,
+            "median": 69.0,
+            "mean": 66.93548387096774,
+            "maximum": 126.0
+          },
+          "missed_height_summary": {
+            "count": 31,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.0,
+            "maximum": 10.0
+          },
+          "geometry_recall": 0.6125,
+          "full_denominator_role_accuracy": 0.4
+        },
+        "x_tick": {
+          "truth_count": 175,
+          "matched_count": 74,
+          "role_correct_count": 51,
+          "truth_width_summary": {
+            "count": 175,
+            "minimum": 5.0,
+            "median": 12.0,
+            "mean": 10.2,
+            "maximum": 16.0
+          },
+          "truth_height_summary": {
+            "count": 175,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.0,
+            "maximum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 101,
+            "minimum": 5.0,
+            "median": 7.0,
+            "mean": 9.217821782178218,
+            "maximum": 16.0
+          },
+          "missed_height_summary": {
+            "count": 101,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.0,
+            "maximum": 10.0
+          },
+          "geometry_recall": 0.4228571428571429,
+          "full_denominator_role_accuracy": 0.2914285714285714
+        },
+        "y_tick": {
+          "truth_count": 204,
+          "matched_count": 121,
+          "role_correct_count": 98,
+          "truth_width_summary": {
+            "count": 204,
+            "minimum": 7.0,
+            "median": 14.0,
+            "mean": 13.637254901960784,
+            "maximum": 23.0
+          },
+          "truth_height_summary": {
+            "count": 204,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.0,
+            "maximum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 83,
+            "minimum": 7.0,
+            "median": 14.0,
+            "mean": 13.421686746987952,
+            "maximum": 21.0
+          },
+          "missed_height_summary": {
+            "count": 83,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.0,
+            "maximum": 10.0
+          },
+          "geometry_recall": 0.5931372549019608,
+          "full_denominator_role_accuracy": 0.4803921568627451
+        }
+      },
+      "matched_role_confusion": {
+        "annotation": {
+          "annotation": 9,
+          "legendtext": 2,
+          "other": 7,
+          "phaseheading": 15
+        },
+        "axistitle": {
+          "axistitle": 16,
+          "other": 12
+        },
+        "legendtext": {
+          "annotation": 7,
+          "legendtext": 10
+        },
+        "other": {
+          "annotation": 1,
+          "legendtext": 1,
+          "other": 3,
+          "phaseheading": 33
+        },
+        "participant": {
+          "other": 21
+        },
+        "phaseheading": {
+          "annotation": 1,
+          "legendtext": 2,
+          "other": 14,
+          "phaseheading": 32
+        },
+        "xtick": {
+          "annotation": 2,
+          "axistitle": 12,
+          "other": 9,
+          "xtick": 51
+        },
+        "ytick": {
+          "axistitle": 5,
+          "other": 17,
+          "phaseheading": 1,
+          "ytick": 98
+        }
+      }
+    },
+    "validation": {
+      "truth_count": 183,
+      "prediction_count": 137,
+      "true_positives": 97,
+      "false_positives": 40,
+      "false_negatives": 86,
+      "false_negative_disposition": {
+        "no_prediction_overlap": 48,
+        "positive_overlap_below_iou_0_5": 38
+      },
+      "false_positive_disposition": {
+        "no_truth_overlap": 3,
+        "overlaps_multiple_truths_below_iou_0_5": 6,
+        "single_truth_localization_or_extent": 24,
+        "split_or_duplicate_of_one_truth": 7
+      },
+      "false_negative_best_iou_summary": {
+        "count": 86,
+        "minimum": 0.0,
+        "median": 0.0,
+        "mean": 0.15779344584057328,
+        "maximum": 0.4976470588235294
+      },
+      "false_positive_best_iou_summary": {
+        "count": 40,
+        "minimum": 0.0,
+        "median": 0.39424342105263155,
+        "mean": 0.32560902379825907,
+        "maximum": 0.4976470588235294
+      },
+      "positive_overlap_component_shapes": {
+        "0_truths_1_predictions": 3,
+        "1_truths_0_predictions": 48,
+        "1_truths_1_predictions": 107,
+        "1_truths_2_predictions": 6,
+        "2_truths_1_predictions": 7,
+        "2_truths_2_predictions": 4
+      },
+      "by_truth_role": {
+        "annotation": {
+          "truth_count": 18,
+          "matched_count": 12,
+          "role_correct_count": 1,
+          "truth_width_summary": {
+            "count": 18,
+            "minimum": 38.0,
+            "median": 54.0,
+            "mean": 54.0,
+            "maximum": 70.0
+          },
+          "truth_height_summary": {
+            "count": 18,
+            "minimum": 10.0,
+            "median": 11.5,
+            "mean": 11.5,
+            "maximum": 13.0
+          },
+          "missed_width_summary": {
+            "count": 6,
+            "minimum": 38.0,
+            "median": 38.0,
+            "mean": 43.333333333333336,
+            "maximum": 70.0
+          },
+          "missed_height_summary": {
+            "count": 6,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.5,
+            "maximum": 13.0
+          },
+          "geometry_recall": 0.6666666666666666,
+          "full_denominator_role_accuracy": 0.05555555555555555
+        },
+        "axis_title": {
+          "truth_count": 12,
+          "matched_count": 10,
+          "role_correct_count": 3,
+          "truth_width_summary": {
+            "count": 12,
+            "minimum": 55.0,
+            "median": 55.0,
+            "mean": 57.0,
+            "maximum": 63.0
+          },
+          "truth_height_summary": {
+            "count": 12,
+            "minimum": 9.0,
+            "median": 9.0,
+            "mean": 9.25,
+            "maximum": 10.0
+          },
+          "missed_width_summary": {
+            "count": 2,
+            "minimum": 55.0,
+            "median": 55.0,
+            "mean": 55.0,
+            "maximum": 55.0
+          },
+          "missed_height_summary": {
+            "count": 2,
+            "minimum": 9.0,
+            "median": 9.0,
+            "mean": 9.0,
+            "maximum": 9.0
+          },
+          "geometry_recall": 0.8333333333333334,
+          "full_denominator_role_accuracy": 0.25
+        },
+        "condition_label": {
+          "truth_count": 30,
+          "matched_count": 11,
+          "role_correct_count": 0,
+          "truth_width_summary": {
+            "count": 30,
+            "minimum": 6.0,
+            "median": 8.0,
+            "mean": 22.8,
+            "maximum": 47.0
+          },
+          "truth_height_summary": {
+            "count": 30,
+            "minimum": 9.0,
+            "median": 9.0,
+            "mean": 9.0,
+            "maximum": 9.0
+          },
+          "missed_width_summary": {
+            "count": 19,
+            "minimum": 6.0,
+            "median": 8.0,
+            "mean": 25.842105263157894,
+            "maximum": 47.0
+          },
+          "missed_height_summary": {
+            "count": 19,
+            "minimum": 9.0,
+            "median": 9.0,
+            "mean": 9.0,
+            "maximum": 9.0
+          },
+          "geometry_recall": 0.36666666666666664,
+          "full_denominator_role_accuracy": 0.0
+        },
+        "legend_text": {
+          "truth_count": 11,
+          "matched_count": 0,
+          "role_correct_count": 0,
+          "truth_width_summary": {
+            "count": 11,
+            "minimum": 87.0,
+            "median": 118.0,
+            "mean": 112.45454545454545,
+            "maximum": 119.0
+          },
+          "truth_height_summary": {
+            "count": 11,
+            "minimum": 9.0,
+            "median": 13.0,
+            "mean": 12.0,
+            "maximum": 13.0
+          },
+          "missed_width_summary": {
+            "count": 11,
+            "minimum": 87.0,
+            "median": 118.0,
+            "mean": 112.45454545454545,
+            "maximum": 119.0
+          },
+          "missed_height_summary": {
+            "count": 11,
+            "minimum": 9.0,
+            "median": 13.0,
+            "mean": 12.0,
+            "maximum": 13.0
+          },
+          "geometry_recall": 0.0,
+          "full_denominator_role_accuracy": 0.0
+        },
+        "participant": {
+          "truth_count": 9,
+          "matched_count": 5,
+          "role_correct_count": 0,
+          "truth_width_summary": {
+            "count": 9,
+            "minimum": 110.0,
+            "median": 110.0,
+            "mean": 110.11111111111111,
+            "maximum": 111.0
+          },
+          "truth_height_summary": {
+            "count": 9,
+            "minimum": 13.0,
+            "median": 13.0,
+            "mean": 13.0,
+            "maximum": 13.0
+          },
+          "missed_width_summary": {
+            "count": 4,
+            "minimum": 110.0,
+            "median": 110.0,
+            "mean": 110.0,
+            "maximum": 110.0
+          },
+          "missed_height_summary": {
+            "count": 4,
+            "minimum": 13.0,
+            "median": 13.0,
+            "mean": 13.0,
+            "maximum": 13.0
+          },
+          "geometry_recall": 0.5555555555555556,
+          "full_denominator_role_accuracy": 0.0
+        },
+        "phase_heading": {
+          "truth_count": 30,
+          "matched_count": 21,
+          "role_correct_count": 11,
+          "truth_width_summary": {
+            "count": 30,
+            "minimum": 62.0,
+            "median": 87.0,
+            "mean": 82.9,
+            "maximum": 175.0
+          },
+          "truth_height_summary": {
+            "count": 30,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.1,
+            "maximum": 13.0
+          },
+          "missed_width_summary": {
+            "count": 9,
+            "minimum": 87.0,
+            "median": 87.0,
+            "mean": 96.77777777777777,
+            "maximum": 175.0
+          },
+          "missed_height_summary": {
+            "count": 9,
+            "minimum": 10.0,
+            "median": 10.0,
+            "mean": 10.333333333333334,
+            "maximum": 13.0
+          },
+          "geometry_recall": 0.7,
+          "full_denominator_role_accuracy": 0.36666666666666664
+        },
+        "x_tick": {
+          "truth_count": 48,
+          "matched_count": 20,
+          "role_correct_count": 20,
+          "truth_width_summary": {
+            "count": 48,
+            "minimum": 7.0,
+            "median": 15.0,
+            "mean": 11.895833333333334,
+            "maximum": 15.0
+          },
+          "truth_height_summary": {
+            "count": 48,
+            "minimum": 9.0,
+            "median": 9.0,
+            "mean": 9.0,
+            "maximum": 9.0
+          },
+          "missed_width_summary": {
+            "count": 28,
+            "minimum": 7.0,
+            "median": 14.0,
+            "mean": 11.428571428571429,
+            "maximum": 15.0
+          },
+          "missed_height_summary": {
+            "count": 28,
+            "minimum": 9.0,
+            "median": 9.0,
+            "mean": 9.0,
+            "maximum": 9.0
+          },
+          "geometry_recall": 0.4166666666666667,
+          "full_denominator_role_accuracy": 0.4166666666666667
+        },
+        "y_tick": {
+          "truth_count": 25,
+          "matched_count": 18,
+          "role_correct_count": 18,
+          "truth_width_summary": {
+            "count": 25,
+            "minimum": 7.0,
+            "median": 15.0,
+            "mean": 12.16,
+            "maximum": 24.0
+          },
+          "truth_height_summary": {
+            "count": 25,
+            "minimum": 9.0,
+            "median": 9.0,
+            "mean": 9.0,
+            "maximum": 9.0
+          },
+          "missed_width_summary": {
+            "count": 7,
+            "minimum": 8.0,
+            "median": 16.0,
+            "mean": 13.714285714285714,
+            "maximum": 16.0
+          },
+          "missed_height_summary": {
+            "count": 7,
+            "minimum": 9.0,
+            "median": 9.0,
+            "mean": 9.0,
+            "maximum": 9.0
+          },
+          "geometry_recall": 0.72,
+          "full_denominator_role_accuracy": 0.72
+        }
+      },
+      "matched_role_confusion": {
+        "annotation": {
+          "annotation": 1,
+          "other": 4,
+          "phaseheading": 7
+        },
+        "axistitle": {
+          "axistitle": 3,
+          "other": 7
+        },
+        "other": {
+          "phaseheading": 11
+        },
+        "participant": {
+          "other": 5
+        },
+        "phaseheading": {
+          "other": 10,
+          "phaseheading": 11
+        },
+        "xtick": {
+          "xtick": 20
+        },
+        "ytick": {
+          "ytick": 18
+        }
+      }
+    }
+  },
+  "probability": {
+    "train": {
+      "panels": 28,
+      "positive_pixels": 93843,
+      "negative_pixels": 9736557,
+      "positive_above_0_30": 81004,
+      "negative_above_0_30": 19297,
+      "positive_above_0_55": 73259,
+      "positive_mean_probability": 0.7728424406827071,
+      "negative_mean_probability": 0.008056956949581992,
+      "panel_target_mean_probability": {
+        "count": 28,
+        "minimum": 0.4484246075153351,
+        "median": 0.8458154201507568,
+        "maximum": 0.9021162390708923,
+        "mean": 0.7757460070507867
+      },
+      "panel_target_max_probability": {
+        "count": 28,
+        "minimum": 0.9982531666755676,
+        "median": 0.9999996423721313,
+        "maximum": 1.0,
+        "mean": 0.9998917345489774
+      }
+    },
+    "validation": {
+      "panels": 9,
+      "positive_pixels": 31472,
+      "negative_pixels": 2458896,
+      "positive_above_0_30": 24121,
+      "negative_above_0_30": 6911,
+      "positive_above_0_55": 22268,
+      "positive_mean_probability": 0.7098292282168692,
+      "negative_mean_probability": 0.008383944903363852,
+      "panel_target_mean_probability": {
+        "count": 9,
+        "minimum": 0.6676963567733765,
+        "median": 0.6949893236160278,
+        "maximum": 0.8385546207427979,
+        "mean": 0.7190031475490994
+      },
+      "panel_target_max_probability": {
+        "count": 9,
+        "minimum": 0.9999994039535522,
+        "median": 0.9999997615814209,
+        "maximum": 1.0,
+        "mean": 0.9999997483359443
+      }
+    }
+  },
+  "region_support": {
+    "train/overlap": {
+      "count": 431,
+      "no_pixel_above_0_30": 0,
+      "no_pixel_above_0_55": 0,
+      "mean_probability": {
+        "count": 431,
+        "minimum": 0.43447813391685486,
+        "median": 0.8642175197601318,
+        "mean": 0.8351133821873543,
+        "maximum": 0.9990257024765015
+      },
+      "maximum_probability": {
+        "count": 431,
+        "minimum": 0.8038596510887146,
+        "median": 0.999975323677063,
+        "mean": 0.9978022544953773,
+        "maximum": 1.0
+      },
+      "support_fraction_above_0_30": {
+        "count": 431,
+        "minimum": 0.5,
+        "median": 0.9394673123486683,
+        "mean": 0.9105069667915326,
+        "maximum": 1.0
+      },
+      "target_area": {
+        "count": 431,
+        "minimum": 24,
+        "median": 63,
+        "mean": 145.54988399071925,
+        "maximum": 612
+      }
+    },
+    "train/no_overlap": {
+      "count": 278,
+      "no_pixel_above_0_30": 9,
+      "no_pixel_above_0_55": 13,
+      "mean_probability": {
+        "count": 278,
+        "minimum": 0.0038896126206964254,
+        "median": 0.5505073070526123,
+        "mean": 0.5305591086068077,
+        "maximum": 0.9674020409584045
+      },
+      "maximum_probability": {
+        "count": 278,
+        "minimum": 0.016737332567572594,
+        "median": 0.9846367537975311,
+        "mean": 0.9119872703424675,
+        "maximum": 0.9999998807907104
+      },
+      "support_fraction_above_0_30": {
+        "count": 278,
+        "minimum": 0.0,
+        "median": 0.7291666666666666,
+        "mean": 0.6617510509780055,
+        "maximum": 1.0
+      },
+      "target_area": {
+        "count": 278,
+        "minimum": 24,
+        "median": 48.0,
+        "mean": 115.52158273381295,
+        "maximum": 612
+      }
+    },
+    "validation/overlap": {
+      "count": 135,
+      "no_pixel_above_0_30": 0,
+      "no_pixel_above_0_55": 0,
+      "mean_probability": {
+        "count": 135,
+        "minimum": 0.2176537811756134,
+        "median": 0.8204213380813599,
+        "mean": 0.7917846715008771,
+        "maximum": 0.9890809655189514
+      },
+      "maximum_probability": {
+        "count": 135,
+        "minimum": 0.9880620241165161,
+        "median": 0.9999825954437256,
+        "mean": 0.9993901552977386,
+        "maximum": 1.0
+      },
+      "support_fraction_above_0_30": {
+        "count": 135,
+        "minimum": 0.2896551724137931,
+        "median": 0.88,
+        "mean": 0.847474991515722,
+        "maximum": 1.0
+      },
+      "target_area": {
+        "count": 135,
+        "minimum": 24,
+        "median": 145,
+        "mean": 179.25185185185185,
+        "maximum": 994
+      }
+    },
+    "validation/no_overlap": {
+      "count": 48,
+      "no_pixel_above_0_30": 0,
+      "no_pixel_above_0_55": 0,
+      "mean_probability": {
+        "count": 48,
+        "minimum": 0.2326233983039856,
+        "median": 0.6322725415229797,
+        "mean": 0.6168601466342807,
+        "maximum": 0.974906861782074
+      },
+      "maximum_probability": {
+        "count": 48,
+        "minimum": 0.9123994708061218,
+        "median": 0.9997051656246185,
+        "mean": 0.9926219719151655,
+        "maximum": 0.9999998807907104
+      },
+      "support_fraction_above_0_30": {
+        "count": 48,
+        "minimum": 0.1875,
+        "median": 0.7171428571428571,
+        "mean": 0.7044541486009943,
+        "maximum": 0.9886363636363636
+      },
+      "target_area": {
+        "count": 48,
+        "minimum": 24,
+        "median": 48.0,
+        "mean": 153.35416666666666,
+        "maximum": 609
+      }
+    }
+  },
+  "frozen_csharp_replay": {
+    "schema": "graphreader.ocr-v41-csharp-rejection-attribution.v1",
+    "synthetic_only": true,
+    "model_inference": false,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approval": false,
+    "replay": {
+      "panels": 37,
+      "regions": 557,
+      "all_region_ids_and_polygons_identical": true,
+      "maximum_confidence_difference": 5.469337338581681e-07
+    },
+    "no_emitted_box_overlap_truths": {
+      "train": {
+        "rejected_box_confidence": 177,
+        "rejected_initial_side_length": 33,
+        "rejected_box_confidence + rejected_initial_side_length": 56,
+        "no_observed_initial_polygon": 12
+      },
+      "validation": {
+        "rejected_box_confidence": 32,
+        "rejected_initial_side_length": 5,
+        "rejected_box_confidence + rejected_initial_side_length": 11
+      }
+    },
+    "overlapping_initial_contour_dispositions": {
+      "train": {
+        "rejected_box_confidence": 257,
+        "rejected_initial_side_length": 183
+      },
+      "validation": {
+        "rejected_box_confidence": 54,
+        "rejected_initial_side_length": 27
+      }
+    },
+    "inputs": {
+      "artifacts\\goal22-runs\\ocr-v41-ohem\\db-replay-v1\\report.json": "9b264a8f8746cb71cf01ceedcb0fc286e753ec3213b0fc187d50d682a0d982b4",
+      "artifacts\\goal22-runs\\ocr-v41-ohem\\db-replay-v1\\Program.cs": "34980a3475bcb369d5494f38e63f5798a5bea2a62b800083f4b7ab6df0bb5a9c",
+      "artifacts\\goal22-runs\\ocr-v41-ohem\\db-replay-v1\\request.json": "c79d2ad661beb601a1bbdcf1ef9ec2ce6d09936421f8c3a3c49fc24f3f592540",
+      "artifacts\\goal22-runs\\ocr-v41-ohem\\app-evaluation-v1\\report.json": "4ff7613823f46c91f05e9a6630e261e202fa8a6445c06437fef7f12bd616c194",
+      "artifacts\\goal22-runs\\ocr-v41-ohem\\region-support-v1.json": "e18c315950dc289785f8468cdd3d8ab55366d9830049284587fa62da99b2dd2e"
+    },
+    "limits": "Attribution uses positive rectangle intersection of observed initial contour polygons and each projected truth. Several contours may overlap a truth; combinations are exclusive by truth, contour totals are not. Contours rejected for insufficient points have no initial polygon and cannot be localized by this observer. This replays the frozen C# DB method on head maps, not model inference or a fresh end-to-end run."
+  },
+  "findings": [
+    "All 557 emitted region IDs and polygons reproduce exactly in the frozen C# DB method using retained V41 head maps; maximum confidence difference is 0.000000546934.",
+    "All 48 dev truths without an overlapping emitted box have target-region maximum probability above 0.91. No positive signal is therefore not their explanation.",
+    "Of these 48, 32 overlap only contours rejected for box confidence, five only initial side length, and 11 both rejection types. These observed categories conserve all 48 truths.",
+    "The unchanged decoder rejects weakly filled or narrow contours. This evidence does not justify lowering thresholds; diagnose the learned map shape and the training supervision that produces it."
+  ],
+  "limits": [
+    "This is synthetic train/dev diagnosis, not a new acceptance gate or Production approval.",
+    "The replay directly invokes the frozen C# DB postprocessing method. It is not a fresh end-to-end application run.",
+    "Initial contour/truth attribution uses positive rectangle intersection, not an accuracy match. Contours with insufficient points cannot be localized by the existing observer.",
+    "The completed V41 outcome stays failed and unconsumed. No optimizer step or private/sealed read occurred during diagnosis."
+  ]
+}
