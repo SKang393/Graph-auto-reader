@@ -9655,6 +9655,42 @@
       "candidate_report_sha256": "e5347d33313147d57c4d6ce80bcf06a020a1a70ddd52ef4bb8a2e0c623b7a64b",
       "optimizer_steps": 12636,
       "closed_utc_date": "2026-09-09"
+    },
+    {
+      "task": "ocr-detection",
+      "revision": "graph-text-pretrained-db-head-v39",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/ocr/pretrained_db_head_v39/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "310de176c6ca08ad3b33ca4ad698e262a351b5a2f731c15746cf537e30c3f46d"
+      },
+      "protocol_path": "ml/ocr/pretrained_db_head_v39/protocol.json",
+      "protocol_sha256": "5ba2719763980235e325020f0891ba37155cd9ffd7bd5e830078ffd3990da59f",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "Synthetic train/dev only under Goal22 execution authorization; no sealed/private read or production approval.",
+      "isolated_change": "Fine-tune only nine reviewed pretrained DB head constants on fixed original-BGR production tensors. Trunk, running statistics and production postprocessing remain frozen.",
+      "optimizer_steps_expected": 1680,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "outcome_path": "ml/ocr/pretrained_db_head_v39/P1_RESULT.json",
+      "outcome_sha256": "f1c283e26a80df07a84d3b88a20dc4b472fd953607898b4281a468d59052ea4d",
+      "candidate_report_sha256": "ae34d03a9172240f39e39407324e0901dc624f589f7ddb14d97a9c8b14c673da",
+      "optimizer_steps": 1680,
+      "closed_utc_date": "2026-09-10"
     }
   ]
 }

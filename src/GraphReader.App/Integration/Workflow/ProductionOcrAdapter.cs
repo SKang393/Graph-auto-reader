@@ -685,7 +685,8 @@ public sealed partial class ProductionOcrAdapter :
     internal static IReadOnlyList<string> DetectorInputWarnings(
         GraphStructureModelInput modelInput,
         OcrImage originalImage,
-        OcrDetectorImage detectorImage)
+        OcrDetectorImage detectorImage,
+        bool structureConsensusApplied = true)
     {
         ArgumentNullException.ThrowIfNull(originalImage);
         ArgumentNullException.ThrowIfNull(detectorImage);
@@ -705,9 +706,16 @@ public sealed partial class ProductionOcrAdapter :
         {
             "ocr_detector_model_input_original",
             $"ocr_detector_model_input_sha256:{Convert.ToHexStringLower(SHA256.HashData(originalImage.Pixels.Span))}",
-            "ocr_detector_structure_input_axis_masked",
-            $"ocr_detector_structure_input_sha256:{detectorImage.PixelSha256.ToLowerInvariant()}",
         };
+        if (structureConsensusApplied)
+        {
+            warnings.Add("ocr_detector_structure_input_axis_masked");
+            warnings.Add($"ocr_detector_structure_input_sha256:{detectorImage.PixelSha256.ToLowerInvariant()}");
+        }
+        else
+        {
+            warnings.Add("ocr_detector_structure_consensus_not_applied");
+        }
         if (originalImage.BgrPixels is { } bgr)
         {
             warnings.Add($"ocr_detector_model_input_bgr_sha256:{Convert.ToHexStringLower(SHA256.HashData(bgr.Pixels.Span))}");
@@ -744,7 +752,8 @@ public sealed partial class ProductionOcrAdapter :
         result = result with
         {
             Warnings = Array.AsReadOnly(result.Warnings
-                .Concat(DetectorInputWarnings(modelInput, ocrRequest.OriginalImage, detectorImage))
+                .Concat(DetectorInputWarnings(modelInput, ocrRequest.OriginalImage, detectorImage,
+                    compositionVersion != OriginalDbCandidateCompositionVersion))
                 .Distinct(StringComparer.Ordinal)
                 .ToArray()),
         };

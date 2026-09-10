@@ -1,0 +1,52 @@
+{
+  "binding": {
+    "base_commit": "11ce0e6801ef07212caa709e47c51d13d8147c4d",
+    "candidate_config_path": "ml/ocr/pretrained_db_head_v39/training/p1.json",
+    "candidate_config_sha256": "310de176c6ca08ad3b33ca4ad698e262a351b5a2f731c15746cf537e30c3f46d",
+    "candidate_id": "P1",
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "revision": "graph-text-pretrained-db-head-v39",
+    "runner_source_bundle_sha256": "e969ebc1a05a8cfea2331f7ed19f916758d359aa5e5c056fd0721eba16cbebce",
+    "runner_source_paths": [
+      "ml/markers/center/mask_preserving_v24/runtime_inputs.py",
+      "ml/markers/center/plot_domain_v25/runtime_domain_binding.py",
+      "ml/markers/center/plot_domain_v25/runtime_domain_binding_v3.py",
+      "ml/markers/gate_seal.py",
+      "ml/markers/training_budget.py",
+      "ml/ocr/official_bakeoff/frozen_head_training.py",
+      "ml/ocr/official_bakeoff/frozen_trunk_head.py",
+      "ml/ocr/official_bakeoff/production_head_inputs.py",
+      "ml/ocr/pretrained_db_head_v39/__init__.py",
+      "ml/ocr/pretrained_db_head_v39/protocol.json",
+      "ml/ocr/pretrained_db_head_v39/train_p1.py",
+      "ml/ocr/production_tiled_inputs.py",
+      "ml/policy/evidence_policy.py",
+      "ml/synthetic/contact_sheet.py",
+      "ml/synthetic/dataset.py",
+      "ml/synthetic/fonts.py",
+      "ml/synthetic/io.py",
+      "ml/synthetic/renderer.py",
+      "ml/synthetic/runtime_graph_axis_preserving_v2.py",
+      "ml/synthetic/runtime_graph_axis_preserving_v2_protocol.json",
+      "ml/synthetic/runtime_graph_visible_content_v3.py",
+      "ml/synthetic/runtime_graph_visible_content_v3_protocol.json",
+      "ml/synthetic/scene.schema.json",
+      "ml/synthetic/schema.py",
+      "ml/synthetic/templates.py"
+    ],
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "source_snapshot_path": "ml/markers/training-seals/ocr-detection/graph-text-pretrained-db-head-v39/P1/source-snapshot.json",
+    "source_snapshot_sha256": "700ce4c26e713a3661ac87d773777dda72c31e7b0ebbf48b85fe179f64f55cf6",
+    "task": "ocr-detection",
+    "training_budget_ledger_sha256": "76ebac2a4912cac7f18e89486b82a173864cf61a5abacbaf5e7f7792595ad5ca"
+  },
+  "budget_status": "pending_sealed_read",
+  "opened_utc": "2026-09-09T23:27:52.088037+00:00",
+  "schema_version": 1,
+  "status": "opened"
+}

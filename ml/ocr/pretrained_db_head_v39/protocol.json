@@ -1,0 +1,28 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The reviewed PP-OCRv5 mobile detector on the fixed original-BGR V3 application inputs detects 71 of 183 development text regions, with 137 false positives and 112 misses. This is the actual unmasked DB route, not the masked-consensus route. Adapting only its pretrained DB head on project-owned training scenes may improve graph text detection while retaining the reviewed frozen trunk and the shipped preprocessing and postprocessing. Baseline: docs/GOAL-22-ORIGINAL-DB-BASELINE-OUTCOME.json; retained aggregate report SHA256 c3c543d8cee73e86bbe51faa5f5f2259ee54e5fd98220297278f37e0d364747d.",
+  "isolated_change": "Fine-tune only the nine trainable constants of the reviewed PP-OCRv5 mobile DB head. Keep the 96-channel feature trunk and batch-normalization running statistics frozen, original BGR decoding, manifest normalization, maximum side 960, alignment 128, DB probability 0.3, box confidence 0.6, unclip 1.5 and minimum side 3 unchanged. Use the fixed train-only optimizer and checkpoint selection recorded in the candidate configuration. DB shrink targets are generated from complete project-owned training truth; degenerate shrunken regions are ignored by the pixel objective but never removed from region-scoring denominators. No private answers or development answers enter optimization or checkpoint selection.",
+  "split_identities": {
+    "v3_binding_path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "v3_binding_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+    "captured_input_report_path": "artifacts/goal22-runs/ocr-production-head-inputs/capture-run3/report.json",
+    "captured_input_report_sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482",
+    "train_sources": 20,
+    "train_panels": 28,
+    "train_text_regions": 709,
+    "dev_sources": 3,
+    "dev_panels": 9,
+    "dev_text_regions": 183,
+    "sealed": "Not opened or authorized by this train/dev-only protocol."
+  },
+  "metric": "Run the patched frozen candidate through the actual original-BGR C# detector and OCR adapter on all 37 authenticated panels. Compare raw detected regions to all 709 train and 183 development source text regions using the existing maximum-cardinality one-to-one IoU 0.5 matcher. Retain all false positives, failed panels, source truths and duplicate cross-panel predictions. Report train and development precision/recall separately. Recognition outputs and failures are retained, but region detection alone does not establish recognition, role, calibration or export accuracy. ONNX numerical parity is verified against the trained head before candidate acceptance.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json: tier1_reviewable_error.text_region_detection_precision_minimum and text_region_detection_recall_minimum. This detection-stage experiment does not independently approve a complete OCR stage or Goal 22.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "training_requires_canonical_authorization": true,
+    "private_reads": 0,
+    "sealed_runs_authorized": 0,
+    "production_approval": false
+  }
+}

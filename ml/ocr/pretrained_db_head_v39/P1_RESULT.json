@@ -1,0 +1,168 @@
+{
+  "acceptance_bar_reference": {
+    "path": "ml/policy/acceptance-bars.json",
+    "scorer_does_not_decide_candidate_or_production_approval": true,
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "text_region_detection_precision_minimum": 0.95,
+    "text_region_detection_recall_minimum": 0.95
+  },
+  "acceptance_status": "FAIL",
+  "application_evaluation": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/app-evaluation-v1/report.json",
+    "sha256": "1a28d3ac03233728c1c4ea7d5781568e475595ca4b54883664673a8fc94d5436"
+  },
+  "candidate_config": {
+    "path": "ml/ocr/pretrained_db_head_v39/training/p1.json",
+    "sha256": "310de176c6ca08ad3b33ca4ad698e262a351b5a2f731c15746cf537e30c3f46d"
+  },
+  "candidate_consumed": false,
+  "candidate_id": "P1",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/P1-run/candidate-report.json",
+    "sha256": "ae34d03a9172240f39e39407324e0901dc624f589f7ddb14d97a9c8b14c673da"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/ocr-detection/graph-text-pretrained-db-head-v39/P1/result.json",
+    "sha256": "2893c68f1b910993a76927514786706b231ccf4329dc8b4d03290426644d2f43"
+  },
+  "checkpoint": {
+    "content": "torch_state_dict_only",
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/P1-run/selected-head.pt",
+    "sha256": "8c0b8713f0d5bf86b792db4beacd334ec29365a0c842e3364f88c99162b787f6"
+  },
+  "closed_utc": "2026-09-10T00:20:29.042580+00:00",
+  "frozen_batch_norm_unchanged": true,
+  "license_review": "Reviewed Apache-2.0 PaddleOCR parent and retained license/notice files; candidate modification notice records the parent and nine patched constants. No payload is committed.",
+  "limitations": [
+    "Dev precision 92.86 percent and recall 21.31 percent fail the unchanged 95 percent bars.",
+    "Compared with original DB dev counts 71/137/112, this candidate has 39/3/144 true-positive/false-positive/false-negative regions. False detections improve while recall worsens.",
+    "All 709 train and 183 dev source truths remain in the denominator. Recognition text, character error and roles are not graded by geometry scores.",
+    "No sealed, private, normal Production or end-to-end export acceptance is established."
+  ],
+  "next_work": "Diagnose low training and dev region recall against project-owned truth before choosing a further repair.",
+  "onnx": {
+    "changed_constants": [
+      "conv2d_159.w_0",
+      "batch_norm_0.w_0",
+      "batch_norm_0.b_0",
+      "conv2d_transpose_0.w_0",
+      "conv2d_transpose_0.b_0",
+      "batch_norm_1.w_0",
+      "batch_norm_1.b_0",
+      "conv2d_transpose_1.w_0",
+      "conv2d_transpose_1.b_0"
+    ],
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/P1-run/detector-head-v39-p1.onnx",
+    "sha256": "a1255a1e0714b3d13b44a47e44d4b0f3858a844baeda7f04d2e7916f225d1909",
+    "source_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+    "unchanged_trainable_constants": []
+  },
+  "onnx_parity_maximum_absolute_error": 6.467103958129883e-06,
+  "onnx_parity_passed": true,
+  "optimizer_steps": 1680,
+  "plumbing_repairs": [
+    "Candidate staging rename initially failed with WinError 5; identical helper succeeded with authorized filesystem access, without retraining.",
+    "Scoring first failed before truth regeneration because the historical capture referenced reviewed main-checkout files. Exact-path authenticated local mirrors repaired this; the retained C# model run was not repeated.",
+    "The retained application report includes an inherited masked-structure warning. Its companion correction identifies original-BGR execution and the metadata-only repair."
+  ],
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol": {
+    "path": "ml/ocr/pretrained_db_head_v39/protocol.json",
+    "sha256": "5ba2719763980235e325020f0891ba37155cd9ffd7bd5e830078ffd3990da59f"
+  },
+  "raw_detector_geometry": {
+    "train": {
+      "false_negatives": 499,
+      "false_positives": 54,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.7954545454545454,
+      "predicted_region_count": 264,
+      "recall": 0.29619181946403383,
+      "true_positives": 210,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 144,
+      "false_positives": 3,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.9285714285714286,
+      "predicted_region_count": 42,
+      "recall": 0.21311475409836064,
+      "true_positives": 39,
+      "truth_region_count": 183
+    }
+  },
+  "recognition_failures": {
+    "train": {
+      "explicit_region_failure_count": 0,
+      "failed_panel_count": 0,
+      "raw_regions_on_failed_panels": 0,
+      "raw_regions_without_successful_recognition": 0
+    },
+    "validation": {
+      "explicit_region_failure_count": 0,
+      "failed_panel_count": 0,
+      "raw_regions_on_failed_panels": 0,
+      "raw_regions_without_successful_recognition": 0
+    }
+  },
+  "release_eligible": false,
+  "revision": "graph-text-pretrained-db-head-v39",
+  "schema": "graphreader.ocr-pretrained-db-head-v39-candidate-outcome.v1",
+  "score": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/score-v2.json",
+    "sha256": "167abfc5c6771f1ea139abb1e8bdcff5961ef6051958e26484d203ca3aacfc76"
+  },
+  "scorer": {
+    "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_official_head_candidate.py",
+    "sha256": "719bb18c30821cdd44b65fc9ede38f6d111fb3631e07c7c69d98d1116aa575a2"
+  },
+  "sealed_runs": 0,
+  "selected_epoch": 60,
+  "status": "failed_dev_unconsumed",
+  "successfully_recognized_region_geometry": {
+    "train": {
+      "false_negatives": 499,
+      "false_positives": 54,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.7954545454545454,
+      "predicted_region_count": 264,
+      "recall": 0.29619181946403383,
+      "true_positives": 210,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 144,
+      "false_positives": 3,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.9285714285714286,
+      "predicted_region_count": 42,
+      "recall": 0.21311475409836064,
+      "true_positives": 39,
+      "truth_region_count": 183
+    }
+  },
+  "synthetic_only": true,
+  "task": "ocr-detection",
+  "timing_ms": {
+    "actual_application": 12838.0804,
+    "scoring": 102801.79929999576,
+    "trained_parity": 6316.853099997388,
+    "training": 599459.129
+  },
+  "trained_export_parity": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/trained-parity-v1/report.json",
+    "sha256": "7089712765e00da186284b8f1a2d8503e135d2f23c9c750dd31dbf8fd105e09b"
+  },
+  "training_loss_epoch_1": 0.5948672422340938,
+  "training_loss_selected": 0.17589703840868814,
+  "training_stage": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/P1-run/training-stage.json",
+    "sha256": "d674bdb2fffa123d815cdbacb18ef982c4cb9171765d905ad4c0959a9e3ecc37"
+  },
+  "warning_correction": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/app-evaluation-v1-warning-correction.json",
+    "sha256": "cde6a9be466ef8f7666eead8aac324b7b19c51d869219e0160dbed55dd4b3e3b"
+  }
+}

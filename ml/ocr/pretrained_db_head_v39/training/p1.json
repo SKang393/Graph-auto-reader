@@ -1,0 +1,63 @@
+{
+  "schema": "graphreader.ocr-pretrained-db-head-v39-candidate-config.v1",
+  "task": "ocr-detection",
+  "revision": "graph-text-pretrained-db-head-v39",
+  "candidate_id": "P1",
+  "stage": "P1",
+  "expected_runner_source_bundle_sha256": "e969ebc1a05a8cfea2331f7ed19f916758d359aa5e5c056fd0721eba16cbebce",
+  "parent_model": {
+    "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/reviewed-parent.onnx",
+    "sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb"
+  },
+  "v3_binding": {
+    "path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a"
+  },
+  "capture_report": {
+    "path": "artifacts/goal22-runs/ocr-production-head-inputs/capture-run3/report.json",
+    "sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482"
+  },
+  "captured_parity_report": {
+    "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/captured-parity-v3/report.json",
+    "sha256": "8d5210aebaf1e6a0f51e4bdd48974ff67fe3fa0c4b9f6c49bc368f92ce66fe4c"
+  },
+  "captured_parity_source": {
+    "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/captured_parity_v3.py",
+    "sha256": "20c4387b23e8bd7bf9e699efbac9cd619663d74f367fd8f1934f04e35c1274f0"
+  },
+  "head_source": {
+    "path": "ml/ocr/official_bakeoff/frozen_trunk_head.py",
+    "sha256": "6171df9298f785360695353087344229a8f761cfda51bb3aa728ddab10997703"
+  },
+  "feature_model": {
+    "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/captured-parity-v3/frozen-trunk.onnx",
+    "sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081"
+  },
+  "recipe": {
+    "seed": 20260939,
+    "epochs": 60,
+    "batch_size": 1,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "dice_epsilon": 1e-06,
+    "shrink_ratio": 0.4,
+    "empty_target_objective": "masked_mean_probability",
+    "captured_parity_maximum_absolute_error": 1e-05
+  },
+  "expected_data": {
+    "train": {
+      "source_count": 20,
+      "panel_count": 28,
+      "full_source_truth_count": 709
+    },
+    "validation": {
+      "source_count": 3,
+      "panel_count": 9,
+      "full_source_truth_count": 183
+    }
+  },
+  "synthetic_only": true,
+  "private_data": false,
+  "sealed_data": false,
+  "production_approval": false
+}

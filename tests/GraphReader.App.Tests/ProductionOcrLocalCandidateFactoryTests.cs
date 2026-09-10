@@ -229,6 +229,13 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
         {
             "ocr_detector_axis_geometry_mask_applied", $"ocr_detector_input_sha256:{masked.PixelSha256}",
         }, ProductionOcrAdapter.DetectorInputWarnings(GraphStructureModelInput.AxisMasked, original, masked).ToArray());
+        IReadOnlyList<string> originalOnly = ProductionOcrAdapter.DetectorInputWarnings(
+            GraphStructureModelInput.Original, original, masked, structureConsensusApplied: false);
+        CollectionAssert.Contains(originalOnly.ToArray(), "ocr_detector_structure_consensus_not_applied");
+        Assert.IsFalse(originalOnly.Any(warning => warning.Contains("axis_masked", StringComparison.Ordinal)));
+        Assert.IsFalse(originalOnly.Any(warning => warning.StartsWith("ocr_detector_structure_input_sha256:", StringComparison.Ordinal)));
+        CollectionAssert.Contains(originalOnly.ToArray(),
+            $"ocr_detector_model_input_bgr_sha256:{Convert.ToHexStringLower(SHA256.HashData(originalBgr))}");
     }
 
     [TestMethod]
