@@ -88,7 +88,8 @@ public static class ApplicationComposition
             environment == WorkflowRuntimeEnvironment.Production && applicationPaths is not null
                 ? ProductionInferenceRuntimeFactory.Create(
                     applicationPaths,
-                    uiThreadGuard ?? NoUiThreadGuard.Instance)
+                    uiThreadGuard ?? NoUiThreadGuard.Instance,
+                    RequiresOriginalDbEvidenceRuntime(modelAvailability))
                 : null;
         return await CompleteWithOwnedInferenceAsync(
                 inference?.Value,
@@ -154,7 +155,8 @@ public static class ApplicationComposition
             (environment == WorkflowRuntimeEnvironment.Production && applicationPaths is not null
                 ? ProductionInferenceRuntimeFactory.Create(
                     applicationPaths,
-                    uiThreadGuard ?? NoUiThreadGuard.Instance)
+                    uiThreadGuard ?? NoUiThreadGuard.Instance,
+                    RequiresOriginalDbEvidenceRuntime(modelAvailability))
                 : null);
         var rasterFrameDecoder = new ProductionRasterFrameDecoder();
         ProductionAxisGeometryAdapter? axisAdapter = CreateApprovedAxisAdapter(
@@ -178,6 +180,28 @@ public static class ApplicationComposition
             markerCenter.Adapter is not null &&
             markerClassifier.Adapter is not null &&
             detectionMaskComposer.IsApproved;
+        DomainError? workflowEvidenceError = null;
+        if (completeDetectionAdapterAvailable &&
+            ocrAdapter is ProductionOcrAdapter originalDb && originalDb.UsesApprovedOriginalDbComposition)
+        {
+            try
+            {
+                ResolvedProductionModel detectionModel = modelAvailability!.ApprovedCpuModels["ocr_detection"];
+                ProductionOriginalDbOcrApprovalGate.ValidateWorkflow(detectionModel,
+                    axisAdapter!, markerCenter.Adapter!, markerClassifier.Adapter!, artifactMask.Adapter,
+                    legendAdapter, phaseAdapter);
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                completeDetectionAdapterAvailable = false;
+                ocrAdapter = null;
+                workflowEvidenceError = new DomainError(
+                    "OCR_WORKFLOW_EVIDENCE_MISMATCH", DomainErrorSeverity.Warning,
+                    "Errors.ProductionWorkflowUnavailable",
+                    $"The selected automatic workflow differs from the accepted OCR workflow: {exception.Message}",
+                    Recoverable: true, "continue_manual_or_repair_model_store");
+            }
+        }
         var approvedAdapterStages = new List<string>();
         var adapterEvidence = new List<string>();
         if (axisAdapter is not null)
@@ -263,7 +287,7 @@ public static class ApplicationComposition
                 phaseAdapter,
                 rasterFrameDecoder,
                 detectionMaskComposer,
-                ocr.Error ?? markerCenter.Error ?? markerClassifier.Error ?? artifactMask.Error,
+                workflowEvidenceError ?? ocr.Error ?? markerCenter.Error ?? markerClassifier.Error ?? artifactMask.Error,
                 artifactMask.Adapter),
             WorkflowRuntimeEnvironment.ManualPreview => new ApplicationCompositionResult(
                 environment,
@@ -447,7 +471,15 @@ public static class ApplicationComposition
         try
         {
             IProductionOcrAdapter adapter =
-                ProductionComponentOcrAdapterFactory.UsesComponentEnsemble(recognitionModel)
+                ProductionOriginalDbOcrApprovalGate.UsesProfile(detectionModel, recognitionModel)
+                    ? await ProductionOcrAdapter.CreateApprovedOriginalDbAsync(
+                            detectionModel,
+                            recognitionModel,
+                            runtimeHost,
+                            runtimeAvailability.RuntimeSha256,
+                            cancellationToken)
+                        .ConfigureAwait(false)
+                    : ProductionComponentOcrAdapterFactory.UsesComponentEnsemble(recognitionModel)
                     ? await ProductionComponentOcrAdapterFactory.CreateAsync(
                             detectionModel,
                             recognitionModel,
@@ -479,6 +511,24 @@ public static class ApplicationComposition
                     $"The checksum-resolved OCR detector and recognizer could not be composed: {exception.Message}",
                     Recoverable: true,
                     "continue_manual_or_repair_model_store"));
+        }
+    }
+
+    private static bool RequiresOriginalDbEvidenceRuntime(ProductionModelAvailabilitySnapshot? availability)
+    {
+        if (availability is null ||
+            !availability.ApprovedCpuModels.TryGetValue("ocr_detection", out ResolvedProductionModel? detection) ||
+            !availability.ApprovedCpuModels.TryGetValue("ocr_recognition", out ResolvedProductionModel? recognition))
+            return false;
+        try
+        {
+            return ProductionOriginalDbOcrApprovalGate.UsesProfile(detection, recognition);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            // The OCR factory reports invalid approval metadata as a recoverable
+            // stage failure. Do not fail manual startup while selecting a runtime.
+            return false;
         }
     }
 

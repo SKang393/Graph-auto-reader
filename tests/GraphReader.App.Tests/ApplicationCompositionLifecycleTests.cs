@@ -4,6 +4,7 @@
 using System.IO;
 using System.Windows.Threading;
 using GraphReader.App.Integration;
+using GraphReader.App.Integration.Workflow;
 using GraphReader.Domain;
 using GraphReader.Inference;
 
@@ -61,6 +62,51 @@ public sealed class ApplicationCompositionLifecycleTests
 
             Directory.Delete(root, recursive: true);
         }
+    }
+
+    [TestMethod]
+    public async Task OriginalDbRuntimeMatchesEvidenceAndSeparatesItsCache()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "GraphReader.RuntimeProfile", Guid.NewGuid().ToString("N"));
+        var paths = new TestApplicationPaths(root);
+        await using ProductionInferenceRuntimeHost normal = ProductionInferenceRuntimeFactory.Create(
+            paths, NoUiThreadGuard.Instance).Value ?? throw new AssertFailedException("Default runtime unavailable.");
+        await using ProductionInferenceRuntimeHost original = ProductionInferenceRuntimeFactory.Create(
+            paths, NoUiThreadGuard.Instance, originalDbEvidenceRuntime: true).Value ??
+            throw new AssertFailedException("Original-DB runtime unavailable.");
+
+        Assert.AreEqual(OnnxGraphOptimizationMode.RuntimeDefault, normal.GraphOptimizationMode);
+        Assert.AreEqual(ProductionInferenceRuntimeHost.DefaultQueueCapacity, normal.QueueCapacity);
+        Assert.ThrowsExactly<InvalidDataException>(() => ProductionOcrAdapter.ValidateApprovedOriginalDbRuntime(normal));
+        ProductionOcrAdapter.ValidateApprovedOriginalDbRuntime(original);
+        Assert.AreNotEqual(normal.CacheRoot, original.CacheRoot);
+        Assert.IsFalse(normal.IsInitialized);
+        Assert.IsFalse(original.IsInitialized);
+    }
+
+    [TestMethod]
+    [DataRow(OnnxGraphOptimizationMode.RuntimeDefault, 1, 1, 1, 1, false)]
+    [DataRow(OnnxGraphOptimizationMode.Disabled, 2, 1, 1, 1, false)]
+    [DataRow(OnnxGraphOptimizationMode.Disabled, 1, 2, 1, 1, false)]
+    [DataRow(OnnxGraphOptimizationMode.Disabled, 1, 1, 8, 1, false)]
+    [DataRow(OnnxGraphOptimizationMode.Disabled, 1, 1, 1, 2, false)]
+    [DataRow(OnnxGraphOptimizationMode.Disabled, 1, 1, 1, 1, true)]
+    [DataRow(OnnxGraphOptimizationMode.Disabled, 1, 1, 1, 1, false)]
+    public async Task OriginalDbRuntimeRejectsChangedExecutionSettings(
+        OnnxGraphOptimizationMode optimization, int intra, int inter, int queue, int workers, bool directMl)
+    {
+        await using var host = new ProductionInferenceRuntimeHost(
+            new OrtExecutionProviderDiscovery(), new WindowsExecutionProviderPolicy(),
+            new OnnxInferenceSessionFactory(NoUiThreadGuard.Instance, optimization),
+            new CpuThreadConfiguration(2, intra, inter),
+            directMl ? [InferenceProvider.DirectMl, InferenceProvider.Cpu] : [InferenceProvider.Cpu],
+            Path.Combine(Path.GetTempPath(), "GraphReader.RuntimeProfile", Guid.NewGuid().ToString("N"),
+                optimization == OnnxGraphOptimizationMode.Disabled && intra == 1 && inter == 1 &&
+                queue == 1 && workers == 1 && !directMl ? "v1" :
+                ProductionInferenceRuntimeFactory.OriginalDbEvidenceCacheNamespace),
+            queue, workers);
+        Assert.ThrowsExactly<InvalidDataException>(() => ProductionOcrAdapter.ValidateApprovedOriginalDbRuntime(host));
+        Assert.IsFalse(host.IsInitialized);
     }
 
     private sealed class TestApplicationPaths(string root) : IApplicationPaths

@@ -50,6 +50,7 @@ public sealed class ProductionInferenceRuntimeHost : IAsyncDisposable
         CacheRoot = Path.GetFullPath(cacheRoot);
         QueueCapacity = queueCapacity;
         WorkerCount = workerCount;
+        GraphOptimizationMode = (sessionFactory as OnnxInferenceSessionFactory)?.GraphOptimizationMode;
         _runtime = new Lazy<InferenceRuntime>(
             () =>
             {
@@ -84,9 +85,13 @@ public sealed class ProductionInferenceRuntimeHost : IAsyncDisposable
 
     public string CacheRoot { get; }
 
+    public string CacheNamespace => Path.GetFileName(Path.TrimEndingDirectorySeparator(CacheRoot));
+
     public int QueueCapacity { get; }
 
     public int WorkerCount { get; }
+
+    public OnnxGraphOptimizationMode? GraphOptimizationMode { get; }
 
     public bool IsInitialized => _runtime.IsValueCreated;
 
@@ -114,9 +119,12 @@ public sealed class ProductionInferenceRuntimeHost : IAsyncDisposable
 
 public static class ProductionInferenceRuntimeFactory
 {
+    internal const string OriginalDbEvidenceCacheNamespace = "original-db-cpu-disabled-t1-v1";
+
     public static DomainResult<ProductionInferenceRuntimeHost> Create(
         IApplicationPaths applicationPaths,
-        IUiThreadGuard uiThreadGuard)
+        IUiThreadGuard uiThreadGuard,
+        bool originalDbEvidenceRuntime = false)
     {
         ArgumentNullException.ThrowIfNull(applicationPaths);
         ArgumentNullException.ThrowIfNull(uiThreadGuard);
@@ -131,9 +139,16 @@ public static class ProductionInferenceRuntimeFactory
                 throw new InvalidOperationException("The production provider policy did not retain CPU fallback.");
             }
 
-            CpuThreadConfiguration cpuThreadConfiguration = CpuThreadConfiguration.Create();
-            string cacheRoot = Path.Combine(applicationPaths.CacheRoot, "Inference", "v1");
-            var sessionFactory = new OnnxInferenceSessionFactory(uiThreadGuard);
+            if (originalDbEvidenceRuntime)
+            {
+                providerOrder = [InferenceProvider.Cpu];
+            }
+            CpuThreadConfiguration cpuThreadConfiguration = CpuThreadConfiguration.Create(
+                originalDbEvidenceRuntime ? 1 : null);
+            string cacheRoot = Path.Combine(applicationPaths.CacheRoot, "Inference",
+                originalDbEvidenceRuntime ? OriginalDbEvidenceCacheNamespace : "v1");
+            var sessionFactory = new OnnxInferenceSessionFactory(uiThreadGuard,
+                originalDbEvidenceRuntime ? OnnxGraphOptimizationMode.Disabled : OnnxGraphOptimizationMode.RuntimeDefault);
             return DomainResult<ProductionInferenceRuntimeHost>.Success(
                 new ProductionInferenceRuntimeHost(
                     discovery,
@@ -142,7 +157,7 @@ public static class ProductionInferenceRuntimeFactory
                     cpuThreadConfiguration,
                     providerOrder,
                     cacheRoot,
-                    ProductionInferenceRuntimeHost.DefaultQueueCapacity,
+                    originalDbEvidenceRuntime ? 1 : ProductionInferenceRuntimeHost.DefaultQueueCapacity,
                     ProductionInferenceRuntimeHost.DefaultWorkerCount));
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)

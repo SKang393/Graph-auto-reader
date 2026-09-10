@@ -1,0 +1,104 @@
+{
+  "schema": "graphreader.goal22-original-db-production-evidence-boundary.v1",
+  "date": "2026-09-10",
+  "scope": "implementation-and-synthetic-mutation-tests-only",
+  "production_approval": false,
+  "model_activation": false,
+  "packaged_build_created": false,
+  "private_data_read": false,
+  "sealed_data_read": false,
+  "implementation": [
+    "Select original-DB OCR through one checksum-bound approval profile in normal Production composition.",
+    "Bind both model payloads and evaluated manifest runtime contracts without a benchmark/manifest checksum cycle.",
+    "Validate the actual full-OCR dev score schema, complete fixed denominators, geometry-only matching, exact text, CER arithmetic, roles and all five central bars.",
+    "Select the evaluated CPU-only, disabled-optimization, single-thread/worker/queue runtime and require its distinct cache namespace before inference initialization.",
+    "Require synthetic-dev and real-sealed evaluated App, OCR and Inference assemblies plus reviewed OpenCV to match the current executable dependencies.",
+    "Bind ONNX Runtime/OpenCvSharp managed dependencies and loaded or package-bound native dependencies to the actual application deployment root.",
+    "Compare the surrounding axis, marker, classifier, raster artifact, legend and phase identities before exposing a complete automatic workflow; mismatch suppresses OCR and the workflow recoverably.",
+    "Embed aggregate real-sealed evidence, candidate and protocol bytes so installed and portable validation do not require the development checkout or private corpus.",
+    "Validate the real worker's exact existing aggregate schema, 51-project inventory, identity bindings, privacy flags and whole-workflow metric arithmetic.",
+    "Reject synthetic-sealed sources until a concrete full-OCR aggregate-only producer and source validator are implemented."
+  ],
+  "validation": [
+    {
+      "command": "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release -r win-x64 --no-restore --filter 'FullyQualifiedName~ProductionOriginalDb|FullyQualifiedName~ApplicationCompositionLifecycleTests|FullyQualifiedName~ProductionComponentOcrAdapterFactoryTests|FullyQualifiedName~ProductionOcrLocalCandidateFactoryTests' --logger 'trx;LogFileName=goal22-original-db-integrated-v2.trx' --results-directory artifacts/test-results --nologo",
+      "passed": 77,
+      "failed": 0,
+      "skipped": 0,
+      "test_elapsed_seconds_rounded": 2,
+      "trx": {
+        "path": "artifacts/test-results/goal22-original-db-integrated-v2.trx",
+        "sha256": "af07b7803fcbae80496ce1a1248259809e394c14c9d681650227797820218925"
+      },
+      "evidence_type": "synthetic fixtures, adversarial mutations and existing factory/lifecycle regressions, not real acceptance"
+    }
+  ],
+  "limitations": [
+    "No model has been approved or activated by this change.",
+    "The full-OCR synthetic-sealed producer and corresponding gate source validator remain required.",
+    "Whole-workflow private metrics do not establish OCR-stage text or role accuracy.",
+    "Canonical first-sealed-read accounting remains the acceptance executor's responsibility.",
+    "Older retained executables may support diagnostic comparisons but cannot approve a changed Production runtime."
+  ],
+  "license_review": "Apache-2.0 project code; no new dependency, model payload or external asset.",
+  "independent_review": {
+    "status": "clear",
+    "findings_repaired": [
+      "Runtime graph optimization and thread/queue policy parity.",
+      "Complete surrounding workflow identity.",
+      "Actual ONNX Runtime and OpenCvSharp dependency identity.",
+      "Enforcement of the isolated cache namespace at the approved factory boundary."
+    ],
+    "activation_claim": false
+  },
+  "source_files": [
+    {
+      "path": "src/GraphReader.App/Integration/ApplicationComposition.cs",
+      "sha256": "d23cc740ccbcf55f2343a6739e2fc6c5456bbe4101c9b9ef146fd24b0a903d9d"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/ProductionInferenceRuntimeHost.cs",
+      "sha256": "234ecab6d5c6f6af02a8c85df20d8ad13016eee931975da30e440f01b42d8da3"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "sha256": "9901cefffa5c642a208f0b3a6a35a71723f355d5272a03d189c549e3dc326bda"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrApprovalGate.cs",
+      "sha256": "bc7a6742395cc50cd526415c415396f381be4eb8ecf090fbfc22881559743450"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbRealSealedEvidence.cs",
+      "sha256": "6fc456848994e64b354fe7161cf99682722889ad50e1b70c5a20304d39be2efc"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbRuntimeFiles.cs",
+      "sha256": "441ad36ba1282166a5b1fc68ded3c94ee8007b4cc7ee7c723504375f5892eafc"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbWorkflowEvidence.cs",
+      "sha256": "1c7eaa7cd42af5043ee4a255ace0f332a2895de02542590fe6c09862caf0f963"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ApplicationCompositionLifecycleTests.cs",
+      "sha256": "f3b7fddfaf435ef7e561f6bcdf88a7c047caf64b3320b23c34a23e0541a5bf25"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOriginalDbOcrApprovalGateTests.cs",
+      "sha256": "c23891e2e4f3b687d15e70dba9a10de2e6f82d7801b4e4f37dd24adcb8160913"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOriginalDbRealSealedEvidenceTests.cs",
+      "sha256": "2b534b1d4fab382c72d930cdf11dba26775dfd815eff0a70352000782b47e1c6"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOriginalDbRuntimeFilesTests.cs",
+      "sha256": "d855c330a2f5f6b074403e5b165db55a111984ca7689216f84f5aa54d1763ead"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOriginalDbWorkflowEvidenceTests.cs",
+      "sha256": "d226dda1824c8145ec1fc3bd99fffce387014ee4a045625e3ff720dda1872df4"
+    }
+  ]
+}
