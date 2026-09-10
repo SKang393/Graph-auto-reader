@@ -9691,6 +9691,42 @@
       "candidate_report_sha256": "ae34d03a9172240f39e39407324e0901dc624f589f7ddb14d97a9c8b14c673da",
       "optimizer_steps": 1680,
       "closed_utc_date": "2026-09-10"
+    },
+    {
+      "task": "ocr-detection",
+      "revision": "graph-text-inverse-db-target-v40",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/ocr/inverse_db_target_v40/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "c2b4bbd6a5c6d3703c0f8ef30015b922424e60c4e1fc653c244c818cf1474a1f"
+      },
+      "protocol_path": "ml/ocr/inverse_db_target_v40/protocol.json",
+      "protocol_sha256": "bc96810465ce51e81c368f03f946ca3c55cafdc597b295b27b0c00662ecfa1a1",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "Synthetic train/dev only under Goal22 execution authorization; no sealed/private read or production approval.",
+      "isolated_change": "Replace V39 shrink targets with decoder-compatible inverse targets and restore all-one supervision masks. Keep parent, features, optimizer and production postprocessing unchanged.",
+      "optimizer_steps_expected": 1680,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "outcome_path": "ml/ocr/inverse_db_target_v40/P1_RESULT.json",
+      "outcome_sha256": "74d367fd5ed915cda431132d055184d370170d0157e902a05bc0a0b5c525f5aa",
+      "candidate_report_sha256": "6a4fb03135e4fc0935a8bd7d3f36f8e765cc075abf235fb00774a6aa5e9282cf",
+      "optimizer_steps": 1680,
+      "closed_utc_date": "2026-09-10"
     }
   ]
 }

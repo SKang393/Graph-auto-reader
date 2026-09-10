@@ -1,0 +1,28 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V39 P1 has 39 correct regions, three false regions and 144 misses on the fixed 183-truth development set. Its training target is geometrically incompatible with the unchanged production DB postprocessor: even perfect V39 targets recover only one development truth. The deterministic inverse-unclip target with inclusive contour endpoints recovers 181 of 183 development truths in the model-free application oracle. Repairing training supervision to match the decoder may improve trained region recall. Evidence: docs/GOAL-22-DB-TARGET-ROUNDTRIP-DIAGNOSIS.json and inverse target oracle score SHA256 adf316d6298aea4d27bdd99c1807b8f125161036e839232fb835979173189476.",
+  "isolated_change": "Replace only V39's fixed-ratio shrink supervision with the deterministic inverse of the shipped unclip ratio 1.5, round-half-up contour extents of at least three pixels, and inclusive raster endpoints. Rebuild the valid mask as all ones because the full authenticated crops contain no outside or partial truths and the repaired construction retains every target, including the 16 truths previously masked solely because their old target collapsed. Keep the reviewed original pretrained parent, frozen trunk and running statistics, cached original-BGR input features, train-only 60-epoch optimizer recipe and checkpoint selection unchanged. Keep all production detection and geometry settings unchanged. Target contacts and all unmatched truths remain in the full denominator.",
+  "split_identities": {
+    "v3_binding_path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+    "v3_binding_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+    "inverse_target_request_path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-inputs-v1/request.json",
+    "inverse_target_request_sha256": "ee14d67f651e20ec9479fb9e59ce1ea1ef77542b057f3d62312c476685520b0b",
+    "train_sources": 20,
+    "train_panels": 28,
+    "train_text_regions": 709,
+    "dev_sources": 3,
+    "dev_panels": 9,
+    "dev_text_regions": 183,
+    "sealed": "Not opened or authorized by this train/dev-only protocol."
+  },
+  "metric": "Verify trained-head numerical export parity, then run the frozen patched candidate through the actual original-BGR C# detector and OCR adapter on all 37 authenticated panels. Use the existing maximum-cardinality one-to-one source-space IoU 0.5 matcher over all 709 train and 183 development text truths. Retain false positives, misses, cross-panel duplicates and failed panels. Report train and dev precision/recall separately. Do not compare absolute Dice losses across different target definitions. Geometry does not establish recognition text, role, calibration or end-to-end export accuracy.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json: tier1_reviewable_error.text_region_detection_precision_minimum and text_region_detection_recall_minimum. The target oracle is diagnostic evidence, not a new acceptance gate. A passing detector experiment does not independently approve complete OCR or Goal 22.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "training_requires_canonical_authorization": true,
+    "private_reads": 0,
+    "sealed_runs_authorized": 0,
+    "production_approval": false
+  }
+}

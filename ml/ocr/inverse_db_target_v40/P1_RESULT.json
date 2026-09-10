@@ -1,0 +1,300 @@
+{
+  "acceptance_bar_reference": {
+    "character_error_rate_maximum": 0.05,
+    "descriptive_only_until_metric_policy_and_candidate_outcome_are_closed": true,
+    "path": "ml/policy/acceptance-bars.json",
+    "recognition_exact_match_minimum": 0.95,
+    "role_accuracy_minimum": 0.95,
+    "scorer_does_not_select_or_approve_a_candidate": true,
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "text_region_detection_precision_minimum": 0.95,
+    "text_region_detection_recall_minimum": 0.95,
+    "validation_character_error_rate_meets_bar": false,
+    "validation_raw_detection_precision_meets_bar": false,
+    "validation_raw_detection_recall_meets_bar": false,
+    "validation_recognition_exact_meets_bar": false,
+    "validation_role_accuracy_meets_bar": false
+  },
+  "acceptance_status": "FAIL",
+  "application_evaluation": {
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/app-evaluation-v1/report.json",
+    "sha256": "553c233e61fead61f2cbd81388897215ee03e86d5d3d2c7bceed0c6fa4c74d54"
+  },
+  "candidate": {
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/candidate-v1/candidate.json",
+    "sha256": "1339e771771c469ee1bc4c696b17234df266c7d97332ed9ca5d040d909ad88c9"
+  },
+  "candidate_config": {
+    "path": "ml/ocr/inverse_db_target_v40/training/p1.json",
+    "sha256": "c2b4bbd6a5c6d3703c0f8ef30015b922424e60c4e1fc653c244c818cf1474a1f"
+  },
+  "candidate_consumed": false,
+  "candidate_id": "P1",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/P1-run/candidate-report.json",
+    "sha256": "6a4fb03135e4fc0935a8bd7d3f36f8e765cc075abf235fb00774a6aa5e9282cf"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/ocr-detection/graph-text-inverse-db-target-v40/P1/result.json",
+    "sha256": "0c25baadf47393e3e19e7b194bc5fecd3044d3bae10ec73c9472889fc2767a69"
+  },
+  "checkpoint": {
+    "content": "torch_state_dict_only",
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/P1-run/selected-head.pt",
+    "sha256": "05093aa2f7cad0eba6069c3ece3c16cae1cc0dba4753fea101146cbfc5b95225"
+  },
+  "closed_utc": "2026-09-10T01:48:36.712127+00:00",
+  "frozen_batch_norm_unchanged": true,
+  "full_ocr_diagnostic_metrics": {
+    "train": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.25,
+          "correct_count": 15,
+          "truth_count": 60
+        },
+        "axistitle": {
+          "accuracy": 0.38,
+          "correct_count": 19,
+          "truth_count": 50
+        },
+        "legendtext": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 20,
+          "truth_count": 30
+        },
+        "other": {
+          "accuracy": 0.1375,
+          "correct_count": 11,
+          "truth_count": 80
+        },
+        "participant": {
+          "accuracy": 0.0,
+          "correct_count": 0,
+          "truth_count": 30
+        },
+        "phaseheading": {
+          "accuracy": 0.4125,
+          "correct_count": 33,
+          "truth_count": 80
+        },
+        "xtick": {
+          "accuracy": 0.5657142857142857,
+          "correct_count": 99,
+          "truth_count": 175
+        },
+        "ytick": {
+          "accuracy": 0.6078431372549019,
+          "correct_count": 124,
+          "truth_count": 204
+        }
+      },
+      "character_error_count": 1368,
+      "character_error_rate": 0.4186046511627907,
+      "geometry_false_negative_count": 139,
+      "geometry_false_positive_count": 67,
+      "geometry_matched_region_count": 570,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 789,
+      "predicted_region_count": 637,
+      "recognition_exact_accuracy": 0.5430183356840621,
+      "recognition_exact_count": 385,
+      "role_accuracy": 0.4527503526093089,
+      "role_correct_count": 321,
+      "truth_character_count": 3268,
+      "truth_region_count": 709,
+      "unmatched_prediction_insertion_edit_count": 115,
+      "unmatched_truth_deletion_edit_count": 464
+    },
+    "validation": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.1111111111111111,
+          "correct_count": 2,
+          "truth_count": 18
+        },
+        "axistitle": {
+          "accuracy": 0.25,
+          "correct_count": 3,
+          "truth_count": 12
+        },
+        "legendtext": {
+          "accuracy": 0.0,
+          "correct_count": 0,
+          "truth_count": 11
+        },
+        "other": {
+          "accuracy": 0.0,
+          "correct_count": 0,
+          "truth_count": 30
+        },
+        "participant": {
+          "accuracy": 0.0,
+          "correct_count": 0,
+          "truth_count": 9
+        },
+        "phaseheading": {
+          "accuracy": 0.43333333333333335,
+          "correct_count": 13,
+          "truth_count": 30
+        },
+        "xtick": {
+          "accuracy": 0.7708333333333334,
+          "correct_count": 37,
+          "truth_count": 48
+        },
+        "ytick": {
+          "accuracy": 0.8,
+          "correct_count": 20,
+          "truth_count": 25
+        }
+      },
+      "character_error_count": 515,
+      "character_error_rate": 0.5053974484789009,
+      "geometry_false_negative_count": 43,
+      "geometry_false_positive_count": 47,
+      "geometry_matched_region_count": 140,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 62,
+      "predicted_region_count": 187,
+      "recognition_exact_accuracy": 0.6721311475409836,
+      "recognition_exact_count": 123,
+      "role_accuracy": 0.4098360655737705,
+      "role_correct_count": 75,
+      "truth_character_count": 1019,
+      "truth_region_count": 183,
+      "unmatched_prediction_insertion_edit_count": 185,
+      "unmatched_truth_deletion_edit_count": 268
+    }
+  },
+  "full_ocr_metric_scope": "Additional complete-text diagnostics under the declared exact-primary-text policy; the preregistered detector geometry bars independently fail.",
+  "license_review": "Reviewed Apache-2.0 PaddleOCR parent, retained notices and checksum-bound derivative modification notice; no payload committed.",
+  "limitations": [
+    "Dev precision 74.87 percent and recall 76.50 percent fail the unchanged 95 percent bars.",
+    "The inverse-target repair increases correct dev regions from 39 to 140 of 183, while false regions increase from three to 47. It is not production approved.",
+    "Full dev text exact accuracy is 67.21 percent, CER 50.54 percent, and role accuracy 40.98 percent. Missing truths and unmatched predicted text remain counted.",
+    "Absolute Dice losses are not compared between target definitions. No sealed, private or normal Production accuracy is established."
+  ],
+  "next_work": "Diagnose remaining synthetic detection geometry and role errors from saved outputs before selecting the next isolated repair.",
+  "onnx": {
+    "changed_constants": [
+      "conv2d_159.w_0",
+      "batch_norm_0.w_0",
+      "batch_norm_0.b_0",
+      "conv2d_transpose_0.w_0",
+      "conv2d_transpose_0.b_0",
+      "batch_norm_1.w_0",
+      "batch_norm_1.b_0",
+      "conv2d_transpose_1.w_0",
+      "conv2d_transpose_1.b_0"
+    ],
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/P1-run/detector-inverse-db-target-v40-p1.onnx",
+    "sha256": "29931e0d032cd45511b8d94255552106171961ae3d2684bed2be85c7a2b586c1",
+    "source_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+    "unchanged_trainable_constants": []
+  },
+  "onnx_parity_maximum_absolute_error": 6.258487701416016e-06,
+  "onnx_parity_passed": true,
+  "optimizer_steps": 1680,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol": {
+    "path": "ml/ocr/inverse_db_target_v40/protocol.json",
+    "sha256": "bc96810465ce51e81c368f03f946ca3c55cafdc597b295b27b0c00662ecfa1a1"
+  },
+  "raw_detector_geometry": {
+    "train": {
+      "false_negatives": 139,
+      "false_positives": 67,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.8948194662480377,
+      "predicted_region_count": 637,
+      "recall": 0.8039492242595204,
+      "true_positives": 570,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 43,
+      "false_positives": 47,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.7486631016042781,
+      "predicted_region_count": 187,
+      "recall": 0.7650273224043715,
+      "true_positives": 140,
+      "truth_region_count": 183
+    }
+  },
+  "recognition_failures": {
+    "train": {
+      "explicit_region_failure_count": 0,
+      "failed_panel_count": 0,
+      "raw_regions_on_failed_panels": 0,
+      "raw_regions_without_successful_recognition": 0
+    },
+    "validation": {
+      "explicit_region_failure_count": 0,
+      "failed_panel_count": 0,
+      "raw_regions_on_failed_panels": 0,
+      "raw_regions_without_successful_recognition": 0
+    }
+  },
+  "release_eligible": false,
+  "revision": "graph-text-inverse-db-target-v40",
+  "schema": "graphreader.ocr-inverse-db-target-v40-candidate-outcome.v1",
+  "score": {
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/full-score-v1.json",
+    "sha256": "f761a1ef3195bfe842c7bde9fcd4d297ff154f8fcfc120786c996ba49544fefe"
+  },
+  "scorer": {
+    "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate.py",
+    "sha256": "386a3d8e0b82b3622f7596ab572128f1f9a2242a648d83901f90a0196f2fef8b"
+  },
+  "sealed_runs": 0,
+  "selected_epoch": 59,
+  "status": "failed_dev_unconsumed",
+  "successfully_recognized_region_geometry": {
+    "train": {
+      "false_negatives": 139,
+      "false_positives": 67,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.8948194662480377,
+      "predicted_region_count": 637,
+      "recall": 0.8039492242595204,
+      "true_positives": 570,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 43,
+      "false_positives": 47,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.7486631016042781,
+      "predicted_region_count": 187,
+      "recall": 0.7650273224043715,
+      "true_positives": 140,
+      "truth_region_count": 183
+    }
+  },
+  "supervision_mask": {
+    "definition": "all_ones_full_valid_runtime_crop",
+    "previously_masked_pixel_count": 1092,
+    "rebuilt_pixel_count": 9830400
+  },
+  "synthetic_only": true,
+  "task": "ocr-detection",
+  "timing_ms": {
+    "actual_application": 20850.9454,
+    "combined_scoring": 106679.81689999579,
+    "trained_parity": 6691.825499990955,
+    "training": 605675.187
+  },
+  "trained_export_parity": {
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/trained-parity-v1/report.json",
+    "sha256": "c410eca56b3ddd4f41b7fcc8e70a7b6f5d11ae46cc1c44c2dbd1c5c4b88b8a7b"
+  },
+  "training_loss_epoch_1": 0.47739972174167633,
+  "training_loss_selected": 0.11181492252009255,
+  "training_stage": {
+    "path": "artifacts/goal22-runs/ocr-v40-inverse-target/P1-run/training-stage.json",
+    "sha256": "27207832aa1a01915f1e5f34cb1a1b0ac8b59f3018db408b9cc53a70f7cf6c3e"
+  }
+}

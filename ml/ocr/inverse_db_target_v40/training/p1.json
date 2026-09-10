@@ -1,0 +1,56 @@
+{
+  "schema": "graphreader.ocr-inverse-db-target-v40-candidate-config.v1",
+  "task": "ocr-detection",
+  "revision": "graph-text-inverse-db-target-v40",
+  "candidate_id": "P1",
+  "stage": "P1",
+  "expected_runner_source_bundle_sha256": "18bb366bb581d3d3d3fc04bf6e24289f17e701ebe07a2fbafbe0a2569fb31cce",
+  "base_v39_config": {
+    "path": "ml/ocr/pretrained_db_head_v39/training/p1.json",
+    "sha256": "310de176c6ca08ad3b33ca4ad698e262a351b5a2f731c15746cf537e30c3f46d"
+  },
+  "parent_model": {
+    "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/reviewed-parent.onnx",
+    "sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb"
+  },
+  "inverse_target_request": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-inputs-v1/request.json",
+    "sha256": "ee14d67f651e20ec9479fb9e59ce1ea1ef77542b057f3d62312c476685520b0b"
+  },
+  "inverse_target_builder": {
+    "path": "ml/ocr/official_bakeoff/db_inverse_targets.py",
+    "sha256": "ec273483050ef573853be797e4df38df4c907339dc3b426a939522343ebaeb86"
+  },
+  "inverse_target_oracle_score": {
+    "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-score-v1.json",
+    "sha256": "adf316d6298aea4d27bdd99c1807b8f125161036e839232fb835979173189476"
+  },
+  "recipe": {
+    "seed": 20260939,
+    "epochs": 60,
+    "batch_size": 1,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "dice_epsilon": 1e-06,
+    "target_definition": "inverse_db_unclip_rectangle_v1",
+    "supervision_mask": "all_ones_full_valid_runtime_crop",
+    "empty_target_objective": "masked_mean_probability",
+    "captured_parity_maximum_absolute_error": 1e-05
+  },
+  "expected_data": {
+    "train": {
+      "source_count": 20,
+      "panel_count": 28,
+      "full_source_truth_count": 709
+    },
+    "validation": {
+      "source_count": 3,
+      "panel_count": 9,
+      "full_source_truth_count": 183
+    }
+  },
+  "synthetic_only": true,
+  "private_data": false,
+  "sealed_data": false,
+  "production_approval": false
+}
