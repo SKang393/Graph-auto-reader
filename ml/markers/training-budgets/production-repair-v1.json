@@ -9763,6 +9763,42 @@
       "candidate_report_sha256": "37a985d7cd321a53305d715764383e66feaf3bc80adebf038e292e01d0df96fb",
       "optimizer_steps": 12636,
       "closed_utc_date": "2026-09-10"
+    },
+    {
+      "task": "ocr-detection",
+      "revision": "graph-text-ohem-db-head-v41",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/ocr/ohem_db_head_v41/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "73b80ce7490c453700b4eb932a616b582a7e8e65a507709f75c4f437162e6613"
+      },
+      "protocol_path": "ml/ocr/ohem_db_head_v41/protocol.json",
+      "protocol_sha256": "ecc4b5fc125c943cb10c634d93472cda801108432ba52eb773fae4f0adff90b9",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "Synthetic train/dev only under resumed Goal22 execution authorization; no private/sealed read or production approval.",
+      "isolated_change": "Replace positive-panel Dice with fixed 3:1 OHEM BCE, preserving the V40 inverse targets, parent, features, optimizer, full-train checkpoint selection and detector operating point.",
+      "optimizer_steps_expected": 1680,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "outcome_path": "ml/ocr/ohem_db_head_v41/P1_RESULT.json",
+      "outcome_sha256": "76bfa86e7612f28ae622e51c2d2d6c219ae82210dc6edce2dd76ee4092d1a3f8",
+      "candidate_report_sha256": "34698a5e2961e697effc61c20f08a7074d1b22f3ad5538aeb3a373bf496c1dcd",
+      "optimizer_steps": 1680,
+      "closed_utc_date": "2026-09-10"
     }
   ]
 }
