@@ -132,3 +132,15 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   [retry6 result](../ml/markers/center/mask_preserving_v24/P1_RETRY6_RESULT.json),
   [retry7 config](../ml/markers/center/mask_preserving_v24/training/p1.json)
 - **Unblocks when:** resolved by explicit maintainer approval
+
+
+## REV-007 — restore workspace execution credits
+
+- **Status:** resolved
+- **Resolution:** managed approval recovered; build, 15 self-tests and 197 cross-language fixtures completed successfully.
+- **Blocks:** none requiring account action
+- **Effort:** account owner action; service restoration time unknown
+- **Action:** ask the workspace owner to refill credits, then resume this task
+- **Why:** automatic approval review rejected the authorized build and test launch because workspace credits were exhausted. The command never started. Repeating it through another execution route would bypass that rejection.
+- **Files:** [pending scorer](../tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorer.cs), [parity harness](../tools/GraphReader.SyntheticRuntimeEvidence/check_original_db_ocr_aggregate_parity.py), [readiness](1.0-READINESS.md)
+- **Unblocks when:** managed approval is available and the pending build, self-test and cross-language parity checks can run

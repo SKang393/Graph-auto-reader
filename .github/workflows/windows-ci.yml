@@ -99,6 +99,14 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass
           -File "${{ github.workspace }}\packaging\localization\Test-LocalizationAudit.ps1"
 
+      - name: Test in-memory OCR metric accounting
+        shell: pwsh
+        run: |
+          dotnet build tools/GraphReader.SyntheticRuntimeEvidence/GraphReader.SyntheticRuntimeEvidence.csproj --configuration Release --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'OCR metric tool build failed.' }
+          dotnet tools/GraphReader.SyntheticRuntimeEvidence/bin/Release/net10.0-windows/win-x64/GraphReader.SyntheticRuntimeEvidence.dll --self-test-original-db-ocr-aggregate
+          if ($LASTEXITCODE -ne 0) { throw 'OCR metric self-tests failed.' }
+
       - name: Test release artifact validation
         shell: pwsh
         run: >-

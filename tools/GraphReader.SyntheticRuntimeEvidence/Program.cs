@@ -32,6 +32,15 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == OriginalDbOcrMetricFixtures.Command)
+        {
+            return OriginalDbOcrMetricFixtures.Run();
+        }
+        if (args.Length == 1 && args[0] == "--self-test-original-db-ocr-aggregate")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrAggregateScorerSelfTest.Run(), JsonOptions));
+            return 0;
+        }
         if (args.Length == 4 && args[0] == OfficialDbTargetOracle.Command)
         {
             return await OfficialDbTargetOracle.RunCommandAsync(args, RepositoryRoot()).ConfigureAwait(false);

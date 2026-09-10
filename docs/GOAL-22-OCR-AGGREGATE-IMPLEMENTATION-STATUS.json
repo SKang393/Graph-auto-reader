@@ -1,0 +1,67 @@
+{
+  "schema": "graphreader.goal22.ocr-aggregate-implementation-status.v1",
+  "status": "metric_accounting_verified_worker_integration_pending",
+  "purpose": "In-memory full OCR metric accounting for the required aggregate-only sealed evaluator.",
+  "source_sha256": {
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorer.cs": "a7addc39ce604c97bf204e9ca3c696854af9eaf0da597fa0a8a90d9329759ad0",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorerSelfTest.cs": "b9f319e0ba475b0ab66b5a01a9f4edc93ce3236778b86fd1078baeefd49a0b06",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMetricFixtures.cs": "9d6fcca5de29493dc43ad8729fab7b849943ed07af93ce30ee9ebd520d75ee5f",
+    "tools/GraphReader.SyntheticRuntimeEvidence/check_original_db_ocr_aggregate_parity.py": "d455b34197524a24e74591126ff06d8ad268daa518e354124c49a25dc9f10e4a",
+    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "7741d7f536fa4d8d2354b19d64fd9af6c4fe97e8da7ab8f917e096ec0aecea56"
+  },
+  "validation": {
+    "build": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0,
+      "elapsed_seconds": 3.61
+    },
+    "self_test": {
+      "passed": true,
+      "checks": 15
+    },
+    "cross_language_parity": {
+      "schema": "graphreader.original-db-ocr-aggregate-parity.v1",
+      "passed": true,
+      "fixture_count": 197,
+      "seed": 20260910,
+      "absolute_tolerance": 1e-12,
+      "invalid_fixture_rejected_without_case_output": true,
+      "executable_sha256": "0ea78f3383fac17891bf5b3c10502b3aa7e593efdacb6d3f3f92b87a9e281960",
+      "reference_sha256": "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656",
+      "harness_sha256": "d455b34197524a24e74591126ff06d8ad268daa518e354124c49a25dc9f10e4a",
+      "model_inference": false,
+      "optimizer_steps": 0,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "scope": "Metric accounting parity only; not model accuracy or production approval."
+    },
+    "independent_review": {
+      "status": "CLEAR",
+      "reviewer": "metric_final_review",
+      "scope": "Frozen metric semantics, source and report identities, no whole-worker approval"
+    }
+  },
+  "blocker": "Resolved: managed execution recovered; build and metric validation completed.",
+  "review_queue": "REV-007",
+  "pending_checks": [
+    "Commit and push verified metric component"
+  ],
+  "remaining_integration": [
+    "OCR-specific reserve coverage validation and exact scope dispatch",
+    "Actual in-memory application import/axis/OCR worker with first-read acknowledgment",
+    "Python parent canonical read accounting before worker ACK",
+    "Exact sealed report validation in ProductionOriginalDbOcrApprovalGate"
+  ],
+  "safeguards": [
+    "Original DB uses original BGR, not axis-masked pixels",
+    "Plot bounds derive from application axis detection, never truth",
+    "Existing marker reserves remain marker-scoped",
+    "No model promotion or sealed execution while dev fails"
+  ],
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "goal22_complete": false
+}

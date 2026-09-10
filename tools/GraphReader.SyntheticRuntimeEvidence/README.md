@@ -139,3 +139,24 @@ Evidence files are written in cancellation-aware chunks to a temporary sibling
 and moved into place only after completion. Cancellation removes the writer's
 own in-progress file. Earlier complete diagnostic files remain as an incomplete
 run record without a final report; use a fresh directory when rerunning.
+
+
+## In-memory full OCR metrics
+
+`--self-test-original-db-ocr-aggregate` runs model-free metric checks. Windows CI
+builds this tool and runs these checks. It does not generate a packaged build.
+
+`check_original_db_ocr_aggregate_parity.py --executable <tool.dll> --output
+<new-report.json>` compares 197 deterministic fixtures against the preserved V2
+Python scorer. It checks raw detection and recognized geometry separately,
+full-denominator exact text and roles, Unicode-scalar edit distance, and all
+unmatched text insertions/deletions. It requires the existing Python evaluation
+environment; it does not install dependencies or load model weights.
+
+The bounded stdin command `--score-synthetic-ocr-metric-fixtures` supports this
+comparison using model-free fixture JSON and emits aggregate metrics only.
+It is not a sealed archive reader or a Production approval entry point.
+The aggregate scorer reduces each source immediately and retains no source
+identities, text, boxes, or predictions. A future sealed worker must still
+perform canonical first-read accounting and use actual application-derived
+plot geometry before these metrics can support model approval.
