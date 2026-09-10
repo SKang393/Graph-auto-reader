@@ -1,0 +1,57 @@
+{
+  "schema": "graphreader.goal22-participant-role-repair.v1",
+  "status": "verified",
+  "scope": "deterministic-role-inference-and-review",
+  "problem": "Plain detected text lacked participant context. Existing synthetic V40 results recorded zero correct participant roles across 39 truths.",
+  "implementation": [
+    "Use a generic Participant label cue and horizontal peripheral plot geometry in the shared role classifier.",
+    "Preserve explicit role, numeric, axis, phase, annotation and legend behavior.",
+    "Ambiguous left-gutter labels remain Other with an explicit Review warning.",
+    "Bind the role classifier revision into result cache keys while retaining recognition cache reuse."
+  ],
+  "source_files": [
+    {
+      "path": "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "sha256": "10fab9e87709a209a5cda850a96802fdd6c79ef838e68102ad32de6aee402d99"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "c99ceac4aea9b6dde90b3d085044d4210551a0bac1c0f986a770b1106dbfbb76"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrResultCache.cs",
+      "sha256": "443a305decc522033c2b434dde6b96427f6af4e4b25a327f00043f6079b35a4a"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs",
+      "sha256": "4e43dc8342fa5eba85a5ea328e027ee39ddfe43b908f743c2b01a2ece483db24"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/ProductionRoleInferenceTests.cs",
+      "sha256": "dfd26d8df7da604b34a1a79dac0c4fd4a5ad8149d51e909556e3273fa1dcf75a"
+    }
+  ],
+  "tests": {
+    "focused_passed": 40,
+    "focused_test_milliseconds": 193,
+    "full_ocr_passed": 254,
+    "full_ocr_skipped": 16,
+    "full_ocr_failed": 0,
+    "full_ocr_test_seconds": 2,
+    "command": "dotnet test tests/GraphReader.Ocr.Tests/GraphReader.Ocr.Tests.csproj -c Release --no-restore",
+    "wall_seconds": 5.318,
+    "evidence": "Tool-returned console output; no TRX was requested."
+  },
+  "private_data": false,
+  "sealed_data": false,
+  "model_inference_runs": 0,
+  "production_approval": false,
+  "release_eligible": false,
+  "limitations": [
+    "Generic participant cues only. Arbitrary names and corrupted labels remain Review.",
+    "No updated model accuracy, actual Production inference, or real-graph acceptance claimed.",
+    "Sixteen skipped OCR tests are not passing runtime evidence."
+  ],
+  "license_review": "Project code only. No dependency, model, or license change.",
+  "independent_integration_review": "CLEAR: warning propagation, both result-cache key paths, recognition-cache reuse, and common candidate/Production pipeline reachability inspected."
+}

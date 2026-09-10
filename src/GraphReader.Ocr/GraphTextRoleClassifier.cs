@@ -10,6 +10,10 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
+    internal const string Version = "graph-text-role-classifier-v2";
+
+    private const string ParticipantLabelPrefix = "Participant ";
+
     public static RoleClassification Classify(
         OcrDetectedRegion region,
         string recognizedText,
@@ -73,6 +77,19 @@ public static class GraphTextRoleClassifier
             return Classification(OcrTextRole.AxisTitle, 0.90, "axis_title_orientation_and_position");
         }
 
+        var horizontalText = GetOrientation(region.OrientationDegrees) == OcrOrientation.Horizontal;
+        var alignedWithPlot = center.Y >= plotBounds.Top && center.Y <= plotBounds.Bottom;
+        var plotPeripheral = (center.X < plotBounds.Left || center.X > plotBounds.Right) && alignedWithPlot;
+        if (!numeric && horizontalText && plotPeripheral && HasParticipantLabelCue(recognizedText))
+        {
+            return Classification(OcrTextRole.Participant, 0.90, "participant_label_and_peripheral_geometry");
+        }
+
+        if (!numeric && horizontalText && center.X < plotBounds.Left && alignedWithPlot)
+        {
+            return Classification(OcrTextRole.Other, 0.48, "ambiguous_peripheral_text_requires_review");
+        }
+
         var abovePlot = region.Polygon.Bounds.Bottom <= plotBounds.Top + verticalTolerance;
         var rightOfPlot = region.Polygon.Bounds.Left >= plotBounds.Right - horizontalTolerance;
         var insidePlot = center.X >= plotBounds.Left && center.X <= plotBounds.Right &&
@@ -134,6 +151,13 @@ public static class GraphTextRoleClassifier
     private static bool IsVertical(double orientationDegrees) =>
         GetOrientation(orientationDegrees) is
             OcrOrientation.RotatedClockwise or OcrOrientation.RotatedCounterClockwise;
+
+    private static bool HasParticipantLabelCue(string text)
+    {
+        string trimmed = text.Trim();
+        return trimmed.Length > ParticipantLabelPrefix.Length &&
+            trimmed.StartsWith(ParticipantLabelPrefix, StringComparison.OrdinalIgnoreCase);
+    }
 
     private static bool IsPhaseHeadingTerm(string text)
     {

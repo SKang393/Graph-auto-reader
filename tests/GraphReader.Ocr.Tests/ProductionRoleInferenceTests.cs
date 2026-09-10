@@ -11,6 +11,33 @@ public sealed class ProductionRoleInferenceTests
     private static readonly OcrRectangle Plot = new(50, 30, 110, 60);
 
     [TestMethod]
+    public async Task PlainDetectorParticipantCueIsResolvedBySharedPipeline()
+    {
+        var detector = new StubTextRegionDetector(
+            [OcrTestFixtures.Region("participant", 4, 55, 40, 10)]);
+        OcrResult result = await RecognizeAsync(HorizontalText(4, 55), "Participant 01", detector);
+
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.HasCount(1, result.Regions);
+        Assert.AreEqual(OcrTextRole.Participant, result.Regions[0].Role);
+        Assert.AreEqual("Participant 01", result.Regions[0].Text);
+        Assert.AreEqual(OcrReviewStatus.Unreviewed, result.Regions[0].ReviewStatus);
+    }
+
+    [TestMethod]
+    public async Task PlainDetectorAmbiguousPeripheralTextGetsReviewWarning()
+    {
+        var detector = new StubTextRegionDetector(
+            [OcrTestFixtures.Region("ambiguous", 4, 55, 40, 10)]);
+        OcrResult result = await RecognizeAsync(HorizontalText(4, 55), "Morgan", detector);
+
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.AreEqual(OcrTextRole.Other, result.Regions.Single().Role);
+        Assert.IsTrue(result.Warnings.Contains(
+            "ocr_role_needs_review:ambiguous:ambiguous_peripheral_text"));
+    }
+
+    [TestMethod]
     public async Task ActualDetectorAndPipelineLeaveUnlabeledAbovePlotNameForReview()
     {
         OcrImage image = HorizontalText(90, 10);
