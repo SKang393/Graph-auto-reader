@@ -91,5 +91,11 @@
   "private_reads": 0,
   "sealed_reads": 0,
   "packaged_build_created": false,
-  "independent_review": "Unavailable because delegated agents report exhausted workspace credits; lead verified the targeted repair and full affected suites."
+  "independent_review": "Unavailable because delegated agents report exhausted workspace credits; lead verified the targeted repair and full affected suites.",
+  "remote_validation": {
+    "commit": "88399d300275d07c9c4aa5dc7e594a1be331ee53",
+    "run_id": 34440529250,
+    "status": "completed",
+    "conclusion": "success"
+  }
 }

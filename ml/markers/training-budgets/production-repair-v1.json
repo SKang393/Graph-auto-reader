@@ -9799,6 +9799,42 @@
       "candidate_report_sha256": "34698a5e2961e697effc61c20f08a7074d1b22f3ad5538aeb3a373bf496c1dcd",
       "optimizer_steps": 1680,
       "closed_utc_date": "2026-09-10"
+    },
+    {
+      "task": "ocr-detection",
+      "revision": "graph-text-shape-ohem-db-head-v42",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/ocr/shape_ohem_db_head_v42/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "964c97a9a606ef0e66fa63e4f119e14f84c2e96e7ec37a7878482a4252d23cdb"
+      },
+      "protocol_path": "ml/ocr/shape_ohem_db_head_v42/protocol.json",
+      "protocol_sha256": "7bfd086f85da3b0b204209ff4d36c9102e97158a2c39dec88a8b8495bea2412c",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "Synthetic train/dev only under resumed Goal22 execution authorization; no private/sealed read or production approval.",
+      "isolated_change": "Use the fixed arithmetic mean of Dice and 3:1 OHEM BCE for positive panels; preserve the inverse targets, parent, features, optimizer, full-train checkpoint selection and decoder operating point.",
+      "optimizer_steps_expected": 1680,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "outcome_path": "ml/ocr/shape_ohem_db_head_v42/P1_RESULT.json",
+      "outcome_sha256": "480e8a4e7be48eb2d35c2a94406992073f97514c3a5aa0674ecf070e388596a4",
+      "candidate_report_sha256": "9fd63a071af44db8eb06b3651547ceb5f4f82afb6d60183f79eb54184ea0b226",
+      "optimizer_steps": 1680,
+      "closed_utc_date": "2026-09-10"
     }
   ]
 }
