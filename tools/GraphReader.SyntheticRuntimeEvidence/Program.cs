@@ -32,6 +32,21 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 5 && args[0] == OriginalDbOcrMemoryDevCheck.Command)
+        {
+            return await OriginalDbOcrMemoryDevCheck.RunAsync(args, RepositoryRoot()).ConfigureAwait(false);
+        }
+        if (args.Length == 1 && args[0] == "--self-test-sealed-ocr-source-mapping")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSourceMappingSelfTest.Run(), JsonOptions));
+            return 0;
+        }
+        if (args.Length == 1 && args[0] == "--self-test-sealed-ocr-first-read")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(
+                GraphReader.RealAcceptance.Ocr.FrozenRealFirstReadHandshakeSelfTest.Run(), JsonOptions));
+            return 0;
+        }
         if (args.Length == 1 && args[0] == OriginalDbOcrMetricFixtures.Command)
         {
             return OriginalDbOcrMetricFixtures.Run();

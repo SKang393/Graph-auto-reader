@@ -160,3 +160,21 @@ The aggregate scorer reduces each source immediately and retains no source
 identities, text, boxes, or predictions. A future sealed worker must still
 perform canonical first-read accounting and use actual application-derived
 plot geometry before these metrics can support model approval.
+
+## In-memory source execution check
+
+`--check-original-db-memory-dev <request.json> <request-sha256> <candidate.json>
+<candidate-sha256>` loads hash-bound synthetic dev image bytes through actual
+application import, panelization, axis geometry and original-BGR OCR. The
+candidate binds the executing assemblies, model manifests, weights, native
+runtime and license files. The runtime uses CPU with optimization disabled and
+no persistent stage cache. Output contains aggregate execution counts only.
+The caller must independently establish project-owned synthetic provenance;
+this diagnostic does not authorize a sealed read or production approval.
+
+`--self-test-sealed-ocr-source-mapping` checks coordinate transforms, hidden
+prediction serialization and recognition ordering, including ambiguous geometry
+where changing prediction order would change text metrics. The separate
+`--self-test-sealed-ocr-first-read` reuses the existing acknowledgment checks.
+Neither command reads a sealed set. Canonical sealed accounting, OCR-specific
+reserve coverage and final Production evidence integration remain pending.

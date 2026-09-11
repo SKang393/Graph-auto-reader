@@ -9,5 +9,8 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\GraphReader.App\GraphReader.App.csproj" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\FrozenRealFirstReadHandshake.cs" Link="Shared\FrozenRealFirstReadHandshake.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\FrozenRealFirstReadHandshakeSelfTest.cs" Link="Shared\FrozenRealFirstReadHandshakeSelfTest.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\NoPersistenceStageCache.cs" Link="Shared\NoPersistenceStageCache.cs" />
   </ItemGroup>
 </Project>

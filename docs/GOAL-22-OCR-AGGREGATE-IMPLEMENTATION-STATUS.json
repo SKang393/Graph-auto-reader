@@ -1,13 +1,17 @@
 {
   "schema": "graphreader.goal22.ocr-aggregate-implementation-status.v1",
-  "status": "metric_accounting_verified_worker_integration_pending",
+  "status": "metric_and_in_memory_source_execution_verified_sealed_worker_pending",
   "purpose": "In-memory full OCR metric accounting for the required aggregate-only sealed evaluator.",
   "source_sha256": {
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorer.cs": "a7addc39ce604c97bf204e9ca3c696854af9eaf0da597fa0a8a90d9329759ad0",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorerSelfTest.cs": "b9f319e0ba475b0ab66b5a01a9f4edc93ce3236778b86fd1078baeefd49a0b06",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMetricFixtures.cs": "9d6fcca5de29493dc43ad8729fab7b849943ed07af93ce30ee9ebd520d75ee5f",
     "tools/GraphReader.SyntheticRuntimeEvidence/check_original_db_ocr_aggregate_parity.py": "d455b34197524a24e74591126ff06d8ad268daa518e354124c49a25dc9f10e4a",
-    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "7741d7f536fa4d8d2354b19d64fd9af6c4fe97e8da7ab8f917e096ec0aecea56"
+    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "9c1a1d2c0d171bc5f9183505050aba327eedd8fd65a91023de329f74e2e0713b",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemorySourceEvaluator.cs": "926ca5c95b9295d871d8bc4cd3111fb18b2c88d8b1de53a91ce6d041eb8f6500",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryRuntime.cs": "dad66ef1eca99d37021212602ae8a269494e44b033e7127e8acd0e8312d83863",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryDevCheck.cs": "0e8fcb86dad251ece427cfe282a2e5969489af4330b0a3632b50b08c7f583bda",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSourceMappingSelfTest.cs": "309d69b7fd16d6a2f7184597b0b336c8254bffbbe8f0b1deb3af22b84030e283"
   },
   "validation": {
     "build": {
@@ -45,7 +49,8 @@
   "blocker": "Resolved: managed execution recovered; build and metric validation completed.",
   "review_queue": "REV-007",
   "pending_checks": [
-    "Commit and push verified metric component"
+    "Complete aggregate-only sealed worker, OCR-specific coverage and canonical read accounting",
+    "Integrate exact sealed evidence validation into Production approval gate"
   ],
   "remaining_integration": [
     "OCR-specific reserve coverage validation and exact scope dispatch",
@@ -63,5 +68,88 @@
   "private_reads": 0,
   "sealed_reads": 0,
   "production_approval": false,
-  "goal22_complete": false
+  "goal22_complete": false,
+  "metric_component_commit": "b9b09de9b7ba7015b6cbac3b36fddf5670c5e1c5",
+  "first_read_wiring": {
+    "build": {
+      "passed": true,
+      "warnings": 0,
+      "errors": 0,
+      "seconds": 14.66
+    },
+    "self_test": {
+      "passed": true,
+      "scenarios": 9,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "model_inference": false
+    },
+    "shared_sources": {
+      "tools/GraphReader.RealAcceptance.Ocr/FrozenRealFirstReadHandshake.cs": "0b9f71764fde25516d4f61c3696d2ab5591425f72f3c730d46e42344995eb854",
+      "tools/GraphReader.RealAcceptance.Ocr/FrozenRealFirstReadHandshakeSelfTest.cs": "13a770803a6471a6655f9bfcf4f69b7915d936d03bcc96baf0c38c45f4d4642a",
+      "tools/GraphReader.RealAcceptance.Ocr/NoPersistenceStageCache.cs": "d709893baeb51adf98211f621b1ab1a8cfad6db796d66dbcf2937875fe5bde63"
+    },
+    "scope": "Existing source linked unchanged; full sealed worker remains unimplemented."
+  },
+  "source_evaluator": {
+    "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemorySourceEvaluator.cs",
+    "sha256": "926ca5c95b9295d871d8bc4cd3111fb18b2c88d8b1de53a91ce6d041eb8f6500",
+    "status": "actual_synthetic_dev_model_execution_verified",
+    "build": {
+      "warnings": 0,
+      "errors": 0,
+      "seconds": 5.67
+    },
+    "mapping_and_serialization_checks": 11,
+    "truth_input": false,
+    "case_file_output": false,
+    "predictions_json_ignored": true,
+    "known_limits": [
+      "Read admission and sealed archive loading are not yet connected",
+      "Dev execution is not accuracy, sealed acceptance or production approval",
+      "Synchronous hashing and native operations observe cancellation after their current operation."
+    ],
+    "model_execution": {
+      "status": "completed",
+      "sources": 3,
+      "panels": 9,
+      "regions": 185,
+      "recognized": 185,
+      "elapsed_ms": 14987.8385,
+      "candidate_sha256": "ca42f9966c350d47c87f8f9e797aa1002c67036aa2de73f0a250bd8d3ef6b162",
+      "request_sha256": "93e4a2d844d507c3849b3f3741ab99cb1fdd5c55f0b1a1d88c79a6f58492a3f6",
+      "model_inference": true,
+      "declared_input_scope": "project-owned-synthetic-dev-no-truth",
+      "truth_input_supported": false,
+      "production_approval": false,
+      "scope": "dev_execution_only_not_accuracy",
+      "case_output": false
+    },
+    "evidence_files": {
+      "artifacts/goal22-runs/ocr-sealed-aggregate/memory-dev-v4/report.json": "489385f7e5c73f23b056073358cfdad058e2949a27d98101717473a8627c1ad1",
+      "artifacts/goal22-runs/ocr-sealed-aggregate/memory-dev-v4/request.json": "93e4a2d844d507c3849b3f3741ab99cb1fdd5c55f0b1a1d88c79a6f58492a3f6",
+      "artifacts/goal22-runs/ocr-sealed-aggregate/memory-dev-v4/candidate.json": "ca42f9966c350d47c87f8f9e797aa1002c67036aa2de73f0a250bd8d3ef6b162",
+      "artifacts/goal22-runs/ocr-sealed-aggregate/memory-dev-v4/execution-files.json": "26a79ccec479fd95bbd0e289f18b9cc3cc3eb64d5059d5c44aedc833755e015a"
+    },
+    "execution_file_count": 51,
+    "cache_directory_absent_after_execution": true,
+    "synthetic_input_manifest": {
+      "path": "artifacts/goal22-runs/marker-v25-plot-domain/axis-preserving-v3-sources-run2/dev393/input-manifest.json",
+      "sha256": "36ca412992581713cffaaa006b5babb84bc04ad6fbfacd92a6c7df84a5196ac6"
+    },
+    "ordering_repair": "Preserve application recognition order; append explicit recognition failures. Raw geometry uses order-invariant maximum matching cardinality.",
+    "invalid_request_hash_rejected_before_model_loading": true,
+    "verified_run_provenance": {
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "truth_reads": 0,
+      "method": "Lead authenticated all three source hashes against the previously frozen project-owned synthetic dev manifest; generic command makes no provenance claim."
+    },
+    "independent_review": {
+      "status": "CLEAR",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "scope": "Dev-only in-memory source helper, runtime binding, coordinate mapping, recognition order, privacy and cancellation. No sealed or Production approval."
+    }
+  }
 }
