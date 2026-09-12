@@ -20,11 +20,61 @@ public sealed class ProductionOriginalDbOcrApprovalGateTests
         "future-approved-ocr-recognizer", "5.0.0", new string('b', 64), "recognizer.onnx");
 
     [TestMethod]
-    public void ExactFullOcrDevSchemaAcceptsAllFiveCanonicalBars()
+    public void ExactFullOcrDevSchemaAcceptsRecognitionFailureAboveAllFiveCanonicalBars()
+    {
+        EvidenceFixture fixture = CreateEvidence();
+        JsonObject score = ParseObject(fixture.Score);
+        Assert.AreEqual(1,
+            score["recognition_failures"]!["validation"]!["raw_regions_without_successful_recognition"]!
+                .GetValue<int>());
+        Assert.IsTrue(
+            score["metrics"]!["validation"]!["recognition_exact_accuracy"]!.GetValue<double>() > 0.95);
+
+        Validate(fixture);
+    }
+
+    [TestMethod]
+    public void FullOcrDevRejectsMalformedRecognizedInventoryAndFailureAccounting()
     {
         EvidenceFixture fixture = CreateEvidence();
 
-        Validate(fixture);
+        JsonObject score = ParseObject(fixture.Score);
+        score["successfully_recognized_region_geometry"]!["validation"]!["predicted_region_count"] = 181;
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            Validate(fixture with { Score = Serialize(score) }));
+
+        score = ParseObject(fixture.Score);
+        score["recognition_failures"]!["validation"]!["raw_regions_without_successful_recognition"] = 2;
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            Validate(fixture with { Score = Serialize(score) }));
+
+        score = ParseObject(fixture.Score);
+        score["recognition_failures"]!["validation"]!["explicit_region_failure_count"] = 0;
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            Validate(fixture with { Score = Serialize(score) }));
+
+        score = ParseObject(fixture.Score);
+        score["metrics"]!["validation"]!["geometry_false_positive_count"] = 9;
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            Validate(fixture with { Score = Serialize(score) }));
+
+        score = ParseObject(fixture.Score);
+        score["metrics"]!["validation"]!["predicted_region_count"] = 183;
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            Validate(fixture with { Score = Serialize(score) }));
+    }
+
+    [TestMethod]
+    [DataRow(10)]
+    [DataRow(9)]
+    public void FullOcrDevRejectsImpossibleFailedPanelInventory(int failedPanels)
+    {
+        EvidenceFixture fixture = CreateEvidence();
+        JsonObject score = ParseObject(fixture.Score);
+        score["recognition_failures"]!["validation"]!["failed_panel_count"] = failedPanels;
+
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            Validate(fixture with { Score = Serialize(score) }));
     }
 
     [TestMethod]
@@ -334,12 +384,16 @@ public sealed class ProductionOriginalDbOcrApprovalGateTests
 
     private static EvidenceFixture CreateEvidence(string? failedMetric = null)
     {
-        int truePositive = failedMetric == "recall" ? 173 : 174;
+        int truePositive = failedMetric == "recall" ? 173 : 175;
         int falseNegative = 183 - truePositive;
-        int falsePositive = failedMetric == "precision" ? 10 : 9;
+        int falsePositive = failedMetric == "precision" ? 10 : 8;
         int predicted = truePositive + falsePositive;
-        int exact = failedMetric == "recognition" ? 173 : 174;
-        int role = failedMetric == "role" ? 173 : 174;
+        int recognizedTruePositive = truePositive - 1;
+        int recognizedFalsePositive = falsePositive;
+        int recognizedFalseNegative = falseNegative + 1;
+        int recognizedPredicted = predicted - 1;
+        int exact = Math.Min(failedMetric == "recognition" ? 173 : 174, recognizedTruePositive);
+        int role = Math.Min(failedMetric == "role" ? 173 : 174, recognizedTruePositive);
         int characterErrors = failedMetric == "character_error_rate" ? 51 : 50;
 
         byte[] candidate = Serialize(new Dictionary<string, object?>
@@ -418,15 +472,40 @@ public sealed class ProductionOriginalDbOcrApprovalGateTests
                     ["recall"] = Ratio(truePositive, 183),
                 },
             },
+            ["successfully_recognized_region_geometry"] = new Dictionary<string, object?>
+            {
+                ["validation"] = new Dictionary<string, object?>
+                {
+                    ["truth_region_count"] = 183,
+                    ["intersection_over_union_minimum"] = 0.5,
+                    ["true_positives"] = recognizedTruePositive,
+                    ["false_positives"] = recognizedFalsePositive,
+                    ["false_negatives"] = recognizedFalseNegative,
+                    ["predicted_region_count"] = recognizedPredicted,
+                    ["precision"] = Ratio(recognizedTruePositive, recognizedPredicted),
+                    ["recall"] = Ratio(recognizedTruePositive, 183),
+                },
+            },
+            ["recognition_failures"] = new Dictionary<string, object?>
+            {
+                ["validation"] = new Dictionary<string, object?>
+                {
+                    ["failed_panel_count"] = 0,
+                    ["explicit_region_failure_count"] = 1,
+                    ["raw_regions_on_failed_panels"] = 0,
+                    ["raw_regions_without_successful_recognition"] = 1,
+                },
+            },
             ["metrics"] = new Dictionary<string, object?>
             {
                 ["validation"] = new Dictionary<string, object?>
                 {
                     ["truth_region_count"] = 183,
-                    ["geometry_matched_region_count"] = truePositive,
+                    ["predicted_region_count"] = recognizedPredicted,
+                    ["geometry_matched_region_count"] = recognizedTruePositive,
                     ["intersection_over_union_minimum"] = 0.5,
-                    ["geometry_false_positive_count"] = falsePositive,
-                    ["geometry_false_negative_count"] = falseNegative,
+                    ["geometry_false_positive_count"] = recognizedFalsePositive,
+                    ["geometry_false_negative_count"] = recognizedFalseNegative,
                     ["recognition_exact_count"] = exact,
                     ["recognition_exact_accuracy"] = Ratio(exact, 183),
                     ["role_correct_count"] = role,

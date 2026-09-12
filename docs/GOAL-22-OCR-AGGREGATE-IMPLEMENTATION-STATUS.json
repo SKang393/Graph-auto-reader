@@ -32,7 +32,9 @@
     "ml/markers/training_budget.py": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4",
     "ml/policy/sealed_first_read_admission.py": "6e50ac203ad7b918259982e02318441de5175a97e968624f2d0364f89187df1a",
     "ml/policy/tests/test_sealed_first_read_admission.py": "a7375dccd8db29f1f764cf18aa6a7d778c0a5f7d0b858c6dc5e906739540033b",
-    "ml/policy/tests/test_ocr_sealed_admission_transport.py": "3595cb8ffc60e390097322dd79f336243f294ec224402c69e16b1d4784e7da01"
+    "ml/policy/tests/test_ocr_sealed_admission_transport.py": "3595cb8ffc60e390097322dd79f336243f294ec224402c69e16b1d4784e7da01",
+    "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrApprovalGate.cs": "d85693105aff15654a9a2792102bef4575a2001dcc016ab0461e865bef8e532f",
+    "tests/GraphReader.App.Tests/ProductionOriginalDbOcrApprovalGateTests.cs": "2268ec6e20d32dcc8729f9eed80c8472aae03f6dfee38da3291a73223b6f31d0"
   },
   "validation": {
     "build": {
@@ -504,10 +506,10 @@
   "sealed_read_scope": "Unauthorized aggregate-only annotation archive access by a delegated reviewer; not candidate evaluation. See the recorded incident.",
   "sealed_candidate_evaluations": 0,
   "previous_integration": {
-    "commit": "7db27c7af908d07a65c22ef08d0ec636bb86d728",
+    "commit": "cd300368ff86aae533ccc08e967945ef83921153",
     "windows_ci_conclusion": "success",
     "origin_main_verified": true,
-    "windows_ci_run": 34673397219
+    "windows_ci_run": 34674621448
   },
   "archive_and_corpus_components": {
     "status": "compiled_and_model_free_checks_verified",
@@ -642,5 +644,54 @@
     "sealed_reads": 0,
     "production_approved": false,
     "remaining": "Parent command must still authenticate dev eligibility, create and bind the worker request, write the aggregate outcome, and close canonical result records."
+  },
+  "dev_approval_geometry_consistency": {
+    "status": "application_tests_and_independent_review_verified",
+    "problem": "The dev approval gate incorrectly equated raw detection geometry with successfully recognized geometry, creating an unintended zero-recognition-failure criterion.",
+    "repair": "Validate both geometry inventories and their recognition-failure partition; bind full-text counts to recognized geometry while preserving every truth and all five central bars.",
+    "validation": {
+      "application_tests_passed": 295,
+      "failed": 0,
+      "skipped": 0,
+      "test_duration_seconds": 17,
+      "build_succeeded": true,
+      "command": "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj --configuration Release --no-restore --nologo -maxcpucount"
+    },
+    "passing_handwritten_fixture": {
+      "raw_true_positives": 175,
+      "raw_false_positives": 8,
+      "raw_false_negatives": 8,
+      "raw_predictions": 183,
+      "recognized_true_positives": 174,
+      "recognized_false_positives": 8,
+      "recognized_false_negatives": 9,
+      "recognized_predictions": 182,
+      "explicit_recognition_failures": 1,
+      "exact_texts": 174,
+      "correct_roles": 174,
+      "truth_regions": 183,
+      "character_errors": 50,
+      "truth_characters": 1019
+    },
+    "malformed_recognized_inventory_and_failure_count_checks": true,
+    "frozen_reference_sha256": "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656",
+    "model_inference": false,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approved": false,
+    "scope_limit": "This repair does not change V43 results, which reported zero recognition failures. Synthetic-sealed approval remains unavailable until its producer and exact report admission are complete.",
+    "final_affected_validation": {
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0,
+      "test_duration_ms": 202,
+      "scope": "ProductionOriginalDbOcrApprovalGateTests after final nine-panel inventory repair"
+    },
+    "independent_review": {
+      "status": "CLEAR",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "final_repair": "Validation failures are bounded by nine dev panels; when all nine fail, no completed-panel recognition or explicit region failure can be reported."
+    }
   }
 }

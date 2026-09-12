@@ -330,39 +330,69 @@ internal static class ProductionOriginalDbOcrApprovalGate
         RequireSha(barReference, "sha256", acceptanceBarsSha256, "full OCR synthetic-dev acceptance bar");
         JsonElement raw = RequireObject(score, "raw_detector_geometry", "full OCR synthetic-dev score");
         JsonElement rawValidation = RequireObject(raw, "validation", "full OCR synthetic-dev raw geometry");
+        JsonElement recognized = RequireObject(score, "successfully_recognized_region_geometry",
+            "full OCR synthetic-dev score");
+        JsonElement recognizedValidation = RequireObject(recognized, "validation",
+            "full OCR synthetic-dev recognized geometry");
+        JsonElement recognitionFailures = RequireObject(score, "recognition_failures",
+            "full OCR synthetic-dev score");
+        JsonElement validationFailures = RequireObject(recognitionFailures, "validation",
+            "full OCR synthetic-dev recognition failures");
         JsonElement metrics = RequireObject(score, "metrics", "full OCR synthetic-dev score");
         JsonElement validation = RequireObject(metrics, "validation", "full OCR synthetic-dev metrics");
 
-        int truth = RequirePositiveInt32(rawValidation, "truth_region_count", "full OCR synthetic-dev raw geometry");
-        RequireInt32(rawValidation, "truth_region_count", 183, "full OCR synthetic-dev raw geometry");
-        RequireMetric(rawValidation, "intersection_over_union_minimum", 0.5,
-            "full OCR synthetic-dev raw geometry");
+        GeometryInventory rawGeometry = ReadGeometryInventory(
+            rawValidation, "full OCR synthetic-dev raw geometry");
+        GeometryInventory recognizedGeometry = ReadGeometryInventory(
+            recognizedValidation, "full OCR synthetic-dev recognized geometry");
+        if (rawGeometry.Truth != 183 || recognizedGeometry.Truth != rawGeometry.Truth)
+        {
+            throw new InvalidDataException(
+                "Full OCR synthetic-dev geometry does not retain all 183 validation truths.");
+        }
         RequireMetric(validation, "intersection_over_union_minimum", 0.5,
             "full OCR synthetic-dev metrics");
-        int truePositive = RequireNonNegativeInt32(rawValidation, "true_positives", "full OCR synthetic-dev raw geometry");
-        int falsePositive = RequireNonNegativeInt32(rawValidation, "false_positives", "full OCR synthetic-dev raw geometry");
-        int falseNegative = RequireNonNegativeInt32(rawValidation, "false_negatives", "full OCR synthetic-dev raw geometry");
-        int predicted = RequireNonNegativeInt32(rawValidation, "predicted_region_count", "full OCR synthetic-dev raw geometry");
-        if (truePositive + falseNegative != truth || truePositive + falsePositive != predicted)
+
+        int failedPanels = RequireNonNegativeInt32(validationFailures, "failed_panel_count",
+            "full OCR synthetic-dev recognition failures");
+        int explicitRegionFailures = RequireNonNegativeInt32(validationFailures,
+            "explicit_region_failure_count", "full OCR synthetic-dev recognition failures");
+        int rawRegionsOnFailedPanels = RequireNonNegativeInt32(validationFailures,
+            "raw_regions_on_failed_panels", "full OCR synthetic-dev recognition failures");
+        int rawRegionsWithoutRecognition = RequireNonNegativeInt32(validationFailures,
+            "raw_regions_without_successful_recognition", "full OCR synthetic-dev recognition failures");
+        if (recognizedGeometry.Predicted > rawGeometry.Predicted ||
+            recognizedGeometry.TruePositive > rawGeometry.TruePositive ||
+            recognizedGeometry.FalsePositive > rawGeometry.FalsePositive ||
+            failedPanels > 9 ||
+            (failedPanels == 9 && (explicitRegionFailures != 0 || recognizedGeometry.Predicted != 0)) ||
+            (failedPanels == 0 && rawRegionsOnFailedPanels != 0) ||
+            rawRegionsWithoutRecognition != rawGeometry.Predicted - recognizedGeometry.Predicted ||
+            (long)explicitRegionFailures + rawRegionsOnFailedPanels != rawRegionsWithoutRecognition)
         {
-            throw new InvalidDataException("Full OCR synthetic-dev geometry counts are inconsistent.");
+            throw new InvalidDataException(
+                "Full OCR synthetic-dev recognized geometry and failure inventory are inconsistent.");
         }
 
-        double precision = Ratio(truePositive, truePositive + falsePositive);
-        double recall = Ratio(truePositive, truth);
-        RequireMetric(rawValidation, "precision", precision, "full OCR synthetic-dev raw geometry");
-        RequireMetric(rawValidation, "recall", recall, "full OCR synthetic-dev raw geometry");
-        if (precision < bars.TextPrecisionMinimum || recall < bars.TextRecallMinimum)
+        if (rawGeometry.Precision < bars.TextPrecisionMinimum ||
+            rawGeometry.Recall < bars.TextRecallMinimum)
         {
             throw new InvalidDataException("Full OCR synthetic-dev detection gate failed.");
         }
 
-        if (RequirePositiveInt32(validation, "truth_region_count", "full OCR synthetic-dev metrics") != truth ||
-            RequireNonNegativeInt32(validation, "geometry_matched_region_count", "full OCR synthetic-dev metrics") != truePositive ||
-            RequireNonNegativeInt32(validation, "geometry_false_positive_count", "full OCR synthetic-dev metrics") != falsePositive ||
-            RequireNonNegativeInt32(validation, "geometry_false_negative_count", "full OCR synthetic-dev metrics") != falseNegative)
+        if (RequirePositiveInt32(validation, "truth_region_count", "full OCR synthetic-dev metrics") !=
+                recognizedGeometry.Truth ||
+            RequireNonNegativeInt32(validation, "predicted_region_count", "full OCR synthetic-dev metrics") !=
+                recognizedGeometry.Predicted ||
+            RequireNonNegativeInt32(validation, "geometry_matched_region_count", "full OCR synthetic-dev metrics") !=
+                recognizedGeometry.TruePositive ||
+            RequireNonNegativeInt32(validation, "geometry_false_positive_count", "full OCR synthetic-dev metrics") !=
+                recognizedGeometry.FalsePositive ||
+            RequireNonNegativeInt32(validation, "geometry_false_negative_count", "full OCR synthetic-dev metrics") !=
+                recognizedGeometry.FalseNegative)
         {
-            throw new InvalidDataException("Full OCR synthetic-dev text metrics do not use the raw geometry denominator.");
+            throw new InvalidDataException(
+                "Full OCR synthetic-dev text metrics do not use the recognized geometry inventory.");
         }
 
         int exact = RequireNonNegativeInt32(validation, "recognition_exact_count", "full OCR synthetic-dev metrics");
@@ -370,7 +400,7 @@ internal static class ProductionOriginalDbOcrApprovalGate
         int characterErrors = RequireNonNegativeInt32(validation, "character_error_count", "full OCR synthetic-dev metrics");
         int truthCharacters = RequirePositiveInt32(validation, "truth_character_count", "full OCR synthetic-dev metrics");
         RequireInt32(validation, "truth_character_count", 1019, "full OCR synthetic-dev metrics");
-        if (exact > truePositive || roleCorrect > truePositive)
+        if (exact > recognizedGeometry.TruePositive || roleCorrect > recognizedGeometry.TruePositive)
         {
             throw new InvalidDataException(
                 "Full OCR synthetic-dev recognition counts exceed geometry-matched regions.");
@@ -387,8 +417,8 @@ internal static class ProductionOriginalDbOcrApprovalGate
             throw new InvalidDataException("Full OCR synthetic-dev character-error counts are inconsistent.");
         }
 
-        double recognition = Ratio(exact, truth);
-        double role = Ratio(roleCorrect, truth);
+        double recognition = Ratio(exact, recognizedGeometry.Truth);
+        double role = Ratio(roleCorrect, recognizedGeometry.Truth);
         double characterErrorRate = Ratio(characterErrors, truthCharacters);
         RequireMetric(validation, "recognition_exact_accuracy", recognition, "full OCR synthetic-dev metrics");
         RequireMetric(validation, "role_accuracy", role, "full OCR synthetic-dev metrics");
@@ -398,6 +428,28 @@ internal static class ProductionOriginalDbOcrApprovalGate
         {
             throw new InvalidDataException("Full OCR synthetic-dev recognition or role gate failed.");
         }
+    }
+
+    private static GeometryInventory ReadGeometryInventory(JsonElement validation, string label)
+    {
+        int truth = RequirePositiveInt32(validation, "truth_region_count", label);
+        int truePositive = RequireNonNegativeInt32(validation, "true_positives", label);
+        int falsePositive = RequireNonNegativeInt32(validation, "false_positives", label);
+        int falseNegative = RequireNonNegativeInt32(validation, "false_negatives", label);
+        int predicted = RequireNonNegativeInt32(validation, "predicted_region_count", label);
+        if ((long)truePositive + falseNegative != truth ||
+            (long)truePositive + falsePositive != predicted)
+        {
+            throw new InvalidDataException($"{label} counts are inconsistent.");
+        }
+
+        double precision = Ratio(truePositive, predicted);
+        double recall = Ratio(truePositive, truth);
+        RequireMetric(validation, "precision", precision, label);
+        RequireMetric(validation, "recall", recall, label);
+        RequireMetric(validation, "intersection_over_union_minimum", 0.5, label);
+        return new GeometryInventory(
+            truth, truePositive, falsePositive, falseNegative, predicted, precision, recall);
     }
 
     private static void ValidateCandidate(
@@ -757,4 +809,12 @@ internal static class ProductionOriginalDbOcrApprovalGate
         double RecognitionMinimum,
         double CharacterErrorMaximum,
         double RoleMinimum);
+    private sealed record GeometryInventory(
+        int Truth,
+        int TruePositive,
+        int FalsePositive,
+        int FalseNegative,
+        int Predicted,
+        double Precision,
+        double Recall);
 }
