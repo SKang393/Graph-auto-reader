@@ -1,0 +1,531 @@
+{
+  "schema": "graphreader.goal22.v43-representation-diagnosis.v1",
+  "status": "diagnosis_complete_experiment_not_opened",
+  "scope": "Authenticated project-owned synthetic train/dev representation and V43 dev geometry only",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+      "sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+      "use": "Authoritative train/dev source, manifest, image, and generator-profile binding"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v43-extended/app-evaluation-v1/report.json",
+      "sha256": "ea7506d770083ac1b15a9b7254a9d05443795c9a9399e14d1a37ed7dcb7265b2",
+      "use": "V43 runtime raw detector regions in original source pixels"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v43-extended/full-score-v2.json",
+      "sha256": "c29f0d23833c3575ad38f488d3fdb9d232fee71da9b6bfce47e7006e09221933",
+      "use": "Frozen V2 aggregate geometry and historical full-OCR diagnostics"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-inputs-v1/request.json",
+      "sha256": "ee14d67f651e20ec9479fb9e59ce1ea1ef77542b057f3d62312c476685520b0b",
+      "use": "Bound string-free synthetic truth and 37 panel projections"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-inputs-v1/synthetic-truth.json",
+      "sha256": "829beb67695011f936b08272e69bb718b8b35d33bdb94c32a45f521f523fc3f5",
+      "use": "892 source-pixel boxes and generator roles without text strings"
+    },
+    {
+      "path": "ml/synthetic/templates.py",
+      "sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c",
+      "use": "Frozen family assignment, renderer-profile coupling, presentation, and seeded degradation selection"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/extended_head_training.py",
+      "sha256": "348962cf0800c9c4ea1bf8bf52685159e5876c9cf062510b2ddac84389fd9328",
+      "use": "V43 fixed-panel training loop and absence of training-time representation augmentation"
+    }
+  ],
+  "integrity": {
+    "prescribed_source_hashes_matched": true,
+    "train_manifest_hashes_matched_binding": 5,
+    "dev_manifest_hashes_matched_binding": 1,
+    "train_image_hashes_matched_manifests": 20,
+    "dev_image_hashes_matched_manifest": 3,
+    "dev_images_viewed_only_after_hash_verification": true,
+    "frozen_geometry_totals_reproduced_before_attribution": {
+      "truth_regions": 183,
+      "predicted_regions": 185,
+      "true_positives": 135,
+      "false_positives": 50,
+      "false_negatives": 48,
+      "intersection_over_union_minimum": 0.5,
+      "matching": "maximum-cardinality one-to-one"
+    }
+  },
+  "v40_to_v43_outcomes": [
+    {
+      "revision": "V40 inverse target",
+      "result_path": "ml/ocr/inverse_db_target_v40/P1_RESULT.json",
+      "result_sha256": "74d367fd5ed915cda431132d055184d370170d0157e902a05bc0a0b5c525f5aa",
+      "selected_epoch": 59,
+      "optimizer_steps": 1680,
+      "train": {
+        "precision": 0.8948194662480377,
+        "recall": 0.8039492242595204
+      },
+      "dev": {
+        "precision": 0.7486631016042781,
+        "recall": 0.7650273224043715
+      }
+    },
+    {
+      "revision": "V41 OHEM",
+      "result_path": "ml/ocr/ohem_db_head_v41/P1_RESULT.json",
+      "result_sha256": "76bfa86e7612f28ae622e51c2d2d6c219ae82210dc6edce2dd76ee4092d1a3f8",
+      "selected_epoch": 59,
+      "optimizer_steps": 1680,
+      "train": {
+        "precision": 0.9071428571428571,
+        "recall": 0.53737658674189
+      },
+      "dev": {
+        "precision": 0.708029197080292,
+        "recall": 0.5300546448087432
+      }
+    },
+    {
+      "revision": "V42 shape OHEM",
+      "result_path": "ml/ocr/shape_ohem_db_head_v42/P1_RESULT.json",
+      "result_sha256": "480e8a4e7be48eb2d35c2a94406992073f97514c3a5aa0674ecf070e388596a4",
+      "selected_epoch": 59,
+      "optimizer_steps": 1680,
+      "train": {
+        "precision": 0.899803536345776,
+        "recall": 0.6459802538787024
+      },
+      "dev": {
+        "precision": 0.7266666666666667,
+        "recall": 0.5956284153005464
+      }
+    },
+    {
+      "revision": "V43 extended duration",
+      "result_path": "ml/ocr/extended_db_head_v43/P1_RESULT.json",
+      "result_sha256": "2332445b56771e965dfa10b3035c063522976cbfc307a7af77db4fd98e162bb2",
+      "selected_epoch": 239,
+      "optimizer_steps": 6720,
+      "train": {
+        "precision": 0.9767801857585139,
+        "recall": 0.8899858956276445
+      },
+      "dev": {
+        "precision": 0.7297297297297297,
+        "recall": 0.7377049180327869
+      }
+    }
+  ],
+  "representation_inventory": {
+    "train": {
+      "source_count": 20,
+      "panel_count": 28,
+      "family_combinations": [
+        {
+          "count": 10,
+          "value": "renderer=vector_clean|font=system_sans|degradation=none|template=classic_single|marker=geometric_basic"
+        },
+        {
+          "count": 10,
+          "value": "renderer=print_monochrome|font=system_serif|degradation=print_light|template=stacked_shared_axes|marker=mixed_print"
+        }
+      ],
+      "canvas_sizes": [
+        {
+          "count": 15,
+          "width": 1200,
+          "height": 350
+        },
+        {
+          "count": 5,
+          "width": 1200,
+          "height": 890
+        }
+      ]
+    },
+    "dev": {
+      "source_count": 3,
+      "panel_count": 9,
+      "family_combinations": [
+        {
+          "count": 3,
+          "value": "renderer=scan_rough|font=system_mono|degradation=scan_noise|template=compact_legend|marker=symbolic"
+        }
+      ],
+      "canvas_sizes": [
+        {
+          "count": 1,
+          "width": 1200,
+          "height": 350
+        },
+        {
+          "count": 1,
+          "width": 1200,
+          "height": 620
+        },
+        {
+          "count": 1,
+          "width": 1200,
+          "height": 1700
+        }
+      ]
+    },
+    "measured_gap": {
+      "full_family_combination_overlap_count": 0,
+      "per_axis_value_overlap_count": {
+        "renderer": 0,
+        "font": 0,
+        "degradation": 0,
+        "template": 0,
+        "marker": 0
+      },
+      "generator_constraint": "Each renderer selects one fixed font, degradation, template, and marker profile. The two train combinations and one dev combination therefore confound all five axes.",
+      "training_variation_constraint": "V40 through V43 reuse 20 cached source graphs and 28 immutable panels. The training loop changes draw order only and performs no image or feature augmentation.",
+      "seed_constraint": "A source seed selects only one to two degradation kinds and one parameter value per selected kind. Three dev seeds do not independently cover the five representation axes."
+    }
+  },
+  "truth_geometry_distribution": {
+    "normalization": "Each panel-projected truth box was scaled independently by tensor_width/panel_width and tensor_height/panel_height from the authenticated 37-panel oracle request.",
+    "train": {
+      "condition_label": {
+        "truth_count": 80,
+        "width_median_pixels": 10.0,
+        "width_maximum_pixels": 10.0,
+        "fraction_width_at_least_46_pixels": 0.0,
+        "tensor_width_median_pixels": 8.533333333333331,
+        "tensor_width_maximum_pixels": 8.533333333333417,
+        "tensor_height_median_pixels": 10.97142857142856
+      },
+      "legend_text": {
+        "truth_count": 30,
+        "width_median_pixels": 98.0,
+        "width_maximum_pixels": 107.0,
+        "tensor_width_median_pixels": 83.62666666666667,
+        "tensor_width_maximum_pixels": 91.30666666666662,
+        "tensor_height_median_pixels": 13.29439153439153
+      },
+      "participant": {
+        "truth_count": 30,
+        "width_median_pixels": 78.5,
+        "width_maximum_pixels": 84.0,
+        "tensor_width_median_pixels": 66.98666666666666,
+        "tensor_width_maximum_pixels": 71.68,
+        "tensor_height_median_pixels": 13.294391534391536
+      },
+      "phase_heading": {
+        "truth_count": 80,
+        "width_median_pixels": 69.0,
+        "width_maximum_pixels": 126.0,
+        "tensor_width_median_pixels": 58.879999999999995,
+        "tensor_width_maximum_pixels": 107.51999999999998,
+        "tensor_height_median_pixels": 10.97142857142856
+      },
+      "x_tick": {
+        "truth_count": 175,
+        "tensor_width_median_pixels": 10.240000000000009,
+        "tensor_height_median_pixels": 9.481481481481495
+      }
+    },
+    "dev": {
+      "condition_label": {
+        "truth_count": 30,
+        "width_median_pixels": 8.0,
+        "width_maximum_pixels": 47.0,
+        "fraction_width_at_least_46_pixels": 0.4,
+        "tensor_width_median_pixels": 6.826666666666668,
+        "tensor_width_maximum_pixels": 40.10666666666668,
+        "tensor_height_median_pixels": 8.533333333333335
+      },
+      "legend_text": {
+        "truth_count": 11,
+        "width_median_pixels": 118.0,
+        "width_maximum_pixels": 119.0,
+        "tensor_width_median_pixels": 100.69333333333327,
+        "tensor_width_maximum_pixels": 101.54666666666662,
+        "tensor_height_median_pixels": 10.840390879478825
+      },
+      "participant": {
+        "truth_count": 9,
+        "width_median_pixels": 110.0,
+        "width_maximum_pixels": 111.0,
+        "tensor_width_median_pixels": 93.86666666666667,
+        "tensor_width_maximum_pixels": 94.72000000000001,
+        "tensor_height_median_pixels": 12.32592592592593,
+        "geometry_recall": 1.0
+      },
+      "phase_heading": {
+        "truth_count": 30,
+        "width_median_pixels": 87.0,
+        "width_maximum_pixels": 175.0,
+        "tensor_width_median_pixels": 74.24000000000001,
+        "tensor_width_maximum_pixels": 149.33333333333337,
+        "tensor_height_median_pixels": 9.481481481481481
+      },
+      "x_tick": {
+        "truth_count": 48,
+        "tensor_width_median_pixels": 12.799999999999955,
+        "tensor_height_median_pixels": 8.533333333333331,
+        "matched_tensor_width_median_pixels": 12.799999999999955,
+        "missed_tensor_width_median_pixels": 5.973333333333358
+      }
+    }
+  },
+  "image_statistic_definitions": {
+    "near_white_fraction": "Fraction of grayscale pixels at or above 240 of 255",
+    "gray_standard_deviation": "Population standard deviation across all grayscale pixels",
+    "mean_absolute_neighbor_difference": "Mean of horizontal and vertical absolute adjacent-pixel differences"
+  },
+  "dev_source_measurements": [
+    {
+      "seed": 39304,
+      "source_sha256": "f73e7b9101cf3a0242faa8144b2497cf8cd9426c2fee9301a63f8b946ac8bd9c",
+      "width": 1200,
+      "height": 620,
+      "panel_count": 2,
+      "near_white_fraction": 0.9750443548387097,
+      "gray_mean": 250.20904704301074,
+      "gray_standard_deviation": 32.28771046256538,
+      "mean_absolute_neighbor_difference": 4.128042662056482,
+      "truth_regions": 35,
+      "predicted_regions": 35,
+      "true_positives": 25,
+      "false_positives": 10,
+      "false_negatives": 10,
+      "precision": 0.7142857142857143,
+      "recall": 0.7142857142857143,
+      "visual_observation": "Two stacked panels, small monospaced text, grayscale rendering, and compact legends inside the graph area."
+    },
+    {
+      "seed": 39305,
+      "source_sha256": "a2a859ac2c6213a8988addc21d2e639a3b2e6739743aeb715c4865db7730e7e9",
+      "width": 1200,
+      "height": 350,
+      "panel_count": 1,
+      "near_white_fraction": 0.9627142857142857,
+      "gray_mean": 248.47085238095238,
+      "gray_standard_deviation": 36.94079262739382,
+      "mean_absolute_neighbor_difference": 4.694977155258891,
+      "truth_regions": 21,
+      "predicted_regions": 24,
+      "true_positives": 15,
+      "false_positives": 9,
+      "false_negatives": 6,
+      "precision": 0.625,
+      "recall": 0.7142857142857143,
+      "visual_observation": "One panel, small monospaced text, dense symbolic markers, and a compact multi-line legend inside the graph area."
+    },
+    {
+      "seed": 39306,
+      "source_sha256": "ade7017974d977a1eb695d67612299a890e46e869bdae80764c8e52416672fc8",
+      "width": 1200,
+      "height": 1700,
+      "panel_count": 6,
+      "near_white_fraction": 0.8079926470588236,
+      "gray_mean": 242.37713480392156,
+      "gray_standard_deviation": 39.2826403587559,
+      "mean_absolute_neighbor_difference": 5.446745059667693,
+      "truth_regions": 127,
+      "predicted_regions": 126,
+      "true_positives": 95,
+      "false_positives": 31,
+      "false_negatives": 32,
+      "precision": 0.753968253968254,
+      "recall": 0.7480314960629921,
+      "visual_observation": "Six stacked panels, visibly textured gray paper background, repeated compact legends, small monospaced text, and crowded condition captions."
+    }
+  ],
+  "dev_geometry_attribution_by_generator_role": {
+    "annotation": {
+      "truth": 18,
+      "matched": 15,
+      "missed": 3,
+      "recall": 0.8333333333333334
+    },
+    "axis_title": {
+      "truth": 12,
+      "matched": 10,
+      "missed": 2,
+      "recall": 0.8333333333333334
+    },
+    "condition_label": {
+      "truth": 30,
+      "matched": 18,
+      "missed": 12,
+      "recall": 0.6
+    },
+    "legend_text": {
+      "truth": 11,
+      "matched": 1,
+      "missed": 10,
+      "recall": 0.09090909090909091
+    },
+    "participant": {
+      "truth": 9,
+      "matched": 9,
+      "missed": 0,
+      "recall": 1.0
+    },
+    "phase_heading": {
+      "truth": 30,
+      "matched": 24,
+      "missed": 6,
+      "recall": 0.8
+    },
+    "x_tick": {
+      "truth": 48,
+      "matched": 36,
+      "missed": 12,
+      "recall": 0.75
+    },
+    "y_tick": {
+      "truth": 25,
+      "matched": 22,
+      "missed": 3,
+      "recall": 0.88
+    }
+  },
+  "error_shape": {
+    "matched_truth_box_width_pixels": {
+      "minimum": 6.0,
+      "median": 16.0,
+      "maximum": 111.0
+    },
+    "missed_truth_box_width_pixels": {
+      "minimum": 6.0,
+      "median": 46.0,
+      "maximum": 175.0
+    },
+    "matched_truth_box_height_pixels": {
+      "minimum": 9.0,
+      "median": 9.0,
+      "maximum": 13.0
+    },
+    "missed_truth_box_height_pixels": {
+      "minimum": 9.0,
+      "median": 9.0,
+      "maximum": 13.0
+    },
+    "unmatched_truth_nearest_iou": {
+      "minimum": 0.0,
+      "median": 0.25081843930470465,
+      "maximum_below_gate": 0.49942594718714123,
+      "count_with_any_overlap": 33,
+      "count_from_0_25_inclusive_to_0_5_exclusive": 24,
+      "bins": {
+        "zero": 15,
+        "above_zero_below_0_25": 9,
+        "0_25_to_below_0_40": 6,
+        "0_40_to_below_0_50": 18
+      },
+      "count_whose_best_overlapping_prediction_intersects_multiple_truth_boxes": 15
+    },
+    "within_role_tensor_width_pixels": {
+      "condition_label": {
+        "matched_median": 6.826666666666668,
+        "missed_median": 39.25333333333333
+      },
+      "legend_text": {
+        "matched_median": 74.24000000000001,
+        "missed_median": 100.69333333333327
+      },
+      "phase_heading": {
+        "matched_median": 74.24000000000001,
+        "missed_median": 74.24000000000001
+      },
+      "x_tick": {
+        "matched_median": 12.799999999999955,
+        "missed_median": 5.973333333333358
+      }
+    }
+  },
+  "diagnosis": {
+    "measured": [
+      "All five family axes have zero train/dev value overlap, and the renderer profile hard-couples those axes. Existing evidence cannot attribute the gap to one family axis.",
+      "All three dev sources fail at similar recall, including the two near-white sources. The noisiest source has the highest dev precision and recall. Scan background severity alone therefore does not explain the observed failure.",
+      "Raw width is confounded by role, but the normalized within-role comparison identifies two concrete support gaps. Train condition labels reach only 8.53 tensor pixels while 12 dev condition labels are missed with a 39.25-pixel median; train legends reach 91.31 tensor pixels while missed dev legends have a 100.69-pixel median.",
+      "Width is not a global explanation. All nine dev participant labels match despite being wider than train participants, phase-heading matched and missed medians are both 74.24 tensor pixels, and missed x ticks are narrower than matched x ticks.",
+      "Legend text is the clearest geometry failure at 1 of 11 matched. Condition labels match 18 of 30, and x ticks match 36 of 48.",
+      "Of 48 missed truths, 15 have no overlap with any prediction, 9 have best IoU below 0.25, 6 fall from 0.25 through 0.40, and 18 fall from 0.40 through the 0.50 gate. Fifteen misses have a best prediction that intersects multiple truth boxes, consistent with a bounded merge/localization failure subset.",
+      "V43 reaches 97.68 percent train precision but only 89.00 percent train recall. The family gap is material evidence, but it cannot explain every remaining train miss or exclude a frozen-feature capacity limit."
+    ],
+    "working_hypothesis": "The fixed 20-source training representation undercovers long condition-label and legend extents. Longer training over the same immutable features fits the two train family bundles without resolving these two held-out geometry modes.",
+    "confidence": "moderate",
+    "causal_limit": "The dev family changes renderer, font, degradation, template, and marker style together. Source-level and generator-role attribution is exact, but the current evidence cannot identify which coupled visual axis causes an individual false positive or false negative."
+  },
+  "next_bounded_experiment": {
+    "state": "proposal_only_not_preregistered",
+    "name": "train-only long condition-label and legend extent coverage",
+    "hypothesis": "Adding deterministic long condition labels and legends within existing train-owned families will improve those two dev geometry subsets without importing any dev family or case.",
+    "isolated_change": "Change only the train text-value schedule, using a new train-only lexicon salt, so at least 20 of 80 condition labels project to 32-48 detector-tensor pixels and at least 10 of 30 legend labels project to 96-112 detector-tensor pixels. Retain only current train renderer, font, degradation, template, and marker families.",
+    "held_fixed": [
+      "The 20 train source seeds, 28 train panels, canvas sizes, panel/session geometry, non-text graph primitives, and truth-region count",
+      "The three authenticated dev sources, their family keys, pixels, truth, and frozen IoU 0.5 scorer",
+      "The V43 parent trunk and head initialization, target construction, optimizer, learning rate, batch size, 240 epochs, and train-loss checkpoint selection",
+      "The existing 95 percent precision and recall acceptance bars"
+    ],
+    "split_guards": [
+      "Retain existing train family assignments. Do not import scan_rough, system_mono, scan_noise, compact_legend, symbolic, or any dev seed/source into training.",
+      "Generate new training text from an independent project-owned train lexicon; do not copy text from dev examples. Shared generic characters and tokens are not a new exclusion criterion.",
+      "Authenticate a new train manifest and prove zero source identities overlap dev before optimization.",
+      "Keep checkpoint selection train-only. Dev remains available without a run limit for diagnosis and gate reporting under the shared evidence policy."
+    ],
+    "required_report": [
+      "Full train and dev precision, recall, TP, FP, and FN under the unchanged frozen scorer",
+      "Dev source-level and generator-role geometry diagnostics using the same string-free truth adapter",
+      "Rendered and detector-tensor train width-band counts for condition labels and legend text",
+      "Optimizer steps, runtime, manifest hashes, source hashes, and unchanged private/sealed counters"
+    ],
+    "interpretation": {
+      "if_improved": "A dev gain concentrated in condition labels and legend text supports extent undercoverage as a causal contributor. It does not explain x-tick or zero-overlap misses.",
+      "if_not_improved": "Do not extend duration. Treat width support as rejected and investigate compact placement, the other still-confounded family axes, and frozen-feature capacity as separate future hypotheses."
+    },
+    "coverage_note": "The proposed width bands define the isolated training-data treatment, not additional accuracy acceptance gates. Verify rendered layout and actual application panel mapping before optimization; report any changed count or overlap rather than silently clipping or discarding examples."
+  },
+  "historical_full_ocr_note": {
+    "dev_exact_accuracy": 0.6666666666666666,
+    "dev_character_error_rate": 0.5672227674190383,
+    "dev_role_accuracy": 0.5081967213114754,
+    "scope": "Historical V43 frozen-runtime diagnostic only. A later parent-runtime participant-role repair means these role values are not current acceptance evidence."
+  },
+  "limitations": [
+    "No annotation text strings were read. Recognition errors cannot be attributed to individual dev strings from this diagnosis.",
+    "The three dev images are one coupled family bundle and are too few to estimate independent renderer, font, degradation, template, or marker effects.",
+    "The selected width experiment is a bounded diagnostic for 22 condition-label and legend misses, not a claim that box width explains all 48 false negatives or will clear the unchanged gate.",
+    "The image statistics and visual observations describe inputs; they do not establish causality.",
+    "No changed renderer output was generated, and no altered image was presented as parity evidence.",
+    "The proposed experiment has not been preregistered, implemented, trained, or evaluated."
+  ],
+  "optimizer_steps": 0,
+  "new_revision_opened": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "reproducibility_artifacts": [
+    {
+      "path": "artifacts/goal22-runs/ocr-v43-representation-diagnosis/analyze.py",
+      "sha256": "1f17c083659cb00ce5091f4fe0fc3ecda73b8fa48184989b53a4a09dd26bc912"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v43-representation-diagnosis/attribution.py",
+      "sha256": "f6cd11f48a581457ceea11ca1dacfb1c7f7dc348e01996c154ee5b82592086d9"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v43-representation-diagnosis/measured.json",
+      "sha256": "8b158413e8f8da5526278cbe77bdc8b28154b71f8077ad47794f506d73071047"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v43-representation-diagnosis/geometry-attribution.json",
+      "sha256": "326179382eaf6ddbe9efc3a739531d35bde221a9d79f0b88bc8b3601ad3d64db"
+    }
+  ],
+  "lead_verification": {
+    "source_hashes_matched": 7,
+    "manifest_hashes_matched": 6,
+    "image_hashes_matched": 23,
+    "role_denominators_matched": true,
+    "matcher_source_review": "Same fixed-order augmenting-path matching as frozen V2; every unmatched truth has best IoU below 0.5, so unmatched role attribution is not caused by ambiguous match allocation.",
+    "policy_clarification": "Dev use remains unlimited and shared generic text tokens do not become a new forbidden overlap criterion."
+  }
+}
