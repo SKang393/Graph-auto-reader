@@ -31,10 +31,9 @@ from ml.markers.gate_seal import canonical_json_bytes, sha256_bytes, sha256_file
 from ml.policy.evidence_policy import evidence_policy_reference, load_evidence_policy
 from ml.synthetic.dataset import _validate_rendered_case
 from ml.synthetic.schema import SceneValidationError, validate_scene
+from ml.synthetic import sealed_acceptance as marker_acceptance, ocr_sealed_acceptance
 from ml.synthetic.sealed_acceptance import (
-    PROTOCOL_PATH as GOAL22_PROTOCOL_PATH,
     SealedAcceptanceError,
-    require_supported_identity,
     validate_acceptance_cases,
 )
 
@@ -95,6 +94,18 @@ _FAMILY_AXES = frozenset({"renderer", "font", "degradation", "template", "marker
 
 class SealedReserveError(RuntimeError):
     """Raised when reserve identity, capacity, or transition checks fail."""
+
+
+def _acceptance_protocol(scope: str):
+    if scope == marker_acceptance.ACCEPTANCE_SCOPE:
+        return marker_acceptance
+    if scope == ocr_sealed_acceptance.ACCEPTANCE_SCOPE:
+        return ocr_sealed_acceptance
+    raise SealedAcceptanceError("acceptance reserve does not use a supported Goal 22 coverage identity")
+
+
+def _require_acceptance_identity(scope: str, path: str, sha256: str) -> None:
+    _acceptance_protocol(scope).require_supported_identity(scope, path, sha256)
 
 
 def _policy_limits() -> tuple[int, int]:
@@ -259,7 +270,7 @@ def _load_generation_config(
             document["coverage_protocol_sha256"], "coverage protocol hash"
         )
         try:
-            require_supported_identity(scope, protocol_relative, protocol_sha256)
+            _require_acceptance_identity(scope, protocol_relative, protocol_sha256)
         except SealedAcceptanceError as error:
             raise SealedReserveError(str(error)) from error
         if verify_protocol_file:
@@ -492,12 +503,13 @@ def _validate_generation_chain(
                     str(scope["coverage_protocol_path"]), b""
                 )
                 try:
-                    validate_acceptance_cases(
-                        config,
-                        snapshot_rows,
-                        protocol_payload,
-                        validated_cases,
-                    )
+                    if scope["acceptance_scope"] == marker_acceptance.ACCEPTANCE_SCOPE:
+                        validate_acceptance_cases(config, snapshot_rows, protocol_payload, validated_cases)
+                    else:
+                        ocr_sealed_acceptance.validate_acceptance_cases(
+                            config, snapshot_rows, protocol_payload, validated_cases,
+                            snapshot_payloads=snapshot_payloads,
+                        )
                 except SealedAcceptanceError as error:
                     raise SealedReserveError(str(error)) from error
     except (zipfile.BadZipFile, OSError) as error:
@@ -527,7 +539,7 @@ def _set_identity(
 def _require_supported_registry_scope(scope: dict[str, Any]) -> None:
     if scope["purpose"] == ACCEPTANCE_PURPOSE:
         try:
-            require_supported_identity(
+            _require_acceptance_identity(
                 scope["acceptance_scope"],
                 scope["coverage_protocol_path"],
                 scope["coverage_protocol_sha256"],
@@ -1025,9 +1037,9 @@ def _record_sealed_read_locked(
         required_coverage_protocol_sha256, "required coverage protocol hash"
     )
     try:
-        require_supported_identity(
+        _require_acceptance_identity(
             required_acceptance_scope,
-            GOAL22_PROTOCOL_PATH.as_posix(),
+            _acceptance_protocol(required_acceptance_scope).PROTOCOL_PATH.as_posix(),
             protocol_sha256,
         )
     except SealedAcceptanceError as error:
@@ -1209,9 +1221,9 @@ def acceptance_reserve_counts(
         required_coverage_protocol_sha256, "required coverage protocol hash"
     )
     try:
-        require_supported_identity(
+        _require_acceptance_identity(
             required_acceptance_scope,
-            GOAL22_PROTOCOL_PATH.as_posix(),
+            _acceptance_protocol(required_acceptance_scope).PROTOCOL_PATH.as_posix(),
             protocol_sha256,
         )
     except SealedAcceptanceError as error:
@@ -1221,6 +1233,8 @@ def acceptance_reserve_counts(
         for item in registry["sets"]
         if item["scope"]["purpose"] == ACCEPTANCE_PURPOSE
         and item["scope"]["acceptance_scope"] == required_acceptance_scope
+        and item["scope"].get("coverage_protocol_path")
+        == _acceptance_protocol(required_acceptance_scope).PROTOCOL_PATH.as_posix()
         and item["scope"]["coverage_protocol_sha256"] == protocol_sha256
     ]
     return {

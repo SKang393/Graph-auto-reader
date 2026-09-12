@@ -1,17 +1,24 @@
 {
   "schema": "graphreader.goal22.ocr-aggregate-implementation-status.v1",
-  "status": "metric_and_in_memory_source_execution_verified_sealed_worker_pending",
+  "status": "ocr_scope_and_truth_reader_verified_sealed_worker_pending",
   "purpose": "In-memory full OCR metric accounting for the required aggregate-only sealed evaluator.",
   "source_sha256": {
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorer.cs": "a7addc39ce604c97bf204e9ca3c696854af9eaf0da597fa0a8a90d9329759ad0",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorerSelfTest.cs": "b9f319e0ba475b0ab66b5a01a9f4edc93ce3236778b86fd1078baeefd49a0b06",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMetricFixtures.cs": "9d6fcca5de29493dc43ad8729fab7b849943ed07af93ce30ee9ebd520d75ee5f",
     "tools/GraphReader.SyntheticRuntimeEvidence/check_original_db_ocr_aggregate_parity.py": "d455b34197524a24e74591126ff06d8ad268daa518e354124c49a25dc9f10e4a",
-    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "9c1a1d2c0d171bc5f9183505050aba327eedd8fd65a91023de329f74e2e0713b",
+    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "8bb239f60868b78efc0dafe947172d02ce1e22ca86550e631da02e9d6bafcfe9",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemorySourceEvaluator.cs": "926ca5c95b9295d871d8bc4cd3111fb18b2c88d8b1de53a91ce6d041eb8f6500",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryRuntime.cs": "dad66ef1eca99d37021212602ae8a269494e44b033e7127e8acd0e8312d83863",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryDevCheck.cs": "0e8fcb86dad251ece427cfe282a2e5969489af4330b0a3632b50b08c7f583bda",
-    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSourceMappingSelfTest.cs": "309d69b7fd16d6a2f7184597b0b336c8254bffbbe8f0b1deb3af22b84030e283"
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSourceMappingSelfTest.cs": "309d69b7fd16d6a2f7184597b0b336c8254bffbbe8f0b1deb3af22b84030e283",
+    "ml/synthetic/ocr_sealed_acceptance.py": "daaaca22c60bee938fa6fff6a4a3275440b98043f7f74a11b0385a2026261449",
+    "ml/policy/goal22-ocr-sealed-coverage-v1.json": "26ab0e017ccc6dc17d26effe11b1fb40f440ed4471e896c1afac3c8cc96999c4",
+    "ml/policy/sealed_reserve.py": "c10b1e4da98d4964cc82c606831cef66512cb4abdcc4a9079f2d5b59986cafd8",
+    "ml/synthetic/prepare_sealed_reserve.py": "d29ba58dd6153ac99e2a87227ebc778e4ad6e0b34e98913ad1645db33e116d19",
+    "ml/synthetic/renderer.py": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAnnotationReader.cs": "bcadf80f5e10cb64ec7579fb1ce5e73c65bac06103027aa6183d8c3e73dc35b1",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAnnotationReaderSelfTest.cs": "d9627a68c67ae38d025234351dac69c143ad438c1a80ca098f615d3289c3cb92"
   },
   "validation": {
     "build": {
@@ -49,12 +56,11 @@
   "blocker": "Resolved: managed execution recovered; build and metric validation completed.",
   "review_queue": "REV-007",
   "pending_checks": [
-    "Complete aggregate-only sealed worker, OCR-specific coverage and canonical read accounting",
+    "Complete aggregate-only sealed worker and canonical read accounting",
     "Integrate exact sealed evidence validation into Production approval gate"
   ],
   "remaining_integration": [
-    "OCR-specific reserve coverage validation and exact scope dispatch",
-    "Actual in-memory application import/axis/OCR worker with first-read acknowledgment",
+    "Connect the actual in-memory source evaluator and annotation reader to a complete sealed archive worker with first-read acknowledgment",
     "Python parent canonical read accounting before worker ACK",
     "Exact sealed report validation in ProductionOriginalDbOcrApprovalGate"
   ],
@@ -66,7 +72,7 @@
   ],
   "optimizer_steps": 0,
   "private_reads": 0,
-  "sealed_reads": 0,
+  "sealed_reads": 4,
   "production_approval": false,
   "goal22_complete": false,
   "metric_component_commit": "b9b09de9b7ba7015b6cbac3b36fddf5670c5e1c5",
@@ -153,7 +159,7 @@
     }
   },
   "ocr_preseal_coverage": {
-    "status": "validator_verified_registry_integration_pending",
+    "status": "scope_dispatch_generation_and_registration_verified",
     "source_sha256": {
       "ml/synthetic/ocr_sealed_coverage.py": "7f55b46ef2ae0609b1a6b8723817240dbf5b00c23a708e8b030e66f112292562",
       "ml/synthetic/tests/test_ocr_sealed_coverage.py": "72eaf479319e21565d924a1c4169d3742ec10da55ae42c4725c50e7341dbbd3b"
@@ -240,12 +246,254 @@
     "report_sha256": "f3b120de5c9a7afd8b9ebb4b98444f9e3a81d02d3512104ef80fe5aac791e63b",
     "report_path": "artifacts/goal22-runs/ocr-sealed-aggregate/coverage-dev-v2.json",
     "verified_source_manifest_sha256": "36ca412992581713cffaaa006b5babb84bc04ad6fbfacd92a6c7df84a5196ac6",
-    "scope": "Pre-seal denominator validation only; no reserve registration, sealed reads or production approval."
+    "scope": "OCR-specific reserve coverage and registration verified. No candidate evaluation or production approval."
   },
   "source_execution_integration": {
     "commit": "f0bbd96dc7e2b6919529dcca667d2770bb96a782",
     "origin_main_verified": true,
     "windows_ci_run": 34622162480,
+    "windows_ci_conclusion": "success"
+  },
+  "ocr_scope_integration": {
+    "protocol_path": "ml/policy/goal22-ocr-sealed-coverage-v1.json",
+    "protocol_sha256": "26ab0e017ccc6dc17d26effe11b1fb40f440ed4471e896c1afac3c8cc96999c4",
+    "acceptance_scope": "goal22.full-ocr.five-axis-family.real-range.v1",
+    "policy_and_preparation_tests": {
+      "passed": 78,
+      "elapsed_seconds": 36.46
+    },
+    "fresh_unsealed_preflight": {
+      "schema": "graphreader.unsealed-ocr-coverage-preflight.v1",
+      "scope": "new_unsealed_synthetic_generation",
+      "dataset_seed": 2026091202,
+      "coverage": {
+        "source_count": 21,
+        "truth_region_count": 453,
+        "truth_character_count": 3100,
+        "by_generator_role": {
+          "annotation": {
+            "truth_region_count": 62,
+            "truth_character_count": 434
+          },
+          "axis_title": {
+            "truth_region_count": 52,
+            "truth_character_count": 385
+          },
+          "condition_label": {
+            "truth_region_count": 85,
+            "truth_character_count": 145
+          },
+          "legend_text": {
+            "truth_region_count": 37,
+            "truth_character_count": 548
+          },
+          "participant": {
+            "truth_region_count": 31,
+            "truth_character_count": 434
+          },
+          "phase_heading": {
+            "truth_region_count": 85,
+            "truth_character_count": 914
+          },
+          "x_tick": {
+            "truth_region_count": 2,
+            "truth_character_count": 2
+          },
+          "y_tick": {
+            "truth_region_count": 99,
+            "truth_character_count": 238
+          }
+        },
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_region_count": 62,
+            "truth_character_count": 434
+          },
+          "axistitle": {
+            "truth_region_count": 52,
+            "truth_character_count": 385
+          },
+          "legendtext": {
+            "truth_region_count": 37,
+            "truth_character_count": 548
+          },
+          "participant": {
+            "truth_region_count": 31,
+            "truth_character_count": 434
+          },
+          "phaseheading": {
+            "truth_region_count": 170,
+            "truth_character_count": 1059
+          },
+          "xtick": {
+            "truth_region_count": 2,
+            "truth_character_count": 2
+          },
+          "ytick": {
+            "truth_region_count": 99,
+            "truth_character_count": 238
+          }
+        }
+      },
+      "elapsed_seconds": 31.203286700001627,
+      "model_inference": false,
+      "sealed_archive_reads": 0,
+      "private_reads": 0,
+      "registered_as_sealed": false
+    },
+    "fresh_unsealed_preflight_sha256": "2c47d625faea6652ee52ddb3624d9c6e46e31e6e84bb1a2981a4e4f6096101c6",
+    "reserve_preparation": {
+      "report_path": "artifacts/goal22-runs/ocr-sealed-aggregate/reserve-preparation-20260912.json",
+      "registry_path": "ml/policy/goal22-ocr-sealed-reserve-registry.json",
+      "registry_sha256": "d036199375680b3b834e7adfe694dd2615eba766be058a6edb53787180cd9fd6",
+      "counts": {
+        "unused": 3,
+        "reusable": 0,
+        "revision_limit": 0,
+        "retired": 0
+      },
+      "dev_diagnostic_seeds_excluded": [
+        2026091201,
+        2026091202
+      ],
+      "sets": [
+        {
+          "dataset_seed": 2026091203,
+          "set_id": "3a40a023e2102d2c3adc7e53acf9c372cd7523c1056b1ebcd2c79696d09dea37",
+          "source_count": 21,
+          "truth_region_count": 438,
+          "truth_character_count": 3032,
+          "generator_roles": [
+            "annotation",
+            "axis_title",
+            "condition_label",
+            "legend_text",
+            "participant",
+            "phase_heading",
+            "x_tick",
+            "y_tick"
+          ],
+          "archive_sha256": "d31664cf28273cb5605024785bb23fdcf1430a8f59d6706accd18c9e892d3b22",
+          "elapsed_seconds": 33.508698300000106
+        },
+        {
+          "dataset_seed": 2026091205,
+          "set_id": "4e273413d19a039a15dad1742d1c46ef523511152b196344276721d61f292b1c",
+          "source_count": 21,
+          "truth_region_count": 442,
+          "truth_character_count": 3053,
+          "generator_roles": [
+            "annotation",
+            "axis_title",
+            "condition_label",
+            "legend_text",
+            "participant",
+            "phase_heading",
+            "x_tick",
+            "y_tick"
+          ],
+          "archive_sha256": "62131139ceade88d4714a393c66b8b910bc6b8dee752beb19fdd2e8ce4be00b0",
+          "elapsed_seconds": 32.26492509999662
+        },
+        {
+          "dataset_seed": 2026091208,
+          "set_id": "97913dc755b6de2edc5dff6bc308bfdcfe42ece26d7e93edca6132abc1695739",
+          "source_count": 21,
+          "truth_region_count": 440,
+          "truth_character_count": 3020,
+          "generator_roles": [
+            "annotation",
+            "axis_title",
+            "condition_label",
+            "legend_text",
+            "participant",
+            "phase_heading",
+            "x_tick",
+            "y_tick"
+          ],
+          "archive_sha256": "3f83a1ce0fa4bf24fc2fb92bec36d303af3aa8512e1797db48d02edcd8efd141",
+          "elapsed_seconds": 32.54656609999802
+        }
+      ],
+      "void_generation_attempts": [
+        {
+          "dataset_seed": 2026091204,
+          "status": "void_before_registration",
+          "exception_type": "RuntimeError",
+          "exception_category": "layout_no_condition_label_space",
+          "elapsed_seconds": 1.4330703000014182
+        },
+        {
+          "dataset_seed": 2026091206,
+          "status": "void_before_registration",
+          "exception_type": "RuntimeError",
+          "exception_category": "layout_no_condition_label_space",
+          "elapsed_seconds": 1.4613787999987835
+        },
+        {
+          "dataset_seed": 2026091207,
+          "status": "void_before_registration",
+          "exception_type": "RuntimeError",
+          "exception_category": "layout_no_condition_label_space",
+          "elapsed_seconds": 1.4469711000056122
+        }
+      ]
+    },
+    "reserve_preparation_report_sha256": "71fdd327abc571aad6e16798e1f01ddec8a094ad2938a8303ce018ceb1dc3332",
+    "independent_review": {
+      "status": "CLEAR",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "scope": "Exact OCR scope, path/hash dispatch, base coverage, visible x labels, immutable snapshot retention and per-scope two-unused enforcement"
+    },
+    "review_access_incident": "docs/GOAL-22-SEALED-ACCESS-INCIDENT-20260912.json"
+  },
+  "rendered_text_canvas_repair": {
+    "failure": "Fresh unsealed seed 2026091202 had a rendered legend box extending 0.445502 pixels beyond a 1338-pixel canvas after geometric warping.",
+    "fix": "Intersect only realized text pixel boxes with the raster canvas after every geometric warp; retain authored boxes and graph coordinates; null remains sticky after full clipping.",
+    "tests": {
+      "rendered_text_checks_passed": 7,
+      "elapsed_seconds": 0.43,
+      "earlier_geometry_glyph_alignment_and_reproducibility_batch_passed": 12,
+      "batch_elapsed_seconds": 75.92
+    },
+    "independent_review": {
+      "status": "CLEAR",
+      "model": "gpt-5.6-sol",
+      "effort": "high"
+    },
+    "historical_artifacts_changed": false
+  },
+  "annotation_reader": {
+    "status": "compiled_and_model_free_checks_verified",
+    "build": {
+      "warnings": 0,
+      "errors": 0,
+      "elapsed_seconds": 3.95
+    },
+    "self_test_checks": 17,
+    "model_inference": false,
+    "file_io": false,
+    "case_truth_kept_in_memory": true,
+    "case_output": false,
+    "independent_review": {
+      "status": "CLEAR",
+      "model": "gpt-5.6-sol",
+      "effort": "high"
+    },
+    "scope": "Truth parsing component only; full sealed worker remains unfinished."
+  },
+  "preparation_limitations": [
+    "Some fresh seeds fail existing condition-label layout generation before an archive is written; these void attempts are recorded in preparation evidence.",
+    "Dev diagnostic seeds 2026091201 and 2026091202 are excluded from the new sealed pool.",
+    "OCR and marker model development accuracy still fails; no sealed candidate evaluation is authorized."
+  ],
+  "sealed_read_scope": "Unauthorized aggregate-only annotation archive access by a delegated reviewer; not candidate evaluation. See the recorded incident.",
+  "sealed_candidate_evaluations": 0,
+  "previous_integration": {
+    "commit": "c2a05eb5a705ec166c8cc45023613863f6cc1c4f",
+    "origin_main_verified": true,
+    "windows_ci_run": 34671620125,
     "windows_ci_conclusion": "success"
   }
 }

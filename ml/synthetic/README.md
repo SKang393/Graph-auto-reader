@@ -53,7 +53,15 @@ region identities must be unique within each source. Condition labels count as
 phase headings, matching the frozen V2 scorer. Invalid Unicode, roles and boxes
 fail closed. No model inference, file reading or candidate selection occurs.
 
-Run `python -m pytest ml/synthetic/tests/test_ocr_sealed_coverage.py -q`.
-This helper does not register a reserve or authorize a sealed read. OCR-specific
-protocol, registry dispatch and aggregate worker integration remain required;
-existing marker-scoped reserves are not reclassified as OCR evidence.
+`prepare_ocr_acceptance_reserve` prepares the distinct, hash-bound
+`goal22.full-ocr.five-axis-family.real-range.v1` scope. It retains the base
+geometry and font requirements, exposes x labels in ordered case 0, and requires
+all eight OCR roles before writing an archive. Registration and read accounting
+dispatch by the exact scope, protocol path and hash. Two unused compatible
+reserves must remain after a first candidate read. Existing marker reserves
+remain marker-scoped and retain their immutable source snapshots.
+
+Run the OCR coverage, OCR acceptance, preparation and sealed-reserve policy tests.
+Preparation and registration do not authorize model evaluation. The aggregate
+worker and Production evidence connection remain unfinished; failed dev models
+must not approach sealed evaluation.

@@ -254,3 +254,38 @@ def test_acceptance_preparation_uses_explicit_scope_and_keeps_seed_in_identity(
     assert first_config["coverage_protocol_sha256"] == prepare.PROTOCOL_SHA256
     assert first["config_sha256"] != second["config_sha256"]
     assert first["archive_sha256"] != second["archive_sha256"]
+
+
+def test_ocr_prepare_uses_distinct_scope_and_validates_before_writing(tmp_path: Path, monkeypatch) -> None:
+    protocol = prepare.ocr_sealed_acceptance
+    repository = Path(__file__).resolve().parents[3]
+    for relative in protocol.GENERATOR_SOURCE_PATHS:
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((repository / relative).read_bytes())
+    observed = []
+    cases = _synthetic_cases()
+    def render(specs, seed):
+        assert specs == protocol.acceptance_case_specs()
+        assert specs[0].presentation["x_label_visibility"] == "visible"
+        assert seed == 410
+        return cases
+    monkeypatch.setattr(prepare, "_render_cases", render)
+    monkeypatch.setattr(prepare, "verify_acceptance_font_dependencies", lambda *_args: None)
+    def validate(config, rows, payload, semantic_cases, *, snapshot_payloads):
+        assert not (tmp_path / "artifacts/reserve/ocr.json").exists()
+        assert not (tmp_path / "artifacts/reserve/ocr.zip").exists()
+        assert payload == snapshot_payloads[protocol.PROTOCOL_PATH.as_posix()]
+        assert {row["path"] for row in rows} == set(snapshot_payloads)
+        observed.append(config["acceptance_scope"])
+        return {"source_count": len(semantic_cases)}
+    monkeypatch.setattr(protocol, "validate_acceptance_cases", validate)
+    result = prepare.prepare_ocr_acceptance_reserve(410,
+        Path("artifacts/reserve/ocr.json"), Path("artifacts/reserve/ocr.zip"),
+        repository_root=tmp_path)
+    assert observed == [protocol.ACCEPTANCE_SCOPE]
+    assert result["registration_ready"] and result["coverage"] == {"source_count": 2}
+    config = json.loads((tmp_path / result["config_path"]).read_bytes())
+    assert config["coverage_protocol_path"] == protocol.PROTOCOL_PATH.as_posix()
+    assert config["coverage_protocol_sha256"] == protocol.PROTOCOL_SHA256
+    assert config["acceptance_scope"] != prepare.ACCEPTANCE_SCOPE

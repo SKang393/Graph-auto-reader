@@ -24,6 +24,7 @@ from ml.synthetic.dataset import (
 )
 from ml.synthetic.io import canonical_json_bytes, png_bytes
 from ml.synthetic.renderer import render_scene
+from ml.synthetic import ocr_sealed_acceptance
 from ml.synthetic.sealed_acceptance import (
     ACCEPTANCE_PRESET,
     ACCEPTANCE_PURPOSE,
@@ -400,6 +401,52 @@ def prepare_acceptance_reserve(
     return result
 
 
+def prepare_ocr_acceptance_reserve(
+    dataset_seed: int,
+    config_output: Path,
+    archive_output: Path,
+    *,
+    repository_root: Path = REPOSITORY_ROOT,
+) -> dict[str, object]:
+    """Prepare a distinct OCR-scoped reserve with full text denominators."""
+    protocol = ocr_sealed_acceptance
+    protocol.load_supported_protocol(repository_root)
+    coverage: dict[str, object] = {}
+
+    def build_cases(config, source_snapshot):
+        nonlocal coverage
+        cases = _render_cases(protocol.acceptance_case_specs(), dataset_seed)
+        snapshots = {str(row["path"]): bytes(row["payload"]) for row in source_snapshot}
+        source_rows = [{"path": str(row["path"]), "sha256": str(row["sha256"])}
+                       for row in source_snapshot]
+        semantic_cases = []
+        for case in cases:
+            with Image.open(BytesIO(case["image.png"])) as image:
+                mode = image.mode
+            semantic_cases.append({"scene": json.loads(case["scene.json"]),
+                                   "annotation": json.loads(case["annotation.json"]),
+                                   "image_mode": mode})
+        coverage = protocol.validate_acceptance_cases(
+            config, source_rows, snapshots[protocol.PROTOCOL_PATH.as_posix()],
+            semantic_cases, snapshot_payloads=snapshots,
+        )
+        verify_acceptance_font_dependencies(semantic_cases)
+        return cases
+
+    result = _prepare(
+        dataset_seed, config_output, archive_output, repository_root=repository_root,
+        source_paths=protocol.GENERATOR_SOURCE_PATHS, preset=protocol.ACCEPTANCE_PRESET,
+        purpose=ACCEPTANCE_PURPOSE, acceptance_scope=protocol.ACCEPTANCE_SCOPE,
+        coverage_protocol_path=protocol.PROTOCOL_PATH.as_posix(),
+        coverage_protocol_sha256=protocol.PROTOCOL_SHA256, cases_factory=build_cases,
+    )
+    result.update({"acceptance_scope": protocol.ACCEPTANCE_SCOPE,
+                   "coverage_protocol_path": protocol.PROTOCOL_PATH.as_posix(),
+                   "coverage_protocol_sha256": protocol.PROTOCOL_SHA256,
+                   "coverage": coverage, "registration_ready": True})
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repository-root", type=Path, default=REPOSITORY_ROOT)
@@ -427,5 +474,6 @@ __all__ = [
     "PURPOSE",
     "SOURCE_SNAPSHOT_SCHEMA",
     "prepare_acceptance_reserve",
+    "prepare_ocr_acceptance_reserve",
     "prepare_reserve",
 ]

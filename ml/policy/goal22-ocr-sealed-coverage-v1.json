@@ -1,0 +1,81 @@
+{
+  "acceptance_scope": "goal22.full-ocr.five-axis-family.real-range.v1",
+  "base_coverage_protocol": {
+    "acceptance_scope": "goal22.five-axis-family.real-range.v1",
+    "path": "ml/policy/goal22-sealed-coverage-v1.json",
+    "sha256": "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f"
+  },
+  "evidence_use": {
+    "aggregate_only": true,
+    "private_data": false,
+    "production_approval": false,
+    "synthetic_only": true,
+    "training_permitted": false
+  },
+  "generator_source_paths": [
+    "ml/policy/goal22-ocr-sealed-coverage-v1.json",
+    "ml/policy/goal22-sealed-coverage-v1.json",
+    "ml/synthetic/dataset.py",
+    "ml/synthetic/fonts.py",
+    "ml/synthetic/io.py",
+    "ml/synthetic/ocr_sealed_acceptance.py",
+    "ml/synthetic/ocr_sealed_coverage.py",
+    "ml/synthetic/prepare_sealed_reserve.py",
+    "ml/synthetic/renderer.py",
+    "ml/synthetic/scene.schema.json",
+    "ml/synthetic/schema.py",
+    "ml/synthetic/sealed_acceptance.py",
+    "ml/synthetic/templates.py"
+  ],
+  "ocr_truth_selection": {
+    "annotation_sources": [
+      "annotation.texts",
+      "annotation.panels[].texts"
+    ],
+    "coordinate_space": "original_pixels",
+    "identity_uniqueness": "text_id and region_id are each unique per source",
+    "region_identity": "trimmed region_id is nonblank",
+    "rendered_pixel_box": "record.rendered_pixel_box is present",
+    "text": "record.text is a nonblank string after trimming",
+    "text_identity": "trimmed text_id is nonblank",
+    "visible": "record.visible is not false"
+  },
+  "ordered_case_overrides": [
+    {
+      "all_other_case_spec_fields_unchanged": true,
+      "base_value": "hidden",
+      "field": "presentation.x_label_visibility",
+      "ordered_case_index": 0,
+      "purpose": "expose_x_tick_truth_for_full_ocr_coverage",
+      "required_value": "visible"
+    }
+  ],
+  "protocol_id": "goal22-ocr-sealed-coverage-v1",
+  "purpose": "aggregate_only_full_ocr_acceptance",
+  "required_dataset_coverage": {
+    "character_denominator": "count every Unicode scalar in every selected truth text exactly once",
+    "generator_roles": [
+      "x_tick",
+      "y_tick",
+      "axis_title",
+      "phase_heading",
+      "legend_text",
+      "participant",
+      "annotation",
+      "condition_label"
+    ],
+    "nonempty_ocr_truth_per_source": true,
+    "region_denominator": "count every selected truth record exactly once",
+    "runtime_role_mapping": {
+      "annotation": "annotation",
+      "axis_title": "axistitle",
+      "condition_label": "phaseheading",
+      "legend_text": "legendtext",
+      "participant": "participant",
+      "phase_heading": "phaseheading",
+      "x_tick": "xtick",
+      "y_tick": "ytick"
+    }
+  },
+  "schema": "graphreader.goal22-ocr-sealed-coverage.v1"
+}

@@ -31,6 +31,7 @@ from ml.policy.sealed_reserve import (
     register_reserve_set,
     reserve_counts,
 )
+from ml.synthetic import ocr_sealed_acceptance as ocr_protocol
 from ml.synthetic.dataset import PRESETS, _build_scenes, _scene_split
 from ml.synthetic.io import png_bytes
 from ml.synthetic.renderer import render_scene
@@ -138,17 +139,22 @@ def _generation_files(
     purpose: str = ACCEPTANCE_PURPOSE,
     scope: str = SCOPE,
     supported_acceptance: bool = False,
+    ocr_acceptance: bool = False,
 ) -> tuple[Path, Path, str, str]:
     source_payload = f"immutable generator source {index}\n".encode()
     source_rows = [{"path": SOURCE.as_posix(), "sha256": sha256_bytes(source_payload)}]
     source_bundle = sha256_bytes(canonical_json_bytes(source_rows))
-    protocol_relative = GOAL22_PROTOCOL_PATH if supported_acceptance else PROTOCOL
+    supported_acceptance = supported_acceptance or ocr_acceptance
+    supported_path = ocr_protocol.PROTOCOL_PATH if ocr_acceptance else GOAL22_PROTOCOL_PATH
+    supported_scope = ocr_protocol.ACCEPTANCE_SCOPE if ocr_acceptance else GOAL22_ACCEPTANCE_SCOPE
+    supported_preset = ocr_protocol.ACCEPTANCE_PRESET if ocr_acceptance else GOAL22_ACCEPTANCE_PRESET
+    protocol_relative = supported_path if supported_acceptance else PROTOCOL
     protocol_path = root / protocol_relative
     protocol_path.parent.mkdir(parents=True, exist_ok=True)
     if supported_acceptance:
         repository_root = Path(__file__).resolve().parents[3]
-        protocol_path.write_bytes((repository_root / GOAL22_PROTOCOL_PATH).read_bytes())
-        scope = GOAL22_ACCEPTANCE_SCOPE
+        protocol_path.write_bytes((repository_root / supported_path).read_bytes())
+        scope = supported_scope
     elif not protocol_path.exists():
         protocol_path.write_bytes(b'{"scope":"goal22.marker-center.acceptance"}\n')
     protocol_sha = sha256_file(protocol_path)
@@ -159,7 +165,7 @@ def _generation_files(
         "schema": GENERATION_SCHEMA,
         "dataset_seed": index,
         "preset": (
-            GOAL22_ACCEPTANCE_PRESET if supported_acceptance
+            supported_preset if supported_acceptance
             else "acceptance-fixture" if purpose == ACCEPTANCE_PURPOSE
             else "smoke"
         ),
@@ -258,6 +264,7 @@ def _register(
     purpose: str = ACCEPTANCE_PURPOSE,
     scope: str = SCOPE,
     supported_acceptance: bool = False,
+    ocr_acceptance: bool = False,
 ) -> tuple[str, str]:
     config, archive, source_bundle, protocol_sha = _generation_files(
         root,
@@ -265,8 +272,10 @@ def _register(
         purpose=purpose,
         scope=scope,
         supported_acceptance=supported_acceptance,
+        ocr_acceptance=ocr_acceptance,
     )
-    effective_scope = GOAL22_ACCEPTANCE_SCOPE if supported_acceptance else scope
+    effective_scope = (ocr_protocol.ACCEPTANCE_SCOPE if ocr_acceptance
+                       else GOAL22_ACCEPTANCE_SCOPE if supported_acceptance else scope)
     return register_reserve_set(
         REGISTRY,
         root,
@@ -679,3 +688,56 @@ def test_reserve_counts_remains_descriptive_across_all_scopes(tmp_path: Path) ->
     assert reserve_counts(load_registry(REGISTRY, tmp_path)) == {
         "unused": 2, "reusable": 0, "revision_limit": 0, "retired": 0,
     }
+
+
+def test_ocr_registration_dispatch_and_read_budget_are_scope_specific(tmp_path: Path, monkeypatch) -> None:
+    observed = []
+    def validate(config, rows, payload, cases, *, snapshot_payloads):
+        observed.append((config["acceptance_scope"], len(cases), snapshot_payloads))
+        return {}
+    monkeypatch.setattr(ocr_protocol, "validate_acceptance_cases", validate)
+    monkeypatch.setattr(reserve_module, "validate_acceptance_cases", lambda *_args: {})
+    digest = _workspace(tmp_path)
+    marker_id, digest = _register(tmp_path, digest, 170, supported_acceptance=True)
+    ids = []
+    for index in (171, 172, 173):
+        identity, digest = _register(tmp_path, digest, index, ocr_acceptance=True)
+        ids.append(identity)
+    assert len(observed) == 3
+    assert all(row[0] == ocr_protocol.ACCEPTANCE_SCOPE and row[1] == 1 and row[2] for row in observed)
+    before = (tmp_path / REGISTRY).read_bytes()
+    with pytest.raises(SealedReserveError, match="not compatible"):
+        _read(tmp_path, digest, marker_id, "ocr-revision", "P1", 800,
+              ocr_protocol.PROTOCOL_SHA256, scope=ocr_protocol.ACCEPTANCE_SCOPE)
+    assert (tmp_path / REGISTRY).read_bytes() == before
+    digest = _read(tmp_path, digest, ids[0], "ocr-revision", "P1", 801,
+                   ocr_protocol.PROTOCOL_SHA256, scope=ocr_protocol.ACCEPTANCE_SCOPE)
+    counts = acceptance_reserve_counts(load_registry(REGISTRY, tmp_path),
+        required_acceptance_scope=ocr_protocol.ACCEPTANCE_SCOPE,
+        required_coverage_protocol_sha256=ocr_protocol.PROTOCOL_SHA256)
+    assert counts == {"unused": 2, "reusable": 1, "revision_limit": 0, "retired": 0}
+    with pytest.raises(SealedReserveError, match="minimum unused"):
+        _read(tmp_path, digest, ids[1], "ocr-revision-2", "P1", 802,
+              ocr_protocol.PROTOCOL_SHA256, scope=ocr_protocol.ACCEPTANCE_SCOPE)
+
+
+def test_ocr_scope_cannot_use_marker_protocol_identity() -> None:
+    with pytest.raises(SealedReserveError, match="identity"):
+        acceptance_reserve_counts({"sets": []},
+            required_acceptance_scope=ocr_protocol.ACCEPTANCE_SCOPE,
+            required_coverage_protocol_sha256=GOAL22_PROTOCOL_SHA256)
+
+
+@pytest.mark.parametrize("protocol", [ocr_protocol, reserve_module.marker_acceptance])
+@pytest.mark.parametrize("path", [None, "ml/policy/wrong-coverage.json"])
+def test_acceptance_counts_exclude_wrong_protocol_path(protocol, path) -> None:
+    registry = {"sets": [{"scope": {
+        "purpose": ACCEPTANCE_PURPOSE,
+        "acceptance_scope": protocol.ACCEPTANCE_SCOPE,
+        "coverage_protocol_path": path,
+        "coverage_protocol_sha256": protocol.PROTOCOL_SHA256,
+    }, "state": "unused"}]}
+    assert acceptance_reserve_counts(registry,
+        required_acceptance_scope=protocol.ACCEPTANCE_SCOPE,
+        required_coverage_protocol_sha256=protocol.PROTOCOL_SHA256
+    ) == {"unused": 0, "reusable": 0, "revision_limit": 0, "retired": 0}

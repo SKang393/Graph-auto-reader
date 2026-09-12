@@ -1,0 +1,45 @@
+{
+  "schema": "graphreader.goal22.sealed-access-incident.v1",
+  "date": "2026-09-12",
+  "status": "recorded_aggregate_only_unauthorized_diagnostic_access",
+  "scope": "A delegated source review opened existing synthetic marker acceptance archives outside its assigned scope and without canonical read admission.",
+  "affected_archives": [
+    "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609092/reserve.zip",
+    "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609094/reserve.zip",
+    "artifacts/synthetic-sealed-reserves/goal22-marker-20260909/202609095/reserve.zip"
+  ],
+  "access": {
+    "annotation_archive_open_count": 4,
+    "distinct_annotation_archives": 3,
+    "source_snapshot_open_count": 1,
+    "method": "System.IO.Compression.ZipFile and in-process annotation parsing",
+    "emitted": ["corpus aggregate counts", "source snapshot paths and hashes"],
+    "case_level_output": false,
+    "pixels_output": false,
+    "truth_text_or_rows_output": false,
+    "predictions_output": false,
+    "case_files_written": false,
+    "model_inference": false,
+    "optimizer_steps": 0,
+    "candidate_evaluations": 0,
+    "private_data_reads": 0
+  },
+  "containment": [
+    "Stopped all further archive access by the reviewer.",
+    "Excluded these aggregates from candidate selection and acceptance evidence.",
+    "Established the suspected missing x-label coverage independently from generator source and required fresh unsealed synthetic validation.",
+    "No model candidate, revision, passing gate, or approval was created to disguise this diagnostic access."
+  ],
+  "policy_disposition": {
+    "policy_path": "ml/policy/evidence-policy.json",
+    "aggregate_only_preserves_set": true,
+    "case_level_disclosure": false,
+    "retirement_required": false,
+    "candidate_budget_event": false,
+    "reason": "No candidate was evaluated and no case-level information was disclosed. The policy preserves aggregate-only sets; the unauthorized accesses remain explicitly recorded here rather than misreported as zero reads or invented candidate runs.",
+    "registry_mutated": false
+  },
+  "limitations": "The access audit records the reviewer's contemporaneous account of its operations and outputs. This incident is not evidence of model accuracy or permission for further sealed reads.",
+  "production_approval": false,
+  "goal22_complete": false
+}

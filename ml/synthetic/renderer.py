@@ -1093,20 +1093,54 @@ def _warp_mask(mask: Image.Image, forward: Sequence[float]) -> Image.Image:
     ).point(lambda value: 255 if value else 0)
 
 
-def _transform_box_value(value: Any, matrix: Sequence[float]) -> list[float]:
+def _transformed_box_bounds(
+    value: Any,
+    matrix: Sequence[float],
+) -> tuple[float, float, float, float]:
     left, top, right, bottom = _box(value, "annotation.box")
     points = [
         _apply_matrix(matrix, point)
         for point in ((left, top), (right, top), (right, bottom), (left, bottom))
     ]
-    return _json_box(
-        (
-            min(point[0] for point in points),
-            min(point[1] for point in points),
-            max(point[0] for point in points),
-            max(point[1] for point in points),
-        )
+    return (
+        min(point[0] for point in points),
+        min(point[1] for point in points),
+        max(point[0] for point in points),
+        max(point[1] for point in points),
     )
+
+
+def _transform_box_value(value: Any, matrix: Sequence[float]) -> list[float]:
+    return _json_box(_transformed_box_bounds(value, matrix))
+
+
+def _transform_rendered_pixel_box(
+    value: Any,
+    matrix: Sequence[float],
+    canvas_size: tuple[int, int],
+) -> list[float] | None:
+    """Transform realized text pixels and intersect them with the raster canvas."""
+
+    left, top, right, bottom = _transformed_box_bounds(value, matrix)
+    canvas_width, canvas_height = (float(dimension) for dimension in canvas_size)
+    clipped = (
+        max(0.0, left),
+        max(0.0, top),
+        min(canvas_width, right),
+        min(canvas_height, bottom),
+    )
+    if clipped[2] <= clipped[0] or clipped[3] <= clipped[1]:
+        return None
+
+    result = _json_box(clipped)
+    # Independent six-decimal rounding can place the reconstructed right or
+    # bottom edge infinitesimally beyond an integer canvas boundary.
+    for start_index, extent_index, boundary in ((0, 2, canvas_width), (1, 3, canvas_height)):
+        if result[start_index] + result[extent_index] > boundary:
+            result[extent_index] = round(result[extent_index] - 0.000001, 6)
+    if result[2] <= 0 or result[3] <= 0:
+        return None
+    return result
 
 
 def _transform_annotation_mapping(
@@ -1123,7 +1157,11 @@ def _transform_annotation_mapping(
         if key in point_keys and isinstance(value, Sequence) and not isinstance(value, (str, bytes)) and len(value) == 2:
             record[key] = _json_point(_apply_matrix(matrix, _point(value, f"annotation.{key}")))
         elif key in box_keys and isinstance(value, Sequence) and not isinstance(value, (str, bytes)) and len(value) == 4:
-            record[key] = _transform_box_value(value, matrix)
+            record[key] = (
+                _transform_rendered_pixel_box(value, matrix, canvas_size)
+                if key == "rendered_pixel_box"
+                else _transform_box_value(value, matrix)
+            )
         elif key in line_keys and isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
             start, end = _line_points(value, f"annotation.{key}")
             record[key] = [
