@@ -13,9 +13,11 @@ from typing import Sequence
 from uuid import uuid4
 
 from ml.markers.gate_seal import (
+    FIRST_READ_INTENT_NAME,
     canonical_json_bytes,
     capture_source_snapshot,
     sha256_file,
+    sha256_bytes,
     source_bundle_sha256,
     verify_bound_source_snapshot,
 )
@@ -23,6 +25,38 @@ from ml.policy.evidence_policy import evidence_policy_reference
 
 
 CANONICAL_LEDGER_PATH = Path("ml/markers/training-budgets/production-repair-v1.json")
+_CANONICAL_TRAINING_BINDING_FIELDS = {
+    "task", "revision", "candidate_id", "candidate_config_path",
+    "candidate_config_sha256", "runner_source_paths",
+    "runner_source_bundle_sha256", "training_budget_ledger_sha256",
+    "evidence_policy", "source_snapshot_path", "source_snapshot_sha256",
+    "source_binding_mode", "base_commit",
+}
+_FIRST_READ_VOID_FIELDS = {
+    "schema_version", "status", "sealed_split_read", "budget_consumed",
+    "voided_utc", "exception_type", "exception_message_sha256", "binding",
+    "read_binding_sha256",
+}
+
+
+def _read_json(path: Path, label: str) -> dict[str, object]:
+    def reject_duplicates(pairs: list[tuple[str, object]]) -> dict[str, object]:
+        value: dict[str, object] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError("duplicate JSON key")
+            value[key] = item
+        return value
+
+    try:
+        value = json.loads(
+            path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicates
+        )
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+        raise RuntimeError(f"{label} is missing or corrupt") from error
+    if not isinstance(value, dict):
+        raise RuntimeError(f"{label} must be a JSON object")
+    return value
 
 
 @dataclass(frozen=True)
@@ -45,6 +79,8 @@ class TrainingAuthorization:
         ``opened.json`` so pre-sealed failures remain void.
         """
 
+        if (self.directory / FIRST_READ_INTENT_NAME).exists():
+            raise RuntimeError("Training candidate has a pending coordinated first-read admission")
         if self.consumed_path.exists():
             raise RuntimeError("Training candidate sealed split was already consumed")
         if (self.directory / "void.json").exists():
@@ -150,6 +186,8 @@ def acquire_training_candidate(
         raise RuntimeError("Training runner source bundle does not match the preregistered configuration")
     directory = repo_root / "ml" / "markers" / "training-seals" / task / revision / candidate_id
     directory.mkdir(parents=True, exist_ok=True)
+    if (directory / FIRST_READ_INTENT_NAME).exists():
+        raise RuntimeError("Training candidate has a pending coordinated first-read admission")
     prior_result = directory / "result.json"
     prior_opened = directory / "opened.json"
     if (
@@ -227,6 +265,8 @@ def void_candidate(
     moved into a retained attempt folder rather than deleted.
     """
 
+    if (authorization.directory / FIRST_READ_INTENT_NAME).exists():
+        raise RuntimeError("Training candidate has a pending coordinated first-read admission")
     if authorization.consumed_path.exists():
         raise RuntimeError("Cannot void a training candidate after sealed-split read")
     void_path = authorization.directory / "void.json"
@@ -254,12 +294,243 @@ def void_candidate(
     return void_path
 
 
+def prepare_first_read_intent(
+    authorization: TrainingAuthorization, *, read_binding_sha256: str
+) -> Path:
+    """Bind this source-authenticated candidate to one coordinated admission."""
+
+    path, encoded = first_read_intent_payload(
+        authorization, read_binding_sha256=read_binding_sha256,
+        verify_sources=True,
+    )
+    if path.exists():
+        if path.read_bytes() != encoded:
+            raise RuntimeError("Training first-read intent belongs to another admission")
+        return path
+    from ml.markers.gate_seal import _write_new_durable
+    _write_new_durable(path, encoded)
+    return path
+
+
+def first_read_intent_payload(
+    authorization: TrainingAuthorization,
+    *,
+    read_binding_sha256: str,
+    verify_sources: bool,
+) -> tuple[Path, bytes]:
+    """Return the exact training intent after validating its canonical binding."""
+
+    if authorization.repo_root is None or authorization.snapshot_path is None:
+        raise RuntimeError("Coordinated admission requires a source-bound canonical training candidate")
+    if len(read_binding_sha256) != 64 or any(character not in "0123456789abcdef" for character in read_binding_sha256):
+        raise RuntimeError("First-read binding must be a lowercase SHA-256 value")
+    if set(authorization.binding) != _CANONICAL_TRAINING_BINDING_FIELDS:
+        raise RuntimeError("Coordinated admission requires a canonical training binding")
+    if (
+        authorization.binding.get("source_binding_mode") != "immutable_pre_run_snapshot"
+        or authorization.binding.get("evidence_policy") != evidence_policy_reference()
+    ):
+        raise RuntimeError("Coordinated admission has a noncanonical training policy binding")
+    expected_snapshot = authorization.snapshot_path.resolve().relative_to(
+        authorization.repo_root.resolve()
+    ).as_posix()
+    if authorization.binding.get("source_snapshot_path") != expected_snapshot:
+        raise RuntimeError("Training source snapshot path differs from its binding")
+    if (
+        not authorization.snapshot_path.is_file()
+        or sha256_file(authorization.snapshot_path)
+        != authorization.binding.get("source_snapshot_sha256")
+    ):
+        raise RuntimeError("Training source snapshot differs from its binding")
+    for key in (
+        "candidate_config_sha256", "runner_source_bundle_sha256",
+        "training_budget_ledger_sha256", "source_snapshot_sha256",
+    ):
+        value = authorization.binding.get(key)
+        if not isinstance(value, str) or len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
+            raise RuntimeError(f"Training {key} is not a lowercase SHA-256 value")
+    if verify_sources:
+        verify_bound_source_snapshot(
+            authorization.repo_root,
+            authorization.snapshot_path,
+            authorization.binding.get("source_snapshot_sha256"),
+        )
+    opened = _read_json(authorization.opened_path, "Training opened record")
+    if not isinstance(opened, dict) or opened.get("status") != "opened" or opened.get("binding") != authorization.binding:
+        raise RuntimeError("Training opened record differs from the source-bound authorization")
+    path = authorization.directory / FIRST_READ_INTENT_NAME
+    if (authorization.consumed_path.exists() or (authorization.directory / "void.json").exists()) and not path.exists():
+        raise RuntimeError("Training candidate is unavailable for coordinated first-read admission")
+    payload = {
+        "schema": "graphreader.synthetic-sealed-first-read-training-intent.v1",
+        "role": "training",
+        "read_binding_sha256": read_binding_sha256,
+        "opened_sha256": sha256_file(authorization.opened_path),
+        "binding_sha256": sha256_bytes(canonical_json_bytes(authorization.binding)),
+    }
+    return path, canonical_json_bytes(payload)
+
+
+def ensure_first_read_consumed_projection(
+    authorization: TrainingAuthorization, *, read_binding_sha256: str
+) -> Path:
+    """Idempotently project a coordinator-confirmed positive sealed read."""
+
+    intent_path, expected_intent = first_read_intent_payload(
+        authorization, read_binding_sha256=read_binding_sha256,
+        verify_sources=False,
+    )
+    if not intent_path.is_file() or intent_path.read_bytes() != expected_intent:
+        raise RuntimeError("Training first-read intent differs from the admission")
+    payload = {
+        "schema_version": 2,
+        "status": "consumed",
+        "sealed_split_read": True,
+        "budget_consumed": True,
+        "consumed_utc": None,
+        "opened_sha256": sha256_file(authorization.opened_path),
+        "binding": authorization.binding,
+        "read_binding_sha256": read_binding_sha256,
+        "first_read_intent_sha256": sha256_file(intent_path),
+    }
+    path = authorization.consumed_path
+    if path.exists():
+        existing = _read_json(path, "Training consumed projection")
+        comparable = dict(existing)
+        comparable["consumed_utc"] = None
+        if comparable != payload:
+            raise RuntimeError("Training consumed projection differs from the admission")
+        return path
+    payload["consumed_utc"] = datetime.now(timezone.utc).isoformat()
+    from ml.markers.gate_seal import _write_new_durable
+    _write_new_durable(path, canonical_json_bytes(payload))
+    return path
+
+
+def ensure_first_read_void_projection(
+    authorization: TrainingAuthorization,
+    *,
+    read_binding_sha256: str,
+    exception: BaseException,
+) -> Path:
+    """Idempotently void a coordinated candidate before ACK invocation."""
+
+    if authorization.repo_root is None or authorization.snapshot_path is None:
+        raise RuntimeError("Coordinated admission requires a source-bound canonical training candidate")
+    intent_path = authorization.directory / FIRST_READ_INTENT_NAME
+    void_path = authorization.directory / "void.json"
+    archive = authorization.directory / "void-attempts" / read_binding_sha256
+    if void_path.exists():
+        existing = _read_json(void_path, "Training void projection")
+        if (
+            set(existing) != _FIRST_READ_VOID_FIELDS
+            or existing.get("schema_version") != 2
+            or existing.get("status") != "void"
+            or existing.get("sealed_split_read") is not False
+            or existing.get("budget_consumed") is not False
+            or existing.get("binding") != authorization.binding
+            or existing.get("read_binding_sha256") != read_binding_sha256
+            or not isinstance(existing.get("voided_utc"), str)
+            or not isinstance(existing.get("exception_type"), str)
+            or not isinstance(existing.get("exception_message_sha256"), str)
+            or len(existing["exception_message_sha256"]) != 64
+            or any(character not in "0123456789abcdef" for character in existing["exception_message_sha256"])
+        ):
+            raise RuntimeError("Training void projection differs from the admission")
+        opened_source = (
+            authorization.opened_path
+            if authorization.opened_path.exists()
+            else archive / "opened.json"
+        )
+        snapshot_source = (
+            authorization.snapshot_path
+            if authorization.snapshot_path.exists()
+            else archive / "source-snapshot.json"
+        )
+        opened = _read_json(opened_source, "Training archived opened record")
+        if opened.get("status") != "opened" or opened.get("binding") != authorization.binding:
+            raise RuntimeError("Training archived opened record differs from the admission")
+        if (
+            not snapshot_source.is_file()
+            or sha256_file(snapshot_source)
+            != authorization.binding.get("source_snapshot_sha256")
+        ):
+            raise RuntimeError("Training archived source snapshot differs from the admission")
+        expected_intent = canonical_json_bytes({
+            "schema": "graphreader.synthetic-sealed-first-read-training-intent.v1",
+            "role": "training",
+            "read_binding_sha256": read_binding_sha256,
+            "opened_sha256": sha256_file(opened_source),
+            "binding_sha256": sha256_bytes(canonical_json_bytes(authorization.binding)),
+        })
+        if intent_path.exists() and intent_path.read_bytes() != expected_intent:
+            raise RuntimeError("Training first-read intent belongs to another admission")
+        archive.mkdir(parents=True, exist_ok=True)
+        for source, name in (
+            (authorization.opened_path, "opened.json"),
+            (authorization.snapshot_path, "source-snapshot.json"),
+        ):
+            target = archive / name
+            if source.exists() and target.exists():
+                if source.read_bytes() != target.read_bytes():
+                    raise RuntimeError("Training void archive contains conflicting source evidence")
+                source.unlink()
+            elif source.exists():
+                shutil.move(str(source), str(target))
+        intent_path.unlink(missing_ok=True)
+        return void_path
+    expected_path, expected_payload = first_read_intent_payload(
+        authorization,
+        read_binding_sha256=read_binding_sha256,
+        verify_sources=False,
+    )
+    if expected_path != intent_path or (
+        intent_path.exists() and intent_path.read_bytes() != expected_payload
+    ):
+        raise RuntimeError("Training first-read intent belongs to another admission")
+    if authorization.consumed_path.exists():
+        raise RuntimeError("Cannot void a training candidate after a confirmed sealed read")
+    payload = {
+        "schema_version": 2,
+        "status": "void",
+        "sealed_split_read": False,
+        "budget_consumed": False,
+        "voided_utc": None,
+        "exception_type": type(exception).__name__,
+        "exception_message_sha256": sha256_bytes(str(exception).encode("utf-8")),
+        "binding": authorization.binding,
+        "read_binding_sha256": read_binding_sha256,
+    }
+    if void_path.exists():
+        existing = _read_json(void_path, "Training void projection")
+        comparable = dict(existing)
+        comparable["voided_utc"] = None
+        if comparable != payload:
+            raise RuntimeError("Training void projection differs from the admission")
+    else:
+        payload["voided_utc"] = datetime.now(timezone.utc).isoformat()
+        from ml.markers.gate_seal import _write_new_durable
+        _write_new_durable(void_path, canonical_json_bytes(payload))
+    archive.mkdir(parents=True, exist_ok=True)
+    for source, name in ((authorization.opened_path, "opened.json"), (authorization.snapshot_path, "source-snapshot.json")):
+        target = archive / name
+        if source.exists() and not target.exists():
+            shutil.move(str(source), str(target))
+    intent_path.unlink(missing_ok=True)
+    return void_path
+
+
 def complete_training_candidate(
     authorization: TrainingAuthorization,
     *,
     status: str,
     report_sha256: str,
 ) -> Path:
+    if (
+        (authorization.directory / FIRST_READ_INTENT_NAME).exists()
+        and not authorization.consumed_path.exists()
+    ):
+        raise RuntimeError("Training candidate has an unresolved coordinated first-read admission")
     if authorization.repo_root is not None and authorization.snapshot_path is not None:
         verify_bound_source_snapshot(
             authorization.repo_root,
@@ -288,6 +559,10 @@ __all__ = [
     "acquire_training_candidate",
     "consume_sealed_split",
     "complete_training_candidate",
+    "prepare_first_read_intent",
+    "first_read_intent_payload",
+    "ensure_first_read_consumed_projection",
+    "ensure_first_read_void_projection",
     "require_training_budget",
     "void_candidate",
 ]

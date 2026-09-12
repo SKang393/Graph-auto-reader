@@ -32,6 +32,20 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--self-test-sealed-ocr-worker-fixture")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSealedWorkerSelfTest.ResultFixture(), JsonOptions));
+            return 0;
+        }
+        if (args.Length == 1 && args[0] == "--self-test-sealed-ocr-worker")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSealedWorkerSelfTest.Run(), JsonOptions));
+            return 0;
+        }
+        if (args.Length > 0 && args[0] == OriginalDbOcrSealedWorker.Command)
+        {
+            return await OriginalDbOcrSealedWorker.RunAsync(args, RepositoryRoot()).ConfigureAwait(false);
+        }
         if (args.Length == 5 && args[0] == OriginalDbOcrMemoryDevCheck.Command)
         {
             return await OriginalDbOcrMemoryDevCheck.RunAsync(args, RepositoryRoot()).ConfigureAwait(false);

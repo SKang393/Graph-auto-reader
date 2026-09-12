@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -21,6 +22,21 @@ POLICY_SOURCE_PATHS = (
     Path("ml/policy/evidence-policy.json"),
     Path("ml/policy/acceptance-bars.json"),
 )
+FIRST_READ_INTENT_NAME = "sealed-first-read-intent.json"
+FIRST_READ_INTENT_SCHEMA = "graphreader.synthetic-sealed-first-read-gate-intent.v1"
+_CANONICAL_GATE_BINDING_FIELDS = {
+    "task", "revision", "candidate_hashes", "candidate_hash_key_schema",
+    "dataset_manifest_sha256", "split_config_path", "split_config_sha256",
+    "evaluator_source_paths", "evaluator_source_bundle_sha256",
+    "gate_config_sha256", "evidence_split", "evidence_policy", "ledger_mode",
+    "ledger_root", "retired_policy_sha256", "source_snapshot_path",
+    "source_snapshot_sha256", "source_binding_mode", "base_commit",
+}
+_FIRST_READ_VOID_FIELDS = {
+    "schema_version", "status", "sealed_split_read", "budget_consumed",
+    "voided_utc", "key", "exception_type", "exception_message_sha256",
+    "binding", "read_binding_sha256",
+}
 
 
 def canonical_json_bytes(value: object) -> bytes:
@@ -33,6 +49,44 @@ def sha256_bytes(value: bytes) -> str:
 
 def sha256_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
+
+
+def _write_new_durable(path: Path, payload: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f".{path.name}.{uuid4().hex}.partial")
+    try:
+        with temporary.open("xb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.link(temporary, path)
+        if os.name != "nt":
+            descriptor = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _read_json(path: Path, label: str) -> dict[str, object]:
+    def reject_duplicates(pairs: list[tuple[str, object]]) -> dict[str, object]:
+        value: dict[str, object] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError("duplicate JSON key")
+            value[key] = item
+        return value
+    try:
+        value = json.loads(
+            path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicates
+        )
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+        raise RuntimeError(f"{label} is missing or corrupt") from error
+    if not isinstance(value, dict):
+        raise RuntimeError(f"{label} has an invalid shape")
+    return value
 
 
 def source_bundle_sha256(repo_root: Path, paths: Sequence[Path]) -> str:
@@ -153,6 +207,8 @@ class GateSeal:
     def consume_sealed_split(self) -> Path:
         """Consume this gate at the first truth-hidden split read."""
 
+        if (self.directory / FIRST_READ_INTENT_NAME).exists():
+            raise RuntimeError("Gate has a pending coordinated first-read admission")
         if self.binding.get("evidence_split", "sealed") != "sealed":
             raise RuntimeError("Only the sealed evidence split consumes gate budget")
         if self.consumed_path.exists():
@@ -297,6 +353,8 @@ def acquire_gate_seal(
         raise RuntimeError(f"Gate pair is retired historical evidence and cannot be replayed: {key}")
     directory = canonical_root / task / key
     directory.mkdir(parents=True, exist_ok=True)
+    if (directory / FIRST_READ_INTENT_NAME).exists():
+        raise RuntimeError(f"Gate has a pending coordinated first-read admission: {key}")
     prior_result = directory / "result.json"
     prior_opened = directory / "opened.json"
     if (
@@ -364,6 +422,8 @@ def consume_sealed_split(seal: GateSeal) -> Path:
 def void_candidate(seal: GateSeal, exception: BaseException) -> Path:
     """Release a gate whose runner failed before reading the sealed split."""
 
+    if (seal.directory / FIRST_READ_INTENT_NAME).exists():
+        raise RuntimeError("Gate has a pending coordinated first-read admission")
     if seal.consumed_path.exists():
         raise RuntimeError(f"Cannot void gate after sealed-split read: {seal.key}")
     void_path = seal.directory / "void.json"
@@ -389,6 +449,232 @@ def void_candidate(seal: GateSeal, exception: BaseException) -> Path:
         shutil.move(str(seal.opened_path), str(archive / "opened.json"))
         if seal.snapshot_path is not None and seal.snapshot_path.exists():
             shutil.move(str(seal.snapshot_path), str(archive / "source-snapshot.json"))
+    return void_path
+
+
+def prepare_first_read_intent(seal: GateSeal, *, read_binding_sha256: str) -> Path:
+    """Bind this source-authenticated gate to one coordinated sealed admission."""
+
+    path, encoded = first_read_intent_payload(
+        seal, read_binding_sha256=read_binding_sha256, verify_sources=True
+    )
+    if path.exists():
+        if path.read_bytes() != encoded:
+            raise RuntimeError("Gate first-read intent belongs to another admission")
+        return path
+    _write_new_durable(path, encoded)
+    return path
+
+
+def first_read_intent_payload(
+    seal: GateSeal,
+    *,
+    read_binding_sha256: str,
+    verify_sources: bool,
+) -> tuple[Path, bytes]:
+    """Return the exact gate intent after validating its canonical binding."""
+
+    if seal.repo_root is None or seal.snapshot_path is None:
+        raise RuntimeError("Coordinated gate admission requires a source-bound canonical seal")
+    if seal.binding.get("evidence_split", "sealed") != "sealed":
+        raise RuntimeError("Coordinated gate admission requires the sealed evidence split")
+    if len(read_binding_sha256) != 64 or any(character not in "0123456789abcdef" for character in read_binding_sha256):
+        raise RuntimeError("First-read binding must be a lowercase SHA-256 value")
+    if set(seal.binding) != _CANONICAL_GATE_BINDING_FIELDS:
+        raise RuntimeError("Coordinated gate admission requires a canonical gate binding")
+    if (
+        seal.binding.get("source_binding_mode") != "immutable_pre_run_snapshot"
+        or seal.binding.get("evidence_policy") != evidence_policy_reference()
+        or seal.binding.get("ledger_mode") != "canonical_repository"
+        or seal.binding.get("ledger_root") != "ml/markers/gate-seals"
+        or seal.binding.get("evidence_split") != "sealed"
+    ):
+        raise RuntimeError("Coordinated gate admission has a noncanonical policy binding")
+    expected_snapshot = seal.snapshot_path.resolve().relative_to(seal.repo_root.resolve()).as_posix()
+    if seal.binding.get("source_snapshot_path") != expected_snapshot:
+        raise RuntimeError("Gate source snapshot path differs from its binding")
+    if not seal.snapshot_path.is_file() or sha256_file(seal.snapshot_path) != seal.binding.get("source_snapshot_sha256"):
+        raise RuntimeError("Gate source snapshot differs from its binding")
+    hashes = seal.binding.get("candidate_hashes")
+    schema = seal.binding.get("candidate_hash_key_schema")
+    if (
+        not isinstance(hashes, dict)
+        or not isinstance(schema, list)
+        or len(schema) != len(set(schema))
+        or set(schema) != set(hashes)
+    ):
+        raise RuntimeError("Gate candidate hash schema differs from its binding")
+    for key in (
+        "dataset_manifest_sha256", "split_config_sha256",
+        "evaluator_source_bundle_sha256", "gate_config_sha256",
+        "retired_policy_sha256", "source_snapshot_sha256",
+    ):
+        value = seal.binding.get(key)
+        if not isinstance(value, str) or len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
+            raise RuntimeError(f"Gate {key} is not a lowercase SHA-256 value")
+    if verify_sources:
+        verify_bound_source_snapshot(
+            seal.repo_root, seal.snapshot_path, seal.binding.get("source_snapshot_sha256")
+        )
+    opened = _read_json(seal.opened_path, "Gate opened record")
+    if opened.get("status") != "opened" or opened.get("key") != seal.key or opened.get("binding") != seal.binding:
+        raise RuntimeError("Gate opened record differs from the source-bound seal")
+    path = seal.directory / FIRST_READ_INTENT_NAME
+    if (seal.consumed_path.exists() or (seal.directory / "void.json").exists()) and not path.exists():
+        raise RuntimeError("Gate is unavailable for coordinated first-read admission")
+    payload = {
+        "schema": FIRST_READ_INTENT_SCHEMA,
+        "role": "gate",
+        "read_binding_sha256": read_binding_sha256,
+        "opened_sha256": sha256_file(seal.opened_path),
+        "binding_sha256": sha256_bytes(canonical_json_bytes(seal.binding)),
+        "gate_identity_sha256": seal.key,
+    }
+    return path, canonical_json_bytes(payload)
+
+
+def ensure_first_read_consumed_projection(
+    seal: GateSeal, *, read_binding_sha256: str
+) -> Path:
+    """Idempotently project a coordinator-confirmed positive sealed read."""
+
+    intent_path, expected_intent = first_read_intent_payload(
+        seal, read_binding_sha256=read_binding_sha256, verify_sources=False
+    )
+    if not intent_path.is_file() or intent_path.read_bytes() != expected_intent:
+        raise RuntimeError("Gate first-read intent differs from the admission")
+    intent_sha256 = sha256_file(intent_path)
+    payload = {
+        "schema_version": 2,
+        "status": "consumed",
+        "sealed_split_read": True,
+        "budget_consumed": True,
+        "consumed_utc": None,
+        "key": seal.key,
+        "opened_sha256": sha256_file(seal.opened_path),
+        "binding": seal.binding,
+        "read_binding_sha256": read_binding_sha256,
+        "first_read_intent_sha256": intent_sha256,
+    }
+    path = seal.consumed_path
+    if path.exists():
+        existing = _read_json(path, "Gate consumed projection")
+        comparable = dict(existing)
+        comparable["consumed_utc"] = None
+        if comparable != payload:
+            raise RuntimeError("Gate consumed projection differs from the admission")
+        return path
+    payload["consumed_utc"] = datetime.now(timezone.utc).isoformat()
+    _write_new_durable(path, canonical_json_bytes(payload))
+    return path
+
+
+def ensure_first_read_void_projection(
+    seal: GateSeal, *, read_binding_sha256: str, exception: BaseException
+) -> Path:
+    """Idempotently void a coordinated gate before ACK invocation."""
+
+    if seal.repo_root is None or seal.snapshot_path is None:
+        raise RuntimeError("Coordinated gate admission requires a source-bound canonical seal")
+    intent_path = seal.directory / FIRST_READ_INTENT_NAME
+    void_path = seal.directory / "void.json"
+    archive = seal.directory / "void-attempts" / read_binding_sha256
+    if void_path.exists():
+        existing = _read_json(void_path, "Gate void projection")
+        if (
+            set(existing) != _FIRST_READ_VOID_FIELDS
+            or existing.get("schema_version") != 2
+            or existing.get("status") != "void"
+            or existing.get("sealed_split_read") is not False
+            or existing.get("budget_consumed") is not False
+            or existing.get("key") != seal.key
+            or existing.get("binding") != seal.binding
+            or existing.get("read_binding_sha256") != read_binding_sha256
+            or not isinstance(existing.get("voided_utc"), str)
+            or not isinstance(existing.get("exception_type"), str)
+            or not isinstance(existing.get("exception_message_sha256"), str)
+            or len(existing["exception_message_sha256"]) != 64
+            or any(character not in "0123456789abcdef" for character in existing["exception_message_sha256"])
+        ):
+            raise RuntimeError("Gate void projection differs from the admission")
+        opened_source = seal.opened_path if seal.opened_path.exists() else archive / "opened.json"
+        snapshot_source = (
+            seal.snapshot_path
+            if seal.snapshot_path.exists()
+            else archive / "source-snapshot.json"
+        )
+        opened = _read_json(opened_source, "Gate archived opened record")
+        if (
+            opened.get("status") != "opened"
+            or opened.get("key") != seal.key
+            or opened.get("binding") != seal.binding
+        ):
+            raise RuntimeError("Gate archived opened record differs from the admission")
+        if (
+            not snapshot_source.is_file()
+            or sha256_file(snapshot_source) != seal.binding.get("source_snapshot_sha256")
+        ):
+            raise RuntimeError("Gate archived source snapshot differs from the admission")
+        expected_intent = canonical_json_bytes({
+            "schema": FIRST_READ_INTENT_SCHEMA,
+            "role": "gate",
+            "read_binding_sha256": read_binding_sha256,
+            "opened_sha256": sha256_file(opened_source),
+            "binding_sha256": sha256_bytes(canonical_json_bytes(seal.binding)),
+            "gate_identity_sha256": seal.key,
+        })
+        if intent_path.exists() and intent_path.read_bytes() != expected_intent:
+            raise RuntimeError("Gate first-read intent belongs to another admission")
+        archive.mkdir(parents=True, exist_ok=True)
+        for source, name in (
+            (seal.opened_path, "opened.json"),
+            (seal.snapshot_path, "source-snapshot.json"),
+        ):
+            target = archive / name
+            if source.exists() and target.exists():
+                if source.read_bytes() != target.read_bytes():
+                    raise RuntimeError("Gate void archive contains conflicting source evidence")
+                source.unlink()
+            elif source.exists():
+                shutil.move(str(source), str(target))
+        intent_path.unlink(missing_ok=True)
+        return void_path
+    expected_path, expected_payload = first_read_intent_payload(
+        seal, read_binding_sha256=read_binding_sha256, verify_sources=False
+    )
+    if expected_path != intent_path or (
+        intent_path.exists() and intent_path.read_bytes() != expected_payload
+    ):
+        raise RuntimeError("Gate first-read intent belongs to another admission")
+    if seal.consumed_path.exists():
+        raise RuntimeError("Cannot void a gate after a confirmed sealed read")
+    payload = {
+        "schema_version": 2,
+        "status": "void",
+        "sealed_split_read": False,
+        "budget_consumed": False,
+        "voided_utc": None,
+        "key": seal.key,
+        "exception_type": type(exception).__name__,
+        "exception_message_sha256": sha256_bytes(str(exception).encode("utf-8")),
+        "binding": seal.binding,
+        "read_binding_sha256": read_binding_sha256,
+    }
+    if void_path.exists():
+        existing = _read_json(void_path, "Gate void projection")
+        comparable = dict(existing)
+        comparable["voided_utc"] = None
+        if comparable != payload:
+            raise RuntimeError("Gate void projection differs from the admission")
+    else:
+        payload["voided_utc"] = datetime.now(timezone.utc).isoformat()
+        _write_new_durable(void_path, canonical_json_bytes(payload))
+    archive.mkdir(parents=True, exist_ok=True)
+    for source, name in ((seal.opened_path, "opened.json"), (seal.snapshot_path, "source-snapshot.json")):
+        target = archive / name
+        if source.exists() and not target.exists():
+            shutil.move(str(source), str(target))
+    intent_path.unlink(missing_ok=True)
     return void_path
 
 
@@ -424,6 +710,7 @@ def complete_gate_seal(seal: GateSeal, *, status: str, report_sha256: str) -> Pa
 
 __all__ = [
     "GateSeal",
+    "FIRST_READ_INTENT_NAME",
     "acquire_gate_seal",
     "canonical_json_bytes",
     "capture_source_snapshot",
@@ -434,6 +721,10 @@ __all__ = [
     "sha256_bytes",
     "sha256_file",
     "source_bundle_sha256",
+    "prepare_first_read_intent",
+    "first_read_intent_payload",
+    "ensure_first_read_consumed_projection",
+    "ensure_first_read_void_projection",
     "verify_source_snapshot",
     "verify_bound_source_snapshot",
     "void_candidate",

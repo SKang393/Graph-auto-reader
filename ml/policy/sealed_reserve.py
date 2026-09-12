@@ -90,6 +90,24 @@ _CASE_PAYLOAD_NAMES = frozenset({
     "scene.json", "image.png", "annotation.json", "marker-mask.png",
 })
 _FAMILY_AXES = frozenset({"renderer", "font", "degradation", "template", "marker"})
+FIRST_READ_ADMISSION_SCHEMA = "graphreader.synthetic-sealed-first-read-admission.v1"
+FIRST_READ_ADMISSION_STATUSES = frozenset({
+    "prepared", "ack_intent", "possible_read", "confirmed_read",
+    "completed", "failed", "void",
+})
+_FIRST_READ_ADMISSION_IDENTITY_FIELDS = {
+    "admission_id", "status", "set_id", "revision", "candidate_id",
+    "candidate_sha256", "gate_identity_sha256", "read_binding_sha256",
+    "acceptance_scope", "coverage_protocol_sha256",
+}
+_FIRST_READ_BINDING_IDENTITY_FIELDS = {
+    "registry_path", "set_id", "revision", "candidate_id", "candidate_sha256",
+    "gate_identity_sha256", "acceptance_scope", "coverage_protocol_sha256",
+    "reserve_metadata_sha256", "archive_path", "archive_sha256",
+    "archive_manifest_sha256", "case_count", "training_opened_sha256",
+    "training_binding_sha256", "gate_opened_sha256", "gate_binding_sha256",
+    "evidence_policy",
+}
 
 
 class SealedReserveError(RuntimeError):
@@ -795,13 +813,236 @@ def load_registry(
     return deepcopy(document)
 
 
+def _validate_set_metadata_only(record: Any) -> dict[str, Any]:
+    """Validate registered identities and use state without opening source payloads."""
+
+    item = _object(record, _SET_FIELDS, "reserve set")
+    scope = _object(item["scope"], _SCOPE_FIELDS, "reserve scope")
+    _require_supported_registry_scope(scope)
+    generator = _object(item["generator"], _GENERATOR_FIELDS, "reserve generator")
+    archive = _object(item["archive"], _ARCHIVE_FIELDS, "reserve archive")
+    chain = _object(item["chain"], _CHAIN_FIELDS, "reserve generation chain")
+    config_path = _canonical_relative(generator["config_path"], "generator config")
+    config_sha256 = _sha256(generator["config_sha256"], "generator config hash")
+    source_paths = generator["source_paths"]
+    source_hashes = generator["source_sha256"]
+    if (
+        not isinstance(source_paths, list)
+        or not source_paths
+        or not isinstance(source_hashes, list)
+        or len(source_paths) != len(source_hashes)
+        or len(set(source_paths)) != len(source_paths)
+    ):
+        raise SealedReserveError("generator sources must be nonempty unique path/hash arrays")
+    source_rows = [
+        {
+            "path": _canonical_relative(path_value, "generator source"),
+            "sha256": _sha256(hash_value, "generator source hash"),
+        }
+        for path_value, hash_value in zip(source_paths, source_hashes, strict=True)
+    ]
+    if source_rows != sorted(source_rows, key=lambda row: row["path"]):
+        raise SealedReserveError("generator sources must use stable path order")
+    source_bundle = _sha256(
+        generator["source_bundle_sha256"], "generator source bundle hash"
+    )
+    if _source_bundle(source_rows) != source_bundle:
+        raise SealedReserveError("generator source bundle differs from registered sources")
+    archive_path = _canonical_relative(archive["path"], "reserve archive")
+    if not archive_path.startswith("artifacts/"):
+        raise SealedReserveError("reserve archive must remain under repository artifacts")
+    archive_sha256 = _sha256(archive["sha256"], "reserve archive hash")
+    if type(archive["byte_count"]) is not int or archive["byte_count"] <= 0:
+        raise SealedReserveError("reserve archive byte count is invalid")
+    set_id = _sha256(item["set_id"], "reserve set identity")
+    if set_id != _set_identity(config_sha256, source_bundle, archive_sha256):
+        raise SealedReserveError("reserve set identity differs from its immutable inputs")
+    if (
+        chain["config_schema"] != GENERATION_SCHEMA
+        or chain["archive_schema"] != ARCHIVE_SCHEMA
+        or _sha256(chain["archive_manifest_sha256"], "archive manifest hash")
+        != chain["archive_manifest_sha256"]
+        or _sha256(
+            chain["source_snapshot_manifest_sha256"],
+            "source snapshot manifest hash",
+        ) != chain["source_snapshot_manifest_sha256"]
+        or _sha256(chain["payload_bundle_sha256"], "payload bundle hash")
+        != chain["payload_bundle_sha256"]
+        or type(chain["case_count"]) is not int
+        or chain["case_count"] <= 0
+        or not isinstance(chain["case_identity_sha256"], list)
+        or len(chain["case_identity_sha256"]) != chain["case_count"]
+        or len(set(chain["case_identity_sha256"])) != len(chain["case_identity_sha256"])
+        or any(
+            _sha256(value, "reserve case identity hash") != value
+            for value in chain["case_identity_sha256"]
+        )
+    ):
+        raise SealedReserveError("reserve generation-chain evidence is invalid")
+
+    maximum, _ = _policy_limits()
+    uses = item["uses"]
+    if not isinstance(uses, list):
+        raise SealedReserveError("reserve uses must be an array")
+    revisions: set[str] = set()
+    candidate_pairs: set[tuple[str, str]] = set()
+    for use_value in uses:
+        use = _object(use_value, _USE_FIELDS, "reserve use")
+        revision = use["revision"]
+        candidate_id = use["candidate_id"]
+        if (
+            not isinstance(revision, str)
+            or not revision
+            or revision.strip() != revision
+            or not isinstance(candidate_id, str)
+            or not candidate_id
+            or candidate_id.strip() != candidate_id
+            or (revision, candidate_id) in candidate_pairs
+        ):
+            raise SealedReserveError("reserve uses require unique candidate/revision identities")
+        revisions.add(revision)
+        candidate_pairs.add((revision, candidate_id))
+        _sha256(use["gate_identity_sha256"], "sealed gate identity hash")
+        _sha256(use["read_binding_sha256"], "sealed read binding hash")
+        disclosures = use["disclosures"]
+        if (
+            not isinstance(disclosures, list)
+            or len(disclosures) != len(set(disclosures))
+            or not set(disclosures).issubset(DISCLOSURE_KINDS)
+            or use["aggregate_only"] is not (not disclosures)
+        ):
+            raise SealedReserveError("reserve use has an invalid disclosure scope")
+    if len(revisions) > maximum:
+        raise SealedReserveError("reserve uses exceed the distinct-revision policy limit")
+    state = item["state"]
+    retirement = item["retirement"]
+    if state == "unused":
+        valid = not uses and retirement is None
+    elif state == "reusable":
+        valid = bool(uses) and len(revisions) < maximum and retirement is None and all(use["aggregate_only"] for use in uses)
+    elif state == "revision_limit":
+        valid = len(revisions) == maximum and retirement is None and all(use["aggregate_only"] for use in uses)
+    elif state == "retired":
+        retired = _object(retirement, _RETIREMENT_FIELDS, "reserve retirement")
+        _sha256(retired["evidence_sha256"], "retirement evidence hash")
+        disclosures = retired["disclosures"]
+        valid_disclosures = (
+            isinstance(disclosures, list)
+            and disclosures == sorted(set(disclosures))
+            and set(disclosures).issubset(DISCLOSURE_KINDS)
+        )
+        if retired["reason"] == "maximum_distinct_revisions_reached":
+            valid = (
+                valid_disclosures
+                and not disclosures
+                and len(revisions) == maximum
+                and all(use["aggregate_only"] for use in uses)
+            )
+        elif retired["reason"] == "case_level_disclosure":
+            direct_disclosures = [use for use in uses if not use["aggregate_only"]]
+            valid = (
+                valid_disclosures
+                and bool(disclosures)
+                and (
+                    not direct_disclosures
+                    or (
+                        len(direct_disclosures) == 1
+                        and direct_disclosures[0]["read_binding_sha256"]
+                        == retired["evidence_sha256"]
+                        and direct_disclosures[0]["disclosures"] == disclosures
+                    )
+                )
+            )
+        else:
+            valid = False
+    else:
+        valid = False
+    if not valid:
+        raise SealedReserveError("reserve set has inconsistent metadata-only state")
+    return item
+
+
+def load_registry_metadata_only(
+    registry_path: Path, repository_root: Path
+) -> dict[str, Any]:
+    """Validate registry identity and accounting without reading reserve archives."""
+
+    path = _registry_file(repository_root, registry_path)
+    if not path.is_file():
+        raise SealedReserveError("synthetic sealed reserve registry is missing")
+
+    def reject_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        value: dict[str, Any] = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError("duplicate JSON key")
+            value[key] = item
+        return value
+
+    try:
+        raw = json.loads(
+            path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicates
+        )
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+        raise SealedReserveError("synthetic sealed reserve registry is not valid JSON") from error
+    document = _object(raw, _REGISTRY_FIELDS, "sealed reserve registry")
+    if document["schema"] != REGISTRY_SCHEMA or document["evidence_policy"] != evidence_policy_reference():
+        raise SealedReserveError("sealed reserve registry has an unsupported policy identity")
+    if type(document["generation"]) is not int or document["generation"] < 0 or not isinstance(document["sets"], list):
+        raise SealedReserveError("sealed reserve registry generation or sets are invalid")
+    sets = [_validate_set_metadata_only(item) for item in document["sets"]]
+    set_ids = [item["set_id"] for item in sets]
+    archive_hashes = [item["archive"]["sha256"] for item in sets]
+    archive_paths = [item["archive"]["path"] for item in sets]
+    candidate_identities = [
+        (
+            item["scope"]["acceptance_scope"],
+            item["scope"]["coverage_protocol_sha256"],
+            use["revision"], use["candidate_id"],
+        )
+        for item in sets for use in item["uses"]
+    ]
+    gate_identities = [use["gate_identity_sha256"] for item in sets for use in item["uses"]]
+    read_bindings = [use["read_binding_sha256"] for item in sets for use in item["uses"]]
+    generation_identities = [
+        (item["generator"]["config_sha256"], item["generator"]["source_bundle_sha256"])
+        for item in sets
+    ]
+    case_identities = [
+        case_identity
+        for item in sets
+        for case_identity in item["chain"]["case_identity_sha256"]
+    ]
+    if (
+        len(set(set_ids)) != len(set_ids)
+        or len(set(archive_hashes)) != len(archive_hashes)
+        or len(set(archive_paths)) != len(archive_paths)
+        or len(set(generation_identities)) != len(generation_identities)
+        or len(set(case_identities)) != len(case_identities)
+        or len(set(candidate_identities)) != len(candidate_identities)
+        or len(set(gate_identities)) != len(gate_identities)
+        or len(set(read_bindings)) != len(read_bindings)
+    ):
+        raise SealedReserveError("sealed reserve registry contains duplicate accounting identities")
+    return deepcopy(document)
+
+
 def _write_registry(path: Path, registry: dict[str, Any]) -> str:
     payload = canonical_json_bytes(registry)
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f".{path.name}.{uuid4().hex}.tmp")
     try:
-        temporary.write_bytes(payload)
+        with temporary.open("xb") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
         os.replace(temporary, path)
+        if os.name != "nt":
+            descriptor = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
     finally:
         temporary.unlink(missing_ok=True)
     return sha256_bytes(payload)
@@ -1003,6 +1244,85 @@ def _find_set(registry: dict[str, Any], set_id: str) -> dict[str, Any]:
     return match
 
 
+def first_read_admission_directory(
+    registry_path: Path, repository_root: Path
+) -> Path:
+    """Return the registry-owned sidecar directory without opening any payload."""
+
+    path = _registry_file(repository_root, registry_path)
+    return path.with_name(f".{path.name}.first-read-admissions")
+
+
+def first_read_admission_path(
+    registry_path: Path, repository_root: Path, admission_id: str
+) -> Path:
+    normalized = _sha256(admission_id, "first-read admission identity")
+    return first_read_admission_directory(registry_path, repository_root) / f"{normalized}.json"
+
+
+def _load_first_read_admission_identities(path: Path) -> list[dict[str, Any]]:
+    directory = path.with_name(f".{path.name}.first-read-admissions")
+    if not directory.exists():
+        return []
+    records: list[dict[str, Any]] = []
+    for candidate in sorted(directory.glob("*.json")):
+        def reject_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+            value: dict[str, Any] = {}
+            for key, item in pairs:
+                if key in value:
+                    raise ValueError("duplicate JSON key")
+                value[key] = item
+            return value
+        try:
+            value = json.loads(
+                candidate.read_text(encoding="utf-8"),
+                object_pairs_hook=reject_duplicates,
+            )
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+            raise SealedReserveError("first-read admission authority is corrupt") from error
+        if (
+            not isinstance(value, dict)
+            or value.get("schema") != FIRST_READ_ADMISSION_SCHEMA
+            or not _FIRST_READ_ADMISSION_IDENTITY_FIELDS.issubset(value)
+            or not _FIRST_READ_BINDING_IDENTITY_FIELDS.issubset(value)
+            or value.get("status") not in FIRST_READ_ADMISSION_STATUSES
+        ):
+            raise SealedReserveError("first-read admission authority has an invalid shape")
+        for key in (
+            "admission_id", "set_id", "candidate_sha256", "gate_identity_sha256",
+            "read_binding_sha256", "coverage_protocol_sha256",
+        ):
+            _sha256(value[key], f"first-read admission {key}")
+        if (
+            value["admission_id"] != candidate.stem
+            or value["read_binding_sha256"] != value["admission_id"]
+        ):
+            raise SealedReserveError("first-read admission file identity differs")
+        binding_identity = {
+            "schema": "graphreader.synthetic-sealed-first-read-binding.v1",
+            **{
+                key: value[key]
+                for key in _FIRST_READ_BINDING_IDENTITY_FIELDS
+            },
+        }
+        if sha256_bytes(canonical_json_bytes(binding_identity)) != value["admission_id"]:
+            raise SealedReserveError("first-read admission content identity differs")
+        records.append(value)
+    return records
+
+
+def first_read_admission_identities(
+    registry_path: Path, repository_root: Path
+) -> list[dict[str, Any]]:
+    """Load identity-only admission authority records without archive access."""
+
+    return deepcopy(
+        _load_first_read_admission_identities(
+            _registry_file(repository_root, registry_path)
+        )
+    )
+
+
 def _record_sealed_read_locked(
     registry_path: Path,
     repository_root: Path,
@@ -1016,10 +1336,19 @@ def _record_sealed_read_locked(
     required_acceptance_scope: str,
     required_coverage_protocol_sha256: str,
     disclosures: Sequence[str] = (),
+    held_set_ids: frozenset[str] = frozenset(),
+    metadata_only: bool = False,
 ) -> str:
-    path, registry = _load_for_update(
-        registry_path, repository_root, expected_registry_sha256
-    )
+    if metadata_only:
+        path = _registry_file(repository_root, registry_path)
+        expected = _sha256(expected_registry_sha256, "expected registry hash")
+        if not path.is_file() or sha256_file(path) != expected:
+            raise SealedReserveError("sealed reserve registry differs from the expected SHA-256")
+        registry = load_registry_metadata_only(path, repository_root)
+    else:
+        path, registry = _load_for_update(
+            registry_path, repository_root, expected_registry_sha256
+        )
     item = _find_set(registry, set_id)
     if item["state"] == "retired":
         raise SealedReserveError("retired sealed reserve sets cannot be reused")
@@ -1077,9 +1406,14 @@ def _record_sealed_read_locked(
         and candidate["scope"]["acceptance_scope"] == required_acceptance_scope
         and candidate["scope"]["coverage_protocol_sha256"] == protocol_sha256
     ]
-    unused_before = sum(candidate["state"] == "unused" for candidate in compatible)
+    unused_before = sum(
+        candidate["state"] == "unused" and candidate["set_id"] not in held_set_ids
+        for candidate in compatible
+    )
     if unused_before < minimum or (
-        item["state"] == "unused" and unused_before - 1 < minimum
+        item["state"] == "unused"
+        and item["set_id"] not in held_set_ids
+        and unused_before - 1 < minimum
     ):
         raise SealedReserveError("sealed read would violate the minimum unused reserve")
     used_revisions = {use["revision"] for use in item["uses"]}
@@ -1107,7 +1441,10 @@ def _record_sealed_read_locked(
         item["state"] = "reusable"
     registry["generation"] += 1
     new_hash = _write_registry(path, registry)
-    load_registry(path, repository_root)
+    if metadata_only:
+        load_registry_metadata_only(path, repository_root)
+    else:
+        load_registry(path, repository_root)
     return new_hash
 
 
@@ -1127,6 +1464,31 @@ def record_sealed_read(
 ) -> str:
     path = _registry_file(repository_root, registry_path)
     with _registry_update_lock(path):
+        admissions = _load_first_read_admission_identities(path)
+        active = [item for item in admissions if item["status"] != "void"]
+        gate_sha256 = _sha256(gate_identity_sha256, "sealed gate identity hash")
+        binding_sha256 = _sha256(read_binding_sha256, "sealed read binding hash")
+        if any(
+            item["gate_identity_sha256"] == gate_sha256
+            or item["read_binding_sha256"] == binding_sha256
+            or (
+                item["acceptance_scope"] == required_acceptance_scope
+                and item["coverage_protocol_sha256"] == required_coverage_protocol_sha256
+                and item["revision"] == revision
+                and item["candidate_id"] == candidate_id
+            )
+            for item in active
+        ):
+            raise SealedReserveError(
+                "sealed read is owned by a coordinated first-read admission"
+            )
+        held_set_ids = frozenset(
+            item["set_id"]
+            for item in active
+            if item["status"] in {
+                "ack_intent", "possible_read", "confirmed_read"
+            }
+        )
         return _record_sealed_read_locked(
             registry_path,
             repository_root,
@@ -1139,6 +1501,7 @@ def record_sealed_read(
             required_acceptance_scope=required_acceptance_scope,
             required_coverage_protocol_sha256=required_coverage_protocol_sha256,
             disclosures=disclosures,
+            held_set_ids=held_set_ids,
         )
 
 
@@ -1291,11 +1654,17 @@ __all__ = [
     "GENERATION_SCHEMA",
     "PLUMBING_PURPOSE",
     "REGISTRY_SCHEMA",
+    "FIRST_READ_ADMISSION_SCHEMA",
+    "FIRST_READ_ADMISSION_STATUSES",
     "SOURCE_SNAPSHOT_SCHEMA",
     "SealedReserveError",
     "acceptance_reserve_counts",
     "initialize_registry",
     "load_registry",
+    "load_registry_metadata_only",
+    "first_read_admission_directory",
+    "first_read_admission_path",
+    "first_read_admission_identities",
     "record_case_level_disclosure",
     "record_sealed_read",
     "register_reserve_set",

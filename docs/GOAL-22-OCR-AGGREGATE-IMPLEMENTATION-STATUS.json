@@ -1,20 +1,20 @@
 {
   "schema": "graphreader.goal22.ocr-aggregate-implementation-status.v1",
-  "status": "ocr_archive_and_corpus_components_verified_sealed_worker_pending",
+  "status": "ocr_worker_transport_and_read_accounting_components_verified_parent_evaluation_pending",
   "purpose": "In-memory full OCR metric accounting for the required aggregate-only sealed evaluator.",
   "source_sha256": {
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorer.cs": "a7addc39ce604c97bf204e9ca3c696854af9eaf0da597fa0a8a90d9329759ad0",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorerSelfTest.cs": "b9f319e0ba475b0ab66b5a01a9f4edc93ce3236778b86fd1078baeefd49a0b06",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMetricFixtures.cs": "9d6fcca5de29493dc43ad8729fab7b849943ed07af93ce30ee9ebd520d75ee5f",
     "tools/GraphReader.SyntheticRuntimeEvidence/check_original_db_ocr_aggregate_parity.py": "d455b34197524a24e74591126ff06d8ad268daa518e354124c49a25dc9f10e4a",
-    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "2e68d97f7b1422d7aeae932353d904d24287252c09604af31c50c3df8f3224ec",
+    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "c747848109006d6c6330bccc83c0b6e44ef28871a9fb3393e8a96aab96d67757",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemorySourceEvaluator.cs": "926ca5c95b9295d871d8bc4cd3111fb18b2c88d8b1de53a91ce6d041eb8f6500",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryRuntime.cs": "dad66ef1eca99d37021212602ae8a269494e44b033e7127e8acd0e8312d83863",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryDevCheck.cs": "0e8fcb86dad251ece427cfe282a2e5969489af4330b0a3632b50b08c7f583bda",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSourceMappingSelfTest.cs": "309d69b7fd16d6a2f7184597b0b336c8254bffbbe8f0b1deb3af22b84030e283",
     "ml/synthetic/ocr_sealed_acceptance.py": "daaaca22c60bee938fa6fff6a4a3275440b98043f7f74a11b0385a2026261449",
     "ml/policy/goal22-ocr-sealed-coverage-v1.json": "26ab0e017ccc6dc17d26effe11b1fb40f440ed4471e896c1afac3c8cc96999c4",
-    "ml/policy/sealed_reserve.py": "c10b1e4da98d4964cc82c606831cef66512cb4abdcc4a9079f2d5b59986cafd8",
+    "ml/policy/sealed_reserve.py": "2769ba9f13f462f42e4f09b8e97d5a5048a3d7c56e5825b813dbceca6b2953fb",
     "ml/synthetic/prepare_sealed_reserve.py": "d29ba58dd6153ac99e2a87227ebc778e4ad6e0b34e98913ad1645db33e116d19",
     "ml/synthetic/renderer.py": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAnnotationReader.cs": "bcadf80f5e10cb64ec7579fb1ce5e73c65bac06103027aa6183d8c3e73dc35b1",
@@ -22,7 +22,17 @@
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedArchive.cs": "dec51d1e1e5d29ff47e7ee05f616aeb47898a21465f44762a576aa036e1f0c29",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedArchiveSelfTest.cs": "431de4e96acfe8a442c3dec83231f951b9b376056c7b4dc7faebd33fd96ac58a",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemoryCorpusEvaluator.cs": "1458f7bcaefe8c71d7129cc509493960bf592676f57836577b8bd6f431978503",
-    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemoryCorpusEvaluatorSelfTest.cs": "f942ae5b421fe4bc7d0639ae5d58c05a2ca5a87f65fbf7050b3d87aeaec8aa74"
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemoryCorpusEvaluatorSelfTest.cs": "f942ae5b421fe4bc7d0639ae5d58c05a2ca5a87f65fbf7050b3d87aeaec8aa74",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrReadReceiptStream.cs": "75d694a840a8eaef90adec10532edb5b4b2712aa6be427d075b03ea0761addb4",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedWorker.cs": "b2e884646d78e4868965c48cbf9e868a76af2cabf2b6cd28d5a3e3c2b3b05d0e",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedWorkerSelfTest.cs": "a209803386bdbacdb862f0851ab5b4536838981ac7e88f1a61dfd92c80d901f7",
+    "ml/policy/ocr_sealed_transport.py": "8f168feac1316d1b4be5b8c5deb4d268b750220f4bc2f1a865bf0b5ae07423c6",
+    "ml/policy/tests/test_ocr_sealed_transport.py": "d5787361a28f8360f1c8c9b1a548af66ad8f0bcdb56f4012ad6434ceebefd360",
+    "ml/markers/gate_seal.py": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725",
+    "ml/markers/training_budget.py": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4",
+    "ml/policy/sealed_first_read_admission.py": "6e50ac203ad7b918259982e02318441de5175a97e968624f2d0364f89187df1a",
+    "ml/policy/tests/test_sealed_first_read_admission.py": "a7375dccd8db29f1f764cf18aa6a7d778c0a5f7d0b858c6dc5e906739540033b",
+    "ml/policy/tests/test_ocr_sealed_admission_transport.py": "3595cb8ffc60e390097322dd79f336243f294ec224402c69e16b1d4784e7da01"
   },
   "validation": {
     "build": {
@@ -60,13 +70,12 @@
   "blocker": "Resolved: managed execution recovered; build and metric validation completed.",
   "review_queue": "REV-007",
   "pending_checks": [
-    "Complete aggregate-only sealed worker and canonical read accounting",
+    "Connect passing authenticated dev evidence and parent evaluation command",
     "Integrate exact sealed evidence validation into Production approval gate"
   ],
   "remaining_integration": [
-    "Connect the actual in-memory source evaluator and annotation reader to a complete sealed archive worker with first-read acknowledgment",
-    "Python parent canonical read accounting before worker ACK",
-    "Exact sealed report validation in ProductionOriginalDbOcrApprovalGate"
+    "Connect passing authenticated dev evidence and parent evaluation command",
+    "Integrate exact sealed evidence validation into Production approval gate"
   ],
   "safeguards": [
     "Original DB uses original BGR, not axis-masked pixels",
@@ -495,10 +504,10 @@
   "sealed_read_scope": "Unauthorized aggregate-only annotation archive access by a delegated reviewer; not candidate evaluation. See the recorded incident.",
   "sealed_candidate_evaluations": 0,
   "previous_integration": {
-    "commit": "d48bc7fb0b6d9d97106e3c9a3054cde5b3000f1d",
+    "commit": "7db27c7af908d07a65c22ef08d0ec636bb86d728",
     "windows_ci_conclusion": "success",
     "origin_main_verified": true,
-    "windows_ci_run": 34672592500
+    "windows_ci_run": 34673397219
   },
   "archive_and_corpus_components": {
     "status": "compiled_and_model_free_checks_verified",
@@ -548,5 +557,90 @@
       "Annotation parsing and per-source matching are bounded synchronous work; cancellation is observed before the next stage or aggregate return",
       "Complete worker, canonical parent admission and Production report connection remain unfinished"
     ]
+  },
+  "worker_and_transport_components": {
+    "status": "compiled_and_model_free_checks_verified",
+    "build": {
+      "warnings": 0,
+      "errors": 0,
+      "elapsed_seconds": 3.64
+    },
+    "worker_self_test_checks": 14,
+    "transport_checks": {
+      "passed": 19,
+      "elapsed_seconds": 2.52
+    },
+    "csharp_python_envelope_fixture": {
+      "passed": true,
+      "unsealed_fixture": true,
+      "model_inference": false,
+      "source_count": 1,
+      "truth_region_count": 8,
+      "truth_character_count": 32,
+      "fixture_sha256": "28d527c9d44382f7a3ecbc1dc7cf77902adbfa69d512f21a99b052357ac6074d"
+    },
+    "invalid_worker_cli": {
+      "exit_code": 1,
+      "stderr": "ORIGINAL_DB_SEALED_WORKER_FAILED",
+      "case_output": false
+    },
+    "admission_order": "Authenticate runtime; request parent ACK; emit receipt immediately after the first positive archive read and before returning its bytes; emit one validated aggregate result.",
+    "repaired_failures": [
+      "Transport ACK writer now accepts and validates the coordinator frame.",
+      "Accounting callbacks run synchronously and cannot outlive transport return.",
+      "Numeric overflow is rejected with sanitized output.",
+      "Child cleanup failure is surfaced explicitly."
+    ],
+    "model_inference": false,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approved": false,
+    "limitations": [
+      "Synchronous operating-system and bookkeeping calls check deadlines around the call; they cannot be interrupted midcall.",
+      "Parent execution command, authenticated dev prerequisite and Production report admission remain unfinished."
+    ]
+  },
+  "canonical_parent_read_accounting": {
+    "status": "component_and_cross_module_tests_verified",
+    "broad_regression": {
+      "passed": 83,
+      "elapsed_seconds": 16.25,
+      "scope": "Coordinator, transport, cross-module exchange, reserve registry, evidence policy, canonical budget mechanics"
+    },
+    "final_affected_regression": {
+      "passed": 51,
+      "elapsed_seconds": 12.42,
+      "scope": "Coordinator, four cross-module exchanges, and reserve registry after final identity/disclosure parity fixes"
+    },
+    "cross_module_scenarios": [
+      "Confirmed read completes once",
+      "Invalid first frame recovers to void with no consumption",
+      "ACK without receipt remains possible and is not retried or claimed consumed",
+      "Failure after confirmed receipt remains counted once"
+    ],
+    "durability": "Authority records and component projections use atomic exclusive publication; recovery completes partial bookkeeping without running a worker.",
+    "metadata_only": true,
+    "first_read_confirmation": "Only a matching positive-byte worker receipt confirms consumption. ACK intent remains possible exposure.",
+    "repaired_review_findings": [
+      "Preparation publishes recoverable authority before component intents.",
+      "Partial void cleanup validates archived identities and converges after interruption.",
+      "ACK revalidates source bindings and selected immutable reserve metadata.",
+      "Bookkeeping uses metadata-only registry validation and never hashes or opens archive payloads.",
+      "Completed sets release temporary holds while retaining policy reuse counts.",
+      "Content-addressed admission identity and read binding are checked by the identity-only loader.",
+      "Retirement disclosure checks match full registry validation.",
+      "Canonical acquisition supports unique unordered candidate hash-key schemas."
+    ],
+    "independent_review": {
+      "status": "CLEAR",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "scope": "Coordinator and shared accounting implementation, including final metadata parity fixes"
+    },
+    "model_inference": false,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approved": false,
+    "remaining": "Parent command must still authenticate dev eligibility, create and bind the worker request, write the aggregate outcome, and close canonical result records."
   }
 }
