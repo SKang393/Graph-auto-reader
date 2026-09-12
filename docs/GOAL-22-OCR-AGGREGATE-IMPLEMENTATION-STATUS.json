@@ -1,13 +1,13 @@
 {
   "schema": "graphreader.goal22.ocr-aggregate-implementation-status.v1",
-  "status": "ocr_scope_and_truth_reader_verified_sealed_worker_pending",
+  "status": "ocr_archive_and_corpus_components_verified_sealed_worker_pending",
   "purpose": "In-memory full OCR metric accounting for the required aggregate-only sealed evaluator.",
   "source_sha256": {
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorer.cs": "a7addc39ce604c97bf204e9ca3c696854af9eaf0da597fa0a8a90d9329759ad0",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorerSelfTest.cs": "b9f319e0ba475b0ab66b5a01a9f4edc93ce3236778b86fd1078baeefd49a0b06",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMetricFixtures.cs": "9d6fcca5de29493dc43ad8729fab7b849943ed07af93ce30ee9ebd520d75ee5f",
     "tools/GraphReader.SyntheticRuntimeEvidence/check_original_db_ocr_aggregate_parity.py": "d455b34197524a24e74591126ff06d8ad268daa518e354124c49a25dc9f10e4a",
-    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "8bb239f60868b78efc0dafe947172d02ce1e22ca86550e631da02e9d6bafcfe9",
+    "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs": "2e68d97f7b1422d7aeae932353d904d24287252c09604af31c50c3df8f3224ec",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemorySourceEvaluator.cs": "926ca5c95b9295d871d8bc4cd3111fb18b2c88d8b1de53a91ce6d041eb8f6500",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryRuntime.cs": "dad66ef1eca99d37021212602ae8a269494e44b033e7127e8acd0e8312d83863",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryDevCheck.cs": "0e8fcb86dad251ece427cfe282a2e5969489af4330b0a3632b50b08c7f583bda",
@@ -18,7 +18,11 @@
     "ml/synthetic/prepare_sealed_reserve.py": "d29ba58dd6153ac99e2a87227ebc778e4ad6e0b34e98913ad1645db33e116d19",
     "ml/synthetic/renderer.py": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283",
     "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAnnotationReader.cs": "bcadf80f5e10cb64ec7579fb1ce5e73c65bac06103027aa6183d8c3e73dc35b1",
-    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAnnotationReaderSelfTest.cs": "d9627a68c67ae38d025234351dac69c143ad438c1a80ca098f615d3289c3cb92"
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAnnotationReaderSelfTest.cs": "d9627a68c67ae38d025234351dac69c143ad438c1a80ca098f615d3289c3cb92",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedArchive.cs": "dec51d1e1e5d29ff47e7ee05f616aeb47898a21465f44762a576aa036e1f0c29",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedArchiveSelfTest.cs": "431de4e96acfe8a442c3dec83231f951b9b376056c7b4dc7faebd33fd96ac58a",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemoryCorpusEvaluator.cs": "1458f7bcaefe8c71d7129cc509493960bf592676f57836577b8bd6f431978503",
+    "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemoryCorpusEvaluatorSelfTest.cs": "f942ae5b421fe4bc7d0639ae5d58c05a2ca5a87f65fbf7050b3d87aeaec8aa74"
   },
   "validation": {
     "build": {
@@ -491,9 +495,58 @@
   "sealed_read_scope": "Unauthorized aggregate-only annotation archive access by a delegated reviewer; not candidate evaluation. See the recorded incident.",
   "sealed_candidate_evaluations": 0,
   "previous_integration": {
-    "commit": "c2a05eb5a705ec166c8cc45023613863f6cc1c4f",
+    "commit": "d48bc7fb0b6d9d97106e3c9a3054cde5b3000f1d",
+    "windows_ci_conclusion": "success",
     "origin_main_verified": true,
-    "windows_ci_run": 34671620125,
-    "windows_ci_conclusion": "success"
+    "windows_ci_run": 34672592500
+  },
+  "archive_and_corpus_components": {
+    "status": "compiled_and_model_free_checks_verified",
+    "build": {
+      "errors": 0,
+      "elapsed_seconds": 3.81,
+      "warnings": 0
+    },
+    "archive_self_test_checks": 13,
+    "corpus_self_test_checks": 12,
+    "python_archive_fixture": {
+      "actual_python_producer": "ml.synthetic.prepare_sealed_reserve._archive_bytes",
+      "archive_byte_count": 3038,
+      "includes_unicode_identity": true,
+      "manifest_sha256": "ea165f7e1da58f2cd71debaa1b9396473f4eba7aeed9452f695a2c659f98048d",
+      "purpose": "Archive format and hash parity only, not coverage or model accuracy",
+      "generator_script_sha256": "e42d417df35de18acb24801d649cf8a495d3e1c2cf2473d6f7a43320fbb249e9",
+      "archive_sha256": "c939a0cd0d267f29d09bdf33b5ba67e756d2a00e7691496d9adb02361ea27622",
+      "handauthored_cases": 2,
+      "unsealed_fixture": true
+    },
+    "repaired_failures": [
+      "Three analyzer findings repaired before successful build",
+      "Python fixture exposed Windows CRLF canonical hashing; both C# canonical writers now explicitly use LF",
+      "Independent review identified missing region caps and post-scoring cancellation checks; both repaired"
+    ],
+    "resource_limits": {
+      "corpus_truth_regions": 16384,
+      "corpus_prediction_regions": 16384,
+      "per_source_truth_regions": 1024,
+      "sources": 128,
+      "behavior": "Abort full run without partial metrics; never trim denominators",
+      "per_source_prediction_regions": 1024
+    },
+    "independent_review": {
+      "effort": "high",
+      "status": "CLEAR",
+      "scope": "Archive authentication/admission/privacy and corpus truth isolation, cardinality, cancellation, complete denominator checks",
+      "model": "gpt-5.6-sol",
+      "cross_language_execution": "Lead verified actual Python-authored fixture after LF repair"
+    },
+    "model_inference": false,
+    "private_reads": 0,
+    "sealed_archive_reads": 0,
+    "production_approved": false,
+    "limitations": [
+      "Annotation parsing and per-source matching are bounded synchronous work; cancellation is observed before the next stage or aggregate return",
+      "Complete worker, canonical parent admission and Production report connection remain unfinished"
+    ]
   }
 }

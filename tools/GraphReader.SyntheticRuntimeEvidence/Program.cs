@@ -36,6 +36,17 @@ internal static class Program
         {
             return await OriginalDbOcrMemoryDevCheck.RunAsync(args, RepositoryRoot()).ConfigureAwait(false);
         }
+        if (args.Length == 1 && args[0] == "--self-test-sealed-ocr-archive")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSealedArchiveSelfTest.Run(), JsonOptions));
+            return 0;
+        }
+        if (args.Length == 1 && args[0] == "--self-test-sealed-ocr-corpus")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(
+                await OriginalDbOcrInMemoryCorpusEvaluatorSelfTest.RunAsync().ConfigureAwait(false), JsonOptions));
+            return 0;
+        }
         if (args.Length == 1 && args[0] == "--self-test-sealed-ocr-annotation")
         {
             Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrAnnotationReaderSelfTest.Run(), JsonOptions));
