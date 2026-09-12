@@ -42,3 +42,18 @@ text-height, marker-size, stroke-width, text-density, RGB8 PNG, JPEG-roundtrip,
 and production 960-long-side/128-stride preprocessing envelope. Its
 `distribution-report.json` is a fail-closed aggregate gate. No private image,
 text, case identity, or model output is used by the preset.
+
+## OCR coverage before sealing
+
+`ocr_sealed_coverage.validate_ocr_sealed_coverage` validates unsealed synthetic
+annotations and returns only aggregate text, character and role denominators.
+It uses the full OCR scorer's visible, nonblank, rendered-text selection and
+requires original-pixel boxes within the source canvas. Both source text and
+region identities must be unique within each source. Condition labels count as
+phase headings, matching the frozen V2 scorer. Invalid Unicode, roles and boxes
+fail closed. No model inference, file reading or candidate selection occurs.
+
+Run `python -m pytest ml/synthetic/tests/test_ocr_sealed_coverage.py -q`.
+This helper does not register a reserve or authorize a sealed read. OCR-specific
+protocol, registry dispatch and aggregate worker integration remain required;
+existing marker-scoped reserves are not reclassified as OCR evidence.

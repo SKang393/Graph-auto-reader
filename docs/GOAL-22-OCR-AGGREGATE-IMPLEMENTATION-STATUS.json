@@ -151,5 +151,101 @@
       "effort": "high",
       "scope": "Dev-only in-memory source helper, runtime binding, coordinate mapping, recognition order, privacy and cancellation. No sealed or Production approval."
     }
+  },
+  "ocr_preseal_coverage": {
+    "status": "validator_verified_registry_integration_pending",
+    "source_sha256": {
+      "ml/synthetic/ocr_sealed_coverage.py": "7f55b46ef2ae0609b1a6b8723817240dbf5b00c23a708e8b030e66f112292562",
+      "ml/synthetic/tests/test_ocr_sealed_coverage.py": "72eaf479319e21565d924a1c4169d3742ec10da55ae42c4725c50e7341dbbd3b"
+    },
+    "tests": {
+      "passed": 18,
+      "elapsed_seconds": 0.47
+    },
+    "synthetic_dev_regeneration": {
+      "source_count": 3,
+      "truth_region_count": 183,
+      "truth_character_count": 1019,
+      "by_generator_role": {
+        "annotation": {
+          "truth_region_count": 18,
+          "truth_character_count": 126
+        },
+        "axis_title": {
+          "truth_region_count": 12,
+          "truth_character_count": 87
+        },
+        "condition_label": {
+          "truth_region_count": 30,
+          "truth_character_count": 90
+        },
+        "legend_text": {
+          "truth_region_count": 11,
+          "truth_character_count": 157
+        },
+        "participant": {
+          "truth_region_count": 9,
+          "truth_character_count": 126
+        },
+        "phase_heading": {
+          "truth_region_count": 30,
+          "truth_character_count": 316
+        },
+        "x_tick": {
+          "truth_region_count": 48,
+          "truth_character_count": 78
+        },
+        "y_tick": {
+          "truth_region_count": 25,
+          "truth_character_count": 39
+        }
+      },
+      "by_expected_runtime_role": {
+        "annotation": {
+          "truth_region_count": 18,
+          "truth_character_count": 126
+        },
+        "axistitle": {
+          "truth_region_count": 12,
+          "truth_character_count": 87
+        },
+        "legendtext": {
+          "truth_region_count": 11,
+          "truth_character_count": 157
+        },
+        "participant": {
+          "truth_region_count": 9,
+          "truth_character_count": 126
+        },
+        "phaseheading": {
+          "truth_region_count": 60,
+          "truth_character_count": 406
+        },
+        "xtick": {
+          "truth_region_count": 48,
+          "truth_character_count": 78
+        },
+        "ytick": {
+          "truth_region_count": 25,
+          "truth_character_count": 39
+        }
+      },
+      "schema": "graphreader.ocr-coverage-dev-check.v1",
+      "scope": "project-owned-synthetic-dev",
+      "model_inference": false,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "elapsed_seconds": 15.398017600004096
+    },
+    "report_sha256": "f3b120de5c9a7afd8b9ebb4b98444f9e3a81d02d3512104ef80fe5aac791e63b",
+    "report_path": "artifacts/goal22-runs/ocr-sealed-aggregate/coverage-dev-v2.json",
+    "verified_source_manifest_sha256": "36ca412992581713cffaaa006b5babb84bc04ad6fbfacd92a6c7df84a5196ac6",
+    "scope": "Pre-seal denominator validation only; no reserve registration, sealed reads or production approval."
+  },
+  "source_execution_integration": {
+    "commit": "f0bbd96dc7e2b6919529dcca667d2770bb96a782",
+    "origin_main_verified": true,
+    "windows_ci_run": 34622162480,
+    "windows_ci_conclusion": "success"
   }
 }
