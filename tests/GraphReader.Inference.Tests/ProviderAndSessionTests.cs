@@ -79,12 +79,26 @@ public sealed class ProviderAndSessionTests
         var detector = new FixedCoreDetector(3);
 
         var defaults = CpuThreadConfiguration.Create(detector: detector);
-        var overridden = CpuThreadConfiguration.Create(2, detector);
+        var requested = Math.Min(2, Environment.ProcessorCount);
+        var overridden = CpuThreadConfiguration.Create(requested, detector);
 
         Assert.AreEqual(3, defaults.PhysicalCoreCount);
         Assert.AreEqual(Math.Min(3, Environment.ProcessorCount), defaults.IntraOperationThreads);
-        Assert.AreEqual(2, overridden.IntraOperationThreads);
+        Assert.AreEqual(requested, overridden.IntraOperationThreads);
         Assert.AreEqual(1, overridden.InterOperationThreads);
+    }
+
+    [TestMethod]
+    public void CpuThreadDefaultRespectsProcessAllowanceWithoutLosingHardwareCount()
+    {
+        var physicalCores = Environment.ProcessorCount + 1;
+        var detector = new FixedCoreDetector(physicalCores);
+        var configuration = CpuThreadConfiguration.Create(detector: detector);
+
+        Assert.AreEqual(physicalCores, configuration.PhysicalCoreCount);
+        Assert.AreEqual(Environment.ProcessorCount, configuration.IntraOperationThreads);
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(
+            () => CpuThreadConfiguration.Create(physicalCores, detector));
     }
 
     [TestMethod]
@@ -337,7 +351,7 @@ public sealed class ProviderAndSessionTests
 
     private sealed class FixedCoreDetector(int count) : IPhysicalCoreDetector
     {
-        public int GetPhysicalCoreCount() => Math.Min(count, Environment.ProcessorCount);
+        public int GetPhysicalCoreCount() => count;
     }
 
     private sealed class FailDirectMlFactory(IInferenceSessionFactory inner) : IInferenceSessionFactory

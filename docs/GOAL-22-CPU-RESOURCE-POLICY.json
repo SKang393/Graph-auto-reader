@@ -34,5 +34,20 @@
   "historical_recipe": "V43's recorded 16-thread recipe remains immutable. A future training invocation must explicitly bind its replacement-CPU recipe and verify export parity; do not silently reinterpret prior evidence.",
   "private_reads": 0,
   "sealed_reads": 0,
-  "production_approval": false
+  "production_approval": false,
+  "application_quota_compatibility": {
+    "failure": "Physical-core default exceeded Environment.ProcessorCount under the Windows Job CPU quota; application mapping failed before model inference.",
+    "repair": "Clamp the default inference thread count to the process-visible allowance while preserving physical-core metadata and rejecting excessive explicit overrides.",
+    "files": [
+      "src/GraphReader.Inference/ExecutionProviders.cs",
+      "tests/GraphReader.Inference.Tests/ProviderAndSessionTests.cs"
+    ],
+    "validation": {
+      "command": "dotnet test tests/GraphReader.Inference.Tests/GraphReader.Inference.Tests.csproj -c Release --no-restore --filter FullyQualifiedName~ProviderAndSessionTests -v minimal -p:UseSharedCompilation=false -nodeReuse:false",
+      "cpu_guard": "Run-BackgroundWork.ps1, job rate 333",
+      "passed": 20,
+      "failed": 0
+    },
+    "packaged_build_created": false
+  }
 }

@@ -39,7 +39,8 @@ public sealed record CpuThreadConfiguration(int PhysicalCoreCount, int IntraOper
     {
         detector ??= new WindowsPhysicalCoreDetector();
         var cores = Math.Max(1, detector.GetPhysicalCoreCount());
-        var threadCount = overrideThreadCount ?? cores;
+        // Job CPU limits and process affinity can expose fewer processors than the machine has.
+        var threadCount = overrideThreadCount ?? Math.Min(cores, Environment.ProcessorCount);
         if (threadCount < 1 || threadCount > Environment.ProcessorCount)
         {
             throw new ArgumentOutOfRangeException(
