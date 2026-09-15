@@ -1,0 +1,38 @@
+{
+  "schema": "graphreader.goal22.cpu-resource-policy.v1",
+  "date": "2026-09-15",
+  "status": "conservative_background_budget_verified",
+  "maintainer_requirement": "Training must stay below 50 percent per core on the replacement CPU.",
+  "processor": "AMD Ryzen 5 5600G with Radeon Graphics",
+  "physical_cores": 6,
+  "logical_processors": 12,
+  "resource_policy": {
+    "one_heavy_job_at_a_time": true,
+    "priority": "Idle",
+    "affinity_mask": 4095,
+    "job_cpu_rate_flags": 5,
+    "job_cpu_rate": 333,
+    "total_cpu_percent": 3.33,
+    "aggregate_logical_processor_capacity_percent": 39.96,
+    "rationale": "Conservatively bound the entire job below half of one logical processor's CPU-time capacity. All logical processors remain eligible; the cap does not rely on even scheduling across cores.",
+    "limitation": "Windows CPU-rate control limits scheduled CPU time over intervals, not instantaneous utilization. Other user applications are outside this job and may raise total core utilization."
+  },
+  "launcher": {
+    "path": "artifacts/goal22-tools/Run-BackgroundWork.ps1",
+    "sha256": "e3217c4fabb3623fde793bf4f9947d694eab0bef851c5aa0217418b10d29702f",
+    "logical_count_detection": "Environment.ProcessorCount",
+    "rate_formula": "floor(4000 / logical_processor_count)",
+    "settings_verified_before_child_start": true
+  },
+  "bounded_single_worker_probe": {
+    "wall_seconds": 8.082227400009288,
+    "process_cpu_seconds": 2.1875,
+    "one_logical_processor_percent": 27.0655332342796,
+    "model_inference": false,
+    "optimizer_steps": 0
+  },
+  "historical_recipe": "V43's recorded 16-thread recipe remains immutable. A future training invocation must explicitly bind its replacement-CPU recipe and verify export parity; do not silently reinterpret prior evidence.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false
+}
