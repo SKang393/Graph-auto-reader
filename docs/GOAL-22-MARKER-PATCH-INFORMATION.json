@@ -1,0 +1,95 @@
+{
+  "authenticated_sources": [
+    {
+      "path": "ml/markers/center/dataset.py",
+      "sha256": "95623cd99d54fbb374e5046c510a7307eeb89f72c10311d267eadd0f9304bc47"
+    },
+    {
+      "path": "ml/markers/center/focal_confidence_v21/focal_loss.py",
+      "sha256": "81b7367ef84cad25d3563c058459c7ef67d831f1c3b06bddb62bf546125a23f8"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/mask_preserving.py",
+      "sha256": "171ddcc2efbd2742f5699dad8d16ecec217ca983ee06cec4bc63e1f17e3120e2"
+    },
+    {
+      "path": "ml/markers/center/real_range_generator_v1/generator.py",
+      "sha256": "2244094e8d8e3a8cacb83e11c5e7189ded46b25b1ce9ecdad1bd80e5dec78b41"
+    },
+    {
+      "path": "ml/markers/center/scale_classifier_v16/model.py",
+      "sha256": "899dfbed25707f121f657f4138f8a50060bc554acfbac48b7e2f93bc3668587f"
+    },
+    {
+      "path": "ml/synthetic/contact_sheet.py",
+      "sha256": "db98be281e76bc9ce75cb9f23d99190b8539a82b677f91e466e57434d4d15ecb"
+    },
+    {
+      "path": "ml/synthetic/dataset.py",
+      "sha256": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b"
+    },
+    {
+      "path": "ml/synthetic/fonts.py",
+      "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+    },
+    {
+      "path": "ml/synthetic/io.py",
+      "sha256": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2"
+    },
+    {
+      "execution_scope": "imported transitive dependency; renderer functions not invoked",
+      "historical_sha256": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+      "path": "ml/synthetic/renderer.py",
+      "sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_axis_preserving_v2.py",
+      "sha256": "1de947fed6278166cd2c5f63bef6ef2337644ae51da6c9d9bfdb485e517a7afa"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_visible_content_v3.py",
+      "sha256": "eb358f9fe6b06c538d792794e8e28a2f751b55fefa7dd5c9da04e83673dc1cca"
+    },
+    {
+      "path": "ml/synthetic/schema.py",
+      "sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98"
+    },
+    {
+      "path": "ml/synthetic/templates.py",
+      "sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+    }
+  ],
+  "elapsed_ms": 17229.074100003345,
+  "historical_source_snapshot_sha256": "7ac89bec76bf7fed6ff08d2334a5a615128bc5047192a461b63757118f78080d",
+  "identical_patch_groups_with_opposite_labels": 0,
+  "limitations": [
+    "Before negative sampling; not the selected training-row inventory.",
+    "Only exact float32 equality is measured; near-identical windows are not counted.",
+    "No model score, candidate comparison, threshold selection, or acceptance decision."
+  ],
+  "minimum_binary_errors_for_identical_inputs_in_this_pool": 0,
+  "model_inference": false,
+  "negative_rows_in_mixed_groups": 0,
+  "optimizer_steps": 0,
+  "patch_shape": [
+    3,
+    33,
+    33
+  ],
+  "positive_distance_px": 3,
+  "positive_rows_in_mixed_groups": 0,
+  "private_reads": 0,
+  "production_approved": false,
+  "proposal_counts": {
+    "negative": 21109,
+    "positive": 3589
+  },
+  "scene_count": 167,
+  "schema": "graphreader.marker-v26-train-patch-information.v1",
+  "scope": "synthetic-train-proposal-pool-within-eight-pixels-of-truth",
+  "sealed_reads": 0,
+  "source_sha256": "6883d9e06832b5e6e6461105b54f34b6e2e2c73cb2b6904317cdbd757fd0838a",
+  "stride": 4,
+  "truth_count": 2004,
+  "unique_patch_count": 24698
+}
