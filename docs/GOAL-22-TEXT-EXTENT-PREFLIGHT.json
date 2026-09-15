@@ -1,0 +1,77 @@
+{
+  "schema": "graphreader.goal22.train-text-extent-preflight-summary.v1",
+  "status": "preflight_complete_app_mapping_pending",
+  "date": "2026-09-15",
+  "evidence": {
+    "path": "artifacts/goal22-runs/ocr-text-extent-preflight/preflight-report.json",
+    "sha256": "23afd6d3163c84998586b54e72ef28d46cf80c561ff2a63449a005b48188cc53"
+  },
+  "source_count": 20,
+  "invariants": {
+    "baseline_rendered_text_overlap_pairs": 44,
+    "baseline_text_truth_count": 709,
+    "canvas_schedule_preserved": true,
+    "clipped_treatment_text_count": 0,
+    "current_baseline_rasters_match_historical_train": true,
+    "current_generator_sources_authenticated": true,
+    "family_profiles_preserved": true,
+    "full_train_truth_saved": true,
+    "generated_train_sources_disjoint_from_historical_dev": true,
+    "introduced_rendered_text_overlap_pairs": 0,
+    "legend_treatments_fit_existing_frames": true,
+    "marker_mask_preserved": true,
+    "nontext_rendered_geometry_preserved": true,
+    "nontext_scene_geometry_preserved": true,
+    "seed_schedule_preserved": true,
+    "selected_text_non_extent_layout_preserved": true,
+    "treatment_rendered_text_overlap_pairs": 43,
+    "treatment_text_truth_count": 709,
+    "untreated_text_layout_preserved": true
+  },
+  "treatment_coverage": {
+    "accuracy_gate": false,
+    "basis": "authenticated_historical_crop_geometry_not_current_app_mapping",
+    "condition_label": {
+      "minimum_count": 20,
+      "observed_count": 20,
+      "target_tensor_width_band": [
+        32.0,
+        48.0
+      ]
+    },
+    "legend_text": {
+      "minimum_count": 10,
+      "observed_count": 10,
+      "target_tensor_width_band": [
+        96.0,
+        112.0
+      ]
+    }
+  },
+  "historical_dev": {
+    "source_count": 3,
+    "truth_count": 183,
+    "pixel_regenerations": 0,
+    "truth_regenerations": 0
+  },
+  "optimizer_steps": 0,
+  "model_inference": false,
+  "candidate_opened": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "limitations": [
+    "Historical tensor widths reuse authenticated prior crop geometry only.",
+    "Actual new-image application crops and transforms require the downstream C# capture.",
+    "This preflight does not authorize a model candidate, optimizer step, or accuracy claim."
+  ],
+  "next_step": "Authenticate new source panel mappings and model-free tensors through the application; preserve the existing dev inputs.",
+  "validation": {
+    "preflight_tests_passed": 6,
+    "integration_batch_passed": 71,
+    "integration_batch_failed": 0,
+    "integration_batch_seconds": 33.28,
+    "cpu_guard_job_rate": 333,
+    "scope": "Train preparation, capture boundaries, step-zero helper, aggregate transport, metadata-only retirement, and parent recovery fixtures. No actual sealed/model evaluation."
+  }
+}
