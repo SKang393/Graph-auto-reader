@@ -1,0 +1,54 @@
+{
+  "schema": "graphreader.goal22.text-extent-capture-summary.v1",
+  "date": "2026-09-15",
+  "status": "application_capture_and_step_zero_verified",
+  "runtime_source_count": 20,
+  "runtime_train_panels": 28,
+  "dev_panels": 9,
+  "train_truths": 709,
+  "dev_truths": 183,
+  "dev_tensor_bytes_identical_to_historical": true,
+  "actual_treatment_coverage": {
+    "condition_label": {
+      "count": 20,
+      "minimum_tensor_width": 36.693333333333335,
+      "maximum_tensor_width": 45.22666666666667
+    },
+    "legend_text": {
+      "count": 10,
+      "minimum_tensor_width": 98.13333333333334,
+      "maximum_tensor_width": 103.25333333333333
+    }
+  },
+  "capture_request": {
+    "path": "artifacts/goal22-runs/ocr-text-extent-capture-inputs/request.json",
+    "sha256": "7d62e9e962d01448fd193887573b6a2ab882574eba41f67a543c444c6222c059"
+  },
+  "capture_report": {
+    "path": "artifacts/goal22-runs/ocr-text-extent-tensors/report.json",
+    "sha256": "15e48b27ce3b8f5f53311abbef7235c35b3e8e361c8baddb09a4d3a7e7d5938e"
+  },
+  "step_zero_report": {
+    "path": "artifacts/goal22-runs/ocr-text-extent-features/report.json",
+    "sha256": "8d0a2e3fe9f8b5a8abbf73ab3f487ed632d99e84c9b112dc8b718366d680edf0"
+  },
+  "step_zero_maximum_absolute_error": 6.943941116333008e-06,
+  "step_zero_tolerance": 1e-05,
+  "step_zero_passed": true,
+  "step_zero_elapsed_ms": 39865.6106999988,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "new_model_revision_opened": false,
+  "production_approved": false,
+  "cpu_job_rate": 333,
+  "tests": {
+    "combined_passed": 71,
+    "failed": 0
+  },
+  "limitations": [
+    "This is input and step-zero verification, not an accuracy improvement or model approval.",
+    "The next trainer must bind the replacement CPU recipe explicitly; V43 remains unchanged.",
+    "Parent sealed-evaluation orchestration and the production full-score authenticator are still unfinished."
+  ]
+}
