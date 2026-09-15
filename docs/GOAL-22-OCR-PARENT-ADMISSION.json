@@ -1,0 +1,93 @@
+{
+  "schema": "graphreader.goal22.ocr-parent-admission.v1",
+  "date": "2026-09-15",
+  "status": "synthetic_boundary_and_fixture_accounting_verified_not_production_approved",
+  "changes": [
+    "Recompute full OCR train/dev evidence from authenticated runtime reports, saved train truth and unchanged dev pixels before sealed admission.",
+    "Retain all 709 train and 183 dev truths, including all 1019 dev characters, under the unchanged frozen V2 metrics.",
+    "Validate the full four-field recognition-failure partition, then pass its aggregate count through the sealed metric contract.",
+    "Recheck candidate, score and runtime bytes before ACK and after evaluation.",
+    "Persist category/hash-only disclosure intent and recover retirement without reopening archives or inventing a read.",
+    "Permit retired-set bookkeeping recovery while keeping new requests and ACKs forbidden."
+  ],
+  "sources": [
+    {
+      "path": "ml/policy/ocr_sealed_evaluation.py",
+      "sha256": "97932ea8ed2c03e7ff1eb034ca540febaad63e8fbdfcc2c3e057694fe4c12eca"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/authenticate_text_extent_evidence.py",
+      "sha256": "8ed3bb5182774d70198eac9c7e89e6fd63daf098dcfe15ebd312a0cf8d9cb4aa"
+    },
+    {
+      "path": "ml/policy/sealed_first_read_admission.py",
+      "sha256": "cb2ba117cef419016bb381d2c8b373397469a7e0d63e6097e2dc2f0d4e1ea344"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_text_extent_candidate.py",
+      "sha256": "41d6438b5198c2cb7f89b1d6a26c720b4a3089d8a49666a7c7cefad5ce3fe050"
+    }
+  ],
+  "baseline_application": {
+    "path": "artifacts/goal22-runs/ocr-text-extent-baseline-evaluation-run2/report.json",
+    "sha256": "5295e4428a1113c02973716d4b8b8bdb45bc4710ff0f71cc3e05c2f7368dcbd2"
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-text-extent-baseline-full-score.json",
+    "sha256": "ac3f27c81cc56301dfde9087f2cf4744bde520a65da1e2401ac54ce98c00b5f4"
+  },
+  "admission_boundary": {
+    "path": "artifacts/goal22-runs/ocr-text-extent-baseline-admission-check-v2.json",
+    "sha256": "d7946b7fa833a06d38ca225f872971787de8a03c28c1f9e341e1e67a3ad59569"
+  },
+  "baseline_dev": {
+    "raw_geometry": {
+      "truth_region_count": 183,
+      "predicted_region_count": 208,
+      "true_positives": 71,
+      "false_positives": 137,
+      "false_negatives": 112,
+      "precision": 0.34134615384615385,
+      "recall": 0.3879781420765027,
+      "intersection_over_union_minimum": 0.5
+    },
+    "recognition_exact_accuracy": 0.366120218579235,
+    "character_error_rate": 0.9931305201177625,
+    "role_accuracy": 0.2677595628415301,
+    "truth_character_count": 1019
+  },
+  "validation": {
+    "final_parent_and_retired_recovery": {
+      "passed": 32,
+      "failed": 0,
+      "seconds": 64.08,
+      "command": "python -m pytest tests/test_ocr_sealed_evaluation.py tests/test_ocr_retired_recovery.py -q -p no:cacheprovider --basetemp artifacts/pytest-goal22-light-final-parent-20260915a"
+    },
+    "coordinator_repair_batch": {
+      "passed": 51,
+      "failed": 0,
+      "seconds": 88.4,
+      "command": "python -m pytest tests/test_ocr_sealed_evaluation.py ml/policy/tests/test_sealed_first_read_admission.py -q -p no:cacheprovider --basetemp artifacts/pytest-goal22-light-retired-recovery-20260915a"
+    },
+    "actual_baseline_preflight": {
+      "result": "OCR_SEALED_EVALUATION_DEV_GATE_FAILED",
+      "elapsed_ms": 280754.0864999901
+    },
+    "job_cpu_rate": 66,
+    "concurrent_training_job_cpu_rate": 333,
+    "combined_capacity_percent": 47.88
+  },
+  "license_review": "No dependencies or models added. Existing reviewed Apache-2.0 PaddleOCR assets are authenticated locally.",
+  "limitations": [
+    "The actual baseline fails every OCR accuracy bar. No registered sealed archive was opened.",
+    "Passing aggregate admission and interruption scenarios use handwritten fixtures, not model acceptance evidence.",
+    "The final production command and normal Production evidence connection remain pending.",
+    "Independent reviewer access remains unavailable; see REV-008. Lead checks are not independent approval."
+  ],
+  "private_reads": 0,
+  "registered_sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "goal22_acceptance_status": "FAIL"
+}

@@ -268,7 +268,8 @@ def _reserve_set(record: dict[str, Any], set_id: str) -> dict[str, Any]:
 
 
 def _validate_reserve_identity(
-    registry: dict[str, Any], *, set_id: str, scope: str, protocol_sha256: str
+    registry: dict[str, Any], *, set_id: str, scope: str, protocol_sha256: str,
+    permit_retired_accounting: bool = False,
 ) -> dict[str, Any]:
     item = _reserve_set(registry, set_id)
     reserve_scope = item.get("scope")
@@ -279,7 +280,7 @@ def _validate_reserve_identity(
         or reserve_scope.get("acceptance_scope") != scope
         or reserve_scope.get("coverage_protocol_path") != protocol.PROTOCOL_PATH.as_posix()
         or reserve_scope.get("coverage_protocol_sha256") != protocol_sha256
-        or item.get("state") == "retired"
+        or (item.get("state") == "retired" and not permit_retired_accounting)
     ):
         raise SealedFirstReadAdmissionError("sealed reserve is incompatible with the required acceptance scope")
     try:
@@ -389,13 +390,14 @@ def _selected_metadata(item: dict[str, Any]) -> dict[str, Any]:
 
 
 def _validate_bound_reserve_metadata(
-    registry: dict[str, Any], record: dict[str, Any]
+    registry: dict[str, Any], record: dict[str, Any], *, permit_retired_accounting: bool = False,
 ) -> dict[str, Any]:
     selected = _validate_reserve_identity(
         registry,
         set_id=record["set_id"],
         scope=record["acceptance_scope"],
         protocol_sha256=record["coverage_protocol_sha256"],
+        permit_retired_accounting=permit_retired_accounting,
     )
     metadata = _selected_metadata(selected)
     archive = selected.get("archive")
@@ -769,7 +771,7 @@ def materialize_projections(admission: SealedFirstReadAdmission) -> AdmissionRec
         if record["status"] not in {"confirmed_read", "completed", "failed"}:
             raise SealedFirstReadAdmissionError("only a confirmed read can materialize consumed projections")
         registry = _registry_metadata(admission.registry_path, admission.repository_root)
-        _validate_bound_reserve_metadata(registry, record)
+        _validate_bound_reserve_metadata(registry, record, permit_retired_accounting=True)
         _validate_component_intents(admission, record, verify_sources=False)
     ensure_training_consumed(
         admission.training_authorization,
@@ -865,7 +867,7 @@ def recover_admission(
     with sealed_reserve._registry_update_lock(registry_file):
         record = _load_record(authority_path)
         registry = _registry_metadata(registry_file, root)
-        _validate_bound_reserve_metadata(registry, record)
+        _validate_bound_reserve_metadata(registry, record, permit_retired_accounting=True)
         if record["status"] == "prepared":
             record = _transition(
                 authority_path, record, status="void", failure=recovery_error

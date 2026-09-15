@@ -144,3 +144,13 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 - **Why:** automatic approval review rejected the authorized build and test launch because workspace credits were exhausted. The command never started. Repeating it through another execution route would bypass that rejection.
 - **Files:** [pending scorer](../tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorer.cs), [parity harness](../tools/GraphReader.SyntheticRuntimeEvidence/check_original_db_ocr_aggregate_parity.py), [readiness](1.0-READINESS.md)
 - **Unblocks when:** managed approval is available and the pending build, self-test and cross-language parity checks can run
+
+## REV-008 - restore independent reviewer access
+
+- **Status:** open
+- **Blocks:** independent approval review of the current Goal 22 evidence changes; final Production readiness
+- **Effort:** approximately 2 minutes to arrange access; review time depends on the final diff
+- **Action:** restore access for the authorized Sol reviewer through the workspace owner, or arrange an independent reviewer.
+- **Why:** all three delegated review workers reported workspace credit exhaustion on 2026-09-15. Local implementation and capped verification still work and continue. The lead cannot count review of its own implementation as independent approval.
+- **Files:** [readiness](1.0-READINESS.md), [capture evidence](GOAL-22-TEXT-EXTENT-CAPTURE.json), [disclosure safeguards](GOAL-22-OCR-DISCLOSURE-SAFEGUARDS.json)
+- **Unblocks when:** an independent reviewer can inspect the final implementation and evidence. This does not block synthetic training or local verification.

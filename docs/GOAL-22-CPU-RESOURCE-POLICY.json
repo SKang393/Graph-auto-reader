@@ -32,6 +32,24 @@
     "optimizer_steps": 0
   },
   "historical_recipe": "V43's recorded 16-thread recipe remains immutable. A future training invocation must explicitly bind its replacement-CPU recipe and verify export parity; do not silently reinterpret prior evidence.",
+  "active_training_observation": {
+    "path": "artifacts/goal22-runs/ocr-v44-text-extent/cpu-observation-20260915.json",
+    "sha256": "4e2655222d5067662b1e1e8ab80858ffdf1c0bba7a42c598362f90f6542dd88f",
+    "elapsed_seconds": 1660.0549524,
+    "cpu_seconds": 651.296875,
+    "aggregate_logical_processor_percent": 39.233452727477314,
+    "priority": "Idle",
+    "affinity_mask": 4095
+  },
+  "concurrent_light_verification": {
+    "maximum_jobs": 1,
+    "launcher": "artifacts/goal22-tools/Run-LightVerification.ps1",
+    "sha256": "f5e851171631c96abd8887aba5dea8f2870bcd5b79c326cf31a5ee8957c8af44",
+    "job_cpu_rate": 66,
+    "aggregate_logical_processor_capacity_percent": 7.92,
+    "combined_training_and_verification_capacity_percent": 47.88,
+    "scope": "Small model-free verification only. Keep one training job at rate 333 and at most one verification job at rate 66; never run another normal-rate job concurrently."
+  },
   "private_reads": 0,
   "sealed_reads": 0,
   "production_approval": false,
