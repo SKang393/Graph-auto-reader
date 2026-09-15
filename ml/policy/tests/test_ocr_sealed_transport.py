@@ -18,6 +18,7 @@ from ml.policy.ocr_sealed_transport import (
     METRIC_REFERENCE_SHA256,
     OcrSealedRequestIdentity,
     OcrSealedTransportError,
+    OcrSealedDisclosureError,
     RESULT_SCHEMA,
     run_ocr_sealed_worker,
     validate_result_envelope,
@@ -274,3 +275,37 @@ def test_pure_validator_rejects_incomplete_or_nonaggregate_metrics(mutation) -> 
     with pytest.raises(OcrSealedTransportError) as caught:
         validate_result_envelope(value, identity())
     assert str(caught.value) == "OCR_SEALED_TRANSPORT_RESULT_INVALID"
+
+
+@pytest.mark.parametrize("scenario", ["valid", "missing_receipt"])
+@pytest.mark.parametrize("cleanup_failure", [False, True])
+def test_explicit_case_disclosure_has_only_categories_and_hash(tmp_path: Path, scenario: str, cleanup_failure: bool, monkeypatch) -> None:
+    if cleanup_failure:
+        from ml.policy import ocr_sealed_transport as transport
+        stop = transport._stop_process
+        def stop_with_reported_failure(process):
+            stop(process)
+            return False
+        monkeypatch.setattr(transport, "_stop_process", stop_with_reported_failure)
+    payload = json.dumps({"case_id": "private-case", "truth_rows": [{"x": 12}],
+                          "predictions": [{"text": "private-text"}], "pixels": [17]})
+    events, ack, positive = callbacks()
+    with pytest.raises(OcrSealedDisclosureError) as caught:
+        run_ocr_sealed_worker(command(scenario, payload), tmp_path, identity(), ack, positive,
+                              timeout_seconds=10)
+    assert caught.value.disclosures == ("case_identity", "pixel", "prediction", "truth")
+    # Child stdout is a pipe, so Python emits the platform's newline spelling.
+    import os
+    assert caught.value.evidence_sha256 == hashlib.sha256((payload + os.linesep).encode()).hexdigest()
+    assert "private" not in str(caught.value)
+    assert not hasattr(caught.value, "payload")
+    assert sum(event[0] == "positive" for event in events) == (scenario == "valid")
+
+
+def test_disclosure_scan_preserves_duplicate_field_evidence() -> None:
+    from ml.policy.ocr_sealed_transport import _check_disclosure_frame
+    with pytest.raises(OcrSealedDisclosureError) as caught:
+        _check_disclosure_frame(b'{"truth_rows":[1],"truth_rows":[]}\n')
+    assert caught.value.disclosures == ("truth",)
+    _check_disclosure_frame(b'{"truth_region_count":8,"case_output":false}\n')
+    _check_disclosure_frame(b'unknown malformed text\n')

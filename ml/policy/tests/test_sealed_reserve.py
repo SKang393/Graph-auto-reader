@@ -644,17 +644,21 @@ def test_acceptance_counts_only_exact_supported_scope() -> None:
     ) == {"unused": 1, "reusable": 0, "revision_limit": 0, "retired": 0}
 
 
-def test_disclosure_retires_immediately_and_permanently(tmp_path: Path) -> None:
+def test_disclosure_retires_immediately_and_permanently(tmp_path: Path, monkeypatch) -> None:
     registry_sha256 = _workspace(tmp_path)
     set_id, registry_sha256 = _register(
         tmp_path, registry_sha256, 1, purpose=PLUMBING_PURPOSE
     )
+    def reject_payload_read(*args, **kwargs):
+        pytest.fail("retirement reopened a registered archive")
+
+    monkeypatch.setattr(reserve_module, "load_registry", reject_payload_read)
     registry_sha256 = record_case_level_disclosure(
         REGISTRY, tmp_path, expected_registry_sha256=registry_sha256,
         set_id=set_id, evidence_sha256="e" * 64,
         disclosures=("prediction", "case_identity"),
     )
-    record = load_registry(REGISTRY, tmp_path)["sets"][0]
+    record = reserve_module.load_registry_metadata_only(REGISTRY, tmp_path)["sets"][0]
     assert record["state"] == "retired"
     assert record["retirement"]["disclosures"] == ["case_identity", "prediction"]
     with pytest.raises(SealedReserveError, match="already permanently retired"):

@@ -1,0 +1,27 @@
+{
+  "schema": "graphreader.goal22.ocr-disclosure-safeguards.v1",
+  "date": "2026-09-15",
+  "status": "fixture_verified_no_sealed_evaluation",
+  "changes": [
+    "Classify explicit case data in bounded complete JSON stdout frames using category names and a frame hash only.",
+    "Preserve the typed disclosure when child cleanup also reports failure.",
+    "Retire disclosed sets using registry metadata without reopening registered archive payloads."
+  ],
+  "validation": {
+    "combined_batch_passed": 71,
+    "combined_batch_failed": 0,
+    "seconds": 33.28,
+    "transport_tests_passed": 24,
+    "metadata_retirement_tests_passed": 1,
+    "job_cpu_rate": 333
+  },
+  "limitations": [
+    "Malformed prose, oversized frames and stderr are rejected or bounded but are not automatically classified as case disclosure.",
+    "The parent evaluator and its production full-score authenticator remain unfinished; these changes do not authorize a sealed run.",
+    "Independent subagents are unavailable because they reported workspace credit exhaustion; lead source review and fixtures provide the current verification."
+  ],
+  "registered_sealed_reads": 0,
+  "private_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false
+}

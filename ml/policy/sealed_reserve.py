@@ -1514,9 +1514,12 @@ def _record_case_level_disclosure_locked(
     evidence_sha256: str,
     disclosures: Sequence[str],
 ) -> str:
-    path, registry = _load_for_update(
-        registry_path, repository_root, expected_registry_sha256
-    )
+    # Retirement needs authenticated registry metadata, never another payload read.
+    path = _registry_file(repository_root, registry_path)
+    expected = _sha256(expected_registry_sha256, "expected registry hash")
+    if not path.is_file() or sha256_file(path) != expected:
+        raise SealedReserveError("sealed reserve registry differs from the expected SHA-256")
+    registry = load_registry_metadata_only(path, repository_root)
     item = _find_set(registry, set_id)
     if item["state"] == "retired":
         raise SealedReserveError("sealed reserve set is already permanently retired")
@@ -1536,7 +1539,7 @@ def _record_case_level_disclosure_locked(
     }
     registry["generation"] += 1
     new_hash = _write_registry(path, registry)
-    load_registry(path, repository_root)
+    load_registry_metadata_only(path, repository_root)
     return new_hash
 
 

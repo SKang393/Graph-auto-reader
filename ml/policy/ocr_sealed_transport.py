@@ -13,6 +13,7 @@ from pathlib import Path
 from queue import Empty, Full, Queue
 import re
 import subprocess
+import sys
 import threading
 import time
 from typing import Any, BinaryIO
@@ -74,6 +75,50 @@ class OcrSealedTransportError(RuntimeError):
     def __init__(self, code: str):
         self.code = code
         super().__init__(code)
+
+
+class OcrSealedDisclosureError(OcrSealedTransportError):
+    """Case-output evidence without retaining or exposing the output itself."""
+
+    def __init__(self, disclosures: Sequence[str], evidence_sha256: str):
+        categories = tuple(sorted(set(disclosures)))
+        if (not categories or not set(categories) <= {"case_identity", "truth", "prediction", "pixel"}
+                or not isinstance(evidence_sha256, str) or _SHA256.fullmatch(evidence_sha256) is None):
+            raise ValueError("Invalid disclosure metadata")
+        self.disclosures = categories
+        self.evidence_sha256 = evidence_sha256
+        super().__init__("OCR_SEALED_TRANSPORT_CASE_DATA_DISCLOSURE")
+
+
+def _check_disclosure_frame(frame: bytes) -> None:
+    """Recognize explicit case fields in bounded JSON; never infer from prose."""
+    if len(frame) > _MAX_STDOUT_FRAME_BYTES or not frame.lstrip().startswith((b"{", b"[")):
+        return
+    fields = {
+        "case_id": "case_identity", "case_ids": "case_identity",
+        "source_id": "case_identity", "source_ids": "case_identity",
+        "case_text": "prediction", "prediction": "prediction", "predictions": "prediction",
+        "truth": "truth", "truths": "truth", "truth_rows": "truth",
+        "pixels": "pixel", "image_base64": "pixel",
+    }
+    flags = {"case_output": "case_identity", "truth_rows_output": "truth",
+             "prediction_output": "prediction", "pixel_output": "pixel"}
+    categories: set[str] = set()
+
+    def pairs(items: list[tuple[str, object]]) -> dict[str, object]:
+        for key, value in items:
+            if key in fields and value is not None and value != [] and value != {} and value != "":
+                categories.add(fields[key])
+            if key in flags and value is True:
+                categories.add(flags[key])
+        return dict(items)
+
+    try:
+        json.loads(frame, object_pairs_hook=pairs)
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError, ValueError):
+        return
+    if categories:
+        raise OcrSealedDisclosureError(tuple(categories), hashlib.sha256(frame).hexdigest())
 
 
 @dataclass(frozen=True)
@@ -480,6 +525,7 @@ def run_ocr_sealed_worker(
                 frame = events.get(timeout=min(remaining(), 0.05))
             except Empty:
                 continue
+            _check_disclosure_frame(frame)
             line = _line(frame)
             if result is not None:
                 raise _fail(
@@ -590,7 +636,7 @@ def run_ocr_sealed_worker(
         for thread in threads:
             thread.join(timeout=1)
             cleanup_failed = cleanup_failed or thread.is_alive()
-        if cleanup_failed:
+        if cleanup_failed and not isinstance(sys.exception(), OcrSealedDisclosureError):
             raise _fail("OCR_SEALED_TRANSPORT_CLEANUP_FAILED")
 
 
@@ -600,6 +646,7 @@ __all__ = [
     "METRIC_REFERENCE_SHA256",
     "OcrSealedRequestIdentity",
     "OcrSealedTransportError",
+    "OcrSealedDisclosureError",
     "OcrSealedTransportResult",
     "RESULT_SCHEMA",
     "run_ocr_sealed_worker",
