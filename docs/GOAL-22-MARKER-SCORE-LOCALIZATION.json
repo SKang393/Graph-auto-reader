@@ -8,7 +8,7 @@
     "truths_with_localized_positive_anchor": 1835,
     "truths_without_above_threshold_positive_anchor": 169
   },
-  "diagnostic_source_sha256": "80ba9f3c913cbd189adb7b6ac6eabbf4a482f88fa08d197f1259d2d9d0ef9c91",
+  "diagnostic_source_sha256": "df1eae1edf9bb3d854b59788f4be03c3e1ab3a93e28dea9cd24a9e5b57a26fd7",
   "evidence_inputs": [
     {
       "path": "artifacts/goal22-runs/marker-v26-annulus/diagnosis-v1/diagnosis.json",
@@ -59,5 +59,87 @@
     "ml/markers/center/dataset.py": "95623cd99d54fbb374e5046c510a7307eeb89f72c10311d267eadd0f9304bc47",
     "ml/markers/center/real_range_generator_v1/generator.py": "2244094e8d8e3a8cacb83e11c5e7189ded46b25b1ce9ecdad1bd80e5dec78b41"
   },
-  "threshold": 0.25
+  "threshold": 0.25,
+  "truth_cohorts": {
+    "blur_radius:0": {
+      "truths": 288,
+      "without_above_threshold_positive_anchor": 26,
+      "without_localized_above_threshold_positive_anchor": 26
+    },
+    "blur_radius:0.25": {
+      "truths": 864,
+      "without_above_threshold_positive_anchor": 83,
+      "without_localized_above_threshold_positive_anchor": 83
+    },
+    "blur_radius:0.35": {
+      "truths": 288,
+      "without_above_threshold_positive_anchor": 26,
+      "without_localized_above_threshold_positive_anchor": 26
+    },
+    "blur_radius:0.57": {
+      "truths": 564,
+      "without_above_threshold_positive_anchor": 34,
+      "without_localized_above_threshold_positive_anchor": 34
+    },
+    "diameter_px:1": {
+      "truths": 10,
+      "without_above_threshold_positive_anchor": 9,
+      "without_localized_above_threshold_positive_anchor": 9
+    },
+    "diameter_px:10": {
+      "truths": 300,
+      "without_above_threshold_positive_anchor": 19,
+      "without_localized_above_threshold_positive_anchor": 19
+    },
+    "diameter_px:12": {
+      "truths": 500,
+      "without_above_threshold_positive_anchor": 24,
+      "without_localized_above_threshold_positive_anchor": 24
+    },
+    "diameter_px:16": {
+      "truths": 300,
+      "without_above_threshold_positive_anchor": 26,
+      "without_localized_above_threshold_positive_anchor": 26
+    },
+    "diameter_px:20": {
+      "truths": 200,
+      "without_above_threshold_positive_anchor": 18,
+      "without_localized_above_threshold_positive_anchor": 18
+    },
+    "diameter_px:24": {
+      "truths": 300,
+      "without_above_threshold_positive_anchor": 27,
+      "without_localized_above_threshold_positive_anchor": 27
+    },
+    "diameter_px:27": {
+      "truths": 100,
+      "without_above_threshold_positive_anchor": 11,
+      "without_localized_above_threshold_positive_anchor": 11
+    },
+    "diameter_px:32": {
+      "truths": 80,
+      "without_above_threshold_positive_anchor": 12,
+      "without_localized_above_threshold_positive_anchor": 12
+    },
+    "diameter_px:40": {
+      "truths": 13,
+      "without_above_threshold_positive_anchor": 3,
+      "without_localized_above_threshold_positive_anchor": 3
+    },
+    "diameter_px:48": {
+      "truths": 1,
+      "without_above_threshold_positive_anchor": 0,
+      "without_localized_above_threshold_positive_anchor": 0
+    },
+    "diameter_px:6": {
+      "truths": 100,
+      "without_above_threshold_positive_anchor": 12,
+      "without_localized_above_threshold_positive_anchor": 12
+    },
+    "diameter_px:8": {
+      "truths": 100,
+      "without_above_threshold_positive_anchor": 8,
+      "without_localized_above_threshold_positive_anchor": 8
+    }
+  }
 }

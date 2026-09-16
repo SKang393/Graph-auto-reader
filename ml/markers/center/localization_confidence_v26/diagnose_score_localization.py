@@ -5,11 +5,18 @@ from pathlib import Path
 from hashlib import sha256
 from collections import Counter
 import json
+import argparse
 import numpy as np
-from ml.markers.center.real_range_generator_v1.generator import build_split
+from ml.markers.center.real_range_generator_v1.generator import build_split, ANTI_ALIAS_BLUR_RADII
 from ml.markers.gate_seal import canonical_json_bytes, sha256_file
 
 root = Path(__file__).resolve().parents[4]
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output', default='artifacts/goal22-runs/marker-v26-score-localization/reproducible-report.json')
+args = parser.parse_args()
+out = (root/args.output).resolve()
+if not out.is_relative_to(root/'artifacts') or out.exists():
+    raise ValueError('Use a new artifact output')
 inputs = []
 def read(path, digest):
     p = root/path
@@ -35,10 +42,11 @@ def array_sha(value):
     metadata = canonical_json_bytes({'dtype':str(value.dtype),'shape':list(value.shape)})
     return sha256(len(metadata).to_bytes(8,'little')+metadata+np.ascontiguousarray(value).tobytes()).hexdigest()
 counts = Counter()
+cohorts = {}
 positive_scores, negative_scores, errors = [], [], []
 scenes = build_split('dev', independent_layout=True)
 with np.load(old_path,allow_pickle=False) as a, np.load(new_path,allow_pickle=False) as b:
-    for scene, old_row, row in zip(scenes, old['component_dev']['cache_manifest'],new['component_dev']['cache_manifest'],strict=True):
+    for scene_index, (scene, old_row, row) in enumerate(zip(scenes, old['component_dev']['cache_manifest'],new['component_dev']['cache_manifest'],strict=True)):
         identity = f'{scene.split}:{scene.family}:{scene.seed}'
         coordinates = a[old_row['proposal_coordinates_key']]
         values = b[row['v26_candidate_predictions_key']]
@@ -68,6 +76,13 @@ with np.load(old_path,allow_pickle=False) as a, np.load(new_path,allow_pickle=Fa
         for truth in range(len(centers)):
             owned = positive & (assignment==truth)
             counts['truths'] += 1
+            cohort_keys = [f'diameter_px:{scene.diameters[truth]:g}',
+                f'blur_radius:{ANTI_ALIAS_BLUR_RADII[scene_index % len(ANTI_ALIAS_BLUR_RADII)]:g}']
+            for key in cohort_keys:
+                cohort = cohorts.setdefault(key, Counter())
+                cohort['truths'] += 1
+                cohort['without_above_threshold_positive_anchor'] += int(not (scores[owned]>=.25).any())
+                cohort['without_localized_above_threshold_positive_anchor'] += int(not ((scores[owned]>=.25)&(error[owned]<=5)).any())
             if not owned.any(): counts['truths_without_positive_anchor'] += 1
             elif not (scores[owned]>=.25).any(): counts['truths_without_above_threshold_positive_anchor'] += 1
             elif not ((scores[owned]>=.25)&(error[owned]<=5)).any(): counts['truths_without_localized_positive_anchor'] += 1
@@ -87,10 +102,10 @@ report={'scope':'fixed-v26-component-synthetic-dev-cached-score-localization',
     'evidence_inputs':inputs,
     'diagnostic_source_sha256':sha256_file(Path(__file__)), 'sources':sources,
     'counts':dict(counts),'positive_scores':summary(positive_scores),'negative_scores':summary(negative_scores),
+    'truth_cohorts':{key:dict(value) for key,value in sorted(cohorts.items())},
     'positive_anchor_decoded_error_px':summary(errors),'threshold':.25,
     'limitations':['Component dev only; family panels not included.','Before consensus and NMS; not final predictions or acceptance.'],
     'optimizer_steps':0,'model_inference':False,'private_reads':0,'sealed_reads':0,'production_approved':False}
-out=root/'artifacts/goal22-runs/marker-v26-score-localization/reproducible-report.json'
 out.parent.mkdir(parents=True,exist_ok=True)
 with out.open('xb') as f: f.write(canonical_json_bytes(report))
 print(json.dumps(report))
