@@ -8,7 +8,25 @@
     "truths_with_localized_positive_anchor": 1835,
     "truths_without_above_threshold_positive_anchor": 169
   },
-  "diagnostic_source_sha256": "54df1d623c0ee5dccf7c0e2578db57bd3fe745d994c1f6912ee86a7119b94dec",
+  "diagnostic_source_sha256": "80ba9f3c913cbd189adb7b6ac6eabbf4a482f88fa08d197f1259d2d9d0ef9c91",
+  "evidence_inputs": [
+    {
+      "path": "artifacts/goal22-runs/marker-v26-annulus/diagnosis-v1/diagnosis.json",
+      "sha256": "936a5ae1bca09bd431d94ad7c6acfc6cf521af78e8e45afea3498305a09250f8"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/suppressor-anchor-diagnosis-v1/diagnosis.json",
+      "sha256": "ad923c8f9c658e4a51b4babf728f30f68e9bf33fb3d4528587b6f3e5998290db"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/suppressor-anchor-diagnosis-v1/fixed-v25-dev-outputs.npz",
+      "sha256": "d9247c03dded13b00c582a64152976a9b89f1b01704670cfdc5f226c9d09eb72"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-annulus/diagnosis-v1/fixed-v26-dev-outputs.npz",
+      "sha256": "ff0d332ef0c7b7c8b3084e2ae2357cb551d5ce698d320e67077bcd2b63cec90d"
+    }
+  ],
   "limitations": [
     "Component dev only; family panels not included.",
     "Before consensus and NMS; not final predictions or acceptance."
@@ -16,7 +34,7 @@
   "model_inference": false,
   "negative_scores": {
     "count": 221208,
-    "median": 2.4318695068359375E-05,
+    "median": 2.4318695068359375e-05,
     "p05": 0.0,
     "p95": 0.010417051613330838
   },
@@ -41,19 +59,5 @@
     "ml/markers/center/dataset.py": "95623cd99d54fbb374e5046c510a7307eeb89f72c10311d267eadd0f9304bc47",
     "ml/markers/center/real_range_generator_v1/generator.py": "2244094e8d8e3a8cacb83e11c5e7189ded46b25b1ce9ecdad1bd80e5dec78b41"
   },
-  "threshold": 0.25,
-  "evidence_inputs": [
-    {
-      "path": "artifacts/goal22-runs/marker-v26-annulus/diagnosis-v1/diagnosis.json",
-      "sha256": "936a5ae1bca09bd431d94ad7c6acfc6cf521af78e8e45afea3498305a09250f8"
-    },
-    {
-      "path": "artifacts/goal22-runs/marker-v26-target-preflight/suppressor-anchor-diagnosis-v1/diagnosis.json",
-      "sha256": "ad923c8f9c658e4a51b4babf728f30f68e9bf33fb3d4528587b6f3e5998290db"
-    },
-    {
-      "path": "artifacts/goal22-runs/marker-v26-score-localization/report.json",
-      "sha256": "7518a79f1138fbfb32c5346a982a95dcd85019ba8eebd2a073a41d6900349f31"
-    }
-  ]
+  "threshold": 0.25
 }
