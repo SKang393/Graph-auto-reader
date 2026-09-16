@@ -1,0 +1,59 @@
+{
+  "counts": {
+    "negative_anchors_above_threshold": 2375,
+    "positive_anchors": 3632,
+    "positive_anchors_below_threshold": 683,
+    "positive_anchors_decoded_beyond_five_pixels": 5,
+    "truths": 2004,
+    "truths_with_localized_positive_anchor": 1835,
+    "truths_without_above_threshold_positive_anchor": 169
+  },
+  "diagnostic_source_sha256": "54df1d623c0ee5dccf7c0e2578db57bd3fe745d994c1f6912ee86a7119b94dec",
+  "limitations": [
+    "Component dev only; family panels not included.",
+    "Before consensus and NMS; not final predictions or acceptance."
+  ],
+  "model_inference": false,
+  "negative_scores": {
+    "count": 221208,
+    "median": 2.4318695068359375E-05,
+    "p05": 0.0,
+    "p95": 0.010417051613330838
+  },
+  "optimizer_steps": 0,
+  "positive_anchor_decoded_error_px": {
+    "count": 3632,
+    "median": 0.611013263463974,
+    "p05": 0.13847812935709955,
+    "p95": 2.400342142581937
+  },
+  "positive_scores": {
+    "count": 3632,
+    "median": 0.9019028544425964,
+    "p05": 0.01578444391489029,
+    "p95": 0.9990513950586319
+  },
+  "private_reads": 0,
+  "production_approved": false,
+  "scope": "fixed-v26-component-synthetic-dev-cached-score-localization",
+  "sealed_reads": 0,
+  "sources": {
+    "ml/markers/center/dataset.py": "95623cd99d54fbb374e5046c510a7307eeb89f72c10311d267eadd0f9304bc47",
+    "ml/markers/center/real_range_generator_v1/generator.py": "2244094e8d8e3a8cacb83e11c5e7189ded46b25b1ce9ecdad1bd80e5dec78b41"
+  },
+  "threshold": 0.25,
+  "evidence_inputs": [
+    {
+      "path": "artifacts/goal22-runs/marker-v26-annulus/diagnosis-v1/diagnosis.json",
+      "sha256": "936a5ae1bca09bd431d94ad7c6acfc6cf521af78e8e45afea3498305a09250f8"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/suppressor-anchor-diagnosis-v1/diagnosis.json",
+      "sha256": "ad923c8f9c658e4a51b4babf728f30f68e9bf33fb3d4528587b6f3e5998290db"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-score-localization/report.json",
+      "sha256": "7518a79f1138fbfb32c5346a982a95dcd85019ba8eebd2a073a41d6900349f31"
+    }
+  ]
+}
