@@ -311,5 +311,137 @@
     },
     "scope": "Cached diagnostic planes, not accepted glyph or connection evidence",
     "source_and_plane_hashes_reverified": true
+  },
+  "train_dev_support": {
+    "result": {
+      "path": "artifacts/goal22-runs/ocr-v44-legend-train-dev-support/result-v2.json",
+      "sha256": "29833f2a843f468fe836e6a5e9f0baff6f6a2bccfb7113955aebb854da232432"
+    },
+    "script": {
+      "path": "artifacts/goal22-runs/ocr-v44-legend-train-dev-support/run-v2.ps1",
+      "sha256": "d42ebe2372e2634f04e15575f27c0913a748a2a9e15b5a04ab82fb71e3bb0bdf"
+    },
+    "geometry_basis": {
+      "common_basis": "authenticated participant-lane evaluation detected plot bounds in panel coordinates",
+      "train_projection": "current source truth projected with each evaluated panel source_to_panel_matrix",
+      "dev_projection": "pinned saved panel projection for each dev truth",
+      "mixed_scene_vs_detected_basis_used": false
+    },
+    "denominators": {
+      "train_legend_truths": 30,
+      "dev_legend_truths": 11,
+      "train_inside_plot_legend_truths": 10,
+      "dev_inside_plot_legend_truths": 11,
+      "train_legend_panels": 30,
+      "dev_legend_panels": 9,
+      "train_panels_with_multiple_legend_truths": 0,
+      "dev_panels_with_multiple_legend_truths": 1,
+      "train_maximum_legend_truths_per_panel": 1.0,
+      "dev_maximum_legend_truths_per_panel": 3.0,
+      "full_denominators_retained": true
+    },
+    "placement_counts": {
+      "train": [
+        {
+          "placement": "inside_plot",
+          "count": 10
+        },
+        {
+          "placement": "right_of_plot",
+          "count": 20
+        }
+      ],
+      "dev": [
+        {
+          "placement": "inside_plot",
+          "count": 11
+        }
+      ]
+    },
+    "findings": {
+      "corrected_plot_y_claim": "On the common detected-plot basis, all 11 dev legend y centers and normalized heights lie within the range of all 30 current train legends. The V1 claim that 10 of 11 dev y centers exceeded train range was caused by mixing saved scene plots for train with detected plots for dev.",
+      "remaining_layout_gap": "Current train has one legend truth per panel; dev contains one three-row inside-plot legend. Against the 10 comparable inside-plot train legends, 4 of 11 dev y centers fall outside range, including lower compact rows.",
+      "remaining_numeric_gap": "Two dev widths and three dev heights fall below the current train source-pixel ranges; the same 2/11 width and 3/11 height counts fall outside comparable inside-plot normalized train ranges.",
+      "detector_context": "V1 separately measured 30/30 train raw overlap versus 9/11 dev overlap and median raw width/truth ratios 1.018 versus 0.483. Those measurements remain descriptive; family disjointness is intentional and not by itself a defect."
+    },
+    "categorical_holdout": {
+      "acceptance_scope": "goal22.full-ocr.five-axis-family.real-range.v1",
+      "axes": {
+        "renderer": {
+          "train": [
+            "print_monochrome",
+            "vector_clean"
+          ],
+          "dev": [
+            "scan_rough"
+          ],
+          "overlap": [],
+          "intentionally_disjoint": true
+        },
+        "font": {
+          "train": [
+            "system_sans",
+            "system_serif"
+          ],
+          "dev": [
+            "system_mono"
+          ],
+          "overlap": [],
+          "intentionally_disjoint": true
+        },
+        "degradation": {
+          "train": [
+            "none",
+            "print_light"
+          ],
+          "dev": [
+            "scan_noise"
+          ],
+          "overlap": [],
+          "intentionally_disjoint": true
+        },
+        "template": {
+          "train": [
+            "classic_single",
+            "stacked_shared_axes"
+          ],
+          "dev": [
+            "compact_legend"
+          ],
+          "overlap": [],
+          "intentionally_disjoint": true
+        },
+        "marker": {
+          "train": [
+            "geometric_basic",
+            "mixed_print"
+          ],
+          "dev": [
+            "symbolic"
+          ],
+          "overlap": [],
+          "intentionally_disjoint": true
+        }
+      },
+      "all_five_axes_intentionally_train_dev_disjoint": true,
+      "empty_family_overlap_is_a_required_holdout_property": true,
+      "exact_dev_family_copy_into_train_withdrawn": true,
+      "correction": "The V1 recommendation to copy scan_rough/system_mono/scan_noise/compact_legend/symbolic into train is withdrawn because it would invalidate the fixed five-axis family holdout."
+    },
+    "corrected_all_train_y_outside_count": 0,
+    "corrected_all_train_normalized_height_outside_count": 0,
+    "inside_train_comparison": {
+      "dev_y_outside_count": 4,
+      "dev_pixel_width_outside_count": 2,
+      "dev_pixel_height_outside_count": 3
+    },
+    "historical_v1_interpretation": "Withdrawn: empty family overlap is the intended holdout; copying exact dev families into train would invalidate it. The mixed scene/detected plot comparison incorrectly suggested ten y-range misses.",
+    "next_step": "Prepare a bounded train-only multi-row inside-plot and smaller-text coverage repair using existing train families. Keep every dev case and all five held-out family identities unchanged. This diagnosis does not authorize training or prove a model improvement.",
+    "input_hashes_reverified": 10,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "model_inference_runs": 0,
+    "optimizer_steps": 0,
+    "production_approval": false
   }
 }
