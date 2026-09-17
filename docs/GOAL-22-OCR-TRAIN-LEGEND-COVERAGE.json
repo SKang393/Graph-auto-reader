@@ -1,0 +1,214 @@
+{
+  "schema": "graphreader.goal22-ocr-train-legend-coverage.v1",
+  "status": "model_free_train_coverage_verified",
+  "report": {
+    "path": "artifacts/goal22-runs/ocr-train-legend-coverage-preflight-v1/preflight-report.json",
+    "sha256": "bb36b630d2c58b0263e954a42c4a3cc197f68ec1d63806ba502bd9520755ae32"
+  },
+  "coverage": {
+    "case_counts_by_five_axis_family": {
+      "renderer=print_monochrome|font=system_serif|degradation=print_light|template=stacked_shared_axes|marker=mixed_print": 3,
+      "renderer=vector_clean|font=system_sans|degradation=none|template=classic_single|marker=geometric_basic": 3
+    },
+    "case_counts_by_font_size_px": {
+      "10": 2,
+      "12": 2,
+      "8": 2
+    },
+    "diagnosed_small_extent_targets": {
+      "achieved_minimum_height_pixels": 6.0,
+      "achieved_minimum_width_pixels": 41.0,
+      "coverage_ready": true,
+      "height_floor_covered": true,
+      "readiness_is_descriptive_not_a_model_gate": true,
+      "source": {
+        "path": "artifacts/goal22-runs/ocr-v44-legend-train-dev-support/result-v2.json",
+        "sha256": "29833f2a843f468fe836e6a5e9f0baff6f6a2bccfb7113955aebb854da232432"
+      },
+      "target_minimum_height_pixels": 9.0,
+      "target_minimum_width_pixels": 87.0,
+      "width_floor_covered": true
+    },
+    "inside_plot_legend_truth_count": 18,
+    "legend_rows_per_panel": {
+      "maximum": 3,
+      "minimum": 3
+    },
+    "legend_truth_count": 18,
+    "multi_row_legend_panel_count": 6,
+    "new_raster_hashes_disjoint_from_fixed_dev": true,
+    "new_raster_hashes_disjoint_from_historical_train": true,
+    "panel_count": 6,
+    "rendered_height_over_plot_height": {
+      "maximum": 0.06097560975609756,
+      "median": 0.042682926829268296,
+      "minimum": 0.036585365853658534
+    },
+    "rendered_height_pixels": {
+      "maximum": 10.0,
+      "median": 7.0,
+      "minimum": 6.0
+    },
+    "rendered_row_gap_over_plot_height": {
+      "maximum": 0.0975609756097561,
+      "median": 0.09146341463414634,
+      "minimum": 0.07317073170731707
+    },
+    "rendered_row_gap_pixels": {
+      "maximum": 16.0,
+      "median": 15.0,
+      "minimum": 12.0
+    },
+    "rendered_row_top_delta_over_plot_height": {
+      "maximum": 0.13414634146341464,
+      "median": 0.13414634146341464,
+      "minimum": 0.13414634146341464
+    },
+    "rendered_row_top_delta_pixels": {
+      "maximum": 22.0,
+      "median": 22.0,
+      "minimum": 22.0
+    },
+    "rendered_rows_enclosed_by_legend_frame_and_plot": true,
+    "rendered_rows_ordered_nonoverlapping": true,
+    "rendered_width_pixels": {
+      "maximum": 90.0,
+      "median": 57.0,
+      "minimum": 41.0
+    },
+    "source_count": 6
+  },
+  "configuration": {
+    "case_count": 6,
+    "dataset_seed": 917,
+    "declared_legend_row_spacing_pixels": 22,
+    "design": "alternating_treatments",
+    "expected_rows_per_legend": 3,
+    "font_size_override_scope": "global_scene_text_not_legend_only",
+    "font_sizes_px": [
+      8,
+      10,
+      12
+    ],
+    "legend_position": "inside",
+    "panel_count_per_case": 1,
+    "renderer_families": [
+      "vector_clean",
+      "print_monochrome"
+    ],
+    "session_count": 36
+  },
+  "historical_dev_binding": {
+    "binding": {
+      "path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+      "sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a"
+    },
+    "descriptor_payloads_hashed_only": true,
+    "historical_train_source_count": 20,
+    "manifest": {
+      "path": "artifacts/goal22-runs/marker-v25-plot-domain/axis-preserving-v3-sources-run2/dev393/input-manifest.json",
+      "sha256": "36ca412992581713cffaaa006b5babb84bc04ad6fbfacd92a6c7df84a5196ac6"
+    },
+    "oracle_request": {
+      "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-inputs-v1/request.json",
+      "sha256": "ee14d67f651e20ec9479fb9e59ce1ea1ef77542b057f3d62312c476685520b0b"
+    },
+    "pixels_read": 0,
+    "preflight": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-preflight/preflight-report.json",
+      "sha256": "23afd6d3163c84998586b54e72ef28d46cf80c561ff2a63449a005b48188cc53"
+    },
+    "source_count": 3,
+    "synthetic_truth": {
+      "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-inputs-v1/synthetic-truth.json",
+      "sha256": "829beb67695011f936b08272e69bb718b8b35d33bdb94c32a45f521f523fc3f5"
+    },
+    "truth_count": 183,
+    "truth_rows_parsed": 0
+  },
+  "generator_sources": [
+    {
+      "path": "ml/synthetic/dataset.py",
+      "sha256": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b"
+    },
+    {
+      "path": "ml/synthetic/fonts.py",
+      "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+    },
+    {
+      "path": "ml/synthetic/io.py",
+      "sha256": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2"
+    },
+    {
+      "path": "ml/synthetic/ocr_sealed_acceptance.py",
+      "sha256": "daaaca22c60bee938fa6fff6a4a3275440b98043f7f74a11b0385a2026261449"
+    },
+    {
+      "path": "ml/synthetic/renderer.py",
+      "sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_visible_content_v3.py",
+      "sha256": "eb358f9fe6b06c538d792794e8e28a2f751b55fefa7dd5c9da04e83673dc1cca"
+    },
+    {
+      "path": "ml/synthetic/schema.py",
+      "sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98"
+    },
+    {
+      "path": "ml/synthetic/sealed_acceptance.py",
+      "sha256": "811435dc8ab19078d85235a90ac636774b1357d7bb3263627357dc2d5bc0001b"
+    },
+    {
+      "path": "ml/synthetic/templates.py",
+      "sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+    },
+    {
+      "path": "ml/policy/goal22-ocr-sealed-coverage-v1.json",
+      "sha256": "26ab0e017ccc6dc17d26effe11b1fb40f440ed4471e896c1afac3c8cc96999c4"
+    },
+    {
+      "path": "ml/policy/goal22-sealed-coverage-v1.json",
+      "sha256": "b31b530b7e9e5e4528a31865621bba107161afca8c6dd58617aa3989401bfa0f"
+    },
+    {
+      "path": "docs/GOAL-22-OCR-LEGEND-EXTENT-DIAGNOSIS.json",
+      "sha256": "c9a9903bad60e9b5a50b4c7eb73c48bf458fe9576f4873bd22a402ca04f4f204"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/train_legend_coverage_preflight.py",
+      "sha256": "2991cdbaa7f9fcdb2884238347d9e97bad8b8607a232bb0a4fcf2a6d9aa3b41b"
+    }
+  ],
+  "tests": {
+    "passed": 7,
+    "failed": 0,
+    "seconds": 8.353,
+    "junit": {
+      "path": "artifacts/goal22-runs/ocr-train-legend-coverage-tests-v2.xml",
+      "sha256": "9ab1d0622c1aa775e653da42bf1d5f1dadce7b30181b658afc315f9444aac0cd"
+    },
+    "initial_attempt": "Five passed; two temp-directory setup errors (Windows access denied). Same tests passed with fresh workspace basetemp and pytest cache disabled."
+  },
+  "independent_review": "Sol High static CLEAR on exact final source and tests; root executed tests and six-source rendering and rehashed all 18 outputs and source bindings.",
+  "cpu_budget": {
+    "training_job_rate": 333,
+    "validation_job_rate": 50,
+    "logical_processors": 12,
+    "combined_machine_budget_percent": 3.83,
+    "combined_single_logical_processor_capacity_percent": 45.96,
+    "all_logical_processors_eligible": true
+  },
+  "optimizer_steps": 0,
+  "model_inference_runs": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "ocr_revision_opened": false,
+  "production_approval": false,
+  "limitations": [
+    "Font size applies to all scene text, not only legends.",
+    "Existing 22-pixel row spacing remains fixed.",
+    "Representation coverage does not establish recognition accuracy or production readiness."
+  ],
+  "license": "Project-owned synthetic generator; host-installed system fonts hashed but not copied or bundled."
+}
