@@ -1,0 +1,88 @@
+{
+  "schema": "graphreader.goal22-ocr-supplemental-features.v1",
+  "status": "six_panel_frozen_features_and_step_zero_parity_verified",
+  "report": {
+    "path": "artifacts/goal22-runs/ocr-supplemental-head-features-v1/report.json",
+    "sha256": "4b2710b380be1b16d5fef7d9184920051c413304353ed821480bda0ab3a16d05"
+  },
+  "readiness": {
+    "path": "artifacts/goal22-runs/ocr-supplemental-head-features-v1/cache-readiness.json",
+    "sha256": "3ce7d129dd8ce31f4af7206743c85033332599324cce5ba4a59e374b17667b83"
+  },
+  "composition_report_sha256": "f0591ae25244b570ea2077d34b40dac96b40be1433d6ca89a0119989378529c0",
+  "capture_report_sha256": "2c605fb18cb0195453f1b569506546c22c3a873db19475e1fb87daa0bddaeb19",
+  "parent_model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+  "feature_model_sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081",
+  "no_op_model_sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb",
+  "execution": {
+    "provider": "CPUExecutionProvider",
+    "onnxruntime_version": "1.27.0",
+    "torch_version": "2.13.0+cpu",
+    "cpu_threads": 1,
+    "torch_head_arithmetic": "float64",
+    "torch_mkldnn_enabled": false,
+    "graph_optimization": "ORT_ENABLE_ALL",
+    "elapsed_ms": 128829.97160003288
+  },
+  "parity": {
+    "train_panels": 6,
+    "development_panels": 0,
+    "maximum_absolute_error": 5.543231964111328E-06,
+    "tolerance": 1E-05,
+    "passed": true,
+    "reloaded_feature_count": 6
+  },
+  "historical_cache": {
+    "feature_files_unchanged": 37,
+    "inventory_sha256": "9ee99c126f2d80bae68f6d944b910b96926793ac0e28bd39c542303586472738",
+    "report_sha256": "8d0a2e3fe9f8b5a8abbf73ab3f487ed632d99e84c9b112dc8b718366d680edf0"
+  },
+  "tests": {
+    "passed": 28,
+    "failed": 0,
+    "suite_seconds": 86.091,
+    "junit": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-feature-tests-v1.xml",
+      "sha256": "5398d6b944563331c2e8a9000f3b953e57cea41eeb56e5601e33c5b24e0ace77"
+    }
+  },
+  "sources": [
+    {
+      "path": "ml/ocr/official_bakeoff/supplemental_head_features.py",
+      "sha256": "0e245d0176d8c8cd2b3b8e7a3f25755488afc2732469a9946e27c9e2bd81fb55"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/tests/test_supplemental_head_features.py",
+      "sha256": "6a0db30931a32b59616ef0f6d5f374055273e77834d6d10f383435541ac73935"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/frozen_trunk_head.py",
+      "sha256": "6171df9298f785360695353087344229a8f761cfda51bb3aa728ddab10997703"
+    },
+    {
+      "path": "artifacts/goal22-tools/cache-supplemental-head-features.py",
+      "sha256": "2cebae4e3f8df18ab8a26f49e8d65768866500b3affa8b6fce0c4adbba550a22"
+    }
+  ],
+  "independent_review": "Sol High CLEAR on final helper, tests, and wrapper. Root ran focused tests, cache capture, complete cache reload and historical before/after authentication.",
+  "cpu_budget": {
+    "training_job_rate": 333,
+    "validation_job_rate": 50,
+    "logical_processors": 12,
+    "combined_machine_budget_percent": 3.83,
+    "all_logical_processors_eligible": true
+  },
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "ocr_revision_opened": false,
+  "production_approval": false,
+  "packaged_build": false,
+  "goal22_complete": false,
+  "license": "Apache-2.0 project code, existing reviewed Apache PP-OCRv5 parent and project-owned synthetic inputs. No new dependency or bundled payload.",
+  "limitations": [
+    "Step-zero parity proves feature extraction consistency, not OCR accuracy.",
+    "A new training candidate still requires its own configuration, source/input bindings and canonical authorization.",
+    "Production and end-to-end acceptance remain incomplete."
+  ]
+}
