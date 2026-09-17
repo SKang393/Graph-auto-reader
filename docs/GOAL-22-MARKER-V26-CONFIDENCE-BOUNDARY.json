@@ -1,0 +1,569 @@
+{
+  "schema": "graphreader.goal22.marker-v26-confidence-boundary.v1",
+  "status": "selected_train_diagnostic_completed_dev_gate_still_failed",
+  "result": {
+    "path": "artifacts/goal22-runs/marker-v26-confidence-boundary/diagnosis-v1.json",
+    "sha256": "b1661bff1963f7fc94b83985a181f892d37ba918386bdf051061518096e2a60c"
+  },
+  "script": {
+    "path": "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_marker_v26_confidence_boundary.py",
+    "sha256": "b79793b2027407247a90584cae26ce1009ca13446b3e2af806a5134bf5a84225"
+  },
+  "selected_row_inventory": {
+    "combined": {
+      "negative_rows": 40810,
+      "positive_rows": 4081,
+      "selected_rows": 44891
+    },
+    "component": {
+      "negative_rows": 32580,
+      "positive_rows": 3258,
+      "selected_rows": 35838,
+      "selection_evidence": {
+        "added_rows": 4876,
+        "displaced_rows": 4876,
+        "frozen_selection_sha256": "e5a324090f1c021b7992a9d3e04ec583156fa2a2f593c22250917506972e80dd",
+        "preserved_protected_rows": 18284,
+        "proposed_selection_sha256": "c184a97ae7ad0292361e62a4aaed5a54d8c1ae1bdb0ab3daab9ddeb8d46b1af0",
+        "row_order": "scene_then_ascending_proposal_index",
+        "selected_rows": 35838
+      }
+    },
+    "family": {
+      "negative_rows": 8230,
+      "positive_rows": 823,
+      "selected_rows": 9053,
+      "selection_evidence": {
+        "added_rows": 1331,
+        "displaced_rows": 1331,
+        "frozen_selection_sha256": "76f17a1f7c80543c61076bca8da2d72c68edf2ea68a872ecb8f434c7283708b9",
+        "preserved_protected_rows": 1761,
+        "proposed_selection_sha256": "239b3f2aa14eb9636964c22083e722aba76bd70623a2bbd75362e1db96c527e3",
+        "row_order": "scene_then_ascending_proposal_index",
+        "selected_rows": 9053
+      }
+    }
+  },
+  "fixed_threshold": 0.25,
+  "train_confidence": {
+    "combined": {
+      "confusion": {
+        "false_negative": 0,
+        "false_positive": 228,
+        "true_negative": 40582,
+        "true_positive": 4081
+      },
+      "negative_all": {
+        "above_or_equal_threshold": 228,
+        "below_threshold": 40582,
+        "count": 40810,
+        "scores": {
+          "count": 40810,
+          "maximum": 0.9587767124176025,
+          "median": 2.1238574845483527E-05,
+          "minimum": 2.5464068584301648E-14,
+          "p05": 2.5273580295248624E-08,
+          "p95": 0.01455594473518423
+        }
+      },
+      "negative_gt3_le5": {
+        "above_or_equal_threshold": 162,
+        "below_threshold": 2369,
+        "count": 2531,
+        "scores": {
+          "count": 2531,
+          "maximum": 0.9587767124176025,
+          "median": 0.01308232918381691,
+          "minimum": 4.1707647824296146E-07,
+          "p05": 5.094405423733406E-05,
+          "p95": 0.2848596125841141
+        }
+      },
+      "negative_gt5_le8": {
+        "above_or_equal_threshold": 47,
+        "below_threshold": 4755,
+        "count": 4802,
+        "scores": {
+          "count": 4802,
+          "maximum": 0.9204821586608887,
+          "median": 7.417419328703545E-05,
+          "minimum": 7.505915160244125E-12,
+          "p05": 4.256849983619304E-08,
+          "p95": 0.036221007816493456
+        }
+      },
+      "negative_gt8_le12": {
+        "above_or_equal_threshold": 13,
+        "below_threshold": 4862,
+        "count": 4875,
+        "scores": {
+          "count": 4875,
+          "maximum": 0.9237198233604431,
+          "median": 2.4338587536476552E-06,
+          "minimum": 2.5464068584301648E-14,
+          "p05": 6.715024980508134E-10,
+          "p95": 0.0027761297766119263
+        }
+      },
+      "negative_outside_annuli": {
+        "above_or_equal_threshold": 6,
+        "below_threshold": 28596,
+        "count": 28602,
+        "scores": {
+          "count": 28602,
+          "maximum": 0.4475088119506836,
+          "median": 1.5727915524621494E-05,
+          "minimum": 2.480872766334047E-13,
+          "p05": 4.920780938277858E-08,
+          "p95": 0.0024379347567446436
+        }
+      },
+      "positive_le3": {
+        "above_or_equal_threshold": 4081,
+        "below_threshold": 0,
+        "count": 4081,
+        "scores": {
+          "count": 4081,
+          "maximum": 0.9999978542327881,
+          "median": 0.9954487681388855,
+          "minimum": 0.8151969909667969,
+          "p05": 0.9418095350265503,
+          "p95": 0.9998419284820557
+        }
+      }
+    },
+    "component": {
+      "negative_all": {
+        "above_or_equal_threshold": 184,
+        "below_threshold": 32396,
+        "count": 32580,
+        "scores": {
+          "count": 32580,
+          "maximum": 0.9587767124176025,
+          "median": 1.4378315881913295E-05,
+          "minimum": 2.5464068584301648E-14,
+          "p05": 1.9330200018430334E-08,
+          "p95": 0.011656213598325844
+        }
+      },
+      "negative_gt3_le5": {
+        "above_or_equal_threshold": 122,
+        "below_threshold": 1922,
+        "count": 2044,
+        "scores": {
+          "count": 2044,
+          "maximum": 0.9587767124176025,
+          "median": 0.008204162120819092,
+          "minimum": 4.1707647824296146E-07,
+          "p05": 4.093001862202073E-05,
+          "p95": 0.27767771184444406
+        }
+      },
+      "negative_gt5_le8": {
+        "above_or_equal_threshold": 47,
+        "below_threshold": 4209,
+        "count": 4256,
+        "scores": {
+          "count": 4256,
+          "maximum": 0.9204821586608887,
+          "median": 5.725401206291281E-05,
+          "minimum": 7.505915160244125E-12,
+          "p05": 3.4992239328346386E-08,
+          "p95": 0.037280541844666004
+        }
+      },
+      "negative_gt8_le12": {
+        "above_or_equal_threshold": 13,
+        "below_threshold": 4210,
+        "count": 4223,
+        "scores": {
+          "count": 4223,
+          "maximum": 0.9237198233604431,
+          "median": 2.0103516362723894E-06,
+          "minimum": 2.5464068584301648E-14,
+          "p05": 5.465721264474865E-10,
+          "p95": 0.0031273056054487804
+        }
+      },
+      "negative_outside_annuli": {
+        "above_or_equal_threshold": 2,
+        "below_threshold": 22055,
+        "count": 22057,
+        "scores": {
+          "count": 22057,
+          "maximum": 0.4475088119506836,
+          "median": 9.896643859974574E-06,
+          "minimum": 2.480872766334047E-13,
+          "p05": 3.891462654337374E-08,
+          "p95": 0.0015923230210319176
+        }
+      },
+      "positive_le3": {
+        "above_or_equal_threshold": 3258,
+        "below_threshold": 0,
+        "count": 3258,
+        "scores": {
+          "count": 3258,
+          "maximum": 0.9999978542327881,
+          "median": 0.996275007724762,
+          "minimum": 0.8151969909667969,
+          "p05": 0.9524934083223343,
+          "p95": 0.9998651146888733
+        }
+      }
+    },
+    "family": {
+      "negative_all": {
+        "above_or_equal_threshold": 44,
+        "below_threshold": 8186,
+        "count": 8230,
+        "scores": {
+          "count": 8230,
+          "maximum": 0.570618212223053,
+          "median": 7.70131591707468E-05,
+          "minimum": 3.013789033872588E-13,
+          "p05": 1.386925006841011E-07,
+          "p95": 0.03246998619288204
+        }
+      },
+      "negative_gt3_le5": {
+        "above_or_equal_threshold": 40,
+        "below_threshold": 447,
+        "count": 487,
+        "scores": {
+          "count": 487,
+          "maximum": 0.570618212223053,
+          "median": 0.05585026368498802,
+          "minimum": 9.876719104795484E-07,
+          "p05": 0.0004848149750614539,
+          "p95": 0.289301711320877
+        }
+      },
+      "negative_gt5_le8": {
+        "above_or_equal_threshold": 0,
+        "below_threshold": 546,
+        "count": 546,
+        "scores": {
+          "count": 546,
+          "maximum": 0.18717874586582184,
+          "median": 0.00030331365996971726,
+          "minimum": 1.7112947503505893E-08,
+          "p05": 1.2505389577199821E-06,
+          "p95": 0.02611809642985463
+        }
+      },
+      "negative_gt8_le12": {
+        "above_or_equal_threshold": 0,
+        "below_threshold": 652,
+        "count": 652,
+        "scores": {
+          "count": 652,
+          "maximum": 0.06681814044713974,
+          "median": 5.723626600229181E-06,
+          "minimum": 3.013789033872588E-13,
+          "p05": 1.667305919994533E-08,
+          "p95": 0.001420095318462699
+        }
+      },
+      "negative_outside_annuli": {
+        "above_or_equal_threshold": 4,
+        "below_threshold": 6541,
+        "count": 6545,
+        "scores": {
+          "count": 6545,
+          "maximum": 0.425469309091568,
+          "median": 6.320508691715077E-05,
+          "minimum": 2.7986063119711524E-11,
+          "p05": 1.6150116834978695E-07,
+          "p95": 0.0079776307567954
+        }
+      },
+      "positive_le3": {
+        "above_or_equal_threshold": 823,
+        "below_threshold": 0,
+        "count": 823,
+        "scores": {
+          "count": 823,
+          "maximum": 0.9999755620956421,
+          "median": 0.9890776872634888,
+          "minimum": 0.8373233079910278,
+          "p05": 0.9121041893959045,
+          "p95": 0.9994582772254944
+        }
+      }
+    }
+  },
+  "positive_patch_distance_summary": [
+    {
+      "positive_nearest_same": {
+        "matched_count": 2004,
+        "unmatched_count": 1254,
+        "query_count": 3258,
+        "normalized_rmse": {
+          "count": 2004,
+          "maximum": 0.40722784399986267,
+          "median": 0.21915528178215027,
+          "minimum": 0.014744852669537067,
+          "p05": 0.1592085361480713,
+          "p95": 0.32843807339668274
+        }
+      },
+      "positive_nearest_opposite": {
+        "matched_count": 2250,
+        "unmatched_count": 1008,
+        "query_count": 3258,
+        "normalized_rmse": {
+          "count": 2250,
+          "maximum": 0.45247533917427063,
+          "median": 0.23844972252845764,
+          "minimum": 0.013470254838466644,
+          "p05": 0.15845857933163643,
+          "p95": 0.35390944629907606
+        }
+      },
+      "scope": "component",
+      "annulus": "negative_gt3_le5"
+    },
+    {
+      "positive_nearest_same": {
+        "matched_count": 2004,
+        "unmatched_count": 1254,
+        "query_count": 3258,
+        "normalized_rmse": {
+          "count": 2004,
+          "maximum": 0.40722784399986267,
+          "median": 0.21915528178215027,
+          "minimum": 0.014744852669537067,
+          "p05": 0.1592085361480713,
+          "p95": 0.32843807339668274
+        }
+      },
+      "positive_nearest_opposite": {
+        "matched_count": 3258,
+        "unmatched_count": 0,
+        "query_count": 3258,
+        "normalized_rmse": {
+          "count": 3258,
+          "maximum": 0.46318599581718445,
+          "median": 0.2449319139122963,
+          "minimum": 0.055145639926195145,
+          "p05": 0.16243737936019897,
+          "p95": 0.3600335508584976
+        }
+      },
+      "scope": "component",
+      "annulus": "negative_gt5_le8"
+    },
+    {
+      "positive_nearest_same": {
+        "matched_count": 2004,
+        "unmatched_count": 1254,
+        "query_count": 3258,
+        "normalized_rmse": {
+          "count": 2004,
+          "maximum": 0.40722784399986267,
+          "median": 0.21915528178215027,
+          "minimum": 0.014744852669537067,
+          "p05": 0.1592085361480713,
+          "p95": 0.32843807339668274
+        }
+      },
+      "positive_nearest_opposite": {
+        "matched_count": 3258,
+        "unmatched_count": 0,
+        "query_count": 3258,
+        "normalized_rmse": {
+          "count": 3258,
+          "maximum": 0.5116649270057678,
+          "median": 0.2969128042459488,
+          "minimum": 0.07058463245630264,
+          "p05": 0.18364283964037895,
+          "p95": 0.4098361909389495
+        }
+      },
+      "scope": "component",
+      "annulus": "negative_gt8_le12"
+    },
+    {
+      "positive_nearest_same": {
+        "matched_count": 661,
+        "unmatched_count": 162,
+        "query_count": 823,
+        "normalized_rmse": {
+          "count": 661,
+          "maximum": 0.4440540075302124,
+          "median": 0.2142811417579651,
+          "minimum": 0.09746673703193665,
+          "p05": 0.13141201436519623,
+          "p95": 0.34982168674468994
+        }
+      },
+      "positive_nearest_opposite": {
+        "matched_count": 783,
+        "unmatched_count": 40,
+        "query_count": 823,
+        "normalized_rmse": {
+          "count": 783,
+          "maximum": 0.49360141158103943,
+          "median": 0.23698711395263672,
+          "minimum": 0.09919194132089615,
+          "p05": 0.1351291224360466,
+          "p95": 0.4138087153434753
+        }
+      },
+      "scope": "family",
+      "annulus": "negative_gt3_le5"
+    },
+    {
+      "positive_nearest_same": {
+        "matched_count": 661,
+        "unmatched_count": 162,
+        "query_count": 823,
+        "normalized_rmse": {
+          "count": 661,
+          "maximum": 0.4440540075302124,
+          "median": 0.2142811417579651,
+          "minimum": 0.09746673703193665,
+          "p05": 0.13141201436519623,
+          "p95": 0.34982168674468994
+        }
+      },
+      "positive_nearest_opposite": {
+        "matched_count": 823,
+        "unmatched_count": 0,
+        "query_count": 823,
+        "normalized_rmse": {
+          "count": 823,
+          "maximum": 0.4848737418651581,
+          "median": 0.25202178955078125,
+          "minimum": 0.10032559931278229,
+          "p05": 0.13862103521823882,
+          "p95": 0.414752396941185
+        }
+      },
+      "scope": "family",
+      "annulus": "negative_gt5_le8"
+    },
+    {
+      "positive_nearest_same": {
+        "matched_count": 661,
+        "unmatched_count": 162,
+        "query_count": 823,
+        "normalized_rmse": {
+          "count": 661,
+          "maximum": 0.4440540075302124,
+          "median": 0.2142811417579651,
+          "minimum": 0.09746673703193665,
+          "p05": 0.13141201436519623,
+          "p95": 0.34982168674468994
+        }
+      },
+      "positive_nearest_opposite": {
+        "matched_count": 823,
+        "unmatched_count": 0,
+        "query_count": 823,
+        "normalized_rmse": {
+          "count": 823,
+          "maximum": 0.5476945638656616,
+          "median": 0.2879478335380554,
+          "minimum": 0.11254487186670303,
+          "p05": 0.16037402004003526,
+          "p95": 0.4532050639390945
+        }
+      },
+      "scope": "family",
+      "annulus": "negative_gt8_le12"
+    }
+  ],
+  "historical_source_compatibility": {
+    "canonical_serialization_compatibility_checks": [
+      "exact frozen panel-inventory aggregate SHA-256",
+      "exact frozen tensor-multiset aggregate SHA-256",
+      "exact frozen truth-mapping aggregate SHA-256",
+      "exact frozen plot-domain aggregate SHA-256 values"
+    ],
+    "current_canonical_json_source_sha256": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725",
+    "downstream_identity_checks": [
+      "frozen V3 binding bytes",
+      "component and family tensor-set identities",
+      "V25 model-free preflight exact equality",
+      "V26 regenerated proposal identities",
+      "V26 frozen and proposed selection SHA-256 values",
+      "V26 selected-row counts and labels"
+    ],
+    "historical_canonical_json_source_sha256": "b310789162c06ca11cb348cbf2fcece877a25ce6173ec0dee70bdc29d33ef6d7",
+    "nested_check": "ml.markers.center.plot_domain_v25.runtime_domain_binding_v3._validate_helper_sources",
+    "original_binding_document_mutated": false,
+    "other_nested_helper_checks_retained": 6,
+    "remaining_nested_validation": {
+      "load_split_v3": "authenticates frozen manifest, report, panel-plane, and implementation identities, then regenerates and compares every train/dev source PNG",
+      "runtime_inputs_validate_candidate": "authenticates the frozen candidate descriptor and runtime/model identities; does not compare generator source files"
+    },
+    "renderer_profile_rebinding": {
+      "current_sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283",
+      "executed_output_identity_checks": [
+        "V3 train and dev regenerated source PNG SHA-256 values",
+        "V25 component and family tensor-set identities",
+        "V25 model-free preflight exact equality",
+        "V26 regenerated proposal and selected-row identities"
+      ],
+      "historical_sha256": "6ddba4f5392a078d6c4d0108ca3a48c31f8d3692cdd26fbdbd466849ae5bef1b",
+      "original_profile_mutated": false,
+      "other_profile_source_checks_retained": 11,
+      "path": "ml/synthetic/renderer.py",
+      "renderer_execution_scope": "executed for V3 family train/dev regeneration: runtime_graph_visible_content_v3.render_visible_content_source calls renderer.render_scene, and non-halftone degradation stages call the renderer._degrade function imported by runtime_graph_axis_preserving_v2; regenerated PNG hashes must match the frozen manifests",
+      "scope": "copied V3 generator profile passed to original source validator; renderer SHA-256 field only; both load and truth-join checks"
+    },
+    "replacement_scope": "single V25 model-free preparation call; copied binding document; canonical_json_source_sha256 field only",
+    "selection_identity_serialization": "direct ASCII; checked separately and not canonical-JSON compatibility proof"
+  },
+  "validation": {
+    "diagnostic_seconds": 557.429369,
+    "test_seconds": 15.29,
+    "test_source_sha256": "13fe148f164e68289b766a3b408bc628db312e11db8eec28dc79ce1e84309ca7",
+    "test_file": "tests/test_marker_v26_confidence_boundary.py",
+    "tests": 8,
+    "host_seconds": 575.731591,
+    "test_report": {
+      "path": "artifacts/goal22-runs/marker-v26-confidence-boundary-tests-final.xml",
+      "sha256": "a0aa8ee9c241d56e658473fabc1320b0913299845bd150ad51e21bea77759824"
+    },
+    "earlier_plumbing_failures": [
+      "Historical canonical helper source mismatch, before selected-row reconstruction and checkpoint inference.",
+      "Historical renderer profile source mismatch, before selected-row reconstruction and checkpoint inference."
+    ],
+    "job_cpu_rate": 333,
+    "sealed_budget_consumed": 0,
+    "exit_code": 0,
+    "failed": 0,
+    "input_hashes_reverified_after_run": 14,
+    "source_hashes_reverified_after_run": 71
+  },
+  "interpretation": {
+    "decision": "Do not change the threshold, architecture, or objective from this result alone. Compare selected training coverage with the existing dev failures before defining another revision.",
+    "selected_train_confidence": "All 4,081 selected positive rows exceed the fixed 0.25 threshold; 228 of 40,810 selected negatives also exceed it. This is selected-row classification, not marker detection precision or recall.",
+    "boundary": "Nearest opposite-label patches are distinct in the measured populations. Distances overlap with same-label distances, but no causal ambiguity or architecture insufficiency follows from these distributions."
+  },
+  "limitations": [
+    "Synthetic train only; this is not dev, sealed, private, or production acceptance.",
+    "Historical preparation reconstructs and authenticates synthetic train and dev runtime objects; reported patch metrics and checkpoint inference use train only.",
+    "The current renderer executes during family source regeneration; unchanged frozen PNG, tensor, proposal, and selection identities establish compatibility for these reconstructed inputs only.",
+    "Patch distances and train confusion diagnose compatibility and fit but do not establish causation.",
+    "No distance cutoff, confidence threshold, sampler, objective, or candidate is selected.",
+    "Patch-distance distributions emit no case identities or patches."
+  ],
+  "license_review": "No new dependency, data source, model, weight, or license. Project-owned synthetic reconstruction only.",
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "new_model_revision": false,
+  "production_approved": false,
+  "goal22_acceptance_status": "FAIL",
+  "independent_review": {
+    "runtime_result_review": "clear; exact report/source/test bindings, full inventories, confusion denominators, inference-only scope and bounded interpretation verified",
+    "reviewer": "gpt-5.6-sol high",
+    "source_review": "clear at final source SHA"
+  },
+  "model_inference": true,
+  "checkpoint_forward_batches": 88
+}
