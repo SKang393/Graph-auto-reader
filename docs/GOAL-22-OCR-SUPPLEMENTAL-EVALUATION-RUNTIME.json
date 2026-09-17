@@ -1,0 +1,52 @@
+{
+  "schema": "graphreader.goal22-supplemental-candidate-runtime-validation.v1",
+  "status": "engineering_validation_passed",
+  "scope": "Six project-owned supplemental train panels through the existing original-BGR candidate evaluation composition",
+  "evaluation_report": {
+    "sha256": "cfa6703d4b8c628a165e3ef1c342db0d9f335701d67d1e85f3f080d0e456dfbf",
+    "path": "artifacts/goal22-runs/ocr-v45-supplemental-parent-evaluation-v1/report.json"
+  },
+  "input_provenance": {
+    "sha256": "755bd0d4277d812ecfdb8071df20da509b1fbb121430fa2dcd16e20589c8b539",
+    "path": "artifacts/goal22-runs/ocr-v45-evaluation-inputs-v1/provenance.json"
+  },
+  "build": {
+    "warnings": 0,
+    "log": {
+      "path": "artifacts/goal22-runs/ocr-v45-evaluation-runtime-build.log",
+      "sha256": "131d72c5532059dc6631c566847b32401808b2d693f4cfffadb64c4e3afabc28"
+    },
+    "scope": "Evidence tool recompiled against unchanged verified application dependencies",
+    "errors": 0,
+    "elapsed_seconds": 304.62
+  },
+  "self_test": {
+    "passed": 23,
+    "model_inference": false,
+    "runtime_sha256": "c29352bd8c1ef31ac8857ce8e66b9d98cbb48cf65ec87568a4caf9f28450ec7b",
+    "log": {
+      "path": "artifacts/goal22-runs/ocr-v45-evaluation-runtime-self-test.log",
+      "sha256": "6839c166c2e935f31478c0afdb8e2ae58c6877d0c7323acbcd15a8258fd63e61"
+    }
+  },
+  "actual_runtime": {
+    "development_only": true,
+    "failed": 0,
+    "truth_used": false,
+    "panels": 6,
+    "model": "Unmodified reviewed parent detector",
+    "elapsed_milliseconds": 257146.6351,
+    "completed": 6,
+    "participant_lane": false
+  },
+  "independent_review": "Sol High: profile and exact template/request relocation verified; provenance rechecked",
+  "limitations": [
+    "This verifies evaluation plumbing, not OCR accuracy.",
+    "No V45 optimizer run, private acceptance, sealed gate, production approval or packaged build."
+  ],
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "packaged_build": false
+}

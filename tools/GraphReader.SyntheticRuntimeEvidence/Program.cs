@@ -106,7 +106,8 @@ internal static class Program
             return 0;
         }
         if (args.Length == 6 && (args[0] == OfficialHeadCandidateEvaluation.Command ||
-            args[0] == OfficialHeadCandidateEvaluation.ParticipantLaneCommand))
+            args[0] == OfficialHeadCandidateEvaluation.ParticipantLaneCommand ||
+            args[0] == OfficialHeadCandidateEvaluation.SupplementalCommand))
         {
             return await OfficialHeadCandidateEvaluation.RunCommandAsync(args, RepositoryRoot())
                 .ConfigureAwait(false);

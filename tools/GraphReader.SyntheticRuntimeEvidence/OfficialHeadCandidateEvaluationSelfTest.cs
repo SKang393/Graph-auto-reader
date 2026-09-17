@@ -11,13 +11,69 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 
 internal static class OfficialHeadCandidateEvaluationSelfTest
 {
+    private static int ValidateCaptureProfiles()
+    {
+        JsonElement legacy = CaptureProfile(false, 28, 9);
+        JsonElement supplemental = CaptureProfile(true, 6, 0);
+        OfficialHeadCandidateEvaluation.ValidateCaptureProfileForSelfTest(legacy, false);
+        OfficialHeadCandidateEvaluation.ValidateCaptureProfileForSelfTest(supplemental, true);
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCaptureProfileForSelfTest(
+            legacy, true), "scope");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCaptureProfileForSelfTest(
+            supplemental, false), "scope");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCaptureProfileForSelfTest(
+            CaptureProfile(true, 5, 1), true), "inventory");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCaptureProfileForSelfTest(
+            CaptureProfile(false, 29, 8), false), "inventory");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCaptureProfileForSelfTest(
+            CaptureProfile(true, 6, 0, 5, 1), true), "exchanges");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCaptureProfileForSelfTest(
+            CaptureProfile(false, 28, 9, 1, 0), false), "exchanges");
+        return 8;
+    }
+
+    private static JsonElement CaptureProfile(
+        bool supplemental, int trainPanels, int devPanels,
+        int? trainReports = null, int? devReports = null)
+    {
+        static object[] Splits(int train, int dev) => Enumerable.Repeat("train", train)
+            .Concat(Enumerable.Repeat("validation", dev))
+            .Select(static split => (object)new { split }).ToArray();
+        return JsonSerializer.SerializeToElement(new
+        {
+            schema = supplemental ? "graphreader.supplemental-official-head-tensor-capture-request.v1"
+                : "graphreader.official-head-tensor-capture-request.v1",
+            scope = supplemental ? "project-owned-synthetic-train-only-supplemental-model-free"
+                : "project-owned-synthetic-train-dev-model-free",
+            synthetic_only = true,
+            private_data = false,
+            sealed_data = false,
+            truth_included = false,
+            model_inference = false,
+            training_input_ready = false,
+            production_approved = false,
+            capture_source = new { },
+            assemblies = Array.Empty<object>(),
+            binding = new { },
+            candidate = new { },
+            detector = new { },
+            native = new { },
+            license_inputs = Array.Empty<object>(),
+            maximum_side_length = 960,
+            dimension_multiple = 128,
+            detector_configuration_fingerprint = "profile-contract-only",
+            reports = Splits(trainReports ?? (supplemental ? 1 : 5), devReports ?? (supplemental ? 0 : 1)),
+            panels = Splits(trainPanels, devPanels),
+        });
+    }
+
     public static object Run()
     {
         string root = Path.Combine(Path.GetTempPath(), "graphreader-head-evaluator-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
         try
         {
-            int checks = 0;
+            int checks = ValidateCaptureProfiles();
             string request = Path.Combine(root, "request.json");
             string candidate = Path.Combine(root, "candidate.json");
             string output = Path.Combine(root, "new-output");
@@ -46,6 +102,13 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
                 output,
             ], root);
             Require(participantParsed.SequenceEqual(parsed), "separate participant-lane command");
+            checks++;
+            string[] supplementalParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
+            [
+                OfficialHeadCandidateEvaluation.SupplementalCommand,
+                request, new string('a', 64), candidate, new string('b', 64), output,
+            ], root);
+            Require(supplementalParsed.SequenceEqual(parsed), "separate supplemental command");
             checks++;
             ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCommand(
             [

@@ -22,6 +22,7 @@ internal static class OfficialHeadCandidateEvaluation
 {
     internal const string Command = "--evaluate-official-head-candidate";
     internal const string ParticipantLaneCommand = "--evaluate-participant-lane-candidate";
+    internal const string SupplementalCommand = "--evaluate-supplemental-head-candidate";
     internal const string CandidateSchema = "graphreader.frozen-db-head-ocr-candidate.v1";
     internal const string CandidateScope = "project-owned-synthetic-train-dev-unapproved-frozen-candidate";
     private const string CaptureRequestSchema = "graphreader.official-head-tensor-capture-request.v1";
@@ -70,7 +71,7 @@ internal static class OfficialHeadCandidateEvaluation
     {
         ArgumentNullException.ThrowIfNull(args);
         if (args.Length != 6 ||
-            (args[0] != Command && args[0] != ParticipantLaneCommand))
+            (args[0] != Command && args[0] != ParticipantLaneCommand && args[0] != SupplementalCommand))
         {
             throw new InvalidDataException(
                 "Usage: --evaluate-official-head-candidate <capture-request.json> <request-sha256> " +
@@ -100,6 +101,7 @@ internal static class OfficialHeadCandidateEvaluation
         string root = Path.GetFullPath(repositoryRoot);
         string[] command = ValidateCommand(args, root);
         bool participantLane = args[0] == ParticipantLaneCommand;
+        bool supplemental = args[0] == SupplementalCommand;
         string composition = participantLane
             ? ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion
             : ProductionOcrAdapter.OriginalDbCandidateCompositionVersion;
@@ -112,11 +114,11 @@ internal static class OfficialHeadCandidateEvaluation
         byte[] requestBytes = ReadVerified(requestPath, requestSha, null, "capture request");
         using var requestDocument = JsonDocument.Parse(requestBytes);
         JsonElement request = requestDocument.RootElement;
-        ValidateCaptureScope(request);
+        ValidateCaptureScope(request, supplemental);
         VerifyDescriptor(request.GetProperty("binding"), root, "V3 binding");
         VerifyDescriptor(request.GetProperty("capture_source"), root, "capture source");
-        Dictionary<string, ReportBinding> reports = ReadReports(request, root);
-        EvaluationPanel[] panels = ReadPanels(request, reports, root);
+        Dictionary<string, ReportBinding> reports = ReadReports(request, root, supplemental);
+        EvaluationPanel[] panels = ReadPanels(request, reports, root, supplemental);
 
         byte[] candidateBytes = ReadVerified(candidatePath, candidateSha, null, "head candidate");
         using var candidateDocument = JsonDocument.Parse(candidateBytes);
@@ -277,8 +279,9 @@ internal static class OfficialHeadCandidateEvaluation
             string reportPath = Path.Combine(outputRoot, "report.json");
             byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
             {
-                Schema = participantLane ? "graphreader.participant-lane-candidate-evaluation.v1" : OutputSchema,
-                DevelopmentOnly = participantLane,
+                Schema = supplemental ? "graphreader.supplemental-head-candidate-evaluation.v1" :
+                    participantLane ? "graphreader.participant-lane-candidate-evaluation.v1" : OutputSchema,
+                DevelopmentOnly = participantLane || supplemental,
                 Status = failed == 0 ? "panels_completed" : "failed",
                 Scope = CandidateScope,
                 SyntheticOnly = true,
@@ -667,7 +670,7 @@ internal static class OfficialHeadCandidateEvaluation
             });
     }
 
-    private static void ValidateCaptureScope(JsonElement root)
+    private static void ValidateCaptureScope(JsonElement root, bool supplemental)
     {
         RequireProperties(root,
             "schema", "scope", "synthetic_only", "private_data", "sealed_data",
@@ -675,7 +678,11 @@ internal static class OfficialHeadCandidateEvaluation
             "capture_source", "assemblies", "binding", "candidate", "detector", "native",
             "license_inputs", "maximum_side_length", "dimension_multiple",
             "detector_configuration_fingerprint", "reports", "panels");
-        if (Text(root, "schema") != CaptureRequestSchema || Text(root, "scope") != CaptureScope ||
+        string expectedSchema = supplemental
+            ? "graphreader.supplemental-official-head-tensor-capture-request.v1" : CaptureRequestSchema;
+        string expectedScope = supplemental
+            ? "project-owned-synthetic-train-only-supplemental-model-free" : CaptureScope;
+        if (Text(root, "schema") != expectedSchema || Text(root, "scope") != expectedScope ||
             !root.GetProperty("synthetic_only").GetBoolean() ||
             root.GetProperty("private_data").GetBoolean() || root.GetProperty("sealed_data").GetBoolean() ||
             root.GetProperty("truth_included").GetBoolean() ||
@@ -687,14 +694,37 @@ internal static class OfficialHeadCandidateEvaluation
         }
     }
 
-    private static Dictionary<string, ReportBinding> ReadReports(JsonElement request, string root)
+    internal static void ValidateCaptureProfileForSelfTest(JsonElement request, bool supplemental)
+    {
+        ValidateCaptureScope(request, supplemental);
+        ValidateReportInventory(request.GetProperty("reports").EnumerateArray().ToArray(), supplemental);
+        ValidatePanelInventory(request.GetProperty("panels").EnumerateArray().ToArray(), supplemental);
+    }
+
+    private static void ValidateReportInventory(JsonElement[] records, bool supplemental)
+    {
+        if (records.Length != (supplemental ? 1 : 6) ||
+            records.Count(static item => Text(item, "split") == "train") != (supplemental ? 1 : 5) ||
+            records.Count(static item => Text(item, "split") == "validation") != (supplemental ? 0 : 1))
+        {
+            throw new InvalidDataException("Candidate evaluation runtime exchanges differ from its profile.");
+        }
+    }
+
+    private static void ValidatePanelInventory(JsonElement[] records, bool supplemental)
+    {
+        if (records.Length != (supplemental ? 6 : ExpectedPanelCount) ||
+            records.Count(static item => Text(item, "split") == "train") != (supplemental ? 6 : ExpectedTrainPanelCount) ||
+            records.Count(static item => Text(item, "split") == "validation") != (supplemental ? 0 : ExpectedDevPanelCount))
+        {
+            throw new InvalidDataException("Candidate evaluation panel inventory differs from its profile.");
+        }
+    }
+
+    private static Dictionary<string, ReportBinding> ReadReports(JsonElement request, string root, bool supplemental)
     {
         JsonElement[] records = request.GetProperty("reports").EnumerateArray().ToArray();
-        if (records.Length != 6 || records.Count(static item => Text(item, "split") == "train") != 5 ||
-            records.Count(static item => Text(item, "split") == "validation") != 1)
-        {
-            throw new InvalidDataException("Candidate evaluation requires all six V3 runtime exchanges.");
-        }
+        ValidateReportInventory(records, supplemental);
         var output = new Dictionary<string, ReportBinding>(StringComparer.OrdinalIgnoreCase);
         foreach (JsonElement record in records)
         {
@@ -724,15 +754,11 @@ internal static class OfficialHeadCandidateEvaluation
     private static EvaluationPanel[] ReadPanels(
         JsonElement request,
         IReadOnlyDictionary<string, ReportBinding> reports,
-        string root)
+        string root,
+        bool supplemental)
     {
         JsonElement[] records = request.GetProperty("panels").EnumerateArray().ToArray();
-        if (records.Length != ExpectedPanelCount ||
-            records.Count(static item => Text(item, "split") == "train") != ExpectedTrainPanelCount ||
-            records.Count(static item => Text(item, "split") == "validation") != ExpectedDevPanelCount)
-        {
-            throw new InvalidDataException("Candidate evaluation requires the complete 28/9 V3 panel inventory.");
-        }
+        ValidatePanelInventory(records, supplemental);
         var ids = new HashSet<string>(StringComparer.Ordinal);
         var output = new List<EvaluationPanel>(records.Length);
         foreach (JsonElement record in records)
