@@ -43,6 +43,7 @@ from ml.policy.ocr_sealed_transport import (
     OcrSealedRequestIdentity,
     OcrSealedTransportError,
     OcrSealedTransportResult,
+    OcrSealedUnclassifiedOutputError,
     run_ocr_sealed_worker,
     validate_result_envelope,
 )
@@ -53,6 +54,8 @@ from ml.policy.sealed_first_read_admission import (
     complete_admission,
     fail_admission,
     prepare_admission,
+    record_case_level_disclosure,
+    record_unclassified_output,
     record_positive_read_receipt,
     recover_admission,
     send_ack,
@@ -626,7 +629,7 @@ def _outcome(
     admission: SealedFirstReadAdmission,
     attempt_id: str,
     preflight_binding_sha256: str,
-    evidence: AuthenticatedFullOcrEvidence,
+    preflight_binding: Mapping[str, object],
     request_relative: str | None,
     request_sha256: str | None,
     aggregate: object,
@@ -635,6 +638,8 @@ def _outcome(
     failure_code: str | None,
     disclosures: Sequence[str] = (),
 ) -> dict[str, object]:
+    if sha256_bytes(canonical_json_bytes(dict(preflight_binding))) != attempt_id:
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
     return {
         "schema": OUTCOME_SCHEMA,
         "status": status,
@@ -643,9 +648,9 @@ def _outcome(
         "acceptance_scope": ACCEPTANCE_SCOPE,
         "admission_binding_sha256": admission.admission_id,
         "attempt_id": attempt_id,
-        "candidate_sha256": evidence.candidate_sha256,
-        "runtime_identity_sha256": evidence.runtime_identity_sha256,
-        "full_ocr_score_sha256": evidence.full_ocr_score_sha256,
+        "candidate_sha256": preflight_binding["candidate_sha256"],
+        "runtime_identity_sha256": preflight_binding["runtime_identity_sha256"],
+        "full_ocr_score_sha256": preflight_binding["full_ocr_score_sha256"],
         "acceptance_bars_sha256": ACCEPTANCE_BARS_SHA256,
         "metric_reference_sha256": METRIC_REFERENCE_SHA256,
         "coverage_protocol_sha256": COVERAGE_PROTOCOL_SHA256,
@@ -675,39 +680,6 @@ def _outcome(
         "pixel_output": "pixel" in disclosures,
         "production_approved": False,
     }
-
-
-def _retire_disclosed_set(root: Path, registry_path: Path, intent: Mapping[str, object]) -> None:
-    """Finish an interrupted retirement using registry metadata only."""
-    registry = sealed_reserve.load_registry_metadata_only(registry_path, root)
-    matches = [item for item in registry["sets"] if item["set_id"] == intent["set_id"]]
-    if len(matches) != 1:
-        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
-    expected = {"reason": "case_level_disclosure", "evidence_sha256": intent["evidence_sha256"],
-                "disclosures": intent["disclosures"]}
-    if matches[0]["state"] == "retired":
-        if matches[0]["retirement"] != expected:
-            raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
-        return
-    sealed_reserve.record_case_level_disclosure(
-        registry_path, root, expected_registry_sha256=sha256_file(registry_path),
-        set_id=str(intent["set_id"]), evidence_sha256=str(intent["evidence_sha256"]),
-        disclosures=intent["disclosures"],
-    )
-
-
-def _read_disclosure_intent(path, admission_id, request):
-    intent = _read_json_object(path)
-    if (set(intent) != {"schema", "admission_id", "set_id", "evidence_sha256", "disclosures"}
-            or intent["schema"] != "graphreader.ocr-disclosure-retirement-intent.v1"
-            or intent["admission_id"] != admission_id or intent["set_id"] != request["set_id"]
-            or type(intent["disclosures"]) is not list or not intent["disclosures"]
-            or any(type(item) is not str for item in intent["disclosures"])
-            or intent["disclosures"] != sorted(set(intent["disclosures"]))
-            or not set(intent["disclosures"]).issubset(sealed_reserve.DISCLOSURE_KINDS)):
-        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
-    _sha256(intent["evidence_sha256"], "disclosure evidence")
-    return intent
 
 
 def _close_components(
@@ -779,8 +751,10 @@ def _matching_admission(
     candidate_sha256: str,
     training_authorization: TrainingAuthorization,
     gate_seal: GateSeal,
+    preflight_binding_sha256: str,
+    preflight_binding: Mapping[str, object],
 ) -> dict[str, object] | None:
-    matches = [
+    base_matches = [
         item
         for item in sealed_reserve.first_read_admission_identities(registry_path, root)
         if item.get("set_id") == set_id
@@ -791,7 +765,20 @@ def _matching_admission(
         and item.get("acceptance_scope") == ACCEPTANCE_SCOPE
         and item.get("coverage_protocol_sha256") == COVERAGE_PROTOCOL_SHA256
     ]
+    expected_binding = dict(preflight_binding)
+    matches = [
+        item for item in base_matches
+        if item.get("attempt_id") == preflight_binding_sha256
+        and item.get("attempt_binding_sha256") == preflight_binding_sha256
+        and item.get("attempt_binding") == expected_binding
+    ]
     if len(matches) > 1:
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_ADMISSION_CONFLICT")
+    if not matches and any(
+        item.get("status") != "void"
+        or item.get("quarantine_binding_sha256") is not None
+        for item in base_matches
+    ):
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_ADMISSION_CONFLICT")
     return matches[0] if matches else None
 
@@ -837,12 +824,25 @@ def _validate_recovered_outcome(root, outcome, record, request_path, request_sha
         or outcome.get("metric_reference_sha256") != METRIC_REFERENCE_SHA256
         or outcome.get("coverage_protocol_sha256") != COVERAGE_PROTOCOL_SHA256
         or outcome.get("preflight_binding_sha256") != outcome.get("attempt_id")
+        or outcome.get("attempt_id") != record.get("attempt_id")
+        or outcome.get("candidate_sha256") != record.get("attempt_binding", {}).get("candidate_sha256")
+        or outcome.get("runtime_identity_sha256") != record.get("attempt_binding", {}).get("runtime_identity_sha256")
+        or outcome.get("full_ocr_score_sha256") != record.get("attempt_binding", {}).get("full_ocr_score_sha256")
         or outcome.get("production_approved") is not False
         or (status == "void" and record.get("read_status") != "none")
         or (status == "possible_read" and record.get("read_status") != "possible")
         or (status == "failed" and record.get("read_status") != "confirmed")
     ):
         raise OcrSealedEvaluationError(conflict)
+    request = None
+    if request_sha256 is not None:
+        request = _read_json_object(request_path)
+        if (
+            request.get("attempt_id") != record.get("attempt_id")
+            or request.get("admission_binding_sha256") != record.get("admission_id")
+            or request.get("candidate_sha256") != record.get("candidate_sha256")
+        ):
+            raise OcrSealedEvaluationError(conflict)
     if status not in {"pass", "fail"}:
         disclosures = outcome.get("disclosures")
         if (outcome.get("aggregate") is not None or outcome.get("bar_verdicts") is not None
@@ -860,6 +860,11 @@ def _validate_recovered_outcome(root, outcome, record, request_path, request_sha
                 or outcome.get("prediction_output") is not ("prediction" in disclosures)
                 or outcome.get("pixel_output") is not ("pixel" in disclosures)):
             raise OcrSealedEvaluationError(conflict)
+        if (
+            bool(record.get("quarantine_channels"))
+            != (outcome.get("failure_code") == record.get("quarantine_code"))
+        ):
+            raise OcrSealedEvaluationError(conflict)
         return
     if (
         record.get("status") not in {"confirmed_read", "completed"}
@@ -873,9 +878,10 @@ def _validate_recovered_outcome(root, outcome, record, request_path, request_sha
     ):
         raise OcrSealedEvaluationError(conflict)
     try:
-        request = _read_json_object(request_path)
+        if request is None:
+            raise OcrSealedEvaluationError(conflict)
         expected = OcrSealedRequestIdentity(
-            attempt_id=outcome["attempt_id"],
+            attempt_id=record["attempt_id"],
             admission_binding_sha256=outcome["admission_binding_sha256"],
             set_id=request["set_id"], candidate_sha256=outcome["candidate_sha256"],
             archive_sha256=request["archive_sha256"],
@@ -913,9 +919,16 @@ def _resume_existing_evaluation(
     existing: Mapping[str, object],
     evidence: AuthenticatedFullOcrEvidence,
     preflight_binding_sha256: str,
+    preflight_binding: Mapping[str, object],
     training_authorization: TrainingAuthorization,
     gate_seal: GateSeal,
 ) -> OcrSealedEvaluationResult:
+    if (
+        existing.get("attempt_id") != preflight_binding_sha256
+        or existing.get("attempt_binding_sha256") != preflight_binding_sha256
+        or existing.get("attempt_binding") != dict(preflight_binding)
+    ):
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_ADMISSION_CONFLICT")
     admission_id = str(existing["admission_id"])
     admission = recover_admission(
         registry_path,
@@ -934,13 +947,9 @@ def _resume_existing_evaluation(
         else None
     )
     record = _admission_record(root, registry_path, admission_id)
-    intent_path = directory / "disclosure-intent.json"
-    intent = None
-    if intent_path.exists():
-        if request_sha256 is None:
-            raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
-        intent = _read_disclosure_intent(intent_path, admission_id, _read_json_object(request_path))
-        _retire_disclosed_set(root, registry_path, intent)
+    disclosures = record.get("disclosures")
+    if type(disclosures) is not list:
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
     if outcome_path.is_file():
         outcome = _read_json_object(outcome_path)
         outcome_sha256 = sha256_file(outcome_path)
@@ -949,10 +958,10 @@ def _resume_existing_evaluation(
             or
             outcome.get("schema") != OUTCOME_SCHEMA
             or outcome.get("admission_binding_sha256") != admission_id
-            or outcome.get("attempt_id") != preflight_binding_sha256
-            or outcome.get("candidate_sha256") != evidence.candidate_sha256
-            or outcome.get("runtime_identity_sha256") != evidence.runtime_identity_sha256
-            or outcome.get("full_ocr_score_sha256") != evidence.full_ocr_score_sha256
+            or outcome.get("attempt_id") != record.get("attempt_id")
+            or outcome.get("candidate_sha256") != record.get("attempt_binding", {}).get("candidate_sha256")
+            or outcome.get("runtime_identity_sha256") != record.get("attempt_binding", {}).get("runtime_identity_sha256")
+            or outcome.get("full_ocr_score_sha256") != record.get("attempt_binding", {}).get("full_ocr_score_sha256")
             or outcome.get("request")
             != (
                 {"path": request_relative, "sha256": request_sha256}
@@ -964,8 +973,8 @@ def _resume_existing_evaluation(
         ):
             raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
         _validate_recovered_outcome(root, outcome, record, request_path, request_sha256)
-        if ((outcome["status"] == "case_data_disclosure") != (intent is not None)
-                or (intent is not None and outcome["disclosures"] != intent["disclosures"])):
+        if ((outcome["status"] == "case_data_disclosure") != bool(disclosures)
+                or (disclosures and outcome["disclosures"] != disclosures)):
             raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
         if record.get("status") == "completed" and record.get("aggregate_result_sha256") != outcome_sha256:
             raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
@@ -1012,19 +1021,22 @@ def _resume_existing_evaluation(
         "failed"
     )
     outcome = _outcome(
-        status="case_data_disclosure" if intent is not None else status,
+        status="case_data_disclosure" if disclosures else status,
         read_status=receipt.read_status,
         admission=admission,
-        attempt_id=preflight_binding_sha256,
-        preflight_binding_sha256=preflight_binding_sha256,
-        evidence=evidence,
+        attempt_id=record["attempt_id"],
+        preflight_binding_sha256=record["attempt_id"],
+        preflight_binding=record["attempt_binding"],
         request_relative=request_relative,
         request_sha256=request_sha256,
         aggregate=None,
         verdicts=None,
         transport=None,
-        failure_code="OCR_SEALED_TRANSPORT_CASE_DATA_DISCLOSURE" if intent is not None else interruption.code,
-        disclosures=intent["disclosures"] if intent is not None else (),
+        failure_code=(
+            "OCR_SEALED_TRANSPORT_CASE_DATA_DISCLOSURE" if disclosures
+            else str(record.get("quarantine_code") or interruption.code)
+        ),
+        disclosures=disclosures,
     )
     outcome_sha256 = _publish_exact(outcome_path, canonical_json_bytes(outcome))
     if receipt.read_status == "confirmed":
@@ -1079,7 +1091,7 @@ def evaluate_ocr_sealed_candidate(
         candidate_sha256,
         worker_command_prefix,
     )
-    preflight_binding_sha256, _binding = _preflight_binding(
+    preflight_binding_sha256, preflight_binding = _preflight_binding(
         evidence,
         registry_sha256=expected_registry_sha256,
         set_id=set_id,
@@ -1094,6 +1106,8 @@ def evaluate_ocr_sealed_candidate(
         candidate_sha256=candidate_sha256,
         training_authorization=training_authorization,
         gate_seal=gate_seal,
+        preflight_binding_sha256=preflight_binding_sha256,
+        preflight_binding=preflight_binding,
     )
     if existing is not None:
         return _resume_existing_evaluation(
@@ -1102,6 +1116,7 @@ def evaluate_ocr_sealed_candidate(
             existing=existing,
             evidence=evidence,
             preflight_binding_sha256=preflight_binding_sha256,
+            preflight_binding=preflight_binding,
             training_authorization=training_authorization,
             gate_seal=gate_seal,
         )
@@ -1116,6 +1131,8 @@ def evaluate_ocr_sealed_candidate(
         gate_seal=gate_seal,
         required_acceptance_scope=ACCEPTANCE_SCOPE,
         required_coverage_protocol_sha256=COVERAGE_PROTOCOL_SHA256,
+        attempt_id=attempt_id,
+        attempt_binding=preflight_binding,
     )
     evaluation_directory = root / "artifacts" / "ocr-sealed-evaluations" / admission.admission_id
     request_path = evaluation_directory / "request.json"
@@ -1201,7 +1218,7 @@ def evaluate_ocr_sealed_candidate(
             admission=admission,
             attempt_id=attempt_id,
             preflight_binding_sha256=preflight_binding_sha256,
-            evidence=evidence,
+            preflight_binding=preflight_binding,
             request_relative=request_relative,
             request_sha256=request_sha256,
             aggregate=envelope["aggregate"],
@@ -1214,21 +1231,21 @@ def evaluate_ocr_sealed_candidate(
         sanitized = _sanitized_error(error)
         if request is None:
             raise sanitized
-        intent = {"schema": "graphreader.ocr-disclosure-retirement-intent.v1",
-                  "admission_id": admission.admission_id, "set_id": str(request["set_id"]),
-                  "evidence_sha256": error.evidence_sha256, "disclosures": sorted(error.disclosures)}
-        _publish_exact(evaluation_directory / "disclosure-intent.json", canonical_json_bytes(intent))
+        record_case_level_disclosure(
+            admission,
+            evidence_sha256=error.evidence_sha256,
+            disclosures=error.disclosures,
+        )
         receipt = _settle_failure(
             admission, sanitized, ack_write_invoked=ack_write_invoked
         )
-        _retire_disclosed_set(root, admission.registry_path, intent)
         outcome = _outcome(
             status="case_data_disclosure",
             read_status=receipt.read_status,
             admission=admission,
             attempt_id=attempt_id,
             preflight_binding_sha256=preflight_binding_sha256,
-            evidence=evidence,
+            preflight_binding=preflight_binding,
             request_relative=request_relative,
             request_sha256=request_sha256,
             aggregate=None,
@@ -1244,6 +1261,35 @@ def evaluate_ocr_sealed_candidate(
             str(outcome["status"]), receipt.read_status, admission, request_path,
             request_sha256, outcome_path, outcome_sha256,
         )
+    except OcrSealedUnclassifiedOutputError as error:
+        sanitized = _sanitized_error(error)
+        if request is None:
+            raise sanitized
+        record_unclassified_output(
+            admission, code=error.code, channels=error.channels,
+        )
+        receipt = _settle_failure(
+            admission, sanitized, ack_write_invoked=ack_write_invoked
+        )
+        status = "void" if receipt.read_status == "none" else (
+            "possible_read" if receipt.read_status == "possible" else "failed"
+        )
+        outcome = _outcome(
+            status=status, read_status=receipt.read_status, admission=admission,
+            attempt_id=attempt_id,
+            preflight_binding_sha256=preflight_binding_sha256,
+            preflight_binding=preflight_binding,
+            request_relative=request_relative, request_sha256=request_sha256,
+            aggregate=None, verdicts=None, transport=None,
+            failure_code=error.code,
+        )
+        outcome_sha256 = _publish_exact(outcome_path, canonical_json_bytes(outcome))
+        if receipt.read_status == "confirmed":
+            _close_components(admission, status="sealed_error", report_sha256=outcome_sha256)
+        return _result(
+            status, receipt.read_status, admission, request_path, request_sha256,
+            outcome_path, outcome_sha256,
+        )
     except BaseException as error:
         sanitized = _sanitized_error(error)
         receipt = _settle_failure(
@@ -1258,7 +1304,7 @@ def evaluate_ocr_sealed_candidate(
             admission=admission,
             attempt_id=attempt_id,
             preflight_binding_sha256=preflight_binding_sha256,
-            evidence=evidence,
+            preflight_binding=preflight_binding,
             request_relative=request_relative,
             request_sha256=request_sha256,
             aggregate=None,
@@ -1288,6 +1334,7 @@ def evaluate_ocr_sealed_candidate(
             existing=_admission_record(root, registry_path, admission.admission_id),
             evidence=evidence,
             preflight_binding_sha256=preflight_binding_sha256,
+            preflight_binding=preflight_binding,
             training_authorization=training_authorization,
             gate_seal=gate_seal,
         )

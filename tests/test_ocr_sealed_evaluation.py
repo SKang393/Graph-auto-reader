@@ -10,9 +10,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from ml.markers.gate_seal import canonical_json_bytes, sha256_file
+from ml.markers.gate_seal import canonical_json_bytes, sha256_bytes, sha256_file
 from ml.policy import ocr_sealed_evaluation as evaluation
-from ml.policy.ocr_sealed_transport import OcrSealedDisclosureError
+from ml.policy.ocr_sealed_transport import (
+    OcrSealedDisclosureError,
+    OcrSealedUnclassifiedOutputError,
+)
 from ml.policy.sealed_first_read_admission import AdmissionReceipt
 from ml.policy.tests import test_sealed_first_read_admission as admission_fixture
 from ml.policy.tests import test_ocr_sealed_transport as wire_fixture
@@ -206,66 +209,30 @@ def test_full_score_rejects_invalid_failure_partition(tmp_path, field, value):
         evaluation._full_ocr_dev_evidence(root, evidence, candidate, _bars())
 
 
-def test_disclosure_retirement_retry_uses_metadata_and_is_idempotent(tmp_path, monkeypatch):
-    registry_path = tmp_path/'registry.json'
-    registry_path.write_text('{}', encoding='utf-8')
-    intent = {'set_id': HASH, 'evidence_sha256': 'a'*64, 'disclosures': ['truth']}
-    item = {'set_id': HASH, 'state': 'unused', 'retirement': None}
-    writes = []
-    monkeypatch.setattr(evaluation.sealed_reserve, 'load_registry_metadata_only', lambda *a: {'sets': [item]})
-    def retire(*args, **kwargs):
-        writes.append(kwargs)
-        item.update(state='retired', retirement={'reason': 'case_level_disclosure',
-            'evidence_sha256': intent['evidence_sha256'], 'disclosures': ['truth']})
-    monkeypatch.setattr(evaluation.sealed_reserve, 'record_case_level_disclosure', retire)
-    evaluation._retire_disclosed_set(tmp_path, registry_path, intent)
-    evaluation._retire_disclosed_set(tmp_path, registry_path, intent)
-    assert len(writes) == 1
-    item['retirement']['evidence_sha256'] = 'b'*64
-    with pytest.raises(evaluation.OcrSealedEvaluationError, match='CLOSURE_CONFLICT'):
-        evaluation._retire_disclosed_set(tmp_path, registry_path, intent)
-
-
-@pytest.mark.parametrize('defect', ['foreign_set', 'foreign_admission', 'payload', 'duplicate_kind', 'hash'])
-def test_disclosure_intent_rejects_foreign_or_payload_fields(tmp_path, defect):
-    intent = {'schema': 'graphreader.ocr-disclosure-retirement-intent.v1',
-              'admission_id': HASH, 'set_id': 'b'*64, 'evidence_sha256': 'a'*64, 'disclosures': ['truth']}
-    if defect == 'foreign_set': intent['set_id'] = 'c'*64
-    elif defect == 'foreign_admission': intent['admission_id'] = 'c'*64
-    elif defect == 'payload': intent['truth_rows'] = [[1,2]]
-    elif defect == 'duplicate_kind': intent['disclosures'] = ['truth','truth']
-    else: intent['evidence_sha256'] = 'invalid'
-    path = tmp_path/'intent.json'
-    path.write_text(json.dumps(intent), encoding='utf-8')
-    with pytest.raises(evaluation.OcrSealedEvaluationError):
-        evaluation._read_disclosure_intent(path, HASH, {'set_id': 'b'*64})
-
-
-def test_resume_finishes_disclosure_intent_without_relaunch_or_inventing_a_read(tmp_path, monkeypatch):
-    root, candidate, evidence = _runtime_fixture(tmp_path)
-    registry = root/'artifacts/registry.json'
+def test_changed_preflight_is_rejected_before_recovery_mutates_admission(tmp_path, monkeypatch):
+    root, _candidate, evidence = _runtime_fixture(tmp_path)
+    registry = root / 'artifacts/registry.json'
     registry.write_text('{}', encoding='utf-8')
-    admission = SimpleNamespace(admission_id=HASH, registry_path=registry)
-    directory = root/'artifacts/ocr-sealed-evaluations'/HASH
-    directory.mkdir(parents=True)
-    (directory/'request.json').write_bytes(canonical_json_bytes({'set_id': HASH}))
-    intent = {'schema': 'graphreader.ocr-disclosure-retirement-intent.v1',
-              'admission_id': HASH, 'set_id': HASH, 'evidence_sha256': 'a'*64, 'disclosures': ['truth']}
-    (directory/'disclosure-intent.json').write_bytes(canonical_json_bytes(intent))
-    monkeypatch.setattr(evaluation, 'recover_admission', lambda *a, **k: admission)
-    monkeypatch.setattr(evaluation, '_admission_record', lambda *a: {'status':'void','read_status':'none'})
-    retired = []
-    monkeypatch.setattr(evaluation, '_retire_disclosed_set', lambda root, registry, intent: retired.append(intent))
-    def forbidden(*args, **kwargs): pytest.fail('Recovery must not launch, consume, or complete a read')
-    monkeypatch.setattr(evaluation, 'run_ocr_sealed_worker', forbidden)
-    monkeypatch.setattr(evaluation, 'complete_admission', forbidden)
-    monkeypatch.setattr(evaluation, '_close_components', forbidden)
-    for _ in range(2):
-        result = evaluation._resume_existing_evaluation(root, registry, existing={'admission_id':HASH},
-            evidence=evidence, preflight_binding_sha256=HASH,
+    stored_binding = {
+        'candidate_sha256': evidence.candidate_sha256,
+        'runtime_identity_sha256': evidence.runtime_identity_sha256,
+        'full_ocr_score_sha256': evidence.full_ocr_score_sha256,
+    }
+    stored_attempt = sha256_bytes(canonical_json_bytes(stored_binding))
+    changed_binding = {**stored_binding, 'runtime_identity_sha256': 'f' * 64}
+    changed_attempt = sha256_bytes(canonical_json_bytes(changed_binding))
+    recovered = []
+    monkeypatch.setattr(evaluation, 'recover_admission', lambda *a, **k: recovered.append(True))
+    with pytest.raises(evaluation.OcrSealedEvaluationError, match='ADMISSION_CONFLICT'):
+        evaluation._resume_existing_evaluation(
+            root, registry,
+            existing={'admission_id': HASH, 'attempt_id': stored_attempt,
+                      'attempt_binding_sha256': stored_attempt,
+                      'attempt_binding': stored_binding},
+            evidence=evidence, preflight_binding_sha256=changed_attempt,
+            preflight_binding=changed_binding,
             training_authorization=SimpleNamespace(), gate_seal=SimpleNamespace())
-        assert result.status == 'case_data_disclosure' and result.read_status == 'none'
-    assert retired == [intent,intent]
+    assert recovered == []
 
 
 @pytest.mark.parametrize('scenario,status,read_status,uses', [
@@ -274,6 +241,8 @@ def test_resume_finishes_disclosure_intent_without_relaunch_or_inventing_a_read(
     ('confirmed_error','failed','confirmed',1),
     ('changed_runtime','failed','confirmed',1),
     ('disclosure','case_data_disclosure','confirmed',1),
+    ('preack_disclosure','case_data_disclosure','none',0),
+    ('preack_unclassified','void','none',0),
 ])
 def test_parent_uses_real_admission_and_closes_exactly_one_fixture_read(
         tmp_path, monkeypatch, scenario, status, read_status, uses):
@@ -289,6 +258,13 @@ def test_parent_uses_real_admission_and_closes_exactly_one_fixture_read(
     monkeypatch.setattr(evaluation.sealed_reserve.zipfile, 'ZipFile', forbid_archive)
     def transport(command,root,expected,acknowledge,confirm,**kwargs):
         if scenario == 'preack': raise RuntimeError('fixture before ACK')
+        if scenario == 'preack_disclosure':
+            raise OcrSealedDisclosureError(('truth',),'e'*64)
+        if scenario == 'preack_unclassified':
+            raise OcrSealedUnclassifiedOutputError(({
+                'channel':'stderr', 'sha256':'e'*64,
+                'byte_count':17, 'complete':False,
+            },))
         acknowledge(expected.attempt_id, wire_fixture.NONCE, lambda frame: None)
         if scenario == 'uncertain': raise RuntimeError('fixture uncertain delivery')
         confirm(expected.attempt_id, expected.candidate_sha256, wire_fixture.NONCE)
@@ -317,8 +293,15 @@ def test_parent_uses_real_admission_and_closes_exactly_one_fixture_read(
         assert training.consumed_path.is_file() and gate.consumed_path.is_file()
         for directory in (training.directory,gate.directory):
             assert json.loads((directory/'result.json').read_text(encoding='utf-8'))['report_sha256'] == result.outcome_sha256
-    if scenario == 'disclosure':
+    if scenario in {'disclosure', 'preack_disclosure'}:
         assert state['sets'][0]['state'] == 'retired'
+        assert state['sets'][0]['retirement']['disclosures'] == ['truth']
+    if scenario == 'preack_unclassified':
+        assert state['sets'][0]['state'] == 'unused'
+        authority = evaluation._admission_record(root, registry, result.admission_id)
+        assert authority['status'] == 'void'
+        assert authority['quarantine_binding_sha256'] is not None
+        assert authority['quarantine_confirmed_read'] is False
     if scenario == 'changed_runtime':
         evidence.runtime_files[-1].path.write_bytes(runtime_original)
     recovered = evaluation.evaluate_ocr_sealed_candidate(root,registry,**arguments,transport_runner=forbid_archive)
@@ -357,7 +340,16 @@ def _patched_evaluate(
         gate_seal=gate,
     )
     monkeypatch.setattr(evaluation, "_authenticate_preflight", lambda *args: (evidence, _bars()))
-    monkeypatch.setattr(evaluation, "_preflight_binding", lambda *args, **kwargs: (HASH, {}))
+    binding = {
+        "candidate_sha256": evidence.candidate_sha256,
+        "runtime_identity_sha256": evidence.runtime_identity_sha256,
+        "full_ocr_score_sha256": evidence.full_ocr_score_sha256,
+    }
+    binding_sha256 = sha256_bytes(canonical_json_bytes(binding))
+    monkeypatch.setattr(
+        evaluation, "_preflight_binding",
+        lambda *args, **kwargs: (binding_sha256, binding),
+    )
     monkeypatch.setattr(evaluation, "_matching_admission", lambda *args, **kwargs: None)
     monkeypatch.setattr(evaluation, "prepare_admission", lambda *args, **kwargs: admission)
     return training, gate, admission
@@ -414,20 +406,25 @@ def test_transport_disclosure_retires_with_typed_categories(
         },
     }
     monkeypatch.setattr(evaluation, "bound_reserve_metadata", lambda _admission: metadata)
-    monkeypatch.setattr(
-        evaluation, "void_pre_ack",
-        lambda *_args, **_kwargs: AdmissionReceipt(HASH, "void", "none", HASH),
-    )
     retired = []
-    monkeypatch.setattr(evaluation.sealed_reserve, "load_registry_metadata_only",
-                        lambda *args: {"sets": [{"set_id": HASH, "state": "unused", "retirement": None}]})
     monkeypatch.setattr(
-        evaluation.sealed_reserve,
+        evaluation,
         "record_case_level_disclosure",
         lambda *args, **kwargs: retired.append(kwargs),
     )
+    monkeypatch.setattr(
+        evaluation, "send_ack",
+        lambda _admission, *, write_and_flush, **kwargs: (
+            write_and_flush("ACK\n") or AdmissionReceipt(HASH, "ack_intent", "possible", HASH)
+        ),
+    )
+    monkeypatch.setattr(
+        evaluation, "fail_admission",
+        lambda *_args, **_kwargs: AdmissionReceipt(HASH, "possible_read", "possible", HASH),
+    )
 
-    def disclosed(*_args, **_kwargs):
+    def disclosed(_command, _root, expected, acknowledge, _confirm, **_kwargs):
+        acknowledge(expected.attempt_id, "b" * 64, lambda _frame: None)
         raise OcrSealedDisclosureError(("truth", "pixel"), "a" * 64)
 
     result = evaluation.evaluate_ocr_sealed_candidate(
@@ -444,13 +441,67 @@ def test_transport_disclosure_retires_with_typed_categories(
         transport_runner=disclosed,
     )
     assert result.status == "case_data_disclosure"
-    assert retired[0]["disclosures"] == ["pixel", "truth"]
+    assert sorted(retired[0]["disclosures"]) == ["pixel", "truth"]
     outcome = json.loads(result.outcome_path.read_text(encoding="utf-8"))
     assert outcome["aggregate_only"] is False
     assert outcome["failure_code"] == "OCR_SEALED_TRANSPORT_CASE_DATA_DISCLOSURE"
 
 
-@pytest.mark.parametrize("tamper", [None, "arithmetic", "verdict", "read_status", "completed_hash"])
+def test_unclassified_output_is_quarantined_without_disclosure_categories(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root, candidate, evidence = _runtime_fixture(tmp_path)
+    training, gate, _ = _patched_evaluate(monkeypatch, root, candidate, evidence)
+    metadata = {
+        "set_id": HASH,
+        "archive": {"path": "artifacts/synthetic-sealed-reserves/set.zip", "sha256": HASH},
+        "chain": {"archive_manifest_sha256": HASH, "case_count": 1},
+        "scope": {"acceptance_scope": evaluation.ACCEPTANCE_SCOPE,
+                  "coverage_protocol_sha256": evaluation.COVERAGE_PROTOCOL_SHA256},
+    }
+    monkeypatch.setattr(evaluation, "bound_reserve_metadata", lambda _admission: metadata)
+    monkeypatch.setattr(
+        evaluation, "send_ack",
+        lambda _admission, *, write_and_flush, **kwargs: (
+            write_and_flush("ACK\n") or AdmissionReceipt(HASH, "ack_intent", "possible", HASH)
+        ),
+    )
+    monkeypatch.setattr(
+        evaluation, "fail_admission",
+        lambda *_args, **_kwargs: AdmissionReceipt(HASH, "possible_read", "possible", HASH),
+    )
+    quarantined = []
+    monkeypatch.setattr(
+        evaluation, "record_unclassified_output",
+        lambda *args, **kwargs: quarantined.append(kwargs),
+    )
+    channels = ({"channel": "stderr", "sha256": "e" * 64,
+                 "byte_count": 17, "complete": False},)
+
+    def unclassified(_command, _root, expected, acknowledge, _confirm, **_kwargs):
+        acknowledge(expected.attempt_id, "b" * 64, lambda _frame: None)
+        raise OcrSealedUnclassifiedOutputError(channels)
+
+    result = evaluation.evaluate_ocr_sealed_candidate(
+        root, root / "artifacts" / "registry.json",
+        expected_registry_sha256=HASH, set_id=HASH, candidate_path=candidate,
+        candidate_sha256=sha256_file(candidate), training_authorization=training,
+        gate_seal=gate, full_ocr_evidence_authenticator=SimpleNamespace(),
+        worker_command_prefix=evidence.runtime_command_prefix,
+        transport_runner=unclassified,
+    )
+    assert result.status == "possible_read"
+    assert quarantined == [{"code": "OCR_SEALED_TRANSPORT_UNCLASSIFIED_OUTPUT",
+                            "channels": channels}]
+    outcome = json.loads(result.outcome_path.read_text(encoding="utf-8"))
+    assert outcome["disclosures"] == []
+    assert outcome["aggregate_only"] is True
+
+
+@pytest.mark.parametrize("tamper", [
+    None, "arithmetic", "verdict", "read_status", "attempt_id",
+    "request_attempt", "completed_hash",
+])
 def test_resume_finishes_partial_canonical_closure_without_worker(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, tamper
 ) -> None:
@@ -466,11 +517,22 @@ def test_resume_finishes_partial_canonical_closure_without_worker(
     directory = root / "artifacts" / "ocr-sealed-evaluations" / HASH
     directory.mkdir(parents=True)
     request_path = directory / "request.json"
-    request_path.write_bytes(canonical_json_bytes({"set_id": HASH, "archive_sha256": HASH, "archive_manifest_sha256": HASH, "source_count": 3}))
+    preflight_binding = {
+        "candidate_sha256": evidence.candidate_sha256,
+        "runtime_identity_sha256": evidence.runtime_identity_sha256,
+        "full_ocr_score_sha256": evidence.full_ocr_score_sha256,
+    }
+    attempt_id = sha256_bytes(canonical_json_bytes(preflight_binding))
+    request_path.write_bytes(canonical_json_bytes({
+        "attempt_id": attempt_id, "admission_binding_sha256": HASH,
+        "candidate_sha256": evidence.candidate_sha256, "set_id": HASH,
+        "archive_sha256": HASH, "archive_manifest_sha256": HASH, "source_count": 3,
+    }))
     request_sha256 = sha256_file(request_path)
     outcome = evaluation._outcome(
         status="pass", read_status="confirmed", admission=admission,
-        attempt_id=HASH, preflight_binding_sha256=HASH, evidence=evidence,
+        attempt_id=attempt_id, preflight_binding_sha256=attempt_id,
+        preflight_binding=preflight_binding,
         request_relative=request_path.relative_to(root).as_posix(),
         request_sha256=request_sha256,
         aggregate={"source_count": 3, "panel_count": 9, "metrics": {
@@ -491,12 +553,25 @@ def test_resume_finishes_partial_canonical_closure_without_worker(
         outcome["status"] = "fail"
     elif tamper == "read_status":
         outcome["read_status"] = "none"
+    elif tamper == "attempt_id":
+        outcome["attempt_id"] = "f" * 64
     (directory / "aggregate-outcome.json").write_bytes(canonical_json_bytes(outcome))
+    if tamper == "request_attempt":
+        request = json.loads(request_path.read_text(encoding="utf-8"))
+        request["attempt_id"] = "f" * 64
+        request_path.write_bytes(canonical_json_bytes(request))
     monkeypatch.setattr(evaluation, "_canonical_bars", lambda root: _bars())
     monkeypatch.setattr(evaluation, "recover_admission", lambda *args, **kwargs: admission)
     records = iter([
-        {"status": "completed" if tamper == "completed_hash" else "confirmed_read", "read_status": "confirmed", "aggregate_result_sha256": "f" * 64},
-        {"status": "completed", "read_status": "confirmed"},
+        {"status": "completed" if tamper == "completed_hash" else "confirmed_read",
+         "read_status": "confirmed", "aggregate_result_sha256": "f" * 64,
+         "attempt_id": attempt_id, "attempt_binding": preflight_binding,
+         "admission_id": HASH, "candidate_sha256": evidence.candidate_sha256,
+         "disclosures": []},
+        {"status": "completed", "read_status": "confirmed",
+         "attempt_id": attempt_id, "attempt_binding": preflight_binding,
+         "admission_id": HASH, "candidate_sha256": evidence.candidate_sha256,
+         "disclosures": []},
     ])
     monkeypatch.setattr(evaluation, "_admission_record", lambda *args: next(records))
     completed = []
@@ -514,9 +589,12 @@ def test_resume_finishes_partial_canonical_closure_without_worker(
             result = evaluation._resume_existing_evaluation(
                 root,
                 registry,
-                existing={"admission_id": HASH},
+                existing={"admission_id": HASH, "attempt_id": attempt_id,
+                          "attempt_binding_sha256": attempt_id,
+                          "attempt_binding": preflight_binding},
                 evidence=evidence,
-                preflight_binding_sha256=HASH,
+                preflight_binding_sha256=attempt_id,
+                preflight_binding=preflight_binding,
                 training_authorization=SimpleNamespace(),
                 gate_seal=SimpleNamespace(),
             )
@@ -525,9 +603,12 @@ def test_resume_finishes_partial_canonical_closure_without_worker(
     result = evaluation._resume_existing_evaluation(
         root,
         registry,
-        existing={"admission_id": HASH},
+        existing={"admission_id": HASH, "attempt_id": attempt_id,
+                  "attempt_binding_sha256": attempt_id,
+                  "attempt_binding": preflight_binding},
         evidence=evidence,
-        preflight_binding_sha256=HASH,
+        preflight_binding_sha256=attempt_id,
+        preflight_binding=preflight_binding,
         training_authorization=SimpleNamespace(),
         gate_seal=SimpleNamespace(),
     )

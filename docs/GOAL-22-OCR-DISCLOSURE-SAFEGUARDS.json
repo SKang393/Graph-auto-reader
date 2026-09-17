@@ -1,7 +1,7 @@
 {
   "schema": "graphreader.goal22.ocr-disclosure-safeguards.v1",
   "date": "2026-09-17",
-  "status": "transport_verified_parent_quarantine_pending",
+  "status": "transport_and_parent_quarantine_verified",
   "changes": [
     "Retain explicit case-output categories and frame hash through cleanup failure.",
     "Classify unproven output separately with channel, rolling SHA-256, byte count and completeness only.",
@@ -40,13 +40,22 @@
     "repaired_finding": "Started but incomplete zero-byte readers now retain typed uncertainty through cleanup failure."
   },
   "limitations": [
-    "Parent admission must persist the typed uncertainty and quarantine possible or confirmed reads without claiming known case disclosure. That integration remains in progress.",
-    "Parent recovery evidence identity, durable known-disclosure binding and candidate-use attribution repairs remain in progress.",
+    "Legacy use.aggregate_only=true means no classified disclosure. Quarantine authority separately blocks reuse and approval; unknown output is not proven aggregate-only.",
     "Known-safe diagnostics do not include arbitrary ONNX warnings or messages. Other output is unclassified, not automatically labeled as confirmed disclosure.",
     "No actual model, private-corpus, registered sealed or normal Production run was performed by these tests."
   ],
   "registered_sealed_reads": 0,
   "private_reads": 0,
   "optimizer_steps": 0,
-  "production_approved": false
+  "production_approved": false,
+  "parent_integration": {
+    "failed": 0,
+    "unconfirmed_reads_not_consumed": true,
+    "independent_review": "clear",
+    "pre_ack_evidence_retained": true,
+    "pytest_seconds": 65.91,
+    "passed": 130,
+    "unknown_output_retired_as_disclosure": false,
+    "report": "docs/GOAL-22-OCR-PARENT-ADMISSION.json"
+  }
 }

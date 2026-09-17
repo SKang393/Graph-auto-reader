@@ -147,10 +147,11 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-008 - restore independent reviewer access
 
-- **Status:** open
-- **Blocks:** independent approval review of the current Goal 22 evidence changes; final Production readiness
-- **Effort:** approximately 2 minutes to arrange access; review time depends on the final diff
-- **Action:** restore access for the authorized Sol reviewer through the workspace owner, or arrange an independent reviewer.
+- **Status:** resolved
+- **Resolution:** independent Sol High review resumed on 2026-09-17. It verified the V44 failed-dev outcome and found three parent recovery/accounting defects plus an unclassified-output assurance gap. The resulting recovery, disclosure, quarantine and command repairs pass 130 integrated checks and independent re-review. This is not model or Production approval.
+- **Blocks:** no maintainer action; the identified engineering defects still block final Production readiness
+- **Effort:** complete for access restoration
+- **Action:** none from the maintainer; implementation and independent verification continue
 - **Why:** all three delegated review workers reported workspace credit exhaustion on 2026-09-15. Local implementation and capped verification still work and continue. The lead cannot count review of its own implementation as independent approval.
 - **Files:** [readiness](1.0-READINESS.md), [capture evidence](GOAL-22-TEXT-EXTENT-CAPTURE.json), [disclosure safeguards](GOAL-22-OCR-DISCLOSURE-SAFEGUARDS.json)
-- **Unblocks when:** an independent reviewer can inspect the final implementation and evidence. This does not block synthetic training or local verification.
+- **Unblocks when:** resolved by restored independent review. The resulting findings are tracked in readiness and the parent admission evidence.

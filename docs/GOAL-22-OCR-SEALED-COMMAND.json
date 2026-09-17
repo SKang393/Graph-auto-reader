@@ -1,0 +1,54 @@
+{
+  "schema": "graphreader.goal22.ocr-sealed-command.v1",
+  "date": "2026-09-17",
+  "status": "command_fixture_validation_and_independent_review_clear",
+  "changes": [
+    "Provide a command for the concrete full-OCR evidence authenticator and existing sealed parent.",
+    "Validate opened records and frozen snapshots from single canonical byte buffers, including source inventory, preregistration, policy, and gate-key cross-links.",
+    "Preserve original registry identity and closed recovery state; defer live source equality to new admission.",
+    "Emit sanitized aggregate paths and error codes without payload details."
+  ],
+  "sources": [
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/run_ocr_sealed_evaluation.py",
+      "sha256": "d4c2c351c4bd703a1beb787097670ca1b6510f0ee8255d3de3ca4b0729703263"
+    },
+    {
+      "path": "tests/test_ocr_sealed_command.py",
+      "sha256": "5f1e47112b95384dcffec75a45f35afcae5852245b0b21601243b8dec482a7b3"
+    }
+  ],
+  "validation": {
+    "job_cpu_rate": 333,
+    "errors": 0,
+    "junit": {
+      "path": "artifacts/goal22-runs/ocr-command-final-tests.xml",
+      "sha256": "b67871e650456048f9ae440f8d4977d7bdcf4363e83d704ecc4559fd97249706"
+    },
+    "failed": 0,
+    "junit_seconds": 13.195,
+    "skipped": 0,
+    "pytest_seconds": 14.31,
+    "passed": 9,
+    "command": "python -m pytest tests/test_ocr_sealed_command.py -q -p no:cacheprovider --basetemp artifacts/pytest-goal22-command-final-20260917b --junitxml artifacts/goal22-runs/ocr-command-final-tests.xml"
+  },
+  "limitations": [
+    "Handwritten command fixtures substitute the parent evaluator and do not establish model acceptance.",
+    "The adapter checks local metadata consistency; it does not create or approve an authorization.",
+    "An actual model must pass the full dev prerequisite before any new sealed admission. V44 remains failed and closed.",
+    "Normal WPF Production composition and real-data acceptance remain unfinished."
+  ],
+  "license_review": "No dependency, model, dataset, or license change.",
+  "private_reads": 0,
+  "registered_sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "independent_review": {
+    "result": "clear within CLI scope",
+    "date": "2026-09-17",
+    "scope": "Canonical authority loading, frozen metadata recovery, concrete authenticator, sanitized command output",
+    "model_or_production_approval": false,
+    "reviewer": "gpt-5.6-sol high"
+  }
+}

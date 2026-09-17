@@ -8,7 +8,7 @@ sealed archive and never launches or retries an evaluator.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -54,7 +54,11 @@ _RECORD_FIELDS = {
     "training_binding_sha256", "training_intent_path",
     "training_intent_sha256", "gate_opened_sha256", "gate_binding_sha256",
     "gate_intent_path", "gate_intent_sha256", "evidence_policy", "attempt_id",
-    "request_nonce", "aggregate_result_sha256", "failure", "created_utc",
+    "attempt_binding", "attempt_binding_sha256", "request_nonce",
+    "disclosure_binding_sha256", "disclosure_evidence_sha256", "disclosures",
+    "disclosure_confirmed_read", "aggregate_result_sha256", "failure", "created_utc",
+    "quarantine_binding_sha256", "quarantine_code", "quarantine_channels",
+    "quarantine_confirmed_read",
     "updated_utc", "authority_binding_sha256",
 }
 _ADMISSION_IDENTITY_FIELDS = {
@@ -63,7 +67,7 @@ _ADMISSION_IDENTITY_FIELDS = {
     "reserve_metadata_sha256", "archive_path", "archive_sha256",
     "archive_manifest_sha256", "case_count", "training_opened_sha256",
     "training_binding_sha256", "gate_opened_sha256", "gate_binding_sha256",
-    "evidence_policy",
+    "evidence_policy", "attempt_id", "attempt_binding", "attempt_binding_sha256",
 }
 _AUTHORITY_BINDING_FIELDS = (
     _ADMISSION_IDENTITY_FIELDS
@@ -76,6 +80,13 @@ _AUTHORITY_BINDING_FIELDS = (
 
 class SealedFirstReadAdmissionError(RuntimeError):
     """Raised when admission state or identity cannot be proven."""
+
+
+def _holds_reserve_set(record: Mapping[str, object]) -> bool:
+    return (
+        record.get("status") in _CAPACITY_HOLD_STATES
+        or record.get("quarantine_binding_sha256") is not None
+    )
 
 
 @dataclass(frozen=True)
@@ -161,6 +172,28 @@ def _atomic_write(path: Path, record: dict[str, Any], *, create: bool = False) -
         temporary.unlink(missing_ok=True)
 
 
+def _normalize_quarantine_channels(
+    channels: Sequence[Mapping[str, object]],
+) -> list[dict[str, object]]:
+    rows: list[dict[str, object]] = []
+    for source in channels:
+        row = dict(source)
+        if (
+            set(row) != {"channel", "sha256", "byte_count", "complete"}
+            or row["channel"] not in {"stdout", "stderr"}
+            or type(row["byte_count"]) is not int
+            or row["byte_count"] < 0
+            or type(row["complete"]) is not bool
+        ):
+            raise SealedFirstReadAdmissionError("unclassified-output channel metadata is invalid")
+        _sha256(row["sha256"], "unclassified-output channel hash")
+        rows.append(row)
+    rows.sort(key=lambda item: str(item["channel"]))
+    if not rows or len({row["channel"] for row in rows}) != len(rows):
+        raise SealedFirstReadAdmissionError("unclassified-output channels must be unique")
+    return rows
+
+
 def _load_record(path: Path) -> dict[str, Any]:
     def reject_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
         value: dict[str, Any] = {}
@@ -184,13 +217,14 @@ def _load_record(path: Path) -> dict[str, Any]:
         "read_binding_sha256", "coverage_protocol_sha256", "reserve_metadata_sha256",
         "archive_sha256", "archive_manifest_sha256", "training_opened_sha256",
         "training_binding_sha256", "training_intent_sha256", "gate_opened_sha256",
-        "gate_binding_sha256", "gate_intent_sha256",
+        "gate_binding_sha256", "gate_intent_sha256", "attempt_id",
+        "attempt_binding_sha256",
     ):
         _sha256(value[key], key)
     if value["admission_id"] != path.stem or value["read_binding_sha256"] != value["admission_id"]:
         raise SealedFirstReadAdmissionError("first-read admission file identity differs")
     admission_identity = {
-        "schema": "graphreader.synthetic-sealed-first-read-binding.v1",
+        "schema": "graphreader.synthetic-sealed-first-read-binding.v2",
         **{key: value[key] for key in _ADMISSION_IDENTITY_FIELDS},
     }
     if sha256_bytes(canonical_json_bytes(admission_identity)) != value["admission_id"]:
@@ -212,10 +246,16 @@ def _load_record(path: Path) -> dict[str, Any]:
     }[value["status"]]
     if value["read_status"] != expected_read_status:
         raise SealedFirstReadAdmissionError("first-read admission read status is inconsistent")
-    if value["status"] == "prepared" and (value["attempt_id"] is not None or value["request_nonce"] is not None):
-        raise SealedFirstReadAdmissionError("prepared admission contains ACK identity")
+    if (
+        not isinstance(value["attempt_binding"], dict)
+        or sha256_bytes(canonical_json_bytes(value["attempt_binding"]))
+        != value["attempt_binding_sha256"]
+        or value["attempt_id"] != value["attempt_binding_sha256"]
+    ):
+        raise SealedFirstReadAdmissionError("first-read attempt binding differs")
+    if value["status"] == "prepared" and value["request_nonce"] is not None:
+        raise SealedFirstReadAdmissionError("prepared admission contains ACK nonce")
     if value["status"] in {"ack_intent", "possible_read", "confirmed_read", "completed", "failed"}:
-        _identity(value["attempt_id"], "attempt id")
         _sha256(value["request_nonce"], "request nonce")
     if value["aggregate_result_sha256"] is not None:
         _sha256(value["aggregate_result_sha256"], "aggregate result hash")
@@ -228,6 +268,68 @@ def _load_record(path: Path) -> dict[str, Any]:
         raise SealedFirstReadAdmissionError("first-read admission failure is invalid")
     if failure is not None:
         _sha256(failure["message_sha256"], "failure message hash")
+    disclosures = value["disclosures"]
+    if (
+        type(disclosures) is not list
+        or any(type(item) is not str for item in disclosures)
+        or disclosures != sorted(set(disclosures))
+        or not set(disclosures).issubset(sealed_reserve.DISCLOSURE_KINDS)
+    ):
+        raise SealedFirstReadAdmissionError("first-read disclosure categories are invalid")
+    if not disclosures:
+        if any(value[key] is not None for key in (
+            "disclosure_binding_sha256", "disclosure_evidence_sha256",
+            "disclosure_confirmed_read",
+        )):
+            raise SealedFirstReadAdmissionError("empty disclosure has bound evidence")
+    else:
+        _sha256(value["disclosure_binding_sha256"], "disclosure binding hash")
+        _sha256(value["disclosure_evidence_sha256"], "disclosure evidence hash")
+        if type(value["disclosure_confirmed_read"]) is not bool:
+            raise SealedFirstReadAdmissionError("disclosure confirmation state is invalid")
+        disclosure_binding = {
+            "schema": "graphreader.synthetic-sealed-disclosure-binding.v1",
+            "admission_id": value["admission_id"],
+            "set_id": value["set_id"],
+            "read_binding_sha256": value["read_binding_sha256"],
+            "evidence_sha256": value["disclosure_evidence_sha256"],
+            "disclosures": disclosures,
+            "confirmed_read": value["disclosure_confirmed_read"],
+        }
+        if (
+            sha256_bytes(canonical_json_bytes(disclosure_binding))
+            != value["disclosure_binding_sha256"]
+        ):
+            raise SealedFirstReadAdmissionError("first-read disclosure binding differs")
+    channels = value["quarantine_channels"]
+    if type(channels) is not list:
+        raise SealedFirstReadAdmissionError("unclassified-output channels are invalid")
+    if not channels:
+        if any(value[key] is not None for key in (
+            "quarantine_binding_sha256", "quarantine_code", "quarantine_confirmed_read",
+        )):
+            raise SealedFirstReadAdmissionError("empty quarantine has bound evidence")
+    else:
+        if (
+            type(value["quarantine_code"]) is not str
+            or not value["quarantine_code"].startswith("OCR_SEALED_")
+            or type(value["quarantine_confirmed_read"]) is not bool
+        ):
+            raise SealedFirstReadAdmissionError("unclassified-output quarantine is invalid")
+        normalized = _normalize_quarantine_channels(channels)
+        if normalized != channels:
+            raise SealedFirstReadAdmissionError("unclassified-output channels are not canonical")
+        quarantine_binding = {
+            "schema": "graphreader.synthetic-sealed-unclassified-output-binding.v1",
+            "admission_id": value["admission_id"],
+            "set_id": value["set_id"],
+            "read_binding_sha256": value["read_binding_sha256"],
+            "code": value["quarantine_code"],
+            "channels": channels,
+            "confirmed_read": value["quarantine_confirmed_read"],
+        }
+        if sha256_bytes(canonical_json_bytes(quarantine_binding)) != value["quarantine_binding_sha256"]:
+            raise SealedFirstReadAdmissionError("unclassified-output quarantine binding differs")
     if (
         not isinstance(value["case_count"], int)
         or isinstance(value["case_count"], bool)
@@ -302,6 +404,8 @@ def _binding_record(
     authorization: TrainingAuthorization,
     gate: GateSeal,
     selected: dict[str, Any],
+    attempt_id: str,
+    attempt_binding: Mapping[str, object],
 ) -> dict[str, Any]:
     training = authorization.binding
     gate_binding = gate.binding
@@ -344,8 +448,12 @@ def _binding_record(
         )
     training_opened = sha256_file(authorization.opened_path)
     gate_opened = sha256_file(gate.opened_path)
+    attempt_payload = deepcopy(dict(attempt_binding))
+    attempt_binding_sha256 = sha256_bytes(canonical_json_bytes(attempt_payload))
+    if _sha256(attempt_id, "attempt id") != attempt_binding_sha256:
+        raise SealedFirstReadAdmissionError("attempt id differs from its canonical binding")
     binding_identity = {
-        "schema": "graphreader.synthetic-sealed-first-read-binding.v1",
+        "schema": "graphreader.synthetic-sealed-first-read-binding.v2",
         "registry_path": _relative(repository_root, registry_path, "registry"),
         "set_id": _sha256(set_id, "set id"),
         "revision": revision,
@@ -366,6 +474,9 @@ def _binding_record(
         "gate_opened_sha256": gate_opened,
         "gate_binding_sha256": sha256_bytes(canonical_json_bytes(gate_binding)),
         "evidence_policy": evidence_policy_reference(),
+        "attempt_id": attempt_binding_sha256,
+        "attempt_binding": attempt_payload,
+        "attempt_binding_sha256": attempt_binding_sha256,
     }
     admission_id = sha256_bytes(canonical_json_bytes(binding_identity))
     identity = {key: value for key, value in binding_identity.items() if key != "schema"}
@@ -493,11 +604,15 @@ def _validate_capacity(
     admissions = sealed_reserve._load_first_read_admission_identities(registry_file)
     conflicts = [
         item for item in admissions
-        if item["admission_id"] != record["admission_id"] and item["status"] != "void"
+        if item["admission_id"] != record["admission_id"]
+        and (
+            item["status"] != "void"
+            or item.get("quarantine_binding_sha256") is not None
+        )
         and (
             (
                 item["set_id"] == record["set_id"]
-                and item["status"] in _CAPACITY_HOLD_STATES
+                and _holds_reserve_set(item)
             )
             or
             item["gate_identity_sha256"] == record["gate_identity_sha256"]
@@ -534,7 +649,7 @@ def _validate_capacity(
     held = {
         item["set_id"] for item in admissions
         if item["admission_id"] != record["admission_id"]
-        and item["status"] in _CAPACITY_HOLD_STATES
+        and _holds_reserve_set(item)
     }
     unused = sum(item.get("state") == "unused" and item.get("set_id") not in held for item in compatible)
     selected = _reserve_set(registry, record["set_id"])
@@ -549,7 +664,7 @@ def _validate_capacity(
         item["revision"] for item in admissions
         if item["admission_id"] != record["admission_id"]
         and item["set_id"] == record["set_id"]
-        and item["status"] in _CAPACITY_HOLD_STATES
+        and _holds_reserve_set(item)
     )
     if record["revision"] not in revisions and len(revisions) >= maximum:
         raise SealedFirstReadAdmissionError("sealed reserve reached its revision reuse limit")
@@ -566,6 +681,8 @@ def prepare_admission(
     gate_seal: GateSeal,
     required_acceptance_scope: str,
     required_coverage_protocol_sha256: str,
+    attempt_id: str,
+    attempt_binding: Mapping[str, object],
 ) -> SealedFirstReadAdmission:
     """Prepare exact identities without authorizing or claiming a sealed read."""
 
@@ -585,6 +702,7 @@ def prepare_admission(
             root, registry_file, set_id, candidate_sha256,
             required_acceptance_scope, required_coverage_protocol_sha256,
             training_authorization, gate_seal, selected,
+            attempt_id, attempt_binding,
         )
         admission_id = identity["admission_id"]
         authority_path = sealed_reserve.first_read_admission_path(
@@ -609,8 +727,15 @@ def prepare_admission(
             "training_intent_sha256": sha256_bytes(training_payload),
             "gate_intent_path": _relative(root, gate_intent, "gate intent"),
             "gate_intent_sha256": sha256_bytes(gate_payload),
-            "attempt_id": None,
             "request_nonce": None,
+            "disclosure_binding_sha256": None,
+            "disclosure_evidence_sha256": None,
+            "disclosures": [],
+            "disclosure_confirmed_read": None,
+            "quarantine_binding_sha256": None,
+            "quarantine_code": None,
+            "quarantine_channels": [],
+            "quarantine_confirmed_read": None,
             "aggregate_result_sha256": None,
             "failure": None,
             "created_utc": now,
@@ -666,7 +791,7 @@ def send_ack(
 ) -> AdmissionReceipt:
     """Durably arm one ACK and immediately invoke its sole writer callback."""
 
-    attempt_id = _identity(attempt_id, "attempt id")
+    attempt_id = _sha256(attempt_id, "attempt id")
     request_nonce = _sha256(request_nonce, "request nonce")
     if not callable(write_and_flush):
         raise TypeError("write_and_flush must be callable")
@@ -674,13 +799,18 @@ def send_ack(
         record = _load_record(admission.authority_path)
         if record["status"] != "prepared":
             raise SealedFirstReadAdmissionError("only a prepared admission can send an ACK")
+        if record["disclosures"] or record["quarantine_channels"]:
+            raise SealedFirstReadAdmissionError(
+                "admission with pre-ACK evidence cannot send an ACK"
+            )
+        if record["attempt_id"] != attempt_id:
+            raise SealedFirstReadAdmissionError("ACK attempt differs from admission authority")
         registry = _registry_metadata(admission.registry_path, admission.repository_root)
         _validate_bound_reserve_metadata(registry, record)
         _validate_component_intents(admission, record, verify_sources=True)
         _validate_capacity(
             admission.registry_path, registry, record, will_hold_selected_set=True
         )
-        record["attempt_id"] = attempt_id
         record["request_nonce"] = request_nonce
         record = _transition(admission.authority_path, record, status="ack_intent")
     try:
@@ -708,7 +838,7 @@ def record_positive_read_receipt(
         if record["status"] not in {"ack_intent", "possible_read", "confirmed_read"}:
             raise SealedFirstReadAdmissionError("admission cannot accept a positive-read receipt")
         if (
-            record["attempt_id"] != _identity(attempt_id, "attempt id")
+            record["attempt_id"] != _sha256(attempt_id, "attempt id")
             or record["candidate_sha256"] != _sha256(candidate_sha256, "candidate hash")
             or record["request_nonce"] != _sha256(request_nonce, "request nonce")
         ):
@@ -719,6 +849,154 @@ def record_positive_read_receipt(
         if record["status"] != "confirmed_read":
             record = _transition(admission.authority_path, record, status="confirmed_read")
     return materialize_projections(admission)
+
+
+def _disclosure_binding(
+    record: Mapping[str, object], evidence_sha256: str, disclosures: Sequence[str]
+) -> dict[str, object]:
+    disclosure_list = sorted(set(disclosures))
+    if (
+        not disclosure_list
+        or len(disclosure_list) != len(disclosures)
+        or not set(disclosure_list).issubset(sealed_reserve.DISCLOSURE_KINDS)
+    ):
+        raise SealedFirstReadAdmissionError("case-level disclosure categories are invalid")
+    return {
+        "schema": "graphreader.synthetic-sealed-disclosure-binding.v1",
+        "admission_id": record["admission_id"],
+        "set_id": record["set_id"],
+        "read_binding_sha256": record["read_binding_sha256"],
+        "evidence_sha256": _sha256(evidence_sha256, "disclosure evidence hash"),
+        "disclosures": disclosure_list,
+        "confirmed_read": record["read_status"] == "confirmed",
+    }
+
+
+def _materialize_disclosure_retirement_locked(
+    admission: SealedFirstReadAdmission, record: dict[str, Any]
+) -> None:
+    if not record["disclosures"]:
+        return
+    sealed_reserve._record_admission_case_level_disclosure_locked(
+        admission.registry_path,
+        admission.repository_root,
+        expected_registry_sha256=sha256_file(admission.registry_path),
+        admission_id=record["admission_id"],
+        set_id=record["set_id"],
+        revision=record["revision"],
+        candidate_id=record["candidate_id"],
+        gate_identity_sha256=record["gate_identity_sha256"],
+        read_binding_sha256=record["read_binding_sha256"],
+        evidence_sha256=record["disclosure_evidence_sha256"],
+        disclosures=record["disclosures"],
+        confirmed_read=record["disclosure_confirmed_read"],
+    )
+
+
+def record_case_level_disclosure(
+    admission: SealedFirstReadAdmission,
+    *,
+    evidence_sha256: str,
+    disclosures: Sequence[str],
+) -> AdmissionReceipt:
+    """Bind sanitized disclosure evidence before metadata-only reserve retirement."""
+
+    with sealed_reserve._registry_update_lock(admission.registry_path):
+        record = _load_record(admission.authority_path)
+        if record["quarantine_channels"]:
+            raise SealedFirstReadAdmissionError(
+                "known disclosure cannot replace unclassified-output quarantine"
+            )
+        if record["status"] == "void" and not record["disclosures"]:
+            raise SealedFirstReadAdmissionError(
+                "void admission cannot acquire new case-level disclosure evidence"
+            )
+        if record["status"] not in {
+            "prepared", "ack_intent", "possible_read", "confirmed_read", "failed", "void",
+        }:
+            raise SealedFirstReadAdmissionError(
+                "admission cannot bind case-level disclosure in this state"
+            )
+        binding = _disclosure_binding(record, evidence_sha256, disclosures)
+        binding_sha256 = sha256_bytes(canonical_json_bytes(binding))
+        if record["disclosures"]:
+            if (
+                record["disclosure_binding_sha256"] != binding_sha256
+                or record["disclosure_evidence_sha256"] != binding["evidence_sha256"]
+                or record["disclosures"] != binding["disclosures"]
+                or record["disclosure_confirmed_read"] != binding["confirmed_read"]
+            ):
+                raise SealedFirstReadAdmissionError(
+                    "case-level disclosure differs from admission authority"
+                )
+        else:
+            record["disclosure_binding_sha256"] = binding_sha256
+            record["disclosure_evidence_sha256"] = binding["evidence_sha256"]
+            record["disclosures"] = binding["disclosures"]
+            record["disclosure_confirmed_read"] = binding["confirmed_read"]
+            record["updated_utc"] = _utc_now()
+            _atomic_write(admission.authority_path, record)
+            record = _load_record(admission.authority_path)
+        _materialize_disclosure_retirement_locked(admission, record)
+    return _receipt(_load_record(admission.authority_path), admission.registry_path)
+
+
+def record_unclassified_output(
+    admission: SealedFirstReadAdmission,
+    *,
+    code: str,
+    channels: Sequence[Mapping[str, object]],
+) -> AdmissionReceipt:
+    """Bind content-free unknown-output evidence without claiming disclosure."""
+
+    rows = _normalize_quarantine_channels(channels)
+    if not isinstance(code, str) or not code.startswith("OCR_SEALED_"):
+        raise SealedFirstReadAdmissionError("unclassified-output code is invalid")
+    with sealed_reserve._registry_update_lock(admission.registry_path):
+        record = _load_record(admission.authority_path)
+        if record["status"] == "void" and not record["quarantine_channels"]:
+            raise SealedFirstReadAdmissionError(
+                "void admission cannot acquire new unclassified-output evidence"
+            )
+        if record["status"] not in {
+            "prepared", "ack_intent", "possible_read", "confirmed_read", "failed", "void",
+        }:
+            raise SealedFirstReadAdmissionError(
+                "admission cannot bind unclassified output in this state"
+            )
+        if record["disclosures"]:
+            raise SealedFirstReadAdmissionError(
+                "unclassified output cannot replace known disclosure"
+            )
+        binding = {
+            "schema": "graphreader.synthetic-sealed-unclassified-output-binding.v1",
+            "admission_id": record["admission_id"],
+            "set_id": record["set_id"],
+            "read_binding_sha256": record["read_binding_sha256"],
+            "code": code,
+            "channels": rows,
+            "confirmed_read": record["read_status"] == "confirmed",
+        }
+        binding_sha256 = sha256_bytes(canonical_json_bytes(binding))
+        if record["quarantine_channels"]:
+            if (
+                record["quarantine_binding_sha256"] != binding_sha256
+                or record["quarantine_code"] != code
+                or record["quarantine_channels"] != rows
+                or record["quarantine_confirmed_read"] != binding["confirmed_read"]
+            ):
+                raise SealedFirstReadAdmissionError(
+                    "unclassified output differs from admission authority"
+                )
+        else:
+            record["quarantine_binding_sha256"] = binding_sha256
+            record["quarantine_code"] = code
+            record["quarantine_channels"] = rows
+            record["quarantine_confirmed_read"] = binding["confirmed_read"]
+            record["updated_utc"] = _utc_now()
+            _atomic_write(admission.authority_path, record)
+            _load_record(admission.authority_path)
+    return _receipt(_load_record(admission.authority_path), admission.registry_path)
 
 
 def _ensure_reserve_projection(admission: SealedFirstReadAdmission, record: dict[str, Any]) -> None:
@@ -735,17 +1013,21 @@ def _ensure_reserve_projection(admission: SealedFirstReadAdmission, record: dict
             "candidate_id": record["candidate_id"],
             "gate_identity_sha256": record["gate_identity_sha256"],
             "read_binding_sha256": record["read_binding_sha256"],
-            "aggregate_only": True,
-            "disclosures": [],
+            "aggregate_only": not record["disclosures"],
+            "disclosures": record["disclosures"],
         }
         if exact:
             if len(exact) != 1 or exact[0] != (record["set_id"], expected):
                 raise SealedFirstReadAdmissionError("reserve projection differs from confirmed admission")
             return
+        if record["disclosures"]:
+            raise SealedFirstReadAdmissionError(
+                "confirmed disclosure has no exact reserve use"
+            )
         holds = frozenset(
             item["set_id"] for item in sealed_reserve._load_first_read_admission_identities(admission.registry_path)
             if item["admission_id"] != record["admission_id"]
-            and item["status"] in _CAPACITY_HOLD_STATES
+            and _holds_reserve_set(item)
         )
         sealed_reserve._record_sealed_read_locked(
             admission.registry_path,
@@ -837,6 +1119,10 @@ def complete_admission(
         record = _load_record(admission.authority_path)
         if record["status"] != "confirmed_read":
             raise SealedFirstReadAdmissionError("only a confirmed read can complete")
+        if record["disclosures"] or record["quarantine_channels"]:
+            raise SealedFirstReadAdmissionError(
+                "non-aggregate evidence cannot complete as aggregate-only evidence"
+            )
         record["aggregate_result_sha256"] = result_sha256
         record = _transition(admission.authority_path, record, status="completed")
     return _receipt(record, admission.registry_path)
@@ -868,6 +1154,7 @@ def recover_admission(
         record = _load_record(authority_path)
         registry = _registry_metadata(registry_file, root)
         _validate_bound_reserve_metadata(registry, record, permit_retired_accounting=True)
+        _materialize_disclosure_retirement_locked(admission, record)
         if record["status"] == "prepared":
             record = _transition(
                 authority_path, record, status="void", failure=recovery_error
@@ -920,6 +1207,8 @@ __all__ = [
     "fail_admission",
     "materialize_projections",
     "prepare_admission",
+    "record_case_level_disclosure",
+    "record_unclassified_output",
     "record_positive_read_receipt",
     "recover_admission",
     "send_ack",

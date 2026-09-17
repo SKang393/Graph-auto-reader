@@ -34,6 +34,8 @@ from ml.policy.sealed_first_read_admission import (
     complete_admission,
     fail_admission,
     prepare_admission,
+    record_case_level_disclosure,
+    record_unclassified_output,
     record_positive_read_receipt,
     recover_admission,
     send_ack,
@@ -43,7 +45,8 @@ from ml.synthetic import ocr_sealed_acceptance
 
 
 CANDIDATE_SHA256 = "a" * 64
-ATTEMPT_ID = "attempt-1"
+ATTEMPT_BINDING = {"schema": "fixture-preflight.v1", "identity": "attempt-1"}
+ATTEMPT_ID = sha256_bytes(canonical_json_bytes(ATTEMPT_BINDING))
 NONCE = "b" * 64
 MANIFEST_SHA256 = "d" * 64
 REGISTRY = Path("artifacts/test-sealed-reserve/registry.json")
@@ -246,6 +249,8 @@ def _prepare(root: Path, *, count: int = 3, suffix: str = "1"):
         gate_seal=gate,
         required_acceptance_scope=ocr_sealed_acceptance.ACCEPTANCE_SCOPE,
         required_coverage_protocol_sha256=ocr_sealed_acceptance.PROTOCOL_SHA256,
+        attempt_id=ATTEMPT_ID,
+        attempt_binding=ATTEMPT_BINDING,
     )
     return admission, authorization, gate, registry
 
@@ -355,7 +360,7 @@ def test_recovery_of_ack_intent_becomes_possible_without_relaunch(tmp_path: Path
     with pytest.raises(SealedFirstReadAdmissionError, match="prepared admission"):
         send_ack(
             recovered,
-            attempt_id="attempt-2",
+            attempt_id="c" * 64,
             request_nonce="c" * 64,
             write_and_flush=lambda _frame: pytest.fail("must not ACK again"),
         )
@@ -459,6 +464,8 @@ def test_prepare_failure_after_authority_is_deterministically_void(
             gate_seal=gate,
             required_acceptance_scope=ocr_sealed_acceptance.ACCEPTANCE_SCOPE,
             required_coverage_protocol_sha256=ocr_sealed_acceptance.PROTOCOL_SHA256,
+            attempt_id=ATTEMPT_ID,
+            attempt_binding=ATTEMPT_BINDING,
         )
     authorities = list(
         sealed_reserve.first_read_admission_directory(registry, tmp_path).glob("*.json")
@@ -575,6 +582,8 @@ def test_completed_set_can_back_a_distinct_revision(tmp_path: Path) -> None:
     complete_admission(first, aggregate_result_sha256="e" * 64)
     selected_set = json.loads(registry_path.read_text())["sets"][0]["set_id"]
     authorization, gate = _source_bound_objects(tmp_path, suffix="2")
+    second_binding = {"identity": "attempt-2"}
+    second_attempt = sha256_bytes(canonical_json_bytes(second_binding))
     second = prepare_admission(
         REGISTRY,
         tmp_path,
@@ -585,16 +594,18 @@ def test_completed_set_can_back_a_distinct_revision(tmp_path: Path) -> None:
         gate_seal=gate,
         required_acceptance_scope=ocr_sealed_acceptance.ACCEPTANCE_SCOPE,
         required_coverage_protocol_sha256=ocr_sealed_acceptance.PROTOCOL_SHA256,
+        attempt_id=second_attempt,
+        attempt_binding=second_binding,
     )
     send_ack(
         second,
-        attempt_id="attempt-2",
+        attempt_id=second_attempt,
         request_nonce="c" * 64,
         write_and_flush=lambda _frame: None,
     )
     record_positive_read_receipt(
         second,
-        attempt_id="attempt-2",
+        attempt_id=second_attempt,
         candidate_sha256=CANDIDATE_SHA256,
         request_nonce="c" * 64,
     )
@@ -612,6 +623,165 @@ def test_confirmed_read_can_complete_or_fail_with_exact_status(tmp_path: Path) -
     _confirm(second)
     failed = fail_admission(second, RuntimeError("aggregate failed"))
     assert (failed.status, failed.read_status) == ("failed", "confirmed")
+
+
+def test_confirmed_disclosure_reattributes_exact_use_and_recovery_is_idempotent(
+    tmp_path: Path,
+) -> None:
+    admission, authorization, gate, registry_path = _prepare(tmp_path)
+    _confirm(admission)
+    record_case_level_disclosure(
+        admission, evidence_sha256="e" * 64, disclosures=("truth", "prediction")
+    )
+    record_case_level_disclosure(
+        admission, evidence_sha256="e" * 64, disclosures=("truth", "prediction")
+    )
+    state = json.loads(registry_path.read_text(encoding="utf-8"))
+    uses = state["sets"][0]["uses"]
+    assert len(uses) == 1
+    assert uses[0]["read_binding_sha256"] == admission.admission_id
+    assert uses[0]["aggregate_only"] is False
+    assert uses[0]["disclosures"] == ["prediction", "truth"]
+    assert state["sets"][0]["retirement"] == {
+        "reason": "case_level_disclosure",
+        "evidence_sha256": "e" * 64,
+        "disclosures": ["prediction", "truth"],
+    }
+    for _ in range(2):
+        recovered = recover_admission(
+            REGISTRY, tmp_path, admission_id=admission.admission_id,
+            training_authorization=authorization, gate_seal=gate,
+        )
+        assert _authority(recovered)["disclosure_confirmed_read"] is True
+        assert sum(len(item["uses"]) for item in json.loads(
+            registry_path.read_text(encoding="utf-8")
+        )["sets"]) == 1
+
+
+def test_disclosure_authority_tamper_fails_before_registry_recovery(tmp_path: Path) -> None:
+    admission, authorization, gate, _registry_path = _prepare(tmp_path)
+    send_ack(
+        admission, attempt_id=ATTEMPT_ID, request_nonce=NONCE,
+        write_and_flush=lambda _frame: None,
+    )
+    record_case_level_disclosure(
+        admission, evidence_sha256="e" * 64, disclosures=("truth",)
+    )
+    record = _authority(admission)
+    record["disclosures"] = ["pixel"]
+    admission.authority_path.write_bytes(canonical_json_bytes(record))
+    with pytest.raises(SealedFirstReadAdmissionError, match="disclosure binding differs"):
+        recover_admission(
+            REGISTRY, tmp_path, admission_id=admission.admission_id,
+            training_authorization=authorization, gate_seal=gate,
+        )
+
+
+def test_pre_ack_disclosure_retires_without_fabricating_a_read(tmp_path: Path) -> None:
+    admission, authorization, gate, registry_path = _prepare(tmp_path)
+    record_case_level_disclosure(
+        admission, evidence_sha256="e" * 64, disclosures=("truth",)
+    )
+    with pytest.raises(SealedFirstReadAdmissionError, match="pre-ACK evidence"):
+        send_ack(
+            admission, attempt_id=ATTEMPT_ID, request_nonce=NONCE,
+            write_and_flush=lambda _frame: pytest.fail("must not ACK"),
+        )
+    receipt = void_pre_ack(admission, RuntimeError("sanitized disclosure"))
+    assert (receipt.status, receipt.read_status) == ("void", "none")
+    record = _authority(admission)
+    assert record["disclosures"] == ["truth"]
+    assert record["disclosure_confirmed_read"] is False
+    state = json.loads(registry_path.read_text(encoding="utf-8"))
+    assert state["sets"][0]["state"] == "retired"
+    assert state["sets"][0]["uses"] == []
+    recovered = recover_admission(
+        REGISTRY, tmp_path, admission_id=admission.admission_id,
+        training_authorization=authorization, gate_seal=gate,
+    )
+    assert (_authority(recovered)["status"], _authority(recovered)["read_status"]) == (
+        "void", "none",
+    )
+    assert json.loads(registry_path.read_text(encoding="utf-8"))["sets"][0]["uses"] == []
+
+
+def test_pre_ack_unclassified_output_is_void_but_holds_the_set(tmp_path: Path) -> None:
+    admission, _authorization, _gate, registry_path = _prepare(tmp_path)
+    channels = ({"channel": "stderr", "sha256": "e" * 64,
+                 "byte_count": 0, "complete": False},)
+    record_unclassified_output(
+        admission, code="OCR_SEALED_TRANSPORT_UNCLASSIFIED_OUTPUT",
+        channels=channels,
+    )
+    with pytest.raises(SealedFirstReadAdmissionError, match="pre-ACK evidence"):
+        send_ack(
+            admission, attempt_id=ATTEMPT_ID, request_nonce=NONCE,
+            write_and_flush=lambda _frame: pytest.fail("must not ACK"),
+        )
+    receipt = void_pre_ack(admission, RuntimeError("sanitized quarantine"))
+    assert (receipt.status, receipt.read_status) == ("void", "none")
+    record = _authority(admission)
+    assert record["quarantine_channels"] == [dict(channels[0])]
+    assert record["quarantine_confirmed_read"] is False
+    state = json.loads(registry_path.read_text(encoding="utf-8"))
+    assert state["sets"][0]["state"] == "unused"
+    assert state["sets"][0]["uses"] == []
+
+    next_authorization, next_gate = _source_bound_objects(tmp_path, suffix="2")
+    next_binding = {"identity": "pre-ack-quarantine-reuse"}
+    next_attempt = sha256_bytes(canonical_json_bytes(next_binding))
+    with pytest.raises(SealedFirstReadAdmissionError, match="already reserved"):
+        prepare_admission(
+            REGISTRY, tmp_path, expected_registry_sha256=sha256_file(registry_path),
+            set_id=state["sets"][0]["set_id"], candidate_sha256=CANDIDATE_SHA256,
+            training_authorization=next_authorization, gate_seal=next_gate,
+            required_acceptance_scope=ocr_sealed_acceptance.ACCEPTANCE_SCOPE,
+            required_coverage_protocol_sha256=ocr_sealed_acceptance.PROTOCOL_SHA256,
+            attempt_id=next_attempt, attempt_binding=next_binding,
+        )
+
+
+@pytest.mark.parametrize("confirmed", [False, True])
+def test_unclassified_output_holds_set_without_retirement_or_disclosure(
+    tmp_path: Path, confirmed: bool,
+) -> None:
+    admission, _authorization, _gate, registry_path = _prepare(tmp_path)
+    if confirmed:
+        _confirm(admission)
+    else:
+        send_ack(
+            admission, attempt_id=ATTEMPT_ID, request_nonce=NONCE,
+            write_and_flush=lambda _frame: None,
+        )
+    channels = ({"channel": "stderr", "sha256": "e" * 64,
+                 "byte_count": 9, "complete": False},)
+    record_unclassified_output(
+        admission, code="OCR_SEALED_TRANSPORT_UNCLASSIFIED_OUTPUT",
+        channels=channels,
+    )
+    failed = fail_admission(admission, RuntimeError("sanitized"))
+    assert failed.read_status == ("confirmed" if confirmed else "possible")
+    record = _authority(admission)
+    assert record["quarantine_channels"] == [dict(channels[0])]
+    assert record["disclosures"] == []
+    state = json.loads(registry_path.read_text(encoding="utf-8"))
+    assert state["sets"][0]["state"] != "retired"
+    assert len(state["sets"][0]["uses"]) == int(confirmed)
+    if confirmed:
+        assert state["sets"][0]["uses"][0]["aggregate_only"] is True
+
+    next_authorization, next_gate = _source_bound_objects(tmp_path, suffix="2")
+    next_binding = {"identity": "quarantine-reuse"}
+    next_attempt = sha256_bytes(canonical_json_bytes(next_binding))
+    with pytest.raises(SealedFirstReadAdmissionError, match="already reserved"):
+        prepare_admission(
+            REGISTRY, tmp_path, expected_registry_sha256=sha256_file(registry_path),
+            set_id=state["sets"][0]["set_id"], candidate_sha256=CANDIDATE_SHA256,
+            training_authorization=next_authorization, gate_seal=next_gate,
+            required_acceptance_scope=ocr_sealed_acceptance.ACCEPTANCE_SCOPE,
+            required_coverage_protocol_sha256=ocr_sealed_acceptance.PROTOCOL_SHA256,
+            attempt_id=next_attempt, attempt_binding=next_binding,
+        )
 
 
 def test_actual_canonical_acquisitions_are_admitted_with_unsorted_hash_schema(
@@ -695,6 +865,8 @@ def test_actual_canonical_acquisitions_are_admitted_with_unsorted_hash_schema(
         gate_seal=gate,
         required_acceptance_scope=ocr_sealed_acceptance.ACCEPTANCE_SCOPE,
         required_coverage_protocol_sha256=ocr_sealed_acceptance.PROTOCOL_SHA256,
+        attempt_id=ATTEMPT_ID,
+        attempt_binding=ATTEMPT_BINDING,
     )
     assert _authority(admission)["status"] == "prepared"
 
@@ -766,6 +938,11 @@ def test_metadata_only_loader_matches_case_disclosure_retirement_consistency(
         "evidence_sha256": "a" * 64,
         "disclosures": ["truth"],
     }
+    _write(registry_path, registry)
+    # A disclosure-frame hash identifies evidence, not the original read.
+    assert sealed_reserve.load_registry_metadata_only(registry_path, tmp_path) == registry
+
+    registry["sets"][0]["retirement"]["disclosures"] = ["prediction"]
     _write(registry_path, registry)
     with pytest.raises(
         sealed_reserve.SealedReserveError,

@@ -1,31 +1,59 @@
 {
   "schema": "graphreader.goal22.ocr-parent-admission.v1",
-  "date": "2026-09-15",
-  "status": "synthetic_boundary_and_fixture_accounting_verified_not_production_approved",
+  "date": "2026-09-17",
+  "status": "recovery_and_command_fixtures_verified_independent_review_clear",
   "changes": [
-    "Recompute full OCR train/dev evidence from authenticated runtime reports, saved train truth and unchanged dev pixels before sealed admission.",
-    "Retain all 709 train and 183 dev truths, including all 1019 dev characters, under the unchanged frozen V2 metrics.",
-    "Validate the full four-field recognition-failure partition, then pass its aggregate count through the sealed metric contract.",
-    "Recheck candidate, score and runtime bytes before ACK and after evaluation.",
-    "Persist category/hash-only disclosure intent and recover retirement without reopening archives or inventing a read.",
-    "Permit retired-set bookkeeping recovery while keeping new requests and ACKs forbidden."
+    "Bind admission and recovery to the exact preflight attempt, runtime, candidate, score, and original registry identity.",
+    "Persist disclosure evidence in admission authority before retirement, and attribute confirmed disclosure to exactly one existing use.",
+    "Retire known disclosure before or after ACK without inventing an unconfirmed read.",
+    "Persist content-free unknown-output quarantine before or after ACK; hold quarantined sets against reuse and promotion without claiming disclosure.",
+    "Retain retired and quarantined accounting recovery without reopening an archive or relaunching evaluation.",
+    "Provide the concrete OCR command with canonical frozen-authority loading and sanitized output."
   ],
   "sources": [
     {
       "path": "ml/policy/ocr_sealed_evaluation.py",
-      "sha256": "97932ea8ed2c03e7ff1eb034ca540febaad63e8fbdfcc2c3e057694fe4c12eca"
-    },
-    {
-      "path": "tools/GraphReader.SyntheticRuntimeEvidence/authenticate_text_extent_evidence.py",
-      "sha256": "8ed3bb5182774d70198eac9c7e89e6fd63daf098dcfe15ebd312a0cf8d9cb4aa"
+      "sha256": "15ca0e076478b11d33098baa0b577682b4a83e2e08c7c1802d5dfb8a9e88339f"
     },
     {
       "path": "ml/policy/sealed_first_read_admission.py",
-      "sha256": "cb2ba117cef419016bb381d2c8b373397469a7e0d63e6097e2dc2f0d4e1ea344"
+      "sha256": "eced5fa29ca5f30047808ee45811c11925f3154614ddb8c7b68e3b625c13e094"
     },
     {
-      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_text_extent_candidate.py",
-      "sha256": "41d6438b5198c2cb7f89b1d6a26c720b4a3089d8a49666a7c7cefad5ce3fe050"
+      "path": "ml/policy/sealed_reserve.py",
+      "sha256": "c8b333951975228e8c61f5ec27d9b9ef9742c54e8c57761517ea7dc5bee61189"
+    },
+    {
+      "path": "ml/policy/ocr_sealed_transport.py",
+      "sha256": "7d5a58b952438d700cec37e89827b50b469c47566d4ea1b047f6886e8ba1e2e2"
+    },
+    {
+      "path": "ml/policy/tests/test_sealed_first_read_admission.py",
+      "sha256": "81b20de40007b952e8f54582830ed3388068fc643c87da7b24820e136948dbd8"
+    },
+    {
+      "path": "ml/policy/tests/test_sealed_reserve.py",
+      "sha256": "3fcf6b95368f321666368ee51a76bd12998cfa18c5b75b34478276c5b1a0a7dd"
+    },
+    {
+      "path": "ml/policy/tests/test_ocr_sealed_transport.py",
+      "sha256": "235a4412918ed642f7245b8be4ead8c4bc67179474b8bf4808bd94c51a72045e"
+    },
+    {
+      "path": "tests/test_ocr_sealed_evaluation.py",
+      "sha256": "6512934d30332b001b18ce22045c36d4bf8ec8dfc5f2b01e839c46ea781f2310"
+    },
+    {
+      "path": "tests/test_ocr_retired_recovery.py",
+      "sha256": "5d9acd6a6d917ccf716d28d7e504eb86a63c4e0004030038c8e07d18d3425566"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/run_ocr_sealed_evaluation.py",
+      "sha256": "d4c2c351c4bd703a1beb787097670ca1b6510f0ee8255d3de3ca4b0729703263"
+    },
+    {
+      "path": "tests/test_ocr_sealed_command.py",
+      "sha256": "5f1e47112b95384dcffec75a45f35afcae5852245b0b21601243b8dec482a7b3"
     }
   ],
   "baseline_application": {
@@ -57,37 +85,81 @@
     "truth_character_count": 1019
   },
   "validation": {
-    "final_parent_and_retired_recovery": {
-      "passed": 32,
-      "failed": 0,
-      "seconds": 64.08,
-      "command": "python -m pytest tests/test_ocr_sealed_evaluation.py tests/test_ocr_retired_recovery.py -q -p no:cacheprovider --basetemp artifacts/pytest-goal22-light-final-parent-20260915a"
+    "passed": 130,
+    "junit": {
+      "sha256": "f1f049bbcb4a726c0b11bafcc39317a1a09f48d5b0831e35147d2307cf2e9f32",
+      "path": "artifacts/goal22-runs/ocr-parent-integration-final-tests.xml"
     },
-    "coordinator_repair_batch": {
-      "passed": 51,
-      "failed": 0,
-      "seconds": 88.4,
-      "command": "python -m pytest tests/test_ocr_sealed_evaluation.py ml/policy/tests/test_sealed_first_read_admission.py -q -p no:cacheprovider --basetemp artifacts/pytest-goal22-light-retired-recovery-20260915a"
-    },
-    "actual_baseline_preflight": {
-      "result": "OCR_SEALED_EVALUATION_DEV_GATE_FAILED",
-      "elapsed_ms": 280754.0864999901
-    },
-    "job_cpu_rate": 66,
-    "concurrent_training_job_cpu_rate": 333,
-    "combined_capacity_percent": 47.88
+    "junit_seconds": 64.684,
+    "command": "python -m pytest ml/policy/tests/test_sealed_first_read_admission.py ml/policy/tests/test_sealed_reserve.py ml/policy/tests/test_ocr_sealed_transport.py tests/test_ocr_sealed_evaluation.py tests/test_ocr_retired_recovery.py tests/test_ocr_sealed_command.py -q -p no:cacheprovider --basetemp artifacts/pytest-goal22-parent-final-20260917d --junitxml artifacts/goal22-runs/ocr-parent-integration-final-tests.xml",
+    "errors": 0,
+    "job_cpu_rate": 333,
+    "pytest_seconds": 65.91,
+    "failed": 0,
+    "source_hashes_verified_after_run": true,
+    "skipped": 0
   },
   "license_review": "No dependencies or models added. Existing reviewed Apache-2.0 PaddleOCR assets are authenticated locally.",
   "limitations": [
-    "The actual baseline fails every OCR accuracy bar. No registered sealed archive was opened.",
-    "Passing aggregate admission and interruption scenarios use handwritten fixtures, not model acceptance evidence.",
-    "The final production command and normal Production evidence connection remain pending.",
-    "Independent reviewer access remains unavailable; see REV-008. Lead checks are not independent approval."
+    "No registered sealed archive was opened; model acceptance is not established by handwritten fixtures.",
+    "The legacy use.aggregate_only flag means no classified disclosure. Quarantine authority separately prevents reuse and approval; quarantined output is not proven aggregate-only.",
+    "The original baseline and V44 both fail the full OCR dev bars. V44 remains closed and unapproved.",
+    "Normal WPF Production composition and real-data acceptance remain unfinished."
   ],
   "private_reads": 0,
   "registered_sealed_reads": 0,
   "optimizer_steps": 0,
   "production_approved": false,
   "packaged_build_created": false,
-  "goal22_acceptance_status": "FAIL"
+  "goal22_acceptance_status": "FAIL",
+  "historical_checkpoint": {
+    "validation": {
+      "final_parent_and_retired_recovery": {
+        "passed": 32,
+        "failed": 0,
+        "seconds": 64.08,
+        "command": "python -m pytest tests/test_ocr_sealed_evaluation.py tests/test_ocr_retired_recovery.py -q -p no:cacheprovider --basetemp artifacts/pytest-goal22-light-final-parent-20260915a"
+      },
+      "coordinator_repair_batch": {
+        "passed": 51,
+        "failed": 0,
+        "seconds": 88.4,
+        "command": "python -m pytest tests/test_ocr_sealed_evaluation.py ml/policy/tests/test_sealed_first_read_admission.py -q -p no:cacheprovider --basetemp artifacts/pytest-goal22-light-retired-recovery-20260915a"
+      },
+      "actual_baseline_preflight": {
+        "result": "OCR_SEALED_EVALUATION_DEV_GATE_FAILED",
+        "elapsed_ms": 280754.0864999901
+      },
+      "job_cpu_rate": 66,
+      "concurrent_training_job_cpu_rate": 333,
+      "combined_capacity_percent": 47.88
+    },
+    "date": "2026-09-15",
+    "sources": [
+      {
+        "path": "ml/policy/ocr_sealed_evaluation.py",
+        "sha256": "97932ea8ed2c03e7ff1eb034ca540febaad63e8fbdfcc2c3e057694fe4c12eca"
+      },
+      {
+        "path": "tools/GraphReader.SyntheticRuntimeEvidence/authenticate_text_extent_evidence.py",
+        "sha256": "8ed3bb5182774d70198eac9c7e89e6fd63daf098dcfe15ebd312a0cf8d9cb4aa"
+      },
+      {
+        "path": "ml/policy/sealed_first_read_admission.py",
+        "sha256": "cb2ba117cef419016bb381d2c8b373397469a7e0d63e6097e2dc2f0d4e1ea344"
+      },
+      {
+        "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_text_extent_candidate.py",
+        "sha256": "41d6438b5198c2cb7f89b1d6a26c720b4a3089d8a49666a7c7cefad5ce3fe050"
+      }
+    ],
+    "status": "synthetic_boundary_and_fixture_accounting_verified_not_production_approved"
+  },
+  "independent_review": {
+    "source_hashes_matched": true,
+    "scope": "Exact recovery binding, durable disclosure attribution, pre-ACK and post-ACK quarantine and retirement, nonretryable holds, canonical CLI authority loading",
+    "result": "no remaining blocking finding",
+    "date": "2026-09-17",
+    "reviewer": "gpt-5.6-sol high"
+  }
 }

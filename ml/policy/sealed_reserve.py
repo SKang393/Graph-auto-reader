@@ -90,7 +90,7 @@ _CASE_PAYLOAD_NAMES = frozenset({
     "scene.json", "image.png", "annotation.json", "marker-mask.png",
 })
 _FAMILY_AXES = frozenset({"renderer", "font", "degradation", "template", "marker"})
-FIRST_READ_ADMISSION_SCHEMA = "graphreader.synthetic-sealed-first-read-admission.v1"
+FIRST_READ_ADMISSION_SCHEMA = "graphreader.synthetic-sealed-first-read-admission.v2"
 FIRST_READ_ADMISSION_STATUSES = frozenset({
     "prepared", "ack_intent", "possible_read", "confirmed_read",
     "completed", "failed", "void",
@@ -98,7 +98,8 @@ FIRST_READ_ADMISSION_STATUSES = frozenset({
 _FIRST_READ_ADMISSION_IDENTITY_FIELDS = {
     "admission_id", "status", "set_id", "revision", "candidate_id",
     "candidate_sha256", "gate_identity_sha256", "read_binding_sha256",
-    "acceptance_scope", "coverage_protocol_sha256",
+    "acceptance_scope", "coverage_protocol_sha256", "attempt_id",
+    "attempt_binding_sha256", "quarantine_binding_sha256",
 }
 _FIRST_READ_BINDING_IDENTITY_FIELDS = {
     "registry_path", "set_id", "revision", "candidate_id", "candidate_sha256",
@@ -106,7 +107,8 @@ _FIRST_READ_BINDING_IDENTITY_FIELDS = {
     "reserve_metadata_sha256", "archive_path", "archive_sha256",
     "archive_manifest_sha256", "case_count", "training_opened_sha256",
     "training_binding_sha256", "gate_opened_sha256", "gate_binding_sha256",
-    "evidence_policy",
+    "evidence_policy", "attempt_id", "attempt_binding",
+    "attempt_binding_sha256",
 }
 
 
@@ -744,7 +746,6 @@ def _validate_set(record: Any, repository_root: Path) -> dict[str, Any]:
             direct_disclosures = [use for use in uses if not use["aggregate_only"]]
             if direct_disclosures and (
                 len(direct_disclosures) != 1
-                or direct_disclosures[0]["read_binding_sha256"] != retired["evidence_sha256"]
                 or direct_disclosures[0]["disclosures"] != disclosures
             ):
                 raise SealedReserveError("case-level retirement differs from the sealed read disclosure")
@@ -947,8 +948,6 @@ def _validate_set_metadata_only(record: Any) -> dict[str, Any]:
                     not direct_disclosures
                     or (
                         len(direct_disclosures) == 1
-                        and direct_disclosures[0]["read_binding_sha256"]
-                        == retired["evidence_sha256"]
                         and direct_disclosures[0]["disclosures"] == disclosures
                     )
                 )
@@ -1291,15 +1290,73 @@ def _load_first_read_admission_identities(path: Path) -> list[dict[str, Any]]:
         for key in (
             "admission_id", "set_id", "candidate_sha256", "gate_identity_sha256",
             "read_binding_sha256", "coverage_protocol_sha256",
+            "attempt_id", "attempt_binding_sha256",
         ):
             _sha256(value[key], f"first-read admission {key}")
+        if (
+            not isinstance(value["attempt_binding"], dict)
+            or sha256_bytes(canonical_json_bytes(value["attempt_binding"]))
+            != value["attempt_binding_sha256"]
+            or value["attempt_id"] != value["attempt_binding_sha256"]
+        ):
+            raise SealedReserveError("first-read admission attempt binding differs")
+        quarantine_sha256 = value.get("quarantine_binding_sha256")
+        quarantine_channels = value.get("quarantine_channels")
+        if quarantine_sha256 is None:
+            if (
+                quarantine_channels != []
+                or value.get("quarantine_code") is not None
+                or value.get("quarantine_confirmed_read") is not None
+            ):
+                raise SealedReserveError("first-read admission quarantine differs")
+        else:
+            _sha256(quarantine_sha256, "first-read admission quarantine binding")
+            if (
+                type(quarantine_channels) is not list
+                or not quarantine_channels
+                or type(value.get("quarantine_code")) is not str
+                or type(value.get("quarantine_confirmed_read")) is not bool
+            ):
+                raise SealedReserveError("first-read admission quarantine differs")
+            channels: list[dict[str, object]] = []
+            for source in quarantine_channels:
+                if not isinstance(source, dict) or set(source) != {
+                    "channel", "sha256", "byte_count", "complete",
+                }:
+                    raise SealedReserveError("first-read admission quarantine differs")
+                row = dict(source)
+                if (
+                    row["channel"] not in {"stdout", "stderr"}
+                    or type(row["byte_count"]) is not int
+                    or row["byte_count"] < 0
+                    or type(row["complete"]) is not bool
+                ):
+                    raise SealedReserveError("first-read admission quarantine differs")
+                _sha256(row["sha256"], "first-read admission quarantine channel")
+                channels.append(row)
+            channels.sort(key=lambda item: str(item["channel"]))
+            binding = {
+                "schema": "graphreader.synthetic-sealed-unclassified-output-binding.v1",
+                "admission_id": value["admission_id"],
+                "set_id": value["set_id"],
+                "read_binding_sha256": value["read_binding_sha256"],
+                "code": value["quarantine_code"],
+                "channels": channels,
+                "confirmed_read": value["quarantine_confirmed_read"],
+            }
+            if (
+                channels != quarantine_channels
+                or len({row["channel"] for row in channels}) != len(channels)
+                or sha256_bytes(canonical_json_bytes(binding)) != quarantine_sha256
+            ):
+                raise SealedReserveError("first-read admission quarantine differs")
         if (
             value["admission_id"] != candidate.stem
             or value["read_binding_sha256"] != value["admission_id"]
         ):
             raise SealedReserveError("first-read admission file identity differs")
         binding_identity = {
-            "schema": "graphreader.synthetic-sealed-first-read-binding.v1",
+            "schema": "graphreader.synthetic-sealed-first-read-binding.v2",
             **{
                 key: value[key]
                 for key in _FIRST_READ_BINDING_IDENTITY_FIELDS
@@ -1352,6 +1409,8 @@ def _record_sealed_read_locked(
     item = _find_set(registry, set_id)
     if item["state"] == "retired":
         raise SealedReserveError("retired sealed reserve sets cannot be reused")
+    if item["set_id"] in held_set_ids:
+        raise SealedReserveError("sealed reserve set is held by an unresolved admission")
     if not isinstance(revision, str) or not revision or revision.strip() != revision:
         raise SealedReserveError("sealed read revision must be nonempty")
     if not isinstance(candidate_id, str) or not candidate_id or candidate_id.strip() != candidate_id:
@@ -1465,7 +1524,11 @@ def record_sealed_read(
     path = _registry_file(repository_root, registry_path)
     with _registry_update_lock(path):
         admissions = _load_first_read_admission_identities(path)
-        active = [item for item in admissions if item["status"] != "void"]
+        active = [
+            item for item in admissions
+            if item["status"] != "void"
+            or item.get("quarantine_binding_sha256") is not None
+        ]
         gate_sha256 = _sha256(gate_identity_sha256, "sealed gate identity hash")
         binding_sha256 = _sha256(read_binding_sha256, "sealed read binding hash")
         if any(
@@ -1485,9 +1548,8 @@ def record_sealed_read(
         held_set_ids = frozenset(
             item["set_id"]
             for item in active
-            if item["status"] in {
-                "ack_intent", "possible_read", "confirmed_read"
-            }
+            if item["status"] in {"ack_intent", "possible_read", "confirmed_read"}
+            or item.get("quarantine_binding_sha256") is not None
         )
         return _record_sealed_read_locked(
             registry_path,
@@ -1543,6 +1605,96 @@ def _record_case_level_disclosure_locked(
     return new_hash
 
 
+def _record_admission_case_level_disclosure_locked(
+    registry_path: Path,
+    repository_root: Path,
+    *,
+    expected_registry_sha256: str,
+    admission_id: str,
+    set_id: str,
+    revision: str,
+    candidate_id: str,
+    gate_identity_sha256: str,
+    read_binding_sha256: str,
+    evidence_sha256: str,
+    disclosures: Sequence[str],
+    confirmed_read: bool,
+) -> str:
+    """Retire from authority-bound metadata and attribute an existing confirmed use."""
+
+    path = _registry_file(repository_root, registry_path)
+    expected = _sha256(expected_registry_sha256, "expected registry hash")
+    if not path.is_file() or sha256_file(path) != expected:
+        raise SealedReserveError("sealed reserve registry differs from the expected SHA-256")
+    registry = load_registry_metadata_only(path, repository_root)
+    item = _find_set(registry, set_id)
+    admission = _sha256(admission_id, "admission identity")
+    binding = _sha256(read_binding_sha256, "sealed read binding hash")
+    if admission != binding:
+        raise SealedReserveError("disclosure admission and read binding differ")
+    gate = _sha256(gate_identity_sha256, "sealed gate identity hash")
+    if not isinstance(revision, str) or not revision or revision.strip() != revision:
+        raise SealedReserveError("disclosure revision must be nonempty")
+    if not isinstance(candidate_id, str) or not candidate_id or candidate_id.strip() != candidate_id:
+        raise SealedReserveError("disclosure candidate identity must be nonempty")
+    if type(confirmed_read) is not bool:
+        raise SealedReserveError("disclosure confirmation state must be boolean")
+    disclosure_list = sorted(set(disclosures))
+    if (
+        not disclosure_list
+        or len(disclosure_list) != len(disclosures)
+        or not set(disclosure_list).issubset(DISCLOSURE_KINDS)
+    ):
+        raise SealedReserveError("case-level retirement requires a disclosure kind")
+    evidence = _sha256(evidence_sha256, "retirement evidence hash")
+
+    exact = [
+        (candidate, use)
+        for candidate in registry["sets"]
+        for use in candidate["uses"]
+        if use["read_binding_sha256"] == binding
+    ]
+    if len(exact) > 1 or (exact and exact[0][0]["set_id"] != item["set_id"]):
+        raise SealedReserveError("disclosure read binding is attributed to another reserve use")
+    use_changed = False
+    if exact:
+        use = exact[0][1]
+        if (
+            use["revision"] != revision
+            or use["candidate_id"] != candidate_id
+            or use["gate_identity_sha256"] != gate
+        ):
+            raise SealedReserveError("disclosure reserve use identity differs from admission")
+        if not confirmed_read:
+            raise SealedReserveError("unconfirmed disclosure cannot own a confirmed reserve use")
+        if use["aggregate_only"] is True and use["disclosures"] == []:
+            use["aggregate_only"] = False
+            use["disclosures"] = disclosure_list
+            use_changed = True
+        elif use["aggregate_only"] is not False or use["disclosures"] != disclosure_list:
+            raise SealedReserveError("disclosure differs from the sealed read use")
+    elif confirmed_read:
+        raise SealedReserveError("confirmed disclosure has no exact sealed read use")
+
+    retirement = {
+        "reason": "case_level_disclosure",
+        "evidence_sha256": evidence,
+        "disclosures": disclosure_list,
+    }
+    if item["state"] == "retired" and item["retirement"] != retirement:
+        raise SealedReserveError("sealed reserve set has conflicting retirement evidence")
+    changed = use_changed or item["state"] != "retired" or item["retirement"] != retirement
+    item["state"] = "retired"
+    item["retirement"] = retirement
+    if not changed:
+        load_registry_metadata_only(path, repository_root)
+        return sha256_file(path)
+    registry["generation"] += 1
+    new_hash = _write_registry(path, registry)
+    load_registry_metadata_only(path, repository_root)
+    return new_hash
+
+
 def record_case_level_disclosure(
     registry_path: Path,
     repository_root: Path,
@@ -1561,6 +1713,39 @@ def record_case_level_disclosure(
             set_id=set_id,
             evidence_sha256=evidence_sha256,
             disclosures=disclosures,
+        )
+
+
+def record_admission_case_level_disclosure(
+    registry_path: Path,
+    repository_root: Path,
+    *,
+    expected_registry_sha256: str,
+    admission_id: str,
+    set_id: str,
+    revision: str,
+    candidate_id: str,
+    gate_identity_sha256: str,
+    read_binding_sha256: str,
+    evidence_sha256: str,
+    disclosures: Sequence[str],
+    confirmed_read: bool,
+) -> str:
+    path = _registry_file(repository_root, registry_path)
+    with _registry_update_lock(path):
+        return _record_admission_case_level_disclosure_locked(
+            registry_path,
+            repository_root,
+            expected_registry_sha256=expected_registry_sha256,
+            admission_id=admission_id,
+            set_id=set_id,
+            revision=revision,
+            candidate_id=candidate_id,
+            gate_identity_sha256=gate_identity_sha256,
+            read_binding_sha256=read_binding_sha256,
+            evidence_sha256=evidence_sha256,
+            disclosures=disclosures,
+            confirmed_read=confirmed_read,
         )
 
 
@@ -1668,6 +1853,7 @@ __all__ = [
     "first_read_admission_directory",
     "first_read_admission_path",
     "first_read_admission_identities",
+    "record_admission_case_level_disclosure",
     "record_case_level_disclosure",
     "record_sealed_read",
     "register_reserve_set",
