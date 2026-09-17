@@ -1,0 +1,234 @@
+{
+  "schema": "graphreader.goal22.v44-error-diagnosis.v1",
+  "status": "diagnosis_complete_next_runtime_experiment_pending",
+  "scope": "Authenticated project-owned synthetic train/dev evidence from the closed V44 outcome. No inference, optimizer work, private data, sealed data, threshold change, model selection, or production approval.",
+  "closed_outcome": {
+    "path": "ml/ocr/text_extent_db_head_v44/P1_RESULT.json",
+    "sha256": "0fc4420747c3b7abf3259ffb9233676d6bc8c291dc54342b8571f335461d9024",
+    "status": "failed_dev_unconsumed",
+    "selected_epoch": 239,
+    "completed_epochs": 240,
+    "optimizer_steps": 6720
+  },
+  "diagnostic_evidence": {
+    "path": "artifacts/goal22-runs/ocr-v44-text-extent/diagnosis-notes-authenticated.json",
+    "sha256": "a6aa1f2ab0e3504d8af922fdfa3fab8ff5c28f7b55217d1b828eb8d7ab9c84b9",
+    "script": {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_text_extent_v44.py",
+      "sha256": "2a998e114743cb5c89c6c839351ea0f472cedc7816455cc42a5fa8b05a289a64"
+    },
+    "authentication": {
+      "closed_outcome_references_verified": [
+        "full_score",
+        "application_evaluation",
+        "candidate",
+        "protocol",
+        "source_snapshot",
+        "acceptance_bars"
+      ],
+      "score_preflight_binding_chain_verified": true,
+      "full_score_source_bindings_verified": 8,
+      "v44_snapshot_generator_and_metric_sources_verified": 10,
+      "v43_document_and_geometry_binding_verified": true
+    }
+  },
+  "runtime_identity": {
+    "input_mode": "production_decoded_original_bgr_db",
+    "detector_postprocess": "manifest_bound_unchanged_db_postprocess",
+    "detector": {
+      "model_id": "graph-text-extent-db-head-v44-p1",
+      "version": "0.0.1",
+      "sha256": "615495cc882b6ae8633081d89c3ab08c0d4a80a04aa36bbde4157fc7828f5923",
+      "provider": "cpu"
+    },
+    "recognizer": {
+      "model_id": "en_PP-OCRv5_mobile_rec",
+      "version": "5.0.0",
+      "sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+      "provider": "cpu"
+    },
+    "role_classifier": "graph-text-role-classifier-v2",
+    "application_assembly_sha256": "53f1a3d0352b5c85c57ef21917e38d6e00d6f61d5546fb3976221c1f61e67578",
+    "ocr_assembly_sha256": "7a19d76db49863d393d1717cbbf42c14625dd69dc132247cea9dd420336cd701",
+    "inference_assembly_sha256": "201830c8a8eeba1af11350752209f3805d7b314f881252b94757d443da934930",
+    "native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31"
+  },
+  "complete_ocr_metrics": {
+    "train": {
+      "truth_regions": 709,
+      "predicted_regions": 644,
+      "matched_regions": 624,
+      "false_positives": 20,
+      "false_negatives": 85,
+      "precision": 0.968944099378882,
+      "recall": 0.8801128349788434,
+      "recognition_exact_count": 396,
+      "recognition_exact_accuracy": 0.5585331452750353,
+      "character_errors": 1425,
+      "truth_characters": 3415,
+      "character_error_rate": 0.4172767203513909,
+      "role_correct_count": 385,
+      "role_accuracy": 0.5430183356840621
+    },
+    "dev": {
+      "truth_regions": 183,
+      "predicted_regions": 187,
+      "matched_regions": 139,
+      "false_positives": 48,
+      "false_negatives": 44,
+      "precision": 0.7433155080213903,
+      "recall": 0.7595628415300546,
+      "recognition_exact_count": 126,
+      "recognition_exact_accuracy": 0.6885245901639344,
+      "character_errors": 624,
+      "truth_characters": 1019,
+      "character_error_rate": 0.6123650637880275,
+      "role_correct_count": 98,
+      "role_accuracy": 0.5355191256830601,
+      "matched_pair_character_errors": 39,
+      "unmatched_truth_deletion_errors": 328,
+      "unmatched_prediction_insertion_errors": 257,
+      "geometry_driven_character_error_fraction": 0.9375
+    },
+    "recognition_execution_failures": 0,
+    "all_five_dev_bars_passed": false
+  },
+  "v43_to_v44_dev_geometry": {
+    "total_matched_delta": 4,
+    "false_positive_delta": -2,
+    "false_negative_delta": -4,
+    "by_generator_role": {
+      "annotation": 1,
+      "axis_title": 0,
+      "condition_label": 1,
+      "legend_text": 0,
+      "participant": 0,
+      "phase_heading": -1,
+      "x_tick": 4,
+      "y_tick": -1
+    },
+    "interpretation": "The intended extent treatment did not improve legend geometry and added only one condition-label match. The net gain is concentrated in x ticks, outside the treated long-text subsets. The width-only causal hypothesis is rejected for the target legend failure mode."
+  },
+  "dev_role_partition": {
+    "annotation": {
+      "truth": 18,
+      "matched": 16,
+      "missed": 2,
+      "role_correct": 4,
+      "matched_confusion": {
+        "annotation": 4,
+        "other": 4,
+        "phaseheading": 8
+      }
+    },
+    "axis_title": {
+      "truth": 12,
+      "matched": 10,
+      "missed": 2,
+      "role_correct": 3,
+      "matched_confusion": {
+        "axistitle": 3,
+        "other": 7
+      }
+    },
+    "condition_label": {
+      "truth": 30,
+      "matched": 19,
+      "missed": 11,
+      "role_correct": 19,
+      "matched_confusion": {
+        "phaseheading": 19
+      }
+    },
+    "legend_text": {
+      "truth": 11,
+      "matched": 1,
+      "missed": 10,
+      "role_correct": 0,
+      "matched_confusion": {
+        "annotation": 1
+      }
+    },
+    "participant": {
+      "truth": 9,
+      "matched": 9,
+      "missed": 0,
+      "role_correct": 0,
+      "recognition_exact": 0,
+      "matched_character_errors": 31,
+      "matched_confusion": {
+        "other": 9
+      }
+    },
+    "phase_heading": {
+      "truth": 30,
+      "matched": 23,
+      "missed": 7,
+      "role_correct": 11,
+      "matched_confusion": {
+        "other": 12,
+        "phaseheading": 11
+      }
+    },
+    "x_tick": {
+      "truth": 48,
+      "matched": 40,
+      "missed": 8,
+      "role_correct": 40
+    },
+    "y_tick": {
+      "truth": 25,
+      "matched": 21,
+      "missed": 4,
+      "role_correct": 21
+    }
+  },
+  "responsible_subsystems": [
+    {
+      "subsystem": "DB region geometry and line assembly",
+      "observed": "All nine participant truths are represented by a main-word region plus a separate numeric-suffix region. Main-word boxes are 85 to 96 pixels wide while participant truth boxes are 110 to 111 pixels wide. Merging the observed pairs yields IoU 0.6522 to 0.8598, with median 0.7276.",
+      "effect": "The IoU 0.5 scorer counts the main word as a geometry match, but the recognizer cannot emit the full participant label. The suffix becomes a false positive, exact recognition is 0/9, and role classification loses the complete cue.",
+      "causal_confidence": "high for the nine synthetic dev participant labels"
+    },
+    {
+      "subsystem": "Runtime semantic-context population",
+      "observed": "All 187 dev raw regions carry null semantic context. The classifier supports participant-band, legend-glyph, phase-divider, and annotation-arrow context, while the current enrichment path populates only axis-title context. All nine participant fragments receive the ambiguous-peripheral warning, and the sole matched compact legend is classified Annotation.",
+      "effect": "Context-free fallback rules convert detector fragmentation into role errors. This explains matched participant and matched legend role failures, not the ten legend geometry misses.",
+      "causal_confidence": "high for the observed matched-region role decisions; broader production impact remains untested"
+    },
+    {
+      "subsystem": "Compact-legend localization",
+      "observed": "Legend geometry remains 1/11 from V43 to V44. Eight of ten missed legends have a nonzero overlapping proposal, seven with nearest IoU from 0.25 through 0.50.",
+      "effect": "The detector usually retains partial legend evidence but fails full-box localization. The treated long-text extent schedule did not correct this compact-layout mode.",
+      "causal_confidence": "moderate; proposal overlap is measured, but renderer, font, degradation, template, and marker family remain coupled"
+    }
+  ],
+  "next_bounded_action": {
+    "priority": "Evaluate deterministic line assembly before training another detector head.",
+    "hypothesis": "A frozen geometry-only pass that merges horizontally adjacent, vertically aligned DB regions before recognition can repair whitespace-fragmented multi-token regions without changing detector weights or thresholds.",
+    "required_evidence": [
+      "Choose one generic rule from train geometry only, then apply it once to all train and dev raw boxes within panel coordinates.",
+      "Report recovered truth pairs, merges spanning different truths, complete source-space geometry totals, and unchanged full truth denominators.",
+      "Do not invent merged recognition text. Recognition and role effects remain pending a real runtime implementation and complete-OCR replay.",
+      "If implemented, add end-to-end evidence that semantic context is produced from non-truth layout inputs. Existing unit tests that inject context do not prove runtime population."
+    ],
+    "prohibited_followup": [
+      "No duration extension or new width-only trained candidate on this evidence.",
+      "No threshold, IoU gate, or role-label change.",
+      "No participant identifier or dev-text whitelist."
+    ]
+  },
+  "limitations": [
+    "The three dev sources form one coupled held-out family, so renderer, font, degradation, template, and marker effects cannot be isolated.",
+    "The matcher uses source-space IoU 0.5. A geometry match can still be a crop that is incomplete for recognition.",
+    "The diagnosis inspects current role-classifier source and observed runtime warnings but does not replay alternate contexts.",
+    "The proposed line-assembly rule has not yet been frozen, executed, or validated."
+  ],
+  "license_review": "No dependency, model, weight, data source, or license change. Existing reviewed Apache-2.0 PaddleOCR detector parent and recognizer only.",
+  "optimizer_steps": 0,
+  "model_inference": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "acceptance_status": "FAIL"
+}
