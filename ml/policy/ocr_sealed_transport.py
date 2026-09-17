@@ -34,6 +34,15 @@ _EVENT_CAPACITY = 8
 _MAX_SOURCES = 128
 _MAX_REGIONS_PER_SOURCE = 1024
 _MAX_REGIONS_PER_CORPUS = 16384
+# The worker emits only these constant diagnostics on handled failure. Match
+# the entire channel by length and hash so appended case content never inherits
+# their safe classification. No arbitrary runtime stderr is allowlisted.
+_SAFE_WORKER_STDERR = {
+    (len(payload), hashlib.sha256(payload).hexdigest())
+    for message in (b"ORIGINAL_DB_SEALED_WORKER_CANCELLED", b"ORIGINAL_DB_SEALED_WORKER_FAILED")
+    for ending in (b"\n", b"\r\n")
+    for payload in (message + ending,)
+}
 
 _ENVELOPE_FIELDS = {
     "schema", "status", "split", "acceptance_scope", "attempt_id",
@@ -88,6 +97,24 @@ class OcrSealedDisclosureError(OcrSealedTransportError):
         self.disclosures = categories
         self.evidence_sha256 = evidence_sha256
         super().__init__("OCR_SEALED_TRANSPORT_CASE_DATA_DISCLOSURE")
+
+
+class OcrSealedUnclassifiedOutputError(OcrSealedTransportError):
+    """Output whose aggregate-only nature is unproven, not known disclosure."""
+
+    def __init__(self, channels: Sequence[Mapping[str, object]],
+                 code: str = "OCR_SEALED_TRANSPORT_UNCLASSIFIED_OUTPUT"):
+        rows = tuple(dict(row) for row in channels)
+        if (not rows or len(rows) > 2 or len({row.get("channel") for row in rows}) != len(rows)
+                or any(set(row) != {"channel", "sha256", "byte_count", "complete"}
+                       or row["channel"] not in {"stdout", "stderr"}
+                       or type(row["sha256"]) is not str or _SHA256.fullmatch(row["sha256"]) is None
+                       or type(row["byte_count"]) is not int or row["byte_count"] < 0
+                       or type(row["complete"]) is not bool for row in rows)
+                or type(code) is not str or not re.fullmatch(r"OCR_SEALED_TRANSPORT_[A-Z_]+", code)):
+            raise ValueError("Invalid unclassified output metadata")
+        self.channels = rows
+        super().__init__(code)
 
 
 def _check_disclosure_frame(frame: bytes) -> None:
@@ -351,19 +378,54 @@ class _PipeState:
     def __init__(self) -> None:
         self.lock = threading.Lock()
         self.unsafe = False
+        self.unsafe_channels: set[str] = set()
         self.stdout_done = threading.Event()
         self.stderr_done = threading.Event()
         self.stderr_hash = hashlib.sha256()
         self.stderr_count = 0
+        self.stdout_hash = hashlib.sha256()
+        self.stdout_count = 0
+        self.stdout_complete = False
+        self.stderr_complete = False
+        self.started_channels: set[str] = set()
 
-    def mark_unsafe(self) -> None:
+    def start(self, channel: str) -> None:
+        with self.lock:
+            self.started_channels.add(channel)
+
+    def mark_unsafe(self, channel: str = "stdout") -> None:
         with self.lock:
             self.unsafe = True
+            self.unsafe_channels.add(channel)
 
     def add_stderr(self, payload: bytes) -> None:
         with self.lock:
             self.stderr_hash.update(payload)
             self.stderr_count += len(payload)
+
+    def add_stdout(self, payload: bytes) -> None:
+        with self.lock:
+            self.stdout_hash.update(payload)
+            self.stdout_count += len(payload)
+
+    def complete(self, channel: str) -> None:
+        with self.lock:
+            setattr(self, f"{channel}_complete", True)
+
+    def unclassified_channels(self, classified_stdout_bytes: int) -> tuple[dict[str, object], ...]:
+        with self.lock:
+            rows = []
+            if ("stdout" in self.unsafe_channels or self.stdout_count != classified_stdout_bytes
+                    or ("stdout" in self.started_channels and not self.stdout_complete)):
+                rows.append({"channel": "stdout", "sha256": self.stdout_hash.hexdigest(),
+                             "byte_count": self.stdout_count, "complete": self.stdout_complete})
+            safe_stderr = (self.stderr_complete and
+                           (self.stderr_count, self.stderr_hash.hexdigest()) in _SAFE_WORKER_STDERR)
+            if ((self.stderr_count and not safe_stderr) or "stderr" in self.unsafe_channels
+                    or ("stderr" in self.started_channels and not self.stderr_complete)):
+                rows.append({"channel": "stderr", "sha256": self.stderr_hash.hexdigest(),
+                             "byte_count": self.stderr_count, "complete": self.stderr_complete})
+            return tuple(rows)
 
     def snapshot(self) -> tuple[bool, str, int]:
         with self.lock:
@@ -375,7 +437,9 @@ def _stdout_reader(stream: BinaryIO, events: Queue[bytes], state: _PipeState) ->
         while True:
             frame = stream.readline(_MAX_STDOUT_FRAME_BYTES + 1)
             if not frame:
+                state.complete("stdout")
                 return
+            state.add_stdout(frame)
             if len(frame) > _MAX_STDOUT_FRAME_BYTES or not frame.endswith(b"\n"):
                 state.mark_unsafe()
                 continue
@@ -394,10 +458,11 @@ def _stderr_reader(stream: BinaryIO, state: _PipeState) -> None:
         while True:
             payload = stream.read(_STDERR_CHUNK_BYTES)
             if not payload:
+                state.complete("stderr")
                 return
             state.add_stderr(payload)
     except BaseException:
-        state.mark_unsafe()
+        state.mark_unsafe("stderr")
     finally:
         state.stderr_done.set()
 
@@ -491,6 +556,7 @@ def run_ocr_sealed_worker(
     write_lock = threading.Lock()
     ack_writes = 0
     ack_invalid = False
+    classified_stdout_bytes = 0
 
     def remaining() -> float:
         value = deadline - time.monotonic()
@@ -512,7 +578,8 @@ def run_ocr_sealed_worker(
             threading.Thread(target=_stdout_reader, args=(process.stdout, events, state), daemon=True),
             threading.Thread(target=_stderr_reader, args=(process.stderr, state), daemon=True),
         ]
-        for thread in threads:
+        for channel, thread in zip(("stdout", "stderr"), threads, strict=True):
+            state.start(channel)
             thread.start()
 
         while True:
@@ -543,6 +610,7 @@ def run_ocr_sealed_worker(
                     raise _fail("OCR_SEALED_TRANSPORT_PROTOCOL_INVALID")
                 first_read_seen = True
                 nonce = request_nonce
+                classified_stdout_bytes += len(frame)
 
                 expected_ack = f"{_ACK_PREFIX} {request_nonce}\n"
 
@@ -581,6 +649,7 @@ def run_ocr_sealed_worker(
                     expected.attempt_id, expected.candidate_sha256, nonce,
                 ):
                     raise _fail("OCR_SEALED_TRANSPORT_POSITIVE_READ_INVALID")
+                classified_stdout_bytes += len(frame)
                 remaining()
                 try:
                     confirm_positive_read(attempt, candidate, receipt_nonce)
@@ -594,6 +663,7 @@ def run_ocr_sealed_worker(
             if not positive_confirmed:
                 raise _fail("OCR_SEALED_TRANSPORT_POSITIVE_READ_MISSING")
             result = validate_result_envelope(_decode_json(line), expected)
+            classified_stdout_bytes += len(frame)
 
         return_code = process.wait(timeout=remaining())
         if return_code != 0:
@@ -622,6 +692,7 @@ def run_ocr_sealed_worker(
     except BaseException:
         raise _fail("OCR_SEALED_TRANSPORT_FAILED") from None
     finally:
+        failure = sys.exception()
         active = False
         cleanup_failed = False
         if process is not None:
@@ -636,7 +707,13 @@ def run_ocr_sealed_worker(
         for thread in threads:
             thread.join(timeout=1)
             cleanup_failed = cleanup_failed or thread.is_alive()
-        if cleanup_failed and not isinstance(sys.exception(), OcrSealedDisclosureError):
+        if not isinstance(failure, OcrSealedDisclosureError):
+            channels = state.unclassified_channels(classified_stdout_bytes)
+            if channels:
+                code = (failure.code if isinstance(failure, OcrSealedTransportError)
+                        else "OCR_SEALED_TRANSPORT_UNCLASSIFIED_OUTPUT")
+                raise OcrSealedUnclassifiedOutputError(channels, code) from None
+        if cleanup_failed and not isinstance(failure, OcrSealedDisclosureError):
             raise _fail("OCR_SEALED_TRANSPORT_CLEANUP_FAILED")
 
 
@@ -647,6 +724,7 @@ __all__ = [
     "OcrSealedRequestIdentity",
     "OcrSealedTransportError",
     "OcrSealedDisclosureError",
+    "OcrSealedUnclassifiedOutputError",
     "OcrSealedTransportResult",
     "RESULT_SCHEMA",
     "run_ocr_sealed_worker",

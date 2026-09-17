@@ -19,6 +19,7 @@ from ml.policy.ocr_sealed_transport import (
     OcrSealedRequestIdentity,
     OcrSealedTransportError,
     OcrSealedDisclosureError,
+    OcrSealedUnclassifiedOutputError,
     RESULT_SCHEMA,
     run_ocr_sealed_worker,
     validate_result_envelope,
@@ -36,6 +37,11 @@ import time
 
 scenario, attempt, candidate, nonce, encoded = sys.argv[1:]
 result = base64.b64decode(encoded).decode("utf-8")
+if scenario in {"known_failure_pre_ack", "unknown_pre_ack"}:
+    sys.stderr.write("ORIGINAL_DB_SEALED_WORKER_FAILED\n" if scenario == "known_failure_pre_ack"
+                     else "private-unclassified-output\n")
+    sys.stderr.flush()
+    raise SystemExit(9)
 first = f"G22_FIRST_READ/1 {attempt} {candidate} {nonce}"
 if scenario == "wrong_first_identity":
     first = f"G22_FIRST_READ/1 wrong-attempt {candidate} {nonce}"
@@ -57,6 +63,13 @@ if scenario == "unsafe_output":
 if scenario != "missing_receipt":
     receipt_nonce = ("0" * 64) if scenario == "bad_receipt" else nonce
     print(f"G22_POSITIVE_READ/1 {attempt} {candidate} {receipt_nonce}", flush=True)
+if scenario in {"malformed_json", "oversized_json", "unterminated_output"}:
+    payload = {"malformed_json": '{"unknown":"private-fragment"',
+               "oversized_json": '{"unknown":"' + ('x' * (300 * 1024)) + '"}',
+               "unterminated_output": 'private-no-newline'}[scenario]
+    sys.stdout.write(payload + ("" if scenario == "unterminated_output" else "\n"))
+    sys.stdout.flush()
+    raise SystemExit(9)
 print(result, flush=True)
 if scenario == "duplicate_result":
     print(result, flush=True)
@@ -192,7 +205,7 @@ def expect_error(tmp_path: Path, scenario: str, code: str, value: str | None = N
     assert "secret-case-output" not in str(caught.value)
 
 
-def test_valid_exchange_and_stderr_flood(tmp_path: Path) -> None:
+def test_valid_exchange_has_only_aggregate_output(tmp_path: Path) -> None:
     result, events = run(tmp_path)
     assert result.envelope == envelope()
     assert result.stderr_byte_count == 0
@@ -200,9 +213,97 @@ def test_valid_exchange_and_stderr_flood(tmp_path: Path) -> None:
         ("ack", identity().attempt_id, NONCE),
         ("positive", identity().attempt_id, HASH, NONCE),
     ]
-    flooded, _ = run(tmp_path, "stderr_flood")
-    assert flooded.stderr_byte_count == 1024 * 1024
-    assert flooded.stderr_sha256 == hashlib.sha256(b"x" * (1024 * 1024)).hexdigest()
+
+
+def test_unknown_stderr_cannot_pass_as_aggregate_only(tmp_path: Path) -> None:
+    with pytest.raises(OcrSealedUnclassifiedOutputError) as caught:
+        run(tmp_path, "stderr_flood")
+    stderr, = [row for row in caught.value.channels if row["channel"] == "stderr"]
+    assert stderr["byte_count"] == 1024 * 1024
+    assert stderr["sha256"] == hashlib.sha256(b"x" * (1024 * 1024)).hexdigest()
+    assert not hasattr(caught.value, "disclosures")
+    assert not hasattr(caught.value, "payload")
+
+
+@pytest.mark.parametrize("scenario", ["malformed_json", "oversized_json", "unterminated_output"])
+@pytest.mark.parametrize("cleanup_failure", [False, True])
+def test_unclassified_stdout_keeps_only_channel_metadata(tmp_path: Path, scenario: str,
+                                                       cleanup_failure: bool, monkeypatch) -> None:
+    if cleanup_failure:
+        from ml.policy import ocr_sealed_transport as transport
+        stop = transport._stop_process
+        def reported_failure(process):
+            stop(process)
+            return False
+        monkeypatch.setattr(transport, "_stop_process", reported_failure)
+    events, ack, positive = callbacks()
+    with pytest.raises(OcrSealedUnclassifiedOutputError) as caught:
+        run_ocr_sealed_worker(command(scenario), tmp_path, identity(), ack, positive, timeout_seconds=10)
+    stdout, = [row for row in caught.value.channels if row["channel"] == "stdout"]
+    assert set(stdout) == {"channel", "sha256", "byte_count", "complete"}
+    assert stdout["byte_count"] > 0 and len(stdout["sha256"]) == 64
+    assert "private" not in str(caught.value) and "private" not in repr(caught.value.channels)
+    assert not hasattr(caught.value, "disclosures")
+
+
+@pytest.mark.parametrize("scenario, unclassified", [("known_failure_pre_ack", False), ("unknown_pre_ack", True)])
+def test_constant_pre_ack_diagnostic_is_distinct_from_unknown_output(tmp_path: Path, scenario: str,
+                                                                  unclassified: bool) -> None:
+    events, ack, positive = callbacks()
+    with pytest.raises(OcrSealedTransportError) as caught:
+        run_ocr_sealed_worker(command(scenario), tmp_path, identity(), ack, positive, timeout_seconds=10)
+    assert isinstance(caught.value, OcrSealedUnclassifiedOutputError) is unclassified
+    assert not isinstance(caught.value, OcrSealedDisclosureError)
+    assert events == []
+
+
+@pytest.mark.parametrize("ending", [b"\n", b"\r\n"])
+def test_safe_stderr_requires_the_exact_complete_channel(ending: bytes) -> None:
+    from ml.policy.ocr_sealed_transport import _PipeState
+    state = _PipeState()
+    state.start("stderr")
+    payload = b"ORIGINAL_DB_SEALED_WORKER_FAILED" + ending
+    state.add_stderr(payload)
+    assert state.unclassified_channels(0)[0]["complete"] is False
+    state.complete("stderr")
+    assert state.unclassified_channels(0) == ()
+    state.add_stderr(b"x")
+    assert state.unclassified_channels(0)[0]["sha256"] == hashlib.sha256(payload + b"x").hexdigest()
+
+
+def test_incomplete_reader_preserves_typed_evidence_even_without_observed_bytes(tmp_path: Path, monkeypatch) -> None:
+    import threading
+    from ml.policy import ocr_sealed_transport as transport
+    release = threading.Event()
+    readers = []
+    def stuck_stderr(_stream, state):
+        readers.append(threading.current_thread())
+        release.wait(30)
+        state.stderr_done.set()
+    monkeypatch.setattr(transport, "_stderr_reader", stuck_stderr)
+    events, ack, positive = callbacks()
+    try:
+        with pytest.raises(OcrSealedUnclassifiedOutputError) as caught:
+            run_ocr_sealed_worker(command("valid"), tmp_path, identity(), ack, positive, timeout_seconds=1)
+        stderr, = [row for row in caught.value.channels if row["channel"] == "stderr"]
+        assert stderr == {"channel": "stderr", "sha256": hashlib.sha256(b"").hexdigest(),
+                          "byte_count": 0, "complete": False}
+    finally:
+        release.set()
+        for reader in readers:
+            reader.join(timeout=2)
+            assert not reader.is_alive()
+
+
+def test_unclassified_metadata_keeps_both_channels_without_content() -> None:
+    from ml.policy.ocr_sealed_transport import _PipeState
+    state = _PipeState()
+    assert state.unclassified_channels(0) == ()  # No reader ever started.
+    state.add_stdout(b"unclassified stdout")
+    state.add_stderr(b"unclassified stderr")
+    rows = state.unclassified_channels(0)
+    assert [row["channel"] for row in rows] == ["stdout", "stderr"]
+    assert all(set(row) == {"channel", "sha256", "byte_count", "complete"} for row in rows)
 
 
 @pytest.mark.parametrize(

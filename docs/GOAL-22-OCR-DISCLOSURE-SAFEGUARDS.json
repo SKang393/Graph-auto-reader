@@ -1,24 +1,49 @@
 {
   "schema": "graphreader.goal22.ocr-disclosure-safeguards.v1",
-  "date": "2026-09-15",
-  "status": "fixture_verified_no_sealed_evaluation",
+  "date": "2026-09-17",
+  "status": "transport_verified_parent_quarantine_pending",
   "changes": [
-    "Classify explicit case data in bounded complete JSON stdout frames using category names and a frame hash only.",
-    "Preserve the typed disclosure when child cleanup also reports failure.",
-    "Retire disclosed sets using registry metadata without reopening registered archive payloads."
+    "Retain explicit case-output categories and frame hash through cleanup failure.",
+    "Classify unproven output separately with channel, rolling SHA-256, byte count and completeness only.",
+    "Reject unknown stderr, incomplete readers and unvalidated stdout from a successful aggregate result.",
+    "Treat only the two exact complete C# constant failure diagnostics, with LF or CRLF, as known safe."
+  ],
+  "sources": [
+    {
+      "path": "ml/policy/ocr_sealed_transport.py",
+      "sha256": "7d5a58b952438d700cec37e89827b50b469c47566d4ea1b047f6886e8ba1e2e2"
+    },
+    {
+      "path": "ml/policy/tests/test_ocr_sealed_transport.py",
+      "sha256": "235a4412918ed642f7245b8be4ead8c4bc67179474b8bf4808bd94c51a72045e"
+    }
   ],
   "validation": {
-    "combined_batch_passed": 71,
-    "combined_batch_failed": 0,
-    "seconds": 33.28,
-    "transport_tests_passed": 24,
-    "metadata_retirement_tests_passed": 1,
+    "passed": 37,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "pytest_seconds": 11.8,
+    "junit_seconds": 10.594,
+    "command": "python -m pytest ml/policy/tests/test_ocr_sealed_transport.py -q -p no:cacheprovider --basetemp artifacts/pytest-goal22-transport-unknown-20260917b --junitxml artifacts/goal22-runs/ocr-transport-unclassified-final-tests.xml",
+    "junit": {
+      "path": "artifacts/goal22-runs/ocr-transport-unclassified-final-tests.xml",
+      "sha256": "ef098e3bb960c47974fe609c8b8cdfa55cf64690965340bcdb29870a8e71dad3"
+    },
     "job_cpu_rate": 333
   },
+  "independent_review": {
+    "date": "2026-09-17",
+    "reviewer": "gpt-5.6-sol high",
+    "scope": "transport and handwritten fixture tests only",
+    "result": "no remaining blocking transport finding",
+    "repaired_finding": "Started but incomplete zero-byte readers now retain typed uncertainty through cleanup failure."
+  },
   "limitations": [
-    "Malformed prose, oversized frames and stderr are rejected or bounded but are not automatically classified as case disclosure.",
-    "The parent evaluator and its production full-score authenticator remain unfinished; these changes do not authorize a sealed run.",
-    "Independent subagents are unavailable because they reported workspace credit exhaustion; lead source review and fixtures provide the current verification."
+    "Parent admission must persist the typed uncertainty and quarantine possible or confirmed reads without claiming known case disclosure. That integration remains in progress.",
+    "Parent recovery evidence identity, durable known-disclosure binding and candidate-use attribution repairs remain in progress.",
+    "Known-safe diagnostics do not include arbitrary ONNX warnings or messages. Other output is unclassified, not automatically labeled as confirmed disclosure.",
+    "No actual model, private-corpus, registered sealed or normal Production run was performed by these tests."
   ],
   "registered_sealed_reads": 0,
   "private_reads": 0,
