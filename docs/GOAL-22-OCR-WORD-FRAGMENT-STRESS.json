@@ -383,5 +383,5 @@
     "independent_source_review": "Sol High clear at the recorded comparison helper hash",
     "inference": false
   },
-  "next_step": "Evaluate one train-informed stronger-alignment condition on authenticated cached train/dev raw boxes: add vertical-center separation no greater than 0.10 times maximum word height to the unchanged generic rule. No parameter sweep; no model inference or approval."
+  "next_step": "The one stronger-alignment trial completed and was rejected: it loses seven train and five dev raw-baseline matches. See GOAL-22-OCR-ALIGNED-WORD-ASSEMBLY.json. Layout or graphic relations and detector fragmentation require diagnosis before another trial."
 }

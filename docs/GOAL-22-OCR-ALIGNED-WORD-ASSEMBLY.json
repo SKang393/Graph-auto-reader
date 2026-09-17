@@ -1,0 +1,303 @@
+{
+  "schema": "graphreader.goal22.ocr-aligned-word-assembly.v1",
+  "status": "train_informed_alignment_rule_rejected",
+  "scope": "Authenticated cached synthetic train/dev raw OCR geometry only.",
+  "result": {
+    "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/aligned-word-assembly-run1.json",
+    "sha256": "ebb3f432d4f774bc9494f09613ef17afee6495f9e8eec6f21b0f0bc689be2753"
+  },
+  "script": {
+    "path": "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_aligned_word_assembly_v44.py",
+    "sha256": "2d6739bfba2182271ade04533ef91588eedd1c0a8af05ce0386e6a70d4170e10"
+  },
+  "rule": {
+    "basis": "generic-v1 criteria plus one strong vertical-center alignment condition",
+    "coordinate_space": "panel pixels before source projection and source-space scoring",
+    "formula": "abs(center_y_left-center_y_right)/max(height_left,height_right) <= 0.10",
+    "generic_v1_criteria_retained_unchanged": true,
+    "maximum_vertical_center_offset_height_ratio": 0.1,
+    "selection": "One train-informed engineering trial. Threshold 0.10 was fixed from the authenticated comparison where stress positives had median 0.03846 and actual generic-v1 cross-truth train crossings had minimum 0.13158. No threshold sweep was performed; dev was evaluated once after fixing the rule.",
+    "stress_coordinate_space": "original source pixels; the normalized alignment ratio is translation invariant",
+    "uses_text_or_truth_to_form_groups": false
+  },
+  "geometry_results": {
+    "train": {
+      "aligned_cross_truth_merger_count": 4,
+      "aligned_cross_truth_role_sets": {
+        "condition_label": 4
+      },
+      "aligned_delta_from_generic_v1": {
+        "false_negatives": -26,
+        "false_positives": -5,
+        "predicted_region_count": 21,
+        "true_positives": 26
+      },
+      "aligned_delta_from_raw": {
+        "false_negatives": 7,
+        "false_positives": 2,
+        "predicted_region_count": -5,
+        "true_positives": -7
+      },
+      "aligned_lost_truth_count": 8,
+      "aligned_recovered_truth_count": 1,
+      "aligned_rule": {
+        "false_negatives": 92,
+        "false_positives": 22,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.9655712050078247,
+        "predicted_region_count": 639,
+        "recall": 0.8702397743300423,
+        "true_positives": 617,
+        "truth_region_count": 709
+      },
+      "by_generator_role": {
+        "annotation": {
+          "assembled_matched_count": 56,
+          "baseline_matched_count": 56,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 60
+        },
+        "axis_title": {
+          "assembled_matched_count": 35,
+          "baseline_matched_count": 35,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 50
+        },
+        "condition_label": {
+          "assembled_matched_count": 64,
+          "baseline_matched_count": 72,
+          "lost_count": 8,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 80
+        },
+        "legend_text": {
+          "assembled_matched_count": 30,
+          "baseline_matched_count": 29,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 1,
+          "recovered_count": 1,
+          "truth_count": 30
+        },
+        "participant": {
+          "assembled_matched_count": 30,
+          "baseline_matched_count": 30,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 30
+        },
+        "phase_heading": {
+          "assembled_matched_count": 78,
+          "baseline_matched_count": 78,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 80
+        },
+        "x_tick": {
+          "assembled_matched_count": 152,
+          "baseline_matched_count": 152,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 175
+        },
+        "y_tick": {
+          "assembled_matched_count": 172,
+          "baseline_matched_count": 172,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 204
+        }
+      },
+      "full_truth_denominator": 709,
+      "generic_v1": {
+        "false_negatives": 118,
+        "false_positives": 27,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.9563106796116505,
+        "predicted_region_count": 618,
+        "recall": 0.8335684062059239,
+        "true_positives": 591,
+        "truth_region_count": 709
+      },
+      "generic_v1_cross_truth_merger_count": 21,
+      "raw_baseline": {
+        "false_negatives": 85,
+        "false_positives": 20,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.968944099378882,
+        "predicted_region_count": 644,
+        "recall": 0.8801128349788434,
+        "true_positives": 624,
+        "truth_region_count": 709
+      }
+    },
+    "validation": {
+      "aligned_cross_truth_merger_count": 5,
+      "aligned_cross_truth_role_sets": {
+        "condition_label+phase_heading": 5
+      },
+      "aligned_delta_from_generic_v1": {
+        "false_negatives": -4,
+        "false_positives": 1,
+        "predicted_region_count": 5,
+        "true_positives": 4
+      },
+      "aligned_delta_from_raw": {
+        "false_negatives": 5,
+        "false_positives": -15,
+        "predicted_region_count": -20,
+        "true_positives": -5
+      },
+      "aligned_lost_truth_count": 8,
+      "aligned_recovered_truth_count": 3,
+      "aligned_rule": {
+        "false_negatives": 49,
+        "false_positives": 33,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.8023952095808383,
+        "predicted_region_count": 167,
+        "recall": 0.73224043715847,
+        "true_positives": 134,
+        "truth_region_count": 183
+      },
+      "by_generator_role": {
+        "annotation": {
+          "assembled_matched_count": 16,
+          "baseline_matched_count": 16,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 18
+        },
+        "axis_title": {
+          "assembled_matched_count": 10,
+          "baseline_matched_count": 10,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 12
+        },
+        "condition_label": {
+          "assembled_matched_count": 16,
+          "baseline_matched_count": 19,
+          "lost_count": 3,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 30
+        },
+        "legend_text": {
+          "assembled_matched_count": 3,
+          "baseline_matched_count": 1,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 2,
+          "recovered_count": 2,
+          "truth_count": 11
+        },
+        "participant": {
+          "assembled_matched_count": 9,
+          "baseline_matched_count": 9,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 9
+        },
+        "phase_heading": {
+          "assembled_matched_count": 19,
+          "baseline_matched_count": 23,
+          "lost_count": 5,
+          "recovered_by_multi_region_group_count": 1,
+          "recovered_count": 1,
+          "truth_count": 30
+        },
+        "x_tick": {
+          "assembled_matched_count": 40,
+          "baseline_matched_count": 40,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 48
+        },
+        "y_tick": {
+          "assembled_matched_count": 21,
+          "baseline_matched_count": 21,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 25
+        }
+      },
+      "full_truth_denominator": 183,
+      "generic_v1": {
+        "false_negatives": 53,
+        "false_positives": 32,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.8024691358024691,
+        "predicted_region_count": 162,
+        "recall": 0.7103825136612022,
+        "true_positives": 130,
+        "truth_region_count": 183
+      },
+      "generic_v1_cross_truth_merger_count": 9,
+      "raw_baseline": {
+        "false_negatives": 44,
+        "false_positives": 48,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.7433155080213903,
+        "predicted_region_count": 187,
+        "recall": 0.7595628415300546,
+        "true_positives": 139,
+        "truth_region_count": 183
+      }
+    }
+  },
+  "stress_positive_trial": {
+    "accepted_by_aligned_rule_count": 7,
+    "accepted_by_generic_v1_count": 9,
+    "accepted_pairs_with_union_iou_at_least_0_5_count": 7,
+    "assigned_positive_pair_count": 9,
+    "generic_pairs_rejected_only_by_alignment_count": 2,
+    "positive_without_assigned_pair_count": 7,
+    "recovery_definition": "An assigned positive pair is a geometry recovery only when the aligned rule accepts it and its source-pixel union reaches IoU 0.5 with the local logical truth.",
+    "source_count": 16
+  },
+  "decision": {
+    "adopt": false,
+    "reason": "Compared with raw detections, this rule loses seven train matches and five dev matches. It reduces the earlier generic rule damage but still regresses the actual baseline.",
+    "interpretation": "The accepted merge sequence changes when the new condition is applied, creating different groups. Rejecting the previously observed first-crossing pairs does not prove that the new full algorithm avoids cross-truth mergers.",
+    "next": "Investigate actual layout or graphic relations and detector fragmentation before another parameter trial. No geometry sweep or additional training is authorized by this result."
+  },
+  "validation": {
+    "exit_code": 0,
+    "job_cpu_rate": 333,
+    "train_truths": 709,
+    "dev_truths": 183,
+    "all_input_chains_authenticated": true,
+    "original_capture_and_comparison_sources_unchanged": true
+  },
+  "limitations": [
+    "Geometry only; no recognition strings are concatenated and no text or role accuracy is inferred.",
+    "Nine measured stress positives are a small diagnostic sample, not an acceptance corpus.",
+    "This result rejects one rule; it does not prove all geometry-based grouping is impossible."
+  ],
+  "license_review": "No dependency, model, weight, or license change.",
+  "model_inference": false,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "new_model_revision": false,
+  "production_approved": false,
+  "goal22_acceptance_status": "FAIL",
+  "independent_review": {
+    "reviewer": "gpt-5.6-sol high",
+    "result": "clear for source, exact result/input bindings, full denominators, and rejection interpretation",
+    "model_or_production_approval": false
+  }
+}
