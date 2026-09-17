@@ -4,6 +4,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
+using GraphReader.App.Integration.Workflow;
 using GraphReader.Ocr;
 
 namespace GraphReader.SyntheticRuntimeEvidence;
@@ -33,6 +34,46 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
             ], root);
             Require(parsed.Length == 5 && parsed[1] == new string('a', 64) &&
                 parsed[3] == new string('b', 64), "exact six-token command");
+            checks++;
+
+            string[] participantParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
+            [
+                OfficialHeadCandidateEvaluation.ParticipantLaneCommand,
+                request,
+                new string('a', 64),
+                candidate,
+                new string('b', 64),
+                output,
+            ], root);
+            Require(participantParsed.SequenceEqual(parsed), "separate participant-lane command");
+            checks++;
+            ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCommand(
+            [
+                "--unknown-candidate", request, new string('a', 64), candidate,
+                new string('b', 64), output,
+            ], root), "Usage:");
+            checks++;
+
+            JsonElement participantScope = JsonSerializer.SerializeToElement(new Dictionary<string, object?>
+            {
+                ["schema"] = OfficialHeadCandidateEvaluation.CandidateSchema,
+                ["scope"] = OfficialHeadCandidateEvaluation.CandidateScope,
+                ["production_approved"] = false,
+                ["training_input_ready"] = false,
+                ["composition_version"] = ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion,
+                ["native_path"] = "bound-native.dll",
+                ["native_sha256"] = new string('a', 64),
+                ["native_scope"] = "reviewed-source-runtime-local-diagnostic",
+                ["license_inputs"] = Array.Empty<object>(),
+                ["detector"] = new { },
+                ["recognizer"] = new { },
+                ["execution_assemblies"] = Array.Empty<object>(),
+            });
+            OfficialHeadCandidateEvaluation.ValidateCandidateScope(
+                participantScope, ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion);
+            checks++;
+            ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCandidateScope(
+                participantScope, ProductionOcrAdapter.OriginalDbCandidateCompositionVersion), "composition");
             checks++;
 
             ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateCommand(

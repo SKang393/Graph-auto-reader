@@ -105,7 +105,8 @@ internal static class Program
             Console.WriteLine(JsonSerializer.Serialize(OfficialDbTargetOracleSelfTest.Run(), JsonOptions));
             return 0;
         }
-        if (args.Length == 6 && args[0] == OfficialHeadCandidateEvaluation.Command)
+        if (args.Length == 6 && (args[0] == OfficialHeadCandidateEvaluation.Command ||
+            args[0] == OfficialHeadCandidateEvaluation.ParticipantLaneCommand))
         {
             return await OfficialHeadCandidateEvaluation.RunCommandAsync(args, RepositoryRoot())
                 .ConfigureAwait(false);

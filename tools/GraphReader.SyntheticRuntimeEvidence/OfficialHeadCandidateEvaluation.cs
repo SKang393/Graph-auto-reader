@@ -21,6 +21,7 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 internal static class OfficialHeadCandidateEvaluation
 {
     internal const string Command = "--evaluate-official-head-candidate";
+    internal const string ParticipantLaneCommand = "--evaluate-participant-lane-candidate";
     internal const string CandidateSchema = "graphreader.frozen-db-head-ocr-candidate.v1";
     internal const string CandidateScope = "project-owned-synthetic-train-dev-unapproved-frozen-candidate";
     private const string CaptureRequestSchema = "graphreader.official-head-tensor-capture-request.v1";
@@ -68,7 +69,8 @@ internal static class OfficialHeadCandidateEvaluation
     internal static string[] ValidateCommand(string[] args, string repositoryRoot)
     {
         ArgumentNullException.ThrowIfNull(args);
-        if (args.Length != 6 || !string.Equals(args[0], Command, StringComparison.Ordinal))
+        if (args.Length != 6 ||
+            (args[0] != Command && args[0] != ParticipantLaneCommand))
         {
             throw new InvalidDataException(
                 "Usage: --evaluate-official-head-candidate <capture-request.json> <request-sha256> " +
@@ -97,6 +99,10 @@ internal static class OfficialHeadCandidateEvaluation
     {
         string root = Path.GetFullPath(repositoryRoot);
         string[] command = ValidateCommand(args, root);
+        bool participantLane = args[0] == ParticipantLaneCommand;
+        string composition = participantLane
+            ? ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion
+            : ProductionOcrAdapter.OriginalDbCandidateCompositionVersion;
         string requestPath = command[0];
         string requestSha = command[1];
         string candidatePath = command[2];
@@ -116,7 +122,7 @@ internal static class OfficialHeadCandidateEvaluation
         using var candidateDocument = JsonDocument.Parse(candidateBytes);
         BoundAssembly[] executionAssemblies = ReadExecutionAssemblies(
             candidateDocument.RootElement.GetProperty("execution_assemblies"), root);
-        CandidateBinding candidate = ReadCandidate(candidateDocument.RootElement, root);
+        CandidateBinding candidate = ReadCandidate(candidateDocument.RootElement, root, composition);
         var locks = new List<FileStream>();
         nint nativeHandle = nint.Zero;
         try
@@ -157,20 +163,26 @@ internal static class OfficialHeadCandidateEvaluation
                 ProductionInferenceRuntimeHost.DefaultQueueCapacity,
                 ProductionInferenceRuntimeHost.DefaultWorkerCount);
 
-            ProductionOcrAdapter adapter = await ProductionOcrAdapter
-                .CreateForFrozenDbHeadCandidateEvaluationAsync(
+            ProductionOcrAdapter adapter = await (participantLane
+                ? ProductionOcrAdapter.CreateForParticipantLaneCandidateEvaluationAsync(
                     candidate.Detector.Descriptor,
                     candidate.Recognizer.Descriptor,
                     runtime,
                     candidate.NativeSha256,
                     cancellationToken)
+                : ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
+                    candidate.Detector.Descriptor,
+                    candidate.Recognizer.Descriptor,
+                    runtime,
+                    candidate.NativeSha256,
+                    cancellationToken))
                 .ConfigureAwait(false);
             if (adapter.IsApproved || !string.Equals(
                     adapter.ConfigurationScope,
                     "unapproved_frozen_candidate",
                     StringComparison.Ordinal) ||
                 !adapter.AdapterId.Contains(
-                    ProductionOcrAdapter.OriginalDbCandidateCompositionVersion,
+                    composition,
                     StringComparison.Ordinal))
             {
                 throw new InvalidDataException("DB-head evaluation adapter escaped its unapproved frozen scope.");
@@ -192,6 +204,7 @@ internal static class OfficialHeadCandidateEvaluation
                 cancellationToken.ThrowIfCancellationRequested();
                 var timer = Stopwatch.StartNew();
                 object[] rawOutput = [];
+                object[] effectiveOutput = [];
                 string stage = "decode";
                 try
                 {
@@ -215,6 +228,23 @@ internal static class OfficialHeadCandidateEvaluation
                     IReadOnlyList<OcrDetectedRegion> raw = await rawDetector
                         .DetectAsync(original, cancellationToken).ConfigureAwait(false);
                     rawOutput = raw.Select(region => RawRegion(panel, region)).ToArray();
+                    IReadOnlyList<OcrDetectedRegion> effective = raw;
+                    if (participantLane)
+                    {
+                        stage = "participant_lane_assembly";
+                        var groups = ParticipantLaneTextRegionAssembler.AssembleWithMembership(
+                            raw, panel.PlotBounds);
+                        effective = groups.Select(static group => group.Region).ToArray();
+                        effectiveOutput = groups.Select(group => new
+                        {
+                            group.Region.RegionId,
+                            MemberRawRegionIds = group.MemberRegionIds,
+                            AssemblyKind = group.MemberRegionIds.Count == 1 ? "identity" : "participant_lane",
+                            CoordinateSpace = "source_original_pixels",
+                            PanelPolygon = group.Region.Polygon,
+                            SourcePolygon = MapSourcePolygon(panel, group.Region.Polygon),
+                        }).ToArray();
+                    }
                     stage = "ocr";
                     ProductionOcrEvidence recognized = await adapter
                         .RecognizeForCandidateEvaluationAsync(
@@ -224,11 +254,11 @@ internal static class OfficialHeadCandidateEvaluation
                             detectorImage,
                             cancellationToken)
                         .ConfigureAwait(false);
-                    ValidateOcrCoverage(raw, recognized.Result);
+                    ValidateOcrCoverage(effective, recognized.Result);
                     timer.Stop();
                     completed++;
-                    outputPanels.Add(CompletedPanel(panel, rawOutput, recognized, graySha, bgrSha,
-                        timer.Elapsed.TotalMilliseconds));
+                    outputPanels.Add(CompletedPanel(panel, rawOutput, effectiveOutput, participantLane,
+                        recognized, graySha, bgrSha, timer.Elapsed.TotalMilliseconds));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
@@ -239,14 +269,16 @@ internal static class OfficialHeadCandidateEvaluation
                     timer.Stop();
                     failed++;
                     outputPanels.Add(FailedPanel(
-                        panel, rawOutput, stage, exception, timer.Elapsed.TotalMilliseconds));
+                        panel, rawOutput, effectiveOutput, participantLane,
+                        stage, exception, timer.Elapsed.TotalMilliseconds));
                 }
             }
             total.Stop();
             string reportPath = Path.Combine(outputRoot, "report.json");
             byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
             {
-                Schema = OutputSchema,
+                Schema = participantLane ? "graphreader.participant-lane-candidate-evaluation.v1" : OutputSchema,
+                DevelopmentOnly = participantLane,
                 Status = failed == 0 ? "panels_completed" : "failed",
                 Scope = CandidateScope,
                 SyntheticOnly = true,
@@ -271,7 +303,7 @@ internal static class OfficialHeadCandidateEvaluation
                 {
                     Path = Relative(root, candidatePath),
                     Sha256 = candidateSha,
-                    CompositionVersion = ProductionOcrAdapter.OriginalDbCandidateCompositionVersion,
+                    CompositionVersion = composition,
                     AdapterId = adapter.AdapterId,
                     ConfigurationScope = adapter.ConfigurationScope,
                     Detector = candidate.Detector.OutputIdentity,
@@ -319,6 +351,8 @@ internal static class OfficialHeadCandidateEvaluation
     private static object CompletedPanel(
         EvaluationPanel panel,
         object[] rawOutput,
+        object[] effectiveOutput,
+        bool participantLane,
         ProductionOcrEvidence evidence,
         string graySha,
         string bgrSha,
@@ -340,6 +374,8 @@ internal static class OfficialHeadCandidateEvaluation
             OriginalGraySha256 = graySha,
             OriginalBgrSha256 = bgrSha,
             RawDetectorRegions = rawOutput,
+            EffectiveRegions = effectiveOutput,
+            AssemblyContext = AssemblyContext(panel, participantLane),
             RecognizedRegions = evidence.Result.Regions.Select(region => RecognizedRegion(panel, region)).ToArray(),
             RegionFailures = evidence.Result.RegionFailures ?? [],
             Ocr = new
@@ -374,6 +410,8 @@ internal static class OfficialHeadCandidateEvaluation
     private static object FailedPanel(
         EvaluationPanel panel,
         object[] rawOutput,
+        object[] effectiveOutput,
+        bool participantLane,
         string stage,
         Exception exception,
         double elapsedMilliseconds) => new
@@ -394,9 +432,22 @@ internal static class OfficialHeadCandidateEvaluation
         Stage = stage,
         Error = exception.Message,
         RawDetectorRegions = rawOutput,
+        EffectiveRegions = effectiveOutput,
+        AssemblyContext = AssemblyContext(panel, participantLane),
         RecognizedRegions = Array.Empty<object>(),
         ElapsedMilliseconds = elapsedMilliseconds,
     };
+
+    private static object? AssemblyContext(EvaluationPanel panel, bool participantLane) =>
+        participantLane ? new
+        {
+            CompositionVersion = ParticipantLaneTextRegionAssembler.CompositionVersion,
+            PlotBoundsPanelLtrb = new[]
+            {
+                panel.PlotBounds.Left, panel.PlotBounds.Top,
+                panel.PlotBounds.Right, panel.PlotBounds.Bottom,
+            },
+        } : null;
 
     private static object RawRegion(EvaluationPanel panel, OcrDetectedRegion region) => new
     {
@@ -491,20 +542,10 @@ internal static class OfficialHeadCandidateEvaluation
         }
     }
 
-    private static CandidateBinding ReadCandidate(JsonElement root, string repositoryRoot)
+    private static CandidateBinding ReadCandidate(
+        JsonElement root, string repositoryRoot, string expectedComposition)
     {
-        RequireProperties(root,
-            "schema", "scope", "production_approved", "training_input_ready",
-            "composition_version", "native_path", "native_sha256", "native_scope",
-            "license_inputs", "detector", "recognizer", "execution_assemblies");
-        if (Text(root, "schema") != CandidateSchema || Text(root, "scope") != CandidateScope ||
-            root.GetProperty("production_approved").GetBoolean() ||
-            root.GetProperty("training_input_ready").GetBoolean() ||
-            Text(root, "composition_version") != ProductionOcrAdapter.OriginalDbCandidateCompositionVersion ||
-            Text(root, "native_scope") != "reviewed-source-runtime-local-diagnostic")
-        {
-            throw new InvalidDataException("Frozen DB-head candidate scope or composition is invalid.");
-        }
+        ValidateCandidateScope(root, expectedComposition);
         CandidateModel detector = ReadModel(root.GetProperty("detector"), repositoryRoot, "ocr_detection");
         CandidateModel recognizer = ReadModel(root.GetProperty("recognizer"), repositoryRoot, "ocr_recognition");
         if (detector.ModelSha256 == recognizer.ModelSha256 ||
@@ -536,6 +577,22 @@ internal static class OfficialHeadCandidateEvaluation
             RepositoryPath(repositoryRoot, Text(root, "native_path")),
             RequireSha(Text(root, "native_sha256"), "native runtime"),
             licenses.AsReadOnly());
+    }
+
+    internal static void ValidateCandidateScope(JsonElement root, string expectedComposition)
+    {
+        RequireProperties(root,
+            "schema", "scope", "production_approved", "training_input_ready",
+            "composition_version", "native_path", "native_sha256", "native_scope",
+            "license_inputs", "detector", "recognizer", "execution_assemblies");
+        if (Text(root, "schema") != CandidateSchema || Text(root, "scope") != CandidateScope ||
+            root.GetProperty("production_approved").GetBoolean() ||
+            root.GetProperty("training_input_ready").GetBoolean() ||
+            Text(root, "composition_version") != expectedComposition ||
+            Text(root, "native_scope") != "reviewed-source-runtime-local-diagnostic")
+        {
+            throw new InvalidDataException("Frozen DB-head candidate scope or composition is invalid.");
+        }
     }
 
     internal static BoundAssembly[] ReadExecutionAssemblies(JsonElement records, string root)

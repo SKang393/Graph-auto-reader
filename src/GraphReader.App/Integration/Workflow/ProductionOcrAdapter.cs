@@ -723,6 +723,10 @@ public sealed partial class ProductionOcrAdapter :
         return warnings.AsReadOnly();
     }
 
+    internal static bool UsesOriginalDbOnlyInput(string candidateCompositionVersion) =>
+        candidateCompositionVersion is
+            OriginalDbCandidateCompositionVersion or ParticipantLaneCandidateCompositionVersion;
+
     private async Task<ProductionOcrEvidence> RecognizeCoreAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster originalRaster,
@@ -753,7 +757,7 @@ public sealed partial class ProductionOcrAdapter :
         {
             Warnings = Array.AsReadOnly(result.Warnings
                 .Concat(DetectorInputWarnings(modelInput, ocrRequest.OriginalImage, detectorImage,
-                    compositionVersion != OriginalDbCandidateCompositionVersion))
+                    !UsesOriginalDbOnlyInput(compositionVersion)))
                 .Distinct(StringComparer.Ordinal)
                 .ToArray()),
         };

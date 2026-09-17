@@ -45,6 +45,8 @@ public sealed record OcrPipelineOptions
     /// without being rotated text.
     /// </summary>
     public bool InferVerticalOrientationForTallRegions { get; init; } = true;
+
+    public bool EnableParticipantLaneAssembly { get; init; }
 }
 
 public sealed class OcrPipeline
@@ -167,6 +169,12 @@ public sealed class OcrPipeline
                     cancellationToken)
                 .ConfigureAwait(false);
             ValidateDetectedRegions(detectedRegions);
+            if (_options.EnableParticipantLaneAssembly)
+            {
+                detectedRegions = ParticipantLaneTextRegionAssembler.Assemble(
+                    detectedRegions,
+                    request.PlotBounds);
+            }
             detectedRegions = EnrichGeometry(detectedRegions, request.PlotBounds, _options);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)

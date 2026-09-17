@@ -384,6 +384,27 @@ public sealed class OcrPipelineAcceptanceTests
     }
 
     [TestMethod]
+    public async Task ParticipantLaneAssemblyRecognizesOneUnionCropAndUsesParticipantCue()
+    {
+        OcrResult result = await RecognizeParticipantLaneUnionAsync("Participant 01");
+
+        Assert.HasCount(1, result.Regions);
+        Assert.AreEqual("Participant 01", result.Regions[0].Text);
+        Assert.AreEqual(OcrTextRole.Participant, result.Regions[0].Role);
+        Assert.AreEqual(new OcrRectangle(2, 35, 25, 10), result.Regions[0].Polygon.Bounds);
+    }
+
+    [TestMethod]
+    public async Task ParticipantLaneAssemblyKeepsNumericUnionClassifiedAsYTick()
+    {
+        OcrResult result = await RecognizeParticipantLaneUnionAsync("10");
+
+        Assert.HasCount(1, result.Regions);
+        Assert.AreEqual("10", result.Regions[0].Text);
+        Assert.AreEqual(OcrTextRole.YTick, result.Regions[0].Role);
+    }
+
+    [TestMethod]
     public async Task OutputMatchesFrozenEnvelopeAndReportsTimingAndConfidence()
     {
         OcrDetectedRegion region = OcrTestFixtures.Region(
@@ -632,5 +653,44 @@ public sealed class OcrPipelineAcceptanceTests
                 new OcrRecognitionAlternative(result.Text, result.Confidence, result.Source),
             ]);
         return new StubTextRecognizer(alternatives);
+    }
+
+    private static async Task<OcrResult> RecognizeParticipantLaneUnionAsync(string recognizedText)
+    {
+        OcrDetectedRegion word = OcrTestFixtures.Region("word", 2, 35, 18, 10);
+        OcrDetectedRegion suffix = OcrTestFixtures.Region("suffix", 22, 35, 5, 10);
+        var recognizer = new StubTextRecognizer((crops, cancellationToken) =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Assert.HasCount(1, crops);
+            OcrCrop crop = crops[0];
+            Assert.AreEqual(OcrSourceImage.Original, crop.SourceImage);
+            Assert.AreEqual(new OcrRectangle(2, 35, 25, 10), crop.OriginalPolygon.Bounds);
+            return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>
+            ([
+                new OcrRecognition(
+                    crop.RegionId,
+                    crop.SourceImage,
+                    [new OcrRecognitionAlternative(recognizedText, 0.95, crop.SourceImage)],
+                    0.1),
+            ]);
+        });
+        var pipeline = new OcrPipeline(
+            new StubTextRegionDetector([]),
+            recognizer,
+            new InMemoryOcrResultCache(),
+            new OcrPipelineOptions
+            {
+                EnableParticipantLaneAssembly = true,
+                CropPaddingPixels = 0,
+            });
+
+        OcrResult result = await pipeline.RecognizeAsync(
+            OcrTestFixtures.Request([word, suffix]),
+            CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.AreEqual(1, recognizer.CallCount);
+        return result;
     }
 }

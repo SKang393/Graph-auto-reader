@@ -101,6 +101,10 @@ public static class OcrCacheKeyDeriver
         yield return detectorConfigurationFingerprint;
         yield return options.StageVersion;
         yield return GraphTextRoleClassifier.Version;
+        if (options.EnableParticipantLaneAssembly)
+        {
+            yield return ParticipantLaneTextRegionAssembler.CompositionVersion;
+        }
         yield return string.Join(
             ',',
             options.BatchSize.ToString(CultureInfo.InvariantCulture),

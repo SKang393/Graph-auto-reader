@@ -214,6 +214,30 @@ public sealed class OcrCacheRegressionTests
         Assert.AreNotEqual(inferredKey, detectorPreservedKey);
     }
 
+    [TestMethod]
+    public void ParticipantLaneAssemblyInvalidatesDisabledRequestAlias()
+    {
+        var recognizer = new StubTextRecognizer(
+            new Dictionary<(string RegionId, OcrSourceImage Source), IReadOnlyList<OcrRecognitionAlternative>>());
+        OcrRequest request = OcrTestFixtures.Request();
+        var baseline = new OcrPipelineOptions();
+        OcrPipelineOptions assembled = baseline with { EnableParticipantLaneAssembly = true };
+
+        string baselineKey = OcrCacheKeyDeriver.CreateRequestAlias(
+            request, recognizer, baseline, "original-db-head-candidate-v1");
+        string assembledKey = OcrCacheKeyDeriver.CreateRequestAlias(
+            request, recognizer, assembled, "original-db-head-candidate-v1");
+        string candidateKey = OcrCacheKeyDeriver.CreateRequestAlias(
+            request, recognizer, assembled, "original-db-head-participant-lane-v1");
+
+        Assert.AreNotEqual(baselineKey, assembledKey);
+        Assert.AreNotEqual(assembledKey, candidateKey);
+        Assert.AreEqual(
+            baselineKey,
+            OcrCacheKeyDeriver.CreateRequestAlias(
+                request, recognizer, new OcrPipelineOptions(), "original-db-head-candidate-v1"));
+    }
+
     private static OcrDetectorImage DetectorImage(OcrImage image) => new(
         image,
         Convert.ToHexStringLower(SHA256.HashData(image.Pixels.Span)));
