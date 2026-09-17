@@ -1,0 +1,447 @@
+{
+  "schema": "graphreader.goal22-criterion-heading-role-repair.v1",
+  "status": "verified_cached_role_repair",
+  "synthetic_only": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "model_inference_runs": 0,
+  "production_approval": false,
+  "packaged_build": false,
+  "problem": "The generic changing-criterion headings Criterion and Criterion plus an unsigned integer above the plot were classified Other despite the supported synthetic design vocabulary.",
+  "implementation": "Add the bounded generic Criterion heading cue under the existing above-plot/within-plot-X branch. Preserve context and numeric/annotation priority, recognized text, geometry, phase semantics and exported values. Increment classifier cache identity to v3.",
+  "source_scope": [
+    "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+    "tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs"
+  ],
+  "inputs": [
+    {
+      "path": "artifacts/goal22-runs/ocr-criterion-role-v3/replay-v2.json",
+      "sha256": "02ef62b9f8452a1156ef6c50c2388e37b37bedfb4dd7dda267af795a1b967098"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-criterion-role-v3/replay-v3.json",
+      "sha256": "4ddf40644c710cdad7077a3b5754fa7a0037d8c470c6433a12ecaad2e715fe8a"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-criterion-role-v3/rebuild-provenance.json",
+      "sha256": "8330d802b8f09c23360da34c631e92a35063c4f0b7fb888532bf50abeef2d170"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-criterion-role-v3/ocr-tests.log",
+      "sha256": "841ff9110639c4215746554de727a7ce8114dafd478d9f57862e0e234bdbc964"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-criterion-role-v3/ocr-tests-timing.json",
+      "sha256": "4a59b3a0f8e8395877e31d552762ecdad1cbb25f50fef881feaf5d3c946db4d0"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-criterion-role-v3/tests/ocr-role-v3-tests.trx",
+      "sha256": "857dc69ac13b49478faf5dedfa23b58403a64331d8673ba9165bb44ed3e9f9f0"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Replay-OcrRoleClassifier.ps1",
+      "sha256": "2823302abbb3a92b8d0ef98745dbf23474a82946f4bcf3d00f684f2f895ba8ff"
+    },
+    {
+      "path": "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "sha256": "ae63175a94bff476a8fd1e26493fb902e4430512a67763af91334ba2ea163513"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs",
+      "sha256": "93277bce8f9ddfd07134a19d1eb1349e044812d0721aea53d14dcb2180de8204"
+    }
+  ],
+  "population": {
+    "panels": 37,
+    "train_panels": 28,
+    "development_panels": 9,
+    "raw_regions": 831,
+    "effective_regions": 823,
+    "recognized_regions": 823,
+    "assembled_groups": 8,
+    "recognition_failures": 0
+  },
+  "old_v2_replay": {
+    "changed": 0,
+    "unchanged": 823,
+    "elapsed_milliseconds": 20164.615
+  },
+  "new_v3_replay": {
+    "changed": 12,
+    "unchanged": 811,
+    "by_split": {
+      "train": {
+        "regions": 644,
+        "recorded_role_counts": {
+          "annotation": 41,
+          "axistitle": 73,
+          "legendtext": 26,
+          "other": 156,
+          "participant": 12,
+          "phaseheading": 87,
+          "xtick": 111,
+          "ytick": 138
+        },
+        "replayed_role_counts": {
+          "annotation": 41,
+          "axistitle": 73,
+          "legendtext": 26,
+          "other": 156,
+          "participant": 12,
+          "phaseheading": 87,
+          "xtick": 111,
+          "ytick": 138
+        },
+        "transition_counts": {
+          "annotation->annotation": 41,
+          "axistitle->axistitle": 73,
+          "legendtext->legendtext": 26,
+          "other->other": 156,
+          "participant->participant": 12,
+          "phaseheading->phaseheading": 87,
+          "xtick->xtick": 111,
+          "ytick->ytick": 138
+        },
+        "unchanged": 644,
+        "changed": 0
+      },
+      "validation": {
+        "regions": 179,
+        "recorded_role_counts": {
+          "annotation": 23,
+          "axistitle": 3,
+          "other": 35,
+          "participant": 6,
+          "phaseheading": 49,
+          "xtick": 42,
+          "ytick": 21
+        },
+        "replayed_role_counts": {
+          "annotation": 23,
+          "axistitle": 3,
+          "other": 23,
+          "participant": 6,
+          "phaseheading": 61,
+          "xtick": 42,
+          "ytick": 21
+        },
+        "transition_counts": {
+          "annotation->annotation": 23,
+          "axistitle->axistitle": 3,
+          "other->other": 23,
+          "other->phaseheading": 12,
+          "participant->participant": 6,
+          "phaseheading->phaseheading": 49,
+          "xtick->xtick": 42,
+          "ytick->ytick": 21
+        },
+        "unchanged": 167,
+        "changed": 12
+      }
+    },
+    "elapsed_milliseconds": 18530.181
+  },
+  "validation": {
+    "ocr_passed": 273,
+    "historical_skips": 16,
+    "failed": 0,
+    "total": 289,
+    "test_host_seconds": 109.0430564,
+    "cpu_job_rate": 333,
+    "logical_cpu_affinity": "all 12",
+    "source_review": "Independent Sol High CLEAR for classifier and replay helper; root reverified inputs and actual C# results."
+  },
+  "retained_failed_attempt": {
+    "path": "artifacts/goal22-runs/ocr-criterion-role-v3/replay-v2.log",
+    "reason": "PowerShell object-array arithmetic precedence failed before any output. Fixed constructor argument assignment, then authenticated v2 reproduced every cached role."
+  },
+  "limitations": [
+    "This is a cached role-only replay of actual C# methods, not a new model or full production acceptance run.",
+    "The separately identified participant-lane development composition remains opt-in.",
+    "The five central OCR development bars still fail; no production or release approval follows.",
+    "A heading role does not infer a criterion value or change phase semantics."
+  ],
+  "license_review": "Existing project-owned Apache-2.0 code and synthetic evidence; no new dependency, model or external asset.",
+  "role_score": {
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-criterion-role-v3/cached-role-score-run1.json",
+      "sha256": "d2a922fd52f88b629f2bc09384f3ac360370f0860bd4510dec77e80eef1443ba"
+    },
+    "script": {
+      "path": "artifacts/goal22-runs/ocr-criterion-role-v3/score_cached_roles.py",
+      "sha256": "c7a33e6b56d2f27e1655065b87bb6b6dd31def3b097b499e10b529d21243a6a9"
+    },
+    "truth_rows": {
+      "cached_rows_parsed": 1601,
+      "historical_combined_cache_rows_parsed": 892,
+      "train_scored": 709,
+      "unique_scored": 892,
+      "validation_scored": 183
+    },
+    "matching": {
+      "algorithm": "frozen_order_augmenting_path_maximum_cardinality",
+      "baseline_reproduced_frozen_full_score": true,
+      "intersection_over_union_minimum": 0.5,
+      "text_or_role_influenced_pairing": false,
+      "v2_and_v3_pairing_identical": true
+    },
+    "baseline_v2": {
+      "train": {
+        "by_expected_runtime_role": {
+          "annotation": {
+            "accuracy": 0.3333333333333333,
+            "correct_count": 20,
+            "truth_count": 60
+          },
+          "axistitle": {
+            "accuracy": 0.38,
+            "correct_count": 19,
+            "truth_count": 50
+          },
+          "legendtext": {
+            "accuracy": 0.6666666666666666,
+            "correct_count": 20,
+            "truth_count": 30
+          },
+          "participant": {
+            "accuracy": 0.4,
+            "correct_count": 12,
+            "truth_count": 30
+          },
+          "phaseheading": {
+            "accuracy": 0.44375,
+            "correct_count": 71,
+            "truth_count": 160
+          },
+          "xtick": {
+            "accuracy": 0.6171428571428571,
+            "correct_count": 108,
+            "truth_count": 175
+          },
+          "ytick": {
+            "accuracy": 0.6617647058823529,
+            "correct_count": 135,
+            "truth_count": 204
+          }
+        },
+        "geometry_false_negative_count": 85,
+        "geometry_false_positive_count": 20,
+        "geometry_matched_region_count": 624,
+        "intersection_over_union_minimum": 0.5,
+        "predicted_region_count": 644,
+        "role_accuracy": 0.5430183356840621,
+        "role_correct_count": 385,
+        "truth_region_count": 709
+      },
+      "validation": {
+        "by_expected_runtime_role": {
+          "annotation": {
+            "accuracy": 0.2222222222222222,
+            "correct_count": 4,
+            "truth_count": 18
+          },
+          "axistitle": {
+            "accuracy": 0.25,
+            "correct_count": 3,
+            "truth_count": 12
+          },
+          "legendtext": {
+            "accuracy": 0.0,
+            "correct_count": 0,
+            "truth_count": 11
+          },
+          "participant": {
+            "accuracy": 0.6666666666666666,
+            "correct_count": 6,
+            "truth_count": 9
+          },
+          "phaseheading": {
+            "accuracy": 0.5,
+            "correct_count": 30,
+            "truth_count": 60
+          },
+          "xtick": {
+            "accuracy": 0.8333333333333334,
+            "correct_count": 40,
+            "truth_count": 48
+          },
+          "ytick": {
+            "accuracy": 0.84,
+            "correct_count": 21,
+            "truth_count": 25
+          }
+        },
+        "geometry_false_negative_count": 44,
+        "geometry_false_positive_count": 40,
+        "geometry_matched_region_count": 139,
+        "intersection_over_union_minimum": 0.5,
+        "predicted_region_count": 179,
+        "role_accuracy": 0.5683060109289617,
+        "role_correct_count": 104,
+        "truth_region_count": 183
+      }
+    },
+    "revised_v3": {
+      "train": {
+        "by_expected_runtime_role": {
+          "annotation": {
+            "accuracy": 0.3333333333333333,
+            "correct_count": 20,
+            "truth_count": 60
+          },
+          "axistitle": {
+            "accuracy": 0.38,
+            "correct_count": 19,
+            "truth_count": 50
+          },
+          "legendtext": {
+            "accuracy": 0.6666666666666666,
+            "correct_count": 20,
+            "truth_count": 30
+          },
+          "participant": {
+            "accuracy": 0.4,
+            "correct_count": 12,
+            "truth_count": 30
+          },
+          "phaseheading": {
+            "accuracy": 0.44375,
+            "correct_count": 71,
+            "truth_count": 160
+          },
+          "xtick": {
+            "accuracy": 0.6171428571428571,
+            "correct_count": 108,
+            "truth_count": 175
+          },
+          "ytick": {
+            "accuracy": 0.6617647058823529,
+            "correct_count": 135,
+            "truth_count": 204
+          }
+        },
+        "geometry_false_negative_count": 85,
+        "geometry_false_positive_count": 20,
+        "geometry_matched_region_count": 624,
+        "intersection_over_union_minimum": 0.5,
+        "predicted_region_count": 644,
+        "role_accuracy": 0.5430183356840621,
+        "role_correct_count": 385,
+        "truth_region_count": 709
+      },
+      "validation": {
+        "by_expected_runtime_role": {
+          "annotation": {
+            "accuracy": 0.2222222222222222,
+            "correct_count": 4,
+            "truth_count": 18
+          },
+          "axistitle": {
+            "accuracy": 0.25,
+            "correct_count": 3,
+            "truth_count": 12
+          },
+          "legendtext": {
+            "accuracy": 0.0,
+            "correct_count": 0,
+            "truth_count": 11
+          },
+          "participant": {
+            "accuracy": 0.6666666666666666,
+            "correct_count": 6,
+            "truth_count": 9
+          },
+          "phaseheading": {
+            "accuracy": 0.7,
+            "correct_count": 42,
+            "truth_count": 60
+          },
+          "xtick": {
+            "accuracy": 0.8333333333333334,
+            "correct_count": 40,
+            "truth_count": 48
+          },
+          "ytick": {
+            "accuracy": 0.84,
+            "correct_count": 21,
+            "truth_count": 25
+          }
+        },
+        "geometry_false_negative_count": 44,
+        "geometry_false_positive_count": 40,
+        "geometry_matched_region_count": 139,
+        "intersection_over_union_minimum": 0.5,
+        "predicted_region_count": 179,
+        "role_accuracy": 0.6338797814207651,
+        "role_correct_count": 116,
+        "truth_region_count": 183
+      }
+    },
+    "delta": {
+      "train": {
+        "by_expected_runtime_role_correct_count": {
+          "annotation": 0,
+          "axistitle": 0,
+          "legendtext": 0,
+          "participant": 0,
+          "phaseheading": 0,
+          "xtick": 0,
+          "ytick": 0
+        },
+        "role_accuracy": 0.0,
+        "role_correct_count": 0
+      },
+      "validation": {
+        "by_expected_runtime_role_correct_count": {
+          "annotation": 0,
+          "axistitle": 0,
+          "legendtext": 0,
+          "participant": 0,
+          "phaseheading": 12,
+          "xtick": 0,
+          "ytick": 0
+        },
+        "role_accuracy": 0.06557377049180335,
+        "role_correct_count": 12
+      }
+    },
+    "changed_prediction_audit": {
+      "train": {
+        "changed_prediction_count": 0,
+        "changed_text_counts": {},
+        "matched_changed_expected_role_counts": {},
+        "matched_changed_prediction_count": 0,
+        "newly_correct_count": 0,
+        "newly_incorrect_count": 0,
+        "still_correct_count": 0,
+        "still_incorrect_count": 0,
+        "transition_counts": {},
+        "unmatched_changed_prediction_count": 0
+      },
+      "validation": {
+        "changed_prediction_count": 12,
+        "changed_text_counts": {
+          "Criterion": 4,
+          "Criterion 1": 6,
+          "Criterion 3": 2
+        },
+        "matched_changed_expected_role_counts": {
+          "phaseheading": 12
+        },
+        "matched_changed_prediction_count": 12,
+        "newly_correct_count": 12,
+        "newly_incorrect_count": 0,
+        "still_correct_count": 0,
+        "still_incorrect_count": 0,
+        "transition_counts": {
+          "other->phaseheading": 12
+        },
+        "unmatched_changed_prediction_count": 0
+      }
+    },
+    "elapsed_milliseconds": 552.9286999953911,
+    "independent_source_review": "Sol High CLEAR",
+    "reverified_input_count": 12
+  }
+}

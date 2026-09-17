@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    internal const string Version = "graph-text-role-classifier-v2";
+    internal const string Version = "graph-text-role-classifier-v3";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -172,7 +172,39 @@ public static class GraphTextRoleClassifier
             normalized.Equals("generalization", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("followup", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("follow up", StringComparison.OrdinalIgnoreCase) ||
+            IsCriterionHeading(text.Trim()) ||
             normalized.StartsWith("phase", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsCriterionHeading(string text)
+    {
+        const string term = "criterion";
+        if (!text.StartsWith(term, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        ReadOnlySpan<char> suffix = text.AsSpan(term.Length);
+        if (suffix.IsEmpty)
+        {
+            return true;
+        }
+
+        if (!char.IsWhiteSpace(suffix[0]))
+        {
+            return false;
+        }
+
+        suffix = suffix.Trim();
+        foreach (char character in suffix)
+        {
+            if (!char.IsAsciiDigit(character))
+            {
+                return false;
+            }
+        }
+
+        return !suffix.IsEmpty;
     }
 
     private static RoleClassification Classification(OcrTextRole role, double confidence, string reason) =>

@@ -247,6 +247,52 @@ public sealed class GraphTextRoleClassifierTests
     }
 
     [TestMethod]
+    [DataRow("Criterion")]
+    [DataRow("Criterion 1")]
+    [DataRow("CRITERION 12")]
+    [DataRow("  criterion\t3  ")]
+    public void ChangingCriterionHeadingAbovePlotUsesGeneralDomainCue(string text)
+    {
+        OcrDetectedRegion region = OcrTestFixtures.Region("criterion", 72, 3, 44, 9);
+
+        RoleClassification result = GraphTextRoleClassifier.Classify(region, text, Plot);
+
+        Assert.AreEqual(OcrTextRole.PhaseHeading, result.Role);
+    }
+
+    [TestMethod]
+    [DataRow("criterion-related")]
+    [DataRow("Criterion met")]
+    [DataRow("Criterion 1 reached")]
+    [DataRow("Criterion: 80")]
+    [DataRow("Criterion 80%")]
+    [DataRow("Criterion 2.5")]
+    [DataRow("Criterion -1")]
+    [DataRow("1")]
+    public void CriterionCueDoesNotAcceptFreeformNotesOrValues(string text)
+    {
+        OcrDetectedRegion region = OcrTestFixtures.Region("note", 72, 3, 44, 9);
+
+        RoleClassification result = GraphTextRoleClassifier.Classify(region, text, Plot);
+
+        Assert.AreEqual(OcrTextRole.Other, result.Role);
+    }
+
+    [TestMethod]
+    public void CriterionCuePreservesInsidePlotAndArrowAnnotationRoles()
+    {
+        OcrDetectedRegion inside = OcrTestFixtures.Region("inside", 72, 30, 44, 9);
+        OcrDetectedRegion arrow = OcrTestFixtures.Region(
+            "arrow", 72, 3, 44, 9,
+            context: new OcrRegionContext(NearAnnotationArrow: true));
+
+        Assert.AreEqual(OcrTextRole.Annotation,
+            GraphTextRoleClassifier.Classify(inside, "Criterion 1", Plot).Role);
+        Assert.AreEqual(OcrTextRole.Annotation,
+            GraphTextRoleClassifier.Classify(arrow, "Criterion 1", Plot).Role);
+    }
+
+    [TestMethod]
     public void NumericLocationSeparatesXAndYTicks()
     {
         OcrDetectedRegion xRegion = OcrTestFixtures.Region(
