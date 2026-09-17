@@ -1,0 +1,315 @@
+{
+  "schema": "graphreader.ocr-v44-legend-geometry-attribution.v1",
+  "status": "diagnostic_complete",
+  "scope": "authenticated_cached_synthetic_dev_geometry_only",
+  "authentication": {
+    "script": {
+      "path": "artifacts/goal22-runs/ocr-v44-legend-geometry-attribution/run.ps1",
+      "sha256": "9757a4f1867a2830ad4ebcf7d9af906847b86ad2b54f0957b687680af511bde3"
+    },
+    "inputs": [
+      {
+        "path": "artifacts/goal22-runs/ocr-v44-text-extent/full-score-run1.json",
+        "sha256": "05a8e882a20e4b844f13702654cbb16166da5d6558384b7b11d83059b4186f17"
+      },
+      {
+        "path": "artifacts/goal22-runs/ocr-v44-text-extent/application-evaluation-run1/report.json",
+        "sha256": "003dbf6b73701a98f8f07e1034306318bac338282e282cea21416463d41cda84"
+      },
+      {
+        "path": "artifacts/goal22-runs/ocr-text-extent-capture-inputs/request.json",
+        "sha256": "7d62e9e962d01448fd193887573b6a2ab882574eba41f67a543c444c6222c059"
+      },
+      {
+        "path": "artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-runtime/05-validation-393/report.json",
+        "sha256": "49180202649678bcb130db2a2a33838cda2dcd91f505c9ac2953591c97c8f1ca"
+      },
+      {
+        "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/target-oracle-inputs-v2/request.json",
+        "sha256": "95dff9c31154eba4439c26657dc7309132af688010089d5214dc7997aa8962a9"
+      },
+      {
+        "path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/target-oracle-inputs-v2/synthetic-truth.json",
+        "sha256": "5edb151cbf28b2f1d020db3cafb6c8022d38c4d1b01d57b8f28501482d4b4276"
+      },
+      {
+        "path": "artifacts/goal22-runs/ocr-v44-text-extent/diagnosis-notes-authenticated.json",
+        "sha256": "a6aa1f2ab0e3504d8af922fdfa3fab8ff5c28f7b55217d1b828eb8d7ab9c84b9"
+      }
+    ],
+    "v44_score_binding_verified": true,
+    "historical_truth_binding_verified": true,
+    "runtime_plot_binding_verified": true,
+    "authenticated_diagnosis_reproduced": true
+  },
+  "denominator": {
+    "legend_truth_count": 11,
+    "source_count": 3,
+    "panel_count": 9,
+    "truth_rows_emitted": 0
+  },
+  "plot_relative_class_counts": {
+    "inside": 11
+  },
+  "baseline": {
+    "matched_iou_at_least_0_5": 1,
+    "missed": 10,
+    "missed_best_iou_bins": {
+      "zero": 2,
+      "above_zero_below_0_25": 1,
+      "0_25_to_below_0_40": 1,
+      "0_40_to_below_0_50": 6
+    },
+    "overlapping_best_box_geometry": {
+      "count": 9,
+      "signed_edge_delta_pixels_prediction_minus_truth": {
+        "left": {
+          "distribution": {
+            "minimum": -3.0,
+            "median": 5.0,
+            "maximum": 62.0
+          },
+          "sign_counts": {
+            "negative": 3,
+            "zero": 1,
+            "positive": 5
+          }
+        },
+        "top": {
+          "distribution": {
+            "minimum": -7.0,
+            "median": -1.0,
+            "maximum": 2.0
+          },
+          "sign_counts": {
+            "negative": 5,
+            "zero": 3,
+            "positive": 1
+          }
+        },
+        "right": {
+          "distribution": {
+            "minimum": -64.0,
+            "median": -10.0,
+            "maximum": 4.0
+          },
+          "sign_counts": {
+            "negative": 5,
+            "zero": 0,
+            "positive": 4
+          }
+        },
+        "bottom": {
+          "distribution": {
+            "minimum": -4.0,
+            "median": 1.0,
+            "maximum": 8.0
+          },
+          "sign_counts": {
+            "negative": 1,
+            "zero": 3,
+            "positive": 5
+          }
+        }
+      },
+      "size_ratio_prediction_over_truth": {
+        "width": {
+          "minimum": 0.19491525423728814,
+          "median": 0.4915254237288136,
+          "maximum": 1.0574712643678161
+        },
+        "height": {
+          "minimum": 0.5384615384615384,
+          "median": 1.0769230769230769,
+          "maximum": 2.6666666666666665
+        }
+      }
+    },
+    "missed_overlapping_best_box_geometry": {
+      "count": 8,
+      "signed_edge_delta_pixels_prediction_minus_truth": {
+        "left": {
+          "distribution": {
+            "minimum": -3.0,
+            "median": 28.0,
+            "maximum": 62.0
+          },
+          "sign_counts": {
+            "negative": 2,
+            "zero": 1,
+            "positive": 5
+          }
+        },
+        "top": {
+          "distribution": {
+            "minimum": -7.0,
+            "median": -0.5,
+            "maximum": 2.0
+          },
+          "sign_counts": {
+            "negative": 4,
+            "zero": 3,
+            "positive": 1
+          }
+        },
+        "right": {
+          "distribution": {
+            "minimum": -64.0,
+            "median": -24.0,
+            "maximum": 3.0
+          },
+          "sign_counts": {
+            "negative": 5,
+            "zero": 0,
+            "positive": 3
+          }
+        },
+        "bottom": {
+          "distribution": {
+            "minimum": -4.0,
+            "median": 0.5,
+            "maximum": 8.0
+          },
+          "sign_counts": {
+            "negative": 1,
+            "zero": 3,
+            "positive": 4
+          }
+        }
+      },
+      "size_ratio_prediction_over_truth": {
+        "width": {
+          "minimum": 0.19491525423728814,
+          "median": 0.4872881355932204,
+          "maximum": 0.8275862068965517
+        },
+        "height": {
+          "minimum": 0.5384615384615384,
+          "median": 1.0769230769230769,
+          "maximum": 2.6666666666666665
+        }
+      }
+    },
+    "zero_overlap": {
+      "count": 2,
+      "nearest_rectangle_distance_pixels": {
+        "minimum": 3.0,
+        "median": 12.5,
+        "maximum": 22.0
+      }
+    }
+  },
+  "same_line_pair_union_oracle": {
+    "definition": "Every unordered raw-box pair satisfying frozen generic-v1 geometry plus the frozen 0.10 vertical-center condition; best pair is selected against each truth only for posthoc recoverability measurement.",
+    "pair_only": true,
+    "recovered_missed_legend_count_at_iou_0_5": 2,
+    "unrecovered_missed_legend_count": 8,
+    "recovered_best_pair_iou": {
+      "minimum": 0.7457462323772485,
+      "median": 0.8294207352362433,
+      "maximum": 0.9130952380952381
+    },
+    "recovered_pair_cross_truth_member_assignment_count": 0,
+    "recovered_pair_union_intersects_multiple_truths_count": 0,
+    "all_dev_eligible_pair_count": 20,
+    "all_dev_cross_truth_member_assignment_count": 5,
+    "all_dev_pair_union_intersects_multiple_truths_count": 7
+  },
+  "interpretation_constraints": [
+    "Truth selects the best pair only for posthoc diagnosis; this is not a deployable selection rule or an accuracy gate.",
+    "A zero-IoU best box means no raw box overlaps the truth, not that the panel contains no proposal.",
+    "Pair recoverability does not prove recognition, role correctness, safety of greedy grouping, or production suitability."
+  ],
+  "model_inference": false,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "synthetic_only": true,
+  "production_approved": false,
+  "result_sha256": "3a95962f5cea00921ed2faeef5c1cb18bad2a6bdde52d51c820796197df4f58d",
+  "next_step": "Close cached CC-union and marker-plane glyph gating; no product implementation is justified. Diagnose synthetic train/dev representation next.",
+  "license_review": "Project-owned synthetic geometry only; no dependency, model payload, private or sealed input.",
+  "primitive_availability": {
+    "result": {
+      "path": "artifacts/goal22-runs/ocr-v44-legend-primitive-availability/result.json",
+      "sha256": "85172f0a34496e448ff7bd70d460119bbd12b520fd351d0f5a437ee2a055b232"
+    },
+    "script": {
+      "path": "artifacts/goal22-runs/ocr-v44-legend-primitive-availability/run.ps1",
+      "sha256": "8c409a92b94d609b7b263132d0ed5610322823d6677e3f0690e8775bd35c7c2c"
+    },
+    "inventory": {
+      "source_count": 3,
+      "panel_count": 9,
+      "legend_truth_count": 11,
+      "raw_detector_region_count": 187,
+      "connected_component_region_count": 434,
+      "connected_component_single_count": 280,
+      "connected_component_multi_count": 154,
+      "connected_component_likely_structure_count": 156,
+      "connected_component_nonstructure_multi_count": 122,
+      "connected_component_reason_counts": {
+        "multi_glyph_line_evidence": 122,
+        "single_glyph_candidate": 152,
+        "single_component_marker_arrow_or_intersection_like": 46,
+        "single_component_line_or_tick_like": 82,
+        "repeated_compact_marker_components": 32
+      },
+      "raw_regions_with_any_component_overlap": 184,
+      "raw_regions_with_nonstructure_multi_component_overlap": 110,
+      "accepted_classified_marker_count_available": 0,
+      "marker_connection_count_available": 0
+    },
+    "fixed_geometry": {
+      "maximum_horizontal_window_pixels": 90,
+      "maximum_vertical_center_offset_pixels": 14,
+      "parameter_sweep": false
+    },
+    "cc_extent": {
+      "anchor_selection": "truth_oracle_best_raw_iou_posthoc_diagnosis_only",
+      "legend_anchors_with_any_overlapping_component_row": 11,
+      "overlap_reason_counts": {
+        "multi_glyph_line_evidence": 8,
+        "repeated_compact_marker_components": 3
+      },
+      "legend_anchors_with_nonstructure_multi_component_overlap": 8,
+      "legend_anchors_with_horizontal_growth_row": 8,
+      "union_iou_improved_count": 0,
+      "union_iou_at_least_0_5_count": 1,
+      "failure_counts": {
+        "added_no_truth_area": 0,
+        "added_nontruth_area": 8,
+        "retained_horizontal_undercoverage": 0,
+        "vertical_overgrowth": 8,
+        "no_iou_improvement": 8
+      }
+    },
+    "marker_like_signal": {
+      "semantics": "descriptive cached raster probabilities with no enabled production operating threshold",
+      "exact_native_probability_values": {
+        "text_associated": 0.03999999910593033,
+        "other_ink": 0.07999999821186066,
+        "ambiguous_hollow": 0.3499999940395355,
+        "marker": 0.8999999761581421
+      },
+      "anchors_with_any_nonzero_signal": 9,
+      "anchors_with_exact_marker_probability": 6,
+      "anchors_with_exact_ambiguous_hollow_probability": 0,
+      "exact_marker_probability_pixel_count": 374,
+      "exact_ambiguous_hollow_probability_pixel_count": 0,
+      "positive_four_connected_component_count": 164
+    },
+    "interpretation": {
+      "selected_anchor_uses_truth": true,
+      "selected_anchor_is_deployable_rule": false,
+      "component_rows_are_accepted_evidence": false,
+      "marker_like_planes_were_applied_to_ocr": false,
+      "marker_like_planes_are_production_approved": false,
+      "classified_legend_glyph_identity_available": false,
+      "marker_connections_available": false,
+      "model_or_product_approval": false
+    },
+    "scope": "Cached diagnostic planes, not accepted glyph or connection evidence",
+    "source_and_plane_hashes_reverified": true
+  }
+}
