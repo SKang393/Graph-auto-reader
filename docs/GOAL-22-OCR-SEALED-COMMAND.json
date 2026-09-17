@@ -50,5 +50,15 @@
     "scope": "Canonical authority loading, frozen metadata recovery, concrete authenticator, sanitized command output",
     "model_or_production_approval": false,
     "reviewer": "gpt-5.6-sol high"
+  },
+  "actual_closed_authority_probe": {
+    "path": "artifacts/goal22-runs/ocr-command-closed-v44-metadata-probe.json",
+    "status": "closed_v44_training_metadata_loaded",
+    "opened_sha256": "269127f94da659c840ebed07da20325d155f391a98fddce8dad371e749a95721",
+    "authority_mutations": 0,
+    "scope": "Read-only loading of the actual closed P1 training authority after normal live ledger and source changes; no evaluation invoked",
+    "optimizer_steps": 0,
+    "archive_reads": 0,
+    "sha256": "3f6ce1f105017d16e657be74d8db9c5d2b9868f53d245aff753f87f2a3cb5c0b"
   }
 }

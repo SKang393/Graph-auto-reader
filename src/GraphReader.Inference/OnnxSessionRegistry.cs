@@ -357,6 +357,14 @@ public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
     public OnnxInferenceSessionFactory(
         IUiThreadGuard uiThreadGuard,
         OnnxGraphOptimizationMode graphOptimizationMode = OnnxGraphOptimizationMode.RuntimeDefault)
+        : this(uiThreadGuard, graphOptimizationMode, OrtLoggingLevel.ORT_LOGGING_LEVEL_WARNING)
+    {
+    }
+
+    public OnnxInferenceSessionFactory(
+        IUiThreadGuard uiThreadGuard,
+        OnnxGraphOptimizationMode graphOptimizationMode,
+        OrtLoggingLevel loggingLevel)
     {
         _uiThreadGuard = uiThreadGuard ?? throw new ArgumentNullException(nameof(uiThreadGuard));
         GraphOptimizationMode = graphOptimizationMode is
@@ -366,9 +374,17 @@ public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
                 nameof(graphOptimizationMode),
                 graphOptimizationMode,
                 "Unsupported ONNX graph optimization mode.");
+        LoggingLevel = Enum.IsDefined(loggingLevel)
+            ? loggingLevel
+            : throw new ArgumentOutOfRangeException(
+                nameof(loggingLevel),
+                loggingLevel,
+                "Unsupported ONNX Runtime logging level.");
     }
 
     public OnnxGraphOptimizationMode GraphOptimizationMode { get; }
+
+    public OrtLoggingLevel LoggingLevel { get; }
 
     public async ValueTask<IInferenceSession> CreateAsync(
         ModelIdentity model,
@@ -404,6 +420,7 @@ public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
         }
 
         var options = new SessionOptions();
+        options.LogSeverityLevel = LoggingLevel;
         if (GraphOptimizationMode == OnnxGraphOptimizationMode.Disabled)
         {
             options.GraphOptimizationLevel = GraphOptimizationLevel.ORT_DISABLE_ALL;

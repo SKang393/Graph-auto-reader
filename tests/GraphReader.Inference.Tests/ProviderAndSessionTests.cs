@@ -42,6 +42,52 @@ public sealed class ProviderAndSessionTests
     }
 
     [TestMethod]
+    public void OnnxFactoryPreservesRuntimeDefaultWarningLoggingForExistingCallers()
+    {
+        var factory = new OnnxInferenceSessionFactory(NoUiThreadGuard.Instance);
+        using var defaults = new SessionOptions();
+        using SessionOptions actual = factory.CreateSessionOptions(
+            InferenceProvider.Cpu,
+            CpuThreadConfiguration.Create(1, new FixedCoreDetector(2)));
+
+        Assert.AreEqual(OrtLoggingLevel.ORT_LOGGING_LEVEL_WARNING, defaults.LogSeverityLevel);
+        Assert.AreEqual(defaults.LogSeverityLevel, actual.LogSeverityLevel);
+        Assert.AreEqual(OrtLoggingLevel.ORT_LOGGING_LEVEL_WARNING, factory.LoggingLevel);
+    }
+
+    [TestMethod]
+    public void OnnxFactoryPreservesExistingBinaryConstructorSignature()
+    {
+        Assert.IsNotNull(typeof(OnnxInferenceSessionFactory).GetConstructor(
+            [typeof(IUiThreadGuard), typeof(OnnxGraphOptimizationMode)]));
+    }
+
+    [TestMethod]
+    public void OnnxFactoryCanBindErrorLoggingWithoutRunningInference()
+    {
+        var factory = new OnnxInferenceSessionFactory(
+            NoUiThreadGuard.Instance,
+            OnnxGraphOptimizationMode.RuntimeDefault,
+            loggingLevel: OrtLoggingLevel.ORT_LOGGING_LEVEL_ERROR);
+        using SessionOptions actual = factory.CreateSessionOptions(
+            InferenceProvider.Cpu,
+            CpuThreadConfiguration.Create(1, new FixedCoreDetector(2)));
+
+        Assert.AreEqual(OrtLoggingLevel.ORT_LOGGING_LEVEL_ERROR, actual.LogSeverityLevel);
+        Assert.AreEqual(OrtLoggingLevel.ORT_LOGGING_LEVEL_ERROR, factory.LoggingLevel);
+    }
+
+    [TestMethod]
+    public void OnnxFactoryRejectsUnknownLoggingLevel()
+    {
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            new OnnxInferenceSessionFactory(
+                NoUiThreadGuard.Instance,
+                OnnxGraphOptimizationMode.RuntimeDefault,
+                loggingLevel: (OrtLoggingLevel)int.MaxValue));
+    }
+
+    [TestMethod]
     public void OnnxFactoryRejectsUnknownGraphOptimizationMode()
     {
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>

@@ -96,7 +96,10 @@ internal static class OriginalDbOcrMemoryRuntime
                 (name, _, _) => name == "OpenCvSharpExtern" ? native : nint.Zero);
             await using var runtime = new ProductionInferenceRuntimeHost(new OrtExecutionProviderDiscovery(),
                 new WindowsExecutionProviderPolicy(),
-                new OnnxInferenceSessionFactory(NoUiThreadGuard.Instance, OnnxGraphOptimizationMode.Disabled),
+                new OnnxInferenceSessionFactory(
+                    NoUiThreadGuard.Instance,
+                    OnnxGraphOptimizationMode.Disabled,
+                    Microsoft.ML.OnnxRuntime.OrtLoggingLevel.ORT_LOGGING_LEVEL_ERROR),
                 CpuThreadConfiguration.Create(1), [InferenceProvider.Cpu],
                 Path.Combine(root, "artifacts", "unused-ocr-memory-cache"), 1, 1, new NoPersistenceStageCache());
             ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(

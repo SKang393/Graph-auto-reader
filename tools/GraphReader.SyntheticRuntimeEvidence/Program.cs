@@ -50,6 +50,16 @@ internal static class Program
         {
             return await OriginalDbOcrMemoryDevCheck.RunAsync(args, RepositoryRoot()).ConfigureAwait(false);
         }
+        if (args.Length == 6 && args[0] == WordFragmentStressCapture.Command)
+        {
+            return await WordFragmentStressCapture.RunAsync(args, RepositoryRoot()).ConfigureAwait(false);
+        }
+        if (args.Length == 1 && args[0] == WordFragmentStressCapture.SelfTestCommand)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(
+                WordFragmentStressCapture.RunBoundarySelfTest(RepositoryRoot()), JsonOptions));
+            return 0;
+        }
         if (args.Length == 1 && args[0] == "--self-test-sealed-ocr-archive")
         {
             Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSealedArchiveSelfTest.Run(), JsonOptions));

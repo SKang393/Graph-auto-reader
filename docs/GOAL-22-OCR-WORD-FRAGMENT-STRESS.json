@@ -1,0 +1,387 @@
+{
+  "schema": "graphreader.goal22.ocr-word-fragment-stress.v1",
+  "status": "train_fragments_and_actual_collisions_compared",
+  "scope": "Project-owned synthetic train diagnostic; no candidate acceptance.",
+  "inputs": [
+    {
+      "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/preflight.json",
+      "sha256": "aa4a6dcb41affde846aa03d790aff0bf09d04f31a726d68fed0980c9f4ebcf0d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/capture-request.json",
+      "sha256": "78ebd546534b038b3f98d0cdb9c2e746eabdaf1194467ca96d882e544afcf4c4"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/diagnostic-candidate.json",
+      "sha256": "dcbd814a1195425e82acd1570b8febd131592baf597bd8f6d751c7cf6c1c8352"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/raw-capture-run1.json",
+      "sha256": "e52ef4e87a0c3f4f192996463874b768126b692692758d60345fba9f1eb96ea1"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/pair-score-run1.json",
+      "sha256": "77fe59a4d3d9de3d517ee96241fad126b7d866a536e491f97f5ab5ccc8d095d3"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-word-stress-final-build-evidence.json",
+      "sha256": "6b268dc694172501162892cfd064dc8a152195a4843a0ff0b92ad0df0046b981"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-word-fragment-geometry-final-tests.xml",
+      "sha256": "b6bf0a130b839eaaa14da67d6cdb2f89df0e4eba6a76c283110543ac30185989"
+    }
+  ],
+  "source_count": 16,
+  "seed_start": 410,
+  "seed_count": 8,
+  "renderer_families": [
+    "vector_clean/system_sans/none/classic_single/geometric_basic",
+    "print_monochrome/system_serif/print_light/stacked_shared_axes/mixed_print"
+  ],
+  "measured_pairs": {
+    "positive": 9,
+    "negative": 11,
+    "positive_opportunities": 16,
+    "negative_opportunities": 16,
+    "assignment": "Each measured pair contains two distinct raw boxes assigned one-to-one to the two rendered token boxes, with positive IoU required for each assignment.",
+    "missing_pair_reasons": {
+      "negative_left_token_without_raw_overlap": 2,
+      "negative_without_two_distinct_assigned_raw_boxes": 3,
+      "positive_without_two_distinct_assigned_raw_boxes": 7
+    }
+  },
+  "feature_distributions": {
+    "height_ratio": {
+      "negative": {
+        "count": 11,
+        "maximum": 2.0,
+        "median": 1.1666666666666667,
+        "minimum": 1.0,
+        "p25": 1.1126373626373627,
+        "p75": 1.3722222222222222
+      },
+      "positive": {
+        "count": 9,
+        "maximum": 1.8571428571428572,
+        "median": 1.1818181818181819,
+        "minimum": 1.1,
+        "p25": 1.1333333333333333,
+        "p75": 1.625
+      },
+      "range_disjoint": false
+    },
+    "horizontal_gap_height_ratio": {
+      "negative": {
+        "count": 11,
+        "maximum": 1.8666666666666667,
+        "median": 0.7333333333333333,
+        "minimum": 0.0,
+        "p25": 0.13846153846153847,
+        "p75": 1.1923076923076923
+      },
+      "positive": {
+        "count": 9,
+        "maximum": 1.5384615384615385,
+        "median": 1.0555555555555556,
+        "minimum": 0.0,
+        "p25": 0.5384615384615384,
+        "p75": 1.2352941176470589
+      },
+      "range_disjoint": false
+    },
+    "horizontal_gap_pixels": {
+      "negative": {
+        "count": 11,
+        "maximum": 28.0,
+        "median": 11.0,
+        "minimum": 0.0,
+        "p25": 2.0,
+        "p75": 14.0
+      },
+      "positive": {
+        "count": 9,
+        "maximum": 21.0,
+        "median": 16.0,
+        "minimum": 0.0,
+        "p25": 7.0,
+        "p75": 19.0
+      },
+      "range_disjoint": false
+    },
+    "merged_height_growth_ratio": {
+      "negative": {
+        "count": 11,
+        "maximum": 1.1428571428571428,
+        "median": 1.0,
+        "minimum": 1.0,
+        "p25": 1.0,
+        "p75": 1.0884615384615386
+      },
+      "positive": {
+        "count": 9,
+        "maximum": 1.0666666666666667,
+        "median": 1.0,
+        "minimum": 1.0,
+        "p25": 1.0,
+        "p75": 1.0
+      },
+      "range_disjoint": false
+    },
+    "vertical_overlap_ratio": {
+      "negative": {
+        "count": 11,
+        "maximum": 1.0,
+        "median": 1.0,
+        "minimum": 0.8333333333333334,
+        "p25": 0.9,
+        "p75": 1.0
+      },
+      "positive": {
+        "count": 9,
+        "maximum": 1.0,
+        "median": 1.0,
+        "minimum": 0.9230769230769231,
+        "p25": 1.0,
+        "p75": 1.0
+      },
+      "range_disjoint": false
+    }
+  },
+  "assignment_quality": {
+    "left_assigned_token_iou": {
+      "negative": {
+        "count": 11,
+        "maximum": 0.9487179487179487,
+        "median": 0.6303418803418803,
+        "minimum": 0.4722222222222222,
+        "p25": 0.5597222222222222,
+        "p75": 0.7604491173416407
+      },
+      "positive": {
+        "count": 9,
+        "maximum": 0.9411764705882353,
+        "median": 0.7955801104972375,
+        "minimum": 0.6039215686274509,
+        "p25": 0.7155635062611807,
+        "p75": 0.875
+      }
+    },
+    "minimum_assigned_token_iou": {
+      "negative": {
+        "count": 11,
+        "maximum": 0.7248520710059172,
+        "median": 0.5777777777777777,
+        "minimum": 0.43209876543209874,
+        "p25": 0.5101397205588822,
+        "p75": 0.6360888268805953
+      },
+      "positive": {
+        "count": 9,
+        "maximum": 0.875,
+        "median": 0.6285714285714286,
+        "minimum": 0.4444444444444444,
+        "p25": 0.5568181818181818,
+        "p75": 0.6722222222222223
+      }
+    },
+    "positive_pair_union_iou_with_logical_truth": {
+      "negative": null,
+      "positive": {
+        "count": 9,
+        "maximum": 1.0,
+        "median": 0.8268359020852222,
+        "minimum": 0.651685393258427,
+        "p25": 0.7755568246716162,
+        "p75": 0.8884254431699687
+      }
+    },
+    "right_assigned_token_iou": {
+      "negative": {
+        "count": 11,
+        "maximum": 0.8928571428571429,
+        "median": 0.7014492753623188,
+        "minimum": 0.43209876543209874,
+        "p25": 0.6360888268805953,
+        "p75": 0.8165687919463087
+      },
+      "positive": {
+        "count": 9,
+        "maximum": 0.8827785817655571,
+        "median": 0.6565656565656566,
+        "minimum": 0.4444444444444444,
+        "p25": 0.5568181818181818,
+        "p75": 0.6722222222222223
+      }
+    }
+  },
+  "interpretation": [
+    "The original train corpus lacked participant fragment pairs. Fresh train images now provide measured fragment positives.",
+    "Positive and constructed negative pairs intentionally share requested gap and alignment bands. Their overlap is a controlled ambiguity, not natural prevalence and not proof that geometry-only joining is impossible.",
+    "Nine positive unions overlap their logical text region at IoU 0.652 to 1.0, median 0.827. Pair-assignment token IoU can be below 0.5; these are descriptive pair measurements, not precision/recall acceptance scores.",
+    "Actual V44 train collisions are compared separately before proposing a narrower joining rule."
+  ],
+  "validation": {
+    "job_cpu_rate": 333,
+    "build_seconds": 74.12,
+    "build_errors": 0,
+    "build_warnings": 0,
+    "capture_source_count": 16,
+    "capture_elapsed_ms": 49821.6004,
+    "boundary_self_test_passed": 4,
+    "geometry_tests_passed": 5,
+    "geometry_tests_seconds": 1.86,
+    "independent_source_review": "Sol High cleared the frozen capture/generator scope",
+    "runtime_inputs": "Whole source pixels only; no truth crops, text, roles, or token metadata supplied",
+    "native_warnings": "Capture completed with routine native ORT warnings. The separately recorded logging repair subsequently produced zero stderr bytes and exactly equal source identities, panel counts, and raw boxes on these same 16 sources; see GOAL-22-OCR-RUNTIME-LOGGING.json."
+  },
+  "runtime_identity": {
+    "tool_assembly_changed": true,
+    "app_ocr_inference_assemblies_unchanged": true,
+    "models_native_manifests_licenses_unchanged": true,
+    "old_runtime_preserved": "artifacts/goal22-runs/ocr-v44-text-extent/runtime-before-word-stress-20260917/backup-manifest.json"
+  },
+  "license_review": "Existing project-owned generator and reviewed model/runtime inputs. Host-installed fonts are checksum-recorded only; no font binary is copied, committed, or redistributed.",
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "new_model_revision": false,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "goal22_acceptance_status": "FAIL",
+  "actual_v44_collision_comparison": {
+    "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/collision-comparison-run2.json",
+    "sha256": "f9307e6f1a6baf124d969b91bc300aac81ac3b3049041fb9d8238a814eb3ca44",
+    "positive_pairs": 9,
+    "actual_cross_truth_first_crossings": 21,
+    "role_sets": {
+      "annotation+phase_heading": 1,
+      "axis_title+y_tick": 2,
+      "condition_label+phase_heading": 18
+    },
+    "feature_distributions": {
+      "bottom_edge_offset_height_ratio": {
+        "stress_positive_fragments": {
+          "count": 9,
+          "maximum": 0.3888888888888889,
+          "median": 0.14285714285714285,
+          "minimum": 0.0
+        },
+        "v44_actual_cross_truth_first_crossings": {
+          "count": 21,
+          "maximum": 0.6923076923076923,
+          "median": 0.18181818181818182,
+          "minimum": 0.06666666666666667
+        }
+      },
+      "height_ratio": {
+        "stress_positive_fragments": {
+          "count": 9,
+          "maximum": 1.8571428571428572,
+          "median": 1.1818181818181819,
+          "minimum": 1.1
+        },
+        "v44_actual_cross_truth_first_crossings": {
+          "count": 21,
+          "maximum": 1.9,
+          "median": 1.1,
+          "minimum": 1.0
+        }
+      },
+      "horizontal_gap_height_ratio": {
+        "stress_positive_fragments": {
+          "count": 9,
+          "maximum": 1.5384615384615385,
+          "median": 1.0555555555555556,
+          "minimum": 0.0
+        },
+        "v44_actual_cross_truth_first_crossings": {
+          "count": 21,
+          "maximum": 1.7272727272727273,
+          "median": 0.7692307692307693,
+          "minimum": 0.0
+        }
+      },
+      "horizontal_gap_pixels": {
+        "stress_positive_fragments": {
+          "count": 9,
+          "maximum": 21.0,
+          "median": 16.0,
+          "minimum": 0.0
+        },
+        "v44_actual_cross_truth_first_crossings": {
+          "count": 21,
+          "maximum": 19.0,
+          "median": 10.0,
+          "minimum": 0.0
+        }
+      },
+      "merged_height_growth_ratio": {
+        "stress_positive_fragments": {
+          "count": 9,
+          "maximum": 1.0666666666666667,
+          "median": 1.0,
+          "minimum": 1.0
+        },
+        "v44_actual_cross_truth_first_crossings": {
+          "count": 21,
+          "maximum": 1.3888888888888888,
+          "median": 1.0909090909090908,
+          "minimum": 1.0
+        }
+      },
+      "top_edge_offset_height_ratio": {
+        "stress_positive_fragments": {
+          "count": 9,
+          "maximum": 0.3076923076923077,
+          "median": 0.07692307692307693,
+          "minimum": 0.05555555555555555
+        },
+        "v44_actual_cross_truth_first_crossings": {
+          "count": 21,
+          "maximum": 0.45454545454545453,
+          "median": 0.18181818181818182,
+          "minimum": 0.0
+        }
+      },
+      "vertical_center_offset_height_ratio": {
+        "stress_positive_fragments": {
+          "count": 9,
+          "maximum": 0.16666666666666666,
+          "median": 0.038461538461538464,
+          "minimum": 0.0
+        },
+        "v44_actual_cross_truth_first_crossings": {
+          "count": 21,
+          "maximum": 0.5384615384615384,
+          "median": 0.13636363636363635,
+          "minimum": 0.13157894736842105
+        }
+      },
+      "vertical_overlap_ratio": {
+        "stress_positive_fragments": {
+          "count": 9,
+          "maximum": 1.0,
+          "median": 1.0,
+          "minimum": 0.9230769230769231
+        },
+        "v44_actual_cross_truth_first_crossings": {
+          "count": 21,
+          "maximum": 1.0,
+          "median": 0.9,
+          "minimum": 0.4444444444444444
+        }
+      }
+    },
+    "historical_runtime_binding": "The full V44 evidence validator read each execution assembly from the exact preserved backup whose original path and SHA-256 match the candidate, capture request, and evaluation report. No live file was replaced or skipped.",
+    "source_bindings": {
+      "ml/ocr/component_region_detector_v6/dataset.py": "cfc1760cfe0f5231d34960100bed3b24bbd54bab6ab69919c3eae43fddc22f59",
+      "ml/ocr/official_bakeoff/word_fragment_stress_v1.py": "60d90435b8dc38fa5f0835ffa8302f8d50d3746307091080da438bddb6620aca",
+      "tools/GraphReader.SyntheticRuntimeEvidence/compare_word_fragment_collision_geometry_v1.py": "29d6694be4cd7fa61d23759b81028af919cc2f0ac49137c1fde6cc4c56b907f2",
+      "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_ocr_line_assembly_v44.py": "6c9c981bc7bd0160158b705e19ddb1192d0ea1ee8ee061e40d1aaa23122e8a80"
+    },
+    "independent_source_review": "Sol High clear at the recorded comparison helper hash",
+    "inference": false
+  },
+  "next_step": "Evaluate one train-informed stronger-alignment condition on authenticated cached train/dev raw boxes: add vertical-center separation no greater than 0.10 times maximum word height to the unchanged generic rule. No parameter sweep; no model inference or approval."
+}

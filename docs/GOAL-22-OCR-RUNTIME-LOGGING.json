@@ -1,0 +1,140 @@
+{
+  "schema": "graphreader.goal22.ocr-runtime-error-logging.v1",
+  "status": "repair_verified_on_unsealed_synthetic_inputs",
+  "scope": "Native ONNX Runtime session warning suppression in the OCR evidence runtime only.",
+  "inputs": [
+    {
+      "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/raw-capture-run1.json",
+      "sha256": "e52ef4e87a0c3f4f192996463874b768126b692692758d60345fba9f1eb96ea1"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/capture/raw-capture-run1.json",
+      "sha256": "865eb6a32dab0d8602be23c7b043105081abf9889dfa81e96607187fec264979"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/capture/capture-request.json",
+      "sha256": "636a41c3fc61c46f014622b5d08abafc1c774381b2c5cb7bee8005ed178a3d3e"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/capture/diagnostic-candidate.json",
+      "sha256": "e9b3c0bf1851061b283af0a7f9dc88cc05d933d8e719be7665e1ddbaf375767c"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/capture/stderr.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/runtime-rebinding.json",
+      "sha256": "4a02bc72cafaa2e6d4894e8beb765c6d518713cecbc9eca915677b04f5844dfb"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/build-evidence.json",
+      "sha256": "6d16060b0e62d8e6ef41d7845feb7f9f1301d29c38c8d549255478946ee11b59"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/tests/provider-session.trx",
+      "sha256": "4784ec7f7662202ddb90c4bf945c237e10e470be2817ebbe5a2c8ed5815d3c48"
+    }
+  ],
+  "source_count": 16,
+  "source_hash_panel_count_and_raw_boxes_exactly_equal": true,
+  "native_stderr_bytes": 0,
+  "before_elapsed_ms": 49821.6004,
+  "after_elapsed_ms": 42946.7233,
+  "provider_session_tests_passed": 24,
+  "provider_session_tests_failed": 0,
+  "provider_session_tests_skipped": 0,
+  "build_warnings": 0,
+  "build_errors": 0,
+  "build_seconds": 449.42,
+  "job_cpu_rate": 333,
+  "binary_constructor_compatibility_preserved": true,
+  "default_application_logging": "WARNING",
+  "evidence_session_logging": "ERROR",
+  "error_handling": "Error and Fatal remain admitted by the session severity setting. Existing transport continues to quarantine unexpected stderr; no output whitelist added.",
+  "runtime_rebinding": {
+    "parent_candidate": {
+      "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/diagnostic-candidate.json",
+      "sha256": "dcbd814a1195425e82acd1570b8febd131592baf597bd8f6d751c7cf6c1c8352"
+    },
+    "models_native_manifests_licenses_unchanged": true,
+    "assembly_rebindings": [
+      {
+        "name": "GraphReader.SyntheticRuntimeEvidence",
+        "old_path": "tools/GraphReader.SyntheticRuntimeEvidence/bin/Release/net10.0-windows/win-x64/GraphReader.SyntheticRuntimeEvidence.dll",
+        "old_sha256": "8e68ea14caad78efa10b98a8a09955fd84d28f2c5576480c6d9214cd8714fe7c",
+        "new_path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/runtime/GraphReader.SyntheticRuntimeEvidence.dll",
+        "new_sha256": "0e192f9b5cc55263a2a926c541c81a27ffb63bcf5c4f239ecd72fc5e778006aa",
+        "bytes_changed": true
+      },
+      {
+        "name": "GraphReader.App",
+        "old_path": "tools/GraphReader.SyntheticRuntimeEvidence/bin/Release/net10.0-windows/win-x64/GraphReader.App.dll",
+        "old_sha256": "53f1a3d0352b5c85c57ef21917e38d6e00d6f61d5546fb3976221c1f61e67578",
+        "new_path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/runtime/GraphReader.App.dll",
+        "new_sha256": "bc0166ec08219f94ad8ee686762d73615124dc231f1d2424ecdf5488992fd118",
+        "bytes_changed": true
+      },
+      {
+        "name": "GraphReader.Ocr",
+        "old_path": "tools/GraphReader.SyntheticRuntimeEvidence/bin/Release/net10.0-windows/win-x64/GraphReader.Ocr.dll",
+        "old_sha256": "7a19d76db49863d393d1717cbbf42c14625dd69dc132247cea9dd420336cd701",
+        "new_path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/runtime/GraphReader.Ocr.dll",
+        "new_sha256": "9bf5b8e20c32d077af2d56e2c4ccb0a2fff500d2aece4ff8ffbe98760243e23a",
+        "bytes_changed": true
+      },
+      {
+        "name": "GraphReader.Inference",
+        "old_path": "tools/GraphReader.SyntheticRuntimeEvidence/bin/Release/net10.0-windows/win-x64/GraphReader.Inference.dll",
+        "old_sha256": "201830c8a8eeba1af11350752209f3805d7b314f881252b94757d443da934930",
+        "new_path": "artifacts/goal22-runs/ocr-runtime-error-logging-20260917/runtime/GraphReader.Inference.dll",
+        "new_sha256": "286927cceadcb1010aba14e14f6f459532564b80d0c2c6c47aca823658174139",
+        "bytes_changed": true
+      }
+    ],
+    "source_pixels_unchanged": true,
+    "source_count": 16,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "production_approved": false
+  },
+  "independent_source_review": {
+    "reviewer": "gpt-5.6-sol high",
+    "result": "clear at final source hashes",
+    "sources": [
+      {
+        "path": "src/GraphReader.Inference/OnnxSessionRegistry.cs",
+        "sha256": "15d36ef8b5855da23f2f058ccd2a9c1996b3af9dd16dc07ed0a6f36b06200e73"
+      },
+      {
+        "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryRuntime.cs",
+        "sha256": "080903b61e94d68a1fdfeed5d451291785bd62c5eea6c9ed94befc6b5ef22d77"
+      },
+      {
+        "path": "tests/GraphReader.Inference.Tests/ProviderAndSessionTests.cs",
+        "sha256": "055028a982a8fc5feb77a4b5fe0f2f96b57d2fdd3d8f7e6254096dacd0dae1fd"
+      },
+      {
+        "path": "tools/GraphReader.SyntheticRuntimeEvidence/WordFragmentStressCapture.cs",
+        "sha256": "3166608cfb12556d69b37c5d5ebac50490043be24c57985418c96587961841c6"
+      },
+      {
+        "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+        "sha256": "e28087fa88fc94e4ac42772ec2ea34c256b18b56f731a116ef64f8fd9b685244"
+      }
+    ]
+  },
+  "limitations": [
+    "This comparison covers source identities, detected panel counts and raw OCR boxes, not recognition text or role metrics.",
+    "No deliberate native error was injected. The options tests verify the error-preserving threshold; transport behavior has separate passing regression evidence.",
+    "The repaired assemblies have new identities. They do not inherit historical model acceptance or Production approval."
+  ],
+  "license_review": "No dependency, model, weight, dataset, or license change.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "goal22_acceptance_status": "FAIL"
+}
