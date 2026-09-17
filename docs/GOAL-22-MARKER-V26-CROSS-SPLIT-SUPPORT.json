@@ -1,0 +1,773 @@
+{
+  "schema": "graphreader.goal22.marker-v26-cross-split-support.v1",
+  "status": "bounded_development_diagnostic_complete_not_a_gate",
+  "scope": "Component synthetic dev error/control patches compared with all same-label selected component-train patches; family inputs excluded.",
+  "result": {
+    "path": "artifacts/goal22-runs/marker-v26-cross-split-support/diagnosis-v1.json",
+    "sha256": "7a18a44f00531f50404b2710c48d3a8f83a8ef1f4b41f0599c2086cfb708b647"
+  },
+  "script": {
+    "path": "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_marker_v26_cross_split_support.py",
+    "sha256": "571bbcd3474638f9213398b1b4edcbf1afea90256079a7b6c8e7023d719f93e4"
+  },
+  "tests": {
+    "path": "tests/test_marker_v26_cross_split_support.py",
+    "sha256": "075b1bcdb559fe8354f7ee740248bc7bf15039413cc83862a4a056bb2c748bdf"
+  },
+  "inputs": [
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_marker_v26_confidence_boundary.py",
+      "sha256": "b79793b2027407247a90584cae26ce1009ca13446b3e2af806a5134bf5a84225"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-confidence-boundary/diagnosis-v1.json",
+      "sha256": "b1661bff1963f7fc94b83985a181f892d37ba918386bdf051061518096e2a60c"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-annulus/diagnosis-v1/diagnosis.json",
+      "sha256": "936a5ae1bca09bd431d94ad7c6acfc6cf521af78e8e45afea3498305a09250f8"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-annulus/diagnosis-v1/fixed-v26-dev-outputs.npz",
+      "sha256": "ff0d332ef0c7b7c8b3084e2ae2357cb551d5ce698d320e67077bcd2b63cec90d"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/suppressor-anchor-diagnosis-v1/diagnosis.json",
+      "sha256": "ad923c8f9c658e4a51b4babf728f30f68e9bf33fb3d4528587b6f3e5998290db"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/suppressor-anchor-diagnosis-v1/fixed-v25-dev-outputs.npz",
+      "sha256": "d9247c03dded13b00c582a64152976a9b89f1b01704670cfdc5f226c9d09eb72"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/negative-coverage-v1/frozen-v25-train-proposal-metadata.npz",
+      "sha256": "5b8afc209e1c2a6f849ef044056b46903c79692d7264a724651a3a158369576b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/annulus-reservation-v1/proposed-selection-metadata.npz",
+      "sha256": "4a03c08d1566a1f587910ea2fd9c49069d850c62a558b15f614af1f01c93fa8e"
+    }
+  ],
+  "train_support": {
+    "negative_candidates": 32580,
+    "positive_candidates": 3258,
+    "selected_rows": 35838,
+    "selection_sha256": "c184a97ae7ad0292361e62a4aaed5a54d8c1ae1bdb0ab3daab9ddeb8d46b1af0"
+  },
+  "sampling": {
+    "control_rule": "equal count within stratum; independent smallest SHA-256 ranks",
+    "matching_limits": "controls are matched by component scope, label, and distance stratum only",
+    "per_error_stratum_limit": 32,
+    "populations": {
+      "negative_gt3_le5": {
+        "control": {
+          "excluded": 5297,
+          "population": 5329,
+          "sampled": 32
+        },
+        "error": {
+          "excluded": 1140,
+          "population": 1172,
+          "sampled": 32
+        }
+      },
+      "negative_gt5_le8": {
+        "control": {
+          "excluded": 13985,
+          "population": 14017,
+          "sampled": 32
+        },
+        "error": {
+          "excluded": 469,
+          "population": 501,
+          "sampled": 32
+        }
+      },
+      "negative_gt8_le12": {
+        "control": {
+          "excluded": 28318,
+          "population": 28350,
+          "sampled": 32
+        },
+        "error": {
+          "excluded": 325,
+          "population": 357,
+          "sampled": 32
+        }
+      },
+      "negative_outside_annuli": {
+        "control": {
+          "excluded": 171105,
+          "population": 171137,
+          "sampled": 32
+        },
+        "error": {
+          "excluded": 313,
+          "population": 345,
+          "sampled": 32
+        }
+      },
+      "positive_le3": {
+        "control": {
+          "excluded": 2917,
+          "population": 2949,
+          "sampled": 32
+        },
+        "error": {
+          "excluded": 651,
+          "population": 683,
+          "sampled": 32
+        }
+      }
+    },
+    "rank_domain": "graphreader.marker-v26-component-cross-split-query.v1",
+    "strata": [
+      "positive_le3",
+      "negative_gt3_le5",
+      "negative_gt5_le8",
+      "negative_gt8_le12",
+      "negative_outside_annuli"
+    ]
+  },
+  "nearest_search": {
+    "approximate_index_used": false,
+    "candidate_pairs_evaluated": 8548992,
+    "candidate_pool": "all same-label selected component-train patches",
+    "distance": "FP64 squared Euclidean over float32 3x33x33 patches",
+    "near_tie_resolution": "retain every norm/dot candidate within a conservative FP64 roundoff band; choose by direct FP64 squared-difference recomputation then train-row order",
+    "negative_roundoff_band_squared_distance": 7.583827965623686E-08,
+    "norm_dot_candidate_block_size": 1024,
+    "normalized_rmse_denominator": 3267,
+    "positive_roundoff_band_squared_distance": 7.583827965623686E-08,
+    "tiny_negative_squared_distance_clamped_to_zero": true
+  },
+  "median_support_comparison": [
+    {
+      "stratum": "negative_gt3_le5",
+      "error_median": 0.17045070479996596,
+      "control_median": 0.15167314905454093,
+      "error_p95": 0.29070707877920254,
+      "control_p95": 0.29160230589466024
+    },
+    {
+      "stratum": "negative_gt5_le8",
+      "error_median": 0.17829839114663615,
+      "control_median": 0.14201609407513927,
+      "error_p95": 0.3061380273236813,
+      "control_p95": 0.2528613495292485
+    },
+    {
+      "stratum": "negative_gt8_le12",
+      "error_median": 0.20739551707318535,
+      "control_median": 0.14042381852767655,
+      "error_p95": 0.28943236297008296,
+      "control_p95": 0.24022790700606564
+    },
+    {
+      "stratum": "negative_outside_annuli",
+      "error_median": 0.19469336797387404,
+      "control_median": 0.09061163962407491,
+      "error_p95": 0.26960662990325723,
+      "control_p95": 0.1992722721699503
+    },
+    {
+      "stratum": "positive_le3",
+      "error_median": 0.15073650589797033,
+      "control_median": 0.15836791805960143,
+      "error_p95": 0.2753345427213917,
+      "control_p95": 0.22126325849859702
+    }
+  ],
+  "support_distance": {
+    "negative_gt3_le5": {
+      "control": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.9910447597503662,
+            "minimum": 0.7357673645019531,
+            "p05": 0.7709082067012787,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.4499999999999993
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.3102833363475221,
+          "median": 0.15167314905454093,
+          "minimum": 0.05240853250525719,
+          "p05": 0.08119929076388334,
+          "p95": 0.29160230589466024
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 2.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.0
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.24217361211776733,
+          "median": 0.002244025468826294,
+          "minimum": 2.115964889526367E-06,
+          "p05": 1.2828409671783449E-05,
+          "p95": 0.15719369351863857
+        }
+      },
+      "error": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 1.0,
+            "minimum": 0.8391016125679016,
+            "p05": 0.9275806576013566,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.4499999999999993
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.3122611399409048,
+          "median": 0.17045070479996596,
+          "minimum": 0.09166620542194301,
+          "p05": 0.09944799882256837,
+          "p95": 0.29070707877920254
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 1.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.0
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.9398965835571289,
+          "median": 0.6791636645793915,
+          "minimum": 0.2629075050354004,
+          "p05": 0.2769035115838051,
+          "p95": 0.9223402142524719
+        }
+      }
+    },
+    "negative_gt5_le8": {
+      "control": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.9814526736736298,
+            "minimum": 0.7561764717102051,
+            "p05": 0.7753997027873993,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.289079093721267,
+          "median": 0.14201609407513927,
+          "minimum": 0.08489599413314822,
+          "p05": 0.08865437792772787,
+          "p95": 0.2528613495292485
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 1.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.0
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.11767703294754028,
+          "median": 2.734363079071045E-05,
+          "minimum": 0.0,
+          "p05": 8.195638656616211E-08,
+          "p95": 0.05667097717523568
+        }
+      },
+      "error": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 1.0,
+            "minimum": 0.7124110460281372,
+            "p05": 0.7623529553413391,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.32227959973004816,
+          "median": 0.17829839114663615,
+          "minimum": 0.02899715776018469,
+          "p05": 0.0678167886151683,
+          "p95": 0.3061380273236813
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 1.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.0
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.9319093823432922,
+          "median": 0.4709138125181198,
+          "minimum": 0.2623671293258667,
+          "p05": 0.2748564302921295,
+          "p95": 0.8736147016286849
+        }
+      }
+    },
+    "negative_gt8_le12": {
+      "control": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 1.0,
+            "minimum": 0.5999608039855957,
+            "p05": 0.8023529529571534,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.4499999999999993
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.24426938074140186,
+          "median": 0.14042381852767655,
+          "minimum": 0.08056540684250002,
+          "p05": 0.09578145769884061,
+          "p95": 0.24022790700606564
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 1.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.0
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.12039124965667725,
+          "median": 7.361173629760742E-06,
+          "minimum": 0.0,
+          "p05": 3.2782554626464846E-08,
+          "p95": 0.0011513516306877135
+        }
+      },
+      "error": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 1.0,
+            "minimum": 0.7176470756530762,
+            "p05": 0.9633333355188369,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.4499999999999993
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.3059985706755282,
+          "median": 0.20739551707318535,
+          "minimum": 0.06694639912897052,
+          "p05": 0.08873440502006655,
+          "p95": 0.28943236297008296
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 1.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.0
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.9651529788970947,
+          "median": 0.5418824553489685,
+          "minimum": 0.2558639347553253,
+          "p05": 0.280813992023468,
+          "p95": 0.884754005074501
+        }
+      }
+    },
+    "negative_outside_annuli": {
+      "control": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.8346899449825287,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.24302880129486906,
+          "median": 0.09061163962407491,
+          "minimum": 0.0,
+          "p05": 0.0,
+          "p95": 0.1992722721699503
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 3.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.4499999999999993
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.007186800241470337,
+          "median": 0.00011377036571502686,
+          "minimum": 0.0,
+          "p05": 9.834766387939454E-08,
+          "p95": 0.0024994209408760065
+        }
+      },
+      "error": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 1.0,
+            "minimum": 0.95686274766922,
+            "p05": 0.9829471468925476,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.3094141124136349,
+          "median": 0.19469336797387404,
+          "minimum": 0.06669795476348175,
+          "p05": 0.09244133316209432,
+          "p95": 0.26960662990325723
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 1.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.0
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.9492951035499573,
+          "median": 0.49135391414165497,
+          "minimum": 0.26080796122550964,
+          "p05": 0.26442385613918307,
+          "p95": 0.8822992891073227
+        }
+      }
+    },
+    "positive_le3": {
+      "control": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 1.0,
+            "minimum": 0.7766034603118896,
+            "p05": 0.8196655929088592,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.2475986069767475,
+          "median": 0.15836791805960143,
+          "minimum": 0.07437967700525601,
+          "p05": 0.09078843218588228,
+          "p95": 0.22126325849859702
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 1.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.0
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.9999010562896729,
+          "median": 0.9772435426712036,
+          "minimum": 0.27097341418266296,
+          "p05": 0.3675129935145378,
+          "p95": 0.9998304158449173
+        }
+      },
+      "error": {
+        "nearest_selected_train_channel_max_absolute_difference": {
+          "artifact_mask": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 1.0
+          },
+          "ink": {
+            "count": 32,
+            "maximum": 1.0,
+            "median": 1.0,
+            "minimum": 0.7757353186607361,
+            "p05": 0.8385964334011078,
+            "p95": 1.0
+          },
+          "text_mask": {
+            "count": 32,
+            "maximum": 0.0,
+            "median": 0.0,
+            "minimum": 0.0,
+            "p05": 0.0,
+            "p95": 0.0
+          }
+        },
+        "nearest_selected_train_normalized_rmse": {
+          "count": 32,
+          "maximum": 0.31193761345788135,
+          "median": 0.15073650589797033,
+          "minimum": 0.09330123449131174,
+          "p05": 0.0987050603413184,
+          "p95": 0.2753345427213917
+        },
+        "query_count": 32,
+        "roundoff_candidate_count": {
+          "count": 32,
+          "maximum": 1.0,
+          "median": 1.0,
+          "minimum": 1.0,
+          "p05": 1.0,
+          "p95": 1.0
+        },
+        "score": {
+          "count": 32,
+          "maximum": 0.24457144737243652,
+          "median": 0.05652071535587311,
+          "minimum": 2.8908252716064453E-06,
+          "p05": 0.0004174262285232544,
+          "p95": 0.1757649779319763
+        }
+      }
+    }
+  },
+  "interpretation": [
+    "The sampled error-cohort median nearest same-label selected-train RMSE is higher than the control median in each of the four negative strata; ranges overlap.",
+    "The largest median separation occurs outside the truth-distance annuli.",
+    "Positive errors have lower median distance than controls; a general positive-support deficit is not established.",
+    "The observations support a train-only negative-diversity hypothesis, not a causal attribution or selected repair.",
+    "No positive-row, confidence-threshold, objective, postprocessing or model change is justified by this diagnostic alone."
+  ],
+  "limitations": [
+    "Component synthetic dev only; family panels are excluded to avoid V3 renderer replay.",
+    "At most 32 error anchors and equal-size controls are measured per fixed stratum; all other anchors are excluded and counted.",
+    "Controls are not matched by scene, diameter, blur radius, or truth identity.",
+    "The FP64 roundoff band is conservative engineering protection, not a formal proof for every floating-point implementation.",
+    "Distances are observational and do not establish causation, select a repair, or grade a gate.",
+    "No patches, per-case identities, or per-case outputs are emitted."
+  ],
+  "runtime": {
+    "internal_seconds": 56.306347,
+    "host_seconds": 73.2990551,
+    "cpu_rate": 333,
+    "eligible_logical_processors": 12,
+    "elapsed_bound_seconds": 360,
+    "measured_peak_memory": null,
+    "timing": {
+      "path": "artifacts/goal22-runs/marker-v26-cross-split-support-run1-timing.json",
+      "sha256": "df5dced3c531c9abdfdbfe7e1e37f0cdbf0b95f3c70be7f5ace98cca6b14b977"
+    }
+  },
+  "validation": {
+    "diagnostic_tests_passed": 4,
+    "combined_adapter_support_tests_passed": 13,
+    "junit": {
+      "path": "artifacts/goal22-runs/ocr-participant-lane-runtime/tests/python-adapter-support-tests.xml",
+      "sha256": "70f143b9640544ed1484684bf09c6827e20560dd495ba89657ce2165bbaa9eda"
+    },
+    "cached_arrays_reauthenticated": true,
+    "no_inference_or_regeneration_of_family_inputs": true
+  },
+  "independent_review": {
+    "model": "GPT-5.6 Sol High",
+    "source": "clear",
+    "result": "clear"
+  },
+  "license_review": "Original Apache-2.0 source; project-owned synthetic inputs; no new dependency or model payload.",
+  "checkpoint_forward_passes": 0,
+  "optimizer_steps": 0,
+  "thresholds_selected": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "new_model_revision_opened": false
+}
