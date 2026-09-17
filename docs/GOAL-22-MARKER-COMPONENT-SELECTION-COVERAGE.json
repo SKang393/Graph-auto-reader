@@ -1,0 +1,269 @@
+{
+  "schema": "graphreader.goal22.marker-component-selection-coverage.v1",
+  "status": "model_free_preflight_verified",
+  "scope": "Train-only component negative selection; no optimizer, inference or dev selection.",
+  "result": {
+    "path": "artifacts/goal22-runs/marker-component-selection-coverage-preflight/v3/preflight.json",
+    "sha256": "8830c983cade4b3caaff1ced2b60274c932e8af8a7a27525ca82d96e676dff43"
+  },
+  "source": {
+    "path": "tools/GraphReader.SyntheticRuntimeEvidence/preflight_marker_component_selection_coverage.py",
+    "sha256": "24937d2df28ec6ff5faf3e2cb18cd1df3c5bcf20376f6fec4c2e0f0e1e4ee8bf"
+  },
+  "tests": {
+    "path": "tests/test_marker_component_selection_coverage.py",
+    "sha256": "6bc806ff1474043043f7f827d372a0488ad74aaa282f97e38531be025e8737e6"
+  },
+  "cache": {
+    "path": "artifacts/goal22-runs/marker-component-selection-coverage-preflight/v3/proposed-selection-metadata.npz",
+    "sha256": "d31a25f48170a375fae22f196344d1c8fc85d2297ddc3394c8303d08d34a246b"
+  },
+  "inputs": [
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_marker_v26_confidence_boundary.py",
+      "sha256": "b79793b2027407247a90584cae26ce1009ca13446b3e2af806a5134bf5a84225"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/negative-coverage-v1/coverage.json",
+      "sha256": "921e6020831055cde224729954a863c23b6804bee232a9431c773bce660ed1d5"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/negative-coverage-v1/frozen-v25-train-proposal-metadata.npz",
+      "sha256": "5b8afc209e1c2a6f849ef044056b46903c79692d7264a724651a3a158369576b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/annulus-reservation-v1/preflight.json",
+      "sha256": "1bcece9f371b97c0e38679eb433259894faa2ef5dbad146bef3cd02319bc810b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-v26-target-preflight/annulus-reservation-v1/proposed-selection-metadata.npz",
+      "sha256": "4a03c08d1566a1f587910ea2fd9c49069d850c62a558b15f614af1f01c93fa8e"
+    }
+  ],
+  "source_bindings_reverified": 71,
+  "policy": {
+    "allocator": "frozen allocate_quotas semantics per cell",
+    "bin_definition": "frozen V24 64-bin patch signature",
+    "cell": [
+      "distance_band",
+      "original_semantic_stratum",
+      "truth_radius_category"
+    ],
+    "cell_quota": "exact selected count in frozen V26 proposed component mask",
+    "dev_rows_or_scores_used": false,
+    "family_selection": "byte-identical copy of frozen V26 proposed mask",
+    "mandatory_component_rows": "union of positives, protected rows, and reservations",
+    "scope_changed": "component discretionary negatives only",
+    "seed": 20260904,
+    "seed_reset_per_cell": true,
+    "within_bin_selection": "frozen seeded torch.randperm semantics per cell"
+  },
+  "populations": {
+    "component": {
+      "added": 8050,
+      "displaced": 8050,
+      "mandatory_union_rows": 26894,
+      "negative_selected": 32580,
+      "positive_selected": 3258,
+      "proposal_rows": 236056,
+      "protected_selected_negative": 18284,
+      "reserved_selected_negative": 5760,
+      "selected_after": 35838,
+      "selected_before": 35838
+    },
+    "family": {
+      "byte_identical": true,
+      "negative_selected": 8230,
+      "positive_selected": 823,
+      "proposal_rows": 122900,
+      "selected_after": 9053,
+      "selected_before": 9053
+    }
+  },
+  "selection_identity": {
+    "component_proposed_sha256": "e2c52a38bbb9e53146ee48c8bc92e8b56bf599393297d5ba57b9c66699d29a7a",
+    "component_source_sha256": "c184a97ae7ad0292361e62a4aaed5a54d8c1ae1bdb0ab3daab9ddeb8d46b1af0",
+    "family_proposed_sha256": "239b3f2aa14eb9636964c22083e722aba76bd70623a2bbd75362e1db96c527e3",
+    "family_source_sha256": "239b3f2aa14eb9636964c22083e722aba76bd70623a2bbd75362e1db96c527e3"
+  },
+  "coverage": {
+    "eligible_cell_bin_pairs": 861,
+    "represented_before": 689,
+    "represented_after": 806,
+    "newly_represented": 120,
+    "lost_specific_bins": 3,
+    "net_gain": 117,
+    "cells_with_higher_count": 24,
+    "cells_with_equal_count": 26,
+    "cells_with_lower_count": 0,
+    "losses": {
+      "negative_gt12|artifact|below_2_5px": [
+        16,
+        28
+      ],
+      "negative_gt12|ocr_heavy|below_2_5px": [
+        29
+      ]
+    },
+    "eligible_zero_quota_pairs": 100,
+    "interpretation": "Broader coarse train representation supports one fixed selection-only hypothesis; it does not establish accuracy improvement or causation."
+  },
+  "allocations": {
+    "component_by_distance_band": {
+      "negative_gt12": {
+        "eligible": 185849,
+        "selected_after": 22057,
+        "selected_before": 22057
+      },
+      "negative_gt3_le5": {
+        "eligible": 6006,
+        "selected_after": 2044,
+        "selected_before": 2044
+      },
+      "negative_gt5_le8": {
+        "eligible": 15934,
+        "selected_after": 4256,
+        "selected_before": 4256
+      },
+      "negative_gt8_le12": {
+        "eligible": 25009,
+        "selected_after": 4223,
+        "selected_before": 4223
+      },
+      "positive_le3": {
+        "eligible": 0,
+        "selected_after": 0,
+        "selected_before": 0
+      }
+    },
+    "component_by_semantic_stratum": {
+      "artifact": {
+        "eligible": 14469,
+        "selected_after": 1629,
+        "selected_before": 1629
+      },
+      "faint_low": {
+        "eligible": 8384,
+        "selected_after": 326,
+        "selected_before": 326
+      },
+      "faint_p05": {
+        "eligible": 5497,
+        "selected_after": 1303,
+        "selected_before": 1303
+      },
+      "generic": {
+        "eligible": 127516,
+        "selected_after": 14961,
+        "selected_before": 14961
+      },
+      "generic_connector_band": {
+        "eligible": 50373,
+        "selected_after": 6720,
+        "selected_before": 6720
+      },
+      "hard_existing": {
+        "eligible": 6012,
+        "selected_after": 6012,
+        "selected_before": 6012
+      },
+      "ocr_heavy": {
+        "eligible": 20547,
+        "selected_after": 1629,
+        "selected_before": 1629
+      },
+      "positive": {
+        "eligible": 0,
+        "selected_after": 0,
+        "selected_before": 0
+      }
+    },
+    "component_by_truth_radius_category": {
+      "above_8px": {
+        "eligible": 87849,
+        "selected_after": 11454,
+        "selected_before": 11454
+      },
+      "below_2_5px": {
+        "eligible": 947,
+        "selected_after": 121,
+        "selected_before": 121
+      },
+      "within_2_5_to_8px": {
+        "eligible": 144002,
+        "selected_after": 21005,
+        "selected_before": 21005
+      }
+    },
+    "component_cell_count": 50,
+    "family_cell_count": 179,
+    "family_mask_byte_identical": true
+  },
+  "timing": {
+    "host_seconds": 50.0853512,
+    "stages": {
+      "authentication_ms": 79.957,
+      "component_regeneration_and_binning_ms": 22527.392,
+      "elapsed_ms_before_report_write": 33243.582,
+      "elapsed_time_bound_seconds": 180.0,
+      "full_patch_pool_materialized": false,
+      "maximum_scene_proposal_rows_materialized": 1771,
+      "peak_memory_measured": false,
+      "retained_component_bin_id_bytes": 236056,
+      "selection_ms": 2265.937,
+      "torch_threads": 1
+    },
+    "cpu_rate": 333,
+    "timing": {
+      "path": "artifacts/goal22-runs/marker-component-selection-coverage-preflight-v3-timing.json",
+      "sha256": "3c945287ef54833c346a94e43713e4708a64cf18bb3a30ca80275c5a953e876e"
+    }
+  },
+  "validation": {
+    "tests_passed": 5,
+    "test_seconds": 13.21,
+    "evidence": {
+      "path": "artifacts/goal22-runs/marker-component-selection-coverage-tests-v2.xml",
+      "sha256": "47f7a2b3e2511964062b435c56df62565b241540b01245627e3f45880bffdd4d"
+    },
+    "independent_source_review": "GPT-5.6 Sol High clear",
+    "root_result_review": "All bound inputs and sources match; mandatory identities, quotas and full population counts retained."
+  },
+  "earlier_attempts": [
+    {
+      "attempt": "v1",
+      "status": "reporting_failure",
+      "host_seconds": 52.6755698,
+      "reason": "Negative-only aggregate selected counts omitted eligibility masking; repaired symmetrically with a regression test. Selection masks did not change.",
+      "log": {
+        "path": "artifacts/goal22-runs/marker-component-selection-coverage-preflight-v1.log",
+        "sha256": "6bd8d1d4d96fd92296a68f8144bb9b226a4fa2a23eeccc79b69920fa3948c030"
+      }
+    },
+    {
+      "attempt": "v2",
+      "status": "interrupted_execution",
+      "host_seconds": 330.5142679,
+      "reason": "Two capped commands in one PowerShell host applied the resource limiter twice. Stopped the verified preflight process and restarted in a fresh host with one cap.",
+      "record": {
+        "path": "artifacts/goal22-runs/marker-component-selection-coverage-preflight-v2-interruption.json",
+        "sha256": "31dbd424ba8bd7d9dd0fadf0735623346baf4589bea3b40c9178943f03bc7938"
+      }
+    }
+  ],
+  "decision": "Prepare exactly one marker V27 candidate changing only these component negative identities. Preserve the V26 recipe, positive/family rows, operating point and central bars. No zero-bin-loss model gate is introduced.",
+  "limitations": [
+    "This is train-only feasibility evidence and does not establish that coverage or model accuracy improved.",
+    "The frozen allocator favors lower bin IDs when a cell fill budget is smaller than its nonempty-bin count.",
+    "Mandatory rows remain outside the quota allocator and may already occupy bins selected for discretionary fill.",
+    "Resetting the same frozen seed independently per cell is deterministic and can correlate within-bin offsets across cells.",
+    "Family selection is unchanged because the cross-split support diagnosis covered component scenes only.",
+    "No model revision, training, checkpoint inference, threshold selection, private read, or sealed read occurred."
+  ],
+  "license_review": "Original Apache-2.0 code and project-owned synthetic inputs; no new dependencies or weights.",
+  "checkpoint_forward_passes": 0,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false
+}
