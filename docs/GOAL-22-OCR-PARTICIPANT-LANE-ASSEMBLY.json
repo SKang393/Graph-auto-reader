@@ -1,0 +1,302 @@
+{
+  "schema": "graphreader.goal22.ocr-participant-lane-assembly.v1",
+  "status": "cached_geometry_trial_completed_application_validation_pending",
+  "scope": "Authenticated cached synthetic train/dev OCR geometry only.",
+  "result": {
+    "sha256": "ac06d57b843fcb9a45359d734f37ef78d86e817dec100ed2248ec8827df18e95",
+    "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/participant-lane-assembly-run1.json"
+  },
+  "script": {
+    "sha256": "3eba4ec8b013002aba8b34d1bac886a967281703ad487015e3b35c99ebbb0f09",
+    "path": "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_participant_lane_assembly_v44.py"
+  },
+  "rule": {
+    "additional_categorical_scope": "The proposed union center X is strictly left of detected PlotBounds.Left, and its center Y is within inclusive detected PlotBounds.Top/Bottom.",
+    "fixed_alignment_rule_retained": true,
+    "grouping_inputs": [
+      "raw detector rectangles",
+      "detected plot bounds"
+    ],
+    "maximum_vertical_center_offset_height_ratio": 0.1,
+    "parameter_sweeps": 0,
+    "uses_truth_or_semantic_role_to_form_groups": false
+  },
+  "preceding_mechanism": {
+    "cross_truth_groups_above_plot_count": 9,
+    "cross_truth_groups_in_participant_lane_count": 0,
+    "cross_truth_groups_with_detected_divider_midpoint_in_member_gap_count": 0,
+    "dev_participant_fragment_pair_count": 9,
+    "dev_participant_fragment_pairs_in_participant_lane_count": 9,
+    "global_aligned_cross_truth_group_count": 9,
+    "global_aligned_cross_truth_role_sets": {
+      "condition_label": 4,
+      "condition_label+phase_heading": 5
+    },
+    "interpretation": "The observed crossing groups are above-plot semantic headers, while the diagnosed participant word/suffix pairs occupy the plot-derived left participant lane. A detected divider midpoint is not present inside any crossing member gap."
+  },
+  "geometry_results": {
+    "train": {
+      "by_generator_role": {
+        "annotation": {
+          "assembled_matched_count": 56,
+          "baseline_matched_count": 56,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 60
+        },
+        "axis_title": {
+          "assembled_matched_count": 35,
+          "baseline_matched_count": 35,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 50
+        },
+        "condition_label": {
+          "assembled_matched_count": 72,
+          "baseline_matched_count": 72,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 80
+        },
+        "legend_text": {
+          "assembled_matched_count": 29,
+          "baseline_matched_count": 29,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 30
+        },
+        "participant": {
+          "assembled_matched_count": 30,
+          "baseline_matched_count": 30,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 30
+        },
+        "phase_heading": {
+          "assembled_matched_count": 78,
+          "baseline_matched_count": 78,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 80
+        },
+        "x_tick": {
+          "assembled_matched_count": 152,
+          "baseline_matched_count": 152,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 175
+        },
+        "y_tick": {
+          "assembled_matched_count": 172,
+          "baseline_matched_count": 172,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 204
+        }
+      },
+      "delta_from_raw": {
+        "false_negatives": 0,
+        "false_positives": 0,
+        "predicted_region_count": 0,
+        "true_positives": 0
+      },
+      "full_truth_denominator": 709,
+      "lost_truth_count": 0,
+      "merged_group_audit": {
+        "contamination_group_counts": {
+          "axis_title": 0,
+          "x_tick": 0,
+          "y_tick": 0
+        },
+        "groups_by_member_nearest_truth_role_set": {},
+        "groups_whose_members_map_to_different_truths": 0,
+        "groups_whose_members_map_to_one_truth": 0,
+        "groups_with_at_least_one_unmatched_member": 0,
+        "merged_group_count": 0,
+        "raw_regions_consumed_by_merged_groups": 0,
+        "truth_is_diagnostic_only": true
+      },
+      "participant_lane_assembled": {
+        "false_negatives": 85,
+        "false_positives": 20,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.968944099378882,
+        "predicted_region_count": 644,
+        "recall": 0.8801128349788434,
+        "true_positives": 624,
+        "truth_region_count": 709
+      },
+      "raw_baseline": {
+        "false_negatives": 85,
+        "false_positives": 20,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.968944099378882,
+        "predicted_region_count": 644,
+        "recall": 0.8801128349788434,
+        "true_positives": 624,
+        "truth_region_count": 709
+      },
+      "recovered_truth_count": 0
+    },
+    "validation": {
+      "by_generator_role": {
+        "annotation": {
+          "assembled_matched_count": 16,
+          "baseline_matched_count": 16,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 18
+        },
+        "axis_title": {
+          "assembled_matched_count": 10,
+          "baseline_matched_count": 10,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 12
+        },
+        "condition_label": {
+          "assembled_matched_count": 19,
+          "baseline_matched_count": 19,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 30
+        },
+        "legend_text": {
+          "assembled_matched_count": 1,
+          "baseline_matched_count": 1,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 11
+        },
+        "participant": {
+          "assembled_matched_count": 9,
+          "baseline_matched_count": 9,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 9
+        },
+        "phase_heading": {
+          "assembled_matched_count": 23,
+          "baseline_matched_count": 23,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 30
+        },
+        "x_tick": {
+          "assembled_matched_count": 40,
+          "baseline_matched_count": 40,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 48
+        },
+        "y_tick": {
+          "assembled_matched_count": 21,
+          "baseline_matched_count": 21,
+          "lost_count": 0,
+          "recovered_by_multi_region_group_count": 0,
+          "recovered_count": 0,
+          "truth_count": 25
+        }
+      },
+      "delta_from_raw": {
+        "false_negatives": 0,
+        "false_positives": -8,
+        "predicted_region_count": -8,
+        "true_positives": 0
+      },
+      "full_truth_denominator": 183,
+      "lost_truth_count": 0,
+      "merged_group_audit": {
+        "contamination_group_counts": {
+          "axis_title": 0,
+          "x_tick": 0,
+          "y_tick": 0
+        },
+        "groups_by_member_nearest_truth_role_set": {
+          "participant": 8
+        },
+        "groups_whose_members_map_to_different_truths": 0,
+        "groups_whose_members_map_to_one_truth": 8,
+        "groups_with_at_least_one_unmatched_member": 0,
+        "merged_group_count": 8,
+        "raw_regions_consumed_by_merged_groups": 16,
+        "truth_is_diagnostic_only": true
+      },
+      "participant_lane_assembled": {
+        "false_negatives": 44,
+        "false_positives": 40,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.776536312849162,
+        "predicted_region_count": 179,
+        "recall": 0.7595628415300546,
+        "true_positives": 139,
+        "truth_region_count": 183
+      },
+      "raw_baseline": {
+        "false_negatives": 44,
+        "false_positives": 48,
+        "intersection_over_union_minimum": 0.5,
+        "precision": 0.7433155080213903,
+        "predicted_region_count": 187,
+        "recall": 0.7595628415300546,
+        "true_positives": 139,
+        "truth_region_count": 183
+      },
+      "recovered_truth_count": 0
+    }
+  },
+  "dev_participant_fragment_measurement": {
+    "grouped_pair_count": 8,
+    "measurement": "Truth selects the previously diagnosed best-overlap participant pair only for measurement after geometry-only grouping; truth and roles do not form groups.",
+    "observed_pair_count": 9
+  },
+  "validation": {
+    "exit_code": 0,
+    "job_cpu_rate": 333,
+    "timing_artifact": {
+      "sha256": "8ef4b548d7558eeeefbde216c88d721295f2c99dd42d1b4b5ed3fc931da80193",
+      "path": "artifacts/goal22-runs/ocr-v44-word-fragment-stress-v1/participant-lane-run1-timing.json"
+    },
+    "elapsed_seconds": 16.8581994
+  },
+  "decision": {
+    "application_validation_required": true,
+    "reason": "All raw matched truths are retained and eight extra dev boxes are removed. Actual crop recognition, semantic role accuracy, safety around numeric text, and cache identity still need application validation."
+  },
+  "limitations": [
+    "Zero observed cross-truth or tick/axis-title contamination is descriptive evidence for this dataset, not a universal safety guarantee.",
+    "Geometry-only replay cannot establish text or role improvement.",
+    "One of nine diagnosed participant pairs remains separate. No parameter sweep was performed.",
+    "The same restricted geometry may exist for non-participant text; numeric and unrelated-label negative cases are required before adoption."
+  ],
+  "license_review": "No dependency, model, weight, or license change.",
+  "model_inference": false,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "new_model_revision": false,
+  "production_runtime_changed": false,
+  "production_approved": false,
+  "goal22_acceptance_status": "FAIL",
+  "independent_review": {
+    "reviewer": "gpt-5.6-sol high",
+    "status": "clear",
+    "scope": "Exact 13 source/input/runtime-report hashes, historical authentication, full denominators, geometry-only grouping and nearest-overlapping-truth contamination accounting verified.",
+    "model_or_production_approval": false
+  }
+}
