@@ -116,10 +116,18 @@ internal static class Program
             Console.WriteLine(JsonSerializer.Serialize(OfficialHeadCandidateEvaluationSelfTest.Run(), JsonOptions));
             return 0;
         }
-        if (args.Length == 4 && args[0] == "--capture-official-head-tensors")
+        if (args.Length == 4 &&
+            (args[0] == OfficialHeadTensorCapture.LegacyCommand ||
+             args[0] == OfficialHeadTensorCapture.SupplementalCommand))
         {
             return await OfficialHeadTensorCapture.RunCommandAsync(args, RepositoryRoot())
                 .ConfigureAwait(false);
+        }
+        if (args.Length == 1 && args[0] == OfficialHeadTensorCapture.SelfTestCommand)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(
+                OfficialHeadTensorCaptureSelfTest.Run(), JsonOptions));
+            return 0;
         }
         if (args.Length == 4 && args[0] == "--replay-axis-contact")
         {

@@ -1,0 +1,290 @@
+{
+  "schema": "graphreader.goal22-ocr-legend-head-inputs.v1",
+  "status": "supplemental_train_composition_verified",
+  "verification_report": {
+    "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/composition-verification.json",
+    "sha256": "f0591ae25244b570ea2077d34b40dac96b40be1433d6ca89a0119989378529c0"
+  },
+  "verification": {
+    "acceptance_gate_changed": false,
+    "artifact_bindings": [
+      {
+        "name": "historical_request",
+        "path": "artifacts/goal22-runs/ocr-text-extent-capture-inputs/request.json",
+        "sha256": "7d62e9e962d01448fd193887573b6a2ab882574eba41f67a543c444c6222c059"
+      },
+      {
+        "name": "historical_tensor_report",
+        "path": "artifacts/goal22-runs/ocr-text-extent-tensors/report.json",
+        "sha256": "15e48b27ce3b8f5f53311abbef7235c35b3e8e361c8baddb09a4d3a7e7d5938e"
+      },
+      {
+        "name": "supplemental_preparation",
+        "path": "artifacts/goal22-runs/ocr-train-legend-head-inputs-v1/preparation.json",
+        "sha256": "622357d57895755eacb631ea518eaa4d3268ac65aa0df4c910fe72cc0d56c737"
+      },
+      {
+        "name": "supplemental_truth",
+        "path": "artifacts/goal22-runs/ocr-train-legend-head-inputs-v1/supplemental-train-text-truth.json",
+        "sha256": "13174cba2e740b47d1fc68f0e15c2078c720526be6475b91a8740e51195150b3"
+      },
+      {
+        "name": "supplemental_request",
+        "path": "artifacts/goal22-runs/ocr-train-legend-head-inputs-v1/request.json",
+        "sha256": "0e795a4d17b1b1d0b2f652a30ffff30e038ec51eae61a9699510d65b43eb6cf1"
+      },
+      {
+        "name": "supplemental_capture_report",
+        "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/tensors/report.json",
+        "sha256": "2c605fb18cb0195453f1b569506546c22c3a873db19475e1fb87daa0bddaeb19"
+      },
+      {
+        "name": "supplemental_preflight",
+        "path": "artifacts/goal22-runs/ocr-train-legend-coverage-preflight-v1/preflight-report.json",
+        "sha256": "bb36b630d2c58b0263e954a42c4a3cc197f68ec1d63806ba502bd9520755ae32"
+      },
+      {
+        "name": "supplemental_manifest",
+        "path": "artifacts/goal22-runs/ocr-train-legend-runtime-inputs-v1/input-manifest.json",
+        "sha256": "071987540116708398eadb151c9cf5bbf6bc1bdb8d7066a9dffc4c22f34886ce"
+      },
+      {
+        "name": "supplemental_runtime_report",
+        "path": "artifacts/goal22-runs/ocr-train-legend-runtime-v1/report.json",
+        "sha256": "a7755af12521cdda0f582e855689058c3729be66306c9ce211c333e35442329a"
+      },
+      {
+        "name": "official_candidate",
+        "path": "artifacts/synthetic-runtime-evidence/official-metadata-source-c96/candidate.json",
+        "sha256": "154d40615bd54f5744e20bb5b4482b86e05f0e3d709c8ac8d794e8d3371a4e38"
+      },
+      {
+        "name": "historical_binary_manifest",
+        "path": "artifacts/goal22-runs/ocr-v44-text-extent/runtime-before-word-stress-20260917/backup-manifest.json",
+        "sha256": "ed06006c6a4fcc078fc13817571a4fb58cd244add12731971ad8e7845be06aae"
+      },
+      {
+        "name": "historical_capture_source_binding",
+        "path": "artifacts/goal22-runs/ocr-supplemental-capture-base-snapshot/binding.json",
+        "sha256": "b6572afe3bfcfffb4a27b0fca3e42bdcae8f83f77b9027a28cdb2f73e197bf87"
+      },
+      {
+        "name": "historical_capture_source",
+        "path": "artifacts/goal22-runs/ocr-supplemental-capture-base-snapshot/OfficialHeadTensorCapture.cs",
+        "sha256": "ada4110d386581e87de8f8693c86e045e41566270d601a836c79d41c86faf3a4"
+      }
+    ],
+    "combined_train": {
+      "panel_count": 34,
+      "source_count": 26,
+      "tensor_hash_set_sha256": "608b1d67d3b3fa5718dbda4303d3c829b057f4efdfb8934727ef94135675fff1",
+      "truth_count": 862
+    },
+    "fixed_development": {
+      "panel_count": 9,
+      "same_object": true,
+      "source_count": 3,
+      "tensor_hash_set_sha256": "fd662fcebaaf610b2b747bb6cae4ea8353986475920e092d36eb297dae270d71",
+      "tensor_hashes_unchanged": true,
+      "truth_count": 183
+    },
+    "historical_train": {
+      "panel_count": 28,
+      "source_count": 20,
+      "tensor_hash_set_sha256": "da34a95d02bdd7aa6df18640a778025f34cc3394c82880e7826abade12666180",
+      "truth_count": 709
+    },
+    "historical_train_objects_unchanged": true,
+    "model_inference_runs": 0,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "production_approved": false,
+    "schema": "graphreader.supplemental-legend-head-input-verification.v1",
+    "scope": "project-owned-synthetic-train-only-supplemental-model-free",
+    "sealed_reads": 0,
+    "source_bindings": [
+      {
+        "binding": "executed_source_identity",
+        "path": "artifacts/goal22-tools/verify-supplemental-legend-head-inputs.py",
+        "sha256": "c15d21b47f8580c337be9290d7cece9471b4347b7ff6ab31318cf0ff1d33e13b"
+      },
+      {
+        "binding": "frozen_dependency",
+        "path": "artifacts/goal22-tools/prepare-supplemental-legend-capture.py",
+        "sha256": "1de3294f20f2a532596a7e3f5450a2fdeca0fa00bc689a6fdd927cfb16319032"
+      },
+      {
+        "binding": "frozen_dependency",
+        "path": "ml/ocr/official_bakeoff/legend_coverage_head_inputs.py",
+        "sha256": "cfde038b90c09870d9376d73c307b034d2e4bb249094c9d34a791de6bfa5adc5"
+      },
+      {
+        "binding": "frozen_dependency",
+        "path": "ml/ocr/official_bakeoff/text_extent_head_inputs.py",
+        "sha256": "d8ad928a3dab5c9bb096e5619e5635780a4ab46cf0596930978f1ae1d56ea83e"
+      },
+      {
+        "binding": "frozen_dependency",
+        "path": "ml/ocr/official_bakeoff/production_head_inputs.py",
+        "sha256": "51800bcddfd9fc02c538bba04015312f94fb88113ea14c563616db58a61cff90"
+      }
+    ],
+    "status": "complete_authenticated_composition",
+    "supplemental_capture_assemblies": [
+      {
+        "name": "GraphReader.SyntheticRuntimeEvidence",
+        "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/runtime/GraphReader.SyntheticRuntimeEvidence.dll",
+        "sha256": "22257da1e591ba2554ccc8e01ac3a11316dbff9532f2e5e204c69d0752863b66"
+      },
+      {
+        "name": "GraphReader.App",
+        "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/runtime/GraphReader.App.dll",
+        "sha256": "3993313a878538a05014fe3d4194ce828bcb2cdaadbc386f90cea9962c19156c"
+      },
+      {
+        "name": "GraphReader.Ocr",
+        "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/runtime/GraphReader.Ocr.dll",
+        "sha256": "fc0893a8c913ef5777d386d44b90d46034e27a9f3bc7081400dd7fb49bdf7186"
+      },
+      {
+        "name": "GraphReader.Inference",
+        "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/runtime/GraphReader.Inference.dll",
+        "sha256": "a0c7d32dc415f561c8351b16a631bf8b8e990c93763fec1c014a03c0871675fc"
+      }
+    ],
+    "supplemental_capture_source": {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadTensorCapture.cs",
+      "sha256": "5b388c8064ef06b22352c8df72afb6b63df7c2f2ae00812015e83975f848823d"
+    },
+    "supplemental_request_exactly_reconstructed": true,
+    "supplemental_train": {
+      "panel_count": 6,
+      "role_counts": {
+        "annotation": 12,
+        "axis_title": 12,
+        "condition_label": 12,
+        "legend_text": 18,
+        "participant": 6,
+        "phase_heading": 12,
+        "x_tick": 48,
+        "y_tick": 33
+      },
+      "source_count": 6,
+      "truth_count": 153
+    },
+    "training_authorized": false
+  },
+  "application_panel_discovery": {
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-train-legend-runtime-v1/report.json",
+      "sha256": "a7755af12521cdda0f582e855689058c3729be66306c9ce211c333e35442329a"
+    },
+    "sources": 6,
+    "panels": 6,
+    "failed_panels": 0,
+    "milliseconds": 328348.9881,
+    "existing_official_models_used": true,
+    "candidate_comparison": false
+  },
+  "capture": {
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/tensors/report.json",
+      "sha256": "2c605fb18cb0195453f1b569506546c22c3a873db19475e1fb87daa0bddaeb19"
+    },
+    "panels": 6,
+    "failed_panels": 0,
+    "milliseconds": 35038.4712,
+    "model_inference": false,
+    "truth_used": false
+  },
+  "build": {
+    "command": "dotnet build tools/GraphReader.SyntheticRuntimeEvidence/GraphReader.SyntheticRuntimeEvidence.csproj --no-restore -c Release -o artifacts/goal22-runs/ocr-supplemental-head-capture/runtime -m:1 -p:UseSharedCompilation=false",
+    "exit_code": 0,
+    "warnings": 0,
+    "errors": 0,
+    "seconds": 331.94,
+    "log": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-capture-build-retry.log",
+      "sha256": "9cf15a1a1abe035d1740ae5f84688a27497e2d977349d529d0b29d5825dd2b6d"
+    },
+    "initial_failure": "CA1859 required JsonElement[] and Length in two private inventory helpers; repaired without changing profile semantics."
+  },
+  "tests": {
+    "passed": 5,
+    "failed": 0,
+    "suite_seconds": 267.188,
+    "junit": {
+      "path": "artifacts/goal22-runs/ocr-legend-bridge-tests-v1.xml",
+      "sha256": "6867af0c18045f0dd36e4657e55190441b6c839c246d2c0c7fc46d73caedca64"
+    },
+    "profile_self_test": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/profile-self-test.log",
+      "sha256": "a5f68f323d15f193f2c29d2b685072de2e1b03b8b2c06868943c8940d7166eda"
+    }
+  },
+  "validation_steps": [
+    {
+      "name": "profile-self-test",
+      "exit_code": 0,
+      "seconds": 14.7402702
+    },
+    {
+      "name": "prepare-inputs",
+      "exit_code": 0,
+      "seconds": 135.9296874
+    },
+    {
+      "name": "capture-tensors",
+      "exit_code": 0,
+      "seconds": 47.5239023
+    },
+    {
+      "name": "verify-composition",
+      "exit_code": 0,
+      "seconds": 134.1364113
+    }
+  ],
+  "sources": [
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadTensorCapture.cs",
+      "sha256": "5b388c8064ef06b22352c8df72afb6b63df7c2f2ae00812015e83975f848823d"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadTensorCaptureSelfTest.cs",
+      "sha256": "6b87f4474e66e77bf57719475dc5e90fa6eb9846adda1003e9a0d9c823175005"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "f91a3b545e3654743d870177de230e06f559ee28157fc82aeba6ebc3b175baa4"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/legend_coverage_head_inputs.py",
+      "sha256": "cfde038b90c09870d9376d73c307b034d2e4bb249094c9d34a791de6bfa5adc5"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/tests/test_legend_coverage_head_inputs.py",
+      "sha256": "c15f366f4a3b3d82bf2a59f068414c9a403868177f076ebe4afd8cb897de45e9"
+    }
+  ],
+  "independent_review": "Sol High static CLEAR; Astra verified the build and executed capped self-test, preparation, capture, and composition validation.",
+  "cpu_budget": {
+    "training_job_rate": 333,
+    "validation_job_rate": 50,
+    "logical_processors": 12,
+    "combined_machine_budget_percent": 3.83,
+    "all_logical_processors_eligible": true
+  },
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "ocr_revision_opened": false,
+  "production_approval": false,
+  "packaged_build": false,
+  "goal22_complete": false,
+  "license": "Project-owned synthetic data and Apache-2.0 implementation; existing reviewed official model/native identities and notices authenticated. No new dependency or redistributed payload.",
+  "limitations": [
+    "Input coverage and preprocessing parity do not demonstrate improved OCR accuracy.",
+    "Original fixed development data is unchanged; no new OCR candidate has been trained or selected.",
+    "Production stage approval, private acceptance, end-to-end CSV acceptance and final release gates remain incomplete."
+  ]
+}

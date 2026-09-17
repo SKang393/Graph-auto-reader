@@ -18,9 +18,12 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 /// </summary>
 internal static class OfficialHeadTensorCapture
 {
-    private const string RequestSchema = "graphreader.official-head-tensor-capture-request.v1";
-    private const string ReportSchema = "graphreader.official-head-tensor-capture-report.v1";
-    private const string Scope = "project-owned-synthetic-train-dev-model-free";
+    internal const string LegacyCommand = "--capture-official-head-tensors";
+    internal const string SupplementalCommand = "--capture-supplemental-official-head-tensors";
+    internal const string SelfTestCommand = "--self-test-official-head-tensor-capture-profiles";
+
+    internal const string OfficialCandidateSha =
+        "154d40615bd54f5744e20bb5b4482b86e05f0e3d709c8ac8d794e8d3371a4e38";
     private const string DetectorSha =
         "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb";
     private const int MaximumSideLength = 960;
@@ -33,6 +36,30 @@ internal static class OfficialHeadTensorCapture
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
     };
+
+    private static readonly CaptureProfile LegacyProfile = new(
+        "graphreader.official-head-tensor-capture-request.v1",
+        "graphreader.official-head-tensor-capture-report.v1",
+        "project-owned-synthetic-train-dev-model-free",
+        ReportCount: 6,
+        TrainReportCount: 5,
+        ValidationReportCount: 1,
+        PanelCount: 37,
+        TrainPanelCount: 28,
+        ValidationPanelCount: 9,
+        ExpectedCandidateSha256: null);
+
+    private static readonly CaptureProfile SupplementalProfile = new(
+        "graphreader.supplemental-official-head-tensor-capture-request.v1",
+        "graphreader.supplemental-official-head-tensor-capture-report.v1",
+        "project-owned-synthetic-train-only-supplemental-model-free",
+        ReportCount: 1,
+        TrainReportCount: 1,
+        ValidationReportCount: 0,
+        PanelCount: 6,
+        TrainPanelCount: 6,
+        ValidationPanelCount: 0,
+        ExpectedCandidateSha256: OfficialCandidateSha);
 
     public static async Task<int> RunCommandAsync(string[] args, string repositoryRoot)
     {
@@ -64,10 +91,12 @@ internal static class OfficialHeadTensorCapture
         string repositoryRoot,
         CancellationToken cancellationToken)
     {
-        if (args.Length != 4 || args[0] != "--capture-official-head-tensors")
+        if (args.Length != 4 || !TryGetProfile(args[0], out CaptureProfile profile))
         {
             throw new InvalidDataException(
-                "Usage: --capture-official-head-tensors <request.json> <request-sha256> <new-output-directory>");
+                "Usage: (--capture-official-head-tensors | " +
+                "--capture-supplemental-official-head-tensors) " +
+                "<request.json> <request-sha256> <new-output-directory>");
         }
 
         string root = Path.GetFullPath(repositoryRoot);
@@ -82,18 +111,19 @@ internal static class OfficialHeadTensorCapture
         byte[] requestBytes = ReadVerified(requestPath, requestSha, null, "capture request");
         using var requestDocument = JsonDocument.Parse(requestBytes);
         JsonElement request = requestDocument.RootElement;
-        ValidateRequestScope(request);
+        ValidateRequestScope(request, profile);
         string captureSourceSha = VerifyRepositoryDescriptor(
             request.GetProperty("capture_source"), root, "tensor capture source");
         JsonElement[] executionAssemblies = VerifyExecutionAssemblies(request, root);
         VerifyRepositoryDescriptor(request.GetProperty("binding"), root, "V3 binding");
-        (JsonElement candidate, string candidateSha) = ReadCandidate(request, root);
+        (JsonElement candidate, string candidateSha) = ReadCandidate(request, root, profile);
         (ModelIdentity model, string detectorManifestPath, string detectorManifestSha) =
             ReadDetector(request, candidate, root);
         (string nativePath, string nativeSha) = ReadNative(request, candidate);
         VerifyLicenses(request, candidate);
-        Dictionary<string, ReportBinding> reports = ReadReports(request, root, candidateSha);
-        CaptureInput[] panels = ReadPanels(request, reports, root);
+        Dictionary<string, ReportBinding> reports = ReadReports(
+            request, root, candidateSha, profile);
+        CaptureInput[] panels = ReadPanels(request, reports, root, profile);
 
         cancellationToken.ThrowIfCancellationRequested();
         string nativeActual = Hash(File.ReadAllBytes(nativePath));
@@ -230,8 +260,8 @@ internal static class OfficialHeadTensorCapture
         string reportPath = Path.Combine(outputRoot, "report.json");
         byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
         {
-            Schema = ReportSchema,
-            Scope,
+            Schema = profile.ReportSchema,
+            profile.Scope,
             SyntheticOnly = true,
             PrivateData = false,
             SealedData = false,
@@ -269,7 +299,71 @@ internal static class OfficialHeadTensorCapture
         return 0;
     }
 
-    private static void ValidateRequestScope(JsonElement root)
+    internal static void ValidateContractForSelfTest(string requestJson, string command)
+    {
+        if (!TryGetProfile(command, out CaptureProfile profile))
+        {
+            throw new InvalidDataException("Tensor capture command is invalid.");
+        }
+        using var document = JsonDocument.Parse(requestJson);
+        JsonElement root = document.RootElement;
+        ValidateRequestScope(root, profile);
+    }
+
+    internal static void ValidateCandidateBindingForSelfTest(
+        string candidateSha256,
+        string command)
+    {
+        if (!TryGetProfile(command, out CaptureProfile profile))
+        {
+            throw new InvalidDataException("Tensor capture command is invalid.");
+        }
+        ValidateCandidateBinding(
+            RequireSha(candidateSha256, "candidate"), profile);
+    }
+
+    private static bool TryGetProfile(string command, out CaptureProfile profile)
+    {
+        profile = command switch
+        {
+            LegacyCommand => LegacyProfile,
+            SupplementalCommand => SupplementalProfile,
+            _ => null!,
+        };
+        return profile is not null;
+    }
+
+    private static void ValidateReportInventory(
+        JsonElement[] records,
+        CaptureProfile profile)
+    {
+        if (records.Length != profile.ReportCount ||
+            records.Count(static item => Text(item, "split") == "train") !=
+                profile.TrainReportCount ||
+            records.Count(static item => Text(item, "split") == "validation") !=
+                profile.ValidationReportCount)
+        {
+            throw new InvalidDataException(
+                "Capture runtime-report count or split inventory differs from its profile.");
+        }
+    }
+
+    private static void ValidatePanelInventory(
+        JsonElement[] records,
+        CaptureProfile profile)
+    {
+        if (records.Length != profile.PanelCount ||
+            records.Count(static item => Text(item, "split") == "train") !=
+                profile.TrainPanelCount ||
+            records.Count(static item => Text(item, "split") == "validation") !=
+                profile.ValidationPanelCount)
+        {
+            throw new InvalidDataException(
+                "Capture panel count or split inventory differs from its profile.");
+        }
+    }
+
+    private static void ValidateRequestScope(JsonElement root, CaptureProfile profile)
     {
         RequireProperties(root,
             "schema", "scope", "synthetic_only", "private_data", "sealed_data",
@@ -278,7 +372,8 @@ internal static class OfficialHeadTensorCapture
             "binding", "candidate", "detector", "native", "license_inputs",
             "maximum_side_length", "dimension_multiple", "detector_configuration_fingerprint",
             "reports", "panels");
-        if (Text(root, "schema") != RequestSchema || Text(root, "scope") != Scope ||
+        if (Text(root, "schema") != profile.RequestSchema ||
+            Text(root, "scope") != profile.Scope ||
             !root.GetProperty("synthetic_only").GetBoolean() ||
             root.GetProperty("private_data").GetBoolean() ||
             root.GetProperty("sealed_data").GetBoolean() ||
@@ -291,14 +386,18 @@ internal static class OfficialHeadTensorCapture
         {
             throw new InvalidDataException("Official-head capture request scope is invalid.");
         }
+        ValidateReportInventory(root.GetProperty("reports").EnumerateArray().ToArray(), profile);
+        ValidatePanelInventory(root.GetProperty("panels").EnumerateArray().ToArray(), profile);
     }
 
     private static (JsonElement Candidate, string Sha256) ReadCandidate(
         JsonElement request,
-        string root)
+        string root,
+        CaptureProfile profile)
     {
         JsonElement descriptor = request.GetProperty("candidate");
         string sha = RequireSha(Text(descriptor, "sha256"), "candidate");
+        ValidateCandidateBinding(sha, profile);
         byte[] bytes = ReadVerified(RepositoryPath(root, Text(descriptor, "path")), sha, null, "candidate");
         using var document = JsonDocument.Parse(bytes);
         JsonElement candidate = document.RootElement.Clone();
@@ -308,6 +407,16 @@ internal static class OfficialHeadTensorCapture
             throw new InvalidDataException("Capture requires the fixed unapproved synthetic candidate.");
         }
         return (candidate, sha);
+    }
+
+    private static void ValidateCandidateBinding(string sha, CaptureProfile profile)
+    {
+        if (profile.ExpectedCandidateSha256 is { } expectedCandidateSha &&
+            sha != expectedCandidateSha)
+        {
+            throw new InvalidDataException(
+                "Supplemental capture requires the fixed official legacy candidate.");
+        }
     }
 
     private static (ModelIdentity Model, string ManifestPath, string ManifestSha) ReadDetector(
@@ -384,14 +493,11 @@ internal static class OfficialHeadTensorCapture
     private static Dictionary<string, ReportBinding> ReadReports(
         JsonElement request,
         string root,
-        string candidateSha)
+        string candidateSha,
+        CaptureProfile profile)
     {
         JsonElement[] records = request.GetProperty("reports").EnumerateArray().ToArray();
-        if (records.Length != 6 || records.Count(static item => Text(item, "split") == "train") != 5 ||
-            records.Count(static item => Text(item, "split") == "validation") != 1)
-        {
-            throw new InvalidDataException("Capture requires all six frozen V3 runtime exchanges.");
-        }
+        ValidateReportInventory(records, profile);
         var output = new Dictionary<string, ReportBinding>(StringComparer.OrdinalIgnoreCase);
         foreach (JsonElement record in records)
         {
@@ -425,14 +531,11 @@ internal static class OfficialHeadTensorCapture
     private static CaptureInput[] ReadPanels(
         JsonElement request,
         IReadOnlyDictionary<string, ReportBinding> reports,
-        string root)
+        string root,
+        CaptureProfile profile)
     {
         JsonElement[] records = request.GetProperty("panels").EnumerateArray().ToArray();
-        if (records.Length != 37 || records.Count(static item => Text(item, "split") == "train") != 28 ||
-            records.Count(static item => Text(item, "split") == "validation") != 9)
-        {
-            throw new InvalidDataException("Capture requires the complete 28/9 V3 panel inventory.");
-        }
+        ValidatePanelInventory(records, profile);
         var ids = new HashSet<string>(StringComparer.Ordinal);
         var output = new List<CaptureInput>(records.Length);
         foreach (JsonElement record in records)
@@ -669,6 +772,18 @@ internal static class OfficialHeadTensorCapture
         int PanelPngByteCount,
         string RecordedUnmaskedGraySha256,
         string ReconstructedBgrSha256);
+
+    private sealed record CaptureProfile(
+        string RequestSchema,
+        string ReportSchema,
+        string Scope,
+        int ReportCount,
+        int TrainReportCount,
+        int ValidationReportCount,
+        int PanelCount,
+        int TrainPanelCount,
+        int ValidationPanelCount,
+        string? ExpectedCandidateSha256);
 
     private sealed class CpuDiscovery : IExecutionProviderDiscovery
     {
