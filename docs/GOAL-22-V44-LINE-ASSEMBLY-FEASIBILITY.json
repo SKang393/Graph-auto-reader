@@ -1,0 +1,146 @@
+{
+  "schema": "graphreader.goal22.v44-line-assembly-feasibility.v1",
+  "status": "frozen_generic_rule_rejected",
+  "scope": "Authenticated project-owned synthetic train/dev raw-box geometry only. No inference, recognition synthesis, optimizer work, private data, sealed data, threshold selection, model selection, or production runtime change.",
+  "closed_outcome": {
+    "path": "ml/ocr/text_extent_db_head_v44/P1_RESULT.json",
+    "sha256": "0fc4420747c3b7abf3259ffb9233676d6bc8c291dc54342b8571f335461d9024",
+    "status": "failed_dev_unconsumed"
+  },
+  "experiment": {
+    "script": {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_ocr_line_assembly_v44.py",
+      "sha256": "6c9c981bc7bd0160158b705e19ddb1192d0ea1ee8ee061e40d1aaa23122e8a80"
+    },
+    "artifact": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/line-assembly-feasibility-v1.json",
+      "sha256": "7442a6a8c6dfe3f40fda0cb0e2580b797267e5fbedbc83be8a9e30312a47f88c"
+    },
+    "execution": "Root-run Windows Job CPU cap 333; exit 0",
+    "authentication": {
+      "closed_outcome_reference_chain_verified": true,
+      "score_preflight_candidate_capture_evaluation_chain_verified": true,
+      "frozen_raw_geometry_reproduced": true,
+      "full_truth_denominators": {
+        "train": 709,
+        "dev": 183
+      }
+    }
+  },
+  "frozen_rule": {
+    "basis": "Continuous rectangle analogue of generic connected-component line grouping defaults. The defaults were designed to assemble character components, then applied here unchanged to complete DB word regions.",
+    "uses_text_or_truth_to_form_groups": false,
+    "coordinate_space": "panel pixels before source projection and source-space IoU 0.5 matching",
+    "minimum_vertical_overlap_ratio": 0.35,
+    "maximum_horizontal_gap_height_ratio": 2.5,
+    "maximum_component_height_ratio_within_line": 2.0,
+    "maximum_merged_height_growth_ratio": 1.6,
+    "rule_sweeps": 0,
+    "detector_operating_thresholds_changed": false,
+    "parameter_distinction": "These joining-rule geometry parameters are separate from the unchanged DB detector probability and postprocess thresholds."
+  },
+  "geometry_results": {
+    "train": {
+      "baseline": {
+        "truth": 709,
+        "predictions": 644,
+        "true_positives": 624,
+        "false_positives": 20,
+        "false_negatives": 85,
+        "precision": 0.968944099378882,
+        "recall": 0.8801128349788434
+      },
+      "assembled": {
+        "truth": 709,
+        "predictions": 618,
+        "true_positives": 591,
+        "false_positives": 27,
+        "false_negatives": 118,
+        "precision": 0.9563106796116505,
+        "recall": 0.8335684062059239
+      },
+      "delta": {
+        "true_positives": -33,
+        "false_positives": 7,
+        "false_negatives": 33,
+        "recovered_truths": 1,
+        "lost_truths": 34
+      },
+      "merge_audit": {
+        "merged_groups": 22,
+        "groups_whose_members_map_to_different_truths": 21,
+        "groups_whose_union_intersects_multiple_truths": 22,
+        "cross_truth_role_sets": {
+          "annotation+phase_heading": 1,
+          "axis_title+y_tick": 2,
+          "condition_label+phase_heading": 18
+        }
+      }
+    },
+    "dev": {
+      "baseline": {
+        "truth": 183,
+        "predictions": 187,
+        "true_positives": 139,
+        "false_positives": 48,
+        "false_negatives": 44,
+        "precision": 0.7433155080213903,
+        "recall": 0.7595628415300546
+      },
+      "assembled": {
+        "truth": 183,
+        "predictions": 162,
+        "true_positives": 130,
+        "false_positives": 32,
+        "false_negatives": 53,
+        "precision": 0.8024691358024691,
+        "recall": 0.7103825136612022
+      },
+      "delta": {
+        "true_positives": -9,
+        "false_positives": -16,
+        "false_negatives": 9,
+        "recovered_truths": 5,
+        "lost_truths": 14
+      },
+      "per_role_observation": {
+        "legend_text": "1 to 5 matched, four recovered",
+        "participant": "9 to 9 matched, zero recovered because the already-matched main word remains the assigned geometry match",
+        "condition_label": "19 to 16 matched",
+        "phase_heading": "23 to 16 matched",
+        "annotation": "16 to 13 matched"
+      }
+    }
+  },
+  "train_separability": {
+    "participant_truth_count": 30,
+    "participant_truths_with_at_least_two_intersecting_raw_regions": 0,
+    "legitimate_participant_fragment_pairs_measured": 0,
+    "accepted_train_merge_groups": 22,
+    "accepted_train_groups_crossing_distinct_truths": 21,
+    "useful_train_recoveries": 1,
+    "finding": "The current train evidence contains no positive participant word-fragment pairs, so it cannot estimate a legitimate participant gap or alignment distribution. The accepted negative distribution is overwhelming: 21 of 22 train merge groups cross distinct truths. This train result gives no engineering basis for a narrower word-level joining rule.",
+    "dev_iteration_policy": "Synthetic dev remains available for unrestricted diagnosis and iteration. Its participant gaps and four recovered legends help describe the failure, but they do not repair the missing representative positive examples in the current train evidence."
+  },
+  "decision": {
+    "generic_component_rule": "rejected",
+    "another_direct_rule_trial": "deferred as an engineering decision until representative train fragment examples exist",
+    "model_training": "not_justified",
+    "causal_interpretation": "The existing rule is appropriate for joining character components into text lines, but it is too permissive for joining complete DB word boxes. On train it predominantly joins distinct semantic labels and reduces geometry recall.",
+    "next_bounded_hypothesis": "Create or identify a small project-owned train-only word-fragment stress subset containing generic whitespace-separated multi-token labels. Measure positive same-truth fragment pairs and negative distinct-truth neighbors using gap divided by word height, vertical overlap, height ratio, and union-height growth. If the train distributions separate, evaluate a narrower word-level joining rule while keeping all detector operating thresholds fixed, then use synthetic dev for diagnosis and iteration.",
+    "stop_condition": "If train positive and negative word-pair distributions overlap at the intended operating point, reject geometry-only assembly and investigate non-truth layout context or detector representation instead."
+  },
+  "limitations": [
+    "The experiment measures geometry only. It does not concatenate recognition output or estimate role and recognition accuracy after assembly.",
+    "The current train set cannot validate participant-fragment recovery because it contains no participant truth intersected by two raw regions.",
+    "No conclusion about a narrower threshold is supported until train-only positive fragment evidence exists."
+  ],
+  "license_review": "No dependency, model, weight, data source, or license change.",
+  "optimizer_steps": 0,
+  "model_inference": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_runtime_changed": false,
+  "production_approval": false,
+  "acceptance_status": "FAIL"
+}
