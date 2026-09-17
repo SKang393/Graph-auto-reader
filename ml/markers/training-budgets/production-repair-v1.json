@@ -9884,6 +9884,70 @@
       "candidate_report_sha256": "98da3bb444a057a7c848ef8687a896dc8f3a4b9e2e6de498669409670f1c50ef",
       "optimizer_steps": 6720,
       "closed_utc_date": "2026-09-10"
+    },
+    {
+      "task": "ocr-detection",
+      "revision": "graph-text-extent-db-head-v44",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/ocr/text_extent_db_head_v44/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "82235cfafd2cd708f9df4ddb20985a4377c2b8620633e3c6baa7c9f196823d0f"
+      },
+      "protocol_path": "ml/ocr/text_extent_db_head_v44/protocol.json",
+      "protocol_sha256": "337e571b5173823ad5dbe0904d0546a224e1b8a9411c80c149412ea0876612f3",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "Synthetic train/dev only under resumed Goal22 execution authorization; no private/sealed read or production approval.",
+      "isolated_change": "Replace twenty condition captions and ten legend captions using an independent train-only lexicon, preserving all twenty source seeds, families, nontext geometry, 709 train truths and all nine dev input tensors. Use the reviewed parent, frozen trunk and batch-normalization statistics, inverse-unclip targets, full masks, Dice objective, AdamW, seed and 240 epochs from V43. Select the earliest minimum full-train-loss epoch. The maintainer replacement-CPU instruction changes execution to twelve intra-op threads with Idle priority, all twelve processors eligible and verified Windows Job rate at most 333. This necessary hardware recipe change is disclosed and requires trained export parity; any accuracy result describes the whole recipe.",
+      "optimizer_steps_expected": 6720,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "resource_policy": {
+        "logical_processors": 12,
+        "job_cpu_flags": 5,
+        "job_cpu_rate": 333,
+        "priority": "Idle",
+        "affinity_mask": 4095
+      },
+      "presealed_plumbing_repairs": [
+        {
+          "previous_config_sha256": "e61ba51614641bf27bfb84e486ad5fedd421f681322b2853a5980f7d7a733571",
+          "void_record_sha256": "78bb2b1c47615146d77964ee0e29596cbed410c70b95d528d7c484711a7e8aa9",
+          "reason": "The optimizer input validator rejected a writable all-ones mask before optimizer construction. Preserve identical mask values in immutable storage; no experiment or metric change.",
+          "optimizer_steps": 0,
+          "private_reads": 0,
+          "sealed_reads": 0
+        },
+        {
+          "previous_config_sha256": "12ae59dfdb2840901e42822c3730c061b804e2a672c2c3177c16797dd0116488",
+          "void_record_sha256": "535a1414ce28e3cc0faf56af93dd28da162a4c1f8cb78c0b5e0ceba2a1b0900e",
+          "failure_report_sha256": "c7514d56a60fb596dfb98f3d5a2c067eb0fea4cbcd87e686f8c6d30e7b5dfd24",
+          "reason": "Abrupt process termination after epoch 173 left no recovery state. Add atomic per-epoch model, optimizer, draw-generator, best-selection and history checkpoints; checksum-bound recovery and detached local completion notification. Restart the identical P1 recipe because no old state can be recovered. No hypothesis, split, metric, seed, optimizer or epoch-count change.",
+          "optimizer_steps": null,
+          "last_completed_epoch_optimizer_steps": 4844,
+          "last_completed_epoch": 173,
+          "private_reads": 0,
+          "sealed_reads": 0
+        }
+      ],
+      "outcome_path": "ml/ocr/text_extent_db_head_v44/P1_RESULT.json",
+      "outcome_sha256": "0fc4420747c3b7abf3259ffb9233676d6bc8c291dc54342b8571f335461d9024",
+      "candidate_report_sha256": "a5dcc6fde7c0135cee3d55cc1e24df4ae1b2a69b1b657d777093584c655f82ca",
+      "optimizer_steps": 6720,
+      "closed_utc_date": "2026-09-17"
     }
   ]
 }

@@ -1,0 +1,315 @@
+{
+  "acceptance_status": "FAIL",
+  "application_completed_panels": 37,
+  "application_elapsed_ms": 142994.3087,
+  "application_failed_panels": 0,
+  "candidate_consumed": false,
+  "candidate_id": "P1",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/ocr-v44-text-extent/candidate-report.json",
+    "sha256": "a5dcc6fde7c0135cee3d55cc1e24df4ae1b2a69b1b657d777093584c655f82ca"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/ocr-detection/graph-text-extent-db-head-v44/P1/result.json",
+    "sha256": "05f4d25e987d386e121cf557e3eef1e562b2d1b9f13e9e0223c27dee31b27655"
+  },
+  "central_dev_bar_verdicts": {
+    "character_error_rate": false,
+    "recognition_exact_match": false,
+    "role_accuracy": false,
+    "text_region_detection_precision": false,
+    "text_region_detection_recall": false
+  },
+  "closed_utc": "2026-09-17T16:49:07.360272+00:00",
+  "closure_verification_elapsed_ms": 52947.07689998904,
+  "epochs": 240,
+  "evidence": {
+    "acceptance_bars": {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "application_evaluation": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/application-evaluation-run1/report.json",
+      "sha256": "003dbf6b73701a98f8f07e1034306318bac338282e282cea21416463d41cda84"
+    },
+    "authenticator": {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/authenticate_text_extent_evidence.py",
+      "sha256": "8ed3bb5182774d70198eac9c7e89e6fd63daf098dcfe15ebd312a0cf8d9cb4aa"
+    },
+    "candidate": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/candidate-run1/candidate.json",
+      "sha256": "bee0da6bd9041769b4add04f21d0bd8530ae724b6b890d0f1f2dc376a7db9e01"
+    },
+    "checkpoint": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/training-run3/selected-head.pt",
+      "sha256": "977145c75972ba5cdcabbd3b86dcf1fc3ab62916be65e0d7159933c80e2f34cf"
+    },
+    "closure_helper": {
+      "path": "artifacts/goal22-tools/close-v44-outcome.py",
+      "sha256": "3ae25530403525a247be4b7828678b27db4b5103e91f25aeb7e8c31aed4140a6"
+    },
+    "config": {
+      "path": "ml/ocr/text_extent_db_head_v44/training/p1.json",
+      "sha256": "82235cfafd2cd708f9df4ddb20985a4377c2b8620633e3c6baa7c9f196823d0f"
+    },
+    "cpu_observation": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/run3-cpu-observation.json",
+      "sha256": "584e2dd3ca2a892fb429000642e64e7b87bf6db6e0ae9fed84abda4e2907151c"
+    },
+    "export_parity": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/trained-export-parity-run1/report.json",
+      "sha256": "a459c62e956277656e7d74b2a9b6011cef16ffb7f9ad56eeed45959e728d978c"
+    },
+    "full_score": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/full-score-run1.json",
+      "sha256": "05a8e882a20e4b844f13702654cbb16166da5d6558384b7b11d83059b4186f17"
+    },
+    "model": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/training-run3/detector-text-extent-v44-p1.onnx",
+      "sha256": "615495cc882b6ae8633081d89c3ab08c0d4a80a04aa36bbde4157fc7828f5923"
+    },
+    "opened_authorization": {
+      "path": "ml/markers/training-seals/ocr-detection/graph-text-extent-db-head-v44/P1/opened.json",
+      "sha256": "269127f94da659c840ebed07da20325d155f391a98fddce8dad371e749a95721"
+    },
+    "parent": {
+      "path": "ml/policy/ocr_sealed_evaluation.py",
+      "sha256": "97932ea8ed2c03e7ff1eb034ca540febaad63e8fbdfcc2c3e057694fe4c12eca"
+    },
+    "protocol": {
+      "path": "ml/ocr/text_extent_db_head_v44/protocol.json",
+      "sha256": "337e571b5173823ad5dbe0904d0546a224e1b8a9411c80c149412ea0876612f3"
+    },
+    "recovery_review": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/recovery-review.json",
+      "sha256": "efb3f040da460b00727399ae301fc112ca510f61b609dc78250f32913c3e5119"
+    },
+    "recovery_tests": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/recovery-final-tests.xml",
+      "sha256": "ee09f540e711c45e6481ddf0867ab187a230d37e704694134171f744a8e5acf9"
+    },
+    "source_snapshot": {
+      "path": "ml/markers/training-seals/ocr-detection/graph-text-extent-db-head-v44/P1/source-snapshot.json",
+      "sha256": "c946646271fd826dd548b2b5e8d1b365302176b627bcc4c79df03bcb211fe9e0"
+    },
+    "training_stage": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/training-run3/training-stage.json",
+      "sha256": "e82053dbbfc75fde7600404340a6b8ec45d793dbf767e8dbd429dfefd29f20ca"
+    }
+  },
+  "export_parity_elapsed_ms": 102328.7034999812,
+  "export_parity_maximum_absolute_error": 8.344650268554688e-06,
+  "full_ocr_metrics": {
+    "train": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.3333333333333333,
+          "correct_count": 20,
+          "truth_count": 60
+        },
+        "axistitle": {
+          "accuracy": 0.38,
+          "correct_count": 19,
+          "truth_count": 50
+        },
+        "legendtext": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 20,
+          "truth_count": 30
+        },
+        "participant": {
+          "accuracy": 0.4,
+          "correct_count": 12,
+          "truth_count": 30
+        },
+        "phaseheading": {
+          "accuracy": 0.44375,
+          "correct_count": 71,
+          "truth_count": 160
+        },
+        "xtick": {
+          "accuracy": 0.6171428571428571,
+          "correct_count": 108,
+          "truth_count": 175
+        },
+        "ytick": {
+          "accuracy": 0.6617647058823529,
+          "correct_count": 135,
+          "truth_count": 204
+        }
+      },
+      "character_error_count": 1425,
+      "character_error_rate": 0.4172767203513909,
+      "geometry_false_negative_count": 85,
+      "geometry_false_positive_count": 20,
+      "geometry_matched_region_count": 624,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 1052,
+      "predicted_region_count": 644,
+      "recognition_exact_accuracy": 0.5585331452750353,
+      "recognition_exact_count": 396,
+      "role_accuracy": 0.5430183356840621,
+      "role_correct_count": 385,
+      "truth_character_count": 3415,
+      "truth_region_count": 709,
+      "unmatched_prediction_insertion_edit_count": 86,
+      "unmatched_truth_deletion_edit_count": 287
+    },
+    "validation": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.2222222222222222,
+          "correct_count": 4,
+          "truth_count": 18
+        },
+        "axistitle": {
+          "accuracy": 0.25,
+          "correct_count": 3,
+          "truth_count": 12
+        },
+        "legendtext": {
+          "accuracy": 0.0,
+          "correct_count": 0,
+          "truth_count": 11
+        },
+        "participant": {
+          "accuracy": 0.0,
+          "correct_count": 0,
+          "truth_count": 9
+        },
+        "phaseheading": {
+          "accuracy": 0.5,
+          "correct_count": 30,
+          "truth_count": 60
+        },
+        "xtick": {
+          "accuracy": 0.8333333333333334,
+          "correct_count": 40,
+          "truth_count": 48
+        },
+        "ytick": {
+          "accuracy": 0.84,
+          "correct_count": 21,
+          "truth_count": 25
+        }
+      },
+      "character_error_count": 624,
+      "character_error_rate": 0.6123650637880275,
+      "geometry_false_negative_count": 44,
+      "geometry_false_positive_count": 48,
+      "geometry_matched_region_count": 139,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 39,
+      "predicted_region_count": 187,
+      "recognition_exact_accuracy": 0.6885245901639344,
+      "recognition_exact_count": 126,
+      "role_accuracy": 0.5355191256830601,
+      "role_correct_count": 98,
+      "truth_character_count": 1019,
+      "truth_region_count": 183,
+      "unmatched_prediction_insertion_edit_count": 257,
+      "unmatched_truth_deletion_edit_count": 328
+    }
+  },
+  "license_review": "Existing reviewed Apache-2.0 PaddleOCR parent and recognizer; exact license inputs and modification notice authenticated by candidate preparation. No new dependency.",
+  "limitations": [
+    "All five complete-OCR dev accuracy bars fail; no sealed or private acceptance was attempted.",
+    "Training text extents and disclosed replacement-CPU execution recipe both differ from V43; differences are not a controlled causal attribution.",
+    "Synthetic train/dev evidence cannot approve normal Production composition or the final 2.0.0 release.",
+    "The interrupted earlier attempt completed at least 4844 steps; any later partial-epoch work and its exit cause are unknown. The completed retry ran 6720 steps."
+  ],
+  "optimizer_steps": 6720,
+  "parent_prerequisite": "OCR_SEALED_EVALUATION_DEV_GATE_FAILED",
+  "presealed_plumbing_repairs": [
+    {
+      "optimizer_steps": 0,
+      "previous_config_sha256": "e61ba51614641bf27bfb84e486ad5fedd421f681322b2853a5980f7d7a733571",
+      "private_reads": 0,
+      "reason": "The optimizer input validator rejected a writable all-ones mask before optimizer construction. Preserve identical mask values in immutable storage; no experiment or metric change.",
+      "sealed_reads": 0,
+      "void_record_sha256": "78bb2b1c47615146d77964ee0e29596cbed410c70b95d528d7c484711a7e8aa9"
+    },
+    {
+      "failure_report_sha256": "c7514d56a60fb596dfb98f3d5a2c067eb0fea4cbcd87e686f8c6d30e7b5dfd24",
+      "last_completed_epoch": 173,
+      "last_completed_epoch_optimizer_steps": 4844,
+      "optimizer_steps": null,
+      "previous_config_sha256": "12ae59dfdb2840901e42822c3730c061b804e2a672c2c3177c16797dd0116488",
+      "private_reads": 0,
+      "reason": "Abrupt process termination after epoch 173 left no recovery state. Add atomic per-epoch model, optimizer, draw-generator, best-selection and history checkpoints; checksum-bound recovery and detached local completion notification. Restart the identical P1 recipe because no old state can be recovered. No hypothesis, split, metric, seed, optimizer or epoch-count change.",
+      "sealed_reads": 0,
+      "void_record_sha256": "535a1414ce28e3cc0faf56af93dd28da162a4c1f8cb78c0b5e0ceba2a1b0900e"
+    }
+  ],
+  "private_reads": 0,
+  "production_approved": false,
+  "raw_detector_geometry": {
+    "train": {
+      "false_negatives": 85,
+      "false_positives": 20,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.968944099378882,
+      "predicted_region_count": 644,
+      "recall": 0.8801128349788434,
+      "true_positives": 624,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 44,
+      "false_positives": 48,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.7433155080213903,
+      "predicted_region_count": 187,
+      "recall": 0.7595628415300546,
+      "true_positives": 139,
+      "truth_region_count": 183
+    }
+  },
+  "recognition_failures": {
+    "train": {
+      "explicit_region_failure_count": 0,
+      "failed_panel_count": 0,
+      "raw_regions_on_failed_panels": 0,
+      "raw_regions_without_successful_recognition": 0
+    },
+    "validation": {
+      "explicit_region_failure_count": 0,
+      "failed_panel_count": 0,
+      "raw_regions_on_failed_panels": 0,
+      "raw_regions_without_successful_recognition": 0
+    }
+  },
+  "release_eligible": false,
+  "revision": "graph-text-extent-db-head-v44",
+  "schema": "graphreader.ocr-text-extent-v44-outcome.v1",
+  "score_elapsed_ms": 49193.97990001016,
+  "score_recomputed_and_authenticated": true,
+  "sealed_reads": 0,
+  "selected_epoch": 239,
+  "source_snapshot_reverified_after_evaluation_and_scoring": true,
+  "status": "failed_dev_unconsumed",
+  "successfully_recognized_region_geometry": {
+    "train": {
+      "false_negatives": 85,
+      "false_positives": 20,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.968944099378882,
+      "predicted_region_count": 644,
+      "recall": 0.8801128349788434,
+      "true_positives": 624,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 44,
+      "false_positives": 48,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.7433155080213903,
+      "predicted_region_count": 187,
+      "recall": 0.7595628415300546,
+      "true_positives": 139,
+      "truth_region_count": 183
+    }
+  },
+  "task": "ocr-detection",
+  "training_elapsed_ms": 38021314.3092
+}

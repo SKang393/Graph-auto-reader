@@ -1,0 +1,54 @@
+{
+  "schema": "graphreader.ocr-text-extent-v44-candidate-config.v1",
+  "task": "ocr-detection",
+  "revision": "graph-text-extent-db-head-v44",
+  "candidate_id": "P1",
+  "synthetic_only": true,
+  "private_data": false,
+  "sealed_data": false,
+  "production_approval": false,
+  "recipe": {
+    "seed": 20260939,
+    "epochs": 240,
+    "intraop_threads": 12,
+    "batch_size": 1,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "dice_epsilon": 1e-06,
+    "target_definition": "inverse_db_unclip_rectangle_v1",
+    "supervision_mask": "all_ones_full_valid_runtime_crop",
+    "empty_target_objective": "masked_mean_probability",
+    "checkpoint_selection": "earliest_minimum_full_train_loss",
+    "logical_processors": 12,
+    "job_cpu_rate_maximum": 333,
+    "priority": "Idle",
+    "affinity_mask": 4095
+  },
+  "bound_files": {
+    "parent_model": {
+      "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/reviewed-parent.onnx",
+      "sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb"
+    },
+    "capture_request": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-capture-inputs/request.json",
+      "sha256": "7d62e9e962d01448fd193887573b6a2ab882574eba41f67a543c444c6222c059"
+    },
+    "capture_report": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-tensors/report.json",
+      "sha256": "15e48b27ce3b8f5f53311abbef7235c35b3e8e361c8baddb09a4d3a7e7d5938e"
+    },
+    "parity_report": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-features/report.json",
+      "sha256": "8d0a2e3fe9f8b5a8abbf73ab3f487ed632d99e84c9b112dc8b718366d680edf0"
+    },
+    "feature_model": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-features/frozen-trunk.onnx",
+      "sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081"
+    },
+    "historical_capture": {
+      "path": "artifacts/goal22-runs/ocr-production-head-inputs/capture-run3/report.json",
+      "sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482"
+    }
+  },
+  "expected_runner_source_bundle_sha256": "b2e76399ff69eb5bc8524170ce868eeda3cb0b094b0f2e3cd8bb40237062cf92"
+}

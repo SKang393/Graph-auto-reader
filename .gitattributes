@@ -65,3 +65,7 @@ ml/ocr/extended_db_head_v43/** -text whitespace=cr-at-eol
 ml/ocr/official_bakeoff/extended_head_training.py -text whitespace=cr-at-eol,-blank-at-eof
 docs/GOAL-22-OCR-TRAINING-DURATION-DIAGNOSIS.json -text whitespace=cr-at-eol
 tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate_v2.py -text whitespace=cr-at-eol
+# Preserve V44's source-bound execution bytes across Git checkouts.
+ml/ocr/text_extent_db_head_v44/training/p1.json -text whitespace=cr-at-eol
+ml/ocr/text_extent_db_head_v44/__init__.py -text whitespace=cr-at-eol
+ml/markers/training-seals/ocr-detection/graph-text-extent-db-head-v44/P1/void-attempts/*/void.json -text whitespace=cr-at-eol
