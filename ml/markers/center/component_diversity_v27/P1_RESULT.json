@@ -1,0 +1,295 @@
+{
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "acceptance_status": "FAIL",
+  "additional_optimizer_steps_during_recovery": 0,
+  "candidate_config_sha256": "e0c0545ce0182be73c7c1f64a86587b5b849cc1cca348da4014f0905b3c8608a",
+  "candidate_consumed": false,
+  "candidate_id": "P1",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/candidate-report.json",
+    "sha256": "876bc719324e7a4137182c23ffe1f32c97789794c255a5ae0b1d1da3125c8c47"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-component-diversity-v27/P1/result.json",
+    "sha256": "5389378a55de88f4c852c3e5baf6a5cdbff2678b2d83d9793a67ad44f26c5efd"
+  },
+  "change_vs_v26": {
+    "component_selected": {
+      "precision": -0.008325711807568359,
+      "prohibited_structure_hits": 0,
+      "recall": -0.020459081836327275
+    },
+    "family_selected": {
+      "precision": 0.02471507003207163,
+      "prohibited_structure_hits": 1,
+      "recall": -0.01941747572815533
+    }
+  },
+  "checkpoint_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365",
+  "closed_utc": "2026-09-18T10:56:00.803253+00:00",
+  "completed_epochs": 36,
+  "component_selected": {
+    "duplicate_count": 0,
+    "f1": 0.8895492818226844,
+    "false_negatives": 208,
+    "false_positives": 238,
+    "precision": 0.8829891838741396,
+    "prohibited_structure_hit_rate": 0.0,
+    "prohibited_structure_hits": 0,
+    "proposal_recall": 1.0,
+    "proposal_true_positives": 2004,
+    "recall": 0.8962075848303394,
+    "scene_count": 167,
+    "threshold": 0.25,
+    "true_positives": 1796
+  },
+  "component_threshold_sensitivity": [
+    {
+      "duplicate_count": 0,
+      "f1": 0.8895492818226844,
+      "false_negatives": 208,
+      "false_positives": 238,
+      "precision": 0.8829891838741396,
+      "prohibited_structure_hit_rate": 0.0,
+      "prohibited_structure_hits": 0,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 2004,
+      "recall": 0.8962075848303394,
+      "scene_count": 167,
+      "threshold": 0.25,
+      "true_positives": 1796
+    },
+    {
+      "duplicate_count": 0,
+      "f1": 0.8868312757201646,
+      "false_negatives": 280,
+      "false_positives": 160,
+      "precision": 0.9150743099787686,
+      "prohibited_structure_hit_rate": 0.0,
+      "prohibited_structure_hits": 0,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 2004,
+      "recall": 0.8602794411177644,
+      "scene_count": 167,
+      "threshold": 0.4,
+      "true_positives": 1724
+    },
+    {
+      "duplicate_count": 0,
+      "f1": 0.8754636989931107,
+      "false_negatives": 352,
+      "false_positives": 118,
+      "precision": 0.9333333333333333,
+      "prohibited_structure_hit_rate": 0.0,
+      "prohibited_structure_hits": 0,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 2004,
+      "recall": 0.8243512974051896,
+      "scene_count": 167,
+      "threshold": 0.55,
+      "true_positives": 1652
+    },
+    {
+      "duplicate_count": 0,
+      "f1": 0.8465167915625867,
+      "false_negatives": 479,
+      "false_positives": 74,
+      "precision": 0.9537210756722951,
+      "prohibited_structure_hit_rate": 0.0,
+      "prohibited_structure_hits": 0,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 2004,
+      "recall": 0.7609780439121756,
+      "scene_count": 167,
+      "threshold": 0.7,
+      "true_positives": 1525
+    }
+  ],
+  "elapsed_ms": 5529366.484,
+  "family_selected": {
+    "decoded_outside_plot": 21,
+    "domain_omitted_ink_proposals": 20364,
+    "duplicate_count": 0,
+    "f1": 0.8735632183908046,
+    "false_negatives": 16,
+    "false_positives": 39,
+    "precision": 0.8296943231441049,
+    "prohibited_structure_hit_rate": 0.021834061135371178,
+    "prohibited_structure_hits": 5,
+    "proposal_recall": 1.0,
+    "proposal_true_positives": 206,
+    "recall": 0.9223300970873787,
+    "scene_count": 9,
+    "threshold": 0.25,
+    "true_positives": 190
+  },
+  "family_threshold_sensitivity": [
+    {
+      "decoded_outside_plot": 21,
+      "domain_omitted_ink_proposals": 20364,
+      "duplicate_count": 0,
+      "f1": 0.8735632183908046,
+      "false_negatives": 16,
+      "false_positives": 39,
+      "precision": 0.8296943231441049,
+      "prohibited_structure_hit_rate": 0.021834061135371178,
+      "prohibited_structure_hits": 5,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 206,
+      "recall": 0.9223300970873787,
+      "scene_count": 9,
+      "threshold": 0.25,
+      "true_positives": 190
+    },
+    {
+      "decoded_outside_plot": 21,
+      "domain_omitted_ink_proposals": 20364,
+      "duplicate_count": 0,
+      "f1": 0.88135593220339,
+      "false_negatives": 24,
+      "false_positives": 25,
+      "precision": 0.8792270531400966,
+      "prohibited_structure_hit_rate": 0.00966183574879227,
+      "prohibited_structure_hits": 2,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 206,
+      "recall": 0.883495145631068,
+      "scene_count": 9,
+      "threshold": 0.4,
+      "true_positives": 182
+    },
+    {
+      "decoded_outside_plot": 21,
+      "domain_omitted_ink_proposals": 20364,
+      "duplicate_count": 0,
+      "f1": 0.8753180661577608,
+      "false_negatives": 34,
+      "false_positives": 15,
+      "precision": 0.9197860962566845,
+      "prohibited_structure_hit_rate": 0.0053475935828877,
+      "prohibited_structure_hits": 1,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 206,
+      "recall": 0.8349514563106796,
+      "scene_count": 9,
+      "threshold": 0.55,
+      "true_positives": 172
+    },
+    {
+      "decoded_outside_plot": 21,
+      "domain_omitted_ink_proposals": 20364,
+      "duplicate_count": 0,
+      "f1": 0.8463611859838275,
+      "false_negatives": 49,
+      "false_positives": 8,
+      "precision": 0.9515151515151515,
+      "prohibited_structure_hit_rate": 0.006060606060606061,
+      "prohibited_structure_hits": 1,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 206,
+      "recall": 0.7621359223300971,
+      "scene_count": 9,
+      "threshold": 0.7,
+      "true_positives": 157
+    }
+  ],
+  "isolated_change": "Use the verified V27 component negative selection; preserve family selection, all row counts, initialization, loss, model, optimizer recipe, thresholds and complete dev denominators.",
+  "license_review": "Same reviewed V21 initializer and project-owned synthetic data. No new dependencies, weights, or private data committed.",
+  "limitations": [
+    "Component precision and recall remain below 95 percent and regress versus V26.",
+    "Family precision improves but remains below 95 percent; recall regresses and prohibited hits exceed the 2 percent bar.",
+    "Threshold sensitivity is diagnostic only; the operating threshold remains 0.25.",
+    "No sealed, private, Production, or end-to-end CSV acceptance is established."
+  ],
+  "next_work": "Diagnose synthetic dev errors before proposing further marker changes. Continue the independently preregistered V45 OCR candidate. Do not repeat completed marker training.",
+  "onnx_dynamic_candidate_counts": [
+    {
+      "candidate_count": 1,
+      "maximum_absolute_error": 1.1920928955078125e-07
+    },
+    {
+      "candidate_count": 8,
+      "maximum_absolute_error": 3.337860107421875e-06
+    },
+    {
+      "candidate_count": 37,
+      "maximum_absolute_error": 3.337860107421875e-06
+    }
+  ],
+  "onnx_parity_maximum_absolute_error": 3.337860107421875e-06,
+  "onnx_parity_passed": true,
+  "onnx_parity_tolerance": 1e-05,
+  "onnx_sha256": "4979777a404be48c6c75b490218d1de31d2edb2550f5bc71c7aa6894c1bcca04",
+  "opened_seal": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-component-diversity-v27/P1/opened.json",
+    "sha256": "f6e73d39e2c3ffcfe5262c4724c63e694104baeb33b49f196b15ed28ecf3b409"
+  },
+  "operating_threshold": 0.25,
+  "optimizer_steps": 12636,
+  "original_void_attempt": {
+    "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-run1/candidate-report.json",
+    "sha256": "dc34d8cb4d0eb1c246352167b51d6045ca8cfaab06b46d5793274f7f20719c63"
+  },
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "d17a97fb294bcc465d8b38554c0ec6a6321e48dca06f051c91a3586b23226697",
+  "recovery": {
+    "completed_epochs": 36,
+    "input_binding": {
+      "candidate_config_sha256": "e0c0545ce0182be73c7c1f64a86587b5b849cc1cca348da4014f0905b3c8608a",
+      "component_selection_sha256": "e2c52a38bbb9e53146ee48c8bc92e8b56bf599393297d5ba57b9c66699d29a7a",
+      "family_selection_sha256": "239b3f2aa14eb9636964c22083e722aba76bd70623a2bbd75362e1db96c527e3",
+      "initializer_checkpoint_sha256": "ba9722ebd3091c91749c175607a480500d3b651e6719d19b69c7e48cee4ef6c9",
+      "initializer_onnx_sha256": "0b413db48f8e6707ee5ec99afff4cd8ec3d25c6b8a8d9f165bd416deb4578a38",
+      "runner_source_bundle_sha256": "217b58ccc92cbaf0ff6bc8d3d2f87a4b0b644aac92ca84bfac18c86ad3d460ac",
+      "torch_intraop_threads": 12,
+      "training_tensor_inventory_sha256": "aaf650b405cb35764c9126e6f692db34664ff899b2e3bd19beb60c93f52e7229"
+    },
+    "optimizer_steps": 12636,
+    "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/recovery.pt",
+    "resumed_from_epoch": 36,
+    "sha256": "4dcf2be915bf19497c0d3399b68f32137e584793101869650a5e4840f4646f8c"
+  },
+  "recovery_audit": {
+    "path": "artifacts/goal22-runs/marker-v27-recovery-audit.json",
+    "sha256": "dfec558b4a0bc2a3a150041c5e5b1d94f30f53732ddb2c4d4b547da332e5a37b"
+  },
+  "release_eligible": false,
+  "revision": "marker-center-component-diversity-v27",
+  "runner_source_bundle_sha256": "217b58ccc92cbaf0ff6bc8d3d2f87a4b0b644aac92ca84bfac18c86ad3d460ac",
+  "schema": "graphreader.marker-center-component-diversity-v27-outcome.v1",
+  "sealed_runs": 0,
+  "selection_evidence": {
+    "component": {
+      "added_rows": 8050,
+      "displaced_rows": 8050,
+      "frozen_selection_sha256": "e5a324090f1c021b7992a9d3e04ec583156fa2a2f593c22250917506972e80dd",
+      "preserved_protected_rows": 18284,
+      "proposed_selection_sha256": "e2c52a38bbb9e53146ee48c8bc92e8b56bf599393297d5ba57b9c66699d29a7a",
+      "row_order": "scene_then_ascending_proposal_index",
+      "selected_rows": 35838
+    },
+    "family": {
+      "added_rows": 1331,
+      "displaced_rows": 1331,
+      "frozen_selection_sha256": "76f17a1f7c80543c61076bca8da2d72c68edf2ea68a872ecb8f434c7283708b9",
+      "preserved_protected_rows": 1761,
+      "proposed_selection_sha256": "239b3f2aa14eb9636964c22083e722aba76bd70623a2bbd75362e1db96c527e3",
+      "row_order": "scene_then_ascending_proposal_index",
+      "selected_rows": 9053
+    }
+  },
+  "source_snapshot": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-component-diversity-v27/P1/source-snapshot.json",
+    "sha256": "552fdc8a500d329b085d36fc2a5c5ba94357996dd78348b3773f6f7054b4d94f"
+  },
+  "status": "failed_dev_unconsumed",
+  "synthetic_only": true,
+  "task": "marker-center",
+  "void_reason": "The original final source check detected the unrelated V45 registration appended to the shared ledger. All 74 non-ledger bound sources and the V27 ledger entry were unchanged. Recovery used a fresh authenticated snapshot and the completed epoch-36 checkpoint without further optimizer steps."
+}

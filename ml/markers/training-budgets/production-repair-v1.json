@@ -9948,6 +9948,43 @@
       "candidate_report_sha256": "a5dcc6fde7c0135cee3d55cc1e24df4ae1b2a69b1b657d777093584c655f82ca",
       "optimizer_steps": 6720,
       "closed_utc_date": "2026-09-17"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-component-diversity-v27",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/component_diversity_v27/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "e0c0545ce0182be73c7c1f64a86587b5b849cc1cca348da4014f0905b3c8608a"
+      },
+      "protocol_path": "ml/markers/center/component_diversity_v27/protocol.json",
+      "protocol_sha256": "d17a97fb294bcc465d8b38554c0ec6a6321e48dca06f051c91a3586b23226697",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One synthetic train/dev candidate under Goal22 execution authorization. No private or sealed read, production approval, or release.",
+      "isolated_change": "Use the verified V27 component negative selection; preserve family selection, all row counts, initialization, loss, model, optimizer recipe, thresholds and complete dev denominators.",
+      "optimizer_steps_expected": 12636,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "outcome_path": "ml/markers/center/component_diversity_v27/P1_RESULT.json",
+      "outcome_sha256": "a13d74f5cac9bd745759873932d63c81de2ce2a385526969202f0dd8d0fc63ac",
+      "candidate_report_sha256": "876bc719324e7a4137182c23ffe1f32c97789794c255a5ae0b1d1da3125c8c47",
+      "optimizer_steps": 12636,
+      "closed_utc_date": "2026-09-18"
     }
   ]
 }

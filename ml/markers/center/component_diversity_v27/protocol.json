@@ -1,0 +1,35 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V26 fails the fixed synthetic dev bars at component precision 0.8913 and recall 0.9167 and family precision 0.8050 and recall 0.9417. A bounded cross-split diagnostic found that sampled component errors were farther from same-label selected train patches than equal-size correctness controls in several fixed label and distance strata; the controls were not matched by scene, diameter, blur radius, morphology or truth identity. The authenticated train-only preflight increases represented component cell-bin pairs from 689 of 861 to 806 of 861 while preserving every positive, protected and reserved row, every fixed allocation, all selected-row counts and the byte-identical family selection. Replacing only component discretionary negatives with that mask may improve component train support and fixed dev precision or recall. These associations do not establish causation or predict improvement.",
+  "isolated_change": "Use the authenticated component proposed-selection mask e2c52a38bbb9e53146ee48c8bc92e8b56bf599393297d5ba57b9c66699d29a7a from preflight report 8830c983cade4b3caaff1ced2b60274c932e8af8a7a27525ca82d96e676dff43 and cache d31a25f48170a375fae22f196344d1c8fc85d2297ddc3394c8303d08d34a246b. It exchanges exactly 8050 selected component negatives. Preserve all 44891 rows, 4081 positives, 40810 negatives, all labels, V21 initialization, architecture, loss, 36 epochs, batch size 128, optimizer recipe, final-epoch checkpoint selection, confidence 0.25, postprocessing, five-pixel matching, all 2004 component dev truths and all 206 family dev truths. Preserve the V26 family mask byte-for-byte. Do not add a bin-coverage gate or select a threshold.",
+  "split_identities": {
+    "component_train_count": 167,
+    "component_train_truth_count": 2004,
+    "component_dev_count": 167,
+    "component_dev_truth_count": 2004,
+    "family_train_sources": 20,
+    "family_train_panels": 28,
+    "family_train_truth_count": 500,
+    "family_dev_sources": 3,
+    "family_dev_panels": 9,
+    "family_dev_truth_count": 206,
+    "v26_protocol_sha256": "410eec2b6936a08bab8bcba341aaf04c6e9ac661215169d74efb57c33358fb7a",
+    "v26_config_sha256": "31f8fee2ecb4fc01b2c1234761423dcbb668e98c90157abd4e1179c6749236db",
+    "v26_result_sha256": "82f7906c71f6fa09f9850c92c5d373adc9f2611fe015d3562c3fdbcd6516f53e",
+    "selection_preflight_sha256": "8830c983cade4b3caaff1ced2b60274c932e8af8a7a27525ca82d96e676dff43",
+    "selection_cache_sha256": "d31a25f48170a375fae22f196344d1c8fc85d2297ddc3394c8303d08d34a246b",
+    "component_selection_sha256": "e2c52a38bbb9e53146ee48c8bc92e8b56bf599393297d5ba57b9c66699d29a7a",
+    "family_selection_sha256": "239b3f2aa14eb9636964c22083e722aba76bd70623a2bbd75362e1db96c527e3"
+  },
+  "metric": "Authenticate current source, frozen historical inputs, exact regenerated synthetic pixels, proposal rows and selected tensors before optimization. Evaluate the unchanged complete 2004 component and 206 family dev truth denominators. At the shipped 0.25 operating point report component and family proposal recall, final center precision, recall, false centers, misses, duplicates and prohibited-structure hits separately with existing five-pixel matching. Report unchanged threshold sensitivity as descriptive evidence only, exact selection identities, optimizer steps, recovery identity, runtime and limitations.",
+  "acceptance_bar": "Reference ml/policy/acceptance-bars.json without restating or tightening it: apply its existing marker-center precision, recall, proposal-support and prohibited-structure requirements at the shipped 0.25 operating point. No model-free coverage value, synthetic zero-count surrogate or zero-regression rule is an acceptance gate. Passing synthetic dev does not authorize production or sealed access.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "training_requires_canonical_authorization": true,
+    "private_reads": 0,
+    "sealed_runs_authorized": 0,
+    "production_approval": false,
+    "release_eligible": false
+  }
+}
