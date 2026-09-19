@@ -65,4 +65,40 @@ confidence from V27 and geometry from V26, then the reverse combination, at
 the same fixed threshold on both complete development splits. Paired truth
 transitions and positive-anchor score margins can separate confidence ranking
 from geometry interactions without another model inference or training run.
-This follow-up remains pending and cannot authorize production acceptance.
+The follow-up completed and cannot authorize production acceptance.
+
+## Saved-output confidence and geometry replay
+
+The authenticated replay completed in 2784705.539 ms (46.4 minutes), with
+zero model inference, proposal inference, optimizer steps, private reads, or
+sealed reads. It consumed fixed synthetic dev scene, truth, and domain metadata from the authenticated V27 reconstruction and
+used the saved proposal coordinates and model outputs. Both original models
+reproduced their recorded counts exactly at the unchanged 0.25 threshold.
+
+| Confidence / geometry | Component TP / FP / FN | Family TP / FP / FN |
+| --- | --- | --- |
+| V26 / V26 | 1837 / 224 / 167 | 194 / 47 / 12 |
+| V27 / V27 | 1796 / 238 / 208 | 190 / 39 / 16 |
+| V27 / V26 | 1795 / 242 / 209 | 191 / 37 / 15 |
+| V26 / V27 | 1840 / 220 / 164 | 193 / 48 / 13 |
+
+The component denominator remains 2004 truth markers across 167 scenes; the
+family denominator remains 206 across nine scenes. Replacing V27 geometry
+with V26 geometry changes component true positives by minus one. Replacing
+V27 confidence with V26 confidence changes them by plus 44. Against V26,
+the V27-confidence/V26-geometry hybrid loses 87 formerly matched truths and
+recovers 45 missed truths. These observations point primarily to confidence
+ranking in the component regression, rather than an offset-only defect.
+
+The hybrids break learned coupling between output heads. They are diagnostic
+counterfactuals, not deployable candidates, and do not establish the causal
+effect of a future training change. Family results show a precision/recall
+tradeoff, so the component improvement must not be generalized into a claim
+of passing both development splits. No threshold or new revision was selected.
+
+- Report: `artifacts/goal22-runs/marker-v27-head-swap/diagnosis-v1/diagnosis.json`
+- Report SHA-256: `613b9bd9217bcc5218e0cdfbc199ca7c73ea835da21fea5d5f1bfa690627810d`
+- Replay source SHA-256: `568f7be7ef1750a196c925abe3843f44a95b89ec32a85393c01065143936d826`
+- Focused tests: six passed; compilation and helper self-test passed.
+
+Independent review verified all ten input bindings, exact original counts, full denominators, paired-transition conservation, and confidence-margin accounting. The reconstruction also builds historical train/base structures, although this replay consumes only the development scene data. V27 remains failed-dev and unconsumed; neither hybrid is approved.
