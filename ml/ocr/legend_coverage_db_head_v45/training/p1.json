@@ -1,0 +1,86 @@
+{
+  "bound_files": {
+    "candidate_template": {
+      "path": "artifacts/goal22-runs/ocr-v45-evaluation-inputs-v1/candidate-template.json",
+      "sha256": "fb69efa132597ff23f5b4096894fae3991e31eeb8b1559ed9e50ee68fe9e600b"
+    },
+    "capture_report": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-tensors/report.json",
+      "sha256": "15e48b27ce3b8f5f53311abbef7235c35b3e8e361c8baddb09a4d3a7e7d5938e"
+    },
+    "capture_request": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-capture-inputs/request.json",
+      "sha256": "7d62e9e962d01448fd193887573b6a2ab882574eba41f67a543c444c6222c059"
+    },
+    "feature_model": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-features/frozen-trunk.onnx",
+      "sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081"
+    },
+    "historical_capture": {
+      "path": "artifacts/goal22-runs/ocr-production-head-inputs/capture-run3/report.json",
+      "sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482"
+    },
+    "parent_model": {
+      "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/reviewed-parent.onnx",
+      "sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb"
+    },
+    "parity_report": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-features/report.json",
+      "sha256": "8d0a2e3fe9f8b5a8abbf73ab3f487ed632d99e84c9b112dc8b718366d680edf0"
+    },
+    "supplemental_capture_report": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/tensors/report.json",
+      "sha256": "2c605fb18cb0195453f1b569506546c22c3a873db19475e1fb87daa0bddaeb19"
+    },
+    "supplemental_composition_report": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/composition-verification.json",
+      "sha256": "f0591ae25244b570ea2077d34b40dac96b40be1433d6ca89a0119989378529c0"
+    },
+    "supplemental_feature_model": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-features-v1/frozen-trunk.onnx",
+      "sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081"
+    },
+    "supplemental_feature_report": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-features-v1/report.json",
+      "sha256": "4b2710b380be1b16d5fef7d9184920051c413304353ed821480bda0ab3a16d05"
+    },
+    "supplemental_preparation": {
+      "path": "artifacts/goal22-runs/ocr-train-legend-head-inputs-v1/preparation.json",
+      "sha256": "622357d57895755eacb631ea518eaa4d3268ac65aa0df4c910fe72cc0d56c737"
+    },
+    "supplemental_request": {
+      "path": "artifacts/goal22-runs/ocr-train-legend-head-inputs-v1/request.json",
+      "sha256": "0e795a4d17b1b1d0b2f652a30ffff30e038ec51eae61a9699510d65b43eb6cf1"
+    },
+    "supplemental_truth": {
+      "path": "artifacts/goal22-runs/ocr-train-legend-head-inputs-v1/supplemental-train-text-truth.json",
+      "sha256": "13174cba2e740b47d1fc68f0e15c2078c720526be6475b91a8740e51195150b3"
+    }
+  },
+  "candidate_id": "P1",
+  "expected_runner_source_bundle_sha256": "822dc62eb8caf040c023822cab8550718d2fc1ab09424061524c6c2b5b18aee2",
+  "private_data": false,
+  "production_approval": false,
+  "recipe": {
+    "affinity_mask": 4095,
+    "batch_size": 1,
+    "checkpoint_selection": "earliest_minimum_full_train_loss",
+    "dice_epsilon": 1e-06,
+    "empty_target_objective": "masked_mean_probability",
+    "epochs": 240,
+    "intraop_threads": 12,
+    "job_cpu_rate_maximum": 333,
+    "learning_rate": 0.0001,
+    "logical_processors": 12,
+    "priority": "Idle",
+    "seed": 20260939,
+    "supervision_mask": "all_ones_full_valid_runtime_crop",
+    "target_definition": "inverse_db_unclip_rectangle_v1",
+    "weight_decay": 0.0001
+  },
+  "revision": "graph-legend-coverage-db-head-v45",
+  "schema": "graphreader.ocr-legend-coverage-v45-candidate-config.v1",
+  "sealed_data": false,
+  "synthetic_only": true,
+  "task": "ocr-detection"
+}

@@ -1,0 +1,245 @@
+{
+  "base_commit": "e558bf5e935023cc4c63ecb5273536f1cb272529",
+  "captured_utc": "2026-09-18T11:02:15.314084+00:00",
+  "identity": {
+    "candidate_id": "P1",
+    "revision": "graph-legend-coverage-db-head-v45",
+    "task": "ocr-detection"
+  },
+  "inline_hashes": {},
+  "preregistered_ledger_entry": {
+    "authorization_scope": "One synthetic train/dev candidate under Goal22 execution authorization. No private or sealed read, production approval, or release. Start only after marker V27 training exits, using the verified CPU cap and local completion notifier.",
+    "authorized_candidate_id": "P1",
+    "budget_consumption_event": "first_sealed_split_read",
+    "candidate_config_paths": {
+      "P1": "ml/ocr/legend_coverage_db_head_v45/training/p1.json"
+    },
+    "candidate_config_sha256": {
+      "P1": "1e27a5fbd554a1ee292343416ab5c2616d3c361f43b5e46b9480372419b7232f"
+    },
+    "consumed_candidate_ids": [],
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "execution_authorized": true,
+    "experiment_budget": 1,
+    "isolated_change": "Add six authenticated project-owned synthetic train panels and all 153 of their text truths to the unchanged V44 train population, producing 34 train panels and 862 train truths. Preserve the reviewed parent, frozen trunk and batch-normalization statistics, inverse-unclip targets, full masks, Dice objective, AdamW, seed, 240 epochs, batch size, learning rate, weight decay, earliest-minimum checkpoint selection, twelve-thread Idle CPU budget and fixed development split. The supplemental font-size override affects every text role in those six scenes, so any result describes the complete train-population change rather than a legend-only intervention.",
+    "optimizer_steps_expected": 8160,
+    "preregistered_candidate_ids": [
+      "P1"
+    ],
+    "protocol_path": "ml/ocr/legend_coverage_db_head_v45/protocol.json",
+    "protocol_sha256": "17bd70fe0b389803d6441d8ea1716615b015ac712e3d656fe7b2f082bd13b8ed",
+    "revision": "graph-legend-coverage-db-head-v45",
+    "sealed_runs_authorized": 0,
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "status": "candidate_1_preregistered",
+    "task": "ocr-detection"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "docs/GOAL-22-OCR-LEGEND-EXTENT-DIAGNOSIS.json",
+      "sha256": "c9a9903bad60e9b5a50b4c7eb73c48bf458fe9576f4873bd22a402ca04f4f204"
+    },
+    {
+      "path": "docs/GOAL-22-OCR-LEGEND-HEAD-INPUTS.json",
+      "sha256": "05af6a5c54afa4960b59050bd45ded083c935418308479c3a2612be039d05558"
+    },
+    {
+      "path": "docs/GOAL-22-OCR-SUPPLEMENTAL-FEATURES.json",
+      "sha256": "da5a5e5b6fae7ddd3ce675dd6c13af6e1fafe330e2af23f5e5aad30a1d41e572"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/runtime_inputs.py",
+      "sha256": "17d8df01e4ef25ad77ad7bac6652724282054b29947b7e81be0c424977e9c3f0"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/runtime_domain_binding.py",
+      "sha256": "902018759b5e95e0a0ca912d63427a970267cc1101cd6af27cd61da86e0f29fd"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/runtime_domain_binding_v3.py",
+      "sha256": "2e8ad74fe44720b96323a3e927ae0e611b1ef993a565c7abd02bfabdd6446f93"
+    },
+    {
+      "path": "ml/markers/gate_seal.py",
+      "sha256": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725"
+    },
+    {
+      "path": "ml/markers/training-budgets/production-repair-v1.json",
+      "sha256": "6af1ffc27a81104f0f454c1cc434f7dc448cef8e40786e1eb450702769236c32"
+    },
+    {
+      "path": "ml/markers/training_budget.py",
+      "sha256": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4"
+    },
+    {
+      "path": "ml/ocr/inverse_db_target_v40/__init__.py",
+      "sha256": "23b6c5740feb8f1e104b0017f606911531c8623977cc3e5ec1496100426927c3"
+    },
+    {
+      "path": "ml/ocr/inverse_db_target_v40/protocol.json",
+      "sha256": "bc96810465ce51e81c368f03f946ca3c55cafdc597b295b27b0c00662ecfa1a1"
+    },
+    {
+      "path": "ml/ocr/inverse_db_target_v40/train_p1.py",
+      "sha256": "950d43224c87a57e9e97e6b87c3df7ed7ef69b981fc4ecb9022eabe2dee99d16"
+    },
+    {
+      "path": "ml/ocr/legend_coverage_db_head_v45/__init__.py",
+      "sha256": "3fba3ad5056ca210ab13912b9d7d45ef29a3d9953caadfc236fd61ab0b810f9c"
+    },
+    {
+      "path": "ml/ocr/legend_coverage_db_head_v45/prepare_candidate.py",
+      "sha256": "c84325f20beae21c20e9c270c8c95201e1cd1e5d9da786b30628fd75d4c16458"
+    },
+    {
+      "path": "ml/ocr/legend_coverage_db_head_v45/protocol.json",
+      "sha256": "17bd70fe0b389803d6441d8ea1716615b015ac712e3d656fe7b2f082bd13b8ed"
+    },
+    {
+      "path": "ml/ocr/legend_coverage_db_head_v45/train_p1.py",
+      "sha256": "c3c61d73f0f56fe7ae27dde9a013ce6a268c3f4bb6edb67be53892ade5d7417b"
+    },
+    {
+      "path": "ml/ocr/legend_coverage_db_head_v45/training/p1.json",
+      "sha256": "1e27a5fbd554a1ee292343416ab5c2616d3c361f43b5e46b9480372419b7232f"
+    },
+    {
+      "path": "ml/ocr/legend_coverage_db_head_v45/verify_export.py",
+      "sha256": "79234dc72b96e9cecaabe68fd3aed2a8e766cd19f619bd4ed17495a9ae17e5f6"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/captured_head_features.py",
+      "sha256": "e12293499afed7eed3a2f8feaa69f061f59ecff570770aa5298b1129e27bb075"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/db_inverse_targets.py",
+      "sha256": "ec273483050ef573853be797e4df38df4c907339dc3b426a939522343ebaeb86"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/frozen_head_training.py",
+      "sha256": "ef0f955794e6f5417560af2c752b6523340ee9a86c0a1aa73b299593d4850379"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/frozen_trunk_head.py",
+      "sha256": "6171df9298f785360695353087344229a8f761cfda51bb3aa728ddab10997703"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/legend_coverage_head_inputs.py",
+      "sha256": "cfde038b90c09870d9376d73c307b034d2e4bb249094c9d34a791de6bfa5adc5"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/production_head_inputs.py",
+      "sha256": "51800bcddfd9fc02c538bba04015312f94fb88113ea14c563616db58a61cff90"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/resource_limited_head_training.py",
+      "sha256": "ba767632e2722219acf0594ce4236fac08961fca8abf57c1887b9eefa58cfa4b"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/supplemental_head_features.py",
+      "sha256": "0e245d0176d8c8cd2b3b8e7a3f25755488afc2732469a9946e27c9e2bd81fb55"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/text_extent_head_inputs.py",
+      "sha256": "d8ad928a3dab5c9bb096e5619e5635780a4ab46cf0596930978f1ae1d56ea83e"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/train_text_extent_preflight.py",
+      "sha256": "1f5c3a1de2e0e04a77667f5da19078dc48e3a7d4400fdf26ac23560cd06d3119"
+    },
+    {
+      "path": "ml/ocr/pretrained_db_head_v39/__init__.py",
+      "sha256": "4cedf72cafe88e31bb113965bf253cd236670a57224ca6e8f5950e8d0d98f032"
+    },
+    {
+      "path": "ml/ocr/pretrained_db_head_v39/protocol.json",
+      "sha256": "5ba2719763980235e325020f0891ba37155cd9ffd7bd5e830078ffd3990da59f"
+    },
+    {
+      "path": "ml/ocr/pretrained_db_head_v39/train_p1.py",
+      "sha256": "ad4fca224e04af70da22783b8d7216766d5dac1177d74ca0fa187166d87c1ced"
+    },
+    {
+      "path": "ml/ocr/production_tiled_inputs.py",
+      "sha256": "b2ee5dba050790b504f7d35b129d882d4d5bcf011d87a3b21a4431202d3fdc35"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/evidence_policy.py",
+      "sha256": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7"
+    },
+    {
+      "path": "ml/synthetic/contact_sheet.py",
+      "sha256": "db98be281e76bc9ce75cb9f23d99190b8539a82b677f91e466e57434d4d15ecb"
+    },
+    {
+      "path": "ml/synthetic/dataset.py",
+      "sha256": "a1a97394c2937ebb00b01e941466188876f5b5478e012dc41503fb38696d991b"
+    },
+    {
+      "path": "ml/synthetic/fonts.py",
+      "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+    },
+    {
+      "path": "ml/synthetic/io.py",
+      "sha256": "0f3b81f55d8b0ca89cd8127edf351dbe23948e3610c71c845112bc9084e3b9c2"
+    },
+    {
+      "path": "ml/synthetic/renderer.py",
+      "sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_axis_preserving_v2.py",
+      "sha256": "1de947fed6278166cd2c5f63bef6ef2337644ae51da6c9d9bfdb485e517a7afa"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_axis_preserving_v2_protocol.json",
+      "sha256": "6e4407fef6ce6ba8c6e76013602b108a39aaf443ce91ac0898f3ff31f5049be6"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_visible_content_v3.py",
+      "sha256": "eb358f9fe6b06c538d792794e8e28a2f751b55fefa7dd5c9da04e83673dc1cca"
+    },
+    {
+      "path": "ml/synthetic/runtime_graph_visible_content_v3_protocol.json",
+      "sha256": "94ad7b7d3476ce5143af4e7f973a31baf59dbc113cbbeda66f099619b55f99a8"
+    },
+    {
+      "path": "ml/synthetic/scene.schema.json",
+      "sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f"
+    },
+    {
+      "path": "ml/synthetic/schema.py",
+      "sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98"
+    },
+    {
+      "path": "ml/synthetic/templates.py",
+      "sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate_v2.py",
+      "sha256": "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_legend_coverage_candidate.py",
+      "sha256": "308448169bf177eaefe3d1543916e1dfaa216ab42a70f59d9e7a90a6bb827fa8"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_text_extent_candidate.py",
+      "sha256": "41d6438b5198c2cb7f89b1d6a26c720b4a3089d8a49666a7c7cefad5ce3fe050"
+    }
+  ]
+}

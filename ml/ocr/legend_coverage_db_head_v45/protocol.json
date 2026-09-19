@@ -1,0 +1,39 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V44 matched 139 of 183 dev truths but retained 48 false positives and 44 misses, with only 1 of 11 legend truths matched. Corrected train/dev support evidence found that historical train panels contained at most one legend truth per panel while fixed dev includes a three-row inside-plot legend, and that compact dev legend extents fell below comparable historical train support. Six project-owned train panels now provide three ordered inside-plot legend rows each in existing train families. Adding those panels may improve raw compact-legend localization on the unchanged dev split; it does not explain every remaining OCR error.",
+  "isolated_change": "Add six authenticated project-owned synthetic train panels and all 153 of their text truths to the unchanged V44 train population, producing 34 train panels and 862 train truths. Preserve the reviewed parent, frozen trunk and batch-normalization statistics, inverse-unclip targets, full masks, Dice objective, AdamW, seed, 240 epochs, batch size, learning rate, weight decay, earliest-minimum checkpoint selection, twelve-thread Idle CPU budget and fixed development split. The supplemental font-size override affects every text role in those six scenes, so any result describes the complete train-population change rather than a legend-only intervention.",
+  "split_identities": {
+    "composition_verification": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/composition-verification.json",
+      "sha256": "f0591ae25244b570ea2077d34b40dac96b40be1433d6ca89a0119989378529c0"
+    },
+    "supplemental_feature_report": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-features-v1/report.json",
+      "sha256": "4b2710b380be1b16d5fef7d9184920051c413304353ed821480bda0ab3a16d05"
+    },
+    "train_sources": 26,
+    "train_panels": 34,
+    "train_truths": 862,
+    "dev_sources": 3,
+    "dev_panels": 9,
+    "dev_truths": 183,
+    "sealed_registry": {
+      "path": "ml/policy/goal22-ocr-sealed-reserve-registry.json",
+      "sha256": "d036199375680b3b834e7adfe694dd2615eba766be058a6edb53787180cd9fd6"
+    },
+    "designated_sealed_set_id": "3a40a023e2102d2c3adc7e53acf9c372cd7523c1056b1ebcd2c79696d09dea37",
+    "sealed_scope": "goal22.full-ocr.five-axis-family.real-range.v1",
+    "sealed_access_now": "None. Registered metadata only; the separate full-OCR dev prerequisite and first-read admission remain mandatory."
+  },
+  "metric": "First verify trained numerical export parity. Evaluate the patched detector through the actual original-BGR application path at the unchanged product operating point. Keep all 862 train and 183 dev truths in the fixed one-to-one source-space IoU 0.5 geometry matcher and frozen complete-OCR metrics. Report raw detector precision and recall, recognition exact accuracy, character error rate and role accuracy separately. Bind the current runtime, and do not attribute participant-lane or criterion-role runtime repairs to training.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json, applicable per-item tier1_reviewable_error OCR bars. Input coverage and step-zero parity are engineering preconditions, not added model accuracy gates. A detector-only pass cannot approve complete OCR or Goal 22.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "sealed_run_budget": 1,
+    "sealed_runs_authorized_now": 0,
+    "training_requires_canonical_authorization": true,
+    "private_reads": 0,
+    "production_approval": false
+  }
+}

@@ -9985,6 +9985,43 @@
       "candidate_report_sha256": "876bc719324e7a4137182c23ffe1f32c97789794c255a5ae0b1d1da3125c8c47",
       "optimizer_steps": 12636,
       "closed_utc_date": "2026-09-18"
+    },
+    {
+      "task": "ocr-detection",
+      "revision": "graph-legend-coverage-db-head-v45",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/ocr/legend_coverage_db_head_v45/training/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "1e27a5fbd554a1ee292343416ab5c2616d3c361f43b5e46b9480372419b7232f"
+      },
+      "protocol_path": "ml/ocr/legend_coverage_db_head_v45/protocol.json",
+      "protocol_sha256": "17bd70fe0b389803d6441d8ea1716615b015ac712e3d656fe7b2f082bd13b8ed",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One synthetic train/dev candidate under Goal22 execution authorization. No private or sealed read, production approval, or release. Start only after marker V27 training exits, using the verified CPU cap and local completion notifier.",
+      "isolated_change": "Add six authenticated project-owned synthetic train panels and all 153 of their text truths to the unchanged V44 train population, producing 34 train panels and 862 train truths. Preserve the reviewed parent, frozen trunk and batch-normalization statistics, inverse-unclip targets, full masks, Dice objective, AdamW, seed, 240 epochs, batch size, learning rate, weight decay, earliest-minimum checkpoint selection, twelve-thread Idle CPU budget and fixed development split. The supplemental font-size override affects every text role in those six scenes, so any result describes the complete train-population change rather than a legend-only intervention.",
+      "optimizer_steps_expected": 8160,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "outcome_path": "ml/ocr/legend_coverage_db_head_v45/P1_RESULT.json",
+      "outcome_sha256": "197539f56f4986973c820f25d4de4d3a909b45ad9954c570a192cc2a8913a9e4",
+      "candidate_report_sha256": "f10f7b78cf17d26f4e75bacc6d7d62925ea35bd87e327b0eedcfc9c46732eec6",
+      "optimizer_steps": 8160,
+      "closed_utc_date": "2026-09-19"
     }
   ]
 }
