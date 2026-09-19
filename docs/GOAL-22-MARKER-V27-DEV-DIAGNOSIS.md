@@ -102,3 +102,32 @@ of passing both development splits. No threshold or new revision was selected.
 - Focused tests: six passed; compilation and helper self-test passed.
 
 Independent review verified all ten input bindings, exact original counts, full denominators, paired-transition conservation, and confidence-margin accounting. The reconstruction also builds historical train/base structures, although this replay consumes only the development scene data. V27 remains failed-dev and unconsumed; neither hybrid is approved.
+
+## Cached component cohort attribution
+
+A subsequent saved-output analysis conserved all 2,004 component truths:
+1,746 remained matched, 91 lost their match, 50 gained a match, and 117
+remained missed. The reviewed second replay completed in 10.55 seconds without
+inference, optimizer steps, private reads, or sealed reads. Ten focused tests
+passed. Both executed helper sources are authenticated before and after the
+replay; the ten one-pixel truths are correctly classified as points and all
+remain missed. The original diagnostic is retained separately.
+
+The changed-negative selection strata overlap every transition cohort at
+100%. This coarse overlap is non-discriminative and does not explain why
+previously detected markers were lost. It does not justify another sampler
+revision by itself.
+
+The largest substantial morphology loss cohort was horizontal cross
+rectangles: 31 of 236 formerly matched truths lost their match (13.1%).
+Diameter-27 and diameter-6 cohorts lost 10/85 and 9/90 respectively. The
+diameter-40 cohort lost 3/6, but six observations cannot support a broad claim.
+These are descriptive development findings, not selected thresholds or proof
+of a training cause.
+
+- Report: `artifacts/goal22-runs/marker-v27-cohort-attribution/diagnosis-v2/diagnosis.json`
+- Report SHA-256: `945ad94a565634e51bd9f5404b0fc67ae0347238682da3914cfb244eb8b649d1`
+- Source: [diagnose_cohorts.py](../ml/markers/center/component_diversity_v27/diagnose_cohorts.py)
+- Source SHA-256: `b856c5ce67a23eae4414c32788ddf0333649bcae7bef99343a4f66508e352f2e`
+
+No model, revision, threshold, production approval, or packaged build changed.
