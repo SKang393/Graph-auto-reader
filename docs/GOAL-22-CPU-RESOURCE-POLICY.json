@@ -1,4 +1,29 @@
 {
+  "current_maintainer_amendment": {
+    "date": "2026-09-18",
+    "requirement": "Allow the training workload up to 80 percent per core; exclude unrelated applications from that accounting. Keep all cores and threads eligible.",
+    "supersedes": "The historical below-50-percent requirement and conservative 3.33-percent whole-machine training limit below.",
+    "launcher": "tools/Run-TrainingCpuBudget.ps1",
+    "aggregate_backstop_percent": 80,
+    "cooperative_helper": "ml/training_cpu_budget.py",
+    "validation": {
+      "helper_tests_passed": 12,
+      "helper_tests_seconds": 0.65,
+      "windows_child_probe": "Passed: queried job rate 8000 and flags 5 before launch; child confirmed 80-percent setting, affinity 4095 and Idle priority.",
+      "integration_status": "Prepared for future training; the next runner must adopt the cooperative helper before training starts. No current per-core enforcement claim.",
+      "launcher_sha256": "31c62185f6539b986f4ec07ec0b7ce7d7571251412a7be0eca62d761f9e4964e",
+      "helper_sha256": "d28aa7b5bb9a2e8a98360c9d503a867bbaf26fa5e964b604f36b5d66dea7e5ab",
+      "test_sha256": "8e6a8c0a92cf0995060b2b343e9453144c4b4f70b2a84f0daa27d814e34867e4",
+      "test_command": "python -m pytest ml/tests/test_training_cpu_budget.py -q",
+      "child_probe_path": "artifacts/goal22-runs/training-cpu-budget-80-probe.json",
+      "child_probe_sha256": "80ea9ffa7865cfd796ff5451354b0bc6451cc4a046dcad79423a3ecf56c5ed66"
+    },
+    "per_core_strategy": "Cooperative synchronous work/rest cycles with an 80-percent active-time budget. The aggregate Windows job cap alone is not a per-core limiter.",
+    "scope": "Future training invocations must bind the new launcher and wrap synchronous work with the cooperative limiter. Historical runs and currently authenticated validation sources remain unchanged.",
+    "limitations": "The per-core claim is an average over completed work/rest cycles, not an instantaneous limit. All workload threads must be quiescent during rest; asynchronous workers and preparation outside guarded blocks are not covered. Combining the 80-percent job cap and fixed 80-percent work/rest duty can reduce fully saturated throughput toward 64 percent aggregate capacity.",
+    "active_training": false,
+    "production_approval": false
+  },
   "schema": "graphreader.goal22.cpu-resource-policy.v1",
   "date": "2026-09-15",
   "status": "conservative_background_budget_verified",
