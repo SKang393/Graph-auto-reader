@@ -278,7 +278,15 @@ public sealed record OcrRequest(
     IReadOnlyList<OcrDetectedRegion>? DetectedRegions = null,
     int ContractVersion = OcrContract.Version,
     string TransformChain = "identity",
-    OcrDetectorImage? DetectorImage = null);
+    OcrDetectorImage? DetectorImage = null)
+{
+    /// <summary>
+    /// Optional detected phase-divider X positions in original-pixel coordinates.
+    /// A null value means divider geometry is unavailable; an empty collection
+    /// means the phase detector measured no dividers.
+    /// </summary>
+    public IReadOnlyList<double>? PhaseDividerXs { get; init; }
+}
 
 public sealed record OcrResult(
     int ContractVersion,

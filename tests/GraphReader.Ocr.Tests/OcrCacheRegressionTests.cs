@@ -238,6 +238,36 @@ public sealed class OcrCacheRegressionTests
                 request, recognizer, new OcrPipelineOptions(), "original-db-head-candidate-v1"));
     }
 
+    [TestMethod]
+    public void InsidePlotAssemblyAndDividerGeometrySeparateRequestAliases()
+    {
+        var recognizer = new StubTextRecognizer(
+            new Dictionary<(string RegionId, OcrSourceImage Source), IReadOnlyList<OcrRecognitionAlternative>>());
+        var enabled = new OcrPipelineOptions { EnableInsidePlotAssembly = true };
+        OcrRequest unavailable = OcrTestFixtures.Request();
+        OcrRequest measuredNone = unavailable with { PhaseDividerXs = Array.Empty<double>() };
+        OcrRequest dividers = unavailable with { PhaseDividerXs = [90, 70] };
+        OcrRequest reordered = unavailable with { PhaseDividerXs = [70, 90] };
+
+        string disabledKey = OcrCacheKeyDeriver.CreateRequestAlias(
+            unavailable, recognizer, new OcrPipelineOptions(), "detector-v1");
+        string unavailableKey = OcrCacheKeyDeriver.CreateRequestAlias(
+            unavailable, recognizer, enabled, "detector-v1");
+        string measuredNoneKey = OcrCacheKeyDeriver.CreateRequestAlias(
+            measuredNone, recognizer, enabled, "detector-v1");
+        string dividerKey = OcrCacheKeyDeriver.CreateRequestAlias(
+            dividers, recognizer, enabled, "detector-v1");
+        string reorderedKey = OcrCacheKeyDeriver.CreateRequestAlias(
+            reordered, recognizer, enabled, "detector-v1");
+
+        Assert.AreNotEqual(disabledKey, unavailableKey);
+        Assert.AreNotEqual(unavailableKey, measuredNoneKey);
+        Assert.AreNotEqual(measuredNoneKey, dividerKey);
+        Assert.AreEqual(dividerKey, reorderedKey);
+        Assert.AreEqual(disabledKey, OcrCacheKeyDeriver.CreateRequestAlias(
+            dividers, recognizer, new OcrPipelineOptions(), "detector-v1"));
+    }
+
     private static OcrDetectorImage DetectorImage(OcrImage image) => new(
         image,
         Convert.ToHexStringLower(SHA256.HashData(image.Pixels.Span)));

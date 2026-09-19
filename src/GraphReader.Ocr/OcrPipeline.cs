@@ -47,6 +47,8 @@ public sealed record OcrPipelineOptions
     public bool InferVerticalOrientationForTallRegions { get; init; } = true;
 
     public bool EnableParticipantLaneAssembly { get; init; }
+
+    public bool EnableInsidePlotAssembly { get; init; }
 }
 
 public sealed class OcrPipeline
@@ -106,6 +108,10 @@ public sealed class OcrPipeline
         ArgumentNullException.ThrowIfNull(request);
         var totalStopwatch = Stopwatch.StartNew();
         var inputFailure = ValidateRequest(request);
+        if (inputFailure is null && _options.EnableInsidePlotAssembly)
+        {
+            inputFailure = ValidateInsidePlotAssemblyRequest(request);
+        }
         if (inputFailure is not null)
         {
             return FailureResult(request, inputFailure, totalStopwatch.Elapsed.TotalMilliseconds);
@@ -174,6 +180,14 @@ public sealed class OcrPipeline
                 detectedRegions = ParticipantLaneTextRegionAssembler.Assemble(
                     detectedRegions,
                     request.PlotBounds);
+            }
+            if (_options.EnableInsidePlotAssembly && request.PhaseDividerXs is not null)
+            {
+                detectedRegions = InsidePlotTextRegionAssembler.Assemble(
+                    detectedRegions,
+                    request.PlotBounds,
+                    request.PhaseDividerXs,
+                    cancellationToken);
             }
             detectedRegions = EnrichGeometry(detectedRegions, request.PlotBounds, _options);
         }
@@ -1003,6 +1017,20 @@ public sealed class OcrPipeline
             return Error(
                 "OCR_INPUT_INVALID",
                 "DetectorImage must be a checksum-matched, same-size original-pixel derivative with the original transform.",
+                "retry");
+        }
+
+        return null;
+    }
+
+    private static OcrFailure? ValidateInsidePlotAssemblyRequest(OcrRequest request)
+    {
+        if (request.PhaseDividerXs is not null && request.PhaseDividerXs.Any(x =>
+                !double.IsFinite(x) || x < request.PlotBounds.Left || x > request.PlotBounds.Right))
+        {
+            return Error(
+                "OCR_INPUT_INVALID",
+                "Phase-divider X positions must be finite and inside the plot bounds.",
                 "retry");
         }
 

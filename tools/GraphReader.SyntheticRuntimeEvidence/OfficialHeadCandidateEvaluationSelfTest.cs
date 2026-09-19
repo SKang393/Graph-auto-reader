@@ -11,6 +11,7 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 
 internal static class OfficialHeadCandidateEvaluationSelfTest
 {
+    private static readonly double[] ExpectedDividerPositions = [30d, 70d];
     private static int ValidateCaptureProfiles()
     {
         JsonElement legacy = CaptureProfile(false, 28, 9);
@@ -67,13 +68,39 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
         });
     }
 
+    private static int ValidatePhaseDividerInputs()
+    {
+        static JsonElement Axis(double[] positions, string space = "original_pixels") =>
+            JsonSerializer.SerializeToElement(new
+            {
+                geometry = new
+                {
+                    coordinate_space = space,
+                    phase_dividers = positions.Select(x => new
+                    {
+                        line = new { midpoint = new { x, y = 50d, is_finite = true } },
+                    }).ToArray(),
+                },
+            });
+        var plot = new OcrRectangle(10, 10, 100, 100);
+        Require(OfficialHeadCandidateEvaluation.ReadPhaseDividerXs(Axis([70, 30, 70]), plot)
+            .SequenceEqual(ExpectedDividerPositions), "detected divider positions sorted and deduplicated");
+        Require(OfficialHeadCandidateEvaluation.ReadPhaseDividerXs(Axis([]), plot).Count == 0,
+            "explicit measured absence of dividers");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ReadPhaseDividerXs(Axis([120]), plot),
+            "outside");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ReadPhaseDividerXs(Axis([30], "source"), plot),
+            "original pixels");
+        return 4;
+    }
+
     public static object Run()
     {
         string root = Path.Combine(Path.GetTempPath(), "graphreader-head-evaluator-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
         try
         {
-            int checks = ValidateCaptureProfiles();
+            int checks = ValidateCaptureProfiles() + ValidatePhaseDividerInputs();
             string request = Path.Combine(root, "request.json");
             string candidate = Path.Combine(root, "candidate.json");
             string output = Path.Combine(root, "new-output");
@@ -102,6 +129,13 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
                 output,
             ], root);
             Require(participantParsed.SequenceEqual(parsed), "separate participant-lane command");
+            checks++;
+            string[] insidePlotParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
+            [
+                OfficialHeadCandidateEvaluation.InsidePlotCommand,
+                request, new string('a', 64), candidate, new string('b', 64), output,
+            ], root);
+            Require(insidePlotParsed.SequenceEqual(parsed), "separate inside-plot command");
             checks++;
             string[] supplementalParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
             [

@@ -105,6 +105,20 @@ public static class OcrCacheKeyDeriver
         {
             yield return ParticipantLaneTextRegionAssembler.CompositionVersion;
         }
+        if (options.EnableInsidePlotAssembly)
+        {
+            yield return InsidePlotTextRegionAssembler.CompositionVersion;
+            yield return request.PhaseDividerXs is null
+                ? "phase_dividers_unavailable"
+                : request.PhaseDividerXs.Count == 0
+                    ? "phase_dividers_measured_none"
+                    : "phase_dividers:" + string.Join(
+                        ',',
+                        request.PhaseDividerXs
+                            .Distinct()
+                            .Order()
+                            .Select(static x => x.ToString("R", CultureInfo.InvariantCulture)));
+        }
         yield return string.Join(
             ',',
             options.BatchSize.ToString(CultureInfo.InvariantCulture),

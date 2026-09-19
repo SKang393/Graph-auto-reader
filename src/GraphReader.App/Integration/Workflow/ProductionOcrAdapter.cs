@@ -660,7 +660,8 @@ public sealed partial class ProductionOcrAdapter :
         ProductionDecodedRaster originalRaster,
         OcrRectangle plotBounds,
         OcrDetectorImage detectorImage,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<double>? phaseDividerXs = null)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(originalRaster);
@@ -679,7 +680,8 @@ public sealed partial class ProductionOcrAdapter :
             originalRaster,
             plotBounds,
             detectorImage,
-            cancellationToken);
+            cancellationToken,
+            phaseDividerXs);
     }
 
     internal static IReadOnlyList<string> DetectorInputWarnings(
@@ -725,14 +727,16 @@ public sealed partial class ProductionOcrAdapter :
 
     internal static bool UsesOriginalDbOnlyInput(string candidateCompositionVersion) =>
         candidateCompositionVersion is
-            OriginalDbCandidateCompositionVersion or ParticipantLaneCandidateCompositionVersion;
+            OriginalDbCandidateCompositionVersion or ParticipantLaneCandidateCompositionVersion or
+            InsidePlotCandidateCompositionVersion;
 
     private async Task<ProductionOcrEvidence> RecognizeCoreAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster originalRaster,
         OcrRectangle plotBounds,
         OcrDetectorImage detectorImage,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<double>? phaseDividerXs = null)
     {
         ValidateInput(request, originalRaster, plotBounds);
         var ocrRequest = new OcrRequest(
@@ -745,7 +749,10 @@ public sealed partial class ProductionOcrAdapter :
             DetectedRegions: null,
             OcrContract.Version,
             TransformChain: "identity",
-            DetectorImage: detectorImage);
+            DetectorImage: detectorImage)
+        {
+            PhaseDividerXs = phaseDividerXs is null ? null : Array.AsReadOnly(phaseDividerXs.ToArray()),
+        };
 
         OcrResult result = await pipeline.Value
             .RecognizeAsync(ocrRequest, cancellationToken)

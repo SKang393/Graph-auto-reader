@@ -22,6 +22,7 @@ internal static class OfficialHeadCandidateEvaluation
 {
     internal const string Command = "--evaluate-official-head-candidate";
     internal const string ParticipantLaneCommand = "--evaluate-participant-lane-candidate";
+    internal const string InsidePlotCommand = "--evaluate-inside-plot-candidate";
     internal const string SupplementalCommand = "--evaluate-supplemental-head-candidate";
     internal const string CandidateSchema = "graphreader.frozen-db-head-ocr-candidate.v1";
     internal const string CandidateScope = "project-owned-synthetic-train-dev-unapproved-frozen-candidate";
@@ -71,7 +72,8 @@ internal static class OfficialHeadCandidateEvaluation
     {
         ArgumentNullException.ThrowIfNull(args);
         if (args.Length != 6 ||
-            (args[0] != Command && args[0] != ParticipantLaneCommand && args[0] != SupplementalCommand))
+            (args[0] != Command && args[0] != ParticipantLaneCommand &&
+             args[0] != InsidePlotCommand && args[0] != SupplementalCommand))
         {
             throw new InvalidDataException(
                 "Usage: --evaluate-official-head-candidate <capture-request.json> <request-sha256> " +
@@ -101,9 +103,11 @@ internal static class OfficialHeadCandidateEvaluation
         string root = Path.GetFullPath(repositoryRoot);
         string[] command = ValidateCommand(args, root);
         bool participantLane = args[0] == ParticipantLaneCommand;
+        bool insidePlot = args[0] == InsidePlotCommand;
         bool supplemental = args[0] == SupplementalCommand;
         string composition = participantLane
             ? ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion
+            : insidePlot ? ProductionOcrAdapter.InsidePlotCandidateCompositionVersion
             : ProductionOcrAdapter.OriginalDbCandidateCompositionVersion;
         string requestPath = command[0];
         string requestSha = command[1];
@@ -118,7 +122,7 @@ internal static class OfficialHeadCandidateEvaluation
         VerifyDescriptor(request.GetProperty("binding"), root, "V3 binding");
         VerifyDescriptor(request.GetProperty("capture_source"), root, "capture source");
         Dictionary<string, ReportBinding> reports = ReadReports(request, root, supplemental);
-        EvaluationPanel[] panels = ReadPanels(request, reports, root, supplemental);
+        EvaluationPanel[] panels = ReadPanels(request, reports, root, supplemental, insidePlot);
 
         byte[] candidateBytes = ReadVerified(candidatePath, candidateSha, null, "head candidate");
         using var candidateDocument = JsonDocument.Parse(candidateBytes);
@@ -177,7 +181,7 @@ internal static class OfficialHeadCandidateEvaluation
                     candidate.Recognizer.Descriptor,
                     runtime,
                     candidate.NativeSha256,
-                    cancellationToken))
+                    cancellationToken, insidePlotAssembly: insidePlot))
                 .ConfigureAwait(false);
             if (adapter.IsApproved || !string.Equals(
                     adapter.ConfigurationScope,
@@ -247,6 +251,22 @@ internal static class OfficialHeadCandidateEvaluation
                             SourcePolygon = MapSourcePolygon(panel, group.Region.Polygon),
                         }).ToArray();
                     }
+                    else if (insidePlot)
+                    {
+                        stage = "inside_plot_assembly";
+                        var groups = InsidePlotTextRegionAssembler.AssembleWithMembership(
+                            raw, panel.PlotBounds, panel.PhaseDividerXs, cancellationToken);
+                        effective = groups.Select(static group => group.Region).ToArray();
+                        effectiveOutput = groups.Select(group => new
+                        {
+                            group.Region.RegionId,
+                            MemberRawRegionIds = group.MemberRegionIds,
+                            AssemblyKind = group.MemberRegionIds.Count == 1 ? "identity" : "inside_plot",
+                            CoordinateSpace = "source_original_pixels",
+                            PanelPolygon = group.Region.Polygon,
+                            SourcePolygon = MapSourcePolygon(panel, group.Region.Polygon),
+                        }).ToArray();
+                    }
                     stage = "ocr";
                     ProductionOcrEvidence recognized = await adapter
                         .RecognizeForCandidateEvaluationAsync(
@@ -254,12 +274,12 @@ internal static class OfficialHeadCandidateEvaluation
                             raster,
                             panel.PlotBounds,
                             detectorImage,
-                            cancellationToken)
+                            cancellationToken, insidePlot ? panel.PhaseDividerXs : null)
                         .ConfigureAwait(false);
                     ValidateOcrCoverage(effective, recognized.Result);
                     timer.Stop();
                     completed++;
-                    outputPanels.Add(CompletedPanel(panel, rawOutput, effectiveOutput, participantLane,
+                    outputPanels.Add(CompletedPanel(panel, rawOutput, effectiveOutput, participantLane, insidePlot,
                         recognized, graySha, bgrSha, timer.Elapsed.TotalMilliseconds));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -271,7 +291,7 @@ internal static class OfficialHeadCandidateEvaluation
                     timer.Stop();
                     failed++;
                     outputPanels.Add(FailedPanel(
-                        panel, rawOutput, effectiveOutput, participantLane,
+                        panel, rawOutput, effectiveOutput, participantLane, insidePlot,
                         stage, exception, timer.Elapsed.TotalMilliseconds));
                 }
             }
@@ -280,8 +300,9 @@ internal static class OfficialHeadCandidateEvaluation
             byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
             {
                 Schema = supplemental ? "graphreader.supplemental-head-candidate-evaluation.v1" :
+                    insidePlot ? "graphreader.inside-plot-candidate-evaluation.v1" :
                     participantLane ? "graphreader.participant-lane-candidate-evaluation.v1" : OutputSchema,
-                DevelopmentOnly = participantLane || supplemental,
+                DevelopmentOnly = participantLane || insidePlot || supplemental,
                 Status = failed == 0 ? "panels_completed" : "failed",
                 Scope = CandidateScope,
                 SyntheticOnly = true,
@@ -356,6 +377,7 @@ internal static class OfficialHeadCandidateEvaluation
         object[] rawOutput,
         object[] effectiveOutput,
         bool participantLane,
+        bool insidePlot,
         ProductionOcrEvidence evidence,
         string graySha,
         string bgrSha,
@@ -378,7 +400,7 @@ internal static class OfficialHeadCandidateEvaluation
             OriginalBgrSha256 = bgrSha,
             RawDetectorRegions = rawOutput,
             EffectiveRegions = effectiveOutput,
-            AssemblyContext = AssemblyContext(panel, participantLane),
+            AssemblyContext = AssemblyContext(panel, participantLane, insidePlot),
             RecognizedRegions = evidence.Result.Regions.Select(region => RecognizedRegion(panel, region)).ToArray(),
             RegionFailures = evidence.Result.RegionFailures ?? [],
             Ocr = new
@@ -415,6 +437,7 @@ internal static class OfficialHeadCandidateEvaluation
         object[] rawOutput,
         object[] effectiveOutput,
         bool participantLane,
+        bool insidePlot,
         string stage,
         Exception exception,
         double elapsedMilliseconds) => new
@@ -436,13 +459,22 @@ internal static class OfficialHeadCandidateEvaluation
         Error = exception.Message,
         RawDetectorRegions = rawOutput,
         EffectiveRegions = effectiveOutput,
-        AssemblyContext = AssemblyContext(panel, participantLane),
+        AssemblyContext = AssemblyContext(panel, participantLane, insidePlot),
         RecognizedRegions = Array.Empty<object>(),
         ElapsedMilliseconds = elapsedMilliseconds,
     };
 
-    private static object? AssemblyContext(EvaluationPanel panel, bool participantLane) =>
-        participantLane ? new
+    private static object? AssemblyContext(EvaluationPanel panel, bool participantLane, bool insidePlot) =>
+        insidePlot ? new
+        {
+            CompositionVersion = InsidePlotTextRegionAssembler.CompositionVersion,
+            PlotBoundsPanelLtrb = new[]
+            {
+                panel.PlotBounds.Left, panel.PlotBounds.Top,
+                panel.PlotBounds.Right, panel.PlotBounds.Bottom,
+            },
+            PhaseDividerXs = panel.PhaseDividerXs,
+        } : participantLane ? new
         {
             CompositionVersion = ParticipantLaneTextRegionAssembler.CompositionVersion,
             PlotBoundsPanelLtrb = new[]
@@ -755,7 +787,8 @@ internal static class OfficialHeadCandidateEvaluation
         JsonElement request,
         IReadOnlyDictionary<string, ReportBinding> reports,
         string root,
-        bool supplemental)
+        bool supplemental,
+        bool insidePlot)
     {
         JsonElement[] records = request.GetProperty("panels").EnumerateArray().ToArray();
         ValidatePanelInventory(records, supplemental);
@@ -827,12 +860,38 @@ internal static class OfficialHeadCandidateEvaluation
             }
             output.Add(new EvaluationPanel(
                 split, sourceSha, sourceWidth, sourceHeight, panelId, panelSha, width, height,
-                crop, requestedCrop, sourceToPanel, panelToSource, plotBounds, pngPath, pngSha,
+                crop, requestedCrop, sourceToPanel, panelToSource, plotBounds,
+                insidePlot ? ReadPhaseDividerXs(reportPanel.GetProperty("axis"), plotBounds) : [],
+                pngPath, pngSha,
                 pngBytes, recordedGray,
                 RequireSha(Text(record, "reconstructed_bgr_sha256"), "reconstructed BGR24")));
         }
         return output.OrderBy(static item => item.Split, StringComparer.Ordinal)
             .ThenBy(static item => item.PanelId, StringComparer.Ordinal).ToArray();
+    }
+
+    internal static IReadOnlyList<double> ReadPhaseDividerXs(JsonElement axis, OcrRectangle plotBounds)
+    {
+        JsonElement geometry = axis.GetProperty("geometry");
+        if (Text(geometry, "coordinate_space") != "original_pixels")
+        {
+            throw new InvalidDataException("Phase divider geometry is not in panel original pixels.");
+        }
+        var positions = new List<double>();
+        foreach (JsonElement divider in geometry.GetProperty("phase_dividers").EnumerateArray())
+        {
+            JsonElement midpoint = divider.GetProperty("line").GetProperty("midpoint");
+            double x = midpoint.GetProperty("x").GetDouble();
+            double y = midpoint.GetProperty("y").GetDouble();
+            if (!midpoint.GetProperty("is_finite").GetBoolean() ||
+                !double.IsFinite(x) || !double.IsFinite(y) ||
+                x < plotBounds.Left || x > plotBounds.Right)
+            {
+                throw new InvalidDataException("Detected phase divider lies outside the plot or is nonfinite.");
+            }
+            positions.Add(x);
+        }
+        return Array.AsReadOnly(positions.Distinct().Order().ToArray());
     }
 
     private static OcrRectangle ReadPlotBounds(JsonElement axis, int width, int height)
@@ -1083,6 +1142,7 @@ internal static class OfficialHeadCandidateEvaluation
         double[] SourceToPanelMatrix,
         double[] PanelToSourceMatrix,
         OcrRectangle PlotBounds,
+        IReadOnlyList<double> PhaseDividerXs,
         string PanelPngPath,
         string PanelPngSha256,
         int PanelPngByteCount,

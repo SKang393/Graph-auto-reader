@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Sungwoo Kang
-"""Score the development-only participant-lane OCR composition on train/dev.
+"""Score an opt-in OCR region-assembly composition on full train/dev.
 
 The runtime report keeps the detector's raw regions and records the effective
 assembled regions separately.  This adapter authenticates every annotation-free
@@ -38,6 +38,16 @@ EXPECTED_BASELINE_SOURCE_MANIFEST_SHA256 = (
 EXPECTED_HISTORICAL_CAPTURE_RUNTIME_MANIFEST_SHA256 = (
     "ed06006c6a4fcc078fc13817571a4fb58cd244add12731971ad8e7845be06aae"
 )
+EXPECTED_INSIDE_PLOT_REQUEST_SHA256 = (
+    "5875c407ac3bcacc1d9f843f72fb12ca7b61d08484227e468d906dc50f4bb615"
+)
+EXPECTED_INSIDE_PLOT_CAPTURE_SOURCE = {
+    "path": (
+        "artifacts/goal22-runs/ocr-supplemental-capture-base-snapshot/"
+        "OfficialHeadTensorCapture.cs"
+    ),
+    "sha256": "ada4110d386581e87de8f8693c86e045e41566270d601a836c79d41c86faf3a4",
+}
 BASELINE_SOURCE_PATHS = {
     "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluation.cs",
     "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluationSelfTest.cs",
@@ -52,6 +62,10 @@ RUNTIME_SOURCE_PATHS = {
     "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluation.cs",
     "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluationSelfTest.cs",
     "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+}
+INSIDE_PLOT_RUNTIME_SOURCE_PATHS = RUNTIME_SOURCE_PATHS | {
+    "src/GraphReader.Ocr/InsidePlotTextRegionAssembler.cs",
+    "src/GraphReader.Ocr/OcrContracts.cs",
 }
 HISTORICAL_RUNTIME_FILES = {
     "GraphReader.SyntheticRuntimeEvidence.dll",
@@ -77,6 +91,54 @@ geometry = metric.geometry
 
 
 @dataclass(frozen=True)
+class _AssemblyProfile:
+    mode: str
+    output_schema: str
+    evaluation_schema: str
+    candidate_composition: str
+    assembly_composition: str
+    assembly_kind: str
+    identifier_prefix: str
+    runtime_source_paths: frozenset[str]
+    requires_phase_dividers: bool
+
+
+PARTICIPANT_LANE_PROFILE = _AssemblyProfile(
+    "participant_lane",
+    OUTPUT_SCHEMA,
+    EVALUATION_SCHEMA,
+    CANDIDATE_COMPOSITION,
+    ASSEMBLY_COMPOSITION,
+    "participant_lane",
+    "participant-lane:",
+    frozenset(RUNTIME_SOURCE_PATHS),
+    False,
+)
+INSIDE_PLOT_PROFILE = _AssemblyProfile(
+    "inside_plot",
+    "graphreader.inside-plot-full-ocr-score.v1",
+    "graphreader.inside-plot-candidate-evaluation.v1",
+    "original-db-head-inside-plot-v1",
+    "inside-plot-aligned-word-assembly-v1",
+    "inside_plot",
+    "inside-plot:",
+    frozenset(INSIDE_PLOT_RUNTIME_SOURCE_PATHS),
+    True,
+)
+PROFILES = {
+    PARTICIPANT_LANE_PROFILE.mode: PARTICIPANT_LANE_PROFILE,
+    INSIDE_PLOT_PROFILE.mode: INSIDE_PLOT_PROFILE,
+}
+
+
+def _profile(mode: str) -> _AssemblyProfile:
+    try:
+        return PROFILES[mode]
+    except KeyError as error:
+        raise EvidenceError(f"unsupported assembly mode: {mode}") from error
+
+
+@dataclass(frozen=True)
 class _RawRegion:
     region_id: str
     panel_points: tuple[tuple[float, float], ...]
@@ -96,6 +158,12 @@ class _AssemblyGroup:
     @property
     def bounds(self) -> Box:
         return _bounds(self.panel_points)
+
+
+@dataclass(frozen=True)
+class _RuntimeAssemblyContext:
+    plot: tuple[float, float, float, float]
+    phase_divider_xs: tuple[float, ...]
 
 
 @dataclass(frozen=True)
@@ -130,6 +198,7 @@ def _validate_frozen_sources(
     baseline_manifest_sha256: str,
     runtime_manifest_path: Path,
     runtime_manifest_sha256: str,
+    profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
 ) -> dict[str, Any]:
     bindings = {
         "tools/GraphReader.SyntheticRuntimeEvidence/score_official_head_candidate.py":
@@ -193,8 +262,8 @@ def _validate_frozen_sources(
         "participant-lane runtime source manifest")
     runtime_rows = geometry._array(
         json.loads(runtime_payload), "participant-lane runtime source manifest")
-    if len(runtime_rows) != len(RUNTIME_SOURCE_PATHS):
-        raise EvidenceError("participant-lane runtime source inventory changed")
+    if len(runtime_rows) != len(profile.runtime_source_paths):
+        raise EvidenceError(f"{profile.mode} runtime source inventory changed")
     runtime_sources: list[dict[str, str]] = []
     runtime_seen: set[str] = set()
     for raw in runtime_rows:
@@ -202,9 +271,9 @@ def _validate_frozen_sources(
         if set(row) != {"path", "sha256"}:
             raise EvidenceError("participant-lane runtime source row has unknown or missing fields")
         relative = row.get("path")
-        if (not isinstance(relative, str) or relative not in RUNTIME_SOURCE_PATHS
+        if (not isinstance(relative, str) or relative not in profile.runtime_source_paths
                 or relative in runtime_seen):
-            raise EvidenceError("participant-lane runtime source is foreign or duplicated")
+            raise EvidenceError(f"{profile.mode} runtime source is foreign or duplicated")
         path, _ = geometry._read_exact(
             root, relative, row.get("sha256"), "participant-lane runtime source")
         runtime_seen.add(relative)
@@ -212,8 +281,16 @@ def _validate_frozen_sources(
             "path": path.relative_to(root).as_posix(),
             "sha256": geometry._sha(row.get("sha256"), "participant-lane runtime source"),
         })
-    if runtime_seen != RUNTIME_SOURCE_PATHS:
-        raise EvidenceError("participant-lane runtime source manifest is incomplete")
+    if runtime_seen != profile.runtime_source_paths:
+        raise EvidenceError(f"{profile.mode} runtime source manifest is incomplete")
+    runtime_manifest_key = (
+        "participant_lane_runtime_source_manifest"
+        if profile is PARTICIPANT_LANE_PROFILE else "inside_plot_runtime_source_manifest"
+    )
+    runtime_sources_key = (
+        "participant_lane_runtime_sources"
+        if profile is PARTICIPANT_LANE_PROFILE else "inside_plot_runtime_sources"
+    )
     return {
         "active_frozen_scorers": bindings,
         "active_frozen_metric_dependencies": metric_dependencies,
@@ -221,16 +298,17 @@ def _validate_frozen_sources(
         "pre_assembly_source_manifest": _descriptor(
             baseline_manifest_path, baseline_manifest_sha256, root),
         "pre_assembly_sources": sorted(archived, key=lambda item: item["source_path"]),
-        "participant_lane_runtime_source_manifest": _descriptor(
+        runtime_manifest_key: _descriptor(
             runtime_manifest_path, runtime_manifest_sha256, root),
-        "participant_lane_runtime_sources": sorted(
+        runtime_sources_key: sorted(
             runtime_sources, key=lambda item: item["path"]),
     }
 
 
-def _validate_candidate(root: Path, path: Path, expected_sha256: str) -> Mapping[str, Any]:
-    _, payload = geometry._read_exact(root, str(path), expected_sha256, "candidate")
-    candidate = geometry._json(payload, "candidate")
+def _validate_candidate_header(
+    candidate: Mapping[str, Any],
+    profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
+) -> None:
     required = {
         "schema", "scope", "production_approved", "training_input_ready",
         "composition_version", "native_path", "native_sha256", "native_scope",
@@ -242,9 +320,20 @@ def _validate_candidate(root: Path, path: Path, expected_sha256: str) -> Mapping
             or candidate.get("scope") != geometry.CANDIDATE_SCOPE
             or candidate.get("production_approved") is not False
             or candidate.get("training_input_ready") is not False
-            or candidate.get("composition_version") != CANDIDATE_COMPOSITION
+            or candidate.get("composition_version") != profile.candidate_composition
             or candidate.get("native_scope") != "reviewed-source-runtime-local-diagnostic"):
-        raise EvidenceError("participant-lane candidate scope or composition is invalid")
+        raise EvidenceError(f"{profile.mode} candidate scope or composition is invalid")
+
+
+def _validate_candidate(
+    root: Path,
+    path: Path,
+    expected_sha256: str,
+    profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
+) -> Mapping[str, Any]:
+    _, payload = geometry._read_exact(root, str(path), expected_sha256, "candidate")
+    candidate = geometry._json(payload, "candidate")
+    _validate_candidate_header(candidate, profile)
     geometry._read_exact(
         root, candidate["native_path"], candidate["native_sha256"], "candidate native")
     geometry._validate_assemblies(
@@ -385,11 +474,19 @@ def _validate_annotation_free_inputs(
     evaluation_path: Path,
     evaluation_sha256: str,
     historical_capture_runtime: _HistoricalCaptureRuntime,
+    profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
+    evaluation_request_path: Path | None = None,
+    evaluation_request_sha256: str | None = None,
 ) -> _ValidatedEvidence:
     geometry._read_exact(root, str(binding_path), binding_sha256, "V3 binding")
     resolved_request, request_payload = geometry._read_exact(
         root, str(request_path), request_sha256, "capture request")
     request = geometry._json(request_payload, "capture request")
+    resolved_evaluation_request, evaluation_request, evaluation_request_digest = (
+        _evaluation_request_binding(
+            root, resolved_request, request, request_sha256,
+            evaluation_request_path, evaluation_request_sha256, profile)
+    )
     if (request.get("schema") != geometry.CAPTURE_REQUEST_SCHEMA
             or request.get("scope") != geometry.production_head_inputs.CAPTURE_SCOPE
             or request.get("synthetic_only") is not True
@@ -403,7 +500,8 @@ def _validate_annotation_free_inputs(
                 "sha256": binding_sha256,
             }):
         raise EvidenceError("capture request scope or binding changed")
-    geometry._descriptor(root, request.get("capture_source"), "capture source")
+    geometry._descriptor(
+        root, evaluation_request.get("capture_source"), "capture source")
     _validate_historical_capture_assemblies(
         root, request.get("assemblies"), historical_capture_runtime)
     geometry._descriptor(root, request.get("candidate"), "capture baseline candidate")
@@ -433,14 +531,59 @@ def _validate_annotation_free_inputs(
             root, row.get("path"), row.get("sha256"), "capture license input")
 
     panels = geometry._runtime_panels(root, request)
-    plot_bounds = _runtime_plot_bounds(root, request, panels)
-    candidate = _validate_candidate(root, candidate_path, candidate_sha256)
+    assembly_contexts = _runtime_assembly_contexts(root, request, panels, profile)
+    candidate = _validate_candidate(root, candidate_path, candidate_sha256, profile)
     geometry._prevalidate_capture_report(
         root, capture_report_path, capture_report_sha256,
         resolved_request, request_sha256, request, panels)
     return _validate_evaluation(
-        root, evaluation_path, evaluation_sha256, resolved_request, request_sha256,
-        candidate_path, candidate_sha256, panels, plot_bounds, candidate)
+        root, evaluation_path, evaluation_sha256,
+        resolved_evaluation_request, evaluation_request_digest,
+        candidate_path, candidate_sha256, panels, assembly_contexts, candidate, profile)
+
+
+def _evaluation_request_binding(
+    root: Path,
+    capture_request_path: Path,
+    capture_request: Mapping[str, Any],
+    capture_request_sha256: str,
+    evaluation_request_path: Path | None,
+    evaluation_request_sha256: str | None,
+    profile: _AssemblyProfile,
+) -> tuple[Path, Mapping[str, Any], str]:
+    if profile is PARTICIPANT_LANE_PROFILE:
+        if evaluation_request_path is not None or evaluation_request_sha256 is not None:
+            raise EvidenceError("participant-lane mode does not accept an evaluation-request rebind")
+        return capture_request_path, capture_request, capture_request_sha256
+    if evaluation_request_path is None or evaluation_request_sha256 is None:
+        raise EvidenceError("inside-plot mode requires the authenticated evaluation-request rebind")
+    digest = geometry._sha(evaluation_request_sha256, "evaluation request SHA-256")
+    resolved, payload = geometry._read_exact(
+        root, str(evaluation_request_path), digest, "evaluation request")
+    evaluation_request = geometry._json(payload, "evaluation request")
+    _validate_profile_request(evaluation_request, digest, profile)
+    normalized = dict(evaluation_request)
+    normalized["capture_source"] = capture_request.get("capture_source")
+    if normalized != capture_request:
+        raise EvidenceError(
+            "inside-plot evaluation request differs beyond the authenticated capture-source path")
+    old_source = geometry._object(capture_request.get("capture_source"), "capture source")
+    new_source = geometry._object(evaluation_request.get("capture_source"), "evaluation source")
+    if old_source.get("sha256") != new_source.get("sha256"):
+        raise EvidenceError("inside-plot archived capture source is not byte-identical")
+    return resolved, evaluation_request, digest
+
+
+def _validate_profile_request(
+    request: Mapping[str, Any],
+    request_sha256: str,
+    profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
+) -> None:
+    if profile is INSIDE_PLOT_PROFILE and (
+            request_sha256 != EXPECTED_INSIDE_PLOT_REQUEST_SHA256
+            or request.get("capture_source") != EXPECTED_INSIDE_PLOT_CAPTURE_SOURCE):
+        raise EvidenceError(
+            "inside-plot request is not the exact authenticated historical path-only rebind")
 
 
 def _runtime_plot_bounds(
@@ -448,7 +591,20 @@ def _runtime_plot_bounds(
     request: Mapping[str, Any],
     panels: Mapping[str, Any],
 ) -> dict[str, tuple[float, float, float, float]]:
-    result: dict[str, tuple[float, float, float, float]] = {}
+    return {
+        panel_id: context.plot
+        for panel_id, context in _runtime_assembly_contexts(
+            root, request, panels, PARTICIPANT_LANE_PROFILE).items()
+    }
+
+
+def _runtime_assembly_contexts(
+    root: Path,
+    request: Mapping[str, Any],
+    panels: Mapping[str, Any],
+    profile: _AssemblyProfile,
+) -> dict[str, _RuntimeAssemblyContext]:
+    result: dict[str, _RuntimeAssemblyContext] = {}
     for raw_descriptor in geometry._array(request.get("reports"), "capture reports"):
         descriptor = geometry._object(raw_descriptor, "capture report")
         _, payload = geometry._read_exact(
@@ -473,7 +629,26 @@ def _runtime_plot_bounds(
                 if len(points) != 4:
                     raise EvidenceError("runtime plot polygon must contain four points")
                 box = _bounds(points)
-                result[panel_id] = (box.left, box.top, box.right, box.bottom)
+                plot = (box.left, box.top, box.right, box.bottom)
+                phase_divider_xs: tuple[float, ...] = ()
+                if profile.requires_phase_dividers:
+                    xs: list[float] = []
+                    for raw_divider in geometry._array(
+                            axis_geometry.get("phase_dividers"), "runtime phase dividers"):
+                        divider = geometry._object(raw_divider, "runtime phase divider")
+                        line = geometry._object(divider.get("line"), "runtime phase divider line")
+                        midpoint = geometry._object(
+                            line.get("midpoint"), "runtime phase divider midpoint")
+                        x = _assembly_finite(
+                            midpoint.get("x"), "runtime phase divider midpoint x")
+                        _assembly_finite(
+                            midpoint.get("y"), "runtime phase divider midpoint y")
+                        if midpoint.get("is_finite") is not True or x < box.left or x > box.right:
+                            raise EvidenceError(
+                                "runtime phase divider lies outside the plot or is nonfinite")
+                        xs.append(x)
+                    phase_divider_xs = tuple(sorted(set(xs)))
+                result[panel_id] = _RuntimeAssemblyContext(plot, phase_divider_xs)
     if set(result) != set(panels):
         raise EvidenceError("runtime plot inventory differs from the capture panel inventory")
     return result
@@ -490,6 +665,12 @@ def _rectangle_points(box: Box) -> tuple[tuple[float, float], ...]:
         (box.left, box.top), (box.right, box.top),
         (box.right, box.bottom), (box.left, box.bottom),
     )
+
+
+def _assembly_finite(value: Any, label: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        raise EvidenceError(f"{label} must be finite")
+    return float(value)
 
 
 def _union(left: Box, right: Box) -> Box:
@@ -524,14 +705,36 @@ def _inside_participant_lane(box: Box, plot: tuple[float, float, float, float]) 
     return center_x < plot[0] and plot[1] <= center_y <= plot[3]
 
 
-def _merged_id(member_ids: Sequence[str]) -> str:
-    material = ASSEMBLY_COMPOSITION + "\n" + "\n".join(sorted(member_ids))
-    return "participant-lane:" + sha256(material.encode("utf-8")).hexdigest()
+def _merged_id(
+    member_ids: Sequence[str],
+    profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
+) -> str:
+    material = profile.assembly_composition + "\n" + "\n".join(sorted(member_ids))
+    return profile.identifier_prefix + sha256(material.encode("utf-8")).hexdigest()
+
+
+def _eligible_assembly_box(
+    box: Box,
+    plot: tuple[float, float, float, float],
+    phase_divider_xs: Sequence[float],
+    profile: _AssemblyProfile,
+) -> bool:
+    if profile is PARTICIPANT_LANE_PROFILE:
+        return _inside_participant_lane(box, plot)
+    return (
+        box.left >= plot[0]
+        and box.top >= plot[1]
+        and box.right <= plot[2]
+        and box.bottom <= plot[3]
+        and not any(box.left < x < box.right for x in phase_divider_xs)
+    )
 
 
 def _replay_groups(
     raw_regions: Sequence[_RawRegion],
     plot: tuple[float, float, float, float],
+    profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
+    phase_divider_xs: Sequence[float] = (),
 ) -> tuple[_AssemblyGroup, ...]:
     remaining = [
         _AssemblyGroup(row.region_id, (row.region_id,), row.panel_points)
@@ -550,11 +753,11 @@ def _replay_groups(
                 merged = _union(line.bounds, candidate.bounds)
                 if not _can_merge(line.bounds, candidate.bounds):
                     continue
-                if not _inside_participant_lane(merged, plot):
+                if not _eligible_assembly_box(merged, plot, phase_divider_xs, profile):
                     continue
                 members = tuple(sorted((*line.member_ids, *candidate.member_ids)))
                 line = _AssemblyGroup(
-                    _merged_id(members), members, _rectangle_points(merged))
+                    _merged_id(members, profile), members, _rectangle_points(merged))
                 remaining.pop(index)
                 changed = True
         assembled.append(line)
@@ -580,6 +783,8 @@ def _validate_panel_regions(
     record: Mapping[str, Any],
     expected: Any,
     plot: tuple[float, float, float, float],
+    profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
+    phase_divider_xs: Sequence[float] = (),
 ) -> tuple[
     tuple[_RawRegion, ...],
     tuple[_AssemblyGroup, ...],
@@ -587,16 +792,31 @@ def _validate_panel_regions(
     int,
 ]:
     context = geometry._object(record.get("assembly_context"), "assembly context")
-    if set(context) != {"composition_version", "plot_bounds_panel_ltrb"}:
+    context_fields = {"composition_version", "plot_bounds_panel_ltrb"}
+    if profile.requires_phase_dividers:
+        context_fields.add("phase_divider_xs")
+    if set(context) != context_fields:
         raise EvidenceError("assembly context has unknown or missing fields")
     context_plot = geometry._array(
         context.get("plot_bounds_panel_ltrb"), "assembly plot bounds")
-    if (context.get("composition_version") != ASSEMBLY_COMPOSITION
+    if (context.get("composition_version") != profile.assembly_composition
             or len(context_plot) != 4
             or not _same_values(
                 tuple(geometry._finite(value, "assembly plot bound") for value in context_plot),
                 plot)):
         raise EvidenceError("assembly context differs from authenticated runtime plot bounds")
+    context_dividers: tuple[float, ...] = ()
+    if profile.requires_phase_dividers:
+        raw_dividers = geometry._array(
+            context.get("phase_divider_xs"), "assembly phase divider positions")
+        context_dividers = tuple(
+            _assembly_finite(value, "assembly phase divider position")
+            for value in raw_dividers
+        )
+        if (tuple(sorted(set(context_dividers))) != context_dividers
+                or not _same_values(context_dividers, phase_divider_xs)):
+            raise EvidenceError(
+                "assembly context differs from authenticated runtime phase dividers")
 
     raw_regions: list[_RawRegion] = []
     raw_ids: set[str] = set()
@@ -621,7 +841,8 @@ def _validate_panel_regions(
     status = record.get("status")
     raw_effective = geometry._array(record.get("effective_regions"), "effective regions")
     if status == "completed" or raw_effective:
-        expected_groups = _replay_groups(raw_regions, plot)
+        expected_groups = _replay_groups(
+            raw_regions, plot, profile, context_dividers)
         if len(raw_effective) != len(expected_groups):
             raise EvidenceError("effective region count differs from deterministic assembly replay")
     else:
@@ -647,7 +868,7 @@ def _validate_panel_regions(
         source_points = geometry._polygon(
             row.get("source_polygon"), "effective source polygon",
             expected.source_width, expected.source_height)
-        expected_kind = "identity" if len(replayed.member_ids) == 1 else "participant_lane"
+        expected_kind = "identity" if len(replayed.member_ids) == 1 else profile.assembly_kind
         if (region_id != replayed.region_id
                 or tuple(members) != replayed.member_ids
                 or row.get("assembly_kind") != expected_kind
@@ -720,13 +941,14 @@ def _validate_evaluation(
     candidate_path: Path,
     candidate_sha256: str,
     panels: Mapping[str, Any],
-    plots: Mapping[str, tuple[float, float, float, float]],
+    assembly_contexts: Mapping[str, _RuntimeAssemblyContext],
     candidate: Mapping[str, Any],
+    profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
 ) -> _ValidatedEvidence:
     _, payload = geometry._read_exact(
-        root, str(report_path), expected_sha256, "participant-lane evaluation report")
-    report = geometry._json(payload, "participant-lane evaluation report")
-    if (report.get("schema") != EVALUATION_SCHEMA
+        root, str(report_path), expected_sha256, f"{profile.mode} evaluation report")
+    report = geometry._json(payload, f"{profile.mode} evaluation report")
+    if (report.get("schema") != profile.evaluation_schema
             or report.get("development_only") is not True
             or report.get("scope") != geometry.CANDIDATE_SCOPE
             or report.get("synthetic_only") is not True
@@ -744,7 +966,7 @@ def _validate_evaluation(
             or report.get("graph_structure_consensus_applied") is not False
             or report.get("axis_mask_applied_to_detector") is not False
             or report.get("axis_bounds_used_for_role_classification") is not True):
-        raise EvidenceError("participant-lane evaluation scope or isolated behavior is invalid")
+        raise EvidenceError(f"{profile.mode} evaluation scope or isolated behavior is invalid")
     request_descriptor = geometry._object(report.get("request"), "evaluation request")
     if (geometry._inside(root, request_descriptor.get("path"), "evaluation request")
             != request_path or request_descriptor.get("sha256") != request_sha256):
@@ -773,20 +995,20 @@ def _validate_evaluation(
         "manifest_sha256": recognizer.get("manifest_sha256"),
     }
     expected_adapter = (
-        f"graphreader-ocr:{CANDIDATE_COMPOSITION}:"
+        f"graphreader-ocr:{profile.candidate_composition}:"
         f"{str(detector.get('model_sha256'))[:12]}:{str(recognizer.get('model_sha256'))[:12]}:"
         f"{str(candidate.get('native_sha256'))[:12]}"
     )
     if (geometry._inside(root, candidate_descriptor.get("path"), "evaluation candidate")
             != candidate_path
             or candidate_descriptor.get("sha256") != candidate_sha256
-            or candidate_descriptor.get("composition_version") != CANDIDATE_COMPOSITION
+            or candidate_descriptor.get("composition_version") != profile.candidate_composition
             or candidate_descriptor.get("adapter_id") != expected_adapter
             or candidate_descriptor.get("configuration_scope") != "unapproved_frozen_candidate"
             or candidate_descriptor.get("native_sha256") != candidate.get("native_sha256")
             or candidate_descriptor.get("detector") != expected_detector
             or candidate_descriptor.get("recognizer") != expected_recognizer):
-        raise EvidenceError("participant-lane evaluation identity changed")
+        raise EvidenceError(f"{profile.mode} evaluation identity changed")
     evaluation_assemblies = geometry._validate_assemblies(
         root, report.get("execution_assemblies"), "evaluation execution assemblies")
     candidate_assemblies = geometry._validate_assemblies(
@@ -801,7 +1023,7 @@ def _validate_evaluation(
     if (panel_count != len(panels) or len(records) != len(panels)
             or completed_count + failed_count != len(panels)
             or report.get("status") != ("panels_completed" if failed_count == 0 else "failed")):
-        raise EvidenceError("participant-lane evaluation panel counts are inconsistent")
+        raise EvidenceError(f"{profile.mode} evaluation panel counts are inconsistent")
 
     raw_by_source: dict[str, list[Any]] = {}
     effective_by_source: dict[str, list[Any]] = {}
@@ -811,8 +1033,8 @@ def _validate_evaluation(
     failed_raw = {"train": 0, "validation": 0}
     failed_effective = {"train": 0, "validation": 0}
     counts = {
-        "train": {"raw": 0, "effective": 0, "identity": 0, "participant_lane": 0},
-        "validation": {"raw": 0, "effective": 0, "identity": 0, "participant_lane": 0},
+        "train": {"raw": 0, "effective": 0, "identity": 0, profile.assembly_kind: 0},
+        "validation": {"raw": 0, "effective": 0, "identity": 0, profile.assembly_kind: 0},
     }
     seen: set[str] = set()
     completed = failed = 0
@@ -848,8 +1070,9 @@ def _validate_evaluation(
         else:
             failed += 1
 
+        context = assembly_contexts[panel_id]
         raw_regions, effective_regions, text_predictions, failure_count = _validate_panel_regions(
-            record, expected, plots[panel_id])
+            record, expected, context.plot, profile, context.phase_divider_xs)
         for row in raw_regions:
             raw_by_source.setdefault(expected.source_sha256, []).append(
                 geometry._prediction(row.source_points))
@@ -865,7 +1088,7 @@ def _validate_evaluation(
         counts[expected.split]["effective"] += len(effective_regions)
         counts[expected.split]["identity"] += sum(
             len(row.member_ids) == 1 for row in effective_regions)
-        counts[expected.split]["participant_lane"] += sum(
+        counts[expected.split][profile.assembly_kind] += sum(
             len(row.member_ids) > 1 for row in effective_regions)
         if status == "completed":
             explicit[expected.split] += failure_count
@@ -873,7 +1096,7 @@ def _validate_evaluation(
             failed_raw[expected.split] += len(raw_regions)
             failed_effective[expected.split] += len(effective_regions)
     if seen != set(panels) or completed != completed_count or failed != failed_count:
-        raise EvidenceError("participant-lane evaluation did not retain every panel exactly once")
+        raise EvidenceError(f"{profile.mode} evaluation did not retain every panel exactly once")
     return _ValidatedEvidence(
         report, candidate, panels,
         {key: tuple(value) for key, value in raw_by_source.items()},
@@ -934,12 +1157,16 @@ def score(
     *,
     source_sha256: str,
     repository_root: Path = ROOT,
+    mode: str = PARTICIPANT_LANE_PROFILE.mode,
+    evaluation_request_path: Path | None = None,
+    evaluation_request_sha256: str | None = None,
 ) -> Mapping[str, Any]:
     started = time.perf_counter()
     root = repository_root.resolve()
+    profile = _profile(mode)
     source_digest = geometry._sha(source_sha256, "scoring adapter SHA-256")
     if sha256(Path(__file__).read_bytes()).hexdigest() != source_digest:
-        raise EvidenceError("participant-lane scoring adapter identity changed")
+        raise EvidenceError(f"{profile.mode} scoring adapter identity changed")
     output = output_path.resolve()
     artifacts = (root / "artifacts").resolve()
     if output == artifacts or artifacts not in output.parents or output.exists():
@@ -957,7 +1184,8 @@ def score(
         root, baseline_source_manifest_path.resolve(),
         baseline_manifest_digest,
         runtime_source_manifest_path.resolve(),
-        geometry._sha(runtime_source_manifest_sha256, "runtime source manifest SHA-256"))
+        geometry._sha(runtime_source_manifest_sha256, "runtime source manifest SHA-256"),
+        profile)
     historical_capture_runtime = _validate_historical_capture_runtime(
         root, historical_capture_runtime_manifest_path.resolve(),
         historical_runtime_digest)
@@ -977,6 +1205,9 @@ def score(
         candidate_path.resolve(), geometry._sha(candidate_sha256, "candidate"),
         evaluation_path.resolve(), geometry._sha(evaluation_sha256, "evaluation report"),
         historical_capture_runtime,
+        profile,
+        evaluation_request_path.resolve() if evaluation_request_path is not None else None,
+        evaluation_request_sha256,
     )
 
     # Truth is inaccessible until the complete candidate/runtime evidence above authenticates.
@@ -988,7 +1219,11 @@ def score(
         root / binding["path"], binding["sha256"], reports,
         root / request["candidate"]["path"], request["candidate"]["sha256"],
         repository_root=root,
-        capture_binary_root=historical_capture_runtime.backup_binary_root)
+        capture_binary_root=historical_capture_runtime.backup_binary_root,
+        capture_source_path=(
+            root / EXPECTED_INSIDE_PLOT_CAPTURE_SOURCE["path"]
+            if profile is INSIDE_PLOT_PROFILE else None
+        ))
     generated_assemblies = geometry._validate_assemblies(
         root, prepared.request["assemblies"], "prepared historical backup assemblies")
     requested_assemblies = _validate_historical_capture_assemblies(
@@ -1002,6 +1237,8 @@ def score(
         raise EvidenceError("prepared historical backup assemblies differ from the capture request")
     prepared_request = dict(prepared.request)
     prepared_request["assemblies"] = request["assemblies"]
+    if profile is INSIDE_PLOT_PROFILE:
+        prepared_request["capture_source"] = request["capture_source"]
     prepared = replace(prepared, request=prepared_request)
     if prepared.request != request:
         raise EvidenceError("capture request changed")
@@ -1013,6 +1250,8 @@ def score(
         text_extent._read(root, preflight["train_text_truth"]), inputs.train)
     dev = text_extent._fixed_dev_truth(root, preflight)
     expected_dev = {truth.truth_id: truth for truth in inputs.dev.source_truths}
+    if len(train) != 709:
+        raise EvidenceError("saved train truth inventory changed")
     if len(dev) != 183 or {truth.truth_id for truth in dev} != set(expected_dev):
         raise EvidenceError("fixed dev truth inventory changed")
     for truth in dev:
@@ -1031,7 +1270,7 @@ def score(
             if key in sources
         })
     if sum(row["truth_region_count"] for row in metrics.values()) != 892:
-        raise EvidenceError("participant-lane score did not retain all 892 source truths")
+        raise EvidenceError(f"{profile.mode} score did not retain all 892 source truths")
     raw_geometry, effective_geometry, recognized_geometry, failures = _geometry_metrics(
         evidence, truths)
     bar_sha, precision_bar, recall_bar = geometry._load_acceptance_bar(root)
@@ -1046,7 +1285,7 @@ def score(
     validation_geometry = effective_geometry["validation"]
 
     result = {
-        "schema": OUTPUT_SCHEMA,
+        "schema": profile.output_schema,
         "status": "development_diagnostic_only_unapproved",
         "development_only": True,
         "synthetic_only": True,
@@ -1067,6 +1306,12 @@ def score(
             "capture_report": summary["capture_report"],
             "candidate": _descriptor(candidate_path, candidate_sha256, root),
             "evaluation_report": _descriptor(evaluation_path, evaluation_sha256, root),
+            **({
+                "evaluation_request": _descriptor(
+                    evaluation_request_path,
+                    geometry._sha(evaluation_request_sha256, "evaluation request SHA-256"),
+                    root),
+            } if profile is INSIDE_PLOT_PROFILE and evaluation_request_path is not None else {}),
             "scoring_adapter": _descriptor(Path(__file__), source_digest, root),
             "input_summary": _descriptor(summary_path, summary_sha256, root),
             "saved_train_truth": preflight["train_text_truth"],
@@ -1075,11 +1320,14 @@ def score(
             "historical_capture_runtime": historical_capture_runtime.descriptor,
         },
         "composition": {
-            "candidate_composition_version": CANDIDATE_COMPOSITION,
-            "assembly_composition_version": ASSEMBLY_COMPOSITION,
+            "candidate_composition_version": profile.candidate_composition,
+            "assembly_composition_version": profile.assembly_composition,
             "raw_detector_regions_preserved_separately": True,
             "effective_region_membership_partitions_raw_inventory_on_completed_panels": True,
             "effective_region_geometry_independently_replayed_from_raw_regions_and_runtime_plot_bounds": True,
+            **({
+                "phase_divider_geometry_authenticated_from_same_bound_runtime_reports": True,
+            } if profile is INSIDE_PLOT_PROFILE else {}),
             "counts_by_split": evidence.assembly_counts,
         },
         "matching": {
@@ -1119,6 +1367,10 @@ def score(
             "source_count": 23,
             "panel_count": 37,
             "full_source_truth_count": 892,
+            **({
+                "train_truth_count": len(train),
+                "validation_truth_count": len(dev),
+            } if profile is INSIDE_PLOT_PROFILE else {}),
             "failed_panels_remain_in_full_source_denominator": True,
             "unmatched_truths_count_as_exact_and_role_failures_and_full_text_deletions": True,
             "unmatched_predictions_count_as_character_insertions": True,
@@ -1134,12 +1386,15 @@ def score(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--mode", choices=tuple(PROFILES), default=PARTICIPANT_LANE_PROFILE.mode)
     parser.add_argument("--summary", type=Path, required=True)
     parser.add_argument("--summary-sha256", required=True)
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--candidate-sha256", required=True)
     parser.add_argument("--evaluation", type=Path, required=True)
     parser.add_argument("--evaluation-sha256", required=True)
+    parser.add_argument("--evaluation-request", type=Path)
+    parser.add_argument("--evaluation-request-sha256")
     parser.add_argument("--baseline-source-manifest", type=Path, required=True)
     parser.add_argument("--baseline-source-manifest-sha256", required=True)
     parser.add_argument("--runtime-source-manifest", type=Path, required=True)
@@ -1157,7 +1412,9 @@ def main() -> int:
         args.runtime_source_manifest, args.runtime_source_manifest_sha256,
         args.historical_capture_runtime_manifest,
         args.historical_capture_runtime_manifest_sha256,
-        args.output, source_sha256=args.source_sha256)
+        args.output, source_sha256=args.source_sha256, mode=args.mode,
+        evaluation_request_path=args.evaluation_request,
+        evaluation_request_sha256=args.evaluation_request_sha256)
     print(json.dumps({
         "status": result["status"],
         "validation": result["metrics"]["validation"],

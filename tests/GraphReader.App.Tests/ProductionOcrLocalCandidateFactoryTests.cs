@@ -16,7 +16,9 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionOcrLocalCandidateFactoryTests
 {
     [TestMethod]
-    public async Task FrozenDbHeadPairCreatesUnapprovedOriginalInputCandidate()
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task FrozenDbHeadPairCreatesUnapprovedOriginalInputCandidate(bool insidePlotAssembly)
     {
         string root = CreateTemporaryDirectory();
         var sessionFactory = new ShapeAwareSessionFactory();
@@ -34,10 +36,14 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                         pair.Detection.ManifestPath, Sha256(pair.Detection.ManifestPath)),
                     new FrozenCandidateOcrModelDescriptor(pair.Recognition.Identity,
                         pair.Recognition.ManifestPath, pair.Recognition.ManifestSha256),
-                    host, new string('d', 64), CancellationToken.None);
+                    host, new string('d', 64), CancellationToken.None, insidePlotAssembly);
             Assert.IsFalse(adapter.IsApproved);
             Assert.AreEqual("unapproved_frozen_candidate", adapter.ConfigurationScope);
-            StringAssert.Contains(adapter.AdapterId, ProductionOcrAdapter.OriginalDbCandidateCompositionVersion);
+            string expectedComposition = insidePlotAssembly
+                ? ProductionOcrAdapter.InsidePlotCandidateCompositionVersion
+                : ProductionOcrAdapter.OriginalDbCandidateCompositionVersion;
+            StringAssert.Contains(adapter.AdapterId, expectedComposition);
+            Assert.IsTrue(ProductionOcrAdapter.UsesOriginalDbOnlyInput(expectedComposition));
             Assert.AreEqual(2, sessionFactory.CreatedCount);
             Assert.AreEqual(2, sessionFactory.RunCount);
             Assert.IsNotNull(sessionFactory.DetectionInputShape);

@@ -12,13 +12,16 @@ public sealed partial class ProductionOcrAdapter
     internal const string OriginalDbCandidateCompositionVersion = "original-db-head-candidate-v1";
     internal const string ParticipantLaneCandidateCompositionVersion =
         "original-db-head-participant-lane-v1";
+    internal const string InsidePlotCandidateCompositionVersion =
+        "original-db-head-inside-plot-v1";
 
     internal static async Task<ProductionOcrAdapter> CreateForFrozenDbHeadCandidateEvaluationAsync(
         FrozenCandidateOcrModelDescriptor detectionModel,
         FrozenCandidateOcrModelDescriptor recognitionModel,
         ProductionInferenceRuntimeHost runtimeHost,
         string reviewedOpenCvRuntimeSha256,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool insidePlotAssembly = false)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -58,18 +61,22 @@ public sealed partial class ProductionOcrAdapter
             await ValidateRecognizerExecutableAsync(recognition.Recognizer, runtime, cancellationToken)
                 .ConfigureAwait(false);
         }, cancellationToken).ConfigureAwait(false);
+        string candidateComposition = insidePlotAssembly
+            ? InsidePlotCandidateCompositionVersion
+            : OriginalDbCandidateCompositionVersion;
         return new ProductionOcrAdapter(() =>
         {
             ITextRegionDetector detector = new OriginalDbInputDetector(
-                new LocalOnnxTextRegionDetector(runtime, options));
+                new LocalOnnxTextRegionDetector(runtime, options), candidateComposition);
             ITextRecognizer recognizer = new LocalOnnxTextRecognizer(runtime, recognition.Recognizer);
             if (spacing)
             {
                 recognizer = new OfficialRecognitionSpacingV2TextRecognizer(recognizer);
             }
-            return new OcrPipeline(detector, recognizer, new MemoryOcrResultCache(), recognition.Pipeline);
+            return new OcrPipeline(detector, recognizer, new MemoryOcrResultCache(),
+                recognition.Pipeline with { EnableInsidePlotAssembly = insidePlotAssembly });
         }, detectionModel.Identity, recognitionModel.Identity, reviewedOpenCvRuntimeSha256,
-            OriginalDbCandidateCompositionVersion);
+            candidateComposition);
     }
 
     internal static async Task<ProductionOcrAdapter> CreateForParticipantLaneCandidateEvaluationAsync(
@@ -266,7 +273,8 @@ public sealed partial class ProductionOcrAdapter
             this.compositionVersion = compositionVersion switch
             {
                 OriginalDbCandidateCompositionVersion => compositionVersion,
-                ParticipantLaneCandidateCompositionVersion => compositionVersion,
+                ParticipantLaneCandidateCompositionVersion or
+                InsidePlotCandidateCompositionVersion => compositionVersion,
                 _ => throw new ArgumentOutOfRangeException(nameof(compositionVersion)),
             };
         }
