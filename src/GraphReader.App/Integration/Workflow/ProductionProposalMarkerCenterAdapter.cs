@@ -107,12 +107,16 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     private const double MinimumCenterSeparation = 6.5;
     private const double RadiusSuppressionScale = 1.25;
     public const int MaximumDecodedCandidates = 100_000;
+    internal const string LegacyGeometrySupport = "multiradius_v24";
+    internal const string EnclosedGeometrySupport = "multiradius_enclosed_v1";
+    internal const string EnclosedPostprocessingAlgorithm = "mask_preserving_multiradius_enclosed_v1";
 
     private readonly IProposalMarkerInferenceRunner inference;
     private readonly int maximumDecodedCandidates;
     private readonly bool multiradiusGeometry;
     private readonly bool maskPreservingCandidate;
     private readonly bool plotDomainProposalFiltering;
+    private readonly bool enclosedGeometrySupport;
     private readonly string maskPreservingRevision;
     private readonly string maskPreservingCandidateId;
 
@@ -239,6 +243,30 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             isApproved: true);
     }
 
+    internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidateEnclosedGeometryEvaluation(
+        FrozenCandidateMarkerCenterModelDescriptor descriptor,
+        InferenceRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(runtime);
+        return CreateForFrozenCandidateEnclosedGeometryEvaluation(
+            descriptor, new RuntimeProposalMarkerInferenceRunner(runtime));
+    }
+
+    internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidateEnclosedGeometryEvaluation(
+        FrozenCandidateMarkerCenterModelDescriptor descriptor,
+        IProposalMarkerInferenceRunner inference)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(inference);
+        ValidateFrozenCandidateDescriptor(descriptor, enclosedGeometrySupport: true);
+        return new ProductionProposalMarkerCenterAdapter(
+            descriptor.Identity, inference, multiradiusGeometry: true, maskPreservingCandidate: true,
+            expectedMaskPreservingSha256: descriptor.Identity.Sha256,
+            maskPreservingRevision: descriptor.Identity.ModelId,
+            maskPreservingCandidateId: descriptor.Identity.Version,
+            plotDomainProposalFiltering: true, enclosedGeometrySupport: true);
+    }
+
     internal ProductionProposalMarkerCenterAdapter(
         ModelIdentity model,
         IProposalMarkerInferenceRunner inference,
@@ -249,7 +277,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         string? expectedMaskPreservingSha256 = null,
         string? maskPreservingRevision = null,
         string? maskPreservingCandidateId = null,
-        bool plotDomainProposalFiltering = false)
+        bool plotDomainProposalFiltering = false,
+        bool enclosedGeometrySupport = false)
     {
         Model = model ?? throw new ArgumentNullException(nameof(model));
         Model.Validate();
@@ -263,6 +292,9 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         }
 
         this.plotDomainProposalFiltering = plotDomainProposalFiltering;
+        if (enclosedGeometrySupport && (!plotDomainProposalFiltering || isApproved))
+            throw new InvalidOperationException("Enclosed geometry requires an explicitly unapproved plot-domain candidate.");
+        this.enclosedGeometrySupport = enclosedGeometrySupport;
         string expectedModelSha256 = maskPreservingCandidate
             ? expectedMaskPreservingSha256 ?? ExpectedMaskPreservingModelSha256
             : multiradiusGeometry ? ExpectedMultiradiusModelSha256 : ExpectedModelSha256;
@@ -288,7 +320,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
 
     public string AdapterId => string.Concat(
         $"graphreader-marker-center-proposal:{Model.Sha256[..12].ToLowerInvariant()}",
-        plotDomainProposalFiltering ? ":plot-domain-v25" : string.Empty);
+        plotDomainProposalFiltering ? ":plot-domain-v25" : string.Empty,
+        enclosedGeometrySupport ? ":enclosed-support-v1" : string.Empty);
 
     public bool IsApproved { get; }
 
@@ -390,7 +423,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     }
 
     private static void ValidateFrozenCandidateDescriptor(
-        FrozenCandidateMarkerCenterModelDescriptor descriptor)
+        FrozenCandidateMarkerCenterModelDescriptor descriptor,
+        bool enclosedGeometrySupport = false)
     {
         descriptor.Identity.Validate();
         VerifyChecksum(
@@ -422,7 +456,15 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         RequireExactNumber(preprocessing, "ink_support_window_size", 17, "Frozen candidate preprocessing");
         RequireExactNumber(preprocessing, "ink_support_threshold", 0.11, "Frozen candidate preprocessing");
         JsonElement postprocessing = RequiredObject(root, "postprocessing", "Frozen candidate proposal marker manifest");
-        RequireExactString(postprocessing, "algorithm", "mask_preserving_multiradius_v24", "Frozen candidate postprocessing");
+        RequireExactString(postprocessing, "algorithm", enclosedGeometrySupport
+            ? EnclosedPostprocessingAlgorithm : "mask_preserving_multiradius_v24", "Frozen candidate postprocessing");
+        if (enclosedGeometrySupport)
+        {
+            RequireExactString(preprocessing, "proposal_domain", "axis_polygon_or_16px_v25", "Frozen candidate preprocessing");
+            RequireExactNumber(postprocessing, "enclosure_maximum_radius_pixels", 12, "Frozen candidate postprocessing");
+            RequireExactNumber(postprocessing, "enclosure_ink_threshold", 0.12, "Frozen candidate postprocessing");
+            RequireExactNumber(postprocessing, "enclosure_background_connectivity", 4, "Frozen candidate postprocessing");
+        }
         RequireExactNumber(postprocessing, "center_threshold", CenterThreshold, "Frozen candidate postprocessing");
         RequireExactNumber(postprocessing, "offset_scale", ProposalStride, "Frozen candidate postprocessing");
         RequireExactNumber(postprocessing, "minimum_radius_pixels", 2.5, "Frozen candidate postprocessing");
@@ -672,7 +714,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             request.ProjectId,
             request.Panel.ImportedPanel.PanelId,
             MarkerContract.Stage,
-            $"{(plotDomainProposalFiltering ? "proposal-marker-v25-plot-domain" : "proposal-marker-v24")}:{Model.Version}",
+            $"{(plotDomainProposalFiltering ? "proposal-marker-v25-plot-domain" : "proposal-marker-v24")}{(enclosedGeometrySupport ? ":enclosed-support-v1" : string.Empty)}:{Model.Version}",
             request.Image.Sha256,
             new WorkflowVisionModel(Model.ModelId, Model.Version, Model.Sha256, "cpu"),
             new WorkflowVisionTiming(0, 0, 0, total.Elapsed.TotalMilliseconds),
@@ -681,7 +723,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             []);
         var report = new MarkerFrameReport(
             MarkerSourceImage.Original,
-            $"{(plotDomainProposalFiltering ? "proposal-v25-plot-domain" : "proposal-v24")}:{request.Image.Sha256}:{Model.Sha256}",
+            $"{(plotDomainProposalFiltering ? "proposal-v25-plot-domain" : "proposal-v24")}{(enclosedGeometrySupport ? ":enclosed-support-v1" : string.Empty)}:{request.Image.Sha256}:{Model.Sha256}",
             InferenceProvider.Cpu,
             [new ProviderAttempt(InferenceProvider.Cpu, true, null)],
             timing,
@@ -743,6 +785,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             {
                 cacheParameters["proposal_domain"] = "axis-polygon-or-16px-boundary";
             }
+            if (enclosedGeometrySupport) cacheParameters["geometry_support"] = EnclosedGeometrySupport;
 
             InferenceResponse response = await inference.RunAsync(
                     new InferenceRequest(
@@ -801,7 +844,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                 aboveThresholdDecodedPoints.Add(
                     frame.OriginalToFrame.MapToOriginal(new MarkerPoint(x, y)));
                 double decodedRadius = Math.Clamp(radius, 2.5, 8.0);
-                if (!TryRefine(frame, x, y, decodedRadius, multiradiusGeometry, maskPreservingCandidate, out MarkerPoint refined, out RefinementFailure failure))
+                if (!TryRefine(frame, x, y, decodedRadius, multiradiusGeometry, maskPreservingCandidate,
+                    enclosedGeometrySupport, out MarkerPoint refined, out RefinementFailure failure))
                 {
                     if (failure == RefinementFailure.Masked)
                     {
@@ -1331,6 +1375,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         double radius,
         bool multiradiusGeometry,
         bool maskPreservingCandidate,
+        bool enclosedGeometrySupport,
         out MarkerPoint refined,
         out RefinementFailure failure)
     {
@@ -1341,7 +1386,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             return false;
         }
 
-        if (GeometryConsensus(frame, x, y, radius, multiradiusGeometry))
+        if (GeometryConsensus(frame, x, y, radius, multiradiusGeometry) ||
+            (enclosedGeometrySupport && ProductionMarkerEnclosedSupport.IsSupported(frame, x, y)))
         {
             refined = new MarkerPoint(x, y);
             failure = default;

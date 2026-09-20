@@ -27,6 +27,8 @@ internal static class FrozenCandidateBindingSelfTest
             FrozenCandidateBinding loaded = fixture.Load(valid);
             Require(loaded.Algorithms.MarkerProposalDomain == "full_frame_v24",
                 "FROZEN_CANDIDATE_LEGACY_MARKER_DOMAIN_CHANGED");
+            Require(loaded.Algorithms.MarkerGeometrySupport == "multiradius_v24",
+                "FROZEN_CANDIDATE_LEGACY_MARKER_GEOMETRY_CHANGED");
             JsonObject plotDomain = Clone(valid);
             RequiredObject(plotDomain, "algorithms")["marker_proposal_domain"] = "axis_polygon_or_16px_v25";
             Require(fixture.Load(plotDomain).Algorithms.MarkerProposalDomain == "axis_polygon_or_16px_v25",
@@ -34,6 +36,27 @@ internal static class FrozenCandidateBindingSelfTest
             JsonObject invalidDomain = Clone(valid);
             RequiredObject(invalidDomain, "algorithms")["marker_proposal_domain"] = "arbitrary_polygon";
             fixture.ExpectRejected(invalidDomain, "unsupported marker proposal domain");
+            JsonObject enclosed = Clone(plotDomain);
+            RequiredObject(enclosed, "algorithms")["marker_geometry_support"] = "multiradius_enclosed_v1";
+            Require(fixture.Load(enclosed).Algorithms.MarkerGeometrySupport == "multiradius_enclosed_v1",
+                "FROZEN_CANDIDATE_ENCLOSED_GEOMETRY_NOT_BOUND");
+            try
+            {
+                _ = FrozenRealWorkflowAdmission.Load(repositoryRoot, "must-not-be-read.json", new string('a', 64),
+                    fixture.Load(enclosed), null!, "real_dev", explicitOptIn: true, CancellationToken.None);
+                throw new InvalidDataException("FROZEN_CANDIDATE_ENCLOSED_GEOMETRY_REACHED_REAL_ADMISSION");
+            }
+            catch (InvalidDataException error)
+            {
+                Require(error.Message.Contains("restricted to synthetic development", StringComparison.Ordinal),
+                    "FROZEN_CANDIDATE_ENCLOSED_GEOMETRY_REAL_GUARD_CHANGED");
+            }
+            JsonObject missingDomain = Clone(enclosed);
+            RequiredObject(missingDomain, "algorithms").Remove("marker_proposal_domain");
+            fixture.ExpectRejected(missingDomain, "enclosed geometry without plot domain");
+            JsonObject unknownGeometry = Clone(enclosed);
+            RequiredObject(unknownGeometry, "algorithms")["marker_geometry_support"] = "unknown";
+            fixture.ExpectRejected(unknownGeometry, "unsupported geometry support");
             Require(!FrozenCandidateWorkflowFactory.IsTiledProbabilityComposition(loaded.Algorithms),
                 "FROZEN_CANDIDATE_LEGACY_OCR_COMPOSITION_CHANGED");
             FrozenCandidateAlgorithms tiled = loaded.Algorithms with

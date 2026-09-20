@@ -63,7 +63,9 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
 
     private static FrozenCandidateMarkerCenterModelDescriptor WriteDescriptor(
         string root,
-        double centerThreshold = 0.25)
+        double centerThreshold = 0.25,
+        string algorithm = "mask_preserving_multiradius_v24",
+        int enclosureRadius = 12)
     {
         string modelPath = Path.Combine(root, "candidate.onnx");
         File.WriteAllBytes(modelPath, [1, 2, 3, 4]);
@@ -86,10 +88,14 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
                 proposal_stride = 4,
                 ink_support_window_size = 17,
                 ink_support_threshold = 0.11,
+                proposal_domain = "axis_polygon_or_16px_v25",
             },
             postprocessing = new
             {
-                algorithm = "mask_preserving_multiradius_v24",
+                algorithm,
+                enclosure_maximum_radius_pixels = enclosureRadius,
+                enclosure_ink_threshold = 0.12,
+                enclosure_background_connectivity = 4,
                 center_threshold = centerThreshold,
                 offset_scale = 4.0,
                 minimum_radius_pixels = 2.5,
@@ -112,6 +118,26 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
 
     private static string Hash(string path) =>
         Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
+
+    [TestMethod]
+    public void EnclosedGeometryRequiresItsOwnManifestAndCannotEnterTheLegacyFactory()
+    {
+        using var directory = new TemporaryDirectory();
+        FrozenCandidateMarkerCenterModelDescriptor legacy = WriteDescriptor(directory.Path);
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(legacy, new NoRunInference()));
+        FrozenCandidateMarkerCenterModelDescriptor enclosed = WriteDescriptor(directory.Path,
+            algorithm: ProductionProposalMarkerCenterAdapter.EnclosedPostprocessingAlgorithm);
+        var candidate = ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(enclosed, new NoRunInference());
+        Assert.IsFalse(candidate.IsApproved);
+        StringAssert.EndsWith(candidate.AdapterId, ":plot-domain-v25:enclosed-support-v1");
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidatePlotDomainEvaluation(enclosed, new NoRunInference()));
+        FrozenCandidateMarkerCenterModelDescriptor changed = WriteDescriptor(directory.Path,
+            algorithm: ProductionProposalMarkerCenterAdapter.EnclosedPostprocessingAlgorithm, enclosureRadius: 13);
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(changed, new NoRunInference()));
+    }
 
     private sealed class NoRunInference : IProposalMarkerInferenceRunner
     {

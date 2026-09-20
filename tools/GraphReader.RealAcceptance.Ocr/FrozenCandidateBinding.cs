@@ -59,7 +59,8 @@ internal sealed record FrozenCandidateAlgorithms(
     string MarkerClassifierAdapterId,
     string LegendAdapterId,
     string PhaseAdapterId,
-    string MarkerProposalDomain = "full_frame_v24");
+    string MarkerProposalDomain = "full_frame_v24",
+    string MarkerGeometrySupport = "multiradius_v24");
 
 internal sealed class FrozenCandidateBinding
 {
@@ -475,6 +476,15 @@ internal sealed class FrozenCandidateBinding
         {
             throw new InvalidDataException("Frozen candidate marker proposal domain is unsupported.");
         }
+        string geometrySupport = "multiradius_v24";
+        if (value.TryGetProperty("marker_geometry_support", out _))
+        {
+            fields = [.. fields, "marker_geometry_support"];
+            geometrySupport = RequiredText(value, "marker_geometry_support", "Frozen candidate algorithms");
+        }
+        if (geometrySupport is not ("multiradius_v24" or "multiradius_enclosed_v1") ||
+            (geometrySupport == "multiradius_enclosed_v1" && proposalDomain != "axis_polygon_or_16px_v25"))
+            throw new InvalidDataException("Frozen candidate marker geometry support is unsupported.");
         RequireExactProperties(value, fields, "Frozen candidate algorithms");
         return new FrozenCandidateAlgorithms(
             RequiredText(value, "axis_stage_version", "Frozen candidate algorithms"),
@@ -490,7 +500,8 @@ internal sealed class FrozenCandidateBinding
             RequiredText(value, "marker_classifier_adapter_id", "Frozen candidate algorithms"),
             RequiredText(value, "legend_adapter_id", "Frozen candidate algorithms"),
             RequiredText(value, "phase_adapter_id", "Frozen candidate algorithms"),
-            proposalDomain);
+            proposalDomain,
+            geometrySupport);
     }
 
     private static FrozenCandidateFile ReadFile(

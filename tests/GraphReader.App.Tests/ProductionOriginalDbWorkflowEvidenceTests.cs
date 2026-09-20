@@ -55,6 +55,15 @@ public sealed class ProductionOriginalDbWorkflowEvidenceTests
     }
 
     [TestMethod]
+    public void SupplementalMarkerGeometryCannotReuseProductionApproval()
+    {
+        Dictionary<string, object?> candidate = Candidate();
+        ((Dictionary<string, object?>)candidate["algorithms"]!)["marker_geometry_support"] = "multiradius_enclosed_v1";
+        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => Validate(candidate));
+        StringAssert.Contains(error.Message, "no Production approval");
+    }
+
+    [TestMethod]
     public void LegacyMarkerCenterAdapterCannotSatisfyProposalEvidence()
     {
         InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() =>

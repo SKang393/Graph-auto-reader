@@ -38,6 +38,9 @@ internal static class ProductionOriginalDbWorkflowEvidence
             new JsonDocumentOptions { MaxDepth = 64 });
         JsonElement root = document.RootElement;
         JsonElement algorithms = Object(root, "algorithms");
+        if (algorithms.TryGetProperty("marker_geometry_support", out JsonElement geometrySupport) &&
+            Text(geometrySupport, "marker_geometry_support") != ProductionProposalMarkerCenterAdapter.LegacyGeometrySupport)
+            throw new InvalidDataException("Candidate-only marker geometry has no Production approval.");
         Require(algorithms, "axis_stage_version", ProductionAxisGeometryAdapter.StageVersion);
         string openCvSha256 = NativeShaForRole(root, "opencvsharp_extern");
         if (axis.AdapterId != $"graphreader-axis-opencv:{openCvSha256[..12].ToLowerInvariant()}")

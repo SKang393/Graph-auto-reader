@@ -617,6 +617,76 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
     }
 
     [TestMethod]
+    [DataRow(false, 0)]
+    [DataRow(true, 1)]
+    public async Task ThinClosedCircleUsesOnlyExplicitCandidateSupport(bool supplemental, int expectedCount)
+    {
+        string[] outline =
+        [
+            "................", "................", "................", "......####......",
+            ".....#....#.....", "....#......#....", "...#........#...", "...#........#...",
+            "...#........#...", "...#........#...", "....#......#....", ".....#....#.....",
+            "......####......", "................", "................", "................",
+        ];
+        float[] luminance = Enumerable.Repeat(1f, 32 * 32).ToArray();
+        for (int y = 0; y < outline.Length; y++)
+            for (int x = 0; x < outline[y].Length; x++)
+                if (outline[y][x] == '#') luminance[(y + 8) * 32 + x + 8] = 0;
+        var frame = new MarkerImageFrame(32, 32, 1, luminance,
+            MarkerSourceImage.Original, MarkerAffineTransform.Identity,
+            MarkerMask.Empty(32, 32), MarkerMask.Empty(32, 32));
+        MarkerPolygon plot = MarkerPolygon.FromRectangle(new(0, 0, 32, 32));
+        var proposals = ProductionProposalMarkerCenterAdapter.DiagnoseMaskPreservingProposals(frame, plot, CancellationToken.None);
+        int target = proposals.EmittedProposalFeatures.Select((value, index) => (value, index))
+            .Single(item => item.value.OriginalBaseCenter == new MarkerPoint(16, 16)).index;
+        var runner = new FakeRunner(count =>
+        {
+            Assert.AreEqual(proposals.EmittedProposalFeatures.Count, count);
+            float[] values = new float[count * 4];
+            values[target * 4] = 0.9f;
+            values[target * 4 + 3] = 4.5f;
+            return values;
+        });
+        var adapter = CreatePlotDomainAdapter(runner, supplemental);
+        var result = await adapter.DetectCandidateWithDiagnosticsAsync(frame, plot, CancellationToken.None);
+        Assert.AreEqual(expectedCount, result.Candidates.Count);
+        Assert.AreEqual(1 - expectedCount, result.StageCounters.GeometryConsensusRejectsAfterRefinementAttempts);
+        Assert.IsFalse(adapter.IsApproved);
+        Assert.AreEqual(supplemental, runner.LastRequest!.CacheMaterial.Parameters.ContainsKey("geometry_support"));
+        if (supplemental)
+        {
+            Assert.AreEqual(new MarkerPoint(16, 16), result.Candidates[0].Center);
+            Assert.AreEqual(4.5, result.Candidates[0].Radius);
+        }
+    }
+
+    [TestMethod]
+    public void OpenBackgroundAndImageBoundaryDoNotSupplyEnclosure()
+    {
+        float[] pixels = Enumerable.Repeat(1f, 32 * 32).ToArray();
+        for (int i = 0; i < 32; i++) pixels[i * 32 + 16] = 0;
+        var frame = new MarkerImageFrame(32, 32, 1, pixels, MarkerSourceImage.Original,
+            MarkerAffineTransform.Identity, MarkerMask.Empty(32, 32), MarkerMask.Empty(32, 32));
+        Assert.IsFalse(ProductionMarkerEnclosedSupport.IsSupported(frame, 15, 16));
+        Assert.IsFalse(ProductionMarkerEnclosedSupport.IsSupported(frame, 16, 16));
+        Assert.IsFalse(ProductionMarkerEnclosedSupport.IsSupported(frame, -1, 16));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => ProductionMarkerEnclosedSupport.IsSupported(frame, double.NaN, 16));
+    }
+
+    [TestMethod]
+    public void EnclosedSupportCannotBeEnabledWithoutUnapprovedPlotDomain()
+    {
+        var model = new ModelIdentity(ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
+            "P1", ProductionProposalMarkerCenterAdapter.ExpectedMaskPreservingModelSha256, "candidate.onnx");
+        var runner = new FakeRunner(count => new float[count * 4]);
+        Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(model, runner,
+            multiradiusGeometry: true, maskPreservingCandidate: true, enclosedGeometrySupport: true));
+        Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(model, runner,
+            multiradiusGeometry: true, maskPreservingCandidate: true, plotDomainProposalFiltering: true,
+            enclosedGeometrySupport: true, isApproved: true));
+    }
+
+    [TestMethod]
     public void NegativePatchDiagnosticSummarizesWithoutInferenceOrPixels()
     {
         MarkerImageFrame frame = FrameWithOuterRadiusMarker() with
@@ -683,7 +753,7 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             isApproved: isApproved);
 
     private static ProductionProposalMarkerCenterAdapter CreatePlotDomainAdapter(
-        FakeRunner runner) =>
+        FakeRunner runner, bool enclosedGeometrySupport = false) =>
         new(new ModelIdentity(
             ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
             ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
@@ -692,7 +762,8 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             runner,
             multiradiusGeometry: true,
             maskPreservingCandidate: true,
-            plotDomainProposalFiltering: true);
+            plotDomainProposalFiltering: true,
+            enclosedGeometrySupport: enclosedGeometrySupport);
 
     private static MarkerImageFrame ParityFrame(
         int width,
