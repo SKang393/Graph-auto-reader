@@ -34,6 +34,19 @@ internal static class FrozenRealWorkflowAdmissionSelfTest
                 "real_dev_admission_is_aggregate_and_budget_free");
             checks.Add("real_dev_admission_is_aggregate_and_budget_free");
 
+            foreach (FrozenRealWorkflowCandidateIdentity changed in new[]
+            {
+                devCandidate with { Revision = "different-workflow" },
+                devCandidate with { CandidateId = "different-pipeline-candidate" },
+            })
+            {
+                ExpectFailureCode<InvalidDataException>(() => FrozenRealWorkflowAdmission.LoadForTest(
+                    root, devPath, devSha, changed, devInventory,
+                    FrozenRealCorpusInventory.RealDev, true, false, CancellationToken.None),
+                    "REAL_WORKFLOW_PROTOCOL_IDENTITY_MISMATCH");
+            }
+            checks.Add("composed_workflow_revision_and_candidate_remain_protocol_bound");
+
             ExpectFailure<InvalidOperationException>(() => FrozenRealWorkflowAdmission.LoadForTest(
                 root, devPath, devSha, devCandidate, devInventory,
                 FrozenRealCorpusInventory.RealDev, explicitOptIn: false,

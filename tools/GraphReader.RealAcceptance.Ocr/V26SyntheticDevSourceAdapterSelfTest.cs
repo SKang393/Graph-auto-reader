@@ -26,6 +26,11 @@ internal static class V26SyntheticDevSourceAdapterSelfTest
         try
         {
             ValidateFixture(BuildFixture(Path.Combine(outer, "valid")));
+            CompositeWorkflowIdentityCanDiffer(BuildFixture(Path.Combine(outer, "composed")));
+            ExpectRejected(BuildFixture(Path.Combine(outer, "stage-revision")),
+                report => report["revision"] = "different-marker-stage");
+            ExpectRejected(BuildFixture(Path.Combine(outer, "stage-candidate")),
+                report => report["candidate_id"] = "P2");
             ExpectRejected(BuildFixture(Path.Combine(outer, "failed")),
                 report => report["status"] = "failed_dev");
             ExpectRejected(BuildFixture(Path.Combine(outer, "incomplete")),
@@ -64,6 +69,25 @@ internal static class V26SyntheticDevSourceAdapterSelfTest
             context.GetProperty("parity"),
             fixture.Profile,
             CancellationToken.None);
+    }
+
+    private static void CompositeWorkflowIdentityCanDiffer(Fixture fixture)
+    {
+        try
+        {
+            ValidateFixture(fixture with
+            {
+                Candidate = fixture.Candidate with
+                {
+                    Revision = "composed-ocr-marker-workflow",
+                    CandidateId = "pipeline-01",
+                },
+            });
+        }
+        finally
+        {
+            fixture.Context.Dispose();
+        }
     }
 
     private static void ExpectRejected(Fixture fixture, Action<JsonObject> mutation)

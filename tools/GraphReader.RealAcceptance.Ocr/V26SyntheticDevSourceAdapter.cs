@@ -132,11 +132,12 @@ internal static class V26SyntheticDevSourceAdapter
             "private_data", "sealed_data", "sealed_runs", "production_approval",
             "release_eligible", "training_authorization",
         ], "V26 source report");
+        // The enclosing protocol binds the composed workflow's identity. This
+        // report binds the marker stage's identity and exact model independently.
         if (Text(report, "schema") != SourceSchema || Text(report, "task") != Task ||
             Text(report, "revision") != Revision || Text(report, "candidate_id") != CandidateId ||
             Text(envelope, "stage_revision") != Revision ||
             Text(envelope, "stage_candidate_id") != CandidateId ||
-            candidate.Revision != Revision || candidate.CandidateId != CandidateId ||
             Text(report, "status") != "dev_passed" || !Boolean(report, "dev_gate_passed") ||
             Text(report, "onnx_provider") != "CPUExecutionProvider" ||
             Sha(report, "onnx_sha256") != candidate.MarkerCenterSha256 ||

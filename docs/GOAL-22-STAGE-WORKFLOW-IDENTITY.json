@@ -1,0 +1,80 @@
+{
+  "schema": "graphreader.stage-workflow-identity-repair.v1",
+  "status": "repair_verified_goal_incomplete",
+  "source_bindings": [
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/V26SyntheticDevSourceAdapter.cs",
+      "archive": "artifacts/goal22-runs/stage-workflow-identity-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/V26SyntheticDevSourceAdapter.cs",
+      "sha256": "10ddbff2ac77ab7a6023fd22782c8ec370ad5a53f6157a9ec77a63d2223b7b1a"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/V26SyntheticDevSourceAdapterSelfTest.cs",
+      "archive": "artifacts/goal22-runs/stage-workflow-identity-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/V26SyntheticDevSourceAdapterSelfTest.cs",
+      "sha256": "977ab99a6cd2ffe60b62a1c56a51d174309c78d95f3bfb28d842dd13dff16fac"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenRealWorkflowAdmissionSelfTest.cs",
+      "archive": "artifacts/goal22-runs/stage-workflow-identity-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenRealWorkflowAdmissionSelfTest.cs",
+      "sha256": "5f060ad3de9ba6c751cca4fbf72cd1c0f1ea9165d946a079d8e08db5f8768ad5"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenRealWorkflowAdmission.cs",
+      "archive": "artifacts/goal22-runs/stage-workflow-identity-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenRealWorkflowAdmission.cs",
+      "sha256": "c57140fb34e71b94daad936a48b3a71d027189e4283b10042c9af91038af4fba"
+    }
+  ],
+  "validation": [
+    {
+      "name": "v26-synthetic-dev-adapter",
+      "report": {
+        "path": "artifacts/goal22-runs/stage-workflow-identity-checks-v1/v26-synthetic-dev-adapter.json",
+        "sha256": "14c21c9a2a55a2673d386758e589f370d41e94b774211bbaa7265542f16f6e1b"
+      },
+      "scope": "fictitious inputs only"
+    },
+    {
+      "name": "real-workflow-admission",
+      "report": {
+        "path": "artifacts/goal22-runs/stage-workflow-identity-checks-v1/real-workflow-admission.json",
+        "sha256": "47402b653460ab2c0a8ac371f06c6b702bc35bcbc65c837cb1a6c4dac018926e"
+      },
+      "scope": "fictitious inputs only"
+    },
+    {
+      "name": "real-workflow-runner",
+      "report": {
+        "path": "artifacts/goal22-runs/stage-workflow-identity-checks-v1/real-workflow-runner.json",
+        "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+      },
+      "scope": "fictitious inputs only"
+    },
+    {
+      "name": "full-self-test",
+      "report": {
+        "path": "artifacts/goal22-runs/stage-workflow-identity-checks-v1/full-self-test.json",
+        "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+      },
+      "scope": "fictitious inputs only"
+    }
+  ],
+  "build": {
+    "path": "artifacts/goal22-runs/stage-workflow-identity-checks-v1/build.log",
+    "sha256": "51a6600d061313313d7ba1accc55ad0b7a514478c35a9ab47fc5628e230b7f72"
+  },
+  "seconds": 55.7619543,
+  "behavior": "A composed workflow can have its own revision and candidate identifiers while the V26 stage report, envelope, configuration and authorization retain their exact stage identities. The enclosing workflow protocol still rejects revision or candidate changes. Model, runtime, operating-point, metrics, parity, policy and privacy checks are unchanged.",
+  "limitations": [
+    "This repairs V26 evidence composition only. It does not validate V27/V28/V29 reports or implement OCR/marker-sealed source adapters.",
+    "No model or workflow receives approval from fictitious checker results."
+  ],
+  "model_inference": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "all_four_goal22_outcomes_verified": false,
+  "license": "Apache-2.0 owned checker code; no new dependency or payload."
+}
