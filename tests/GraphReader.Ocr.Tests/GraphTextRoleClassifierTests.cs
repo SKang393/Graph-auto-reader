@@ -15,8 +15,12 @@ public sealed class GraphTextRoleClassifierTests
     [DataRow("Alternating treatment")]
     [DataRow("Withdrawal")]
     [DataRow("Withdrawal continued")]
+    [DataRow("Withdrawalcontinued")]
+    [DataRow("Withdrawal   continued")]
     [DataRow("Reintroduction")]
     [DataRow("Reintroduction continued")]
+    [DataRow("Reintroductioncontinued")]
+    [DataRow("Reintroduction\tcontinued")]
     public void DesignTermsNeedHeadingGeometryAndRespectExplicitContext(string text)
     {
         var region = OcrTestFixtures.Region("heading", 50, 1, 50, 10);
@@ -26,6 +30,17 @@ public sealed class GraphTextRoleClassifierTests
         Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(
             region with { Context = new OcrRegionContext(NearAnnotationArrow: true) }, text, Plot).Role);
         Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(region, text + " was recorded", Plot).Role);
+    }
+
+    [TestMethod]
+    [DataRow("Wirhdrreal continped")]
+    [DataRow("Withdreal")]
+    [DataRow("Withdrawalcontinued symptoms")]
+    [DataRow("Reintroductioncontinues")]
+    public void DamagedWordsAndIncidentalTextRemainUnresolved(string text)
+    {
+        var region = OcrTestFixtures.Region("unclear-heading", 50, 1, 50, 10);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(region, text, Plot).Role);
     }
 
     [TestMethod]

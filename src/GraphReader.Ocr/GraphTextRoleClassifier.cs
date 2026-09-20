@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    internal const string Version = "graph-text-role-classifier-v7";
+    internal const string Version = "graph-text-role-classifier-v8";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -203,6 +203,7 @@ public static class GraphTextRoleClassifier
     private static bool IsPhaseHeadingTerm(string text)
     {
         var normalized = text.Trim().Replace('_', ' ').Replace('-', ' ');
+        string wordsWithoutSpaces = new(normalized.Where(character => !char.IsWhiteSpace(character)).ToArray());
         return normalized.Equals("a", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("b", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("ab", StringComparison.OrdinalIgnoreCase) ||
@@ -212,9 +213,9 @@ public static class GraphTextRoleClassifier
             normalized.Equals("alternating treatment", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("alternating treatments", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("withdrawal", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("withdrawal continued", StringComparison.OrdinalIgnoreCase) ||
+            wordsWithoutSpaces.Equals("withdrawalcontinued", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("reintroduction", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("reintroduction continued", StringComparison.OrdinalIgnoreCase) ||
+            wordsWithoutSpaces.Equals("reintroductioncontinued", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("maintenance", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("generalization", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("followup", StringComparison.OrdinalIgnoreCase) ||

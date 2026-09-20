@@ -512,6 +512,7 @@ public sealed class PhaseReasoningService : IPhaseReasoningService
         string normalized = string.Join(
             ' ',
             text.Trim().ToLowerInvariant().Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        string wordsWithoutSpaces = new(normalized.Where(character => !char.IsWhiteSpace(character)).ToArray());
         if (normalized.Contains("generalization", StringComparison.Ordinal) ||
             normalized.Contains("generalisation", StringComparison.Ordinal))
         {
@@ -524,14 +525,14 @@ public sealed class PhaseReasoningService : IPhaseReasoningService
         }
 
         if (normalized.Contains("baseline", StringComparison.Ordinal) ||
-            normalized is "withdrawal" or "withdrawal continued")
+            wordsWithoutSpaces is "withdrawal" or "withdrawalcontinued")
         {
             return PhaseNormalizedType.Baseline;
         }
 
         if (normalized.Contains("intervention", StringComparison.Ordinal) ||
             normalized.Contains("treatment", StringComparison.Ordinal) ||
-            normalized is "reintroduction" or "reintroduction continued")
+            wordsWithoutSpaces is "reintroduction" or "reintroductioncontinued")
         {
             return PhaseNormalizedType.Intervention;
         }

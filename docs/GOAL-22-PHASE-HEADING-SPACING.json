@@ -1,0 +1,236 @@
+{
+  "schema": "graphreader.phase-heading-spacing-repair.v1",
+  "status": "repair_verified_goal_incomplete",
+  "hypothesis": "Exact known continuation words remain meaningful when OCR loses or repeats whitespace; preserve unclear spelling as unresolved.",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "sha256": "23dff892a7de4be39aafb23dc0dda8a8104cf0d023bb2999ef02fca7bfd48a01"
+    },
+    {
+      "path": "src/GraphReader.Phases/PhaseReasoningService.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/src/GraphReader.Phases/PhaseReasoningService.cs",
+      "sha256": "98845df7c22c260d4454cfb2d40045c3ce40e194d2a5b4cbf38655d3edf7468d"
+    },
+    {
+      "path": "src/GraphReader.Phases/PhaseReasoningContracts.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/src/GraphReader.Phases/PhaseReasoningContracts.cs",
+      "sha256": "001e314fe15c8841959c098984202822fb4f59c4abb0a1005165c426b1264939"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs",
+      "sha256": "b5342c1315d68d4d9078847be88c5ce398c0ea407f503dc28798a18f056b3b72"
+    },
+    {
+      "path": "tests/GraphReader.Phases.Tests/PhaseReasoningServiceTests.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/tests/GraphReader.Phases.Tests/PhaseReasoningServiceTests.cs",
+      "sha256": "5e71320341865dc71ab7c8564272ed711837aa7a2b6f918992fa77c0d67d3182"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "f3ad61c68fc0be5e1fc0ee20c0ffc7649840b8600a320ba09bbab1dada2a3578"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionSemanticReasoningAdapters.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionSemanticReasoningAdapters.cs",
+      "sha256": "eee951b5ad73cd46780ead4b980b806841b296653cae2df314b60394345d13d7"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBinding.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBinding.cs",
+      "sha256": "f5718fcadc12ab77fce7ce8ee03e2505af39f7fc07555a7e0eaa8f06c45c1d2b"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs",
+      "sha256": "6a5e2ae7f6fc37b9e7cacd99d1193d59902f1928441e2e2631ab7a09f5f1cfc1"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateWorkflowFactory.cs",
+      "archive": "artifacts/goal22-runs/phase-spacing-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateWorkflowFactory.cs",
+      "sha256": "7dadcae8c8b33a576a3dc2620b5e6532f50fd3f1663e2ace6815b78137e551d3"
+    }
+  ],
+  "tests": {
+    "ocr": {
+      "passed": 388,
+      "total": 404,
+      "optional_skipped": 16,
+      "report": {
+        "path": "artifacts/goal22-runs/phase-spacing-checks-v1/test-results/ocr.trx",
+        "sha256": "1a09a2e96e283accd4ff24996a2aab9b6d6bf32b43082f449906ab3382a908c6"
+      }
+    },
+    "phases": {
+      "passed": 48,
+      "total": 48,
+      "optional_skipped": 0,
+      "report": {
+        "path": "artifacts/goal22-runs/phase-spacing-checks-v1/test-results/phases.trx",
+        "sha256": "2dd1ef25c39a53614ab42cfb9ccb34eaa3d05c8eee4f7882f9849c0ec67070ea"
+      }
+    },
+    "app": {
+      "passed": 418,
+      "total": 418,
+      "optional_skipped": 0,
+      "report": {
+        "path": "artifacts/goal22-runs/phase-spacing-checks-v1/test-results/app.trx",
+        "sha256": "adf859bedc8961c0c68c43a4886c5ac076b05093ee486cd3e62fe556ce7e6fd8"
+      }
+    }
+  },
+  "build": {
+    "report": {
+      "path": "artifacts/goal22-runs/phase-spacing-checks-v1/build.log",
+      "sha256": "bb2a89d3e3511b7ee94617025b9743bab606e648c34356ad399ea37222ced248"
+    },
+    "warnings": 0,
+    "errors": 0,
+    "seconds": 9.01
+  },
+  "fictitious_self_tests": [
+    {
+      "path": "artifacts/goal22-runs/phase-spacing-checks-v1/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-spacing-checks-v1/frozen-binding-self-test.json",
+      "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+    }
+  ],
+  "whole_workflow": {
+    "candidate_binding": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-spacing-v1/candidate-binding.json",
+      "sha256": "e66bd6c44b683e664f828a14c2e0948a0f07d497d7da3f7da93095dc4c7838b7"
+    },
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-spacing-v1/execution/report.json",
+      "sha256": "fe19c2c0a104e155ada0718301469144fdb155b7617eca0b8ec40b2039d20ab6"
+    },
+    "comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-spacing-v1/comparison.json",
+      "sha256": "cf9851631898b3aff15020a8ba22745fbe88c7e44f16ccb9d096e7ad17a2c9ae"
+    },
+    "score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-spacing-v1/csv-score-normalized-phases.json",
+      "sha256": "0e005a466d71f34ff8c6e52c2d501a73f2ba80265bf09469da5ac54f9ee8213f"
+    },
+    "baseline_metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 12,
+      "failed_cases": 11,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 26,
+      "matched_series": 19,
+      "truth_points": 706,
+      "predicted_points": 330,
+      "matched_points": 322,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 330,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 319,
+      "correct_rows": 314,
+      "missing_rows": 405,
+      "extra_rows": 11,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 322,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 384,
+      "unique_point_extra": 8,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9757575757575757,
+      "unique_point_structural_coverage": 0.45609065155807366,
+      "unique_point_value_precision": 0.9757575757575757,
+      "unique_point_value_coverage": 0.45609065155807366,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9515151515151515,
+      "relational_row_coverage": 0.43370165745856354,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9843260188087775,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 11
+      }
+    },
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 12,
+      "failed_cases": 11,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 26,
+      "matched_series": 19,
+      "truth_points": 706,
+      "predicted_points": 330,
+      "matched_points": 322,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 330,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 319,
+      "correct_rows": 316,
+      "missing_rows": 405,
+      "extra_rows": 11,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 322,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 384,
+      "unique_point_extra": 8,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9757575757575757,
+      "unique_point_structural_coverage": 0.45609065155807366,
+      "unique_point_value_precision": 0.9757575757575757,
+      "unique_point_value_coverage": 0.45609065155807366,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9575757575757575,
+      "relational_row_coverage": 0.43646408839779005,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9905956112852664,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 11
+      }
+    },
+    "elapsed_seconds": 123.84036689999999,
+    "observed_panels": 33,
+    "missing_previous_panels": 0,
+    "exported_numeric_values_preserved": true,
+    "axis_marker_calibration_outputs_preserved": true,
+    "ocr_change": "One recognized continuation term changes role from Other to PhaseHeading; raw text and locations are unchanged."
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "all_model_weights_unchanged": true,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "all_four_goal22_outcomes_verified": false,
+  "license": "Apache-2.0 owned code and synthetic evidence; no added dependency.",
+  "remaining": "Eleven failed sources, 384 missing points, eight extra points and three unclear-heading phase rows remain counted."
+}

@@ -9,7 +9,7 @@ public static class PhaseReasoningContract
 {
     public const int Version = 1;
     public const string Stage = "phases";
-    public const string StageVersion = "0.1.1";
+    public const string StageVersion = "0.1.2";
     public const string CoordinateSpace = "original_pixels";
 }
 
