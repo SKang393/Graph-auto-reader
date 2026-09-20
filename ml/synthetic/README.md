@@ -65,3 +65,35 @@ Run the OCR coverage, OCR acceptance, preparation and sealed-reserve policy test
 Preparation and registration do not authorize model evaluation. The aggregate
 worker and Production evidence connection remain unfinished; failed dev models
 must not approach sealed evaluation.
+
+## Contextual negative examples
+
+`contextual_negatives.render_contextual_scene` is an explicit train/dev-only
+profile. Historical generators paint standalone letters, triangles and circles
+with names such as `arrowhead` or `legend_symbol`, without the context implied
+by those names. A circle on a data line can therefore receive a negative label
+despite being visually indistinguishable from a data point.
+
+The new profile retains the native graph, scientific truth, text and marker
+mask. It replaces injected glyphs with negative sampling labels on already
+rendered text, named legends, ticks crossing axes, arrows with shafts, brackets
+and phase structures. Candidates overlapping true markers are recorded and
+excluded from negative sampling. Their visible graph structures remain. Every
+historical request is retained in the profile audit. Some categories may have
+no safe negative samples, for example arrows whose heads touch true markers.
+
+Use `source_profile="visible-content-v3"` when comparing with the existing
+workflow's physical-source repair; the default uses historical rendering.
+Replay requires the original source document, profile ID, base source profile
+and generator source hashes. Calling the old renderer on the original document
+still reproduces the old image. Neither historical source hashes nor old
+evaluation results are replaced. The output profile is not registered for
+sealed evaluation, training, promotion or Production.
+
+`tools/GraphReader.SyntheticRuntimeEvidence/audit_contextual_negatives.py`
+accepts a hash-bound owned workflow truth inventory and creates a new local
+derivative inventory. It reproduces every historical PNG and verifies unchanged
+native annotations and marker masks. Historical `validation` labels require
+the explicit `--legacy-validation-is-dev` mapping. Run the contextual-negative
+and existing repair-regression tests before using a new inventory. A better
+score on corrected pixels measures the generator effect, not improved weights.

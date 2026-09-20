@@ -1,0 +1,332 @@
+{
+  "schema": "graphreader.goal22.contextual-negative-generator-repair.v1",
+  "status": "generator_verified_workflow_improved_with_phase_regressions_not_model_acceptance",
+  "base_commit": "ce322242eba298523839cf9659b9dc45b16d5428",
+  "goal22_complete": false,
+  "changed_sources": [
+    {
+      "path": "ml/synthetic/contextual_negatives.py",
+      "sha256": "8c5d18199b5a4250f22f24557452b5aab9063c3ed62a69ed0c6a46663371d7c1",
+      "snapshot": "artifacts/goal22-runs/contextual-negatives-v1/changed-source-snapshot/ml/synthetic/contextual_negatives.py"
+    },
+    {
+      "path": "ml/synthetic/tests/test_contextual_negatives.py",
+      "sha256": "470df82b71b9a27c993ab8b2f7bde164270f6f9cdd2f6a31892a155a0b8ab1ad",
+      "snapshot": "artifacts/goal22-runs/contextual-negatives-v1/changed-source-snapshot/ml/synthetic/tests/test_contextual_negatives.py"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/audit_contextual_negatives.py",
+      "sha256": "d93a80385416db2f4805be75ed9c9aca0435046a523fa0ee59899d2a1cbcd7ed",
+      "snapshot": "artifacts/goal22-runs/contextual-negatives-v1/changed-source-snapshot/tools/GraphReader.SyntheticRuntimeEvidence/audit_contextual_negatives.py"
+    },
+    {
+      "path": "ml/synthetic/README.md",
+      "sha256": "82708db6971cde29ab6f7d0a506334f3c3a8e811f240295015084cb2e9f0b25c",
+      "snapshot": "artifacts/goal22-runs/contextual-negatives-v1/changed-source-snapshot/ml/synthetic/README.md"
+    }
+  ],
+  "generator_definition": {
+    "path": "artifacts/goal22-runs/contextual-negatives-v1/definition.json",
+    "sha256": "f358f14d4bd535f3cce003479aa490bdaf38267cc303eaa3fb531b84996b89b2"
+  },
+  "generator_report": {
+    "path": "artifacts/goal22-runs/contextual-negatives-v1/report.json",
+    "sha256": "83ff94fef770bdbbec7af126006e996fc5b80f4c0e1a8cc92e1c09b9d65b3adb"
+  },
+  "generator_metrics": {
+    "train": {
+      "sources": 20,
+      "panels": 30,
+      "truth_points": 500,
+      "replaced_requests": {
+        "marker_like_letter": 20,
+        "arrowhead": 20,
+        "phase_line_intersection": 20,
+        "tick_mark": 20,
+        "dotted_divider_segment": 20,
+        "legend_symbol": 20,
+        "bracket": 20,
+        "isolated_punctuation": 20,
+        "line_endpoint": 20
+      },
+      "contextual_negative_counts": {
+        "text": 709,
+        "legend_symbol": 30,
+        "tick_mark": 363,
+        "line_endpoint": 30,
+        "bracket": 120,
+        "phase_divider": 55,
+        "phase_line_intersection": 55
+      },
+      "negative_candidate_omissions": {
+        "context_overlaps_true_marker_clearance": 46
+      },
+      "orphan_legend_glyph_matching_a_true_shape_and_fill": 5
+    },
+    "dev": {
+      "sources": 3,
+      "panels": 9,
+      "truth_points": 206,
+      "replaced_requests": {
+        "marker_like_letter": 3,
+        "arrowhead": 3,
+        "phase_line_intersection": 3,
+        "tick_mark": 3,
+        "dotted_divider_segment": 3,
+        "legend_symbol": 3,
+        "bracket": 3,
+        "isolated_punctuation": 3,
+        "line_endpoint": 3
+      },
+      "contextual_negative_counts": {
+        "text": 182,
+        "legend_symbol": 11,
+        "tick_mark": 70,
+        "line_endpoint": 9,
+        "bracket": 36,
+        "phase_divider": 21,
+        "phase_line_intersection": 20
+      },
+      "negative_candidate_omissions": {
+        "context_overlaps_true_marker_clearance": 13
+      },
+      "orphan_legend_glyph_matching_a_true_shape_and_fill": 0
+    }
+  },
+  "generator_seconds": 55.616653300006874,
+  "tests": {
+    "command": "python -m pytest ml/synthetic/tests/test_contextual_negatives.py ml/synthetic/tests/test_repair_regressions.py -q -p no:cacheprovider",
+    "passed": 38,
+    "failed": 0,
+    "seconds": 73.55,
+    "evidence": "Completed local execution session 15578, exit 0"
+  },
+  "workflow": {
+    "generator_report": {
+      "path": "artifacts/goal22-runs/contextual-negatives-v1/report.json",
+      "sha256": "83ff94fef770bdbbec7af126006e996fc5b80f4c0e1a8cc92e1c09b9d65b3adb"
+    },
+    "baseline_report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-enclosed-support-v1/execution/report.json",
+      "sha256": "275f84db4e9400896ca267a808e4dd12298dc6fa5c1d4bad045687cefd74a376"
+    },
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-contextual-negatives-v2/execution/report.json",
+      "sha256": "060dbe5b8fafcf1537c9f6f6b59672f9c4eed08b18e6923cb131d6d9291e5906"
+    },
+    "evaluation_input": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-contextual-negatives-v2/csv-evaluation-input-normalized-phases.json",
+      "sha256": "17fbb17fa383d2b78b0006f8da1f579c22d4273995e2eb24aedaa662cb4bccd0"
+    },
+    "score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-contextual-negatives-v2/csv-score-normalized-phases.json",
+      "sha256": "bbe7b1af7c15702322ded3cbbe775f6c060c887f4c09775e08a30f8c623c196f"
+    },
+    "baseline_metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 11,
+      "failed_cases": 12,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 41,
+      "matched_series": 16,
+      "truth_points": 706,
+      "predicted_points": 272,
+      "matched_points": 226,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 287,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 223,
+      "correct_rows": 218,
+      "missing_rows": 501,
+      "extra_rows": 64,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 226,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 480,
+      "unique_point_extra": 46,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.8308823529411765,
+      "unique_point_structural_coverage": 0.32011331444759206,
+      "unique_point_value_precision": 0.8308823529411765,
+      "unique_point_value_coverage": 0.32011331444759206,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.759581881533101,
+      "relational_row_coverage": 0.3011049723756906,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9775784753363229,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 12
+      }
+    },
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 14,
+      "failed_cases": 9,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 46,
+      "matched_series": 21,
+      "truth_points": 706,
+      "predicted_points": 333,
+      "matched_points": 287,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 348,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 282,
+      "correct_rows": 251,
+      "missing_rows": 442,
+      "extra_rows": 66,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 31,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 287,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 419,
+      "unique_point_extra": 46,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.8618618618618619,
+      "unique_point_structural_coverage": 0.4065155807365439,
+      "unique_point_value_precision": 0.8618618618618619,
+      "unique_point_value_coverage": 0.4065155807365439,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.7212643678160919,
+      "relational_row_coverage": 0.34668508287292815,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.8900709219858156,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 9
+      }
+    },
+    "before_elapsed_milliseconds": 166330.799,
+    "elapsed_milliseconds": 160674.2556,
+    "source_changes": [
+      {
+        "original_image_sha256": "24decddbc101679cce5638bb3d81911dabc0464d81356ad2ad1b2c0f5a209e06",
+        "derived_image_sha256": "2abe7edb0b0c36414805ecde7ce8925ad531b2e17b28200fcb4a971542bd4792",
+        "split": "train",
+        "before_status": "failed",
+        "after_status": "completed",
+        "before_error": "Automatic calibration is incomplete: Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance.",
+        "after_error": null
+      },
+      {
+        "original_image_sha256": "335d9d93c9dfa8c10c011cdfc516b3407c3bececae907cc23d24cd294d061c0d",
+        "derived_image_sha256": "cd03f0d18cfc1c57458a152484978a5e53d3f675c9b8d764c32ccebf3bb6c812",
+        "split": "train",
+        "before_status": "failed",
+        "after_status": "failed",
+        "before_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | The first observed column maps to session -149, not session 1.",
+        "after_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 40, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null."
+      },
+      {
+        "original_image_sha256": "f8363b11ba05938555de07cd9d34c6e0d1e2f0e9f231392201926f823ffabb2d",
+        "derived_image_sha256": "bd52e84c5df717093c120164aa76dac4fe4037be4c1b9e7f450aa358b03e2fff",
+        "split": "train",
+        "before_status": "failed",
+        "after_status": "completed",
+        "before_error": "Candidate export failed closed: INVALID_POINT.",
+        "after_error": null
+      },
+      {
+        "original_image_sha256": "34cabc00dd94bf3b1efa491f62a6797550f9a53623832a5d8d42d60d8e905a7e",
+        "derived_image_sha256": "c281d986f7ad750bf2cede1a2e2a54cdefd8e36059d0111785fd068e1e637753",
+        "split": "train",
+        "before_status": "failed",
+        "after_status": "completed",
+        "before_error": "Automatic calibration is incomplete: Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance.",
+        "after_error": null
+      },
+      {
+        "original_image_sha256": "6543f7b0b39705058c4555c163238b1139c7b8e269bf5ec3162bf7f0f1acb249",
+        "derived_image_sha256": "66b9d453b029155079528274ee60176ea28b423dd6e9bb8ca11853b25b52e9fd",
+        "split": "train",
+        "before_status": "failed",
+        "after_status": "failed",
+        "before_error": "Automatic calibration is incomplete: Numeric tick evidence is ambiguous because no transform has a strict majority of evidence weight. | No printed, shared-panel, expected, or manual session-1 origin is available. | The final printed session is unavailable, so the sessionmax_y0 anchor was not invented. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+        "after_error": "Automatic calibration is incomplete: Numeric tick evidence is ambiguous because no transform has a strict majority of evidence weight. | The first observed column maps to session 32, not session 1."
+      }
+    ],
+    "same_models_and_runtime": true,
+    "same_706_scientific_truth_points": true,
+    "source_generator_changed_not_a_model_quality_improvement_claim": true,
+    "training": false,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approved": false
+  },
+  "workflow_preparation": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-contextual-negatives-v2/preparation.json",
+    "sha256": "78712ab89862fcf10c8dc162322544d5ab23167de48e2f58a57dba6218d84836"
+  },
+  "candidate_binding": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-contextual-negatives-v2/candidate-binding.json",
+    "sha256": "6aa6c295769bf2771cb461c0988378d9186feb8e0bae42e0ca8469bd0f0d9739"
+  },
+  "input_manifest": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-contextual-negatives-v2/input-manifest.json",
+    "sha256": "1f38eee65ed7676901c558e2d7c0b241dd0247d74ec96304b61e5ba46b272030"
+  },
+  "void_preflight_attempt": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-contextual-negatives-v1/void-record.json",
+    "sha256": "6259e15a73644e0b1bfcd52ef415fb7f89e61fee805c3e7dd1c70be7043117a7"
+  },
+  "phase_error_diagnostic": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-contextual-negatives-v2/phase-error-diagnostic.json",
+    "sha256": "a983d90911934b59bbd3eba510a926de1e20ab64aa4a0027ca25a9ca4f6dd636"
+  },
+  "classifier_source_reconciliation": {
+    "path": "artifacts/goal22-runs/classifier-source-reconciliation-v1/report.json",
+    "sha256": "ae6e178b189c6133d7afa0a57b21bfe6fe591c723a9088048b38f58cf9b05d70"
+  },
+  "preceding_checkpoint_ci": {
+    "status": "completed",
+    "commit": "ce322242eba298523839cf9659b9dc45b16d5428",
+    "started_utc": "2026-09-20T13:37:44.0280919Z",
+    "updated_utc": "2026-09-20T13:45:57.3171872Z",
+    "notifier_pid": 52192,
+    "run_id": 35514053073,
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35514053073",
+    "conclusion": "success",
+    "error": null,
+    "user_continuation_required": false
+  },
+  "model_weights_and_application_runtime_unchanged": true,
+  "historical_sources_and_results_retained": true,
+  "native_graph_annotations_and_marker_masks_unchanged": true,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "formal_model_revision_opened": false,
+  "production_approved": false,
+  "packaged_builds": 0,
+  "retained_build": 433,
+  "retained_version": "0.4.33",
+  "limitations": [
+    "Three completions gained on training sources; corrected development completes one of three sources.",
+    "Nine sources fail calibration; 419 true points remain missing and 46 detections are extra.",
+    "Wrong phases rise to 31, including ten errors on an already completed development source.",
+    "Corrected pixels are not comparable as a weight-improvement claim. No sealed or real acceptance.",
+    "Contextual native sampling is not installed into an existing training or sealed pipeline."
+  ]
+}
