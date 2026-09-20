@@ -82,8 +82,29 @@ public sealed class ParticipantLaneTextRegionAssemblerTests
              OcrTestFixtures.Region("inside-right", 48, 30, 6, 10)],
             PlotBounds));
         Assert.HasCount(2, ParticipantLaneTextRegionAssembler.Assemble(
-            [OcrTestFixtures.Region("above-left", 2, 1, 12, 8),
-             OcrTestFixtures.Region("above-right", 16, 1, 6, 8)],
+            [OcrTestFixtures.Region("below-left", 2, 92, 12, 8),
+             OcrTestFixtures.Region("below-right", 16, 92, 6, 8)],
             PlotBounds));
+    }
+
+    [TestMethod]
+    public void HeaderFragmentsJoinWithoutAbsorbingOffsetPhaseLabelOrPlotText()
+    {
+        OcrDetectedRegion word = OcrTestFixtures.Region("word", 2, 1, 12, 8);
+        OcrDetectedRegion suffix = OcrTestFixtures.Region("suffix", 16, 1, 6, 8);
+        OcrDetectedRegion phase = OcrTestFixtures.Region("phase", 24, 6, 5, 8);
+        OcrDetectedRegion heading = OcrTestFixtures.Region("heading", 50, 1, 20, 8);
+        var result = ParticipantLaneTextRegionAssembler.AssembleWithMembership(
+            [heading, phase, suffix, word], PlotBounds);
+        Assert.HasCount(3, result);
+        var merged = result.Single(static group => group.MemberRegionIds.Count == 2);
+        CollectionAssert.AreEqual(ExpectedMemberIds, merged.MemberRegionIds.ToArray());
+        Assert.AreEqual(new OcrRectangle(2, 1, 20, 8), merged.Region.Polygon.Bounds);
+        Assert.AreEqual(4, result.Sum(static group => group.MemberRegionIds.Count));
+        Assert.IsNull(merged.Region.Context);
+        var repeated = ParticipantLaneTextRegionAssembler.Assemble(
+            result.Select(static group => group.Region).ToArray(), PlotBounds);
+        CollectionAssert.AreEqual(result.Select(static group => group.Region.RegionId).ToArray(),
+            repeated.Select(static region => region.RegionId).ToArray());
     }
 }

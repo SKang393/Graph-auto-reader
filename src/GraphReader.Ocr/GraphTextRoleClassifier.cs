@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    internal const string Version = "graph-text-role-classifier-v3";
+    internal const string Version = "graph-text-role-classifier-v4";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -80,9 +80,12 @@ public static class GraphTextRoleClassifier
         var horizontalText = GetOrientation(region.OrientationDegrees) == OcrOrientation.Horizontal;
         var alignedWithPlot = center.Y >= plotBounds.Top && center.Y <= plotBounds.Bottom;
         var plotPeripheral = (center.X < plotBounds.Left || center.X > plotBounds.Right) && alignedWithPlot;
-        if (!numeric && horizontalText && plotPeripheral && HasParticipantLabelCue(recognizedText))
+        var leftHeader = center.X < plotBounds.Left && region.Polygon.Bounds.Bottom <= plotBounds.Top;
+        if (!numeric && horizontalText && (plotPeripheral || leftHeader) && HasParticipantLabelCue(recognizedText))
         {
-            return Classification(OcrTextRole.Participant, 0.90, "participant_label_and_peripheral_geometry");
+            return Classification(OcrTextRole.Participant, 0.90, leftHeader
+                ? "participant_label_and_left_header_geometry"
+                : "participant_label_and_peripheral_geometry");
         }
 
         if (!numeric && horizontalText && center.X < plotBounds.Left && alignedWithPlot)

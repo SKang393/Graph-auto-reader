@@ -8,7 +8,7 @@ namespace GraphReader.Ocr;
 
 public static class ParticipantLaneTextRegionAssembler
 {
-    public const string CompositionVersion = "participant-lane-aligned-word-assembly-v1";
+    public const string CompositionVersion = "participant-lane-aligned-word-assembly-v2";
 
     private const double MinimumVerticalOverlapRatio = 0.35;
     private const double MaximumHorizontalGapHeightRatio = 2.5;
@@ -131,7 +131,7 @@ public static class ParticipantLaneTextRegionAssembler
 
     private static bool IsInsideParticipantLane(OcrRectangle bounds, OcrRectangle plotBounds) =>
         bounds.Center.X < plotBounds.Left &&
-        bounds.Center.Y >= plotBounds.Top &&
+        (bounds.Center.Y >= plotBounds.Top || bounds.Bottom <= plotBounds.Top) &&
         bounds.Center.Y <= plotBounds.Bottom;
 
     private static OcrRectangle Union(OcrRectangle left, OcrRectangle right)

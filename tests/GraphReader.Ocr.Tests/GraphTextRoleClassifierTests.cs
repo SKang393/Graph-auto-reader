@@ -59,6 +59,21 @@ public sealed class GraphTextRoleClassifierTests
     }
 
     [TestMethod]
+    public void CompleteParticipantCueAtLeftHeaderIsMetadataWithoutInventingAName()
+    {
+        OcrDetectedRegion region = OcrTestFixtures.Region("header-participant", 2, 1, 24, 9);
+        RoleClassification result = GraphTextRoleClassifier.Classify(region, "Participant 02", Plot);
+        Assert.AreEqual(OcrTextRole.Participant, result.Role);
+        CollectionAssert.Contains(result.Reasons.ToArray(), "participant_label_and_left_header_geometry");
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(region, "Participant", Plot).Role);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(region, "Morgan", Plot).Role);
+        Assert.AreEqual(OcrTextRole.LegendText, GraphTextRoleClassifier.Classify(
+            region with { Context = new OcrRegionContext(NearLegendGlyph: true) }, "Participant 02", Plot).Role);
+        Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(
+            region with { Context = new OcrRegionContext(ExplicitRoleHint: OcrTextRole.Annotation) }, "Participant 02", Plot).Role);
+    }
+
+    [TestMethod]
     [DataRow("Morgan")]
     [DataRow("Outcome")]
     [DataRow("Training")]
