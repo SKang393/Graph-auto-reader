@@ -446,23 +446,23 @@ public sealed class LegendReasoningService : ILegendReasoningService
             .ToHashSet(StringComparer.Ordinal);
         double rightBandStart = request.PanelBounds.Right -
             (request.PanelBounds.Width * request.Options.ParticipantBandFraction);
+        LegendTextRegion[] eligibleText = request.TextRegions
+            .Where(text => !excludedTextIds.Contains(text.RegionId) &&
+                text.ReviewStatus != OcrReviewStatus.Rejected &&
+                text.Confidence >= request.Options.MinimumParticipantConfidence &&
+                !string.IsNullOrWhiteSpace(text.Text))
+            .ToArray();
+        bool hasExplicitParticipant = eligibleText.Any(static text => text.Role == OcrTextRole.Participant);
         var participants = new List<LegendParticipantMetadata>();
-        foreach (LegendTextRegion text in request.TextRegions
+        foreach (LegendTextRegion text in eligibleText
                      .OrderBy(static item => item.Bounds.Top)
                      .ThenBy(static item => item.RegionId, StringComparer.Ordinal))
         {
-            if (excludedTextIds.Contains(text.RegionId) ||
-                text.ReviewStatus == OcrReviewStatus.Rejected ||
-                text.Confidence < request.Options.MinimumParticipantConfidence ||
-                string.IsNullOrWhiteSpace(text.Text))
-            {
-                continue;
-            }
-
             bool inRightBand = text.Bounds.Center.X >= rightBandStart ||
                 text.Bounds.Left >= request.PlotBounds.Right;
-            bool explicitParticipant = text.Role == OcrTextRole.Participant && inRightBand;
-            bool positionalParticipant = text.Role == OcrTextRole.Other && inRightBand && LooksLikeName(text.Text);
+            bool explicitParticipant = text.Role == OcrTextRole.Participant;
+            bool positionalParticipant = !hasExplicitParticipant &&
+                text.Role == OcrTextRole.Other && inRightBand && LooksLikeName(text.Text);
             if (!explicitParticipant && !positionalParticipant)
             {
                 continue;

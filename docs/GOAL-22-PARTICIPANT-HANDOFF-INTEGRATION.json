@@ -1,0 +1,414 @@
+{
+  "schema": "graphreader.goal22.participant-handoff-integration.v1",
+  "status": "explicit_participant_metadata_preserved_on_fixed_synthetic_workflow",
+  "goal22_complete": false,
+  "base_commit": "8ee55bf2d8adf7c8d1c56cdfcaafd2708c7318d1",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.Legends/LegendReasoningService.cs",
+      "archive": "artifacts/goal22-runs/workflow-participant-handoff-checks-v1/source-snapshot/src/GraphReader.Legends/LegendReasoningService.cs",
+      "sha256": "81fc1b784c42d0e9c513a497af5c9903cc91dc6139acf05ac4b316dab1396327"
+    },
+    {
+      "path": "src/GraphReader.Legends/LegendReasoningContracts.cs",
+      "archive": "artifacts/goal22-runs/workflow-participant-handoff-checks-v1/source-snapshot/src/GraphReader.Legends/LegendReasoningContracts.cs",
+      "sha256": "96fcf4946ef2991a7eda14fd2b7def536dc14e68be6eb6a08e6bac4428896a50"
+    },
+    {
+      "path": "tests/GraphReader.Legends.Tests/LegendReasoningServiceTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-participant-handoff-checks-v1/source-snapshot/tests/GraphReader.Legends.Tests/LegendReasoningServiceTests.cs",
+      "sha256": "bfea60240d0a334720190ac0cf752a6cfdc16d8788a02c829fe70eba7adbdd38"
+    }
+  ],
+  "compiled_source_snapshot_count": 265,
+  "all_source_snapshots_verified": true,
+  "repair_definition": {
+    "failure_mode": "An explicitly recognized participant label outside the right band is discarded, allowing unrelated right-band text to become participant metadata.",
+    "responsible_subsystem": "LegendReasoningService.ResolveParticipants",
+    "isolated_change": "Honor eligible explicit Participant roles across the panel; use right-band name inference only when no eligible explicit participant is available. Preserve confidence, rejection, legend/callout exclusions and the original OCR text.",
+    "files": [
+      "src/GraphReader.Legends/LegendReasoningService.cs",
+      "src/GraphReader.Legends/LegendReasoningContracts.cs",
+      "tests/GraphReader.Legends.Tests/LegendReasoningServiceTests.cs"
+    ],
+    "metric": "Participant identity and source text survive OCR-to-legend handoff; unrelated role/position cannot replace an explicit label; rejected/low-confidence inputs stay excluded. Regression and unchanged fixed workflow checks.",
+    "acceptance_bar": "Deterministic checks pass; prior scientific values, point locations, phases and series membership remain unchanged. Model bars and frozen schemas unchanged.",
+    "diagnosis": {
+      "path": "artifacts/goal22-runs/series-participant-diagnostic-v1/diagnostic.json",
+      "sha256": "f3b3ae2351717a3f7eb6d5947308ff1267de9341de363005fc16c22c37cb9d73"
+    },
+    "splits": "Fixed20train/3dev plus independently authored development fixtures",
+    "sealed_budget": 0,
+    "training": false,
+    "new_model_revision": false,
+    "production_approved": false
+  },
+  "comparison": {
+    "source_count": 23,
+    "observed_panels": 30,
+    "raw_axis_ocr_markers_calibration_unchanged": true,
+    "completed_sources": 11,
+    "failed_sources": 12,
+    "all_case_outcomes_unchanged": true,
+    "minimal_csv_row_multisets_unchanged": true,
+    "minimal_csv_bytes_all_unchanged": false,
+    "minimal_csv_count": 35,
+    "byte_changed_csv_count": 1,
+    "ordering_changes": [
+      {
+        "source_sha256": "bbd5105c92a45f16c113f2e099c58569abb746621c9fba88c1eb30cde54f85c7",
+        "before_file": "panel-001_participant_Primary outcome.csv",
+        "after_file": "panel-001_Participant 01_Primary outcome.csv",
+        "before_sha256": "68716f14aeec8932021bdfe91a3acc7606c8a5af38ede12e89cf8d90178ab360",
+        "after_sha256": "bb75975628e0c50729f1309d40163d8302e06fe29743b7fbd64ed8df93fdac25",
+        "changed_row_indices_zero_based": [
+          1,
+          2
+        ],
+        "explanation": "Only equal-phase, equal-x row ties changed order; every row and every series membership is identical."
+      }
+    ],
+    "scientific_audit_row_multisets_and_series_partitions_unchanged": true,
+    "preserved_exported_points": 272,
+    "changed_participant_filename_count": 34,
+    "changed_cases": [
+      {
+        "source_sha256": "7bba69001b3094df9d2ae986a8888f724be76015154abd986c4c24af8d0283f7",
+        "before": [
+          "Review_Primary outcome.csv"
+        ],
+        "after": [
+          "Participant 01_Primary outcome.csv"
+        ]
+      },
+      {
+        "source_sha256": "a1affcd5f8efc76168d9cace16197608de2e39c191951ac52bc02b48c2395adb",
+        "before": [
+          "Probe_Cross with unknown fill.csv",
+          "Probe_Observed outcome.csv",
+          "Probe_Open circle.csv",
+          "Probe_Open diamond.csv"
+        ],
+        "after": [
+          "Participant 01_Cross with unknown fill.csv",
+          "Participant 01_Observed outcome.csv",
+          "Participant 01_Open circle.csv",
+          "Participant 01_Open diamond.csv"
+        ]
+      },
+      {
+        "source_sha256": "24decddbc101679cce5638bb3d81911dabc0464d81356ad2ad1b2c0f5a209e06",
+        "before": [
+          "participant_Filled cross.csv"
+        ],
+        "after": [
+          "Participant 01_Filled cross.csv"
+        ]
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "before": [
+          "Probe_Observed outcome.csv",
+          "Probe_Open circle.csv",
+          "Probe_Open diamond-2.csv",
+          "Probe_Open diamond.csv",
+          "Probe_Open other marker.csv"
+        ],
+        "after": [
+          "Participant 01_Observed outcome.csv",
+          "Participant 01_Open circle.csv",
+          "Participant 01_Open diamond-2.csv",
+          "Participant 01_Open diamond.csv",
+          "Participant 01_Open other marker.csv"
+        ]
+      },
+      {
+        "source_sha256": "52ff623b267707d04d8ec9df1fa551d5f529dda38bb1e21984c8e40f99d96312",
+        "before": [
+          "participant_Primary outcome.csv"
+        ],
+        "after": [
+          "Participant 01_Primary outcome.csv"
+        ]
+      },
+      {
+        "source_sha256": "06ed86a09fd336a1e957a96b2067314b0ce6c47a4b13ff9f8154f028413e799d",
+        "before": [
+          "Probe_Open circle.csv",
+          "Probe_Open other marker.csv",
+          "Probe_Open triangle down.csv"
+        ],
+        "after": [
+          "Participant 01_Open circle.csv",
+          "Participant 01_Open other marker.csv",
+          "Participant 01_Open triangle down.csv"
+        ]
+      },
+      {
+        "source_sha256": "756b33eafb26b9303f2061b88664760ebbc0e4c761c92ac3b27c3142209f7dca",
+        "before": [
+          "Probe_Open circle-2.csv",
+          "Probe_Open circle.csv",
+          "Probe_Open cross.csv",
+          "Probe_Open other marker.csv"
+        ],
+        "after": [
+          "Participant 01_Open circle-2.csv",
+          "Participant 01_Open circle.csv",
+          "Participant 01_Open cross.csv",
+          "Participant 01_Open other marker.csv"
+        ]
+      },
+      {
+        "source_sha256": "c5d7f2e06584e6ce1f420bd14d4332da98c53f5335f7ad89480df618f8073ffd",
+        "before": [
+          "participant_Filled circle.csv",
+          "participant_Filled cross.csv",
+          "participant_Filled other marker-2.csv",
+          "participant_Filled other marker.csv",
+          "participant_Filled star.csv"
+        ],
+        "after": [
+          "Participant 01_Filled circle.csv",
+          "Participant 01_Filled cross.csv",
+          "Participant 01_Filled other marker-2.csv",
+          "Participant 01_Filled other marker.csv",
+          "Participant 01_Filled star.csv"
+        ]
+      },
+      {
+        "source_sha256": "5f44d7ec0d119e07c94f86fbef9047bde3e3f2e0a1bfa5a1ee46aa58a43f5f3a",
+        "before": [
+          "Probe_Open circle.csv",
+          "Probe_Open diamond-2.csv",
+          "Probe_Open diamond.csv",
+          "Probe_Primary outcome.csv"
+        ],
+        "after": [
+          "Participant 01_Open circle.csv",
+          "Participant 01_Open diamond-2.csv",
+          "Participant 01_Open diamond.csv",
+          "Participant 01_Primary outcome.csv"
+        ]
+      },
+      {
+        "source_sha256": "bbd5105c92a45f16c113f2e099c58569abb746621c9fba88c1eb30cde54f85c7",
+        "before": [
+          "panel-001_participant_Primary outcome.csv",
+          "panel-002_Probe_Primary outcome.csv",
+          "panel-003_participant_Primary outcome.csv",
+          "panel-004_Probe_Open diamond.csv",
+          "panel-005_Probe_Primary outcome.csv",
+          "panel-006_Probe_Primary outcome.csv"
+        ],
+        "after": [
+          "panel-001_Participant 01_Primary outcome.csv",
+          "panel-002_Participant 02_Primary outcome.csv",
+          "panel-003_Participant 03_Primary outcome.csv",
+          "panel-004_Participant 04_Open diamond.csv",
+          "panel-005_Participant 05_Primary outcome.csv",
+          "panel-006_Participant 06_Primary outcome.csv"
+        ]
+      }
+    ],
+    "first_audit_failure_retained": {
+      "path": "artifacts/goal22-tools/Audit-ParticipantHandoffWorkflow.py",
+      "sha256": "81655241984f79ab81fa3532ee5f799a89c715ab792fefd5838e17e594f65708",
+      "failure": "AssertionError: Minimal CSV contents changed",
+      "diagnosis": "ExportService.cs orders equal phase/x/index/series rows by randomly generated PointId. One two-row tie reversed. V2 explicitly retains this byte difference and verifies row multisets and tie keys."
+    },
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false
+  },
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 11,
+    "failed_cases": 12,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 41,
+    "matched_series": 16,
+    "truth_points": 706,
+    "predicted_points": 272,
+    "matched_points": 226,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 287,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 223,
+    "correct_rows": 218,
+    "missing_rows": 501,
+    "extra_rows": 64,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 226,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 480,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8308823529411765,
+    "unique_point_structural_coverage": 0.32011331444759206,
+    "unique_point_value_precision": 0.8308823529411765,
+    "unique_point_value_coverage": 0.32011331444759206,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.759581881533101,
+    "relational_row_coverage": 0.3011049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9775784753363229,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 12
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 11,
+    "failed_cases": 12,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 41,
+    "matched_series": 16,
+    "truth_points": 706,
+    "predicted_points": 272,
+    "matched_points": 226,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 287,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 223,
+    "correct_rows": 218,
+    "missing_rows": 501,
+    "extra_rows": 64,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 226,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 480,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8308823529411765,
+    "unique_point_structural_coverage": 0.32011331444759206,
+    "unique_point_value_precision": 0.8308823529411765,
+    "unique_point_value_coverage": 0.32011331444759206,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.759581881533101,
+    "relational_row_coverage": 0.3011049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9775784753363229,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 12
+    }
+  },
+  "execution_seconds": 163.69609580000002,
+  "stage_version_before": "0.1.1",
+  "stage_version_after": "0.1.2",
+  "schema_version_changed": false,
+  "checks": {
+    "app": {
+      "path": "artifacts/goal22-runs/workflow-participant-handoff-checks-v1/test-results/app.trx",
+      "sha256": "bf1cc8b4eb90c975c88411328e6ddaa8705590a01389d34e48e93998704d0169",
+      "passed": 373,
+      "skipped": 0
+    },
+    "legends": {
+      "path": "artifacts/goal22-runs/workflow-participant-handoff-checks-v1/test-results/legends.trx",
+      "sha256": "8c747cf80c81f0197eb015ae1905f4068578e5fab950c50a9e70a14d56df9b27",
+      "passed": 47,
+      "skipped": 0
+    },
+    "pre_repair_regression": {
+      "path": "artifacts/goal22-runs/participant-handoff-before-v1/test-results/before.trx",
+      "sha256": "f0cab5317daf7567bf32b5cf0869f1029cde1a24d08cfef52fc65de312fda8ec",
+      "failed": 3,
+      "passed": 0
+    },
+    "tool_build": {
+      "path": "artifacts/goal22-runs/workflow-participant-handoff-checks-v1/build.log",
+      "sha256": "9844b62144c7c58e5f8941c7b23506046a07aec929e625ff63b22a5390b2b08f"
+    },
+    "tool_warnings": 0,
+    "tool_errors": 0,
+    "private_runner_self_test": {
+      "path": "artifacts/goal22-runs/workflow-participant-handoff-checks-v1/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    }
+  },
+  "evidence": {
+    "candidate-binding.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-participant-handoff-v1/candidate-binding.json",
+      "sha256": "73def6a2b486903b7c3c92db60e963c6637ac4c1f9e48ed15b82e7925387ec08"
+    },
+    "input-manifest.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-participant-handoff-v1/input-manifest.json",
+      "sha256": "98381052d8229a0813843fffc85ad245c8e192b9bcf5118f4c7dcc20c330dddc"
+    },
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-participant-handoff-v1/execution/report.json",
+      "sha256": "db36bcf9068b3c4b167f2f480f63dc637efc5d06f3ae37c0de5414ba46cfe6d0"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-participant-handoff-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "6683ecc90a404c21b41653ffb1ba29cbd04d19180905a966f19341dfd6cb0ea9"
+    },
+    "csv-score-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-participant-handoff-v1/csv-score-normalized-phases.json",
+      "sha256": "14e22ca57cac903ccd6b47877b8213e5eccdd7081510fc45368f0e11b22c9e94"
+    },
+    "comparison-v2.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-participant-handoff-v1/comparison-v2.json",
+      "sha256": "ebe3f42f633541a23f52e62bf47e2d760feebd739236c343c56a5ce8e4b0a20a"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-participant-handoff-v1/source-bindings.json",
+      "sha256": "e9dbf9f3e6269f76c42b3fcc2639341c9f3734eed533d14c26927614cdadbb1f"
+    }
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/csv-score-normalized-phases.json",
+    "sha256": "48c5bcc65be81346e8b880fccc11cd019eb16c133e7d862c6b7321bda3fa53df"
+  },
+  "previous_checkpoint_ci": {
+    "status": "completed",
+    "commit": "8ee55bf2d8adf7c8d1c56cdfcaafd2708c7318d1",
+    "started_utc": "2026-09-20T11:37:25.4626434Z",
+    "updated_utc": "2026-09-20T11:45:08.2812150Z",
+    "notifier_pid": 54228,
+    "run_id": 35508328780,
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35508328780",
+    "conclusion": "success",
+    "error": null,
+    "user_continuation_required": false
+  },
+  "known_limitations": [
+    "One minimal CSV changes byte order for two equal-session rows because the existing exporter uses random point IDs as the final tie-breaker. All scientific row multisets and grouping memberships are unchanged; the initial byte-equality audit failure is retained.",
+    "Explicit OCR roles may still be incorrect. Original wording, confidence and review state are preserved; no participant truth was supplied to inference.",
+    "The same 23-source workflow still fails product acceptance: 11 sources complete, 12 fail, 226/706 unique values and 218/724 relational rows are correct.",
+    "Marker shape inconsistency and series fragmentation remain diagnosed but unresolved."
+  ],
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}

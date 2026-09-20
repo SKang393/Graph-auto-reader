@@ -176,6 +176,48 @@ public sealed class LegendReasoningServiceTests
     }
 
     [TestMethod]
+    [DataRow(20, 5)]
+    [DataRow(180, 5)]
+    [DataRow(20, 130)]
+    [DataRow(405, 5)]
+    public async Task ExplicitParticipantOutsideRightBandTakesPrecedenceOverPositionalGuess(int x, int y)
+    {
+        LegendTextRegion participant = LegendTestFixtures.Text("identified", x, y, "Case Q", OcrTextRole.Participant, 0.75);
+        var request = LegendTestFixtures.Request(textRegions:
+        [
+            LegendTestFixtures.Text("incidental", 405, 80, "Procedure", OcrTextRole.Other, 0.99),
+            participant,
+        ]);
+
+        var result = await ResolveAsync(request);
+
+        Assert.HasCount(1, result.Participants);
+        Assert.AreEqual("identified", result.Participants[0].TextRegionId);
+        Assert.AreEqual("Case Q", result.Participants[0].Name);
+        Assert.AreEqual(participant.Bounds, result.Participants[0].Bounds);
+        Assert.IsFalse(result.Warnings.Contains("participant_inferred_from_right_band", StringComparer.Ordinal));
+        Assert.IsFalse(result.Series.Any(static series => series.Name is "Case Q" or "Procedure"));
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task UnusableExplicitParticipantDoesNotReplaceEligibleFallback(bool rejected)
+    {
+        var participant = LegendTestFixtures.Text("unusable", 20, 5, "Case Q", OcrTextRole.Participant,
+            rejected ? 0.95 : 0.1) with { ReviewStatus = rejected ? OcrReviewStatus.Rejected : OcrReviewStatus.Unreviewed };
+        var result = await ResolveAsync(LegendTestFixtures.Request(textRegions:
+        [
+            participant,
+            LegendTestFixtures.Text("fallback", 405, 130, "Unfamiliar Name", OcrTextRole.Other, 0.94),
+        ]));
+
+        Assert.HasCount(1, result.Participants);
+        Assert.AreEqual("fallback", result.Participants[0].TextRegionId);
+        CollectionAssert.Contains(result.Warnings.ToArray(), "participant_inferred_from_right_band");
+    }
+
+    [TestMethod]
     public async Task AmbiguousNearbyTextIsNotInferredAsParticipant()
     {
         var request = LegendTestFixtures.Request(
