@@ -96,6 +96,8 @@ internal static class FrozenCandidateSyntheticRunner
                     repositoryRoot, outputRoot, binding, cancellationToken, allowSyntheticClassifier: true)
                 .ConfigureAwait(false);
         var diagnosticFiles = new List<object>();
+        var observedPanelIds = new HashSet<Guid>();
+        var postFailureDiagnostics = new List<object>();
         candidate.Adapter.CandidateCalibrationObserver = observation =>
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -113,6 +115,7 @@ internal static class FrozenCandidateSyntheticRunner
                 observation,
             }, DiagnosticJsonOptions);
             WriteNew(path, bytes);
+            observedPanelIds.Add(observation.PanelId);
             diagnosticFiles.Add(new
             {
                 source_id = observation.SourceId,
@@ -221,6 +224,36 @@ internal static class FrozenCandidateSyntheticRunner
                     error = exception.Message,
                     failure_type = exception.GetType().Name,
                 });
+                ProductionPanelEvidence[] sourcePanels = candidate.PanelStore.PanelIds
+                    .Select(candidate.PanelStore.Get)
+                    .Where(evidence => evidence.Panel.SourceId == sourceId)
+                    .ToArray();
+                Guid? failedPanelId = exception is ProductionWorkflowStageException stageFailure &&
+                    stageFailure.CompletedEvidence.Count > 0
+                    ? stageFailure.CompletedEvidence[^1].PanelId : null;
+                SyntheticDiagnosticContinuationResult continuation =
+                    await FrozenSyntheticDiagnosticContinuation.RunAsync(
+                        sourcePanels.Select(static evidence => evidence.Panel.PanelId).ToArray(),
+                        observedPanelIds,
+                        failedPanelId,
+                        async (panelId, token) =>
+                        {
+                            ProductionPanelEvidence evidence = candidate.PanelStore.Get(panelId);
+                            var prepared = new WorkflowPreparedPanel(
+                                evidence.Panel, evidence.Panel.Original, enhanced: null, evidence.Warnings);
+                            _ = await WorkflowDetectionExecution.ExecuteAsync(
+                                candidate.PanelStore, prepared, WorkflowImageVariant.Original,
+                                runId, projectId, candidate.Adapter.DetectForCandidateEvaluationAsync, token)
+                                .ConfigureAwait(false);
+                        }, cancellationToken).ConfigureAwait(false);
+                postFailureDiagnostics.Add(new
+                {
+                    source_id = sourceId,
+                    original_workflow_status = "failed",
+                    export_attempted = false,
+                    diagnostic_only = true,
+                    continuation,
+                });
             }
         }
         stopwatch.Stop();
@@ -247,6 +280,7 @@ internal static class FrozenCandidateSyntheticRunner
             model_selection_performed = false,
             truth_consumed_by_inference = false,
             calibration_diagnostic_files = diagnosticFiles,
+            post_failure_panel_diagnostics = postFailureDiagnostics,
             cases = caseReports,
         };
         byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(report, ReportJsonOptions);

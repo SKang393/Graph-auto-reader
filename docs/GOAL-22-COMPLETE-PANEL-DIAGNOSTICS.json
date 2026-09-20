@@ -1,0 +1,438 @@
+{
+  "schema": "graphreader.synthetic-diagnostic-continuation.v1",
+  "status": "repair_verified_goal_incomplete",
+  "source_bindings": [
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenSyntheticDiagnosticContinuation.cs",
+      "archive": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenSyntheticDiagnosticContinuation.cs",
+      "sha256": "55fb471600bbaaa00e37953af70732377b2aa6274753aeb2ca989513ea2f65ae"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenSyntheticDiagnosticContinuationSelfTest.cs",
+      "archive": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenSyntheticDiagnosticContinuationSelfTest.cs",
+      "sha256": "c333851be6571b467a75eb8deef58cb1638edb8cf4517f780d26ccf8ed4ac4ea"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs",
+      "archive": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs",
+      "sha256": "eb5b7ef0dd7baab55bc908d169c70ad131132e706b81aca34921c1090095a266"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/Program.cs",
+      "archive": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/Program.cs",
+      "sha256": "5ec2e74e9c268eb77060dc8ada51555d0a3a6013edd393579d0c321a84788c97"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "archive": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "ebea9a7eb4ee15c66d46f2369008c383ba49b1e3a7e8ff610ba383282e3a1e57"
+    }
+  ],
+  "build": {
+    "path": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/build.log",
+    "sha256": "9c6215ccc41355d943d18098bab4840720ec324b299b8311d90ddaa0dcc78c3b"
+  },
+  "checks": [
+    {
+      "command": "--self-test-synthetic-diagnostic-continuation",
+      "evidence": {
+        "path": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/synthetic-diagnostic-continuation.json",
+        "sha256": "2bb8ca6c746431430af64227c201951057b14682e03b7040313d5df25ffbf495"
+      }
+    },
+    {
+      "command": "--self-test-frozen-workflow-csv-binding",
+      "evidence": {
+        "path": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/frozen-workflow-csv-binding.json",
+        "sha256": "2aa9bc58636dd40a629e5922b265416b0f1ef9cf11d1f3cfa6b18a0bbae33de2"
+      }
+    },
+    {
+      "command": "--self-test-whole-workflow-csv",
+      "evidence": {
+        "path": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/whole-workflow-csv.json",
+        "sha256": "b143dbe8553268ca8a664522308fcbb00256623d83a7c4773e1be3fcffbd7b1e"
+      }
+    },
+    {
+      "command": "--self-test-real-workflow-admission",
+      "evidence": {
+        "path": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/real-workflow-admission.json",
+        "sha256": "47402b653460ab2c0a8ac371f06c6b702bc35bcbc65c837cb1a6c4dac018926e"
+      }
+    },
+    {
+      "command": "--self-test-real-workflow-runner",
+      "evidence": {
+        "path": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/real-workflow-runner.json",
+        "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+      }
+    },
+    {
+      "command": "--self-test",
+      "evidence": {
+        "path": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v2/full-self-test.json",
+        "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+      }
+    }
+  ],
+  "validation_seconds": 65.9497848,
+  "initial_build_failure": {
+    "evidence": {
+      "path": "artifacts/goal22-runs/synthetic-diagnostic-continuation-checks-v1/build.log",
+      "sha256": "43d699a43857e69ab529ded4c25c558f92608f19e67691c5e7ecce53e4d5239b"
+    },
+    "reason": "CA2201 rejected deliberately injected OutOfMemoryException in the fixture; narrowly suppressed for that one fixture only."
+  },
+  "workflow": {
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-diagnostic-continuation-v1/execution/report.json",
+      "sha256": "638981ada753cf4a973224fd119f97520e512ab537dc6ef0612438c0425cddb4"
+    },
+    "baseline_report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-spacing-v1/execution/report.json",
+      "sha256": "fe19c2c0a104e155ada0718301469144fdb155b7617eca0b8ec40b2039d20ab6"
+    },
+    "score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-diagnostic-continuation-v1/csv-score-normalized-phases.json",
+      "sha256": "26edc54492d9e64d904728285aa461630fd71a27406530fed2a6a06b10f24fcd"
+    },
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 12,
+      "failed_cases": 11,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 26,
+      "matched_series": 19,
+      "truth_points": 706,
+      "predicted_points": 330,
+      "matched_points": 322,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 330,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 319,
+      "correct_rows": 316,
+      "missing_rows": 405,
+      "extra_rows": 11,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 322,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 384,
+      "unique_point_extra": 8,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9757575757575757,
+      "unique_point_structural_coverage": 0.45609065155807366,
+      "unique_point_value_precision": 0.9757575757575757,
+      "unique_point_value_coverage": 0.45609065155807366,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9575757575757575,
+      "relational_row_coverage": 0.43646408839779005,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9905956112852664,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 11
+      }
+    },
+    "previously_observed_panels": 33,
+    "observed_panels": 39,
+    "newly_observed_panels": 6,
+    "missing_previous_panels": 0,
+    "elapsed_milliseconds": 150720.0641,
+    "continuation": {
+      "source_failures_retained": 11,
+      "panels_attempted": 6,
+      "observations_written": 6,
+      "panel_failures_retained": 4,
+      "sources_skipped": 0,
+      "export_attempted": false
+    }
+  },
+  "regression_verification": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-diagnostic-continuation-v1/regression-verification.json",
+    "sha256": "c20b1b033450447bbd786fbee84215005b5b096c1a741c09835011f54f25cdc1"
+  },
+  "ocr_diagnostic": {
+    "score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-diagnostic-continuation-v1/native-ocr-score.json",
+      "sha256": "10f6bc2ae76bda9a18cbcd87af480452219d120e905a32a90948e147b4c1cf20"
+    },
+    "details": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-diagnostic-continuation-v1/native-ocr-details.json",
+      "sha256": "9c808fba5c10be5f3f14b75c9628a80a6119ae946801b747104952593993761e"
+    },
+    "metrics": {
+      "before": {
+        "train": {
+          "truth_region_count": 709,
+          "predicted_region_count": 543,
+          "geometry_matched_region_count": 529,
+          "geometry_false_positive_count": 14,
+          "geometry_false_negative_count": 180,
+          "recognition_exact_count": 382,
+          "recognition_exact_accuracy": 0.538787023977433,
+          "truth_character_count": 3415,
+          "matched_pair_edit_count": 667,
+          "unmatched_truth_deletion_edit_count": 792,
+          "unmatched_prediction_insertion_edit_count": 53,
+          "character_error_count": 1512,
+          "character_error_rate": 0.4427525622254758,
+          "role_correct_count": 414,
+          "role_accuracy": 0.5839210155148096,
+          "by_expected_runtime_role": {
+            "annotation": {
+              "truth_count": 60,
+              "correct_count": 31,
+              "accuracy": 0.5166666666666667
+            },
+            "axistitle": {
+              "truth_count": 50,
+              "correct_count": 30,
+              "accuracy": 0.6
+            },
+            "legendtext": {
+              "truth_count": 30,
+              "correct_count": 25,
+              "accuracy": 0.8333333333333334
+            },
+            "participant": {
+              "truth_count": 30,
+              "correct_count": 15,
+              "accuracy": 0.5
+            },
+            "phaseheading": {
+              "truth_count": 160,
+              "correct_count": 71,
+              "accuracy": 0.44375
+            },
+            "xtick": {
+              "truth_count": 175,
+              "correct_count": 113,
+              "accuracy": 0.6457142857142857
+            },
+            "ytick": {
+              "truth_count": 204,
+              "correct_count": 129,
+              "accuracy": 0.6323529411764706
+            }
+          },
+          "intersection_over_union_minimum": 0.5
+        },
+        "validation": {
+          "truth_region_count": 183,
+          "predicted_region_count": 169,
+          "geometry_matched_region_count": 163,
+          "geometry_false_positive_count": 6,
+          "geometry_false_negative_count": 20,
+          "recognition_exact_count": 159,
+          "recognition_exact_accuracy": 0.8688524590163934,
+          "truth_character_count": 1019,
+          "matched_pair_edit_count": 6,
+          "unmatched_truth_deletion_edit_count": 96,
+          "unmatched_prediction_insertion_edit_count": 6,
+          "character_error_count": 108,
+          "character_error_rate": 0.10598626104023552,
+          "role_correct_count": 156,
+          "role_accuracy": 0.8524590163934426,
+          "by_expected_runtime_role": {
+            "annotation": {
+              "truth_count": 18,
+              "correct_count": 11,
+              "accuracy": 0.6111111111111112
+            },
+            "axistitle": {
+              "truth_count": 12,
+              "correct_count": 10,
+              "accuracy": 0.8333333333333334
+            },
+            "legendtext": {
+              "truth_count": 11,
+              "correct_count": 10,
+              "accuracy": 0.9090909090909091
+            },
+            "participant": {
+              "truth_count": 9,
+              "correct_count": 8,
+              "accuracy": 0.8888888888888888
+            },
+            "phaseheading": {
+              "truth_count": 60,
+              "correct_count": 54,
+              "accuracy": 0.9
+            },
+            "xtick": {
+              "truth_count": 48,
+              "correct_count": 40,
+              "accuracy": 0.8333333333333334
+            },
+            "ytick": {
+              "truth_count": 25,
+              "correct_count": 23,
+              "accuracy": 0.92
+            }
+          },
+          "intersection_over_union_minimum": 0.5
+        }
+      },
+      "after": {
+        "train": {
+          "truth_region_count": 709,
+          "predicted_region_count": 653,
+          "geometry_matched_region_count": 638,
+          "geometry_false_positive_count": 15,
+          "geometry_false_negative_count": 71,
+          "recognition_exact_count": 416,
+          "recognition_exact_accuracy": 0.5867418899858956,
+          "truth_character_count": 3415,
+          "matched_pair_edit_count": 994,
+          "unmatched_truth_deletion_edit_count": 282,
+          "unmatched_prediction_insertion_edit_count": 54,
+          "character_error_count": 1330,
+          "character_error_rate": 0.38945827232796487,
+          "role_correct_count": 465,
+          "role_accuracy": 0.6558533145275035,
+          "by_expected_runtime_role": {
+            "annotation": {
+              "truth_count": 60,
+              "correct_count": 37,
+              "accuracy": 0.6166666666666667
+            },
+            "axistitle": {
+              "truth_count": 50,
+              "correct_count": 34,
+              "accuracy": 0.68
+            },
+            "legendtext": {
+              "truth_count": 30,
+              "correct_count": 30,
+              "accuracy": 1.0
+            },
+            "participant": {
+              "truth_count": 30,
+              "correct_count": 16,
+              "accuracy": 0.5333333333333333
+            },
+            "phaseheading": {
+              "truth_count": 160,
+              "correct_count": 76,
+              "accuracy": 0.475
+            },
+            "xtick": {
+              "truth_count": 175,
+              "correct_count": 129,
+              "accuracy": 0.7371428571428571
+            },
+            "ytick": {
+              "truth_count": 204,
+              "correct_count": 143,
+              "accuracy": 0.7009803921568627
+            }
+          },
+          "intersection_over_union_minimum": 0.5
+        },
+        "validation": {
+          "truth_region_count": 183,
+          "predicted_region_count": 189,
+          "geometry_matched_region_count": 181,
+          "geometry_false_positive_count": 8,
+          "geometry_false_negative_count": 2,
+          "recognition_exact_count": 177,
+          "recognition_exact_accuracy": 0.9672131147540983,
+          "truth_character_count": 1019,
+          "matched_pair_edit_count": 6,
+          "unmatched_truth_deletion_edit_count": 2,
+          "unmatched_prediction_insertion_edit_count": 8,
+          "character_error_count": 16,
+          "character_error_rate": 0.015701668302257114,
+          "role_correct_count": 174,
+          "role_accuracy": 0.9508196721311475,
+          "by_expected_runtime_role": {
+            "annotation": {
+              "truth_count": 18,
+              "correct_count": 13,
+              "accuracy": 0.7222222222222222
+            },
+            "axistitle": {
+              "truth_count": 12,
+              "correct_count": 12,
+              "accuracy": 1.0
+            },
+            "legendtext": {
+              "truth_count": 11,
+              "correct_count": 11,
+              "accuracy": 1.0
+            },
+            "participant": {
+              "truth_count": 9,
+              "correct_count": 9,
+              "accuracy": 1.0
+            },
+            "phaseheading": {
+              "truth_count": 60,
+              "correct_count": 58,
+              "accuracy": 0.9666666666666667
+            },
+            "xtick": {
+              "truth_count": 48,
+              "correct_count": 46,
+              "accuracy": 0.9583333333333334
+            },
+            "ytick": {
+              "truth_count": 25,
+              "correct_count": 25,
+              "accuracy": 1.0
+            }
+          },
+          "intersection_over_union_minimum": 0.5
+        }
+      }
+    },
+    "scope": "assembled recognized OCR output; raw detector predictions are not recorded by this observer",
+    "full_source_truth_count": 892,
+    "truth_panels": 39,
+    "inference_rerun": false
+  },
+  "helpers": [
+    {
+      "path": "artifacts/goal22-tools/Check-SyntheticDiagnosticContinuation-v2.ps1",
+      "sha256": "01f07ab47fdff2c0913f50f43ac9f15e58d1516ffb360c84f958a14b4933ab59"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-DiagnosticContinuationWorkflow.py",
+      "sha256": "3885f2009b4b59d92824e7e7777f0b5aecae5fb65d5f9a914f1aca6e4ebaf3a3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-DiagnosticContinuationWorkflowWhenReady.ps1",
+      "sha256": "9088e0d8b65582b8d1562c2dc158cee68420fd1e1c6288b64c1b4970a11fc0f2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-DiagnosticContinuationWorkflow.py",
+      "sha256": "795c81fabdebb353b98d8134d487994f0c89925aba38133147f052f3fb8fe73b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-NativeWorkflowOcr.py",
+      "sha256": "aaf728c4eab1576177e7524b031e057e91143177cdf565bf5c953d6e7302dd03"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "all_model_weights_unchanged": true,
+  "production_approved": false,
+  "new_packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false,
+  "license_review": "Project-authored Apache-2.0 changes; existing reviewed weights/native runtime unchanged; no external input or dependency added."
+}
