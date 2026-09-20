@@ -9,6 +9,32 @@ namespace GraphReader.Axis.Tests;
 public sealed class OpenCvLineCandidateProviderTests
 {
     [TestMethod]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    public async Task NativeEdgeGapNeedsOriginalInkConnection(bool horizontal, bool connected)
+    {
+        GrayscaleLineCandidateFrame frame = CreateOccludedAxisFrame(horizontal, connected);
+        byte[] original = frame.Pixels.ToArray();
+        IReadOnlyList<GeometryLineCandidate> candidates = await new OpenCvLineCandidateProvider()
+            .DetectLinesAsync(frame, CancellationToken.None);
+        bool hasConnection = candidates.Any(candidate =>
+            candidate.Source == LineCandidateSource.Other &&
+            (horizontal
+                ? Math.Abs(candidate.Segment.Midpoint.Y - 30.5) < 3 &&
+                    Math.Min(candidate.Segment.Start.X, candidate.Segment.End.X) <= 100 &&
+                    Math.Max(candidate.Segment.Start.X, candidate.Segment.End.X) >= 104
+                : Math.Abs(candidate.Segment.Midpoint.X - 30.5) < 3 &&
+                    Math.Min(candidate.Segment.Start.Y, candidate.Segment.End.Y) <= 100 &&
+                    Math.Max(candidate.Segment.Start.Y, candidate.Segment.End.Y) >= 104));
+
+        Assert.AreEqual(connected, hasConnection,
+            "A local outline may connect native line edges; an equally sized empty gap cannot.");
+        CollectionAssert.AreEqual(original, frame.Pixels.ToArray());
+    }
+
+    [TestMethod]
     public async Task NativeProviderReturnsLsdAndHoughCandidatesForCleanAxes()
     {
         GrayscaleLineCandidateFrame frame = CreateCleanAxisFrame();
@@ -90,6 +116,48 @@ public sealed class OpenCvLineCandidateProviderTests
         }
 
         return new GrayscaleLineCandidateFrame(width, height, width, pixels);
+    }
+
+    private static GrayscaleLineCandidateFrame CreateOccludedAxisFrame(bool horizontal, bool connected)
+    {
+        GrayscaleLineCandidateFrame original = CreateCleanAxisFrame();
+        byte[] pixels = original.Pixels.ToArray();
+        for (int y = 100; y <= 104; y++)
+        {
+            pixels[(y * original.Stride) + 30] = byte.MaxValue;
+            pixels[(y * original.Stride) + 31] = byte.MaxValue;
+        }
+
+        if (connected)
+        {
+            for (int x = 26; x <= 35; x++)
+            {
+                SetBlack(pixels, original.Stride, x, 99);
+                SetBlack(pixels, original.Stride, x, 105);
+            }
+
+            for (int y = 99; y <= 105; y++)
+            {
+                SetBlack(pixels, original.Stride, 26, y);
+                SetBlack(pixels, original.Stride, 35, y);
+            }
+        }
+
+        if (!horizontal)
+        {
+            return original with { Pixels = pixels };
+        }
+
+        byte[] transposed = new byte[pixels.Length];
+        for (int y = 0; y < original.Height; y++)
+        {
+            for (int x = 0; x < original.Width; x++)
+            {
+                transposed[(x * original.Height) + y] = pixels[(y * original.Stride) + x];
+            }
+        }
+
+        return new GrayscaleLineCandidateFrame(original.Height, original.Width, original.Height, transposed);
     }
 
     private static void SetBlack(byte[] pixels, int stride, int x, int y) =>

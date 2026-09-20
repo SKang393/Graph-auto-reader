@@ -1,0 +1,140 @@
+{
+  "schema": "graphreader.goal22.native-axis-connected-ink.v1",
+  "status": "axis_connectivity_repaired_downstream_marker_and_ocr_failures_remain",
+  "base_commit": "abee6346c06521514df0a39d7793665a86faeb36",
+  "change": "Supplement aligned native edge fragments only when a bounded original-ink path joins them. Default native endpoint gap is greater than 6 and at most 9 pixels. Empty gaps remain disconnected.",
+  "source_bindings": {
+    "path": "artifacts/goal22-runs/axis-connected-ink-checks-v2/source-bindings.json",
+    "sha256": "5b70d3221b83fec4021020cd97abfb6ee690c3390039ce111170c1b0b8032134"
+  },
+  "validation": {
+    "axis": {
+      "report": {
+        "path": "artifacts/goal22-runs/axis-connected-ink-checks-v2/test-results/axis.trx",
+        "sha256": "276aa253026612315f5d47ad8e049ac62090516ff3a8cdd865fb30789fc93e43"
+      },
+      "total": 64,
+      "passed": 64,
+      "failed": 0
+    },
+    "app": {
+      "report": {
+        "path": "artifacts/goal22-runs/axis-connected-ink-checks-v2/test-results/app.trx",
+        "sha256": "d2b11bcb779a9d92b269db88b25dd5d0635b7eca6634a887d7cf42485fbe30a9"
+      },
+      "total": 418,
+      "passed": 418,
+      "failed": 0
+    },
+    "build": {
+      "log": {
+        "path": "artifacts/goal22-runs/axis-connected-ink-checks-v2/build.log",
+        "sha256": "b7972ebb4c1ef3fe7ca7d1b7e0a3cd8663e2ec02315340ad8034b572cbe5180e"
+      },
+      "warnings": 0,
+      "errors": 0,
+      "seconds": 10.52
+    },
+    "private-runner-self-test": {
+      "report": {
+        "path": "artifacts/goal22-runs/axis-connected-ink-checks-v2/private-runner-self-test.json",
+        "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+      },
+      "status": "pass",
+      "real_or_sealed_reads": 0
+    },
+    "frozen-binding-self-test": {
+      "report": {
+        "path": "artifacts/goal22-runs/axis-connected-ink-checks-v2/frozen-binding-self-test.json",
+        "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+      },
+      "status": "pass",
+      "real_or_sealed_reads": 0
+    }
+  },
+  "whole_workflow": {
+    "candidate_binding": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-axis-ink-v1/candidate-binding.json",
+      "sha256": "054aec3f4de069383fd390c13af6584088f26454cb1460d48c3f396a99cd44fc"
+    },
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-axis-ink-v1/execution/report.json",
+      "sha256": "c2e51d45d7534a485032380b3ee88c5a7f052bb6f5f8fdc7377c49a794700bbb"
+    },
+    "comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-axis-ink-v1/comparison.json",
+      "sha256": "7fa7b485e3461673a3cf7d9997e910810315ebcf2f8853b2989420ccfc13d830"
+    },
+    "score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-axis-ink-v1/csv-score-normalized-phases.json",
+      "sha256": "ec846cbe38598e09a67085c72f674c50595d7e25b09017ca9b5d965c397f6f58"
+    },
+    "metrics": {
+      "completed_cases": 12,
+      "failed_cases": 11,
+      "truth_points": 706,
+      "unique_point_value_correct": 322,
+      "unique_point_missing": 384,
+      "unique_point_extra": 8,
+      "expected_rows": 724,
+      "correct_rows": 314,
+      "wrong_phase_rows": 5,
+      "wrong_scale_rows": 0,
+      "duplicate_rows": 0
+    },
+    "previously_observed_panels": 32,
+    "observed_panels": 33,
+    "missing_previous_panels": 0,
+    "all_exported_numeric_values_preserved": true,
+    "all_aggregate_metrics_preserved": true,
+    "elapsed_milliseconds": 126554.811,
+    "rebuilt_managed_assemblies_with_changed_bytes": [
+      "GraphReader.App.dll",
+      "GraphReader.Axis.dll",
+      "GraphReader.Domain.dll",
+      "GraphReader.Export.dll",
+      "GraphReader.Imaging.dll",
+      "GraphReader.Inference.dll",
+      "GraphReader.Legends.dll",
+      "GraphReader.Markers.dll",
+      "GraphReader.Ocr.dll",
+      "GraphReader.Pdf.dll",
+      "GraphReader.Phases.dll",
+      "GraphReader.RealAcceptance.Ocr.dll",
+      "GraphReader.SuperResolution.dll"
+    ],
+    "runtime_binding_note": "The checker and its managed dependencies were rebuilt together. Source edits are limited to the native axis provider and its application stage identifier; other assemblies are not claimed byte-identical. All payloads and current runtime files are individually hash-bound.",
+    "all_23_source_bytes_unchanged": true,
+    "all_model_weights_unchanged": true,
+    "all_truth_and_tolerances_unchanged": true
+  },
+  "target_diagnostic": {
+    "before_replay": {
+      "path": "artifacts/goal22-runs/axis-divider-selection-diagnostic-v1/replay.json",
+      "sha256": "447db811271b2ecb6d0a7cc474286ee55b6ac8dbf9d6cca0e57f0a621a7c3125"
+    },
+    "source_sha256": "66b9d453b029155079528274ee60176ea28b423dd6e9bb8ca11853b25b52e9fd",
+    "first_panel_axis_x_before": 352,
+    "first_panel_axis_x_after": 104.94707544976946,
+    "first_panel_calibration_before": "InvalidSessionOrigin",
+    "first_panel_calibration_after": "Valid",
+    "first_panel_accepted_markers_before": 13,
+    "first_panel_accepted_markers_after": 19,
+    "next_panel": "Now reached but blocked because the first observed marker maps to session 2. The missing marker is not inferred or silently exported."
+  },
+  "limitations": [
+    "No gain in final CSV counts: a later panel still blocks the source.",
+    "A severely damaged source retains incorrect axis geometry and fails calibration before export.",
+    "Eleven sources still fail; eight extra unique points and five wrong phase rows remain counted.",
+    "This is development evidence, not sealed or private acceptance."
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_dependency": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33",
+  "goal22_status": "incomplete"
+}
