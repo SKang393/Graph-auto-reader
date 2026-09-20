@@ -4,6 +4,18 @@ This package creates deterministic, declarative single-case design graph scenes
 and perfect original-pixel annotations. It uses no published figures, private
 images, downloaded assets, or bundled font files.
 
+`condition_label_layout.bind_condition_label_layout` is an explicit train/dev
+repair for condition captions placed outside their own phases. Supply authored
+region-to-condition-bar bindings; repeated A/B labels are never associated by
+their possibly incorrect current positions. The repair preserves phase meaning,
+bar geometry, points, degradation, every label string and historical inputs.
+It moves only the caption and its annotation artifact within the authored phase
+header, retaining and reporting layouts with no clear space. Sealed/private
+inputs and missing or contradictory bindings are rejected. The accompanying
+`tools/GraphReader.SyntheticRuntimeEvidence/audit_condition_label_layout.py`
+checks a checksum-bound inventory without training or model inference. This
+profile does not automatically enter a training or acceptance corpus.
+
     python -m ml.synthetic.generate --preset smoke --seed 393
     python -m ml.synthetic.generate --preset real_range --seed 393
     python -m pytest ml/synthetic/tests -q

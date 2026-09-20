@@ -1,0 +1,231 @@
+{
+  "schema": "graphreader.goal22.condition-label-layout.v1",
+  "status": "generator_repair_verified_mixed_workflow_diagnostic_not_acceptance",
+  "base_commit": "5f7551fb19ebb4d5f647b2ba3cc83add2d378010",
+  "goal22_complete": false,
+  "definition": {
+    "path": "artifacts/goal22-runs/condition-label-layout-inventory-v1/definition.json",
+    "sha256": "e4a54287880fe0c967c6bafff36fe24b096c791cec7e47958b2e326f831a6712"
+  },
+  "authored_bindings": {
+    "path": "artifacts/goal22-runs/condition-label-layout-inventory-v1/bindings.json",
+    "sha256": "fcb382175301aa4ec0a250b4633a8d35b567d2294a08b11a982e13ef0710302c"
+  },
+  "changed_sources": [
+    {
+      "path": "ml/synthetic/condition_label_layout.py",
+      "sha256": "fc57f3afd639ff04edaabbdb290d40b6f2e3b70c600b8c3998f6303491bae926",
+      "snapshot": "artifacts/goal22-runs/condition-label-layout-inventory-v1/source-snapshot/ml/synthetic/condition_label_layout.py"
+    },
+    {
+      "path": "ml/synthetic/tests/test_condition_label_layout.py",
+      "sha256": "7cc35b0537cc55d3c68946080eb1422ac56d4ee151cf550fb1b844c1c3ba9cee",
+      "snapshot": "artifacts/goal22-runs/condition-label-layout-inventory-v1/source-snapshot/ml/synthetic/tests/test_condition_label_layout.py"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/audit_condition_label_layout.py",
+      "sha256": "9f8306d450786bdb1062a4832659e9101d3fb56d2fd11680a94026905b2743e5",
+      "snapshot": "artifacts/goal22-runs/condition-label-layout-inventory-v1/source-snapshot/tools/GraphReader.SyntheticRuntimeEvidence/audit_condition_label_layout.py"
+    },
+    {
+      "path": "ml/synthetic/README.md",
+      "sha256": "fd498973b9f821e59679dcddb7320588f475a8e0727325c197050ec762bf2dee",
+      "snapshot": "artifacts/goal22-runs/condition-label-layout-inventory-v1/source-snapshot/ml/synthetic/README.md"
+    }
+  ],
+  "policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "acceptance_bars": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "generator_audit": {
+    "path": "artifacts/goal22-runs/condition-label-layout-audit-v3/report.json",
+    "sha256": "2891886457562d2d49fb96ef3b3b635463299b2013b1eddac03332dc10c31598"
+  },
+  "generator_metrics": {
+    "source_count": 23,
+    "historical_source_images_reproduced": 23,
+    "moved_labels": 25,
+    "out_of_phase_labels_repaired": 21,
+    "unresolved": 0,
+    "points": 706,
+    "elapsed_seconds": 221.3361263999832,
+    "optimizer_steps": 0,
+    "model_inference_runs": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approved": false
+  },
+  "unit_tests": {
+    "result": {
+      "path": "artifacts/goal22-runs/condition-label-layout-checks-v2/tests.xml",
+      "sha256": "8a46f7447092ba3dbbd6679adc92b4c098f414e0311136bc3aa399a9365b7769"
+    },
+    "passed": 30,
+    "failed": 0,
+    "elapsed_seconds": 64.205
+  },
+  "retained_void_attempts": [
+    {
+      "path": "artifacts/goal22-runs/condition-label-layout-audit-v1/void-record.json",
+      "sha256": "94a75201492f81b97ddd98a691dc8db2942eb85e66b133209a111b98984ee665"
+    },
+    {
+      "path": "artifacts/goal22-runs/condition-label-layout-audit-v2/void-record.json",
+      "sha256": "0305c6b19519bcb071a1ba3fbb0e79173290ff9d7be9e79a94955cb1c8fdca39"
+    }
+  ],
+  "workflow_preparation": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/preparation.json",
+    "sha256": "fd339424b55e4aa83c49df37ca6207003d46ec22e8549d5ee45241787585b777"
+  },
+  "candidate_binding": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/candidate-binding.json",
+    "sha256": "3fd8ebbf66cda5957c61673db80836262bb1ed138754a631b15ebf32c1d1d2cb"
+  },
+  "input_manifest": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/input-manifest.json",
+    "sha256": "ca181f9dd04ff2b9836f52ff8d0dc9467da6f798b9c2e2ee8e6353b1e6a4e1b2"
+  },
+  "workflow_report": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/execution/report.json",
+    "sha256": "d22c038e7d87a74aab90924b8676d8f29081ec8dbbe381418251ea4ca7ac01f9"
+  },
+  "workflow_comparison": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/comparison.json",
+    "sha256": "38d8de5b23a151b7402f5421f9d2d6d0dd5e8847dd576962d639ba0ae153b6d8"
+  },
+  "evaluation_input": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/csv-evaluation-input-normalized-phases.json",
+    "sha256": "379110a890bbb672723b1eaa48dc8c3f377b301870ba1b8580074dc339f4331c"
+  },
+  "score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/csv-score-normalized-phases.json",
+    "sha256": "196f5ba7eebe2958cc7c225d71fbe31eefaf8c4288e1107323c63555d748da38"
+  },
+  "paired_export_diagnostic": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/paired-export-diagnostic.json",
+    "sha256": "b004066a858296f1f4667a63b38b3b21d09ca603deff41890fc765011d1ec0f8"
+  },
+  "baseline_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 14,
+    "failed_cases": 9,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 46,
+    "matched_series": 21,
+    "truth_points": 706,
+    "predicted_points": 333,
+    "matched_points": 287,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 348,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 282,
+    "correct_rows": 277,
+    "missing_rows": 442,
+    "extra_rows": 66,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 287,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 419,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8618618618618619,
+    "unique_point_structural_coverage": 0.4065155807365439,
+    "unique_point_value_precision": 0.8618618618618619,
+    "unique_point_value_coverage": 0.4065155807365439,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.7959770114942529,
+    "relational_row_coverage": 0.3825966850828729,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9822695035460993,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 9
+    }
+  },
+  "metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 13,
+    "failed_cases": 10,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 44,
+    "matched_series": 20,
+    "truth_points": 706,
+    "predicted_points": 331,
+    "matched_points": 285,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 346,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 281,
+    "correct_rows": 278,
+    "missing_rows": 443,
+    "extra_rows": 65,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 285,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 421,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8610271903323263,
+    "unique_point_structural_coverage": 0.40368271954674223,
+    "unique_point_value_precision": 0.8610271903323263,
+    "unique_point_value_coverage": 0.40368271954674223,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.8034682080924855,
+    "relational_row_coverage": 0.3839779005524862,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9893238434163701,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 10
+    }
+  },
+  "elapsed_seconds": 151.79180499999998,
+  "new_failure": {
+    "owned_train_seed": 39600,
+    "stage": "export",
+    "code": "NO_EXPORTABLE_SERIES",
+    "observed_cause": "A true open marker is recognized as low-confidence G. OCR withholds its exclusion mask, but downstream text exclusion still rejects its center. Only the baseline marker remains.",
+    "observation": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/execution/stage-evidence/76d8af18-b637-8653-b83b-04d24f7184ee.json",
+      "sha256": "5772f367efffafa21c78b54476184ac1304e276f64f5feaf5acff39c2f9b08be"
+    }
+  },
+  "all_23_sources_and_706_scientific_truth_points_retained": true,
+  "all_three_dev_source_images_unchanged": true,
+  "runtime_reused_byte_for_byte": true,
+  "model_weights_and_operating_thresholds_unchanged": true,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "packaged_build_number": 433,
+  "packaged_version": "0.4.33",
+  "license_review": "Original Apache-2.0 implementation using existing dependencies and owned procedural inputs. No external files, font binaries, model weights or private data added."
+}
