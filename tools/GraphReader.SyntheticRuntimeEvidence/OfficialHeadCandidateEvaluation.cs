@@ -348,12 +348,17 @@ internal static partial class OfficialHeadCandidateEvaluation
                         var recovered = await TickLaneTextRegionRecovery.FindAsync(
                             original, effective, baseline.Result.Regions, panel.PlotBounds, cancellationToken)
                             .ConfigureAwait(false);
+                        var headerGlyphs = await HeaderGlyphTextRegionRecovery.FindAsync(
+                            original, effective, baseline.Result.Regions, panel.PlotBounds, cancellationToken)
+                            .ConfigureAwait(false);
+                        recovered = recovered.Concat(headerGlyphs).ToArray();
                         effective = effective.Concat(recovered).ToArray();
                         effectiveOutput = effectiveOutput.Concat(recovered.Select(region => (object)new
                         {
                             region.RegionId,
                             MemberRawRegionIds = Array.Empty<string>(),
-                            AssemblyKind = "original_pixel_tick_recovery",
+                            AssemblyKind = region.RegionId.StartsWith("header-glyph:", StringComparison.Ordinal)
+                                ? "original_pixel_header_glyph_recovery" : "original_pixel_tick_recovery",
                             CoordinateSpace = "source_original_pixels",
                             PanelPolygon = region.Polygon,
                             SourcePolygon = MapSourcePolygon(panel, region.Polygon),
@@ -394,8 +399,8 @@ internal static partial class OfficialHeadCandidateEvaluation
             string reportPath = Path.Combine(outputRoot, "report.json");
             byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
             {
-                Schema = tickLane ? (layoutClearance ? "graphreader.layout-tick-lane-ocr-evaluation.v1"
-                    : "graphreader.tick-lane-ocr-evaluation.v1") :
+                Schema = tickLane ? (layoutClearance ? "graphreader.layout-tick-lane-ocr-evaluation.v2"
+                    : "graphreader.tick-lane-ocr-evaluation.v2") :
                     layoutClearance ? (Text(request, "schema") == "graphreader.layout-clearance-ocr-inputs.v2"
                     ? "graphreader.layout-clearance-ocr-evaluation.v2" : "graphreader.layout-clearance-ocr-evaluation.v1") :
                     supplemental ? "graphreader.supplemental-head-candidate-evaluation.v1" :
@@ -445,6 +450,7 @@ internal static partial class OfficialHeadCandidateEvaluation
                 MaximumLogicalDetectorRequestsPerPanel = tickLane ? 3 : 2,
                 TickLaneRecovery = tickLane,
                 TickLaneRecoveryVersion = tickLane ? TickLaneTextRegionRecovery.CompositionVersion : null,
+                HeaderGlyphRecoveryVersion = tickLane ? HeaderGlyphTextRegionRecovery.CompositionVersion : null,
                 BaselineReadingsIndependentlyReplayed = tickLane,
                 DetectorRequestsShareExactRuntimeInputAndStageCacheKey = true,
                 GraphStructureConsensusApplied = false,

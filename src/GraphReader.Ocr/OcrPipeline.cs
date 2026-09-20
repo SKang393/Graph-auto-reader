@@ -57,6 +57,8 @@ public sealed record OcrPipelineOptions
     public bool EnableFramedLegendRoleResolution { get; init; }
 
     public bool EnableTickLaneRecovery { get; init; }
+
+    public bool EnableHeaderGlyphRecovery { get; init; }
 }
 
 public sealed class OcrPipeline
@@ -404,7 +406,7 @@ public sealed class OcrPipeline
                 $"ocr_role_needs_review:{item.RegionId}:framed_legend_symbol_context"));
         }
         regions = ResolveTickAlternatives(regions, detectedRegions, warnings, _options);
-        if (_options.EnableTickLaneRecovery)
+        if (_options.EnableTickLaneRecovery || _options.EnableHeaderGlyphRecovery)
         {
             postprocessStopwatch.Stop();
             preprocessStopwatch.Start();
@@ -412,9 +414,18 @@ public sealed class OcrPipeline
             IReadOnlyList<IReadOnlyList<OcrCrop>> recoveryBatches;
             try
             {
-                recovered = await TickLaneTextRegionRecovery.FindAsync(
-                    request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
-                    .ConfigureAwait(false);
+                recovered = _options.EnableTickLaneRecovery
+                    ? await TickLaneTextRegionRecovery.FindAsync(
+                        request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
+                        .ConfigureAwait(false)
+                    : Array.Empty<OcrDetectedRegion>();
+                if (_options.EnableHeaderGlyphRecovery)
+                {
+                    var headerGlyphs = await HeaderGlyphTextRegionRecovery.FindAsync(
+                        request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
+                        .ConfigureAwait(false);
+                    recovered = OcrCollections.Freeze(recovered.Concat(headerGlyphs));
+                }
                 ValidateDetectedRegions(detectedRegions.Concat(recovered).ToArray());
                 recoveryBatches = OcrCropBatcher.CreateBatches(
                     request.OriginalImage, recovered, cropOptions, cancellationToken);
@@ -461,7 +472,9 @@ public sealed class OcrPipeline
                 var recoveredRegions = MergeResults(recovered, recoveryResults, request.PlotBounds, warnings);
                 regions = OcrCollections.Freeze(regions.Concat(recoveredRegions));
                 warnings.AddRange(recoveredRegions.Select(region =>
-                    $"ocr_role_needs_review:{region.RegionId}:original_pixel_tick_recovery"));
+                    $"ocr_role_needs_review:{region.RegionId}:" +
+                    (region.RegionId.StartsWith("header-glyph:", StringComparison.Ordinal)
+                        ? "original_pixel_header_glyph_recovery" : "original_pixel_tick_recovery")));
                 regionFailures = OcrCollections.Freeze(regionFailures.Concat(
                     ExtractRegionFailures(recoveryResults, warnings)));
                 recognitionResults.AddRange(recoveryResults);

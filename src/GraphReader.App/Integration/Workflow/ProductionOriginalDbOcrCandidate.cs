@@ -23,7 +23,7 @@ public sealed partial class ProductionOcrAdapter
     internal const string LegendContextCandidateCompositionVersion =
         "original-db-head-legend-context-v1";
     internal const string TickLaneCandidateCompositionVersion =
-        "original-db-head-tick-lane-v1";
+        "original-db-head-tick-and-header-lanes-v2";
 
     internal static async Task<ProductionOcrAdapter> CreateForFrozenDbHeadCandidateEvaluationAsync(
         FrozenCandidateOcrModelDescriptor detectionModel,
@@ -132,6 +132,7 @@ public sealed partial class ProductionOcrAdapter
                     EnableHeaderLayoutRoleResolution = headerLayoutContext,
                     EnableFramedLegendRoleResolution = framedLegendContext,
                     EnableTickLaneRecovery = tickLaneRecovery,
+                    EnableHeaderGlyphRecovery = tickLaneRecovery,
                 });
         }, detectionModel.Identity, recognitionModel.Identity, reviewedOpenCvRuntimeSha256,
             candidateComposition);

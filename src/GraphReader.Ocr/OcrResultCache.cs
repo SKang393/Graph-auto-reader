@@ -105,6 +105,10 @@ public static class OcrCacheKeyDeriver
         {
             yield return TickLaneTextRegionRecovery.CompositionVersion;
         }
+        if (options.EnableHeaderGlyphRecovery)
+        {
+            yield return HeaderGlyphTextRegionRecovery.CompositionVersion;
+        }
         if (options.EnableFramedLegendRoleResolution)
         {
             yield return FramedLegendRoleResolver.CompositionVersion;
