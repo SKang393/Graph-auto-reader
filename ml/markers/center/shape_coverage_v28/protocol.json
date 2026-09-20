@@ -1,0 +1,95 @@
+{
+  "acceptance_bar": "ml/policy/acceptance-bars.json unchanged. Synthetic development success alone cannot approve production. Real confirmation, sealed evidence, runtime parity, promotion and full workflow gates remain required.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "sealed_runs_authorized": 0
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The center curriculum lacks ordinary triangle, diamond and star positives. Five of twelve thin triangles have nearby emitted proposals and accurate decoded positions but confidence below the unchanged 0.25 threshold. Four of those five have zero local OCR and artifact masks. Broader owned train-only shape coverage may repair representation without changing runtime thresholds. Two diagnostic panels do not establish full-population acceptance.",
+  "isolated_change": "Warm-start the authenticated owned V27 checkpoint using all 44891 unchanged historical training rows plus the complete 2160-raster owned shape supplement. Preserve architecture, native 33-pixel three-channel input, stride, support, fixed dev tensors/truth, focal loss coefficients and radius clamp. Train eight fixed epochs with AdamW at 0.0003, weight decay 0.0001 and batch 128. Final epoch only. Eight warm-start epochs bound adaptation cost; this is not a from-scratch retraining or an epoch selected using dev scores. This declares the full adaptation recipe rather than a causal claim about one factor. Evaluate the previously implemented balanced geometry explicitly and retain legacy-geometry comparisons.",
+  "metric": "Complete 167 component and 9 family dev scenes, 2210 truth points, at fixed 0.25 and existing 5-pixel matching tolerance. Score each subset with the shared precision, recall, proposal recall and prohibited-hit bars. First reproduce all frozen V27 baseline counts. Compare legacy and balanced geometry for both models. Validate ONNX parity over every frozen proposal; threshold sensitivity is descriptive. Follow with all 23 complete synthetic sources and all 706 unique points/724 relational rows, counting failures. Complete-source exactness is descriptive, not an invented acceptance bar.",
+  "split_identities": {
+    "cache_manifest_sha256": "d61e43d62891a5266dfd68dfd8286fdb0d28d685d2146763a9f49dfb24471700",
+    "cache_path": "artifacts/goal22-runs/center-shape-coverage-cache-v3",
+    "counts": {
+      "component": {
+        "hard_negative": 6856,
+        "negative": 32580,
+        "positive": 3258,
+        "positive_radius_over_model_maximum": 1128,
+        "rows": 35838
+      },
+      "coverage": {
+        "hard_negative": 23271,
+        "negative": 38884,
+        "positive": 3863,
+        "positive_radius_over_model_maximum": 1196,
+        "rows": 42747
+      },
+      "family": {
+        "hard_negative": 1761,
+        "negative": 8230,
+        "positive": 823,
+        "positive_radius_over_model_maximum": 0,
+        "rows": 9053
+      }
+    },
+    "coverage_definition": {
+      "contexts": [
+        "isolated",
+        "horizontal_line",
+        "oblique_line",
+        "bent_line",
+        "axis_contact"
+      ],
+      "count": 2160,
+      "grid_stride": 4,
+      "optimizer_steps": 0,
+      "patch_shape": [
+        3,
+        33,
+        33
+      ],
+      "population_sha256": "3e263aa486eda7a425acd66d961ae30c18b93efff55cccab84ae80a207243729",
+      "positive_distance_px": 3.0,
+      "private_reads": 0,
+      "scope": "new_owned_train_only_supplement",
+      "sealed_reads": 0,
+      "shapes": [
+        "circle",
+        "square",
+        "triangle_up",
+        "triangle_down",
+        "diamond",
+        "star",
+        "asterisk",
+        "cross",
+        "other"
+      ],
+      "variants": 16,
+      "version": "proposal-center-owned-shape-coverage-v1"
+    },
+    "coverage_truths": {
+      "count": 2160,
+      "supported_by_positive_proposal": 2159,
+      "unsupported_case_ids": [
+        "0218cc18ead7800de66b6f5b5725764cd0316b1bcf48d4b12d944de1d41aa31a"
+      ]
+    },
+    "development": {
+      "component_scenes": 167,
+      "family_scenes": 9,
+      "inventory_sha256": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099",
+      "truths": 2210
+    },
+    "diagnosis_path": "docs/GOAL-22-MARKER-SHAPE-COVERAGE-DIAGNOSIS.json",
+    "diagnosis_sha256": "9b43bbc79786e7031ca3edc3276106ec98e06d34c26b24d454068ac33dbbe40a",
+    "historical_training_tensor_inventory_sha256": "aaf650b405cb35764c9126e6f692db34664ff899b2e3bd19beb60c93f52e7229",
+    "separation": "New primitive shape coverage shares supported glyph classes, never the existing dev scene identities, geometry, tensors or truths. Original component and family splits stay unchanged. Shared authored primitives are not independent real evidence.",
+    "source_checkpoint_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+  }
+}

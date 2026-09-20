@@ -73,3 +73,6 @@ ml/markers/training-seals/ocr-detection/graph-text-extent-db-head-v44/P1/void-at
 ml/markers/classifier/graph_context_v4/** -text whitespace=cr-at-eol
 docs/GOAL-22-CLASSIFIER-GRAPH-CONTEXT-DIAGNOSIS.json -text whitespace=cr-at-eol
 docs/GOAL-22-GRAPH-CONTEXT-CLASSIFIER-REPAIR.json -text whitespace=cr-at-eol
+# Preserve the recorded V28 pretraining void bytes referenced by its outcome.
+ml/markers/center/shape_coverage_v28/P1_PRETRAINING_VOID.json -text whitespace=cr-at-eol
+ml/markers/training-seals/marker-center/marker-center-shape-coverage-v28/P1/void-attempts/*/void.json -text whitespace=cr-at-eol

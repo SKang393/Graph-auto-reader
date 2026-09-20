@@ -10112,6 +10112,57 @@
       "candidate_report_sha256": "7e266223978103d9dd6a41875272c5ab4c196b215d85b7f23a89e333fbb5538e",
       "optimizer_steps": 6732,
       "closed_utc_date": "2026-09-20"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-shape-coverage-v28",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/shape_coverage_v28/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "7334127b9acf671c5ca8a0127837521004f5b93c27ca28d3a8f99dc981a2f17d"
+      },
+      "protocol_path": "ml/markers/center/shape_coverage_v28/protocol.json",
+      "protocol_sha256": "48df6964e4a47535f8a16fd0cb71278bf9977fb3e6184abc20320232ab8c7ddc",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned synthetic train/dev warm-start adaptation under continued Goal22 authorization. No sealed/private read, production activation or release.",
+      "isolated_change": "Warm-start the authenticated owned V27 checkpoint using all 44891 unchanged historical training rows plus the complete 2160-raster owned shape supplement. Preserve architecture, native 33-pixel three-channel input, stride, support, fixed dev tensors/truth, focal loss coefficients and radius clamp. Train eight fixed epochs with AdamW at 0.0003, weight decay 0.0001 and batch 128. Final epoch only. Eight warm-start epochs bound adaptation cost; this is not a from-scratch retraining or an epoch selected using dev scores. This declares the full adaptation recipe rather than a causal claim about one factor. Evaluate the previously implemented balanced geometry explicitly and retain legacy-geometry comparisons.",
+      "optimizer_steps_expected": 5480,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "pre_sealed_plumbing_retry": {
+        "void_report_sha256": "9e8b96efec81f52adeb997a6988006d315bb8beb1fd768b195158679014ba065",
+        "optimizer_steps_before_void": 0,
+        "hypothesis_recipe_and_all_dataset_bytes_unchanged": true,
+        "baseline_preflight_sha256": "9cc49682e1c5b2abf75d96feb5a816489ff76fc265abf45c899ffb59dad8355b"
+      },
+      "outcome_path": "ml/markers/center/shape_coverage_v28/P1_RESULT.json",
+      "outcome_sha256": "aa6a340ad116ae293c8a821ea5f22e6b627cb03594c2b837ed1d17cab749a95e",
+      "candidate_report_sha256": "624b35bf67d9903448bd0b20026c9436af4afc57806e5b66fbf24381e4697f2d",
+      "optimizer_steps": 5480,
+      "closed_utc_date": "2026-09-20"
     }
   ]
 }

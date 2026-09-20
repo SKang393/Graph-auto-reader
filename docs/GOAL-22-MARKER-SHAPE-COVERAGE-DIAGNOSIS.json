@@ -1,0 +1,290 @@
+{
+  "cache": {
+    "counts": {
+      "component": {
+        "hard_negative": 6856,
+        "negative": 32580,
+        "positive": 3258,
+        "positive_radius_over_model_maximum": 1128,
+        "rows": 35838
+      },
+      "coverage": {
+        "hard_negative": 23271,
+        "negative": 38884,
+        "positive": 3863,
+        "positive_radius_over_model_maximum": 1196,
+        "rows": 42747
+      },
+      "family": {
+        "hard_negative": 1761,
+        "negative": 8230,
+        "positive": 823,
+        "positive_radius_over_model_maximum": 0,
+        "rows": 9053
+      }
+    },
+    "coverage_truths": {
+      "count": 2160,
+      "supported_by_positive_proposal": 2159,
+      "unsupported_case_ids": [
+        "0218cc18ead7800de66b6f5b5725764cd0316b1bcf48d4b12d944de1d41aa31a"
+      ]
+    },
+    "dev": {
+      "component_scenes": 167,
+      "family_scenes": 9,
+      "inventory_sha256": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099",
+      "truths": 2210
+    },
+    "manifest_sha256": "d61e43d62891a5266dfd68dfd8286fdb0d28d685d2146763a9f49dfb24471700",
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3"
+  },
+  "component_training_shapes": "Historical dataset.py draws circles and squares; the real-range overlay adds circles and rectangles, not triangle, diamond or star center positives.",
+  "decision": "Preserve center 0.25, classifier 0.5, fixed dev inputs, calibration checks and all scientific export guards. Add owned shape coverage to training. This is a candidate hypothesis, not a proven cause of every miss.",
+  "fixed_family_point_shapes": {
+    "dev": {
+      "diamond_degraded": 24,
+      "diamond_filled": 24,
+      "diamond_open": 24,
+      "star_filled": 24,
+      "star_open": 24,
+      "triangle_down_degraded": 24,
+      "triangle_down_filled": 9,
+      "triangle_down_open": 9,
+      "triangle_up_degraded": 18,
+      "triangle_up_filled": 14,
+      "triangle_up_open": 12
+    },
+    "train": {
+      "circle_degraded": 120,
+      "circle_filled": 85,
+      "circle_open": 10,
+      "square_degraded": 95,
+      "square_filled": 95,
+      "square_open": 95
+    }
+  },
+  "missed_triangle_local_confidences": [
+    0.2256862223148346,
+    0.1957828402519226,
+    0.020218968391418457,
+    0.13315999507904053,
+    0.20951315760612488
+  ],
+  "optimizer_steps": 0,
+  "pre_training_void": {
+    "baseline_preflight": {
+      "path": "artifacts/goal22-runs/center-shape-v28-baseline-preflight-v2/report.json",
+      "sha256": "9cc49682e1c5b2abf75d96feb5a816489ff76fc265abf45c899ffb59dad8355b"
+    },
+    "optimizer_steps": 0,
+    "path": "ml/markers/center/shape_coverage_v28/P1_PRETRAINING_VOID.json",
+    "reason": "The legacy family development split is named validation. The loader incorrectly required dev. Preserve validation explicitly for family and dev for component; all data files remain byte-identical.",
+    "sealed_reads": 0,
+    "sha256": "9e8b96efec81f52adeb997a6988006d315bb8beb1fd768b195158679014ba065"
+  },
+  "preparation_failure": {
+    "finding": "One visible 9.66-pixel hollow square has no eligible positive proposal under the frozen 17-pixel ink-support window. The corrected preparation retains its truth, all valid negatives and an explicit unsupported-case record. No fabricated positive and no case exclusion.",
+    "optimizer_steps": 0,
+    "path": "artifacts/goal22-runs/center-shape-coverage-preparation-v1/completion.json",
+    "sha256": "6055e055f842b3f45d1a321a8f39fbbe89685444c5ed2c564db29703f871e631"
+  },
+  "private_reads": 0,
+  "production_approval": false,
+  "remaining_classifier_issue": "Accurately localized markers touching a legend or arrow can still be rejected. Hold the V4 classifier fixed during this center adaptation; do not hide this separate defect.",
+  "runtime_reproduction": {
+    "above_threshold_coordinates_maximum_error": 0.0,
+    "classifier_artifact_probability_maximum_error": 1.0132789611816406e-06,
+    "complete_score_capture_threads": 1,
+    "stage_replay_thread_difference": "Center replay used 12 eligible intra-operation threads instead of the source workflow one-thread setting; loaded assemblies, weights and algorithms are identical. Classifier replay uses the frozen one-thread setting. Paired coordinates are checked below."
+  },
+  "scope": "Owned synthetic development diagnosis. No private, sealed or optimizer use.",
+  "sealed_reads": 0,
+  "sources": {
+    "artifacts/goal22-runs/balanced-marker-stage-replay-v1/loss-diagnosis.json": "1943c8cfa68ed5697dae99b804a2c4daeaa6a11eceece5ebc5c718af9b4ca534",
+    "artifacts/goal22-runs/marker-proposal-capture-v1/cascade-threshold-diagnosis.json": "dc8c757c1c8d5dc65e921e4f21b1fe13c5af40b1d2d751d0835c1041ea252a69",
+    "artifacts/goal22-runs/marker-proposal-capture-v1/confidence-diagnosis.json": "94f786084879d6553502e6ae182da9c8affe698d8446cec15d07fc53bafb06e7"
+  },
+  "stage_loss": [
+    {
+      "accepted_count": 6,
+      "candidate_count": 10,
+      "name": "sparse-open-triangles",
+      "stage_within_5px": {
+        "above_threshold": 7,
+        "accepted": 6,
+        "after_nms": 7,
+        "before_nms": 7
+      },
+      "truth_count": 12
+    },
+    {
+      "accepted_count": 1,
+      "candidate_count": 7,
+      "name": "two-point-ab",
+      "stage_within_5px": {
+        "above_threshold": 2,
+        "accepted": 1,
+        "after_nms": 2,
+        "before_nms": 2
+      },
+      "truth_count": 2
+    }
+  ],
+  "tests": {
+    "path": "artifacts/goal22-runs/center-shape-coverage-preflight-v1/tests.xml",
+    "sha256": "d0e9f75e1496b3449df3aae9d20f5537ff351f332e80af9483b01834a883d929"
+  },
+  "threshold_sensitivity": [
+    {
+      "name": "sparse-open-triangles",
+      "thresholds": [
+        {
+          "center_counts": {
+            "extra": 3,
+            "matched": 7,
+            "missing": 5
+          },
+          "center_threshold": 0.25,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 1,
+            "matched": 6,
+            "missing": 6
+          },
+          "classifier_threshold": 0.5
+        },
+        {
+          "center_counts": {
+            "extra": 4,
+            "matched": 11,
+            "missing": 1
+          },
+          "center_threshold": 0.1,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 1,
+            "matched": 10,
+            "missing": 2
+          },
+          "classifier_threshold": 0.5
+        },
+        {
+          "center_counts": {
+            "extra": 8,
+            "matched": 11,
+            "missing": 1
+          },
+          "center_threshold": 0.05,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 3,
+            "matched": 10,
+            "missing": 2
+          },
+          "classifier_threshold": 0.5
+        },
+        {
+          "center_counts": {
+            "extra": 13,
+            "matched": 12,
+            "missing": 0
+          },
+          "center_threshold": 0.02,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 5,
+            "matched": 11,
+            "missing": 1
+          },
+          "classifier_threshold": 0.5
+        },
+        {
+          "center_counts": {
+            "extra": 19,
+            "matched": 12,
+            "missing": 0
+          },
+          "center_threshold": 0.01,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 6,
+            "matched": 11,
+            "missing": 1
+          },
+          "classifier_threshold": 0.5
+        }
+      ]
+    },
+    {
+      "name": "two-point-ab",
+      "thresholds": [
+        {
+          "center_counts": {
+            "extra": 5,
+            "matched": 2,
+            "missing": 0
+          },
+          "center_threshold": 0.25,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 1,
+            "matched": 1,
+            "missing": 1
+          },
+          "classifier_threshold": 0.5
+        },
+        {
+          "center_counts": {
+            "extra": 9,
+            "matched": 2,
+            "missing": 0
+          },
+          "center_threshold": 0.1,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 2,
+            "matched": 1,
+            "missing": 1
+          },
+          "classifier_threshold": 0.5
+        },
+        {
+          "center_counts": {
+            "extra": 11,
+            "matched": 2,
+            "missing": 0
+          },
+          "center_threshold": 0.05,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 2,
+            "matched": 1,
+            "missing": 1
+          },
+          "classifier_threshold": 0.5
+        },
+        {
+          "center_counts": {
+            "extra": 17,
+            "matched": 2,
+            "missing": 0
+          },
+          "center_threshold": 0.02,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 2,
+            "matched": 1,
+            "missing": 1
+          },
+          "classifier_threshold": 0.5
+        },
+        {
+          "center_counts": {
+            "extra": 21,
+            "matched": 2,
+            "missing": 0
+          },
+          "center_threshold": 0.01,
+          "classifier_counts_before_ocr_and_legend_exclusions": {
+            "extra": 2,
+            "matched": 1,
+            "missing": 1
+          },
+          "classifier_threshold": 0.5
+        }
+      ]
+    }
+  ]
+}
