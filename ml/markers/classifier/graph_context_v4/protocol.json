@@ -1,0 +1,38 @@
+{
+  "acceptance_bar": "Use ml/policy/acceptance-bars.json unchanged: marker shape/fill accuracy, center precision/recall, and prohibited-structure hit rate. No tighter, scene-exact, robustness or new sensitivity gate. Synthetic success does not grant production approval.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "sealed_runs_authorized": 0,
+    "training_requires_canonical_authorization": true
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V3 correctly names only 2453 of the unchanged 2880 native-context development markers, including 288/576 on oblique connections. On complete synthetic graphs it rejects 37 previously accepted true training points with accurate centers and radii. All 37 involve print-damage profiles absent from its curriculum. It also keeps 16/20 prior non-marker training crops, including text fragments. The cached replay reproduces runtime decisions within 1e-5. Broader train-only graph context may repair these representation gaps without changing the runtime.",
+  "isolated_change": "Fine-tune the owned V3 checkpoint on the complete audited graph-context training extension, retaining all previous training cases. Add varied incoming/outgoing line angles, print damage, marker fills and actual text-component crops. The frozen prior dev population is byte-identical. Architecture, crop, 25-column probability output, 0.7 temperatures, artifact threshold 0.5, loss coefficients and balanced artifact objective remain unchanged. Train 36 fixed epochs with AdamW at 0.0002, weight decay 0.0001 and batch 128. Select the final checkpoint only. This is the entire coverage adaptation recipe, not a causal claim about one augmentation.",
+  "metric": "Score all 2880 prior dev marker shape and observable/unknown fill labels and all 256 prior dev non-markers. Report retained-marker precision/recall and prohibited-hit rate at the unchanged 0.5 artifact threshold. Report sensitivity descriptively. Preserve every prior case and evaluate final ONNX parity over every train/dev tensor at the existing 1e-5 tolerance. The full 23-source/706-point synthetic workflow comparison remains required and includes every failed source; patch scores alone do not prove calibration, series grouping, export, real acceptance or production readiness.",
+  "split_identities": {
+    "cache_manifest_sha256": "5612c96ea4758595cbb66d609a85fa98728418c213a14b3d2f0c7800592bf164",
+    "cache_path": "artifacts/goal22-runs/classifier-graph-context-cache-v3",
+    "complete_workflow_sources": 23,
+    "complete_workflow_truth_points": 706,
+    "dev_artifacts": 256,
+    "dev_count": 3136,
+    "dev_markers": 2880,
+    "diagnosis_path": "docs/GOAL-22-CLASSIFIER-GRAPH-CONTEXT-DIAGNOSIS.json",
+    "diagnosis_sha256": "1310070b5f3400bf84df5613aeb431aec82f4dd6d04ea68b93a44103d1c8a14b",
+    "exact_cross_split_tensor_overlap": 0,
+    "source_checkpoint_sha256": "52c228cbbc3740f7b8c53f3111e58749969f39c8ffe69d0d9c61d5a376def225",
+    "train_artifacts": 4750,
+    "train_count": 23818,
+    "train_markers": 19068,
+    "train_scene_count": 20,
+    "train_scene_points": 500,
+    "unchanged_dev_file_sha256": {
+      "json": "7de81c32d9acbca31ef7321a50b5605c228fff708a678f1cfecd915919cbf076",
+      "npy": "31a71b84003f9ffae53fc9f9cf354bc5dfff847f4d59b554d1cdecc8b91673ba"
+    }
+  }
+}

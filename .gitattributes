@@ -69,3 +69,7 @@ tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate_v2.py -text 
 ml/ocr/text_extent_db_head_v44/training/p1.json -text whitespace=cr-at-eol
 ml/ocr/text_extent_db_head_v44/__init__.py -text whitespace=cr-at-eol
 ml/markers/training-seals/ocr-detection/graph-text-extent-db-head-v44/P1/void-attempts/*/void.json -text whitespace=cr-at-eol
+# Preserve the completed V4 classifier run's source and cross-linked evidence bytes.
+ml/markers/classifier/graph_context_v4/** -text whitespace=cr-at-eol
+docs/GOAL-22-CLASSIFIER-GRAPH-CONTEXT-DIAGNOSIS.json -text whitespace=cr-at-eol
+docs/GOAL-22-GRAPH-CONTEXT-CLASSIFIER-REPAIR.json -text whitespace=cr-at-eol

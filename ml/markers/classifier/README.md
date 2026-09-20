@@ -48,6 +48,21 @@ failure is preserved without test-set tuning.
 
 ## Commands
 
+### Graph-context adaptation
+
+`graph_context_data.py` and `graph_context_cache.py` extend training coverage
+for owned complete graphs, line contact and printing effects. All prior train
+rows are retained and development data remains byte-identical. Invalid
+preparation attempts are recorded before the final cache is accepted.
+
+`graph_context_v4/runner.py` uses the same guarded admission and fixed final
+checkpoint rule. All development bars pass, but the full graph workflow still
+regresses. The weights stay fixed for integration diagnosis and remain
+unapproved. See the
+[repair record](../../../docs/GOAL-22-GRAPH-CONTEXT-CLASSIFIER-REPAIR.md),
+[declared protocol](graph_context_v4/protocol.json) and
+[closed outcome](graph_context_v4/P1_RESULT.json).
+
 ### Native-context adaptation
 
 `native_context_data.py` and `native_context_cache.py` define owned train/dev

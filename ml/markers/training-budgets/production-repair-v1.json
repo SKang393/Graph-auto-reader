@@ -10067,6 +10067,51 @@
       "candidate_report_sha256": "c3200cc26cbbd501a49be679d8653d7144238453bff9ecd150008e419ff34e20",
       "optimizer_steps": 2480,
       "closed_utc_date": "2026-09-20"
+    },
+    {
+      "task": "marker-classifier",
+      "revision": "marker-classifier-graph-context-v4",
+      "status": "dev_pass_workflow_incomplete_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/classifier/graph_context_v4/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "1d18a7f8b0806652ffbd9512418d1e2d7d28438a8956b1469011732581d697d8"
+      },
+      "protocol_path": "ml/markers/classifier/graph_context_v4/protocol.json",
+      "protocol_sha256": "38d3af8207c9e318986fb16ef3f242e031efd98ffe76c68ece8d0799900e44c1",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One bounded owned-synthetic train/dev coverage adaptation under continued Goal22 authorization. No private or sealed reads, production activation or release.",
+      "isolated_change": "Fine-tune the owned V3 checkpoint on the complete audited graph-context training extension, retaining all previous training cases. Add varied incoming/outgoing line angles, print damage, marker fills and actual text-component crops. The frozen prior dev population is byte-identical. Architecture, crop, 25-column probability output, 0.7 temperatures, artifact threshold 0.5, loss coefficients and balanced artifact objective remain unchanged. Train 36 fixed epochs with AdamW at 0.0002, weight decay 0.0001 and batch 128. Select the final checkpoint only. This is the entire coverage adaptation recipe, not a causal claim about one augmentation.",
+      "optimizer_steps_expected": 6732,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/classifier/graph_context_v4/P1_RESULT.json",
+      "outcome_sha256": "903a7e013fb38c181aa067317d728e9d810f941d28ea8561d1883ec3a1ea271d",
+      "candidate_report_sha256": "7e266223978103d9dd6a41875272c5ab4c196b215d85b7f23a89e333fbb5538e",
+      "optimizer_steps": 6732,
+      "closed_utc_date": "2026-09-20"
     }
   ]
 }

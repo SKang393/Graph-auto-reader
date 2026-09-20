@@ -1,0 +1,165 @@
+{
+  "base_commit": "d6ce4e26ce09632c511ac0acdee667821505dd1c",
+  "captured_utc": "2026-09-20T19:10:35.718165+00:00",
+  "identity": {
+    "candidate_id": "P1",
+    "revision": "marker-classifier-graph-context-v4",
+    "task": "marker-classifier"
+  },
+  "inline_hashes": {},
+  "preregistered_ledger_entry": {
+    "authorization_scope": "One bounded owned-synthetic train/dev coverage adaptation under continued Goal22 authorization. No private or sealed reads, production activation or release.",
+    "authorized_candidate_id": "P1",
+    "budget_consumption_event": "first_sealed_split_read",
+    "candidate_config_paths": {
+      "P1": "ml/markers/classifier/graph_context_v4/p1.json"
+    },
+    "candidate_config_sha256": {
+      "P1": "1d18a7f8b0806652ffbd9512418d1e2d7d28438a8956b1469011732581d697d8"
+    },
+    "consumed_candidate_ids": [],
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "execution_authorized": true,
+    "experiment_budget": 1,
+    "isolated_change": "Fine-tune the owned V3 checkpoint on the complete audited graph-context training extension, retaining all previous training cases. Add varied incoming/outgoing line angles, print damage, marker fills and actual text-component crops. The frozen prior dev population is byte-identical. Architecture, crop, 25-column probability output, 0.7 temperatures, artifact threshold 0.5, loss coefficients and balanced artifact objective remain unchanged. Train 36 fixed epochs with AdamW at 0.0002, weight decay 0.0001 and batch 128. Select the final checkpoint only. This is the entire coverage adaptation recipe, not a causal claim about one augmentation.",
+    "optimizer_steps_expected": 6732,
+    "preregistered_candidate_ids": [
+      "P1"
+    ],
+    "protocol_path": "ml/markers/classifier/graph_context_v4/protocol.json",
+    "protocol_sha256": "38d3af8207c9e318986fb16ef3f242e031efd98ffe76c68ece8d0799900e44c1",
+    "resource_policy": {
+      "aggregate_backstop_percent": 80,
+      "all_processors_eligible": true,
+      "kmp_blocktime": "0",
+      "omp_wait_policy": "PASSIVE",
+      "priority": "Idle",
+      "synchronous_work_rest_percent": 80
+    },
+    "revision": "marker-classifier-graph-context-v4",
+    "sealed_runs_authorized": 0,
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "status": "candidate_1_preregistered",
+    "task": "marker-classifier"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "ml/markers/classifier/dataset.py",
+      "sha256": "0abd4c20e86412d8e5048626e4e1c9160592d58b2330cef1cd8a4ec24c6f68dd"
+    },
+    {
+      "path": "ml/markers/classifier/graph_context_cache.py",
+      "sha256": "cc6d52a8a44abb8a7e53dd725e3a7f0d420e3df8de67a9770388ffeeb78f59d4"
+    },
+    {
+      "path": "ml/markers/classifier/graph_context_data.py",
+      "sha256": "ba3e861e44fd814f05026be5ad5b9d61f175edc4af548232f9afa9f56ca53d02"
+    },
+    {
+      "path": "ml/markers/classifier/graph_context_v4/__init__.py",
+      "sha256": "780a0fca98012948df9ad668be09c7ad0d768df4c26c6c6687af37c17100df7b"
+    },
+    {
+      "path": "ml/markers/classifier/graph_context_v4/p1.json",
+      "sha256": "1d18a7f8b0806652ffbd9512418d1e2d7d28438a8956b1469011732581d697d8"
+    },
+    {
+      "path": "ml/markers/classifier/graph_context_v4/protocol.json",
+      "sha256": "38d3af8207c9e318986fb16ef3f242e031efd98ffe76c68ece8d0799900e44c1"
+    },
+    {
+      "path": "ml/markers/classifier/graph_context_v4/runner.py",
+      "sha256": "83dbba6c4008dd5ee6d6bd976892c564355a36be1cdd721043fa2b3de8defde7"
+    },
+    {
+      "path": "ml/markers/classifier/metrics.py",
+      "sha256": "80c55f5b4b45d495c147ffd47c97e81841ed43f4919a7b002325fbe11071bbc5"
+    },
+    {
+      "path": "ml/markers/classifier/model.py",
+      "sha256": "41304a31ed09edca78c79e28ed5f93a48070d1306a8617a8a8e4fe09e845e022"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_cache.py",
+      "sha256": "99dc5f39d78959b5b27ccf2922976b67c31c853e1acdd58e0b47530d49eadaef"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_data.py",
+      "sha256": "b301339144761187bb43d93caef57744ebbd56536312cab95bd1243222ba7d4f"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_evaluation.py",
+      "sha256": "82ffe7c175701cb329a2f82c53601d4e2a5a95c785511c3606cd8225a89e5cc4"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/__init__.py",
+      "sha256": "650da40a947142031b92d210766705bd592ba08a24e0d3fdc8d7e8bd3f721c6d"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/protocol.json",
+      "sha256": "443a16b7f8edf875c92e4496edb31db23aa3c38671f5c1ee6376949d07418e52"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/runner.py",
+      "sha256": "e1c04921dc7902441e19443e404cf7ca231457d0c71cb9c5ec485e383959e066"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_diagnostic.py",
+      "sha256": "d13a933e48bd099cb015315964ea25c4c573cb3faf0baf588b184beca69ddd55"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_patches.py",
+      "sha256": "cd45ba52abad2d0805449f28e2fd6c78b9b0587c6234c665cece01047e03a961"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_v2.py",
+      "sha256": "91d752c91690ea3309f8f811d85d2b611dc67def9ddcf638993ccf941d9d22ce"
+    },
+    {
+      "path": "ml/markers/gate_seal.py",
+      "sha256": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725"
+    },
+    {
+      "path": "ml/markers/training-budgets/production-repair-v1.json",
+      "sha256": "9c48f87bce8f70872a990ad5f057cbcf1b22e7c7540ce5f7d9ac3d15234684f0"
+    },
+    {
+      "path": "ml/markers/training_budget.py",
+      "sha256": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/evidence_policy.py",
+      "sha256": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7"
+    },
+    {
+      "path": "ml/synthetic/fonts.py",
+      "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+    },
+    {
+      "path": "ml/synthetic/renderer.py",
+      "sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283"
+    },
+    {
+      "path": "ml/training_cpu_budget.py",
+      "sha256": "d28aa7b5bb9a2e8a98360c9d503a867bbaf26fa5e964b604f36b5d66dea7e5ab"
+    },
+    {
+      "path": "tools/Run-TrainingCpuBudget.ps1",
+      "sha256": "31c62185f6539b986f4ec07ec0b7ce7d7571251412a7be0eca62d761f9e4964e"
+    }
+  ]
+}

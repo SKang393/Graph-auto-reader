@@ -1,0 +1,180 @@
+{
+  "scope": "owned_train_dev_saved_classifier_crops",
+  "sources": 23,
+  "full_truth_points": 706,
+  "artifact_threshold": 0.5,
+  "populations": {
+    "previously_accepted": {
+      "train": {
+        "rows": 362,
+        "matched_true_markers": 342,
+        "unmatched": 20,
+        "baseline": {
+          "shape_correct": 221,
+          "fill_correct_definite": 169,
+          "fill_definite_count": 204,
+          "true_markers_retained": 342,
+          "unmatched_accepted": 20
+        },
+        "candidate": {
+          "shape_correct": 262,
+          "fill_correct_definite": 175,
+          "fill_definite_count": 204,
+          "true_markers_retained": 305,
+          "unmatched_accepted": 16
+        }
+      },
+      "dev": {
+        "rows": 179,
+        "matched_true_markers": 179,
+        "unmatched": 0,
+        "baseline": {
+          "shape_correct": 169,
+          "fill_correct_definite": 115,
+          "fill_definite_count": 119,
+          "true_markers_retained": 179,
+          "unmatched_accepted": 0
+        },
+        "candidate": {
+          "shape_correct": 176,
+          "fill_correct_definite": 117,
+          "fill_definite_count": 119,
+          "true_markers_retained": 179,
+          "unmatched_accepted": 0
+        }
+      }
+    },
+    "candidate_accepted": {
+      "train": {
+        "rows": 375,
+        "matched_true_markers": 354,
+        "unmatched": 21,
+        "baseline": {
+          "shape_correct": 237,
+          "fill_correct_definite": 175,
+          "fill_definite_count": 197,
+          "true_markers_retained": 339,
+          "unmatched_accepted": 16
+        },
+        "candidate": {
+          "shape_correct": 293,
+          "fill_correct_definite": 183,
+          "fill_definite_count": 197,
+          "true_markers_retained": 354,
+          "unmatched_accepted": 21
+        }
+      },
+      "dev": {
+        "rows": 182,
+        "matched_true_markers": 181,
+        "unmatched": 1,
+        "baseline": {
+          "shape_correct": 169,
+          "fill_correct_definite": 116,
+          "fill_definite_count": 120,
+          "true_markers_retained": 179,
+          "unmatched_accepted": 0
+        },
+        "candidate": {
+          "shape_correct": 178,
+          "fill_correct_definite": 118,
+          "fill_definite_count": 120,
+          "true_markers_retained": 181,
+          "unmatched_accepted": 1
+        }
+      }
+    },
+    "authored_centers": {
+      "train": {
+        "rows": 500,
+        "matched_true_markers": 500,
+        "unmatched": 0,
+        "baseline": {
+          "shape_correct": 343,
+          "fill_correct_definite": 247,
+          "fill_definite_count": 285,
+          "true_markers_retained": 491,
+          "unmatched_accepted": 0
+        },
+        "candidate": {
+          "shape_correct": 419,
+          "fill_correct_definite": 251,
+          "fill_definite_count": 285,
+          "true_markers_retained": 429,
+          "unmatched_accepted": 0
+        }
+      },
+      "dev": {
+        "rows": 206,
+        "matched_true_markers": 206,
+        "unmatched": 0,
+        "baseline": {
+          "shape_correct": 173,
+          "fill_correct_definite": 129,
+          "fill_definite_count": 140,
+          "true_markers_retained": 202,
+          "unmatched_accepted": 0
+        },
+        "candidate": {
+          "shape_correct": 205,
+          "fill_correct_definite": 138,
+          "fill_definite_count": 140,
+          "true_markers_retained": 205,
+          "unmatched_accepted": 0
+        }
+      }
+    }
+  },
+  "runtime_probability_max_absolute_difference": {
+    "baseline": 2.652406692504883e-06,
+    "candidate": 4.5299530029296875e-06
+  },
+  "newly_rejected_true_markers": 37,
+  "newly_rejected_by_shape": {
+    "square": 14,
+    "circle": 23
+  },
+  "elapsed_seconds": 4.762177299999166,
+  "limitations": [
+    "Saved accepted centers only; proposals rejected by both classifiers are not captured.",
+    "Authored-center crops use supplied synthetic truth geometry and do not establish proposal recall.",
+    "All 23 scenes and 706 points remain present; no workflow acceptance is claimed."
+  ],
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "evidence": [
+    {
+      "path": "artifacts\\goal22-runs\\classifier-full-scene-context-diagnostic-v1\\report.json",
+      "sha256": "2fad3e579a978d4ccbf123e1f211981f455e5ebd3e6af8ad84ca46f96937eef7"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\classifier-full-scene-context-diagnostic-v1\\previously_accepted.json",
+      "sha256": "a76a3f28b18862d0f6129a648e13f51ee3ed529bf39a584ee659d94f733bcacb"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\classifier-full-scene-context-diagnostic-v1\\candidate_accepted.json",
+      "sha256": "fb9215ae4a5b41bf361690916db2831e811ce71e614d8c60569a79c47818c680"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\classifier-full-scene-context-diagnostic-v1\\authored_centers.json",
+      "sha256": "ad4e1850046385b27ad44b769322a587cc015cdd324b5d530da373328c3a5387"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\classifier-full-scene-context-diagnostic-v1\\context-diagnostic.png",
+      "sha256": "900d769383ec7b42396715756841cf14a5821ccdb214f9cf381bfb3739e726ef"
+    }
+  ],
+  "runtime": {
+    "model_changes": 0,
+    "application_changes": 0,
+    "inference_scope": "Classifier replay only, no OCR or detector rerun"
+  },
+  "git_ci": {
+    "checkpoint": "d6ce4e26ce09632c511ac0acdee667821505dd1c",
+    "run": 35529686160,
+    "conclusion": "success"
+  },
+  "status": "diagnosed_not_accepted"
+}
