@@ -48,6 +48,26 @@ failure is preserved without test-set tuning.
 
 ## Commands
 
+### Original-raster diagnostics
+
+`runtime_patches.py` prepares original-image luminance and marker patches using
+the application's integer alpha/color conversion and bilinear ink sampling.
+It covers the identity-transform, single-channel route. Enhanced transforms and
+isolated legend bounds are outside this helper's scope. The historical
+`dataset.py` is unchanged.
+
+`runtime_diagnostic.py` uses this helper and the owned full-scene marker renderer
+to produce 2,160 balanced native/fine-raster pairs. Every shape sees the same
+sizes, strokes, subpixel positions and line/neighbor contexts. This unsealed
+diagnostic imports no external images, starts no training and loads no model.
+The fine-raster member is a controlled reference, not the historical training
+pipeline or a proposed runtime change. Degraded fill and visually identical
+cross/asterisk fill labels are left unscored. Call `diagnostic_cases()` and
+`diagnostic_pair(case)` to obtain recipes and `[1,32,32]` ink tensors. Results
+diagnose coverage; they cannot grant production approval.
+
+### Historical training and export entry points
+
 ```powershell
 python -m pytest ml/markers/classifier/tests -q
 python -m ml.markers.classifier.train --output ml/markers/classifier/artifacts/session11-final-e3
