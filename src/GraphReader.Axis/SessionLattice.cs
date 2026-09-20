@@ -18,6 +18,15 @@ public static class SessionLattice
         ValidateRequest(request, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         Stopwatch stopwatch = Stopwatch.StartNew();
+        LinearTransformFitResult? printedAxisFit = request.PrintedTicks.Count >= 2
+            ? RobustCalibration.FitX(request.PrintedTicks, cancellationToken: cancellationToken)
+            : null;
+        int printedInputCount = request.PrintedTicks.Count;
+        if (printedAxisFit is { IsValid: true })
+        {
+            HashSet<string> inliers = printedAxisFit.Diagnostics.InlierIds.ToHashSet(StringComparer.Ordinal);
+            request = request with { PrintedTicks = request.PrintedTicks.Where(tick => inliers.Contains(tick.Id)).ToArray() };
+        }
 
         List<WeightedColumn> observedColumns = CollectObservedColumns(request, cancellationToken);
         List<WeightedColumn> alignmentColumns = [.. observedColumns];
@@ -97,17 +106,13 @@ public static class SessionLattice
             crossSourcePitchConflict == PitchConflictKind.HarmonicAlias;
 
         List<string> reasons = [];
-        List<string> warnings = [];
+        List<string> warnings = printedAxisFit is null ? [] : [.. printedAxisFit.Diagnostics.Warnings];
         CalibrationValidity validity = CalibrationValidity.Valid;
-        LinearTransformFitResult? printedAxisFit = request.PrintedTicks.Count >= 2
-            ? RobustCalibration.FitX(request.PrintedTicks, cancellationToken: cancellationToken)
-            : null;
         if (printedAxisFit is { Validity: not CalibrationValidity.Valid })
         {
             validity = CalibrationValidity.NeedsReview;
             reasons.Add("Printed x-axis tick evidence does not define a valid left-to-right session transform.");
             reasons.AddRange(printedAxisFit.Reasons);
-            warnings.AddRange(printedAxisFit.Diagnostics.Warnings);
         }
 
         if (request.OriginOverride is not null)
@@ -244,7 +249,7 @@ public static class SessionLattice
             new SessionLatticeDiagnostics(
                 pitchCandidates.Length,
                 uniqueObservedColumns.Length,
-                request.PrintedTicks.Count,
+                printedInputCount,
                 request.ConnectedSequences.Count,
                 request.SharedPanels.Count,
                 warnings.AsReadOnly(),

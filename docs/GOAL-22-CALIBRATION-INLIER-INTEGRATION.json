@@ -1,0 +1,288 @@
+{
+  "schema": "graphreader.goal22.calibration-inlier-integration.v1",
+  "status": "rejected_labels_excluded_from_downstream_calibration_export_and_detection_defects_remain",
+  "goal22_complete": false,
+  "base_commit": "3d0962d1bec9320a267421b5de2dd59587087384",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.Axis/SessionLattice.cs",
+      "sha256": "4074dc50233b133ac4b8f1b69307b40304138b494fbb6169592bd9c3838101db",
+      "archive": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v2/source-snapshot/src/GraphReader.Axis/SessionLattice.cs"
+    },
+    {
+      "path": "src/GraphReader.Axis/RobustCalibration.cs",
+      "sha256": "e2cdb60bce2d4ae3a655f2da341af53e958e6db072a8ff71b43f01d889e22088",
+      "archive": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v2/source-snapshot/src/GraphReader.Axis/RobustCalibration.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "d60247754f9f78485f485729676987d8e6dd473d79e663435e865f998d74a180",
+      "archive": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs"
+    },
+    {
+      "path": "tests/GraphReader.Axis.Tests/CalibrationInlierRoutingTests.cs",
+      "sha256": "a93329c5b69b4dd7e218eff2941c794caca222663717e2b5bb0ed4eba5398614",
+      "archive": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v2/source-snapshot/tests/GraphReader.Axis.Tests/CalibrationInlierRoutingTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "f0d4945457be85492e96b37d10a31e4011ef137796f39c1d682abf5623121d53",
+      "archive": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs"
+    }
+  ],
+  "compiled_source_snapshot_count": 266,
+  "all_source_snapshots_verified": true,
+  "repair_definition": {
+    "failure_mode": "A valid robust x fit rejects OCR outliers, but raw rejected labels still influence lattice origin and printed assignments. Production also passes maxima from all raw labels, bypassing inlier-based anchor extrema.",
+    "evidence": {
+      "path": "artifacts/goal22-runs/calibration-inlier-routing-diagnostic-v1/diagnostic.json",
+      "sha256": "57e7ddb63677d56a3aa9c7e9a4670e7fd8e7ae0303b8f0449a5964e373416a42"
+    },
+    "subsystem": "RobustCalibration.FitSessionFirst, SessionLattice.Fit, production calibration request assembly.",
+    "isolated_change": "Route only uniquely validated robust-fit inliers into automatic lattice calculations and automatic anchor extrema. Retain original full fit diagnostics, rejected OCR regions and warnings. Ambiguous or invalid fits remain invalid. Remove production automatic-max overrides rather than treating raw maxima as manual authority.",
+    "scientific_safety": "No OCR string rewriting, invented values, scale-threshold changes, first-session relaxation or private tuning. Genuine independent-origin and coherent-pitch conflicts remain review-required. Explicit caller maxima stay supported.",
+    "metric": "Meaningful rejected-label, max-anchor, ambiguous-fit and export regression tests, followed by the same23-source706-point724-row workflow after this separate repair. Compare every prior valid numeric result.",
+    "splits": "Same fixed20train and3dev inputs.",
+    "sealed_budget": 0,
+    "training": false,
+    "new_model_revision": false
+  },
+  "comparison": {
+    "source_count": 23,
+    "previously_observed_panels": 30,
+    "observed_panels": 30,
+    "previously_visited_panels_not_reached": 0,
+    "newly_reached_panels": 0,
+    "raw_upstream_evidence_unchanged": {
+      "axis": true,
+      "accepted_markers": true,
+      "ocr": true
+    },
+    "original_robust_x_and_y_transforms_unchanged": true,
+    "panels_with_changed_lattice_assignments": 2,
+    "panels_with_changed_automatic_anchor_values": 3,
+    "calibration_validity_before": {
+      "Valid": 18,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 5
+    },
+    "calibration_validity_after": {
+      "Valid": 19,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 4
+    },
+    "prior_valid_calibrations_now_invalid": 0,
+    "completed_sources": 9,
+    "failed_sources": 14,
+    "previously_completed_sources_now_failed": 0,
+    "newly_completed_sources": 0,
+    "common_exported_points_with_identical_values_and_x_provenance": 115,
+    "previously_exported_points_removed": 0,
+    "previously_unexported_points_added": 0,
+    "failed_source_errors": {
+      "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | The x-axis ticks do not define a non-degenerate numeric transform. | Independent session-origin sources disagree beyond the configured tolerance.": 1,
+      "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | Numeric tick evidence is ambiguous because competing alternative models have equal support. | Printed session values must increase from left to right in original pixels. | Independent session-origin sources disagree beyond the configured tolerance. | The first observed column maps to session 7, not session 1.": 1,
+      "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | The first observed column maps to session -149, not session 1.": 1,
+      "Candidate export failed closed: INVALID_POINT.": 2,
+      "Automatic calibration is incomplete: The first observed column maps to session 2, not session 1.": 2,
+      "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | Only ordinal x evidence is available; exact printed and estimated x values remain null.": 1,
+      "Automatic calibration is incomplete: Numeric tick evidence is ambiguous because no transform has a strict majority of evidence weight. | Y-axis graph values must increase upward while original-pixel y coordinates increase downward. | Printed x-axis tick evidence does not define a valid left-to-right session transform. | Numeric tick evidence is ambiguous because competing alternative models have equal support. | Independent session-origin sources disagree beyond the configured tolerance.": 1,
+      "Automatic calibration is incomplete: Multiple harmonic session pitches fit the available column gaps almost equally well.": 1,
+      "Automatic calibration is incomplete: Numeric tick evidence is ambiguous because no transform has a strict majority of evidence weight. | No printed, shared-panel, expected, or manual session-1 origin is available. | The final printed session is unavailable, so the sessionmax_y0 anchor was not invented. | Only ordinal x evidence is available; exact printed and estimated x values remain null.": 1,
+      "Automatic calibration is incomplete: The first observed column maps to session 6, not session 1.": 1,
+      "Automatic calibration is incomplete: Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance.": 1,
+      "Candidate export failed closed: EXPORT_FILE_EXISTS.": 1
+    },
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false
+  },
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 9,
+    "failed_cases": 14,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 28,
+    "matched_series": 9,
+    "truth_points": 706,
+    "predicted_points": 115,
+    "matched_points": 85,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 130,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 82,
+    "correct_rows": 77,
+    "missing_rows": 642,
+    "extra_rows": 48,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 85,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 621,
+    "unique_point_extra": 30,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7391304347826086,
+    "unique_point_structural_coverage": 0.12039660056657224,
+    "unique_point_value_precision": 0.7391304347826086,
+    "unique_point_value_coverage": 0.12039660056657224,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.5923076923076923,
+    "relational_row_coverage": 0.106353591160221,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9390243902439024,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 14
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 9,
+    "failed_cases": 14,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 28,
+    "matched_series": 9,
+    "truth_points": 706,
+    "predicted_points": 115,
+    "matched_points": 85,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 130,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 82,
+    "correct_rows": 77,
+    "missing_rows": 642,
+    "extra_rows": 48,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 85,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 621,
+    "unique_point_extra": 30,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7391304347826086,
+    "unique_point_structural_coverage": 0.12039660056657224,
+    "unique_point_value_precision": 0.7391304347826086,
+    "unique_point_value_coverage": 0.12039660056657224,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.5923076923076923,
+    "relational_row_coverage": 0.106353591160221,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9390243902439024,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 14
+    }
+  },
+  "execution_seconds": 155.8526893,
+  "checks": {
+    "axis": {
+      "path": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v1/test-results/axis.trx",
+      "sha256": "1d85d706fddf6234cec1a416475b0efb8c09675e9cde3f35a35d84b2385dea2e",
+      "passed": 57,
+      "skipped": 0
+    },
+    "app": {
+      "path": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v2/test-results/app.trx",
+      "sha256": "a08369057d09340d6384b33f452ea3d1977d5cff0455c72e1ec8534f2e92302d",
+      "passed": 371,
+      "skipped": 0
+    },
+    "export": {
+      "path": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v2/test-results/export.trx",
+      "sha256": "68c9c2013fb234d2e8118ba14a22a8d06cf05518f7385b7c20795361bbb7eb2d",
+      "passed": 30,
+      "skipped": 0
+    },
+    "axis_reuse": {
+      "axis_results": {
+        "path": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v1/test-results/axis.trx",
+        "sha256": "1d85d706fddf6234cec1a416475b0efb8c09675e9cde3f35a35d84b2385dea2e"
+      },
+      "axis_implementation_and_tests_unchanged": true,
+      "reason": "Only the application test warning lookup changed after the passing57-test axis run."
+    },
+    "tool_build": {
+      "path": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v2/build.log",
+      "sha256": "d1ae004e41b88e0943d92296919f0272506a078ff7fca22abe3d2dff494cebee"
+    },
+    "tool_warnings": 0,
+    "tool_errors": 0,
+    "private_runner_self_test": {
+      "path": "artifacts/goal22-runs/workflow-calibration-inlier-checks-v2/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    }
+  },
+  "evidence": {
+    "candidate-binding.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-calibration-inlier-v1/candidate-binding.json",
+      "sha256": "e26febb1624decca49c37d7aeaf59abb82b129805df575a0bec77bd263c3faf6"
+    },
+    "input-manifest.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-calibration-inlier-v1/input-manifest.json",
+      "sha256": "74c202d626d0a4a431cdbe38abb16f7acdc12a202479375e397f5b37a5434c43"
+    },
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-calibration-inlier-v1/execution/report.json",
+      "sha256": "519d0233d5370cc62b111bf0aae45d156a2abc7d14adcd96357c9fabead055d0"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-calibration-inlier-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "c8c5469973d95fd02137ce5cad1820fad66b717bec8363b15fb6ee24d2a32180"
+    },
+    "csv-score-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-calibration-inlier-v1/csv-score-normalized-phases.json",
+      "sha256": "03fbc29172cef7d8e6b2ebd93fc713a660292e8c2a92746e9c9a940e66551b13"
+    },
+    "comparison.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-calibration-inlier-v1/comparison.json",
+      "sha256": "39b6c5fdf876d2f6e17be4b60601684cfdd1fa8c15fb11840a849cc4105d181b"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-calibration-inlier-v1/source-bindings.json",
+      "sha256": "12e1f67b4a397bb24d301155b69bc7fca2ae412e0dd9767d6bac3c85412ae859"
+    }
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-lattice-gap-v1/csv-score-normalized-phases.json",
+    "sha256": "78ea08fec5188e36b434cd6619d4985d7b8995e5274bc77ed1f145255fdd3b70"
+  },
+  "known_limitations": [
+    "Nine sources complete and fourteen fail. One additional calibration becomes valid, but its export still correctly rejects unsupported point evidence.",
+    "All 115 prior exported points and numeric values remain unchanged; 621 truth points remain missing, 30 detections are extra and five matched rows have wrong phases.",
+    "Multi-panel filenames still collide; grouping, detector and OCR failures remain.",
+    "These 23 fixed train/development sources are diagnostic evidence, not sealed or real acceptance. All four Goal 22 outcomes remain incomplete."
+  ],
+  "prior_failures_retained": [
+    "workflow-calibration-inlier-checks-v1: test-only CS1061 for WorkflowReviewPanel.Warnings; corrected to WorkflowReviewState.Warnings. The 57 passing axis checks were reused with verified unchanged sources."
+  ],
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}

@@ -74,10 +74,16 @@ public static class RobustCalibration
         LinearTransformFitResult? xFit = printedTicks.Length >= 2
             ? FitX(printedTicks, request.FitOptions, cancellationToken)
             : null;
+        PrintedXTickEvidence[] acceptedXTicks = printedTicks;
+        if (xFit is { IsValid: true })
+        {
+            HashSet<string> inlierIds = xFit.Diagnostics.InlierIds.ToHashSet(StringComparer.Ordinal);
+            acceptedXTicks = printedTicks.Where(tick => inlierIds.Contains(tick.Id)).ToArray();
+        }
 
         SessionLatticeRequest latticeRequest = request.Lattice with
         {
-            PrintedTicks = printedTicks,
+            PrintedTicks = acceptedXTicks,
         };
         SessionLatticeResult lattice = SessionLattice.Fit(latticeRequest, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
@@ -94,7 +100,7 @@ public static class RobustCalibration
         if (yFit.Transform is { } yTransform && lattice.Session1PixelX is { } session1PixelX)
         {
             double? yMaximum = ResolveYMaximum(request, yFit);
-            double? xMaximum = ResolveXMaximum(request, printedTicks, lattice);
+            double? xMaximum = ResolveXMaximum(request, acceptedXTicks, lattice);
             double y0Pixel = yTransform.GraphToPixel(0d);
             double? exactSessionOne = lattice.HasAbsoluteSessionOrigin ? 1d : null;
 
@@ -123,7 +129,7 @@ public static class RobustCalibration
             if (xMaximum is { } maximum && TryResolvePixelX(maximum, xFit, lattice, out double maximumPixelX))
             {
                 bool exactMaximum = request.XMaximum.HasValue ||
-                    printedTicks.Any(tick => NearlyEqual(tick.PrintedValue, maximum));
+                    acceptedXTicks.Any(tick => NearlyEqual(tick.PrintedValue, maximum));
                 anchors.Add(new CalibrationAnchor(
                     CalibrationAnchorKind.SessionMaximumY0,
                     new PixelPoint(maximumPixelX, y0Pixel),

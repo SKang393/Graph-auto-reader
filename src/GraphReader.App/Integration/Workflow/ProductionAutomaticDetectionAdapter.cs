@@ -779,6 +779,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
         string[] warnings = provenance.SelectMany(static envelope => envelope.Warnings)
             .Concat(calibration.Reasons)
             .Concat(calibration.Lattice.Diagnostics.Warnings)
+            .Concat(calibration.YTransform.Diagnostics.Warnings)
+            .Concat(calibration.XTransform?.Diagnostics.Warnings ?? [])
             .Distinct(StringComparer.Ordinal)
             .ToArray();
         return new DetectionProjection(export, candidates, warnings);
@@ -817,15 +819,6 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 marker.Marker.Center.X,
                 marker.Marker.CenterConfidence))
             .ToArray();
-        double? yMaximum = yTicks.Select(static item => item.Value)
-            .Where(static value => value > 0)
-            .Cast<double?>()
-            .DefaultIfEmpty()
-            .Max();
-        double? xMaximum = xTicks.Select(static item => item.PrintedValue)
-            .Cast<double?>()
-            .DefaultIfEmpty()
-            .Max();
         return RobustCalibration.FitSessionFirst(
             new SessionFirstCalibrationRequest
             {
@@ -838,8 +831,6 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     MarkerColumns = markerColumns,
                     RequireFirstObservedSessionOne = true,
                 },
-                YMaximum = yMaximum,
-                XMaximum = xMaximum,
             },
             cancellationToken);
     }

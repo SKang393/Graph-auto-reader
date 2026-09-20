@@ -244,6 +244,36 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
+    public async Task RejectedNumericLabelsRemainAuditableWithoutBecomingAutomaticAnchorMaxima()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store,
+            includeIntermediateSession: true, includeNumericOutliers: true);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
+        WorkflowOrchestrator orchestrator = CreateWorkflow(store, candidate);
+        WorkflowRunResult result = await orchestrator.RunThroughReviewAsync(Request(imagePath), null, CancellationToken.None);
+
+        Assert.IsNotNull(observation);
+        Assert.AreEqual(CalibrationValidity.Valid, observation.Calibration.Validity);
+        Assert.IsNotNull(observation.Calibration.XTransform);
+        CollectionAssert.Contains(observation.Calibration.XTransform.Diagnostics.OutlierIds.ToArray(), "x-outlier");
+        CollectionAssert.Contains(observation.Calibration.YTransform.Diagnostics.OutlierIds.ToArray(), "y-outlier");
+        Assert.AreEqual(3d, observation.Calibration.Anchors.Single(static a => a.Kind == CalibrationAnchorKind.SessionMaximumY0).GraphX);
+        Assert.AreEqual(100d, observation.Calibration.Anchors.Single(static a => a.Kind == CalibrationAnchorKind.Session1YMaximum).GraphY);
+        Assert.AreEqual("100", observation.Ocr.Regions.Single(static r => r.RegionId == "x-outlier").Text);
+        Assert.AreEqual("600", observation.Ocr.Regions.Single(static r => r.RegionId == "y-outlier").Text);
+        WorkflowReviewPanel panel = result.Review.Panels.Single();
+        Assert.HasCount(3, panel.Points);
+        Assert.IsTrue(result.Review.Warnings.Any(static warning => warning.Contains("Rejected 1", StringComparison.Ordinal)));
+        WorkflowExportResult export = await orchestrator.ExportAsync(result.Review,
+            new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(directory.Path, "export")), CancellationToken.None);
+        Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+    }
+
+    [TestMethod]
     public async Task CandidateTextDetectionCannotEnterCalibrationOrExportButRemainsAuditable()
     {
         using var directory = new TemporaryDirectory();
@@ -466,12 +496,13 @@ public sealed class ProductionCandidateWorkflowTests
         bool includeTextDecoy = false,
         bool includeIntermediateSession = false,
         bool ambiguousPhaseLayout = false,
-        bool shiftedNumericLabels = false) =>
+        bool shiftedNumericLabels = false,
+        bool includeNumericOutliers = false) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
             new CandidateAxisAdapter(ambiguousPhaseLayout),
-            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels),
+            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels, includeNumericOutliers),
             new CandidateMaskComposer(),
             new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession),
             new ClassificationAdapter(),
@@ -567,7 +598,7 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     private sealed class CandidateOcrAdapter(bool omitYTicks = false, bool includeTextDecoy = false, bool includeIntermediateSession = false,
-        bool ambiguousPhaseLayout = false, bool shiftedNumericLabels = false) : IProductionCandidateOcrAdapter
+        bool ambiguousPhaseLayout = false, bool shiftedNumericLabels = false, bool includeNumericOutliers = false) : IProductionCandidateOcrAdapter
     {
         public string AdapterId => "candidate-ocr";
         public bool IsApproved => false;
@@ -607,6 +638,9 @@ public sealed class ProductionCandidateWorkflowTests
                 regions = [.. regions, Region("rejected-x", 38, 56, "100", OcrTextRole.XTick) with { ReviewStatus = OcrReviewStatus.Rejected }];
             }
             if (omitYTicks) regions = regions.Where(static region => region.Role != OcrTextRole.YTick).ToArray();
+            if (includeNumericOutliers) regions = [.. regions,
+                Region("x-middle", 38, 52, "2", OcrTextRole.XTick), Region("x-outlier", 48, 52, "100", OcrTextRole.XTick),
+                Region("y-middle", 2, 28, "50", OcrTextRole.YTick), Region("y-outlier", 2, 23, "600", OcrTextRole.YTick)];
             if (includeTextDecoy) regions = [.. regions, Region("annotation", 38, 28, "Note", OcrTextRole.Annotation)];
             if (ambiguousPhaseLayout) regions = [.. regions,
                 Region("phase-a", 18, 4, "A", OcrTextRole.PhaseHeading), Region("phase-b", 58, 4, "B", OcrTextRole.PhaseHeading)];
