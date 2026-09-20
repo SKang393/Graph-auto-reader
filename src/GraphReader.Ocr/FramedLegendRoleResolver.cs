@@ -7,6 +7,73 @@ namespace GraphReader.Ocr;
 public static class FramedLegendRoleResolver
 {
     public const string CompositionVersion = "original-pixel-framed-legend-context-v2";
+    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-v1";
+
+    /// <summary>Proposes missing text crops from pixels, without supplying a word or role.</summary>
+    public static async ValueTask<IReadOnlyList<OcrDetectedRegion>> RecoverMissingTextAsync(
+        OcrImage image, IReadOnlyList<OcrDetectedRegion> detected, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        ArgumentNullException.ThrowIfNull(detected);
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateImage(image);
+        foreach (OcrDetectedRegion region in detected)
+        {
+            OcrRectangle box = region.Polygon.Bounds;
+            if (!box.IsValid || box.Left < 0 || box.Top < 0 || box.Right > image.Width || box.Bottom > image.Height ||
+                region.CoordinateSpace != OcrContract.CoordinateSpace)
+                throw new ArgumentException("Existing detections must retain original pixel geometry.", nameof(detected));
+        }
+        var detector = new ConnectedComponentTextRegionDetector(
+            new ConnectedComponentTextRegionDetectorOptions { GroupComponentsIntoLines = false });
+        IReadOnlyList<OcrDetectedRegion> components = await detector.DetectAsync(image, cancellationToken).ConfigureAwait(false);
+        bool[] ink = CreateInkMask(image, cancellationToken);
+        List<HorizontalRun> runs = FindRuns(ink, image.Width, image.Height, cancellationToken);
+        var frames = new HashSet<OcrRectangle>();
+        var recovered = new List<OcrDetectedRegion>();
+        foreach (OcrDetectedRegion component in components.OrderBy(static r => r.Polygon.Bounds.Left)
+                     .ThenBy(static r => r.Polygon.Bounds.Top))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            OcrDetectedRegion seed = component with
+            {
+                RegionId = "framed-legend:" + component.RegionId,
+                OrientationDegrees = 0,
+                DetectionConfidence = Math.Min(component.DetectionConfidence, 0.70),
+                Evidence = null,
+            };
+            FramedLegendRoleEvidence? frame = FindContext(ink, image.Width, runs,
+                seed.RegionId, seed.Polygon.Bounds, cancellationToken, incompleteRow: true);
+            if (frame is null || frames.Contains(frame.FrameBounds) ||
+                detected.Any(r => Overlaps(r.Polygon.Bounds, frame.FrameBounds))) continue;
+            // A normal first letter must not become a supposed legend symbol.
+            if (seed.Polygon.Bounds.Left - frame.GlyphBounds.Right < 0.5 * seed.Polygon.Bounds.Height) continue;
+
+            OcrDetectedRegion completed = CompleteSingleRowTextBounds(
+                image, [seed], cancellationToken, allowSingleGlyphSeed: true).Single();
+            OcrRectangle text = completed.Polygon.Bounds;
+            if (text.Width < 3 * text.Height || text.Height > 1.5 * component.Polygon.Bounds.Height) continue;
+            FramedLegendRoleEvidence? confirmed = FindContext(ink, image.Width, runs,
+                completed.RegionId, text, cancellationToken);
+            if (confirmed is null || confirmed.FrameBounds != frame.FrameBounds || confirmed.GlyphBounds != frame.GlyphBounds) continue;
+
+            OcrRectangle[] inside = components.Select(static r => r.Polygon.Bounds)
+                .Where(b => StrictlyContains(frame.FrameBounds, b)).ToArray();
+            if (inside.Count(b => Contains(text, b)) < 3 ||
+                inside.Any(b => !Contains(text, b) && !Contains(frame.GlyphBounds, b))) continue;
+            if (recovered.Any(r => Overlaps(r.Polygon.Bounds, text))) continue;
+            frames.Add(frame.FrameBounds);
+            recovered.Add(completed);
+        }
+        return OcrCollections.Freeze(recovered);
+
+        static bool Contains(OcrRectangle outer, OcrRectangle inner) => inner.Left >= outer.Left &&
+            inner.Top >= outer.Top && inner.Right <= outer.Right && inner.Bottom <= outer.Bottom;
+        static bool StrictlyContains(OcrRectangle outer, OcrRectangle inner) => inner.Left > outer.Left &&
+            inner.Top > outer.Top && inner.Right < outer.Right && inner.Bottom < outer.Bottom;
+        static bool Overlaps(OcrRectangle a, OcrRectangle b) => a.Left < b.Right && a.Right > b.Left &&
+            a.Top < b.Bottom && a.Bottom > b.Top;
+    }
 
     public static FramedLegendRoleResolution Resolve(
         OcrImage image,
@@ -93,7 +160,7 @@ public static class FramedLegendRoleResolver
         foreach (OcrRegion label in labels)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            FramedLegendRoleEvidence? item = FindContext(ink, width, runs, label, cancellationToken);
+            FramedLegendRoleEvidence? item = FindContext(ink, width, runs, label.RegionId, label.Polygon.Bounds, cancellationToken);
             if (item is not null) evidence.Add(item);
         }
         // A shorter row can share a frame established by a longer label, but must
@@ -125,7 +192,8 @@ public static class FramedLegendRoleResolver
     /// detached symbol. The frame supplies a search boundary, never text.
     /// </summary>
     internal static IReadOnlyList<OcrDetectedRegion> CompleteSingleRowTextBounds(
-        OcrImage image, IReadOnlyList<OcrDetectedRegion> regions, CancellationToken cancellationToken)
+        OcrImage image, IReadOnlyList<OcrDetectedRegion> regions, CancellationToken cancellationToken,
+        bool allowSingleGlyphSeed = false)
     {
         bool[] ink = CreateInkMask(image, cancellationToken);
         List<HorizontalRun> runs = FindRuns(ink, image.Width, image.Height, cancellationToken);
@@ -136,7 +204,7 @@ public static class FramedLegendRoleResolver
             OcrRectangle box = region.Polygon.Bounds;
             OcrRegionContext? context = region.Context;
             if (GraphTextRoleClassifier.GetOrientation(region.OrientationDegrees) != OcrOrientation.Horizontal ||
-                box.Width < 2 * box.Height || context?.ExplicitRoleHint is not null ||
+                (!allowSingleGlyphSeed && box.Width < 2 * box.Height) || context?.ExplicitRoleHint is not null ||
                 context?.NearAnnotationArrow is true || context?.NearPhaseDivider is true ||
                 context?.NumericExpected is true || context?.AxisTitleExpected is true ||
                 context?.InParticipantBand is true)
@@ -144,11 +212,8 @@ public static class FramedLegendRoleResolver
                 result.Add(region);
                 continue;
             }
-            var probe = new OcrRegion(region.RegionId, region.Polygon, string.Empty,
-                Array.Empty<OcrRecognitionAlternative>(), OcrTextRole.Other, 0,
-                OcrSourceImage.Original, OcrReviewStatus.Unreviewed);
             FramedLegendRoleEvidence? frame = FindContext(
-                ink, image.Width, runs, probe, cancellationToken, incompleteRow: true);
+                ink, image.Width, runs, region.RegionId, box, cancellationToken, incompleteRow: true);
             // A row already reaching the normal two-height frame margin is
             // complete enough for existing legend context. Do not chase noise
             // or an overlapping arrow beyond that established text extent.
@@ -278,10 +343,9 @@ public static class FramedLegendRoleResolver
     }
 
     private static FramedLegendRoleEvidence? FindContext(
-        bool[] ink, int width, List<HorizontalRun> runs, OcrRegion region, CancellationToken cancellationToken,
+        bool[] ink, int width, List<HorizontalRun> runs, string regionId, OcrRectangle box, CancellationToken cancellationToken,
         bool incompleteRow = false)
     {
-        OcrRectangle box = region.Polygon.Bounds;
         double height = box.Height;
         HorizontalRun[] candidates = runs.Where(run =>
             run.Left >= box.Left - 5 * height && run.Left < box.Left &&
@@ -303,7 +367,7 @@ public static class FramedLegendRoleResolver
             if (!VerticalEdge(left, upper.Y, lower.Y) || !VerticalEdge(right, upper.Y, lower.Y)) continue;
             var frame = new OcrRectangle(left, upper.Y, right - left + 1, lower.Y - upper.Y + 1);
             OcrRectangle? glyph = FindSymbol(ink, width, frame, box, cancellationToken);
-            if (glyph.HasValue) return new(region.RegionId, frame, glyph.Value);
+            if (glyph.HasValue) return new(regionId, frame, glyph.Value);
         }
         return null;
 

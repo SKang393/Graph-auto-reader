@@ -1,0 +1,535 @@
+{
+  "schema": "graphreader.goal22.missing-framed-legend-integration.v1",
+  "status": "original_pixel_missing_legend_recovery_verified_on_fixed_synthetic_workflow",
+  "goal22_complete": false,
+  "base_commit": "492d2bf6367d8549ce07d3b11267fc835168e4b3",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+      "archive": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/source-snapshot/src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+      "sha256": "9b63c33de8cf051fc4acb6638a8a7b7cafb0c236f5a32ed601130c6943ca20bf"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "archive": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/source-snapshot/src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "15ba7d17d9077f95ea84d38d181955c496cd8464fc0ec86b4d633ea6be169adf"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrResultCache.cs",
+      "archive": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/source-snapshot/src/GraphReader.Ocr/OcrResultCache.cs",
+      "sha256": "80b3489f3f2bb284ad965b1c9fd313f87919896742971e466be2e3e71d61bc10"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "archive": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "sha256": "02e3c8a515f52177980e70386ad3caebc48ee06d3244a15c3be472be045c10ee"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/FramedLegendTextRecoveryTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/source-snapshot/tests/GraphReader.Ocr.Tests/FramedLegendTextRecoveryTests.cs",
+      "sha256": "794bc8d8ea1f26d1360ae741b43118403e94e40df8478f8b391387778a63f46b"
+    },
+    {
+      "path": "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "archive": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/source-snapshot/src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "sha256": "218c174a929a660f9651d3aa00bd835895d4096be78500c9f2e53d4e910f21ed"
+    },
+    {
+      "path": "src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs",
+      "archive": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/source-snapshot/src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs",
+      "sha256": "c904ecac411148285ae184d76cad1fe47ba9845f604a8d7641e39da701c151a9"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/OfficialOcrProductionStatusTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/source-snapshot/tests/GraphReader.Ocr.Tests/OfficialOcrProductionStatusTests.cs",
+      "sha256": "5985ec264020ac0a1e455f94b7683c138210b5464286955ba6a429de9afc3fc8"
+    }
+  ],
+  "compiled_source_snapshot_count": 266,
+  "all_source_snapshots_verified": true,
+  "repair_definition": {
+    "failure_mode": "A visible single-row framed legend has zero raw, effective or recognized text proposals; its symbol is then treated as a graph observation.",
+    "diagnostic": {
+      "path": "artifacts/goal22-runs/missing-framed-legend-diagnostic-v1/diagnostic.json",
+      "sha256": "4eac585afe0bddb321c65ef081fe0542c1ff3fa76d6dce1945192ae49a3e08c1"
+    },
+    "responsible_subsystem": "Original-pixel OCR proposal recovery before crop recognition; subsequent existing framed-legend role and symbol separation.",
+    "isolated_change": "Recover only a previously undetected text row within a closed frame, beside a unique detached symbol, from measured connected components. Reuse existing frame, crop completion and role geometry. Do not supply text or numeric labels. Keep recovery opt-in and bind its cache/composition version.",
+    "files": [
+      "src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+      "src/GraphReader.Ocr/OcrPipeline.cs",
+      "src/GraphReader.Ocr/OcrResultCache.cs",
+      "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "tests/GraphReader.Ocr.Tests/FramedLegendTextRecoveryTests.cs",
+      "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs",
+      "tests/GraphReader.Ocr.Tests/OfficialOcrProductionStatusTests.cs"
+    ],
+    "metric": "Positive original-pixel crop cases; rejection of missing/open frames, missing/ambiguous symbols, multiple rows, overlaps, bad image bindings and cancellation; pipeline baseline/cache preservation; actual OCR and full fixed workflow regressions.",
+    "acceptance_bar": "Deterministic safety checks pass; compare the unchanged synthetic train/development inventory without losing any prior correct readings or scientific values. Applicable 95 percent model bars are unchanged.",
+    "splits": "Same fixed20train/3dev inventory plus independent project-owned development fixtures.",
+    "sealed_budget": 0,
+    "training": false,
+    "new_model_revision": false,
+    "production_approved": false,
+    "known_limits": "Single-row recovery only; text attached to a frame or obscured by a crossing structure remains a possible recognition failure.",
+    "cache_followup": "Increment the role classifier cache version for the preceding exact phase-vocabulary repair.",
+    "additional_diagnosis": "artifacts/goal22-runs/missing-framed-legend-geometry-v1/diagnosis.json",
+    "historical_gate_binding": "Preserve original c77e65eb source hash from the consumed experiment and its immutable snapshot; no historical protocol or gate result changed."
+  },
+  "comparison": {
+    "source_count": 23,
+    "previously_observed_panels": 30,
+    "observed_panels": 30,
+    "raw_axis_unchanged": true,
+    "prior_ocr_text_geometry_roles_review_state_unchanged": 699,
+    "confidence_or_alternatives_changes": [
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "1052c924-1f56-6c3f-a57f-b191f03198ae",
+        "text": "Withdrawal",
+        "before_confidence": 0.9348273255243397,
+        "after_confidence": 0.9347473070657878,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "4409e63f-146e-081e-19fa-bf6668b216b6",
+        "text": "Sessions",
+        "before_confidence": 0.8499243345315869,
+        "after_confidence": 0.8499239440062295,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "4dcc4640-0a38-1e16-18c6-5965e99b7a34",
+        "text": "Review",
+        "before_confidence": 0.7107973777902656,
+        "after_confidence": 0.7053524384405558,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "75e992a9-86bc-0731-a93d-f99149f0d42b",
+        "text": "Outcome",
+        "before_confidence": 0.8386981434022746,
+        "after_confidence": 0.8387109122089572,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "7aea56c8-b215-421b-18cb-e4b404bdbeac",
+        "text": "Intervention",
+        "before_confidence": 0.9419261617429907,
+        "after_confidence": 0.9427620457213322,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "89a0f35f-d013-7130-c525-427a9f084419",
+        "text": "Follow-up",
+        "before_confidence": 0.64,
+        "after_confidence": 0.64,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "9d81c262-14df-4b0f-3961-7a3238a489f4",
+        "text": "Review",
+        "before_confidence": 0.7307037824175721,
+        "after_confidence": 0.7251063535268859,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "b49a555d-3e72-69e9-8637-f582f6e1172e",
+        "text": "Review",
+        "before_confidence": 0.7389463534195142,
+        "after_confidence": 0.7332857837511696,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "b740e847-e985-48ac-059a-945253329005",
+        "text": "Baseline",
+        "before_confidence": 0.8897985382753029,
+        "after_confidence": 0.8897998907470351,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "d3a471b3-b78e-3450-e6da-173f96412193",
+        "text": "Participant 01",
+        "before_confidence": 0.8688614780934745,
+        "after_confidence": 0.8665447729692111,
+        "alternatives_changed": true
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "region_id": "f365ee41-70e2-112b-fedb-73fd4a95503c",
+        "text": "Reintroduction",
+        "before_confidence": 0.9438249789200789,
+        "after_confidence": 0.9438242703215998,
+        "alternatives_changed": true
+      }
+    ],
+    "added_ocr_regions": [
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "panel_crop": [
+          0,
+          0,
+          1200,
+          350
+        ],
+        "region": {
+          "region_id": "framed-legend:74dc5af4-fdd0-8601-ad6e-9f9bf8cd9fa5",
+          "polygon": {
+            "points": [
+              {
+                "x": 962,
+                "y": 148,
+                "is_finite": true
+              },
+              {
+                "x": 1082,
+                "y": 148,
+                "is_finite": true
+              },
+              {
+                "x": 1082,
+                "y": 158,
+                "is_finite": true
+              },
+              {
+                "x": 962,
+                "y": 158,
+                "is_finite": true
+              }
+            ],
+            "bounds": {
+              "x": 962,
+              "y": 148,
+              "width": 120,
+              "height": 10,
+              "left": 962,
+              "top": 148,
+              "right": 1082,
+              "bottom": 158,
+              "center": {
+                "x": 1022,
+                "y": 153,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          },
+          "text": "Observed outcome",
+          "alternatives": [
+            {
+              "text": "Observed outcome",
+              "confidence": 0.9998095855116844,
+              "source_image": "Original"
+            },
+            {
+              "text": "Observedoutcome",
+              "confidence": 0.9898114896565675,
+              "source_image": "Original"
+            },
+            {
+              "text": "Observ\u00e9d outcome",
+              "confidence": 0.9373191079685057,
+              "source_image": "Original"
+            }
+          ],
+          "role": "LegendText",
+          "confidence": 0.7,
+          "source_image": "Original",
+          "review_status": "Unreviewed",
+          "coordinate_space": "original_pixels"
+        }
+      }
+    ],
+    "previously_accepted_markers_unchanged": 530,
+    "changed_markers": [],
+    "removed_markers": [
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "source_center": [
+          949.56396484375,
+          155.21214294433594
+        ],
+        "nearest_truth_distance_pixels": 31.754892216063684
+      }
+    ],
+    "added_markers": [
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "center": [
+          1051.63916015625,
+          131.1265106201172
+        ]
+      }
+    ],
+    "shifted_markers_within_frozen_five_pixel_tolerance": [
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "before": [
+          1094.50146484375,
+          126.28433990478516
+        ],
+        "after": [
+          1094.507080078125,
+          126.28050231933594
+        ],
+        "distance_pixels": 0.006801317458128029
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "before": [
+          966.1676025390625,
+          128.4249725341797
+        ],
+        "after": [
+          966.151123046875,
+          128.4370880126953
+        ],
+        "distance_pixels": 0.02045381339556134
+      },
+      {
+        "source_sha256": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+        "before": [
+          922.7817993164062,
+          134.8480682373047
+        ],
+        "after": [
+          922.9383544921875,
+          134.83349609375
+        ],
+        "distance_pixels": 0.15723190017193237
+      }
+    ],
+    "calibration_validity_before": {
+      "Valid": 19,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 4
+    },
+    "calibration_validity_after": {
+      "Valid": 19,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 4
+    },
+    "completed_sources": 11,
+    "failed_sources": 12,
+    "previously_completed_sources_now_failed": 0,
+    "newly_completed_sources": 1,
+    "common_exported_points_with_identical_values_and_x_provenance": 250,
+    "previously_exported_points_removed": 0,
+    "previously_unexported_points_added": 22,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false
+  },
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 10,
+    "failed_cases": 13,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 36,
+    "matched_series": 15,
+    "truth_points": 706,
+    "predicted_points": 250,
+    "matched_points": 218,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 265,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 215,
+    "correct_rows": 210,
+    "missing_rows": 509,
+    "extra_rows": 50,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 218,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 488,
+    "unique_point_extra": 32,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.872,
+    "unique_point_structural_coverage": 0.3087818696883853,
+    "unique_point_value_precision": 0.872,
+    "unique_point_value_coverage": 0.3087818696883853,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.7924528301886793,
+    "relational_row_coverage": 0.2900552486187845,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9767441860465116,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 13
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 11,
+    "failed_cases": 12,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 41,
+    "matched_series": 16,
+    "truth_points": 706,
+    "predicted_points": 272,
+    "matched_points": 226,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 287,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 223,
+    "correct_rows": 218,
+    "missing_rows": 501,
+    "extra_rows": 64,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 226,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 480,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8308823529411765,
+    "unique_point_structural_coverage": 0.32011331444759206,
+    "unique_point_value_precision": 0.8308823529411765,
+    "unique_point_value_coverage": 0.32011331444759206,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.759581881533101,
+    "relational_row_coverage": 0.3011049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9775784753363229,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 12
+    }
+  },
+  "execution_seconds": 164.1648207,
+  "ocr_composition_before": "original-db-head-tick-and-header-lanes-v2",
+  "ocr_composition_after": "original-db-head-tick-header-and-legend-lanes-v3",
+  "cache_followup": "graph-text-role-classifier-v7 invalidates old exact-phase-vocabulary role results.",
+  "checks": {
+    "app": {
+      "path": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/test-results/app.trx",
+      "sha256": "1856b3cd226a2682702454f000455786a8e409f9b363b21f1a1c8cbb6508257d",
+      "passed": 373,
+      "skipped": 0
+    },
+    "ocr": {
+      "path": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/test-results/ocr.trx",
+      "sha256": "4343b5b0add874c8579671fed79fd2dd49bef89225e47965265696f0937df109",
+      "passed": 376,
+      "skipped": 16
+    },
+    "tool_build": {
+      "path": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/build.log",
+      "sha256": "97768a0edf4e4bbb78c51470c601fd34a9d399dd82a523b8d46a7b113db20bd5"
+    },
+    "tool_warnings": 0,
+    "tool_errors": 0,
+    "private_runner_self_test": {
+      "path": "artifacts/goal22-runs/workflow-missing-legend-checks-v4/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    }
+  },
+  "evidence": {
+    "candidate-binding.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/candidate-binding.json",
+      "sha256": "4f965481b9b3e6482620516c498d1b8064e9ae1f678f60dd4a1bfb99b7bb71ff"
+    },
+    "input-manifest.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/input-manifest.json",
+      "sha256": "6ddb3e3f4c4ca8a6668024a808521fdbcdb9df53093d63260e7033982df713c1"
+    },
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/execution/report.json",
+      "sha256": "220ce1192340a5d54e143970fecdbfd88f41bb6faab77191369794f3a010e39e"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/csv-evaluation-input-normalized-phases.json",
+      "sha256": "e65d0387de52e0d309e4341c91fc3bfed5452e2b7506ad4fe3985eb8095ffbd3"
+    },
+    "csv-score-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/csv-score-normalized-phases.json",
+      "sha256": "48c5bcc65be81346e8b880fccc11cd019eb16c133e7d862c6b7321bda3fa53df"
+    },
+    "comparison.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/comparison.json",
+      "sha256": "432c0baea7ff13a03a0734ac748cd40661d15f2218718919e344a4c5a8162dfc"
+    },
+    "comparison-geometric.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/comparison-geometric.json",
+      "sha256": "01e2ba59bf21259a0851a9c026eaa1d65fa0138149a2eb256a4fe0509b8d8827"
+    },
+    "ocr-change-diagnosis.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/ocr-change-diagnosis.json",
+      "sha256": "3877e0f872964293f639d2a8c7104b5f4693c5d55db492cadefdb1153f8925ba"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-missing-legend-v2/source-bindings.json",
+      "sha256": "4f2042a08b5db9831e97aebb1977e32490f32575a56d400358610c4b634dcdb0"
+    }
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-vocabulary-v1/csv-score-normalized-phases.json",
+    "sha256": "b100515d05bc4cf84d5162148938cd8e7d203547bbf0a3c0c6245ec05bdeb402"
+  },
+  "reused_application_verification": {
+    "file": "artifacts\\goal22-runs\\workflow-missing-legend-checks-v3\\test-results\\app.trx",
+    "sha256": "1856b3cd226a2682702454f000455786a8e409f9b363b21f1a1c8cbb6508257d",
+    "reason": "All production sources and new behavioral tests are unchanged since this passing check. Only historical gate-source binding test now records its immutable pre-change source."
+  },
+  "historical_source_bindings_preserved": {
+    "src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs": "c77e65eb53bb9d15bc94b2956a96b87cfdcdd79509cbf87d2beada3b29afc3c4"
+  },
+  "historical_source_snapshot": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-vocabulary-v1/source-snapshot/src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs",
+    "sha256": "c77e65eb53bb9d15bc94b2956a96b87cfdcdd79509cbf87d2beada3b29afc3c4"
+  },
+  "prior_failures_retained": [
+    "workflow-missing-legend-checks-v1: 372 OCR tests passed, one test expected byte-white 255 in normalized float crops. Corrected the test to 1.0; runtime pixels were unchanged.",
+    "ocr-complete-workflow-missing-legend-v1: no recovered regions and no scientific-result changes; wide-canvas frame and contents were merged.",
+    "missing-legend-wide-canvas-before-v1: one independent synthetic regression failure before the ungrouped-components fix.",
+    "workflow-missing-legend-checks-v3: all 375 behavioral OCR tests passed; historical-source lock required its existing post-run binding mechanism. Original experiment hash and failure remain preserved."
+  ],
+  "known_limitations": [
+    "The added OCR region changes recognizer batch padding: 11 prior regions have different confidence or alternate hypotheses, while all 699 prior primary texts, roles, geometry and review states remain identical.",
+    "The new OCR mask shifts three nearby centers by at most 0.158 pixels, removes one non-data legend symbol, and recovers one additional real center. The existing five-pixel center tolerance is unchanged.",
+    "Newly exported points are still fragmented into incorrect series; additional output exposes existing grouping errors. Whole-workflow scores remain failures.",
+    "Recovery is limited to previously undetected single-row text inside a closed frame beside a unique detached symbol. Multi-row, open and ambiguous frames are not recovered.",
+    "Recognition can still be wrong where text touches structure or is unclear. Recovered readings remain unreviewed with a review warning.",
+    "The fixed synthetic workflow remains below product acceptance. No real or sealed result is claimed."
+  ],
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}

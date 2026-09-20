@@ -56,6 +56,8 @@ public sealed record OcrPipelineOptions
 
     public bool EnableFramedLegendRoleResolution { get; init; }
 
+    public bool EnableFramedLegendTextRecovery { get; init; }
+
     public bool EnableTickLaneRecovery { get; init; }
 
     public bool EnableHeaderGlyphRecovery { get; init; }
@@ -198,6 +200,14 @@ public sealed class OcrPipeline
                     request.PlotBounds,
                     request.PhaseDividerXs,
                     cancellationToken);
+            }
+            if (_options.EnableFramedLegendTextRecovery)
+            {
+                IReadOnlyList<OcrDetectedRegion> recovered = await FramedLegendRoleResolver.RecoverMissingTextAsync(
+                    request.OriginalImage, detectedRegions, cancellationToken).ConfigureAwait(false);
+                warnings.AddRange(recovered.Select(static r =>
+                    $"ocr_role_needs_review:{r.RegionId}:original_pixel_framed_legend_recovery"));
+                detectedRegions = OcrCollections.Freeze(detectedRegions.Concat(recovered));
             }
             if (_options.EnableOriginalPixelBoundsRefinement)
             {

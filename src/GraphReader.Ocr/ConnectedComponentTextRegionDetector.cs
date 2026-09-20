@@ -20,6 +20,8 @@ public sealed record ConnectedComponentTextRegionDetectorOptions
     public double MinimumVerticalOverlapFraction { get; init; } = 0.35;
 
     public byte? ForegroundThreshold { get; init; }
+
+    public bool GroupComponentsIntoLines { get; init; } = true;
 }
 
 /// <summary>
@@ -38,7 +40,8 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
 
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
-        $"cc-v3:{_options.MinimumComponentArea}:{_options.MaximumComponentWidthFraction:R}:{_options.MaximumComponentHeightFraction:R}:{_options.MaximumLineGapHeightRatio:R}:{_options.MinimumVerticalOverlapFraction:R}:{_options.ForegroundThreshold?.ToString(CultureInfo.InvariantCulture) ?? "auto"}");
+        $"cc-v3:{_options.MinimumComponentArea}:{_options.MaximumComponentWidthFraction:R}:{_options.MaximumComponentHeightFraction:R}:{_options.MaximumLineGapHeightRatio:R}:{_options.MinimumVerticalOverlapFraction:R}:{_options.ForegroundThreshold?.ToString(CultureInfo.InvariantCulture) ?? "auto"}") +
+        (_options.GroupComponentsIntoLines ? string.Empty : ":ungrouped");
 
     public ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
         OcrImage image,
@@ -50,7 +53,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
 
         var threshold = _options.ForegroundThreshold ?? EstimateThreshold(image, cancellationToken);
         var components = FindComponents(image, threshold, cancellationToken);
-        var lines = GroupIntoLines(components).ToArray();
+        var lines = (_options.GroupComponentsIntoLines ? GroupIntoLines(components) : components).ToArray();
         var regions = lines
             .OrderBy(static line => line.Top)
             .ThenBy(static line => line.Left)

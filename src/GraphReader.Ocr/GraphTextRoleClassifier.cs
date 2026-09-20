@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    internal const string Version = "graph-text-role-classifier-v6";
+    internal const string Version = "graph-text-role-classifier-v7";
 
     private const string ParticipantLabelPrefix = "Participant ";
 

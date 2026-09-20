@@ -36,6 +36,10 @@ public sealed class OfficialOcrProductionStatusTests
                 "496a2e674cc2ed9393aecbb8df9c95ec0f3e4183312f9857710eb303d1ba7c6e",
             ["src/GraphReader.App/Integration/Workflow/ProductionOcrApprovalGate.cs"] =
                 "c55175ef6c32a5eaf76e99dea97351611daca953fa0cee354505b71804ea5093",
+            // Missing-legend recovery adds opt-in ungrouped components. The
+            // consumed experiment retains its original grouping and identity.
+            ["src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs"] =
+                "c77e65eb53bb9d15bc94b2956a96b87cfdcdd79509cbf87d2beada3b29afc3c4",
         };
 
     [TestMethod]
