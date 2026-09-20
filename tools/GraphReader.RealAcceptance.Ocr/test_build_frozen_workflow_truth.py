@@ -82,6 +82,74 @@ def test_truth_case_rejects_missing_printed_session_endpoint():
         builder._truth_case(_source(), SOURCE_ID, scene, _annotation())
 
 
+def _phases(codes):
+    return [{"phase_id": f"30000000-0000-4000-8000-{index:012d}",
+             "code": code, "order": index}
+            for index, code in enumerate(codes, 1)]
+
+
+@pytest.mark.parametrize("codes, expected", [
+    (["a", "b"], ["a", "b"]),
+    (["a", "b", "a", "b"], ["a1", "b1", "a2", "b2"]),
+    (["m", "g", "m", "g"], ["m1", "g1", "m2", "g2"]),
+    (["a1", "b1", "a2", "b2", "phase5"], ["a1", "b1", "a2", "b2", "phase5"]),
+])
+def test_phase_codes_follow_independent_scene_order(codes, expected):
+    phases = _phases(codes)
+    raw, normalized = builder._phase_code_maps(list(reversed(phases)))
+    assert [raw[phase["phase_id"]] for phase in phases] == codes
+    assert [normalized[phase["phase_id"]] for phase in phases] == expected
+
+
+@pytest.mark.parametrize("defect, message", [
+    ("duplicate_id", "identities"), ("duplicate_order", "orders"),
+    ("missing_order", "explicit order"), ("boolean_order", "orders"),
+    ("missing_code", "nonempty"), ("null_code", "nonempty"),
+    ("blank_code", "nonempty"), ("numeric_code", "nonempty"),
+])
+def test_phase_codes_reject_ambiguous_metadata(defect, message):
+    phases = _phases(["a", "b", "a", "b"])
+    if defect == "duplicate_id":
+        phases[1]["phase_id"] = phases[0]["phase_id"]
+    elif defect == "duplicate_order":
+        phases[1]["order"] = phases[0]["order"]
+    elif defect == "missing_order":
+        del phases[1]["order"]
+    elif defect == "boolean_order":
+        phases[1]["order"] = True
+    elif defect == "missing_code":
+        del phases[1]["code"]
+    else:
+        phases[1]["code"] = {"null_code": None, "blank_code": " ", "numeric_code": 1}[defect]
+    with pytest.raises(builder.EvidenceError, match=message):
+        builder._phase_code_maps(phases)
+
+
+def test_phase_codes_reject_collision_with_an_existing_numbered_code():
+    with pytest.raises(builder.EvidenceError, match="conflicts"):
+        builder._phase_code_maps(_phases(["a", "a", "a1"]))
+
+
+def test_truth_normalizes_phase_names_without_changing_scientific_values_or_relations():
+    scene = _scene()
+    before = builder._truth_case(_source(), SOURCE_ID, scene, _annotation())
+    scene["panels"][0]["phases"] = _phases(["a", "b", "a", "b"])
+    after = builder._truth_case(_source(), SOURCE_ID, scene, _annotation())
+    assert after["points"][0]["authoritative_phase_code"] == "a1"
+    after["points"][0]["authoritative_phase_code"] = "a"
+    assert after == before
+
+
+def test_phase_normalization_keeps_raw_scene_csv_consistency_check(monkeypatch):
+    scene = _scene()
+    scene["panels"][0]["phases"] = _phases(["a", "b", "a", "b"])
+    rows = list(builder._csv_rows(scene, _annotation()))
+    rows[0]["phase"] = "a1"
+    monkeypatch.setattr(builder, "_csv_rows", lambda *_args: rows)
+    with pytest.raises(builder.EvidenceError, match="disagree"):
+        builder._truth_case(_source(), SOURCE_ID, scene, _annotation())
+
+
 def test_build_validates_all_evidence_before_truth_regeneration(monkeypatch):
     calls = []
     evidence = {

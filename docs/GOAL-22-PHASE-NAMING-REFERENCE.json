@@ -1,0 +1,158 @@
+{
+  "schema": "graphreader.goal22.phase-naming-reference.v1",
+  "status": "reference_repaired_workflow_still_failed",
+  "goal22_complete": false,
+  "basis": "MASTER_DEVELOPMENT_PLAN.md section 15.2 repeated phases a1,b1,a2,b2; m1,m2; g1,g2.",
+  "changed_sources": [
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/build_frozen_workflow_truth.py",
+      "sha256": "e290b35b09bdc75a0288b226b7c621570af4649eb2857629af1bcf3669c4aa06",
+      "snapshot": {
+        "path": "artifacts/goal22-runs/workflow-phase-context-checks-v4/truth-source-snapshot/build_frozen_workflow_truth.py",
+        "sha256": "e290b35b09bdc75a0288b226b7c621570af4649eb2857629af1bcf3669c4aa06"
+      }
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/test_build_frozen_workflow_truth.py",
+      "sha256": "a1b2cfd9d7584e730f976d48e1216fa0ef684af4dbf3dedf18470934acb2e3a6",
+      "snapshot": {
+        "path": "artifacts/goal22-runs/workflow-phase-context-checks-v4/truth-source-snapshot/test_build_frozen_workflow_truth.py",
+        "sha256": "a1b2cfd9d7584e730f976d48e1216fa0ef684af4dbf3dedf18470934acb2e3a6"
+      }
+    }
+  ],
+  "changed_synthetic_phase_names": 175,
+  "changed_dev_phase_names": 0,
+  "truth_points_unchanged": 706,
+  "expected_rows_unchanged": 724,
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 6,
+    "failed_cases": 17,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 16,
+    "matched_series": 6,
+    "truth_points": 706,
+    "predicted_points": 66,
+    "matched_points": 49,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 80,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 46,
+    "correct_rows": 28,
+    "missing_rows": 678,
+    "extra_rows": 34,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 18,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 49,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 657,
+    "unique_point_extra": 17,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7424242424242424,
+    "unique_point_structural_coverage": 0.06940509915014165,
+    "unique_point_value_precision": 0.7424242424242424,
+    "unique_point_value_coverage": 0.06940509915014165,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.35,
+    "relational_row_coverage": 0.03867403314917127,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.6086956521739131,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 17
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 6,
+    "failed_cases": 17,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 16,
+    "matched_series": 6,
+    "truth_points": 706,
+    "predicted_points": 66,
+    "matched_points": 49,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 80,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 46,
+    "correct_rows": 0,
+    "missing_rows": 678,
+    "extra_rows": 34,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 46,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 49,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 657,
+    "unique_point_extra": 17,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7424242424242424,
+    "unique_point_structural_coverage": 0.06940509915014165,
+    "unique_point_value_precision": 0.7424242424242424,
+    "unique_point_value_coverage": 0.06940509915014165,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0,
+    "relational_row_coverage": 0,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 17
+    }
+  },
+  "evidence": {
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/execution/report.json",
+      "sha256": "89e82e5e2eaa0583d2e4a81da947a5e985cd74a404c9b0ec6a494011b8130691"
+    },
+    "csv-score.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/csv-score.json",
+      "sha256": "2f003c48e249e32f0bcb78671d71d196fa7cf65dc7dfe69b2bef82538b896384"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/csv-evaluation-input-normalized-phases.json",
+      "sha256": "f377f1da3235a5129364a1ac6582af3b3f1452155c5989bc1fa80056848e079c"
+    },
+    "csv-evaluation-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/csv-evaluation-normalized-phases.json",
+      "sha256": "fff624f060c64738756efb99b95b948db9fba2a321f0cafbee88136a4834dba0"
+    }
+  },
+  "checks": {
+    "test_report": {
+      "path": "artifacts/goal22-runs/workflow-phase-context-checks-v4/truth-builder-tests.xml",
+      "sha256": "daba80e29a1afaa08efcbcee2eeab6c7086494f83b7598a9fea6686fe10cf73b"
+    },
+    "passed": 23,
+    "failed": 0,
+    "seconds": 8.261
+  },
+  "unchanged": "Output bytes, values, pixel locations, series relations, denominators and matching tolerances. Strict phase-name comparison retained.",
+  "inference_runs": 0,
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "packaged_build": false
+}

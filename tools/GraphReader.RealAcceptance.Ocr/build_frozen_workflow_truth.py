@@ -426,12 +426,52 @@ def _expected_printed_mode(panel: Mapping[str, Any]) -> str:
     return "printed_session"
 
 
+def _phase_code_maps(raw_phases: Any) -> tuple[dict[str, str], dict[str, str]]:
+    """Apply the product's repeated-phase naming to independent scene metadata."""
+    phases = [_require_mapping(item, "truth phase")
+              for item in _require_list(raw_phases, "panel phases")]
+    codes: dict[str, str] = {}
+    orders: dict[str, int] = {}
+    for phase in phases:
+        phase_id = _canonical_uuid(phase.get("phase_id"), "phase ID")
+        if phase_id in codes:
+            raise EvidenceError("truth phase identities must be unique within a panel")
+        code = phase.get("code")
+        if not isinstance(code, str) or not code.strip() or code != code.strip():
+            raise EvidenceError("truth phase codes must be nonempty strings without outer whitespace")
+        codes[phase_id] = code
+        if "order" in phase:
+            order = phase["order"]
+            if type(order) is not int or order < 1 or order in orders.values():
+                raise EvidenceError("truth phase orders must be unique positive integers")
+            orders[phase_id] = order
+    repeated = {code for code in ("a", "b", "m", "g")
+                if list(codes.values()).count(code) > 1}
+    if (orders or repeated) and len(orders) != len(codes):
+        raise EvidenceError("truth phase normalization requires an explicit order for every phase")
+    normalized = dict(codes)
+    if repeated:
+        counts = dict.fromkeys(repeated, 0)
+        preserved = {code for code in codes.values() if code not in repeated}
+        for phase_id in sorted(codes, key=orders.__getitem__):
+            code = codes[phase_id]
+            if code in repeated:
+                counts[code] += 1
+                normalized[phase_id] = f"{code}{counts[code]}"
+                if normalized[phase_id] in preserved:
+                    raise EvidenceError("normalized truth phase code conflicts with an explicit code")
+    return codes, normalized
+
+
 def _truth_case(
     source: Mapping[str, Any], source_id: str, scene: Mapping[str, Any], annotation: Mapping[str, Any],
 ) -> dict[str, Any]:
     canvas = _require_mapping(scene.get("canvas"), "scene canvas")
     if canvas.get("width") != source["width"] or canvas.get("height") != source["height"]:
         raise EvidenceError("truth scene dimensions differ from the authenticated source")
+    panels = [_require_mapping(item, "scene panel")
+              for item in _require_list(scene.get("panels"), "scene panels")]
+    phase_maps = [_phase_code_maps(panel.get("phases")) for panel in panels]
     rows = list(_csv_rows(scene, annotation))
     rows_by_point = {str(row["point_id"]): row for row in rows}
     if len(rows_by_point) != len(rows):
@@ -441,8 +481,7 @@ def _truth_case(
     relations: list[dict[str, Any]] = []
     series_ids: set[str] = set()
     point_ids: set[str] = set()
-    for panel_index, raw_panel in enumerate(_require_list(scene.get("panels"), "scene panels")):
-        panel = _require_mapping(raw_panel, f"scene panel {panel_index}")
+    for panel, (phase_codes, export_phase_codes) in zip(panels, phase_maps, strict=True):
         mode = _expected_printed_mode(panel)
         panel_series = _require_list(panel.get("series"), "panel series")
         for raw_series in panel_series:
@@ -466,15 +505,6 @@ def _truth_case(
                     "shared_baseline_series_key": shared,
                     "applicable_probe_series_keys": probes,
                 })
-        phase_codes = {
-            _canonical_uuid(phase.get("phase_id"), "phase ID"): str(phase.get("code"))
-            for phase in (
-                _require_mapping(item, "truth phase")
-                for item in _require_list(panel.get("phases"), "panel phases")
-            )
-        }
-        if any(not value.strip() for value in phase_codes.values()):
-            raise EvidenceError("truth phase codes must be nonempty")
         for raw_point in _require_list(panel.get("points"), "panel points"):
             point = _require_mapping(raw_point, "truth point")
             point_id = _canonical_uuid(point.get("point_id"), "truth point ID")
@@ -506,7 +536,7 @@ def _truth_case(
                 "source_pixel_x": source_x, "source_pixel_y": source_y,
                 "graph_x": graph_x, "graph_y": graph_y,
                 "expected_export_x": graph_x, "expected_export_mode": mode,
-                "authoritative_phase_code": phase_codes[phase_id],
+                "authoritative_phase_code": export_phase_codes[phase_id],
             })
     if set(rows_by_point) != point_ids:
         raise EvidenceError("truth table contains foreign points")
