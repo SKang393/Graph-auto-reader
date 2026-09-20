@@ -1,0 +1,145 @@
+{
+  "base_commit": "5bc8bd24849b00f5ee43fa0859c3729d5c5b78b7",
+  "captured_utc": "2026-09-20T18:14:44.771211+00:00",
+  "identity": {
+    "candidate_id": "P1",
+    "revision": "marker-classifier-native-context-v3",
+    "task": "marker-classifier"
+  },
+  "inline_hashes": {},
+  "preregistered_ledger_entry": {
+    "authorization_scope": "One bounded owned-synthetic train/dev adaptation under resumed Goal 22 authorization. No private/sealed read or production activation. No from-scratch training.",
+    "authorized_candidate_id": "P1",
+    "budget_consumption_event": "first_sealed_split_read",
+    "candidate_config_paths": {
+      "P1": "ml/markers/classifier/native_context_v3/p1.json"
+    },
+    "candidate_config_sha256": {
+      "P1": "ae55ae61b0f532f042a8e026adf761c9bdc237114db7f46ab9a81bc33ecc1c51"
+    },
+    "consumed_candidate_ids": [],
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "execution_authorized": true,
+    "experiment_budget": 1,
+    "isolated_change": "Fine-tune the authenticated existing compact spatial classifier on the complete 7840-item owned native-context train population. Use the unchanged original-pixel runtime crop, architecture, 25-column probability transport, 0.7 shape/fill temperatures and 0.5 artifact threshold. The declared adaptation recipe uses 40 epochs, AdamW at 0.0003, weight decay 0.0001, batch size 128, no additional image augmentation, and final-epoch selection without dev selection. Retain historical shape/fill/artifact/embedding objective coefficients; average artifact loss across positive and negative classes. Keep all 28 exact-pixel ambiguous authored examples: uniform shape alternatives and explicit unknown fill provide consistent training targets; raw authored shape accuracy keeps every row. Exclude the eight shape-ambiguous rows from identity-pair loss only. This is the whole adaptation recipe, not an isolated claim about one loss term.",
+    "optimizer_steps_expected": 2480,
+    "preregistered_candidate_ids": [
+      "P1"
+    ],
+    "protocol_path": "ml/markers/classifier/native_context_v3/protocol.json",
+    "protocol_sha256": "443a16b7f8edf875c92e4496edb31db23aa3c38671f5c1ee6376949d07418e52",
+    "resource_policy": {
+      "aggregate_backstop_percent": 80,
+      "all_processors_eligible": true,
+      "kmp_blocktime": "0",
+      "omp_wait_policy": "PASSIVE",
+      "priority": "Idle",
+      "synchronous_work_rest_percent": 80
+    },
+    "revision": "marker-classifier-native-context-v3",
+    "sealed_runs_authorized": 0,
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "status": "candidate_1_preregistered",
+    "task": "marker-classifier"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "ml/markers/classifier/dataset.py",
+      "sha256": "0abd4c20e86412d8e5048626e4e1c9160592d58b2330cef1cd8a4ec24c6f68dd"
+    },
+    {
+      "path": "ml/markers/classifier/metrics.py",
+      "sha256": "80c55f5b4b45d495c147ffd47c97e81841ed43f4919a7b002325fbe11071bbc5"
+    },
+    {
+      "path": "ml/markers/classifier/model.py",
+      "sha256": "41304a31ed09edca78c79e28ed5f93a48070d1306a8617a8a8e4fe09e845e022"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_cache.py",
+      "sha256": "99dc5f39d78959b5b27ccf2922976b67c31c853e1acdd58e0b47530d49eadaef"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_data.py",
+      "sha256": "b301339144761187bb43d93caef57744ebbd56536312cab95bd1243222ba7d4f"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_evaluation.py",
+      "sha256": "82ffe7c175701cb329a2f82c53601d4e2a5a95c785511c3606cd8225a89e5cc4"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/__init__.py",
+      "sha256": "650da40a947142031b92d210766705bd592ba08a24e0d3fdc8d7e8bd3f721c6d"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/p1.json",
+      "sha256": "ae55ae61b0f532f042a8e026adf761c9bdc237114db7f46ab9a81bc33ecc1c51"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/protocol.json",
+      "sha256": "443a16b7f8edf875c92e4496edb31db23aa3c38671f5c1ee6376949d07418e52"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/runner.py",
+      "sha256": "e1c04921dc7902441e19443e404cf7ca231457d0c71cb9c5ec485e383959e066"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_diagnostic.py",
+      "sha256": "d13a933e48bd099cb015315964ea25c4c573cb3faf0baf588b184beca69ddd55"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_patches.py",
+      "sha256": "cd45ba52abad2d0805449f28e2fd6c78b9b0587c6234c665cece01047e03a961"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_v2.py",
+      "sha256": "91d752c91690ea3309f8f811d85d2b611dc67def9ddcf638993ccf941d9d22ce"
+    },
+    {
+      "path": "ml/markers/gate_seal.py",
+      "sha256": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725"
+    },
+    {
+      "path": "ml/markers/training-budgets/production-repair-v1.json",
+      "sha256": "ec77881111d2b6ab53e86f941e9038058602747688a5eadd2042670c92d7b0a8"
+    },
+    {
+      "path": "ml/markers/training_budget.py",
+      "sha256": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/evidence_policy.py",
+      "sha256": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7"
+    },
+    {
+      "path": "ml/synthetic/fonts.py",
+      "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+    },
+    {
+      "path": "ml/synthetic/renderer.py",
+      "sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283"
+    },
+    {
+      "path": "ml/training_cpu_budget.py",
+      "sha256": "d28aa7b5bb9a2e8a98360c9d503a867bbaf26fa5e964b604f36b5d66dea7e5ab"
+    },
+    {
+      "path": "tools/Run-TrainingCpuBudget.ps1",
+      "sha256": "31c62185f6539b986f4ec07ec0b7ce7d7571251412a7be0eca62d761f9e4964e"
+    }
+  ]
+}

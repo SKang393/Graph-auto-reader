@@ -93,7 +93,7 @@ internal static class FrozenCandidateSyntheticRunner
         int failed = 0;
         await using FrozenCandidateWorkflowRuntime candidate =
             await FrozenCandidateWorkflowFactory.CreateAsync(
-                    repositoryRoot, outputRoot, binding, cancellationToken)
+                    repositoryRoot, outputRoot, binding, cancellationToken, allowSyntheticClassifier: true)
                 .ConfigureAwait(false);
         var diagnosticFiles = new List<object>();
         candidate.Adapter.CandidateCalibrationObserver = observation =>

@@ -10022,6 +10022,51 @@
       "candidate_report_sha256": "f10f7b78cf17d26f4e75bacc6d7d62925ea35bd87e327b0eedcfc9c46732eec6",
       "optimizer_steps": 8160,
       "closed_utc_date": "2026-09-19"
+    },
+    {
+      "task": "marker-classifier",
+      "revision": "marker-classifier-native-context-v3",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/classifier/native_context_v3/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "ae55ae61b0f532f042a8e026adf761c9bdc237114db7f46ab9a81bc33ecc1c51"
+      },
+      "protocol_path": "ml/markers/classifier/native_context_v3/protocol.json",
+      "protocol_sha256": "443a16b7f8edf875c92e4496edb31db23aa3c38671f5c1ee6376949d07418e52",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One bounded owned-synthetic train/dev adaptation under resumed Goal 22 authorization. No private/sealed read or production activation. No from-scratch training.",
+      "isolated_change": "Fine-tune the authenticated existing compact spatial classifier on the complete 7840-item owned native-context train population. Use the unchanged original-pixel runtime crop, architecture, 25-column probability transport, 0.7 shape/fill temperatures and 0.5 artifact threshold. The declared adaptation recipe uses 40 epochs, AdamW at 0.0003, weight decay 0.0001, batch size 128, no additional image augmentation, and final-epoch selection without dev selection. Retain historical shape/fill/artifact/embedding objective coefficients; average artifact loss across positive and negative classes. Keep all 28 exact-pixel ambiguous authored examples: uniform shape alternatives and explicit unknown fill provide consistent training targets; raw authored shape accuracy keeps every row. Exclude the eight shape-ambiguous rows from identity-pair loss only. This is the whole adaptation recipe, not an isolated claim about one loss term.",
+      "optimizer_steps_expected": 2480,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/classifier/native_context_v3/P1_RESULT.json",
+      "outcome_sha256": "4f09263eea3e3a44a64462435c56b64de7e960f76705f615bd61307ba8f91fe3",
+      "candidate_report_sha256": "c3200cc26cbbd501a49be679d8653d7144238453bff9ecd150008e419ff34e20",
+      "optimizer_steps": 2480,
+      "closed_utc_date": "2026-09-20"
     }
   ]
 }

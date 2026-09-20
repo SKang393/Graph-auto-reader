@@ -25,6 +25,28 @@ internal static class FrozenCandidateBindingSelfTest
             var fixture = new Fixture(repositoryRoot, root);
             JsonObject valid = fixture.CreateBinding();
             FrozenCandidateBinding loaded = fixture.Load(valid);
+            JsonObject classifierCandidate = Clone(valid);
+            classifierCandidate["marker_classifier"] = fixture.CreateSyntheticClassifier();
+            FrozenCandidateBinding classifierBinding = fixture.Load(classifierCandidate);
+            Require(classifierBinding.MarkerClassifier.SyntheticCandidate is not null,
+                "FROZEN_SYNTHETIC_CLASSIFIER_SCOPE_MISSING");
+            try
+            {
+                _ = FrozenRealWorkflowAdmission.Load(repositoryRoot, "must-not-be-read.json", new string('a', 64),
+                    classifierBinding, null!, "real_dev", explicitOptIn: true, CancellationToken.None);
+                throw new InvalidDataException("FROZEN_SYNTHETIC_CLASSIFIER_REACHED_REAL_ADMISSION");
+            }
+            catch (InvalidDataException error)
+            {
+                Require(error.Message.StartsWith("Unapproved classifier weights are restricted to synthetic development", StringComparison.Ordinal),
+                    "FROZEN_SYNTHETIC_CLASSIFIER_REAL_GUARD_CHANGED");
+            }
+            JsonObject mixedClassifier = Clone(classifierCandidate);
+            RequiredObject(mixedClassifier, "marker_classifier")["store_root"] = "unexpected-store";
+            fixture.ExpectRejected(mixedClassifier, "mixed approved and synthetic classifier scopes");
+            JsonObject wrongClassifierTask = Clone(classifierCandidate);
+            RequiredObject(RequiredObject(wrongClassifierTask, "marker_classifier"), "synthetic_candidate")["task"] = "marker_center";
+            fixture.ExpectRejected(wrongClassifierTask, "wrong synthetic classifier task");
             Require(loaded.Algorithms.MarkerProposalDomain == "full_frame_v24",
                 "FROZEN_CANDIDATE_LEGACY_MARKER_DOMAIN_CHANGED");
             Require(loaded.Algorithms.MarkerGeometrySupport == "multiradius_v24",
@@ -322,6 +344,17 @@ internal static class FrozenCandidateBindingSelfTest
                     ["legend_adapter_id"] = "self-test-legend-adapter",
                     ["phase_adapter_id"] = "self-test-phase-adapter",
                 },
+            };
+        }
+
+        internal JsonObject CreateSyntheticClassifier()
+        {
+            string payload = Write("models/classifier/model.onnx", "classifier fixture payload"u8.ToArray());
+            string manifest = Write("models/classifier/manifest.json", CreateModelManifest(
+                "marker_classifier", "classifier-fixture", "1", payload, productionApproved: false));
+            return new JsonObject
+            {
+                ["synthetic_candidate"] = ModelRecord("marker_classifier", "classifier-fixture", payload, manifest),
             };
         }
 

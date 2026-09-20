@@ -35,7 +35,8 @@ internal sealed record FrozenCandidateClassifier(
     string ManifestSha256,
     string NoticeSha256,
     string BenchmarkSha256,
-    string PackageIndexSha256);
+    string PackageIndexSha256,
+    FrozenCandidateModel? SyntheticCandidate = null);
 
 internal sealed record FrozenCandidateRuntime(
     string ExecutionProvider,
@@ -375,6 +376,13 @@ internal sealed class FrozenCandidateBinding
         JsonElement value,
         CancellationToken cancellationToken)
     {
+        if (value.TryGetProperty("synthetic_candidate", out JsonElement candidateValue))
+        {
+            RequireExactProperties(value, ["synthetic_candidate"], "Synthetic candidate marker classifier");
+            FrozenCandidateModel candidate = ReadModel(repositoryRoot, candidateValue, "marker_classifier", cancellationToken);
+            return new FrozenCandidateClassifier(string.Empty, candidate.ModelId, candidate.Version,
+                candidate.Payload.Sha256, candidate.Manifest.Sha256, string.Empty, string.Empty, string.Empty, candidate);
+        }
         RequireExactProperties(value,
         [
             "store_root", "model_id", "version", "model_sha256", "manifest_sha256",

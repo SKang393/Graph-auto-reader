@@ -77,6 +77,8 @@ internal static class FrozenRealWorkflowAdmission
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(candidate);
+        if (candidate.MarkerClassifier.SyntheticCandidate is not null)
+            throw new InvalidDataException("Unapproved classifier weights are restricted to synthetic development until their own prerequisite gates pass.");
         if (candidate.Algorithms.MarkerGeometrySupport != "multiradius_v24")
             throw new InvalidDataException("Supplemental marker geometry is restricted to synthetic development until its own prerequisite gates pass.");
         return LoadCore(

@@ -151,14 +151,15 @@ public sealed class ProductionAutomaticDetectionAdapter :
             candidateMasks.IsApproved ||
             markerCenterAdapter is not IProductionCandidateMarkerCenterAdapter candidateCenters ||
             candidateCenters.IsApproved ||
-            !markerClassificationAdapter.IsApproved ||
+            (!markerClassificationAdapter.IsApproved &&
+             markerClassificationAdapter is not IProductionCandidateMarkerClassificationAdapter) ||
             !legendAdapter.IsApproved ||
             !phaseAdapter.IsApproved)
         {
             throw Failure(
                 ProductionWorkflowFailureCodes.DetectionModelsUnavailable,
                 "Errors.ModelNotFound",
-                "Candidate composition must contain explicit unapproved axis, OCR, mask, and marker-center adapters plus approved fixed downstream reasoners.",
+                "Candidate composition must contain explicit unapproved axis, OCR, mask, and marker-center adapters, an approved or explicit candidate classifier, and approved fixed downstream reasoners.",
                 "Recreate the candidate composition from its frozen model and runtime binding.");
         }
 
@@ -295,9 +296,12 @@ public sealed class ProductionAutomaticDetectionAdapter :
             ProductionMarkerClassificationEvidence classification;
             try
             {
-                classification = await markerClassificationAdapter
-                    .ClassifyAsync(request, markerFrame, legendInputs.ClassifierInputs,
-                        legendInputs.OriginalPixelContentBounds, cancellationToken).ConfigureAwait(false);
+                classification = await (candidateEvaluation && !markerClassificationAdapter.IsApproved
+                    ? ((IProductionCandidateMarkerClassificationAdapter)markerClassificationAdapter)
+                        .ClassifyForCandidateEvaluationAsync(request, markerFrame, legendInputs.ClassifierInputs,
+                            legendInputs.OriginalPixelContentBounds, cancellationToken)
+                    : markerClassificationAdapter.ClassifyAsync(request, markerFrame, legendInputs.ClassifierInputs,
+                        legendInputs.OriginalPixelContentBounds, cancellationToken)).ConfigureAwait(false);
             }
             catch (NotSupportedException exception)
             {

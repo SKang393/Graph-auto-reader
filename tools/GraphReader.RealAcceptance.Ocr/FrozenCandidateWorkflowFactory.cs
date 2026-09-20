@@ -55,10 +55,13 @@ internal static class FrozenCandidateWorkflowFactory
         string outputRoot,
         FrozenCandidateBinding binding,
         CancellationToken cancellationToken,
-        bool aggregateOnly = false)
+        bool aggregateOnly = false,
+        bool allowSyntheticClassifier = false)
     {
         ArgumentNullException.ThrowIfNull(binding);
         cancellationToken.ThrowIfCancellationRequested();
+        if (binding.MarkerClassifier.SyntheticCandidate is not null && (!allowSyntheticClassifier || aggregateOnly))
+            throw new InvalidDataException("Unapproved classifier weights are restricted to synthetic development.");
         string snapshotRoot = Path.Combine(outputRoot, "frozen-inputs", "candidate");
         Directory.CreateDirectory(snapshotRoot);
         var locks = new List<FileStream>();
@@ -208,14 +211,34 @@ internal static class FrozenCandidateWorkflowFactory
                     markerDescriptor, runtimeHost.Runtime),
                 _ => throw new InvalidDataException("Frozen candidate marker proposal domain is unsupported."),
             };
-            ResolvedProductionModel classifierModel = await ResolveClassifierAsync(
+            ProductionMarkerClassificationAdapter classifier;
+            if (binding.MarkerClassifier.SyntheticCandidate is { } classifierCandidate)
+            {
+                string classifierRoot = CreateDirectory(snapshotRoot, "marker-classifier");
+                string classifierPath = Materialize(classifierRoot, Path.GetFileName(classifierCandidate.Payload.RelativePath),
+                    classifierCandidate.Payload, locks);
+                string classifierManifestPath = Materialize(classifierRoot, Path.GetFileName(classifierCandidate.Manifest.RelativePath),
+                    classifierCandidate.Manifest, locks);
+                foreach (FrozenCandidateReviewedLicense license in classifierCandidate.ReviewedLicenseInputs)
+                    _ = Materialize(classifierRoot, $"reviewed-{license.Role}{Path.GetExtension(license.File.RelativePath)}", license.File, locks);
+                classifier = ProductionMarkerClassificationAdapter.CreateForFrozenCandidateEvaluation(
+                    new FrozenCandidateMarkerClassifierDescriptor(
+                        new ModelIdentity(classifierCandidate.ModelId, classifierCandidate.Version,
+                            classifierCandidate.Payload.Sha256, classifierPath),
+                        classifierManifestPath, classifierCandidate.Manifest.Sha256), runtimeHost.Runtime);
+                if (classifier.IsApproved)
+                    throw new InvalidDataException("Synthetic classifier candidate changed approval scope.");
+            }
+            else
+            {
+                ResolvedProductionModel classifierModel = await ResolveClassifierAsync(
                     repositoryRoot,
                     binding.MarkerClassifier,
                     locks,
                     cancellationToken)
                 .ConfigureAwait(false);
-            ProductionMarkerClassificationAdapter classifier =
-                ProductionMarkerClassificationAdapter.Create(classifierModel, runtimeHost);
+                classifier = ProductionMarkerClassificationAdapter.Create(classifierModel, runtimeHost);
+            }
             ValidateAlgorithms(binding, ocr, axis, artifact, marker, classifier, legend, phases);
 
             var panelStore = new ProductionWorkflowPanelStore();
@@ -327,7 +350,8 @@ internal static class FrozenCandidateWorkflowFactory
             throw new InvalidDataException("Frozen candidate algorithm identities do not match the actual workflow composition.");
         }
         if (axis.IsApproved || ocr.IsApproved || marker.IsApproved || artifact.IsApproved ||
-            !classifier.IsApproved || !legend.IsApproved || !phases.IsApproved)
+            classifier.IsApproved != (binding.MarkerClassifier.SyntheticCandidate is null) ||
+            !legend.IsApproved || !phases.IsApproved)
         {
             throw new InvalidDataException("Frozen candidate component approval states do not match the required boundary.");
         }

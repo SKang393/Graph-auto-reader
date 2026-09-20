@@ -38,11 +38,24 @@ public sealed record ProductionMarkerClassificationEvidence(
     WorkflowVisionEnvelope Envelope,
     IReadOnlyList<ClassifiedMarker> Markers);
 
+internal interface IProductionCandidateMarkerClassificationAdapter : IProductionMarkerClassificationAdapter
+{
+    Task<ProductionMarkerClassificationEvidence> ClassifyForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        MarkerImageFrame image,
+        IReadOnlyList<MarkerCenter> markers,
+        IReadOnlyDictionary<string, MarkerRectangle> originalPixelContentBounds,
+        CancellationToken cancellationToken);
+}
+
+internal sealed record FrozenCandidateMarkerClassifierDescriptor(
+    ModelIdentity Identity, string ManifestPath, string ManifestSha256);
+
 /// <summary>
 /// Binds a checksum-resolved marker-classifier manifest to the shared lazy
 /// production ONNX runtime. Marker centers remain a separate required stage.
 /// </summary>
-public sealed class ProductionMarkerClassificationAdapter : IProductionMarkerClassificationAdapter
+public sealed class ProductionMarkerClassificationAdapter : IProductionCandidateMarkerClassificationAdapter
 {
     private const int FixedBatchSize = 64;
     private static readonly string[] RequiredShapeOrder =
@@ -61,6 +74,7 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionMarkerCla
 
     private readonly Lazy<IMarkerClassificationService> classifier;
     private readonly MarkerClassificationOptions options;
+    private readonly bool candidateEvaluationEnabled;
 
     public ProductionMarkerClassificationAdapter(
         ModelIdentity model,
@@ -79,13 +93,15 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionMarkerCla
         ModelIdentity model,
         MarkerClassificationOptions options,
         bool isApproved,
-        Func<IMarkerClassificationService> classifierFactory)
+        Func<IMarkerClassificationService> classifierFactory,
+        bool candidateEvaluationEnabled = false)
     {
         Model = model ?? throw new ArgumentNullException(nameof(model));
         Model.Validate();
         this.options = options ?? throw new ArgumentNullException(nameof(options));
         ArgumentNullException.ThrowIfNull(classifierFactory);
         IsApproved = isApproved;
+        this.candidateEvaluationEnabled = candidateEvaluationEnabled;
         classifier = new Lazy<IMarkerClassificationService>(
             classifierFactory,
             LazyThreadSafetyMode.ExecutionAndPublication);
@@ -96,6 +112,39 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionMarkerCla
     public bool IsApproved { get; }
 
     public ModelIdentity Model { get; }
+
+    internal static ProductionMarkerClassificationAdapter CreateForFrozenCandidateEvaluation(
+        FrozenCandidateMarkerClassifierDescriptor descriptor, InferenceRuntime runtime) =>
+        CreateForFrozenCandidateEvaluation(descriptor, new MarkerClassificationService(runtime));
+
+    internal static ProductionMarkerClassificationAdapter CreateForFrozenCandidateEvaluation(
+        FrozenCandidateMarkerClassifierDescriptor descriptor, IMarkerClassificationService service)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(service);
+        descriptor.Identity.Validate();
+        VerifyChecksum(descriptor.Identity.FilePath, descriptor.Identity.Sha256, "candidate classifier payload");
+        VerifyChecksum(descriptor.ManifestPath, descriptor.ManifestSha256, "candidate classifier manifest");
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(descriptor.ManifestPath));
+        JsonElement root = document.RootElement;
+        foreach ((string name, string expected) in new[]
+        {
+            ("task", "marker_classifier"), ("model_id", descriptor.Identity.ModelId),
+            ("model_version", descriptor.Identity.Version), ("sha256", descriptor.Identity.Sha256),
+        })
+        {
+            if (!string.Equals(RequiredString(root, name), expected, StringComparison.Ordinal))
+                throw new InvalidDataException($"Candidate classifier {name} differs from its binding.");
+        }
+        if (root.TryGetProperty("benchmarks", out JsonElement benchmarks) &&
+            (benchmarks.ValueKind != JsonValueKind.Array || benchmarks.EnumerateArray().Any(item =>
+                item.ValueKind != JsonValueKind.Object ||
+                (item.TryGetProperty("production_approved", out JsonElement approved) && approved.ValueKind == JsonValueKind.True))))
+            throw new InvalidDataException("Candidate classifier cannot claim production approval.");
+        return new ProductionMarkerClassificationAdapter(descriptor.Identity,
+            ReadOptions(descriptor.ManifestPath, descriptor.Identity.Version), false, () => service,
+            candidateEvaluationEnabled: true);
+    }
 
     public static ProductionMarkerClassificationAdapter Create(
         ResolvedProductionModel resolvedModel,
@@ -132,7 +181,7 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionMarkerCla
         ProductionWorkflowDetectionRequest request,
         MarkerImageFrame image,
         IReadOnlyList<MarkerCenter> markers,
-        CancellationToken cancellationToken) => ClassifyCoreAsync(request, image, markers, options, cancellationToken);
+        CancellationToken cancellationToken) => ClassifyCoreAsync(request, image, markers, options, false, cancellationToken);
 
     public Task<ProductionMarkerClassificationEvidence> ClassifyAsync(
         ProductionWorkflowDetectionRequest request,
@@ -146,7 +195,19 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionMarkerCla
         {
             OriginalPixelContentBounds = originalPixelContentBounds,
             StageVersion = options.StageVersion + ":isolated-symbol-v1",
-        }, cancellationToken);
+        }, false, cancellationToken);
+    }
+
+    Task<ProductionMarkerClassificationEvidence> IProductionCandidateMarkerClassificationAdapter.ClassifyForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request, MarkerImageFrame image, IReadOnlyList<MarkerCenter> markers,
+        IReadOnlyDictionary<string, MarkerRectangle> originalPixelContentBounds, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(originalPixelContentBounds);
+        return ClassifyCoreAsync(request, image, markers, originalPixelContentBounds.Count == 0 ? options : options with
+        {
+            OriginalPixelContentBounds = originalPixelContentBounds,
+            StageVersion = options.StageVersion + ":isolated-symbol-v1",
+        }, true, cancellationToken);
     }
 
     private async Task<ProductionMarkerClassificationEvidence> ClassifyCoreAsync(
@@ -154,13 +215,14 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionMarkerCla
         MarkerImageFrame image,
         IReadOnlyList<MarkerCenter> markers,
         MarkerClassificationOptions executionOptions,
+        bool candidateEvaluation,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(image);
         ArgumentNullException.ThrowIfNull(markers);
         cancellationToken.ThrowIfCancellationRequested();
-        if (!IsApproved)
+        if (candidateEvaluation ? IsApproved || !candidateEvaluationEnabled : !IsApproved)
         {
             throw Failure(
                 ProductionWorkflowFailureCodes.DetectionModelsUnavailable,

@@ -1,0 +1,40 @@
+{
+  "acceptance_bar": "Use the existing marker_shape_accuracy_minimum, marker_fill_accuracy_minimum, marker_center_precision_minimum, marker_center_recall_minimum and prohibited_structure_hit_rate_maximum in ml/policy/acceptance-bars.json. No new perfection, margin, scene-exactness or threshold-sensitivity gate. Baseline rescore does not revoke historical approved-payload fill compatibility. No production approval from synthetic evidence.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "sealed_runs_authorized": 0,
+    "training_requires_canonical_authorization": true
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The unchanged approved classifier correctly names 1298 of 2880 native-context dev markers, correctly labels fill on 2210, retains 2106 and accepts 65 of 256 contextual artifacts at the shipped 0.5 artifact threshold. Training previously used directly authored patch tensors rather than verified original-raster crops. The all-23-source synthetic workflow also shows shape-induced series fragmentation and text fragments accepted as points. Adapting the existing classifier to owned native-raster context may repair this input-distribution gap. Synthetic recipe separation is not independent real evidence.",
+  "isolated_change": "Fine-tune the authenticated existing compact spatial classifier on the complete 7840-item owned native-context train population. Use the unchanged original-pixel runtime crop, architecture, 25-column probability transport, 0.7 shape/fill temperatures and 0.5 artifact threshold. The declared adaptation recipe uses 40 epochs, AdamW at 0.0003, weight decay 0.0001, batch size 128, no additional image augmentation, and final-epoch selection without dev selection. Retain historical shape/fill/artifact/embedding objective coefficients; average artifact loss across positive and negative classes. Keep all 28 exact-pixel ambiguous authored examples: uniform shape alternatives and explicit unknown fill provide consistent training targets; raw authored shape accuracy keeps every row. Exclude the eight shape-ambiguous rows from identity-pair loss only. This is the whole adaptation recipe, not an isolated claim about one loss term.",
+  "metric": "Score the complete 2880 authored dev shape labels and 2880 observable/unknown fill labels, retained-marker precision and recall and accepted-prohibited-structure rate on all 256 dev negatives at the unchanged shipped 0.5 artifact threshold. Preserve raw counts and grouped diagnostics. Report 0.4/0.6 threshold sensitivity descriptively. Check probability-packed ONNX parity on every train/dev tensor using the existing 1e-5 tolerance. These patch measures do not establish center proposal recall, series grouping, calibration, full-workflow export, real acceptance or production readiness; retain the full 23-source workflow comparison before integration.",
+  "split_identities": {
+    "baseline_report_path": "artifacts/goal22-runs/classifier-native-context-baseline-v1/report.json",
+    "baseline_report_sha256": "cd2272b9f05fdffee97a00f5060a640db9857cd93913b04093da7a8abea94601",
+    "cache_manifest_sha256": "dcd6df06f2217cd6ab17168e4eb101cd0290829b63cb9e3dc789185bc7b872cd",
+    "cache_path": "artifacts/goal22-runs/classifier-native-context-cache-v2",
+    "dev_ambiguous_rows": 0,
+    "dev_artifacts": 256,
+    "dev_count": 3136,
+    "dev_families": [
+      "soft-monospace"
+    ],
+    "dev_markers": 2880,
+    "exact_cross_split_tensor_overlap": 0,
+    "fill_ambiguous_train_rows": 20,
+    "shape_ambiguous_train_rows": 8,
+    "source_checkpoint_sha256": "49a5ce6487b51a7426ebca5081fa3e2a15c9c30bd6302033ad7efa82b3ad8c7a",
+    "train_artifacts": 640,
+    "train_count": 7840,
+    "train_families": [
+      "native-sans",
+      "antialiased-serif"
+    ],
+    "train_markers": 7200
+  }
+}

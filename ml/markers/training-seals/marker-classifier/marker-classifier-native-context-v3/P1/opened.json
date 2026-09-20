@@ -1,0 +1,48 @@
+{
+  "binding": {
+    "base_commit": "5bc8bd24849b00f5ee43fa0859c3729d5c5b78b7",
+    "candidate_config_path": "ml/markers/classifier/native_context_v3/p1.json",
+    "candidate_config_sha256": "ae55ae61b0f532f042a8e026adf761c9bdc237114db7f46ab9a81bc33ecc1c51",
+    "candidate_id": "P1",
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "revision": "marker-classifier-native-context-v3",
+    "runner_source_bundle_sha256": "67607b56a7139bfe100e0d12fa076356f24ef0c79fd3473eb2bc45af32251a0f",
+    "runner_source_paths": [
+      "ml/markers/classifier/dataset.py",
+      "ml/markers/classifier/metrics.py",
+      "ml/markers/classifier/model.py",
+      "ml/markers/classifier/native_context_cache.py",
+      "ml/markers/classifier/native_context_data.py",
+      "ml/markers/classifier/native_context_evaluation.py",
+      "ml/markers/classifier/native_context_v3/__init__.py",
+      "ml/markers/classifier/native_context_v3/protocol.json",
+      "ml/markers/classifier/native_context_v3/runner.py",
+      "ml/markers/classifier/runtime_diagnostic.py",
+      "ml/markers/classifier/runtime_patches.py",
+      "ml/markers/classifier/runtime_v2.py",
+      "ml/markers/gate_seal.py",
+      "ml/markers/training_budget.py",
+      "ml/policy/acceptance-bars.json",
+      "ml/policy/evidence-policy.json",
+      "ml/policy/evidence_policy.py",
+      "ml/synthetic/fonts.py",
+      "ml/synthetic/renderer.py",
+      "ml/training_cpu_budget.py",
+      "tools/Run-TrainingCpuBudget.ps1"
+    ],
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "source_snapshot_path": "ml/markers/training-seals/marker-classifier/marker-classifier-native-context-v3/P1/source-snapshot.json",
+    "source_snapshot_sha256": "98b92002a9a89edd023b37b6747cc92e757d373fb06c3e55c7e7ed643993bbc5",
+    "task": "marker-classifier",
+    "training_budget_ledger_sha256": "ec77881111d2b6ab53e86f941e9038058602747688a5eadd2042670c92d7b0a8"
+  },
+  "budget_status": "pending_sealed_read",
+  "opened_utc": "2026-09-20T18:14:44.836908+00:00",
+  "schema_version": 1,
+  "status": "opened"
+}

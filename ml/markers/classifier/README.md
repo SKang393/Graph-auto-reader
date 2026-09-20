@@ -3,7 +3,7 @@
 This directory contains an original, deterministic PyTorch training toolchain
 for classifying fixed 32 by 32 marker-centered ink-probability patches. It uses
 only procedural project data. It does not use private figures, external data,
-pretrained weights, downloaded weights, or earlier application source.
+external pretrained weights, downloaded weights, or earlier application source.
 
 ## Output contract
 
@@ -47,6 +47,23 @@ The final held-out command creates an exclusive seal and refuses a rerun. A
 failure is preserved without test-set tuning.
 
 ## Commands
+
+### Native-context adaptation
+
+`native_context_data.py` and `native_context_cache.py` define owned train/dev
+recipes sampled with the verified original-raster crop. Exact-pixel ambiguity
+is recorded without dropping rows or claiming an observable answer that does
+not exist. Cross-split overlap and changed cache bytes are rejected.
+
+`native_context_v3/runner.py` adapts the authenticated existing classifier only
+after canonical training admission. It requires the Windows CPU guard and
+passive numerical-worker waits, then uses synchronous work/rest blocks for
+training and evaluation. It never opens private or sealed data. The fixed
+final-epoch result improves native-context development metrics but fails shape
+accuracy; it is not production approved. See the
+[repair record](../../../docs/GOAL-22-NATIVE-CLASSIFIER-REPAIR.md) and
+[declared protocol](native_context_v3/protocol.json). This section does not
+authorize replaying historical consumed gates.
 
 ### Original-raster diagnostics
 

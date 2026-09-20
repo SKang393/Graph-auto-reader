@@ -150,6 +150,20 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
+    public async Task SyntheticCandidateClassifierUsesOnlyItsExplicitEvaluationRoute()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store, candidateClassifier: true);
+        WorkflowRunResult result = await CreateWorkflow(store, candidate).RunThroughReviewAsync(
+            Request(imagePath), null, CancellationToken.None);
+        Assert.IsFalse(candidate.IsApproved);
+        Assert.HasCount(2, result.Review.Panels.Single().Points);
+        Assert.IsNotNull(store.Get(result.Review.Panels.Single().PanelId).ExportEvidence);
+    }
+
+    [TestMethod]
     public async Task CandidateCalibratesFromTickStrokesWithoutChangingOrReusingRejectedOcr()
     {
         using var directory = new TemporaryDirectory();
@@ -526,7 +540,8 @@ public sealed class ProductionCandidateWorkflowTests
         bool ambiguousPhaseLayout = false,
         bool shiftedNumericLabels = false,
         bool includeNumericOutliers = false,
-        bool includeUncertainMarkerText = false) =>
+        bool includeUncertainMarkerText = false,
+        bool candidateClassifier = false) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
@@ -534,7 +549,7 @@ public sealed class ProductionCandidateWorkflowTests
             new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels, includeNumericOutliers, includeUncertainMarkerText),
             new CandidateMaskComposer(),
             new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession),
-            new ClassificationAdapter(),
+            new ClassificationAdapter(isApproved: !candidateClassifier),
             new LegendAdapter(),
             ambiguousPhaseLayout ? new ProductionPhaseReasoningAdapter() : new PhaseAdapter(cancelAfterPhase),
             new EmptyConnectionBuilder());
@@ -797,10 +812,10 @@ public sealed class ProductionCandidateWorkflowTests
         }
     }
 
-    private sealed class ClassificationAdapter : IProductionMarkerClassificationAdapter
+    private sealed class ClassificationAdapter(bool isApproved = true) : IProductionCandidateMarkerClassificationAdapter
     {
         public string AdapterId => "approved-fixed-classifier";
-        public bool IsApproved => true;
+        public bool IsApproved => isApproved;
         public ModelIdentity Model { get; } = new(
             "fixed-classifier", "v1", new string('f', 64), "fixed-classifier.onnx");
 
@@ -809,6 +824,21 @@ public sealed class ProductionCandidateWorkflowTests
             MarkerImageFrame image,
             IReadOnlyList<MarkerCenter> markers,
             CancellationToken cancellationToken)
+        {
+            if (!IsApproved) throw new InvalidOperationException("Candidate classifier used the production route.");
+            return ClassifyCore(request, markers, cancellationToken);
+        }
+
+        public Task<ProductionMarkerClassificationEvidence> ClassifyForCandidateEvaluationAsync(
+            ProductionWorkflowDetectionRequest request, MarkerImageFrame image, IReadOnlyList<MarkerCenter> markers,
+            IReadOnlyDictionary<string, MarkerRectangle> originalPixelContentBounds, CancellationToken cancellationToken)
+        {
+            if (IsApproved) throw new InvalidOperationException("Approved classifier used the candidate route.");
+            return ClassifyCore(request, markers, cancellationToken);
+        }
+
+        private static Task<ProductionMarkerClassificationEvidence> ClassifyCore(
+            ProductionWorkflowDetectionRequest request, IReadOnlyList<MarkerCenter> markers, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             ClassifiedMarker[] classified = markers.Select((marker, index) => index == 1

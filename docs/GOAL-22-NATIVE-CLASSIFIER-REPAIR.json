@@ -1,0 +1,374 @@
+{
+  "schema": "graphreader.goal22.native-classifier-repair.v1",
+  "status": "failed_dev_and_regressed_full_workflow_unapproved",
+  "base_commit": "5bc8bd24849b00f5ee43fa0859c3729d5c5b78b7",
+  "goal22_complete": false,
+  "outcome": {
+    "path": "ml/markers/classifier/native_context_v3/P1_RESULT.json",
+    "sha256": "4f09263eea3e3a44a64462435c56b64de7e960f76705f615bd61307ba8f91fe3"
+  },
+  "source_checkpoint_sha256": "49a5ce6487b51a7426ebca5081fa3e2a15c9c30bd6302033ad7efa82b3ad8c7a",
+  "cache": {
+    "path": "artifacts/goal22-runs/classifier-native-context-cache-v2/manifest.json",
+    "sha256": "dcd6df06f2217cd6ab17168e4eb101cd0290829b63cb9e3dc789185bc7b872cd"
+  },
+  "cache_audit": {
+    "conflicting_label_tensors": [
+      "08185291f841d63b415dcbfefb127d9b44e03b7eaa62ff9446a15fb9666e6ff9",
+      "0f6d3afd42a482075dd177782c0bbae3ed83e67de0a614c7c97bb00b5c3d2da3",
+      "182882b6bbd85c48e1b2c2fbe4a868d42bb1de3064d4501cf1ed81ba83a70462",
+      "309f3d3daa0c32f86241edc9310364d65b551c202a00a7d3b7b519559ff86afb",
+      "3161300bd028eec1d2a66dec5d0933ccc0c65e08edd53520cd00222a055bd43e",
+      "40130066ca72dd10834479031c54968500fa5c67163873ba29eacbc51815b648",
+      "4c81f4a815c2ee9d78ed9f6551d1c029d0b64b4b037ee3aab82cf39f41054c04",
+      "5c7bda372c2978e70be02135a1244f62b4a1bbaade38807b8ba695ae95287f8f",
+      "6c259623d8ed965a6a7d461c8c228579d72f7ce9bc6d389b25643aa60655f411",
+      "6f9ef4ff3224e187bfbd25413cc76db67d989f528eb11e78708eb983e1e17fac",
+      "807161894b0f74dc491ab69679badf749bdefaeafec6d0fbcc42016a412a9027",
+      "8b5f4e7197bd45c7933d8d1d3668250d6d3e3b40a07016b7a4f7095e969fb17b",
+      "ad5925e33b674fc16f30dbde625d7ec7a36c37aca5fff928ce6fb59288a12ff0",
+      "b640fcab6a705d149c43152fb5e0a75ffadb0fa95ce9ce315f3ff68545a02211"
+    ],
+    "conflicting_training_targets": [],
+    "cross_split_identical_tensors": [],
+    "splits": {
+      "dev": {
+        "artifacts": 256,
+        "contexts": {
+          "arrow": 32,
+          "axis": 32,
+          "axis_contact": 576,
+          "bracket": 32,
+          "divider": 32,
+          "horizontal_line": 576,
+          "intersection": 32,
+          "isolated": 576,
+          "legend": 32,
+          "neighbor": 576,
+          "oblique_line": 576,
+          "text": 32,
+          "tick": 32
+        },
+        "count": 3136,
+        "families": {
+          "soft-monospace": 3136
+        },
+        "fill_ambiguous_rows": 0,
+        "markers": 2880,
+        "shape_ambiguous_rows": 0,
+        "unique_tensors": 2816
+      },
+      "train": {
+        "artifacts": 640,
+        "contexts": {
+          "arrow": 80,
+          "axis": 80,
+          "axis_contact": 1440,
+          "bracket": 80,
+          "divider": 80,
+          "horizontal_line": 1440,
+          "intersection": 80,
+          "isolated": 1440,
+          "legend": 80,
+          "neighbor": 1440,
+          "oblique_line": 1440,
+          "text": 80,
+          "tick": 80
+        },
+        "count": 7840,
+        "families": {
+          "antialiased-serif": 3920,
+          "native-sans": 3920
+        },
+        "fill_ambiguous_rows": 20,
+        "markers": 7200,
+        "shape_ambiguous_rows": 8,
+        "unique_tensors": 7026
+      }
+    },
+    "status": "valid"
+  },
+  "initial_invalid_cache": {
+    "path": "artifacts/goal22-runs/classifier-native-context-cache-v1/manifest.json",
+    "sha256": "86af9984ad331e5b53730c1771ad695202be5a0d6f7d320fcb3c00476265a7af"
+  },
+  "pre_run_sources": {
+    "path": "artifacts/goal22-runs/classifier-native-context-preflight-v1/source-bindings.json",
+    "sha256": "8442a0e0774d9e3c56c4b1f565ba368398a220b09736d4c56780723b70fef44a"
+  },
+  "training_source_snapshot": {
+    "path": "ml/markers/training-seals/marker-classifier/marker-classifier-native-context-v3/P1/source-snapshot.json",
+    "sha256": "98b92002a9a89edd023b37b6747cc92e757d373fb06c3e55c7e7ed643993bbc5"
+  },
+  "baseline_report": {
+    "path": "artifacts/goal22-runs/classifier-native-context-baseline-v1/report.json",
+    "sha256": "cd2272b9f05fdffee97a00f5060a640db9857cd93913b04093da7a8abea94601"
+  },
+  "training_report": {
+    "path": "artifacts/goal22-runs/classifier-native-context-v3/P1/report.json",
+    "sha256": "c3200cc26cbbd501a49be679d8653d7144238453bff9ecd150008e419ff34e20"
+  },
+  "dev_metrics": {
+    "baseline": {
+      "artifacts": 256,
+      "artifacts_accepted": 65,
+      "count": 3136,
+      "fill_accuracy": 0.7673611111111112,
+      "fill_ambiguous_rows": 0,
+      "fill_correct": 2210,
+      "markers": 2880,
+      "prohibited_structure_hit_rate": 0.25390625,
+      "retained_correct_shape": 1118,
+      "retained_marker_precision": 0.9700598802395209,
+      "retained_marker_recall": 0.73125,
+      "shape_accuracy": 0.45069444444444445,
+      "shape_ambiguous_rows": 0,
+      "shape_correct": 1298,
+      "true_markers_retained": 2106
+    },
+    "candidate": {
+      "artifacts": 256,
+      "artifacts_accepted": 1,
+      "count": 3136,
+      "fill_accuracy": 0.9628472222222222,
+      "fill_ambiguous_rows": 0,
+      "fill_correct": 2773,
+      "markers": 2880,
+      "prohibited_structure_hit_rate": 0.00390625,
+      "retained_correct_shape": 2451,
+      "retained_marker_precision": 0.9996526571726294,
+      "retained_marker_recall": 0.9993055555555556,
+      "shape_accuracy": 0.8517361111111111,
+      "shape_ambiguous_rows": 0,
+      "shape_correct": 2453,
+      "true_markers_retained": 2878
+    },
+    "gates": {
+      "fill": true,
+      "prohibited_structure_hits": true,
+      "retention_precision": true,
+      "retention_recall": true,
+      "shape": false
+    }
+  },
+  "tests": {
+    "python": {
+      "report": {
+        "path": "artifacts/goal22-runs/classifier-native-context-preflight-v1/tests.xml",
+        "sha256": "6b9002bcf2dad92847350146c06d77d586d0f39ac5af4f17da8dd51b8ba1769d"
+      },
+      "passed": 78,
+      "seconds": 5.779
+    },
+    "app": {
+      "report": {
+        "path": "artifacts/goal22-runs/workflow-classifier-candidate-checks-v2/test-results/app.trx",
+        "sha256": "f60a6e555fb06589c3b15531542f7c3146eb16d78e81e37a41249a6b3b858de0"
+      },
+      "passed": 404,
+      "failed": 0,
+      "skipped": 0
+    },
+    "x64_build": {
+      "log": {
+        "path": "artifacts/goal22-runs/workflow-classifier-candidate-checks-v2/build.log",
+        "sha256": "a7646885d25dc95b708ac65f745940c1e5e167abe1818b489a40190a32f14a22"
+      },
+      "warnings": 0,
+      "errors": 0
+    },
+    "fictitious_runner": {
+      "path": "artifacts/goal22-runs/workflow-classifier-candidate-checks-v2/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    },
+    "fictitious_binding": {
+      "path": "artifacts/goal22-runs/workflow-classifier-candidate-checks-v2/frozen-binding-self-test.json",
+      "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+    },
+    "route_sources": {
+      "path": "artifacts/goal22-runs/workflow-classifier-candidate-checks-v2/source-bindings.json",
+      "sha256": "11ae8ab60917d038629653750f8d26aec2e810529894b6f41c36007bd09cd1c4"
+    }
+  },
+  "retained_check_failure": {
+    "status": {
+      "path": "artifacts/goal22-runs/workflow-classifier-candidate-checks-v1/status.json",
+      "sha256": "f836f0271150ff5b8dc8364a6128724c3713f78a7336b9f514fc7f5e7187fbb8"
+    },
+    "log": {
+      "path": "artifacts/goal22-runs/workflow-classifier-candidate-checks-v1/app.log",
+      "sha256": "fdafd3dd7d9e72a9fc942b58402220dd124bbed35fe3085262328dd453fa30ba"
+    },
+    "cause": "New test fixture omitted its local temporary-directory helper and violated constant-array analyzer rules; repaired before execution."
+  },
+  "full_workflow": {
+    "comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-native-classifier-v1/comparison.json",
+      "sha256": "b18ae1bf5aee1ed1322f364aca10a3ac46179e18a07c85fce7ec742ca2951a1f"
+    },
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-native-classifier-v1/execution/report.json",
+      "sha256": "fb77e7085b5480bceae1805a50836ca979161fa4115b27facc8e3a6d6ec6cdf5"
+    },
+    "candidate_binding": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-native-classifier-v1/candidate-binding.json",
+      "sha256": "0fb607b3e1a4bfaad7573ef72a5804d02c04c9500aa30831094608e8723a438c"
+    },
+    "input_manifest": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-native-classifier-v1/input-manifest.json",
+      "sha256": "26a84ce39e46acb48d14eab05812d4bbb7f56f60f9ddee4677cdca82d3af197f"
+    },
+    "candidate_manifest": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-native-classifier-v1/classifier/manifest.json",
+      "sha256": "c0b2fdf4629e93eac7321ee46bed2309573efe047d06630f1c95433ef931352f"
+    },
+    "manifest_schema_valid": true,
+    "baseline_metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 13,
+      "failed_cases": 10,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 42,
+      "matched_series": 18,
+      "truth_points": 706,
+      "predicted_points": 276,
+      "matched_points": 230,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 291,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 225,
+      "correct_rows": 222,
+      "missing_rows": 499,
+      "extra_rows": 66,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 230,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 476,
+      "unique_point_extra": 46,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.8333333333333334,
+      "unique_point_structural_coverage": 0.32577903682719545,
+      "unique_point_value_precision": 0.8333333333333334,
+      "unique_point_value_coverage": 0.32577903682719545,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.7628865979381443,
+      "relational_row_coverage": 0.30662983425414364,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9866666666666667,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 10
+      }
+    },
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 11,
+      "failed_cases": 12,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 28,
+      "matched_series": 13,
+      "truth_points": 706,
+      "predicted_points": 169,
+      "matched_points": 152,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 173,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 148,
+      "correct_rows": 148,
+      "missing_rows": 576,
+      "extra_rows": 25,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 0,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 152,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 554,
+      "unique_point_extra": 17,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.8994082840236687,
+      "unique_point_structural_coverage": 0.21529745042492918,
+      "unique_point_value_precision": 0.8994082840236687,
+      "unique_point_value_coverage": 0.21529745042492918,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.8554913294797688,
+      "relational_row_coverage": 0.20441988950276244,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 1,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 12
+      }
+    },
+    "milliseconds": 133256.6861,
+    "previous_panels_retained": 30,
+    "observed_panels": 32,
+    "common_axis_and_ocr_unchanged": true,
+    "all_sources_retained": 23,
+    "accepted_center_diagnosis": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-native-classifier-v1/accepted-center-diagnosis.json",
+      "sha256": "9be240a169e5b2cdb28063d2a615004e59997e551e05fccb783136a5904b8203"
+    }
+  },
+  "shape_diagnosis": {
+    "path": "artifacts/goal22-runs/classifier-native-context-v3/dev-diagnosis.json",
+    "sha256": "1094fe183a54df13a8b66b6fc15a78013c846538068cadcec9d4f2a25a5af55b"
+  },
+  "cpu": {
+    "cycles": 2699,
+    "maximum_completed_cycle_duty": 0.7998160153898412,
+    "rest_seconds": 64.43109579855809,
+    "scope": "Synchronous guarded work/rest average; not instantaneous per-core utilization",
+    "work_seconds": 251.9349886001437
+  },
+  "training_seconds": 321.3627870999626,
+  "parity": {
+    "dev": {
+      "artifact_decision_changes": 0,
+      "count": 3136,
+      "fill_decision_changes": 0,
+      "maximum_absolute_error": 4.231929779052734e-06,
+      "shape_decision_changes": 0
+    },
+    "train": {
+      "artifact_decision_changes": 0,
+      "count": 7840,
+      "fill_decision_changes": 0,
+      "maximum_absolute_error": 3.248453140258789e-06,
+      "shape_decision_changes": 0
+    }
+  },
+  "licensing": {
+    "new_source": "Apache-2.0",
+    "model": "Apache-2.0 owned checkpoint adaptation",
+    "new_dependencies": false,
+    "font_binaries_copied": false,
+    "existing_provenance": "ml/markers/classifier/DEPENDENCY_PROVENANCE.csv"
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "packaged_build_created": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33",
+  "next_action": "Measure classifier proposal/crop context on the owned full-scene train/dev corpus before changing training coverage; preserve the rejected candidate and all complete-workflow failure denominators."
+}
