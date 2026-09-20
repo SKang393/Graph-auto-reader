@@ -18,6 +18,29 @@ public sealed class ProductionRasterPanelizerTests
     private static readonly int[] ExpectedPanelOrder = [1, 2, 3];
 
     [TestMethod]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    public async Task AxisOcclusionRequiresAnObservedInkPath(bool horizontal, bool connected)
+    {
+        byte[] source = CreateStackedGraphPng(640, 900, connected, horizontal);
+        string sourceSha256 = Convert.ToHexStringLower(SHA256.HashData(source));
+        ProductionRasterPanelizationResult result = await new ProductionRasterPanelizer().PanelizeAsync(
+            new ImmutableByteBuffer(source), sourceSha256, 640, 900, CancellationToken.None);
+
+        Assert.HasCount(connected ? 3 : 2, result.Panels,
+            "An outlined symbol may preserve a connected axis; disconnected ink cannot supply that missing axis.");
+        Assert.AreEqual(0d, result.Panels[0].EncodedCropInSourcePixels.Y);
+        Assert.AreEqual(900d, result.Panels[^1].EncodedCropInSourcePixels.Bottom);
+        for (int index = 1; index < result.Panels.Count; index++)
+        {
+            Assert.AreEqual(result.Panels[index - 1].EncodedCropInSourcePixels.Bottom,
+                result.Panels[index].EncodedCropInSourcePixels.Y);
+        }
+    }
+
+    [TestMethod]
     public async Task StackedPngProducesStableOwnedCropsAndExactSourceMappings()
     {
         byte[] mutableSource = CreateStackedGraphPng(width: 640, height: 900);
@@ -416,7 +439,8 @@ public sealed class ProductionRasterPanelizerTests
         throw new InvalidOperationException($"PNG chunk '{type}' was not found.");
     }
 
-    private static byte[] CreateStackedGraphPng(int width, int height)
+    private static byte[] CreateStackedGraphPng(
+        int width, int height, bool? connectedAxisDetour = null, bool horizontalDetour = false)
     {
         byte[] scanlines = CreateWhiteScanlines(width, height);
         int[] baselines = [270, 530, 790];
@@ -428,6 +452,33 @@ public sealed class ProductionRasterPanelizerTests
             DrawHorizontal(scanlines, width, height, 220, 340, baseline - 110, thickness: 1);
             DrawHorizontal(scanlines, width, height, 340, 460, baseline - 80, thickness: 1);
             DrawVertical(scanlines, width, height, 300, baseline - 150, baseline, thickness: 1);
+        }
+
+        if (connectedAxisDetour is bool connected)
+        {
+            int xMinimum = horizontalDetour ? 92 : 80;
+            int xMaximum = horizontalDetour ? 96 : 81;
+            int yMinimum = horizontalDetour ? 270 : 243;
+            int yMaximum = horizontalDetour ? 271 : 247;
+            for (int y = yMinimum; y <= yMaximum; y++)
+            {
+                for (int x = xMinimum; x <= xMaximum; x++)
+                {
+                    scanlines[(y * (width + 1)) + x + 1] = byte.MaxValue;
+                }
+            }
+
+            if (connected)
+            {
+                int left = horizontalDetour ? 91 : 76;
+                int right = horizontalDetour ? 97 : 85;
+                int top = horizontalDetour ? 267 : 242;
+                int bottom = horizontalDetour ? 274 : 248;
+                DrawHorizontal(scanlines, width, height, left, right, top, thickness: 1);
+                DrawHorizontal(scanlines, width, height, left, right, bottom, thickness: 1);
+                DrawVertical(scanlines, width, height, left, top, bottom, thickness: 1);
+                DrawVertical(scanlines, width, height, right, top, bottom, thickness: 1);
+            }
         }
 
         return EncodeGrayscalePng(width, height, scanlines);

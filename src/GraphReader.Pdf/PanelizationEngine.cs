@@ -2077,6 +2077,7 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
 
             List<RasterStructuralLine> deduplicated = [];
             foreach (RasterStructuralLine candidate in candidates
+                .Select(line => ExtendAlongConnectedInk(line, width, height, ink, cancellationToken))
                 .OrderBy(static line => line.Fixed)
                 .ThenBy(static line => line.Start)
                 .ThenByDescending(static line => line.Length))
@@ -2103,6 +2104,87 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             }
 
             return deduplicated;
+        }
+
+        private static RasterStructuralLine ExtendAlongConnectedInk(
+            RasterStructuralLine line,
+            int width,
+            int height,
+            byte[] ink,
+            CancellationToken cancellationToken)
+        {
+            // An open symbol can replace a short part of an otherwise long
+            // axis with white pixels. Extend an already-qualified line only
+            // when the same-column ink is connected around that local gap.
+            // Disconnected strokes keep the original two-pixel gap rule.
+            const int detourRadius = RasterAxisEndpointTolerancePixels * 2;
+            int varyingLimit = line.IsHorizontal ? width : height;
+            int fixedLimit = line.IsHorizontal ? height : width;
+
+            bool IsInk(int along, int across) => ink[line.IsHorizontal
+                ? (across * width) + along
+                : (along * width) + across] != 0;
+
+            bool HasInkPath(int from, int to)
+            {
+                int alongMinimum = Math.Max(0, Math.Min(from, to) - detourRadius);
+                int alongMaximum = Math.Min(varyingLimit - 1, Math.Max(from, to) + detourRadius);
+                int acrossMinimum = Math.Max(0, line.Fixed - detourRadius);
+                int acrossMaximum = Math.Min(fixedLimit - 1, line.Fixed + detourRadius);
+                var pending = new Queue<(int Along, int Across)>();
+                var visited = new HashSet<(int Along, int Across)> { (from, line.Fixed) };
+                pending.Enqueue((from, line.Fixed));
+                while (pending.TryDequeue(out var point))
+                {
+                    if (point == (to, line.Fixed))
+                    {
+                        return true;
+                    }
+
+                    for (int da = -1; da <= 1; da++)
+                    {
+                        for (int dc = -1; dc <= 1; dc++)
+                        {
+                            int along = point.Along + da;
+                            int across = point.Across + dc;
+                            if (along >= alongMinimum && along <= alongMaximum &&
+                                across >= acrossMinimum && across <= acrossMaximum &&
+                                IsInk(along, across) && visited.Add((along, across)))
+                            {
+                                pending.Enqueue((along, across));
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            int Extend(int endpoint, int direction)
+            {
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    int next = endpoint + direction;
+                    int distance = 1;
+                    while (next >= 0 && next < varyingLimit && !IsInk(next, line.Fixed) &&
+                        distance <= detourRadius)
+                    {
+                        next += direction;
+                        distance++;
+                    }
+
+                    if (next < 0 || next >= varyingLimit || !IsInk(next, line.Fixed) ||
+                        (distance > RasterLineGapTolerancePixels + 1 && !HasInkPath(endpoint, next)))
+                    {
+                        return endpoint;
+                    }
+
+                    endpoint = next;
+                }
+            }
+
+            return line with { Start = Extend(line.Start, -1), End = Extend(line.End, 1) };
         }
 
         private static void AddRun(

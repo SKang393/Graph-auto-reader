@@ -1,0 +1,243 @@
+{
+  "schema": "graphreader.goal22.connected-panel-ink.v1",
+  "status": "panel_detection_repaired_downstream_axis_and_ocr_failures_remain",
+  "base_commit": "8811fcdeeb0b077e40542d7409981e7a1e27472f",
+  "change": "Extend existing qualified raster lines only through a bounded actual 8-connected ink path around a short gap. Do not alter source pixels or relax the disconnected-gap rule.",
+  "source_bindings": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-connected-v2/source-bindings.json",
+    "sha256": "10209215a4c6164480bc1def15ced7a01c7fe800f4c46e22f27c628b557b96b4"
+  },
+  "validation": {
+    "app": {
+      "report": {
+        "path": "artifacts/goal22-runs/panel-connected-ink-checks-v1/test-results/app.trx",
+        "sha256": "8f7fbb4b954c868c564130a43f10fe61c9d7f785ad3bd117a1af6e7bcfe31c8c"
+      },
+      "total": 418,
+      "passed": 418,
+      "expected_optional_skip": 0
+    },
+    "pdf": {
+      "report": {
+        "path": "artifacts/goal22-runs/panel-connected-ink-checks-v1/test-results/pdf.trx",
+        "sha256": "ae05f2bc287d95d13f92a8d15d3a22399ad948627b2c9c58ea7cd3e41b1acb98"
+      },
+      "total": 60,
+      "passed": 59,
+      "expected_optional_skip": 1
+    },
+    "panelizer": {
+      "report": {
+        "path": "artifacts/goal22-runs/panel-connected-ink-checks-v1/test-results/panelizer.trx",
+        "sha256": "54c76d895b98adea1c5e1dc9708053b2d8fa5cd539dfceccf268bbd913e585ba"
+      },
+      "total": 16,
+      "passed": 16,
+      "expected_optional_skip": 0
+    }
+  },
+  "direct_replay": {
+    "input": {
+      "path": "artifacts/goal22-runs/panel-connected-ink-replay-v1/inputs.json",
+      "sha256": "4e3bd33f83b9c05538c6a50eddd3a6a2b0d7e9e7b36c05f0cdae6913e3f3456e"
+    },
+    "before": {
+      "path": "artifacts/goal22-runs/panel-connected-ink-replay-v1/before.json",
+      "sha256": "a5f25657a125a9052852dbcb760b6987aaf06c681ab34f432108bf2fc945c101"
+    },
+    "after": {
+      "path": "artifacts/goal22-runs/panel-connected-ink-replay-v1/after.json",
+      "sha256": "b135c9c39bdc29e661bfee3ed83709a469e0b810c8eff1af6de9af8769c59530"
+    },
+    "metrics": {
+      "before": {
+        "physical_truth_panels": 39,
+        "directly_detected_panels": 33,
+        "sources_with_exact_panel_count": 17,
+        "panels_in_exact_sources_with_intact_plot": 29,
+        "no_panel_sources": 4,
+        "seconds": 1.153634
+      },
+      "after": {
+        "physical_truth_panels": 39,
+        "directly_detected_panels": 37,
+        "sources_with_exact_panel_count": 21,
+        "panels_in_exact_sources_with_intact_plot": 37,
+        "no_panel_sources": 2,
+        "seconds": 1.1694559
+      }
+    },
+    "identical_source_results": 19,
+    "changed_source_results": 4,
+    "invented_panels": 0,
+    "limitation": "Panel counts and plot containment only; no model inference, calibration or CSV evidence."
+  },
+  "whole_workflow": {
+    "comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-connected-v2/comparison.json",
+      "sha256": "7f18e34657c5b832808e43e1578ae71a8fee7ad881a956d6582d44e49411b988"
+    },
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-connected-v2/execution/report.json",
+      "sha256": "9dfccde4fba43bff7523f8eb9872cc9d4d954ce8b2a4097a80b5334b44602454"
+    },
+    "candidate_binding": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-connected-v2/candidate-binding.json",
+      "sha256": "6e5c8757a13d47be2445e0e9244f9dc7cfa34ebbdc786bbe903d119b50df8079"
+    },
+    "baseline_metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 13,
+      "failed_cases": 10,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 28,
+      "matched_series": 21,
+      "truth_points": 706,
+      "predicted_points": 368,
+      "matched_points": 360,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 368,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 357,
+      "correct_rows": 352,
+      "missing_rows": 367,
+      "extra_rows": 11,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 360,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 346,
+      "unique_point_extra": 8,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9782608695652174,
+      "unique_point_structural_coverage": 0.509915014164306,
+      "unique_point_value_precision": 0.9782608695652174,
+      "unique_point_value_coverage": 0.509915014164306,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9565217391304348,
+      "relational_row_coverage": 0.4861878453038674,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9859943977591037,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 10
+      }
+    },
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 12,
+      "failed_cases": 11,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 26,
+      "matched_series": 19,
+      "truth_points": 706,
+      "predicted_points": 330,
+      "matched_points": 322,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 330,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 319,
+      "correct_rows": 314,
+      "missing_rows": 405,
+      "extra_rows": 11,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 322,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 384,
+      "unique_point_extra": 8,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9757575757575757,
+      "unique_point_structural_coverage": 0.45609065155807366,
+      "unique_point_value_precision": 0.9757575757575757,
+      "unique_point_value_coverage": 0.45609065155807366,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9515151515151515,
+      "relational_row_coverage": 0.43370165745856354,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9843260188087775,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 11
+      }
+    },
+    "seconds": 127.1173009,
+    "before_imported_panels": 37,
+    "after_imported_panels": 39,
+    "expected_physical_panels": 39,
+    "source_count_matches": 23,
+    "previously_observed_panels": 33,
+    "observed_panels": 32,
+    "prior_observation_keys_absent": 3,
+    "observation_limitation": "Merged crops change identity after correction; sequential detection also stops at the first failed panel. Imported panels remain counted even when later inference is not reached.",
+    "source_status_changes": [
+      {
+        "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+        "before": "failed",
+        "after": "failed",
+        "before_error": "Automatic calibration is incomplete: Numeric tick evidence is ambiguous because competing alternative models have equal support. | Y-axis graph values must increase upward while original-pixel y coordinates increase downward. | Printed x-axis tick evidence does not define a valid left-to-right session transform. | Independent session-origin sources disagree beyond the configured tolerance.",
+        "after_error": "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | Numeric tick evidence is ambiguous because competing alternative models have equal support. | Independent session-origin sources disagree beyond the configured tolerance. | Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance."
+      },
+      {
+        "source_sha256": "66b9d453b029155079528274ee60176ea28b423dd6e9bb8ca11853b25b52e9fd",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Automatic calibration is incomplete: The first observed column maps to session 7, not session 1."
+      }
+    ],
+    "all_model_weights_unchanged": true,
+    "only_pdf_library_replaced": true,
+    "truth_and_thresholds_unchanged": true
+  },
+  "pre_inference_void": {
+    "log": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-connected-v1/inference.log",
+      "sha256": "59b6c9f7adbf3e809269e62e4deeafb1a96f2705fc674d4dd8173de743fc4461"
+    },
+    "error": "Input identity omitted the exact declared train/dev manifest fields.",
+    "repair": "Reuse the complete authenticated prior input identity in a new output; retain the rejected attempt.",
+    "model_inference_runs": 0,
+    "windows_error_reporting_worker_terminated_after_exception": true
+  },
+  "next_diagnosis": {
+    "axis_replay": {
+      "path": "artifacts/goal22-runs/axis-divider-selection-diagnostic-v1/replay.json",
+      "sha256": "447db811271b2ecb6d0a7cc474286ee55b6ac8dbf9d6cca0e57f0a621a7c3125"
+    },
+    "line_candidates": 237,
+    "reproduction_error_pixels": 0,
+    "finding": "A 9-pixel gap between native line candidates divides the true left axis. The current fitter selects a phase divider at x=352 instead of the observed axis near x=105.",
+    "next": "Verify original-ink connectivity around the occluding symbol and preserve that evidence in line candidates, without reconnecting empty gaps. Diagnose the separate numeric OCR failures on the other newly separated source."
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_dependencies": 0,
+  "license": "Project-owned Apache-2.0 code and synthetic evidence; existing reviewed OpenCV runtime unchanged.",
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}
