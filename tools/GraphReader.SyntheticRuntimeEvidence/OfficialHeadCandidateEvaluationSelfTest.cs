@@ -12,6 +12,7 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 internal static class OfficialHeadCandidateEvaluationSelfTest
 {
     private static readonly double[] ExpectedDividerPositions = [30d, 70d];
+    private static readonly string[] ClearanceVersions = ["synthetic-arrow-label-clearance-v1", "synthetic-legend-clearance-v1"];
     private static int ValidateCaptureProfiles()
     {
         JsonElement legacy = CaptureProfile(false, 28, 9);
@@ -100,7 +101,7 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
         Directory.CreateDirectory(root);
         try
         {
-            int checks = ValidateCaptureProfiles() + ValidatePhaseDividerInputs();
+            int checks = ValidateCaptureProfiles() + ValidatePhaseDividerInputs() + ValidateLayoutClearanceInputs();
             string request = Path.Combine(root, "request.json");
             string candidate = Path.Combine(root, "candidate.json");
             string output = Path.Combine(root, "new-output");
@@ -164,6 +165,13 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
                 request, new string('a', 64), candidate, new string('b', 64), output,
             ], root);
             Require(legendParsed.SequenceEqual(parsed), "separate legend-context command");
+            checks++;
+            string[] layoutParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
+            [
+                OfficialHeadCandidateEvaluation.LayoutClearanceCommand,
+                request, new string('a', 64), candidate, new string('b', 64), output,
+            ], root);
+            Require(layoutParsed.SequenceEqual(parsed), "separate layout-clearance command");
             checks++;
             string[] supplementalParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
             [
@@ -319,6 +327,40 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
                     $"Expected failure containing '{expected}', got '{exception.Message}'.", exception);
             }
         }
+    }
+
+    private static int ValidateLayoutClearanceInputs()
+    {
+        static JsonElement Request(bool privateData = false, bool truth = false, int sources = 23) =>
+            JsonSerializer.SerializeToElement(new
+            {
+                schema = "graphreader.layout-clearance-ocr-inputs.v1", synthetic_only = true,
+                private_data = privateData, sealed_data = false, truth_included = truth,
+                production_approved = false, training_input_ready = false,
+                historical_request = new { },
+                generator_versions = ClearanceVersions,
+                generator_sources = Array.Empty<object>(),
+                sources = Enumerable.Repeat(new { }, sources).ToArray(),
+                panels = Enumerable.Repeat(new { }, 37).ToArray(),
+            });
+        OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request());
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request(privateData: true)), "truth-free");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request(truth: true)), "truth-free");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request(sources: 22)), "inventory");
+        byte[] gray = Enumerable.Range(0, 12).Select(i => (byte)i).ToArray();
+        byte[] color = Enumerable.Range(0, 36).Select(i => (byte)(i + 30)).ToArray();
+        var source = new OcrImage(4, 3, 4, gray, OcrSourceImage.Original,
+            OcrFrameTransform.Identity, BgrPixels: new OcrBgrBytePixels(12, color));
+        var crop = new OcrImage(2, 1, 2, gray.AsMemory(5, 2), OcrSourceImage.Original,
+            OcrFrameTransform.Identity, BgrPixels: new OcrBgrBytePixels(6, color.AsMemory(15, 6)));
+        OfficialHeadCandidateEvaluation.ValidateDerivedCrop(source, crop, [1, 1, 2, 1]);
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateDerivedCrop(source, crop, [0, 1, 2, 1]), "declared crop");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateDerivedCrop(source, crop, [3, 1, 2, 1]), "bounds");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateDerivedCrop(source,
+            crop with { BgrPixels = new OcrBgrBytePixels(6, new byte[6]) }, [1, 1, 2, 1]), "declared crop");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateDerivedCrop(source,
+            crop with { Pixels = new byte[2] }, [1, 1, 2, 1]), "declared crop");
+        return 9;
     }
 
     private static void Require(bool condition, string label)

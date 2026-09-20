@@ -18,7 +18,7 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 /// Runs an explicitly unapproved frozen DB-head candidate on the exact
 /// annotation-free V3 panel inventory. Synthetic truth remains outside C#.
 /// </summary>
-internal static class OfficialHeadCandidateEvaluation
+internal static partial class OfficialHeadCandidateEvaluation
 {
     internal const string Command = "--evaluate-official-head-candidate";
     internal const string ParticipantLaneCommand = "--evaluate-participant-lane-candidate";
@@ -27,6 +27,7 @@ internal static class OfficialHeadCandidateEvaluation
     internal const string CombinedAssemblyCommand = "--evaluate-combined-assembly-candidate";
     internal const string HeaderContextCommand = "--evaluate-header-context-candidate";
     internal const string LegendContextCommand = "--evaluate-legend-context-candidate";
+    internal const string LayoutClearanceCommand = "--evaluate-layout-clearance-candidate";
     internal const string SupplementalCommand = "--evaluate-supplemental-head-candidate";
     internal const string CandidateSchema = "graphreader.frozen-db-head-ocr-candidate.v1";
     internal const string CandidateScope = "project-owned-synthetic-train-dev-unapproved-frozen-candidate";
@@ -81,6 +82,7 @@ internal static class OfficialHeadCandidateEvaluation
              args[0] != CombinedAssemblyCommand &&
              args[0] != HeaderContextCommand &&
              args[0] != LegendContextCommand &&
+             args[0] != LayoutClearanceCommand &&
              args[0] != SupplementalCommand))
         {
             throw new InvalidDataException(
@@ -111,7 +113,8 @@ internal static class OfficialHeadCandidateEvaluation
         string root = Path.GetFullPath(repositoryRoot);
         string[] command = ValidateCommand(args, root);
         bool participantLane = args[0] == ParticipantLaneCommand;
-        bool legendContext = args[0] == LegendContextCommand;
+        bool layoutClearance = args[0] == LayoutClearanceCommand;
+        bool legendContext = args[0] == LegendContextCommand || layoutClearance;
         bool headerContext = args[0] == HeaderContextCommand || legendContext;
         bool combinedAssembly = args[0] == CombinedAssemblyCommand || headerContext;
         bool pixelBounds = args[0] == PixelBoundsCommand || combinedAssembly;
@@ -138,11 +141,19 @@ internal static class OfficialHeadCandidateEvaluation
         byte[] requestBytes = ReadVerified(requestPath, requestSha, null, "capture request");
         using var requestDocument = JsonDocument.Parse(requestBytes);
         JsonElement request = requestDocument.RootElement;
-        ValidateCaptureScope(request, supplemental);
-        VerifyDescriptor(request.GetProperty("binding"), root, "V3 binding");
-        VerifyDescriptor(request.GetProperty("capture_source"), root, "capture source");
-        Dictionary<string, ReportBinding> reports = ReadReports(request, root, supplemental);
-        EvaluationPanel[] panels = ReadPanels(request, reports, root, supplemental, insidePlot);
+        EvaluationPanel[] panels;
+        if (layoutClearance)
+        {
+            panels = ReadLayoutClearancePanels(request, root, cancellationToken);
+        }
+        else
+        {
+            ValidateCaptureScope(request, supplemental);
+            VerifyDescriptor(request.GetProperty("binding"), root, "V3 binding");
+            VerifyDescriptor(request.GetProperty("capture_source"), root, "capture source");
+            Dictionary<string, ReportBinding> reports = ReadReports(request, root, supplemental);
+            panels = ReadPanels(request, reports, root, supplemental, insidePlot);
+        }
 
         byte[] candidateBytes = ReadVerified(candidatePath, candidateSha, null, "head candidate");
         using var candidateDocument = JsonDocument.Parse(candidateBytes);
@@ -342,7 +353,8 @@ internal static class OfficialHeadCandidateEvaluation
             string reportPath = Path.Combine(outputRoot, "report.json");
             byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
             {
-                Schema = supplemental ? "graphreader.supplemental-head-candidate-evaluation.v1" :
+                Schema = layoutClearance ? "graphreader.layout-clearance-ocr-evaluation.v1" :
+                    supplemental ? "graphreader.supplemental-head-candidate-evaluation.v1" :
                     legendContext ? "graphreader.legend-context-candidate-evaluation.v1" :
                     headerContext ? "graphreader.header-context-candidate-evaluation.v1" :
                     combinedAssembly ? "graphreader.combined-assembly-candidate-evaluation.v1" :
@@ -359,6 +371,9 @@ internal static class OfficialHeadCandidateEvaluation
                 OptimizerSteps = 0,
                 ProductionApproved = false,
                 TrainingInputReady = false,
+                DerivedLayoutImages = layoutClearance,
+                PanelAndAxisGeometryReplayedFromHistoricalRuntime = layoutClearance,
+                EndToEndAcceptance = false,
                 ExecutionAssemblies = executionAssemblies.Select(assembly => new
                 {
                     assembly.Name,
