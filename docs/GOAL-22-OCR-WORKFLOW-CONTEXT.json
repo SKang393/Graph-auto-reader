@@ -1,0 +1,191 @@
+{
+  "schema": "graphreader.goal22.ocr-workflow-context-evidence.v1",
+  "status": "mechanical_integration_verified_not_model_acceptance",
+  "goal22_complete": false,
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs",
+      "sha256": "d372cf373561991ca1f0e034835ffca4533e94f8a435ecc42ca75bbc397d53cf",
+      "archive": "artifacts/goal22-runs/ocr-workflow-context-v3/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionCandidateWorkflowComposition.cs",
+      "sha256": "981d09cd4c57672ccf3844526f2643f1a5589a0e76d4548bb43b9943cdc274d4",
+      "archive": "artifacts/goal22-runs/ocr-workflow-context-v3/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionCandidateWorkflowComposition.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "df33905b48ad0a6f481c836e8d9a46829a3978e15cc1263cee9bce551fc7e3ad",
+      "archive": "artifacts/goal22-runs/ocr-workflow-context-v3/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "sha256": "b09ef3d30b553c9e47b5e37d40d818cc5aa96d85c0750d6838d7295950ffffe9",
+      "archive": "artifacts/goal22-runs/ocr-workflow-context-v3/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "55f1a973a89c9b985b2c5ca4312e122a36706974953b8a6ae561cd32c90c8132",
+      "archive": "artifacts/goal22-runs/ocr-workflow-context-v3/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs",
+      "sha256": "0d7784e0617bc70aaa2c44e213f9e84e642a21303bd03fe04e229b82a044e78a",
+      "archive": "artifacts/goal22-runs/ocr-workflow-context-v3/source-snapshot/tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOcrPhaseGeometryTests.cs",
+      "sha256": "c540ee7a8bb39ac98bd9d1cc5af79208ae93109e65bcbad7694c184c971a5f8a",
+      "archive": "artifacts/goal22-runs/ocr-workflow-context-v3/source-snapshot/tests/GraphReader.App.Tests/ProductionOcrPhaseGeometryTests.cs"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateWorkflowFactory.cs",
+      "sha256": "f83d866add267449af14c1db4b594d698fb40894152a4ba66f1177403552e68c",
+      "archive": "artifacts/goal22-runs/ocr-workflow-context-v3/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateWorkflowFactory.cs"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBindingSelfTest.cs",
+      "sha256": "2d1ca6b6607c94c298a79cb0601efeabb4fdaf5b9b999929f46708414f358902",
+      "archive": "artifacts/goal22-runs/ocr-workflow-context-v3/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBindingSelfTest.cs"
+    }
+  ],
+  "checks": {
+    "application_tests_passed": 332,
+    "application_tests_failed": 0,
+    "application_tests_skipped": 0,
+    "application_test_duration_seconds_reported": 20,
+    "compiler_warnings": 0,
+    "compiler_errors": 0,
+    "compiler_elapsed": "00:00:20.88",
+    "runner_checks": {
+      "self-test-win-x64": {
+        "status": "pass",
+        "self_test": true,
+        "private_corpus_access": false,
+        "model_inference_runs": 0,
+        "synthetic_cases": 7,
+        "output_precision": 1,
+        "truth_coverage": 1,
+        "matched_row_y_accuracy": 1,
+        "unmatched_rows": 1,
+        "duplicate_rows": 1,
+        "missing_rows": 14,
+        "wrong_scale_rows": 4,
+        "failed_cases": 3,
+        "invalid_calibration_blocked": true,
+        "workflow_detection_ran": true,
+        "workflow_steps_complete": true,
+        "workflow_synthetic_boundary_accepted": true,
+        "workflow_export_succeeded": true,
+        "workflow_source_unchanged": true,
+        "workflow_export_rows": 2,
+        "workflow_output_precision": 1,
+        "workflow_truth_coverage": 1,
+        "workflow_matched_row_y_accuracy": 1
+      },
+      "grouped-workflow-self-test": {
+        "status": "pass",
+        "actual_workflow_import_prepare_detect_review_export": true,
+        "artifact_count": 3,
+        "source_unchanged": true,
+        "repeated_source_rejected": true,
+        "reference_truth_sent_to_adapter": false,
+        "in_memory_workflow_verified": true,
+        "in_memory_case_artifacts_persisted": false,
+        "in_memory_minimal_csv_matches_file_export": true,
+        "inference_cache_persistence_disabled": true,
+        "stage_adapters": "deterministic-fictitious-test-only",
+        "model_runs": 0,
+        "private_reads": 0,
+        "sealed_reads": 0,
+        "production_approved": false,
+        "evidence_directory": "artifacts/goal22-runs/grouped-workflow-adapter-selftest/8310b9b95065416aae8a90f165b6c076"
+      },
+      "workflow-runner-self-test": {
+        "status": "pass",
+        "checks": [
+          "metadata_is_checked_before_payload_and_after_complete_parse",
+          "sealed_projects_share_one_first_read_and_content_handshake",
+          "one_project_parse_failure_prevents_partial_truth_scoring",
+          "metadata_drift_before_inference_rejected",
+          "sealed_run_without_first_read_handshake_rejected"
+        ],
+        "private_corpus_access": false,
+        "sealed_corpus_access": false,
+        "model_inference": false
+      }
+    }
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v3/source-bindings.json",
+      "sha256": "f95450b3e4e318970c241469f4f366e258eb1247d3070fe54330155f48505db7"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v3/test-results/app.trx",
+      "sha256": "8e118a072e0b03ceda25fde328d53560b86b8ae607e3b655376a687731e65970"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v3/app-tests.log",
+      "sha256": "104446408b19ed7d724fe3491492039113691275c88da80dfd66e8d2c7413773"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v3/build-win-x64.log",
+      "sha256": "e4a868e3a6a2144c20f13938f2cf19dcc6c99a8959cbd1dec7dd77d3fe7f8ff9"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v3/self-test-win-x64.json",
+      "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v3/grouped-workflow-self-test.json",
+      "sha256": "e8c28dbf937d738ec81c057a8976a394f83cf5999592ed1d99f7cef78ac41303"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v3/workflow-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    }
+  ],
+  "changes": [
+    "Pass measured phase divider midpoints in original panel pixels from axis detection to both OCR workflow routes.",
+    "Reject nonfinite, out-of-plot or derived-coordinate boundary evidence before OCR.",
+    "Bind original-db-head-tick-and-header-lanes-v2 only to original_pixel_context_regions in the candidate factory.",
+    "Retain existing public overload compatibility and all production approval checks."
+  ],
+  "earlier_attempts": [
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v1",
+      "finding": "CA1068: keep cancellation token last; corrected before execution."
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v2",
+      "finding": "CA1861: use static expected test arrays; corrected before execution."
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v3/self-test.json",
+      "finding": "Initial launch used RID output path for a non-RID build; no tool execution."
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-workflow-context-v3/self-test-final.err",
+      "finding": "Non-RID build placed native libraries below runtimes; native-binding self-test rejected absent top-level OpenCV. Rebuilt with the Windows x64 RID; no validation rule weakened."
+    }
+  ],
+  "model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "new_model_revision": false,
+  "packaged_build": false,
+  "end_to_end_acceptance": false,
+  "retained_portable": {
+    "build_number": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Apache-2.0 project changes; existing dependencies only. No new model, native runtime or external input.",
+  "limitations": [
+    "Runner self-tests use fictitious adapters, not real model inference.",
+    "Complete synthetic inference and real acceptance remain required.",
+    "All four Goal 22 outcomes remain incomplete."
+  ]
+}

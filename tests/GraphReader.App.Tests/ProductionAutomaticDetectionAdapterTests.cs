@@ -23,6 +23,7 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class ProductionAutomaticDetectionAdapterTests
 {
+    private static readonly double[] ExpectedOcrDividerXs = [50];
     private static readonly string[] ExpectedStages =
         ["axis", "ocr", "ocr", "markers", "markers", "markers", "legends", "phases"];
     private static readonly string[] ExpectedPhaseCodes = ["a", "b"];
@@ -552,6 +553,19 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         public string AdapterId => "test-ocr";
 
         public bool IsApproved => true;
+
+        public Task<ProductionOcrEvidence> RecognizeAsync(
+            ProductionWorkflowDetectionRequest request,
+            ProductionDecodedRaster originalRaster,
+            OcrRectangle plotBounds,
+            OcrDetectorImage detectorImage,
+            IReadOnlyList<double>? phaseDividerXs,
+            CancellationToken cancellationToken)
+        {
+            Assert.IsNotNull(phaseDividerXs);
+            CollectionAssert.AreEqual(ExpectedOcrDividerXs, phaseDividerXs.ToArray());
+            return RecognizeAsync(request, originalRaster, plotBounds, detectorImage, cancellationToken);
+        }
 
         public Task<ProductionOcrEvidence> RecognizeAsync(
             ProductionWorkflowDetectionRequest request,

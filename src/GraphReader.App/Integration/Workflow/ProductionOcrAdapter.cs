@@ -21,6 +21,15 @@ public interface IProductionOcrAdapter
         OcrRectangle plotBounds,
         OcrDetectorImage detectorImage,
         CancellationToken cancellationToken);
+
+    Task<ProductionOcrEvidence> RecognizeAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        OcrRectangle plotBounds,
+        OcrDetectorImage detectorImage,
+        IReadOnlyList<double>? phaseDividerXs,
+        CancellationToken cancellationToken) =>
+        RecognizeAsync(request, originalRaster, plotBounds, detectorImage, cancellationToken);
 }
 
 internal enum ProductionOcrConfigurationScope
@@ -591,11 +600,20 @@ public sealed partial class ProductionOcrAdapter :
             }
         }, cancellationToken);
 
+    public Task<ProductionOcrEvidence> RecognizeAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        OcrRectangle plotBounds,
+        OcrDetectorImage detectorImage,
+        CancellationToken cancellationToken) =>
+        RecognizeAsync(request, originalRaster, plotBounds, detectorImage, phaseDividerXs: null, cancellationToken);
+
     public async Task<ProductionOcrEvidence> RecognizeAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster originalRaster,
         OcrRectangle plotBounds,
         OcrDetectorImage detectorImage,
+        IReadOnlyList<double>? phaseDividerXs,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -616,7 +634,8 @@ public sealed partial class ProductionOcrAdapter :
                 originalRaster,
                 plotBounds,
                 detectorImage,
-                cancellationToken)
+                cancellationToken,
+                phaseDividerXs)
             .ConfigureAwait(false);
     }
 
@@ -647,13 +666,15 @@ public sealed partial class ProductionOcrAdapter :
         ProductionDecodedRaster originalRaster,
         OcrRectangle plotBounds,
         OcrDetectorImage detectorImage,
+        IReadOnlyList<double> phaseDividerXs,
         CancellationToken cancellationToken) =>
         RecognizeForCandidateEvaluationAsync(
             request,
             originalRaster,
             plotBounds,
             detectorImage,
-            cancellationToken);
+            cancellationToken,
+            phaseDividerXs);
 
     internal Task<ProductionOcrEvidence> RecognizeForCandidateEvaluationAsync(
         ProductionWorkflowDetectionRequest request,

@@ -26,6 +26,7 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionCandidateWorkflowTests
 {
     private static readonly PdfRectD SourceCrop = new(10, 20, 80, 60);
+    private static readonly double[] ExpectedOcrDividerXs = [40];
     private static readonly string[] ExpectedProvenanceStageVersions =
     [
         "candidate-axis-v1",
@@ -419,9 +420,11 @@ public sealed class ProductionCandidateWorkflowTests
             ProductionDecodedRaster originalRaster,
             OcrRectangle plotBounds,
             OcrDetectorImage detectorImage,
+            IReadOnlyList<double> phaseDividerXs,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            CollectionAssert.AreEqual(ExpectedOcrDividerXs, phaseDividerXs.ToArray());
             OcrRegion[] regions =
             [
                 Region("x1", 18, 52, "1", OcrTextRole.XTick),

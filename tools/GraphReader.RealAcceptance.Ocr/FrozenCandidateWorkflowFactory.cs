@@ -162,6 +162,12 @@ internal static class FrozenCandidateWorkflowFactory
                 recognitionIdentity, recognitionManifestPath, binding.OcrRecognition.Manifest.Sha256);
             ProductionOcrAdapter ocr = await (ResolveOcrComposition(binding.Algorithms) switch
             {
+                OcrCompositionKind.OriginalDbContext => ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
+                    detectorDescriptor, recognizerDescriptor, runtimeHost,
+                    binding.OpenCvNative.Sha256, cancellationToken,
+                    insidePlotAssembly: true, pixelBoundsRefinement: true,
+                    participantLaneAssembly: true, headerLayoutContext: true,
+                    framedLegendContext: true, tickLaneRecovery: true),
                 OcrCompositionKind.OriginalDb => ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
                     detectorDescriptor, recognizerDescriptor, runtimeHost,
                     binding.OpenCvNative.Sha256, cancellationToken),
@@ -355,6 +361,7 @@ internal static class FrozenCandidateWorkflowFactory
         StructureConsensus,
         TiledProbability,
         OriginalDb,
+        OriginalDbContext,
     }
 
     internal static bool IsTiledProbabilityComposition(FrozenCandidateAlgorithms algorithms) =>
@@ -363,6 +370,11 @@ internal static class FrozenCandidateWorkflowFactory
     internal static OcrCompositionKind ResolveOcrComposition(FrozenCandidateAlgorithms algorithms)
     {
         ArgumentNullException.ThrowIfNull(algorithms);
+        if (algorithms.OcrCompositionVersion == ProductionOcrAdapter.TickLaneCandidateCompositionVersion &&
+            algorithms.OcrOutputGeometry == "original_pixel_context_regions")
+        {
+            return OcrCompositionKind.OriginalDbContext;
+        }
         if (algorithms.OcrCompositionVersion == ProductionOcrAdapter.OriginalDbCandidateCompositionVersion &&
             algorithms.OcrOutputGeometry == "model_polygon")
         {

@@ -183,6 +183,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
             chain.Append(axis.Envelope);
 
             OcrRectangle plotBounds = ToOcrBounds(axis.Geometry.PlotPolygon);
+            IReadOnlyList<double> phaseDividerXs = CreateOcrPhaseDividerXs(
+                axis.Geometry.CoordinateSpace, axis.Geometry.PhaseDividers, plotBounds);
             OcrDetectorImage detectorImage = raster.CreateOcrDetectorImage(
                 axis.Geometry,
                 cancellationToken);
@@ -193,12 +195,14 @@ public sealed class ProductionAutomaticDetectionAdapter :
                             raster,
                             plotBounds,
                             detectorImage,
+                            phaseDividerXs,
                             cancellationToken)
                     : ocrAdapter.RecognizeAsync(
                         request,
                         raster,
                         plotBounds,
                         detectorImage,
+                        phaseDividerXs,
                         cancellationToken))
                 .ConfigureAwait(false);
             foreach (ProductionOcrModelEvidence evidence in ocr.ModelEvidence
@@ -1219,6 +1223,25 @@ public sealed class ProductionAutomaticDetectionAdapter :
         }
 
         return mean;
+    }
+
+    internal static IReadOnlyList<double> CreateOcrPhaseDividerXs(
+        string coordinateSpace, IReadOnlyList<PhaseDividerGeometry> dividers, OcrRectangle plotBounds)
+    {
+        ArgumentNullException.ThrowIfNull(dividers);
+        if (coordinateSpace != OcrContract.CoordinateSpace || !plotBounds.IsValid ||
+            !double.IsFinite(plotBounds.Right) || !double.IsFinite(plotBounds.Bottom) ||
+            dividers.Any(divider => !divider.Line.Midpoint.IsFinite ||
+                divider.Line.Midpoint.X < plotBounds.Left || divider.Line.Midpoint.X > plotBounds.Right))
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                "OCR phase boundaries must be measured in original panel pixels and lie inside the plot.",
+                "Retain axis evidence and review the detected plot and phase boundaries.");
+        }
+        return Array.AsReadOnly(dividers.Select(static divider => divider.Line.Midpoint.X)
+            .Distinct().Order().ToArray());
     }
 
     private static OcrRectangle ToOcrBounds(PlotPolygon polygon)

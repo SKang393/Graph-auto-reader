@@ -36,6 +36,7 @@ internal interface IProductionCandidateOcrAdapter : IProductionOcrAdapter
         ProductionDecodedRaster originalRaster,
         Ocr.OcrRectangle plotBounds,
         Ocr.OcrDetectorImage detectorImage,
+        IReadOnlyList<double> phaseDividerXs,
         CancellationToken cancellationToken);
 }
 

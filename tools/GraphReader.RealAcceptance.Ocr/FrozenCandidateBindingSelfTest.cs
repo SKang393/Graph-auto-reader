@@ -52,12 +52,23 @@ internal static class FrozenCandidateBindingSelfTest
                 FrozenCandidateWorkflowFactory.ResolveOcrComposition(loaded.Algorithms) ==
                     FrozenCandidateWorkflowFactory.OcrCompositionKind.StructureConsensus,
                 "FROZEN_CANDIDATE_ORIGINAL_DB_ROUTE_NOT_DISTINCT");
+            JsonObject contextualBinding = Clone(valid);
+            RequiredObject(contextualBinding, "algorithms")["ocr_composition_version"] =
+                GraphReader.App.Integration.Workflow.ProductionOcrAdapter.TickLaneCandidateCompositionVersion;
+            RequiredObject(contextualBinding, "algorithms")["ocr_output_geometry"] = "original_pixel_context_regions";
+            FrozenCandidateAlgorithms contextual = fixture.Load(contextualBinding).Algorithms;
+            Require(FrozenCandidateWorkflowFactory.ResolveOcrComposition(contextual) ==
+                FrozenCandidateWorkflowFactory.OcrCompositionKind.OriginalDbContext,
+                "FROZEN_CANDIDATE_CONTEXT_OCR_ROUTE_NOT_BOUND");
             foreach (FrozenCandidateAlgorithms mismatched in new[]
                      {
                          tiled with { OcrOutputGeometry = "model_polygon" },
                          loaded.Algorithms with { OcrOutputGeometry = "tiled_probability_components" },
                          originalDb with { OcrOutputGeometry = "tiled_probability_components" },
                          originalDb with { OcrOutputGeometry = "unknown" },
+                         contextual with { OcrOutputGeometry = "model_polygon" },
+                         contextual with { OcrOutputGeometry = "tiled_probability_components" },
+                         originalDb with { OcrOutputGeometry = "original_pixel_context_regions" },
                          loaded.Algorithms with { OcrCompositionVersion = "unknown" },
                      })
             {
