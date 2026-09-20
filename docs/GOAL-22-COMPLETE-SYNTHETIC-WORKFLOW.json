@@ -1,0 +1,371 @@
+{
+  "schema": "graphreader.goal22.complete-synthetic-workflow-evidence.v1",
+  "status": "failed_development_diagnostic",
+  "goal22_complete": false,
+  "inference_source_commit": "d1bec5a9a0134eac7530ad72a303918e55d9e530",
+  "source_count": 23,
+  "physical_truth_panels": 39,
+  "detected_panels": 37,
+  "source_outcomes": {
+    "csv_export_completed": 1,
+    "failed": 22,
+    "calibration_failed": 20,
+    "invalid_point_export": 1,
+    "invalid_session_origin_export": 1
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 1,
+    "failed_cases": 22,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 2,
+    "matched_series": 1,
+    "truth_points": 706,
+    "predicted_points": 2,
+    "matched_points": 1,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 2,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 0,
+    "correct_rows": 0,
+    "missing_rows": 724,
+    "extra_rows": 2,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 0,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 1,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 705,
+    "unique_point_extra": 1,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.5,
+    "unique_point_structural_coverage": 0.00141643059490085,
+    "unique_point_value_precision": 0.5,
+    "unique_point_value_coverage": 0.00141643059490085,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0,
+    "relational_row_coverage": 0,
+    "matched_relational_graph_value_accuracy": null,
+    "matched_relational_phase_accuracy": null,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 22
+    }
+  },
+  "scoring_options": {
+    "source_pixel_match_tolerance": 5,
+    "graph_x_absolute_tolerance": 0.5,
+    "graph_y_absolute_tolerance": 5,
+    "require_in_memory_artifacts": false
+  },
+  "timing_seconds": {
+    "complete_workflow": 128.23789250000002,
+    "truth_reproduction": 42.09146289998898,
+    "csv_scoring": 0.1725992
+  },
+  "checks": {
+    "binding_scenarios": 21,
+    "csv_evaluator_scenarios": 33,
+    "compiler_warnings": 0,
+    "compiler_errors": 0,
+    "compiler_elapsed": "00:00:12.65",
+    "all_259_inference_source_snapshots_verified": true,
+    "all_23_source_bytes_unchanged": true,
+    "all_23_source_renders_reproduced": true,
+    "full_706_point_truth_denominator_retained": true,
+    "all_written_case_files_reported": true
+  },
+  "evaluator_source_bindings": [
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenWorkflowCsvScoring.cs",
+      "sha256": "cfe014f7332b1a4068a22b430279ec4cdf8c43c0528f8aa95e8f63497c2628c5",
+      "archive": "artifacts/goal22-runs/workflow-csv-inventory-v2/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenWorkflowCsvScoring.cs"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenWorkflowCsvScoringSelfTest.cs",
+      "sha256": "d2884328881375cf61cf32ddc27d6cfe8ed59e8a34a0c8fe92f1d17a8e661f85",
+      "archive": "artifacts/goal22-runs/workflow-csv-inventory-v2/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenWorkflowCsvScoringSelfTest.cs"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs",
+      "sha256": "ff389274d9c9af925ebe776215f4f50e804cbd0aaf342bf5a9d04e4189b7a6e3",
+      "archive": "artifacts/goal22-runs/workflow-csv-inventory-v2/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluatorSelfTest.cs",
+      "sha256": "3af867a67b3c975f4bcafc4cfa72fd6b52d8d2ef489be5f480a51a4b63876edf",
+      "archive": "artifacts/goal22-runs/workflow-csv-inventory-v2/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluatorSelfTest.cs"
+    }
+  ],
+  "evaluator_runtime": [
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.App.deps.json",
+      "sha256": "0772df95ff061b108a1d94ca2e061ec6e473ea0ec9039e982a2db3ea5c8f9f9c"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.App.dll",
+      "sha256": "316cffd404cd7c1fde06eaa9615cf3fc2e077d93a9f08f0f5da353316fc50652"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.App.exe",
+      "sha256": "8b13c79dec8e442de7b73d2a543fb81dafd1e0dd02f590bf4170b5ce0d47d374"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.App.runtimeconfig.json",
+      "sha256": "96bc2946dff8790400d652ec7f8de7bb043e954980d59470c112788b68a1fbd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Axis.dll",
+      "sha256": "759a7b64416cdcb83e99741cbfb150eb4d416e6a0011528280e7037eb60a8954"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Domain.dll",
+      "sha256": "1e16045534757c556efc729d5ec4af637176797747ea6230a24760cc7f1561db"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Export.dll",
+      "sha256": "1ccde04dcccde4aed46d8b66f4cd8f6fbebb51e3d8ec48a1b02c7cd350f5aa92"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Imaging.dll",
+      "sha256": "7d776b46cc8bc738208605519a338df4da8e7af109f370e0a0fa2365d9d68a2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Inference.dll",
+      "sha256": "9551b7032f7081d9677f0c7cfbd718efd31dd82b045aa0182d0fa786b000db72"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Legends.dll",
+      "sha256": "1c45639d787f64fda0dd096a7a30b21b8c5cd8a653d5dd26c2fb3e139e153836"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Markers.dll",
+      "sha256": "4df1f9fb5f670cfacec02a9d01b6eb00c59247dd5aff3220c5a8b92454c9ac91"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Ocr.dll",
+      "sha256": "8f1dc30d2de93146445eafdc66313d375bb73049e1d88c85081b7b1d746a9137"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Pdf.dll",
+      "sha256": "b54fe4998a104d7c0bbf8a501154243432c132c30081e35284c54472411be5eb"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Phases.dll",
+      "sha256": "87308ef57b9ecdb8837fd5216ccf0ca0d19fa0e3a1c5aa9189d7d0ce7291751c"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.RealAcceptance.Ocr.deps.json",
+      "sha256": "3554fff6d577e1dded6b024d160fe4447bb5ed527714ffb42e34b5d1d9f3d98d"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.RealAcceptance.Ocr.dll",
+      "sha256": "7da5fe94bb157eb9b8b429359604878d962302ce2d55dea2e96022001dce4cc7"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.RealAcceptance.Ocr.exe",
+      "sha256": "e9667b47ae8f5f00ddb6fb1396ff66661beedab205f705bf42e850f32bafd25c"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.RealAcceptance.Ocr.runtimeconfig.json",
+      "sha256": "96bc2946dff8790400d652ec7f8de7bb043e954980d59470c112788b68a1fbd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.SuperResolution.dll",
+      "sha256": "d7ce3654be6a7da039083b843f33eefad35bca9d939f73c56bbf581c4a4a8335"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/Imazen.WebP.dll",
+      "sha256": "249ea68229527a3dc7dd516c2bdfe44b1cdfe6d644951ae8f48d0de858723f34"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/libsharpyuv.dll",
+      "sha256": "ceba59e40848e8e14960fc8c0f6ed125a6bfae216b3814c5ad202cb36d6a2a0d"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/libwebp.dll",
+      "sha256": "3de66254c8c0f47f299c7d55750589bf0e9fb6ab65778ed004a81e958ad1c024"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/libwebpdemux.dll",
+      "sha256": "af9124fc82821b7bef5d526d4dc4d857de7601833305f5d01ad68089706852c9"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/libwebpmux.dll",
+      "sha256": "60947b85e84cb1e96f12e5863dab742641e51846713857063274eb93326672a6"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/Microsoft.ML.OnnxRuntime.dll",
+      "sha256": "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/onnxruntime.dll",
+      "sha256": "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/onnxruntime_providers_shared.dll",
+      "sha256": "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/OpenCvSharp.dll",
+      "sha256": "a26fd4bfff04fe2a351b3b0b417cc9847ef8e10721a8e484e3b33850f510b509"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/OpenCvSharpExtern.dll",
+      "sha256": "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/System.Numerics.Tensors.dll",
+      "sha256": "9d96dc759fdb54cbc3c26ee65cfd78ff32e3745f418119cc0811e63d3f29ecb9"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Core.dll",
+      "sha256": "70d93534a6573cb6674d94f6d3c2235c09a6a9e09d1d13b032a2a4a1c3b19818"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.dll",
+      "sha256": "e062781488d3a8557bcf670c57d6776ea7e723faa683b49ec4c6d449c087f5a1"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.DocumentLayoutAnalysis.dll",
+      "sha256": "3a763e3afd8b290fd46bbc91750459d057d6f64b8dc11ecd6527c977044086be"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Fonts.dll",
+      "sha256": "aade3f7c3211c961303b136d78888da4194c183a1ea6503b72818b24cbd3a72a"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Package.dll",
+      "sha256": "6da637d4a06099adf02036d632c3f4a7ea93f01c37145534e6d061725b0361b5"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Tokenization.dll",
+      "sha256": "ad06282eb18bed04e3da01c757bcc16bc6fbfd8471660c1cddb5f75cbd643758"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Tokens.dll",
+      "sha256": "128195b9c82ecf521ba2ddbfb358ff033c6d0a67938c87493ca8bf0991fff91d"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/preparation.json",
+      "sha256": "9909115669c3142cfd38cf535f55146782de05f4ecd35b464d675d27a4247e7a"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/protocol.json",
+      "sha256": "758e79170da6d00511a5a0adf244cf6bcc261637ff1dd7326cd4bc83875317b3"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/candidate-binding.json",
+      "sha256": "491866d13f6f26ad7c6ebd1a9fb8717be6f8401243527a50fe0a594cbf901f3d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/runtime-description.json",
+      "sha256": "1b8decc8189775ccab71727edaa60b164d60392355de1863f04f97f3bbc2072c"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/source-bindings.json",
+      "sha256": "b2bb12fc78d8cc2ab3af04e4fe7ad7db1c5997006ad6413e1ff575dafcaf05dc"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/input-manifest.json",
+      "sha256": "b66432a898227e8a39dce8f2da4b8e1dd654567c0d441e5eddda7da05553d642"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/execution/report.json",
+      "sha256": "67eceed00960c2ddbee278c1ac538db886d7feeb59be0d35878a154367fd042c"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/csv-evaluation-input.json",
+      "sha256": "a7b08d5c4f391b0981c2703a9e1ce7d0bc46b8ebf48b1f10293835509e3c1e7a"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/completion.json",
+      "sha256": "0a484348a6464b618841f10b13c6ac59a832fb19140eafbdaa0f3bb19df8d6da"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v2/csv-score.json",
+      "sha256": "c9796f1156987dc60898d0875874d0de6e93961b9c264e3db1318fa87f0d2652"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v2/build.log",
+      "sha256": "2bafc7b2711762b9550e658202eb973b6ec2be83c49227139a819fd97cbf23a9"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v2/binding-self-test.json",
+      "sha256": "2aa9bc58636dd40a629e5922b265416b0f1ef9cf11d1f3cfa6b18a0bbae33de2"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v2/evaluator-self-test.json",
+      "sha256": "297e8fae44b77c763b688c6d69ccd94811950723528742e02a7184e21fb264ed"
+    }
+  ],
+  "helpers": [
+    {
+      "path": "artifacts/goal22-tools/Prepare-ContextWorkflow.py",
+      "sha256": "6ce6c0d52a883108c990309fedffc14e33977c41cffc7c87a98cf35b97c6b935"
+    },
+    {
+      "path": "artifacts/goal22-tools/Build-ContextWorkflowTruth.py",
+      "sha256": "0af8c3cd9ead513cb2d51a9ca0bb138435cf2a2600cb604e00e8dbd4d97922a2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-ContextWorkflow.py",
+      "sha256": "5ce7119573b6a13e591c2eb774652717a2458f6e91687076bdf955301989e813"
+    }
+  ],
+  "models": {
+    "ocr_detection_sha256": "615495cc882b6ae8633081d89c3ab08c0d4a80a04aa36bbde4157fc7828f5923",
+    "ocr_recognition_sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+    "marker_center_sha256": "4979777a404be48c6c75b490218d1de31d2edb2550f5bc71c7aa6894c1bcca04",
+    "marker_status": "Existing V27 P1 failed-dev and unconsumed; no new candidate selection.",
+    "classifier_sha256": "26f9304f1689053a0b94aa896a1e239f6ade1e5c1920736a3535c1b32f803b8a"
+  },
+  "evaluation_repairs": [
+    "Checksum-bind arbitrary complete synthetic workflow inventories and frozen input snapshots instead of one historical seven-source report.",
+    "Match artifact root name/symbol to target-series rows; shared baseline/probe rows retain their own source-series metadata. Reject inconsistent source metadata."
+  ],
+  "retained_earlier_attempts": {
+    "preparation_void": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/preparation-void.json",
+      "sha256": "1e64344175eaefd9f02b7607d7cb9958373637f64458e04109f5513a5861f337"
+    },
+    "truth_builder_first_error": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/truth-build-first.err",
+      "sha256": "7d783d1d746af782615b17d8771738d09138cfac5f65f505a3e32534fb625a4e"
+    },
+    "initial_csv_integrity_failure": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-v1/csv-score.json",
+      "sha256": "acbf254e5cc77ce4d0f1573c53d0793a32dc63092ceaa64c97778ceb936d96b6"
+    },
+    "initial_checks": {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v1/evaluator-self-test.json",
+      "sha256": "d57733bdb86b3771206b9a0500fee17c3f88e8c6ba9de6646505dcbac15f4327"
+    }
+  },
+  "model_inference_rerun_for_scoring_repair": false,
+  "axis_or_panel_answers_supplied": false,
+  "manual_corrections": 0,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "new_model_revision": false,
+  "packaged_build": false,
+  "retained_portable": {
+    "build": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Existing Apache-2.0 licensed OCR and project marker weights, previously reviewed native runtime and approved classifier. Candidate license/notice checks remain required. No payload or synthetic image committed.",
+  "next": "Retain actual synthetic OCR, axis, accepted marker and calibration evidence before the fail-closed check; diagnose printed-axis versus marker-spacing conflicts, export rejections and missed panels without guessing values."
+}

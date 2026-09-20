@@ -535,8 +535,14 @@ internal static class WholeWorkflowCsvEvaluator
     private static Dictionary<Guid, PredictedPoint> BuildPredictedPoints(IReadOnlyList<ParsedTarget> targets)
     {
         var points = new Dictionary<Guid, PredictedPoint>();
+        var seriesMetadata = new Dictionary<Guid, (string Symbol, string Name)>();
         foreach (ParsedAuditRow row in targets.SelectMany(static item => item.Rows))
         {
+            var metadata = (row.SeriesSymbol, row.SeriesName);
+            if (seriesMetadata.TryGetValue(row.SourceSeriesId, out var previousMetadata) &&
+                previousMetadata != metadata)
+                throw new InvalidDataException("An audit source series changes its name or symbol across rows or artifacts.");
+            seriesMetadata[row.SourceSeriesId] = metadata;
             var point = new PredictedPoint(
                 row.PointId,
                 row.SourceSeriesId,
@@ -816,9 +822,12 @@ internal static class WholeWorkflowCsvEvaluator
         var rows = new List<ParsedAuditRow>(rowsElement.GetArrayLength());
         foreach (JsonElement element in rowsElement.EnumerateArray()) rows.Add(ParseAuditJsonRow(element));
         if (declaredCount != rows.Count) throw new InvalidDataException("Audit JSON row_count differs from its rows.");
+        // Root metadata describes the target intervention. Shared baseline and
+        // probe rows retain the metadata of their own source series.
         if (rows.Any(row => !string.Equals(row.ExportMode, exportMode, StringComparison.Ordinal) ||
-                !string.Equals(row.SeriesSymbol, seriesSymbol, StringComparison.Ordinal) ||
-                !string.Equals(row.SeriesName, seriesName, StringComparison.Ordinal)))
+                (row.SourceSeriesId == targetId &&
+                 (!string.Equals(row.SeriesSymbol, seriesSymbol, StringComparison.Ordinal) ||
+                  !string.Equals(row.SeriesName, seriesName, StringComparison.Ordinal)))))
             throw new InvalidDataException("Audit JSON root metadata differs from its rows.");
         return (runId, projectId, panelId, targetId, rows);
     }

@@ -29,7 +29,7 @@ internal static class FrozenWorkflowCsvScoring
     internal const string InputSchema = "graphreader.frozen-workflow-csv-evaluation-input.v1";
     internal const string ReportPath = "artifacts/frozen-workflow-candidate-inputs/workflow-run-v2/report.json";
     internal const string ReportSha256 = "3f5e2a840252d98c3f1af6bd8d87ca9e79b64f57829f3b9b7b9dd7abf45c83ef";
-    private const string ArtifactDirectory = "artifacts/frozen-workflow-candidate-inputs";
+    private const string ArtifactDirectory = "artifacts";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,
@@ -57,12 +57,15 @@ internal static class FrozenWorkflowCsvScoring
             RejectDuplicateProperties(inputDocument.RootElement);
         FrozenWorkflowCsvEvaluationInput input = JsonSerializer.Deserialize<FrozenWorkflowCsvEvaluationInput>(inputBytes, JsonOptions)
             ?? throw new InvalidDataException("CSV evaluation input is empty.");
-        if (input.WorkflowReport.Path != ReportPath || input.WorkflowReport.Sha256 != ReportSha256)
-            throw new InvalidDataException("CSV evaluation requires the frozen seven-source workflow report.");
-        byte[] reportBytes = File.ReadAllBytes(Path.Combine(repositoryRoot, ReportPath));
-        if (FrozenCandidateBinding.Hash(reportBytes) != ReportSha256)
+        string reportFile = FrozenCandidateBinding.RequireUnderRoot(artifactRoot,
+            RelativeFileUnder(repositoryRoot, input.WorkflowReport.Path), "workflow report");
+        byte[] reportBytes = File.ReadAllBytes(reportFile);
+        if (FrozenCandidateBinding.Hash(reportBytes) !=
+            FrozenCandidateBinding.RequireSha256(input.WorkflowReport.Sha256, "workflow report SHA-256"))
             throw new InvalidDataException("Frozen workflow report checksum mismatch.");
         using JsonDocument report = JsonDocument.Parse(reportBytes);
+        RejectDuplicateProperties(report.RootElement);
+        ValidateFrozenSources(reportFile, report.RootElement);
         IReadOnlyList<WholeWorkflowCaseOutput> outputs = ValidateInput(input, report.RootElement, repositoryRoot);
         cancellationToken.ThrowIfCancellationRequested();
         WholeWorkflowEvaluationResult metrics = WholeWorkflowCsvEvaluator.Evaluate(
@@ -105,12 +108,12 @@ internal static class FrozenWorkflowCsvScoring
             report.GetProperty("truth_consumed_by_inference").GetBoolean())
             throw new InvalidDataException("The saved workflow report is not a synthetic diagnostic.");
         JsonElement[] cases = report.GetProperty("cases").EnumerateArray().ToArray();
-        if (cases.Length != 7 || report.GetProperty("source_count").GetInt32() != cases.Length ||
+        if (cases.Length == 0 || report.GetProperty("source_count").GetInt32() != cases.Length ||
             input.TruthCases.Count != cases.Length || input.Outputs.Count != cases.Length)
-            throw new InvalidDataException("CSV evaluation must retain all seven source cases.");
+            throw new InvalidDataException("CSV evaluation must retain every source in the frozen workflow report.");
         var result = new List<WholeWorkflowCaseOutput>(cases.Length);
         var identities = new HashSet<string>(StringComparer.Ordinal);
-        string reportRoot = Path.GetDirectoryName(Path.Combine(repositoryRoot, ReportPath))!;
+        string reportRoot = Path.GetDirectoryName(RelativeFileUnder(repositoryRoot, input.WorkflowReport.Path))!;
         for (int index = 0; index < cases.Length; index++)
         {
             JsonElement saved = cases[index];
@@ -152,6 +155,50 @@ internal static class FrozenWorkflowCsvScoring
             result.Count(static output => !output.WorkflowSucceeded) != report.GetProperty("failed_count").GetInt32())
             throw new InvalidDataException("Saved workflow case totals do not reconcile.");
         return result;
+    }
+
+    internal static void ValidateFrozenSources(string reportFile, JsonElement report)
+    {
+        string snapshotRoot = Path.Combine(Path.GetDirectoryName(reportFile)!, "frozen-inputs");
+        using JsonDocument input = ReadSnapshot("input-manifest.json", "input_manifest_sha256");
+        using JsonDocument candidate = ReadSnapshot("candidate-binding.json", "candidate_binding_sha256");
+        JsonElement manifest = input.RootElement;
+        string protocolSha256 = report.GetProperty("protocol_sha256").GetString()!;
+        _ = FrozenCandidateBinding.RequireSha256(protocolSha256, "protocol SHA-256");
+        if (manifest.GetProperty("schema").GetString() != FrozenCandidateSyntheticRunner.InputSchema ||
+            manifest.GetProperty("split").GetString() != "synthetic" ||
+            manifest.GetProperty("protocol_sha256").GetString() != protocolSha256 ||
+            candidate.RootElement.GetProperty("protocol").GetProperty("sha256").GetString() != protocolSha256 ||
+            candidate.RootElement.GetProperty("candidate_id").GetString() != report.GetProperty("candidate_id").GetString() ||
+            candidate.RootElement.GetProperty("revision").GetString() != report.GetProperty("revision").GetString())
+            throw new InvalidDataException("Saved workflow snapshots do not bind the reported synthetic composition.");
+        JsonElement[] sources = manifest.GetProperty("sources").EnumerateArray().ToArray();
+        JsonElement[] cases = report.GetProperty("cases").EnumerateArray().ToArray();
+        if (sources.Length == 0 || cases.Length != sources.Length ||
+            report.GetProperty("source_count").GetInt32() != sources.Length)
+            throw new InvalidDataException("Saved workflow report omitted a frozen source.");
+        var identities = new HashSet<string>(StringComparer.Ordinal);
+        for (int index = 0; index < sources.Length; index++)
+        {
+            JsonElement source = sources[index];
+            JsonElement saved = cases[index];
+            string sha256 = FrozenCandidateBinding.RequireSha256(source.GetProperty("sha256").GetString()!, "source SHA-256");
+            if (!identities.Add(sha256) || saved.GetProperty("image_sha256").GetString() != sha256 ||
+                saved.GetProperty("width").GetInt32() != source.GetProperty("width").GetInt32() ||
+                saved.GetProperty("height").GetInt32() != source.GetProperty("height").GetInt32())
+                throw new InvalidDataException("Saved workflow source identity or order differs from the frozen input.");
+        }
+
+        JsonDocument ReadSnapshot(string name, string hashProperty)
+        {
+            byte[] bytes = File.ReadAllBytes(Path.Combine(snapshotRoot, name));
+            string expected = FrozenCandidateBinding.RequireSha256(report.GetProperty(hashProperty).GetString()!, hashProperty);
+            if (FrozenCandidateBinding.Hash(bytes) != expected)
+                throw new InvalidDataException("Saved workflow input snapshot checksum mismatch.");
+            JsonDocument document = JsonDocument.Parse(bytes);
+            try { RejectDuplicateProperties(document.RootElement); return document; }
+            catch { document.Dispose(); throw; }
+        }
     }
 
     private static string RelativeFileUnder(string root, string relative)

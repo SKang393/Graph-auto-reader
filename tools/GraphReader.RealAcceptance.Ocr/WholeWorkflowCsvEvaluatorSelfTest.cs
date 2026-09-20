@@ -53,6 +53,19 @@ internal static class WholeWorkflowCsvEvaluatorSelfTest
                 valid.MatchedRelationalPhaseAccuracy == 1 && valid.UniquePointValueCoverage == 1,
                 "valid output");
 
+            TestRow[] ownBaselineMetadata = validRows.Select(row => row.SourceSeriesId == BaselineRuntimeSeries
+                ? row with { SeriesSymbol = "square", SeriesName = "Baseline" } : row).ToArray();
+            WholeWorkflowEvaluationResult distinctBaseline = Evaluate(root, "distinct-baseline-metadata", truth, ownBaselineMetadata);
+            Require(distinctBaseline.ArtifactIntegrityValid && distinctBaseline.CorrectRows == 4 &&
+                distinctBaseline.UniquePointValueCorrect == 4, "shared baseline retains its own name and symbol");
+            WholeWorkflowEvaluationResult wrongTargetMetadata = Evaluate(root, "wrong-target-metadata", truth,
+                validRows.Select(row => row.SourceSeriesId == InterventionRuntimeSeries
+                    ? row with { SeriesName = "Different target" } : row).ToArray());
+            Require(!wrongTargetMetadata.ArtifactIntegrityValid, "target series still matches artifact metadata");
+            WholeWorkflowEvaluationResult inconsistentBaseline = Evaluate(root, "inconsistent-baseline-metadata", truth,
+                [ownBaselineMetadata[0] with { SeriesName = "Different baseline" }, .. ownBaselineMetadata.Skip(1)]);
+            Require(!inconsistentBaseline.ArtifactIntegrityValid, "source series metadata remains consistent");
+
             TestRow[] permutedRows = validRows.Select(row => row with
             {
                 SourceSeriesId = row.SourceSeriesId == BaselineRuntimeSeries
@@ -343,7 +356,7 @@ internal static class WholeWorkflowCsvEvaluatorSelfTest
                 [truth], [memoryTampered], memoryOptions, CancellationToken.None);
             Require(!tamperedMemory.ArtifactIntegrityValid, "in-memory artifact checksum remains mandatory");
 
-            const int scenarios = 30;
+            const int scenarios = 33;
             return new WholeWorkflowCsvEvaluatorSelfTestResult(
                 "pass", true, scenarios, false, 0, true, true, true, true, true);
         }
@@ -492,7 +505,8 @@ internal static class WholeWorkflowCsvEvaluatorSelfTest
                 .Append(row.ExportMode == "observation_order" ? ",observation_order" : ",printed")
                 .Append(",0.99,0.99,0.99,unreviewed,").Append(row.Inclusion)
                 .Append(',').Append(row.ExportMode)
-                .Append(",valid,false,,,circle,Intervention,markers,candidate-v1\n");
+                .Append(",valid,false,,,").Append(Csv(row.SeriesSymbol)).Append(',')
+                .Append(Csv(row.SeriesName)).Append(",markers,candidate-v1\n");
         }
         return result.ToString();
     }
@@ -540,8 +554,8 @@ internal static class WholeWorkflowCsvEvaluatorSelfTest
                 session_origin_override_applied = false,
                 session_origin_override_reason = (string?)null,
                 session_origin_override_confirmed_at_utc = (DateTimeOffset?)null,
-                series_symbol = "circle",
-                series_name = "Intervention",
+                series_symbol = row.SeriesSymbol,
+                series_name = row.SeriesName,
                 source_stage = "markers",
                 model_version = "candidate-v1",
             }).ToArray(),
@@ -575,5 +589,7 @@ internal static class WholeWorkflowCsvEvaluatorSelfTest
         double OriginalPixelX,
         double OriginalPixelY,
         string Inclusion,
-        string ExportMode);
+        string ExportMode,
+        string SeriesSymbol = "circle",
+        string SeriesName = "Intervention");
 }
