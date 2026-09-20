@@ -49,6 +49,8 @@ public sealed record OcrPipelineOptions
     public bool EnableParticipantLaneAssembly { get; init; }
 
     public bool EnableInsidePlotAssembly { get; init; }
+
+    public bool EnableOriginalPixelBoundsRefinement { get; init; }
 }
 
 public sealed class OcrPipeline
@@ -188,6 +190,11 @@ public sealed class OcrPipeline
                     request.PlotBounds,
                     request.PhaseDividerXs,
                     cancellationToken);
+            }
+            if (_options.EnableOriginalPixelBoundsRefinement)
+            {
+                detectedRegions = OriginalPixelTextRegionRefiner.Refine(
+                    request.OriginalImage, detectedRegions, cancellationToken);
             }
             detectedRegions = EnrichGeometry(detectedRegions, request.PlotBounds, _options);
         }

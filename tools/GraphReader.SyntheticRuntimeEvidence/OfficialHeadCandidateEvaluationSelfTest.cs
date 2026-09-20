@@ -137,6 +137,13 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
             ], root);
             Require(insidePlotParsed.SequenceEqual(parsed), "separate inside-plot command");
             checks++;
+            string[] pixelBoundsParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
+            [
+                OfficialHeadCandidateEvaluation.PixelBoundsCommand,
+                request, new string('a', 64), candidate, new string('b', 64), output,
+            ], root);
+            Require(pixelBoundsParsed.SequenceEqual(parsed), "separate pixel-bounds command");
+            checks++;
             string[] supplementalParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
             [
                 OfficialHeadCandidateEvaluation.SupplementalCommand,

@@ -14,6 +14,8 @@ public sealed partial class ProductionOcrAdapter
         "original-db-head-participant-lane-v1";
     internal const string InsidePlotCandidateCompositionVersion =
         "original-db-head-inside-plot-v1";
+    internal const string PixelBoundsCandidateCompositionVersion =
+        "original-db-head-pixel-bounds-v1";
 
     internal static async Task<ProductionOcrAdapter> CreateForFrozenDbHeadCandidateEvaluationAsync(
         FrozenCandidateOcrModelDescriptor detectionModel,
@@ -21,11 +23,17 @@ public sealed partial class ProductionOcrAdapter
         ProductionInferenceRuntimeHost runtimeHost,
         string reviewedOpenCvRuntimeSha256,
         CancellationToken cancellationToken,
-        bool insidePlotAssembly = false)
+        bool insidePlotAssembly = false,
+        bool pixelBoundsRefinement = false)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
         ArgumentNullException.ThrowIfNull(runtimeHost);
+        if (pixelBoundsRefinement && !insidePlotAssembly)
+        {
+            throw new ArgumentException("The pixel-bounds trial requires the inside-plot baseline.",
+                nameof(insidePlotAssembly));
+        }
         cancellationToken.ThrowIfCancellationRequested();
         reviewedOpenCvRuntimeSha256 = ValidateSha256(reviewedOpenCvRuntimeSha256,
             nameof(reviewedOpenCvRuntimeSha256));
@@ -61,7 +69,9 @@ public sealed partial class ProductionOcrAdapter
             await ValidateRecognizerExecutableAsync(recognition.Recognizer, runtime, cancellationToken)
                 .ConfigureAwait(false);
         }, cancellationToken).ConfigureAwait(false);
-        string candidateComposition = insidePlotAssembly
+        string candidateComposition = pixelBoundsRefinement
+            ? PixelBoundsCandidateCompositionVersion
+            : insidePlotAssembly
             ? InsidePlotCandidateCompositionVersion
             : OriginalDbCandidateCompositionVersion;
         return new ProductionOcrAdapter(() =>
@@ -74,7 +84,11 @@ public sealed partial class ProductionOcrAdapter
                 recognizer = new OfficialRecognitionSpacingV2TextRecognizer(recognizer);
             }
             return new OcrPipeline(detector, recognizer, new MemoryOcrResultCache(),
-                recognition.Pipeline with { EnableInsidePlotAssembly = insidePlotAssembly });
+                recognition.Pipeline with
+                {
+                    EnableInsidePlotAssembly = insidePlotAssembly,
+                    EnableOriginalPixelBoundsRefinement = pixelBoundsRefinement,
+                });
         }, detectionModel.Identity, recognitionModel.Identity, reviewedOpenCvRuntimeSha256,
             candidateComposition);
     }
@@ -274,7 +288,8 @@ public sealed partial class ProductionOcrAdapter
             {
                 OriginalDbCandidateCompositionVersion => compositionVersion,
                 ParticipantLaneCandidateCompositionVersion or
-                InsidePlotCandidateCompositionVersion => compositionVersion,
+                InsidePlotCandidateCompositionVersion or
+                PixelBoundsCandidateCompositionVersion => compositionVersion,
                 _ => throw new ArgumentOutOfRangeException(nameof(compositionVersion)),
             };
         }

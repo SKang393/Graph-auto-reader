@@ -8,6 +8,7 @@ import json
 from types import SimpleNamespace
 
 import pytest
+import numpy as np
 
 import score_participant_lane_candidate as scorer
 
@@ -152,6 +153,49 @@ def test_inside_plot_replay_matches_membership_union_and_identifier() -> None:
     )
     assert predictions == ()
     assert failures == 1
+
+
+def test_pixel_bounds_replay_uses_original_pixels_and_preserves_failed_region() -> None:
+    record = _inside_plot_record((50.0,))
+    record["assembly_context"]["pixel_bounds_composition_version"] = scorer.PIXEL_BOUNDS_COMPOSITION
+    gray = np.full((100, 100), 255, dtype=np.uint8)
+    gray[12:18, 3:17] = 0
+    for key in ("panel_polygon", "source_polygon"):
+        record["effective_regions"][0][key] = _polygon(3, 12, 17, 18)
+    raw, effective, predictions, failures = scorer._validate_panel_regions(
+        record, _panel(), (0.0, 0.0, 90.0, 90.0),
+        scorer.PIXEL_BOUNDS_PROFILE, (50.0,), gray)
+    assert len(raw) == 2 and len(effective) == 1
+    assert effective[0].member_ids == ("left", "right")
+    assert predictions == () and failures == 1
+    gray[10, 1] = 0  # Claimed bounds now discard an actual foreground pixel.
+    with pytest.raises(scorer.EvidenceError, match="deterministic assembly replay"):
+        scorer._validate_panel_regions(record, _panel(), (0.0, 0.0, 90.0, 90.0),
+            scorer.PIXEL_BOUNDS_PROFILE, (50.0,), gray)
+
+
+@pytest.mark.parametrize("fault", ["missing_pixels", "wrong_size", "wrong_composition"])
+def test_pixel_bounds_requires_pixels_and_distinct_composition(fault) -> None:
+    record = _inside_plot_record((50.0,))
+    record["assembly_context"]["pixel_bounds_composition_version"] = scorer.PIXEL_BOUNDS_COMPOSITION
+    gray = np.full((100, 100), 255, dtype=np.uint8)
+    if fault == "missing_pixels":
+        gray = None
+    elif fault == "wrong_size":
+        gray = gray[:50]
+    else:
+        record["assembly_context"]["pixel_bounds_composition_version"] = "unbound"
+    with pytest.raises(scorer.EvidenceError, match="composition or original pixels"):
+        scorer._validate_panel_regions(record, _panel(), (0.0, 0.0, 90.0, 90.0),
+            scorer.PIXEL_BOUNDS_PROFILE, (50.0,), gray)
+
+
+def test_pixel_profile_keeps_fixed_request_and_unapproved_candidate_identity() -> None:
+    profile = scorer.PIXEL_BOUNDS_PROFILE
+    assert profile.requires_phase_dividers and profile.refines_pixel_bounds
+    assert profile.candidate_composition != scorer.INSIDE_PLOT_PROFILE.candidate_composition
+    with pytest.raises(scorer.EvidenceError, match="exact authenticated"):
+        scorer._validate_profile_request({}, "a" * 64, profile)
 
 
 def test_inside_plot_replay_rejects_union_crossing_authenticated_divider() -> None:

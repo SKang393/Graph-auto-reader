@@ -21,6 +21,7 @@ from typing import Any, Mapping, Sequence
 
 import score_full_ocr_candidate_v2 as metric
 import score_text_extent_candidate as text_extent
+import diagnose_ocr_pixel_bounds as pixel_bounds
 from ml.ocr.official_bakeoff import text_extent_head_inputs as bridge
 
 
@@ -67,6 +68,11 @@ INSIDE_PLOT_RUNTIME_SOURCE_PATHS = RUNTIME_SOURCE_PATHS | {
     "src/GraphReader.Ocr/InsidePlotTextRegionAssembler.cs",
     "src/GraphReader.Ocr/OcrContracts.cs",
 }
+PIXEL_BOUNDS_RUNTIME_SOURCE_PATHS = INSIDE_PLOT_RUNTIME_SOURCE_PATHS | {
+    "src/GraphReader.Ocr/OriginalPixelTextRegionRefiner.cs",
+}
+PIXEL_BOUNDS_COMPOSITION = "original-pixel-text-bounds-v1"
+PIXEL_BOUNDS_SOURCE_SHA256 = "077de4376501026cc593633d0aa75b2e3bda9a91d5b1d808b1c4f08dc3f4e7ab"
 HISTORICAL_RUNTIME_FILES = {
     "GraphReader.SyntheticRuntimeEvidence.dll",
     "GraphReader.App.dll",
@@ -101,6 +107,7 @@ class _AssemblyProfile:
     identifier_prefix: str
     runtime_source_paths: frozenset[str]
     requires_phase_dividers: bool
+    refines_pixel_bounds: bool = False
 
 
 PARTICIPANT_LANE_PROFILE = _AssemblyProfile(
@@ -125,9 +132,19 @@ INSIDE_PLOT_PROFILE = _AssemblyProfile(
     frozenset(INSIDE_PLOT_RUNTIME_SOURCE_PATHS),
     True,
 )
+PIXEL_BOUNDS_PROFILE = replace(
+    INSIDE_PLOT_PROFILE,
+    mode="pixel_bounds",
+    output_schema="graphreader.pixel-bounds-full-ocr-score.v1",
+    evaluation_schema="graphreader.pixel-bounds-candidate-evaluation.v1",
+    candidate_composition="original-db-head-pixel-bounds-v1",
+    runtime_source_paths=frozenset(PIXEL_BOUNDS_RUNTIME_SOURCE_PATHS),
+    refines_pixel_bounds=True,
+)
 PROFILES = {
     PARTICIPANT_LANE_PROFILE.mode: PARTICIPANT_LANE_PROFILE,
     INSIDE_PLOT_PROFILE.mode: INSIDE_PLOT_PROFILE,
+    PIXEL_BOUNDS_PROFILE.mode: PIXEL_BOUNDS_PROFILE,
 }
 
 
@@ -208,6 +225,9 @@ def _validate_frozen_sources(
         "tools/GraphReader.SyntheticRuntimeEvidence/score_text_extent_candidate.py":
             TEXT_EXTENT_ADAPTER_SHA256,
     }
+    if profile.refines_pixel_bounds:
+        bindings["tools/GraphReader.SyntheticRuntimeEvidence/diagnose_ocr_pixel_bounds.py"] = (
+            PIXEL_BOUNDS_SOURCE_SHA256)
     for relative, expected in bindings.items():
         path = (root / relative).resolve()
         if not path.is_file() or sha256(path.read_bytes()).hexdigest() != expected:
@@ -283,14 +303,8 @@ def _validate_frozen_sources(
         })
     if runtime_seen != profile.runtime_source_paths:
         raise EvidenceError(f"{profile.mode} runtime source manifest is incomplete")
-    runtime_manifest_key = (
-        "participant_lane_runtime_source_manifest"
-        if profile is PARTICIPANT_LANE_PROFILE else "inside_plot_runtime_source_manifest"
-    )
-    runtime_sources_key = (
-        "participant_lane_runtime_sources"
-        if profile is PARTICIPANT_LANE_PROFILE else "inside_plot_runtime_sources"
-    )
+    runtime_manifest_key = f"{profile.mode}_runtime_source_manifest"
+    runtime_sources_key = f"{profile.mode}_runtime_sources"
     return {
         "active_frozen_scorers": bindings,
         "active_frozen_metric_dependencies": metric_dependencies,
@@ -536,10 +550,36 @@ def _validate_annotation_free_inputs(
     geometry._prevalidate_capture_report(
         root, capture_report_path, capture_report_sha256,
         resolved_request, request_sha256, request, panels)
+    panel_pixels = _authenticated_panel_pixels(root, request, panels) if profile.refines_pixel_bounds else None
     return _validate_evaluation(
         root, evaluation_path, evaluation_sha256,
         resolved_evaluation_request, evaluation_request_digest,
-        candidate_path, candidate_sha256, panels, assembly_contexts, candidate, profile)
+        candidate_path, candidate_sha256, panels, assembly_contexts, candidate, profile, panel_pixels)
+
+
+def _authenticated_panel_pixels(
+    root: Path, request: Mapping[str, Any], panels: Mapping[str, Any],
+) -> dict[str, Any]:
+    pixels = {}
+    for raw in geometry._array(request.get("panels"), "capture panels"):
+        row = geometry._object(raw, "capture panel")
+        panel_id = row.get("panel_id")
+        if panel_id not in panels or panel_id in pixels:
+            raise EvidenceError("pixel refinement panel inventory changed")
+        expected = panels[panel_id]
+        png = geometry._object(row.get("panel_png"), "panel PNG")
+        _, encoded = geometry._read_exact(root, png.get("path"), png.get("sha256"),
+                                         "original panel PNG", png.get("byte_count"))
+        gray, bgr = geometry.production_head_inputs._decode_production_pixels(
+            encoded, expected.width, expected.height)
+        if (png.get("sha256") != expected.panel_sha256
+                or sha256(gray.tobytes()).hexdigest() != expected.gray_sha256
+                or sha256(bgr.tobytes()).hexdigest() != expected.bgr_sha256):
+            raise EvidenceError("pixel refinement input differs from authenticated production pixels")
+        pixels[panel_id] = gray
+    if set(pixels) != set(panels):
+        raise EvidenceError("pixel refinement panel inventory is incomplete")
+    return pixels
 
 
 def _evaluation_request_binding(
@@ -579,7 +619,7 @@ def _validate_profile_request(
     request_sha256: str,
     profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
 ) -> None:
-    if profile is INSIDE_PLOT_PROFILE and (
+    if profile.requires_phase_dividers and (
             request_sha256 != EXPECTED_INSIDE_PLOT_REQUEST_SHA256
             or request.get("capture_source") != EXPECTED_INSIDE_PLOT_CAPTURE_SOURCE):
         raise EvidenceError(
@@ -785,6 +825,7 @@ def _validate_panel_regions(
     plot: tuple[float, float, float, float],
     profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
     phase_divider_xs: Sequence[float] = (),
+    original_gray: Any = None,
 ) -> tuple[
     tuple[_RawRegion, ...],
     tuple[_AssemblyGroup, ...],
@@ -795,6 +836,11 @@ def _validate_panel_regions(
     context_fields = {"composition_version", "plot_bounds_panel_ltrb"}
     if profile.requires_phase_dividers:
         context_fields.add("phase_divider_xs")
+    if profile.refines_pixel_bounds:
+        context_fields.add("pixel_bounds_composition_version")
+        if (context.get("pixel_bounds_composition_version") != PIXEL_BOUNDS_COMPOSITION
+                or original_gray is None or original_gray.shape != (expected.height, expected.width)):
+            raise EvidenceError("pixel bounds composition or original pixels are missing or invalid")
     if set(context) != context_fields:
         raise EvidenceError("assembly context has unknown or missing fields")
     context_plot = geometry._array(
@@ -843,6 +889,17 @@ def _validate_panel_regions(
     if status == "completed" or raw_effective:
         expected_groups = _replay_groups(
             raw_regions, plot, profile, context_dividers)
+        if profile.refines_pixel_bounds:
+            threshold = pixel_bounds.foreground_threshold(original_gray)
+            refined = []
+            for group in expected_groups:
+                bounds = _bounds(group.panel_points)
+                box = (bounds.left, bounds.top, bounds.right, bounds.bottom)
+                tight = pixel_bounds.tighten_box(original_gray, box, threshold)
+                left, top, right, bottom = tight
+                refined.append(group if tight == box else replace(group, panel_points=(
+                    (left, top), (right, top), (right, bottom), (left, bottom))))
+            expected_groups = tuple(refined)
         if len(raw_effective) != len(expected_groups):
             raise EvidenceError("effective region count differs from deterministic assembly replay")
     else:
@@ -944,6 +1001,7 @@ def _validate_evaluation(
     assembly_contexts: Mapping[str, _RuntimeAssemblyContext],
     candidate: Mapping[str, Any],
     profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
+    panel_pixels: Mapping[str, Any] | None = None,
 ) -> _ValidatedEvidence:
     _, payload = geometry._read_exact(
         root, str(report_path), expected_sha256, f"{profile.mode} evaluation report")
@@ -1072,7 +1130,8 @@ def _validate_evaluation(
 
         context = assembly_contexts[panel_id]
         raw_regions, effective_regions, text_predictions, failure_count = _validate_panel_regions(
-            record, expected, context.plot, profile, context.phase_divider_xs)
+            record, expected, context.plot, profile, context.phase_divider_xs,
+            panel_pixels.get(panel_id) if panel_pixels is not None else None)
         for row in raw_regions:
             raw_by_source.setdefault(expected.source_sha256, []).append(
                 geometry._prediction(row.source_points))
@@ -1222,7 +1281,7 @@ def score(
         capture_binary_root=historical_capture_runtime.backup_binary_root,
         capture_source_path=(
             root / EXPECTED_INSIDE_PLOT_CAPTURE_SOURCE["path"]
-            if profile is INSIDE_PLOT_PROFILE else None
+            if profile.requires_phase_dividers else None
         ))
     generated_assemblies = geometry._validate_assemblies(
         root, prepared.request["assemblies"], "prepared historical backup assemblies")
@@ -1237,7 +1296,7 @@ def score(
         raise EvidenceError("prepared historical backup assemblies differ from the capture request")
     prepared_request = dict(prepared.request)
     prepared_request["assemblies"] = request["assemblies"]
-    if profile is INSIDE_PLOT_PROFILE:
+    if profile.requires_phase_dividers:
         prepared_request["capture_source"] = request["capture_source"]
     prepared = replace(prepared, request=prepared_request)
     if prepared.request != request:
@@ -1311,7 +1370,7 @@ def score(
                     evaluation_request_path,
                     geometry._sha(evaluation_request_sha256, "evaluation request SHA-256"),
                     root),
-            } if profile is INSIDE_PLOT_PROFILE and evaluation_request_path is not None else {}),
+            } if profile.requires_phase_dividers and evaluation_request_path is not None else {}),
             "scoring_adapter": _descriptor(Path(__file__), source_digest, root),
             "input_summary": _descriptor(summary_path, summary_sha256, root),
             "saved_train_truth": preflight["train_text_truth"],
@@ -1327,8 +1386,13 @@ def score(
             "effective_region_geometry_independently_replayed_from_raw_regions_and_runtime_plot_bounds": True,
             **({
                 "phase_divider_geometry_authenticated_from_same_bound_runtime_reports": True,
-            } if profile is INSIDE_PLOT_PROFILE else {}),
+            } if profile.requires_phase_dividers else {}),
             "counts_by_split": evidence.assembly_counts,
+            **({
+                "pixel_bounds_composition_version": PIXEL_BOUNDS_COMPOSITION,
+                "effective_bounds_replayed_from_authenticated_original_gray_pixels": True,
+                "all_proposals_retained_after_refinement": True,
+            } if profile.refines_pixel_bounds else {}),
         },
         "matching": {
             "coordinate_space": "source_original_pixels",
@@ -1370,7 +1434,7 @@ def score(
             **({
                 "train_truth_count": len(train),
                 "validation_truth_count": len(dev),
-            } if profile is INSIDE_PLOT_PROFILE else {}),
+            } if profile.requires_phase_dividers else {}),
             "failed_panels_remain_in_full_source_denominator": True,
             "unmatched_truths_count_as_exact_and_role_failures_and_full_text_deletions": True,
             "unmatched_predictions_count_as_character_insertions": True,

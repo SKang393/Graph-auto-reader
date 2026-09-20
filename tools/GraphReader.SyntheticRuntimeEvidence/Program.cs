@@ -108,6 +108,7 @@ internal static class Program
         if (args.Length == 6 && (args[0] == OfficialHeadCandidateEvaluation.Command ||
             args[0] == OfficialHeadCandidateEvaluation.ParticipantLaneCommand ||
             args[0] == OfficialHeadCandidateEvaluation.InsidePlotCommand ||
+            args[0] == OfficialHeadCandidateEvaluation.PixelBoundsCommand ||
             args[0] == OfficialHeadCandidateEvaluation.SupplementalCommand))
         {
             return await OfficialHeadCandidateEvaluation.RunCommandAsync(args, RepositoryRoot())

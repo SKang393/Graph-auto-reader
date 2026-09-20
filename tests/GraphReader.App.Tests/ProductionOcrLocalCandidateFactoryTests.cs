@@ -16,9 +16,11 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionOcrLocalCandidateFactoryTests
 {
     [TestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task FrozenDbHeadPairCreatesUnapprovedOriginalInputCandidate(bool insidePlotAssembly)
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(true, true)]
+    public async Task FrozenDbHeadPairCreatesUnapprovedOriginalInputCandidate(
+        bool insidePlotAssembly, bool pixelBoundsRefinement)
     {
         string root = CreateTemporaryDirectory();
         var sessionFactory = new ShapeAwareSessionFactory();
@@ -36,10 +38,12 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                         pair.Detection.ManifestPath, Sha256(pair.Detection.ManifestPath)),
                     new FrozenCandidateOcrModelDescriptor(pair.Recognition.Identity,
                         pair.Recognition.ManifestPath, pair.Recognition.ManifestSha256),
-                    host, new string('d', 64), CancellationToken.None, insidePlotAssembly);
+                    host, new string('d', 64), CancellationToken.None, insidePlotAssembly, pixelBoundsRefinement);
             Assert.IsFalse(adapter.IsApproved);
             Assert.AreEqual("unapproved_frozen_candidate", adapter.ConfigurationScope);
-            string expectedComposition = insidePlotAssembly
+            string expectedComposition = pixelBoundsRefinement
+                ? ProductionOcrAdapter.PixelBoundsCandidateCompositionVersion
+                : insidePlotAssembly
                 ? ProductionOcrAdapter.InsidePlotCandidateCompositionVersion
                 : ProductionOcrAdapter.OriginalDbCandidateCompositionVersion;
             StringAssert.Contains(adapter.AdapterId, expectedComposition);
@@ -88,6 +92,31 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                 StringComparison.Ordinal));
             Assert.AreEqual(2, sessionFactory.CreatedCount);
             Assert.AreEqual(2, sessionFactory.RunCount);
+        }
+        finally
+        {
+            await host.DisposeAsync();
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task PixelBoundsTrialRejectsMissingInsidePlotBaselineBeforeInference()
+    {
+        string root = CreateTemporaryDirectory();
+        var sessions = new ShapeAwareSessionFactory();
+        await using ProductionInferenceRuntimeHost host = CreateRuntimeHost(root, sessions);
+        try
+        {
+            CandidatePair pair = WriteCandidatePair(root);
+            await Assert.ThrowsExactlyAsync<ArgumentException>(() => ProductionOcrAdapter
+                .CreateForFrozenDbHeadCandidateEvaluationAsync(
+                    new FrozenCandidateOcrModelDescriptor(pair.Detection.Identity,
+                        pair.Detection.ManifestPath, pair.Detection.ManifestSha256),
+                    new FrozenCandidateOcrModelDescriptor(pair.Recognition.Identity,
+                        pair.Recognition.ManifestPath, pair.Recognition.ManifestSha256),
+                    host, new string('d', 64), CancellationToken.None, pixelBoundsRefinement: true));
+            Assert.AreEqual(0, sessions.RunCount);
         }
         finally
         {

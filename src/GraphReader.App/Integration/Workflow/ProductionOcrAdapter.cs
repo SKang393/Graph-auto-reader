@@ -728,7 +728,7 @@ public sealed partial class ProductionOcrAdapter :
     internal static bool UsesOriginalDbOnlyInput(string candidateCompositionVersion) =>
         candidateCompositionVersion is
             OriginalDbCandidateCompositionVersion or ParticipantLaneCandidateCompositionVersion or
-            InsidePlotCandidateCompositionVersion;
+            InsidePlotCandidateCompositionVersion or PixelBoundsCandidateCompositionVersion;
 
     private async Task<ProductionOcrEvidence> RecognizeCoreAsync(
         ProductionWorkflowDetectionRequest request,
