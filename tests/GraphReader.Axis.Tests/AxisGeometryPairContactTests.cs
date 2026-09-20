@@ -8,6 +8,66 @@ namespace GraphReader.Axis.Tests;
 [TestClass]
 public sealed class AxisGeometryPairContactTests
 {
+    private static readonly string[] LowerAxisIds = ["lower-y-axis"];
+    private static readonly string[] ConnectedAxisIds = ["y-bottom", "y-overlap", "y-top"];
+
+    [TestMethod]
+    public async Task DetachedCollinearInkDoesNotEnlargePlotOrRemoveDottedDivider()
+    {
+        AxisGeometryRequest request = new AxisFixtureBuilder()
+            .CleanAxes()
+            .Line(100, 10, 100, 20, id: "detached-caption-stroke")
+            .Line(750, 300, 735, 300, id: "detached-right-stroke")
+            .DottedDivider(400, pattern: LinePatternHint.Unknown)
+            .Build();
+
+        AxisGeometryResult result = await new AxisGeometryDetector().DetectAsync(request);
+
+        Assert.AreEqual(50d, result.PlotPolygon.TopLeft.Y, 0.01d);
+        Assert.AreEqual(700d, result.PlotPolygon.BottomRight.X, 0.01d);
+        Assert.IsFalse(result.YAxis.SupportingCandidateIds.Contains("detached-caption-stroke"));
+        Assert.IsFalse(result.XAxis.SupportingCandidateIds.Contains("detached-right-stroke"));
+        Assert.AreEqual(1, result.PhaseDividers.Count);
+        Assert.AreEqual(DividerStyle.Dotted, result.PhaseDividers[0].Style);
+    }
+
+    [TestMethod]
+    public async Task StackedCollinearAxesDoNotJoinAcrossThePanelGap()
+    {
+        AxisGeometryRequest request = new AxisFixtureBuilder()
+            .Line(100, 350, 700, 350, id: "lower-x-axis")
+            .Line(100, 350, 100, 210, id: "lower-y-axis")
+            .Line(100, 50, 100, 150, id: "upper-y-axis")
+            .Build();
+
+        AxisGeometryResult result = await new AxisGeometryDetector().DetectAsync(request);
+
+        Assert.AreEqual(350d, result.PlotPolygon.BottomLeft.Y, 0.01d);
+        Assert.AreEqual(210d, result.PlotPolygon.TopLeft.Y, 0.01d);
+        CollectionAssert.AreEquivalent(LowerAxisIds, result.YAxis.SupportingCandidateIds.ToArray());
+    }
+
+    [TestMethod]
+    public async Task OverlappingEvidenceBridgesShortAxisFragmentsInEitherDirection()
+    {
+        AxisGeometryRequest request = new AxisFixtureBuilder()
+            .Line(100, 300, 400, 300, id: "x-left")
+            .Line(700, 300, 402, 300, id: "x-right")
+            .Line(100, 300, 100, 200, id: "y-bottom")
+            .Line(100, 202, 100, 150, id: "y-overlap")
+            .Line(100, 50, 100, 148, id: "y-top")
+            .Line(100, 10, 100, 20, id: "detached-caption-stroke")
+            .Build();
+
+        AxisGeometryResult result = await new AxisGeometryDetector().DetectAsync(request);
+
+        Assert.AreEqual(50d, result.PlotPolygon.TopLeft.Y, 0.01d);
+        Assert.AreEqual(700d, result.PlotPolygon.BottomRight.X, 0.01d);
+        CollectionAssert.AreEquivalent(
+            ConnectedAxisIds, result.YAxis.SupportingCandidateIds.ToArray());
+        Assert.AreEqual(2, result.XAxis.SupportingCandidateIds.Count);
+    }
+
     [TestMethod]
     public async Task DisconnectedAxisSegmentsCannotProduceConfidentGeometry()
     {

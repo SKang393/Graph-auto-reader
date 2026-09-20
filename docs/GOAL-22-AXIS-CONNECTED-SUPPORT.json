@@ -1,0 +1,233 @@
+{
+  "schema": "graphreader.goal22.axis-connected-support.v1",
+  "status": "targeted_geometry_repair_verified_full_goal_incomplete",
+  "base_commit": "492cc0d8d72e0381b7af0a871153c03113f40ff1",
+  "diagnosis": {
+    "native_replay": {
+      "path": "artifacts/goal22-runs/axis-disconnected-extent-diagnostic-v2/completion.json",
+      "sha256": "27f3f2ec6f00ace351ee2a6982aeb93f51e6369a35957bf4b11264fa3ee83f37"
+    },
+    "line_intervals": {
+      "path": "artifacts/goal22-runs/axis-disconnected-extent-diagnostic-v2/interval-diagnosis.json",
+      "sha256": "d16a4084b281430ba59137ea34f5f6ac68756308095d505c6e744140ca4117e3"
+    },
+    "panels": 30,
+    "maximum_original_replay_error_pixels": 0,
+    "detached_caption_cases": 3,
+    "caption_axis_gaps_pixels": [
+      18.044654846191406,
+      18.15653991699219,
+      17.99787139892578
+    ],
+    "missing_native_loader_attempt": {
+      "path": "artifacts/goal22-runs/axis-disconnected-extent-diagnostic-v1/completion.json",
+      "sha256": "89fe9a3b90fd4b7c094a9dea7bb0e27fe7428164f7438d2dd01775df785fbb6f"
+    }
+  },
+  "change": {
+    "stage_version": "axis-opencv-v3-connected-support",
+    "source_bindings": {
+      "path": "artifacts/goal22-runs/axis-connected-support-checks-v2/source-bindings.json",
+      "sha256": "5cd9895d99735b5e9a984dc36fd212417346b874b5988ffb246fb6d85e65aabd"
+    },
+    "axis_contact_tolerance": "Use twice the existing MergeDistancePixels for both corner contact and longitudinal continuity. No new tuned threshold.",
+    "divider_behavior": "Original collinear families remain available to dotted-divider detection.",
+    "cache_invalidated": true
+  },
+  "validation": {
+    "tests": {
+      "axis": {
+        "passed": 60,
+        "total": 60,
+        "report": {
+          "path": "artifacts/goal22-runs/axis-connected-support-checks-v2/test-results/axis.trx",
+          "sha256": "e6cdc67d989c855ff08c6ee5d0308e16fb025be9f07a2cb9a73342ac88fdcfe2"
+        }
+      },
+      "app": {
+        "passed": 404,
+        "total": 404,
+        "report": {
+          "path": "artifacts/goal22-runs/axis-connected-support-checks-v2/test-results/app.trx",
+          "sha256": "06f6b3bbd579358da42cd16bd339ecc9e905cd52e650f159e32f4e41ebc97ae9"
+        }
+      }
+    },
+    "checker_build": {
+      "path": "artifacts/goal22-runs/axis-connected-support-checks-v2/build.log",
+      "sha256": "943f77cc2d2000c32794c0d005fd91a194db425fb0432190396b3c2dd91ae616"
+    },
+    "self_tests": [
+      {
+        "path": "artifacts/goal22-runs/axis-connected-support-checks-v2/private-runner-self-test.json",
+        "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+      },
+      {
+        "path": "artifacts/goal22-runs/axis-connected-support-checks-v2/frozen-binding-self-test.json",
+        "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+      }
+    ],
+    "retained_compile_failure": {
+      "path": "artifacts/goal22-runs/axis-connected-support-checks-v1/axis.log",
+      "sha256": "1e7c5c633238bc52e4fc31656b77f8235665094f37b292476292f007dec1aabc"
+    },
+    "failure_repair": "Move constant expected test arrays to static readonly fields; retain CA1861 enforcement."
+  },
+  "cached_line_replay": {
+    "result": {
+      "path": "artifacts/goal22-runs/axis-connected-support-replay-v1/results.json",
+      "sha256": "e526d0370ebecfb64a154c7a7d00f7a7194c42a881463ab8f9f39298b2c7ec89"
+    },
+    "comparison": {
+      "path": "artifacts/goal22-runs/axis-connected-support-replay-v1/comparison-v2.json",
+      "sha256": "229047bbe3614a7fe82b98a5ede50ad0b167f24f50d9df3e7bb8fe1255f2f3c3"
+    },
+    "panels": 30,
+    "unchanged_polygons": 24,
+    "dev_polygons_unchanged": 8,
+    "seconds": 1.2757081,
+    "caption_top_errors_before": [
+      -27.853943821640115,
+      -27.909659612451406,
+      -27.89032904188656
+    ],
+    "caption_top_errors_after": [
+      -1.0000134982609268,
+      -1.0000279348758454,
+      -1.000047586858443
+    ],
+    "remaining_geometry_limitations": "The heavily broken axis remains incomplete. Another formerly merged panel selects a different physical panel; compare this through whole-source CSV evidence, not the prior panel top coordinate."
+  },
+  "full_workflow": {
+    "comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-axis-connected-v1/comparison.json",
+      "sha256": "5bd771a645f609582035df4983e652880e3f01a53721483524b8b96a2549aaac"
+    },
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-axis-connected-v1/execution/report.json",
+      "sha256": "0e9de4864c9f50c18d3e4c8b4e6d5fba249fa897d6b1484cea0cbd2e76bad8a5"
+    },
+    "candidate_binding": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-axis-connected-v1/candidate-binding.json",
+      "sha256": "048df30c83ee5217397c59a4926dd2f37543a7c233b3e6d736fee941ac6858b9"
+    },
+    "input_manifest": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-axis-connected-v1/input-manifest.json",
+      "sha256": "9257467f3ff73afbb6848e324b79a5b8fe7f79098658e18b97b1c4a8bf1fdf8e"
+    },
+    "previous_metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 9,
+      "failed_cases": 14,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 15,
+      "matched_series": 11,
+      "truth_points": 706,
+      "predicted_points": 144,
+      "matched_points": 140,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 144,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 137,
+      "correct_rows": 132,
+      "missing_rows": 587,
+      "extra_rows": 7,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 140,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 566,
+      "unique_point_extra": 4,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9722222222222222,
+      "unique_point_structural_coverage": 0.19830028328611898,
+      "unique_point_value_precision": 0.9722222222222222,
+      "unique_point_value_coverage": 0.19830028328611898,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9166666666666666,
+      "relational_row_coverage": 0.18232044198895028,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9635036496350365,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 14
+      }
+    },
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 10,
+      "failed_cases": 13,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 17,
+      "matched_series": 13,
+      "truth_points": 706,
+      "predicted_points": 182,
+      "matched_points": 178,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 182,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 175,
+      "correct_rows": 170,
+      "missing_rows": 549,
+      "extra_rows": 7,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 178,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 528,
+      "unique_point_extra": 4,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.978021978021978,
+      "unique_point_structural_coverage": 0.2521246458923513,
+      "unique_point_value_precision": 0.978021978021978,
+      "unique_point_value_coverage": 0.2521246458923513,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9340659340659341,
+      "relational_row_coverage": 0.23480662983425415,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9714285714285714,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 13
+      }
+    },
+    "milliseconds": 134105.4343,
+    "prior_panels_retained": 32,
+    "observed_panels": 33,
+    "all_sources_retained": 23,
+    "all_model_weights_unchanged": true,
+    "thresholds_and_truth_unchanged": true
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "new_dependencies": false,
+  "license": "Apache-2.0 original source; existing reviewed OpenCV runtime unchanged",
+  "production_approval": false,
+  "packaged_build_created": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false,
+  "next_action": "Continue fixed-weight integration diagnosis. Inspect remaining OCR/calibration failures, unknown-session marker artifacts, empty export grouping and five phase errors. Preserve all 23 source denominators and scientific export guards."
+}

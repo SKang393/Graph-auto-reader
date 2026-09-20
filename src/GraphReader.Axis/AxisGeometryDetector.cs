@@ -109,20 +109,20 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             request.ImageWidth,
             request.ImageHeight);
 
+        var horizontalAxisFamilies = BuildConnectedAxisFamilies(
+            horizontalFamilies, frameFamilies, options, cancellationToken);
+        var verticalAxisFamilies = BuildConnectedAxisFamilies(
+            verticalFamilies, frameFamilies, options, cancellationToken);
+
         var pairCandidates = new List<AxisPair>();
-        foreach (var horizontalFamily in horizontalFamilies)
+        foreach (var horizontalFamily in horizontalAxisFamilies)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (frameFamilies.Contains(horizontalFamily))
-            {
-                continue;
-            }
 
-            foreach (var verticalFamily in verticalFamilies)
+            foreach (var verticalFamily in verticalAxisFamilies)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                if (frameFamilies.Contains(verticalFamily) ||
-                    !TryIntersect(horizontalFamily, verticalFamily, out var intersection))
+                if (!TryIntersect(horizontalFamily, verticalFamily, out var intersection))
                 {
                     continue;
                 }
@@ -466,6 +466,67 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                 fitted.RootMeanSquareError < existing.RootMeanSquareError)
             {
                 byMembers[key] = fitted;
+            }
+        }
+
+        return byMembers.Values.ToList();
+    }
+
+    private static List<LineFamily> BuildConnectedAxisFamilies(
+        IReadOnlyList<LineFamily> families,
+        IReadOnlySet<LineFamily> frameFamilies,
+        AxisGeometryOptions options,
+        CancellationToken cancellationToken)
+    {
+        // Axis extent needs observed support, using the same contact tolerance
+        // as the corner check. Detached collinear ink must not enlarge a plot.
+        // Divider detection keeps the original families, including dotted gaps.
+        var byMembers = new Dictionary<string, LineFamily>(StringComparer.Ordinal);
+        var contactTolerance = options.MergeDistancePixels * 2d;
+        foreach (var family in families)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (frameFamilies.Contains(family))
+            {
+                continue;
+            }
+
+            var intervals = family.Members.Select(member =>
+            {
+                var start = Project(member.Candidate.Segment.Start, family.Line.Start, family.Direction);
+                var end = Project(member.Candidate.Segment.End, family.Line.Start, family.Direction);
+                return (Member: member, Start: Math.Min(start, end), End: Math.Max(start, end));
+            }).OrderBy(item => item.Start).ThenBy(item => item.End).ToArray();
+            var component = new List<Observation>();
+            var componentEnd = double.NegativeInfinity;
+            foreach (var interval in intervals)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (component.Count > 0 && interval.Start > componentEnd + contactTolerance)
+                {
+                    AddComponent();
+                    component.Clear();
+                    componentEnd = double.NegativeInfinity;
+                }
+
+                component.Add(interval.Member);
+                componentEnd = Math.Max(componentEnd, interval.End);
+            }
+
+            AddComponent();
+
+            void AddComponent()
+            {
+                var connected = component.Count == family.Members.Count
+                    ? family
+                    : FitFamily(component, family.Orientation);
+                var key = string.Join('\u001f', connected.Members
+                    .Select(member => member.Candidate.CandidateId).Order(StringComparer.Ordinal));
+                if (!byMembers.TryGetValue(key, out var existing) ||
+                    connected.RootMeanSquareError < existing.RootMeanSquareError)
+                {
+                    byMembers[key] = connected;
+                }
             }
         }
 
