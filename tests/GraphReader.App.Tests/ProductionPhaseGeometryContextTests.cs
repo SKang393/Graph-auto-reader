@@ -21,7 +21,7 @@ public sealed class ProductionPhaseGeometryContextTests
     {
         AxisGeometryResult axis = Axis();
         OcrRegion[] text = Headings();
-        PhaseGeometryContextResult resolved = ProductionPhaseGeometryContext.Resolve(axis, Image(), text, [], CancellationToken.None);
+        PhaseGeometryContextResult resolved = ProductionPhaseGeometryContext.Resolve(axis, Image(), text, [], [], CancellationToken.None);
         CollectionAssert.AreEqual(ExpectedBoundaries, resolved.Dividers.Select(static item => item.Line.Midpoint.X).ToArray());
         Assert.HasCount(3, resolved.Warnings);
         Assert.IsEmpty(axis.PhaseDividers, "Original geometry must remain unchanged.");
@@ -63,7 +63,7 @@ public sealed class ProductionPhaseGeometryContextTests
         if (missingEvidence == 1) text = text[1..];
         if (missingEvidence == 2) text[3] = text[3] with { Polygon = OcrPolygon.FromRectangle(new(165, 4, 30, 10)) };
         if (missingEvidence == 3) text[3] = text[3] with { ReviewStatus = OcrReviewStatus.Rejected };
-        PhaseGeometryContextResult result = ProductionPhaseGeometryContext.Resolve(Axis(), Image(), text, [], CancellationToken.None);
+        PhaseGeometryContextResult result = ProductionPhaseGeometryContext.Resolve(Axis(), Image(), text, [], [], CancellationToken.None);
         Assert.IsEmpty(result.Dividers);
         Assert.IsTrue(result.Warnings.All(static warning => warning.StartsWith("phase_grid_ambiguity_requires_review:", StringComparison.Ordinal)));
     }
@@ -72,7 +72,7 @@ public sealed class ProductionPhaseGeometryContextTests
     public void HeadingsCannotCreateLinesThatWereNeverMeasured()
     {
         PhaseGeometryContextResult result = ProductionPhaseGeometryContext.Resolve(
-            Axis() with { AmbiguousGridOrDividers = [] }, Image(), Headings(), [], CancellationToken.None);
+            Axis() with { AmbiguousGridOrDividers = [] }, Image(), Headings(), [], [], CancellationToken.None);
         Assert.IsEmpty(result.Dividers);
     }
 
@@ -85,7 +85,7 @@ public sealed class ProductionPhaseGeometryContextTests
         OcrRegion[] text = [Region("top-text", 175, 47, "Top note", OcrTextRole.Annotation),
             Region("bottom-text", 175, 116, "Bottom note", OcrTextRole.Annotation)];
         PhaseGeometryContextResult result = ProductionPhaseGeometryContext.Resolve(
-            axis, Image(frame: true, textFragments: true), text, [LegendFrame], CancellationToken.None);
+            axis, Image(frame: true, textFragments: true), text, [LegendFrame], [], CancellationToken.None);
         Assert.IsEmpty(result.Dividers);
         Assert.IsTrue(result.Warnings.Single().StartsWith("phase_line_excluded_by_legend_context:", StringComparison.Ordinal));
     }
@@ -94,21 +94,95 @@ public sealed class ProductionPhaseGeometryContextTests
     public void ARealDividerPassingBehindALegendRetainsItsOutsidePixelSupport()
     {
         PhaseGeometryContextResult result = ProductionPhaseGeometryContext.Resolve(
-            FrameAxis(false), Image(frame: true, realDivider: true), [], [LegendFrame], CancellationToken.None);
+            FrameAxis(false), Image(frame: true, realDivider: true), [], [LegendFrame], [], CancellationToken.None);
         Assert.HasCount(1, result.Dividers);
         Assert.AreEqual(180, result.Dividers[0].Line.Midpoint.X);
         Assert.IsEmpty(result.Warnings);
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void TextAndMarkerInkCannotBridgeAnOtherwiseEmptyColumn(bool ambiguous)
+    {
+        OcrRegion[] text = [Region("top-text", 175, 47, "Top note", OcrTextRole.Annotation)];
+        PhaseGeometryContextResult result = ProductionPhaseGeometryContext.Resolve(
+            FrameAxis(ambiguous), Image(textFragments: true), text, [],
+            [new OcrRectangle(176, 116, 8, 10)], CancellationToken.None);
+        Assert.IsEmpty(result.Dividers);
+        StringAssert.StartsWith(result.Warnings.Single(), "phase_line_excluded_by_pixel_context:");
+    }
+
+    [TestMethod]
+    public void FittedEndpointsAloneDoNotProveAVisibleDivider()
+    {
+        PhaseGeometryContextResult result = ProductionPhaseGeometryContext.Resolve(
+            FrameAxis(false), Image(), [], [], [], CancellationToken.None);
+        Assert.IsEmpty(result.Dividers);
+        StringAssert.StartsWith(result.Warnings.Single(), "phase_line_excluded_by_pixel_context:");
+    }
+
+    [TestMethod]
+    [DataRow(100, 3d, 0, true)]
+    [DataRow(400, 40d, 0, true)]
+    [DataRow(400, -40d, 1, true)]
+    [DataRow(400, 40d, 2, true)]
+    [DataRow(100, 30d, 0, false)]
+    public async Task MeasuredTiltedDividersKeepOriginalGeometryAcrossThePhaseHandoff(
+        int plotHeight, double drift, int pattern, bool expectedDivider)
+    {
+        var line = new GeometryLineSegment(new(250 - drift / 2, 40), new(250 + drift / 2, 40 + plotHeight));
+        AxisGeometryResult axis = Axis() with
+        {
+            PlotPolygon = new(new(10, 40 + plotHeight), new(490, 40 + plotHeight), new(490, 40), new(10, 40)),
+            PhaseDividers = [new("measured", line, pattern switch
+                { 1 => DividerStyle.Dashed, 2 => DividerStyle.Dotted, _ => DividerStyle.Solid }, 0.95, 1, 1, ["pixels"])],
+            AmbiguousGridOrDividers = [],
+        };
+        const int width = 500;
+        int height = plotHeight + 80;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        for (int y = 40; y <= 40 + plotHeight; y++)
+        {
+            if (pattern == 1 && y % 12 >= 6 || pattern == 2 && y % 8 >= 2) continue;
+            int x = (int)Math.Round(line.Start.X + drift * (y - 40) / plotHeight);
+            pixels[y * width + x] = 0;
+        }
+        var image = new OcrImage(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity);
+        PhaseGeometryContextResult result = ProductionPhaseGeometryContext.Resolve(axis, image, [], [], [], CancellationToken.None);
+        Assert.HasCount(expectedDivider ? 1 : 0, result.Dividers);
+        Assert.AreEqual(2d, new PhaseReasoningOptions().MaximumVerticalDriftPixels, "Raw-segment defaults stay unchanged.");
+        if (!expectedDivider)
+        {
+            StringAssert.StartsWith(result.Warnings.Single(), "phase_line_excluded_by_axis_angle:");
+            return;
+        }
+        Assert.AreEqual(line, result.Dividers[0].Line, "Never flatten or move measured endpoints.");
+        const string panel = "21111111-1111-1111-1111-111111111111";
+        var bounds = new PhaseRectangle(10, 40, 480, plotHeight);
+        var request = new PhaseReasoningRequest("11111111-1111-1111-1111-111111111111", panel,
+            new string('a', 64), bounds,
+            [new PhaseDividerSegment("31111111-1111-1111-1111-111111111111", panel,
+                new(line.Start.X, line.Start.Y), new(line.End.X, line.End.Y), 1,
+                pattern switch { 1 => PhaseDividerStyle.Dashed, 2 => PhaseDividerStyle.Dotted, _ => PhaseDividerStyle.Solid }, 0.95)],
+            [], [], [], options: ProductionPhaseGeometryContext.CreateReasoningOptions(bounds));
+        PhaseReasoningResult phases = await new PhaseReasoningService().ResolveAsync(request, CancellationToken.None);
+        Assert.IsTrue(phases.Succeeded, phases.Failure?.TechnicalMessage);
+        Assert.HasCount(2, phases.Payload.Phases);
+        Assert.AreEqual(250d, phases.Payload.Dividers.Single().OriginalX);
+    }
+
+    [TestMethod]
     public void NonOriginalEvidenceAndCancellationFailClosed()
     {
         Assert.ThrowsExactly<ArgumentException>(() => ProductionPhaseGeometryContext.Resolve(Axis(),
-            Image() with { SourceImage = OcrSourceImage.Enhanced }, Headings(), [], CancellationToken.None));
+            Image() with { SourceImage = OcrSourceImage.Enhanced }, Headings(), [], [], CancellationToken.None));
         Assert.ThrowsExactly<ArgumentException>(() => ProductionPhaseGeometryContext.Resolve(Axis(), Image(),
-            [Headings()[0] with { CoordinateSpace = "enhanced_pixels" }], [], CancellationToken.None));
+            [Headings()[0] with { CoordinateSpace = "enhanced_pixels" }], [], [], CancellationToken.None));
+        Assert.ThrowsExactly<ArgumentException>(() => ProductionPhaseGeometryContext.Resolve(Axis(), Image(),
+            [], [], [new OcrRectangle(double.NaN, 0, 10, 10)], CancellationToken.None));
         Assert.ThrowsExactly<OperationCanceledException>(() => ProductionPhaseGeometryContext.Resolve(
-            Axis(), Image(), Headings(), [], new CancellationToken(canceled: true)));
+            Axis(), Image(), Headings(), [], [], new CancellationToken(canceled: true)));
     }
 
     private static AxisGeometryResult FrameAxis(bool ambiguous) => Axis() with
@@ -142,6 +216,9 @@ public sealed class ProductionPhaseGeometryContextTests
     {
         const int width = 240, height = 160;
         byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        // Heading fixtures must carry the same measured lines in their raster.
+        foreach (double boundary in ExpectedBoundaries)
+            for (int y = 40; y <= 140; y++) pixels[y * width + (int)boundary] = 0;
         if (frame)
         {
             for (int y = 70; y <= 97; y++) { pixels[y * width + 180] = 0; pixels[y * width + 224] = 0; }

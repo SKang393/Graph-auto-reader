@@ -918,6 +918,10 @@ public sealed class ProductionCandidateWorkflowTests
     private static string WritePng(string directory, string fileName, int width, int height, bool drawXTickStrokes = false)
     {
         byte[] pixels = Enumerable.Repeat((byte)255, checked(width * height * 4)).ToArray();
+        // The fitted divider at panel x=40 must also exist in the source pixels.
+        for (int y = (int)SourceCrop.Y + 10; y <= (int)SourceCrop.Y + 50; y++)
+        for (int channel = 0; channel < 3; channel++)
+            pixels[(y * width + (int)SourceCrop.X + 40) * 4 + channel] = 0;
         if (drawXTickStrokes)
         {
             // Panel pixels x=20/60 and y=50..55, mapped through SourceCrop.

@@ -7,18 +7,28 @@ using GraphReader.Phases;
 
 namespace GraphReader.App.Integration.Workflow;
 
-/// <summary>Resolves existing line candidates using original legend pixels and heading layout.</summary>
+/// <summary>Resolves measured lines using original non-text, non-marker pixels and heading layout.</summary>
 internal static class ProductionPhaseGeometryContext
 {
-    internal const string Version = "original-pixel-phase-geometry-context-v1";
+    internal const string Version = "original-pixel-phase-geometry-context-v2";
     private static readonly AxisGeometryOptions GeometryOptions = new();
     private static readonly PhaseReasoningOptions PhaseOptions = new();
     // Same row-overlap rule used by HeaderLayoutRoleResolver.
     private const double MinimumVerticalOverlapRatio = 0.35;
 
+    // Axis geometry has already fitted and classified these lines by angle.
+    // The raw-segment phase default (2 px) must not discard the same fitted
+    // divider merely because a taller original image produces more pixel drift.
+    internal static PhaseReasoningOptions CreateReasoningOptions(PhaseRectangle plot) => PhaseOptions with
+    {
+        MaximumVerticalDriftPixels = Math.Max(PhaseOptions.MaximumVerticalDriftPixels,
+            plot.Height * Math.Tan(GeometryOptions.MaximumAxisDeviationDegrees * Math.PI / 180)),
+    };
+
     internal static PhaseGeometryContextResult Resolve(
         AxisGeometryResult axis, OcrImage original, IReadOnlyList<OcrRegion> regions,
-        IReadOnlyList<OcrRectangle> legendFrames, CancellationToken cancellationToken)
+        IReadOnlyList<OcrRectangle> legendFrames, IReadOnlyList<OcrRectangle> markerBounds,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (axis.CoordinateSpace != OcrContract.CoordinateSpace ||
@@ -27,7 +37,7 @@ internal static class ProductionPhaseGeometryContext
             original.Width <= 0 || original.Height <= 0 || original.Stride < original.Width ||
             original.Pixels.Length < checked(original.Stride * original.Height) ||
             regions.Any(static region => region.CoordinateSpace != OcrContract.CoordinateSpace || !region.Polygon.Bounds.IsValid) ||
-            legendFrames.Any(static frame => !frame.IsValid))
+            legendFrames.Concat(markerBounds).Any(static frame => !frame.IsValid))
             throw new ArgumentException("Phase context requires aligned original-pixel evidence.", nameof(original));
         var plot = new OcrRectangle(axis.PlotPolygon.Points.Min(static point => point.X),
             axis.PlotPolygon.Points.Min(static point => point.Y),
@@ -38,10 +48,14 @@ internal static class ProductionPhaseGeometryContext
                 !line.Start.IsFinite || !line.End.IsFinite || line.Start.Y == line.End.Y))
             throw new ArgumentException("Phase context requires finite vertical geometry.", nameof(axis));
         var warnings = new List<string>();
-        var dividers = axis.PhaseDividers.Where(divider => HasSupportOutsideLegend(
+        int foregroundThreshold = GetForegroundThreshold(original, cancellationToken);
+        OcrRectangle[] excluded = legendFrames.Concat(markerBounds).Concat(regions.Where(static region =>
+            region.ReviewStatus != OcrReviewStatus.Rejected && !string.IsNullOrWhiteSpace(region.Text))
+            .Select(static region => region.Polygon.Bounds)).ToArray();
+        var dividers = axis.PhaseDividers.Where(divider => HasDividerSupport(
             divider.DividerId, divider.Line)).ToList();
         AmbiguousGridOrDividerGeometry[] ambiguous = axis.AmbiguousGridOrDividers
-            .Where(item => HasSupportOutsideLegend(item.AmbiguityId, item.Line)).ToArray();
+            .Where(item => HasDividerSupport(item.AmbiguityId, item.Line)).ToArray();
         if (ambiguous.Length > 0)
         {
             double[] boundaries = dividers.Where(static item => item.Style != DividerStyle.Unknown)
@@ -66,15 +80,22 @@ internal static class ProductionPhaseGeometryContext
         return new(Array.AsReadOnly(dividers.OrderBy(static item => item.Line.Midpoint.X).ToArray()),
             Array.AsReadOnly(warnings.ToArray()));
 
-        bool HasSupportOutsideLegend(string id, GeometryLineSegment line)
+        bool HasDividerSupport(string id, GeometryLineSegment line)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (Math.Abs(line.End.X - line.Start.X) > Math.Abs(line.End.Y - line.Start.Y) *
+                Math.Tan(GeometryOptions.MaximumAxisDeviationDegrees * Math.PI / 180))
+            {
+                warnings.Add($"phase_line_excluded_by_axis_angle:{id}");
+                return false;
+            }
+            if (HasUnobscuredInkSpan(original, line, plot, excluded, foregroundThreshold, cancellationToken)) return true;
             double tolerance = GeometryOptions.MergeDistancePixels;
-            if (!legendFrames.Any(frame => XAtY(line, frame.Center.Y) >= frame.Left - tolerance &&
+            bool crossesLegend = legendFrames.Any(frame => XAtY(line, frame.Center.Y) >= frame.Left - tolerance &&
                     XAtY(line, frame.Center.Y) <= frame.Right + tolerance &&
-                    frame.Bottom >= plot.Top && frame.Top <= plot.Bottom)) return true;
-            if (HasNonLegendInkSpan(original, line, plot, regions, legendFrames, cancellationToken)) return true;
-            warnings.Add($"phase_line_excluded_by_legend_context:{id}");
+                    frame.Bottom >= plot.Top && frame.Top <= plot.Bottom);
+            warnings.Add(crossesLegend ? $"phase_line_excluded_by_legend_context:{id}" :
+                $"phase_line_excluded_by_pixel_context:{id}");
             return false;
         }
     }
@@ -116,9 +137,7 @@ internal static class ProductionPhaseGeometryContext
         return [];
     }
 
-    private static bool HasNonLegendInkSpan(
-        OcrImage image, GeometryLineSegment line, OcrRectangle plot, IReadOnlyList<OcrRegion> regions,
-        IReadOnlyList<OcrRectangle> legendFrames, CancellationToken cancellationToken)
+    private static int GetForegroundThreshold(OcrImage image, CancellationToken cancellationToken)
     {
         ReadOnlySpan<byte> pixels = image.Pixels.Span;
         long sum = 0;
@@ -128,11 +147,15 @@ internal static class ProductionPhaseGeometryContext
             for (int x = 0; x < image.Width; x++) sum += pixels[y * image.Stride + x];
         }
         // Same foreground rule as FramedLegendRoleResolver and the component detector.
-        int threshold = Math.Clamp((int)Math.Round(sum / ((double)image.Width * image.Height) * 0.80), 32, 224);
+        return Math.Clamp((int)Math.Round(sum / ((double)image.Width * image.Height) * 0.80), 32, 224);
+    }
+
+    private static bool HasUnobscuredInkSpan(
+        OcrImage image, GeometryLineSegment line, OcrRectangle plot, IReadOnlyList<OcrRectangle> excluded,
+        int threshold, CancellationToken cancellationToken)
+    {
+        ReadOnlySpan<byte> pixels = image.Pixels.Span;
         double tolerance = GeometryOptions.MergeDistancePixels;
-        OcrRectangle[] excluded = legendFrames.Concat(regions.Where(static region =>
-            region.ReviewStatus != OcrReviewStatus.Rejected && !string.IsNullOrWhiteSpace(region.Text))
-            .Select(static region => region.Polygon.Bounds)).ToArray();
         int first = int.MaxValue, last = -1, supported = 0;
         int top = Math.Max(0, (int)Math.Ceiling(plot.Top + tolerance));
         int bottom = Math.Min(image.Height - 1, (int)Math.Floor(plot.Bottom - tolerance));

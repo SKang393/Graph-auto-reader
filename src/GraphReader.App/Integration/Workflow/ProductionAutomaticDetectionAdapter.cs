@@ -389,7 +389,10 @@ public sealed class ProductionAutomaticDetectionAdapter :
             {
                 phaseContext = ProductionPhaseGeometryContext.Resolve(
                     axis.Geometry, raster.CreateOcrImage(), ocr.Result.Regions,
-                    legendInputs.OriginalPixelFrameBounds, cancellationToken);
+                    legendInputs.OriginalPixelFrameBounds,
+                    acceptedMarkers.Select(static item => new OcrRectangle(
+                        item.Marker.Center.X - item.Marker.Radius, item.Marker.Center.Y - item.Marker.Radius,
+                        item.Marker.Radius * 2, item.Marker.Radius * 2)).ToArray(), cancellationToken);
             }
             catch (Exception exception) when (exception is ArgumentException or OverflowException)
             {
@@ -1000,7 +1003,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
             segments,
             headings,
             points,
-            seriesEvidence);
+            seriesEvidence,
+            options: ProductionPhaseGeometryContext.CreateReasoningOptions(bounds));
     }
 
     private static ClassifiedMarker[] CanonicalizeMarkers(

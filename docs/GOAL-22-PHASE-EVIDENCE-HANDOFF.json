@@ -1,0 +1,248 @@
+{
+  "schema": "graphreader.goal22.phase-evidence-handoff.v1",
+  "status": "integration_verified_synthetic_improvement_not_product_acceptance",
+  "base_commit": "d6c391e44f87dca1bf71250f8d286cbdc06ee13a",
+  "goal22_complete": false,
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "archive": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "ce338d0525075023a6e7210fefaf3cdf76a1def099dedec5af22cf766562779e"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionPhaseGeometryContext.cs",
+      "archive": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionPhaseGeometryContext.cs",
+      "sha256": "54813a98f4b28f4983b823f972ebfc0ae1a198b33d105ffede56925172cad5aa"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs",
+      "sha256": "c3d8c21f1afa99baf98f7ea8a8faa8e13f86e543f1cf27afb75f817d1cdb44fb"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "e43c6838b15abd7c4b306d0d5ebbc7aad0b2df54c3c783e4f2a0d8923ac48e51"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionPhaseGeometryContextTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionPhaseGeometryContextTests.cs",
+      "sha256": "21b06c9ace598707877e3ba9901507edc298cc1cba677b0671d45c42d250d405"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/WorkflowSyntheticAcceptance.cs",
+      "archive": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/WorkflowSyntheticAcceptance.cs",
+      "sha256": "6bc16ca22209b49c06e60592caf4d4ec9f2df6b4355d5ffd475b30ac9ffa1621"
+    }
+  ],
+  "diagnosis": {
+    "path": "artifacts/goal22-runs/phase-handoff-diagnosis-v1/report.json",
+    "sha256": "6e490895219cdf49e175a785d0bc735cf1f6a2cd2ad4175c32e88ded4d25ebc2"
+  },
+  "policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "acceptance_bars": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "application_tests": {
+    "result": {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/test-results/app.trx",
+      "sha256": "74465c89279d183b6b3b650a1704bf15a39903ca9fd9ae961f12a1b2416e21bc"
+    },
+    "passed": 388,
+    "failed": 0,
+    "log": {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/app.log",
+      "sha256": "c476f4525e3a957416ebab72539b93ce537516d25f12cc35e029d12bbd293b25"
+    }
+  },
+  "build": {
+    "log": {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/build.log",
+      "sha256": "9a047731b58c189835bdc229f16ef946c0ce1ef526e4407002c00811a6819407"
+    },
+    "warnings": 0,
+    "errors": 0
+  },
+  "private_runner_fictitious_check": {
+    "path": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/private-runner-self-test.json",
+    "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+  },
+  "final_tool_fictitious_check": {
+    "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/frozen-binding-self-test.json",
+    "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+  },
+  "final_tool_build": {
+    "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build.log",
+    "sha256": "16d7d05676e2c037608f0e83493cef516d7bd5daee7b29b2f67c6d7f77c5b86a"
+  },
+  "final_tool_assemblies": [
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.App.dll",
+      "sha256": "82b85783a6f08e5cbb3526cd34ffc7c3d25e5899a8d0a09c52269397229056a2"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Axis.dll",
+      "sha256": "84eb1712cbe820312691628e944d53db10c3a743adbfb1df9476d50b1bfb8faa"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Domain.dll",
+      "sha256": "bf49c1053786c9ca5111bdae719de0c8b5e8e3221301c3ba74f2a92dab882dde"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Export.dll",
+      "sha256": "39eb67a7d68bb1a8a3dccf92dbe80e2ae7e5cffc29427d332cc2475542ec7993"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Imaging.dll",
+      "sha256": "03183850f033651eb27282b10007bc3b8e60e4c820f7e4622a403fdd9b2cebc9"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Inference.dll",
+      "sha256": "fd1873531fac6c659924af4357d61b30ec34265cb7df0f19d326b7dfd17d420e"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Legends.dll",
+      "sha256": "aa9dc6410ce538edb8a90ef2fa37f3eaffb13a225071f43c47cf2368f2cf73c5"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Markers.dll",
+      "sha256": "40b82d51fdf6b549a929f36c54641204d967dade358aaeedfaea298685694bbe"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Ocr.dll",
+      "sha256": "29413d8cb682f496a0055a72d80ae3ca4c2e809d52f652a99fd2fd63fa1561e5"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Pdf.dll",
+      "sha256": "35fe6668b42c4e5a985b65eff27aa2bd671c44037172bee06503460c25125317"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Phases.dll",
+      "sha256": "42894cd076860df9b636993c580d7960ca2ab68c60a1446c0eed7c390a6ec77b"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.RealAcceptance.Ocr.dll",
+      "sha256": "13b12bd6acc05f4bcf5679d866f2a0461747d1b3d584d621f7a5cd5aaab365c5"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-tool-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.SuperResolution.dll",
+      "sha256": "f4e1d20b63d10b97db040086891e54f3e4313b285127e438612a2dc8bda953ff"
+    }
+  ],
+  "full_workflow_preparation": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-handoff-v1/preparation.json",
+    "sha256": "6de457fa9fa3641cd7ea6de2f4e0683f54147e143e3240421a3d249a62345ba8"
+  },
+  "full_workflow_source_bindings": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-handoff-v1/source-bindings.json",
+    "sha256": "b7e819b20f292d8a53eee8e0a34b9a17751f77979d86350d57eb4887ea540360"
+  },
+  "full_workflow_candidate_binding": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-handoff-v1/candidate-binding.json",
+    "sha256": "109eb8ba2581642de6f5c289a9bb97cc283c69ca94b0109d969485557597aa5d"
+  },
+  "full_workflow_report": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-handoff-v1/execution/report.json",
+    "sha256": "aa148f6c708c40985ad8ea0554771b979af21961f52e843a639bcf89ad0359d5"
+  },
+  "comparison": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-handoff-v1/comparison.json",
+    "sha256": "1cb901e78fd518fa2978a2b4613b3a15d049e3a9ff33017c5505db68158b8524"
+  },
+  "metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 14,
+    "failed_cases": 9,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 46,
+    "matched_series": 21,
+    "truth_points": 706,
+    "predicted_points": 333,
+    "matched_points": 287,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 348,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 282,
+    "correct_rows": 277,
+    "missing_rows": 442,
+    "extra_rows": 66,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 287,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 419,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8618618618618619,
+    "unique_point_structural_coverage": 0.4065155807365439,
+    "unique_point_value_precision": 0.8618618618618619,
+    "unique_point_value_coverage": 0.4065155807365439,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.7959770114942529,
+    "relational_row_coverage": 0.3825966850828729,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9822695035460993,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 9
+    }
+  },
+  "elapsed_seconds": 173.69072359999998,
+  "upstream_observations_unchanged": 30,
+  "exported_unique_point_values_preserved": 333,
+  "fixture_only_change_after_full_workflow_compilation": [
+    "tools/GraphReader.RealAcceptance.Ocr/WorkflowSyntheticAcceptance.cs"
+  ],
+  "all_production_source_bytes_match_full_workflow_snapshot": true,
+  "cross_build_assembly_identity_claimed": false,
+  "retained_failures": [
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-checks-v1/test-results/app.trx",
+      "sha256": "a0cc43f863b3abf024cb62d778f7940087f90e8d4d416e2e0a6ab0ee76d1935b"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-phase-handoff-checks-v2/frozen-binding-failure.json",
+      "sha256": "3c46413264d5ede17e757bf6e35b7398ca19f1f32d271db76f0e4db7c90631d4"
+    }
+  ],
+  "commands": [
+    {
+      "path": "artifacts/goal22-tools/Check-PhaseHandoffV2.ps1",
+      "sha256": "7466011dd8432b29155b2e4cb77230d8e5e8a86fcb4283a7f1c79b263bd0f73f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-PhaseHandoffWorkflow.py",
+      "sha256": "8b0eb2ed84df321f7af9739b47121c3019c8dac8b3a92958dfc0c664c92fde2b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-PhaseHandoffWorkflowAndNotify.ps1",
+      "sha256": "3f2edac69c4db663345473d7efb177713aaae418d3c685b930e35f41b2ec2021"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-PhaseHandoffWorkflow.py",
+      "sha256": "78a3f507d2f92dcd639542588f1a194462abc3e3082ae72e3d7653792228bd18"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_produced": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "license": "Apache-2.0; existing dependencies and model manifests unchanged"
+}

@@ -246,7 +246,9 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
-    public async Task SyntheticPngRunsThroughProductionWorkflowAndWritesAuditableExport()
+    [DataRow(0d)]
+    [DataRow(6d)]
+    public async Task SyntheticPngRunsThroughProductionWorkflowAndWritesAuditableExport(double dividerDrift)
     {
         string root = Path.Combine(Path.GetTempPath(), $"graphreader-goal22-{Guid.NewGuid():N}");
         Directory.CreateDirectory(root);
@@ -263,7 +265,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             var adapter = new ProductionAutomaticDetectionAdapter(
                 store,
                 new RasterDecoder(),
-                new AxisAdapter(),
+                new AxisAdapter(dividerDrift),
                 new OcrAdapter("Synthetic participant"),
                 new MaskComposer(),
                 new CenterAdapter(),
@@ -473,7 +475,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         }
     }
 
-    private sealed class AxisAdapter : IProductionAxisGeometryAdapter
+    private sealed class AxisAdapter(double dividerDrift = 0) : IProductionAxisGeometryAdapter
     {
         public string AdapterId => "test-axis";
 
@@ -512,7 +514,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 [
                     new PhaseDividerGeometry(
                         Guid.Parse("50000000-0000-0000-0000-000000000019").ToString("D"),
-                        new GeometryLineSegment(new PixelPoint(50, 10), new PixelPoint(50, 90)),
+                        new GeometryLineSegment(new PixelPoint(50 - dividerDrift / 2, 10), new PixelPoint(50 + dividerDrift / 2, 90)),
                         DividerStyle.Solid,
                         0.95,
                         1,

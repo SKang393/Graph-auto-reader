@@ -494,6 +494,10 @@ internal static class WorkflowSyntheticAcceptance
     private static void WriteSyntheticPng(string path, int width, int height)
     {
         byte[] pixels = Enumerable.Repeat((byte)255, width * height * 4).ToArray();
+        // Match the fixture's measured divider with visible original pixels.
+        for (int y = 10; y <= 90; y++)
+        for (int channel = 0; channel < 3; channel++)
+            pixels[(y * width + 50) * 4 + channel] = 0;
         BitmapSource bitmap = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));
