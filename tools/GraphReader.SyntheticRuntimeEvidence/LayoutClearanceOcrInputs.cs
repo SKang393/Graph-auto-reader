@@ -17,7 +17,9 @@ internal static partial class OfficialHeadCandidateEvaluation
         RequireProperties(request, "schema", "synthetic_only", "private_data", "sealed_data",
             "truth_included", "production_approved", "training_input_ready", "historical_request",
             "generator_versions", "generator_sources", "sources", "panels");
-        if (Text(request, "schema") != "graphreader.layout-clearance-ocr-inputs.v1" ||
+        string schema = Text(request, "schema");
+        if ((schema != "graphreader.layout-clearance-ocr-inputs.v1" &&
+             schema != "graphreader.layout-clearance-ocr-inputs.v2") ||
             !request.GetProperty("synthetic_only").GetBoolean() ||
             request.GetProperty("private_data").GetBoolean() || request.GetProperty("sealed_data").GetBoolean() ||
             request.GetProperty("truth_included").GetBoolean() ||
@@ -28,7 +30,10 @@ internal static partial class OfficialHeadCandidateEvaluation
         }
         string?[] versions = request.GetProperty("generator_versions").EnumerateArray()
             .Select(static item => item.GetString()).ToArray();
-        if (!versions.SequenceEqual(new[] { "synthetic-arrow-label-clearance-v1", "synthetic-legend-clearance-v1" }) ||
+        string[] expectedVersions = schema == "graphreader.layout-clearance-ocr-inputs.v2"
+            ? ["synthetic-arrow-label-clearance-v1", "synthetic-legend-clearance-v1", "synthetic-peripheral-text-clearance-v1"]
+            : ["synthetic-arrow-label-clearance-v1", "synthetic-legend-clearance-v1"];
+        if (!versions.SequenceEqual(expectedVersions) ||
             request.GetProperty("sources").GetArrayLength() != 23 ||
             request.GetProperty("panels").GetArrayLength() != ExpectedPanelCount)
         {
@@ -58,6 +63,10 @@ internal static partial class OfficialHeadCandidateEvaluation
         string[] requiredSources = ["ml/synthetic/annotation_clearance.py", "ml/synthetic/legend_clearance.py",
             "ml/synthetic/renderer.py", "ml/synthetic/runtime_graph_visible_content_v3.py",
             "ml/synthetic/templates.py", "ml/synthetic/fonts.py"];
+        if (Text(request, "schema") == "graphreader.layout-clearance-ocr-inputs.v2")
+        {
+            requiredSources = [.. requiredSources, "ml/synthetic/text_layout_clearance.py"];
+        }
         JsonElement[] generatorSources = request.GetProperty("generator_sources").EnumerateArray().ToArray();
         if (!generatorSources.Select(item => Text(item, "path")).Order(StringComparer.Ordinal)
                 .SequenceEqual(requiredSources.Order(StringComparer.Ordinal), StringComparer.Ordinal))

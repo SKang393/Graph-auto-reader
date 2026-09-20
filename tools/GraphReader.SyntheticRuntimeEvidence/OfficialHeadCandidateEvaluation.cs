@@ -353,7 +353,8 @@ internal static partial class OfficialHeadCandidateEvaluation
             string reportPath = Path.Combine(outputRoot, "report.json");
             byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
             {
-                Schema = layoutClearance ? "graphreader.layout-clearance-ocr-evaluation.v1" :
+                Schema = layoutClearance ? (Text(request, "schema") == "graphreader.layout-clearance-ocr-inputs.v2"
+                    ? "graphreader.layout-clearance-ocr-evaluation.v2" : "graphreader.layout-clearance-ocr-evaluation.v1") :
                     supplemental ? "graphreader.supplemental-head-candidate-evaluation.v1" :
                     legendContext ? "graphreader.legend-context-candidate-evaluation.v1" :
                     headerContext ? "graphreader.header-context-candidate-evaluation.v1" :

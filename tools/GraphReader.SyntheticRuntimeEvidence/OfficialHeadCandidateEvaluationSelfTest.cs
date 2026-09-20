@@ -13,6 +13,7 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
 {
     private static readonly double[] ExpectedDividerPositions = [30d, 70d];
     private static readonly string[] ClearanceVersions = ["synthetic-arrow-label-clearance-v1", "synthetic-legend-clearance-v1"];
+    private static readonly string[] PeripheralClearanceVersions = [.. ClearanceVersions, "synthetic-peripheral-text-clearance-v1"];
     private static int ValidateCaptureProfiles()
     {
         JsonElement legacy = CaptureProfile(false, 28, 9);
@@ -331,14 +332,16 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
 
     private static int ValidateLayoutClearanceInputs()
     {
-        static JsonElement Request(bool privateData = false, bool truth = false, int sources = 23) =>
+        static JsonElement Request(bool privateData = false, bool truth = false, int sources = 23,
+            bool peripheralSchema = false, bool peripheralVersions = false) =>
             JsonSerializer.SerializeToElement(new
             {
-                schema = "graphreader.layout-clearance-ocr-inputs.v1", synthetic_only = true,
+                schema = peripheralSchema ? "graphreader.layout-clearance-ocr-inputs.v2"
+                    : "graphreader.layout-clearance-ocr-inputs.v1", synthetic_only = true,
                 private_data = privateData, sealed_data = false, truth_included = truth,
                 production_approved = false, training_input_ready = false,
                 historical_request = new { },
-                generator_versions = ClearanceVersions,
+                generator_versions = peripheralVersions ? PeripheralClearanceVersions : ClearanceVersions,
                 generator_sources = Array.Empty<object>(),
                 sources = Enumerable.Repeat(new { }, sources).ToArray(),
                 panels = Enumerable.Repeat(new { }, 37).ToArray(),
@@ -347,6 +350,13 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
         ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request(privateData: true)), "truth-free");
         ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request(truth: true)), "truth-free");
         ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request(sources: 22)), "inventory");
+        OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request(peripheralSchema: true, peripheralVersions: true));
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request(peripheralSchema: true)), "inventory");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(Request(peripheralVersions: true)), "inventory");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(
+            Request(peripheralSchema: true, peripheralVersions: true, privateData: true)), "truth-free");
+        ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateLayoutClearanceScope(
+            Request(peripheralSchema: true, peripheralVersions: true, truth: true)), "truth-free");
         byte[] gray = Enumerable.Range(0, 12).Select(i => (byte)i).ToArray();
         byte[] color = Enumerable.Range(0, 36).Select(i => (byte)(i + 30)).ToArray();
         var source = new OcrImage(4, 3, 4, gray, OcrSourceImage.Original,
@@ -360,7 +370,7 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
             crop with { BgrPixels = new OcrBgrBytePixels(6, new byte[6]) }, [1, 1, 2, 1]), "declared crop");
         ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateDerivedCrop(source,
             crop with { Pixels = new byte[2] }, [1, 1, 2, 1]), "declared crop");
-        return 9;
+        return 14;
     }
 
     private static void Require(bool condition, string label)
