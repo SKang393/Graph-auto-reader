@@ -1,0 +1,227 @@
+{
+  "schema": "graphreader.goal22.text-marker-exclusion-evidence.v1",
+  "status": "repair_verified_workflow_acceptance_failed",
+  "goal22_complete": false,
+  "base_commit": "375903d8f30abbc24ed70b77e5dc518b3b585d77",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "c9260392c2b88825b8d0f0d5e9e71475c8606e46637dc2c0fbadf704431e7346",
+      "archive": "artifacts/goal22-runs/workflow-text-exclusion-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionTextMarkerExclusion.cs",
+      "sha256": "531de121e65d2c4e69076ed6df93f94123e05f29ead0350c83dd2806f5dc23f9",
+      "archive": "artifacts/goal22-runs/workflow-text-exclusion-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionTextMarkerExclusion.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionTextMarkerExclusionTests.cs",
+      "sha256": "173990d6c5343da487b040099a5cfc572385006d50378bf285fd0e11a4d9e34b",
+      "archive": "artifacts/goal22-runs/workflow-text-exclusion-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionTextMarkerExclusionTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "0c9da720ebe354e6247fe311ba98f6df691beee6517ba6331fdc1ffbc3cea4f6",
+      "archive": "artifacts/goal22-runs/workflow-text-exclusion-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs"
+    }
+  ],
+  "compiled_source_snapshot_count": 263,
+  "all_source_snapshots_verified": true,
+  "source_count": 23,
+  "physical_truth_panels": 39,
+  "detected_panels": 37,
+  "comparison": {
+    "sources": 23,
+    "previous_observations": 24,
+    "current_observations": 25,
+    "same_ocr_in_previously_visited_panels": true,
+    "all_previously_retained_nontext_centers_unchanged": true,
+    "previously_accepted_text_centers_removed": 23,
+    "removed_centers_within_5px_of_truth": 0,
+    "completed_sources": 3,
+    "failed_sources": 20,
+    "calibration_validity_counts": {
+      "Valid": 11,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 6,
+      "NeedsReview": 6
+    },
+    "private_reads": 0,
+    "sealed_reads": 0
+  },
+  "source_outcome_categories": {
+    "completed": 3,
+    "Automatic calibration is incomplete": 14,
+    "Candidate export failed closed": 5,
+    "Every plot marker must reference its owning series with matching shape and fill evidence.": 1
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 3,
+    "failed_cases": 20,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 6,
+    "matched_series": 3,
+    "truth_points": 706,
+    "predicted_points": 6,
+    "matched_points": 3,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 6,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 0,
+    "correct_rows": 0,
+    "missing_rows": 724,
+    "extra_rows": 6,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 0,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 3,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 703,
+    "unique_point_extra": 3,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.5,
+    "unique_point_structural_coverage": 0.00424929178470255,
+    "unique_point_value_precision": 0.5,
+    "unique_point_value_coverage": 0.00424929178470255,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0,
+    "relational_row_coverage": 0,
+    "matched_relational_graph_value_accuracy": null,
+    "matched_relational_phase_accuracy": null,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 20
+    }
+  },
+  "timing_seconds": {
+    "model_workflow": 105.0921302,
+    "csv_scoring": 0.17926679999999998,
+    "app_tests": 18,
+    "tool_build": 4.39
+  },
+  "validation": {
+    "application_tests_passed": 340,
+    "failed": 0,
+    "skipped": 0,
+    "compiler_warnings": 0,
+    "compiler_errors": 0,
+    "private_runner_self_test": {
+      "status": "pass",
+      "checks": [
+        "metadata_is_checked_before_payload_and_after_complete_parse",
+        "sealed_projects_share_one_first_read_and_content_handshake",
+        "one_project_parse_failure_prevents_partial_truth_scoring",
+        "metadata_drift_before_inference_rejected",
+        "sealed_run_without_first_read_handshake_rejected"
+      ],
+      "private_corpus_access": false,
+      "sealed_corpus_access": false,
+      "model_inference": false
+    }
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/workflow-text-exclusion-checks-v2/source-bindings.json",
+      "sha256": "7da22f216a7fd53f339957954bc3a75f1932b9171f52266ed919e716f2d3f736"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-text-exclusion-checks-v2/test-results/app.trx",
+      "sha256": "af85b8983280b566aedd8b07b2c8e7bffbccccea24090f5612edc9caabfdd981"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-text-exclusion-checks-v2/app-tests.log",
+      "sha256": "036898d5ecf2ce9ffcc0151760744e8dccddafc747aa8877d9d7b584c6cccbf0"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-text-exclusion-checks-v2/build.log",
+      "sha256": "8793b954c4093a4eb6d5bb52f1b31f333c611052c127bc356b16a5b392361b95"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-text-exclusion-checks-v2/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/preparation.json",
+      "sha256": "98c65ebac94b8f89472f27971c3ca7000b435393fe93bbbc3372ecc95028ff2f"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/protocol.json",
+      "sha256": "5b6a692e39a623cc5276f2f9d2b1f6904d9fb96d34b55d24f4f0323a0fce76da"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/source-bindings.json",
+      "sha256": "4878e562035fa99c5130f66715c7e9b90fa00582cc41795859fffd99c02db9fb"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/candidate-binding.json",
+      "sha256": "fc72035064d41b7f6c129f9e2a2130086a18a1f599937cadd665d88117597f40"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/input-manifest.json",
+      "sha256": "c43d1f480f1ed92a64f67d3d645769343fcfe97d761c3e4c5f3a053968c546d7"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/runtime-description.json",
+      "sha256": "67ebbe325b1edbb3a256259df5ef3ec2eeac52007271711f8e4fdc2fc148ffb0"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/execution/report.json",
+      "sha256": "bdff0a81c9abd81ba9d6e229a1e8d30c4563926d2f3017be8a4527e4ad2c4980"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/completion.json",
+      "sha256": "afbe8cf6abd8ec3581d889d59bccf2a19c205c45a23e037e861b105613e98f59"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/exclusion-audit.json",
+      "sha256": "c58190bcd0d14aa36eb2c7a7d36cb6da378b5530e3428959431844faaee0c706"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/csv-evaluation-input.json",
+      "sha256": "1607298b2687a490389155e28012d91c4f9b482fdb971406816503d02185314d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-text-exclusion-v1/csv-score.json",
+      "sha256": "e119a650c561e90650e6506ab512f28d6e00ce78a06922e098fe3c7230206f0c"
+    }
+  ],
+  "retained_initial_compiler_failure": {
+    "path": "artifacts/goal22-runs/workflow-text-exclusion-checks-v1/app-tests.log",
+    "sha256": "95069500b08b7ab7bd53cce3e62a31033c66aa6e77b32b4053e63aa4651fd096"
+  },
+  "helpers": [
+    {
+      "path": "artifacts/goal22-tools/Prepare-TextExclusionWorkflow.py",
+      "sha256": "3ae1e523b8599e2a9fb5176a99290ee2c2553fac825b611b2fdcb10d5b1fcf95"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-TextExclusionWorkflow.py",
+      "sha256": "8fd36720c420e81e95a1c6b56e4c536f2a349bc273b3880dc8b8718029600b61"
+    }
+  ],
+  "model_weights_and_operating_thresholds_unchanged": true,
+  "all_source_bytes_unchanged": true,
+  "calibration_tolerances_unchanged": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_portable": {
+    "build": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Apache-2.0 project code; all model/runtime identities and licenses unchanged. Only aggregate evidence and file hashes committed.",
+  "next": "Export explicitly estimated session values using existing estimated audit provenance; retain calibration and origin safeguards."
+}

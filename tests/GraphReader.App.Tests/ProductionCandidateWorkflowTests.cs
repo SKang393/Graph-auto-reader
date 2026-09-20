@@ -149,6 +149,34 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
+    public async Task CandidateTextDetectionCannotEnterCalibrationOrExportButRemainsAuditable()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store, includeTextDecoy: true);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
+        WorkflowOrchestrator workflow = CreateWorkflow(store, candidate);
+        WorkflowRunResult result = await workflow.RunThroughReviewAsync(Request(imagePath), null, CancellationToken.None);
+        Assert.IsNotNull(observation);
+        Assert.HasCount(2, observation.AcceptedMarkers);
+        Assert.AreEqual(CalibrationValidity.Valid, observation.Calibration.Validity);
+        Assert.IsTrue(observation.Provenance.Any(static envelope => envelope.StageVersion == ProductionTextMarkerExclusion.Version));
+        WorkflowReviewPanel panel = result.Review.Panels.Single();
+        Assert.HasCount(2, panel.Points);
+        ProductionPanelExportEvidence evidence = store.Get(panel.PanelId).ExportEvidence!;
+        Assert.IsNotNull(evidence.ProjectionEvidence);
+        Assert.HasCount(3, evidence.ProjectionEvidence.Markers);
+        Assert.AreEqual(1, evidence.ProjectionEvidence.Markers.Count(static marker => marker.ReviewStatus == GraphReader.Domain.ReviewStatus.Rejected));
+        WorkflowExportResult export = await workflow.ExportAsync(result.Review,
+            new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(directory.Path, "unused-preview"))
+            { Operation = GraphReader.Export.ExportOperation.Preview }, CancellationToken.None);
+        Assert.IsTrue(export.Succeeded);
+        Assert.IsTrue(export.Artifacts.All(static artifact => artifact.RowCount == 2));
+    }
+
+    [TestMethod]
     public async Task CandidateCalibrationFailureRetainsObservationWithoutCreatingExportEvidence()
     {
         using var directory = new TemporaryDirectory();
@@ -339,14 +367,15 @@ public sealed class ProductionCandidateWorkflowTests
     private static ProductionAutomaticDetectionAdapter CreateCandidate(
         ProductionWorkflowPanelStore store,
         CancellationTokenSource? cancelAfterPhase = null,
-        bool omitYTicks = false) =>
+        bool omitYTicks = false,
+        bool includeTextDecoy = false) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
             new CandidateAxisAdapter(),
-            new CandidateOcrAdapter(omitYTicks),
+            new CandidateOcrAdapter(omitYTicks, includeTextDecoy),
             new CandidateMaskComposer(),
-            new CandidateCenterAdapter(),
+            new CandidateCenterAdapter(includeTextDecoy),
             new ClassificationAdapter(),
             new LegendAdapter(),
             new PhaseAdapter(cancelAfterPhase),
@@ -432,7 +461,7 @@ public sealed class ProductionCandidateWorkflowTests
                 0.95, [id]);
     }
 
-    private sealed class CandidateOcrAdapter(bool omitYTicks = false) : IProductionCandidateOcrAdapter
+    private sealed class CandidateOcrAdapter(bool omitYTicks = false, bool includeTextDecoy = false) : IProductionCandidateOcrAdapter
     {
         public string AdapterId => "candidate-ocr";
         public bool IsApproved => false;
@@ -464,6 +493,7 @@ public sealed class ProductionCandidateWorkflowTests
                 Region("participant", 55, 4, "Synthetic", OcrTextRole.Participant),
             ];
             if (omitYTicks) regions = regions.Where(static region => region.Role != OcrTextRole.YTick).ToArray();
+            if (includeTextDecoy) regions = [.. regions, Region("annotation", 38, 28, "Note", OcrTextRole.Annotation)];
             var result = new OcrResult(
                 OcrContract.Version,
                 request.RunId.ToString("D"),
@@ -547,7 +577,7 @@ public sealed class ProductionCandidateWorkflowTests
         }
     }
 
-    private sealed class CandidateCenterAdapter : IProductionCandidateMarkerCenterAdapter
+    private sealed class CandidateCenterAdapter(bool includeTextDecoy = false) : IProductionCandidateMarkerCenterAdapter
     {
         public string AdapterId => "candidate-center";
         public bool IsApproved => false;
@@ -575,6 +605,7 @@ public sealed class ProductionCandidateWorkflowTests
                 new("candidate-1", new MarkerPoint(20, 35), 3, 0.01, 0.98, MarkerSourceImage.Original),
                 new("candidate-2", new MarkerPoint(60, 25), 3, 0.01, 0.97, MarkerSourceImage.Original),
             ];
+            if (includeTextDecoy) markers = [.. markers, new("text-decoy", new MarkerPoint(40, 30), 3, 1, 0.99, MarkerSourceImage.Original)];
             return Task.FromResult(new ProductionMarkerCenterEvidence(
                 Envelope(request, "markers", "candidate-center-v1", "candidate-center", 'e'),
                 markers,
@@ -596,11 +627,9 @@ public sealed class ProductionCandidateWorkflowTests
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ClassifiedMarker[] classified =
-            [
-                new(markers[0], MarkerShape.Circle, MarkerFill.Filled, "●", "filled circle", 0.01, 0.98, 0.98, Enumerable.Repeat(0.1f, 12)),
-                new(markers[1], MarkerShape.Square, MarkerFill.Open, "□", "open square", 0.01, 0.97, 0.97, Enumerable.Repeat(0.2f, 12)),
-            ];
+            ClassifiedMarker[] classified = markers.Select((marker, index) => index == 1
+                ? new ClassifiedMarker(marker, MarkerShape.Square, MarkerFill.Open, "□", "open square", 0.01, 0.97, 0.97, Enumerable.Repeat(0.2f, 12))
+                : new ClassifiedMarker(marker, MarkerShape.Circle, MarkerFill.Filled, "●", "filled circle", 0.01, 0.98, 0.98, Enumerable.Repeat(0.1f, 12))).ToArray();
             return Task.FromResult(new ProductionMarkerClassificationEvidence(
                 Envelope(request, "markers", "fixed-classifier-v1", "fixed-classifier", 'f'),
                 classified));

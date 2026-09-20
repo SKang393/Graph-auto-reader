@@ -83,6 +83,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ':',
         "graphreader-production-detection-v2",
         ProductionLegendSymbolInputs.Version,
+        ProductionTextMarkerExclusion.Version,
         axisAdapter.AdapterId,
         ocrAdapter.AdapterId,
         markerCenterAdapter.Model.Sha256[..12].ToLowerInvariant(),
@@ -293,8 +294,29 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 .DistinctBy(static marker => marker.Marker.MarkerId)
                 .ToArray();
             ClassifiedMarker[] canonicalMarkers = [.. plotMarkers, .. legendSymbols];
+            var exclusionTimer = System.Diagnostics.Stopwatch.StartNew();
+            TextMarkerExclusionBatch textExclusion;
+            try
+            {
+                textExclusion = ProductionTextMarkerExclusion.Find(plotMarkers, ocr.Result.Regions, cancellationToken);
+            }
+            catch (ArgumentException exception)
+            {
+                throw chain.Reject(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                    "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
+                    "Retain the detection evidence and review the original-pixel text geometry."));
+            }
+            exclusionTimer.Stop();
+            if (textExclusion.ExcludedMarkerIds.Count > 0)
+                chain.Append(new WorkflowVisionEnvelope(
+                    1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                    "markers", ProductionTextMarkerExclusion.Version, request.Image.Sha256, null,
+                    new WorkflowVisionTiming(exclusionTimer.Elapsed.TotalMilliseconds, 0, 0, exclusionTimer.Elapsed.TotalMilliseconds),
+                    ocr.Result.Confidence, textExclusion.Warnings, request.Transforms));
             ClassifiedMarker[] acceptedMarkers = plotMarkers
-                .Where(static marker => marker.ArtifactProbability < ArtifactRejectionThreshold)
+                .Where(marker => marker.ArtifactProbability < ArtifactRejectionThreshold &&
+                    !textExclusion.ExcludedMarkerIds.Contains(marker.Marker.MarkerId))
                 .ToArray();
             ClassifiedMarker[] acceptedSymbols = CanonicalizeMarkers(
                 request,
@@ -350,6 +372,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 canonicalMarkers,
                 acceptedMarkers,
                 legendSymbols,
+                textExclusion.ExcludedMarkerIds,
                 grouping,
                 legend.Payload,
                 phases.Payload,
@@ -453,6 +476,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         IReadOnlyList<ClassifiedMarker> allMarkers,
         IReadOnlyList<ClassifiedMarker> acceptedMarkers,
         IReadOnlyList<ClassifiedMarker> legendSymbols,
+        IReadOnlySet<string> textExcludedMarkerIds,
         MarkerGroupingState grouping,
         LegendReasoningPayload legend,
         PhaseReasoningPayload phases,
@@ -466,6 +490,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             .ToDictionary(static assignment => assignment.PointId, StringComparer.Ordinal);
         HashSet<string> excluded = legend.ExcludedArtifactMarkerIds
             .Concat(legendSymbols.Select(static marker => marker.Marker.MarkerId))
+            .Concat(textExcludedMarkerIds)
             .ToHashSet(StringComparer.Ordinal);
         ClassifiedMarker[] projectedMarkers = acceptedMarkers
             .Where(marker => !excluded.Contains(marker.Marker.MarkerId))
