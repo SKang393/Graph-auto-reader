@@ -343,6 +343,78 @@ public sealed class ProductionDetectionMaskComposerTests
             CancellationToken.None));
     }
 
+    [TestMethod]
+    public async Task WithheldOcrRegionDoesNotReappearInEitherDetectorInputMask()
+    {
+        TestInputs inputs = CreateInputs();
+        OcrRegion uncertain = inputs.OcrEvidence.Result.Regions.Single() with
+        {
+            RegionId = "uncertain-marker",
+            Polygon = OcrPolygon.FromRectangle(new(20, 20, 4, 4)),
+            Text = "G",
+            Confidence = 0.49,
+            Alternatives = [new("G", 0.31, OcrSourceImage.Original)],
+        };
+        var evidence = new ProductionOcrEvidence(inputs.OcrEvidence.Result with
+        {
+            Regions = [.. inputs.OcrEvidence.Result.Regions, uncertain],
+        }, inputs.OcrEvidence.ModelEvidence, inputs.OcrEvidence.ConfiguredModels);
+        ProductionDetectionMaskSeed seed = ProductionDetectionMaskComposer.BuildSeedForLocalSyntheticCandidateEvaluation(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, WithScope(evidence, approved: false), CancellationToken.None);
+        var composer = new ProductionDetectionMaskComposer(new SeedOnlyArtifactMaskAdapter());
+        ProductionDetectionMaskEvidence composed = await composer.ComposeAsync(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, evidence, CancellationToken.None);
+        float[] mask = seed.CopyOcrMask().Values.ToArray();
+        Assert.AreEqual(1f, mask[10 * inputs.Raster.Width + 14], "Eligible text still reaches the detector mask.");
+        Assert.AreEqual(0f, mask[22 * inputs.Raster.Width + 22], "OCR's withheld region must remain unmasked.");
+        CollectionAssert.AreEqual(mask, composed.CopyOcrMask().Values.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow("withheld")]
+    [DataRow("rejected")]
+    [DataRow("empty")]
+    public async Task NonMaskingReadingsRemainAuditableWithoutMaskingPixels(string mode)
+    {
+        TestInputs inputs = CreateInputs();
+        OcrResult result = inputs.OcrEvidence.Result;
+        OcrRegion region = result.Regions.Single();
+        result = mode switch
+        {
+            "withheld" => result with { Masks = [] },
+            "rejected" => result with { Regions = [region with { ReviewStatus = OcrReviewStatus.Rejected }] },
+            _ => result with { Regions = [region with { Text = " " }] },
+        };
+        var evidence = new ProductionOcrEvidence(result, inputs.OcrEvidence.ModelEvidence, inputs.OcrEvidence.ConfiguredModels);
+        var composer = new ProductionDetectionMaskComposer(new SeedOnlyArtifactMaskAdapter());
+        ProductionDetectionMaskEvidence composed = await composer.ComposeAsync(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, evidence, CancellationToken.None);
+        Assert.HasCount(1, evidence.Result.Regions);
+        Assert.AreEqual(0, composed.OcrMaskedPixelCount);
+    }
+
+    [TestMethod]
+    [DataRow("unknown")]
+    [DataRow("duplicate")]
+    [DataRow("coordinates")]
+    public async Task InvalidTextMaskBindingsReturnStructuredFailure(string mode)
+    {
+        TestInputs inputs = CreateInputs();
+        OcrMask mask = inputs.OcrEvidence.Result.Masks.Single();
+        OcrMask[] masks = mode switch
+        {
+            "unknown" => [mask with { RegionId = "unknown" }],
+            "duplicate" => [mask, mask],
+            _ => [mask with { CoordinateSpace = "enhanced_pixels" }],
+        };
+        var evidence = new ProductionOcrEvidence(inputs.OcrEvidence.Result with { Masks = masks },
+            inputs.OcrEvidence.ModelEvidence, inputs.OcrEvidence.ConfiguredModels);
+        var composer = new ProductionDetectionMaskComposer(new SeedOnlyArtifactMaskAdapter());
+        ProductionWorkflowStageException error = await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() =>
+            composer.ComposeAsync(inputs.Request, inputs.Raster, inputs.AxisEvidence, evidence, CancellationToken.None));
+        Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, error.Failure.Code);
+    }
+
     private static TestInputs CreateInputs(bool approved = true)
     {
         const int width = 32;

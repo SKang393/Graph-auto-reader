@@ -319,7 +319,7 @@ public sealed class ProductionDetectionMaskComposer :
 
     public string AdapterId => string.Join(
         ':',
-        "graphreader-detection-masks-v2",
+        "graphreader-detection-masks-v3",
         artifactMaskAdapter?.AdapterId ?? "artifact-provider-unavailable");
 
     public bool IsApproved => artifactMaskAdapter?.IsApproved == true;
@@ -506,14 +506,21 @@ public sealed class ProductionDetectionMaskComposer :
         var ocrMask = new float[pixelCount];
         var artifactMask = new float[pixelCount];
 
-        IEnumerable<OcrPolygon> textPolygons = ocrResult.Regions
-            .Select(static region => region.Polygon)
-            .Concat(ocrResult.Masks.Select(static mask => mask.Polygon));
-        foreach (OcrPolygon polygon in textPolygons)
+        IReadOnlyList<OcrMask> selectedMasks;
+        try
+        {
+            selectedMasks = ProductionTextMarkerExclusion.SelectMasks(
+                ocrResult.Regions, ocrResult.Masks, cancellationToken);
+        }
+        catch (ArgumentException exception)
+        {
+            throw Failure(exception.Message);
+        }
+        foreach (OcrMask mask in selectedMasks)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            ValidateOriginalPolygon(polygon, raster);
-            RasterizeTextBounds(ocrMask, raster, polygon.Bounds);
+            ValidateOriginalPolygon(mask.Polygon, raster);
+            RasterizeTextBounds(ocrMask, raster, mask.Polygon.Bounds);
         }
 
         IEnumerable<GeometryLineSegment> structureLines =

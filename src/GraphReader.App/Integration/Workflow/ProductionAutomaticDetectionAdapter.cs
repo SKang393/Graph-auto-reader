@@ -323,7 +323,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
             TextMarkerExclusionBatch textExclusion;
             try
             {
-                textExclusion = ProductionTextMarkerExclusion.Find(plotMarkers, ocr.Result.Regions, cancellationToken);
+                textExclusion = ProductionTextMarkerExclusion.Find(
+                    plotMarkers, ocr.Result.Regions, ocr.Result.Masks, cancellationToken);
             }
             catch (ArgumentException exception)
             {
@@ -333,7 +334,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     "Retain the detection evidence and review the original-pixel text geometry."));
             }
             exclusionTimer.Stop();
-            if (textExclusion.ExcludedMarkerIds.Count > 0)
+            if (textExclusion.Warnings.Count > 0)
                 chain.Append(new WorkflowVisionEnvelope(
                     1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                     "markers", ProductionTextMarkerExclusion.Version, request.Image.Sha256, null,

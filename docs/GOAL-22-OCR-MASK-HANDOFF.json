@@ -1,0 +1,240 @@
+{
+  "schema": "graphreader.goal22.ocr-mask-handoff.v1",
+  "status": "integration_verified_synthetic_diagnostic_not_product_acceptance",
+  "base_commit": "46f94e671c20bd23a34b41b84f2838d1c5323bb2",
+  "goal22_complete": false,
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "archive": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "cf2e0fbce21b2d7794f612783660163eba5c3f24a340e9c40f7227449f396021"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionDetectionMaskComposer.cs",
+      "archive": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionDetectionMaskComposer.cs",
+      "sha256": "6ee67515c58d1756d759cc9e62d5d83cc44002c8761b1aefe57719f9e0fb9e96"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionTextMarkerExclusion.cs",
+      "archive": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionTextMarkerExclusion.cs",
+      "sha256": "a673f559505b914f549001944e111ef33e41bff2fbb6d58528f67ba6870081bc"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "c77d666cdf54891a0290e307a1be8c0f26fcee9d317dbbc24604eddd1f4ecb86"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionDetectionMaskComposerTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionDetectionMaskComposerTests.cs",
+      "sha256": "50418a0e1a36f85c10ddee8bd98a3dd38b30163325f96f6b5f417e1e4774d6da"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionTextMarkerExclusionTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionTextMarkerExclusionTests.cs",
+      "sha256": "478abd24262ff6153fc23d4b4036f47b10bae3e31b3762401badcc273eb5b2fa"
+    }
+  ],
+  "definition": {
+    "path": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/repair-definition.json",
+    "sha256": "6e758ac1ec0542150ff22ab5dc2bdf9dc5949386198be4db70b0aa4f59b8c799"
+  },
+  "diagnosis": {
+    "path": "artifacts/goal22-runs/ocr-mask-handoff-diagnosis-v1/report.json",
+    "sha256": "edf93b1149658db3f84dfeee05793a323a903e5bcde2c0e3482d1436ef669f4a"
+  },
+  "policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "acceptance_bars": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "application_tests": {
+    "passed": 400,
+    "failed": 0,
+    "result": {
+      "path": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/test-results/app.trx",
+      "sha256": "6124e0b592045716e54907b5c453e72ddfef0ac270411ef27c21740768568e58"
+    },
+    "log": {
+      "path": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/app.log",
+      "sha256": "4ad2087efd8853f04e5438b2f1685bea5279702461db0e4ca4a74d415f473400"
+    }
+  },
+  "build": {
+    "warnings": 0,
+    "errors": 0,
+    "log": {
+      "path": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/build.log",
+      "sha256": "cd376e368011910bc26eae2c6e1ce99ab4e069693a669e8e48c5095143541f44"
+    }
+  },
+  "private_runner_fictitious_check": {
+    "path": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/private-runner-self-test.json",
+    "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+  },
+  "workflow_evaluator_fictitious_check": {
+    "path": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v2/frozen-binding-self-test.json",
+    "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+  },
+  "retained_launch_void": {
+    "path": "artifacts/goal22-runs/workflow-ocr-mask-handoff-checks-v1/void-record.json",
+    "sha256": "63d5a6d82af023b35e73be2239537a1d47a37b3c6033fdc2a458c4f90ac707d9"
+  },
+  "full_workflow_preparation": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-mask-handoff-v1/preparation.json",
+    "sha256": "9037030033b272c058111676c69e0165a85635e8d34e79d0fe259e3571a5a0d0"
+  },
+  "full_workflow_source_bindings": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-mask-handoff-v1/source-bindings.json",
+    "sha256": "b9fed69879e99dd54a2d9594403fcd9f69c02d4d3143548606bbbacfb3cbd204"
+  },
+  "candidate_binding": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-mask-handoff-v1/candidate-binding.json",
+    "sha256": "f083a8cef338ea4480fcc3203a46ec2ee7563a1528d29714fbdbcc41667ea74b"
+  },
+  "input_manifest": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-mask-handoff-v1/input-manifest.json",
+    "sha256": "5d8d7af73348885d18623f9537a6bec3609d0ea0d495e990e0dc1f2d9b1bda25"
+  },
+  "full_workflow_report": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-mask-handoff-v1/execution/report.json",
+    "sha256": "cec00f3ad744b0aa292e6f179a1b65bf43f678aad294fcc65feb2ce6429fba9b"
+  },
+  "comparison": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-mask-handoff-v1/comparison.json",
+    "sha256": "271ee06046037c66b132b9aa07a31f521315144c5154182259746cf5810e1765"
+  },
+  "evaluation_input": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-mask-handoff-v1/csv-evaluation-input-normalized-phases.json",
+    "sha256": "72ac826e161ffc4307096b60ddca6377c51423cd95e818a2a4fe1259b66ec320"
+  },
+  "score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-mask-handoff-v1/csv-score-normalized-phases.json",
+    "sha256": "72a6ea26a7c9abdb8aa896cdf5b326bf371bcd4fb53d7534ab653b2be8c4684a"
+  },
+  "baseline_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 13,
+    "failed_cases": 10,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 44,
+    "matched_series": 20,
+    "truth_points": 706,
+    "predicted_points": 331,
+    "matched_points": 285,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 346,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 281,
+    "correct_rows": 278,
+    "missing_rows": 443,
+    "extra_rows": 65,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 285,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 421,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8610271903323263,
+    "unique_point_structural_coverage": 0.40368271954674223,
+    "unique_point_value_precision": 0.8610271903323263,
+    "unique_point_value_coverage": 0.40368271954674223,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.8034682080924855,
+    "relational_row_coverage": 0.3839779005524862,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9893238434163701,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 10
+    }
+  },
+  "metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 13,
+    "failed_cases": 10,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 42,
+    "matched_series": 18,
+    "truth_points": 706,
+    "predicted_points": 276,
+    "matched_points": 230,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 291,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 225,
+    "correct_rows": 222,
+    "missing_rows": 499,
+    "extra_rows": 66,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 230,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 476,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8333333333333334,
+    "unique_point_structural_coverage": 0.32577903682719545,
+    "unique_point_value_precision": 0.8333333333333334,
+    "unique_point_value_coverage": 0.32577903682719545,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.7628865979381443,
+    "relational_row_coverage": 0.30662983425414364,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9866666666666667,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 10
+    }
+  },
+  "elapsed_seconds": 148.7072548,
+  "upstream_change_counts": {
+    "axis": 0,
+    "ocr": 0,
+    "accepted_markers": 5,
+    "calibration": 5
+  },
+  "observed_panels": 30,
+  "previously_observed_panels": 30,
+  "missing_previous_panels": 0,
+  "completed_source_uncertain_overlap_warnings": 1,
+  "diagnosed_source_outcome": {
+    "status": "completed",
+    "error": null
+  },
+  "all_23_source_bytes_unchanged": true,
+  "all_706_truth_points_and_724_relational_rows_retained": true,
+  "model_weights_and_operating_thresholds_unchanged": true,
+  "calibration_safeguards_unchanged": true,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "packaged_build_number": 433,
+  "packaged_version": "0.4.33",
+  "license_review": "Original Apache-2.0 changes using existing dependencies and models. No external or private content added."
+}

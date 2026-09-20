@@ -302,6 +302,34 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
+    public async Task WithheldMarkerReadingRemainsReviewableWithoutDeletingItsMeasuredPoint()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store, includeUncertainMarkerText: true);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
+        WorkflowOrchestrator workflow = CreateWorkflow(store, candidate);
+        WorkflowRunResult result = await workflow.RunThroughReviewAsync(Request(imagePath), null, CancellationToken.None);
+        Assert.IsNotNull(observation);
+        Assert.HasCount(2, observation.AcceptedMarkers);
+        Assert.AreEqual(CalibrationValidity.Valid, observation.Calibration.Validity);
+        OcrRegion uncertain = observation.Ocr.Regions.Single(static region => region.RegionId == "uncertain-marker");
+        Assert.AreEqual("G", uncertain.Text);
+        Assert.IsFalse(observation.Ocr.Masks.Any(mask => mask.RegionId == uncertain.RegionId));
+        WorkflowReviewPanel panel = result.Review.Panels.Single();
+        Assert.HasCount(2, panel.Points);
+        Assert.IsTrue(panel.Points.Any(static point => point.OriginalPixelX == 60 && point.OriginalPixelY == 25));
+        Assert.IsTrue(result.Review.Warnings.Any(static warning => warning.StartsWith("marker_ocr_overlap_needs_review:", StringComparison.Ordinal)));
+        WorkflowExportResult export = await workflow.ExportAsync(result.Review,
+            new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(directory.Path, "unused-preview"))
+            { Operation = GraphReader.Export.ExportOperation.Preview }, CancellationToken.None);
+        Assert.IsTrue(export.Succeeded);
+        Assert.IsTrue(export.Artifacts.All(static artifact => artifact.RowCount == 2));
+    }
+
+    [TestMethod]
     public async Task CandidateCalibrationFailureRetainsObservationWithoutCreatingExportEvidence()
     {
         using var directory = new TemporaryDirectory();
@@ -497,12 +525,13 @@ public sealed class ProductionCandidateWorkflowTests
         bool includeIntermediateSession = false,
         bool ambiguousPhaseLayout = false,
         bool shiftedNumericLabels = false,
-        bool includeNumericOutliers = false) =>
+        bool includeNumericOutliers = false,
+        bool includeUncertainMarkerText = false) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
             new CandidateAxisAdapter(ambiguousPhaseLayout),
-            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels, includeNumericOutliers),
+            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels, includeNumericOutliers, includeUncertainMarkerText),
             new CandidateMaskComposer(),
             new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession),
             new ClassificationAdapter(),
@@ -598,7 +627,8 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     private sealed class CandidateOcrAdapter(bool omitYTicks = false, bool includeTextDecoy = false, bool includeIntermediateSession = false,
-        bool ambiguousPhaseLayout = false, bool shiftedNumericLabels = false, bool includeNumericOutliers = false) : IProductionCandidateOcrAdapter
+        bool ambiguousPhaseLayout = false, bool shiftedNumericLabels = false, bool includeNumericOutliers = false,
+        bool includeUncertainMarkerText = false) : IProductionCandidateOcrAdapter
     {
         public string AdapterId => "candidate-ocr";
         public bool IsApproved => false;
@@ -642,6 +672,8 @@ public sealed class ProductionCandidateWorkflowTests
                 Region("x-middle", 38, 52, "2", OcrTextRole.XTick), Region("x-outlier", 48, 52, "100", OcrTextRole.XTick),
                 Region("y-middle", 2, 28, "50", OcrTextRole.YTick), Region("y-outlier", 2, 23, "600", OcrTextRole.YTick)];
             if (includeTextDecoy) regions = [.. regions, Region("annotation", 38, 28, "Note", OcrTextRole.Annotation)];
+            if (includeUncertainMarkerText) regions = [.. regions, Region("uncertain-marker", 58, 23, "G", OcrTextRole.Annotation)
+                with { Confidence = 0.49, Alternatives = [new("G", 0.31, OcrSourceImage.Original)] }];
             if (ambiguousPhaseLayout) regions = [.. regions,
                 Region("phase-a", 18, 4, "A", OcrTextRole.PhaseHeading), Region("phase-b", 58, 4, "B", OcrTextRole.PhaseHeading)];
             var result = new OcrResult(
@@ -654,7 +686,8 @@ public sealed class ProductionCandidateWorkflowTests
                 request.Image.Sha256,
                 OcrContract.CoordinateSpace,
                 regions,
-                regions.Select(region => new OcrMask(region.RegionId, region.Polygon, region.Confidence)).ToArray(),
+                regions.Where(static region => region.RegionId != "uncertain-marker")
+                    .Select(region => new OcrMask(region.RegionId, region.Polygon, region.Confidence)).ToArray(),
                 new OcrTiming(0, 0, 0, 0),
                 0.95,
                 [],
