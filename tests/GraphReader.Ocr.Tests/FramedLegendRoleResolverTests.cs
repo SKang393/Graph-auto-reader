@@ -75,6 +75,60 @@ public sealed class FramedLegendRoleResolverTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void TallLegendSharesItsFrameOnlyWithRowsInTheSameSymbolColumn(bool omitMiddleSymbol)
+    {
+        const int width = 200, height = 180;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        void Rectangle(int left, int top, int right, int bottom, bool outline)
+        {
+            for (int y = top; y < bottom; y++)
+            for (int x = left; x < right; x++)
+                if (!outline || x == left || x == right - 1 || y == top || y == bottom - 1)
+                    pixels[y * width + x] = 0;
+        }
+        Rectangle(35, 10, 165, 158, true);
+        int[] rowTops = [25, 75, 125];
+        int[] rowWidths = [80, 35, 60];
+        var detections = new List<OcrDetectedRegion>();
+        var labels = new List<OcrRegion>();
+        for (int i = 0; i < rowTops.Length; i++)
+        {
+            int y = rowTops[i];
+            if (i != 1 || !omitMiddleSymbol) Rectangle(45, y + 1, 58, y + 13, false);
+            for (int x = 72; x < 70 + rowWidths[i] - 3; x += 9) Rectangle(x, y + 1, x + 3, y + 11, false);
+            OcrDetectedRegion detected = OcrTestFixtures.Region("row" + i, 70, y, rowWidths[i], 12);
+            detections.Add(detected);
+            labels.Add(new(detected.RegionId, detected.Polygon, "Unknown row " + i,
+                Array.Empty<OcrRecognitionAlternative>(), OcrTextRole.Annotation, 0.9,
+                OcrSourceImage.Original, OcrReviewStatus.Unreviewed));
+        }
+        // A detached suffix can have a compact letter to its left. That letter
+        // is not in the verified symbol column and cannot create a legend row.
+        Rectangle(108, 76, 117, 88, false);
+        Rectangle(129, 76, 132, 86, false);
+        var suffix = OcrTestFixtures.Region("suffix", 128, 75, 18, 12);
+        detections.Add(suffix);
+        labels.Add(new(suffix.RegionId, suffix.Polygon, "Suffix", Array.Empty<OcrRecognitionAlternative>(),
+            OcrTextRole.Annotation, 0.9, OcrSourceImage.Original, OcrReviewStatus.Unreviewed));
+        var image = new OcrImage(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity);
+        FramedLegendRoleResolution result = FramedLegendRoleResolver.Resolve(image, labels, detections);
+        Assert.HasCount(omitMiddleSymbol ? 2 : 3, result.Evidence);
+        for (int i = 0; i < labels.Count; i++)
+        {
+            Assert.AreEqual(i == 3 || (i == 1 && omitMiddleSymbol) ? OcrTextRole.Annotation : OcrTextRole.LegendText,
+                result.Regions[i].Role);
+            Assert.AreEqual(labels[i].Text, result.Regions[i].Text);
+            Assert.AreEqual(labels[i].Polygon, result.Regions[i].Polygon);
+        }
+        Assert.HasCount(omitMiddleSymbol ? 2 : 3, FramedLegendRoleResolver.LocateSymbols(image, result.Regions));
+        // Losing a side edge invalidates the tall frame and every shared row.
+        for (int y = 11; y < 157; y++) pixels[y * width + 35] = 255;
+        Assert.IsEmpty(FramedLegendRoleResolver.Resolve(image, labels, detections).Evidence);
+    }
+
+    [TestMethod]
     public void InvalidInputsAndCancellationCannotProduceLegendEvidence()
     {
         var fixture = Fixture();

@@ -6,7 +6,7 @@ namespace GraphReader.Ocr;
 /// <summary>Supplies post-OCR legend context from an original-pixel frame and separate symbol.</summary>
 public static class FramedLegendRoleResolver
 {
-    public const string CompositionVersion = "original-pixel-framed-legend-context-v1";
+    public const string CompositionVersion = "original-pixel-framed-legend-context-v2";
 
     public static FramedLegendRoleResolution Resolve(
         OcrImage image,
@@ -50,16 +50,7 @@ public static class FramedLegendRoleResolver
 
         bool[] ink = CreateInkMask(image, cancellationToken);
         List<HorizontalRun> runs = FindRuns(ink, image.Width, image.Height, cancellationToken);
-        var evidence = new List<FramedLegendRoleEvidence>();
-        foreach (OcrRegion region in eligible)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            FramedLegendRoleEvidence? item = FindContext(ink, image.Width, runs, region, cancellationToken);
-            if (item is not null)
-            {
-                evidence.Add(item);
-            }
-        }
+        List<FramedLegendRoleEvidence> evidence = FindContexts(ink, image.Width, runs, eligible, cancellationToken);
         HashSet<string> changed = evidence.Select(static item => item.RegionId).ToHashSet(StringComparer.Ordinal);
         return new(
             OcrCollections.Freeze(regions.Select(region => changed.Contains(region.RegionId)
@@ -91,14 +82,42 @@ public static class FramedLegendRoleResolver
         if (labels.Length == 0) return Array.Empty<FramedLegendRoleEvidence>();
         bool[] ink = CreateInkMask(image, cancellationToken);
         List<HorizontalRun> runs = FindRuns(ink, image.Width, image.Height, cancellationToken);
+        return OcrCollections.Freeze(FindContexts(ink, image.Width, runs, labels, cancellationToken));
+    }
+
+    private static List<FramedLegendRoleEvidence> FindContexts(
+        bool[] ink, int width, List<HorizontalRun> runs, IReadOnlyList<OcrRegion> labels,
+        CancellationToken cancellationToken)
+    {
         var evidence = new List<FramedLegendRoleEvidence>();
         foreach (OcrRegion label in labels)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            FramedLegendRoleEvidence? item = FindContext(ink, image.Width, runs, label, cancellationToken);
+            FramedLegendRoleEvidence? item = FindContext(ink, width, runs, label, cancellationToken);
             if (item is not null) evidence.Add(item);
         }
-        return OcrCollections.Freeze(evidence);
+        // A shorter row can share a frame established by a longer label, but must
+        // have its own detached symbol. This does not widen the frame horizontally.
+        FramedLegendRoleEvidence[] anchors = evidence.ToArray();
+        OcrRectangle[] frames = anchors.Select(static item => item.FrameBounds).Distinct().ToArray();
+        HashSet<string> anchored = evidence.Select(static item => item.RegionId).ToHashSet(StringComparer.Ordinal);
+        foreach (OcrRegion label in labels.Where(label => !anchored.Contains(label.RegionId)))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            OcrRectangle text = label.Polygon.Bounds;
+            var matches = new List<FramedLegendRoleEvidence>();
+            foreach (OcrRectangle frame in frames)
+            {
+                if (text.Left <= frame.Left || text.Top <= frame.Top || text.Right >= frame.Right || text.Bottom >= frame.Bottom)
+                    continue;
+                OcrRectangle? glyph = FindSymbol(ink, width, frame, text, cancellationToken);
+                if (glyph.HasValue && anchors.Any(anchor => anchor.FrameBounds == frame &&
+                        glyph.Value.Left < anchor.GlyphBounds.Right && glyph.Value.Right > anchor.GlyphBounds.Left))
+                    matches.Add(new(label.RegionId, frame, glyph.Value));
+            }
+            if (matches.Count == 1) evidence.Add(matches[0]);
+        }
+        return evidence;
     }
 
     private static void ValidateImage(OcrImage image)
@@ -163,9 +182,11 @@ public static class FramedLegendRoleResolver
             run.Left >= box.Left - 5 * height && run.Left < box.Left &&
             run.Right >= box.Right && run.Right <= box.Right + 2 * height &&
             run.Right - run.Left >= box.Width + height && run.Density >= 0.9).ToArray();
-        HorizontalRun[] above = candidates.Where(run => run.Y >= box.Top - 4 * height && run.Y < box.Top)
+        // Frame height depends on the number of legend rows, not this row's font
+        // size. Require both vertical edges instead of a four-text-height cutoff.
+        HorizontalRun[] above = candidates.Where(run => run.Y < box.Top)
             .OrderByDescending(static run => run.Y).ThenBy(static run => run.Left).ToArray();
-        HorizontalRun[] below = candidates.Where(run => run.Y >= box.Bottom && run.Y <= box.Bottom + 4 * height)
+        HorizontalRun[] below = candidates.Where(run => run.Y >= box.Bottom)
             .OrderBy(static run => run.Y).ThenBy(static run => run.Left).ToArray();
         foreach (HorizontalRun upper in above)
         foreach (HorizontalRun lower in below)

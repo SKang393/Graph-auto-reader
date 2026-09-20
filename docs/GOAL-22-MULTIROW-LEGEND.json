@@ -1,0 +1,643 @@
+{
+  "schema": "graphreader.goal22.multirow-legend-evidence.v1",
+  "status": "development_improvement_below_acceptance",
+  "goal22_complete": false,
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs",
+      "sha256": "d73c9137b54efb199d0d5a84f39b7cf99eb5ff6528caf2da540dec6471b19d8a",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "sha256": "e1c7aa5606dbea4ebae7d961d5f3ee7e3ddd17a32a2f370097729020c9fa5ee8",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs"
+    },
+    {
+      "path": "src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+      "sha256": "61d48ff9f9efc93a0bacf1517332d1c3837396e700645bd957b64590060c4386",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.Ocr/FramedLegendRoleResolver.cs"
+    },
+    {
+      "path": "src/GraphReader.Ocr/HeaderLayoutRoleResolver.cs",
+      "sha256": "2835554457239e33e15b2d4efd50e94f67bffc32523203e9ce905c14e8bbd31c",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.Ocr/HeaderLayoutRoleResolver.cs"
+    },
+    {
+      "path": "src/GraphReader.Ocr/InsidePlotTextRegionAssembler.cs",
+      "sha256": "82d671e9d6dc22da10778e95caf54a99decb62feaa92be80d958394e0a13fc6a",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.Ocr/InsidePlotTextRegionAssembler.cs"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrContracts.cs",
+      "sha256": "afd19c90e7d461d948d5644df26724c75b974e4a84a39b4858926abe1b371003",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.Ocr/OcrContracts.cs"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "ec5b41a1494e7f883e2dcc41350938f540e733556710405ea01b7edb5cc35bdf",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.Ocr/OcrPipeline.cs"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrResultCache.cs",
+      "sha256": "d8602da136fac50308736b1eb36d2569bdb9e21fd2c9237dbea9a5ed0ca400ff",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.Ocr/OcrResultCache.cs"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OriginalPixelTextRegionRefiner.cs",
+      "sha256": "56d0abe9673be9651d91ead9c65903faf8b04f4a9687725ea3565edc757a8bbb",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.Ocr/OriginalPixelTextRegionRefiner.cs"
+    },
+    {
+      "path": "src/GraphReader.Ocr/ParticipantLaneTextRegionAssembler.cs",
+      "sha256": "d6e3f5cbe43b0a71a9d29853e280c1b6e2ab892e4d9ec62e3798f6f259b3a5be",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/src/GraphReader.Ocr/ParticipantLaneTextRegionAssembler.cs"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/FramedLegendRoleResolverTests.cs",
+      "sha256": "9f30b25401a60493dfe68930d020b9ee5deafbd0614f1d392a34b907838c89ec",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/tests/GraphReader.Ocr.Tests/FramedLegendRoleResolverTests.cs"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/LayoutClearanceOcrInputs.cs",
+      "sha256": "30d0fe4b1752709a242ee8ded5d4f563e96d8af203b75ca7b5e3d653b516f559",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/tools/GraphReader.SyntheticRuntimeEvidence/LayoutClearanceOcrInputs.cs"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluation.cs",
+      "sha256": "03a1293e40c56ebc0eb578331eb8f7cd2b0dc2f3854f83ae3772786deffea8fe",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluation.cs"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluationSelfTest.cs",
+      "sha256": "14ace92f420da4a88dddb36ae3569f4f8a66e39eb5f58a16b10482e187a9513c",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluationSelfTest.cs"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "24ea10f3aaa673bff8185c4801d4db957dc9c0348d41655cdfe2104eb4e7835d",
+      "archive": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-snapshot/tools/GraphReader.SyntheticRuntimeEvidence/Program.cs"
+    }
+  ],
+  "metrics": {
+    "before": {
+      "train": {
+        "truth_region_count": 709,
+        "predicted_region_count": 643,
+        "geometry_matched_region_count": 635,
+        "geometry_false_positive_count": 8,
+        "geometry_false_negative_count": 74,
+        "recognition_exact_count": 396,
+        "recognition_exact_accuracy": 0.5585331452750353,
+        "truth_character_count": 3415,
+        "matched_pair_edit_count": 1101,
+        "unmatched_truth_deletion_edit_count": 225,
+        "unmatched_prediction_insertion_edit_count": 32,
+        "character_error_count": 1358,
+        "character_error_rate": 0.39765739385065885,
+        "role_correct_count": 409,
+        "role_accuracy": 0.5768688293370945,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 60,
+            "correct_count": 33,
+            "accuracy": 0.55
+          },
+          "axistitle": {
+            "truth_count": 50,
+            "correct_count": 19,
+            "accuracy": 0.38
+          },
+          "legendtext": {
+            "truth_count": 30,
+            "correct_count": 29,
+            "accuracy": 0.9666666666666667
+          },
+          "participant": {
+            "truth_count": 30,
+            "correct_count": 14,
+            "accuracy": 0.4666666666666667
+          },
+          "phaseheading": {
+            "truth_count": 160,
+            "correct_count": 73,
+            "accuracy": 0.45625
+          },
+          "xtick": {
+            "truth_count": 175,
+            "correct_count": 111,
+            "accuracy": 0.6342857142857142
+          },
+          "ytick": {
+            "truth_count": 204,
+            "correct_count": 130,
+            "accuracy": 0.6372549019607843
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "validation": {
+        "truth_region_count": 183,
+        "predicted_region_count": 176,
+        "geometry_matched_region_count": 152,
+        "geometry_false_positive_count": 24,
+        "geometry_false_negative_count": 31,
+        "recognition_exact_count": 141,
+        "recognition_exact_accuracy": 0.7704918032786885,
+        "truth_character_count": 1019,
+        "matched_pair_edit_count": 34,
+        "unmatched_truth_deletion_edit_count": 232,
+        "unmatched_prediction_insertion_edit_count": 130,
+        "character_error_count": 396,
+        "character_error_rate": 0.3886162904808636,
+        "role_correct_count": 135,
+        "role_accuracy": 0.7377049180327869,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 18,
+            "correct_count": 12,
+            "accuracy": 0.6666666666666666
+          },
+          "axistitle": {
+            "truth_count": 12,
+            "correct_count": 3,
+            "accuracy": 0.25
+          },
+          "legendtext": {
+            "truth_count": 11,
+            "correct_count": 3,
+            "accuracy": 0.2727272727272727
+          },
+          "participant": {
+            "truth_count": 9,
+            "correct_count": 6,
+            "accuracy": 0.6666666666666666
+          },
+          "phaseheading": {
+            "truth_count": 60,
+            "correct_count": 49,
+            "accuracy": 0.8166666666666667
+          },
+          "xtick": {
+            "truth_count": 48,
+            "correct_count": 41,
+            "accuracy": 0.8541666666666666
+          },
+          "ytick": {
+            "truth_count": 25,
+            "correct_count": 21,
+            "accuracy": 0.84
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "train": {
+        "truth_region_count": 709,
+        "predicted_region_count": 647,
+        "geometry_matched_region_count": 637,
+        "geometry_false_positive_count": 10,
+        "geometry_false_negative_count": 72,
+        "recognition_exact_count": 405,
+        "recognition_exact_accuracy": 0.5712270803949224,
+        "truth_character_count": 3415,
+        "matched_pair_edit_count": 1071,
+        "unmatched_truth_deletion_edit_count": 226,
+        "unmatched_prediction_insertion_edit_count": 38,
+        "character_error_count": 1335,
+        "character_error_rate": 0.39092240117130306,
+        "role_correct_count": 412,
+        "role_accuracy": 0.5811001410437235,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 60,
+            "correct_count": 36,
+            "accuracy": 0.6
+          },
+          "axistitle": {
+            "truth_count": 50,
+            "correct_count": 19,
+            "accuracy": 0.38
+          },
+          "legendtext": {
+            "truth_count": 30,
+            "correct_count": 29,
+            "accuracy": 0.9666666666666667
+          },
+          "participant": {
+            "truth_count": 30,
+            "correct_count": 14,
+            "accuracy": 0.4666666666666667
+          },
+          "phaseheading": {
+            "truth_count": 160,
+            "correct_count": 73,
+            "accuracy": 0.45625
+          },
+          "xtick": {
+            "truth_count": 175,
+            "correct_count": 111,
+            "accuracy": 0.6342857142857142
+          },
+          "ytick": {
+            "truth_count": 204,
+            "correct_count": 130,
+            "accuracy": 0.6372549019607843
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "validation": {
+        "truth_region_count": 183,
+        "predicted_region_count": 180,
+        "geometry_matched_region_count": 161,
+        "geometry_false_positive_count": 19,
+        "geometry_false_negative_count": 22,
+        "recognition_exact_count": 146,
+        "recognition_exact_accuracy": 0.7978142076502732,
+        "truth_character_count": 1019,
+        "matched_pair_edit_count": 46,
+        "unmatched_truth_deletion_edit_count": 115,
+        "unmatched_prediction_insertion_edit_count": 74,
+        "character_error_count": 235,
+        "character_error_rate": 0.23061825318940138,
+        "role_correct_count": 141,
+        "role_accuracy": 0.7704918032786885,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 18,
+            "correct_count": 12,
+            "accuracy": 0.6666666666666666
+          },
+          "axistitle": {
+            "truth_count": 12,
+            "correct_count": 3,
+            "accuracy": 0.25
+          },
+          "legendtext": {
+            "truth_count": 11,
+            "correct_count": 10,
+            "accuracy": 0.9090909090909091
+          },
+          "participant": {
+            "truth_count": 9,
+            "correct_count": 5,
+            "accuracy": 0.5555555555555556
+          },
+          "phaseheading": {
+            "truth_count": 60,
+            "correct_count": 49,
+            "accuracy": 0.8166666666666667
+          },
+          "xtick": {
+            "truth_count": 48,
+            "correct_count": 41,
+            "accuracy": 0.8541666666666666
+          },
+          "ytick": {
+            "truth_count": 25,
+            "correct_count": 21,
+            "accuracy": 0.84
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "baseline_metrics": {
+    "before": {
+      "train": {
+        "truth_region_count": 709,
+        "predicted_region_count": 643,
+        "geometry_matched_region_count": 635,
+        "geometry_false_positive_count": 8,
+        "geometry_false_negative_count": 74,
+        "recognition_exact_count": 396,
+        "recognition_exact_accuracy": 0.5585331452750353,
+        "truth_character_count": 3415,
+        "matched_pair_edit_count": 1101,
+        "unmatched_truth_deletion_edit_count": 225,
+        "unmatched_prediction_insertion_edit_count": 32,
+        "character_error_count": 1358,
+        "character_error_rate": 0.39765739385065885,
+        "role_correct_count": 409,
+        "role_accuracy": 0.5768688293370945,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 60,
+            "correct_count": 33,
+            "accuracy": 0.55
+          },
+          "axistitle": {
+            "truth_count": 50,
+            "correct_count": 19,
+            "accuracy": 0.38
+          },
+          "legendtext": {
+            "truth_count": 30,
+            "correct_count": 29,
+            "accuracy": 0.9666666666666667
+          },
+          "participant": {
+            "truth_count": 30,
+            "correct_count": 14,
+            "accuracy": 0.4666666666666667
+          },
+          "phaseheading": {
+            "truth_count": 160,
+            "correct_count": 73,
+            "accuracy": 0.45625
+          },
+          "xtick": {
+            "truth_count": 175,
+            "correct_count": 111,
+            "accuracy": 0.6342857142857142
+          },
+          "ytick": {
+            "truth_count": 204,
+            "correct_count": 130,
+            "accuracy": 0.6372549019607843
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "validation": {
+        "truth_region_count": 183,
+        "predicted_region_count": 176,
+        "geometry_matched_region_count": 152,
+        "geometry_false_positive_count": 24,
+        "geometry_false_negative_count": 31,
+        "recognition_exact_count": 141,
+        "recognition_exact_accuracy": 0.7704918032786885,
+        "truth_character_count": 1019,
+        "matched_pair_edit_count": 34,
+        "unmatched_truth_deletion_edit_count": 232,
+        "unmatched_prediction_insertion_edit_count": 130,
+        "character_error_count": 396,
+        "character_error_rate": 0.3886162904808636,
+        "role_correct_count": 134,
+        "role_accuracy": 0.73224043715847,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 18,
+            "correct_count": 12,
+            "accuracy": 0.6666666666666666
+          },
+          "axistitle": {
+            "truth_count": 12,
+            "correct_count": 3,
+            "accuracy": 0.25
+          },
+          "legendtext": {
+            "truth_count": 11,
+            "correct_count": 2,
+            "accuracy": 0.18181818181818182
+          },
+          "participant": {
+            "truth_count": 9,
+            "correct_count": 6,
+            "accuracy": 0.6666666666666666
+          },
+          "phaseheading": {
+            "truth_count": 60,
+            "correct_count": 49,
+            "accuracy": 0.8166666666666667
+          },
+          "xtick": {
+            "truth_count": 48,
+            "correct_count": 41,
+            "accuracy": 0.8541666666666666
+          },
+          "ytick": {
+            "truth_count": 25,
+            "correct_count": 21,
+            "accuracy": 0.84
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "train": {
+        "truth_region_count": 709,
+        "predicted_region_count": 647,
+        "geometry_matched_region_count": 637,
+        "geometry_false_positive_count": 10,
+        "geometry_false_negative_count": 72,
+        "recognition_exact_count": 405,
+        "recognition_exact_accuracy": 0.5712270803949224,
+        "truth_character_count": 3415,
+        "matched_pair_edit_count": 1071,
+        "unmatched_truth_deletion_edit_count": 226,
+        "unmatched_prediction_insertion_edit_count": 38,
+        "character_error_count": 1335,
+        "character_error_rate": 0.39092240117130306,
+        "role_correct_count": 412,
+        "role_accuracy": 0.5811001410437235,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 60,
+            "correct_count": 36,
+            "accuracy": 0.6
+          },
+          "axistitle": {
+            "truth_count": 50,
+            "correct_count": 19,
+            "accuracy": 0.38
+          },
+          "legendtext": {
+            "truth_count": 30,
+            "correct_count": 29,
+            "accuracy": 0.9666666666666667
+          },
+          "participant": {
+            "truth_count": 30,
+            "correct_count": 14,
+            "accuracy": 0.4666666666666667
+          },
+          "phaseheading": {
+            "truth_count": 160,
+            "correct_count": 73,
+            "accuracy": 0.45625
+          },
+          "xtick": {
+            "truth_count": 175,
+            "correct_count": 111,
+            "accuracy": 0.6342857142857142
+          },
+          "ytick": {
+            "truth_count": 204,
+            "correct_count": 130,
+            "accuracy": 0.6372549019607843
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "validation": {
+        "truth_region_count": 183,
+        "predicted_region_count": 180,
+        "geometry_matched_region_count": 161,
+        "geometry_false_positive_count": 19,
+        "geometry_false_negative_count": 22,
+        "recognition_exact_count": 146,
+        "recognition_exact_accuracy": 0.7978142076502732,
+        "truth_character_count": 1019,
+        "matched_pair_edit_count": 46,
+        "unmatched_truth_deletion_edit_count": 115,
+        "unmatched_prediction_insertion_edit_count": 74,
+        "character_error_count": 235,
+        "character_error_rate": 0.23061825318940138,
+        "role_correct_count": 138,
+        "role_accuracy": 0.7540983606557377,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 18,
+            "correct_count": 12,
+            "accuracy": 0.6666666666666666
+          },
+          "axistitle": {
+            "truth_count": 12,
+            "correct_count": 3,
+            "accuracy": 0.25
+          },
+          "legendtext": {
+            "truth_count": 11,
+            "correct_count": 7,
+            "accuracy": 0.6363636363636364
+          },
+          "participant": {
+            "truth_count": 9,
+            "correct_count": 5,
+            "accuracy": 0.5555555555555556
+          },
+          "phaseheading": {
+            "truth_count": 60,
+            "correct_count": 49,
+            "accuracy": 0.8166666666666667
+          },
+          "xtick": {
+            "truth_count": 48,
+            "correct_count": 41,
+            "accuracy": 0.8541666666666666
+          },
+          "ytick": {
+            "truth_count": 25,
+            "correct_count": 21,
+            "accuracy": 0.84
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "role_assignment_changes": 5,
+  "matched_role_improvements": {
+    "original_dev": 1,
+    "corrected_layout_dev": 3
+  },
+  "previously_correct_roles_lost": 0,
+  "non_role_outputs_identical": {
+    "before": 819,
+    "after": 827
+  },
+  "application_seconds": {
+    "before": 50.0058055,
+    "after": 42.7043433
+  },
+  "comparison_seconds": 0.8755667000077665,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/score.json",
+      "sha256": "a17b51702f6dd7baf34d1eab53aa820cac44c586994ace504008cbc1396c42bc"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/preflight.json",
+      "sha256": "5cfa57da632ee3ca7c72c60956fe053522fd03d8c6ec23d3598135dec335061f"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/candidate.json",
+      "sha256": "8fb4ccbafdbee14eaa4888677cc5de935bed7ffb9917f236610f0bd9b97041d1"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/request.json",
+      "sha256": "f14e9e3c1b8bd390c6e01376e791f48acbcb175ebb2b6a51ff722fdd2949862a"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/source-bindings.json",
+      "sha256": "3cf60c381dfc5900d2f924cad29da271ecfaa781dda3998cab5723891db2829f"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/before-evaluation/report.json",
+      "sha256": "17719f3ef2302b1f5d758c62a9ebe811c85c674fd11d3b9a8b6def2a932a1adb"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/after-evaluation/report.json",
+      "sha256": "dc97cf31c0a4d4d030831ceb1999ba75575c5ec1b2b02dc0b63b376d6b37953c"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-column-v1/test-results/workflow.trx",
+      "sha256": "49d68a62125d5ebb27cbe3650408f51beb3df5be8cfc2cacd61793a1982c57a3"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-v1/test-results/ocr-column.trx",
+      "sha256": "74f96a62553ad43cb289b943e4db913e5cadde69b8b84ab06b971b29096355f6"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-v1/column-build.log",
+      "sha256": "8e47cd19e246d35ca434f9acaf79cc1f39e8eeffdf673aff7130225a6b51ddb8"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-multirow-legend-v1/score.json",
+      "sha256": "a86e8bf0b791a6e416da4eb335cfa82d8bab61364fbcd5feb79f20a3e1f5a3f9"
+    }
+  ],
+  "helpers": [
+    {
+      "path": "artifacts/goal22-tools/Prepare-MultirowLegendColumnOcr.py",
+      "sha256": "b0ef63572dca69614937fd47eddfd3162ab4243031ba03ee52a57322d0513144"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-MultirowLegendColumnOcr.py",
+      "sha256": "b8f3cf4b6948bd9e276fca264098ac3a4b00ff179c56e064ede63086bc77b210"
+    }
+  ],
+  "checks": {
+    "ocr_passed": 310,
+    "ocr_existing_optional_skips": 16,
+    "workflow_passed": 35,
+    "compiler_warnings": 0,
+    "compiler_errors": 0,
+    "compiler_seconds": 22.09
+  },
+  "initial_trial": {
+    "role_changes": 7,
+    "false_letter_fragment_assignments_removed": 2,
+    "source_runtime_and_result_retained": true
+  },
+  "composition_version": "original-pixel-framed-legend-context-v2",
+  "provider": "cpu",
+  "synthetic_only": true,
+  "private_data": false,
+  "sealed_data": false,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "new_model_revision": false,
+  "packaged_build": false,
+  "limitations": [
+    "All existing development accuracy bars fail.",
+    "Missing and fragmented legend text remains.",
+    "Horizontal frame geometry still needs an establishing label.",
+    "No end-to-end or real-data acceptance claim."
+  ],
+  "previous_ci": {
+    "commit": "2881e24a39efecc2db184993688dbfdbf4c4e2ed",
+    "run_id": 35489519495,
+    "conclusion": "success"
+  },
+  "retained_portable": {
+    "build_number": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Apache-2.0 source; no new dependency or external payload."
+}
