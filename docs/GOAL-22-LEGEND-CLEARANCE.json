@@ -1,0 +1,81 @@
+{
+  "schema": "graphreader.goal22.legend-clearance-evidence.v1",
+  "status": "diagnostic_only",
+  "goal22_complete": false,
+  "source_bindings": [
+    {
+      "path": "ml/synthetic/legend_clearance.py",
+      "sha256": "d48ac953d8b9fe672eef39c23f660f8957d70de42f0f63055a3d24a90230fe96"
+    },
+    {
+      "path": "ml/synthetic/tests/test_legend_clearance.py",
+      "sha256": "401626b592c6fefdbb80c71b96452e96609eca0b52023af470c1e01d60ac052e"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/legend-clearance-v1/retry2/report.json",
+      "sha256": "75a8e89cd19da16b17e80d4331c6fe9f2f97e75da97f54a040e80e426c6a9bef"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-clearance-v1/retry2/tests.xml",
+      "sha256": "3524a4fa8ba68deda791a964275ec0554d8094fb54794bac71d567b27074b1fc"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-clearance-v1/report.json",
+      "sha256": "f37d0e30b414735375692f0a055038e33abc2a651864f3610e98113f9ba248dc"
+    },
+    {
+      "path": "artifacts/goal22-tools/Check-LegendClearance.py",
+      "sha256": "986c4b7fcc595e902ff6f7da4b020e76c653bed39119c2c2c447510771ca63c1"
+    }
+  ],
+  "splits": {
+    "train": {
+      "sources": 20,
+      "legends_moved": 5,
+      "targets_covered_before": 1,
+      "targets_covered_after": 0,
+      "unresolved": {}
+    },
+    "validation": {
+      "sources": 3,
+      "legends_moved": 8,
+      "targets_covered_before": 7,
+      "targets_covered_after": 0,
+      "unresolved": {}
+    }
+  },
+  "seconds": 220.860895299993,
+  "tests": {
+    "passed": 9,
+    "failed": 0,
+    "seconds": 19.24
+  },
+  "scientific_structures_marker_masks_arrows_and_text_content_preserved": true,
+  "independent_background_pixel_check": true,
+  "historical_images_and_scores_unchanged": true,
+  "private_data": false,
+  "sealed_data": false,
+  "model_inference": false,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "new_model_revision": false,
+  "packaged_build": false,
+  "initial_diagnostic": {
+    "legends_moved": 10,
+    "unresolved_bindings": 10,
+    "targets_still_covered": 1,
+    "repair": "Bind unique panel/text/origin while preserving independent nominal and measured box dimensions."
+  },
+  "limits": [
+    "Opt-in only; frozen generator defaults are unchanged.",
+    "Other text-layout defects remain.",
+    "No OCR accuracy or production readiness claim."
+  ],
+  "retained_portable": {
+    "build_number": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Apache-2.0; no external input or payload added."
+}
