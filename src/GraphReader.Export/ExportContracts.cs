@@ -315,6 +315,11 @@ public sealed class ExportRequest
 
     public string? Participant { get; }
 
+    /// <summary>
+    /// Optional batch filename scope. Does not change participant metadata or serialized contracts.
+    /// </summary>
+    public string? FileNamePrefix { get; init; }
+
     public ExportMode Mode { get; }
 
     public ExportAuditMode AuditMode { get; }

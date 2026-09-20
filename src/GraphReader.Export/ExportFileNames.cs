@@ -70,7 +70,8 @@ internal static class ExportFileNamePlanner
 
     public static IReadOnlyDictionary<Guid, ExportFileNames> Plan(
         string? participant,
-        IEnumerable<ExportSeries> interventionSeries)
+        IEnumerable<ExportSeries> interventionSeries,
+        string? fileNamePrefix = null)
     {
         ArgumentNullException.ThrowIfNull(interventionSeries);
 
@@ -79,6 +80,9 @@ internal static class ExportFileNamePlanner
             .ToArray();
 
         string participantName = SanitizeComponent(participant, "participant");
+        string prefix = string.IsNullOrWhiteSpace(fileNamePrefix)
+            ? string.Empty
+            : SanitizeComponent(fileNamePrefix, "panel") + "_";
         var results = new Dictionary<Guid, ExportFileNames>();
         var usedFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var nextSuffixByStem = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -96,7 +100,7 @@ internal static class ExportFileNamePlanner
             string seriesName = SanitizeComponent(
                 displayNameWithoutSymbol,
                 $"series-{series.SeriesId:N}");
-            string stem = LimitStem($"{participantName}_{seriesName}", suffixLength: 0);
+            string stem = LimitStem($"{prefix}{participantName}_{seriesName}", suffixLength: 0);
 
             int suffixNumber = nextSuffixByStem.TryGetValue(stem, out int previousSuffix)
                 ? checked(previousSuffix + 1)

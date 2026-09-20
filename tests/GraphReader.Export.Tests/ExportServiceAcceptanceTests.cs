@@ -358,6 +358,38 @@ public sealed class ExportServiceAcceptanceTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task FilenameScopeIsSafeAndDoesNotChangeSerializedData(bool longPrefix)
+    {
+        Scenario scenario = DuplicateNameScenario();
+        ExportRequest original = Request(scenario, auditMode: ExportAuditMode.ExtendedCsvAndJson);
+        string prefix = longPrefix ? "panel-001_" + new string('p', 300) : "../CON/<panel>";
+        ExportRequest scoped = Request(scenario, auditMode: ExportAuditMode.ExtendedCsvAndJson, fileNamePrefix: prefix);
+        var service = new ExportService();
+        ExportResult before = await service.ExportAsync(original, CancellationToken.None);
+        ExportResult after = await service.ExportAsync(scoped, CancellationToken.None);
+
+        Assert.IsTrue(before.Succeeded, FailureSummary(before));
+        Assert.IsTrue(after.Succeeded, FailureSummary(after));
+        Assert.AreEqual(original.Participant, scoped.Participant);
+        string[] names = after.MinimalArtifacts.Select(static a => a.FileName)
+            .Concat(after.AuditArtifacts.Select(static a => a.FileName)).ToArray();
+        Assert.AreEqual(names.Length, names.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.IsTrue(names.All(static n => n.Length <= 240 && Path.GetFileName(n) == n && n.IndexOfAny(Path.GetInvalidFileNameChars()) < 0));
+        if (longPrefix)
+        {
+            Assert.IsTrue(names.All(static n => n.StartsWith("panel-001_", StringComparison.Ordinal)));
+        }
+        CollectionAssert.AreEqual(
+            before.MinimalArtifacts.Select(static a => a.Content).ToArray(),
+            after.MinimalArtifacts.Select(static a => a.Content).ToArray());
+        CollectionAssert.AreEqual(
+            before.AuditArtifacts.Select(static a => a.Content).ToArray(),
+            after.AuditArtifacts.Select(static a => a.Content).ToArray());
+    }
+
+    [TestMethod]
     public async Task DecimalSerializationRoundTripsInvariantlyUnderNonEnglishCulture()
     {
         CultureInfo originalCulture = CultureInfo.CurrentCulture;
@@ -703,7 +735,8 @@ public sealed class ExportServiceAcceptanceTests
         ExportAuditMode auditMode = ExportAuditMode.None,
         ExportOperation operation = ExportOperation.Preview,
         ExportCalibration? calibration = null,
-        ExportSessionOriginPolicy? policy = null) =>
+        ExportSessionOriginPolicy? policy = null,
+        string? fileNamePrefix = null) =>
         new(
             RunId,
             ProjectId,
@@ -718,7 +751,10 @@ public sealed class ExportServiceAcceptanceTests
             scenario.Phases,
             scenario.Series,
             scenario.Points,
-            scenario.Relations);
+            scenario.Relations)
+        {
+            FileNamePrefix = fileNamePrefix,
+        };
 
     private static ExportCalibration ValidCalibration() => new(
         ExportCalibrationStatus.Valid,

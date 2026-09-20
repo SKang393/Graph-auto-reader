@@ -29,9 +29,15 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
         cancellationToken.ThrowIfCancellationRequested();
 
         var exportRequests = new List<ExportRequest>(review.Panels.Count);
-        foreach (WorkflowReviewPanel panel in review.Panels.OrderBy(static panel => panel.PanelId))
+        foreach (WorkflowReviewPanel panel in review.Panels
+            .OrderBy(static panel => panel.PreparedPanel.ImportedPanel.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(static panel => panel.PreparedPanel.ImportedPanel.PageNumber)
+            .ThenBy(static panel => panel.PanelId))
         {
-            if (!TryBuildRequest(review.ProjectId, panel, request, out ExportRequest? exportRequest))
+            string? fileNamePrefix = review.Panels.Count > 1
+                ? FormattableString.Invariant($"panel-{exportRequests.Count + 1:D3}")
+                : null;
+            if (!TryBuildRequest(review.ProjectId, panel, request, fileNamePrefix, out ExportRequest? exportRequest))
             {
                 return RecalibrationRequired();
             }
@@ -107,6 +113,7 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
         Guid projectId,
         WorkflowReviewPanel reviewPanel,
         WorkflowExportRequest workflowRequest,
+        string? fileNamePrefix,
         out ExportRequest? request)
     {
         request = null;
@@ -219,7 +226,10 @@ public sealed class ProductionWorkflowExportStage : IWorkflowExportStage
             exportPhases,
             overlaidSeries,
             points,
-            evidence.Relations);
+            evidence.Relations)
+        {
+            FileNamePrefix = fileNamePrefix,
+        };
         return true;
     }
 

@@ -101,6 +101,7 @@ public sealed class InMemoryWorkflowArtifactTests
         WorkflowExportArtifact minimal = preview.Artifacts.Single(static artifact =>
             artifact.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) &&
             !artifact.FileName.Contains("audit", StringComparison.OrdinalIgnoreCase));
+        Assert.AreEqual("participant_Intervention.csv", minimal.FileName);
         CollectionAssert.AreEqual(
             "x_value,y_value,phase\n1,42,b\n"u8.ToArray(),
             minimal.CopyContentBytes());
@@ -147,9 +148,77 @@ public sealed class InMemoryWorkflowArtifactTests
         }
     }
 
-    private static ExportFixture CreateExportFixture()
+    [TestMethod]
+    public async Task MultiPanelExportKeepsRepeatedNamesDistinctAndPreviewMatchesWrittenBytes()
+    {
+        using var directory = new TemporaryDirectory();
+        ExportFixture fixture = CreateMultiPanelExportFixture();
+        var stage = new ProductionWorkflowExportStage(fixture.Store, new ExportService());
+        var previewRequest = new WorkflowExportRequest(Guid.NewGuid(), "unused") { Operation = ExportOperation.Preview };
+        WorkflowExportResult preview = await stage.ExportAsync(fixture.Review, previewRequest, CancellationToken.None);
+        var reversed = new WorkflowReviewState(fixture.Review.ProjectId, fixture.Review.Panels.Reverse());
+        WorkflowExportResult reordered = await stage.ExportAsync(reversed, previewRequest, CancellationToken.None);
+        WorkflowExportResult written = await stage.ExportAsync(
+            fixture.Review,
+            new WorkflowExportRequest(previewRequest.RunId, Path.Combine(directory.Path, "written")),
+            CancellationToken.None);
+
+        Assert.IsTrue(preview.Succeeded, string.Join(" | ", preview.Warnings));
+        Assert.IsTrue(reordered.Succeeded, string.Join(" | ", reordered.Warnings));
+        Assert.IsTrue(written.Succeeded, string.Join(" | ", written.Warnings));
+        Assert.HasCount(6, preview.Artifacts);
+        Assert.AreEqual(preview.Artifacts.Count, preview.Artifacts.Select(static a => a.FileName).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        CollectionAssert.AreEqual(
+            "x_value,y_value,phase\n1,42,b\n"u8.ToArray(),
+            preview.Artifacts.Single(static a => a.FileName == "panel-001_participant_Intervention.csv").CopyContentBytes());
+        CollectionAssert.AreEqual(
+            "x_value,y_value,phase\n1,43,b\n"u8.ToArray(),
+            preview.Artifacts.Single(static a => a.FileName == "panel-002_participant_Intervention.csv").CopyContentBytes());
+        foreach (WorkflowExportArtifact artifact in preview.Artifacts)
+        {
+            WorkflowExportArtifact reorderedArtifact = reordered.Artifacts.Single(a => a.FileName == artifact.FileName);
+            WorkflowExportArtifact writtenArtifact = written.Artifacts.Single(a => a.FileName == artifact.FileName);
+            Assert.IsNotNull(writtenArtifact.WrittenPath);
+            CollectionAssert.AreEqual(artifact.CopyContentBytes(), reorderedArtifact.CopyContentBytes());
+            CollectionAssert.AreEqual(artifact.CopyContentBytes(), await File.ReadAllBytesAsync(writtenArtifact.WrittenPath));
+            Assert.AreEqual(artifact.Sha256, writtenArtifact.Sha256);
+        }
+    }
+
+    [TestMethod]
+    public async Task MultiPanelExportDoesNotOverwriteAnExistingDestination()
+    {
+        using var directory = new TemporaryDirectory();
+        ExportFixture fixture = CreateMultiPanelExportFixture();
+        string protectedPath = Path.Combine(directory.Path, "panel-001_participant_Intervention.csv");
+        byte[] sentinel = "Existing user data"u8.ToArray();
+        await File.WriteAllBytesAsync(protectedPath, sentinel);
+
+        WorkflowExportResult result = await new ProductionWorkflowExportStage(fixture.Store, new ExportService())
+            .ExportAsync(fixture.Review, new WorkflowExportRequest(Guid.NewGuid(), directory.Path), CancellationToken.None);
+
+        Assert.IsFalse(result.Succeeded);
+        Assert.AreEqual("EXPORT_FILE_EXISTS", result.FailureCode);
+        CollectionAssert.AreEqual(sentinel, await File.ReadAllBytesAsync(protectedPath));
+        Assert.HasCount(1, Directory.GetFiles(directory.Path));
+    }
+
+    private static ExportFixture CreateMultiPanelExportFixture()
     {
         Guid projectId = Guid.NewGuid();
+        ExportFixture first = CreateExportFixture(projectId, "Panel A", 42, ExportAuditMode.ExtendedCsvAndJson);
+        ExportFixture second = CreateExportFixture(projectId, "Panel B", 43, ExportAuditMode.ExtendedCsvAndJson);
+        first.Store.Register(second.Store.Get(second.Review.Panels.Single().PanelId));
+        return new ExportFixture(first.Store, new WorkflowReviewState(projectId, first.Review.Panels.Concat(second.Review.Panels)));
+    }
+
+    private static ExportFixture CreateExportFixture(
+        Guid? sharedProjectId = null,
+        string displayName = "memory.png",
+        double graphY = 42,
+        ExportAuditMode auditMode = ExportAuditMode.ExtendedCsv)
+    {
+        Guid projectId = sharedProjectId ?? Guid.NewGuid();
         Guid panelId = Guid.NewGuid();
         Guid sourceId = Guid.NewGuid();
         Guid pointId = Guid.NewGuid();
@@ -163,7 +232,7 @@ public sealed class InMemoryWorkflowArtifactTests
             50,
             80,
             WorkflowImageVariant.Original);
-        var panel = new WorkflowImportedPanel(panelId, sourceId, "memory.png", image);
+        var panel = new WorkflowImportedPanel(panelId, sourceId, displayName, image);
         var provenance = new WorkflowVisionEnvelope(
             1,
             Guid.NewGuid(),
@@ -195,7 +264,8 @@ public sealed class InMemoryWorkflowArtifactTests
                 XSource: ExportXValueSource.Printed,
                 XConfidence: 1,
                 YConfidence: 1)],
-            [provenance]);
+            [provenance],
+            auditMode: auditMode);
         var store = new ProductionWorkflowPanelStore();
         store.Register(new ProductionPanelEvidence(
             panel,
@@ -216,7 +286,7 @@ public sealed class InMemoryWorkflowArtifactTests
             seriesId.ToString("D"),
             phaseId.ToString("D"),
             1,
-            42,
+            graphY,
             "markers",
             null,
             false);

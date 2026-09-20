@@ -540,7 +540,7 @@ public sealed class ExportService : IExportService
             .ToArray();
         ExportSeries[] selectedSeries = selectedIds.Select(id => series[id]).ToArray();
         IReadOnlyDictionary<Guid, ExportFileNames> fileNames =
-            ExportFileNamePlanner.Plan(request.Participant, selectedSeries);
+            ExportFileNamePlanner.Plan(request.Participant, selectedSeries, request.FileNamePrefix);
         var exports = new List<PreparedIntervention>(selectedIds.Length);
 
         foreach (Guid interventionId in selectedIds)

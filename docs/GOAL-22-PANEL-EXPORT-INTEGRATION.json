@@ -1,0 +1,267 @@
+{
+  "schema": "graphreader.goal22.panel-export-integration.v1",
+  "status": "multi_panel_filename_collision_repaired_other_workflow_failures_remain",
+  "goal22_complete": false,
+  "base_commit": "e2b23a1444c7e19e7055dcb1a1002479afe576e3",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionWorkflowExportStage.cs",
+      "sha256": "6753c9154f44d9dad4e2bcef600e9f5e197703dc595fc0e49e938ad3d051136b",
+      "archive": "artifacts/goal22-runs/workflow-panel-export-checks-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionWorkflowExportStage.cs"
+    },
+    {
+      "path": "src/GraphReader.Export/ExportContracts.cs",
+      "sha256": "f6231677ec6c1055b1358a5622aa652cedde3ce6744f0014e6520e01863a661f",
+      "archive": "artifacts/goal22-runs/workflow-panel-export-checks-v1/source-snapshot/src/GraphReader.Export/ExportContracts.cs"
+    },
+    {
+      "path": "src/GraphReader.Export/ExportFileNames.cs",
+      "sha256": "ebd871d5f473cce25c62dc716a99b47f0abd796ee0c519c5c958e10cd354cbe6",
+      "archive": "artifacts/goal22-runs/workflow-panel-export-checks-v1/source-snapshot/src/GraphReader.Export/ExportFileNames.cs"
+    },
+    {
+      "path": "src/GraphReader.Export/ExportService.cs",
+      "sha256": "67f7a05cccad8c81483ae9a50c70a4bcb75adecba223f9ec9254255fe800ed38",
+      "archive": "artifacts/goal22-runs/workflow-panel-export-checks-v1/source-snapshot/src/GraphReader.Export/ExportService.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/InMemoryWorkflowArtifactTests.cs",
+      "sha256": "0ae383d622bc4a092149ca94859bcb9a6d0d56ef46f5b6d30493ff6081ec1ec0",
+      "archive": "artifacts/goal22-runs/workflow-panel-export-checks-v1/source-snapshot/tests/GraphReader.App.Tests/InMemoryWorkflowArtifactTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.Export.Tests/ExportServiceAcceptanceTests.cs",
+      "sha256": "d4f60e69e68a60dfb94d9adc2ded8172b082e21219ce54c978dc5d8504ec722d",
+      "archive": "artifacts/goal22-runs/workflow-panel-export-checks-v1/source-snapshot/tests/GraphReader.Export.Tests/ExportServiceAcceptanceTests.cs"
+    }
+  ],
+  "compiled_source_snapshot_count": 266,
+  "all_source_snapshots_verified": true,
+  "repair_definition": {
+    "scope": "project-owned synthetic development only",
+    "baseline_report_sha256": "2db6b75298d0ff8a2db66fb61bcde90696ede9cfcc9b51fbe795596cf9a1ef9d",
+    "failures": [
+      {
+        "source_sha256": "bbd5105c92a45f16c113f2e099c58569abb746621c9fba88c1eb30cde54f85c7",
+        "panel_count": 6,
+        "error": "Candidate export failed closed: EXPORT_FILE_EXISTS."
+      }
+    ],
+    "failure_mode": "ProductionWorkflowExportStage exports multiple panels independently into one directory; each ExportFileNamePlanner starts its own used-name set. Identical participant/series labels collide even in a fresh destination. Preview also returns duplicate names.",
+    "subsystem": "Batch workflow export request naming and filename planning.",
+    "isolated_change": "Assign distinct readable panel prefixes only for multi-panel batches, using a stable panel ordering. Keep participant metadata and scientific rows unchanged; retain single-panel names, sanitization, length limits and existing-file protection. Preview and writing must produce identical names and bytes.",
+    "acceptance": "Two-panel preview/write tests with repeated labels, input-order determinism, existing-file preservation and applicable full suites; then same23-source706-point724-row workflow diagnostic.",
+    "frozen_contracts": "No project, vision-result or model-manifest schema change. An optional in-process request field affects filenames only.",
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false,
+    "new_model_revision": false
+  },
+  "comparison": {
+    "source_count": 23,
+    "previously_observed_panels": 30,
+    "observed_panels": 30,
+    "previously_visited_panels_not_reached": 0,
+    "newly_reached_panels": 0,
+    "raw_upstream_evidence_unchanged": {
+      "axis": true,
+      "accepted_markers": true,
+      "ocr": true
+    },
+    "prior_calibration_numeric_measurements_unchanged": true,
+    "calibration_validity_before": {
+      "Valid": 19,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 4
+    },
+    "calibration_validity_after": {
+      "Valid": 19,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 4
+    },
+    "prior_valid_calibrations_now_invalid": 0,
+    "completed_sources": 10,
+    "failed_sources": 13,
+    "previously_completed_sources_now_failed": 0,
+    "newly_completed_sources": 1,
+    "common_exported_points_with_identical_values_and_x_provenance": 115,
+    "previously_exported_points_removed": 0,
+    "previously_unexported_points_added": 135,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false
+  },
+  "all_case_artifact_names_unique": true,
+  "six_panel_source_completed": true,
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 9,
+    "failed_cases": 14,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 28,
+    "matched_series": 9,
+    "truth_points": 706,
+    "predicted_points": 115,
+    "matched_points": 85,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 130,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 82,
+    "correct_rows": 77,
+    "missing_rows": 642,
+    "extra_rows": 48,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 85,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 621,
+    "unique_point_extra": 30,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7391304347826086,
+    "unique_point_structural_coverage": 0.12039660056657224,
+    "unique_point_value_precision": 0.7391304347826086,
+    "unique_point_value_coverage": 0.12039660056657224,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.5923076923076923,
+    "relational_row_coverage": 0.106353591160221,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9390243902439024,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 14
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 10,
+    "failed_cases": 13,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 36,
+    "matched_series": 15,
+    "truth_points": 706,
+    "predicted_points": 250,
+    "matched_points": 218,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 265,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 215,
+    "correct_rows": 210,
+    "missing_rows": 509,
+    "extra_rows": 50,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 218,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 488,
+    "unique_point_extra": 32,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.872,
+    "unique_point_structural_coverage": 0.3087818696883853,
+    "unique_point_value_precision": 0.872,
+    "unique_point_value_coverage": 0.3087818696883853,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.7924528301886793,
+    "relational_row_coverage": 0.2900552486187845,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9767441860465116,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 13
+    }
+  },
+  "execution_seconds": 159.1589253,
+  "checks": {
+    "app": {
+      "path": "artifacts/goal22-runs/workflow-panel-export-checks-v1/test-results/app.trx",
+      "sha256": "49e491753175db06018d4a3e40d0c9fe70001b2933b865cd46ab24ea730d5d9e",
+      "passed": 373,
+      "skipped": 0
+    },
+    "export": {
+      "path": "artifacts/goal22-runs/workflow-panel-export-checks-v1/test-results/export.trx",
+      "sha256": "f18533f63aef519fdc1508106f16938802db85eae077f9e0a149e313779fc283",
+      "passed": 32,
+      "skipped": 0
+    },
+    "tool_build": {
+      "path": "artifacts/goal22-runs/workflow-panel-export-checks-v1/build.log",
+      "sha256": "7c317cf6b56f56b32942129b7d5d2dd7fcb935d2ee3651da72000535ef38f2b5"
+    },
+    "tool_warnings": 0,
+    "tool_errors": 0,
+    "private_runner_self_test": {
+      "path": "artifacts/goal22-runs/workflow-panel-export-checks-v1/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    }
+  },
+  "evidence": {
+    "candidate-binding.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-export-v1/candidate-binding.json",
+      "sha256": "648f6c5d3fab2f8d5aa9eb7a62cb1cf7fa89277b6246e64761749a9d202a1a25"
+    },
+    "input-manifest.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-export-v1/input-manifest.json",
+      "sha256": "08a5f5c749977e175668d6b96e7a654f97c42de431715db078b021b3fbf23619"
+    },
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-export-v1/execution/report.json",
+      "sha256": "1187b3adda8f42d667e35284fb240ec13f233bcd66eaf17478847c1e24594698"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-export-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "f1fa53e1e1d5558c6b05a18742d77ad1a2588a6d8c2e92532764c49c58052722"
+    },
+    "csv-score-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-export-v1/csv-score-normalized-phases.json",
+      "sha256": "c684ea84d246fd2f8b3c001671cb41c420fc09741a86385b475c6ee4506849b7"
+    },
+    "comparison.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-export-v1/comparison.json",
+      "sha256": "982902529ac8ea17206295e7774d5ca9b16bc8d7ad28dd319b2b81406ea6b24a"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-export-v1/source-bindings.json",
+      "sha256": "287a90f1cccbb6f296174b58e72df145c4e7ce32b2b8051e9755f59854d8dbda"
+    }
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-calibration-inlier-v1/csv-score-normalized-phases.json",
+    "sha256": "03fbc29172cef7d8e6b2ebd93fc713a660292e8c2a92746e9c9a940e66551b13"
+  },
+  "known_limitations": [
+    "Ten sources complete and thirteen fail; 488 of 706 truth points remain missing, 32 predictions are extra and five matched rows have wrong phases.",
+    "Batch naming does not make export a cross-panel transaction. Existing failures retain their existing behavior; files are never overwritten.",
+    "Unsupported point values still block export. Read-only diagnosis identifies one legend symbol and one decorative symbol among these detections; no center or value was changed by this repair.",
+    "The 23 fixed train/development sources are diagnostic evidence, not sealed or real acceptance. All four Goal 22 outcomes remain incomplete."
+  ],
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}
