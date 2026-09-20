@@ -1,0 +1,61 @@
+{
+  "schema": "graphreader.unknown-session-review-integrity.v1",
+  "status": "repair_verified_goal_incomplete",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "archive": "artifacts/goal22-runs/unknown-session-review-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "ebea9a7eb4ee15c66d46f2369008c383ba49b1e3a7e8ff610ba383282e3a1e57"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "archive": "artifacts/goal22-runs/unknown-session-review-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "9fa63077bdc782fe5a0207048fccde31c0f8d2b56b170a788f39e59266c31279"
+    }
+  ],
+  "validation": {
+    "App": {
+      "passed": 419,
+      "report": {
+        "path": "artifacts/goal22-runs/unknown-session-review-checks-v2/test-results/App.trx",
+        "sha256": "5317d5a430ea049fae4c3fc0d5dda331bf0310c2e983b95d7ba81f4ef74708c8"
+      }
+    },
+    "Export": {
+      "passed": 36,
+      "report": {
+        "path": "artifacts/goal22-runs/unknown-session-review-checks-v2/test-results/Export.trx",
+        "sha256": "7c1eb1759484a41b31c51edc70ad40615d72387a254a366bafc06d092228101c"
+      }
+    }
+  },
+  "checker_build": {
+    "path": "artifacts/goal22-runs/unknown-session-review-checks-v2/build.log",
+    "sha256": "1a73848ce3640df58b7e9e2bfdb14af0a57912db771b1e46d7fd4daf5a7b25f1"
+  },
+  "fictitious_self_test": {
+    "path": "artifacts/goal22-runs/unknown-session-review-checks-v2/self-test.json",
+    "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+  },
+  "total_seconds": 91.8450619,
+  "earlier_attempt": {
+    "status": {
+      "path": "artifacts/goal22-runs/unknown-session-review-checks-v1/status.json",
+      "sha256": "9c15d15e2254d6b0e376dc404738fa267ba3e9edbddc019ef180e4bfbad50a8c"
+    },
+    "failure": "The first test fixture violated the global alignment limit before reaching point projection. Its off-lattice displacement was reduced from eight to six pixels; production thresholds were unchanged."
+  },
+  "behavior": "A point without printed or estimated session evidence keeps GraphX null in Review and retained domain evidence, even when the general x-axis fit is valid. Its measured pixel location, y value, ordinal and unreviewed marker remain available. Export continues rejecting it.",
+  "models_or_thresholds_changed": false,
+  "model_inference_repeated": false,
+  "native_ui_inspected": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "all_four_goal22_outcomes_verified": false,
+  "license": "No new dependency, payload or license; Apache-2.0 owned code."
+}

@@ -81,7 +81,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
 
     public string AdapterId => string.Join(
         ':',
-        "graphreader-production-detection-v2",
+        "graphreader-production-detection-v3",
         ProductionLegendSymbolInputs.Version,
         ProductionTextMarkerExclusion.Version,
         ProductionPhaseGeometryContext.Version,
@@ -587,7 +587,6 @@ public sealed class ProductionAutomaticDetectionAdapter :
 
         LinearAxisTransform yTransform = calibration.YTransform.Transform ??
             throw new InvalidOperationException("Validated calibration lost its y transform.");
-        LinearAxisTransform? xTransform = calibration.XTransform?.Transform;
         var pointRows = new List<ProjectedPoint>(projectedMarkers.Length);
         foreach (ClassifiedMarker marker in projectedMarkers)
         {
@@ -609,7 +608,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 "point",
                 marker.Marker.MarkerId);
             double? graphX = xEvidence.PrintedX ?? xEvidence.EstimatedX;
-            graphX ??= xTransform?.PixelToGraph(marker.Marker.Center.X);
+            // A valid axis does not make an off-lattice marker a known session.
+            // Review must retain the same unknown value that export enforces.
             PointXSource xSource = xEvidence.PrintedX.HasValue
                 ? PointXSource.Printed
                 : xEvidence.EstimatedX.HasValue

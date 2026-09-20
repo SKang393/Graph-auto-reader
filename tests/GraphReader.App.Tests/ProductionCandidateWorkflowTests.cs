@@ -258,6 +258,43 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
+    public async Task OffLatticeMarkerKeepsUnknownXInReviewAndCannotExport()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store,
+            includeIntermediateSession: true, includeOffLatticeMarker: true);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
+        WorkflowOrchestrator workflow = CreateWorkflow(store, candidate);
+
+        WorkflowRunResult result = await workflow.RunThroughReviewAsync(Request(imagePath), null, CancellationToken.None);
+
+        Assert.IsNotNull(observation);
+        Assert.AreEqual(CalibrationValidity.Valid, observation.Calibration.Validity);
+        Assert.IsTrue(observation.Calibration.XTransform?.IsValid == true);
+        SessionXEvidence assignment = observation.Calibration.Lattice.Assignments.Single(static item => item.PixelX == 66);
+        Assert.IsNull(assignment.PrintedX);
+        Assert.IsNull(assignment.EstimatedX);
+        WorkflowReviewPanel panel = result.Review.Panels.Single();
+        var point = panel.Points.Single(static item => item.OriginalPixelX == 66);
+        Assert.IsNull(point.GraphX, "Review must not invent a session from the general axis transform.");
+        Assert.IsNotNull(point.GraphY);
+        GraphReader.Domain.PointRecord retained = store.Get(panel.PanelId).ExportEvidence!.ProjectionEvidence!.Points
+            .Single(static item => item.OriginalPixel.X == 66);
+        Assert.IsNull(retained.GraphX);
+        Assert.IsNull(retained.PrintedXValue);
+        Assert.IsNull(retained.EstimatedXValue);
+        Assert.AreEqual(GraphReader.Domain.PointXSource.ObservationOrder, retained.XSource);
+
+        WorkflowExportResult export = await workflow.ExportAsync(result.Review,
+            new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(directory.Path, "export")), CancellationToken.None);
+        Assert.IsFalse(export.Succeeded);
+        Assert.IsEmpty(export.Artifacts);
+    }
+
+    [TestMethod]
     public async Task RejectedNumericLabelsRemainAuditableWithoutBecomingAutomaticAnchorMaxima()
     {
         using var directory = new TemporaryDirectory();
@@ -541,14 +578,15 @@ public sealed class ProductionCandidateWorkflowTests
         bool shiftedNumericLabels = false,
         bool includeNumericOutliers = false,
         bool includeUncertainMarkerText = false,
-        bool candidateClassifier = false) =>
+        bool candidateClassifier = false,
+        bool includeOffLatticeMarker = false) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
             new CandidateAxisAdapter(ambiguousPhaseLayout),
             new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels, includeNumericOutliers, includeUncertainMarkerText),
             new CandidateMaskComposer(),
-            new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession),
+            new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession, includeOffLatticeMarker),
             new ClassificationAdapter(isApproved: !candidateClassifier),
             new LegendAdapter(),
             ambiguousPhaseLayout ? new ProductionPhaseReasoningAdapter() : new PhaseAdapter(cancelAfterPhase),
@@ -775,7 +813,8 @@ public sealed class ProductionCandidateWorkflowTests
         }
     }
 
-    private sealed class CandidateCenterAdapter(bool includeTextDecoy = false, bool includeIntermediateSession = false) : IProductionCandidateMarkerCenterAdapter
+    private sealed class CandidateCenterAdapter(bool includeTextDecoy = false, bool includeIntermediateSession = false,
+        bool includeOffLatticeMarker = false) : IProductionCandidateMarkerCenterAdapter
     {
         public string AdapterId => "candidate-center";
         public bool IsApproved => false;
@@ -805,6 +844,7 @@ public sealed class ProductionCandidateWorkflowTests
             ];
             if (includeTextDecoy) markers = [.. markers, new("text-decoy", new MarkerPoint(40, 30), 3, 1, 0.99, MarkerSourceImage.Original)];
             if (includeIntermediateSession) markers = [.. markers, new("unlabeled-session", new MarkerPoint(40, 35), 3, 0.01, 0.98, MarkerSourceImage.Original)];
+            if (includeOffLatticeMarker) markers = [.. markers, new("off-lattice", new MarkerPoint(66, 35), 3, 0.01, 0.30, MarkerSourceImage.Original)];
             return Task.FromResult(new ProductionMarkerCenterEvidence(
                 Envelope(request, "markers", "candidate-center-v1", "candidate-center", 'e'),
                 markers,
