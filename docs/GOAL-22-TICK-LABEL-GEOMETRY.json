@@ -1,0 +1,243 @@
+{
+  "schema": "graphreader.goal22.tick-label-geometry-integration.v1",
+  "status": "calibration_repair_verified_series_relation_defect_open",
+  "goal22_complete": false,
+  "base_commit": "87e507dce1761c2a2f11dc301e441e910f222a9f",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "c312277fece1b3827e0dbd652d486abd91fa460d41672034b2c3e5422a0b4d04",
+      "archive": "artifacts/goal22-runs/workflow-tick-label-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionTickLabelGeometry.cs",
+      "sha256": "a060ad09c3c33f24f06cb0a3f72d6d341969b0688f10a962b6fb7099062f8191",
+      "archive": "artifacts/goal22-runs/workflow-tick-label-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionTickLabelGeometry.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionTickLabelGeometryTests.cs",
+      "sha256": "3946343b6b79b44624999005f03f79ccdc1fb117d998d787f138a474dbc5d5f2",
+      "archive": "artifacts/goal22-runs/workflow-tick-label-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionTickLabelGeometryTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "5b74cc415c452a670d8cab8ca23d9fd0496e48d0b74faef14bed9e679806b268",
+      "archive": "artifacts/goal22-runs/workflow-tick-label-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs"
+    }
+  ],
+  "compiled_source_snapshot_count": 265,
+  "all_source_snapshots_verified": true,
+  "repair_definition": {
+    "failure_mode": "OCR glyph-box centers can differ from visible tick centers and produce conflicting calibration fits or a displaced session origin. Rejected OCR labels also remained eligible for numeric calibration.",
+    "subsystem": "Original-pixel tick-label association and calibration input assembly.",
+    "development_evidence": "tick-label-position-diagnostic-v1: 16/26 development X labels have unique visible outward tick associations, mean center offset 3.78125px, max6; all14 Y labels have unique associations, mean3.25px,max4.",
+    "isolated_change": "Use a unique original-pixel outward tick stroke when available; retain recognized text, confidence and polygons. Several candidate/shared strokes are reported and never selected. Unmatched labels retain the previous OCR-center input; existing robust calibration and origin checks remain unchanged. Rejected text is excluded.",
+    "thresholds": "Existing AxisGeometry TickAxisDistancePixels4 and MergeDistancePixels3; sample outward2..4px clear of glyphs by2px, require2dark pixels, stroke width<=max(2,fontheight/2); search radius fontheight or half glyph width. Foreground clamp(round(mean*.8),32,224). No private tuning.",
+    "splits": "Same20train and3development synthetic sources.",
+    "acceptance": "Application regression tests and full unchanged706-point/724-row diagnostic; no model/production acceptance claim.",
+    "sealed_budget": 0,
+    "no_new_model_revision": true,
+    "training": false
+  },
+  "comparison": {
+    "source_count": 23,
+    "previously_observed_panels": 27,
+    "observed_panels": 30,
+    "previously_visited_panels_not_reached": 0,
+    "newly_reached_panels": 3,
+    "raw_upstream_evidence_unchanged": {
+      "axis": true,
+      "accepted_markers": true,
+      "ocr": true
+    },
+    "changed_calibrations": 25,
+    "calibration_validity_before": {
+      "Valid": 12,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 6,
+      "NeedsReview": 7
+    },
+    "calibration_validity_after": {
+      "Valid": 16,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 7
+    },
+    "completed_sources": 8,
+    "failed_sources": 15,
+    "previously_completed_sources_now_failed": 0,
+    "newly_completed_sources": 2,
+    "previously_exported_points_removed": 2,
+    "previously_unexported_points_added": 34,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false
+  },
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 6,
+    "failed_cases": 17,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 16,
+    "matched_series": 6,
+    "truth_points": 706,
+    "predicted_points": 66,
+    "matched_points": 49,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 80,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 46,
+    "correct_rows": 46,
+    "missing_rows": 678,
+    "extra_rows": 34,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 0,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 49,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 657,
+    "unique_point_extra": 17,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7424242424242424,
+    "unique_point_structural_coverage": 0.06940509915014165,
+    "unique_point_value_precision": 0.7424242424242424,
+    "unique_point_value_coverage": 0.06940509915014165,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.575,
+    "relational_row_coverage": 0.06353591160220995,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 1,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 17
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 8,
+    "failed_cases": 15,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 27,
+    "matched_series": 8,
+    "truth_points": 706,
+    "predicted_points": 98,
+    "matched_points": 69,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 128,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 66,
+    "correct_rows": 61,
+    "missing_rows": 658,
+    "extra_rows": 62,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 69,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 637,
+    "unique_point_extra": 29,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7040816326530612,
+    "unique_point_structural_coverage": 0.09773371104815864,
+    "unique_point_value_precision": 0.7040816326530612,
+    "unique_point_value_coverage": 0.09773371104815864,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.4765625,
+    "relational_row_coverage": 0.08425414364640885,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9242424242424242,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 15
+    }
+  },
+  "execution_seconds": 157.60098449999998,
+  "checks": {
+    "app_tests": {
+      "path": "artifacts/goal22-runs/workflow-tick-label-checks-v2/test-results/app.trx",
+      "sha256": "dac472a556f3111cf83aee911b6954093f0d0ec09b966b4899a2aacc1884316b"
+    },
+    "app_passed": 362,
+    "app_skipped": 0,
+    "tool_build": {
+      "path": "artifacts/goal22-runs/workflow-tick-label-checks-v2/build.log",
+      "sha256": "668972b8ddbaaea99b311bf1754cf9d00c74ee51da1b35cfaaddf57cea026e1d"
+    },
+    "tool_warnings": 0,
+    "tool_errors": 0,
+    "private_runner_self_test": {
+      "path": "artifacts/goal22-runs/workflow-tick-label-checks-v2/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    }
+  },
+  "evidence": {
+    "candidate-binding.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-tick-label-v1/candidate-binding.json",
+      "sha256": "3a68af50f15578c2f2bfd9e6d600c6e5520f559772531ddde8614a32409fb584"
+    },
+    "input-manifest.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-tick-label-v1/input-manifest.json",
+      "sha256": "afd9ebf0e34c098a9beb174276e1e70f9bfc6e20c8be42ff23ca58fd4e189128"
+    },
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-tick-label-v1/execution/report.json",
+      "sha256": "6ff55c27843748cd7c48e4957c62633d09dcb7a99b80a03923ab77140fef3cec"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-tick-label-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "c1cdb34ccebcb37d554a35f80e1879ffb14b5e96b47c017c3fbe0599aa3be7f5"
+    },
+    "csv-score-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-tick-label-v1/csv-score-normalized-phases.json",
+      "sha256": "518bfd2643c51fa2a1faa66f64b177d3cc14d51b926ad68a89638068774811fe"
+    },
+    "comparison.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-tick-label-v1/comparison.json",
+      "sha256": "fe9077cdad497ea3d2ef255755ff071bcb7d3057ec245b9e967b746268c8f7a3"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-tick-label-v1/source-bindings.json",
+      "sha256": "5cb2f1f6978a22dea2f8aca6a64f59d29ed64aceae69cd77b78a5f05550e82cd"
+    },
+    "series-role-diagnosis.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-tick-label-v1/series-role-diagnosis.json",
+      "sha256": "33b98db2b1951e9fe4d2d646fddf47c8fdd68cd4ef224097f20d5b354bf7f294"
+    }
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-context-v2/csv-score-normalized-phases.json",
+    "sha256": "2bf0b0f9838b68840a9f7c86b0f814e0fb90175813d2e7639763ebe806969d65"
+  },
+  "known_limitations": [
+    "Two formerly exported true baseline points are replaced by a two-point fragment spanning intervention and baseline. The unchanged MarkerSeriesGrouper selects a largest provisional baseline and breaks ties by run-dependent series UUID. Final phase interpretation is not yet used to correct those provisional roles. Correct role/relation reconciliation before any acceptance claim.",
+    "Unmatched labels retain their prior OCR box center; ambiguous associations are reported and never selected.",
+    "15 sources still fail; 637 of 706 truth points remain missing and 29 exported detections are extra.",
+    "Five comparable relational rows have wrong phase labels. This diagnostic is not acceptance."
+  ],
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}

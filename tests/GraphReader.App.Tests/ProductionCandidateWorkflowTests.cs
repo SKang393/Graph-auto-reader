@@ -150,6 +150,32 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
+    public async Task CandidateCalibratesFromTickStrokesWithoutChangingOrReusingRejectedOcr()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100, drawXTickStrokes: true);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store, shiftedNumericLabels: true);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
+        WorkflowOrchestrator workflow = CreateWorkflow(store, candidate);
+        WorkflowRunResult result = await workflow.RunThroughReviewAsync(Request(imagePath), null, CancellationToken.None);
+        Assert.IsNotNull(observation);
+        Assert.AreEqual(CalibrationValidity.Valid, observation.Calibration.Validity);
+        Assert.IsNotNull(observation.Calibration.XTransform?.Transform);
+        Assert.AreEqual(1, observation.Calibration.XTransform.Transform.PixelToGraph(20), 1e-9);
+        Assert.AreEqual(2, observation.Calibration.XTransform.Transform.PixelToGraph(60), 1e-9);
+        Assert.AreEqual(17, observation.Ocr.Regions.Single(static item => item.RegionId == "x1").Polygon.Bounds.Center.X);
+        Assert.AreEqual("100", observation.Ocr.Regions.Single(static item => item.RegionId == "rejected-x").Text);
+        ProductionPanelExportEvidence evidence = store.Get(result.Review.Panels.Single().PanelId).ExportEvidence!;
+        Assert.IsTrue(evidence.Provenance.Any(static item => item.Stage == "ocr" && item.StageVersion == ProductionTickLabelGeometry.Version));
+        WorkflowExportResult export = await workflow.ExportAsync(result.Review,
+            new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(directory.Path, "export")), CancellationToken.None);
+        Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+        Assert.IsNotEmpty(export.Artifacts);
+    }
+
+    [TestMethod]
     public async Task CandidateResolvesAnAmbiguousMeasuredBoundaryBeforeReview()
     {
         using var directory = new TemporaryDirectory();
@@ -428,12 +454,13 @@ public sealed class ProductionCandidateWorkflowTests
         bool omitYTicks = false,
         bool includeTextDecoy = false,
         bool includeIntermediateSession = false,
-        bool ambiguousPhaseLayout = false) =>
+        bool ambiguousPhaseLayout = false,
+        bool shiftedNumericLabels = false) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
             new CandidateAxisAdapter(ambiguousPhaseLayout),
-            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout),
+            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels),
             new CandidateMaskComposer(),
             new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession),
             new ClassificationAdapter(),
@@ -529,7 +556,7 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     private sealed class CandidateOcrAdapter(bool omitYTicks = false, bool includeTextDecoy = false, bool includeIntermediateSession = false,
-        bool ambiguousPhaseLayout = false) : IProductionCandidateOcrAdapter
+        bool ambiguousPhaseLayout = false, bool shiftedNumericLabels = false) : IProductionCandidateOcrAdapter
     {
         public string AdapterId => "candidate-ocr";
         public bool IsApproved => false;
@@ -561,6 +588,13 @@ public sealed class ProductionCandidateWorkflowTests
                 Region("y100", 2, 18, "100", OcrTextRole.YTick),
                 Region("participant", 55, 4, "Synthetic", OcrTextRole.Participant),
             ];
+            if (shiftedNumericLabels)
+            {
+                regions = regions.Select(region => region.Role == OcrTextRole.XTick
+                    ? region with { Polygon = OcrPolygon.FromRectangle(new(region.Polygon.Bounds.X - 3, 56, 4, 4)) }
+                    : region).ToArray();
+                regions = [.. regions, Region("rejected-x", 38, 56, "100", OcrTextRole.XTick) with { ReviewStatus = OcrReviewStatus.Rejected }];
+            }
             if (omitYTicks) regions = regions.Where(static region => region.Role != OcrTextRole.YTick).ToArray();
             if (includeTextDecoy) regions = [.. regions, Region("annotation", 38, 28, "Note", OcrTextRole.Annotation)];
             if (ambiguousPhaseLayout) regions = [.. regions,
@@ -836,9 +870,16 @@ public sealed class ProductionCandidateWorkflowTests
             throw new NotSupportedException();
     }
 
-    private static string WritePng(string directory, string fileName, int width, int height)
+    private static string WritePng(string directory, string fileName, int width, int height, bool drawXTickStrokes = false)
     {
         byte[] pixels = Enumerable.Repeat((byte)255, checked(width * height * 4)).ToArray();
+        if (drawXTickStrokes)
+        {
+            // Panel pixels x=20/60 and y=50..55, mapped through SourceCrop.
+            foreach (int x in new[] { 30, 70 })
+            for (int y = 70; y <= 75; y++)
+            for (int channel = 0; channel < 3; channel++) pixels[(y * width + x) * 4 + channel] = 0;
+        }
         BitmapSource bitmap = BitmapSource.Create(
             width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
         var encoder = new PngBitmapEncoder();

@@ -85,6 +85,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionLegendSymbolInputs.Version,
         ProductionTextMarkerExclusion.Version,
         ProductionPhaseGeometryContext.Version,
+        ProductionTickLabelGeometry.Version,
         axisAdapter.AdapterId,
         ocrAdapter.AdapterId,
         markerCenterAdapter.Model.Sha256[..12].ToLowerInvariant(),
@@ -217,6 +218,28 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 chain.Append(evidence.Envelope);
             }
 
+            var tickGeometryTimer = System.Diagnostics.Stopwatch.StartNew();
+            TickLabelGeometryResult tickGeometry;
+            try
+            {
+                tickGeometry = ProductionTickLabelGeometry.Resolve(
+                    axis.Geometry, raster.CreateOcrImage(), ocr.Result.Regions, cancellationToken);
+            }
+            catch (Exception exception) when (exception is ArgumentException or OverflowException)
+            {
+                throw chain.Reject(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                    "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
+                    "Retain OCR evidence and review the original-pixel tick geometry."));
+            }
+            tickGeometryTimer.Stop();
+            if (tickGeometry.Warnings.Count > 0)
+                chain.Append(new WorkflowVisionEnvelope(
+                    1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                    "ocr", ProductionTickLabelGeometry.Version, request.Image.Sha256, null,
+                    new WorkflowVisionTiming(tickGeometryTimer.Elapsed.TotalMilliseconds, 0, 0, tickGeometryTimer.Elapsed.TotalMilliseconds),
+                    Math.Min(axis.Geometry.Confidence, ocr.Result.Confidence), tickGeometry.Warnings, request.Transforms));
+
             ProductionDetectionMaskEvidence masks = await (candidateEvaluation
                     ? ((IProductionCandidateDetectionMaskComposer)maskComposer)
                         .ComposeForCandidateEvaluationAsync(
@@ -327,6 +350,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             SessionFirstCalibrationResult calibration = FitCalibration(
                 axis.Geometry,
                 ocr.Result,
+                tickGeometry,
                 acceptedMarkers,
                 cancellationToken);
             if (candidateEvaluation && CandidateCalibrationObserver is { } observe)
@@ -740,20 +764,21 @@ public sealed class ProductionAutomaticDetectionAdapter :
     private static SessionFirstCalibrationResult FitCalibration(
         AxisGeometryResult axis,
         OcrResult ocr,
+        TickLabelGeometryResult tickGeometry,
         IReadOnlyList<ClassifiedMarker> markers,
         CancellationToken cancellationToken)
     {
         NumericTickEvidence[] yTicks = ParseTicks(ocr, OcrTextRole.YTick)
             .Select(item => new NumericTickEvidence(
                 item.Region.RegionId,
-                item.Region.Polygon.Bounds.Center.Y,
+                tickGeometry.Positions.GetValueOrDefault(item.Region.RegionId, item.Region.Polygon.Bounds.Center.Y),
                 item.Value,
                 item.Confidence))
             .ToArray();
         PrintedXTickEvidence[] xTicks = ParseTicks(ocr, OcrTextRole.XTick)
             .Select(item => new PrintedXTickEvidence(
                 item.Region.RegionId,
-                item.Region.Polygon.Bounds.Center.X,
+                tickGeometry.Positions.GetValueOrDefault(item.Region.RegionId, item.Region.Polygon.Bounds.Center.X),
                 item.Value,
                 item.Confidence))
             .ToArray();
@@ -798,7 +823,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
 
     private static IEnumerable<ParsedTick> ParseTicks(OcrResult ocr, OcrTextRole role)
     {
-        foreach (OcrRegion region in ocr.Regions.Where(region => region.Role == role))
+        foreach (OcrRegion region in ocr.Regions.Where(region => region.Role == role && region.ReviewStatus != OcrReviewStatus.Rejected))
         {
             NumericParseResult parsed = GraphNumericParser.Parse(region.Text);
             if (parsed.IsSuccess && parsed.Value is { } value)
