@@ -59,6 +59,10 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     enhancementEnabled: false)), null, CancellationToken.None);
             WorkflowReviewPanel panel = run.Review.Panels.Single();
             Assert.HasCount(offsetLegendDetection ? 4 : 3, classifier.LastInputs);
+            Assert.HasCount(1, classifier.LastContentBounds);
+            Assert.AreEqual(new MarkerRectangle(17, 21, 7, 7), classifier.LastContentBounds.Values.Single());
+            Assert.IsFalse(classifier.LastContentBounds.ContainsKey("raw-1"));
+            Assert.IsFalse(classifier.LastContentBounds.ContainsKey("raw-2"));
             Assert.IsTrue(classifier.LastInputs.Any(static marker => marker.Center.X == 20.5 && marker.Center.Y == 24.5));
             Assert.HasCount(2, panel.Points);
             Assert.IsFalse(panel.Points.Any(static point => point.OriginalPixelY == 24.5));
@@ -729,6 +733,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private sealed class ClassificationAdapter(bool rejectLegendSymbols = false) : IProductionMarkerClassificationAdapter
     {
         public IReadOnlyList<MarkerCenter> LastInputs { get; private set; } = Array.Empty<MarkerCenter>();
+        public IReadOnlyDictionary<string, MarkerRectangle> LastContentBounds { get; private set; } =
+            new Dictionary<string, MarkerRectangle>();
         public string AdapterId => "test-classifier";
 
         public bool IsApproved => true;
@@ -738,6 +744,17 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             "classifier-v1",
             new string('e', 64),
             "memory:classifier.onnx");
+
+        public Task<ProductionMarkerClassificationEvidence> ClassifyAsync(
+            ProductionWorkflowDetectionRequest request,
+            MarkerImageFrame image,
+            IReadOnlyList<MarkerCenter> markers,
+            IReadOnlyDictionary<string, MarkerRectangle> originalPixelContentBounds,
+            CancellationToken cancellationToken)
+        {
+            LastContentBounds = originalPixelContentBounds;
+            return ClassifyAsync(request, image, markers, cancellationToken);
+        }
 
         public Task<ProductionMarkerClassificationEvidence> ClassifyAsync(
             ProductionWorkflowDetectionRequest request,

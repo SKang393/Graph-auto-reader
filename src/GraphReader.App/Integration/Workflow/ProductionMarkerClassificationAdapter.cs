@@ -23,6 +23,15 @@ public interface IProductionMarkerClassificationAdapter
         MarkerImageFrame image,
         IReadOnlyList<MarkerCenter> markers,
         CancellationToken cancellationToken);
+
+    Task<ProductionMarkerClassificationEvidence> ClassifyAsync(
+        ProductionWorkflowDetectionRequest request,
+        MarkerImageFrame image,
+        IReadOnlyList<MarkerCenter> markers,
+        IReadOnlyDictionary<string, MarkerRectangle> originalPixelContentBounds,
+        CancellationToken cancellationToken) => originalPixelContentBounds.Count == 0
+            ? ClassifyAsync(request, image, markers, cancellationToken)
+            : throw new NotSupportedException("This classifier does not support measured symbol content isolation.");
 }
 
 public sealed record ProductionMarkerClassificationEvidence(
@@ -119,10 +128,32 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionMarkerCla
             () => new MarkerClassificationService(runtimeHost.Runtime));
     }
 
-    public async Task<ProductionMarkerClassificationEvidence> ClassifyAsync(
+    public Task<ProductionMarkerClassificationEvidence> ClassifyAsync(
         ProductionWorkflowDetectionRequest request,
         MarkerImageFrame image,
         IReadOnlyList<MarkerCenter> markers,
+        CancellationToken cancellationToken) => ClassifyCoreAsync(request, image, markers, options, cancellationToken);
+
+    public Task<ProductionMarkerClassificationEvidence> ClassifyAsync(
+        ProductionWorkflowDetectionRequest request,
+        MarkerImageFrame image,
+        IReadOnlyList<MarkerCenter> markers,
+        IReadOnlyDictionary<string, MarkerRectangle> originalPixelContentBounds,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(originalPixelContentBounds);
+        return ClassifyCoreAsync(request, image, markers, originalPixelContentBounds.Count == 0 ? options : options with
+        {
+            OriginalPixelContentBounds = originalPixelContentBounds,
+            StageVersion = options.StageVersion + ":isolated-symbol-v1",
+        }, cancellationToken);
+    }
+
+    private async Task<ProductionMarkerClassificationEvidence> ClassifyCoreAsync(
+        ProductionWorkflowDetectionRequest request,
+        MarkerImageFrame image,
+        IReadOnlyList<MarkerCenter> markers,
+        MarkerClassificationOptions executionOptions,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -158,7 +189,7 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionMarkerCla
                         Model,
                         image,
                         markers,
-                        options,
+                        executionOptions,
                         transformChain: TransformChain(request.Transforms)),
                     cancellationToken)
                 .ConfigureAwait(false);

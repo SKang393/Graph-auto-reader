@@ -12,7 +12,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Separates image-backed legend samples from plotted observations.</summary>
 internal static class ProductionLegendSymbolInputs
 {
-    internal const string Version = "original-pixel-legend-symbol-inputs-v1";
+    internal const string Version = "original-pixel-legend-symbol-inputs-v2";
 
     internal static LegendSymbolInputBatch Prepare(
         ProductionWorkflowDetectionRequest request,
@@ -27,6 +27,7 @@ internal static class ProductionLegendSymbolInputs
         var inputs = plotCandidates.ToList();
         var symbolIds = new HashSet<string>(StringComparer.Ordinal);
         var symbolCropIds = new HashSet<string>(StringComparer.Ordinal);
+        var contentBounds = new Dictionary<string, MarkerRectangle>(StringComparer.Ordinal);
         var warnings = new List<string>();
         foreach (FramedLegendRoleEvidence evidence in found
             .OrderBy(static item => item.RegionId, StringComparer.Ordinal)
@@ -56,6 +57,7 @@ internal static class ProductionLegendSymbolInputs
                     radius, 0, Math.Min(text.Confidence, 0.70), MarkerSourceImage.Original));
             symbolIds.Add(id);
             symbolCropIds.Add(id);
+            contentBounds.Add(id, new MarkerRectangle(glyph.X, glyph.Y, glyph.Width, glyph.Height));
             warnings.Add($"legend_symbol_original_pixels:{id}:{evidence.RegionId}:{geometry}");
         }
         timer.Stop();
@@ -65,7 +67,7 @@ internal static class ProductionLegendSymbolInputs
             new WorkflowVisionTiming(timer.Elapsed.TotalMilliseconds, 0, 0, timer.Elapsed.TotalMilliseconds),
             0.70, warnings, request.Transforms);
         return new(Array.AsReadOnly(inputs.ToArray()), symbolIds.ToFrozenSet(StringComparer.Ordinal),
-            symbolCropIds.ToFrozenSet(StringComparer.Ordinal), envelope);
+            symbolCropIds.ToFrozenSet(StringComparer.Ordinal), contentBounds.ToFrozenDictionary(StringComparer.Ordinal), envelope);
     }
 }
 
@@ -73,4 +75,5 @@ internal sealed record LegendSymbolInputBatch(
     IReadOnlyList<MarkerCenter> ClassifierInputs,
     IReadOnlySet<string> SymbolInputIds,
     IReadOnlySet<string> SymbolCropInputIds,
+    IReadOnlyDictionary<string, MarkerRectangle> OriginalPixelContentBounds,
     WorkflowVisionEnvelope? Envelope);

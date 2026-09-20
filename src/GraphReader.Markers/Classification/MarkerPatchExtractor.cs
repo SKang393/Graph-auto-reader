@@ -20,6 +20,7 @@ public sealed class MarkerPatchExtractor : IMarkerPatchExtractor
 
         ValidateImage(image);
         ValidateOptions(options);
+        ValidateContentBounds(image, markers, options.OriginalPixelContentBounds);
 
         var patches = new MarkerPatch[markers.Count];
         for (var markerIndex = 0; markerIndex < markers.Count; markerIndex++)
@@ -60,6 +61,8 @@ public sealed class MarkerPatchExtractor : IMarkerPatchExtractor
 
         var area = checked(options.Width * options.Height);
         var patch = new float[checked(area * options.ChannelCount)];
+        MarkerRectangle? contentBounds = options.OriginalPixelContentBounds is { } bounds &&
+            bounds.TryGetValue(marker.MarkerId, out MarkerRectangle selected) ? selected : null;
         for (var patchY = 0; patchY < options.Height; patchY++)
         {
             var sourceY = frameCenter.Y +
@@ -72,7 +75,8 @@ public sealed class MarkerPatchExtractor : IMarkerPatchExtractor
                     image,
                     sourceX,
                     sourceY,
-                    options.PaddingValue);
+                    options.PaddingValue,
+                    contentBounds);
             }
         }
 
@@ -88,7 +92,8 @@ public sealed class MarkerPatchExtractor : IMarkerPatchExtractor
         MarkerImageFrame image,
         double x,
         double y,
-        float paddingValue)
+        float paddingValue,
+        MarkerRectangle? contentBounds)
     {
         if (x < 0 || y < 0 || x > image.Width - 1 || y > image.Height - 1)
         {
@@ -106,16 +111,38 @@ public sealed class MarkerPatchExtractor : IMarkerPatchExtractor
         for (var channel = 0; channel < image.ChannelCount; channel++)
         {
             var channelOffset = checked(channel * image.Width * image.Height);
-            var topLeft = pixels[channelOffset + (y0 * image.Width) + x0];
-            var topRight = pixels[channelOffset + (y0 * image.Width) + x1];
-            var bottomLeft = pixels[channelOffset + (y1 * image.Width) + x0];
-            var bottomRight = pixels[channelOffset + (y1 * image.Width) + x1];
+            var topLeft = Brightness(pixels, channelOffset, image.Width, x0, y0, contentBounds);
+            var topRight = Brightness(pixels, channelOffset, image.Width, x1, y0, contentBounds);
+            var bottomLeft = Brightness(pixels, channelOffset, image.Width, x0, y1, contentBounds);
+            var bottomRight = Brightness(pixels, channelOffset, image.Width, x1, y1, contentBounds);
             var top = topLeft + ((topRight - topLeft) * xFraction);
             var bottom = bottomLeft + ((bottomRight - bottomLeft) * xFraction);
             brightness += top + ((bottom - top) * yFraction);
         }
 
         return 1 - (brightness / image.ChannelCount);
+    }
+
+    private static float Brightness(ReadOnlySpan<float> pixels, int channelOffset, int width,
+        int x, int y, MarkerRectangle? bounds) => bounds is { } box &&
+        (x < box.Left || x >= box.Right || y < box.Top || y >= box.Bottom)
+            ? 1f : pixels[channelOffset + (y * width) + x];
+
+    private static void ValidateContentBounds(MarkerImageFrame image, IReadOnlyList<MarkerCenter> markers,
+        IReadOnlyDictionary<string, MarkerRectangle>? bounds)
+    {
+        if (bounds is null || bounds.Count == 0) return;
+        if (image.SourceImage != MarkerSourceImage.Original || image.OriginalToFrame != MarkerAffineTransform.Identity)
+            throw new ArgumentException("Symbol content isolation requires aligned original pixels.", nameof(bounds));
+        foreach ((string id, MarkerRectangle box) in bounds)
+        {
+            MarkerCenter? marker = markers.FirstOrDefault(item => item is not null && item.MarkerId == id);
+            if (marker is null || !box.IsValid || box.Left < 0 || box.Top < 0 ||
+                box.Right > image.Width || box.Bottom > image.Height ||
+                marker.Center.X < box.Left || marker.Center.X >= box.Right ||
+                marker.Center.Y < box.Top || marker.Center.Y >= box.Bottom)
+                throw new ArgumentException("Symbol bounds must enclose their named marker in original pixels.", nameof(bounds));
+        }
     }
 
     private static void ValidateImage(MarkerImageFrame image)

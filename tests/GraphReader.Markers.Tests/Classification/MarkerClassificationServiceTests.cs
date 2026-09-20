@@ -16,6 +16,26 @@ namespace GraphReader.Markers.Tests.Classification;
 public sealed class MarkerClassificationFakeInferenceTests
 {
     [TestMethod]
+    public async Task ContentBoundsAreImmutableAndChangeCacheIdentityEvenForWhiteImages()
+    {
+        var marker = ClassificationTestSupport.Marker("symbol", 16, 16, 3);
+        var bounds = new Dictionary<string, MarkerRectangle> { ["symbol"] = new(14, 14, 5, 5) };
+        var first = ClassificationTestSupport.Request(markers: [marker], options: ClassificationTestSupport.Options() with
+        { OriginalPixelContentBounds = bounds });
+        bounds["symbol"] = new(13, 13, 7, 7);
+        Assert.AreEqual(new MarkerRectangle(14, 14, 5, 5), first.Options.OriginalPixelContentBounds!["symbol"]);
+        var second = ClassificationTestSupport.Request(markers: [marker], options: ClassificationTestSupport.Options() with
+        { OriginalPixelContentBounds = bounds });
+        var response = ClassificationInferenceResponses.Success([(MarkerShape.Circle, MarkerFill.Filled)]);
+        var runner = new ClassificationInferenceRunnerStub(response, response);
+        var service = new MarkerClassificationService(runner);
+        Assert.IsTrue((await service.ClassifyAsync(first, CancellationToken.None)).Succeeded);
+        Assert.IsTrue((await service.ClassifyAsync(second, CancellationToken.None)).Succeeded);
+        Assert.AreNotEqual(InferenceCacheKeyDeriver.Derive(runner.Requests[0]).Value, InferenceCacheKeyDeriver.Derive(runner.Requests[1]).Value);
+        CollectionAssert.AreEqual(runner.Requests[0].Input.Values.ToArray(), runner.Requests[1].Input.Values.ToArray());
+    }
+
+    [TestMethod]
     public async Task MixedRequiredShapesAndFillsDecodeIndependentlyAcrossBatches()
     {
         (MarkerShape Shape, MarkerFill Fill)[] identities =

@@ -258,10 +258,20 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     "Retain earlier detection evidence and review the legend geometry."));
             }
             if (legendInputs.Envelope is not null) chain.Append(legendInputs.Envelope);
-            ProductionMarkerClassificationEvidence classification =
-                await markerClassificationAdapter
-                    .ClassifyAsync(request, markerFrame, legendInputs.ClassifierInputs, cancellationToken)
-                    .ConfigureAwait(false);
+            ProductionMarkerClassificationEvidence classification;
+            try
+            {
+                classification = await markerClassificationAdapter
+                    .ClassifyAsync(request, markerFrame, legendInputs.ClassifierInputs,
+                        legendInputs.OriginalPixelContentBounds, cancellationToken).ConfigureAwait(false);
+            }
+            catch (NotSupportedException exception)
+            {
+                throw chain.Reject(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                    "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
+                    "Retain detection evidence and use a classifier that supports isolated legend symbols."));
+            }
             chain.Append(classification.Envelope);
 
             ClassifiedMarker[] plotMarkers = CanonicalizeMarkers(

@@ -1,0 +1,286 @@
+{
+  "schema": "graphreader.legend-symbol-isolation-summary.v1",
+  "status": "development_preprocessing_improvement_below_full_legend_acceptance",
+  "synthetic_only": true,
+  "private_data": false,
+  "sealed_data": false,
+  "production_approved": false,
+  "optimizer_steps": 0,
+  "before": {
+    "train": {
+      "true_legend_entries": 30,
+      "predicted_legend_labels": 35,
+      "located_symbols": 21,
+      "shape_correct": 12,
+      "fill_correct": 16,
+      "accepted_as_nonartifact": 7,
+      "correct_accepted_shape_and_fill": 6,
+      "shape_confusion": {
+        "circle->square": 9,
+        "circle->circle": 3,
+        "square->square": 9
+      }
+    },
+    "validation": {
+      "true_legend_entries": 11,
+      "predicted_legend_labels": 3,
+      "located_symbols": 3,
+      "shape_correct": 1,
+      "fill_correct": 2,
+      "accepted_as_nonartifact": 0,
+      "correct_accepted_shape_and_fill": 0,
+      "shape_confusion": {
+        "star->star": 1,
+        "triangle_up->square": 1,
+        "triangle_down->square": 1
+      }
+    }
+  },
+  "after": {
+    "train": {
+      "true_legend_entries": 30,
+      "predicted_legend_labels": 35,
+      "located_symbols": 21,
+      "shape_correct": 16,
+      "fill_correct": 16,
+      "accepted_as_nonartifact": 21,
+      "correct_accepted_shape_and_fill": 11,
+      "shape_confusion": {
+        "circle->other": 5,
+        "circle->circle": 7,
+        "square->square": 9
+      }
+    },
+    "validation": {
+      "true_legend_entries": 11,
+      "predicted_legend_labels": 3,
+      "located_symbols": 3,
+      "shape_correct": 3,
+      "fill_correct": 3,
+      "accepted_as_nonartifact": 3,
+      "correct_accepted_shape_and_fill": 3,
+      "shape_confusion": {
+        "star->star": 1,
+        "triangle_up->triangle_up": 1,
+        "triangle_down->triangle_down": 1
+      }
+    }
+  },
+  "changed_outcomes": {
+    "shape_correct": 6,
+    "fill_correct": 1,
+    "accepted_as_nonartifact": 17
+  },
+  "invariants": {
+    "panel_count": 37,
+    "symbol_count": 24,
+    "same_panel_pixels_and_symbol_geometry": true,
+    "same_model_manifest_provider_and_artifact_threshold": true,
+    "same_saved_ocr_output": true,
+    "full_legend_entry_denominators_retained": true,
+    "original_truth_score_reused_without_regeneration": true
+  },
+  "timing_milliseconds": {
+    "before": 2025.569,
+    "after": 1628.3638
+  },
+  "bindings": [
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-classifier-v1/evaluation3/report.json",
+      "sha256": "940c3d860173d46a4ce393e950cfece367d4eb6695f0718a977cd77b4777493c"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-classifier-v1/score.json",
+      "sha256": "5bc3b96d3a7e3bc37ddd9ca68eb61b723583b9c8212a62168404df5000899bca"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-isolation-v1/evaluation/report.json",
+      "sha256": "05230e9504b30694ac50b79f197608b4bffdbc2da01990fdf992bfd00023a290"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-isolation-v1/execution-bindings.json",
+      "sha256": "48b37709aa05e40185a0339737337729f09b0e6efb278571aa8683f50128bca1"
+    },
+    {
+      "path": "artifacts/goal22-tools/Compare-LegendSymbolIsolation.py",
+      "sha256": "7b4887813e3a13e12985ed32f949fe7ef01d656b2b0c8d1f71dbf8c2f5d6ba54"
+    }
+  ],
+  "goal_22_acceptance": "FAIL",
+  "failure_mode": {
+    "measured_symbol_crops": 24,
+    "crops_intersecting_legend_frame": 24,
+    "cause": "Default 2.25-radius classifier crops include legend-frame and adjacent-text pixels outside the measured symbol bounds."
+  },
+  "change": "Pad outside measured symbol content bounds while preserving glyph pixels, original images, patch radius/scale, weights and artifact threshold.",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+      "sha256": "6ccbd339e1aa5082d19c6821a0b96f6bb3e7f1a4d92865f56646a381d3528761"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionLegendSymbolInputs.cs",
+      "sha256": "b23e525b1f17fbb70950f106a8feae0dc642ae51856a910de9c905a1972e343c"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionMarkerClassificationAdapter.cs",
+      "sha256": "4ebc4ab294dbbabcf4375d67fe496c3b146af78a28787facb48e655360a5af89"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionRasterFrameDecoder.cs",
+      "sha256": "16050d8672bc75f0ed742a102b85334c11a387ad4b894a434bc77126c3bf8c89"
+    },
+    {
+      "path": "src/GraphReader.Markers/Classification/MarkerClassificationService.cs",
+      "sha256": "c6835d703a6228712e895614fd5001d168276001fecd225e1b786ef71e651f47"
+    },
+    {
+      "path": "src/GraphReader.Markers/Classification/MarkerPatchExtractor.cs",
+      "sha256": "5c15dff2dd3f3dfd0685ba9f5380eb1e82dc0c37ee16438795fa00a033fd13ca"
+    },
+    {
+      "path": "src/GraphReader.Markers/Classification/MarkerClassificationContracts.cs",
+      "sha256": "c38f541a828801cd271f47e1c3a1cc1ff687f8b5b41e67ec33ae41485a4cbad9"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "c000f4dc2341c6f8355680f934d2717f863f3edcdb3287b71c4073cca4f52de0"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs",
+      "sha256": "d840616dc1f1f4abe949044a890c0b29fbaed80b6c601ceea3c9a84a2e987be0"
+    },
+    {
+      "path": "tests/GraphReader.Markers.Tests/Classification/MarkerPatchExtractorTests.cs",
+      "sha256": "55129b1f97f0f415b507213ee468aacf8a12f877009408dc3ee24427390a06eb"
+    },
+    {
+      "path": "tests/GraphReader.Markers.Tests/Classification/MarkerClassificationServiceTests.cs",
+      "sha256": "304cf6369b124bd62245a8fb76ba6a37f4db8119346359473bd88fdad91c9e78"
+    }
+  ],
+  "execution_bindings": {
+    "path": "artifacts/goal22-runs/legend-symbol-isolation-v1/execution-bindings.json",
+    "sha256": "48b37709aa05e40185a0339737337729f09b0e6efb278571aa8683f50128bca1"
+  },
+  "prior_source_archive": {
+    "path": "artifacts/goal22-runs/legend-symbol-classifier-v1/source-before-isolation/manifest.json",
+    "sha256": "5f9f0b27cfef5904efb0e9d804ae0d510411c78a34f9d30d37739802fd648028",
+    "verified_sources": 9
+  },
+  "local_tests": [
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-isolation-v1/test-results/classifier-final.trx",
+      "sha256": "e8ae2e4f4c7fc442f614a1ddcf8a133602b1595f641a2711d06ed44dfc53d317",
+      "counts": {
+        "total": 34,
+        "executed": 33,
+        "passed": 33,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "times": {
+        "creation": "2026-09-20T00:01:03.3713535-04:00",
+        "queuing": "2026-09-20T00:01:03.3713536-04:00",
+        "start": "2026-09-20T00:01:02.5208501-04:00",
+        "finish": "2026-09-20T00:01:03.4733568-04:00"
+      },
+      "skipped_result_count": 1
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-isolation-v1/test-results/workflow.trx",
+      "sha256": "16ab7e5d907018275f667ff7d4e679a70fa91886d943dd85dce4a3c876da6761",
+      "counts": {
+        "total": 35,
+        "executed": 35,
+        "passed": 35,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "times": {
+        "creation": "2026-09-19T23:59:46.1647532-04:00",
+        "queuing": "2026-09-19T23:59:46.1647538-04:00",
+        "start": "2026-09-19T23:59:42.6464144-04:00",
+        "finish": "2026-09-19T23:59:46.3955948-04:00"
+      },
+      "skipped_result_count": 0
+    }
+  ],
+  "compiler": {
+    "warnings": 0,
+    "errors": 0,
+    "elapsed_seconds": 9.27
+  },
+  "provider": "directml",
+  "cpu_fallback_execution_claimed": false,
+  "unchanged": [
+    "Model payload, manifest, notice and production approval identities",
+    "Original panel pixels and detected symbol geometry",
+    "Saved OCR labels and roles",
+    "0.5 artifact rejection threshold",
+    "All non-symbol point crops",
+    "Frozen train/development split and full legend denominators"
+  ],
+  "metric_limitations": [
+    "This is a development diagnostic of 24 located symbols, not a full legend/OCR stage acceptance run.",
+    "Only 3 of 11 development legend entries are located; eight remain missing.",
+    "Train symbol shape/fill mistakes remain; 11 of 30 total train legend entries are correctly classified and accepted.",
+    "No private/sealed, new model revision, optimizer step, packaged build, tag or release."
+  ],
+  "startup_repairs": [
+    {
+      "directory": "artifacts\\goal22-runs\\legend-symbol-classifier-v1\\evaluation",
+      "model_inference": false,
+      "error": "MODEL_STORE_EXTRA_FILE: source model-store directory contains packaging and source files. Use its already-staged package directory, whose file allowlist is validated by ProductionModelStore."
+    },
+    {
+      "directory": "artifacts\\goal22-runs\\legend-symbol-classifier-v1\\evaluation2",
+      "model_inference": false,
+      "error": "Probe compared uppercase resolved SHA-256 against lowercase literal with case sensitivity. Payload bytes are unchanged; compare case-insensitively."
+    },
+    {
+      "model_inference": false,
+      "error": "CS7036: MarkerPatchExtractionOptions requires width, height and channel count; repaired to the manifest dimensions 32x32x1 before model execution."
+    },
+    {
+      "model_inference_repeated": false,
+      "error": "First score check used a historical renderer digest. Switched to the already-authenticated current generator digests in the frozen preflight report; fixed dev PNG hashes must still match exactly."
+    }
+  ],
+  "baseline_ci": {
+    "commit": "07a1199b9ea0b01b54a43cb66c8d1addf6bff117",
+    "status": "completed",
+    "run_id": 35487536082,
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35487536082",
+    "conclusion": "success"
+  },
+  "license_review": "No dependency/model/font/native payload added or changed. New code Apache-2.0; synthetic train/dev only.",
+  "packaged_build": false,
+  "new_model_revision": false,
+  "retained_portable": {
+    "build_number": 433,
+    "version": "0.4.33"
+  }
+}

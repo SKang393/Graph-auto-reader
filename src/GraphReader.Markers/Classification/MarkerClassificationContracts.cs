@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.Collections;
+using System.Collections.Frozen;
 using GraphReader.Inference;
 using GraphReader.Markers.Detection;
 
@@ -103,6 +104,9 @@ public sealed record MarkerPatchExtractionOptions(
     public double MinimumHalfExtentFramePixels { get; init; } = 4;
 
     public float PaddingValue { get; init; }
+
+    /// <summary>Optional measured symbol bounds; samples outside them become white padding.</summary>
+    public IReadOnlyDictionary<string, MarkerRectangle>? OriginalPixelContentBounds { get; init; }
 }
 
 public sealed record MarkerClassificationOptions(MarkerClassifierTensorContract TensorContract)
@@ -114,6 +118,8 @@ public sealed record MarkerClassificationOptions(MarkerClassifierTensorContract 
     public double MinimumPatchHalfExtentFramePixels { get; init; } = 4;
 
     public float PatchPaddingValue { get; init; }
+
+    public IReadOnlyDictionary<string, MarkerRectangle>? OriginalPixelContentBounds { get; init; }
 
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(30);
 
@@ -140,7 +146,11 @@ public sealed class MarkerClassificationRequest
         Image = CopyFrame(image ?? throw new ArgumentNullException(nameof(image)));
         Markers = ClassificationCollections.Freeze(
             markers ?? throw new ArgumentNullException(nameof(markers)));
-        Options = options ?? throw new ArgumentNullException(nameof(options));
+        ArgumentNullException.ThrowIfNull(options);
+        Options = options with
+        {
+            OriginalPixelContentBounds = options.OriginalPixelContentBounds?.ToFrozenDictionary(StringComparer.Ordinal),
+        };
         ContractVersion = contractVersion;
         TransformChain = transformChain;
     }

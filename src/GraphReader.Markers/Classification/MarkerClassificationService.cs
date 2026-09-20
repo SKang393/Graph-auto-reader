@@ -280,6 +280,7 @@ public sealed class MarkerClassificationService : IMarkerClassificationService
             RadiusScale = options.PatchRadiusScale,
             MinimumHalfExtentFramePixels = options.MinimumPatchHalfExtentFramePixels,
             PaddingValue = options.PatchPaddingValue,
+            OriginalPixelContentBounds = options.OriginalPixelContentBounds,
         };
 
     private static InferenceRequest CreateInferenceRequest(
@@ -337,6 +338,13 @@ public sealed class MarkerClassificationService : IMarkerClassificationService
         }
 
         parameters["markers"] = markerMaterial;
+        if (request.Options.OriginalPixelContentBounds is { Count: > 0 } bounds)
+        {
+            parameters["content_isolation_version"] = "original-pixel-symbol-bounds-v1";
+            parameters["original_pixel_content_bounds"] = bounds.OrderBy(static item => item.Key, StringComparer.Ordinal)
+                .Select(static item => new object[] { item.Key, item.Value.X, item.Value.Y, item.Value.Width, item.Value.Height })
+                .ToArray();
+        }
         return new InferenceRequest(
             request.Model,
             new InferenceInput(

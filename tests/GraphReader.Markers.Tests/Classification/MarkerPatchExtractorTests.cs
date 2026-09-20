@@ -11,6 +11,63 @@ namespace GraphReader.Markers.Tests.Classification;
 public sealed class MarkerPatchExtractorTests
 {
     [TestMethod]
+    public void IsolatedSymbolMatchesCleanPixelsAndLeavesOtherMarkerCropsUnchanged()
+    {
+        float[] dirty = Enumerable.Repeat(1f, ClassificationTestSupport.FrameSizeSquared).ToArray();
+        float[] clean = [.. dirty];
+        for (int y = 14; y < 19; y++)
+            for (int x = 14; x < 19; x++)
+                dirty[y * 32 + x] = clean[y * 32 + x] = (x + y) % 2 == 0 ? 0 : 0.5f;
+        for (int y = 9; y < 24; y++)
+            for (int x = 9; x < 24; x++)
+                if (x < 14 || x >= 19 || y < 14 || y >= 19) dirty[y * 32 + x] = 0;
+        float[] unchanged = [.. dirty];
+        MarkerCenter[] markers = [ClassificationTestSupport.Marker("symbol", 16, 16, 3),
+            ClassificationTestSupport.Marker("point", 8, 8, 3)];
+        var options = new MarkerPatchExtractionOptions(32, 32, 1);
+        var extractor = new MarkerPatchExtractor();
+        var baseline = extractor.Extract(ClassificationTestSupport.Frame(dirty), markers, options, CancellationToken.None);
+        var expected = extractor.Extract(ClassificationTestSupport.Frame(clean), markers, options, CancellationToken.None);
+        var actual = extractor.Extract(ClassificationTestSupport.Frame(dirty), markers, options with
+        {
+            OriginalPixelContentBounds = new Dictionary<string, MarkerRectangle>
+            { ["symbol"] = new(14, 14, 5, 5) },
+        }, CancellationToken.None);
+        CollectionAssert.AreEqual(expected[0].ChannelsFirstPixels.ToArray(), actual[0].ChannelsFirstPixels.ToArray());
+        CollectionAssert.AreEqual(baseline[1].ChannelsFirstPixels.ToArray(), actual[1].ChannelsFirstPixels.ToArray());
+        CollectionAssert.AreEqual(unchanged, dirty);
+        Assert.AreEqual(markers[0], actual[0].Marker);
+        Assert.IsFalse(baseline[0].ChannelsFirstPixels.Span.SequenceEqual(actual[0].ChannelsFirstPixels.Span));
+    }
+
+    [TestMethod]
+    [DataRow("missing", 14, 14, 5, 5)]
+    [DataRow("symbol", -1, 14, 20, 5)]
+    [DataRow("symbol", 14, 14, 25, 5)]
+    [DataRow("symbol", 20, 20, 5, 5)]
+    public void IsolationRejectsUnknownOrInvalidContentBounds(string id, int x, int y, int width, int height)
+    {
+        var options = new MarkerPatchExtractionOptions(32, 32, 1)
+        {
+            OriginalPixelContentBounds = new Dictionary<string, MarkerRectangle> { [id] = new(x, y, width, height) },
+        };
+        Assert.Throws<ArgumentException>(() => new MarkerPatchExtractor().Extract(ClassificationTestSupport.Frame(),
+            [ClassificationTestSupport.Marker("symbol", 16, 16, 3)], options, CancellationToken.None));
+    }
+
+    [TestMethod]
+    public void IsolationRejectsNonOriginalFrames()
+    {
+        MarkerImageFrame frame = ClassificationTestSupport.Frame() with { SourceImage = MarkerSourceImage.Enhanced };
+        var options = new MarkerPatchExtractionOptions(32, 32, 1)
+        {
+            OriginalPixelContentBounds = new Dictionary<string, MarkerRectangle> { ["symbol"] = new(14, 14, 5, 5) },
+        };
+        Assert.Throws<ArgumentException>(() => new MarkerPatchExtractor().Extract(frame,
+            [ClassificationTestSupport.Marker("symbol", 16, 16, 3)], options, CancellationToken.None));
+    }
+
+    [TestMethod]
     public void ExtractIsDeterministicAndDoesNotMutateTheSourceImage()
     {
         float[] pixels = Enumerable.Range(0, ClassificationTestSupport.FrameSizeSquared)

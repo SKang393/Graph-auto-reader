@@ -58,7 +58,9 @@ uses Apache-2.0. No private or sealed data is read.
 
 Visible frames and separate symbols are required. Unframed and occluded legends
 remain unresolved. Actual classifier accuracy on these symbol crops still needs
-evaluation. All five latest OCR development bars remain failed. The earlier OCR
+evaluation at this checkpoint. The subsequent [crop correction](GOAL-22-LEGEND-SYMBOL-ISOLATION.md)
+records actual fixed-model results and remaining errors. All five latest OCR
+development bars remain failed. The earlier OCR
 score is bound to its historical source and assemblies, not this changed workflow.
 
 ## Integration notes
