@@ -110,6 +110,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     internal const string LegacyGeometrySupport = "multiradius_v24";
     internal const string EnclosedGeometrySupport = "multiradius_enclosed_v1";
     internal const string EnclosedPostprocessingAlgorithm = "mask_preserving_multiradius_enclosed_v1";
+    internal const string BalancedGeometrySupport = "multiradius_enclosed_balanced_v2";
+    internal const string BalancedPostprocessingAlgorithm = "mask_preserving_multiradius_enclosed_balanced_v2";
 
     private readonly IProposalMarkerInferenceRunner inference;
     private readonly int maximumDecodedCandidates;
@@ -117,6 +119,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     private readonly bool maskPreservingCandidate;
     private readonly bool plotDomainProposalFiltering;
     private readonly bool enclosedGeometrySupport;
+    private readonly bool balancedRingSupport;
     private readonly string maskPreservingRevision;
     private readonly string maskPreservingCandidateId;
 
@@ -245,26 +248,28 @@ public sealed class ProductionProposalMarkerCenterAdapter :
 
     internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidateEnclosedGeometryEvaluation(
         FrozenCandidateMarkerCenterModelDescriptor descriptor,
-        InferenceRuntime runtime)
+        InferenceRuntime runtime,
+        bool balancedRingSupport = false)
     {
         ArgumentNullException.ThrowIfNull(runtime);
         return CreateForFrozenCandidateEnclosedGeometryEvaluation(
-            descriptor, new RuntimeProposalMarkerInferenceRunner(runtime));
+            descriptor, new RuntimeProposalMarkerInferenceRunner(runtime), balancedRingSupport);
     }
 
     internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidateEnclosedGeometryEvaluation(
         FrozenCandidateMarkerCenterModelDescriptor descriptor,
-        IProposalMarkerInferenceRunner inference)
+        IProposalMarkerInferenceRunner inference,
+        bool balancedRingSupport = false)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
         ArgumentNullException.ThrowIfNull(inference);
-        ValidateFrozenCandidateDescriptor(descriptor, enclosedGeometrySupport: true);
+        ValidateFrozenCandidateDescriptor(descriptor, enclosedGeometrySupport: true, balancedRingSupport);
         return new ProductionProposalMarkerCenterAdapter(
             descriptor.Identity, inference, multiradiusGeometry: true, maskPreservingCandidate: true,
             expectedMaskPreservingSha256: descriptor.Identity.Sha256,
             maskPreservingRevision: descriptor.Identity.ModelId,
             maskPreservingCandidateId: descriptor.Identity.Version,
-            plotDomainProposalFiltering: true, enclosedGeometrySupport: true);
+            plotDomainProposalFiltering: true, enclosedGeometrySupport: true, balancedRingSupport: balancedRingSupport);
     }
 
     internal ProductionProposalMarkerCenterAdapter(
@@ -278,7 +283,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         string? maskPreservingRevision = null,
         string? maskPreservingCandidateId = null,
         bool plotDomainProposalFiltering = false,
-        bool enclosedGeometrySupport = false)
+        bool enclosedGeometrySupport = false,
+        bool balancedRingSupport = false)
     {
         Model = model ?? throw new ArgumentNullException(nameof(model));
         Model.Validate();
@@ -295,6 +301,9 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         if (enclosedGeometrySupport && (!plotDomainProposalFiltering || isApproved))
             throw new InvalidOperationException("Enclosed geometry requires an explicitly unapproved plot-domain candidate.");
         this.enclosedGeometrySupport = enclosedGeometrySupport;
+        if (balancedRingSupport && !enclosedGeometrySupport)
+            throw new InvalidOperationException("Balanced ring support requires the explicit unapproved enclosed-geometry candidate.");
+        this.balancedRingSupport = balancedRingSupport;
         string expectedModelSha256 = maskPreservingCandidate
             ? expectedMaskPreservingSha256 ?? ExpectedMaskPreservingModelSha256
             : multiradiusGeometry ? ExpectedMultiradiusModelSha256 : ExpectedModelSha256;
@@ -321,7 +330,11 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     public string AdapterId => string.Concat(
         $"graphreader-marker-center-proposal:{Model.Sha256[..12].ToLowerInvariant()}",
         plotDomainProposalFiltering ? ":plot-domain-v25" : string.Empty,
-        enclosedGeometrySupport ? ":enclosed-support-v1" : string.Empty);
+        GeometrySupportSuffix);
+
+    private string GeometrySupportSuffix => balancedRingSupport
+        ? ":enclosed-balanced-support-v2"
+        : enclosedGeometrySupport ? ":enclosed-support-v1" : string.Empty;
 
     public bool IsApproved { get; }
 
@@ -424,7 +437,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
 
     private static void ValidateFrozenCandidateDescriptor(
         FrozenCandidateMarkerCenterModelDescriptor descriptor,
-        bool enclosedGeometrySupport = false)
+        bool enclosedGeometrySupport = false,
+        bool balancedRingSupport = false)
     {
         descriptor.Identity.Validate();
         VerifyChecksum(
@@ -456,8 +470,10 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         RequireExactNumber(preprocessing, "ink_support_window_size", 17, "Frozen candidate preprocessing");
         RequireExactNumber(preprocessing, "ink_support_threshold", 0.11, "Frozen candidate preprocessing");
         JsonElement postprocessing = RequiredObject(root, "postprocessing", "Frozen candidate proposal marker manifest");
-        RequireExactString(postprocessing, "algorithm", enclosedGeometrySupport
+        RequireExactString(postprocessing, "algorithm", balancedRingSupport ? BalancedPostprocessingAlgorithm : enclosedGeometrySupport
             ? EnclosedPostprocessingAlgorithm : "mask_preserving_multiradius_v24", "Frozen candidate postprocessing");
+        if (balancedRingSupport)
+            RequireExactString(postprocessing, "ring_support_geometry", "brackets_both_axes", "Frozen candidate postprocessing");
         if (enclosedGeometrySupport)
         {
             RequireExactString(preprocessing, "proposal_domain", "axis_polygon_or_16px_v25", "Frozen candidate preprocessing");
@@ -714,7 +730,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             request.ProjectId,
             request.Panel.ImportedPanel.PanelId,
             MarkerContract.Stage,
-            $"{(plotDomainProposalFiltering ? "proposal-marker-v25-plot-domain" : "proposal-marker-v24")}{(enclosedGeometrySupport ? ":enclosed-support-v1" : string.Empty)}:{Model.Version}",
+            $"{(plotDomainProposalFiltering ? "proposal-marker-v25-plot-domain" : "proposal-marker-v24")}{GeometrySupportSuffix}:{Model.Version}",
             request.Image.Sha256,
             new WorkflowVisionModel(Model.ModelId, Model.Version, Model.Sha256, "cpu"),
             new WorkflowVisionTiming(0, 0, 0, total.Elapsed.TotalMilliseconds),
@@ -723,7 +739,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             []);
         var report = new MarkerFrameReport(
             MarkerSourceImage.Original,
-            $"{(plotDomainProposalFiltering ? "proposal-v25-plot-domain" : "proposal-v24")}{(enclosedGeometrySupport ? ":enclosed-support-v1" : string.Empty)}:{request.Image.Sha256}:{Model.Sha256}",
+            $"{(plotDomainProposalFiltering ? "proposal-v25-plot-domain" : "proposal-v24")}{GeometrySupportSuffix}:{request.Image.Sha256}:{Model.Sha256}",
             InferenceProvider.Cpu,
             [new ProviderAttempt(InferenceProvider.Cpu, true, null)],
             timing,
@@ -785,7 +801,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             {
                 cacheParameters["proposal_domain"] = "axis-polygon-or-16px-boundary";
             }
-            if (enclosedGeometrySupport) cacheParameters["geometry_support"] = EnclosedGeometrySupport;
+            if (enclosedGeometrySupport)
+                cacheParameters["geometry_support"] = balancedRingSupport ? BalancedGeometrySupport : EnclosedGeometrySupport;
 
             InferenceResponse response = await inference.RunAsync(
                     new InferenceRequest(
@@ -845,7 +862,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                     frame.OriginalToFrame.MapToOriginal(new MarkerPoint(x, y)));
                 double decodedRadius = Math.Clamp(radius, 2.5, 8.0);
                 if (!TryRefine(frame, x, y, decodedRadius, multiradiusGeometry, maskPreservingCandidate,
-                    enclosedGeometrySupport, out MarkerPoint refined, out RefinementFailure failure))
+                    enclosedGeometrySupport, balancedRingSupport, out MarkerPoint refined, out RefinementFailure failure))
                 {
                     if (failure == RefinementFailure.Masked)
                     {
@@ -1376,6 +1393,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         bool multiradiusGeometry,
         bool maskPreservingCandidate,
         bool enclosedGeometrySupport,
+        bool balancedRingSupport,
         out MarkerPoint refined,
         out RefinementFailure failure)
     {
@@ -1386,7 +1404,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             return false;
         }
 
-        if (GeometryConsensus(frame, x, y, radius, multiradiusGeometry) ||
+        if (GeometryConsensus(frame, x, y, radius, multiradiusGeometry, balancedRingSupport) ||
             (enclosedGeometrySupport && ProductionMarkerEnclosedSupport.IsSupported(frame, x, y)))
         {
             refined = new MarkerPoint(x, y);
@@ -1444,13 +1462,14 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         double x,
         double y,
         double radius,
-        bool multiradiusGeometry)
+        bool multiradiusGeometry,
+        bool balancedRingSupport = false)
     {
         if (multiradiusGeometry)
         {
             for (int ring = 3; ring <= 12; ring++)
             {
-                if (GeometryConsensusAtRadius(frame, x, y, ring))
+                if (GeometryConsensusAtRadius(frame, x, y, ring, balancedRingSupport))
                 {
                     return true;
                 }
@@ -1459,10 +1478,11 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             return false;
         }
 
-        return GeometryConsensusAtRadius(frame, x, y, radius);
+        return GeometryConsensusAtRadius(frame, x, y, radius, balancedRingSupport);
     }
 
-    private static bool GeometryConsensusAtRadius(MarkerImageFrame frame, double x, double y, double radius)
+    private static bool GeometryConsensusAtRadius(
+        MarkerImageFrame frame, double x, double y, double radius, bool balancedRingSupport)
     {
         int ix = (int)Math.Round(x);
         int iy = (int)Math.Round(y);
@@ -1474,12 +1494,18 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         ];
         ReadOnlySpan<float> luminance = frame.ChannelsFirstPixels.Span;
         int support = 0;
+        int minimumX = int.MaxValue, maximumX = int.MinValue;
+        int minimumY = int.MaxValue, maximumY = int.MinValue;
         foreach (int[] point in points)
         {
             if ((uint)point[0] < (uint)frame.Width && (uint)point[1] < (uint)frame.Height &&
                 1 - luminance[(point[1] * frame.Width) + point[0]] >= 0.12f)
             {
                 support++;
+                minimumX = Math.Min(minimumX, point[0]);
+                maximumX = Math.Max(maximumX, point[0]);
+                minimumY = Math.Min(minimumY, point[1]);
+                maximumY = Math.Max(maximumY, point[1]);
             }
         }
         int left = Math.Max(0, ix - 2);
@@ -1496,7 +1522,10 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                 count++;
             }
         }
-        return support >= 3 || (count > 0 && sum / count >= 0.28);
+        // Three samples on one nearby wall do not locate a marker center.
+        // Keep historical geometry unchanged unless the bound candidate opts in.
+        bool bracketsCenter = minimumX <= ix && maximumX >= ix && minimumY <= iy && maximumY >= iy;
+        return (support >= 3 && (!balancedRingSupport || bracketsCenter)) || (count > 0 && sum / count >= 0.28);
     }
 
     private List<ProposalMarkerPrediction> ApplyNms(

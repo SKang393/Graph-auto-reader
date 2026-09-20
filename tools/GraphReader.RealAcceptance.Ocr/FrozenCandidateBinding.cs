@@ -490,8 +490,8 @@ internal sealed class FrozenCandidateBinding
             fields = [.. fields, "marker_geometry_support"];
             geometrySupport = RequiredText(value, "marker_geometry_support", "Frozen candidate algorithms");
         }
-        if (geometrySupport is not ("multiradius_v24" or "multiradius_enclosed_v1") ||
-            (geometrySupport == "multiradius_enclosed_v1" && proposalDomain != "axis_polygon_or_16px_v25"))
+        if (geometrySupport is not ("multiradius_v24" or "multiradius_enclosed_v1" or "multiradius_enclosed_balanced_v2") ||
+            (geometrySupport != "multiradius_v24" && proposalDomain != "axis_polygon_or_16px_v25"))
             throw new InvalidDataException("Frozen candidate marker geometry support is unsupported.");
         RequireExactProperties(value, fields, "Frozen candidate algorithms");
         return new FrozenCandidateAlgorithms(

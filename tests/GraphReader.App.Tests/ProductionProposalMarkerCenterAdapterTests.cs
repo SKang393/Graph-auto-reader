@@ -617,9 +617,10 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
     }
 
     [TestMethod]
-    [DataRow(false, 0)]
-    [DataRow(true, 1)]
-    public async Task ThinClosedCircleUsesOnlyExplicitCandidateSupport(bool supplemental, int expectedCount)
+    [DataRow(false, false, 0)]
+    [DataRow(true, false, 1)]
+    [DataRow(true, true, 1)]
+    public async Task ThinClosedCircleUsesOnlyExplicitCandidateSupport(bool supplemental, bool balanced, int expectedCount)
     {
         string[] outline =
         [
@@ -647,7 +648,7 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             values[target * 4 + 3] = 4.5f;
             return values;
         });
-        var adapter = CreatePlotDomainAdapter(runner, supplemental);
+        var adapter = CreatePlotDomainAdapter(runner, supplemental, balanced);
         var result = await adapter.DetectCandidateWithDiagnosticsAsync(frame, plot, CancellationToken.None);
         Assert.AreEqual(expectedCount, result.Candidates.Count);
         Assert.AreEqual(1 - expectedCount, result.StageCounters.GeometryConsensusRejectsAfterRefinementAttempts);
@@ -658,6 +659,49 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             Assert.AreEqual(new MarkerPoint(16, 16), result.Candidates[0].Center);
             Assert.AreEqual(4.5, result.Candidates[0].Radius);
         }
+    }
+
+    [TestMethod]
+    [DataRow(0, false, 1)]
+    [DataRow(1, false, 1)]
+    [DataRow(2, false, 1)]
+    [DataRow(3, false, 1)]
+    [DataRow(0, true, 0)]
+    [DataRow(1, true, 0)]
+    [DataRow(2, true, 0)]
+    [DataRow(3, true, 0)]
+    public async Task NearbyWallCannotSupplyBalancedMarkerSupport(int side, bool balanced, int expectedCount)
+    {
+        float[] pixels = Enumerable.Repeat(1f, 32 * 32).ToArray();
+        for (int along = 0; along < 32; along++)
+        {
+            int x = side < 2 ? (side == 0 ? 11 : 21) : along;
+            int y = side < 2 ? along : (side == 2 ? 11 : 21);
+            pixels[y * 32 + x] = 0;
+        }
+        var frame = new MarkerImageFrame(32, 32, 1, pixels, MarkerSourceImage.Original,
+            MarkerAffineTransform.Identity, MarkerMask.Empty(32, 32), MarkerMask.Empty(32, 32));
+        MarkerPolygon plot = MarkerPolygon.FromRectangle(new(0, 0, 32, 32));
+        var proposals = ProductionProposalMarkerCenterAdapter.DiagnoseMaskPreservingProposals(frame, plot, CancellationToken.None);
+        int target = proposals.EmittedProposalFeatures.Select((value, index) => (value, index))
+            .Single(item => item.value.OriginalBaseCenter == new MarkerPoint(16, 16)).index;
+        var runner = new FakeRunner(count =>
+        {
+            float[] values = new float[count * 4];
+            values[target * 4] = 0.9f;
+            values[target * 4 + 3] = 4;
+            return values;
+        });
+        var adapter = CreatePlotDomainAdapter(runner, enclosedGeometrySupport: true, balancedRingSupport: balanced);
+
+        var result = await adapter.DetectCandidateWithDiagnosticsAsync(frame, plot, CancellationToken.None);
+
+        Assert.AreEqual(expectedCount, result.Candidates.Count);
+        Assert.AreEqual(1 - expectedCount, result.StageCounters.GeometryConsensusRejectsAfterRefinementAttempts);
+        Assert.AreEqual(balanced ? ProductionProposalMarkerCenterAdapter.BalancedGeometrySupport :
+            ProductionProposalMarkerCenterAdapter.EnclosedGeometrySupport,
+            runner.LastRequest!.CacheMaterial.Parameters["geometry_support"]);
+        Assert.IsFalse(adapter.IsApproved);
     }
 
     [TestMethod]
@@ -684,6 +728,9 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
         Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(model, runner,
             multiradiusGeometry: true, maskPreservingCandidate: true, plotDomainProposalFiltering: true,
             enclosedGeometrySupport: true, isApproved: true));
+        Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(model, runner,
+            multiradiusGeometry: true, maskPreservingCandidate: true, plotDomainProposalFiltering: true,
+            balancedRingSupport: true));
     }
 
     [TestMethod]
@@ -753,7 +800,7 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             isApproved: isApproved);
 
     private static ProductionProposalMarkerCenterAdapter CreatePlotDomainAdapter(
-        FakeRunner runner, bool enclosedGeometrySupport = false) =>
+        FakeRunner runner, bool enclosedGeometrySupport = false, bool balancedRingSupport = false) =>
         new(new ModelIdentity(
             ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
             ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
@@ -763,7 +810,8 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             multiradiusGeometry: true,
             maskPreservingCandidate: true,
             plotDomainProposalFiltering: true,
-            enclosedGeometrySupport: enclosedGeometrySupport);
+            enclosedGeometrySupport: enclosedGeometrySupport,
+            balancedRingSupport: balancedRingSupport);
 
     private static MarkerImageFrame ParityFrame(
         int width,

@@ -65,7 +65,8 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
         string root,
         double centerThreshold = 0.25,
         string algorithm = "mask_preserving_multiradius_v24",
-        int enclosureRadius = 12)
+        int enclosureRadius = 12,
+        string ringSupportGeometry = "brackets_both_axes")
     {
         string modelPath = Path.Combine(root, "candidate.onnx");
         File.WriteAllBytes(modelPath, [1, 2, 3, 4]);
@@ -93,6 +94,7 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
             postprocessing = new
             {
                 algorithm,
+                ring_support_geometry = ringSupportGeometry,
                 enclosure_maximum_radius_pixels = enclosureRadius,
                 enclosure_ink_threshold = 0.12,
                 enclosure_background_connectivity = 4,
@@ -137,6 +139,31 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
             algorithm: ProductionProposalMarkerCenterAdapter.EnclosedPostprocessingAlgorithm, enclosureRadius: 13);
         Assert.ThrowsExactly<InvalidDataException>(() =>
             ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(changed, new NoRunInference()));
+    }
+
+    [TestMethod]
+    public void BalancedGeometryRequiresExactManifestAndCannotChangeHistoricalCandidate()
+    {
+        using var directory = new TemporaryDirectory();
+        var legacy = WriteDescriptor(directory.Path,
+            algorithm: ProductionProposalMarkerCenterAdapter.EnclosedPostprocessingAlgorithm);
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(
+                legacy, new NoRunInference(), balancedRingSupport: true));
+        var balanced = WriteDescriptor(directory.Path,
+            algorithm: ProductionProposalMarkerCenterAdapter.BalancedPostprocessingAlgorithm);
+        var candidate = ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(
+            balanced, new NoRunInference(), balancedRingSupport: true);
+        Assert.IsFalse(candidate.IsApproved);
+        StringAssert.EndsWith(candidate.AdapterId, ":plot-domain-v25:enclosed-balanced-support-v2");
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(balanced, new NoRunInference()));
+        var changed = WriteDescriptor(directory.Path,
+            algorithm: ProductionProposalMarkerCenterAdapter.BalancedPostprocessingAlgorithm,
+            ringSupportGeometry: "one_side");
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(
+                changed, new NoRunInference(), balancedRingSupport: true));
     }
 
     private sealed class NoRunInference : IProposalMarkerInferenceRunner

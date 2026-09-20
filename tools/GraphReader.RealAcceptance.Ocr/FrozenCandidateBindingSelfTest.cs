@@ -62,16 +62,23 @@ internal static class FrozenCandidateBindingSelfTest
             RequiredObject(enclosed, "algorithms")["marker_geometry_support"] = "multiradius_enclosed_v1";
             Require(fixture.Load(enclosed).Algorithms.MarkerGeometrySupport == "multiradius_enclosed_v1",
                 "FROZEN_CANDIDATE_ENCLOSED_GEOMETRY_NOT_BOUND");
-            try
+            JsonObject balanced = Clone(plotDomain);
+            RequiredObject(balanced, "algorithms")["marker_geometry_support"] = "multiradius_enclosed_balanced_v2";
+            Require(fixture.Load(balanced).Algorithms.MarkerGeometrySupport == "multiradius_enclosed_balanced_v2",
+                "FROZEN_CANDIDATE_BALANCED_GEOMETRY_NOT_BOUND");
+            foreach (JsonObject candidate in new[] { enclosed, balanced })
             {
-                _ = FrozenRealWorkflowAdmission.Load(repositoryRoot, "must-not-be-read.json", new string('a', 64),
-                    fixture.Load(enclosed), null!, "real_dev", explicitOptIn: true, CancellationToken.None);
-                throw new InvalidDataException("FROZEN_CANDIDATE_ENCLOSED_GEOMETRY_REACHED_REAL_ADMISSION");
-            }
-            catch (InvalidDataException error)
-            {
-                Require(error.Message.Contains("restricted to synthetic development", StringComparison.Ordinal),
-                    "FROZEN_CANDIDATE_ENCLOSED_GEOMETRY_REAL_GUARD_CHANGED");
+                try
+                {
+                    _ = FrozenRealWorkflowAdmission.Load(repositoryRoot, "must-not-be-read.json", new string('a', 64),
+                        fixture.Load(candidate), null!, "real_dev", explicitOptIn: true, CancellationToken.None);
+                    throw new InvalidDataException("FROZEN_CANDIDATE_ENCLOSED_GEOMETRY_REACHED_REAL_ADMISSION");
+                }
+                catch (InvalidDataException error)
+                {
+                    Require(error.Message.Contains("restricted to synthetic development", StringComparison.Ordinal),
+                        "FROZEN_CANDIDATE_ENCLOSED_GEOMETRY_REAL_GUARD_CHANGED");
+                }
             }
             JsonObject missingDomain = Clone(enclosed);
             RequiredObject(missingDomain, "algorithms").Remove("marker_proposal_domain");

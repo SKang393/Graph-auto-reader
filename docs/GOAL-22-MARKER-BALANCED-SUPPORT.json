@@ -1,0 +1,229 @@
+{
+  "schema": "graphreader.goal22.marker-balanced-support.v1",
+  "status": "targeted_geometry_repair_verified_full_goal_incomplete",
+  "base_commit": "4e63165bd760a2fd5f01bd188ef77ce124bed200",
+  "diagnosis": {
+    "report": {
+      "path": "artifacts/goal22-runs/marker-one-sided-support-diagnostic-v1/report.json",
+      "sha256": "6d563bda78948bdd4fe8f882d71f4511fe104ca3c9f87bdbb512e7a0109b4b98"
+    },
+    "observed_markers": 580,
+    "within_5px_of_truth": 568,
+    "proposed_rejections": 5,
+    "true_proximity_rejections": 0,
+    "rejected_unknown_sessions": 4,
+    "no_inference_runs": true,
+    "all_model_weights_fixed": true,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "scope": "Geometry-only replay of accepted candidates; excludes neither truth nor source. Not detector recall or full NMS/inference evidence.",
+    "limitation": "Nearest-truth proximity is diagnostic only, not a detector precision or recall score."
+  },
+  "change": {
+    "geometry_support": "multiradius_enclosed_balanced_v2",
+    "postprocessing_algorithm": "mask_preserving_multiradius_enclosed_balanced_v2",
+    "rule": "Three ring samples must bracket the decoded center on both axes; one nearby wall alone does not locate a marker.",
+    "unchanged": "Weights, numeric thresholds, original decoded coordinates, central-ink and closed-outline alternatives, NMS and scientific export guards.",
+    "source_bindings": {
+      "path": "artifacts/goal22-runs/marker-balanced-support-checks-v1/source-bindings.json",
+      "sha256": "f7439ecf148567c0b2d521dc1c8750f248a2b3286a96f39843ce2ff0d0c7c48a"
+    },
+    "explicit_unapproved_candidate_only": true,
+    "legacy_behavior_unchanged": true,
+    "cache_invalidated": true
+  },
+  "validation": {
+    "app_tests": {
+      "passed": 414,
+      "total": 414,
+      "report": {
+        "path": "artifacts/goal22-runs/marker-balanced-support-checks-v1/test-results/app.trx",
+        "sha256": "dcb419c79d3ca595cb407b9f142f840b48b90fac8a8efac03962bb7d558550a9"
+      }
+    },
+    "python_tests": {
+      "passed": 30,
+      "seconds": 4.04,
+      "log": {
+        "path": "artifacts/goal22-runs/marker-balanced-support-checks-v1/python.log",
+        "sha256": "f3dfd925ee55fcdf69a1385d6047cef7a999ce43d15b85c99059787cd5ffb56c"
+      }
+    },
+    "checker_build": {
+      "warnings": 0,
+      "errors": 0,
+      "seconds": 9.62,
+      "log": {
+        "path": "artifacts/goal22-runs/marker-balanced-support-checks-v1/build.log",
+        "sha256": "59fe8fa79431a4e8418d49f05e6bb638d7fbfdea067a9c08d8185c00a0139c17"
+      }
+    },
+    "self_tests": [
+      {
+        "path": "artifacts/goal22-runs/marker-balanced-support-checks-v1/private-runner-self-test.json",
+        "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+      },
+      {
+        "path": "artifacts/goal22-runs/marker-balanced-support-checks-v1/frozen-binding-self-test.json",
+        "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+      }
+    ],
+    "python_csharp_parity": {
+      "report": {
+        "path": "artifacts/goal22-runs/marker-balanced-support-parity-v1/results.json",
+        "sha256": "2c85c12360526cdb10bac798d4869cdd47ebdbbd980c59827ea5acf37fcd96c6"
+      },
+      "status": "pass",
+      "count": 580,
+      "retained": 575,
+      "rejected": 5,
+      "decision_differences": 0,
+      "legacy_decision_differences": 0,
+      "seconds": 0.0794585,
+      "input_sha256": "1cd2bd47f6e8901957c7edf5e645e59260ab2460826147fd0d3894d9cbf45fa8",
+      "model_inference_runs": 0,
+      "private_reads": 0,
+      "sealed_reads": 0
+    },
+    "pre_inference_preparation_failure": {
+      "path": "artifacts/goal22-runs/marker-balanced-workflow-queue-v1/preparation.log",
+      "sha256": "af328fa1f3c7229858b1dcb20ad1450652bcb13b03d9d68a644fa8c46eb04f57"
+    },
+    "failure_repair": "Remove the mistaken request for an axis test file from this marker-only batch. Retain existing axis evidence; no inference or test rerun was consumed by that failed preparation."
+  },
+  "full_workflow": {
+    "comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-marker-balanced-v1/comparison.json",
+      "sha256": "000026f8ee5c5f1513c3d2967c33d0b8f703e635ee5bf43c1e8ffa82936ca315"
+    },
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-marker-balanced-v1/execution/report.json",
+      "sha256": "eab394174ba0f9a7401fa72a36612125de0b5bb0cf665a4251d7b7edba8fb2da"
+    },
+    "candidate_binding": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-marker-balanced-v1/candidate-binding.json",
+      "sha256": "7cf97237edbd706bec22eaacf67f7c444b51833912cab3f1f08a2f88fadb2404"
+    },
+    "input_manifest": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-marker-balanced-v1/input-manifest.json",
+      "sha256": "bf82bd3c473df64b98e344bb3750b515217ca693c8638eb42649ab1847ba9916"
+    },
+    "previous_metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 10,
+      "failed_cases": 13,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 17,
+      "matched_series": 13,
+      "truth_points": 706,
+      "predicted_points": 182,
+      "matched_points": 178,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 182,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 175,
+      "correct_rows": 170,
+      "missing_rows": 549,
+      "extra_rows": 7,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 178,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 528,
+      "unique_point_extra": 4,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.978021978021978,
+      "unique_point_structural_coverage": 0.2521246458923513,
+      "unique_point_value_precision": 0.978021978021978,
+      "unique_point_value_coverage": 0.2521246458923513,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9340659340659341,
+      "relational_row_coverage": 0.23480662983425415,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9714285714285714,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 13
+      }
+    },
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 13,
+      "failed_cases": 10,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 28,
+      "matched_series": 21,
+      "truth_points": 706,
+      "predicted_points": 368,
+      "matched_points": 360,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 368,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 357,
+      "correct_rows": 352,
+      "missing_rows": 367,
+      "extra_rows": 11,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 360,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 346,
+      "unique_point_extra": 8,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9782608695652174,
+      "unique_point_structural_coverage": 0.509915014164306,
+      "unique_point_value_precision": 0.9782608695652174,
+      "unique_point_value_coverage": 0.509915014164306,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9565217391304348,
+      "relational_row_coverage": 0.4861878453038674,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9859943977591037,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 10
+      }
+    },
+    "milliseconds": 150311.84,
+    "all_33_prior_panels_retained": true,
+    "all_23_source_bytes_unchanged": true,
+    "all_model_weights_unchanged": true,
+    "axis_and_ocr_unchanged": true,
+    "prior_completed_sources_regressed": 0,
+    "prior_exported_numeric_values_removed": 0,
+    "truth_points": 706,
+    "expected_relational_rows": 724
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "new_dependencies": false,
+  "license": "Apache-2.0 original source; existing reviewed dependencies unchanged",
+  "production_approval": false,
+  "packaged_build_created": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false,
+  "next_action": "Continue fixed-weight calibration/OCR and marker coverage diagnosis. Preserve every source, failure and scientific export guard. Do not tune to private data."
+}
