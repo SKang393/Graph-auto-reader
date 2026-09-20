@@ -3,10 +3,10 @@
 
 namespace GraphReader.Ocr;
 
-/// <summary>Trims proposal margins using only immutable original Gray8 pixels.</summary>
+/// <summary>Refines text bounds using only immutable original Gray8 pixels.</summary>
 public static class OriginalPixelTextRegionRefiner
 {
-    public const string CompositionVersion = "original-pixel-text-bounds-v1";
+    public const string CompositionVersion = "original-pixel-text-bounds-and-legend-completion-v2";
 
     public static IReadOnlyList<OcrDetectedRegion> Refine(
         OcrImage image,
@@ -81,6 +81,6 @@ public static class OriginalPixelTextRegionRefiner
                 Evidence = null,
             });
         }
-        return OcrCollections.Freeze(refined);
+        return FramedLegendRoleResolver.CompleteSingleRowTextBounds(image, refined, cancellationToken);
     }
 }

@@ -120,6 +120,110 @@ public static class FramedLegendRoleResolver
         return evidence;
     }
 
+    /// <summary>
+    /// Completes a truncated row only inside a small closed frame with a
+    /// detached symbol. The frame supplies a search boundary, never text.
+    /// </summary>
+    internal static IReadOnlyList<OcrDetectedRegion> CompleteSingleRowTextBounds(
+        OcrImage image, IReadOnlyList<OcrDetectedRegion> regions, CancellationToken cancellationToken)
+    {
+        bool[] ink = CreateInkMask(image, cancellationToken);
+        List<HorizontalRun> runs = FindRuns(ink, image.Width, image.Height, cancellationToken);
+        var result = new List<OcrDetectedRegion>(regions.Count);
+        foreach (OcrDetectedRegion region in regions)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            OcrRectangle box = region.Polygon.Bounds;
+            OcrRegionContext? context = region.Context;
+            if (GraphTextRoleClassifier.GetOrientation(region.OrientationDegrees) != OcrOrientation.Horizontal ||
+                box.Width < 2 * box.Height || context?.ExplicitRoleHint is not null ||
+                context?.NearAnnotationArrow is true || context?.NearPhaseDivider is true ||
+                context?.NumericExpected is true || context?.AxisTitleExpected is true ||
+                context?.InParticipantBand is true)
+            {
+                result.Add(region);
+                continue;
+            }
+            var probe = new OcrRegion(region.RegionId, region.Polygon, string.Empty,
+                Array.Empty<OcrRecognitionAlternative>(), OcrTextRole.Other, 0,
+                OcrSourceImage.Original, OcrReviewStatus.Unreviewed);
+            FramedLegendRoleEvidence? frame = FindContext(
+                ink, image.Width, runs, probe, cancellationToken, incompleteRow: true);
+            // A row already reaching the normal two-height frame margin is
+            // complete enough for existing legend context. Do not chase noise
+            // or an overlapping arrow beyond that established text extent.
+            if (frame is null || frame.FrameBounds.Right <= box.Right + 2 * box.Height)
+            {
+                result.Add(region);
+                continue;
+            }
+            int top = Math.Max((int)frame.FrameBounds.Top + 2, (int)Math.Floor(box.Top - box.Height / 2));
+            int bottom = Math.Min((int)frame.FrameBounds.Bottom - 2, (int)Math.Ceiling(box.Bottom + box.Height / 2));
+            int end = (int)frame.FrameBounds.Right - 2;
+            bool[] frameConnected = FrameConnectedInk(ink, image.Width, frame.FrameBounds, cancellationToken);
+            int frameLeft = (int)frame.FrameBounds.Left, frameTop = (int)frame.FrameBounds.Top;
+            int frameWidth = (int)frame.FrameBounds.Width;
+            int lastInkRight = (int)Math.Ceiling(box.Right);
+            double left = box.Left, right = box.Right, y0 = box.Top, y1 = box.Bottom;
+            for (int x = (int)Math.Ceiling(box.Left); x < end; x++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                // A word-sized gap may connect the row; a detached object may not.
+                if (x >= box.Right && x - lastInkRight > box.Height) break;
+                for (int y = top; y < bottom; y++)
+                {
+                    if (!ink[y * image.Width + x] || frameConnected[(y - frameTop) * frameWidth + x - frameLeft]) continue;
+                    lastInkRight = x + 1;
+                    right = Math.Max(right, x + 1);
+                    y0 = Math.Min(y0, y);
+                    y1 = Math.Max(y1, y + 1);
+                }
+            }
+            var completed = new OcrRectangle(left, y0, right - left, y1 - y0);
+            // Keep separate detector evidence separate. Existing word assembly
+            // handles rows for which both fragments were already detected.
+            bool overlapsOther = regions.Any(other => other.RegionId != region.RegionId &&
+                other.Polygon.Bounds.Left < completed.Right && other.Polygon.Bounds.Right > completed.Left &&
+                other.Polygon.Bounds.Top < completed.Bottom && other.Polygon.Bounds.Bottom > completed.Top);
+            result.Add(right > box.Right + 1 && !overlapsOther
+                ? region with { Polygon = OcrPolygon.FromRectangle(completed), Evidence = null }
+                : region);
+        }
+        return OcrCollections.Freeze(result);
+    }
+
+    private static bool[] FrameConnectedInk(
+        bool[] ink, int imageWidth, OcrRectangle frame, CancellationToken cancellationToken)
+    {
+        int left = (int)frame.Left, top = (int)frame.Top;
+        int width = (int)frame.Width, height = (int)frame.Height;
+        var connected = new bool[checked(width * height)];
+        var queue = new Queue<int>();
+        void Add(int x, int y)
+        {
+            int index = y * width + x;
+            if (connected[index] || !ink[(top + y) * imageWidth + left + x]) return;
+            connected[index] = true;
+            queue.Enqueue(index);
+        }
+        for (int x = 0; x < width; x++) { Add(x, 0); Add(x, height - 1); }
+        for (int y = 0; y < height; y++) { Add(0, y); Add(width - 1, y); }
+        while (queue.TryDequeue(out int index))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            int x = index % width, y = index / width;
+            for (int dy = -1; dy <= 1; dy++)
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                int xx = x + dx, yy = y + dy;
+                if (xx >= 0 && yy >= 0 && xx < width && yy < height) Add(xx, yy);
+            }
+        }
+        // Borders and crossing arrows/lines are structure, not trailing words.
+        // This is a read-only search mask; original recognition pixels stay intact.
+        return connected;
+    }
+
     private static void ValidateImage(OcrImage image)
     {
         if (image.SourceImage != OcrSourceImage.Original || image.OriginalToImage != OcrFrameTransform.Identity ||
@@ -174,13 +278,14 @@ public static class FramedLegendRoleResolver
     }
 
     private static FramedLegendRoleEvidence? FindContext(
-        bool[] ink, int width, List<HorizontalRun> runs, OcrRegion region, CancellationToken cancellationToken)
+        bool[] ink, int width, List<HorizontalRun> runs, OcrRegion region, CancellationToken cancellationToken,
+        bool incompleteRow = false)
     {
         OcrRectangle box = region.Polygon.Bounds;
         double height = box.Height;
         HorizontalRun[] candidates = runs.Where(run =>
             run.Left >= box.Left - 5 * height && run.Left < box.Left &&
-            run.Right >= box.Right && run.Right <= box.Right + 2 * height &&
+            run.Right >= box.Right && run.Right <= (incompleteRow ? box.Left + 40 * height : box.Right + 2 * height) &&
             run.Right - run.Left >= box.Width + height && run.Density >= 0.9).ToArray();
         // Frame height depends on the number of legend rows, not this row's font
         // size. Require both vertical edges instead of a four-text-height cutoff.
@@ -192,6 +297,7 @@ public static class FramedLegendRoleResolver
         foreach (HorizontalRun lower in below)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (incompleteRow && lower.Y - upper.Y + 1 > 4 * height) continue;
             if (Math.Abs(upper.Left - lower.Left) > 2 || Math.Abs(upper.Right - lower.Right) > 2) continue;
             int left = Math.Min(upper.Left, lower.Left), right = Math.Max(upper.Right, lower.Right) - 1;
             if (!VerticalEdge(left, upper.Y, lower.Y) || !VerticalEdge(right, upper.Y, lower.Y)) continue;

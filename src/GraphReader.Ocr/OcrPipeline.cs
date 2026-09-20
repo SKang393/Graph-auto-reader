@@ -201,8 +201,14 @@ public sealed class OcrPipeline
             }
             if (_options.EnableOriginalPixelBoundsRefinement)
             {
-                detectedRegions = OriginalPixelTextRegionRefiner.Refine(
+                var refined = OriginalPixelTextRegionRefiner.Refine(
                     request.OriginalImage, detectedRegions, cancellationToken);
+                for (int i = 0; i < refined.Count; i++)
+                {
+                    if (refined[i].Polygon.Bounds.Right > detectedRegions[i].Polygon.Bounds.Right)
+                        warnings.Add($"ocr_role_needs_review:{refined[i].RegionId}:original_pixel_legend_completion");
+                }
+                detectedRegions = refined;
             }
             detectedRegions = EnrichGeometry(detectedRegions, request.PlotBounds, _options);
         }
