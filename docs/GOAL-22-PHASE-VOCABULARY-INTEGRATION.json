@@ -1,0 +1,303 @@
+{
+  "schema": "graphreader.goal22.phase-vocabulary-integration.v1",
+  "status": "explicit_terms_supported_misrecognized_headings_remain_unknown",
+  "goal22_complete": false,
+  "base_commit": "1efa8fd3d5e441351fcbca9eb7160c00f5b56847",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.Phases/PhaseReasoningService.cs",
+      "sha256": "b924545cbf16fe4ed45660d8df11a08f7b20088d9a2148abddbf60ee3b7c84a3",
+      "archive": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/source-snapshot/src/GraphReader.Phases/PhaseReasoningService.cs"
+    },
+    {
+      "path": "src/GraphReader.Phases/PhaseReasoningContracts.cs",
+      "sha256": "6f9bc165998ea6027e87e54bd01a711b4ebc9a5be480852ccc952a551d5b49e3",
+      "archive": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/source-snapshot/src/GraphReader.Phases/PhaseReasoningContracts.cs"
+    },
+    {
+      "path": "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "sha256": "6f3e5f07cf0e4a7036759d43f22f67e3be968a11e85c2220214e64d62ae60db5",
+      "archive": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/source-snapshot/src/GraphReader.Ocr/GraphTextRoleClassifier.cs"
+    },
+    {
+      "path": "tests/GraphReader.Phases.Tests/PhaseReasoningServiceTests.cs",
+      "sha256": "bafc747bcd6d8bbb364b2a9faa40d61f46bfb012d2eb4e79a63129f4b1e70abb",
+      "archive": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/source-snapshot/tests/GraphReader.Phases.Tests/PhaseReasoningServiceTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs",
+      "sha256": "c9cf16cfd95f1ab25a26f5cb22acb87a798b91bbbf3424b969db8b72e9525bc4",
+      "archive": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/source-snapshot/tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs"
+    }
+  ],
+  "compiled_source_snapshot_count": 266,
+  "all_source_snapshots_verified": true,
+  "repair_definition": {
+    "failure_mode": "Explicit Withdrawal is already recognized as a phase heading but the phase reasoner does not map it. Reintroduction is absent from both explicit heading vocabulary and phase normalization.",
+    "observed_evidence": {
+      "source": "d5b9f00fe1f4b36d3a456a77e6e7d546edd5327cb7fdc766af7e4a744f90b99c",
+      "scope": "fixed project-owned train/development workflow inventory",
+      "report": "artifacts/goal22-runs/ocr-complete-workflow-panel-export-v1/execution/report.json"
+    },
+    "independent_development_reproduction": {
+      "path": "artifacts/goal22-runs/phase-vocabulary-before-v2/test-results/phase-before.trx",
+      "sha256": "0495c4fbb5f6b5b4ac3b5262125fc2680cb37748fc4113e2af3772deb9f840d5",
+      "failed_cases": 2,
+      "passed_cases": 0
+    },
+    "responsible_subsystem": "GraphTextRoleClassifier and PhaseReasoningService.NormalizeHeading",
+    "isolated_change": "Recognize exact withdrawal/reintroduction headings, with optional continued suffix, as baseline/intervention under the SCD AB profile. Preserve text, manual overrides, spatial eligibility and unknown meanings for misspellings or incidental phrases.",
+    "scientific_reference": "https://ies.ed.gov/ncee/wwc/Docs/InterventionReports/wwc_srsd_111417.pdf",
+    "reference_use": "WWC ABAB definition identifies withdrawal as return to baseline and the next intervention introduction as B. No article-specific terms, source code, figures or data are imported.",
+    "metric": "Exact expected phase codes and retained OCR text in positive cases; unknown phase for unsupported wording; applicable OCR, phase and application regression suites. Existing 23-source whole-workflow diagnostic remains unchanged.",
+    "acceptance_bar": "All deterministic regression scenarios pass. This does not change model acceptance bars.",
+    "splits": "Fixed20train/3dev source inventory plus independent project-owned development unit fixtures; no private or sealed inputs.",
+    "sealed_budget": 0,
+    "training": false,
+    "new_model_revision": false,
+    "known_limitations": "Five current wrong exported phases have misrecognized headings and are not assumed to improve. This repair does not guess those words."
+  },
+  "comparison": {
+    "source_count": 23,
+    "previously_observed_panels": 30,
+    "observed_panels": 30,
+    "previously_visited_panels_not_reached": 0,
+    "newly_reached_panels": 0,
+    "raw_upstream_evidence_unchanged": {
+      "axis": true,
+      "accepted_markers": true,
+      "ocr_text_geometry_alternatives_review_state": true
+    },
+    "explicit_heading_role_changes": [
+      {
+        "text": "Reintroduction",
+        "before_role": "Other",
+        "after_role": "PhaseHeading"
+      },
+      {
+        "text": "Reintroduction",
+        "before_role": "Other",
+        "after_role": "PhaseHeading"
+      },
+      {
+        "text": "Reintroduction",
+        "before_role": "Other",
+        "after_role": "PhaseHeading"
+      },
+      {
+        "text": "Reintroduction",
+        "before_role": "Other",
+        "after_role": "PhaseHeading"
+      },
+      {
+        "text": "Reintroduction",
+        "before_role": "Other",
+        "after_role": "PhaseHeading"
+      }
+    ],
+    "prior_calibration_numeric_measurements_unchanged": true,
+    "calibration_validity_before": {
+      "Valid": 19,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 4
+    },
+    "calibration_validity_after": {
+      "Valid": 19,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 4
+    },
+    "prior_valid_calibrations_now_invalid": 0,
+    "completed_sources": 10,
+    "failed_sources": 13,
+    "previously_completed_sources_now_failed": 0,
+    "newly_completed_sources": 0,
+    "common_exported_points_with_identical_values_and_x_provenance": 250,
+    "previously_exported_points_removed": 0,
+    "previously_unexported_points_added": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false
+  },
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 10,
+    "failed_cases": 13,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 36,
+    "matched_series": 15,
+    "truth_points": 706,
+    "predicted_points": 250,
+    "matched_points": 218,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 265,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 215,
+    "correct_rows": 210,
+    "missing_rows": 509,
+    "extra_rows": 50,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 218,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 488,
+    "unique_point_extra": 32,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.872,
+    "unique_point_structural_coverage": 0.3087818696883853,
+    "unique_point_value_precision": 0.872,
+    "unique_point_value_coverage": 0.3087818696883853,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.7924528301886793,
+    "relational_row_coverage": 0.2900552486187845,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9767441860465116,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 13
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 10,
+    "failed_cases": 13,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 36,
+    "matched_series": 15,
+    "truth_points": 706,
+    "predicted_points": 250,
+    "matched_points": 218,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 265,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 215,
+    "correct_rows": 210,
+    "missing_rows": 509,
+    "extra_rows": 50,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 218,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 488,
+    "unique_point_extra": 32,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.872,
+    "unique_point_structural_coverage": 0.3087818696883853,
+    "unique_point_value_precision": 0.872,
+    "unique_point_value_coverage": 0.3087818696883853,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.7924528301886793,
+    "relational_row_coverage": 0.2900552486187845,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9767441860465116,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 13
+    }
+  },
+  "execution_seconds": 160.14926319999998,
+  "phase_adapter_before": "graphreader-phases:0.1.0",
+  "phase_adapter_after": "graphreader-phases:0.1.1",
+  "checks": {
+    "app": {
+      "path": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/test-results/app.trx",
+      "sha256": "ed60890f85a1d98ac498b6580b41fbac30b0d3997ed7a3265c64c23d091a7692",
+      "passed": 373,
+      "skipped": 0
+    },
+    "phases": {
+      "path": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/test-results/phases.trx",
+      "sha256": "1ea8559ad3086fb6fb1bc6b04bf97307e1f351db2c2622a927b961bfcad88653",
+      "passed": 43,
+      "skipped": 0
+    },
+    "ocr": {
+      "path": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/test-results/ocr.trx",
+      "sha256": "70a34c66a97854196a8f81170c1655984b2ef3327f8a7b8006ecb04b335b23cf",
+      "passed": 359,
+      "skipped": 16
+    },
+    "tool_build": {
+      "path": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/build.log",
+      "sha256": "ec9c3ea2085a0dd97b88935757afc1ea9c93c37686bce7029461d0e9adb2c992"
+    },
+    "tool_warnings": 0,
+    "tool_errors": 0,
+    "private_runner_self_test": {
+      "path": "artifacts/goal22-runs/workflow-phase-vocabulary-checks-v1/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    }
+  },
+  "evidence": {
+    "candidate-binding.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-vocabulary-v1/candidate-binding.json",
+      "sha256": "bd07ea50dfb3d85a15b21ba01542ba9b6840c9ef4822303d8fbda8430480c9da"
+    },
+    "input-manifest.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-vocabulary-v1/input-manifest.json",
+      "sha256": "feb43a2e1b27da3619d4572d8d4ffe878e70729f2db1af55de4cb5efe9183af1"
+    },
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-vocabulary-v1/execution/report.json",
+      "sha256": "c674ed80265f8ff3915d7fbaf871f968641f5b22cc27fb2bbb471a9f9df87287"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-vocabulary-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "1242bd0b3f50d856ea866dcc8d23541bf82e6425ba755230fff72c6217027927"
+    },
+    "csv-score-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-vocabulary-v1/csv-score-normalized-phases.json",
+      "sha256": "b100515d05bc4cf84d5162148938cd8e7d203547bbf0a3c0c6245ec05bdeb402"
+    },
+    "comparison.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-vocabulary-v1/comparison.json",
+      "sha256": "40e94801c9da89860f777e2bd41ce40e389fbe5029ab544f2622c413c65e4986"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-phase-vocabulary-v1/source-bindings.json",
+      "sha256": "8ccf71a5069c21671a55f3ee6e7e1bbdf48ae301cb55564bc4a3fb06c083287a"
+    }
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-panel-export-v1/csv-score-normalized-phases.json",
+    "sha256": "c684ea84d246fd2f8b3c001671cb41c420fc09741a86385b475c6ee4506849b7"
+  },
+  "prior_failures_retained": [
+    "phase-vocabulary-before-v1: CA1861 test-only constant-array diagnostic.",
+    "phase-vocabulary-before-v2: two independent synthetic regression cases failed before implementation."
+  ],
+  "known_limitations": [
+    "The five wrong exported phases still have misrecognized headings. This repair does not guess missing words, move a heading or change its pixels.",
+    "Ten sources complete and thirteen fail; all 250 exported locations and values remain unchanged. Correct unique values remain 218/706 and relational rows 210/724.",
+    "The 23 fixed train/development inputs are not sealed or real acceptance. All four Goal 22 outcomes remain incomplete."
+  ],
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}

@@ -523,13 +523,15 @@ public sealed class PhaseReasoningService : IPhaseReasoningService
             return PhaseNormalizedType.Maintenance;
         }
 
-        if (normalized.Contains("baseline", StringComparison.Ordinal))
+        if (normalized.Contains("baseline", StringComparison.Ordinal) ||
+            normalized is "withdrawal" or "withdrawal continued")
         {
             return PhaseNormalizedType.Baseline;
         }
 
         if (normalized.Contains("intervention", StringComparison.Ordinal) ||
-            normalized.Contains("treatment", StringComparison.Ordinal))
+            normalized.Contains("treatment", StringComparison.Ordinal) ||
+            normalized is "reintroduction" or "reintroduction continued")
         {
             return PhaseNormalizedType.Intervention;
         }

@@ -213,6 +213,8 @@ public static class GraphTextRoleClassifier
             normalized.Equals("alternating treatments", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("withdrawal", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("withdrawal continued", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("reintroduction", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("reintroduction continued", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("maintenance", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("generalization", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("followup", StringComparison.OrdinalIgnoreCase) ||

@@ -15,6 +15,8 @@ public sealed class GraphTextRoleClassifierTests
     [DataRow("Alternating treatment")]
     [DataRow("Withdrawal")]
     [DataRow("Withdrawal continued")]
+    [DataRow("Reintroduction")]
+    [DataRow("Reintroduction continued")]
     public void DesignTermsNeedHeadingGeometryAndRespectExplicitContext(string text)
     {
         var region = OcrTestFixtures.Region("heading", 50, 1, 50, 10);

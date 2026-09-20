@@ -135,6 +135,50 @@ public sealed class PhaseReasoningServiceTests
     }
 
     [TestMethod]
+    [DataRow("Withdrawal", "Reintroduction")]
+    [DataRow("Withdrawal continued", "Reintroduction continued")]
+    public async Task ExplicitWithdrawalAndReintroductionHeadingsPreserveAbabMeaning(string withdrawal, string reintroduction)
+    {
+        PhaseReasoningResult result = await PhaseTestFixture.ResolveAsync(
+            PhaseTestFixture.Request(
+                segments:
+                [
+                    PhaseTestFixture.Segment("divider-1", 140),
+                    PhaseTestFixture.Segment("divider-2", 260),
+                    PhaseTestFixture.Segment("divider-3", 380),
+                ],
+                headings:
+                [
+                    PhaseTestFixture.Heading("heading-a1", "Baseline", 80),
+                    PhaseTestFixture.Heading("heading-b1", "Intervention", 200),
+                    PhaseTestFixture.Heading("heading-a2", withdrawal, 320),
+                    PhaseTestFixture.Heading("heading-b2", reintroduction, 440),
+                ]));
+
+        Assert.IsTrue(result.Succeeded);
+        string[] expectedCodes = ["a1", "b1", "a2", "b2"];
+        CollectionAssert.AreEqual(expectedCodes, result.Payload.Phases.Select(static p => p.Code).ToArray());
+        Assert.IsTrue(result.Payload.Phases.All(static p => p.Source == PhaseEvidenceSource.Ocr));
+        Assert.AreEqual(withdrawal, result.Payload.Phases[2].LabelText);
+        Assert.AreEqual(reintroduction, result.Payload.Phases[3].LabelText);
+    }
+
+    [TestMethod]
+    [DataRow("Withdrwal")]
+    [DataRow("Withdrawal symptoms")]
+    [DataRow("Reintroduction was recorded")]
+    public async Task UnclearOrIncidentalWithdrawalTextDoesNotSupplyALaterPhaseMeaning(string text)
+    {
+        PhaseReasoningResult result = await PhaseTestFixture.ResolveAsync(PhaseTestFixture.Request(
+            segments: [PhaseTestFixture.Segment("first", 180), PhaseTestFixture.Segment("second", 340)],
+            headings: [PhaseTestFixture.Heading("unclear", text, 420)]));
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.AreEqual("phase3", result.Payload.Phases[2].Code);
+        Assert.AreEqual(PhaseNormalizedType.Unknown, result.Payload.Phases[2].NormalizedType);
+    }
+
+    [TestMethod]
     public async Task MaintenanceHeadingSupportsMaintenancePhaseOnlyWithEvidence()
     {
         PhaseReasoningResult result = await PhaseTestFixture.ResolveAsync(
