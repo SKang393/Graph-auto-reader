@@ -75,6 +75,10 @@ HEADER_CONTEXT_RUNTIME_SOURCE_PATHS = PIXEL_BOUNDS_RUNTIME_SOURCE_PATHS | {
     "src/GraphReader.Ocr/HeaderLayoutRoleResolver.cs",
 }
 HEADER_LAYOUT_COMPOSITION = "detached-header-note-context-v1"
+LEGEND_CONTEXT_RUNTIME_SOURCE_PATHS = HEADER_CONTEXT_RUNTIME_SOURCE_PATHS | {
+    "src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+}
+LEGEND_FRAME_COMPOSITION = "original-pixel-framed-legend-context-v1"
 PIXEL_BOUNDS_COMPOSITION = "original-pixel-text-bounds-v1"
 PIXEL_BOUNDS_SOURCE_SHA256 = "077de4376501026cc593633d0aa75b2e3bda9a91d5b1d808b1c4f08dc3f4e7ab"
 HISTORICAL_RUNTIME_FILES = {
@@ -114,6 +118,7 @@ class _AssemblyProfile:
     refines_pixel_bounds: bool = False
     assembles_participant_lane: bool = False
     resolves_header_context: bool = False
+    resolves_legend_context: bool = False
 
 
 PARTICIPANT_LANE_PROFILE = _AssemblyProfile(
@@ -164,12 +169,22 @@ HEADER_CONTEXT_PROFILE = replace(
     runtime_source_paths=frozenset(HEADER_CONTEXT_RUNTIME_SOURCE_PATHS),
     resolves_header_context=True,
 )
+LEGEND_CONTEXT_PROFILE = replace(
+    HEADER_CONTEXT_PROFILE,
+    mode="legend_context",
+    output_schema="graphreader.legend-context-full-ocr-score.v1",
+    evaluation_schema="graphreader.legend-context-candidate-evaluation.v1",
+    candidate_composition="original-db-head-legend-context-v1",
+    runtime_source_paths=frozenset(LEGEND_CONTEXT_RUNTIME_SOURCE_PATHS),
+    resolves_legend_context=True,
+)
 PROFILES = {
     PARTICIPANT_LANE_PROFILE.mode: PARTICIPANT_LANE_PROFILE,
     INSIDE_PLOT_PROFILE.mode: INSIDE_PLOT_PROFILE,
     PIXEL_BOUNDS_PROFILE.mode: PIXEL_BOUNDS_PROFILE,
     COMBINED_ASSEMBLY_PROFILE.mode: COMBINED_ASSEMBLY_PROFILE,
     HEADER_CONTEXT_PROFILE.mode: HEADER_CONTEXT_PROFILE,
+    LEGEND_CONTEXT_PROFILE.mode: LEGEND_CONTEXT_PROFILE,
 }
 
 
@@ -875,6 +890,10 @@ def _validate_panel_regions(
 ]:
     context = geometry._object(record.get("assembly_context"), "assembly context")
     context_fields = {"composition_version", "plot_bounds_panel_ltrb"}
+    if profile.resolves_legend_context:
+        context_fields.add("legend_frame_composition_version")
+        if context.get("legend_frame_composition_version") != LEGEND_FRAME_COMPOSITION:
+            raise EvidenceError("legend frame composition is missing or invalid")
     if profile.resolves_header_context:
         context_fields.add("header_layout_composition_version")
         if context.get("header_layout_composition_version") != HEADER_LAYOUT_COMPOSITION:
@@ -1438,6 +1457,9 @@ def score(
                 "phase_divider_geometry_authenticated_from_same_bound_runtime_reports": True,
             } if profile.requires_phase_dividers else {}),
             "counts_by_split": evidence.assembly_counts,
+            **({
+                "legend_frame_composition_version": LEGEND_FRAME_COMPOSITION,
+            } if profile.resolves_legend_context else {}),
             **({
                 "header_layout_composition_version": HEADER_LAYOUT_COMPOSITION,
             } if profile.resolves_header_context else {}),

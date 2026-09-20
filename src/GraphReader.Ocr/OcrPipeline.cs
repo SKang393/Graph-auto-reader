@@ -53,6 +53,8 @@ public sealed record OcrPipelineOptions
     public bool EnableOriginalPixelBoundsRefinement { get; init; }
 
     public bool EnableHeaderLayoutRoleResolution { get; init; }
+
+    public bool EnableFramedLegendRoleResolution { get; init; }
 }
 
 public sealed class OcrPipeline
@@ -390,6 +392,14 @@ public sealed class OcrPipeline
             regions = layout.Regions;
             warnings.AddRange(layout.DetachedRegionIds.Select(id =>
                 $"ocr_role_needs_review:{id}:detached_above_header_row"));
+        }
+        if (_options.EnableFramedLegendRoleResolution)
+        {
+            FramedLegendRoleResolution legends = FramedLegendRoleResolver.Resolve(
+                request.OriginalImage, regions, detectedRegions, cancellationToken);
+            regions = legends.Regions;
+            warnings.AddRange(legends.Evidence.Select(item =>
+                $"ocr_role_needs_review:{item.RegionId}:framed_legend_symbol_context"));
         }
         regions = ResolveTickAlternatives(regions, detectedRegions, warnings, _options);
         var detectedById = detectedRegions.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);

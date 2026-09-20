@@ -26,6 +26,7 @@ internal static class OfficialHeadCandidateEvaluation
     internal const string PixelBoundsCommand = "--evaluate-pixel-bounds-candidate";
     internal const string CombinedAssemblyCommand = "--evaluate-combined-assembly-candidate";
     internal const string HeaderContextCommand = "--evaluate-header-context-candidate";
+    internal const string LegendContextCommand = "--evaluate-legend-context-candidate";
     internal const string SupplementalCommand = "--evaluate-supplemental-head-candidate";
     internal const string CandidateSchema = "graphreader.frozen-db-head-ocr-candidate.v1";
     internal const string CandidateScope = "project-owned-synthetic-train-dev-unapproved-frozen-candidate";
@@ -79,6 +80,7 @@ internal static class OfficialHeadCandidateEvaluation
              args[0] != InsidePlotCommand && args[0] != PixelBoundsCommand &&
              args[0] != CombinedAssemblyCommand &&
              args[0] != HeaderContextCommand &&
+             args[0] != LegendContextCommand &&
              args[0] != SupplementalCommand))
         {
             throw new InvalidDataException(
@@ -109,12 +111,15 @@ internal static class OfficialHeadCandidateEvaluation
         string root = Path.GetFullPath(repositoryRoot);
         string[] command = ValidateCommand(args, root);
         bool participantLane = args[0] == ParticipantLaneCommand;
-        bool headerContext = args[0] == HeaderContextCommand;
+        bool legendContext = args[0] == LegendContextCommand;
+        bool headerContext = args[0] == HeaderContextCommand || legendContext;
         bool combinedAssembly = args[0] == CombinedAssemblyCommand || headerContext;
         bool pixelBounds = args[0] == PixelBoundsCommand || combinedAssembly;
         bool insidePlot = args[0] == InsidePlotCommand || pixelBounds;
         bool supplemental = args[0] == SupplementalCommand;
-        string composition = headerContext
+        string composition = legendContext
+            ? ProductionOcrAdapter.LegendContextCandidateCompositionVersion
+            : headerContext
             ? ProductionOcrAdapter.HeaderContextCandidateCompositionVersion
             : combinedAssembly
             ? ProductionOcrAdapter.CombinedAssemblyCandidateCompositionVersion
@@ -199,7 +204,7 @@ internal static class OfficialHeadCandidateEvaluation
                     cancellationToken, insidePlotAssembly: insidePlot,
                     pixelBoundsRefinement: pixelBounds,
                     participantLaneAssembly: combinedAssembly,
-                    headerLayoutContext: headerContext))
+                    headerLayoutContext: headerContext, framedLegendContext: legendContext))
                 .ConfigureAwait(false);
             if (adapter.IsApproved || !string.Equals(
                     adapter.ConfigurationScope,
@@ -317,7 +322,7 @@ internal static class OfficialHeadCandidateEvaluation
                     ValidateOcrCoverage(effective, recognized.Result);
                     timer.Stop();
                     completed++;
-                    outputPanels.Add(CompletedPanel(panel, rawOutput, effectiveOutput, participantLane, insidePlot, pixelBounds, combinedAssembly, headerContext,
+                    outputPanels.Add(CompletedPanel(panel, rawOutput, effectiveOutput, participantLane, insidePlot, pixelBounds, combinedAssembly, headerContext, legendContext,
                         recognized, graySha, bgrSha, timer.Elapsed.TotalMilliseconds));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -329,7 +334,7 @@ internal static class OfficialHeadCandidateEvaluation
                     timer.Stop();
                     failed++;
                     outputPanels.Add(FailedPanel(
-                        panel, rawOutput, effectiveOutput, participantLane, insidePlot, pixelBounds, combinedAssembly, headerContext,
+                        panel, rawOutput, effectiveOutput, participantLane, insidePlot, pixelBounds, combinedAssembly, headerContext, legendContext,
                         stage, exception, timer.Elapsed.TotalMilliseconds));
                 }
             }
@@ -338,6 +343,7 @@ internal static class OfficialHeadCandidateEvaluation
             byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
             {
                 Schema = supplemental ? "graphreader.supplemental-head-candidate-evaluation.v1" :
+                    legendContext ? "graphreader.legend-context-candidate-evaluation.v1" :
                     headerContext ? "graphreader.header-context-candidate-evaluation.v1" :
                     combinedAssembly ? "graphreader.combined-assembly-candidate-evaluation.v1" :
                     pixelBounds ? "graphreader.pixel-bounds-candidate-evaluation.v1" :
@@ -422,6 +428,7 @@ internal static class OfficialHeadCandidateEvaluation
         bool pixelBounds,
         bool combinedAssembly,
         bool headerContext,
+        bool legendContext,
         ProductionOcrEvidence evidence,
         string graySha,
         string bgrSha,
@@ -444,7 +451,7 @@ internal static class OfficialHeadCandidateEvaluation
             OriginalBgrSha256 = bgrSha,
             RawDetectorRegions = rawOutput,
             EffectiveRegions = effectiveOutput,
-            AssemblyContext = AssemblyContext(panel, participantLane, insidePlot, pixelBounds, combinedAssembly, headerContext),
+            AssemblyContext = AssemblyContext(panel, participantLane, insidePlot, pixelBounds, combinedAssembly, headerContext, legendContext),
             RecognizedRegions = evidence.Result.Regions.Select(region => RecognizedRegion(panel, region)).ToArray(),
             RegionFailures = evidence.Result.RegionFailures ?? [],
             Ocr = new
@@ -485,6 +492,7 @@ internal static class OfficialHeadCandidateEvaluation
         bool pixelBounds,
         bool combinedAssembly,
         bool headerContext,
+        bool legendContext,
         string stage,
         Exception exception,
         double elapsedMilliseconds) => new
@@ -506,14 +514,27 @@ internal static class OfficialHeadCandidateEvaluation
         Error = exception.Message,
         RawDetectorRegions = rawOutput,
         EffectiveRegions = effectiveOutput,
-        AssemblyContext = AssemblyContext(panel, participantLane, insidePlot, pixelBounds, combinedAssembly, headerContext),
+        AssemblyContext = AssemblyContext(panel, participantLane, insidePlot, pixelBounds, combinedAssembly, headerContext, legendContext),
         RecognizedRegions = Array.Empty<object>(),
         ElapsedMilliseconds = elapsedMilliseconds,
     };
 
     private static object? AssemblyContext(
-        EvaluationPanel panel, bool participantLane, bool insidePlot, bool pixelBounds, bool combinedAssembly, bool headerContext) =>
-        headerContext ? new
+        EvaluationPanel panel, bool participantLane, bool insidePlot, bool pixelBounds, bool combinedAssembly, bool headerContext, bool legendContext) =>
+        legendContext ? new
+        {
+            CompositionVersion = InsidePlotTextRegionAssembler.CompositionVersion,
+            ParticipantLaneCompositionVersion = ParticipantLaneTextRegionAssembler.CompositionVersion,
+            PixelBoundsCompositionVersion = OriginalPixelTextRegionRefiner.CompositionVersion,
+            HeaderLayoutCompositionVersion = HeaderLayoutRoleResolver.CompositionVersion,
+            LegendFrameCompositionVersion = FramedLegendRoleResolver.CompositionVersion,
+            PlotBoundsPanelLtrb = new[]
+            {
+                panel.PlotBounds.Left, panel.PlotBounds.Top,
+                panel.PlotBounds.Right, panel.PlotBounds.Bottom,
+            },
+            PhaseDividerXs = panel.PhaseDividerXs,
+        } : headerContext ? new
         {
             CompositionVersion = InsidePlotTextRegionAssembler.CompositionVersion,
             ParticipantLaneCompositionVersion = ParticipantLaneTextRegionAssembler.CompositionVersion,

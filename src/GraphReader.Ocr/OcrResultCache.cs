@@ -101,6 +101,10 @@ public static class OcrCacheKeyDeriver
         yield return detectorConfigurationFingerprint;
         yield return options.StageVersion;
         yield return GraphTextRoleClassifier.Version;
+        if (options.EnableFramedLegendRoleResolution)
+        {
+            yield return FramedLegendRoleResolver.CompositionVersion;
+        }
         if (options.EnableHeaderLayoutRoleResolution)
         {
             yield return HeaderLayoutRoleResolver.CompositionVersion;

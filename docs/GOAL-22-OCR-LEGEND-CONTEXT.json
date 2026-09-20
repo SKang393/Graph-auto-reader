@@ -1,0 +1,456 @@
+{
+  "schema": "graphreader.ocr-legend-context-application-summary.v1",
+  "status": "development_improvement_below_acceptance",
+  "goal_22_acceptance": "FAIL",
+  "production_approved": false,
+  "synthetic_only": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "packaged_build": false,
+  "isolated_change": "Supply post-OCR legend role evidence from four original-pixel frame edges and a unique separate compact symbol beside text, preserving explicit and human-reviewed evidence.",
+  "composition_version": "original-db-head-legend-context-v1",
+  "default_enabled": false,
+  "denominators": {
+    "panels": 37,
+    "train_truths": 709,
+    "development_truths": 183,
+    "development_characters": 1019
+  },
+  "baseline_commit": "6006cfaab40603ae65a1ddd28a8a98eea22dc05c",
+  "baseline_ci": {
+    "run_id": 35486072909,
+    "conclusion": "success"
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/full-score-v1.json",
+    "sha256": "beff5d3df2f6b59b4423e4749e67b20dac00cdfe1c455d88ed5a36bba919da99"
+  },
+  "trial_score": {
+    "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/full-score-v1.json",
+    "sha256": "4efd9375a5793bd0b90aec0c1e93a2675dcc106d2b7e882c32cf6f779ba9ab59"
+  },
+  "evaluation": {
+    "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/application-evaluation-v1/report.json",
+    "sha256": "87fd778c90d445e980b78d5e12584c13d9b7510de53fc3dbf3407be9f656efb8"
+  },
+  "candidate": {
+    "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/candidate.json",
+    "sha256": "dadf1479c88f7f65e88e4ec18d70b45d6b6169854ec7f57e7e6937f0aad44d21"
+  },
+  "runtime_source_manifest": {
+    "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/build-source-bindings.json",
+    "sha256": "6837a679561856f4511a998f17023d0cbe6e327ed351db832941afb8ef94954c"
+  },
+  "integration_audit": {
+    "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/integration-audit.json",
+    "sha256": "b9f0448b6bbad89dcfced4ddb70aae1bcb99826e641b5f2cf362dd84a67b69e7"
+  },
+  "diagnostic": {
+    "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/legend-frame-diagnostic-v1.json",
+    "sha256": "bddd4e4c6c654cfdf1b34a26396fbce587b73bb45beb874ed602d267132ab0f8"
+  },
+  "local_validation": {
+    "dotnet_tests": [
+      {
+        "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/test-results/ocr.trx",
+        "sha256": "b95fbeb39601bf3163c370da034779c1cce57b2fa64cefec3ff1994cd6ed62af",
+        "counts": {
+          "total": "323",
+          "executed": "307",
+          "passed": "307",
+          "failed": "0",
+          "error": "0",
+          "timeout": "0",
+          "aborted": "0",
+          "inconclusive": "0",
+          "passedButRunAborted": "0",
+          "notRunnable": "0",
+          "notExecuted": "0",
+          "disconnected": "0",
+          "warning": "0",
+          "completed": "0",
+          "inProgress": "0",
+          "pending": "0"
+        },
+        "times": {
+          "creation": "2026-09-19T23:22:43.8787026-04:00",
+          "queuing": "2026-09-19T23:22:43.8787032-04:00",
+          "start": "2026-09-19T23:22:41.9438225-04:00",
+          "finish": "2026-09-19T23:22:47.0594871-04:00"
+        }
+      },
+      {
+        "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/test-results/app-factory.trx",
+        "sha256": "b56bd0d5ca406a77eed3ac5972fd70af3a7f0eded619a29364d5568852cc36dd",
+        "counts": {
+          "total": "43",
+          "executed": "43",
+          "passed": "43",
+          "failed": "0",
+          "error": "0",
+          "timeout": "0",
+          "aborted": "0",
+          "inconclusive": "0",
+          "passedButRunAborted": "0",
+          "notRunnable": "0",
+          "notExecuted": "0",
+          "disconnected": "0",
+          "warning": "0",
+          "completed": "0",
+          "inProgress": "0",
+          "pending": "0"
+        },
+        "times": {
+          "creation": "2026-09-19T23:24:41.0360986-04:00",
+          "queuing": "2026-09-19T23:24:41.0360993-04:00",
+          "start": "2026-09-19T23:24:34.6393511-04:00",
+          "finish": "2026-09-19T23:24:45.2379526-04:00"
+        }
+      }
+    ],
+    "python": {
+      "passed": 48,
+      "failed": 0,
+      "seconds": 7.17,
+      "report": {
+        "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/python-tests.xml",
+        "sha256": "e35441beead291e47ac4fcd6c393932953fe347157c0260e4ed37a4bde45b2c9"
+      }
+    },
+    "tool_self_checks": {
+      "status": "passed",
+      "check_count": 32,
+      "model_inference": false,
+      "truth_read": false,
+      "private_data": false,
+      "sealed_data": false,
+      "production_approved": false,
+      "report": {
+        "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/self-test.json",
+        "sha256": "fef2bd6607ba62be131b256552369e4483f20cfc00b81152d1d1828e93c179ec"
+      }
+    },
+    "compiler": {
+      "status": "passed",
+      "warnings": 0,
+      "errors": 0,
+      "elapsed_seconds": 27.09
+    }
+  },
+  "audit_repair": {
+    "failure": "The first audit incorrectly required every raw word in an assembled label to have horizontal orientation. The assembler retains the first ordered member orientation. The repaired audit checks that actual rule, then passes without repeating inference or scoring.",
+    "failed_audit_source": {
+      "path": "artifacts/goal22-runs/ocr-legend-context-runtime-v1/audit-before-assembly-orientation-fix.py",
+      "sha256": "7f14216369c4b85e006ed180b34cd740f953b637946f03e91f75a609177ecf0d"
+    }
+  },
+  "before": {
+    "train": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.55,
+          "correct_count": 33,
+          "truth_count": 60
+        },
+        "axistitle": {
+          "accuracy": 0.38,
+          "correct_count": 19,
+          "truth_count": 50
+        },
+        "legendtext": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 20,
+          "truth_count": 30
+        },
+        "participant": {
+          "accuracy": 0.4666666666666667,
+          "correct_count": 14,
+          "truth_count": 30
+        },
+        "phaseheading": {
+          "accuracy": 0.45625,
+          "correct_count": 73,
+          "truth_count": 160
+        },
+        "xtick": {
+          "accuracy": 0.6342857142857142,
+          "correct_count": 111,
+          "truth_count": 175
+        },
+        "ytick": {
+          "accuracy": 0.6372549019607843,
+          "correct_count": 130,
+          "truth_count": 204
+        }
+      },
+      "character_error_count": 1358,
+      "character_error_rate": 0.39765739385065885,
+      "geometry_false_negative_count": 74,
+      "geometry_false_positive_count": 8,
+      "geometry_matched_region_count": 635,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 1101,
+      "predicted_region_count": 643,
+      "recognition_exact_accuracy": 0.5585331452750353,
+      "recognition_exact_count": 396,
+      "role_accuracy": 0.5641748942172073,
+      "role_correct_count": 400,
+      "truth_character_count": 3415,
+      "truth_region_count": 709,
+      "unmatched_prediction_insertion_edit_count": 32,
+      "unmatched_truth_deletion_edit_count": 225
+    },
+    "validation": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 12,
+          "truth_count": 18
+        },
+        "axistitle": {
+          "accuracy": 0.25,
+          "correct_count": 3,
+          "truth_count": 12
+        },
+        "legendtext": {
+          "accuracy": 0.0,
+          "correct_count": 0,
+          "truth_count": 11
+        },
+        "participant": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 6,
+          "truth_count": 9
+        },
+        "phaseheading": {
+          "accuracy": 0.8166666666666667,
+          "correct_count": 49,
+          "truth_count": 60
+        },
+        "xtick": {
+          "accuracy": 0.8541666666666666,
+          "correct_count": 41,
+          "truth_count": 48
+        },
+        "ytick": {
+          "accuracy": 0.84,
+          "correct_count": 21,
+          "truth_count": 25
+        }
+      },
+      "character_error_count": 396,
+      "character_error_rate": 0.3886162904808636,
+      "geometry_false_negative_count": 31,
+      "geometry_false_positive_count": 24,
+      "geometry_matched_region_count": 152,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 34,
+      "predicted_region_count": 176,
+      "recognition_exact_accuracy": 0.7704918032786885,
+      "recognition_exact_count": 141,
+      "role_accuracy": 0.7213114754098361,
+      "role_correct_count": 132,
+      "truth_character_count": 1019,
+      "truth_region_count": 183,
+      "unmatched_prediction_insertion_edit_count": 130,
+      "unmatched_truth_deletion_edit_count": 232
+    }
+  },
+  "after": {
+    "train": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.55,
+          "correct_count": 33,
+          "truth_count": 60
+        },
+        "axistitle": {
+          "accuracy": 0.38,
+          "correct_count": 19,
+          "truth_count": 50
+        },
+        "legendtext": {
+          "accuracy": 0.9666666666666667,
+          "correct_count": 29,
+          "truth_count": 30
+        },
+        "participant": {
+          "accuracy": 0.4666666666666667,
+          "correct_count": 14,
+          "truth_count": 30
+        },
+        "phaseheading": {
+          "accuracy": 0.45625,
+          "correct_count": 73,
+          "truth_count": 160
+        },
+        "xtick": {
+          "accuracy": 0.6342857142857142,
+          "correct_count": 111,
+          "truth_count": 175
+        },
+        "ytick": {
+          "accuracy": 0.6372549019607843,
+          "correct_count": 130,
+          "truth_count": 204
+        }
+      },
+      "character_error_count": 1358,
+      "character_error_rate": 0.39765739385065885,
+      "geometry_false_negative_count": 74,
+      "geometry_false_positive_count": 8,
+      "geometry_matched_region_count": 635,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 1101,
+      "predicted_region_count": 643,
+      "recognition_exact_accuracy": 0.5585331452750353,
+      "recognition_exact_count": 396,
+      "role_accuracy": 0.5768688293370945,
+      "role_correct_count": 409,
+      "truth_character_count": 3415,
+      "truth_region_count": 709,
+      "unmatched_prediction_insertion_edit_count": 32,
+      "unmatched_truth_deletion_edit_count": 225
+    },
+    "validation": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 12,
+          "truth_count": 18
+        },
+        "axistitle": {
+          "accuracy": 0.25,
+          "correct_count": 3,
+          "truth_count": 12
+        },
+        "legendtext": {
+          "accuracy": 0.18181818181818182,
+          "correct_count": 2,
+          "truth_count": 11
+        },
+        "participant": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 6,
+          "truth_count": 9
+        },
+        "phaseheading": {
+          "accuracy": 0.8166666666666667,
+          "correct_count": 49,
+          "truth_count": 60
+        },
+        "xtick": {
+          "accuracy": 0.8541666666666666,
+          "correct_count": 41,
+          "truth_count": 48
+        },
+        "ytick": {
+          "accuracy": 0.84,
+          "correct_count": 21,
+          "truth_count": 25
+        }
+      },
+      "character_error_count": 396,
+      "character_error_rate": 0.3886162904808636,
+      "geometry_false_negative_count": 31,
+      "geometry_false_positive_count": 24,
+      "geometry_matched_region_count": 152,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 34,
+      "predicted_region_count": 176,
+      "recognition_exact_accuracy": 0.7704918032786885,
+      "recognition_exact_count": 141,
+      "role_accuracy": 0.73224043715847,
+      "role_correct_count": 134,
+      "truth_character_count": 1019,
+      "truth_region_count": 183,
+      "unmatched_prediction_insertion_edit_count": 130,
+      "unmatched_truth_deletion_edit_count": 232
+    }
+  },
+  "geometry_after": {
+    "train": {
+      "false_negatives": 74,
+      "false_positives": 8,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.9875583203732504,
+      "predicted_region_count": 643,
+      "recall": 0.8956276445698167,
+      "true_positives": 635,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 31,
+      "false_positives": 24,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.8636363636363636,
+      "predicted_region_count": 176,
+      "recall": 0.8306010928961749,
+      "true_positives": 152,
+      "truth_region_count": 183
+    }
+  },
+  "acceptance_bar_reference": {
+    "character_error_rate_maximum": 0.05,
+    "descriptive_only_until_candidate_outcome_is_closed": true,
+    "path": "ml/policy/acceptance-bars.json",
+    "recognition_exact_match_minimum": 0.95,
+    "role_accuracy_minimum": 0.95,
+    "scorer_does_not_select_or_approve_a_candidate": true,
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "text_region_detection_precision_minimum": 0.95,
+    "text_region_detection_recall_minimum": 0.95,
+    "validation_character_error_rate_meets_bar": false,
+    "validation_effective_detection_precision_meets_bar": false,
+    "validation_effective_detection_recall_meets_bar": false,
+    "validation_recognition_exact_meets_bar": false,
+    "validation_role_accuracy_meets_bar": false
+  },
+  "timing": {
+    "application_milliseconds": 62335.2722,
+    "score_milliseconds": 27724.635499995202,
+    "integration_audit_seconds": 9.709737199998926
+  },
+  "audit_findings": {
+    "synthetic_only": true,
+    "private_data": false,
+    "sealed_data": false,
+    "optimizer_steps": 0,
+    "recognized_regions_checked": 819,
+    "role_changes_by_split": {
+      "train": 9,
+      "validation": 3
+    },
+    "all_role_changes_match_independent_pixel_replay": true,
+    "changed_roles_have_review_warning": true,
+    "original_pixels_raw_and_effective_boxes_text_alternatives_unchanged": true,
+    "all_non_role_metrics_unchanged": true,
+    "models_manifests_native_and_licenses_unchanged": true,
+    "runtime_sources_verified": 13,
+    "execution_assemblies_verified": 4,
+    "bindings": {
+      "artifacts/goal22-runs/ocr-header-context-runtime-v1/application-evaluation-v1/report.json": "66cdf599e2f6e348a61c2058dbc40da83119c8f2da4bb74e2c45c088cd4ee872",
+      "artifacts/goal22-runs/ocr-header-context-runtime-v1/full-score-v1.json": "beff5d3df2f6b59b4423e4749e67b20dac00cdfe1c455d88ed5a36bba919da99",
+      "artifacts/goal22-runs/ocr-header-context-runtime-v1/candidate.json": "8a84b8349b549f4eb4a8e60f53f57568bcb7c7d28f1a355961d429a0fafcb7dd",
+      "artifacts/goal22-runs/ocr-header-context-runtime-v1/legend-frame-diagnostic-v1.json": "bddd4e4c6c654cfdf1b34a26396fbce587b73bb45beb874ed602d267132ab0f8",
+      "artifacts/goal22-runs/ocr-legend-context-runtime-v1/full-score-v1.json": "4efd9375a5793bd0b90aec0c1e93a2675dcc106d2b7e882c32cf6f779ba9ab59",
+      "artifacts/goal22-runs/ocr-legend-context-runtime-v1/application-evaluation-v1/report.json": "87fd778c90d445e980b78d5e12584c13d9b7510de53fc3dbf3407be9f656efb8",
+      "artifacts/goal22-runs/ocr-legend-context-runtime-v1/candidate.json": "dadf1479c88f7f65e88e4ec18d70b45d6b6169854ec7f57e7e6937f0aad44d21",
+      "artifacts/goal22-runs/ocr-v45-evaluation-inputs-v1/historical-evaluation-request.json": "5875c407ac3bcacc1d9f843f72fb12ca7b61d08484227e468d906dc50f4bb615",
+      "artifacts/goal22-runs/ocr-legend-context-runtime-v1/build-source-bindings.json": "6837a679561856f4511a998f17023d0cbe6e327ed351db832941afb8ef94954c"
+    },
+    "audit_source_sha256": "e9c9d42fd097a86c553a43011fcc218a73dec763f3a3f33a661bb5a6048c89b9",
+    "elapsed_seconds": 9.709737199998926
+  },
+  "license_review": "No dependency, font, model, or native payload added. Existing reviewed models, manifests, runtime and license identities are unchanged. New code is Apache-2.0.",
+  "independent_agent_review": "Not used: maintainer requires primary agent alone. Separate Python pixel replay checks actual C# role output.",
+  "known_limitations": [
+    "All five central OCR development bars fail.",
+    "The rule requires a visible frame and separate symbol; it does not solve unframed or occluded legends.",
+    "Three dev roles change but only two add correct matched roles; the third remains an unmatched prediction and receives no accuracy credit.",
+    "No text, localization, real-data, sealed, or full series-assignment improvement is claimed.",
+    "The new symbol bounds do not yet bypass the workflow dependency on marker-center candidates for legend matching."
+  ]
+}

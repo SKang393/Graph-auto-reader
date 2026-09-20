@@ -20,6 +20,8 @@ public sealed partial class ProductionOcrAdapter
         "original-db-head-combined-assembly-v1";
     internal const string HeaderContextCandidateCompositionVersion =
         "original-db-head-header-context-v1";
+    internal const string LegendContextCandidateCompositionVersion =
+        "original-db-head-legend-context-v1";
 
     internal static async Task<ProductionOcrAdapter> CreateForFrozenDbHeadCandidateEvaluationAsync(
         FrozenCandidateOcrModelDescriptor detectionModel,
@@ -30,7 +32,8 @@ public sealed partial class ProductionOcrAdapter
         bool insidePlotAssembly = false,
         bool pixelBoundsRefinement = false,
         bool participantLaneAssembly = false,
-        bool headerLayoutContext = false)
+        bool headerLayoutContext = false,
+        bool framedLegendContext = false)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -51,6 +54,11 @@ public sealed partial class ProductionOcrAdapter
                 nameof(participantLaneAssembly));
         }
         cancellationToken.ThrowIfCancellationRequested();
+        if (framedLegendContext && !headerLayoutContext)
+        {
+            throw new ArgumentException("The framed-legend trial requires the header-context baseline.",
+                nameof(headerLayoutContext));
+        }
         reviewedOpenCvRuntimeSha256 = ValidateSha256(reviewedOpenCvRuntimeSha256,
             nameof(reviewedOpenCvRuntimeSha256));
         await ValidateCandidateDescriptorAsync(detectionModel.Identity, detectionModel.ManifestPath,
@@ -85,7 +93,9 @@ public sealed partial class ProductionOcrAdapter
             await ValidateRecognizerExecutableAsync(recognition.Recognizer, runtime, cancellationToken)
                 .ConfigureAwait(false);
         }, cancellationToken).ConfigureAwait(false);
-        string candidateComposition = headerLayoutContext
+        string candidateComposition = framedLegendContext
+            ? LegendContextCandidateCompositionVersion
+            : headerLayoutContext
             ? HeaderContextCandidateCompositionVersion
             : participantLaneAssembly
             ? CombinedAssemblyCandidateCompositionVersion
@@ -110,6 +120,7 @@ public sealed partial class ProductionOcrAdapter
                     EnableInsidePlotAssembly = insidePlotAssembly,
                     EnableOriginalPixelBoundsRefinement = pixelBoundsRefinement,
                     EnableHeaderLayoutRoleResolution = headerLayoutContext,
+                    EnableFramedLegendRoleResolution = framedLegendContext,
                 });
         }, detectionModel.Identity, recognitionModel.Identity, reviewedOpenCvRuntimeSha256,
             candidateComposition);
