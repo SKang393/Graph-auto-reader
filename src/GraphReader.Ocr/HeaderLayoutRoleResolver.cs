@@ -9,7 +9,7 @@ namespace GraphReader.Ocr;
 /// </summary>
 public static class HeaderLayoutRoleResolver
 {
-    public const string CompositionVersion = "detached-header-note-context-v1";
+    public const string CompositionVersion = "detached-header-note-context-v2";
     private const double MinimumVerticalOverlapRatio = 0.35;
     private const double DetachedNoteConfidence = 0.64;
 
@@ -84,6 +84,7 @@ public static class HeaderLayoutRoleResolver
             OcrRegionContext? context = detectedById[region.RegionId].Context;
             if (region.ReviewStatus == OcrReviewStatus.Unreviewed &&
                 context?.ExplicitRoleHint is null && context?.NearPhaseDivider is not true &&
+                !GraphTextRoleClassifier.IsStandalonePhaseCode(region.Text) &&
                 bandTop - region.Polygon.Bounds.Bottom >= typicalHeight)
             {
                 detached.Add(region.RegionId);

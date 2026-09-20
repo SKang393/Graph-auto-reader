@@ -75,7 +75,7 @@ public sealed class GraphTextRoleClassifierTests
 
     [TestMethod]
     [DataRow("Morgan")]
-    [DataRow("Outcome")]
+    [DataRow("Outcomesworth")]
     [DataRow("Training")]
     [DataRow("Partid�pant 01")]
     [DataRow("Participant")]
@@ -87,6 +87,43 @@ public sealed class GraphTextRoleClassifierTests
 
         Assert.AreEqual(OcrTextRole.Other, result.Role);
         CollectionAssert.Contains(result.Reasons.ToArray(), "ambiguous_peripheral_text_requires_review");
+    }
+
+    [TestMethod]
+    [DataRow("Outcome")]
+    [DataRow("Response count")]
+    [DataRow("Percentage correct")]
+    [DataRow("Duration (seconds)")]
+    [DataRow("Response rate")]
+    [DataRow("FREQUENCY")]
+    public void HorizontalMeasurementTitleRequiresAxisMarginAndKeepsReviewCue(string text)
+    {
+        var region = OcrTestFixtures.Region("measurement-title", 2, 42, 24, 9);
+        var result = GraphTextRoleClassifier.Classify(region, text, Plot);
+        Assert.AreEqual(OcrTextRole.AxisTitle, result.Role);
+        Assert.AreEqual(0.70, result.Confidence);
+        CollectionAssert.Contains(result.Reasons.ToArray(), "measurement_term_and_axis_margin_requires_review");
+        Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(
+            OcrTestFixtures.Region("inside", 60, 42, 24, 9), text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.LegendText, GraphTextRoleClassifier.Classify(
+            region with { Context = new OcrRegionContext(NearLegendGlyph: true) }, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Participant, GraphTextRoleClassifier.Classify(
+            region with { Context = new OcrRegionContext(ExplicitRoleHint: OcrTextRole.Participant) }, text, Plot).Role);
+    }
+
+    [TestMethod]
+    public async Task HorizontalMeasurementTitlePipelineEmitsReviewWarning()
+    {
+        var region = OcrTestFixtures.Region("measurement-title", 2, 42, 24, 9);
+        var recognizer = new StubTextRecognizer((crops, _) => ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(
+            crops.Select(crop => new OcrRecognition(crop.RegionId, crop.SourceImage,
+                [new OcrRecognitionAlternative("Response count", 0.95, crop.SourceImage)], 0.1)).ToArray()));
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), recognizer, new InMemoryOcrResultCache());
+        var result = await pipeline.RecognizeAsync(OcrTestFixtures.Request([region]) with { PlotBounds = Plot });
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.AreEqual(OcrTextRole.AxisTitle, result.Regions.Single().Role);
+        Assert.AreEqual(OcrReviewStatus.Unreviewed, result.Regions.Single().ReviewStatus);
+        CollectionAssert.Contains(result.Warnings.ToArray(), "ocr_role_needs_review:measurement-title:measurement_title_cue");
     }
 
     [TestMethod]

@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    internal const string Version = "graph-text-role-classifier-v4";
+    internal const string Version = "graph-text-role-classifier-v5";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -90,6 +90,11 @@ public static class GraphTextRoleClassifier
 
         if (!numeric && horizontalText && center.X < plotBounds.Left && alignedWithPlot)
         {
+            if (HasMeasurementTitleCue(recognizedText))
+            {
+                return Classification(OcrTextRole.AxisTitle, 0.70,
+                    "measurement_term_and_axis_margin_requires_review");
+            }
             return Classification(OcrTextRole.Other, 0.48, "ambiguous_peripheral_text_requires_review");
         }
 
@@ -160,6 +165,39 @@ public static class GraphTextRoleClassifier
         string trimmed = text.Trim();
         return trimmed.Length > ParticipantLabelPrefix.Length &&
             trimmed.StartsWith(ParticipantLabelPrefix, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool HasMeasurementTitleCue(string text)
+    {
+        // General measurement vocabulary is a reviewable role cue, never a
+        // source of calibration numbers or participant identity.
+        string[] words = text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        return words.Any(word => word.Trim('(', ')', '[', ']', ':', ',', '.').ToLowerInvariant() is
+            "outcome" or "outcomes" or "frequency" or "count" or "duration" or
+            "percentage" or "percent" or "rate" or "score" or "scores");
+    }
+
+    internal static bool IsStandalonePhaseCode(string text)
+    {
+        ReadOnlySpan<char> value = text.AsSpan().Trim();
+        const string prefix = "phase";
+        if (!value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+        value = value[prefix.Length..].Trim();
+        if (value.IsEmpty)
+        {
+            return false;
+        }
+        foreach (char character in value)
+        {
+            if (!char.IsAsciiDigit(character))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static bool IsPhaseHeadingTerm(string text)

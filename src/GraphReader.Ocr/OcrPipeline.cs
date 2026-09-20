@@ -649,6 +649,12 @@ public sealed class OcrPipeline
             {
                 warnings.Add($"ocr_role_needs_review:{detected.RegionId}:ambiguous_peripheral_text");
             }
+            if (role.Reasons.Contains(
+                    "measurement_term_and_axis_margin_requires_review",
+                    StringComparer.Ordinal))
+            {
+                warnings.Add($"ocr_role_needs_review:{detected.RegionId}:measurement_title_cue");
+            }
 
             var combined = Math.Pow(
                 Math.Clamp(detected.DetectionConfidence, 0, 1) *

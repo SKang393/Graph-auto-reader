@@ -66,6 +66,25 @@ public sealed class HeaderLayoutRoleResolverTests
     }
 
     [TestMethod]
+    [DataRow("PHASE4", true)]
+    [DataRow("Phase 12", true)]
+    [DataRow(" phase3 ", true)]
+    [DataRow("Phase 4 completed", false)]
+    [DataRow("Phase 1.5", false)]
+    [DataRow("Phase", false)]
+    public void DetachedStandalonePhaseCodesRemainHeadingsButFreeformNotesDoNot(string text, bool keepHeading)
+    {
+        var rows = Fixture();
+        var regions = rows.Regions.Select(region => region.RegionId == "note"
+            ? region with { Text = text } : region).ToArray();
+        var result = HeaderLayoutRoleResolver.Resolve(regions, rows.Detected, rows.Plot);
+        var note = result.Regions.Single(region => region.RegionId == "note");
+        Assert.AreEqual(keepHeading ? OcrTextRole.PhaseHeading : OcrTextRole.Annotation, note.Role);
+        Assert.AreEqual(text, note.Text);
+        Assert.AreEqual(!keepHeading, result.DetachedRegionIds.Contains("note"));
+    }
+
+    [TestMethod]
     public void NumericRolesAndVerticalLabelsAreNeverReclassified()
     {
         var rows = Fixture();
