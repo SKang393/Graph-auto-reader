@@ -778,6 +778,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         }).ToArray();
         string[] warnings = provenance.SelectMany(static envelope => envelope.Warnings)
             .Concat(calibration.Reasons)
+            .Concat(calibration.Lattice.Diagnostics.Warnings)
             .Distinct(StringComparer.Ordinal)
             .ToArray();
         return new DetectionProjection(export, candidates, warnings);

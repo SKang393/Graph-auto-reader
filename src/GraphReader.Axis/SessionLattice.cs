@@ -211,6 +211,11 @@ public static class SessionLattice
             assignmentColumns,
             best,
             cancellationToken);
+        if (best.Origin.HasAbsoluteOrigin && assignments.Any(static point =>
+                point.PrintedX is null && point.EstimatedX is null))
+        {
+            warnings.Add("Marker columns outside the supported session lattice retain unknown x values and require review.");
+        }
         SessionLatticeSource[] contributingSources = ResolveContributingSources(request);
         SessionLatticeSource source = ResolveSource(contributingSources, best.Origin.HasAbsoluteOrigin);
         double relativePitchUncertainty = CalculateRelativePitchUncertainty(
@@ -395,42 +400,41 @@ public static class SessionLattice
         }
 
         double printedPitch = Math.Abs(1d / transform.Slope);
-        double smallestMarkerGap = double.PositiveInfinity;
-        for (int index = 1; index < observedColumns.Count; index++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            smallestMarkerGap = Math.Min(
-                smallestMarkerGap,
-                observedColumns[index].PixelX - observedColumns[index - 1].PixelX);
-        }
-
-        if (!double.IsFinite(smallestMarkerGap) || smallestMarkerGap <= 0d)
-        {
-            return PitchConflictKind.None;
-        }
-
-        double gapInPrintedPitches = smallestMarkerGap / printedPitch;
-        double harmonicRatio = Math.Max(smallestMarkerGap, printedPitch) /
-            Math.Min(smallestMarkerGap, printedPitch);
-        double nearestHarmonic = Math.Round(harmonicRatio);
-        if (nearestHarmonic == 2d &&
-            Math.Abs(harmonicRatio - nearestHarmonic) / nearestHarmonic <=
-            request.AlignmentToleranceFraction &&
-            HasRegularDenseRun(
-                observedColumns,
-                smallestMarkerGap,
-                request.AlignmentToleranceFraction,
-                cancellationToken))
+        // A stray short gap must not hide a coherent half/double-pitch alias.
+        if (HasRegularDenseRun(observedColumns, printedPitch / 2d,
+                request.AlignmentToleranceFraction, cancellationToken) ||
+            HasRegularDenseRun(observedColumns, printedPitch * 2d,
+                request.AlignmentToleranceFraction, cancellationToken))
         {
             return PitchConflictKind.HarmonicAlias;
         }
 
-        double nearestPositiveInteger = Math.Max(1d, Math.Round(gapInPrintedPitches));
-        double relativeDisagreement = Math.Abs(gapInPrintedPitches - nearestPositiveInteger) /
-            nearestPositiveInteger;
-        return relativeDisagreement > request.AlignmentToleranceFraction
-            ? PitchConflictKind.Disagreement
-            : PitchConflictKind.None;
+        int compatibleGaps = 0;
+        for (int index = 1; index < observedColumns.Count; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            double gap = observedColumns[index].PixelX - observedColumns[index - 1].PixelX;
+            double gapInPrintedPitches = gap / printedPitch;
+            double nearestPositiveInteger = Math.Max(1d, Math.Round(gapInPrintedPitches));
+            double relativeDisagreement = Math.Abs(gapInPrintedPitches - nearestPositiveInteger) /
+                nearestPositiveInteger;
+            if (relativeDisagreement <= request.AlignmentToleranceFraction)
+            {
+                compatibleGaps++;
+            }
+            else if (HasRegularDenseRun(observedColumns, gap,
+                request.AlignmentToleranceFraction, cancellationToken))
+            {
+                // A second coherent grid is conflicting evidence, even in a minority.
+                return PitchConflictKind.Disagreement;
+            }
+        }
+
+        // Isolated detections can split a real gap in two. Require a strict
+        // consensus; per-point assignment and residual checks still apply.
+        return compatibleGaps > (observedColumns.Count - 1) / 2
+            ? PitchConflictKind.None
+            : PitchConflictKind.Disagreement;
     }
 
     private static bool HasRegularDenseRun(

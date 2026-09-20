@@ -1,0 +1,256 @@
+{
+  "schema": "graphreader.goal22.lattice-gap-integration.v1",
+  "status": "calibration_gap_repair_verified_export_defects_remain",
+  "goal22_complete": false,
+  "base_commit": "e2001e6ef851f53c62a2e69019fc106ef2a692fc",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.Axis/SessionLattice.cs",
+      "sha256": "9999ea7c3358e3ae865509a32df2e8a5be87482b03996d9946332f23d9b16860",
+      "archive": "artifacts/goal22-runs/workflow-lattice-gap-checks-v1/source-snapshot/src/GraphReader.Axis/SessionLattice.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "0496346aa14ec98c0d3d1d30f08155cd2cacf394341a553b676a0e26fe1ac275",
+      "archive": "artifacts/goal22-runs/workflow-lattice-gap-checks-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs"
+    },
+    {
+      "path": "tests/GraphReader.Axis.Tests/SessionLatticeRobustnessTests.cs",
+      "sha256": "5ead323edac57be6b598c2039393aaae4d45a70dfdbd2a8ebbc747178a791274",
+      "archive": "artifacts/goal22-runs/workflow-lattice-gap-checks-v1/source-snapshot/tests/GraphReader.Axis.Tests/SessionLatticeRobustnessTests.cs"
+    }
+  ],
+  "compiled_source_snapshot_count": 265,
+  "all_source_snapshots_verified": true,
+  "repair_definition": {
+    "failure_mode": "A single shortest adjacent marker gap rejects a supported printed scale. Development source bbd5105c92a4 has a 4.995px duplicate gap among otherwise roughly39.56px columns; all five printed ticks fit. Train source d5b9f00fe1f4 has one unassigned center among 23 consistent columns.",
+    "subsystem": "SessionLattice cross-source pitch diagnostics and warning propagation.",
+    "evidence": "artifacts/goal22-runs/lattice-gap-diagnostic-v1/diagnostic.json",
+    "isolated_change": "Use a strict majority of adjacent gaps compatible with the printed fit at the existing tolerance; still reject any coherent conflicting run of three gaps and either half/double-pitch dense run. Existing scale fitting, numeric assignments, residual, origin and export guards remain unchanged. Warn when an absolute lattice leaves a marker column without x evidence.",
+    "scientific_safety": "No missing or off-grid session is filled in. Ties, coherent competing grids, harmonic ambiguity and invalid origin remain review-required. All accepted marker locations remain.",
+    "acceptance": "Axis regression scenarios plus App/Export suites and unchanged23-source706-point724-row workflow diagnostic. No model acceptance claim.",
+    "splits": "Existing20train and3dev; no new generation.",
+    "sealed_budget": 0,
+    "training": false,
+    "model_revision_opened": false
+  },
+  "comparison": {
+    "source_count": 23,
+    "previously_observed_panels": 30,
+    "observed_panels": 30,
+    "previously_visited_panels_not_reached": 0,
+    "newly_reached_panels": 0,
+    "raw_upstream_evidence_unchanged": {
+      "axis": true,
+      "accepted_markers": true,
+      "ocr": true
+    },
+    "prior_calibration_numeric_measurements_unchanged": true,
+    "calibration_validity_before": {
+      "Valid": 16,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 7
+    },
+    "calibration_validity_after": {
+      "Valid": 18,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 5
+    },
+    "prior_valid_calibrations_now_invalid": 0,
+    "completed_sources": 9,
+    "failed_sources": 14,
+    "previously_completed_sources_now_failed": 0,
+    "newly_completed_sources": 0,
+    "common_exported_points_with_identical_values_and_x_provenance": 115,
+    "previously_exported_points_removed": 0,
+    "previously_unexported_points_added": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false
+  },
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 9,
+    "failed_cases": 14,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 28,
+    "matched_series": 9,
+    "truth_points": 706,
+    "predicted_points": 115,
+    "matched_points": 85,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 130,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 82,
+    "correct_rows": 77,
+    "missing_rows": 642,
+    "extra_rows": 48,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 85,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 621,
+    "unique_point_extra": 30,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7391304347826086,
+    "unique_point_structural_coverage": 0.12039660056657224,
+    "unique_point_value_precision": 0.7391304347826086,
+    "unique_point_value_coverage": 0.12039660056657224,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.5923076923076923,
+    "relational_row_coverage": 0.106353591160221,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9390243902439024,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 14
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 9,
+    "failed_cases": 14,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 28,
+    "matched_series": 9,
+    "truth_points": 706,
+    "predicted_points": 115,
+    "matched_points": 85,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 130,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 82,
+    "correct_rows": 77,
+    "missing_rows": 642,
+    "extra_rows": 48,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 85,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 621,
+    "unique_point_extra": 30,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7391304347826086,
+    "unique_point_structural_coverage": 0.12039660056657224,
+    "unique_point_value_precision": 0.7391304347826086,
+    "unique_point_value_coverage": 0.12039660056657224,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.5923076923076923,
+    "relational_row_coverage": 0.106353591160221,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9390243902439024,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 14
+    }
+  },
+  "execution_seconds": 204.82165849999998,
+  "checks": {
+    "axis": {
+      "path": "artifacts/goal22-runs/workflow-lattice-gap-checks-v1/test-results/axis.trx",
+      "sha256": "459fb4c1e67847a61d0d1f3bffb02662681561ffa58c007e68b01b3512916f02",
+      "passed": 51,
+      "skipped": 0
+    },
+    "app": {
+      "path": "artifacts/goal22-runs/workflow-lattice-gap-checks-v1/test-results/app.trx",
+      "sha256": "ef7bb4c983f45ebc8270af5a58929dc3dd28d3fd4ca5f48173a312a22f167548",
+      "passed": 370,
+      "skipped": 0
+    },
+    "export": {
+      "path": "artifacts/goal22-runs/workflow-lattice-gap-checks-v1/test-results/export.trx",
+      "sha256": "93018a20fce9501fd66acdce5b2edafe1620b3d2b5da6eb05dd18b243a50028f",
+      "passed": 30,
+      "skipped": 0
+    },
+    "tool_build": {
+      "path": "artifacts/goal22-runs/workflow-lattice-gap-checks-v1/build.log",
+      "sha256": "55767d2591f52f08b55c1f31c297a20042720c619f70766936495bc7bc98c39a"
+    },
+    "tool_warnings": 0,
+    "tool_errors": 0,
+    "private_runner_self_test": {
+      "path": "artifacts/goal22-runs/workflow-lattice-gap-checks-v1/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    }
+  },
+  "evidence": {
+    "candidate-binding.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-lattice-gap-v1/candidate-binding.json",
+      "sha256": "13451ffcdd64e6c7858dea53870331a0f46bb3845c6ad6aab5d7c474aa388756"
+    },
+    "input-manifest.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-lattice-gap-v1/input-manifest.json",
+      "sha256": "82bd6ffd9cf430e89b7f9e3395d46aaee5b072cfd93800dd9982158057b80188"
+    },
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-lattice-gap-v1/execution/report.json",
+      "sha256": "2db6b75298d0ff8a2db66fb61bcde90696ede9cfcc9b51fbe795596cf9a1ef9d"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-lattice-gap-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "416735ac7e5db106b5f66bb33bf89c5e43aeca7cee4c595a4a55aeaa8949c1d5"
+    },
+    "csv-score-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-lattice-gap-v1/csv-score-normalized-phases.json",
+      "sha256": "78ea08fec5188e36b434cd6619d4985d7b8995e5274bc77ed1f145255fdd3b70"
+    },
+    "comparison.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-lattice-gap-v1/comparison.json",
+      "sha256": "1d1c15af58743406a1e29b5ccda1a867c3239c443cb8a64c031f31941faeb2fc"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-lattice-gap-v1/source-bindings.json",
+      "sha256": "9ab5d43ea9118d2931b11f8d8dcab245e08159d0689a12e029c7f26f9f368201"
+    }
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-series-phase-v1/csv-score-normalized-phases.json",
+    "sha256": "62a025ccbda627b2b068c6be0f54a88c8f362083c4515a0358e84441cb662919"
+  },
+  "development_diagnosis": {
+    "path": "artifacts/goal22-runs/lattice-gap-diagnostic-v1/diagnostic.json",
+    "sha256": "4642231ddd87faef630a5ea603c59d805cdaa97caa209e4ce090e840ab2c4218"
+  },
+  "newly_reached_failures": {
+    "unsupported_point_x": "One improved calibration reaches export, which correctly rejects an unassigned x value with INVALID_POINT. No session was invented.",
+    "panel_export_name_collision": "The other improved calibration reaches export, which fails with EXPORT_FILE_EXISTS when several panels choose the same filename in one output directory."
+  },
+  "known_limitations": [
+    "No additional source completes: 9 completed and 14 failed. Correct unique points/values stay85/706 and relational rows77/724; all115 previously exported locations and values survive.",
+    "621 truth points are missing,30 exported detections are extra and5 matched relational rows have wrong phases.",
+    "Robust x-fit outliers still reach later lattice calculations; automatic maxima also bypass inlier selection. Repair this separately without changing robust thresholds or manual authority.",
+    "These are train/development diagnostics, not acceptance. All four Goal22 outcomes remain incomplete."
+  ],
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}
