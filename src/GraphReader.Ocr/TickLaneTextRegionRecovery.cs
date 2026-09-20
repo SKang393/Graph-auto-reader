@@ -9,7 +9,7 @@ namespace GraphReader.Ocr;
 /// </summary>
 public static class TickLaneTextRegionRecovery
 {
-    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v1";
+    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v2";
 
     public static async ValueTask<IReadOnlyList<OcrDetectedRegion>> FindAsync(
         OcrImage image,
@@ -27,7 +27,49 @@ public static class TickLaneTextRegionRecovery
         }
         var components = await new ConnectedComponentTextRegionDetector()
             .DetectAsync(image, cancellationToken).ConfigureAwait(false);
-        return SelectCandidates(components, detected, recognized, plot, cancellationToken);
+        IReadOnlyList<OcrDetectedRegion> established = SelectCandidates(
+            components, detected, recognized, plot, cancellationToken);
+        var result = established.ToList();
+        var byId = detected.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
+        OcrRegion[] anchors = recognized.Where(region =>
+            region.SourceImage == OcrSourceImage.Original && region.ReviewStatus != OcrReviewStatus.Rejected &&
+            region.Role is OcrTextRole.XTick or OcrTextRole.YTick &&
+            GraphNumericParser.IsLiteralGraphNumber(region.Text) &&
+            byId.TryGetValue(region.RegionId, out OcrDetectedRegion? source) &&
+            source.Polygon.Points.SequenceEqual(region.Polygon.Points)).ToArray();
+        foreach (OcrTextRole role in new[] { OcrTextRole.XTick, OcrTextRole.YTick })
+        {
+            OcrRegion[] sameAxis = anchors.Where(region => region.Role == role).ToArray();
+            // Sparse axes cannot supply the three labels needed by the general
+            // lane. Independently measured axis-connected ticks support crops,
+            // never a predicted numeric value or a replacement baseline reading.
+            if (sameAxis.Length is < 1 or > 2 || CreateLane(sameAxis, role, minimumAnchors: 1) is not { } lane)
+                continue;
+            double?[] anchorTicks = sameAxis.Select(region => Fits(region.Polygon.Bounds, lane, plot)
+                ? UniqueOutwardTick(image, region.Polygon.Bounds, plot, role, cancellationToken) : null).ToArray();
+            if (anchorTicks.Any(static position => position is null) || anchorTicks.Distinct().Count() != sameAxis.Length)
+                continue;
+            double offset = Median(sameAxis.Select((region, index) => anchorTicks[index]!.Value -
+                Along(region.Polygon.Bounds, role)));
+            if (sameAxis.Where((region, index) => Math.Abs(anchorTicks[index]!.Value -
+                    Along(region.Polygon.Bounds, role) - offset) > lane.Height / 2).Any())
+                continue;
+            foreach (OcrDetectedRegion component in components)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                OcrRectangle bounds = component.Polygon.Bounds;
+                if (!Fits(bounds, lane, plot) || detected.Any(region => Covered(bounds, region.Polygon.Bounds)) ||
+                    result.Any(region => Covered(bounds, region.Polygon.Bounds))) continue;
+                double? tick = UniqueOutwardTick(image, bounds, plot, role, cancellationToken);
+                if (tick is null || anchorTicks.Contains(tick) ||
+                    Math.Abs(tick.Value - Along(bounds, role) - offset) > lane.Height / 2) continue;
+                result.Add(component with { RegionId = "tick-lane:" + component.RegionId,
+                    OrientationDegrees = 0, Context = null });
+            }
+        }
+        return OcrCollections.Freeze(result.OrderBy(static region => region.Polygon.Bounds.Top)
+            .ThenBy(static region => region.Polygon.Bounds.Left)
+            .ThenBy(static region => region.RegionId, StringComparer.Ordinal));
     }
 
     public static IReadOnlyList<OcrDetectedRegion> SelectCandidates(
@@ -89,11 +131,11 @@ public static class TickLaneTextRegionRecovery
             .ThenBy(static region => region.RegionId, StringComparer.Ordinal));
     }
 
-    private static Lane? CreateLane(OcrRegion[] anchors, OcrTextRole role)
+    private static Lane? CreateLane(OcrRegion[] anchors, OcrTextRole role, int minimumAnchors = 3)
     {
         OcrRectangle[] bounds = anchors.Where(region => region.Role == role)
             .Select(static region => region.Polygon.Bounds).ToArray();
-        if (bounds.Length < 3)
+        if (bounds.Length < minimumAnchors)
         {
             return null;
         }
@@ -101,12 +143,66 @@ public static class TickLaneTextRegionRecovery
         double cross = Median(bounds.Select(rectangle => role == OcrTextRole.XTick ? rectangle.Center.Y : rectangle.Right));
         double[] along = bounds.Select(rectangle => role == OcrTextRole.XTick ? rectangle.Center.X : rectangle.Center.Y)
             .Distinct().Order().ToArray();
-        if (along.Length < 3 || along[^1] - along[0] < 4 * height ||
+        if (along.Length < Math.Min(bounds.Length, 3) ||
+            along.Length > 1 && along[^1] - along[0] < 4 * height ||
             bounds.Any(rectangle => Math.Abs((role == OcrTextRole.XTick ? rectangle.Center.Y : rectangle.Right) - cross) > height / 2))
         {
             return null;
         }
         return new Lane(role, height, bounds.Max(static rectangle => rectangle.Width), cross);
+    }
+
+    private static double Along(OcrRectangle bounds, OcrTextRole role) =>
+        role == OcrTextRole.XTick ? bounds.Center.X : bounds.Center.Y;
+
+    private static double? UniqueOutwardTick(OcrImage image, OcrRectangle box, OcrRectangle plot,
+        OcrTextRole role, CancellationToken cancellationToken)
+    {
+        bool vertical = role == OcrTextRole.YTick;
+        double cross = vertical ? plot.Left : plot.Bottom;
+        int alongLimit = vertical ? image.Height : image.Width;
+        int crossLimit = vertical ? image.Width : image.Height;
+        if (cross < 0 || cross >= crossLimit) return null;
+        int axis = (int)Math.Round(cross);
+        if (axis >= crossLimit) return null;
+        double center = Along(box, role);
+        int first = (int)Math.Clamp(Math.Floor(center - box.Height), 0, alongLimit - 1);
+        int last = (int)Math.Clamp(Math.Ceiling(center + box.Height), 0, alongLimit - 1);
+        int low = (int)Math.Clamp(Math.Ceiling(vertical ? Math.Max(cross - box.Height, box.Right + 2) : cross + 2), 0, crossLimit);
+        int high = (int)Math.Clamp(Math.Floor(vertical ? cross - 2 : Math.Min(cross + box.Height, box.Top - 2)), -1, crossLimit - 1);
+        if (high - low < 1) return null;
+        var candidates = new List<double>();
+        int groupStart = -1;
+        ReadOnlySpan<byte> pixels = image.Pixels.Span;
+        for (int along = first; along <= last + 1; along++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            int support = 0;
+            bool connected = along <= last;
+            if (connected)
+            {
+                // Require a continuous connection to the actual axis as well
+                // as two outward pixels separated from the label glyph.
+                int near = vertical ? high : low;
+                for (int offset = Math.Min(axis, near); offset <= Math.Max(axis, near); offset++)
+                    if (pixels[(vertical ? along : offset) * image.Stride + (vertical ? offset : along)] > 196)
+                        connected = false;
+                for (int offset = low; offset <= high; offset++)
+                    if (pixels[(vertical ? along : offset) * image.Stride + (vertical ? offset : along)] <= 196)
+                        support++;
+            }
+            if (connected && support >= 2)
+            {
+                if (groupStart < 0) groupStart = along;
+            }
+            else if (groupStart >= 0)
+            {
+                if (along - groupStart <= Math.Max(2, box.Height / 2))
+                    candidates.Add((groupStart + along - 1) / 2d);
+                groupStart = -1;
+            }
+        }
+        return candidates.Count == 1 ? candidates[0] : null;
     }
 
     private static bool Fits(OcrRectangle bounds, Lane lane, OcrRectangle plot)

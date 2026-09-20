@@ -1,0 +1,342 @@
+{
+  "schema": "graphreader.goal22.sparse-tick-recovery.v1",
+  "status": "missing_literal_label_recovered_with_visible_tick_support_origin_safety_preserved",
+  "base_commit": "49cdb1c6c212ea8d09eb01f81f12e656bf902453",
+  "goal22_complete": false,
+  "repair_definition": {
+    "failure_mode": "A source with only two x labels loses one in detection; fallback requires three readable labels and can never recover the other.",
+    "evidence": "artifacts/goal22-runs/ocr-complete-workflow-participant-handoff-v1/execution/stage-evidence/d7a997ff-dc51-4459-8f5e-94596e7cabf9.json",
+    "isolated_change": "Permit sparse label recovery only when the original-pixel anchor and candidate each have a unique short outward stroke connected to the measured plot axis, in the same measured text lane. Supply crops, never numbers.",
+    "metric": "Original-pixel crop recovery on independent x/y fixtures; preserve missing-stroke, ambiguous-stroke, rejected/unbound anchor, immutable pixels, no-guess and calibration safeguards.",
+    "acceptance_bar": "Relevant OCR and application tests, frozen diagnostic source checks and actual workflow evidence; no numeric tolerance or model operating-point changes.",
+    "split": "Owned synthetic development evidence; no sealed or private data",
+    "sealed_budget": 0,
+    "training": false
+  },
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.Ocr/TickLaneTextRegionRecovery.cs",
+      "archive": "artifacts/goal22-runs/workflow-sparse-tick-checks-v1/source-snapshot/src/GraphReader.Ocr/TickLaneTextRegionRecovery.cs",
+      "sha256": "baf48aae84970ce982f76738b61f5163928139b0bea212a5039dcb608b5cddb1"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "archive": "artifacts/goal22-runs/workflow-sparse-tick-checks-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "sha256": "3a979b6e205f1f159dc393d974cb648e5604121d2550fa2fb304747c504987dd"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/SparseTickRecoveryTests.cs",
+      "archive": "artifacts/goal22-runs/workflow-sparse-tick-checks-v1/source-snapshot/tests/GraphReader.Ocr.Tests/SparseTickRecoveryTests.cs",
+      "sha256": "c05889d7f312d275cabb5474de116f2fc5a0dac56966bb3b0006a213db227b69"
+    }
+  ],
+  "compiled_source_snapshot_count": 265,
+  "all_source_snapshots_verified": true,
+  "checks": {
+    "ocr": {
+      "path": "artifacts/goal22-runs/workflow-sparse-tick-checks-v1/test-results/ocr.trx",
+      "sha256": "ea4b4810483dc79b73fc11c3c2566edf4733b43cecc7b223bac71437ebe81da2",
+      "passed": 380,
+      "failed": 0,
+      "skipped": 16,
+      "times": {
+        "creation": "2026-09-20T08:50:07.5143285-04:00",
+        "queuing": "2026-09-20T08:50:07.5143291-04:00",
+        "start": "2026-09-20T08:50:05.5246120-04:00",
+        "finish": "2026-09-20T08:50:11.5148327-04:00"
+      }
+    },
+    "app": {
+      "path": "artifacts/goal22-runs/workflow-sparse-tick-checks-v1/test-results/app.trx",
+      "sha256": "7512747945c6904b292cae2cca8695aae10e283bc375cf9f3e8ef0f5ee739e30",
+      "passed": 373,
+      "failed": 0,
+      "skipped": 0,
+      "times": {
+        "creation": "2026-09-20T08:50:39.1257760-04:00",
+        "queuing": "2026-09-20T08:50:39.1257765-04:00",
+        "start": "2026-09-20T08:50:35.0385080-04:00",
+        "finish": "2026-09-20T08:51:00.6682846-04:00"
+      }
+    },
+    "before_repair": {
+      "path": "artifacts/goal22-runs/sparse-tick-recovery-before-v1/test-results/before.trx",
+      "sha256": "00456526696b62ec7b6954ce7a6333804be766dd4ee8adddd088ddb3c8a32b27",
+      "failed": 2,
+      "passed": 2
+    },
+    "x64_build": {
+      "path": "artifacts/goal22-runs/workflow-sparse-tick-checks-v1/build-win-x64.log",
+      "sha256": "29f5dc95ccee6355b0bee988d2163b3e1622452b0b6e369a2f8910d1de76b3e8"
+    },
+    "warnings": 0,
+    "errors": 0,
+    "fictitious_runner_self_test": {
+      "path": "artifacts/goal22-runs/workflow-sparse-tick-checks-v1/private-runner-self-test-final.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    },
+    "prior_launch_failures": [
+      {
+        "path": "artifacts/goal22-runs/workflow-sparse-tick-checks-v1/private-runner-self-test.json",
+        "sha256": "0ddf3dc3f6fc7d73e96ae0bc54b40abbe44fdd35899c23c8ae76fb74a1ed930f"
+      },
+      {
+        "path": "artifacts/goal22-runs/workflow-sparse-tick-checks-v1/private-runner-self-test-repaired.json",
+        "sha256": "0ddf3dc3f6fc7d73e96ae0bc54b40abbe44fdd35899c23c8ae76fb74a1ed930f"
+      }
+    ],
+    "launch_repair": "The first build omitted the win-x64 runtime identifier; two launches referenced an absent DLL. Explicit -r win-x64 and the documented self-test flag repair the helper. Tests were not repeated; no private or sealed read occurred."
+  },
+  "comparison": {
+    "source_count": 23,
+    "before_observed_panels": 30,
+    "after_observed_panels": 30,
+    "lost_observed_panels": [],
+    "new_observed_panels": [],
+    "raw_axis_unchanged_in_common_panels": true,
+    "counts": {
+      "prior_readings": 700,
+      "removed_readings": 0,
+      "modified_readings": 0,
+      "added_readings": 1,
+      "panels_with_changed_accepted_markers": 0,
+      "before_valid_calibrations": 19,
+      "after_valid_calibrations_same_panels": 19,
+      "added_role_XTick": 1
+    },
+    "panel_changes": [
+      {
+        "source_sha256": "34cabc00dd94bf3b1efa491f62a6797550f9a53623832a5d8d42d60d8e905a7e",
+        "crop": [
+          0,
+          0,
+          1200,
+          350
+        ],
+        "removed_ocr_ids": [],
+        "modified_ocr_ids": [],
+        "added_readings": [
+          {
+            "region_id": "tick-lane:90b7c985-ab9a-753e-c203-a45e7fb470d0",
+            "text": "1",
+            "role": "XTick",
+            "confidence": 0.8764553105658093,
+            "source_image": "Original",
+            "review_status": "Unreviewed",
+            "bounds": {
+              "x": 136,
+              "y": 266,
+              "width": 5,
+              "height": 10,
+              "left": 136,
+              "top": 266,
+              "right": 141,
+              "bottom": 276,
+              "center": {
+                "x": 138.5,
+                "y": 271,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ],
+        "accepted_markers_changed": false,
+        "before_calibration": "NeedsReview",
+        "after_calibration": "InvalidSessionOrigin",
+        "before_reasons": [
+          "Multiple harmonic session pitches fit the available column gaps almost equally well."
+        ],
+        "after_reasons": [
+          "The first observed column maps to session 2, not session 1."
+        ]
+      }
+    ],
+    "case_changes": [
+      {
+        "source_sha256": "34cabc00dd94bf3b1efa491f62a6797550f9a53623832a5d8d42d60d8e905a7e",
+        "before_status": "failed",
+        "after_status": "failed",
+        "before_error": "Automatic calibration is incomplete: Multiple harmonic session pitches fit the available column gaps almost equally well.",
+        "after_error": "Automatic calibration is incomplete: The first observed column maps to session 2, not session 1."
+      }
+    ],
+    "before_completed": 11,
+    "after_completed": 11,
+    "before_failed": 12,
+    "after_failed": 12,
+    "before_exported_unique_points": 272,
+    "after_exported_unique_points": 272,
+    "preserved_point_locations": 272,
+    "lost_points": [],
+    "added_points": [],
+    "changed_scientific_audit_points": [],
+    "before_exported_relational_rows": 287,
+    "after_exported_relational_rows": 287,
+    "export_tie_order_repair_also_present": true,
+    "training": false,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "baseline_report_sha256": "db36bcf9068b3c4b167f2f480f63dc637efc5d06f3ae37c0de5414ba46cfe6d0",
+    "report_sha256": "5e36d6cf12183b60b04a1ebd0b70edba57a6a0107ab61a6d3d94cf0e0018158e"
+  },
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 11,
+    "failed_cases": 12,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 41,
+    "matched_series": 16,
+    "truth_points": 706,
+    "predicted_points": 272,
+    "matched_points": 226,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 287,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 223,
+    "correct_rows": 218,
+    "missing_rows": 501,
+    "extra_rows": 64,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 226,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 480,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8308823529411765,
+    "unique_point_structural_coverage": 0.32011331444759206,
+    "unique_point_value_precision": 0.8308823529411765,
+    "unique_point_value_coverage": 0.32011331444759206,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.759581881533101,
+    "relational_row_coverage": 0.3011049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9775784753363229,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 12
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 11,
+    "failed_cases": 12,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 41,
+    "matched_series": 16,
+    "truth_points": 706,
+    "predicted_points": 272,
+    "matched_points": 226,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 287,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 223,
+    "correct_rows": 218,
+    "missing_rows": 501,
+    "extra_rows": 64,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 226,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 480,
+    "unique_point_extra": 46,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.8308823529411765,
+    "unique_point_structural_coverage": 0.32011331444759206,
+    "unique_point_value_precision": 0.8308823529411765,
+    "unique_point_value_coverage": 0.32011331444759206,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.759581881533101,
+    "relational_row_coverage": 0.3011049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9775784753363229,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 12
+    }
+  },
+  "execution_seconds": 162.3806455,
+  "composition_version_before": "original-db-head-tick-header-and-legend-lanes-v3",
+  "composition_version_after": "original-db-head-tick-header-and-legend-lanes-v4",
+  "cache_component_before": "original-pixel-tick-lane-recovery-v1",
+  "cache_component_after": "original-pixel-tick-lane-recovery-v2",
+  "evidence": {
+    "candidate-binding.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-sparse-tick-v1/candidate-binding.json",
+      "sha256": "7e55c6a46442785b8d326cecc9cf7b98635f9a223b4f8e9cd994d9bc9e5544b9"
+    },
+    "input-manifest.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-sparse-tick-v1/input-manifest.json",
+      "sha256": "bbb1541b45a9c15ac7e4bdbb59bbdab78ca9fbf22cc29feaab020cc92021eb86"
+    },
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-sparse-tick-v1/execution/report.json",
+      "sha256": "5e36d6cf12183b60b04a1ebd0b70edba57a6a0107ab61a6d3d94cf0e0018158e"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-sparse-tick-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "87ce8379831a87aa3fd6cf8673a6253df11d10478eb615c872ac9fbd16085b2f"
+    },
+    "csv-score-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-sparse-tick-v1/csv-score-normalized-phases.json",
+      "sha256": "74fcbeb63f7db5fd608bb46177bcc8daa7b2cf730f1d7011cfc6792ffe6e3d24"
+    },
+    "comparison.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-sparse-tick-v1/comparison.json",
+      "sha256": "9354ea582a07b07ab25ccc7e59de0f8fd54f751b7a74b8522e185a07aebb0fce"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-sparse-tick-v1/source-bindings.json",
+      "sha256": "0c3470aae9f2330c59b5b541d3d4a8e0ad39c753af2fe8c435adec9a4583e529"
+    }
+  },
+  "previous_checkpoint_ci": {
+    "status": "completed",
+    "commit": "49cdb1c6c212ea8d09eb01f81f12e656bf902453",
+    "started_utc": "2026-09-20T12:43:07.4383611Z",
+    "updated_utc": "2026-09-20T12:51:22.4703050Z",
+    "notifier_pid": 41316,
+    "run_id": 35511407074,
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35511407074",
+    "conclusion": "success",
+    "error": null,
+    "user_continuation_required": false
+  },
+  "known_limitations": [
+    "The 23-source workflow still has eleven completed sources and twelve failures. Correct unique values remain 226/706 and relational rows 218/724.",
+    "The repaired two-label graph now reads 1 and 2, but its first accepted marker maps to session 2. The session-origin guard stays active; the graph still fails.",
+    "The sparse fallback requires original-pixel, unambiguous axis-connected outward tick strokes. Faint, rotated or tickless axes may remain unrecovered.",
+    "Existing primary readings are not changed. New crops do not receive numeric or role hints; ambiguous recognition remains reviewable.",
+    "The preceding deterministic export tie-order repair is also present; no scientific audit row changes are observed."
+  ],
+  "license_review": "Original Apache-2.0 code using unchanged audited dependencies and frozen licensed model weights; no external assets or dependency added.",
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}

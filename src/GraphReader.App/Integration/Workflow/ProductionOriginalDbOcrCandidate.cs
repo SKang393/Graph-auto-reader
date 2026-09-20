@@ -23,7 +23,7 @@ public sealed partial class ProductionOcrAdapter
     internal const string LegendContextCandidateCompositionVersion =
         "original-db-head-legend-context-v1";
     internal const string TickLaneCandidateCompositionVersion =
-        "original-db-head-tick-header-and-legend-lanes-v3";
+        "original-db-head-tick-header-and-legend-lanes-v4";
 
     internal static async Task<ProductionOcrAdapter> CreateForFrozenDbHeadCandidateEvaluationAsync(
         FrozenCandidateOcrModelDescriptor detectionModel,
