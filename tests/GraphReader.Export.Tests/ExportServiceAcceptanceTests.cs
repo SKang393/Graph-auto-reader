@@ -45,6 +45,7 @@ public sealed class ExportServiceAcceptanceTests
     private static readonly string[] ExpectedAbabUnknownPhases = ["a1", "b1", "a2", "b2", "phase5"];
     private static readonly double[] ExpectedObservationOrder = [1d, 2d, 3d, 4d];
     private static readonly double[] ExpectedCalibratedGaps = [1d, 3d, 7d, 8d];
+    private static readonly double[] ExpectedEqualSessionYOrder = [70d, 40d];
     private static readonly ExportXValueSource[] ExpectedMixedXSources =
         [ExportXValueSource.Printed, ExportXValueSource.Estimated, ExportXValueSource.Estimated, ExportXValueSource.Printed];
 
@@ -463,6 +464,56 @@ public sealed class ExportServiceAcceptanceTests
         Assert.AreEqual(seriesName, jsonRow.GetProperty("series_name").GetString());
         Assert.AreEqual("@manual", jsonRow.GetProperty("source_stage").GetString());
         Assert.AreEqual("-candidate", jsonRow.GetProperty("model_version").GetString());
+    }
+
+    [TestMethod]
+    [DataRow(ExportMode.PrintedSession, false)]
+    [DataRow(ExportMode.PrintedSession, true)]
+    [DataRow(ExportMode.ObservationOrder, false)]
+    [DataRow(ExportMode.ObservationOrder, true)]
+    public async Task EqualSessionRowsKeepScientificOrderWhenIdentifiersChange(ExportMode mode, bool separateSources)
+    {
+        Scenario CreateScenario(bool swapIdentifiers)
+        {
+            Guid target = swapIdentifiers ? MaintenanceSeriesId : InterventionOneId;
+            Guid probe = swapIdentifiers ? InterventionOneId : MaintenanceSeriesId;
+            ExportPoint lower = Point(swapIdentifiers ? PointTwo : PointOne, target, PhaseB, 1, 40, 1);
+            ExportPoint upper = Point(swapIdentifiers ? PointOne : PointTwo,
+                separateSources ? probe : target, PhaseB, 1, 70, 1);
+            ExportSeries[] series = separateSources
+                ? [Series(target, "circle", "Outcome", ExportSeriesRole.Intervention, lower.PointId),
+                   Series(probe, "circle", "Probe", ExportSeriesRole.Maintenance, upper.PointId)]
+                : [Series(target, "circle", "Outcome", ExportSeriesRole.Intervention, lower.PointId, upper.PointId)];
+            return new Scenario(
+                [Phase(PhaseB, 1, "b", ExportPhaseType.Intervention)],
+                swapIdentifiers ? series.Reverse().ToArray() : series,
+                swapIdentifiers ? [upper, lower] : [lower, upper],
+                [new ExportSeriesRelation(target, null, separateSources ? [probe] : [])]);
+        }
+
+        Scenario original = CreateScenario(false);
+        Scenario reassigned = CreateScenario(true);
+        ExportResult first = await ExportAsync(original, mode: mode, auditMode: ExportAuditMode.ExtendedCsv);
+        ExportResult second = await ExportAsync(reassigned, mode: mode, auditMode: ExportAuditMode.ExtendedCsv);
+
+        Assert.IsTrue(first.Succeeded, FailureSummary(first));
+        Assert.IsTrue(second.Succeeded, FailureSummary(second));
+        Assert.AreEqual(first.MinimalArtifacts.Single().Content, second.MinimalArtifacts.Single().Content);
+        Assert.AreEqual(first.MinimalArtifacts.Single().Sha256, second.MinimalArtifacts.Single().Sha256);
+        CollectionAssert.AreEqual(ExpectedEqualSessionYOrder, first.MinimalArtifacts.Single().Rows.Select(static row => row.YValue).ToArray());
+        foreach ((Scenario scenario, ExportResult result) in new[] { (original, first), (reassigned, second) })
+        {
+            ExtendedAuditRow[] rows = result.AuditArtifacts.Single().Rows.ToArray();
+            CollectionAssert.AreEquivalent(scenario.Points.Select(static point => point.PointId).ToArray(),
+                rows.Select(static row => row.PointId).ToArray());
+            foreach (ExportPoint point in scenario.Points)
+            {
+                ExtendedAuditRow row = rows.Single(row => row.PointId == point.PointId);
+                Assert.AreEqual(point.SeriesId, row.SourceSeriesId);
+                Assert.AreEqual(point.OriginalPixel, row.OriginalPixel);
+                Assert.AreEqual(point.GraphY, row.YValue);
+            }
+        }
     }
 
     [TestMethod]

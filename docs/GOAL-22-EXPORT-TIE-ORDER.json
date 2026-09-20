@@ -1,0 +1,98 @@
+{
+  "schema": "graphreader.goal22.export-tie-order.v1",
+  "status": "deterministic_scientific_row_ties_verified",
+  "base_commit": "44bfdda05a218d3342dd6fa770d9029083174059",
+  "goal22_complete": false,
+  "repair_definition": {
+    "failure_mode": "Two equal-session rows reorder between identical frozen model outputs because UUIDs break export ties.",
+    "responsible_subsystem": "ExportService.Prepare",
+    "isolated_change": "Break phase/x/observation-index ties with measured original pixels and scientific row content before generated identifiers. Preserve all rows, memberships and values.",
+    "metric": "Minimal CSV contents and hashes stay identical when only identifiers and input enumeration change; audit provenance remains exact.",
+    "acceptance_bar": "All export scenarios pass; frozen schemas and numeric tolerances unchanged.",
+    "split": "Independent project-owned development fixtures and saved synthetic workflow evidence",
+    "sealed_budget": 0,
+    "training": false,
+    "production_approved": false
+  },
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.Export/ExportService.cs",
+      "snapshot": "artifacts/goal22-runs/export-tie-order-checks-v1/source-snapshot/src/GraphReader.Export/ExportService.cs",
+      "sha256": "59b6a29fcd1ec02afb7a3a4f34198d79b537565fe4fc6823e65c8f4f84b24b6c"
+    },
+    {
+      "path": "tests/GraphReader.Export.Tests/ExportServiceAcceptanceTests.cs",
+      "snapshot": "artifacts/goal22-runs/export-tie-order-checks-v1/source-snapshot/tests/GraphReader.Export.Tests/ExportServiceAcceptanceTests.cs",
+      "sha256": "b5feb4420e9b1013a8f614d180d313968cbe621c482ef06d5b433ad1f7f99966"
+    }
+  ],
+  "compiled_source_snapshot_count": 255,
+  "compiled_source_bindings": {
+    "path": "artifacts/goal22-runs/export-tie-order-checks-v1/compiled-source-bindings.json",
+    "sha256": "119b0b84960ef34fb1bd200dd7f6ca426dfa9a390fc7b7aa4982102f5d5d7dcf"
+  },
+  "all_source_snapshots_verified": true,
+  "checks": {
+    "export": {
+      "path": "artifacts/goal22-runs/export-tie-order-checks-v1/test-results/export.trx",
+      "sha256": "2d25297fa5ec3c6b6130d47f0bdea2155aac7d46ee0bec96819e951824e152d2",
+      "passed": 36,
+      "skipped": 0,
+      "times": {
+        "creation": "2026-09-20T08:02:39.9393537-04:00",
+        "queuing": "2026-09-20T08:02:39.9393540-04:00",
+        "start": "2026-09-20T08:02:38.5993578-04:00",
+        "finish": "2026-09-20T08:02:40.0951172-04:00"
+      },
+      "log": {
+        "path": "artifacts/goal22-runs/export-tie-order-checks-v1/export.log",
+        "sha256": "1aa0a7db00a4ae6ef0cf1d348733a9428e9a96b541c8524e3d7e0add6b1419d8"
+      }
+    },
+    "app": {
+      "path": "artifacts/goal22-runs/export-tie-order-checks-v1/test-results/app.trx",
+      "sha256": "af88e070e4b648b69f414bf66ce6db0c2d09b14b5d81ce339829504a612f6f76",
+      "passed": 373,
+      "skipped": 0,
+      "times": {
+        "creation": "2026-09-20T08:04:04.6112739-04:00",
+        "queuing": "2026-09-20T08:04:04.6112743-04:00",
+        "start": "2026-09-20T08:04:00.3111537-04:00",
+        "finish": "2026-09-20T08:04:25.6546280-04:00"
+      },
+      "log": {
+        "path": "artifacts/goal22-runs/export-tie-order-checks-v1/app.log",
+        "sha256": "cf42415fa7a7e5b7abb4aec5cb75fd02b85d9a1ebf8b71fafa5d0ec5ffad6c94"
+      }
+    }
+  },
+  "pre_repair_regression": {
+    "path": "artifacts/goal22-runs/export-tie-order-before-v2/test-results/before.trx",
+    "sha256": "230701202bf5fbd89423f951112bf029fc85e9f482f9ad04d750d1579070383f",
+    "failed": 4,
+    "passed": 0
+  },
+  "original_workflow_diagnosis": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-participant-handoff-v1/comparison-v2.json",
+    "sha256": "ebe3f42f633541a23f52e62bf47e2d760feebd739236c343c56a5ce8e4b0a20a"
+  },
+  "prior_compile_failure": {
+    "path": "artifacts/goal22-runs/export-tie-order-before-v1/test.log",
+    "sha256": "e3c4165747df03a2889ed8dab393f67080042179e46c93284e8348f36c31a9ee",
+    "reason": "CA1861 required the constant expected array to be a static readonly field. Fixed in test code before the four behavioral failures were observed."
+  },
+  "behavior": "After phase, x and observation index, measured original-pixel x/y and scientific row content break ties before generated IDs. Minimal CSV order is independent of point/series UUIDs for those ties.",
+  "known_limitations": [
+    "Audit IDs intentionally retain their original provenance and differ between separate inference runs.",
+    "No inference was rerun for this serialization-only repair. The preceding 23-source workflow remains failed development evidence: 11 completed sources, 12 failures, 226/706 correct unique values, 218/724 correct relational rows.",
+    "This change does not decide whether two same-session points belong to the same scientific series; grouping and review remain responsible."
+  ],
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}

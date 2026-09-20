@@ -624,6 +624,10 @@ public sealed class ExportService : IExportService
                 .OrderBy(static row => row.PhaseOrder)
                 .ThenBy(static row => row.XValue)
                 .ThenBy(static row => row.ObservationIndex)
+                .ThenBy(static row => row.Audit.OriginalPixel.X)
+                .ThenBy(static row => row.Audit.OriginalPixel.Y)
+                .ThenBy(static row => row.Minimal.YValue)
+                .ThenBy(static row => row.Minimal.Phase, StringComparer.Ordinal)
                 .ThenBy(static row => row.SourceSeriesId)
                 .ThenBy(static row => row.PointId)
                 .ToArray();
