@@ -44,6 +44,9 @@ public sealed class ExportServiceAcceptanceTests
     private static readonly Guid[] ExpectedProbeSeriesIds = [MaintenanceSeriesId, GeneralizationSeriesId];
     private static readonly string[] ExpectedAbabUnknownPhases = ["a1", "b1", "a2", "b2", "phase5"];
     private static readonly double[] ExpectedObservationOrder = [1d, 2d, 3d, 4d];
+    private static readonly double[] ExpectedCalibratedGaps = [1d, 3d, 7d, 8d];
+    private static readonly ExportXValueSource[] ExpectedMixedXSources =
+        [ExportXValueSource.Printed, ExportXValueSource.Estimated, ExportXValueSource.Estimated, ExportXValueSource.Printed];
 
     [TestMethod]
     public async Task OneInterventionExportsSharedBaselineAndInterventionInPhaseOrder()
@@ -184,6 +187,95 @@ public sealed class ExportServiceAcceptanceTests
         {
             DeleteOwnedTemporaryDirectory(outputDirectory);
         }
+    }
+
+    [TestMethod]
+    public async Task PrintedSessionPreservesEstimatedGapsAndExplicitAuditProvenance()
+    {
+        Scenario scenario = OneInterventionScenario();
+        scenario = scenario with
+        {
+            Points = scenario.Points.Select(static point =>
+            {
+                double x = ExpectedCalibratedGaps[point.ObservationIndex - 1];
+                bool inferred = point.ObservationIndex is 2 or 3;
+                return point with
+                {
+                    GraphX = x,
+                    OriginalPixel = new ExportPixelPoint(100 + (x * 10), point.OriginalPixel.Y),
+                    PrintedXValue = inferred ? null : x,
+                    EstimatedXValue = inferred ? x : null,
+                    XSource = inferred ? ExportXValueSource.Estimated : ExportXValueSource.Printed,
+                };
+            }).ToArray(),
+        };
+        ExportResult result = await ExportAsync(scenario, auditMode: ExportAuditMode.ExtendedCsvAndJson);
+        Assert.IsTrue(result.Succeeded, FailureSummary(result));
+        CollectionAssert.AreEqual(ExpectedCalibratedGaps, Minimal(result, InterventionOneId).Rows.Select(static row => row.XValue).ToArray());
+        CollectionAssert.AreEqual(ExpectedMixedXSources, AuditRows(result, InterventionOneId).Select(static row => row.XSource).ToArray());
+        ExtendedAuditArtifact json = result.AuditArtifacts.Single(static artifact => artifact.Format == ExportAuditArtifactFormat.Json);
+        using JsonDocument document = JsonDocument.Parse(json.Content);
+        Assert.AreEqual(2, document.RootElement.GetProperty("rows").EnumerateArray().Count(static row =>
+            row.GetProperty("x_source").GetString() == "estimated"));
+        Assert.IsTrue(scenario.Points.Where(static point => point.XSource == ExportXValueSource.Estimated)
+            .All(static point => point.PrintedXValue is null), "Export must not promote an estimate into printed evidence.");
+    }
+
+    [TestMethod]
+    [DataRow(ExportXValueSource.Unknown)]
+    [DataRow(ExportXValueSource.ObservationOrder)]
+    [DataRow(ExportXValueSource.Printed)]
+    public async Task PrintedSessionDoesNotUseAnEstimateWithoutEstimatedProvenance(ExportXValueSource source)
+    {
+        Scenario scenario = OneInterventionScenario();
+        scenario = scenario with { Points = scenario.Points.Select(point => point with
+        { PrintedXValue = null, EstimatedXValue = point.GraphX, XSource = source }).ToArray() };
+        ExportResult result = await ExportAsync(scenario);
+        AssertHasFailure(result, "INVALID_POINT");
+        Assert.IsEmpty(result.MinimalArtifacts);
+    }
+
+    [TestMethod]
+    public async Task PrintedSessionDoesNotInferMissingValuesFromGraphXOrObservationOrder()
+    {
+        Scenario scenario = OneInterventionScenario();
+        scenario = scenario with { Points = scenario.Points.Select(static point => point with
+        { PrintedXValue = null, EstimatedXValue = null, XSource = ExportXValueSource.Estimated }).ToArray() };
+        ExportResult result = await ExportAsync(scenario);
+        AssertHasFailure(result, "INVALID_POINT");
+    }
+
+    [TestMethod]
+    public async Task EstimatedSessionsStillRequireCalibrationAndSessionOneOrigin()
+    {
+        Scenario scenario = OneInterventionScenario();
+        scenario = scenario with { Points = scenario.Points.Select(static point => point with
+        { PrintedXValue = null, XSource = ExportXValueSource.Estimated }).ToArray() };
+        var missingCalibration = new ExportCalibration(ExportCalibrationStatus.Valid, true, false, true, 1, 0.99);
+        ExportResult missing = await ExportAsync(scenario, calibration: missingCalibration);
+        AssertHasFailure(missing, "PRINTED_SESSION_CALIBRATION_REQUIRED");
+
+        string output = NewTemporaryDirectoryPath();
+        try
+        {
+            var invalidOrigin = new ExportCalibration(ExportCalibrationStatus.InvalidSessionOrigin, true, true, true, 2, 0.99);
+            ExportResult blocked = await ExportAsync(scenario, output, operation: ExportOperation.WriteFiles, calibration: invalidOrigin);
+            AssertHasFailure(blocked, "INVALID_SESSION_ORIGIN");
+            Assert.AreEqual(0, ExistingFileCount(output));
+        }
+        finally { DeleteOwnedTemporaryDirectory(output); }
+    }
+
+    [TestMethod]
+    [DataRow(double.NaN)]
+    [DataRow(double.PositiveInfinity)]
+    public async Task NonfiniteEstimatedSessionsRemainRejected(double value)
+    {
+        Scenario scenario = OneInterventionScenario();
+        scenario = scenario with { Points = scenario.Points.Select(point => point with
+        { PrintedXValue = null, EstimatedXValue = value, XSource = ExportXValueSource.Estimated }).ToArray() };
+        ExportResult result = await ExportAsync(scenario);
+        AssertHasFailure(result, "INVALID_POINT");
     }
 
     [TestMethod]

@@ -414,8 +414,7 @@ public sealed class ExportService : IExportService
             !IsConfidence(point.XConfidence) ||
             !IsConfidence(point.YConfidence) ||
             !IsConfidence(point.PointConfidence);
-        if (mode == ExportMode.PrintedSession &&
-            (point.PrintedXValue is not double printed || !double.IsFinite(printed)))
+        if (mode == ExportMode.PrintedSession && ResolveSessionX(point) is null)
         {
             invalidNumber = true;
         }
@@ -567,12 +566,9 @@ public sealed class ExportService : IExportService
 
                     ExportPoint point = points[pointId];
                     ExportPhase phase = phases[point.PhaseId!.Value];
-                    double xValue = request.Mode == ExportMode.ObservationOrder
-                        ? point.ObservationIndex
-                        : point.PrintedXValue!.Value;
-                    ExportXValueSource xSource = request.Mode == ExportMode.ObservationOrder
-                        ? ExportXValueSource.ObservationOrder
-                        : ExportXValueSource.Printed;
+                    (double xValue, ExportXValueSource xSource) = request.Mode == ExportMode.ObservationOrder
+                        ? (point.ObservationIndex, ExportXValueSource.ObservationOrder)
+                        : ResolveSessionX(point)!.Value;
                     var minimal = new MinimalExportRow(xValue, point.GraphY!.Value, phase.Code);
                     var audit = new ExtendedAuditRow(
                         xValue,
@@ -885,6 +881,20 @@ public sealed class ExportService : IExportService
         return !calibration.HasAbsoluteSessionOrigin ||
             calibration.FirstObservedSession is not double firstSession ||
             firstSession != SessionOne;
+    }
+
+    private static (double Value, ExportXValueSource Source)? ResolveSessionX(ExportPoint point)
+    {
+        if (point.PrintedXValue is double printed)
+            return double.IsFinite(printed) ? (printed, ExportXValueSource.Printed) : null;
+
+        // Printed-session mode preserves calibrated gaps. An inferred session
+        // stays explicitly estimated in the audit; neither GraphX nor ordinal
+        // order supplies a missing scientific value at the export boundary.
+        return point.XSource == ExportXValueSource.Estimated &&
+            point.EstimatedXValue is double estimated && double.IsFinite(estimated)
+            ? (estimated, ExportXValueSource.Estimated)
+            : null;
     }
 
     private static bool IsConfidence(double value) =>

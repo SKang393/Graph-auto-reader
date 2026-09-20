@@ -1,0 +1,222 @@
+{
+  "schema": "graphreader.goal22.estimated-session-export.v1",
+  "status": "repair_verified_workflow_acceptance_failed",
+  "goal22_complete": false,
+  "base_commit": "cb1dd63adb27c0df27f2bd184e8a94c78c5dfebc",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.Export/ExportService.cs",
+      "sha256": "c31beb8790ac106834686b14d5ce4c92cb821e932f397c4892a18e1f1277533f",
+      "archive": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/source-snapshot/src/GraphReader.Export/ExportService.cs"
+    },
+    {
+      "path": "tests/GraphReader.Export.Tests/ExportServiceAcceptanceTests.cs",
+      "sha256": "ec1c88b9334fdf375e272362109f977cf870beca8ff3563c3a4caae5493d61a2",
+      "archive": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/source-snapshot/tests/GraphReader.Export.Tests/ExportServiceAcceptanceTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "1a142e2ce18c8022d591c2be76786b0fb2538fb142a4735f52cb4289b12ba6b8",
+      "archive": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs"
+    }
+  ],
+  "compiled_source_snapshot_count": 263,
+  "all_source_snapshots_verified": true,
+  "next_legend_changes_not_in_this_run_or_commit": [
+    "src/GraphReader.Legends/LegendReasoningContracts.cs",
+    "src/GraphReader.Legends/LegendReasoningService.cs"
+  ],
+  "comparison": {
+    "source_count": 23,
+    "observed_panels": 25,
+    "all_measured_axis_ocr_markers_calibration_unchanged": true,
+    "previously_written_minimal_csv_bytes_unchanged": true,
+    "completed_sources": 6,
+    "failed_sources": 17,
+    "exported_row_x_sources": {
+      "printed": 22,
+      "estimated": 58
+    },
+    "private_reads": 0,
+    "sealed_reads": 0
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 6,
+    "failed_cases": 17,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 16,
+    "matched_series": 6,
+    "truth_points": 706,
+    "predicted_points": 66,
+    "matched_points": 49,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 80,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 46,
+    "correct_rows": 28,
+    "missing_rows": 678,
+    "extra_rows": 34,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 18,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 49,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 657,
+    "unique_point_extra": 17,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7424242424242424,
+    "unique_point_structural_coverage": 0.06940509915014165,
+    "unique_point_value_precision": 0.7424242424242424,
+    "unique_point_value_coverage": 0.06940509915014165,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.35,
+    "relational_row_coverage": 0.03867403314917127,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.6086956521739131,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 17
+    }
+  },
+  "timing_seconds": {
+    "model_workflow": 104.8003989,
+    "csv_scoring": 0.20288040000000002,
+    "app_tests": 18,
+    "export_tests": 0.222,
+    "tool_build": 4.36
+  },
+  "validation": {
+    "application_tests_passed": 341,
+    "export_tests_passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "compiler_warnings": 0,
+    "compiler_errors": 0,
+    "private_runner_self_test": {
+      "status": "pass",
+      "checks": [
+        "metadata_is_checked_before_payload_and_after_complete_parse",
+        "sealed_projects_share_one_first_read_and_content_handshake",
+        "one_project_parse_failure_prevents_partial_truth_scoring",
+        "metadata_drift_before_inference_rejected",
+        "sealed_run_without_first_read_handshake_rejected"
+      ],
+      "private_corpus_access": false,
+      "sealed_corpus_access": false,
+      "model_inference": false
+    },
+    "export_test_reuse": "Exact same export implementation/test hashes; retained v1 test output reused after fixing only the application test floating-point comparison."
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/source-bindings.json",
+      "sha256": "12b7652670ae22cd93d4461aae72bb562a83d52dcc8c407e8a1dc79e8df2475e"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/test-results/app.trx",
+      "sha256": "1281676bec08431f4469cf19da3171b6b79b52fe0690e3483281566457032b82"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/test-results/export.trx",
+      "sha256": "5f5efca938cbf9dafc4f6a29da11987ddcd539b31bd8c2e566d4bc8cac9eea4c"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/app-tests.log",
+      "sha256": "cc78ab23f48caa45cb06c8ac1d80363680e1297fa1cfc32cfb4a5c1ca7499d8e"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/export-tests.log",
+      "sha256": "b3aae07620442427378df9a5a4ce4c6128a737040ed816f950be0cd6abb97046"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/build.log",
+      "sha256": "e1c2f77e16be2644bee2bdd1e51d9acbf1fc2694304322ab920c94a54a07de00"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-estimated-session-checks-v2/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/preparation.json",
+      "sha256": "3dce834902f6300acaeb50255d197df687fe86da597b1456f1fa12e02f474e5b"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/protocol.json",
+      "sha256": "30ea4528c8abbcf104cfeae27907c86a04ea4ed7d4c36eaf60bdc7b017341cb7"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/source-bindings.json",
+      "sha256": "0ffd962109f9e23cd1c7f977a5e83225369c00a5470fcc390653d354a0261cae"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/candidate-binding.json",
+      "sha256": "894454d732280cc6a9f57dba6e096dfb8a0e76128ddd1a3edf1edf17f393a885"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/input-manifest.json",
+      "sha256": "6e725fe4ff97429e17bc70bb6d7d46219360411e720111367de236e46db9fe32"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/runtime-description.json",
+      "sha256": "c8d1dcd3965646f0d8a0cb99d6fbf8fc2cd3b72d1c85b75dd3098df378c34d58"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/execution/report.json",
+      "sha256": "68d5f609292094cd1112a83ce059ea2480a5bf64c074e358944352df4094bda6"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/completion.json",
+      "sha256": "5cd270a2f410723a71f60618d4e6ca3a50e93c6b3e59e8847540b8bd2c548a6c"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/comparison.json",
+      "sha256": "dab74a3beac0c5022f6283e24d57205a295c179a2c4bddcd8517a410ba1b6199"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/csv-evaluation-input.json",
+      "sha256": "ea114239627c628ff30b1ff75f15f26a814fe112a47fe4cc67365fd814881b1d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-estimated-session-v1/csv-score.json",
+      "sha256": "987f9c059f8aa426dd96cb504b666849829f9e5ae8eb8431841d3ed61757aba1"
+    }
+  ],
+  "retained_initial_test_failure": {
+    "path": "artifacts/goal22-runs/workflow-estimated-session-checks-v1/app-tests.log",
+    "sha256": "44967b5c83962062ba0c266450d057797ab5b4b20c80df142874550f26bb6ca2"
+  },
+  "helpers": [
+    {
+      "path": "artifacts/goal22-tools/Prepare-EstimatedSessionWorkflow.py",
+      "sha256": "df74ad9e48fe1b85d4470bbdbfdf87a3839cde45de3fcac5ed6973f9e984cdb8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-EstimatedSessionWorkflow.py",
+      "sha256": "8a96ab3a0ad2ad80c657d992c0065ea47a4def2b3c7ede29ff8e3412dd199a10"
+    }
+  ],
+  "model_weights_and_operating_thresholds_unchanged": true,
+  "calibration_and_origin_rules_unchanged": true,
+  "contract_schema_changed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_portable": {
+    "build": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Apache-2.0 project code only; dependencies and payloads unchanged. Only aggregates and hashes committed."
+}

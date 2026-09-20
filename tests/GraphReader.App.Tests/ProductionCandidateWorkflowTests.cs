@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.App.Integration.Workflow;
@@ -146,6 +147,34 @@ public sealed class ProductionCandidateWorkflowTests
         CollectionAssert.AreEquivalent(new[] { (30d, 55d), (70d, 45d) }, sourcePoints);
         RasterPanelSourceProvenance provenance = store.Get(panel.PanelId).RasterPanelSource!;
         Assert.AreEqual(SourceCrop, provenance.EncodedCropInSourcePixels);
+    }
+
+    [TestMethod]
+    public async Task CandidateExportsAnUnlabeledCalibratedSessionAsEstimated()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store, includeIntermediateSession: true);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
+        WorkflowOrchestrator workflow = CreateWorkflow(store, candidate);
+        WorkflowRunResult result = await workflow.RunThroughReviewAsync(Request(imagePath), null, CancellationToken.None);
+        Assert.IsNotNull(observation);
+        SessionXEvidence middle = observation.Calibration.Lattice.Assignments.Single(static point => Math.Abs(point.PixelX - 40) < 1e-9);
+        Assert.IsNull(middle.PrintedX);
+        Assert.AreEqual(2, middle.EstimatedX);
+        WorkflowExportResult export = await workflow.ExportAsync(result.Review,
+            new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(directory.Path, "export")), CancellationToken.None);
+        Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+        bool estimatedSeen = false;
+        foreach (WorkflowExportArtifact artifact in export.Artifacts.Where(static item => item.FileName.EndsWith(".audit.json", StringComparison.Ordinal)))
+        {
+            using JsonDocument document = JsonDocument.Parse(await File.ReadAllBytesAsync(artifact.WrittenPath!));
+            estimatedSeen |= document.RootElement.GetProperty("rows").EnumerateArray().Any(static row =>
+                row.GetProperty("x_value").GetDouble() == 2 && row.GetProperty("x_source").GetString() == "estimated");
+        }
+        Assert.IsTrue(estimatedSeen, "Calibrated unlabeled sessions must retain estimated provenance in final files.");
     }
 
     [TestMethod]
@@ -368,14 +397,15 @@ public sealed class ProductionCandidateWorkflowTests
         ProductionWorkflowPanelStore store,
         CancellationTokenSource? cancelAfterPhase = null,
         bool omitYTicks = false,
-        bool includeTextDecoy = false) =>
+        bool includeTextDecoy = false,
+        bool includeIntermediateSession = false) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
             new CandidateAxisAdapter(),
-            new CandidateOcrAdapter(omitYTicks, includeTextDecoy),
+            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession),
             new CandidateMaskComposer(),
-            new CandidateCenterAdapter(includeTextDecoy),
+            new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession),
             new ClassificationAdapter(),
             new LegendAdapter(),
             new PhaseAdapter(cancelAfterPhase),
@@ -461,7 +491,7 @@ public sealed class ProductionCandidateWorkflowTests
                 0.95, [id]);
     }
 
-    private sealed class CandidateOcrAdapter(bool omitYTicks = false, bool includeTextDecoy = false) : IProductionCandidateOcrAdapter
+    private sealed class CandidateOcrAdapter(bool omitYTicks = false, bool includeTextDecoy = false, bool includeIntermediateSession = false) : IProductionCandidateOcrAdapter
     {
         public string AdapterId => "candidate-ocr";
         public bool IsApproved => false;
@@ -487,7 +517,7 @@ public sealed class ProductionCandidateWorkflowTests
             OcrRegion[] regions =
             [
                 Region("x1", 18, 52, "1", OcrTextRole.XTick),
-                Region("x2", 58, 52, "2", OcrTextRole.XTick),
+                Region("x2", 58, 52, includeIntermediateSession ? "3" : "2", OcrTextRole.XTick),
                 Region("y0", 2, 38, "0", OcrTextRole.YTick),
                 Region("y100", 2, 18, "100", OcrTextRole.YTick),
                 Region("participant", 55, 4, "Synthetic", OcrTextRole.Participant),
@@ -577,7 +607,7 @@ public sealed class ProductionCandidateWorkflowTests
         }
     }
 
-    private sealed class CandidateCenterAdapter(bool includeTextDecoy = false) : IProductionCandidateMarkerCenterAdapter
+    private sealed class CandidateCenterAdapter(bool includeTextDecoy = false, bool includeIntermediateSession = false) : IProductionCandidateMarkerCenterAdapter
     {
         public string AdapterId => "candidate-center";
         public bool IsApproved => false;
@@ -606,6 +636,7 @@ public sealed class ProductionCandidateWorkflowTests
                 new("candidate-2", new MarkerPoint(60, 25), 3, 0.01, 0.97, MarkerSourceImage.Original),
             ];
             if (includeTextDecoy) markers = [.. markers, new("text-decoy", new MarkerPoint(40, 30), 3, 1, 0.99, MarkerSourceImage.Original)];
+            if (includeIntermediateSession) markers = [.. markers, new("unlabeled-session", new MarkerPoint(40, 35), 3, 0.01, 0.98, MarkerSourceImage.Original)];
             return Task.FromResult(new ProductionMarkerCenterEvidence(
                 Envelope(request, "markers", "candidate-center-v1", "candidate-center", 'e'),
                 markers,
