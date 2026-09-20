@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.Imaging;
 
@@ -35,6 +36,13 @@ internal static class FrozenCandidateSyntheticRunner
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+    };
+    private static readonly JsonSerializerOptions DiagnosticJsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+        Converters = { new JsonStringEnumConverter() },
     };
 
     internal static async Task<FrozenCandidateSyntheticExecution> RunAsync(
@@ -87,6 +95,32 @@ internal static class FrozenCandidateSyntheticRunner
             await FrozenCandidateWorkflowFactory.CreateAsync(
                     repositoryRoot, outputRoot, binding, cancellationToken)
                 .ConfigureAwait(false);
+        var diagnosticFiles = new List<object>();
+        candidate.Adapter.CandidateCalibrationObserver = observation =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string path = Path.Combine(outputRoot, "stage-evidence", $"{observation.PanelId:D}.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(new
+            {
+                schema = "graphreader.synthetic-workflow-calibration-observation.v1",
+                candidate_binding_sha256 = binding.Sha256,
+                input_manifest_sha256 = input.Sha256,
+                synthetic_only = true,
+                private_corpus_access = false,
+                sealed_corpus_access = false,
+                panel_source = candidate.PanelStore.Get(observation.PanelId).RasterPanelSource,
+                observation,
+            }, DiagnosticJsonOptions);
+            WriteNew(path, bytes);
+            diagnosticFiles.Add(new
+            {
+                source_id = observation.SourceId,
+                panel_id = observation.PanelId,
+                path = Path.GetRelativePath(outputRoot, path).Replace('\\', '/'),
+                sha256 = FrozenCandidateBinding.Hash(bytes),
+            });
+        };
         Guid projectId = ProductionWorkflowPanelStore.CreateStableId(
             "frozen-candidate-synthetic-project-v1", binding.Sha256, input.Sha256);
         foreach ((FrozenSyntheticSource source, string snapshotPath) in sourceSnapshots)
@@ -212,6 +246,7 @@ internal static class FrozenCandidateSyntheticRunner
             sealed_corpus_access = false,
             model_selection_performed = false,
             truth_consumed_by_inference = false,
+            calibration_diagnostic_files = diagnosticFiles,
             cases = caseReports,
         };
         byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(report, ReportJsonOptions);

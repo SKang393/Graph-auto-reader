@@ -57,6 +57,8 @@ public sealed class ProductionCandidateWorkflowTests
         string imagePath = WritePng(directory.Path, "source.png", 120, 100);
         var store = new ProductionWorkflowPanelStore();
         ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
         WorkflowOrchestrator orchestrator = CreateWorkflow(store, candidate);
         WorkflowRunRequest request = Request(imagePath);
 
@@ -66,6 +68,11 @@ public sealed class ProductionCandidateWorkflowTests
             CancellationToken.None);
 
         Assert.IsFalse(candidate.IsApproved);
+        Assert.IsNotNull(observation);
+        Assert.AreEqual(CalibrationValidity.Valid, observation.Calibration.Validity);
+        Assert.HasCount(2, observation.AcceptedMarkers);
+        Assert.AreEqual(result.RunId, observation.RunId);
+        Assert.AreEqual("original_pixels", observation.Axis.CoordinateSpace);
         Assert.HasCount(1, result.Review.Panels);
         Assert.HasCount(0, result.Review.CorrectionJournal);
         WorkflowReviewPanel panel = result.Review.Panels.Single();
@@ -142,12 +149,33 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
+    public async Task CandidateCalibrationFailureRetainsObservationWithoutCreatingExportEvidence()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store, omitYTicks: true);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
+        ProductionWorkflowStageException error = await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() =>
+            CreateWorkflow(store, candidate).RunThroughReviewAsync(Request(imagePath), null, CancellationToken.None));
+        Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, error.Failure.Code);
+        Assert.IsNotNull(observation);
+        Assert.AreNotEqual(CalibrationValidity.Valid, observation.Calibration.Validity);
+        Assert.IsFalse(observation.Ocr.Regions.Any(static region => region.Role == OcrTextRole.YTick));
+        Assert.IsNotEmpty(observation.Provenance);
+        Assert.IsNull(store.Get(observation.PanelId).ExportEvidence);
+    }
+
+    [TestMethod]
     public async Task ProductionStageRejectsTheSameUnapprovedAutomaticAdapter()
     {
         using var directory = new TemporaryDirectory();
         string imagePath = WritePng(directory.Path, "source.png", 120, 100);
         var store = new ProductionWorkflowPanelStore();
         ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store);
+        bool observed = false;
+        candidate.CandidateCalibrationObserver = _ => observed = true;
         var import = new ProductionWorkflowImportStage(
             store,
             new ImageImportService(),
@@ -172,6 +200,7 @@ public sealed class ProductionCandidateWorkflowTests
 
         Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionModelsUnavailable, exception.Failure.Code);
         Assert.IsNull(store.Get(panel.PanelId).ExportEvidence);
+        Assert.IsFalse(observed);
     }
 
     [TestMethod]
@@ -309,12 +338,13 @@ public sealed class ProductionCandidateWorkflowTests
 
     private static ProductionAutomaticDetectionAdapter CreateCandidate(
         ProductionWorkflowPanelStore store,
-        CancellationTokenSource? cancelAfterPhase = null) =>
+        CancellationTokenSource? cancelAfterPhase = null,
+        bool omitYTicks = false) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
             new CandidateAxisAdapter(),
-            new CandidateOcrAdapter(),
+            new CandidateOcrAdapter(omitYTicks),
             new CandidateMaskComposer(),
             new CandidateCenterAdapter(),
             new ClassificationAdapter(),
@@ -402,7 +432,7 @@ public sealed class ProductionCandidateWorkflowTests
                 0.95, [id]);
     }
 
-    private sealed class CandidateOcrAdapter : IProductionCandidateOcrAdapter
+    private sealed class CandidateOcrAdapter(bool omitYTicks = false) : IProductionCandidateOcrAdapter
     {
         public string AdapterId => "candidate-ocr";
         public bool IsApproved => false;
@@ -433,6 +463,7 @@ public sealed class ProductionCandidateWorkflowTests
                 Region("y100", 2, 18, "100", OcrTextRole.YTick),
                 Region("participant", 55, 4, "Synthetic", OcrTextRole.Participant),
             ];
+            if (omitYTicks) regions = regions.Where(static region => region.Role != OcrTextRole.YTick).ToArray();
             var result = new OcrResult(
                 OcrContract.Version,
                 request.RunId.ToString("D"),

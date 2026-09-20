@@ -97,6 +97,10 @@ public sealed class ProductionAutomaticDetectionAdapter :
         legendAdapter.IsApproved &&
         phaseAdapter.IsApproved;
 
+    // Only the explicit synthetic runner installs a sink. Normal production and
+    // aggregate-only private acceptance retain no additional per-case output.
+    internal Action<ProductionCandidateCalibrationObservation>? CandidateCalibrationObserver { get; set; }
+
     public async Task<WorkflowDetectionBatch> DetectAsync(
         ProductionWorkflowDetectionRequest request,
         CancellationToken cancellationToken)
@@ -302,6 +306,14 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 ocr.Result,
                 acceptedMarkers,
                 cancellationToken);
+            if (candidateEvaluation && CandidateCalibrationObserver is { } observe)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                observe(new ProductionCandidateCalibrationObservation(
+                    request.RunId, request.Panel.ImportedPanel.SourceId,
+                    request.Panel.ImportedPanel.PanelId, request.Image.Sha256,
+                    axis.Geometry, ocr.Result, Array.AsReadOnly(acceptedMarkers), calibration, chain.Snapshot));
+            }
             RequireCompleteCalibration(calibration, chain);
 
             MarkerGroupingState grouping = await GroupMarkersAsync(

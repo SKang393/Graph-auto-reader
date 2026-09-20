@@ -1,0 +1,263 @@
+{
+  "schema": "graphreader.goal22.calibration-observation-evidence.v1",
+  "goal22_complete": false,
+  "status": "diagnostic_recording_verified_workflow_acceptance_failed",
+  "base_commit": "06d1674f32293526e34ce6d612c2ef6d2e14882f",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionCandidateCalibrationObservation.cs",
+      "sha256": "f7caaf3146362a6490e026d1b6680f3dd2b8dbb50992f2bfe287b69a1efeffad",
+      "archive": "artifacts/goal22-runs/workflow-calibration-observer-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionCandidateCalibrationObservation.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "f56be1f16e8acd83f27bc8c9ee272305a5eda837ab617953ac2000631aa74968",
+      "archive": "artifacts/goal22-runs/workflow-calibration-observer-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs",
+      "sha256": "0e22a94b6aab786037078d582216b2da49bb923c3ec4dfed6258b05ab6ebc1d9",
+      "archive": "artifacts/goal22-runs/workflow-calibration-observer-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "5b26b423f847723aa34f75d11cf61d81549fe0bfbb72819d054e07a3506d9824",
+      "archive": "artifacts/goal22-runs/workflow-calibration-observer-v1/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs",
+      "sha256": "92ef00afcd1ec2182a84ba02a0bf62736793cf13521034e06ab618b1724db071",
+      "archive": "artifacts/goal22-runs/workflow-calibration-observer-v1/source-snapshot/tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs"
+    }
+  ],
+  "sources": 23,
+  "calibration_observations": 24,
+  "detected_panels": 37,
+  "physical_truth_panels": 39,
+  "workflow_completed": 1,
+  "workflow_failed": 22,
+  "calibration_validity_counts": {
+    "NeedsReview": 12,
+    "InsufficientEvidence": 2,
+    "Valid": 4,
+    "InvalidSessionOrigin": 6
+  },
+  "accepted_centers_inside_ocr_regions_by_role": {
+    "LegendText": 12,
+    "Annotation": 10,
+    "Other": 1
+  },
+  "identical_case_outcomes": true,
+  "identical_minimal_csv_bytes": true,
+  "identical_audit_values_except_run_ids": true,
+  "source_and_model_bytes_unchanged": true,
+  "truth_points": 706,
+  "truth_coordinates_values_relations_unchanged": true,
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 1,
+    "failed_cases": 22,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 2,
+    "matched_series": 1,
+    "truth_points": 706,
+    "predicted_points": 2,
+    "matched_points": 1,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 2,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 1,
+    "correct_rows": 1,
+    "missing_rows": 723,
+    "extra_rows": 1,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 0,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 1,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 705,
+    "unique_point_extra": 1,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.5,
+    "unique_point_structural_coverage": 0.00141643059490085,
+    "unique_point_value_precision": 0.5,
+    "unique_point_value_coverage": 0.00141643059490085,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.5,
+    "relational_row_coverage": 0.0013812154696132596,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 1,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 22
+    }
+  },
+  "metric_instability": {
+    "cause": "Series matching ties are resolved in UUID order; run identities change that order.",
+    "changed_metrics": {
+      "structurally_matched_rows": {
+        "baseline": 0,
+        "observed": 1
+      },
+      "correct_rows": {
+        "baseline": 0,
+        "observed": 1
+      },
+      "missing_rows": {
+        "baseline": 724,
+        "observed": 723
+      },
+      "extra_rows": {
+        "baseline": 2,
+        "observed": 1
+      },
+      "relational_row_precision": {
+        "baseline": 0,
+        "observed": 0.5
+      },
+      "relational_row_coverage": {
+        "baseline": 0,
+        "observed": 0.0013812154696132596
+      },
+      "matched_relational_graph_value_accuracy": {
+        "baseline": null,
+        "observed": 1
+      },
+      "matched_relational_phase_accuracy": {
+        "baseline": null,
+        "observed": 1
+      }
+    },
+    "resolved": false,
+    "next": "Make geometric matching deterministic before grading further workflow repairs."
+  },
+  "validation": {
+    "app_tests_passed": 333,
+    "app_tests_failed": 0,
+    "app_tests_skipped": 0,
+    "build_warnings": 0,
+    "build_errors": 0,
+    "private_runner_fictitious_self_test": {
+      "status": "pass",
+      "checks": [
+        "metadata_is_checked_before_payload_and_after_complete_parse",
+        "sealed_projects_share_one_first_read_and_content_handshake",
+        "one_project_parse_failure_prevents_partial_truth_scoring",
+        "metadata_drift_before_inference_rejected",
+        "sealed_run_without_first_read_handshake_rejected"
+      ],
+      "private_corpus_access": false,
+      "sealed_corpus_access": false,
+      "model_inference": false
+    }
+  },
+  "timing_seconds": {
+    "workflow": 100.7887646,
+    "csv_scoring": 0.1675938
+  },
+  "privacy_boundary": "Only the checksum-bound synthetic CLI installs a writer. Normal approved production and private acceptance install no writer. Failed calibration remains export-blocking.",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/workflow-calibration-observer-v1/source-bindings.json",
+      "sha256": "543e0bbd37ffd81dc8e17752c3f227598850e5b7ba2c199cd9cfc7a5d5314b68"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-calibration-observer-v1/test-results/app.trx",
+      "sha256": "00155f817d4181e64c93c52531b4b9c9155aead2c633e834612bcc7ddfa2dc7b"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-calibration-observer-v1/app-tests.log",
+      "sha256": "457234163676741542ca9bfda8b33540147b3978008305d250374520c99b939b"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-calibration-observer-v1/build.log",
+      "sha256": "aac7dcfe5bf29edc18463ef241d6bdc43357df1a056304dd90b00888961773c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-calibration-observer-v1/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/preparation.json",
+      "sha256": "518aad2a9e96e01b6fd2ae44084d3d709f9c69c5f185f028144d59122e9b158b"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/preparation-void.json",
+      "sha256": "093873ad2931b203bd9306b24b319e485cdb52c1925ffd763131a42cad94c1e0"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/source-bindings.json",
+      "sha256": "8e34271c74bafe3546ee09c782a184026ab2de9c09a5f0679f9ed96ed5c2301d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/candidate-binding.json",
+      "sha256": "c7dccb9d3470d9bba439c41ccebf153d8fecce1571e36a551afa1d3bac5e3ec5"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/input-manifest.json",
+      "sha256": "3be9b12f460a532c740f9d0f8ace43f1248267f7e49767dd15d6f7cb8dc97b83"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/protocol.json",
+      "sha256": "59bbaf9fc0ff05f3d4ac90e605aebdcbb65ea52b32ebf6a46655501c531ce068"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/runtime-description.json",
+      "sha256": "b75d731d89493295daddbd6cbc2219b8551a7427b973ac234ebe196e612eda1a"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/completion.json",
+      "sha256": "03c78f3fb8b5448ceaf08b8818c0d84fc7e1eb97e3e3f79136042585044bce05"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/execution/report.json",
+      "sha256": "56af6af90c2f5a90cbfdc953c1d672ee81108ff1db4eae00cd2d5810889c7105"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/observation-audit.json",
+      "sha256": "bbdb94287382fced9c8d05c4042bca710751ee558caf9726615299829c646c51"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/csv-evaluation-input.json",
+      "sha256": "916f874930d557da10d2d0f0eb10208e36f51d308276fca329039019af6fcea8"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/csv-score.json",
+      "sha256": "566d28470da538d1ebdee87b4902698c5b7943872cfcfb7ff008ffcf18d1efa5"
+    }
+  ],
+  "helpers": [
+    {
+      "path": "artifacts/goal22-tools/Prepare-ObservedWorkflow.py",
+      "sha256": "92ee7e0908e44b608eebaefd87a8ddcc961c9561e25b39f49ee2a7a08ab103de"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-ObservedWorkflow.py",
+      "sha256": "ac9158951e73edd7c12a960943e6b29c9362ecbdd6467cea4032bb9100f1cd9a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-CalibrationObserver.py",
+      "sha256": "d1c2d2352fadeb01ebc2a448fda2c5b19506bfbecc4c10d6eabe678070d04f4b"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_portable": {
+    "build": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Existing licensed model/runtime identities unchanged; only project Apache-2.0 code added. No model, image, private data or per-case prediction is committed."
+}

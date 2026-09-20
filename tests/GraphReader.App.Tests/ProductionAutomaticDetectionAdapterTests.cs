@@ -50,6 +50,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 new OcrAdapter("Synthetic participant", includeLegendText: true, framedLegend: true),
                 new MaskComposer(), new CenterAdapter(alreadyDetected, measuredLegend: true, offsetLegendDetection), classifier,
                 new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter(), new EmptyConnectionBuilder());
+            bool candidateObserved = false;
+            adapter.CandidateCalibrationObserver = _ => candidateObserved = true;
             var workflow = new WorkflowOrchestrator(new WorkflowServiceSet(
                 new ProductionWorkflowImportStage(store, new ImageImportService()),
                 new ProductionWorkflowPrepareStage(store), new ProductionWorkflowDetectionStage(store, adapter),
@@ -59,6 +61,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     Guid.NewGuid(), [new WorkflowSourceRequest(Guid.NewGuid(), WorkflowSourceKind.Image, imagePath)],
                     enhancementEnabled: false)), null, CancellationToken.None);
             WorkflowReviewPanel panel = run.Review.Panels.Single();
+            Assert.IsFalse(candidateObserved, "Approved production must not invoke candidate diagnostic recording.");
             Assert.HasCount(offsetLegendDetection ? 4 : 3, classifier.LastInputs);
             Assert.HasCount(1, classifier.LastContentBounds);
             Assert.AreEqual(new MarkerRectangle(17, 21, 7, 7), classifier.LastContentBounds.Values.Single());
