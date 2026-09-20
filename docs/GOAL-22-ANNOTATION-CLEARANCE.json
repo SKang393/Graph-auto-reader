@@ -1,0 +1,78 @@
+{
+  "schema": "graphreader.goal22.annotation-clearance-evidence.v1",
+  "status": "diagnostic_only",
+  "goal22_complete": false,
+  "base_commit": "8d915c78e16ac09b84843d26fa2f6b8a5ab6e7e3",
+  "source_bindings": [
+    {
+      "path": "ml/synthetic/annotation_clearance.py",
+      "sha256": "08cdfec6bc6a48103da173ddd891bb238a0bdf75801995081ce50f3dabd63d0b"
+    },
+    {
+      "path": "ml/synthetic/tests/test_annotation_clearance.py",
+      "sha256": "fda68bef5da2c6c08563e2778bb4cf99be2efe006b7c0fd26160dc5a5b436605"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/annotation-clearance-v1/report.json",
+      "sha256": "9684494dac4b26fac143e5654c5706a176a7e71b54e1edb1b03569a0786c188d"
+    },
+    {
+      "path": "artifacts/goal22-runs/annotation-clearance-v1/tests-fixed-fixture.xml",
+      "sha256": "ba808dd1dc692920d2b0816edaad4febec3f2d8d5146381edf6651d78c9c24ab"
+    },
+    {
+      "path": "artifacts/goal22-tools/Check-AnnotationClearance.py",
+      "sha256": "baf40070a135e0f47815e9cee6c75700a1dcca66a5b1e10ef112247056fd3df5"
+    }
+  ],
+  "splits": {
+    "train": {
+      "sources": 20,
+      "labels_moved": 6,
+      "unresolved": {}
+    },
+    "validation": {
+      "sources": 3,
+      "labels_moved": 2,
+      "unresolved": {
+        "arrow_target_inside_legend": 3
+      }
+    }
+  },
+  "corpus_seconds": 84.56650459999219,
+  "unit_tests": {
+    "passed": 4,
+    "failed": 0,
+    "seconds": 3.53
+  },
+  "historical_sources_unchanged": true,
+  "scientific_values_marker_masks_arrow_targets_and_text_content_preserved": true,
+  "synthetic_only": true,
+  "private_data": false,
+  "sealed_data": false,
+  "model_inference": false,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "new_model_revision": false,
+  "packaged_build": false,
+  "limitations": [
+    "Three development labels remain unchanged because their arrow target is inside the legend.",
+    "Opt-in only; frozen generator defaults and historical benchmarks are unchanged.",
+    "Other synthetic layout defects remain.",
+    "No OCR accuracy or production acceptance claim."
+  ],
+  "startup_repairs": [
+    "Initial tests used an empty degradation list rejected by the frozen scene schema. The fixture now retains its original valid configuration."
+  ],
+  "previous_ci": {
+    "run_id": 35488129750,
+    "conclusion": "success"
+  },
+  "retained_portable": {
+    "build_number": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Apache-2.0 source; no dependency, font, weight or external data added."
+}
