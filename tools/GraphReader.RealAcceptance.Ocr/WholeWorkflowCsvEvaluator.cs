@@ -382,16 +382,25 @@ internal static class WholeWorkflowCsvEvaluator
         CancellationToken cancellationToken)
     {
         IReadOnlyDictionary<Guid, PredictedPoint> predictedPoints = parsed.Points;
-        Guid[] predictedSeries = predictedPoints.Values.Select(static item => item.SourceSeriesId)
-            .Distinct().Order().ToArray();
-        string[] truthSeries = truth.Series.Keys.Order(StringComparer.Ordinal).ToArray();
+        // Run-generated IDs are provenance, not matching evidence. Resolve equal
+        // cardinality assignments in source-pixel order so a renamed run cannot
+        // choose a different geometric series or point merely by changing UUIDs.
+        Guid[] predictedSeries = predictedPoints.Values.GroupBy(static item => item.SourceSeriesId)
+            .OrderBy(static group => OrderedPixels(group.Select(static point =>
+                (point.OriginalPixelX, point.OriginalPixelY))), PixelSequenceComparer.Instance)
+            .Select(static group => group.Key).ToArray();
+        string[] truthSeries = truth.Series
+            .OrderBy(static pair => OrderedPixels(pair.Value.Select(static point =>
+                (point.SourcePixelX, point.SourcePixelY))), PixelSequenceComparer.Instance)
+            .Select(static pair => pair.Key).ToArray();
         var pairMatches = new Dictionary<(Guid Predicted, string Truth), PointPairMatch>();
         var weights = new int[predictedSeries.Length, truthSeries.Length];
         for (int predictedIndex = 0; predictedIndex < predictedSeries.Length; predictedIndex++)
         {
             PredictedPoint[] sourcePoints = predictedPoints.Values
                 .Where(item => item.SourceSeriesId == predictedSeries[predictedIndex])
-                .OrderBy(static item => item.PointId).ToArray();
+                .OrderBy(static item => item.OriginalPixelX)
+                .ThenBy(static item => item.OriginalPixelY).ToArray();
             for (int truthIndex = 0; truthIndex < truthSeries.Length; truthIndex++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -579,11 +588,13 @@ internal static class WholeWorkflowCsvEvaluator
                     Index = index,
                     Distance = Distance(point.OriginalPixelX, point.OriginalPixelY,
                         candidate.SourcePixelX, candidate.SourcePixelY),
-                    candidate.PointKey,
+                    candidate.SourcePixelX,
+                    candidate.SourcePixelY,
                 })
                 .Where(item => item.Distance <= tolerance)
                 .OrderBy(static item => item.Distance)
-                .ThenBy(static item => item.PointKey, StringComparer.Ordinal)
+                .ThenBy(static item => item.SourcePixelX)
+                .ThenBy(static item => item.SourcePixelY)
                 .Select(static item => item.Index)
                 .ToArray();
         }
@@ -620,6 +631,27 @@ internal static class WholeWorkflowCsvEvaluator
             }
         }
         return false;
+    }
+
+    private static (double X, double Y)[] OrderedPixels(IEnumerable<(double X, double Y)> points) =>
+        points.OrderBy(static point => point.X).ThenBy(static point => point.Y).ToArray();
+
+    private sealed class PixelSequenceComparer : IComparer<(double X, double Y)[]>
+    {
+        public static PixelSequenceComparer Instance { get; } = new();
+
+        public int Compare((double X, double Y)[]? left, (double X, double Y)[]? right)
+        {
+            if (ReferenceEquals(left, right)) return 0;
+            if (left is null) return -1;
+            if (right is null) return 1;
+            for (int index = 0; index < Math.Min(left.Length, right.Length); index++)
+            {
+                int comparison = left[index].CompareTo(right[index]);
+                if (comparison != 0) return comparison;
+            }
+            return left.Length.CompareTo(right.Length);
+        }
     }
 
     private static Dictionary<int, int> MaximumWeightAssignment(int[,] weights)

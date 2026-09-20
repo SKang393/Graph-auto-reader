@@ -76,6 +76,39 @@ internal static class WholeWorkflowCsvEvaluatorSelfTest
             WholeWorkflowEvaluationResult permuted = Evaluate(root, "permuted", truth, permutedRows);
             Require(permuted.CorrectRows == 4 && permuted.MatchedSeries == 2, "anonymous whole-series permutation");
 
+            WholeWorkflowTruthCase mergedTruth = truth with
+            {
+                Series = [new("intervention")],
+                Points = truth.Points.Select(static point => point with { SeriesKey = "intervention" }).ToArray(),
+                Relations = [new("intervention", null, [])],
+            };
+            WholeWorkflowEvaluationResult splitSeries = Evaluate(root, "equal-weight-split", mergedTruth, validRows);
+            WholeWorkflowEvaluationResult renamedSplit = Evaluate(root, "equal-weight-split-renamed", mergedTruth,
+                permutedRows.Reverse().Select((row, index) => row with { PointId = validRows[index].PointId }).ToArray());
+            Require(JsonSerializer.Serialize(splitSeries) == JsonSerializer.Serialize(renamedSplit) &&
+                splitSeries.MatchedPoints == 2 && splitSeries.UniquePointMissing == 2,
+                "equal-weight split-series matching ignores runtime IDs and row order without hiding missing points");
+
+            WholeWorkflowTruthCase nearbyTruth = truth with
+            {
+                Series = [new("intervention")],
+                Points = [new("z", "intervention", 10, 10, 1, 0, 1, ExportMode.PrintedSession, "b"),
+                    new("a", "intervention", 11, 10, 2, 10, 2, ExportMode.PrintedSession, "b")],
+                Relations = [new("intervention", null, [])],
+            };
+            TestRow[] nearbyRows =
+            [
+                Row("30000000-0000-0000-0000-000000000081", InterventionRuntimeSeries, PhaseB, 10.2, 10, 2, 10, "b", "intervention"),
+                Row("30000000-0000-0000-0000-000000000082", InterventionRuntimeSeries, PhaseB, 10.4, 10, 1, 0, "b", "intervention"),
+            ];
+            WholeWorkflowEvaluationResult nearby = Evaluate(root, "nearby-points", nearbyTruth, nearbyRows);
+            WholeWorkflowEvaluationResult renamedNearby = Evaluate(root, "nearby-points-renamed", nearbyTruth with
+            {
+                Points = nearbyTruth.Points.Reverse().Select((point, index) => point with { PointKey = index.ToString(CultureInfo.InvariantCulture) }).ToArray(),
+            }, [nearbyRows[1] with { PointId = nearbyRows[0].PointId }, nearbyRows[0] with { PointId = nearbyRows[1].PointId }]);
+            Require(JsonSerializer.Serialize(nearby) == JsonSerializer.Serialize(renamedNearby),
+                "overlapping point neighborhoods ignore row order and runtime/truth point IDs");
+
             WholeWorkflowEvaluationResult subset = Evaluate(root, "subset", truth, validRows[..^1]);
             Require(subset.MissingRows == 1 && subset.RelationalRowCoverage == .75, "subset output");
 
@@ -356,7 +389,7 @@ internal static class WholeWorkflowCsvEvaluatorSelfTest
                 [truth], [memoryTampered], memoryOptions, CancellationToken.None);
             Require(!tamperedMemory.ArtifactIntegrityValid, "in-memory artifact checksum remains mandatory");
 
-            const int scenarios = 33;
+            const int scenarios = 35;
             return new WholeWorkflowCsvEvaluatorSelfTestResult(
                 "pass", true, scenarios, false, 0, true, true, true, true, true);
         }

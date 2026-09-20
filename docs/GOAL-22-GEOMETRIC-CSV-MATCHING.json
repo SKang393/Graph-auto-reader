@@ -1,0 +1,300 @@
+{
+  "schema": "graphreader.goal22.geometric-csv-matching.v1",
+  "status": "repair_verified_workflow_acceptance_failed",
+  "goal22_complete": false,
+  "changed_sources": [
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs",
+      "sha256": "aa31af34c670d0dce05650ae6bc5bc0db9163195b5667ccba71fbf2619378f97",
+      "archive": "artifacts/goal22-runs/workflow-geometric-score-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluatorSelfTest.cs",
+      "sha256": "6d31b36165af6e62b52a4de12dd24c2f984fedc55428fd849193a23b340c0e66",
+      "archive": "artifacts/goal22-runs/workflow-geometric-score-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluatorSelfTest.cs"
+    }
+  ],
+  "checks": {
+    "evaluator": {
+      "status": "pass",
+      "self_test": true,
+      "scenario_count": 35,
+      "private_corpus_access": false,
+      "model_inference_runs": 0,
+      "valid_accepted": true,
+      "anonymous_series_permutation_accepted": true,
+      "unavailable_evidence_reported": true,
+      "complete_denominators_preserved": true,
+      "integrity_failures_rejected": true
+    },
+    "binding": {
+      "status": "pass",
+      "model_free": true,
+      "scenarios_passed": 21,
+      "variable_inventory_verified": true,
+      "saved_source_snapshots_verified": true,
+      "failed_cases_preserve_full_truth": true,
+      "private_corpus_access": false,
+      "sealed_corpus_access": false,
+      "model_inference_runs": 0
+    },
+    "build_warnings": 0,
+    "build_errors": 0,
+    "build_seconds": 22.25,
+    "same_metrics_for_both_saved_outputs": true
+  },
+  "metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 1,
+    "failed_cases": 22,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 2,
+    "matched_series": 1,
+    "truth_points": 706,
+    "predicted_points": 2,
+    "matched_points": 1,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 2,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 0,
+    "correct_rows": 0,
+    "missing_rows": 724,
+    "extra_rows": 2,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 0,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 1,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 705,
+    "unique_point_extra": 1,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.5,
+    "unique_point_structural_coverage": 0.00141643059490085,
+    "unique_point_value_precision": 0.5,
+    "unique_point_value_coverage": 0.00141643059490085,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0,
+    "relational_row_coverage": 0,
+    "matched_relational_graph_value_accuracy": null,
+    "matched_relational_phase_accuracy": null,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 22
+    }
+  },
+  "scoring_seconds": [
+    0.1855316,
+    0.177591
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/source-bindings.json",
+      "sha256": "e530befbfbef115060ec8ac7a51e1d5ad609716bfc7650510a4a89b0c87944ef"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build.log",
+      "sha256": "f995f0160b6db3658a3f74f2cf2d1cb1e8b30f7fed324c94fc51ec8f0c357ee0"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/evaluator-self-test.json",
+      "sha256": "b143dbe8553268ca8a664522308fcbb00256623d83a7c4773e1be3fcffbd7b1e"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/binding-self-test.json",
+      "sha256": "2aa9bc58636dd40a629e5922b265416b0f1ef9cf11d1f3cfa6b18a0bbae33de2"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/baseline-score.json",
+      "sha256": "b2b8be87c94a043f6e7dd97345f93694cc66132541b9d58834ec8dbb709f6dcb"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/observed-score.json",
+      "sha256": "b7865cc64b0b222b9576629a2a653aad4688b456926fb5d2443c0903120b28e5"
+    }
+  ],
+  "previous_scores": [
+    {
+      "path": "artifacts/goal22-runs/workflow-csv-inventory-v2/csv-score.json",
+      "sha256": "c9796f1156987dc60898d0875874d0de6e93961b9c264e3db1318fa87f0d2652"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-observed-v1/csv-score.json",
+      "sha256": "566d28470da538d1ebdee87b4902698c5b7943872cfcfb7ff008ffcf18d1efa5"
+    }
+  ],
+  "runtime": [
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.App.deps.json",
+      "sha256": "0772df95ff061b108a1d94ca2e061ec6e473ea0ec9039e982a2db3ea5c8f9f9c"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.App.dll",
+      "sha256": "7434b9eea331a34e86ee8bc44f3045ccb8d32e37b49199cd520380cbfdf7dc63"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.App.exe",
+      "sha256": "75cc1753951f37b433cfd487de8bd88398561f2b28ca95bef25c5344a514d8e7"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.App.runtimeconfig.json",
+      "sha256": "96bc2946dff8790400d652ec7f8de7bb043e954980d59470c112788b68a1fbd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Axis.dll",
+      "sha256": "ab803c633641bc201cab38362a87ffe792270ac6312ea6a5970f82661e1d75fb"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Domain.dll",
+      "sha256": "b434da50064a86302e6660ae7c5e2996bb146d3195cd21d99f4442f74ada07dd"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Export.dll",
+      "sha256": "64be6238e89891fd27f968f6f6d07c7db1aa8a3ad47cfc40b13bcdae8cd448af"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Imaging.dll",
+      "sha256": "55862b241b58a87ee248478f4654ced15905591d44be131cbd69d05b83f17382"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Inference.dll",
+      "sha256": "8b0532195687091a92efee4c16bfe2e86caf43ab1bd639d2d746ce2db587bc6e"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Legends.dll",
+      "sha256": "7c644af04596cac91af90fd3bb6789c4cf6c20a078f1df5752ce4d77b43e63de"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Markers.dll",
+      "sha256": "966a05d80bd66b3a9cc6a95664b0c49b9f07de694d7a3050e2238e988e9d7874"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Ocr.dll",
+      "sha256": "9aba7e308b2751f3b2f2e3c3fa9a5d14f08c80f4f3a5da5eedc4c0da47c4cab3"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Pdf.dll",
+      "sha256": "d458a8ff8fd96f8decff4b433ec12275314bb1f9aa4e69cb5ba0885d3c71777b"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.Phases.dll",
+      "sha256": "02ef451d4e7e6f95a31f64736e7e6d4fa4644324f5faa9939b025589ae9026d3"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.RealAcceptance.Ocr.deps.json",
+      "sha256": "3554fff6d577e1dded6b024d160fe4447bb5ed527714ffb42e34b5d1d9f3d98d"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.RealAcceptance.Ocr.dll",
+      "sha256": "0f53bc23130ab09a8fca637d10065b8b43e50adcfc6e27e350d1566d6cb4e9c6"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.RealAcceptance.Ocr.exe",
+      "sha256": "1fe2e3d8185f1ece01e1d092ee6c47cc118ea38e2b42f7c610a8395361585c0e"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.RealAcceptance.Ocr.runtimeconfig.json",
+      "sha256": "96bc2946dff8790400d652ec7f8de7bb043e954980d59470c112788b68a1fbd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/GraphReader.SuperResolution.dll",
+      "sha256": "76b45b5ff5620dff201f0eab9f370e46fcb068cd4e86814a4ca55f747da72c83"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/Imazen.WebP.dll",
+      "sha256": "249ea68229527a3dc7dd516c2bdfe44b1cdfe6d644951ae8f48d0de858723f34"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/libsharpyuv.dll",
+      "sha256": "ceba59e40848e8e14960fc8c0f6ed125a6bfae216b3814c5ad202cb36d6a2a0d"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/libwebp.dll",
+      "sha256": "3de66254c8c0f47f299c7d55750589bf0e9fb6ab65778ed004a81e958ad1c024"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/libwebpdemux.dll",
+      "sha256": "af9124fc82821b7bef5d526d4dc4d857de7601833305f5d01ad68089706852c9"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/libwebpmux.dll",
+      "sha256": "60947b85e84cb1e96f12e5863dab742641e51846713857063274eb93326672a6"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/Microsoft.ML.OnnxRuntime.dll",
+      "sha256": "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/onnxruntime.dll",
+      "sha256": "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/onnxruntime_providers_shared.dll",
+      "sha256": "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/OpenCvSharp.dll",
+      "sha256": "a26fd4bfff04fe2a351b3b0b417cc9847ef8e10721a8e484e3b33850f510b509"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/OpenCvSharpExtern.dll",
+      "sha256": "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/System.Numerics.Tensors.dll",
+      "sha256": "9d96dc759fdb54cbc3c26ee65cfd78ff32e3745f418119cc0811e63d3f29ecb9"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Core.dll",
+      "sha256": "70d93534a6573cb6674d94f6d3c2235c09a6a9e09d1d13b032a2a4a1c3b19818"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.dll",
+      "sha256": "e062781488d3a8557bcf670c57d6776ea7e723faa683b49ec4c6d449c087f5a1"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.DocumentLayoutAnalysis.dll",
+      "sha256": "3a763e3afd8b290fd46bbc91750459d057d6f64b8dc11ecd6527c977044086be"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Fonts.dll",
+      "sha256": "aade3f7c3211c961303b136d78888da4194c183a1ea6503b72818b24cbd3a72a"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Package.dll",
+      "sha256": "6da637d4a06099adf02036d632c3f4a7ea93f01c37145534e6d061725b0361b5"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Tokenization.dll",
+      "sha256": "ad06282eb18bed04e3da01c757bcc16bc6fbfd8471660c1cddb5f75cbd643758"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-geometric-score-v1/build/bin/GraphReader.RealAcceptance.Ocr/release_win-x64/UglyToad.PdfPig.Tokens.dll",
+      "sha256": "128195b9c82ecf521ba2ddbfb358ff033c6d0a67938c87493ca8bf0991fff91d"
+    }
+  ],
+  "limitations": [
+    "Exactly coincident geometric series remain ambiguous.",
+    "Model, panel, text exclusion, calibration and export defects remain."
+  ],
+  "model_inference_runs": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_portable": {
+    "build": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Apache-2.0 project evaluator only; no dependencies or payload identities changed."
+}
