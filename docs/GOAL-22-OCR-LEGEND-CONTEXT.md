@@ -61,15 +61,17 @@ unchanged; new code uses Apache-2.0. No private or sealed data is read.
 ## Known limitations
 
 Unframed or occluded legends, misread text, and missing detections remain unresolved.
-The full workflow still derives legend glyph candidates from the marker-center
-output. Connecting independently found symbol crops to classification and series
-matching is separate remaining work; this result does not claim to complete it.
+At this checkpoint the full workflow still derived legend glyph candidates from
+marker-center output. The subsequent [symbol-to-series repair](GOAL-22-LEGEND-SYMBOL-SERIES.md)
+connects independent crops in controlled workflow tests. This historical OCR result
+does not claim full series-assignment or export accuracy.
 
 ## Integration notes
 
 Header repair `6006cfa` passed Windows CI run `35486072909`. This source-only change
 opens no model revision, approval, package, tag, or release. The retained portable
 is still build 433, version 0.4.33. CI follows this push while development continues.
+Windows CI run `35486779845` subsequently passed for this repair at `d9e6c2e`.
 No subagents or further continuation permission are needed.
 
 ## Acceptance status

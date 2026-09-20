@@ -18,12 +18,7 @@ public static class FramedLegendRoleResolver
         ArgumentNullException.ThrowIfNull(regions);
         ArgumentNullException.ThrowIfNull(detectedRegions);
         cancellationToken.ThrowIfCancellationRequested();
-        if (image.SourceImage != OcrSourceImage.Original || image.OriginalToImage != OcrFrameTransform.Identity ||
-            image.CoordinateSpace != OcrContract.CoordinateSpace || image.Width <= 0 || image.Height <= 0 ||
-            image.Stride < image.Width || image.Pixels.Length < (long)image.Stride * image.Height)
-        {
-            throw new ArgumentException("Legend context requires aligned original Gray8 pixels.", nameof(image));
-        }
+        ValidateImage(image);
         var detections = detectedRegions.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
         var eligible = new List<OcrRegion>();
         foreach (OcrRegion region in regions)
@@ -71,6 +66,47 @@ public static class FramedLegendRoleResolver
                 ? region with { Role = OcrTextRole.LegendText, Confidence = Math.Min(region.Confidence, 0.70) }
                 : region)),
             OcrCollections.Freeze(evidence));
+    }
+
+    /// <summary>
+    /// Locates symbols beside already recognized legend labels. These are legend
+    /// evidence only and must never be supplied to graph calibration as observations.
+    /// </summary>
+    public static IReadOnlyList<FramedLegendRoleEvidence> LocateSymbols(
+        OcrImage image, IReadOnlyList<OcrRegion> regions, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        ArgumentNullException.ThrowIfNull(regions);
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateImage(image);
+        OcrRegion[] labels = regions.Where(static region => region.Role == OcrTextRole.LegendText &&
+            region.ReviewStatus != OcrReviewStatus.Rejected && !string.IsNullOrWhiteSpace(region.Text)).ToArray();
+        foreach (OcrRegion label in labels)
+        {
+            OcrRectangle box = label.Polygon.Bounds;
+            if (!box.IsValid || box.Left < 0 || box.Top < 0 || box.Right > image.Width || box.Bottom > image.Height ||
+                label.CoordinateSpace != OcrContract.CoordinateSpace)
+                throw new ArgumentException("Legend labels must retain original pixel geometry.", nameof(regions));
+        }
+        if (labels.Length == 0) return Array.Empty<FramedLegendRoleEvidence>();
+        bool[] ink = CreateInkMask(image, cancellationToken);
+        List<HorizontalRun> runs = FindRuns(ink, image.Width, image.Height, cancellationToken);
+        var evidence = new List<FramedLegendRoleEvidence>();
+        foreach (OcrRegion label in labels)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            FramedLegendRoleEvidence? item = FindContext(ink, image.Width, runs, label, cancellationToken);
+            if (item is not null) evidence.Add(item);
+        }
+        return OcrCollections.Freeze(evidence);
+    }
+
+    private static void ValidateImage(OcrImage image)
+    {
+        if (image.SourceImage != OcrSourceImage.Original || image.OriginalToImage != OcrFrameTransform.Identity ||
+            image.CoordinateSpace != OcrContract.CoordinateSpace || image.Width <= 0 || image.Height <= 0 ||
+            image.Stride < image.Width || image.Pixels.Length < (long)image.Stride * image.Height)
+            throw new ArgumentException("Legend context requires aligned original Gray8 pixels.", nameof(image));
     }
 
     private static bool[] CreateInkMask(OcrImage image, CancellationToken cancellationToken)

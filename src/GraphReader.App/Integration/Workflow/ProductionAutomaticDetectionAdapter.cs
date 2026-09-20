@@ -81,7 +81,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
 
     public string AdapterId => string.Join(
         ':',
-        "graphreader-production-detection-v1",
+        "graphreader-production-detection-v2",
+        ProductionLegendSymbolInputs.Version,
         axisAdapter.AdapterId,
         ocrAdapter.AdapterId,
         markerCenterAdapter.Model.Sha256[..12].ToLowerInvariant(),
@@ -241,19 +242,47 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 .ConfigureAwait(false);
             chain.Append(centers.Envelope);
 
+            LegendSymbolInputBatch legendInputs;
+            try
+            {
+                legendInputs = ProductionLegendSymbolInputs.Prepare(
+                    request, raster, ocr.Result, centers.Markers, cancellationToken);
+            }
+            catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or OverflowException)
+            {
+                throw chain.Reject(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                    "Errors.DetectionEvidenceRejected",
+                    $"Legend symbols could not be bound to original pixels: {exception.Message}",
+                    Recoverable: true,
+                    "Retain earlier detection evidence and review the legend geometry."));
+            }
+            if (legendInputs.Envelope is not null) chain.Append(legendInputs.Envelope);
             ProductionMarkerClassificationEvidence classification =
                 await markerClassificationAdapter
-                    .ClassifyAsync(request, markerFrame, centers.Markers, cancellationToken)
+                    .ClassifyAsync(request, markerFrame, legendInputs.ClassifierInputs, cancellationToken)
                     .ConfigureAwait(false);
             chain.Append(classification.Envelope);
 
-            ClassifiedMarker[] canonicalMarkers = CanonicalizeMarkers(
+            ClassifiedMarker[] plotMarkers = CanonicalizeMarkers(
                 request,
-                classification.Markers,
+                classification.Markers.Where(marker => !legendInputs.SymbolInputIds.Contains(marker.Marker.MarkerId)),
                 markerCenterAdapter.Model.Sha256);
-            ClassifiedMarker[] acceptedMarkers = canonicalMarkers
+            ClassifiedMarker[] legendSymbols = CanonicalizeMarkers(
+                request,
+                classification.Markers.Where(marker => legendInputs.SymbolInputIds.Contains(marker.Marker.MarkerId)),
+                ProductionLegendSymbolInputs.Version)
+                .DistinctBy(static marker => marker.Marker.MarkerId)
+                .ToArray();
+            ClassifiedMarker[] canonicalMarkers = [.. plotMarkers, .. legendSymbols];
+            ClassifiedMarker[] acceptedMarkers = plotMarkers
                 .Where(static marker => marker.ArtifactProbability < ArtifactRejectionThreshold)
                 .ToArray();
+            ClassifiedMarker[] acceptedSymbols = CanonicalizeMarkers(
+                request,
+                classification.Markers.Where(marker => legendInputs.SymbolCropInputIds.Contains(marker.Marker.MarkerId) &&
+                    marker.ArtifactProbability < ArtifactRejectionThreshold),
+                ProductionLegendSymbolInputs.Version);
             SessionFirstCalibrationResult calibration = FitCalibration(
                 axis.Geometry,
                 ocr.Result,
@@ -267,6 +296,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     axis.Geometry,
                     ocr.Result,
                     acceptedMarkers,
+                    acceptedSymbols,
                     calibration,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -274,7 +304,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             ProductionLegendReasoningEvidence legend = await legendAdapter
                 .ResolveAsync(
                     request,
-                    CreateLegendRequest(request, axis.Geometry, ocr.Result, grouping),
+                    CreateLegendRequest(request, axis.Geometry, ocr.Result, grouping, acceptedSymbols),
                     cancellationToken)
                 .ConfigureAwait(false);
             chain.Append(legend.Envelope);
@@ -293,6 +323,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 ocr.Result,
                 canonicalMarkers,
                 acceptedMarkers,
+                legendSymbols,
                 grouping,
                 legend.Payload,
                 phases.Payload,
@@ -337,6 +368,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         AxisGeometryResult axis,
         OcrResult ocr,
         IReadOnlyList<ClassifiedMarker> markers,
+        IReadOnlyList<ClassifiedMarker> legendSymbols,
         SessionFirstCalibrationResult calibration,
         CancellationToken cancellationToken)
     {
@@ -356,7 +388,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             .ConfigureAwait(false);
         MarkerLegendEvidence[] legendEvidence = ocr.Regions
             .Where(static region => region.Role == OcrTextRole.LegendText)
-            .SelectMany(region => markers
+            .SelectMany(region => markers.Concat(legendSymbols)
                 .Where(marker => IsNearLegendText(marker, region))
                 .Select(marker => new MarkerLegendEvidence(
                     marker.Shape,
@@ -394,6 +426,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         OcrResult ocr,
         IReadOnlyList<ClassifiedMarker> allMarkers,
         IReadOnlyList<ClassifiedMarker> acceptedMarkers,
+        IReadOnlyList<ClassifiedMarker> legendSymbols,
         MarkerGroupingState grouping,
         LegendReasoningPayload legend,
         PhaseReasoningPayload phases,
@@ -405,7 +438,9 @@ public sealed class ProductionAutomaticDetectionAdapter :
             .ToDictionary(static item => item.markerId, static item => item.series, StringComparer.Ordinal);
         Dictionary<string, PhasePointAssignment> phaseByPoint = phases.Assignments
             .ToDictionary(static assignment => assignment.PointId, StringComparer.Ordinal);
-        HashSet<string> excluded = legend.ExcludedArtifactMarkerIds.ToHashSet(StringComparer.Ordinal);
+        HashSet<string> excluded = legend.ExcludedArtifactMarkerIds
+            .Concat(legendSymbols.Select(static marker => marker.Marker.MarkerId))
+            .ToHashSet(StringComparer.Ordinal);
         ClassifiedMarker[] projectedMarkers = acceptedMarkers
             .Where(marker => !excluded.Contains(marker.Marker.MarkerId))
             .ToArray();
@@ -725,7 +760,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionWorkflowDetectionRequest request,
         AxisGeometryResult axis,
         OcrResult ocr,
-        MarkerGroupingState grouping)
+        MarkerGroupingState grouping,
+        IReadOnlyList<ClassifiedMarker> legendSymbols)
     {
         LegendRectangle plot = ToLegendBounds(axis.PlotPolygon);
         LegendTextRegion[] text = ocr.Regions.Select(region => new LegendTextRegion(
@@ -739,7 +775,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             static item => item.Marker.Marker.MarkerId,
             static item => item.Marker,
             StringComparer.Ordinal);
-        LegendGlyphCandidate[] glyphs = markers.Values
+        LegendGlyphCandidate[] glyphs = markers.Values.Concat(legendSymbols)
             .Where(marker => ocr.Regions.Any(region => IsNearLegendText(marker, region)))
             .Select(marker => new LegendGlyphCandidate(
                 marker.Marker.MarkerId,
@@ -855,13 +891,13 @@ public sealed class ProductionAutomaticDetectionAdapter :
     private static ClassifiedMarker[] CanonicalizeMarkers(
         ProductionWorkflowDetectionRequest request,
         IEnumerable<ClassifiedMarker> markers,
-        string centerModelSha256) => markers.Select(marker =>
+        string centerSourceIdentity) => markers.Select(marker =>
     {
         MarkerCenter source = marker.Marker;
         Guid stableId = ProductionWorkflowPanelStore.CreateStableId(
             request.Panel.ImportedPanel.PanelId.ToString("D"),
             request.Image.Sha256,
-            centerModelSha256,
+            centerSourceIdentity,
             source.Center.X.ToString("R", CultureInfo.InvariantCulture),
             source.Center.Y.ToString("R", CultureInfo.InvariantCulture),
             source.Radius.ToString("R", CultureInfo.InvariantCulture));

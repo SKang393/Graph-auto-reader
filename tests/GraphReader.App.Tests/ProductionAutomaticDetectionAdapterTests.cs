@@ -28,6 +28,90 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private static readonly string[] ExpectedPhaseCodes = ["a", "b"];
 
     [TestMethod]
+    [DataRow(false, false, false)]
+    [DataRow(true, false, false)]
+    [DataRow(false, true, false)]
+    [DataRow(true, false, true)]
+    public async Task FramedLegendSymbolDoesNotRequireAPointDetectionOrEnterTheExport(
+        bool alreadyDetected, bool rejectedByClassifier, bool offsetLegendDetection)
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graphreader-independent-legend-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            string imagePath = Path.Combine(root, "synthetic.png");
+            WriteSyntheticPng(imagePath, 100, 100, framedLegend: true);
+            byte[] originalBytes = await File.ReadAllBytesAsync(imagePath);
+            var store = new ProductionWorkflowPanelStore();
+            var classifier = new ClassificationAdapter(rejectedByClassifier);
+            var adapter = new ProductionAutomaticDetectionAdapter(
+                store, new ProductionRasterFrameDecoder(), new AxisAdapter(),
+                new OcrAdapter("Synthetic participant", includeLegendText: true, framedLegend: true),
+                new MaskComposer(), new CenterAdapter(alreadyDetected, measuredLegend: true, offsetLegendDetection), classifier,
+                new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter(), new EmptyConnectionBuilder());
+            var workflow = new WorkflowOrchestrator(new WorkflowServiceSet(
+                new ProductionWorkflowImportStage(store, new ImageImportService()),
+                new ProductionWorkflowPrepareStage(store), new ProductionWorkflowDetectionStage(store, adapter),
+                new ProductionWorkflowExportStage(store, new ExportService())));
+            WorkflowRunResult run = await workflow.RunThroughReviewAsync(
+                new WorkflowRunRequest(Guid.NewGuid(), new WorkflowImportRequest(
+                    Guid.NewGuid(), [new WorkflowSourceRequest(Guid.NewGuid(), WorkflowSourceKind.Image, imagePath)],
+                    enhancementEnabled: false)), null, CancellationToken.None);
+            WorkflowReviewPanel panel = run.Review.Panels.Single();
+            Assert.HasCount(offsetLegendDetection ? 4 : 3, classifier.LastInputs);
+            Assert.IsTrue(classifier.LastInputs.Any(static marker => marker.Center.X == 20.5 && marker.Center.Y == 24.5));
+            Assert.HasCount(2, panel.Points);
+            Assert.IsFalse(panel.Points.Any(static point => point.OriginalPixelY == 24.5));
+            ProductionPanelExportEvidence evidence = store.Get(panel.PanelId).ExportEvidence!;
+            Assert.IsNotNull(evidence.ProjectionEvidence);
+            Assert.HasCount(offsetLegendDetection ? 4 : 3, evidence.ProjectionEvidence.Markers);
+            Assert.AreEqual(offsetLegendDetection ? 2 : 1, evidence.ProjectionEvidence.Markers.Count(static marker =>
+                marker.ReviewStatus == GraphReader.Domain.ReviewStatus.Rejected));
+            Assert.HasCount(2, evidence.ProjectionEvidence.Points);
+            Assert.IsTrue(evidence.Provenance.Any(static item => item.StageVersion == ProductionLegendSymbolInputs.Version));
+            if (!rejectedByClassifier)
+                Assert.AreEqual(1, evidence.ProjectionEvidence.Series.Count(static series => series.DisplayName == "Series one"));
+            WorkflowExportResult export = await workflow.ExportAsync(run.Review,
+                new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(root, "unused-export"))
+                { Operation = ExportOperation.Preview }, CancellationToken.None);
+            Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+            WorkflowExportArtifact minimal = export.Artifacts.Single(static artifact =>
+                artifact.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) &&
+                !artifact.FileName.Contains("audit", StringComparison.OrdinalIgnoreCase));
+            Assert.AreEqual(2, minimal.RowCount);
+            CollectionAssert.AreEqual(originalBytes, await File.ReadAllBytesAsync(imagePath));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task InvalidLegendGeometryRetainsEarlierEvidenceAndBlocksClassification()
+    {
+        byte[] bytes = [1, 2, 3];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:bad-legend.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "bad-legend.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var classifier = new ClassificationAdapter();
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new RasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(includeLegendText: true, invalidLegendBounds: true), new MaskComposer(), new CenterAdapter(),
+            classifier, new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+        ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+            () => adapter.DetectAsync(request, CancellationToken.None));
+        Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, failure.Failure.Code);
+        Assert.HasCount(5, failure.CompletedEvidence);
+        Assert.IsEmpty(classifier.LastInputs);
+        Assert.IsNull(store.Get(panelId).ExportEvidence);
+    }
+
+    [TestMethod]
     public async Task ResolvedLegendGlyphRemainsAuditableButIsNotAnExportedPoint()
     {
         string root = Path.Combine(Path.GetTempPath(), $"graphreader-legend-{Guid.NewGuid():N}");
@@ -449,11 +533,16 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     {
         private readonly string participant;
         private readonly bool includeLegendText;
+        private readonly bool framedLegend;
+        private readonly bool invalidLegendBounds;
 
-        public OcrAdapter(string participant = "Chandler", bool includeLegendText = false)
+        public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
+            bool invalidLegendBounds = false)
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
+            this.framedLegend = framedLegend;
+            this.invalidLegendBounds = invalidLegendBounds;
         }
 
         public string AdapterId => "test-ocr";
@@ -473,7 +562,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             Assert.AreEqual(byte.MaxValue, detectorImage.Image.Pixels.Span[(50 * 100) + 10]);
             Assert.AreEqual(byte.MaxValue, detectorImage.Image.Pixels.Span[(50 * 100) + 50]);
             Assert.AreEqual(byte.MaxValue, detectorImage.Image.Pixels.Span[(90 * 100) + 20]);
-            Assert.AreEqual(0, detectorImage.Image.Pixels.Span[(30 * 100) + 30]);
+            if (!framedLegend) Assert.AreEqual(0, detectorImage.Image.Pixels.Span[(30 * 100) + 30]);
             Assert.AreEqual(
                 detectorImage.PixelSha256,
                 Convert.ToHexStringLower(SHA256.HashData(detectorImage.Image.Pixels.Span)));
@@ -487,10 +576,13 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             Assert.AreEqual(
                 detectorImage.BgrPixelSha256,
                 Convert.ToHexStringLower(SHA256.HashData(detectorImage.Image.BgrPixels.Pixels.Span)));
-            Assert.IsTrue(originalRaster.CreateOcrImage().Pixels.Span.ToArray()
-                .All(static pixel => pixel == 0));
-            Assert.IsTrue(originalRaster.CreateOcrImage().BgrPixels!.Pixels.Span.ToArray()
-                .All(static pixel => pixel == 0));
+            if (!framedLegend)
+            {
+                Assert.IsTrue(originalRaster.CreateOcrImage().Pixels.Span.ToArray()
+                    .All(static pixel => pixel == 0));
+                Assert.IsTrue(originalRaster.CreateOcrImage().BgrPixels!.Pixels.Span.ToArray()
+                    .All(static pixel => pixel == 0));
+            }
             OcrRegion[] regions =
             [
                 Region("x1", 18, 92, "1", OcrTextRole.XTick),
@@ -501,7 +593,10 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             ];
             if (includeLegendText)
             {
-                regions = [.. regions, Region("legend-label", 28, 18, "Series one", OcrTextRole.LegendText)];
+                OcrRegion legend = Region("legend-label", 28, 18, "Series one", OcrTextRole.LegendText);
+                if (framedLegend) legend = legend with { Polygon = OcrPolygon.FromRectangle(new OcrRectangle(28, 22, 45, 8)) };
+                if (invalidLegendBounds) legend = legend with { Polygon = OcrPolygon.FromRectangle(new OcrRectangle(-2, 22, 45, 8)) };
+                regions = [.. regions, legend];
             }
             var result = new OcrResult(
                 OcrContract.Version,
@@ -591,7 +686,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         }
     }
 
-    private sealed class CenterAdapter(bool includeLegendGlyph = false) : IProductionMarkerCenterAdapter
+    private sealed class CenterAdapter(bool includeLegendGlyph = false, bool measuredLegend = false,
+        bool offsetLegendDetection = false) : IProductionMarkerCenterAdapter
     {
         public string AdapterId => "test-centers";
 
@@ -619,8 +715,9 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             ];
             if (includeLegendGlyph)
             {
-                markers = [.. markers, new MarkerCenter("legend-glyph", new MarkerPoint(20, 20),
-                    3, 0.01, 0.98, MarkerSourceImage.Original)];
+                markers = [.. markers, new MarkerCenter("legend-glyph",
+                    measuredLegend ? new MarkerPoint(offsetLegendDetection ? 21 : 20.5, 24.5) : new MarkerPoint(20, 20),
+                    measuredLegend ? 3.5 : 3, 0.01, 0.98, MarkerSourceImage.Original)];
             }
             return Task.FromResult(new ProductionMarkerCenterEvidence(
                 Envelope(request, "markers", "center-v1", "test-center", 'd'),
@@ -629,8 +726,9 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         }
     }
 
-    private sealed class ClassificationAdapter : IProductionMarkerClassificationAdapter
+    private sealed class ClassificationAdapter(bool rejectLegendSymbols = false) : IProductionMarkerClassificationAdapter
     {
+        public IReadOnlyList<MarkerCenter> LastInputs { get; private set; } = Array.Empty<MarkerCenter>();
         public string AdapterId => "test-classifier";
 
         public bool IsApproved => true;
@@ -648,6 +746,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            LastInputs = markers.ToArray();
             ClassifiedMarker[] classified =
             [
                 new(
@@ -671,10 +770,14 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     0.97,
                     Enumerable.Repeat(0.2f, 12)),
             ];
-            if (markers.Count == 3)
+            foreach (MarkerCenter marker in markers.Skip(2))
             {
-                classified = [.. classified, new ClassifiedMarker(markers[2], MarkerShape.Circle,
-                    MarkerFill.Filled, "●", "filled circle", 0.01, 0.98, 0.98,
+                bool offsetCrop = marker.Center.X == 21;
+                classified = [.. classified, new ClassifiedMarker(marker,
+                    offsetCrop ? MarkerShape.Square : MarkerShape.Circle,
+                    offsetCrop ? MarkerFill.Open : MarkerFill.Filled,
+                    offsetCrop ? "□" : "●", offsetCrop ? "open square" : "filled circle",
+                    rejectLegendSymbols ? 0.99 : 0.01, 0.98, 0.98,
                     Enumerable.Repeat(0.1f, 12))];
             }
             return Task.FromResult(new ProductionMarkerClassificationEvidence(
@@ -795,9 +898,24 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         }
     }
 
-    private static void WriteSyntheticPng(string path, int width, int height)
+    private static void WriteSyntheticPng(string path, int width, int height, bool framedLegend = false)
     {
         byte[] pixels = Enumerable.Repeat((byte)255, width * height * 4).ToArray();
+        if (framedLegend)
+        {
+            void Ink(int x, int y)
+            {
+                int index = (y * width + x) * 4;
+                pixels[index] = pixels[index + 1] = pixels[index + 2] = 0;
+            }
+            for (int x = 12; x < 80; x++) { Ink(x, 14); Ink(x, 39); }
+            for (int y = 14; y < 40; y++) { Ink(12, y); Ink(79, y); }
+            for (int y = 21; y < 28; y++)
+            for (int x = 17; x < 24; x++)
+                if ((x - 20) * (x - 20) + (y - 24) * (y - 24) <= 10) Ink(x, y);
+            for (int x = 30; x < 72; x += 7)
+            for (int y = 23; y < 29; y++) { Ink(x, y); Ink(x + 1, y); }
+        }
         BitmapSource bitmap = BitmapSource.Create(
             width,
             height,

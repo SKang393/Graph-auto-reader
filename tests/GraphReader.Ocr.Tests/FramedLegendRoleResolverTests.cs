@@ -91,6 +91,25 @@ public sealed class FramedLegendRoleResolverTests
     }
 
     [TestMethod]
+    public void KnownLegendSuppliesSymbolEvidenceWithoutReclassifyingReviewedText()
+    {
+        var fixture = Fixture();
+        OcrRegion legend = fixture.Text with { Role = OcrTextRole.LegendText, ReviewStatus = OcrReviewStatus.Accepted };
+        var found = FramedLegendRoleResolver.LocateSymbols(fixture.Image, [legend]);
+        Assert.HasCount(1, found);
+        Assert.AreEqual(legend.RegionId, found[0].RegionId);
+        Assert.IsEmpty(FramedLegendRoleResolver.LocateSymbols(fixture.Image, [fixture.Text]));
+        Assert.IsEmpty(FramedLegendRoleResolver.LocateSymbols(fixture.Image,
+            [legend with { ReviewStatus = OcrReviewStatus.Rejected }]));
+        Assert.ThrowsExactly<ArgumentException>(() => FramedLegendRoleResolver.LocateSymbols(
+            fixture.Image with { SourceImage = OcrSourceImage.Enhanced }, [legend]));
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        Assert.ThrowsExactly<OperationCanceledException>(() =>
+            FramedLegendRoleResolver.LocateSymbols(fixture.Image, [legend], cancellation.Token));
+    }
+
+    [TestMethod]
     public async Task PipelineKeepsDefaultRoleAndSharesOnlyUnchangedRecognitionCache()
     {
         var fixture = Fixture();

@@ -1,0 +1,147 @@
+{
+  "schema": "graphreader.legend-symbol-series-workflow-summary.v1",
+  "status": "mechanical_workflow_verified_with_controlled_model_adapters",
+  "goal_22_acceptance": "FAIL",
+  "production_approved": false,
+  "synthetic_only": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "packaged_build": false,
+  "baseline_commit": "d9e6c2e46d3a6d717a7766b26d1ee1abebc7c4b6",
+  "baseline_ci": {
+    "run_id": 35486779845,
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35486779845",
+    "conclusion": "success"
+  },
+  "workflow_version": "graphreader-production-detection-v2",
+  "symbol_input_version": "original-pixel-legend-symbol-inputs-v1",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "3bd45cec35da513eda5578b180a48385aa2fe828bda070fe073f4bdcf49d523b"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionLegendSymbolInputs.cs",
+      "sha256": "921f52c66e13082630b14b152c47585afcd98caf9125f787bcebca2767d0bc13"
+    },
+    {
+      "path": "src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+      "sha256": "6ccbd339e1aa5082d19c6821a0b96f6bb3e7f1a4d92865f56646a381d3528761"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs",
+      "sha256": "c53f00583854faf45f7a8b8ec57f0a0ae1aa48ce596f36193d75677a145ae2c9"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/FramedLegendRoleResolverTests.cs",
+      "sha256": "8d9a4e53c36a777763c7624059253fb82bb2de8b09bdbe9105bbeb9ade8c5e5b"
+    }
+  ],
+  "assemblies": [
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-series-v1/build/bin/GraphReader.App/release_win-x64/GraphReader.App.dll",
+      "sha256": "0131d24cc5d0036f78ef70447200aebe44a3245bf9ad45642df7ac1de11cb902"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-series-v1/build/bin/GraphReader.App.Tests/release_win-x64/GraphReader.App.Tests.dll",
+      "sha256": "35f91187f3b87c2e2e18663ec139ea05ba84b415bec2c4beced5861b26dcf1a7"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-series-v1/build/bin/GraphReader.Ocr/release/GraphReader.Ocr.dll",
+      "sha256": "eaf33d67de41aebc00d2c0b3116b20438328825c5cf7272bc9f101552e2fdf69"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-series-v1/build/bin/GraphReader.Ocr.Tests/release/GraphReader.Ocr.Tests.dll",
+      "sha256": "6b275fa92e583c697f3e4f3c8b7012c7078adaa925570396e03d725cb7b9063b"
+    }
+  ],
+  "prior_source_archive": {
+    "path": "artifacts/goal22-runs/legend-symbol-series-v1/source-before-change/manifest.json",
+    "sha256": "59d49d6f3f011bfec26541b395ddc4654a3066ffb4ef5774244a93104ceacdfd",
+    "verified_files": 14
+  },
+  "validation": [
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-series-v1/test-results/workflow-duplicate-safeguards.trx",
+      "sha256": "6bef53924a0ef86a9c6acb0583ee131dbc06c285a592d1b2eba3b295cb20b8af",
+      "counts": {
+        "total": 35,
+        "executed": 35,
+        "passed": 35,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "skipped_result_count": 0,
+      "test_run_elapsed_seconds": 1.999968,
+      "times": {
+        "creation": "2026-09-19T23:47:19.8557133-04:00",
+        "queuing": "2026-09-19T23:47:19.8557141-04:00",
+        "start": "2026-09-19T23:47:18.0564165-04:00",
+        "finish": "2026-09-19T23:47:20.0563840-04:00"
+      }
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-series-v1/test-results/ocr.trx",
+      "sha256": "6f1c0f26d852d127bb9ae7bcaf922e9e18debba4b3636ea3466c0e119504c356",
+      "counts": {
+        "total": 324,
+        "executed": 308,
+        "passed": 308,
+        "failed": 0,
+        "error": 0,
+        "timeout": 0,
+        "aborted": 0,
+        "inconclusive": 0,
+        "passedButRunAborted": 0,
+        "notRunnable": 0,
+        "notExecuted": 0,
+        "disconnected": 0,
+        "warning": 0,
+        "completed": 0,
+        "inProgress": 0,
+        "pending": 0
+      },
+      "skipped_result_count": 16,
+      "test_run_elapsed_seconds": 3.981021,
+      "times": {
+        "creation": "2026-09-19T23:43:07.7809762-04:00",
+        "queuing": "2026-09-19T23:43:07.7809767-04:00",
+        "start": "2026-09-19T23:43:06.4233809-04:00",
+        "finish": "2026-09-19T23:43:10.4044015-04:00"
+      }
+    }
+  ],
+  "verified_scenarios": [
+    "Original PNG decoding and pixel-backed framed symbol extraction feed classifier inputs when point detection omits the symbol.",
+    "An exact duplicate detector crop is reused; an offset duplicate remains auditable but cannot supply competing series-name evidence.",
+    "Only the measured symbol crop supplies legend-to-series evidence when accepted by the classifier.",
+    "All symbol detections, including classifier-rejected and offset duplicates, stay out of calibration observations, data grouping and CSV rows.",
+    "Two plotted observations produce exactly two CSV preview rows; input PNG bytes are unchanged.",
+    "Invalid legend bounds retain five earlier evidence envelopes, stop before classification, and create no export projection."
+  ],
+  "evidence_limits": [
+    "Axis, OCR, point detection and classification are controlled adapters in these workflow tests.",
+    "Actual PNG decoder, original-pixel symbol extraction, deterministic grouping, legend and phase reasoners, and export preview run.",
+    "No new trained-model accuracy result, private acceptance, sealed result or Goal 22 end-to-end acceptance is claimed.",
+    "The prior OCR score remains historical evidence for its archived sources and assemblies, not a score for this changed workflow.",
+    "Unframed or occluded legends and remaining OCR/marker accuracy failures remain unresolved."
+  ],
+  "license_review": "No dependency, model, native runtime or font added. New source is Apache-2.0. Existing model approvals are unchanged.",
+  "retained_packaged_build": {
+    "build_number": 433,
+    "version": "0.4.33"
+  }
+}
