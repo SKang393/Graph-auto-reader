@@ -1,0 +1,448 @@
+{
+  "schema": "graphreader.marker-center-train-negative-outcome.v1",
+  "task": "marker-center",
+  "revision": "marker-center-train-negative-v29",
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "acceptance_status": "FAIL",
+  "closed_utc": "2026-09-20T22:34:16.473307+00:00",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/center-train-negative-v29/P1/report.json",
+    "sha256": "8abdd8ecb476e27db2f6c85ea03b91cdaf2b5803d7a53b64dd66c727caaf3327"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-train-negative-v29/P1/result.json",
+    "sha256": "df66a2ed189388e957db517b9f24778ec92339aab32d064959a0f48d72203a0d"
+  },
+  "candidate_config": {
+    "path": "ml/markers/center/train_negative_v29/p1.json",
+    "sha256": "ea542dae6eec61a7a2bf15c7f5966dd7828908ddc80c0a5590febdf655061333"
+  },
+  "protocol": {
+    "path": "ml/markers/center/train_negative_v29/protocol.json",
+    "sha256": "a717292b2e9d3722a0c3254d2f5a15caff031370cd9f4e369be8d2e04f3cafc6"
+  },
+  "source_binding": {
+    "snapshot": {
+      "path": "ml/markers/training-seals/marker-center/marker-center-train-negative-v29/P1/source-snapshot.json",
+      "sha256": "7da945a98c08603db7e524d478a456cb6dc1be594e74c4254adeb9a4f4d5b34e"
+    },
+    "bundle_sha256": "45885913929bfbd28a356affbbab05a93392a2b18a9d1af6ba7a0990b418a417",
+    "verified_unchanged_at_close": true
+  },
+  "checkpoint_sha256": "0a430acd29952e3956c5a346b82181fb3e5ef487d75c032531966636899467df",
+  "onnx_sha256": "6fd23f5bd8c91ad76ef48a9fc6df97bdc85fe642b5840dd751b0e87b25f98a35",
+  "training": {
+    "completed_epochs": 8,
+    "history": [
+      {
+        "epoch": 1,
+        "mean_loss": 0.058280591750954666,
+        "optimizer_steps": 703
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 0.0526928400573126,
+        "optimizer_steps": 1406
+      },
+      {
+        "epoch": 3,
+        "mean_loss": 0.04775540570491345,
+        "optimizer_steps": 2109
+      },
+      {
+        "epoch": 4,
+        "mean_loss": 0.04425725315804799,
+        "optimizer_steps": 2812
+      },
+      {
+        "epoch": 5,
+        "mean_loss": 0.0412322617563847,
+        "optimizer_steps": 3515
+      },
+      {
+        "epoch": 6,
+        "mean_loss": 0.03807885306960192,
+        "optimizer_steps": 4218
+      },
+      {
+        "epoch": 7,
+        "mean_loss": 0.035859972082878624,
+        "optimizer_steps": 4921
+      },
+      {
+        "epoch": 8,
+        "mean_loss": 0.032825651833625936,
+        "optimizer_steps": 5624
+      }
+    ],
+    "optimizer_steps": 5624,
+    "resumed_from_epoch": 0
+  },
+  "seconds": 733.6031022999668,
+  "cpu": {
+    "cycles": 8016,
+    "maximum_completed_cycle_duty": 0.7999340153494717,
+    "rest_seconds": 148.79039409803227,
+    "scope": "Synchronous guarded work/rest average; not instantaneous per-core utilization",
+    "work_seconds": 578.9213195013581
+  },
+  "training_cache": {
+    "manifest": {
+      "path": "artifacts/goal22-runs/center-train-negative-cache-v1/manifest.json",
+      "sha256": "8a95f90a23a1452bcdb8de372174054c49c7256125e4bcef6bc77dff8f316776"
+    },
+    "added_counts": {
+      "hard_negative": 2320,
+      "negative": 2320,
+      "positive": 0,
+      "positive_radius_over_model_maximum": 0,
+      "rows": 2320
+    },
+    "added_scope_totals": {
+      "component_proposals": 236056,
+      "component_selected": 1147,
+      "component_truth": 2004,
+      "family_proposals": 122900,
+      "family_selected": 1173,
+      "family_truth": 500
+    },
+    "all_previous_rows_retained": 87638,
+    "total_rows": 89958,
+    "all_development_bytes_and_truth_unchanged": true
+  },
+  "diagnostics": {
+    "train": {
+      "path": "artifacts/goal22-runs/center-shape-training-coverage-v1/report.json",
+      "sha256": "dc9287e732cbd106a03d73a737553a9f24a88b65554a3f677e0d76c81f152f29"
+    },
+    "dev_saved_outputs": {
+      "path": "artifacts/goal22-runs/center-shape-v28-false-positive-diagnosis-v1/report.json",
+      "sha256": "38f484fe1839a9955e2f262e6d8ded975ccf222b630d1716cf672acd43f9a057"
+    }
+  },
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "operating_threshold": 0.25,
+  "geometry": "multiradius_enclosed_balanced_v2",
+  "clears_shared_dev_bars": false,
+  "development": {
+    "component": {
+      "candidate_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 188,
+        "false_positives": 82,
+        "precision": 0.9567966280295047,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.906187624750499,
+        "scene_count": 167,
+        "true_positives": 1816,
+        "truth_count": 2004
+      },
+      "candidate_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 187,
+        "false_positives": 84,
+        "precision": 0.9558127301420305,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.906686626746507,
+        "scene_count": 167,
+        "true_positives": 1817,
+        "truth_count": 2004
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 211,
+        "false_positives": 219,
+        "precision": 0.8911530815109344,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.8947105788423154,
+        "scene_count": 167,
+        "true_positives": 1793,
+        "truth_count": 2004
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 208,
+        "false_positives": 238,
+        "precision": 0.8829891838741396,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.8962075848303394,
+        "scene_count": 167,
+        "true_positives": 1796,
+        "truth_count": 2004
+      }
+    },
+    "family": {
+      "candidate_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 7,
+        "false_positives": 38,
+        "precision": 0.8396624472573839,
+        "prohibited_structure_hit_rate": 0.016877637130801686,
+        "prohibited_structure_hits": 4,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9660194174757282,
+        "scene_count": 9,
+        "true_positives": 199,
+        "truth_count": 206
+      },
+      "candidate_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 7,
+        "false_positives": 40,
+        "precision": 0.8326359832635983,
+        "prohibited_structure_hit_rate": 0.012552301255230125,
+        "prohibited_structure_hits": 3,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9660194174757282,
+        "scene_count": 9,
+        "true_positives": 199,
+        "truth_count": 206
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 16,
+        "false_positives": 38,
+        "precision": 0.8333333333333334,
+        "prohibited_structure_hit_rate": 0.021929824561403508,
+        "prohibited_structure_hits": 5,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9223300970873787,
+        "scene_count": 9,
+        "true_positives": 190,
+        "truth_count": 206
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 16,
+        "false_positives": 39,
+        "precision": 0.8296943231441049,
+        "prohibited_structure_hit_rate": 0.021834061135371178,
+        "prohibited_structure_hits": 5,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9223300970873787,
+        "scene_count": 9,
+        "true_positives": 190,
+        "truth_count": 206
+      }
+    }
+  },
+  "threshold_sensitivity": {
+    "report": {
+      "path": "artifacts/goal22-runs/center-train-negative-v29/P1/report.json",
+      "sha256": "8abdd8ecb476e27db2f6c85ea03b91cdaf2b5803d7a53b64dd66c727caaf3327"
+    },
+    "descriptive_only": true,
+    "no_threshold_selected": true
+  },
+  "onnx_torch_parity": {
+    "confidence_decision_changes": 0,
+    "maximum_absolute_error": 7.152557373046875e-06,
+    "rows": 270236
+  },
+  "validation": {
+    "unique_tests_passed": 33,
+    "report": {
+      "path": "artifacts/goal22-runs/train-negative-coverage-preflight-v1/integrated-tests.xml",
+      "sha256": "ca50e8b5a8f3d735c07d77d6907bb73ea3fb4f4607c4938f117182eb2f41a30f"
+    }
+  },
+  "whole_workflow": {
+    "comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-center-train-negative-v29-v1/comparison.json",
+      "sha256": "faeede9476fc52dbbc71c0e1b15240448a02245b20c36cdb7ffd1cb36cfabe6b"
+    },
+    "report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-center-train-negative-v29-v1/execution/report.json",
+      "sha256": "918ce4767e78ed58b80d9ecdc687004b478035e64e310b0b51cb1969a4fde0eb"
+    },
+    "candidate_binding": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-center-train-negative-v29-v1/candidate-binding.json",
+      "sha256": "783b92c1da6970952c0c7fe617475f2d9b33248045762053c2bb846ce425e1e6"
+    },
+    "baseline_metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 12,
+      "failed_cases": 11,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 26,
+      "matched_series": 19,
+      "truth_points": 706,
+      "predicted_points": 330,
+      "matched_points": 322,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 330,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 319,
+      "correct_rows": 314,
+      "missing_rows": 405,
+      "extra_rows": 11,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 322,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 384,
+      "unique_point_extra": 8,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9757575757575757,
+      "unique_point_structural_coverage": 0.45609065155807366,
+      "unique_point_value_precision": 0.9757575757575757,
+      "unique_point_value_coverage": 0.45609065155807366,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9515151515151515,
+      "relational_row_coverage": 0.43370165745856354,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9843260188087775,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 11
+      }
+    },
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 13,
+      "failed_cases": 10,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 27,
+      "matched_series": 18,
+      "truth_points": 706,
+      "predicted_points": 273,
+      "matched_points": 264,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 273,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 261,
+      "correct_rows": 256,
+      "missing_rows": 463,
+      "extra_rows": 12,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 5,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 264,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 442,
+      "unique_point_extra": 9,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.967032967032967,
+      "unique_point_structural_coverage": 0.37393767705382436,
+      "unique_point_value_precision": 0.967032967032967,
+      "unique_point_value_coverage": 0.37393767705382436,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9377289377289377,
+      "relational_row_coverage": 0.35359116022099446,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9808429118773946,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 10
+      }
+    },
+    "seconds": 140.7875677,
+    "previously_observed_panels": 33,
+    "observed_panels": 35,
+    "missing_previous_panels": 0,
+    "source_status_changes": [
+      {
+        "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+        "before": "failed",
+        "after": "failed",
+        "before_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 8, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+        "after_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 6, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null."
+      },
+      {
+        "source_sha256": "bd52e84c5df717093c120164aa76dac4fe4037be4c1b9e7f450aa358b03e2fff",
+        "before": "failed",
+        "after": "completed",
+        "before_error": "Candidate export failed closed: INVALID_POINT.",
+        "after_error": null
+      },
+      {
+        "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: INVALID_POINT."
+      },
+      {
+        "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+        "before": "failed",
+        "after": "failed",
+        "before_error": "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | Numeric tick evidence is ambiguous because competing alternative models have equal support. | Independent session-origin sources disagree beyond the configured tolerance. | Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance.",
+        "after_error": "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | Numeric tick evidence is ambiguous because competing alternative models have equal support. | Independent session-origin sources disagree beyond the configured tolerance. | Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance. | The first observed column maps to session 2, not session 1."
+      },
+      {
+        "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+        "before": "failed",
+        "after": "completed",
+        "before_error": "Candidate export failed closed: INVALID_POINT.",
+        "after_error": null
+      },
+      {
+        "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+        "before": "failed",
+        "after": "completed",
+        "before_error": "Automatic calibration is incomplete: The first observed column maps to session 6, not session 1.",
+        "after_error": null
+      },
+      {
+        "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: INVALID_POINT."
+      }
+    ],
+    "common_axis_or_ocr_changes": 0
+  },
+  "disposition": "Do not activate or promote. Preserve this failed candidate and diagnose saved results before another change.",
+  "candidate_consumed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "release_eligible": false,
+  "license": "Apache-2.0 owned code, weights and synthetic training; no new third-party dependency.",
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

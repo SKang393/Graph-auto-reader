@@ -1,0 +1,41 @@
+{
+  "acceptance_bar": "ml/policy/acceptance-bars.json, unchanged. No new threshold, hidden compound gate or private selection.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "sealed_runs_authorized": 0
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V28 improves family dev recall to 201/206 but produces 95 false positives, largely text and legend regions. On authenticated training scenes it produces 1173 confident clear-background proposals, 996 absent from the selected historical negative pixels. Rehearsing all original shape rows with every clear training-only error may reduce background confusion without changing the native model contract or threshold.",
+  "isolated_change": "Warm-start the owned V28 final checkpoint for eight fixed epochs on all 87638 previous rows plus all 2320 mined hard negatives: 1147 component and 1173 family rows. Mine only the fixed V28 model at its existing 0.25 operating threshold, with anchors farther than eight pixels and decoded centers farther than five pixels from every train truth marker. Retain all prior rows, including existing duplicates and coverage failures; do not cap or rank mine results. Preserve architecture, 33-pixel three-channel input, proposal stride, support geometry, focal coefficients, radius clamp, optimizer and learning rate. This is the full adaptation recipe, not a single-factor causal attribution. Final epoch only, no development checkpoint selection. All processors remain eligible with passive waits and the existing 80 percent work/rest guard.",
+  "metric": "Unchanged complete 167 component and nine family development scenes with 2210 truth points. Reuse the shared precision, recall, proposal and prohibited-hit gates at 0.25, with the same five-pixel matching tolerance. Reproduce frozen V27 counts and retain its comparison; evaluate legacy and balanced geometry. ONNX parity covers every native development proposal. The all-23-source workflow retains 706 unique points and 724 relational rows, including all failures. Complete-source exactness is descriptive, not a new acceptance criterion.",
+  "split_identities": {
+    "cache_manifest_sha256": "8a95f90a23a1452bcdb8de372174054c49c7256125e4bcef6bc77dff8f316776",
+    "cache_path": "artifacts/goal22-runs/center-train-negative-cache-v1",
+    "dev_diagnostic_sha256": "38f484fe1839a9955e2f262e6d8ded975ccf222b630d1716cf672acd43f9a057",
+    "dev_inventory_sha256": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099",
+    "negative_counts": {
+      "hard_negative": 2320,
+      "negative": 2320,
+      "positive": 0,
+      "positive_radius_over_model_maximum": 0,
+      "rows": 2320
+    },
+    "negative_mining_split": "train only; original source/tensor/split authentication reconstructed by the frozen V27 preparation",
+    "negative_scope_totals": {
+      "component_proposals": 236056,
+      "component_selected": 1147,
+      "component_truth": 2004,
+      "family_proposals": 122900,
+      "family_selected": 1173,
+      "family_truth": 500
+    },
+    "parent_cache_path": "artifacts/goal22-runs/center-shape-coverage-cache-v3",
+    "parent_manifest_sha256": "d61e43d62891a5266dfd68dfd8286fdb0d28d685d2146763a9f49dfb24471700",
+    "source_checkpoint_sha256": "ec343b0d7c1963893f940abbba9b93cf4bf0d35f52026215d9d2050422e25ec2",
+    "training_diagnostic_sha256": "dc9287e732cbd106a03d73a737553a9f24a88b65554a3f677e0d76c81f152f29"
+  }
+}

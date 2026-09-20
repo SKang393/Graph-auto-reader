@@ -10163,6 +10163,51 @@
       "candidate_report_sha256": "624b35bf67d9903448bd0b20026c9436af4afc57806e5b66fbf24381e4697f2d",
       "optimizer_steps": 5480,
       "closed_utc_date": "2026-09-20"
+    },
+    {
+      "authorization_scope": "One bounded owned synthetic train/dev warm-start correction under continued Goal22 authorization. No private/sealed reads, activation or release.",
+      "authorized_candidate_id": "P1",
+      "budget_consumption_event": "first_sealed_split_read",
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/train_negative_v29/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "ea542dae6eec61a7a2bf15c7f5966dd7828908ddc80c0a5590febdf655061333"
+      },
+      "consumed_candidate_ids": [],
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "policy_revision": "2026-08-19",
+        "schema_version": 1,
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "execution_authorized": false,
+      "experiment_budget": 1,
+      "isolated_change": "Warm-start the owned V28 final checkpoint for eight fixed epochs on all 87638 previous rows plus all 2320 mined hard negatives: 1147 component and 1173 family rows. Mine only the fixed V28 model at its existing 0.25 operating threshold, with anchors farther than eight pixels and decoded centers farther than five pixels from every train truth marker. Retain all prior rows, including existing duplicates and coverage failures; do not cap or rank mine results. Preserve architecture, 33-pixel three-channel input, proposal stride, support geometry, focal coefficients, radius clamp, optimizer and learning rate. This is the full adaptation recipe, not a single-factor causal attribution. Final epoch only, no development checkpoint selection. All processors remain eligible with passive waits and the existing 80 percent work/rest guard.",
+      "optimizer_steps_expected": 5624,
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "protocol_path": "ml/markers/center/train_negative_v29/protocol.json",
+      "protocol_sha256": "a717292b2e9d3722a0c3254d2f5a15caff031370cd9f4e369be8d2e04f3cafc6",
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "all_processors_eligible": true,
+        "kmp_blocktime": "0",
+        "omp_wait_policy": "PASSIVE",
+        "priority": "Idle",
+        "synchronous_work_rest_percent": 80
+      },
+      "revision": "marker-center-train-negative-v29",
+      "sealed_runs_authorized": 0,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "status": "failed_dev_unconsumed",
+      "task": "marker-center",
+      "outcome_path": "ml/markers/center/train_negative_v29/P1_RESULT.json",
+      "outcome_sha256": "5e4854f7508be7fd9dcb5ea53c72fc61b1cbf7eb9f5de470600bddf72cc75b2d",
+      "candidate_report_sha256": "8abdd8ecb476e27db2f6c85ea03b91cdaf2b5803d7a53b64dd66c727caaf3327",
+      "optimizer_steps": 5624,
+      "closed_utc_date": "2026-09-20"
     }
   ]
 }

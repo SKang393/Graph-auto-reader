@@ -76,3 +76,5 @@ docs/GOAL-22-GRAPH-CONTEXT-CLASSIFIER-REPAIR.json -text whitespace=cr-at-eol
 # Preserve the recorded V28 pretraining void bytes referenced by its outcome.
 ml/markers/center/shape_coverage_v28/P1_PRETRAINING_VOID.json -text whitespace=cr-at-eol
 ml/markers/training-seals/marker-center/marker-center-shape-coverage-v28/P1/void-attempts/*/void.json -text whitespace=cr-at-eol
+# Preserve the CPU launcher's checkout bytes bound by the completed V29 run.
+tools/Run-TrainingCpuBudget.ps1 -text whitespace=cr-at-eol

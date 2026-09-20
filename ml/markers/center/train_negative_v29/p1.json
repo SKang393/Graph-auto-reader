@@ -1,0 +1,38 @@
+{
+  "cache_manifest_sha256": "8a95f90a23a1452bcdb8de372174054c49c7256125e4bcef6bc77dff8f316776",
+  "cache_path": "artifacts/goal22-runs/center-train-negative-cache-v1",
+  "candidate_id": "P1",
+  "expected_runner_source_bundle_sha256": "45885913929bfbd28a356affbbab05a93392a2b18a9d1af6ba7a0990b418a417",
+  "optimizer_steps_expected": 5624,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "a717292b2e9d3722a0c3254d2f5a15caff031370cd9f4e369be8d2e04f3cafc6",
+  "recipe": {
+    "batch_size": 128,
+    "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+    "confidence_threshold": 0.25,
+    "epochs": 8,
+    "focal_alpha": 0.25,
+    "focal_gamma": 2.0,
+    "hard_negative_loss_weight": 5.0,
+    "learning_rate": 0.0003,
+    "positive_loss_weight": 16.0,
+    "seed": 20260922,
+    "weight_decay": 0.0001
+  },
+  "resource_policy": {
+    "aggregate_backstop_percent": 80,
+    "all_processors_eligible": true,
+    "kmp_blocktime": "0",
+    "omp_wait_policy": "PASSIVE",
+    "priority": "Idle",
+    "synchronous_work_rest_percent": 80
+  },
+  "revision": "marker-center-train-negative-v29",
+  "schema_version": 1,
+  "sealed_runs_authorized": 0,
+  "source_checkpoint_path": "artifacts/goal22-runs/center-shape-v28/P1-retry1/marker-center.pt",
+  "source_checkpoint_sha256": "ec343b0d7c1963893f940abbba9b93cf4bf0d35f52026215d9d2050422e25ec2",
+  "task": "marker-center",
+  "training_rows": 89958
+}
