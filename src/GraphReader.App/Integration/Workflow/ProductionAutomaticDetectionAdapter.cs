@@ -84,6 +84,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         "graphreader-production-detection-v2",
         ProductionLegendSymbolInputs.Version,
         ProductionTextMarkerExclusion.Version,
+        ProductionPhaseGeometryContext.Version,
         axisAdapter.AdapterId,
         ocrAdapter.AdapterId,
         markerCenterAdapter.Model.Sha256[..12].ToLowerInvariant(),
@@ -357,10 +358,34 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 .ConfigureAwait(false);
             chain.Append(legend.Envelope);
 
+            var phaseContextTimer = System.Diagnostics.Stopwatch.StartNew();
+            PhaseGeometryContextResult phaseContext;
+            try
+            {
+                phaseContext = ProductionPhaseGeometryContext.Resolve(
+                    axis.Geometry, raster.CreateOcrImage(), ocr.Result.Regions,
+                    legendInputs.OriginalPixelFrameBounds, cancellationToken);
+            }
+            catch (Exception exception) when (exception is ArgumentException or OverflowException)
+            {
+                throw chain.Reject(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                    "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
+                    "Retain measured line evidence and review the original-pixel phase geometry."));
+            }
+            phaseContextTimer.Stop();
+            if (phaseContext.Warnings.Count > 0)
+                chain.Append(new WorkflowVisionEnvelope(
+                    1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                    "phases", ProductionPhaseGeometryContext.Version, request.Image.Sha256, null,
+                    new WorkflowVisionTiming(phaseContextTimer.Elapsed.TotalMilliseconds, 0, 0, phaseContextTimer.Elapsed.TotalMilliseconds),
+                    Math.Min(axis.Geometry.Confidence, ocr.Result.Confidence), phaseContext.Warnings, request.Transforms));
+            AxisGeometryResult phaseAxis = axis.Geometry with { PhaseDividers = phaseContext.Dividers };
+
             ProductionPhaseReasoningEvidence phases = await phaseAdapter
                 .ResolveAsync(
                     request,
-                    CreatePhaseRequest(request, axis.Geometry, ocr.Result, grouping, legend.Payload),
+                    CreatePhaseRequest(request, phaseAxis, ocr.Result, grouping, legend.Payload),
                     cancellationToken)
                 .ConfigureAwait(false);
             chain.Append(phases.Envelope);

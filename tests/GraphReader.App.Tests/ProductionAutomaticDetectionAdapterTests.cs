@@ -949,6 +949,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 if ((x - 20) * (x - 20) + (y - 24) * (y - 24) <= 10) Ink(x, y);
             for (int x = 30; x < 72; x += 7)
             for (int y = 23; y < 29; y++) { Ink(x, y); Ink(x + 1, y); }
+            // Match the axis fixture's measured x=50 divider outside the legend.
+            for (int y = 40; y < 90; y++) Ink(50, y);
         }
         BitmapSource bitmap = BitmapSource.Create(
             width,

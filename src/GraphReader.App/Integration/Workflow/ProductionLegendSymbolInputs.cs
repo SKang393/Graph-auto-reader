@@ -67,7 +67,8 @@ internal static class ProductionLegendSymbolInputs
             new WorkflowVisionTiming(timer.Elapsed.TotalMilliseconds, 0, 0, timer.Elapsed.TotalMilliseconds),
             0.70, warnings, request.Transforms);
         return new(Array.AsReadOnly(inputs.ToArray()), symbolIds.ToFrozenSet(StringComparer.Ordinal),
-            symbolCropIds.ToFrozenSet(StringComparer.Ordinal), contentBounds.ToFrozenDictionary(StringComparer.Ordinal), envelope);
+            symbolCropIds.ToFrozenSet(StringComparer.Ordinal), contentBounds.ToFrozenDictionary(StringComparer.Ordinal),
+            Array.AsReadOnly(found.Select(static item => item.FrameBounds).Distinct().ToArray()), envelope);
     }
 }
 
@@ -76,4 +77,5 @@ internal sealed record LegendSymbolInputBatch(
     IReadOnlySet<string> SymbolInputIds,
     IReadOnlySet<string> SymbolCropInputIds,
     IReadOnlyDictionary<string, MarkerRectangle> OriginalPixelContentBounds,
+    IReadOnlyList<OcrRectangle> OriginalPixelFrameBounds,
     WorkflowVisionEnvelope? Envelope);

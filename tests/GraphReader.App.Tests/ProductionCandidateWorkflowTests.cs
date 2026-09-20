@@ -150,6 +150,35 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
+    public async Task CandidateResolvesAnAmbiguousMeasuredBoundaryBeforeReview()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store, ambiguousPhaseLayout: true);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
+        WorkflowOrchestrator workflow = CreateWorkflow(store, candidate);
+        WorkflowRunResult result = await workflow.RunThroughReviewAsync(Request(imagePath), null, CancellationToken.None);
+        Assert.HasCount(1, result.Review.Panels);
+        Assert.IsNotNull(observation);
+        Assert.IsEmpty(observation.Axis.PhaseDividers);
+        Assert.HasCount(1, observation.Axis.AmbiguousGridOrDividers);
+        WorkflowReviewPanel panel = result.Review.Panels.Single();
+        ProductionPanelExportEvidence evidence = store.Get(panel.PanelId).ExportEvidence!;
+        WorkflowVisionEnvelope context = evidence.Provenance.Single(static item => item.StageVersion == ProductionPhaseGeometryContext.Version);
+        Assert.AreEqual("phases", context.Stage);
+        Assert.IsTrue(context.Warnings.Any(static item => item.StartsWith("phase_divider_corroborated_by_heading_layout:", StringComparison.Ordinal)));
+        // Final phase interpretation must preserve the original grouping and points.
+        // Reconciliation of provisional series roles is a separate export concern.
+        Assert.HasCount(2, panel.Points);
+        var codes = panel.Points.ToDictionary(static point => point.GraphX!.Value,
+            point => evidence.Phases.Single(phase => phase.PhaseId.ToString("D") == point.PhaseId).Code);
+        Assert.AreEqual("a", codes[1]);
+        Assert.AreEqual("b", codes[2]);
+    }
+
+    [TestMethod]
     public async Task CandidateExportsAnUnlabeledCalibratedSessionAsEstimated()
     {
         using var directory = new TemporaryDirectory();
@@ -398,17 +427,18 @@ public sealed class ProductionCandidateWorkflowTests
         CancellationTokenSource? cancelAfterPhase = null,
         bool omitYTicks = false,
         bool includeTextDecoy = false,
-        bool includeIntermediateSession = false) =>
+        bool includeIntermediateSession = false,
+        bool ambiguousPhaseLayout = false) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
-            new CandidateAxisAdapter(),
-            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession),
+            new CandidateAxisAdapter(ambiguousPhaseLayout),
+            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout),
             new CandidateMaskComposer(),
             new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession),
             new ClassificationAdapter(),
             new LegendAdapter(),
-            new PhaseAdapter(cancelAfterPhase),
+            ambiguousPhaseLayout ? new ProductionPhaseReasoningAdapter() : new PhaseAdapter(cancelAfterPhase),
             new EmptyConnectionBuilder());
 
     private static WorkflowRunRequest Request(string imagePath) =>
@@ -441,7 +471,7 @@ public sealed class ProductionCandidateWorkflowTests
             new WorkflowVisionTiming(0, 0, 0, 0),
             0.95);
 
-    private sealed class CandidateAxisAdapter : IProductionCandidateAxisGeometryAdapter
+    private sealed class CandidateAxisAdapter(bool ambiguousPhaseLayout = false) : IProductionCandidateAxisGeometryAdapter
     {
         public string AdapterId => "candidate-axis";
         public bool IsApproved => false;
@@ -480,6 +510,13 @@ public sealed class ProductionCandidateWorkflowTests
                 0.98,
                 new AxisGeometryUncertainty(0, 0, 1, false, []),
                 new AxisGeometryDiagnostics(4, 4, 0, 1, 4, 2, 1, 0, TimeSpan.Zero, []));
+            if (ambiguousPhaseLayout)
+                geometry = geometry with
+                {
+                    PhaseDividers = [],
+                    AmbiguousGridOrDividers = [new("measured-ambiguous", new GeometryLineSegment(new(40, 10), new(40, 50)),
+                        0.95, 1, 1, ["measured-segment"])],
+                };
             return Task.FromResult(new ProductionAxisGeometryEvidence(
                 Envelope(request, "axis", "candidate-axis-v1", "candidate-axis", 'a'),
                 geometry));
@@ -491,7 +528,8 @@ public sealed class ProductionCandidateWorkflowTests
                 0.95, [id]);
     }
 
-    private sealed class CandidateOcrAdapter(bool omitYTicks = false, bool includeTextDecoy = false, bool includeIntermediateSession = false) : IProductionCandidateOcrAdapter
+    private sealed class CandidateOcrAdapter(bool omitYTicks = false, bool includeTextDecoy = false, bool includeIntermediateSession = false,
+        bool ambiguousPhaseLayout = false) : IProductionCandidateOcrAdapter
     {
         public string AdapterId => "candidate-ocr";
         public bool IsApproved => false;
@@ -513,7 +551,8 @@ public sealed class ProductionCandidateWorkflowTests
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            CollectionAssert.AreEqual(ExpectedOcrDividerXs, phaseDividerXs.ToArray());
+            if (ambiguousPhaseLayout) Assert.IsEmpty(phaseDividerXs);
+            else CollectionAssert.AreEqual(ExpectedOcrDividerXs, phaseDividerXs.ToArray());
             OcrRegion[] regions =
             [
                 Region("x1", 18, 52, "1", OcrTextRole.XTick),
@@ -524,6 +563,8 @@ public sealed class ProductionCandidateWorkflowTests
             ];
             if (omitYTicks) regions = regions.Where(static region => region.Role != OcrTextRole.YTick).ToArray();
             if (includeTextDecoy) regions = [.. regions, Region("annotation", 38, 28, "Note", OcrTextRole.Annotation)];
+            if (ambiguousPhaseLayout) regions = [.. regions,
+                Region("phase-a", 18, 4, "A", OcrTextRole.PhaseHeading), Region("phase-b", 58, 4, "B", OcrTextRole.PhaseHeading)];
             var result = new OcrResult(
                 OcrContract.Version,
                 request.RunId.ToString("D"),
