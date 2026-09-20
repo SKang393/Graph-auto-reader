@@ -51,8 +51,8 @@ mode with the exact historical evaluation request.
 
 The initial test setup needed cached package restoration for the new compiler
 directory and a workspace temporary directory for pytest. Both were corrected.
-No product test failure was suppressed. Full Windows CI remains pending for
-the resulting source commit.
+No product test failure was suppressed. Full Windows CI run `35483842036`
+passed for the pushed source commit `329f7b7`.
 
 ## Metrics and timing
 
@@ -106,9 +106,9 @@ production approval, packaged application, public release, or version change.
 The retained portable stays at build 433, version 0.4.33. The finished product
 target remains 2.0.0.
 
-Short checks and repairs continue without permission requests. Genuinely long
-training or verification jobs notify on completion and end the active turn;
-the agent does not repeatedly poll them. No subagents were used.
+The maintainer's latest instruction supersedes the earlier pause rule:
+continue useful work while checks run, notify on completion, and avoid repeated
+status polling. Notifications are not permission gates. No subagents were used.
 
 ## Acceptance status
 

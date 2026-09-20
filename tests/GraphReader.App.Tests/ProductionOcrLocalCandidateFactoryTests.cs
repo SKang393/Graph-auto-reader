@@ -16,11 +16,12 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionOcrLocalCandidateFactoryTests
 {
     [TestMethod]
-    [DataRow(false, false)]
-    [DataRow(true, false)]
-    [DataRow(true, true)]
+    [DataRow(false, false, false)]
+    [DataRow(true, false, false)]
+    [DataRow(true, true, false)]
+    [DataRow(true, true, true)]
     public async Task FrozenDbHeadPairCreatesUnapprovedOriginalInputCandidate(
-        bool insidePlotAssembly, bool pixelBoundsRefinement)
+        bool insidePlotAssembly, bool pixelBoundsRefinement, bool participantLaneAssembly)
     {
         string root = CreateTemporaryDirectory();
         var sessionFactory = new ShapeAwareSessionFactory();
@@ -38,10 +39,13 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                         pair.Detection.ManifestPath, Sha256(pair.Detection.ManifestPath)),
                     new FrozenCandidateOcrModelDescriptor(pair.Recognition.Identity,
                         pair.Recognition.ManifestPath, pair.Recognition.ManifestSha256),
-                    host, new string('d', 64), CancellationToken.None, insidePlotAssembly, pixelBoundsRefinement);
+                    host, new string('d', 64), CancellationToken.None,
+                    insidePlotAssembly, pixelBoundsRefinement, participantLaneAssembly);
             Assert.IsFalse(adapter.IsApproved);
             Assert.AreEqual("unapproved_frozen_candidate", adapter.ConfigurationScope);
-            string expectedComposition = pixelBoundsRefinement
+            string expectedComposition = participantLaneAssembly
+                ? ProductionOcrAdapter.CombinedAssemblyCandidateCompositionVersion
+                : pixelBoundsRefinement
                 ? ProductionOcrAdapter.PixelBoundsCandidateCompositionVersion
                 : insidePlotAssembly
                 ? ProductionOcrAdapter.InsidePlotCandidateCompositionVersion
@@ -116,6 +120,36 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                     new FrozenCandidateOcrModelDescriptor(pair.Recognition.Identity,
                         pair.Recognition.ManifestPath, pair.Recognition.ManifestSha256),
                     host, new string('d', 64), CancellationToken.None, pixelBoundsRefinement: true));
+            Assert.AreEqual(0, sessions.RunCount);
+        }
+        finally
+        {
+            await host.DisposeAsync();
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public async Task CombinedAssemblyRejectsIncompleteBaselineBeforeInference(bool insidePlot, bool pixelBounds)
+    {
+        string root = CreateTemporaryDirectory();
+        var sessions = new ShapeAwareSessionFactory();
+        await using ProductionInferenceRuntimeHost host = CreateRuntimeHost(root, sessions);
+        try
+        {
+            CandidatePair pair = WriteCandidatePair(root);
+            await Assert.ThrowsExactlyAsync<ArgumentException>(() => ProductionOcrAdapter
+                .CreateForFrozenDbHeadCandidateEvaluationAsync(
+                    new FrozenCandidateOcrModelDescriptor(pair.Detection.Identity,
+                        pair.Detection.ManifestPath, pair.Detection.ManifestSha256),
+                    new FrozenCandidateOcrModelDescriptor(pair.Recognition.Identity,
+                        pair.Recognition.ManifestPath, pair.Recognition.ManifestSha256),
+                    host, new string('d', 64), CancellationToken.None,
+                    insidePlotAssembly: insidePlot, pixelBoundsRefinement: pixelBounds,
+                    participantLaneAssembly: true));
             Assert.AreEqual(0, sessions.RunCount);
         }
         finally
@@ -314,7 +348,12 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
     }
 
     [TestMethod]
-    public async Task ParticipantLaneDetectorUsesOriginalPixelsAndDistinctCacheIdentity()
+    [DataRow(ProductionOcrAdapter.OriginalDbCandidateCompositionVersion)]
+    [DataRow(ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion)]
+    [DataRow(ProductionOcrAdapter.InsidePlotCandidateCompositionVersion)]
+    [DataRow(ProductionOcrAdapter.PixelBoundsCandidateCompositionVersion)]
+    [DataRow(ProductionOcrAdapter.CombinedAssemblyCandidateCompositionVersion)]
+    public async Task OriginalInputDetectorUsesOriginalPixelsAndDistinctCacheIdentity(string composition)
     {
         var original = new OcrImage(
             2,
@@ -332,7 +371,7 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
         var inner = new CapturingTextRegionDetector();
         var detector = new ProductionOcrAdapter.OriginalDbInputDetector(
             inner,
-            ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion);
+            composition);
 
         await detector.DetectAsync(
             original,
@@ -342,11 +381,16 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
         Assert.AreSame(original, inner.ObservedImage);
         StringAssert.StartsWith(
             detector.ConfigurationFingerprint,
-            ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion + ":");
-        Assert.IsTrue(ProductionOcrAdapter.UsesOriginalDbOnlyInput(
-            ProductionOcrAdapter.OriginalDbCandidateCompositionVersion));
-        Assert.IsTrue(ProductionOcrAdapter.UsesOriginalDbOnlyInput(
-            ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion));
+            composition + ":");
+        Assert.IsTrue(ProductionOcrAdapter.UsesOriginalDbOnlyInput(composition));
+    }
+
+    [TestMethod]
+    public void OriginalInputDetectorRejectsUnknownComposition()
+    {
+        Assert.IsFalse(ProductionOcrAdapter.UsesOriginalDbOnlyInput("unknown"));
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() =>
+            new ProductionOcrAdapter.OriginalDbInputDetector(new CapturingTextRegionDetector(), "unknown"));
     }
 
     [TestMethod]

@@ -111,6 +111,61 @@ public sealed class OcrInsidePlotAssemblyPipelineTests
         return result;
     }
 
+    [TestMethod]
+    public async Task CombinedAssemblyRecognizesBothLanesThenRefinesPixelsWithDistinctCache()
+    {
+        byte[] pixels = Enumerable.Repeat((byte)255, 160 * 100).ToArray();
+        pixels[33 * 160 + 4] = 0;
+        pixels[38 * 160 + 21] = 0;
+        pixels[63 * 160 + 44] = 0;
+        pixels[68 * 160 + 59] = 0;
+        OcrRequest request = OcrTestFixtures.Request(
+            [OcrTestFixtures.Region("participant-word", 2, 30, 12, 10),
+             OcrTestFixtures.Region("participant-number", 16, 30, 8, 10),
+             OcrTestFixtures.Region("plot-word", 40, 60, 12, 10),
+             OcrTestFixtures.Region("plot-suffix", 54, 60, 8, 10)]) with
+        {
+            OriginalImage = OcrTestFixtures.Image() with { Pixels = pixels },
+            PhaseDividerXs = Array.Empty<double>(),
+        };
+        var cropsSeen = new List<OcrCrop>();
+        var recognizer = new StubTextRecognizer((crops, _) =>
+        {
+            cropsSeen.AddRange(crops);
+            return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop =>
+                new OcrRecognition(crop.RegionId, crop.SourceImage,
+                    [new OcrRecognitionAlternative("text", 0.95, crop.SourceImage)], 0.1)).ToArray());
+        });
+        var options = new OcrPipelineOptions
+        {
+            EnableInsidePlotAssembly = true,
+            EnableOriginalPixelBoundsRefinement = true,
+            CropPaddingPixels = 0,
+        };
+        var cache = new InMemoryOcrResultCache();
+        var baseline = new OcrPipeline(new StubTextRegionDetector([]), recognizer, cache, options);
+        var combined = new OcrPipeline(new StubTextRegionDetector([]), recognizer, cache,
+            options with { EnableParticipantLaneAssembly = true });
+
+        OcrResult before = await baseline.RecognizeAsync(request);
+        OcrResult after = await combined.RecognizeAsync(request);
+
+        Assert.IsTrue(before.Succeeded, before.Failure?.TechnicalMessage);
+        Assert.IsTrue(after.Succeeded, after.Failure?.TechnicalMessage);
+        Assert.HasCount(3, before.Regions);
+        Assert.HasCount(2, after.Regions);
+        Assert.HasCount(5, cropsSeen);
+        OcrCrop participantCrop = cropsSeen.Skip(3).Single(crop =>
+            crop.RegionId.StartsWith("participant-lane:", StringComparison.Ordinal));
+        OcrCrop plotCrop = cropsSeen.Skip(3).Single(crop =>
+            crop.RegionId.StartsWith("inside-plot:", StringComparison.Ordinal));
+        Assert.AreEqual(new OcrRectangle(4, 33, 18, 6), participantCrop.OriginalPolygon.Bounds);
+        Assert.AreEqual(new OcrRectangle(44, 63, 16, 6), plotCrop.OriginalPolygon.Bounds);
+        Assert.IsTrue(cropsSeen.All(crop => crop.SourceImage == OcrSourceImage.Original));
+        CollectionAssert.AreEquivalent(new[] { participantCrop.RegionId, plotCrop.RegionId },
+            after.Regions.Select(region => region.RegionId).ToArray());
+    }
+
     private static OcrPipeline Pipeline(StubTextRecognizer recognizer, bool enableAssembly) =>
         new(
             new StubTextRegionDetector([]),

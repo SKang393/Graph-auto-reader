@@ -24,6 +24,7 @@ internal static class OfficialHeadCandidateEvaluation
     internal const string ParticipantLaneCommand = "--evaluate-participant-lane-candidate";
     internal const string InsidePlotCommand = "--evaluate-inside-plot-candidate";
     internal const string PixelBoundsCommand = "--evaluate-pixel-bounds-candidate";
+    internal const string CombinedAssemblyCommand = "--evaluate-combined-assembly-candidate";
     internal const string SupplementalCommand = "--evaluate-supplemental-head-candidate";
     internal const string CandidateSchema = "graphreader.frozen-db-head-ocr-candidate.v1";
     internal const string CandidateScope = "project-owned-synthetic-train-dev-unapproved-frozen-candidate";
@@ -75,6 +76,7 @@ internal static class OfficialHeadCandidateEvaluation
         if (args.Length != 6 ||
             (args[0] != Command && args[0] != ParticipantLaneCommand &&
              args[0] != InsidePlotCommand && args[0] != PixelBoundsCommand &&
+             args[0] != CombinedAssemblyCommand &&
              args[0] != SupplementalCommand))
         {
             throw new InvalidDataException(
@@ -105,10 +107,13 @@ internal static class OfficialHeadCandidateEvaluation
         string root = Path.GetFullPath(repositoryRoot);
         string[] command = ValidateCommand(args, root);
         bool participantLane = args[0] == ParticipantLaneCommand;
-        bool pixelBounds = args[0] == PixelBoundsCommand;
+        bool combinedAssembly = args[0] == CombinedAssemblyCommand;
+        bool pixelBounds = args[0] == PixelBoundsCommand || combinedAssembly;
         bool insidePlot = args[0] == InsidePlotCommand || pixelBounds;
         bool supplemental = args[0] == SupplementalCommand;
-        string composition = pixelBounds
+        string composition = combinedAssembly
+            ? ProductionOcrAdapter.CombinedAssemblyCandidateCompositionVersion
+            : pixelBounds
             ? ProductionOcrAdapter.PixelBoundsCandidateCompositionVersion
             : participantLane
             ? ProductionOcrAdapter.ParticipantLaneCandidateCompositionVersion
@@ -187,7 +192,8 @@ internal static class OfficialHeadCandidateEvaluation
                     runtime,
                     candidate.NativeSha256,
                     cancellationToken, insidePlotAssembly: insidePlot,
-                    pixelBoundsRefinement: pixelBounds))
+                    pixelBoundsRefinement: pixelBounds,
+                    participantLaneAssembly: combinedAssembly))
                 .ConfigureAwait(false);
             if (adapter.IsApproved || !string.Equals(
                     adapter.ConfigurationScope,
@@ -259,9 +265,19 @@ internal static class OfficialHeadCandidateEvaluation
                     }
                     else if (insidePlot)
                     {
+                        stage = combinedAssembly ? "participant_lane_assembly" : "inside_plot_assembly";
+                        // Retain the first-stage membership so the report partitions raw
+                        // detector regions even when the second stage retains a group.
+                        var initialGroups = combinedAssembly
+                            ? ParticipantLaneTextRegionAssembler.AssembleWithMembership(raw, panel.PlotBounds)
+                            : raw.Select(region => new ParticipantLaneTextRegionAssemblyGroup(
+                                region, new[] { region.RegionId })).ToArray();
+                        var initialById = initialGroups.ToDictionary(
+                            static group => group.Region.RegionId, StringComparer.Ordinal);
                         stage = "inside_plot_assembly";
                         var groups = InsidePlotTextRegionAssembler.AssembleWithMembership(
-                            raw, panel.PlotBounds, panel.PhaseDividerXs, cancellationToken);
+                            initialGroups.Select(static group => group.Region).ToArray(),
+                            panel.PlotBounds, panel.PhaseDividerXs, cancellationToken);
                         if (pixelBounds)
                         {
                             stage = "original_pixel_bounds";
@@ -273,8 +289,11 @@ internal static class OfficialHeadCandidateEvaluation
                         effectiveOutput = groups.Select(group => new
                         {
                             group.Region.RegionId,
-                            MemberRawRegionIds = group.MemberRegionIds,
-                            AssemblyKind = group.MemberRegionIds.Count == 1 ? "identity" : "inside_plot",
+                            MemberRawRegionIds = group.MemberRegionIds.SelectMany(
+                                id => initialById[id].MemberRegionIds).Order(StringComparer.Ordinal).ToArray(),
+                            AssemblyKind = group.MemberRegionIds.Count > 1 ? "inside_plot" :
+                                initialById[group.MemberRegionIds[0]].MemberRegionIds.Count > 1
+                                    ? "participant_lane" : "identity",
                             CoordinateSpace = "source_original_pixels",
                             PanelPolygon = group.Region.Polygon,
                             SourcePolygon = MapSourcePolygon(panel, group.Region.Polygon),
@@ -292,7 +311,7 @@ internal static class OfficialHeadCandidateEvaluation
                     ValidateOcrCoverage(effective, recognized.Result);
                     timer.Stop();
                     completed++;
-                    outputPanels.Add(CompletedPanel(panel, rawOutput, effectiveOutput, participantLane, insidePlot, pixelBounds,
+                    outputPanels.Add(CompletedPanel(panel, rawOutput, effectiveOutput, participantLane, insidePlot, pixelBounds, combinedAssembly,
                         recognized, graySha, bgrSha, timer.Elapsed.TotalMilliseconds));
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -304,7 +323,7 @@ internal static class OfficialHeadCandidateEvaluation
                     timer.Stop();
                     failed++;
                     outputPanels.Add(FailedPanel(
-                        panel, rawOutput, effectiveOutput, participantLane, insidePlot, pixelBounds,
+                        panel, rawOutput, effectiveOutput, participantLane, insidePlot, pixelBounds, combinedAssembly,
                         stage, exception, timer.Elapsed.TotalMilliseconds));
                 }
             }
@@ -313,6 +332,7 @@ internal static class OfficialHeadCandidateEvaluation
             byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
             {
                 Schema = supplemental ? "graphreader.supplemental-head-candidate-evaluation.v1" :
+                    combinedAssembly ? "graphreader.combined-assembly-candidate-evaluation.v1" :
                     pixelBounds ? "graphreader.pixel-bounds-candidate-evaluation.v1" :
                     insidePlot ? "graphreader.inside-plot-candidate-evaluation.v1" :
                     participantLane ? "graphreader.participant-lane-candidate-evaluation.v1" : OutputSchema,
@@ -393,6 +413,7 @@ internal static class OfficialHeadCandidateEvaluation
         bool participantLane,
         bool insidePlot,
         bool pixelBounds,
+        bool combinedAssembly,
         ProductionOcrEvidence evidence,
         string graySha,
         string bgrSha,
@@ -415,7 +436,7 @@ internal static class OfficialHeadCandidateEvaluation
             OriginalBgrSha256 = bgrSha,
             RawDetectorRegions = rawOutput,
             EffectiveRegions = effectiveOutput,
-            AssemblyContext = AssemblyContext(panel, participantLane, insidePlot, pixelBounds),
+            AssemblyContext = AssemblyContext(panel, participantLane, insidePlot, pixelBounds, combinedAssembly),
             RecognizedRegions = evidence.Result.Regions.Select(region => RecognizedRegion(panel, region)).ToArray(),
             RegionFailures = evidence.Result.RegionFailures ?? [],
             Ocr = new
@@ -454,6 +475,7 @@ internal static class OfficialHeadCandidateEvaluation
         bool participantLane,
         bool insidePlot,
         bool pixelBounds,
+        bool combinedAssembly,
         string stage,
         Exception exception,
         double elapsedMilliseconds) => new
@@ -475,13 +497,25 @@ internal static class OfficialHeadCandidateEvaluation
         Error = exception.Message,
         RawDetectorRegions = rawOutput,
         EffectiveRegions = effectiveOutput,
-        AssemblyContext = AssemblyContext(panel, participantLane, insidePlot, pixelBounds),
+        AssemblyContext = AssemblyContext(panel, participantLane, insidePlot, pixelBounds, combinedAssembly),
         RecognizedRegions = Array.Empty<object>(),
         ElapsedMilliseconds = elapsedMilliseconds,
     };
 
-    private static object? AssemblyContext(EvaluationPanel panel, bool participantLane, bool insidePlot, bool pixelBounds) =>
-        pixelBounds ? new
+    private static object? AssemblyContext(
+        EvaluationPanel panel, bool participantLane, bool insidePlot, bool pixelBounds, bool combinedAssembly) =>
+        combinedAssembly ? new
+        {
+            CompositionVersion = InsidePlotTextRegionAssembler.CompositionVersion,
+            ParticipantLaneCompositionVersion = ParticipantLaneTextRegionAssembler.CompositionVersion,
+            PixelBoundsCompositionVersion = OriginalPixelTextRegionRefiner.CompositionVersion,
+            PlotBoundsPanelLtrb = new[]
+            {
+                panel.PlotBounds.Left, panel.PlotBounds.Top,
+                panel.PlotBounds.Right, panel.PlotBounds.Bottom,
+            },
+            PhaseDividerXs = panel.PhaseDividerXs,
+        } : pixelBounds ? new
         {
             CompositionVersion = InsidePlotTextRegionAssembler.CompositionVersion,
             PixelBoundsCompositionVersion = OriginalPixelTextRegionRefiner.CompositionVersion,

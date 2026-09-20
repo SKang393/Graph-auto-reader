@@ -144,6 +144,13 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
             ], root);
             Require(pixelBoundsParsed.SequenceEqual(parsed), "separate pixel-bounds command");
             checks++;
+            string[] combinedParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
+            [
+                OfficialHeadCandidateEvaluation.CombinedAssemblyCommand,
+                request, new string('a', 64), candidate, new string('b', 64), output,
+            ], root);
+            Require(combinedParsed.SequenceEqual(parsed), "separate combined-assembly command");
+            checks++;
             string[] supplementalParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
             [
                 OfficialHeadCandidateEvaluation.SupplementalCommand,

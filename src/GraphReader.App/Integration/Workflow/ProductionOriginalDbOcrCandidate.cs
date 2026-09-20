@@ -16,6 +16,8 @@ public sealed partial class ProductionOcrAdapter
         "original-db-head-inside-plot-v1";
     internal const string PixelBoundsCandidateCompositionVersion =
         "original-db-head-pixel-bounds-v1";
+    internal const string CombinedAssemblyCandidateCompositionVersion =
+        "original-db-head-combined-assembly-v1";
 
     internal static async Task<ProductionOcrAdapter> CreateForFrozenDbHeadCandidateEvaluationAsync(
         FrozenCandidateOcrModelDescriptor detectionModel,
@@ -24,7 +26,8 @@ public sealed partial class ProductionOcrAdapter
         string reviewedOpenCvRuntimeSha256,
         CancellationToken cancellationToken,
         bool insidePlotAssembly = false,
-        bool pixelBoundsRefinement = false)
+        bool pixelBoundsRefinement = false,
+        bool participantLaneAssembly = false)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -33,6 +36,11 @@ public sealed partial class ProductionOcrAdapter
         {
             throw new ArgumentException("The pixel-bounds trial requires the inside-plot baseline.",
                 nameof(insidePlotAssembly));
+        }
+        if (participantLaneAssembly && (!insidePlotAssembly || !pixelBoundsRefinement))
+        {
+            throw new ArgumentException("The combined assembly trial requires the pixel-bounds baseline.",
+                nameof(pixelBoundsRefinement));
         }
         cancellationToken.ThrowIfCancellationRequested();
         reviewedOpenCvRuntimeSha256 = ValidateSha256(reviewedOpenCvRuntimeSha256,
@@ -69,7 +77,9 @@ public sealed partial class ProductionOcrAdapter
             await ValidateRecognizerExecutableAsync(recognition.Recognizer, runtime, cancellationToken)
                 .ConfigureAwait(false);
         }, cancellationToken).ConfigureAwait(false);
-        string candidateComposition = pixelBoundsRefinement
+        string candidateComposition = participantLaneAssembly
+            ? CombinedAssemblyCandidateCompositionVersion
+            : pixelBoundsRefinement
             ? PixelBoundsCandidateCompositionVersion
             : insidePlotAssembly
             ? InsidePlotCandidateCompositionVersion
@@ -86,6 +96,7 @@ public sealed partial class ProductionOcrAdapter
             return new OcrPipeline(detector, recognizer, new MemoryOcrResultCache(),
                 recognition.Pipeline with
                 {
+                    EnableParticipantLaneAssembly = participantLaneAssembly,
                     EnableInsidePlotAssembly = insidePlotAssembly,
                     EnableOriginalPixelBoundsRefinement = pixelBoundsRefinement,
                 });
@@ -284,14 +295,9 @@ public sealed partial class ProductionOcrAdapter
         internal OriginalDbInputDetector(ITextRegionDetector detector, string compositionVersion)
         {
             inner = detector ?? throw new ArgumentNullException(nameof(detector));
-            this.compositionVersion = compositionVersion switch
-            {
-                OriginalDbCandidateCompositionVersion => compositionVersion,
-                ParticipantLaneCandidateCompositionVersion or
-                InsidePlotCandidateCompositionVersion or
-                PixelBoundsCandidateCompositionVersion => compositionVersion,
-                _ => throw new ArgumentOutOfRangeException(nameof(compositionVersion)),
-            };
+            this.compositionVersion = UsesOriginalDbOnlyInput(compositionVersion)
+                ? compositionVersion
+                : throw new ArgumentOutOfRangeException(nameof(compositionVersion));
         }
 
         public string ConfigurationFingerprint => $"{compositionVersion}:{inner.ConfigurationFingerprint}";

@@ -108,6 +108,7 @@ class _AssemblyProfile:
     runtime_source_paths: frozenset[str]
     requires_phase_dividers: bool
     refines_pixel_bounds: bool = False
+    assembles_participant_lane: bool = False
 
 
 PARTICIPANT_LANE_PROFILE = _AssemblyProfile(
@@ -141,10 +142,19 @@ PIXEL_BOUNDS_PROFILE = replace(
     runtime_source_paths=frozenset(PIXEL_BOUNDS_RUNTIME_SOURCE_PATHS),
     refines_pixel_bounds=True,
 )
+COMBINED_ASSEMBLY_PROFILE = replace(
+    PIXEL_BOUNDS_PROFILE,
+    mode="combined_assembly",
+    output_schema="graphreader.combined-assembly-full-ocr-score.v1",
+    evaluation_schema="graphreader.combined-assembly-candidate-evaluation.v1",
+    candidate_composition="original-db-head-combined-assembly-v1",
+    assembles_participant_lane=True,
+)
 PROFILES = {
     PARTICIPANT_LANE_PROFILE.mode: PARTICIPANT_LANE_PROFILE,
     INSIDE_PLOT_PROFILE.mode: INSIDE_PLOT_PROFILE,
     PIXEL_BOUNDS_PROFILE.mode: PIXEL_BOUNDS_PROFILE,
+    COMBINED_ASSEMBLY_PROFILE.mode: COMBINED_ASSEMBLY_PROFILE,
 }
 
 
@@ -171,6 +181,7 @@ class _AssemblyGroup:
     region_id: str
     member_ids: tuple[str, ...]
     panel_points: tuple[tuple[float, float], ...]
+    assembly_kind: str = "identity"
 
     @property
     def bounds(self) -> Box:
@@ -776,6 +787,20 @@ def _replay_groups(
     profile: _AssemblyProfile = PARTICIPANT_LANE_PROFILE,
     phase_divider_xs: Sequence[float] = (),
 ) -> tuple[_AssemblyGroup, ...]:
+    if profile.assembles_participant_lane:
+        initial = _replay_groups(raw_regions, plot, PARTICIPANT_LANE_PROFILE)
+        initial_by_id = {group.region_id: group for group in initial}
+        inside = _replay_groups(
+            [_RawRegion(group.region_id, group.panel_points, ()) for group in initial],
+            plot, INSIDE_PLOT_PROFILE, phase_divider_xs)
+        return tuple(replace(
+            group,
+            member_ids=tuple(sorted(
+                member for initial_id in group.member_ids
+                for member in initial_by_id[initial_id].member_ids)),
+            assembly_kind=(group.assembly_kind if len(group.member_ids) > 1
+                           else initial_by_id[group.member_ids[0]].assembly_kind),
+        ) for group in inside)
     remaining = [
         _AssemblyGroup(row.region_id, (row.region_id,), row.panel_points)
         for row in raw_regions
@@ -797,7 +822,8 @@ def _replay_groups(
                     continue
                 members = tuple(sorted((*line.member_ids, *candidate.member_ids)))
                 line = _AssemblyGroup(
-                    _merged_id(members, profile), members, _rectangle_points(merged))
+                    _merged_id(members, profile), members, _rectangle_points(merged),
+                    profile.assembly_kind)
                 remaining.pop(index)
                 changed = True
         assembled.append(line)
@@ -836,6 +862,10 @@ def _validate_panel_regions(
     context_fields = {"composition_version", "plot_bounds_panel_ltrb"}
     if profile.requires_phase_dividers:
         context_fields.add("phase_divider_xs")
+    if profile.assembles_participant_lane:
+        context_fields.add("participant_lane_composition_version")
+        if context.get("participant_lane_composition_version") != ASSEMBLY_COMPOSITION:
+            raise EvidenceError("participant lane composition is missing or invalid")
     if profile.refines_pixel_bounds:
         context_fields.add("pixel_bounds_composition_version")
         if (context.get("pixel_bounds_composition_version") != PIXEL_BOUNDS_COMPOSITION
@@ -925,7 +955,7 @@ def _validate_panel_regions(
         source_points = geometry._polygon(
             row.get("source_polygon"), "effective source polygon",
             expected.source_width, expected.source_height)
-        expected_kind = "identity" if len(replayed.member_ids) == 1 else profile.assembly_kind
+        expected_kind = replayed.assembly_kind
         if (region_id != replayed.region_id
                 or tuple(members) != replayed.member_ids
                 or row.get("assembly_kind") != expected_kind
@@ -936,7 +966,7 @@ def _validate_panel_regions(
                     source_points)):
             raise EvidenceError("effective region differs from deterministic assembly replay")
         effective_ids.add(region_id)
-        effective.append(_AssemblyGroup(region_id, tuple(members), panel_points))
+        effective.append(_AssemblyGroup(region_id, tuple(members), panel_points, expected_kind))
 
     recognized_ids: set[str] = set()
     predictions: list[metric.FullTextPrediction] = []
@@ -1094,6 +1124,9 @@ def _validate_evaluation(
         "train": {"raw": 0, "effective": 0, "identity": 0, profile.assembly_kind: 0},
         "validation": {"raw": 0, "effective": 0, "identity": 0, profile.assembly_kind: 0},
     }
+    if profile.assembles_participant_lane:
+        for split_counts in counts.values():
+            split_counts[PARTICIPANT_LANE_PROFILE.assembly_kind] = 0
     seen: set[str] = set()
     completed = failed = 0
     for raw_record in records:
@@ -1145,10 +1178,8 @@ def _validate_evaluation(
             text_by_source.setdefault(expected.source_sha256, []).append(row)
         counts[expected.split]["raw"] += len(raw_regions)
         counts[expected.split]["effective"] += len(effective_regions)
-        counts[expected.split]["identity"] += sum(
-            len(row.member_ids) == 1 for row in effective_regions)
-        counts[expected.split][profile.assembly_kind] += sum(
-            len(row.member_ids) > 1 for row in effective_regions)
+        for row in effective_regions:
+            counts[expected.split][row.assembly_kind] += 1
         if status == "completed":
             explicit[expected.split] += failure_count
         else:
@@ -1388,6 +1419,10 @@ def score(
                 "phase_divider_geometry_authenticated_from_same_bound_runtime_reports": True,
             } if profile.requires_phase_dividers else {}),
             "counts_by_split": evidence.assembly_counts,
+            **({
+                "participant_lane_composition_version": ASSEMBLY_COMPOSITION,
+                "assembly_order": ["participant_lane", "inside_plot", "pixel_bounds"],
+            } if profile.assembles_participant_lane else {}),
             **({
                 "pixel_bounds_composition_version": PIXEL_BOUNDS_COMPOSITION,
                 "effective_bounds_replayed_from_authenticated_original_gray_pixels": True,

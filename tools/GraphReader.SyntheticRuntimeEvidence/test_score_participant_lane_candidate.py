@@ -137,6 +137,71 @@ def test_default_profile_preserves_participant_lane_replay() -> None:
     assert implicit == explicit
 
 
+def _combined_record() -> tuple[dict, np.ndarray]:
+    record = _completed_record()
+    record["assembly_context"].update(
+        composition_version=scorer.INSIDE_PLOT_PROFILE.assembly_composition,
+        participant_lane_composition_version=scorer.ASSEMBLY_COMPOSITION,
+        pixel_bounds_composition_version=scorer.PIXEL_BOUNDS_COMPOSITION,
+        phase_divider_xs=[],
+    )
+    record["raw_detector_regions"].extend([_raw("plot-left", 55, 63), _raw("plot-right", 65, 73)])
+    plot_id = scorer._merged_id(["plot-left", "plot-right"], scorer.INSIDE_PLOT_PROFILE)
+    record["effective_regions"].append({
+        "region_id": plot_id,
+        "member_raw_region_ids": ["plot-left", "plot-right"],
+        "assembly_kind": "inside_plot",
+        "coordinate_space": "source_original_pixels",
+        "panel_polygon": _polygon(56, 12, 72, 18),
+        "source_polygon": _polygon(56, 12, 72, 18),
+    })
+    record["effective_regions"][0].update(
+        panel_polygon=_polygon(2, 12, 18, 18), source_polygon=_polygon(2, 12, 18, 18))
+    record["recognized_regions"][0].update(
+        panel_polygon=_polygon(2, 12, 18, 18), source_polygon=_polygon(2, 12, 18, 18))
+    record["region_failures"] = [{"region_id": plot_id}]
+    gray = np.full((100, 100), 255, dtype=np.uint8)
+    gray[12:18, 2:18] = 0
+    gray[12:18, 56:72] = 0
+    return record, gray
+
+
+def test_combined_replay_preserves_raw_membership_kinds_pixels_and_failures() -> None:
+    record, gray = _combined_record()
+    raw, effective, predictions, failures = scorer._validate_panel_regions(
+        record, _panel(), (50.0, 0.0, 90.0, 90.0),
+        scorer.COMBINED_ASSEMBLY_PROFILE, (), gray)
+    assert len(raw) == 4 and len(effective) == 2
+    assert [row.member_ids for row in effective] == [("left", "right"), ("plot-left", "plot-right")]
+    assert [row.assembly_kind for row in effective] == ["participant_lane", "inside_plot"]
+    assert len(predictions) == 1 and failures == 1
+
+
+@pytest.mark.parametrize("mutation", ["composition", "membership", "kind", "pixels"])
+def test_combined_replay_rejects_tampered_composition_or_membership(mutation) -> None:
+    record, gray = _combined_record()
+    if mutation == "composition":
+        record["assembly_context"].pop("participant_lane_composition_version")
+    elif mutation == "membership":
+        record["effective_regions"][0]["member_raw_region_ids"] = ["left"]
+    elif mutation == "kind":
+        record["effective_regions"][0]["assembly_kind"] = "inside_plot"
+    else:
+        gray[12:18, 2:18] = 255
+    with pytest.raises(scorer.EvidenceError):
+        scorer._validate_panel_regions(
+            record, _panel(), (50.0, 0.0, 90.0, 90.0),
+            scorer.COMBINED_ASSEMBLY_PROFILE, (), gray)
+
+
+def test_pixel_only_profile_rejects_combined_context() -> None:
+    record, gray = _combined_record()
+    with pytest.raises(scorer.EvidenceError, match="unknown or missing"):
+        scorer._validate_panel_regions(
+            record, _panel(), (50.0, 0.0, 90.0, 90.0),
+            scorer.PIXEL_BOUNDS_PROFILE, (), gray)
+
+
 def test_inside_plot_replay_matches_membership_union_and_identifier() -> None:
     record = _inside_plot_record((50.0,))
     raw, effective, predictions, failures = scorer._validate_panel_regions(
