@@ -11,6 +11,32 @@ public sealed class GraphTextRoleClassifierTests
     private static readonly OcrRectangle Plot = new(30, 15, 110, 70);
 
     [TestMethod]
+    [DataRow("Alternating treatments")]
+    [DataRow("Alternating treatment")]
+    [DataRow("Withdrawal")]
+    [DataRow("Withdrawal continued")]
+    public void DesignTermsNeedHeadingGeometryAndRespectExplicitContext(string text)
+    {
+        var region = OcrTestFixtures.Region("heading", 50, 1, 50, 10);
+        Assert.AreEqual(OcrTextRole.PhaseHeading, GraphTextRoleClassifier.Classify(region, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(
+            region with { Polygon = OcrPolygon.FromRectangle(new OcrRectangle(50, 40, 50, 10)) }, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(
+            region with { Context = new OcrRegionContext(NearAnnotationArrow: true) }, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(region, text + " was recorded", Plot).Role);
+    }
+
+    [TestMethod]
+    public void UnrecognizedTextWhoseCenterIsInsidePlotIsAnAnnotationEvenNearTheTop()
+    {
+        var region = OcrTestFixtures.Region("note", 50, 13, 20, 6);
+        Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(region, "Probe", Plot).Role);
+        Assert.AreEqual(OcrTextRole.PhaseHeading, GraphTextRoleClassifier.Classify(region, "Baseline", Plot).Role);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(
+            region with { Polygon = OcrPolygon.FromRectangle(new OcrRectangle(50, 7, 20, 6)) }, "Probe", Plot).Role);
+    }
+
+    [TestMethod]
     public void RotatedYLabelIsAxisTitleRatherThanTickOrParticipant()
     {
         OcrDetectedRegion region = OcrTestFixtures.Region(

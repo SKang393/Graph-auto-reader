@@ -93,4 +93,24 @@ public sealed class InsidePlotTextRegionAssemblerTests
                 [],
                 cancellation.Token));
     }
+
+    [TestMethod]
+    public void HeaderWordsJoinOnlyAcrossAWordSpaceWithinOnePhase()
+    {
+        OcrDetectedRegion word = OcrTestFixtures.Region("word", 60, 2, 30, 10);
+        OcrDetectedRegion suffix = OcrTestFixtures.Region("suffix", 96, 2, 24, 10);
+        var joined = InsidePlotTextRegionAssembler.AssembleWithMembership([word, suffix], PlotBounds, []);
+        Assert.HasCount(1, joined);
+        CollectionAssert.AreEqual(ExpectedMemberIds, joined[0].MemberRegionIds.ToArray());
+        Assert.AreEqual(new OcrRectangle(60, 2, 60, 10), joined[0].Region.Polygon.Bounds);
+        Assert.HasCount(2, InsidePlotTextRegionAssembler.Assemble([word, suffix], PlotBounds, [93]));
+        Assert.HasCount(2, InsidePlotTextRegionAssembler.Assemble([
+            OcrTestFixtures.Region("condition-code", 41, 2, 6, 10), word], PlotBounds, []));
+        Assert.HasCount(2, InsidePlotTextRegionAssembler.Assemble([
+            OcrTestFixtures.Region("overlapping-code", 70, 2, 6, 10), word], PlotBounds, []));
+        Assert.HasCount(2, InsidePlotTextRegionAssembler.Assemble([
+            OcrTestFixtures.Region("participant", 10, 2, 40, 10), word], PlotBounds, []));
+        Assert.HasCount(2, InsidePlotTextRegionAssembler.Assemble([
+            word, suffix with { Polygon = OcrPolygon.FromRectangle(new OcrRectangle(96, 5, 24, 10)) }], PlotBounds, []));
+    }
 }

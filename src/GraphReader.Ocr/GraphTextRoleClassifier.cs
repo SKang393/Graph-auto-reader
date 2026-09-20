@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    internal const string Version = "graph-text-role-classifier-v5";
+    internal const string Version = "graph-text-role-classifier-v6";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -107,6 +107,11 @@ public static class GraphTextRoleClassifier
             return Classification(OcrTextRole.PhaseHeading, 0.86, "phase_term_above_plot");
         }
 
+        if (!numeric && insidePlot)
+        {
+            return Classification(OcrTextRole.Annotation, 0.64, "text_inside_plot");
+        }
+
         if (!numeric && abovePlot && withinPlotX)
         {
             return Classification(OcrTextRole.Other, 0.48, "ambiguous_text_above_plot_requires_review");
@@ -115,11 +120,6 @@ public static class GraphTextRoleClassifier
         if (!numeric && rightOfPlot && withinPlotY)
         {
             return Classification(OcrTextRole.LegendText, 0.70, "text_right_of_plot");
-        }
-
-        if (!numeric && insidePlot)
-        {
-            return Classification(OcrTextRole.Annotation, 0.64, "text_inside_plot");
         }
 
         if (!numeric && center.Y > plotBounds.Bottom && withinPlotX)
@@ -209,6 +209,10 @@ public static class GraphTextRoleClassifier
             normalized.Equals("baseline", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("intervention", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("treatment", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("alternating treatment", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("alternating treatments", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("withdrawal", StringComparison.OrdinalIgnoreCase) ||
+            normalized.Equals("withdrawal continued", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("maintenance", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("generalization", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("followup", StringComparison.OrdinalIgnoreCase) ||

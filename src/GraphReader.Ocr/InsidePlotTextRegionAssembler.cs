@@ -8,7 +8,7 @@ namespace GraphReader.Ocr;
 
 public static class InsidePlotTextRegionAssembler
 {
-    public const string CompositionVersion = "inside-plot-aligned-word-assembly-v1";
+    public const string CompositionVersion = "inside-plot-and-header-word-assembly-v2";
 
     // Keep these thresholds aligned with ParticipantLaneTextRegionAssembler.
     private const double MinimumVerticalOverlapRatio = 0.35;
@@ -82,7 +82,8 @@ public static class InsidePlotTextRegionAssembler
                         line.Region.Polygon.Bounds,
                         candidate.Region.Polygon.Bounds);
                     if (!CanMerge(line.Region.Polygon.Bounds, candidate.Region.Polygon.Bounds) ||
-                        !IsFullyInsidePlot(mergedBounds, plotBounds) ||
+                        !IsPermittedTextRow(line.Region.Polygon.Bounds, candidate.Region.Polygon.Bounds,
+                            mergedBounds, plotBounds) ||
                         SpansDivider(mergedBounds, dividers))
                     {
                         continue;
@@ -156,6 +157,22 @@ public static class InsidePlotTextRegionAssembler
         bounds.Top >= plotBounds.Top &&
         bounds.Right <= plotBounds.Right &&
         bounds.Bottom <= plotBounds.Bottom;
+
+    private static bool IsPermittedTextRow(
+        OcrRectangle left, OcrRectangle right, OcrRectangle merged, OcrRectangle plot)
+    {
+        if (IsFullyInsidePlot(merged, plot))
+        {
+            return true;
+        }
+        // Header fragments need a word-sized positive gap. The wider in-plot
+        // allowance would join separate condition codes and headings. The
+        // caller also prevents crossing any measured phase boundary.
+        double gap = Math.Max(left.Left - right.Right, right.Left - left.Right);
+        return merged.Left >= plot.Left && merged.Right <= plot.Right &&
+            merged.Top >= 0 && merged.Bottom <= plot.Top &&
+            gap > 0 && gap <= Math.Min(left.Height, right.Height);
+    }
 
     private static bool SpansDivider(OcrRectangle bounds, IReadOnlyList<double> phaseDividerXs) =>
         phaseDividerXs.Any(x => bounds.Left < x && x < bounds.Right);

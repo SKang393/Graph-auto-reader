@@ -11,6 +11,29 @@ public sealed class OcrInsidePlotAssemblyPipelineTests
     private static readonly string[] ExpectedUnassembledRegionIds = ["word", "suffix"];
 
     [TestMethod]
+    public async Task SplitHeadingUsesOneOriginalPixelCropWithoutCrossingPhaseBoundary()
+    {
+        var observed = new List<OcrCrop>();
+        var recognizer = new StubTextRecognizer((crops, _) =>
+        {
+            observed.AddRange(crops);
+            return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop =>
+                new OcrRecognition(crop.RegionId, crop.SourceImage,
+                    [new OcrRecognitionAlternative("Alternating treatments", 0.94, crop.SourceImage)], 0.1)).ToArray());
+        });
+        OcrRequest request = OcrTestFixtures.Request([
+            OcrTestFixtures.Region("first-word", 40, 1, 30, 10),
+            OcrTestFixtures.Region("second-word", 76, 1, 30, 10)]) with { PhaseDividerXs = [] };
+        OcrResult result = await Pipeline(recognizer, enableAssembly: true).RecognizeAsync(request);
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.HasCount(1, result.Regions);
+        Assert.HasCount(1, observed);
+        Assert.AreEqual(new OcrRectangle(40, 1, 66, 10), observed[0].OriginalPolygon.Bounds);
+        Assert.AreEqual(OcrSourceImage.Original, observed[0].SourceImage);
+        Assert.AreEqual(OcrTextRole.PhaseHeading, result.Regions[0].Role);
+    }
+
+    [TestMethod]
     public async Task AssemblyIsDisabledByDefaultAndUnavailableGeometryFailsClosed()
     {
         OcrDetectedRegion word = OcrTestFixtures.Region("word", 40, 30, 12, 10);
