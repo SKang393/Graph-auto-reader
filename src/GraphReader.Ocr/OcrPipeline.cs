@@ -51,6 +51,8 @@ public sealed record OcrPipelineOptions
     public bool EnableInsidePlotAssembly { get; init; }
 
     public bool EnableOriginalPixelBoundsRefinement { get; init; }
+
+    public bool EnableHeaderLayoutRoleResolution { get; init; }
 }
 
 public sealed class OcrPipeline
@@ -381,6 +383,14 @@ public sealed class OcrPipeline
         var postprocessStopwatch = Stopwatch.StartNew();
         var regionFailures = ExtractRegionFailures(recognitionResults, warnings);
         var regions = MergeResults(detectedRegions, recognitionResults, request.PlotBounds, warnings);
+        if (_options.EnableHeaderLayoutRoleResolution)
+        {
+            HeaderLayoutRoleResolution layout = HeaderLayoutRoleResolver.Resolve(
+                regions, detectedRegions, request.PlotBounds, cancellationToken);
+            regions = layout.Regions;
+            warnings.AddRange(layout.DetachedRegionIds.Select(id =>
+                $"ocr_role_needs_review:{id}:detached_above_header_row"));
+        }
         regions = ResolveTickAlternatives(regions, detectedRegions, warnings, _options);
         var detectedById = detectedRegions.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
         var maskRegionIds = regions

@@ -110,6 +110,7 @@ internal static class Program
             args[0] == OfficialHeadCandidateEvaluation.InsidePlotCommand ||
             args[0] == OfficialHeadCandidateEvaluation.PixelBoundsCommand ||
             args[0] == OfficialHeadCandidateEvaluation.CombinedAssemblyCommand ||
+            args[0] == OfficialHeadCandidateEvaluation.HeaderContextCommand ||
             args[0] == OfficialHeadCandidateEvaluation.SupplementalCommand))
         {
             return await OfficialHeadCandidateEvaluation.RunCommandAsync(args, RepositoryRoot())

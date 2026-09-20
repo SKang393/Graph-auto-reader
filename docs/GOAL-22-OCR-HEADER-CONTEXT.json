@@ -1,0 +1,448 @@
+{
+  "schema": "graphreader.ocr-header-context-application-summary.v1",
+  "status": "development_improvement_below_acceptance",
+  "goal_22_acceptance": "FAIL",
+  "production_approved": false,
+  "synthetic_only": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "packaged_build": false,
+  "isolated_change": "Distinguish detached notes above a corroborated phase-heading row using layout; preserve text, geometry, explicit hints, and human-reviewed roles.",
+  "composition_version": "original-db-head-header-context-v1",
+  "default_enabled": false,
+  "denominators": {
+    "panels": 37,
+    "train_truths": 709,
+    "development_truths": 183,
+    "development_characters": 1019
+  },
+  "baseline_commit": "2b1c12e3baa7e1750b1925b878959db5d4add9c4",
+  "baseline_ci": {
+    "run_id": 35485080685,
+    "conclusion": "success"
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-combined-assembly-runtime-v2/full-score-v1.json",
+    "sha256": "bec07aab9e3bab9fe7a4a91ab62e6ab71f33ab5f19af7fe6cab8f693c74c9972"
+  },
+  "trial_score": {
+    "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/full-score-v1.json",
+    "sha256": "beff5d3df2f6b59b4423e4749e67b20dac00cdfe1c455d88ed5a36bba919da99"
+  },
+  "evaluation": {
+    "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/application-evaluation-v1/report.json",
+    "sha256": "66cdf599e2f6e348a61c2058dbc40da83119c8f2da4bb74e2c45c088cd4ee872"
+  },
+  "candidate": {
+    "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/candidate.json",
+    "sha256": "8a84b8349b549f4eb4a8e60f53f57568bcb7c7d28f1a355961d429a0fafcb7dd"
+  },
+  "runtime_source_manifest": {
+    "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/build-source-bindings.json",
+    "sha256": "5a908b30e24c9b43c163c42f84d9b2b4e0ff20d91fa05df70c313081f21c1d85"
+  },
+  "integration_audit": {
+    "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/integration-audit.json",
+    "sha256": "6c009dc82c15f18ad4af9eaf9f587406b3b099355e15215b7cb81132a9c0b151"
+  },
+  "local_validation": {
+    "dotnet_tests": [
+      {
+        "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/test-results/ocr.trx",
+        "sha256": "ad6a994a19759858c02db414226f96062de76ec83a29223822b2eee59178625f",
+        "counts": {
+          "total": "313",
+          "executed": "297",
+          "passed": "297",
+          "failed": "0",
+          "error": "0",
+          "timeout": "0",
+          "aborted": "0",
+          "inconclusive": "0",
+          "passedButRunAborted": "0",
+          "notRunnable": "0",
+          "notExecuted": "0",
+          "disconnected": "0",
+          "warning": "0",
+          "completed": "0",
+          "inProgress": "0",
+          "pending": "0"
+        },
+        "times": {
+          "creation": "2026-09-19T23:04:25.8746936-04:00",
+          "queuing": "2026-09-19T23:04:25.8746946-04:00",
+          "start": "2026-09-19T23:04:23.3702972-04:00",
+          "finish": "2026-09-19T23:04:30.0156134-04:00"
+        }
+      },
+      {
+        "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/test-results/app-factory.trx",
+        "sha256": "766e4b22d4fd516574db7302e542d425911c4f2297cf86d7e9524373ee52a4f4",
+        "counts": {
+          "total": "40",
+          "executed": "40",
+          "passed": "40",
+          "failed": "0",
+          "error": "0",
+          "timeout": "0",
+          "aborted": "0",
+          "inconclusive": "0",
+          "passedButRunAborted": "0",
+          "notRunnable": "0",
+          "notExecuted": "0",
+          "disconnected": "0",
+          "warning": "0",
+          "completed": "0",
+          "inProgress": "0",
+          "pending": "0"
+        },
+        "times": {
+          "creation": "2026-09-19T23:05:48.1845881-04:00",
+          "queuing": "2026-09-19T23:05:48.1845887-04:00",
+          "start": "2026-09-19T23:05:42.9334845-04:00",
+          "finish": "2026-09-19T23:05:51.3453593-04:00"
+        }
+      }
+    ],
+    "python": {
+      "passed": 45,
+      "failed": 0,
+      "seconds": 6.8,
+      "report": {
+        "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/python-tests.xml",
+        "sha256": "a4d7a85d2fb8bad6d50b8e2e2c4488c84ba21abde061ced2f00292602447332f"
+      }
+    },
+    "tool_self_checks": {
+      "status": "passed",
+      "check_count": 31,
+      "model_inference": false,
+      "truth_read": false,
+      "private_data": false,
+      "sealed_data": false,
+      "production_approved": false,
+      "report": {
+        "path": "artifacts/goal22-runs/ocr-header-context-runtime-v1/self-test.json",
+        "sha256": "b41268f37b75ee9d659ef4d203daf0d54c5fae1b40bf3c15441820c049ba0cc1"
+      }
+    },
+    "compiler": {
+      "status": "passed",
+      "warnings": 0,
+      "errors": 0,
+      "elapsed_seconds": 28.71
+    }
+  },
+  "setup_failures": [
+    "Initial test compilation reported CA1861 for an inline expected-ID array; changed it to a static readonly fixture and the complete suite passed.",
+    "The preliminary diagnostic rejected a mistyped baseline hash before diagnosis; the retry reads identities from the committed baseline record."
+  ],
+  "prototype_difference": "The initial layout replay suggested 15 train and 8 dev changes. The application adds explicit-evidence and corroboration safeguards and changes 14 train and 8 dev roles. Only actual application results are reported as the outcome.",
+  "before": {
+    "train": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.31666666666666665,
+          "correct_count": 19,
+          "truth_count": 60
+        },
+        "axistitle": {
+          "accuracy": 0.38,
+          "correct_count": 19,
+          "truth_count": 50
+        },
+        "legendtext": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 20,
+          "truth_count": 30
+        },
+        "participant": {
+          "accuracy": 0.4666666666666667,
+          "correct_count": 14,
+          "truth_count": 30
+        },
+        "phaseheading": {
+          "accuracy": 0.45625,
+          "correct_count": 73,
+          "truth_count": 160
+        },
+        "xtick": {
+          "accuracy": 0.6342857142857142,
+          "correct_count": 111,
+          "truth_count": 175
+        },
+        "ytick": {
+          "accuracy": 0.6372549019607843,
+          "correct_count": 130,
+          "truth_count": 204
+        }
+      },
+      "character_error_count": 1358,
+      "character_error_rate": 0.39765739385065885,
+      "geometry_false_negative_count": 74,
+      "geometry_false_positive_count": 8,
+      "geometry_matched_region_count": 635,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 1101,
+      "predicted_region_count": 643,
+      "recognition_exact_accuracy": 0.5585331452750353,
+      "recognition_exact_count": 396,
+      "role_accuracy": 0.5444287729196051,
+      "role_correct_count": 386,
+      "truth_character_count": 3415,
+      "truth_region_count": 709,
+      "unmatched_prediction_insertion_edit_count": 32,
+      "unmatched_truth_deletion_edit_count": 225
+    },
+    "validation": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.2222222222222222,
+          "correct_count": 4,
+          "truth_count": 18
+        },
+        "axistitle": {
+          "accuracy": 0.25,
+          "correct_count": 3,
+          "truth_count": 12
+        },
+        "legendtext": {
+          "accuracy": 0.0,
+          "correct_count": 0,
+          "truth_count": 11
+        },
+        "participant": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 6,
+          "truth_count": 9
+        },
+        "phaseheading": {
+          "accuracy": 0.8166666666666667,
+          "correct_count": 49,
+          "truth_count": 60
+        },
+        "xtick": {
+          "accuracy": 0.8541666666666666,
+          "correct_count": 41,
+          "truth_count": 48
+        },
+        "ytick": {
+          "accuracy": 0.84,
+          "correct_count": 21,
+          "truth_count": 25
+        }
+      },
+      "character_error_count": 396,
+      "character_error_rate": 0.3886162904808636,
+      "geometry_false_negative_count": 31,
+      "geometry_false_positive_count": 24,
+      "geometry_matched_region_count": 152,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 34,
+      "predicted_region_count": 176,
+      "recognition_exact_accuracy": 0.7704918032786885,
+      "recognition_exact_count": 141,
+      "role_accuracy": 0.6775956284153005,
+      "role_correct_count": 124,
+      "truth_character_count": 1019,
+      "truth_region_count": 183,
+      "unmatched_prediction_insertion_edit_count": 130,
+      "unmatched_truth_deletion_edit_count": 232
+    }
+  },
+  "after": {
+    "train": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.55,
+          "correct_count": 33,
+          "truth_count": 60
+        },
+        "axistitle": {
+          "accuracy": 0.38,
+          "correct_count": 19,
+          "truth_count": 50
+        },
+        "legendtext": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 20,
+          "truth_count": 30
+        },
+        "participant": {
+          "accuracy": 0.4666666666666667,
+          "correct_count": 14,
+          "truth_count": 30
+        },
+        "phaseheading": {
+          "accuracy": 0.45625,
+          "correct_count": 73,
+          "truth_count": 160
+        },
+        "xtick": {
+          "accuracy": 0.6342857142857142,
+          "correct_count": 111,
+          "truth_count": 175
+        },
+        "ytick": {
+          "accuracy": 0.6372549019607843,
+          "correct_count": 130,
+          "truth_count": 204
+        }
+      },
+      "character_error_count": 1358,
+      "character_error_rate": 0.39765739385065885,
+      "geometry_false_negative_count": 74,
+      "geometry_false_positive_count": 8,
+      "geometry_matched_region_count": 635,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 1101,
+      "predicted_region_count": 643,
+      "recognition_exact_accuracy": 0.5585331452750353,
+      "recognition_exact_count": 396,
+      "role_accuracy": 0.5641748942172073,
+      "role_correct_count": 400,
+      "truth_character_count": 3415,
+      "truth_region_count": 709,
+      "unmatched_prediction_insertion_edit_count": 32,
+      "unmatched_truth_deletion_edit_count": 225
+    },
+    "validation": {
+      "by_expected_runtime_role": {
+        "annotation": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 12,
+          "truth_count": 18
+        },
+        "axistitle": {
+          "accuracy": 0.25,
+          "correct_count": 3,
+          "truth_count": 12
+        },
+        "legendtext": {
+          "accuracy": 0.0,
+          "correct_count": 0,
+          "truth_count": 11
+        },
+        "participant": {
+          "accuracy": 0.6666666666666666,
+          "correct_count": 6,
+          "truth_count": 9
+        },
+        "phaseheading": {
+          "accuracy": 0.8166666666666667,
+          "correct_count": 49,
+          "truth_count": 60
+        },
+        "xtick": {
+          "accuracy": 0.8541666666666666,
+          "correct_count": 41,
+          "truth_count": 48
+        },
+        "ytick": {
+          "accuracy": 0.84,
+          "correct_count": 21,
+          "truth_count": 25
+        }
+      },
+      "character_error_count": 396,
+      "character_error_rate": 0.3886162904808636,
+      "geometry_false_negative_count": 31,
+      "geometry_false_positive_count": 24,
+      "geometry_matched_region_count": 152,
+      "intersection_over_union_minimum": 0.5,
+      "matched_pair_edit_count": 34,
+      "predicted_region_count": 176,
+      "recognition_exact_accuracy": 0.7704918032786885,
+      "recognition_exact_count": 141,
+      "role_accuracy": 0.7213114754098361,
+      "role_correct_count": 132,
+      "truth_character_count": 1019,
+      "truth_region_count": 183,
+      "unmatched_prediction_insertion_edit_count": 130,
+      "unmatched_truth_deletion_edit_count": 232
+    }
+  },
+  "geometry_after": {
+    "train": {
+      "false_negatives": 74,
+      "false_positives": 8,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.9875583203732504,
+      "predicted_region_count": 643,
+      "recall": 0.8956276445698167,
+      "true_positives": 635,
+      "truth_region_count": 709
+    },
+    "validation": {
+      "false_negatives": 31,
+      "false_positives": 24,
+      "intersection_over_union_minimum": 0.5,
+      "precision": 0.8636363636363636,
+      "predicted_region_count": 176,
+      "recall": 0.8306010928961749,
+      "true_positives": 152,
+      "truth_region_count": 183
+    }
+  },
+  "acceptance_bar_reference": {
+    "character_error_rate_maximum": 0.05,
+    "descriptive_only_until_candidate_outcome_is_closed": true,
+    "path": "ml/policy/acceptance-bars.json",
+    "recognition_exact_match_minimum": 0.95,
+    "role_accuracy_minimum": 0.95,
+    "scorer_does_not_select_or_approve_a_candidate": true,
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "text_region_detection_precision_minimum": 0.95,
+    "text_region_detection_recall_minimum": 0.95,
+    "validation_character_error_rate_meets_bar": false,
+    "validation_effective_detection_precision_meets_bar": false,
+    "validation_effective_detection_recall_meets_bar": false,
+    "validation_recognition_exact_meets_bar": false,
+    "validation_role_accuracy_meets_bar": false
+  },
+  "timing": {
+    "application_milliseconds": 79592.9794,
+    "score_milliseconds": 30992.305899970233,
+    "integration_audit_seconds": 0.38810260000173
+  },
+  "audit_findings": {
+    "synthetic_only": true,
+    "private_data": false,
+    "sealed_data": false,
+    "optimizer_steps": 0,
+    "recognized_regions_checked": 819,
+    "role_changes_by_split": {
+      "train": 14,
+      "validation": 8
+    },
+    "all_role_changes_match_independent_layout_replay": true,
+    "changed_roles_have_review_warning": true,
+    "original_pixels_raw_and_effective_boxes_text_alternatives_unchanged": true,
+    "all_non_role_metrics_unchanged": true,
+    "models_manifests_native_and_licenses_unchanged": true,
+    "runtime_sources_verified": 12,
+    "execution_assemblies_verified": 4,
+    "bindings": {
+      "artifacts/goal22-runs/ocr-combined-assembly-runtime-v2/application-evaluation-v1/report.json": "7edd891b7849e306dbab1b2586da41bb9658f17ccbc21e490889912ac3ee83c4",
+      "artifacts/goal22-runs/ocr-combined-assembly-runtime-v2/full-score-v1.json": "bec07aab9e3bab9fe7a4a91ab62e6ab71f33ab5f19af7fe6cab8f693c74c9972",
+      "artifacts/goal22-runs/ocr-combined-assembly-runtime-v2/candidate.json": "70c73b77e53b928636d3f453ada6f2dc2e688b4ad126553520289a8338329580",
+      "artifacts/goal22-runs/ocr-header-context-runtime-v1/full-score-v1.json": "beff5d3df2f6b59b4423e4749e67b20dac00cdfe1c455d88ed5a36bba919da99",
+      "artifacts/goal22-runs/ocr-header-context-runtime-v1/application-evaluation-v1/report.json": "66cdf599e2f6e348a61c2058dbc40da83119c8f2da4bb74e2c45c088cd4ee872",
+      "artifacts/goal22-runs/ocr-header-context-runtime-v1/candidate.json": "8a84b8349b549f4eb4a8e60f53f57568bcb7c7d28f1a355961d429a0fafcb7dd",
+      "artifacts/goal22-runs/ocr-header-context-runtime-v1/build-source-bindings.json": "5a908b30e24c9b43c163c42f84d9b2b4e0ff20d91fa05df70c313081f21c1d85"
+    },
+    "audit_source_sha256": "7d22827a0450ef5b5b3be88420e1372e6e8126b0e1ce7a28a2d5df859500bd31",
+    "elapsed_seconds": 0.38810260000173
+  },
+  "license_review": "Existing reviewed detector, recognizer, native runtime, manifests, and license inputs are byte-identical. No dependency or payload is added.",
+  "independent_agent_review": "Not used: maintainer requires primary agent alone. Separate Python layout replay checks actual C# output.",
+  "known_limitations": [
+    "All five OCR development bars fail.",
+    "No real or sealed accuracy claim.",
+    "31 dev labels remain missing and 11 matched labels have text errors.",
+    "Legitimate multi-level headings require real confirmation; every changed role emits a review warning and has capped confidence.",
+    "Runtime defaults remain unchanged."
+  ]
+}

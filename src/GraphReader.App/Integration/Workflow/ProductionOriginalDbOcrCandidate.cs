@@ -18,6 +18,8 @@ public sealed partial class ProductionOcrAdapter
         "original-db-head-pixel-bounds-v1";
     internal const string CombinedAssemblyCandidateCompositionVersion =
         "original-db-head-combined-assembly-v1";
+    internal const string HeaderContextCandidateCompositionVersion =
+        "original-db-head-header-context-v1";
 
     internal static async Task<ProductionOcrAdapter> CreateForFrozenDbHeadCandidateEvaluationAsync(
         FrozenCandidateOcrModelDescriptor detectionModel,
@@ -27,7 +29,8 @@ public sealed partial class ProductionOcrAdapter
         CancellationToken cancellationToken,
         bool insidePlotAssembly = false,
         bool pixelBoundsRefinement = false,
-        bool participantLaneAssembly = false)
+        bool participantLaneAssembly = false,
+        bool headerLayoutContext = false)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -41,6 +44,11 @@ public sealed partial class ProductionOcrAdapter
         {
             throw new ArgumentException("The combined assembly trial requires the pixel-bounds baseline.",
                 nameof(pixelBoundsRefinement));
+        }
+        if (headerLayoutContext && !participantLaneAssembly)
+        {
+            throw new ArgumentException("The header-context trial requires the combined assembly baseline.",
+                nameof(participantLaneAssembly));
         }
         cancellationToken.ThrowIfCancellationRequested();
         reviewedOpenCvRuntimeSha256 = ValidateSha256(reviewedOpenCvRuntimeSha256,
@@ -77,7 +85,9 @@ public sealed partial class ProductionOcrAdapter
             await ValidateRecognizerExecutableAsync(recognition.Recognizer, runtime, cancellationToken)
                 .ConfigureAwait(false);
         }, cancellationToken).ConfigureAwait(false);
-        string candidateComposition = participantLaneAssembly
+        string candidateComposition = headerLayoutContext
+            ? HeaderContextCandidateCompositionVersion
+            : participantLaneAssembly
             ? CombinedAssemblyCandidateCompositionVersion
             : pixelBoundsRefinement
             ? PixelBoundsCandidateCompositionVersion
@@ -99,6 +109,7 @@ public sealed partial class ProductionOcrAdapter
                     EnableParticipantLaneAssembly = participantLaneAssembly,
                     EnableInsidePlotAssembly = insidePlotAssembly,
                     EnableOriginalPixelBoundsRefinement = pixelBoundsRefinement,
+                    EnableHeaderLayoutRoleResolution = headerLayoutContext,
                 });
         }, detectionModel.Identity, recognitionModel.Identity, reviewedOpenCvRuntimeSha256,
             candidateComposition);

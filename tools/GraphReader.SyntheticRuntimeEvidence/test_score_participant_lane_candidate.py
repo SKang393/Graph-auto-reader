@@ -202,6 +202,28 @@ def test_pixel_only_profile_rejects_combined_context() -> None:
             scorer.PIXEL_BOUNDS_PROFILE, (), gray)
 
 
+def test_header_context_profile_binds_composition_and_preserves_geometry_replay() -> None:
+    record, gray = _combined_record()
+    record["assembly_context"]["header_layout_composition_version"] = scorer.HEADER_LAYOUT_COMPOSITION
+    _, groups, _, failures = scorer._validate_panel_regions(
+        record, _panel(), (50.0, 0.0, 90.0, 90.0), scorer.HEADER_CONTEXT_PROFILE, (), gray)
+    assert [row.member_ids for row in groups] == [("left", "right"), ("plot-left", "plot-right")]
+    assert failures == 1
+    with pytest.raises(scorer.EvidenceError, match="unknown or missing"):
+        scorer._validate_panel_regions(
+            record, _panel(), (50.0, 0.0, 90.0, 90.0), scorer.COMBINED_ASSEMBLY_PROFILE, (), gray)
+
+
+@pytest.mark.parametrize("version", [None, "unknown"])
+def test_header_context_profile_rejects_missing_or_unrecognized_algorithm(version) -> None:
+    record, gray = _combined_record()
+    if version is not None:
+        record["assembly_context"]["header_layout_composition_version"] = version
+    with pytest.raises(scorer.EvidenceError, match="header layout composition"):
+        scorer._validate_panel_regions(
+            record, _panel(), (50.0, 0.0, 90.0, 90.0), scorer.HEADER_CONTEXT_PROFILE, (), gray)
+
+
 def test_inside_plot_replay_matches_membership_union_and_identifier() -> None:
     record = _inside_plot_record((50.0,))
     raw, effective, predictions, failures = scorer._validate_panel_regions(

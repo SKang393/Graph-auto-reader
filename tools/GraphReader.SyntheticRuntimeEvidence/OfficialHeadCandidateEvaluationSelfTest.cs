@@ -151,6 +151,13 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
             ], root);
             Require(combinedParsed.SequenceEqual(parsed), "separate combined-assembly command");
             checks++;
+            string[] headerParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
+            [
+                OfficialHeadCandidateEvaluation.HeaderContextCommand,
+                request, new string('a', 64), candidate, new string('b', 64), output,
+            ], root);
+            Require(headerParsed.SequenceEqual(parsed), "separate header-context command");
+            checks++;
             string[] supplementalParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
             [
                 OfficialHeadCandidateEvaluation.SupplementalCommand,

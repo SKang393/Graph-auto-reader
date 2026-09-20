@@ -71,6 +71,10 @@ INSIDE_PLOT_RUNTIME_SOURCE_PATHS = RUNTIME_SOURCE_PATHS | {
 PIXEL_BOUNDS_RUNTIME_SOURCE_PATHS = INSIDE_PLOT_RUNTIME_SOURCE_PATHS | {
     "src/GraphReader.Ocr/OriginalPixelTextRegionRefiner.cs",
 }
+HEADER_CONTEXT_RUNTIME_SOURCE_PATHS = PIXEL_BOUNDS_RUNTIME_SOURCE_PATHS | {
+    "src/GraphReader.Ocr/HeaderLayoutRoleResolver.cs",
+}
+HEADER_LAYOUT_COMPOSITION = "detached-header-note-context-v1"
 PIXEL_BOUNDS_COMPOSITION = "original-pixel-text-bounds-v1"
 PIXEL_BOUNDS_SOURCE_SHA256 = "077de4376501026cc593633d0aa75b2e3bda9a91d5b1d808b1c4f08dc3f4e7ab"
 HISTORICAL_RUNTIME_FILES = {
@@ -109,6 +113,7 @@ class _AssemblyProfile:
     requires_phase_dividers: bool
     refines_pixel_bounds: bool = False
     assembles_participant_lane: bool = False
+    resolves_header_context: bool = False
 
 
 PARTICIPANT_LANE_PROFILE = _AssemblyProfile(
@@ -150,11 +155,21 @@ COMBINED_ASSEMBLY_PROFILE = replace(
     candidate_composition="original-db-head-combined-assembly-v1",
     assembles_participant_lane=True,
 )
+HEADER_CONTEXT_PROFILE = replace(
+    COMBINED_ASSEMBLY_PROFILE,
+    mode="header_context",
+    output_schema="graphreader.header-context-full-ocr-score.v1",
+    evaluation_schema="graphreader.header-context-candidate-evaluation.v1",
+    candidate_composition="original-db-head-header-context-v1",
+    runtime_source_paths=frozenset(HEADER_CONTEXT_RUNTIME_SOURCE_PATHS),
+    resolves_header_context=True,
+)
 PROFILES = {
     PARTICIPANT_LANE_PROFILE.mode: PARTICIPANT_LANE_PROFILE,
     INSIDE_PLOT_PROFILE.mode: INSIDE_PLOT_PROFILE,
     PIXEL_BOUNDS_PROFILE.mode: PIXEL_BOUNDS_PROFILE,
     COMBINED_ASSEMBLY_PROFILE.mode: COMBINED_ASSEMBLY_PROFILE,
+    HEADER_CONTEXT_PROFILE.mode: HEADER_CONTEXT_PROFILE,
 }
 
 
@@ -860,6 +875,10 @@ def _validate_panel_regions(
 ]:
     context = geometry._object(record.get("assembly_context"), "assembly context")
     context_fields = {"composition_version", "plot_bounds_panel_ltrb"}
+    if profile.resolves_header_context:
+        context_fields.add("header_layout_composition_version")
+        if context.get("header_layout_composition_version") != HEADER_LAYOUT_COMPOSITION:
+            raise EvidenceError("header layout composition is missing or invalid")
     if profile.requires_phase_dividers:
         context_fields.add("phase_divider_xs")
     if profile.assembles_participant_lane:
@@ -1419,6 +1438,9 @@ def score(
                 "phase_divider_geometry_authenticated_from_same_bound_runtime_reports": True,
             } if profile.requires_phase_dividers else {}),
             "counts_by_split": evidence.assembly_counts,
+            **({
+                "header_layout_composition_version": HEADER_LAYOUT_COMPOSITION,
+            } if profile.resolves_header_context else {}),
             **({
                 "participant_lane_composition_version": ASSEMBLY_COMPOSITION,
                 "assembly_order": ["participant_lane", "inside_plot", "pixel_bounds"],
