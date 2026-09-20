@@ -428,6 +428,45 @@ public sealed class LegendReasoningServiceTests
     }
 
     [TestMethod]
+    public async Task UnknownMarkerFillCanRemainUnresolvedInsideAKnownFillSeries()
+    {
+        LegendPlotMarker[] markers = [LegendTestFixtures.DefaultMarkers()[0] with { Fill = MarkerFill.Unknown },
+            LegendTestFixtures.DefaultMarkers()[1]];
+        var request = LegendTestFixtures.Request(markers: markers);
+        var result = await ResolveAsync(request);
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.AreEqual(MarkerFill.Unknown, request.PlotMarkers[0].Fill);
+        Assert.AreEqual(MarkerFill.Filled, request.Series[0].Fill);
+        Assert.IsTrue(result.Warnings.Contains($"plot_marker_fill_unresolved:{LegendTestFixtures.FilledMarkerId}"));
+    }
+
+    [TestMethod]
+    public async Task KnownMarkerFillConflictRemainsRejected()
+    {
+        var request = LegendTestFixtures.Request(markers:
+            [LegendTestFixtures.DefaultMarkers()[0] with { Fill = MarkerFill.Open }, LegendTestFixtures.DefaultMarkers()[1]]);
+        var result = await ResolveAsync(request);
+        Assert.IsFalse(result.Succeeded);
+        Assert.AreEqual("LEGEND_INVALID_MARKER", result.Failure?.Code);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task UnknownFillDoesNotHideWrongShapeOrSeriesMembership(bool wrongShape)
+    {
+        LegendPlotMarker marker = LegendTestFixtures.DefaultMarkers()[0] with
+        {
+            Fill = MarkerFill.Unknown,
+            Shape = wrongShape ? MarkerShape.Square : MarkerShape.Circle,
+            SeriesId = wrongShape ? LegendTestFixtures.FilledSeriesId : LegendTestFixtures.OpenSeriesId,
+        };
+        var result = await ResolveAsync(LegendTestFixtures.Request(markers: [marker, LegendTestFixtures.DefaultMarkers()[1]]));
+        Assert.IsFalse(result.Succeeded);
+        Assert.AreEqual("LEGEND_INVALID_MARKER", result.Failure?.Code);
+    }
+
+    [TestMethod]
     public async Task MarkerWithMismatchedSeriesEvidenceReturnsStructuredFailure()
     {
         var markers = new[]

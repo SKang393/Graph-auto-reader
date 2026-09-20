@@ -42,6 +42,8 @@ public sealed class LegendReasoningService : ILegendReasoningService
         }
 
         var warnings = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (LegendPlotMarker marker in request.PlotMarkers.Where(static marker => marker.Fill == MarkerFill.Unknown))
+            warnings.Add($"plot_marker_fill_unresolved:{marker.MarkerId}");
         IReadOnlyList<LegendRegion> regions;
         var regionTimer = Stopwatch.StartNew();
         try
@@ -610,11 +612,12 @@ public sealed class LegendReasoningService : ILegendReasoningService
 
             if (!seriesById.TryGetValue(marker.SeriesId, out LegendSeriesCandidate? series) ||
                 !series.MarkerIds.Contains(marker.MarkerId, StringComparer.Ordinal) ||
-                marker.Shape != series.Shape || marker.Fill != series.Fill)
+                marker.Shape != series.Shape ||
+                (marker.Fill != MarkerFill.Unknown && marker.Fill != series.Fill))
             {
                 return Error(
                     "LEGEND_INVALID_MARKER",
-                    "Every plot marker must reference its owning series with matching shape and fill evidence.");
+                    "Every plot marker must reference its owning series with matching shape and compatible known fill evidence.");
             }
         }
 

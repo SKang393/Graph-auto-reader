@@ -1,0 +1,225 @@
+{
+  "schema": "graphreader.goal22.unknown-fill-integration.v1",
+  "status": "repair_verified_workflow_acceptance_failed",
+  "goal22_complete": false,
+  "base_commit": "9f61c3d363952486d98e5ba8c8ddb244836ef8c8",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.Legends/LegendReasoningContracts.cs",
+      "sha256": "ad5ca37535470ae27a92c95583c0a29ee92006a737884075f44bfc5d74da1699",
+      "archive": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/source-snapshot/src/GraphReader.Legends/LegendReasoningContracts.cs"
+    },
+    {
+      "path": "src/GraphReader.Legends/LegendReasoningService.cs",
+      "sha256": "8a5384687b741a5aa54c0b0f2d55fe7c198b5b9346fa6758a322ee9d485e3a3b",
+      "archive": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/source-snapshot/src/GraphReader.Legends/LegendReasoningService.cs"
+    },
+    {
+      "path": "tests/GraphReader.Legends.Tests/LegendReasoningServiceTests.cs",
+      "sha256": "62d812c1a7dee31c603ee531ba3d303ab71694c2e3ba820fc471eb06565ee9ff",
+      "archive": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/source-snapshot/tests/GraphReader.Legends.Tests/LegendReasoningServiceTests.cs"
+    }
+  ],
+  "compiled_source_snapshot_count": 262,
+  "all_source_snapshots_verified": true,
+  "comparison": {
+    "source_count": 23,
+    "previously_observed_panels": 25,
+    "observed_panels": 27,
+    "newly_reached_panels": 2,
+    "all_measured_axis_ocr_markers_calibration_unchanged": true,
+    "previously_written_minimal_csv_bytes_unchanged": true,
+    "completed_sources": 6,
+    "failed_sources": 17,
+    "exported_row_x_sources": {
+      "printed": 22,
+      "estimated": 58
+    },
+    "private_reads": 0,
+    "sealed_reads": 0
+  },
+  "unresolved_fill_warnings_retained": 3,
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 6,
+    "failed_cases": 17,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 16,
+    "matched_series": 6,
+    "truth_points": 706,
+    "predicted_points": 66,
+    "matched_points": 49,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 80,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 46,
+    "correct_rows": 28,
+    "missing_rows": 678,
+    "extra_rows": 34,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 18,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 49,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 657,
+    "unique_point_extra": 17,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7424242424242424,
+    "unique_point_structural_coverage": 0.06940509915014165,
+    "unique_point_value_precision": 0.7424242424242424,
+    "unique_point_value_coverage": 0.06940509915014165,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.35,
+    "relational_row_coverage": 0.03867403314917127,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.6086956521739131,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 17
+    }
+  },
+  "all_csv_metrics_unchanged": true,
+  "timing_seconds": {
+    "model_workflow": 152.0221109,
+    "csv_scoring": 0.2038897,
+    "app_tests": 19,
+    "legend_tests": 0.214,
+    "tool_build": 4.95
+  },
+  "validation": {
+    "application_tests_passed": 341,
+    "legend_tests_passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "compiler_warnings": 0,
+    "compiler_errors": 0,
+    "private_runner_self_test": {
+      "status": "pass",
+      "checks": [
+        "metadata_is_checked_before_payload_and_after_complete_parse",
+        "sealed_projects_share_one_first_read_and_content_handshake",
+        "one_project_parse_failure_prevents_partial_truth_scoring",
+        "metadata_drift_before_inference_rejected",
+        "sealed_run_without_first_read_handshake_rejected"
+      ],
+      "private_corpus_access": false,
+      "sealed_corpus_access": false,
+      "model_inference": false
+    }
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/source-bindings.json",
+      "sha256": "b268fecfd3afcd97171fef8d87d675dcec41d2f6d398919216381564fcf0b296"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/test-results/app.trx",
+      "sha256": "28230dccf6be646a07dcf82d03c8192270cf11a404210f950f4d5b8435c71a6d"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/test-results/legends.trx",
+      "sha256": "a4a9dcdd5018fd5b575a6129e5157ccc576d0668a28c8844feafb4d00e27e7ff"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/app-tests.log",
+      "sha256": "554992b50f04a7fa511b173d7ba7a1ce1f6b226a8847db1beddc88051bd21fa0"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/legends-tests.log",
+      "sha256": "1c75fa39e1b2c3599043cd31814769a66f72e741ca0cfd60920cd9de72463a90"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/build.log",
+      "sha256": "2ce539e1c3d80833a9a2e64774577fb943286b8dd2a8e7e2788eb2fee85f2644"
+    },
+    {
+      "path": "artifacts/goal22-runs/workflow-unknown-fill-checks-v1/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/preparation.json",
+      "sha256": "79c8a9b0a930c70390456767814bf6fa3b5ce3a639a8a02013cb2ace898a394b"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/protocol.json",
+      "sha256": "b420320420ee860d69605edcc9760622e7ebefb19685e59d8e4ee21393f9ff83"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/source-bindings.json",
+      "sha256": "80daf352d07eaf417478112ae3ca2213b3b6dd30384ee4d733ea00c7b89610f3"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/candidate-binding.json",
+      "sha256": "71a5b70e2799f817f66bdf4067ef757c21c6e9cb8c55c6341afb35bb848c136e"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/input-manifest.json",
+      "sha256": "defc11ee1e8d3d6fcc6ce2806d45db2d8c1a6531f70e18a7aa2d466d160cf536"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/runtime-description.json",
+      "sha256": "96eba52c9f1f8440316466cd5bc91507106a84a0c0d627e3d4157e8512b161c5"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/execution/report.json",
+      "sha256": "89e82e5e2eaa0583d2e4a81da947a5e985cd74a404c9b0ec6a494011b8130691"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/completion.json",
+      "sha256": "29d837bf9e436eb9f39cc0483be2f9a5e8a0f1f0e0d1af604ce0bb7cc2022fdc"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/comparison.json",
+      "sha256": "4729e26431ee7931e466767724986b098ece33bbc482fb306cc41d0e44b6d573"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/csv-evaluation-input.json",
+      "sha256": "90d1e766d82bb2bf38c2e094c0c750dfbf006bfbba60fa3f57740b8bfca1e68b"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v2/csv-score.json",
+      "sha256": "2f003c48e249e32f0bcb78671d71d196fa7cf65dc7dfe69b2bef82538b896384"
+    }
+  ],
+  "retained_void_preflight": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-unknown-fill-v1/void-record.json",
+    "sha256": "c97a9376e15bace5872743fad8db6841f59ad8275516464aea36b5dabe679cda"
+  },
+  "helpers": [
+    {
+      "path": "artifacts/goal22-tools/Prepare-UnknownFillWorkflow.py",
+      "sha256": "84284cb3a8a4c242c10f2cea6d5f4b4fc8b166aec06d74f2e4033a6753574718"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-UnknownFillWorkflowV2.py",
+      "sha256": "a484c74ead406529ae27db5188d509523e0237ab12a900bdaab4b11de2517bb2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-UnknownFillWorkflowV2.py",
+      "sha256": "61a1adc57fcc71dafc84c4d7010cb98b8dce1f0fcc5c144d65abb1ac3635c184"
+    }
+  ],
+  "model_weights_and_operating_thresholds_unchanged": true,
+  "legend_algorithm_stage_version": "0.1.1",
+  "contract_schema_changed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_portable": {
+    "build": 433,
+    "version": "0.4.33"
+  },
+  "license_review": "Apache-2.0 project code only; dependencies and payloads unchanged. Only synthetic-derived aggregates and hashes committed."
+}

@@ -11,7 +11,7 @@ public static class LegendReasoningContract
 {
     public const int Version = 1;
     public const string Stage = "legends";
-    public const string StageVersion = "0.1.0";
+    public const string StageVersion = "0.1.1";
     public const string CoordinateSpace = "original_pixels";
 }
 
@@ -322,7 +322,7 @@ public sealed record LegendReasoningOptions
 
     public double MinimumParticipantConfidence { get; init; } = 0.65;
 
-    public string StageVersion { get; init; } = "0.1.0";
+    public string StageVersion { get; init; } = LegendReasoningContract.StageVersion;
 }
 
 public sealed class LegendReasoningRequest
