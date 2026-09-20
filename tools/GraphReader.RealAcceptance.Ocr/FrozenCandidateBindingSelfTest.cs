@@ -66,7 +66,28 @@ internal static class FrozenCandidateBindingSelfTest
             RequiredObject(balanced, "algorithms")["marker_geometry_support"] = "multiradius_enclosed_balanced_v2";
             Require(fixture.Load(balanced).Algorithms.MarkerGeometrySupport == "multiradius_enclosed_balanced_v2",
                 "FROZEN_CANDIDATE_BALANCED_GEOMETRY_NOT_BOUND");
-            foreach (JsonObject candidate in new[] { enclosed, balanced })
+            Require(fixture.Load(balanced).Algorithms.MarkerCenterThreshold == 0.25,
+                "FROZEN_CANDIDATE_DEFAULT_CUTOFF_CHANGED");
+            JsonObject cascade = Clone(balanced);
+            RequiredObject(cascade, "algorithms")["marker_center_threshold"] = 0.1;
+            Require(fixture.Load(cascade).Algorithms.MarkerCenterThreshold == 0.1,
+                "FROZEN_CANDIDATE_CASCADE_CUTOFF_NOT_BOUND");
+            Require(FrozenRealWorkflowAdmission.ComputeOperatingPointIdentity(new string('a', 64), 0.1) !=
+                FrozenRealWorkflowAdmission.ComputeOperatingPointIdentity(new string('a', 64)),
+                "FROZEN_CANDIDATE_CUTOFF_MISSING_FROM_OPERATING_IDENTITY");
+            foreach (double invalid in new[] { 0.0, 0.10001, 0.26, 1.0 })
+            {
+                JsonObject changedThreshold = Clone(cascade);
+                RequiredObject(changedThreshold, "algorithms")["marker_center_threshold"] = invalid;
+                fixture.ExpectRejected(changedThreshold, "unsupported marker cutoff");
+            }
+            JsonObject wrongGeometryThreshold = Clone(enclosed);
+            RequiredObject(wrongGeometryThreshold, "algorithms")["marker_center_threshold"] = 0.1;
+            fixture.ExpectRejected(wrongGeometryThreshold, "cascade cutoff without balanced geometry");
+            JsonObject stringThreshold = Clone(cascade);
+            RequiredObject(stringThreshold, "algorithms")["marker_center_threshold"] = "0.1";
+            fixture.ExpectRejected(stringThreshold, "string marker cutoff");
+            foreach (JsonObject candidate in new[] { enclosed, balanced, cascade })
             {
                 try
                 {

@@ -39,7 +39,11 @@ public sealed record ProposalMarkerStageCounters(
     int DecodedPointsOutsidePlot,
     int CandidatesBeforeNms,
     int NmsSuppressions,
-    int FinalCandidates);
+    int FinalCandidates)
+{
+    public double OperatingThreshold { get; init; } = ProductionProposalMarkerCenterAdapter.CenterThreshold;
+    public int OutputsAboveOperatingThreshold { get; init; } = OutputsAbove025;
+}
 
 public sealed record ProposalMarkerCandidateDiagnosticResult(
     IReadOnlyList<MarkerCenter> Candidates,
@@ -97,6 +101,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     public const string MaskPreservingCandidateId = "P1";
     public const string ExpectedMaskPreservingModelSha256 = "4dece2eeb87229d5d57e0d2d714c1915ebecf8e9475b0d466a03dd970993fdb4";
     public const float CenterThreshold = 0.25f;
+    internal const double CascadeCenterThreshold = 0.1;
     public const int PatchSize = 33;
     public const int ProposalStride = 4;
     public const int BatchSize = 256;
@@ -120,6 +125,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     private readonly bool plotDomainProposalFiltering;
     private readonly bool enclosedGeometrySupport;
     private readonly bool balancedRingSupport;
+    private readonly double centerThreshold;
     private readonly string maskPreservingRevision;
     private readonly string maskPreservingCandidateId;
 
@@ -272,6 +278,31 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             plotDomainProposalFiltering: true, enclosedGeometrySupport: true, balancedRingSupport: balancedRingSupport);
     }
 
+    internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidateCascadeEvaluation(
+        FrozenCandidateMarkerCenterModelDescriptor descriptor,
+        InferenceRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(runtime);
+        return CreateForFrozenCandidateCascadeEvaluation(descriptor, new RuntimeProposalMarkerInferenceRunner(runtime));
+    }
+
+    internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidateCascadeEvaluation(
+        FrozenCandidateMarkerCenterModelDescriptor descriptor,
+        IProposalMarkerInferenceRunner inference)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ArgumentNullException.ThrowIfNull(inference);
+        ValidateFrozenCandidateDescriptor(descriptor, enclosedGeometrySupport: true, balancedRingSupport: true,
+            centerThreshold: CascadeCenterThreshold);
+        return new ProductionProposalMarkerCenterAdapter(
+            descriptor.Identity, inference, multiradiusGeometry: true, maskPreservingCandidate: true,
+            expectedMaskPreservingSha256: descriptor.Identity.Sha256,
+            maskPreservingRevision: descriptor.Identity.ModelId,
+            maskPreservingCandidateId: descriptor.Identity.Version,
+            plotDomainProposalFiltering: true, enclosedGeometrySupport: true, balancedRingSupport: true,
+            centerThreshold: CascadeCenterThreshold);
+    }
+
     internal ProductionProposalMarkerCenterAdapter(
         ModelIdentity model,
         IProposalMarkerInferenceRunner inference,
@@ -284,7 +315,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         string? maskPreservingCandidateId = null,
         bool plotDomainProposalFiltering = false,
         bool enclosedGeometrySupport = false,
-        bool balancedRingSupport = false)
+        bool balancedRingSupport = false,
+        double centerThreshold = CenterThreshold)
     {
         Model = model ?? throw new ArgumentNullException(nameof(model));
         Model.Validate();
@@ -304,6 +336,10 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         if (balancedRingSupport && !enclosedGeometrySupport)
             throw new InvalidOperationException("Balanced ring support requires the explicit unapproved enclosed-geometry candidate.");
         this.balancedRingSupport = balancedRingSupport;
+        if (centerThreshold != CenterThreshold &&
+            (centerThreshold != CascadeCenterThreshold || !balancedRingSupport || isApproved))
+            throw new InvalidOperationException("The lower proposal cutoff requires the explicit unapproved balanced cascade candidate.");
+        this.centerThreshold = centerThreshold;
         string expectedModelSha256 = maskPreservingCandidate
             ? expectedMaskPreservingSha256 ?? ExpectedMaskPreservingModelSha256
             : multiradiusGeometry ? ExpectedMultiradiusModelSha256 : ExpectedModelSha256;
@@ -330,7 +366,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     public string AdapterId => string.Concat(
         $"graphreader-marker-center-proposal:{Model.Sha256[..12].ToLowerInvariant()}",
         plotDomainProposalFiltering ? ":plot-domain-v25" : string.Empty,
-        GeometrySupportSuffix);
+        GeometrySupportSuffix,
+        centerThreshold == CascadeCenterThreshold ? ":cascade-010-v1" : string.Empty);
 
     private string GeometrySupportSuffix => balancedRingSupport
         ? ":enclosed-balanced-support-v2"
@@ -438,7 +475,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     private static void ValidateFrozenCandidateDescriptor(
         FrozenCandidateMarkerCenterModelDescriptor descriptor,
         bool enclosedGeometrySupport = false,
-        bool balancedRingSupport = false)
+        bool balancedRingSupport = false,
+        double centerThreshold = CenterThreshold)
     {
         descriptor.Identity.Validate();
         VerifyChecksum(
@@ -481,7 +519,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             RequireExactNumber(postprocessing, "enclosure_ink_threshold", 0.12, "Frozen candidate postprocessing");
             RequireExactNumber(postprocessing, "enclosure_background_connectivity", 4, "Frozen candidate postprocessing");
         }
-        RequireExactNumber(postprocessing, "center_threshold", CenterThreshold, "Frozen candidate postprocessing");
+        RequireExactNumber(postprocessing, "center_threshold", centerThreshold, "Frozen candidate postprocessing");
         RequireExactNumber(postprocessing, "offset_scale", ProposalStride, "Frozen candidate postprocessing");
         RequireExactNumber(postprocessing, "minimum_radius_pixels", 2.5, "Frozen candidate postprocessing");
         RequireExactNumber(postprocessing, "maximum_radius_pixels", 8.0, "Frozen candidate postprocessing");
@@ -793,7 +831,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             var cacheParameters = new Dictionary<string, object?>(StringComparer.Ordinal)
             {
                 ["candidate_id"] = maskPreservingCandidate ? maskPreservingCandidateId : multiradiusGeometry ? MultiradiusCandidateId : CandidateId,
-                ["threshold"] = CenterThreshold,
+                ["threshold"] = centerThreshold,
                 ["batch_offset"] = batchOffset,
                 ["batch_count"] = count,
             };
@@ -848,12 +886,13 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                     throw new InvalidDataException("The proposal marker candidate returned invalid output values.");
                 }
 
-                if (probability < CenterThreshold)
+                if (probability >= CenterThreshold) counters.OutputsAbove025++;
+                if (probability < centerThreshold)
                 {
                     continue;
                 }
 
-                counters.OutputsAbove025++;
+                counters.OutputsAboveOperatingThreshold++;
 
                 Proposal proposal = proposals[index];
                 double x = proposal.X + (offsetX * ProposalStride);
@@ -932,7 +971,11 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             .ToArray();
         return new ProposalMarkerCandidateDiagnosticResult(
             candidates,
-            counters.ToRecord(),
+            counters.ToRecord() with
+            {
+                OperatingThreshold = centerThreshold,
+                OutputsAboveOperatingThreshold = counters.OutputsAboveOperatingThreshold,
+            },
             preNmsCandidates,
             gridProposalCenters,
             inkSupportedProposalCenters,
@@ -986,7 +1029,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             var cacheParameters = new Dictionary<string, object?>(StringComparer.Ordinal)
             {
                 ["candidate_id"] = maskPreservingCandidateId,
-                ["threshold"] = CenterThreshold,
+                ["threshold"] = centerThreshold,
                 ["batch_offset"] = offset,
             };
             if (plotDomainProposalFiltering)
@@ -1146,6 +1189,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         public int EmittedProposals;
         public int InferenceOutputs;
         public int OutputsAbove025;
+        public int OutputsAboveOperatingThreshold;
         public int DecodedPointsMasked;
         public int GeometryConsensusRejectsAfterRefinementAttempts;
         public int DecodedPointsOutsidePlot;

@@ -1,0 +1,59 @@
+{
+  "schema": "graphreader.marker-cascade-operating-point-trial.v1",
+  "status": "registered_synthetic_diagnostic",
+  "failure_mode": "The final native-context pipeline misses 14 of 206 development markers with no extra points. Thirteen misses are triangles. A previous two-panel tensor diagnostic recovers four open triangles at center threshold 0.1 before the remaining exclusions, with one unchanged extra post-classifier proposal in that panel.",
+  "responsible_subsystem": "Marker proposal confidence cutoff before the existing V4 artifact/shape/fill classifier.",
+  "hypothesis": "Passing additional localized proposals to the unchanged classifier may recover real markers without unacceptable final false detections. The complete fixed source population must be measured; the earlier two-panel counterfactual does not establish this.",
+  "isolated_change": "One candidate-only center cutoff change from 0.25 to 0.10. All four weights, classifier cutoff 0.5, panel/axis/OCR processing, geometry, NMS, calibration guards and CSV scorer stay fixed.",
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "acceptance_bars": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "metric": "Report final classified center precision and recall with the existing one-to-one five-pixel matcher, every source and point retained. Also report OCR preservation, all calibration failures and full CSV values/relations. No component-model, sealed, real-data or production pass follows from this diagnostic.",
+  "split_identities": {
+    "input_manifest": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-diagnostic-continuation-v1/input-manifest.json",
+      "sha256": "d3a4b01186b3f56acaf970326a8179acf1ae81645bdb18094bcb63d2edf6e146"
+    },
+    "source_count": 23,
+    "train_sources": 20,
+    "dev_sources": 3,
+    "physical_panels": 39,
+    "train_marker_truths": 500,
+    "dev_marker_truths": 206,
+    "all_points": 706,
+    "expected_relational_rows": 724
+  },
+  "supporting_evidence": [
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-diagnostic-continuation-v1/native-marker-score.json",
+      "sha256": "dafc3b72f3bfbc2b51cd5d4449bf95537cff36e6d6aeecbabac59250805ba193"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-diagnostic-continuation-v1/native-marker-details.json",
+      "sha256": "a143b8eb097738f607c78e6a18609d5ec310cd9fbec2f8a88e33cb17af883f47"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-proposal-capture-v1/cascade-threshold-diagnosis.json",
+      "sha256": "dc8c757c1c8d5dc65e921e4f21b1fe13c5af40b1d2d751d0835c1041ea252a69"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-proposal-capture-v1/confidence-diagnosis.json",
+      "sha256": "94f786084879d6553502e6ae182da9c8affe698d8446cec15d07fc53bafb06e7"
+    }
+  ],
+  "budget": {
+    "whole_workflow_diagnostic_runs": 1,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approval": false
+  },
+  "known_limits": "V27 component/family center-only development gates remain failed. A useful final-pipeline diagnostic still requires authenticated complete stage acceptance, independent synthetic/sealed and real confirmation; do not bypass those gates.",
+  "new_model_revision": false,
+  "production_defaults_unchanged": true
+}

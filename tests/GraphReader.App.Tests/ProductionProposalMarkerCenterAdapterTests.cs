@@ -799,8 +799,56 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             maskPreservingCandidate: true,
             isApproved: isApproved);
 
+    [TestMethod]
+    [DataRow(0.25, 0.2, 0)]
+    [DataRow(0.1, 0.2, 1)]
+    [DataRow(0.1, 0.1, 1)]
+    [DataRow(0.1, 0.099, 0)]
+    public async Task CascadeCutoffBindsActualDecisionCountersAndCache(double threshold, double score, int expectedCount)
+    {
+        float[] luminance = Enumerable.Repeat(1f, 32 * 32).ToArray();
+        for (int y = 13; y <= 19; y++)
+            for (int x = 13; x <= 19; x++) luminance[y * 32 + x] = 0;
+        var frame = new MarkerImageFrame(32, 32, 1, luminance, MarkerSourceImage.Original,
+            MarkerAffineTransform.Identity, MarkerMask.Empty(32, 32), MarkerMask.Empty(32, 32));
+        MarkerPolygon plot = MarkerPolygon.FromRectangle(new(0, 0, 32, 32));
+        var proposals = ProductionProposalMarkerCenterAdapter.DiagnoseMaskPreservingProposals(frame, plot, CancellationToken.None);
+        int target = proposals.EmittedProposalFeatures.Select((value, index) => (value, index))
+            .Single(item => item.value.OriginalBaseCenter == new MarkerPoint(16, 16)).index;
+        var runner = new FakeRunner(count =>
+        {
+            float[] output = new float[count * 4];
+            output[target * 4] = (float)score;
+            output[target * 4 + 3] = 3;
+            return output;
+        });
+        var adapter = CreatePlotDomainAdapter(runner, true, true, threshold);
+        var result = await adapter.DetectCandidateWithDiagnosticsAsync(frame, plot, CancellationToken.None);
+        Assert.AreEqual(expectedCount, result.Candidates.Count);
+        Assert.AreEqual(expectedCount, result.StageCounters.OutputsAboveOperatingThreshold);
+        Assert.AreEqual(0, result.StageCounters.OutputsAbove025);
+        Assert.AreEqual(threshold, result.StageCounters.OperatingThreshold);
+        Assert.AreEqual(threshold, runner.LastRequest!.CacheMaterial.Parameters["threshold"]);
+        Assert.AreEqual(threshold == 0.1, adapter.AdapterId.EndsWith(":cascade-010-v1", StringComparison.Ordinal));
+        Assert.IsFalse(adapter.IsApproved);
+    }
+
+    [TestMethod]
+    public void CascadeCutoffCannotEnterDefaultOrApprovedPaths()
+    {
+        var runner = new FakeRunner(_ => throw new InvalidOperationException("No inference is authorized."));
+        Assert.ThrowsExactly<InvalidOperationException>(() => CreatePlotDomainAdapter(runner, centerThreshold: 0.1));
+        Assert.ThrowsExactly<InvalidOperationException>(() => CreatePlotDomainAdapter(runner, true, true, 0.05));
+        var model = new ModelIdentity(ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
+            ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
+            ProductionProposalMarkerCenterAdapter.ExpectedMaskPreservingModelSha256, "unused.onnx");
+        Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(
+            model, runner, multiradiusGeometry: true, maskPreservingCandidate: true, isApproved: true, centerThreshold: 0.1));
+    }
+
     private static ProductionProposalMarkerCenterAdapter CreatePlotDomainAdapter(
-        FakeRunner runner, bool enclosedGeometrySupport = false, bool balancedRingSupport = false) =>
+        FakeRunner runner, bool enclosedGeometrySupport = false, bool balancedRingSupport = false,
+        double centerThreshold = ProductionProposalMarkerCenterAdapter.CenterThreshold) =>
         new(new ModelIdentity(
             ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
             ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
@@ -811,7 +859,8 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             maskPreservingCandidate: true,
             plotDomainProposalFiltering: true,
             enclosedGeometrySupport: enclosedGeometrySupport,
-            balancedRingSupport: balancedRingSupport);
+            balancedRingSupport: balancedRingSupport,
+            centerThreshold: centerThreshold);
 
     private static MarkerImageFrame ParityFrame(
         int width,

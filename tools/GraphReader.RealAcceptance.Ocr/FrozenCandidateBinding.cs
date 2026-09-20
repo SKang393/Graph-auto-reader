@@ -61,7 +61,8 @@ internal sealed record FrozenCandidateAlgorithms(
     string LegendAdapterId,
     string PhaseAdapterId,
     string MarkerProposalDomain = "full_frame_v24",
-    string MarkerGeometrySupport = "multiradius_v24");
+    string MarkerGeometrySupport = "multiradius_v24",
+    double MarkerCenterThreshold = 0.25);
 
 internal sealed class FrozenCandidateBinding
 {
@@ -493,6 +494,15 @@ internal sealed class FrozenCandidateBinding
         if (geometrySupport is not ("multiradius_v24" or "multiradius_enclosed_v1" or "multiradius_enclosed_balanced_v2") ||
             (geometrySupport != "multiradius_v24" && proposalDomain != "axis_polygon_or_16px_v25"))
             throw new InvalidDataException("Frozen candidate marker geometry support is unsupported.");
+        double centerThreshold = 0.25;
+        if (value.TryGetProperty("marker_center_threshold", out JsonElement threshold))
+        {
+            fields = [.. fields, "marker_center_threshold"];
+            if (threshold.ValueKind != JsonValueKind.Number || !threshold.TryGetDouble(out centerThreshold) ||
+                centerThreshold is not (0.25 or 0.1) ||
+                (centerThreshold == 0.1 && geometrySupport != "multiradius_enclosed_balanced_v2"))
+                throw new InvalidDataException("Frozen candidate marker operating threshold is unsupported.");
+        }
         RequireExactProperties(value, fields, "Frozen candidate algorithms");
         return new FrozenCandidateAlgorithms(
             RequiredText(value, "axis_stage_version", "Frozen candidate algorithms"),
@@ -509,7 +519,8 @@ internal sealed class FrozenCandidateBinding
             RequiredText(value, "legend_adapter_id", "Frozen candidate algorithms"),
             RequiredText(value, "phase_adapter_id", "Frozen candidate algorithms"),
             proposalDomain,
-            geometrySupport);
+            geometrySupport,
+            centerThreshold);
     }
 
     private static FrozenCandidateFile ReadFile(

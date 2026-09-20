@@ -79,7 +79,7 @@ internal static class FrozenRealWorkflowAdmission
         ArgumentNullException.ThrowIfNull(candidate);
         if (candidate.MarkerClassifier.SyntheticCandidate is not null)
             throw new InvalidDataException("Unapproved classifier weights are restricted to synthetic development until their own prerequisite gates pass.");
-        if (candidate.Algorithms.MarkerGeometrySupport != "multiradius_v24")
+        if (candidate.Algorithms.MarkerGeometrySupport != "multiradius_v24" || candidate.Algorithms.MarkerCenterThreshold != 0.25)
             throw new InvalidDataException("Supplemental marker geometry is restricted to synthetic development until its own prerequisite gates pass.");
         return LoadCore(
             repositoryRoot,
@@ -727,7 +727,7 @@ internal static class FrozenRealWorkflowAdmission
         string executionDescriptorSha256 = ComputeExecutionDescriptorSha256(
             candidate.CopyDocumentBytes());
         string operatingPointIdentity = ComputeOperatingPointIdentity(
-            executionDescriptorSha256);
+            executionDescriptorSha256, candidate.Algorithms.MarkerCenterThreshold);
         return new FrozenRealWorkflowCandidateIdentity(
             candidate.Revision,
             candidate.CandidateId,
@@ -754,15 +754,17 @@ internal static class FrozenRealWorkflowAdmission
         return FrozenCandidateBinding.Hash(stream.ToArray());
     }
 
-    internal static string ComputeOperatingPointIdentity(string executionDescriptorSha256)
+    internal static string ComputeOperatingPointIdentity(string executionDescriptorSha256, double markerCenterThreshold = 0.25)
     {
+        if (markerCenterThreshold is not (0.25 or 0.1))
+            throw new InvalidDataException("Unsupported marker operating point identity.");
         string descriptor = FrozenCandidateBinding.RequireSha256(
             executionDescriptorSha256, nameof(executionDescriptorSha256));
         string value = string.Join('\n',
         [
             OperatingPointDomain,
             descriptor,
-            "marker_center_threshold=0.25",
+            FormattableString.Invariant($"marker_center_threshold={markerCenterThreshold}"),
             "source_pixel_tolerance=5",
             "graph_x_tolerance=0.5",
             "graph_y_tolerance=5",

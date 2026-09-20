@@ -201,7 +201,10 @@ internal static class FrozenCandidateWorkflowFactory
                         markerPath),
                     markerManifestPath,
                     binding.MarkerCenter.Manifest.Sha256);
-            ProductionProposalMarkerCenterAdapter marker = (binding.Algorithms.MarkerProposalDomain, binding.Algorithms.MarkerGeometrySupport) switch
+            ProductionProposalMarkerCenterAdapter marker = binding.Algorithms.MarkerCenterThreshold ==
+                ProductionProposalMarkerCenterAdapter.CascadeCenterThreshold
+                ? ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateCascadeEvaluation(markerDescriptor, runtimeHost.Runtime)
+                : (binding.Algorithms.MarkerProposalDomain, binding.Algorithms.MarkerGeometrySupport) switch
             {
                 ("full_frame_v24", "multiradius_v24") => ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEvaluation(
                     markerDescriptor, runtimeHost.Runtime),
@@ -343,7 +346,8 @@ internal static class FrozenCandidateWorkflowFactory
         string expectedMarkerAdapterId = $"graphreader-marker-center-proposal:{binding.MarkerCenter.Payload.Sha256[..12]}" +
             (expected.MarkerProposalDomain == "axis_polygon_or_16px_v25" ? ":plot-domain-v25" : string.Empty) +
             (expected.MarkerGeometrySupport == "multiradius_enclosed_balanced_v2" ? ":enclosed-balanced-support-v2" :
-                expected.MarkerGeometrySupport == "multiradius_enclosed_v1" ? ":enclosed-support-v1" : string.Empty);
+                expected.MarkerGeometrySupport == "multiradius_enclosed_v1" ? ":enclosed-support-v1" : string.Empty) +
+            (expected.MarkerCenterThreshold == ProductionProposalMarkerCenterAdapter.CascadeCenterThreshold ? ":cascade-010-v1" : string.Empty);
         if (!ocr.AdapterId.StartsWith($"graphreader-ocr:{expected.OcrCompositionVersion}:", StringComparison.Ordinal) ||
             !string.Equals(marker.AdapterId, expectedMarkerAdapterId, StringComparison.Ordinal) ||
             !string.Equals(marker.Model.Sha256, binding.MarkerCenter.Payload.Sha256, StringComparison.OrdinalIgnoreCase) ||

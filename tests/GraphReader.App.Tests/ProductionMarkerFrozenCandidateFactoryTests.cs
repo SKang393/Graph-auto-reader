@@ -166,6 +166,28 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
                 changed, new NoRunInference(), balancedRingSupport: true));
     }
 
+    [TestMethod]
+    public void CascadeCutoffRequiresExactManifestAndCannotChangeLegacyFactory()
+    {
+        using var directory = new TemporaryDirectory();
+        var legacy = WriteDescriptor(directory.Path,
+            algorithm: ProductionProposalMarkerCenterAdapter.BalancedPostprocessingAlgorithm);
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateCascadeEvaluation(legacy, new NoRunInference()));
+        var cascade = WriteDescriptor(directory.Path, centerThreshold: 0.1,
+            algorithm: ProductionProposalMarkerCenterAdapter.BalancedPostprocessingAlgorithm);
+        var candidate = ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateCascadeEvaluation(cascade, new NoRunInference());
+        Assert.IsFalse(candidate.IsApproved);
+        StringAssert.EndsWith(candidate.AdapterId, ":enclosed-balanced-support-v2:cascade-010-v1");
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(
+                cascade, new NoRunInference(), balancedRingSupport: true));
+        var changed = WriteDescriptor(directory.Path, centerThreshold: 0.10001,
+            algorithm: ProductionProposalMarkerCenterAdapter.BalancedPostprocessingAlgorithm);
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateCascadeEvaluation(changed, new NoRunInference()));
+    }
+
     private sealed class NoRunInference : IProposalMarkerInferenceRunner
     {
         public ValueTask<InferenceResponse> RunAsync(
