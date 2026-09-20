@@ -174,6 +174,14 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
             ], root);
             Require(layoutParsed.SequenceEqual(parsed), "separate layout-clearance command");
             checks++;
+            foreach (string tickCommand in new[] { OfficialHeadCandidateEvaluation.TickLaneCommand,
+                         OfficialHeadCandidateEvaluation.LayoutTickLaneCommand })
+            {
+                Require(OfficialHeadCandidateEvaluation.ValidateCommand(
+                    [tickCommand, request, new string('a', 64), candidate, new string('b', 64), output], root)
+                    .SequenceEqual(parsed), "separate tick-lane commands");
+                checks++;
+            }
             string[] supplementalParsed = OfficialHeadCandidateEvaluation.ValidateCommand(
             [
                 OfficialHeadCandidateEvaluation.SupplementalCommand,
@@ -238,6 +246,14 @@ internal static class OfficialHeadCandidateEvaluationSelfTest
                 0.9, OcrSourceImage.Original, OcrReviewStatus.Unreviewed)]);
             OfficialHeadCandidateEvaluation.ValidateOcrCoverage([detected], successful);
             checks++;
+            OfficialHeadCandidateEvaluation.ValidateBaselineReadingsPreserved(successful, successful);
+            ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateBaselineReadingsPreserved(
+                successful, successful with { Regions = [successful.Regions[0] with { Text = "70" }] }),
+                "baseline reading");
+            ExpectFailure(() => OfficialHeadCandidateEvaluation.ValidateOcrCoverage(
+                [detected], successful with { Regions = [.. successful.Regions, successful.Regions[0] with { RegionId = "unbound" }] }),
+                "complete raw detector inventory");
+            checks += 3;
 
             OcrResult missing = Result([]);
             ExpectFailure(

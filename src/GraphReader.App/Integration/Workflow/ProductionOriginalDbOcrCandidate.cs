@@ -22,6 +22,8 @@ public sealed partial class ProductionOcrAdapter
         "original-db-head-header-context-v1";
     internal const string LegendContextCandidateCompositionVersion =
         "original-db-head-legend-context-v1";
+    internal const string TickLaneCandidateCompositionVersion =
+        "original-db-head-tick-lane-v1";
 
     internal static async Task<ProductionOcrAdapter> CreateForFrozenDbHeadCandidateEvaluationAsync(
         FrozenCandidateOcrModelDescriptor detectionModel,
@@ -33,7 +35,8 @@ public sealed partial class ProductionOcrAdapter
         bool pixelBoundsRefinement = false,
         bool participantLaneAssembly = false,
         bool headerLayoutContext = false,
-        bool framedLegendContext = false)
+        bool framedLegendContext = false,
+        bool tickLaneRecovery = false)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -58,6 +61,11 @@ public sealed partial class ProductionOcrAdapter
         {
             throw new ArgumentException("The framed-legend trial requires the header-context baseline.",
                 nameof(headerLayoutContext));
+        }
+        if (tickLaneRecovery && !framedLegendContext)
+        {
+            throw new ArgumentException("The tick-lane trial requires the framed-legend baseline.",
+                nameof(framedLegendContext));
         }
         reviewedOpenCvRuntimeSha256 = ValidateSha256(reviewedOpenCvRuntimeSha256,
             nameof(reviewedOpenCvRuntimeSha256));
@@ -93,7 +101,9 @@ public sealed partial class ProductionOcrAdapter
             await ValidateRecognizerExecutableAsync(recognition.Recognizer, runtime, cancellationToken)
                 .ConfigureAwait(false);
         }, cancellationToken).ConfigureAwait(false);
-        string candidateComposition = framedLegendContext
+        string candidateComposition = tickLaneRecovery
+            ? TickLaneCandidateCompositionVersion
+            : framedLegendContext
             ? LegendContextCandidateCompositionVersion
             : headerLayoutContext
             ? HeaderContextCandidateCompositionVersion
@@ -121,6 +131,7 @@ public sealed partial class ProductionOcrAdapter
                     EnableOriginalPixelBoundsRefinement = pixelBoundsRefinement,
                     EnableHeaderLayoutRoleResolution = headerLayoutContext,
                     EnableFramedLegendRoleResolution = framedLegendContext,
+                    EnableTickLaneRecovery = tickLaneRecovery,
                 });
         }, detectionModel.Identity, recognitionModel.Identity, reviewedOpenCvRuntimeSha256,
             candidateComposition);

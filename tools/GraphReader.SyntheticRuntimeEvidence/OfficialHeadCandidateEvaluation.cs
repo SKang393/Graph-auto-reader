@@ -28,6 +28,8 @@ internal static partial class OfficialHeadCandidateEvaluation
     internal const string HeaderContextCommand = "--evaluate-header-context-candidate";
     internal const string LegendContextCommand = "--evaluate-legend-context-candidate";
     internal const string LayoutClearanceCommand = "--evaluate-layout-clearance-candidate";
+    internal const string TickLaneCommand = "--evaluate-tick-lane-candidate";
+    internal const string LayoutTickLaneCommand = "--evaluate-layout-tick-lane-candidate";
     internal const string SupplementalCommand = "--evaluate-supplemental-head-candidate";
     internal const string CandidateSchema = "graphreader.frozen-db-head-ocr-candidate.v1";
     internal const string CandidateScope = "project-owned-synthetic-train-dev-unapproved-frozen-candidate";
@@ -83,6 +85,7 @@ internal static partial class OfficialHeadCandidateEvaluation
              args[0] != HeaderContextCommand &&
              args[0] != LegendContextCommand &&
              args[0] != LayoutClearanceCommand &&
+             args[0] != TickLaneCommand && args[0] != LayoutTickLaneCommand &&
              args[0] != SupplementalCommand))
         {
             throw new InvalidDataException(
@@ -113,14 +116,17 @@ internal static partial class OfficialHeadCandidateEvaluation
         string root = Path.GetFullPath(repositoryRoot);
         string[] command = ValidateCommand(args, root);
         bool participantLane = args[0] == ParticipantLaneCommand;
-        bool layoutClearance = args[0] == LayoutClearanceCommand;
-        bool legendContext = args[0] == LegendContextCommand || layoutClearance;
+        bool tickLane = args[0] == TickLaneCommand || args[0] == LayoutTickLaneCommand;
+        bool layoutClearance = args[0] == LayoutClearanceCommand || args[0] == LayoutTickLaneCommand;
+        bool legendContext = args[0] == LegendContextCommand || layoutClearance || tickLane;
         bool headerContext = args[0] == HeaderContextCommand || legendContext;
         bool combinedAssembly = args[0] == CombinedAssemblyCommand || headerContext;
         bool pixelBounds = args[0] == PixelBoundsCommand || combinedAssembly;
         bool insidePlot = args[0] == InsidePlotCommand || pixelBounds;
         bool supplemental = args[0] == SupplementalCommand;
-        string composition = legendContext
+        string composition = tickLane
+            ? ProductionOcrAdapter.TickLaneCandidateCompositionVersion
+            : legendContext
             ? ProductionOcrAdapter.LegendContextCandidateCompositionVersion
             : headerContext
             ? ProductionOcrAdapter.HeaderContextCandidateCompositionVersion
@@ -215,7 +221,8 @@ internal static partial class OfficialHeadCandidateEvaluation
                     cancellationToken, insidePlotAssembly: insidePlot,
                     pixelBoundsRefinement: pixelBounds,
                     participantLaneAssembly: combinedAssembly,
-                    headerLayoutContext: headerContext, framedLegendContext: legendContext))
+                    headerLayoutContext: headerContext, framedLegendContext: legendContext,
+                    tickLaneRecovery: tickLane))
                 .ConfigureAwait(false);
             if (adapter.IsApproved || !string.Equals(
                     adapter.ConfigurationScope,
@@ -234,6 +241,13 @@ internal static partial class OfficialHeadCandidateEvaluation
                     AllowedProviders = [InferenceProvider.Cpu],
                 };
             var rawDetector = new LocalOnnxTextRegionDetector(runtime.Runtime, detectorOptions);
+            ProductionOcrAdapter? baselineAdapter = tickLane
+                ? await ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
+                    candidate.Detector.Descriptor, candidate.Recognizer.Descriptor, runtime,
+                    candidate.NativeSha256, cancellationToken, insidePlotAssembly: true,
+                    pixelBoundsRefinement: true, participantLaneAssembly: true,
+                    headerLayoutContext: true, framedLegendContext: true).ConfigureAwait(false)
+                : null;
 
             var outputPanels = new List<object>(panels.Length);
             var total = Stopwatch.StartNew();
@@ -322,6 +336,29 @@ internal static partial class OfficialHeadCandidateEvaluation
                         }).ToArray();
                     }
                     stage = "ocr";
+                    ProductionOcrEvidence? baseline = null;
+                    if (baselineAdapter is not null)
+                    {
+                        baseline = await baselineAdapter.RecognizeForCandidateEvaluationAsync(
+                            detectionRequest, raster, panel.PlotBounds, detectorImage,
+                            cancellationToken, panel.PhaseDividerXs).ConfigureAwait(false);
+                        ValidateOcrCoverage(effective, baseline.Result);
+                        // Independently reproduce recovery from this adapter's
+                        // baseline readings and original pixels, never truth.
+                        var recovered = await TickLaneTextRegionRecovery.FindAsync(
+                            original, effective, baseline.Result.Regions, panel.PlotBounds, cancellationToken)
+                            .ConfigureAwait(false);
+                        effective = effective.Concat(recovered).ToArray();
+                        effectiveOutput = effectiveOutput.Concat(recovered.Select(region => (object)new
+                        {
+                            region.RegionId,
+                            MemberRawRegionIds = Array.Empty<string>(),
+                            AssemblyKind = "original_pixel_tick_recovery",
+                            CoordinateSpace = "source_original_pixels",
+                            PanelPolygon = region.Polygon,
+                            SourcePolygon = MapSourcePolygon(panel, region.Polygon),
+                        })).ToArray();
+                    }
                     ProductionOcrEvidence recognized = await adapter
                         .RecognizeForCandidateEvaluationAsync(
                             detectionRequest,
@@ -331,6 +368,10 @@ internal static partial class OfficialHeadCandidateEvaluation
                             cancellationToken, insidePlot ? panel.PhaseDividerXs : null)
                         .ConfigureAwait(false);
                     ValidateOcrCoverage(effective, recognized.Result);
+                    if (baseline is not null)
+                    {
+                        ValidateBaselineReadingsPreserved(baseline.Result, recognized.Result);
+                    }
                     timer.Stop();
                     completed++;
                     outputPanels.Add(CompletedPanel(panel, rawOutput, effectiveOutput, participantLane, insidePlot, pixelBounds, combinedAssembly, headerContext, legendContext,
@@ -353,7 +394,9 @@ internal static partial class OfficialHeadCandidateEvaluation
             string reportPath = Path.Combine(outputRoot, "report.json");
             byte[] reportBytes = JsonSerializer.SerializeToUtf8Bytes(new
             {
-                Schema = layoutClearance ? (Text(request, "schema") == "graphreader.layout-clearance-ocr-inputs.v2"
+                Schema = tickLane ? (layoutClearance ? "graphreader.layout-tick-lane-ocr-evaluation.v1"
+                    : "graphreader.tick-lane-ocr-evaluation.v1") :
+                    layoutClearance ? (Text(request, "schema") == "graphreader.layout-clearance-ocr-inputs.v2"
                     ? "graphreader.layout-clearance-ocr-evaluation.v2" : "graphreader.layout-clearance-ocr-evaluation.v1") :
                     supplemental ? "graphreader.supplemental-head-candidate-evaluation.v1" :
                     legendContext ? "graphreader.legend-context-candidate-evaluation.v1" :
@@ -399,7 +442,10 @@ internal static partial class OfficialHeadCandidateEvaluation
                 },
                 InputMode = "production_decoded_original_bgr_db",
                 DetectorPostprocess = "manifest_bound_unchanged_db_postprocess",
-                MaximumLogicalDetectorRequestsPerPanel = 2,
+                MaximumLogicalDetectorRequestsPerPanel = tickLane ? 3 : 2,
+                TickLaneRecovery = tickLane,
+                TickLaneRecoveryVersion = tickLane ? TickLaneTextRegionRecovery.CompositionVersion : null,
+                BaselineReadingsIndependentlyReplayed = tickLane,
                 DetectorRequestsShareExactRuntimeInputAndStageCacheKey = true,
                 GraphStructureConsensusApplied = false,
                 AxisMaskAppliedToDetector = false,
@@ -658,6 +704,26 @@ internal static partial class OfficialHeadCandidateEvaluation
             throw new InvalidDataException("Panel OCR polygon maps outside its authenticated source image.");
         }
         return mapped;
+    }
+
+    internal static void ValidateBaselineReadingsPreserved(OcrResult baseline, OcrResult recovered)
+    {
+        var byId = recovered.Regions.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
+        foreach (OcrRegion region in baseline.Regions)
+        {
+            if (!byId.TryGetValue(region.RegionId, out OcrRegion? current) ||
+                JsonSerializer.Serialize(region, JsonOptions) != JsonSerializer.Serialize(current, JsonOptions))
+            {
+                throw new InvalidDataException("Tick recovery changed a baseline reading.");
+            }
+        }
+        foreach (OcrRegionFailure failure in baseline.RegionFailures ?? [])
+        {
+            if (!(recovered.RegionFailures ?? []).Contains(failure))
+            {
+                throw new InvalidDataException("Tick recovery removed a baseline failure.");
+            }
+        }
     }
 
     internal static void ValidateOcrCoverage(

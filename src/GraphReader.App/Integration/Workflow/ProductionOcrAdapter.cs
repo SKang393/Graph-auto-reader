@@ -730,7 +730,7 @@ public sealed partial class ProductionOcrAdapter :
             OriginalDbCandidateCompositionVersion or ParticipantLaneCandidateCompositionVersion or
             InsidePlotCandidateCompositionVersion or PixelBoundsCandidateCompositionVersion or
             CombinedAssemblyCandidateCompositionVersion or HeaderContextCandidateCompositionVersion or
-            LegendContextCandidateCompositionVersion;
+            LegendContextCandidateCompositionVersion or TickLaneCandidateCompositionVersion;
 
     private async Task<ProductionOcrEvidence> RecognizeCoreAsync(
         ProductionWorkflowDetectionRequest request,

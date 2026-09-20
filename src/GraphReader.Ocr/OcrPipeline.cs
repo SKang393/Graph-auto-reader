@@ -55,6 +55,8 @@ public sealed record OcrPipelineOptions
     public bool EnableHeaderLayoutRoleResolution { get; init; }
 
     public bool EnableFramedLegendRoleResolution { get; init; }
+
+    public bool EnableTickLaneRecovery { get; init; }
 }
 
 public sealed class OcrPipeline
@@ -402,6 +404,81 @@ public sealed class OcrPipeline
                 $"ocr_role_needs_review:{item.RegionId}:framed_legend_symbol_context"));
         }
         regions = ResolveTickAlternatives(regions, detectedRegions, warnings, _options);
+        if (_options.EnableTickLaneRecovery)
+        {
+            postprocessStopwatch.Stop();
+            preprocessStopwatch.Start();
+            IReadOnlyList<OcrDetectedRegion> recovered;
+            IReadOnlyList<IReadOnlyList<OcrCrop>> recoveryBatches;
+            try
+            {
+                recovered = await TickLaneTextRegionRecovery.FindAsync(
+                    request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
+                    .ConfigureAwait(false);
+                ValidateDetectedRegions(detectedRegions.Concat(recovered).ToArray());
+                recoveryBatches = OcrCropBatcher.CreateBatches(
+                    request.OriginalImage, recovered, cropOptions, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                return FailureResult(request,
+                    Error("OCR_TICK_RECOVERY_FAILED", exception.Message, "retry"),
+                    totalStopwatch.Elapsed.TotalMilliseconds, warnings, regionFailures);
+            }
+            preprocessStopwatch.Stop();
+            if (recovered.Count > 0)
+            {
+                var recoveryResults = new List<OcrRecognition>();
+                foreach (var batch in recoveryBatches)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    try
+                    {
+                        var recognized = await _recognizer.RecognizeBatchAsync(batch, cancellationToken)
+                            .ConfigureAwait(false);
+                        recoveryResults.AddRange(recognized);
+                        inferenceMilliseconds += recognized.Sum(static result => result.InferenceMilliseconds);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        warnings.Add("ocr_recognition_batch_failed");
+                        recoveryResults.AddRange(batch.Select(crop => new OcrRecognition(
+                            crop.RegionId, crop.SourceImage, [], 0,
+                            Error("OCR_RECOGNITION_FAILED", exception.Message, "retry"))));
+                    }
+                }
+                postprocessStopwatch.Start();
+                // Preserve every baseline reading, including its chosen numeric
+                // alternative. New values come only from the original-pixel crop.
+                var recoveredRegions = MergeResults(recovered, recoveryResults, request.PlotBounds, warnings);
+                regions = OcrCollections.Freeze(regions.Concat(recoveredRegions));
+                warnings.AddRange(recoveredRegions.Select(region =>
+                    $"ocr_role_needs_review:{region.RegionId}:original_pixel_tick_recovery"));
+                regionFailures = OcrCollections.Freeze(regionFailures.Concat(
+                    ExtractRegionFailures(recoveryResults, warnings)));
+                recognitionResults.AddRange(recoveryResults);
+                detectedRegions = OcrCollections.Freeze(detectedRegions.Concat(recovered));
+                batches = batches.Concat(recoveryBatches).ToArray();
+                crops = batches.SelectMany(static batch => batch).ToArray();
+                cacheKey = OcrCacheKeyDeriver.Create(crops, _recognizer, request, _options,
+                    _detector.ConfigurationFingerprint);
+                // The baseline recognition entry remains reusable. A request
+                // cache hit can reuse the combined result; fresh recovery is
+                // never reported as a recognition-cache hit.
+                recognitionCacheKey = OcrCacheKeyDeriver.CreateRecognition(
+                    crops, _recognizer, request.ContractVersion, request.TransformChain);
+                recognitionCacheHit = false;
+            }
+            postprocessStopwatch.Start();
+        }
         var detectedById = detectedRegions.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
         var maskRegionIds = regions
             .Where(region => IsCredibleTextMask(

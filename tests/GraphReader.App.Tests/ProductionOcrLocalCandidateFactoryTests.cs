@@ -16,14 +16,15 @@ namespace GraphReader.App.Tests;
 public sealed class ProductionOcrLocalCandidateFactoryTests
 {
     [TestMethod]
-    [DataRow(false, false, false, false, false)]
-    [DataRow(true, false, false, false, false)]
-    [DataRow(true, true, false, false, false)]
-    [DataRow(true, true, true, false, false)]
-    [DataRow(true, true, true, true, false)]
-    [DataRow(true, true, true, true, true)]
+    [DataRow(false, false, false, false, false, false)]
+    [DataRow(true, false, false, false, false, false)]
+    [DataRow(true, true, false, false, false, false)]
+    [DataRow(true, true, true, false, false, false)]
+    [DataRow(true, true, true, true, false, false)]
+    [DataRow(true, true, true, true, true, false)]
+    [DataRow(true, true, true, true, true, true)]
     public async Task FrozenDbHeadPairCreatesUnapprovedOriginalInputCandidate(
-        bool insidePlotAssembly, bool pixelBoundsRefinement, bool participantLaneAssembly, bool headerLayoutContext, bool framedLegendContext)
+        bool insidePlotAssembly, bool pixelBoundsRefinement, bool participantLaneAssembly, bool headerLayoutContext, bool framedLegendContext, bool tickLaneRecovery)
     {
         string root = CreateTemporaryDirectory();
         var sessionFactory = new ShapeAwareSessionFactory();
@@ -42,10 +43,12 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                     new FrozenCandidateOcrModelDescriptor(pair.Recognition.Identity,
                         pair.Recognition.ManifestPath, pair.Recognition.ManifestSha256),
                     host, new string('d', 64), CancellationToken.None,
-                    insidePlotAssembly, pixelBoundsRefinement, participantLaneAssembly, headerLayoutContext, framedLegendContext);
+                    insidePlotAssembly, pixelBoundsRefinement, participantLaneAssembly, headerLayoutContext, framedLegendContext, tickLaneRecovery);
             Assert.IsFalse(adapter.IsApproved);
             Assert.AreEqual("unapproved_frozen_candidate", adapter.ConfigurationScope);
-            string expectedComposition = framedLegendContext
+            string expectedComposition = tickLaneRecovery
+                ? ProductionOcrAdapter.TickLaneCandidateCompositionVersion
+                : framedLegendContext
                 ? ProductionOcrAdapter.LegendContextCandidateCompositionVersion
                 : headerLayoutContext
                 ? ProductionOcrAdapter.HeaderContextCandidateCompositionVersion
@@ -136,14 +139,15 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
     }
 
     [TestMethod]
-    [DataRow(false, false, true, false, false)]
-    [DataRow(true, false, true, false, false)]
-    [DataRow(false, true, true, false, false)]
-    [DataRow(false, false, false, true, false)]
-    [DataRow(true, true, false, true, false)]
-    [DataRow(true, true, true, false, true)]
+    [DataRow(false, false, true, false, false, false)]
+    [DataRow(true, false, true, false, false, false)]
+    [DataRow(false, true, true, false, false, false)]
+    [DataRow(false, false, false, true, false, false)]
+    [DataRow(true, true, false, true, false, false)]
+    [DataRow(true, true, true, false, true, false)]
+    [DataRow(true, true, true, true, false, true)]
     public async Task ComposedTrialsRejectIncompleteBaselineBeforeInference(
-        bool insidePlot, bool pixelBounds, bool participantLane, bool headerContext, bool legendContext)
+        bool insidePlot, bool pixelBounds, bool participantLane, bool headerContext, bool legendContext, bool tickLane)
     {
         string root = CreateTemporaryDirectory();
         var sessions = new ShapeAwareSessionFactory();
@@ -159,7 +163,8 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
                         pair.Recognition.ManifestPath, pair.Recognition.ManifestSha256),
                     host, new string('d', 64), CancellationToken.None,
                     insidePlotAssembly: insidePlot, pixelBoundsRefinement: pixelBounds,
-                    participantLaneAssembly: participantLane, headerLayoutContext: headerContext, framedLegendContext: legendContext));
+                    participantLaneAssembly: participantLane, headerLayoutContext: headerContext, framedLegendContext: legendContext,
+                    tickLaneRecovery: tickLane));
             Assert.AreEqual(0, sessions.RunCount);
         }
         finally
@@ -365,6 +370,7 @@ public sealed class ProductionOcrLocalCandidateFactoryTests
     [DataRow(ProductionOcrAdapter.CombinedAssemblyCandidateCompositionVersion)]
     [DataRow(ProductionOcrAdapter.HeaderContextCandidateCompositionVersion)]
     [DataRow(ProductionOcrAdapter.LegendContextCandidateCompositionVersion)]
+    [DataRow(ProductionOcrAdapter.TickLaneCandidateCompositionVersion)]
     public async Task OriginalInputDetectorUsesOriginalPixelsAndDistinctCacheIdentity(string composition)
     {
         var original = new OcrImage(
