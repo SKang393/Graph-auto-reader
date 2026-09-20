@@ -49,6 +49,37 @@ public sealed class ExportServiceAcceptanceTests
         [ExportXValueSource.Printed, ExportXValueSource.Estimated, ExportXValueSource.Estimated, ExportXValueSource.Printed];
 
     [TestMethod]
+    [DataRow(ExportOperation.Preview, false)]
+    [DataRow(ExportOperation.WriteFiles, false)]
+    [DataRow(ExportOperation.Preview, true)]
+    [DataRow(ExportOperation.WriteFiles, true)]
+    public async Task MissingOrEmptyInterventionCannotReportASuccessfulExport(ExportOperation operation, bool emptyIntervention)
+    {
+        Scenario original = OneInterventionScenario();
+        Scenario scenario = emptyIntervention
+            ? new(original.Phases,
+                [new ExportSeries(InterventionOneId, "circle", "Series", ExportSeriesRole.Intervention, [], 0.95)],
+                [], [new ExportSeriesRelation(InterventionOneId, null, [])])
+            : new(original.Phases,
+                original.Series.Where(static item => item.SemanticRole == ExportSeriesRole.Baseline).ToArray(),
+                original.Points.Where(static item => item.SeriesId == BaselineSeriesId).ToArray(), []);
+        string output = NewTemporaryDirectoryPath();
+        try
+        {
+            ExportResult result = await ExportAsync(scenario, outputDirectory: output, operation: operation);
+            Assert.IsFalse(result.Succeeded, "An empty export must require review, not report success.");
+            Assert.IsEmpty(result.MinimalArtifacts);
+            Assert.IsEmpty(result.AuditArtifacts);
+            Assert.AreEqual(0, ExistingFileCount(output));
+            Assert.IsTrue(result.Failures.Any(static failure => failure.Code is "NO_EXPORTABLE_SERIES" or "EMPTY_SELECTED_SERIES"));
+        }
+        finally
+        {
+            DeleteOwnedTemporaryDirectory(output);
+        }
+    }
+
+    [TestMethod]
     public async Task OneInterventionExportsSharedBaselineAndInterventionInPhaseOrder()
     {
         Scenario scenario = OneInterventionScenario();

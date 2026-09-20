@@ -86,6 +86,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionTextMarkerExclusion.Version,
         ProductionPhaseGeometryContext.Version,
         ProductionTickLabelGeometry.Version,
+        ProductionSeriesPhaseContext.Version,
         axisAdapter.AdapterId,
         ocrAdapter.AdapterId,
         markerCenterAdapter.Model.Sha256[..12].ToLowerInvariant(),
@@ -414,6 +415,27 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 .ConfigureAwait(false);
             chain.Append(phases.Envelope);
 
+            var seriesContextTimer = System.Diagnostics.Stopwatch.StartNew();
+            SeriesPhaseContextResult seriesContext;
+            try
+            {
+                seriesContext = ProductionSeriesPhaseContext.Resolve(grouping, phases.Payload, legend.Payload, cancellationToken);
+            }
+            catch (ArgumentException exception)
+            {
+                throw chain.Reject(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                    "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
+                    "Retain the points and review series roles and phase assignments."));
+            }
+            seriesContextTimer.Stop();
+            if (seriesContext.Warnings.Count > 0)
+                chain.Append(new WorkflowVisionEnvelope(
+                    1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                    "phases", ProductionSeriesPhaseContext.Version, request.Image.Sha256, null,
+                    new WorkflowVisionTiming(seriesContextTimer.Elapsed.TotalMilliseconds, 0, 0, seriesContextTimer.Elapsed.TotalMilliseconds),
+                    phases.Envelope.Confidence, seriesContext.Warnings, request.Transforms));
+
             DetectionProjection projection = BuildProjection(
                 request,
                 calibration,
@@ -422,7 +444,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 acceptedMarkers,
                 legendSymbols,
                 textExclusion.ExcludedMarkerIds,
-                grouping,
+                seriesContext.Grouping,
                 legend.Payload,
                 phases.Payload,
                 chain.Snapshot,

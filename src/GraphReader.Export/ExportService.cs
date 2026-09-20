@@ -210,7 +210,13 @@ public sealed class ExportService : IExportService
         IEnumerable<Guid> selected = request.SelectedInterventionSeriesIds.Count == 0
             ? relations.Keys
             : request.SelectedInterventionSeriesIds;
-        foreach (Guid selectedId in selected.Distinct())
+        Guid[] selectedIds = selected.Distinct().ToArray();
+        if (selectedIds.Length == 0)
+            failures.Add(Failure(
+                "NO_EXPORTABLE_SERIES", "Export.InvalidSeries",
+                "No intervention series is available for export.", recoverable: true,
+                "Review the series roles before exporting."));
+        foreach (Guid selectedId in selectedIds)
         {
             if (!relations.ContainsKey(selectedId))
             {
@@ -218,6 +224,11 @@ public sealed class ExportService : IExportService
                     selectedId,
                     $"Selected intervention series '{selectedId}' has no export relation."));
             }
+            else if (series.TryGetValue(selectedId, out ExportSeries? target) && target.PointIds.Count == 0)
+                failures.Add(Failure(
+                    "EMPTY_SELECTED_SERIES", "Export.InvalidSeries",
+                    $"Selected intervention series '{selectedId}' contains no points.", recoverable: true,
+                    "Review detected points and the export selection.", selectedId));
         }
 
         return failures;

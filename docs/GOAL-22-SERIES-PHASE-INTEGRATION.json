@@ -1,0 +1,282 @@
+{
+  "schema": "graphreader.goal22.series-phase-integration.v1",
+  "status": "final_phase_roles_and_empty_export_validation_verified_grouping_defects_remain",
+  "goal22_complete": false,
+  "base_commit": "c3a7dad83d775fd314e6964bed0cba49573cea55",
+  "changed_sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "94b6b79952d507ecdddc69bcee81223ebc15c8de48a7f72bbc995e46f7818c8e",
+      "archive": "artifacts/goal22-runs/workflow-series-phase-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionSeriesPhaseContext.cs",
+      "sha256": "4c1182c5513257a4aafbf568f189423a753a96c6182ce059e37cde7a3c932fe1",
+      "archive": "artifacts/goal22-runs/workflow-series-phase-checks-v2/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionSeriesPhaseContext.cs"
+    },
+    {
+      "path": "src/GraphReader.Export/ExportService.cs",
+      "sha256": "926600b8dde2c8ac882ce126a5ca3a9fb8b999b33e2bc89b07225325905399e1",
+      "archive": "artifacts/goal22-runs/workflow-series-phase-checks-v2/source-snapshot/src/GraphReader.Export/ExportService.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionSeriesPhaseContextTests.cs",
+      "sha256": "a778fe03ef3da9553af99fffd6ab035808386c249da4ecd562642a3031a733d8",
+      "archive": "artifacts/goal22-runs/workflow-series-phase-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionSeriesPhaseContextTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "6014f0ab005bc96eeb5ac5dcc7c0b678da15fa08cfe5f6a0a33d37ef7193619f",
+      "archive": "artifacts/goal22-runs/workflow-series-phase-checks-v2/source-snapshot/tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs"
+    },
+    {
+      "path": "tests/GraphReader.Export.Tests/ExportServiceAcceptanceTests.cs",
+      "sha256": "3f880cdbce066e631bba9ecc1f3248ffc3eaeb315ad585d9d9d69ba031616918",
+      "archive": "artifacts/goal22-runs/workflow-series-phase-checks-v2/source-snapshot/tests/GraphReader.Export.Tests/ExportServiceAcceptanceTests.cs"
+    }
+  ],
+  "compiled_source_snapshot_count": 267,
+  "all_source_snapshots_verified": true,
+  "repair_definition": {
+    "failure_mode": "Series roles and shared-baseline links use provisional phase regions; equal-size candidate baseline fragments are selected by run-dependent UUID. A known intervention/baseline fragment replaced two true baseline points. No intervention or no data can report a successful empty export.",
+    "evidence": "ocr-complete-workflow-tick-label-v1 series-role-diagnosis.json and phase-context fixture from checks-v4/v5. The failure is runtime semantics, not model quality or numeric calibration.",
+    "subsystem": "Final series-role projection and ExportService validation.",
+    "isolated_change": "Preserve all grouping memberships and marker measurements; derive provisional roles from final point-to-phase evidence while retaining explicit probe semantics. Link only a unique actual baseline; flag ambiguity rather than choose by ID. Reject missing/empty selected intervention exports before serialization or file writes.",
+    "metric": "Existing full706-point/724-row synthetic workflow; no threshold or denominator change. Verify actual recovered points and roles, scientific values, artifact integrity and regression checks.",
+    "splits": "Same20train and3development sources. No new input generation.",
+    "sealed_budget": 0,
+    "training": false,
+    "model_revision_opened": false,
+    "known_limitations": "Series grouping fragmentation and low marker/OCR recall remain separate defects."
+  },
+  "comparison": {
+    "source_count": 23,
+    "previously_observed_panels": 30,
+    "observed_panels": 30,
+    "previously_visited_panels_not_reached": 0,
+    "newly_reached_panels": 0,
+    "raw_upstream_evidence_unchanged": {
+      "axis": true,
+      "accepted_markers": true,
+      "calibration": true,
+      "ocr": true
+    },
+    "changed_calibrations": 0,
+    "calibration_validity_before": {
+      "Valid": 16,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 7
+    },
+    "calibration_validity_after": {
+      "Valid": 16,
+      "InsufficientEvidence": 2,
+      "InvalidSessionOrigin": 5,
+      "NeedsReview": 7
+    },
+    "completed_sources": 9,
+    "failed_sources": 14,
+    "previously_completed_sources_now_failed": 0,
+    "newly_completed_sources": 1,
+    "previously_exported_points_removed": 7,
+    "previously_unexported_points_added": 24,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false,
+    "series_context_warning_counts": {
+      "series_name_used_symbol_fallback": 9,
+      "series_shared_baseline_reconciled": 14,
+      "shared_baseline_relation_ambiguous": 5,
+      "series_role_reconciled_with_phases": 12,
+      "series_phase_role_requires_review": 4
+    }
+  },
+  "point_inventory": {
+    "common_exported_points_with_identical_values_and_x_provenance": 91,
+    "previously_exported_points_removed": 7,
+    "removed_points_with_truth_within_five_pixels": 7,
+    "removed_point_sources_have_explicit_relation_or_role_warning": true,
+    "previously_unexported_points_added": 24,
+    "points_lost_in_prior_tick_repair": 2,
+    "prior_tick_lost_points_recovered": 0,
+    "raw_detections_unchanged": true,
+    "reason": "Multiple actual baseline fragments remain ambiguous; the repair removes arbitrary links and does not regroup points or overwrite classifier shapes."
+  },
+  "before_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 8,
+    "failed_cases": 15,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 27,
+    "matched_series": 8,
+    "truth_points": 706,
+    "predicted_points": 98,
+    "matched_points": 69,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 128,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 66,
+    "correct_rows": 61,
+    "missing_rows": 658,
+    "extra_rows": 62,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 69,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 637,
+    "unique_point_extra": 29,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7040816326530612,
+    "unique_point_structural_coverage": 0.09773371104815864,
+    "unique_point_value_precision": 0.7040816326530612,
+    "unique_point_value_coverage": 0.09773371104815864,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.4765625,
+    "relational_row_coverage": 0.08425414364640885,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9242424242424242,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 15
+    }
+  },
+  "after_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 9,
+    "failed_cases": 14,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 28,
+    "matched_series": 9,
+    "truth_points": 706,
+    "predicted_points": 115,
+    "matched_points": 85,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 130,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 82,
+    "correct_rows": 77,
+    "missing_rows": 642,
+    "extra_rows": 48,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 5,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 85,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 621,
+    "unique_point_extra": 30,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.7391304347826086,
+    "unique_point_structural_coverage": 0.12039660056657224,
+    "unique_point_value_precision": 0.7391304347826086,
+    "unique_point_value_coverage": 0.12039660056657224,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.5923076923076923,
+    "relational_row_coverage": 0.106353591160221,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9390243902439024,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 14
+    }
+  },
+  "execution_seconds": 157.01178330000002,
+  "checks": {
+    "app": {
+      "path": "artifacts/goal22-runs/workflow-series-phase-checks-v2/test-results/app.trx",
+      "sha256": "1f82345ac190c499a6df74320fb05bc9a83ea8486e5093023dd90dd9bcf6ebef",
+      "passed": 370,
+      "skipped": 0
+    },
+    "export": {
+      "path": "artifacts/goal22-runs/workflow-series-phase-checks-v2/test-results/export.trx",
+      "sha256": "e23fae6b3857073ea0c57df68d0b11be91ef072eb053c4cbd5ee0fbb1113cddb",
+      "passed": 30,
+      "skipped": 0
+    },
+    "tool_build": {
+      "path": "artifacts/goal22-runs/workflow-series-phase-checks-v2/build.log",
+      "sha256": "5319a048c843821b65c688ba294b987ffee02c749c91f72cc0edff896bad958f"
+    },
+    "tool_warnings": 0,
+    "tool_errors": 0,
+    "private_runner_self_test": {
+      "path": "artifacts/goal22-runs/workflow-series-phase-checks-v2/private-runner-self-test.json",
+      "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+    }
+  },
+  "evidence": {
+    "candidate-binding.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-series-phase-v1/candidate-binding.json",
+      "sha256": "24192374741ea84da9b1951dcc55c59bb0e415c228054ca6d74207e15fc20364"
+    },
+    "input-manifest.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-series-phase-v1/input-manifest.json",
+      "sha256": "08b964d3c9f4a5b5da401981fec320298b8420c9d86aa9ca8c5e3f36960d144d"
+    },
+    "execution/report.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-series-phase-v1/execution/report.json",
+      "sha256": "96b3513d21c342337f84c78906510459061869a40bce9202a5e690813ac727f1"
+    },
+    "csv-evaluation-input-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-series-phase-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "6cbf06d78c87e8f519cb9193c439ae79acc408d1cdf20dc09c6e7f74b67c45ee"
+    },
+    "csv-score-normalized-phases.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-series-phase-v1/csv-score-normalized-phases.json",
+      "sha256": "62a025ccbda627b2b068c6be0f54a88c8f362083c4515a0358e84441cb662919"
+    },
+    "comparison.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-series-phase-v1/comparison.json",
+      "sha256": "72d056824142362dba606dff50e32998d141dcfb324eddf9d767c23f4880420d"
+    },
+    "point-inventory-comparison.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-series-phase-v1/point-inventory-comparison.json",
+      "sha256": "7a5d2e7a170fbd7418bcbb7c2a7d9bb3315e408d927e944d6f8236fbe1c01221"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-series-phase-v1/source-bindings.json",
+      "sha256": "911d452d7f9fad811c75f7cff8e80be1450c1356bc470aa302179d7e72d914f9"
+    }
+  },
+  "baseline_score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-tick-label-v1/csv-score-normalized-phases.json",
+    "sha256": "518bfd2643c51fa2a1faa66f64b177d3cc14d51b926ad68a89638068774811fe"
+  },
+  "known_limitations": [
+    "Seven previously exported true points are now omitted because unsupported baseline/unknown-role links are removed. These detections and grouping memberships are retained; source warnings expose the ambiguity. This is not a detection improvement.",
+    "The two points lost at the prior tick-label checkpoint are not recovered. Classifier output fragments the original series into different shapes. No shape is overridden or point regrouped in this repair.",
+    "Fourteen sources still fail, 621 of 706 truth points remain missing, 30 predictions are extra and five matched relational rows have wrong phases.",
+    "The 23-source train/development diagnostic is not sealed or real acceptance. All four Goal 22 outcomes remain incomplete."
+  ],
+  "prior_failures_retained": [
+    "workflow-series-phase-checks-v1: CA1841 compiler diagnostic; repaired without running inference.",
+    "Read-only follow-up assumption that two baseline points had recovered was disproved; the verified recovery count is recorded above."
+  ],
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_revision_opened": false,
+  "production_approved": false,
+  "packaged_build": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}

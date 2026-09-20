@@ -176,7 +176,7 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
-    public async Task CandidateResolvesAnAmbiguousMeasuredBoundaryBeforeReview()
+    public async Task CandidateResolvesAnAmbiguousMeasuredBoundaryAndExportsItsFinalPhases()
     {
         using var directory = new TemporaryDirectory();
         string imagePath = WritePng(directory.Path, "source.png", 120, 100);
@@ -196,12 +196,23 @@ public sealed class ProductionCandidateWorkflowTests
         Assert.AreEqual("phases", context.Stage);
         Assert.IsTrue(context.Warnings.Any(static item => item.StartsWith("phase_divider_corroborated_by_heading_layout:", StringComparison.Ordinal)));
         // Final phase interpretation must preserve the original grouping and points.
-        // Reconciliation of provisional series roles is a separate export concern.
         Assert.HasCount(2, panel.Points);
         var codes = panel.Points.ToDictionary(static point => point.GraphX!.Value,
             point => evidence.Phases.Single(phase => phase.PhaseId.ToString("D") == point.PhaseId).Code);
         Assert.AreEqual("a", codes[1]);
         Assert.AreEqual("b", codes[2]);
+        WorkflowExportResult export = await workflow.ExportAsync(result.Review,
+            new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(directory.Path, "export")), CancellationToken.None);
+        Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+        var exportedCodes = new Dictionary<double, string>();
+        foreach (WorkflowExportArtifact artifact in export.Artifacts.Where(static item => item.FileName.EndsWith(".audit.json", StringComparison.Ordinal)))
+        {
+            using JsonDocument document = JsonDocument.Parse(await File.ReadAllBytesAsync(artifact.WrittenPath!));
+            foreach (JsonElement row in document.RootElement.GetProperty("rows").EnumerateArray())
+                exportedCodes[row.GetProperty("x_value").GetDouble()] = row.GetProperty("phase").GetString()!;
+        }
+        Assert.AreEqual("a", exportedCodes[1]);
+        Assert.AreEqual("b", exportedCodes[2]);
     }
 
     [TestMethod]
