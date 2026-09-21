@@ -16,9 +16,27 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 /// <summary>Authenticates and locks candidate files before constructing a non-persistent CPU runtime.</summary>
 internal static class OriginalDbOcrMemoryRuntime
 {
-    internal static async Task<T> RunAsync<T>(string root, string candidatePath, string candidateSha256,
+    internal static Task<T> RunAsync<T>(string root, string candidatePath, string candidateSha256,
         Func<ProductionOcrAdapter, LocalOnnxTextRegionDetector, ProductionAxisGeometryAdapter,
+            CancellationToken, Task<T>> evaluate, CancellationToken cancellationToken) =>
+        RunCoreAsync(root, candidatePath, candidateSha256, evaluate, composed: false,
+            observationBuffer: null, cancellationToken);
+
+    internal static Task<T> RunComposedAsync<T>(string root, string candidatePath, string candidateSha256,
+        Func<ProductionOcrAdapter, ComposedOcrObservationBuffer, ProductionAxisGeometryAdapter,
             CancellationToken, Task<T>> evaluate, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(evaluate);
+        var buffer = new ComposedOcrObservationBuffer();
+        return RunCoreAsync(root, candidatePath, candidateSha256,
+            (ocr, _, axis, token) => evaluate(ocr, buffer, axis, token),
+            composed: true, buffer, cancellationToken);
+    }
+
+    private static async Task<T> RunCoreAsync<T>(string root, string candidatePath, string candidateSha256,
+        Func<ProductionOcrAdapter, LocalOnnxTextRegionDetector, ProductionAxisGeometryAdapter,
+            CancellationToken, Task<T>> evaluate, bool composed,
+        ComposedOcrObservationBuffer? observationBuffer, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(evaluate);
         var locks = new List<FileStream>();
@@ -54,9 +72,9 @@ internal static class OriginalDbOcrMemoryRuntime
         {
             using JsonDocument document = JsonDocument.Parse(Lock(candidatePath, candidateSha256));
             JsonElement candidate = document.RootElement;
-            if (Text(candidate, "schema") != "graphreader.frozen-db-head-ocr-candidate.v1" ||
+            if (Text(candidate, "schema") != (composed ? "graphreader.frozen-composed-ocr-candidate.v1" : "graphreader.frozen-db-head-ocr-candidate.v1") ||
                 Text(candidate, "scope") != "project-owned-synthetic-train-dev-unapproved-frozen-candidate" ||
-                Text(candidate, "composition_version") != ProductionOcrAdapter.OriginalDbCandidateCompositionVersion ||
+                Text(candidate, "composition_version") != (composed ? ProductionOcrAdapter.TickLaneCandidateCompositionVersion : ProductionOcrAdapter.OriginalDbCandidateCompositionVersion) ||
                 Text(candidate, "native_scope") != "reviewed-source-runtime-local-diagnostic" ||
                 candidate.GetProperty("production_approved").GetBoolean() ||
                 candidate.GetProperty("training_input_ready").GetBoolean())
@@ -103,7 +121,11 @@ internal static class OriginalDbOcrMemoryRuntime
                 CpuThreadConfiguration.Create(1), [InferenceProvider.Cpu],
                 Path.Combine(root, "artifacts", "unused-ocr-memory-cache"), 1, 1, new NoPersistenceStageCache());
             ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
-                detection, recognition, runtime, nativeHash, cancellationToken).ConfigureAwait(false);
+                detection, recognition, runtime, nativeHash, cancellationToken,
+                insidePlotAssembly: composed, pixelBoundsRefinement: composed,
+                participantLaneAssembly: composed, headerLayoutContext: composed,
+                framedLegendContext: composed, tickLaneRecovery: composed,
+                detectionObserver: observationBuffer is null ? null : observationBuffer.Capture).ConfigureAwait(false);
             var raw = new LocalOnnxTextRegionDetector(runtime.Runtime,
                 ProductionOcrAdapter.ReadDetectionOptions(detection.Identity, detection.ManifestPath) with
                 { AllowedProviders = [InferenceProvider.Cpu] });

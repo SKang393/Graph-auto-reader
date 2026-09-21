@@ -32,6 +32,16 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--self-test-composed-ocr-memory")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(
+                await ComposedOcrMemorySelfTest.RunAsync().ConfigureAwait(false), JsonOptions));
+            return 0;
+        }
+        if (args.Length == 5 && args[0] == ComposedOcrMemoryDevCheck.Command)
+        {
+            return await ComposedOcrMemoryDevCheck.RunAsync(args, RepositoryRoot()).ConfigureAwait(false);
+        }
         if (args.Length == 3 && args[0] == ComposedOcrDevelopmentReplay.Command)
         {
             Console.WriteLine(JsonSerializer.Serialize(

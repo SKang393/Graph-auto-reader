@@ -1,0 +1,298 @@
+{
+  "schema": "graphreader.goal22.composed-ocr-in-memory.v1",
+  "status": "native_development_parity_verified",
+  "scope": "owned-synthetic-development",
+  "sources": 23,
+  "panels": 39,
+  "truth_labels": 892,
+  "metrics": {
+    "train": {
+      "source_count": 20,
+      "panel_count": 30,
+      "metrics": {
+        "source_count": 20,
+        "raw_detector_geometry": {
+          "truth_region_count": 709,
+          "predicted_region_count": 646,
+          "true_positives": 616,
+          "false_positives": 30,
+          "false_negatives": 93,
+          "precision": 0.9535603715170279,
+          "recall": 0.8688293370944993,
+          "intersection_over_union_minimum": 0.5
+        },
+        "assembled_geometry": {
+          "truth_region_count": 709,
+          "predicted_region_count": 653,
+          "true_positives": 638,
+          "false_positives": 15,
+          "false_negatives": 71,
+          "precision": 0.9770290964777948,
+          "recall": 0.8998589562764457,
+          "intersection_over_union_minimum": 0.5
+        },
+        "full_ocr_metrics": {
+          "truth_region_count": 709,
+          "predicted_region_count": 653,
+          "geometry_matched_region_count": 638,
+          "geometry_false_positive_count": 15,
+          "geometry_false_negative_count": 71,
+          "recognition_exact_count": 416,
+          "recognition_exact_accuracy": 0.5867418899858956,
+          "truth_character_count": 3415,
+          "matched_pair_edit_count": 994,
+          "unmatched_truth_deletion_edit_count": 282,
+          "unmatched_prediction_insertion_edit_count": 54,
+          "character_error_count": 1330,
+          "character_error_rate": 0.38945827232796487,
+          "role_correct_count": 465,
+          "role_accuracy": 0.6558533145275035,
+          "by_expected_runtime_role": {
+            "annotation": {
+              "truth_count": 60,
+              "correct_count": 37,
+              "accuracy": 0.6166666666666667
+            },
+            "axistitle": {
+              "truth_count": 50,
+              "correct_count": 34,
+              "accuracy": 0.68
+            },
+            "legendtext": {
+              "truth_count": 30,
+              "correct_count": 30,
+              "accuracy": 1
+            },
+            "participant": {
+              "truth_count": 30,
+              "correct_count": 16,
+              "accuracy": 0.5333333333333333
+            },
+            "phaseheading": {
+              "truth_count": 160,
+              "correct_count": 76,
+              "accuracy": 0.475
+            },
+            "xtick": {
+              "truth_count": 175,
+              "correct_count": 129,
+              "accuracy": 0.7371428571428571
+            },
+            "ytick": {
+              "truth_count": 204,
+              "correct_count": 143,
+              "accuracy": 0.7009803921568627
+            }
+          },
+          "intersection_over_union_minimum": 0.5
+        },
+        "recognition_failed_region_count": 0
+      }
+    },
+    "validation": {
+      "source_count": 3,
+      "panel_count": 9,
+      "metrics": {
+        "source_count": 3,
+        "raw_detector_geometry": {
+          "truth_region_count": 183,
+          "predicted_region_count": 198,
+          "true_positives": 157,
+          "false_positives": 41,
+          "false_negatives": 26,
+          "precision": 0.7929292929292929,
+          "recall": 0.8579234972677595,
+          "intersection_over_union_minimum": 0.5
+        },
+        "assembled_geometry": {
+          "truth_region_count": 183,
+          "predicted_region_count": 189,
+          "true_positives": 181,
+          "false_positives": 8,
+          "false_negatives": 2,
+          "precision": 0.9576719576719577,
+          "recall": 0.9890710382513661,
+          "intersection_over_union_minimum": 0.5
+        },
+        "full_ocr_metrics": {
+          "truth_region_count": 183,
+          "predicted_region_count": 189,
+          "geometry_matched_region_count": 181,
+          "geometry_false_positive_count": 8,
+          "geometry_false_negative_count": 2,
+          "recognition_exact_count": 177,
+          "recognition_exact_accuracy": 0.9672131147540983,
+          "truth_character_count": 1019,
+          "matched_pair_edit_count": 6,
+          "unmatched_truth_deletion_edit_count": 2,
+          "unmatched_prediction_insertion_edit_count": 8,
+          "character_error_count": 16,
+          "character_error_rate": 0.015701668302257114,
+          "role_correct_count": 174,
+          "role_accuracy": 0.9508196721311475,
+          "by_expected_runtime_role": {
+            "annotation": {
+              "truth_count": 18,
+              "correct_count": 13,
+              "accuracy": 0.7222222222222222
+            },
+            "axistitle": {
+              "truth_count": 12,
+              "correct_count": 12,
+              "accuracy": 1
+            },
+            "legendtext": {
+              "truth_count": 11,
+              "correct_count": 11,
+              "accuracy": 1
+            },
+            "participant": {
+              "truth_count": 9,
+              "correct_count": 9,
+              "accuracy": 1
+            },
+            "phaseheading": {
+              "truth_count": 60,
+              "correct_count": 58,
+              "accuracy": 0.9666666666666667
+            },
+            "xtick": {
+              "truth_count": 48,
+              "correct_count": 46,
+              "accuracy": 0.9583333333333334
+            },
+            "ytick": {
+              "truth_count": 25,
+              "correct_count": 25,
+              "accuracy": 1
+            }
+          },
+          "intersection_over_union_minimum": 0.5
+        },
+        "recognition_failed_region_count": 0
+      }
+    }
+  },
+  "native_inference_milliseconds": 68000.9974,
+  "validation_seconds": 151.3884673,
+  "checks": {
+    "composed-ocr-memory": {
+      "status": "pass",
+      "checks": 25,
+      "model_inference_runs": 0,
+      "private_reads": 0,
+      "sealed_reads": 0
+    },
+    "composed-ocr-aggregate": {
+      "status": "pass",
+      "checks": 16,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "model_inference_runs": 0
+    },
+    "sealed-ocr-corpus": {
+      "status": "passed",
+      "check_count": 12,
+      "model_inference": false,
+      "file_io": false,
+      "private_data": false,
+      "sealed_data": false,
+      "case_output": false,
+      "production_approved": false
+    },
+    "sealed-ocr-source-mapping": {
+      "status": "pass",
+      "checks": 11,
+      "model_inference": false,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "scope": "coordinate_mapping_recognition_order_and_output_boundary"
+    },
+    "sealed-ocr-worker": {
+      "schema": "graphreader.original-db-ocr-sealed-worker-self-test.v1",
+      "checks": 14,
+      "status": "passed",
+      "model_inference": false,
+      "file_io": false,
+      "sealed_reads": 0,
+      "private_reads": 0,
+      "production_approved": false
+    }
+  },
+  "evidence": {
+    "source_bindings": {
+      "path": "artifacts/goal22-runs/composed-ocr-memory-v5/source-bindings.json",
+      "sha256": "2e2e5933bd7c940d8c21532cace79e985678b539afacf5047b8fd1547ac91d58"
+    },
+    "preparation": {
+      "path": "artifacts/goal22-runs/composed-ocr-memory-v5/preparation.json",
+      "sha256": "babeb85db3dc610c3015e878418601611c42b684fb6f827ba9fcfbf79a35cc34"
+    },
+    "candidate": {
+      "path": "artifacts/goal22-runs/composed-ocr-memory-v5/candidate.json",
+      "sha256": "93a6ced604e434a63f6949cb7517f44d42f517bff9f0de93c60ec00b1d4f0ee4"
+    },
+    "request": {
+      "path": "artifacts/goal22-runs/composed-ocr-memory-v5/request.json",
+      "sha256": "24de1d2797b5916fd78d4785ecdf5b533308e6943e79d228c1567a03185685ce"
+    },
+    "result": {
+      "path": "artifacts/goal22-runs/composed-ocr-memory-v5/result.json",
+      "sha256": "8c4d91f83a80dfe26df744a4e72497baf444d0ec90a3e0df98157de8cb766126"
+    },
+    "comparison": {
+      "path": "artifacts/goal22-runs/composed-ocr-memory-v5/comparison.json",
+      "sha256": "d15be48a224804b1eb8df5932214bcd4ee1aae6e9369a1b0178f158a28624f26"
+    },
+    "build": {
+      "path": "artifacts/goal22-runs/composed-ocr-memory-v5/build.log",
+      "sha256": "d91fdd6a26abcb84b645b52969d781e2f7e5a3b11664056f355d4f73c5c346ed"
+    },
+    "status": {
+      "path": "artifacts/goal22-runs/composed-ocr-memory-v5/status.json",
+      "sha256": "6b77eb780ef1d098badc9eae8c99e7733a1ac9959c0b6d09b66beba6ca70dbf2"
+    }
+  },
+  "retained_attempts": [
+    {
+      "scope": "void_build_analyzer",
+      "evidence": {
+        "path": "artifacts/goal22-runs/composed-ocr-memory-v1/build.log",
+        "sha256": "b951c5592c7cdfefe427a396023249afbec5ab267f429a6091c72c4cf92129df"
+      }
+    },
+    {
+      "scope": "void_development_split_alias",
+      "evidence": {
+        "path": "artifacts/goal22-runs/composed-ocr-memory-v2/inference-error.log",
+        "sha256": "6dc418ebc56e3e2e4afa08f5468bf2f69cf09c677bdda5d8704889d0d17ace08"
+      }
+    },
+    {
+      "scope": "void_stale_composition_metadata",
+      "evidence": {
+        "path": "artifacts/goal22-runs/composed-ocr-memory-v3/inference-error.log",
+        "sha256": "ecb54c68e324d01e33193bed3ce080b8585220456cad24c557741002dd2efcdf"
+      }
+    },
+    {
+      "scope": "prior_full_parity_before_dimension_check",
+      "evidence": {
+        "path": "artifacts/goal22-runs/composed-ocr-memory-v4/comparison.json",
+        "sha256": "b3d284ba72adfff24decd194d85236fdb1409ced034e6cc6dce8fd18621043de"
+      }
+    }
+  ],
+  "raw_boundary_captured_without_detector_rerun": true,
+  "case_output": false,
+  "model_inference": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "stage_admission_granted": false,
+  "production_approved": false,
+  "limitations": [
+    "This is owned synthetic development; no sealed or real-data acceptance has run.",
+    "Composed sealed worker and current prerequisite source adapters still require integration."
+  ]
+}
