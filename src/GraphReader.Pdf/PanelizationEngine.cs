@@ -143,6 +143,25 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
         if (context!.ExtendSingleRasterGroupToSourceEdges)
         {
             selected = CombineOverlappingRasterFigures(context, selected, warnings, cancellationToken);
+            if (selected.Count > 1 && selected.All(static draft =>
+                    draft.Figure.SourceKind == PdfFigureSourceKind.RenderedPage &&
+                    draft.Axes.Count > 0 && draft.Axes.All(static axis => axis.FromRaster)))
+            {
+                double commonLeft = selected.Max(static draft => draft.Figure.BoundsPagePixels.X);
+                double commonRight = selected.Min(static draft => draft.Figure.BoundsPagePixels.Right);
+                double widest = selected.Max(static draft => draft.Figure.BoundsPagePixels.Width);
+                if (commonRight - commonLeft >= widest * DuplicateOverlapFraction)
+                {
+                    // Separate local proposals in one raster column still share
+                    // source margins. Join their figure container, retaining all
+                    // observed axes for panel cuts and preserving outer labels.
+                    PdfRectD bounds = Union(selected.Select(static draft => draft.Figure.BoundsPagePixels));
+                    List<AxisPair> columnAxes = RemoveRasterAxisFragments(
+                        selected.SelectMany(static draft => draft.Axes).ToArray(), cancellationToken);
+                    selected = [ResizeRasterFigure(context, selected[0], bounds, columnAxes)];
+                    warnings.Add("Aligned raster figure groups were combined; review panel boundaries before export.");
+                }
+            }
         }
         if (context!.ExtendSingleRasterGroupToSourceEdges &&
             selected.Count == 1 &&

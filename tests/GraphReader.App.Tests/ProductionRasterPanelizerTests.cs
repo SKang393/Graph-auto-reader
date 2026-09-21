@@ -18,6 +18,32 @@ public sealed class ProductionRasterPanelizerTests
     private static readonly int[] ExpectedPanelOrder = [1, 2, 3];
 
     [TestMethod]
+    public async Task SeparateFigureGroupsInOneColumnRetainOuterSourceLabels()
+    {
+        const int width = 1200, height = 1200;
+        byte[] scanlines = CreateWhiteScanlines(width, height);
+        foreach (int baseline in new[] { 250, 980 })
+        {
+            DrawHorizontal(scanlines, width, height, 110, 950, baseline, thickness: 2);
+            DrawVertical(scanlines, width, height, 110, baseline - 100, baseline, thickness: 2);
+            DrawHorizontal(scanlines, width, height, 220, 450, baseline - 50, thickness: 1);
+            DrawHorizontal(scanlines, width, height, 1010, 1130, baseline - 80, thickness: 2);
+        }
+        byte[] source = EncodeGrayscalePng(width, height, scanlines);
+        string digest = Convert.ToHexStringLower(SHA256.HashData(source));
+        ProductionRasterPanelizationResult result = await new ProductionRasterPanelizer().PanelizeAsync(
+            new ImmutableByteBuffer(source), digest, width, height, CancellationToken.None);
+
+        Assert.HasCount(2, result.Panels);
+        Assert.AreEqual(0d, result.Panels[0].EncodedCropInSourcePixels.Y);
+        Assert.AreEqual((double)height, result.Panels[1].EncodedCropInSourcePixels.Bottom);
+        Assert.AreEqual(result.Panels[0].EncodedCropInSourcePixels.Bottom, result.Panels[1].EncodedCropInSourcePixels.Y);
+        Assert.IsTrue(result.Panels.All(static panel => panel.EncodedCropInSourcePixels.X == 0d &&
+            panel.EncodedCropInSourcePixels.Width == width));
+        Assert.IsTrue(result.Warnings.Any(static warning => warning.Contains("Aligned raster figure groups", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public async Task SkewedConnectedAxesKeepAllStackedPlotsAndSourceMargins()
     {
         const int width = 1200, height = 900;
