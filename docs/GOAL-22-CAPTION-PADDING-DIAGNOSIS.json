@@ -1,0 +1,249 @@
+{
+  "schema": "graphreader.caption-padding-causality-diagnosis.v1",
+  "status": "cause_reproduced_no_new_operating_setting_selected",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-v1/Program.cs",
+      "sha256": "7d22319440db60d63f14cee206903d0aba289e3884a15a63736461e7bf0d7c46"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-v1/CaptionCropReplay.csproj",
+      "sha256": "56b0715b78a0269ad377c9a7a5f05eda073b734ebd9e6b2cb09a6ecbeac0f0ec"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-v1/protocol.json",
+      "sha256": "ce39778624874a7e9542c49f73dbf8963599746ff64796e469b97af3cb727958"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-v1/status.json",
+      "sha256": "0bce545041e72f560179bfece59fa65d166b18a61ff0f8cf639765001b1584d7"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-v1/build-before.log",
+      "sha256": "aed2cda0746d00d27773e10c6336f66e20c418f804b44d7aecad27a00ec4e844"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-v1/build-after.log",
+      "sha256": "7cd387a788d19f28cc03c9389e85a96fcded6763f06c27945f974cad899d22cb"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-v1/before/report.json",
+      "sha256": "e2acfe1739f02fde9c9de90808c1f75bf3a223ae1e295fc90d34b43565494368"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-after-v2/Program.cs",
+      "sha256": "7d22319440db60d63f14cee206903d0aba289e3884a15a63736461e7bf0d7c46"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-after-v2/CaptionCropReplay.csproj",
+      "sha256": "a4086914b6dfff78476cbdfd653d63ff84ab029bcbe0140ecdfd1d77305926d8"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-after-v2/protocol.json",
+      "sha256": "7fe456c09bd3974063821051a6d309c4a0ac2aac71d417ca4dee1df3759dfa90"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-after-v2/status.json",
+      "sha256": "cbe9ddd7995503c5966e431b80d73c60fac7a642649708d1bdfe97aa8dc1fe8b"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-after-v2/analysis.json",
+      "sha256": "0bcbf351e2a5b0eab8897ba63ba2d318a7ec1d9874bd62c2b8fffc75103df12e"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-crop-replay-after-v2/after/report.json",
+      "sha256": "2298fe01e218b643b25e866b7262cf2b84531cbabd337e9fc853a44cc2e03c39"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-padding-causality-v1/Program.cs",
+      "sha256": "f8854190dab8615a64a27e15a6ab6559f107468dcc36b7f6934cfc6b89f22ddd"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-padding-causality-v1/CaptionPaddingCausality.csproj",
+      "sha256": "67ede64cf7e81178fc179cb9d48a1075671a52c040b4dc239b052b5d0f6bc9f9"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-padding-causality-v1/protocol.json",
+      "sha256": "efa8c3541bdb77e18458368b3c08abd82825ae3188f98acd16713fbc3626a174"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-padding-causality-v1/status.json",
+      "sha256": "4d7004ce27e8a7e2082263395e62e0d96fb7620b31a6b5525a8bc6c905094774"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-padding-causality-v1/build-after.log",
+      "sha256": "3f3ea874f8c9197b1952c8b012ff265c13954f0143d9972ce9a480e1b861312c"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-padding-causality-v1/replay-after.log",
+      "sha256": "12a3fdd1f90db447a207028c642ca351f84dd3d5b443d3f6872dc60efad62091"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-padding-causality-v1/after/report.json",
+      "sha256": "2f747cacf443a91e48c7c2fc96855b0ae222b87c248f97e1c67e8728b5138bbf"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-padding-causality-v1/after/43dad645-4eda-0d55-9f7c-8a166111f083.json",
+      "sha256": "faa49fd35f64b15ac4e7b72b4284020160eeea5eebf52590295f4a126d7d3cde"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CaptionCropReplay.py",
+      "sha256": "8bdfc6a45b6df8807c7c74200377df517de06dea7166c89bff45884f4d2af7b1"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CaptionCropReplay.ps1",
+      "sha256": "4fd2d6503ea2ebb15c6723a315ede83a7bf976f1a44aea2a72eac7a2b3d5a809"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CaptionCropReplayAfterRetry.py",
+      "sha256": "fbdb902638d0f589792c220842c5a1d45d350db565c389292985d30022bbfeaa"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CaptionCropReplayAfterRetry.ps1",
+      "sha256": "b40b4a40e296b4a3f22c3901563c361e0eb74b904167ff2ff310f7890f137bb7"
+    },
+    {
+      "path": "artifacts/goal22-tools/Analyze-CaptionCropReplay.py",
+      "sha256": "0cc02c173426a1c3badb7dd5a7d7ded9968aaf45363ce8868c098b4e46631738"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CaptionPaddingCausality.py",
+      "sha256": "0380c275e47549eae15ed7e4f2f179ef995062272e7b056dd74cb3b9d53c6fe0"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CaptionPaddingCausality.ps1",
+      "sha256": "b32012ff3e5de628c955a46179e0f8e1d8f41d5d7c025a9b3fefb902e2b7af85"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-CaptionPaddingDiagnosis.py",
+    "sha256": "0be25a9a260142c62af83e2ac86511e22ac381a7fabd97d43302e343fb695e76"
+  },
+  "observation": "After the caption assembly repair, two unchanged regions received width-360 recognition tensors instead of width-405 tensors because batch membership changed.",
+  "six_panel_input_replay": {
+    "common_regions": 103,
+    "identical_recognition_inputs": 75,
+    "changed_recognition_inputs": 28,
+    "all_saved_regions_observed": true
+  },
+  "interventions": [
+    {
+      "region_id": "247776c0-f1aa-462b-b009-a9381306a7bb",
+      "mode": "before",
+      "width": 405,
+      "crop_sha256": "635b52c3fb7d5d4634ac58703a04f9170966d9baa3d43e510b93d8e7d5915e0b",
+      "expected_saved_text": "Participant 01.",
+      "primary_text": "Participant 01.",
+      "alternatives": [
+        {
+          "text": "Participant 01.",
+          "confidence": 0.970012370745341,
+          "source_image": "Original"
+        },
+        {
+          "text": "Participant O1.",
+          "confidence": 0.33258088064724006,
+          "source_image": "Original"
+        },
+        {
+          "text": "Participant 01",
+          "confidence": 0.20616468398171384,
+          "source_image": "Original"
+        }
+      ]
+    },
+    {
+      "region_id": "247776c0-f1aa-462b-b009-a9381306a7bb",
+      "mode": "after",
+      "width": 360,
+      "crop_sha256": "76d0d5861750ba3bad7487cfb3543dcaa4d2aab5ccc4154844134fbbe3ac4264",
+      "expected_saved_text": "Participant O1",
+      "primary_text": "Participant O1",
+      "alternatives": [
+        {
+          "text": "Participant O1",
+          "confidence": 0.9844221643039158,
+          "source_image": "Original"
+        },
+        {
+          "text": "Participant O1.",
+          "confidence": 0.17731795213082002,
+          "source_image": "Original"
+        },
+        {
+          "text": "Participant 01",
+          "confidence": 0.15240775810683965,
+          "source_image": "Original"
+        }
+      ]
+    },
+    {
+      "region_id": "49e484dd-5c14-3d07-fecd-b667ec1da9a6",
+      "mode": "before",
+      "width": 405,
+      "crop_sha256": "30b41538dbed36482ba6963525a44bccb78b1a7402fb1e5c7914657889634acf",
+      "expected_saved_text": "1.00",
+      "primary_text": "1.00",
+      "alternatives": [
+        {
+          "text": "1.00",
+          "confidence": 0.8596851974725723,
+          "source_image": "Original"
+        },
+        {
+          "text": "1,00",
+          "confidence": 0.44603876880343535,
+          "source_image": "Original"
+        },
+        {
+          "text": "1.O0",
+          "confidence": 0.00012926391425246577,
+          "source_image": "Original"
+        }
+      ]
+    },
+    {
+      "region_id": "49e484dd-5c14-3d07-fecd-b667ec1da9a6",
+      "mode": "after",
+      "width": 360,
+      "crop_sha256": "a4ee6697f4315a73044d7a4d7709476eadbada28eff380dba03a71121fbe2159",
+      "expected_saved_text": "100",
+      "primary_text": "100",
+      "alternatives": [
+        {
+          "text": "100",
+          "confidence": 0.9998889168103536,
+          "source_image": "Original"
+        },
+        {
+          "text": "1.00",
+          "confidence": 0.8321172893047333,
+          "source_image": "Original"
+        },
+        {
+          "text": "1O0",
+          "confidence": 0.00011079746523544383,
+          "source_image": "Original"
+        }
+      ]
+    }
+  ],
+  "all_four_saved_readings_reproduced": true,
+  "source_polygons_and_source_crop_hashes_identical": true,
+  "result": "Only the measured before/after padding widths were replayed. Every reconstructed full-input hash matched the saved compiled-pipeline capture. The existing recognizer reproduced Participant 01. versus Participant O1, and 1.00 versus 100.",
+  "policy": "No width was chosen from truth, no candidate or threshold search, no replacement model, and no product setting change. These are open synthetic engineering diagnostics, not an acceptance gate.",
+  "void_attempt": "The first after replay build included generated C# files from the completed before build. Explicit compile inputs repaired that tool project in a new directory. The completed before replay was preserved and not repeated.",
+  "seconds": {
+    "initial_attempt_including_void_after_build": 14.476414,
+    "after_replay_retry": 9.5815365,
+    "four_actual_recognitions": 9.1302255
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_inference_runs": 4,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "product_source_changed": false,
+  "packaged_build_created": false,
+  "goal22_all_four_outcomes_verified": false
+}
