@@ -100,6 +100,7 @@ public static class OcrCacheKeyDeriver
         yield return request.TransformChain;
         yield return detectorConfigurationFingerprint;
         yield return options.StageVersion;
+        yield return OcrPipeline.TickAlternativeResolutionVersion;
         yield return GraphTextRoleClassifier.Version;
         if (options.EnableFramedLegendTextRecovery)
         {

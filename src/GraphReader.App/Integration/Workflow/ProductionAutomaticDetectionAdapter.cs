@@ -81,7 +81,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
 
     public string AdapterId => string.Join(
         ':',
-        "graphreader-production-detection-v3",
+        "graphreader-production-detection-v4",
         ProductionLegendSymbolInputs.Version,
         ProductionTextMarkerExclusion.Version,
         ProductionPhaseGeometryContext.Version,
@@ -827,7 +827,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 marker.Marker.Center.X,
                 marker.Marker.CenterConfidence))
             .ToArray();
-        return RobustCalibration.FitSessionFirst(
+        SessionFirstCalibrationResult calibration = RobustCalibration.FitSessionFirst(
             new SessionFirstCalibrationRequest
             {
                 YTicks = yTicks,
@@ -841,6 +841,18 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 },
             },
             cancellationToken);
+        string[] unresolvedTicks = ocr.Warnings.Where(static warning =>
+            warning.StartsWith("ocr_tick_sequence_needs_review:", StringComparison.Ordinal)).ToArray();
+        if (unresolvedTicks.Length == 0) return calibration;
+        // A regular fit cannot erase an unresolved recognition conflict.
+        // Preserve the fit for Review while preventing an automatic export.
+        return calibration with
+        {
+            Validity = calibration.Validity == CalibrationValidity.Valid
+                ? CalibrationValidity.NeedsReview : calibration.Validity,
+            Reasons = Array.AsReadOnly(calibration.Reasons.Concat(unresolvedTicks)
+                .Distinct(StringComparer.Ordinal).ToArray()),
+        };
     }
 
     private static IEnumerable<ParsedTick> ParseTicks(OcrResult ocr, OcrTextRole role)

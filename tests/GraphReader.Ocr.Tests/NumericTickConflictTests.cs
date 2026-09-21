@@ -10,9 +10,11 @@ namespace GraphReader.Ocr.Tests;
 public sealed class NumericTickConflictTests
 {
     private static readonly string[] ExpectedResolvedTickTexts = ["1", "6", "11"];
+    private static readonly string[] ExpectedUnchangedTickTexts = ["100", "1.50", "200"];
+    private static readonly string[] ExpectedMultipleCorrectedTickTexts = ["0", "1", "2", "3"];
 
     [TestMethod]
-    public async Task LowerConfidenceAlternativeWinsWhenItCompletesRegularMonotonicTickSequence()
+    public async Task LowerConfidenceAlternativeRemainsReviewableWhenItCompletesRegularMonotonicTickSequence()
     {
         OcrDetectedRegion[] ticks = XTicks();
         var recognizer = Recognizer(
@@ -35,8 +37,8 @@ public sealed class NumericTickConflictTests
         OcrRegion resolved = result.Regions.Single(region => region.RegionId == "x2");
         Assert.AreEqual(OcrSourceImage.Original, resolved.SourceImage);
         Assert.IsTrue(resolved.Alternatives.Any(alternative => alternative.Text == "60"));
-        Assert.IsFalse(result.Warnings.Any(warning =>
-            warning.Contains("needs_review", StringComparison.OrdinalIgnoreCase)));
+        CollectionAssert.Contains(result.Warnings.ToArray(),
+            "ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected");
     }
 
     [TestMethod]
@@ -61,6 +63,105 @@ public sealed class NumericTickConflictTests
             warning.Contains("tick", StringComparison.OrdinalIgnoreCase) &&
             warning.Contains("review", StringComparison.OrdinalIgnoreCase)));
         Assert.IsTrue(result.Regions.All(static region => region.Role == OcrTextRole.XTick));
+    }
+
+    [TestMethod]
+    public async Task MultipleCorrectReadingsCannotBeRescaledToMatchOneOtherReading()
+    {
+        var alternatives = new Dictionary<(string, OcrSourceImage), IReadOnlyList<OcrRecognitionAlternative>>
+        {
+            [("x1", OcrSourceImage.Original)] = [new("100", 0.9999, OcrSourceImage.Original), new("1.00", 0.8135, OcrSourceImage.Original)],
+            [("x2", OcrSourceImage.Original)] = [new("1.50", 0.9465, OcrSourceImage.Original)],
+            [("x3", OcrSourceImage.Original)] = [new("200", 0.9998, OcrSourceImage.Original), new("2.00", 0.7499, OcrSourceImage.Original)],
+        };
+        OcrResult result = await Pipeline(new StubTextRecognizer(alternatives)).RecognizeAsync(
+            OcrTestFixtures.Request(XTicks()), CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded);
+        CollectionAssert.AreEqual(ExpectedUnchangedTickTexts, result.Regions.Select(static region => region.Text).ToArray());
+        CollectionAssert.Contains(result.Warnings.ToArray(),
+            "ocr_tick_sequence_needs_review:XTick:insufficient_unchanged_tick_anchors");
+        Assert.IsTrue(result.Regions[0].Alternatives.Any(static alternative => alternative.Text == "1.00"));
+    }
+
+    [TestMethod]
+    public async Task ASecondTickAloneCannotValidateChangingTheFirst()
+    {
+        OcrDetectedRegion[] ticks = XTicks()[..2];
+        var alternatives = new Dictionary<(string, OcrSourceImage), IReadOnlyList<OcrRecognitionAlternative>>
+        {
+            [("x1", OcrSourceImage.Original)] = [new("100", 0.99, OcrSourceImage.Original), new("1", 0.9, OcrSourceImage.Original)],
+            [("x2", OcrSourceImage.Original)] = [new("2", 0.99, OcrSourceImage.Original)],
+        };
+        OcrResult result = await Pipeline(new StubTextRecognizer(alternatives)).RecognizeAsync(
+            OcrTestFixtures.Request(ticks), CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.AreEqual("100", result.Regions[0].Text);
+        CollectionAssert.Contains(result.Warnings.ToArray(),
+            "ocr_tick_sequence_needs_review:XTick:insufficient_unchanged_tick_anchors");
+    }
+
+    [TestMethod]
+    public async Task TwoUnchangedAnchorsCanSupportMoreThanOneReviewableCorrection()
+    {
+        OcrDetectedRegion[] ticks = Enumerable.Range(0, 4)
+            .Select(index => OcrTestFixtures.Region($"x{index}", 36 + index * 20, 89, 8, 6)).ToArray();
+        var alternatives = new Dictionary<(string, OcrSourceImage), IReadOnlyList<OcrRecognitionAlternative>>
+        {
+            [("x0", OcrSourceImage.Original)] = [new("0", 0.99, OcrSourceImage.Original)],
+            [("x1", OcrSourceImage.Original)] = [new("10", 0.99, OcrSourceImage.Original), new("1", 0.9, OcrSourceImage.Original)],
+            [("x2", OcrSourceImage.Original)] = [new("20", 0.99, OcrSourceImage.Original), new("2", 0.9, OcrSourceImage.Original)],
+            [("x3", OcrSourceImage.Original)] = [new("3", 0.99, OcrSourceImage.Original)],
+        };
+        OcrResult result = await Pipeline(new StubTextRecognizer(alternatives)).RecognizeAsync(
+            OcrTestFixtures.Request(ticks), CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded);
+        CollectionAssert.AreEqual(ExpectedMultipleCorrectedTickTexts, result.Regions.Select(static region => region.Text).ToArray());
+        CollectionAssert.Contains(result.Warnings.ToArray(),
+            "ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected");
+    }
+
+    [TestMethod]
+    public async Task RegularityCannotIndependentlyValidateAReplacementChosenForRegularity()
+    {
+        var alternatives = new Dictionary<(string, OcrSourceImage), IReadOnlyList<OcrRecognitionAlternative>>
+        {
+            [("x1", OcrSourceImage.Original)] = [new("1.00", 0.86, OcrSourceImage.Original)],
+            [("x2", OcrSourceImage.Original)] = [new("1.50", 0.94, OcrSourceImage.Original)],
+            [("x3", OcrSourceImage.Original)] = [new("200", 0.9998, OcrSourceImage.Original), new("2.00", 0.7499, OcrSourceImage.Original)],
+        };
+        OcrResult result = await Pipeline(new StubTextRecognizer(alternatives)).RecognizeAsync(
+            OcrTestFixtures.Request(XTicks()), CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.AreEqual("2.00", result.Regions[2].Text);
+        Assert.IsTrue(result.Regions[2].Alternatives.Any(static alternative => alternative.Text == "200"));
+        CollectionAssert.Contains(result.Warnings.ToArray(),
+            "ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected");
+    }
+
+    [TestMethod]
+    public async Task ACorrectionCannotDiscardContradictoryTickEvidence()
+    {
+        OcrDetectedRegion[] ticks = Enumerable.Range(0, 5)
+            .Select(index => OcrTestFixtures.Region($"x{index}", 36 + index * 20, 89, 8, 6)).ToArray();
+        var alternatives = new Dictionary<(string, OcrSourceImage), IReadOnlyList<OcrRecognitionAlternative>>
+        {
+            [("x0", OcrSourceImage.Original)] = [new("0", 0.99, OcrSourceImage.Original)],
+            [("x1", OcrSourceImage.Original)] = [new("10", 0.99, OcrSourceImage.Original), new("1", 0.9, OcrSourceImage.Original)],
+            [("x2", OcrSourceImage.Original)] = [new("2", 0.99, OcrSourceImage.Original)],
+            [("x3", OcrSourceImage.Original)] = [new("3", 0.99, OcrSourceImage.Original)],
+            [("x4", OcrSourceImage.Original)] = [new("0", 0.1, OcrSourceImage.Original)],
+        };
+        OcrResult result = await Pipeline(new StubTextRecognizer(alternatives)).RecognizeAsync(
+            OcrTestFixtures.Request(ticks), CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.AreEqual("10", result.Regions[1].Text);
+        CollectionAssert.Contains(result.Warnings.ToArray(),
+            "ocr_tick_sequence_needs_review:XTick:contradictory_tick_evidence");
     }
 
     [TestMethod]

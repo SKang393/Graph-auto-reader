@@ -120,6 +120,42 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
+    [DataRow("ocr_tick_sequence_needs_review:XTick:ambiguous_or_irregular_spacing", true)]
+    [DataRow("ocr_tick_sequence_needs_review:YTick:insufficient_unchanged_tick_anchors", true)]
+    [DataRow("ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected", true)]
+    [DataRow("ocr_tick_alternative_resolved_by_monotonic_spacing:YTick", false)]
+    [DataRow("ocr_role_needs_review:note:detached_above_header_row", false)]
+    public async Task UnresolvedNumericReviewCannotBecomeAnAutomaticExport(string warning, bool mustReject)
+    {
+        byte[] bytes = [1, 2, 3];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:numeric-review.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "numeric-review.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new RasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(warning: warning), new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(),
+            new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+
+        if (mustReject)
+        {
+            ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+                () => adapter.DetectAsync(request, CancellationToken.None));
+            Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, failure.Failure.Code);
+            Assert.IsNotEmpty(failure.CompletedEvidence);
+            Assert.IsNull(store.Get(panelId).ExportEvidence);
+        }
+        else
+        {
+            await adapter.DetectAsync(request, CancellationToken.None);
+            Assert.IsNotNull(store.Get(panelId).ExportEvidence);
+        }
+    }
+
+    [TestMethod]
     public async Task ResolvedLegendGlyphRemainsAuditableButIsNotAnExportedPoint()
     {
         string root = Path.Combine(Path.GetTempPath(), $"graphreader-legend-{Guid.NewGuid():N}");
@@ -545,14 +581,16 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         private readonly bool includeLegendText;
         private readonly bool framedLegend;
         private readonly bool invalidLegendBounds;
+        private readonly string? warning;
 
         public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
-            bool invalidLegendBounds = false)
+            bool invalidLegendBounds = false, string? warning = null)
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
             this.framedLegend = framedLegend;
             this.invalidLegendBounds = invalidLegendBounds;
+            this.warning = warning;
         }
 
         public string AdapterId => "test-ocr";
@@ -637,7 +675,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     region.Confidence)).ToArray(),
                 new OcrTiming(1, 1, 1, 3),
                 0.95,
-                [],
+                warning is null ? [] : [warning],
                 new OcrCacheDiagnostics(false, "test", regions.Length, 1),
                 null,
                 []);

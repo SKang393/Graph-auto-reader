@@ -65,6 +65,8 @@ public sealed record OcrPipelineOptions
 
 public sealed class OcrPipeline
 {
+    internal const string TickAlternativeResolutionVersion = "reviewable-unchanged-anchor-tick-resolution-v2";
+
     private readonly ITextRegionDetector _detector;
     private readonly ITextRecognizer _recognizer;
     private readonly IOcrResultCache _cache;
@@ -990,6 +992,28 @@ public sealed class OcrPipeline
                 return;
             }
 
+            var unchanged = Enumerable.Range(0, tickRegions.Length)
+                .Where(index => GraphNumericParser.Parse(tickRegions[index].Text) is
+                    { IsSuccess: true, Value: { } value } && value == best.Choices[index].Value)
+                .ToArray();
+            if (unchanged.Length != tickRegions.Length)
+            {
+                // Values selected by this same correction cannot validate one
+                // another. Two unchanged readings must independently anchor the
+                // scale, and the proposed sequence must retain every tick.
+                if (unchanged.Select(index => best.Choices[index].Value).Distinct().Count() < 2 ||
+                    unchanged.Select(index => pixelSelector(tickRegions[index].Polygon.Bounds)).Distinct().Count() < 2)
+                {
+                    warnings.Add($"ocr_tick_sequence_needs_review:{role}:insufficient_unchanged_tick_anchors");
+                    return;
+                }
+                if (best.Resolution.RejectedTicks.Count > 0)
+                {
+                    warnings.Add($"ocr_tick_sequence_needs_review:{role}:contradictory_tick_evidence");
+                    return;
+                }
+            }
+
             for (var index = 0; index < tickRegions.Length; index++)
             {
                 var region = tickRegions[index];
@@ -1008,6 +1032,12 @@ public sealed class OcrPipeline
                 };
             }
 
+            if (unchanged.Length != tickRegions.Length)
+            {
+                // A sequence chosen for regularity cannot use that same fit as
+                // independent validation of the replacement numeric readings.
+                warnings.Add($"ocr_tick_sequence_needs_review:{role}:numeric_alternative_selected");
+            }
             warnings.Add($"ocr_tick_alternative_resolved_by_monotonic_spacing:{role}");
 
             void Enumerate(int index)

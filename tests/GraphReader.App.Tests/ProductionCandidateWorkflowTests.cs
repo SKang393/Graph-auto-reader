@@ -400,6 +400,30 @@ public sealed class ProductionCandidateWorkflowTests
     }
 
     [TestMethod]
+    [DataRow("ocr_tick_sequence_needs_review:XTick:combination_search_incomplete")]
+    [DataRow("ocr_tick_sequence_needs_review:YTick:insufficient_unchanged_tick_anchors")]
+    [DataRow("ocr_tick_sequence_needs_review:YTick:numeric_alternative_selected")]
+    public async Task CandidateCannotExportARegularFitWithUnresolvedNumericReview(string warning)
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = WritePng(directory.Path, "source.png", 120, 100);
+        var store = new ProductionWorkflowPanelStore();
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(store, ocrWarning: warning);
+        ProductionCandidateCalibrationObservation? observation = null;
+        candidate.CandidateCalibrationObserver = value => observation = value;
+        ProductionWorkflowStageException error = await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() =>
+            CreateWorkflow(store, candidate).RunThroughReviewAsync(Request(imagePath), null, CancellationToken.None));
+
+        Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, error.Failure.Code);
+        Assert.IsNotNull(observation);
+        Assert.IsTrue(observation.Calibration.YTransform.IsValid);
+        Assert.IsTrue(observation.Calibration.XTransform?.IsValid == true);
+        Assert.AreEqual(CalibrationValidity.NeedsReview, observation.Calibration.Validity);
+        CollectionAssert.Contains(observation.Calibration.Reasons.ToArray(), warning);
+        Assert.IsNull(store.Get(observation.PanelId).ExportEvidence);
+    }
+
+    [TestMethod]
     public async Task ProductionStageRejectsTheSameUnapprovedAutomaticAdapter()
     {
         using var directory = new TemporaryDirectory();
@@ -579,12 +603,13 @@ public sealed class ProductionCandidateWorkflowTests
         bool includeNumericOutliers = false,
         bool includeUncertainMarkerText = false,
         bool candidateClassifier = false,
-        bool includeOffLatticeMarker = false) =>
+        bool includeOffLatticeMarker = false,
+        string? ocrWarning = null) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
             new CandidateAxisAdapter(ambiguousPhaseLayout),
-            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels, includeNumericOutliers, includeUncertainMarkerText),
+            new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels, includeNumericOutliers, includeUncertainMarkerText, ocrWarning),
             new CandidateMaskComposer(),
             new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession, includeOffLatticeMarker),
             new ClassificationAdapter(isApproved: !candidateClassifier),
@@ -681,7 +706,7 @@ public sealed class ProductionCandidateWorkflowTests
 
     private sealed class CandidateOcrAdapter(bool omitYTicks = false, bool includeTextDecoy = false, bool includeIntermediateSession = false,
         bool ambiguousPhaseLayout = false, bool shiftedNumericLabels = false, bool includeNumericOutliers = false,
-        bool includeUncertainMarkerText = false) : IProductionCandidateOcrAdapter
+        bool includeUncertainMarkerText = false, string? warning = null) : IProductionCandidateOcrAdapter
     {
         public string AdapterId => "candidate-ocr";
         public bool IsApproved => false;
@@ -743,7 +768,7 @@ public sealed class ProductionCandidateWorkflowTests
                     .Select(region => new OcrMask(region.RegionId, region.Polygon, region.Confidence)).ToArray(),
                 new OcrTiming(0, 0, 0, 0),
                 0.95,
-                [],
+                warning is null ? [] : [warning],
                 new OcrCacheDiagnostics(false, "candidate", regions.Length, 1),
                 null,
                 []);
