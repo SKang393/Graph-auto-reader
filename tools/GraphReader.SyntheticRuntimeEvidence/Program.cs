@@ -32,6 +32,12 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 5 && args[0] == "--check-open-ocr-axis-fixture")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(await OpenOcrArchiveFixtureCheck.RunAxisAsync(
+                RepositoryRoot(), args[1], args[2], args[3], args[4]).ConfigureAwait(false), JsonOptions));
+            return 0;
+        }
         if (args.Length == 3 && args[0] == "--check-open-ocr-import-fixture")
         {
             Console.WriteLine(JsonSerializer.Serialize(await OpenOcrArchiveFixtureCheck.RunImportAsync(

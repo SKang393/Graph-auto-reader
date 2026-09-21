@@ -2,9 +2,11 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using GraphReader.App.Integration.Workflow;
+using GraphReader.Axis;
 using GraphReader.Imaging;
 using GraphReader.Pdf;
 
@@ -75,6 +77,61 @@ internal static class OpenOcrArchiveFixtureCheck
             failures, open_development_fixture = true, registered_reserve = false, sealed_reads = 0,
             private_reads = 0, model_inference = false, production_approved = false,
         };
+    }
+
+    internal static async Task<object> RunAxisAsync(string root, string requestPath, string expectedRequestSha256,
+        string nativePath, string nativeSha256)
+    {
+        IReadOnlyList<OriginalDbOcrSealedSourcePayload> sources = ReadFixture(root, requestPath, expectedRequestSha256);
+        string native = Path.GetFullPath(nativePath, root);
+        string artifactRoot = Path.Combine(root, "artifacts", "goal22-runs") + Path.DirectorySeparatorChar;
+        if (!native.StartsWith(artifactRoot, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("OPEN_OCR_FIXTURE_PATH_INVALID");
+        using var nativeLock = new FileStream(native, FileMode.Open, FileAccess.Read, FileShare.Read);
+        if (Convert.ToHexStringLower(SHA256.HashData(nativeLock)) != nativeSha256)
+            throw new InvalidDataException("OPEN_OCR_FIXTURE_IDENTITY_INVALID");
+        nint handle = NativeLibrary.Load(native);
+        NativeLibrary.SetDllImportResolver(typeof(OpenCvSharp.Mat).Assembly,
+            (name, _, _) => name == "OpenCvSharpExtern" ? handle : nint.Zero);
+        var outcomes = new List<object>();
+        foreach (OriginalDbOcrSealedSourcePayload source in sources)
+        {
+            // The complete authenticated fixture is explicitly open. Image bytes alone
+            // enter production import, axis fitting and OCR mask construction.
+            var image = new WorkflowInMemoryImageSource(source.ImageSha256, source.ImageBytes);
+            Guid projectId = ProductionWorkflowPanelStore.CreateStableId("open-axis-project-v1", image.Sha256);
+            Guid sourceId = ProductionWorkflowPanelStore.CreateStableId("open-axis-source-v1", image.Sha256);
+            var store = new ProductionWorkflowPanelStore();
+            var importer = new ProductionWorkflowImportStage(store, new ImageImportService());
+            WorkflowImportSnapshot imported = await importer.ImportAsync(new WorkflowImportRequest(projectId,
+                [new WorkflowSourceRequest(sourceId, WorkflowSourceKind.Image, "source.png") { InMemoryImageSource = image }],
+                enhancementEnabled: false), CancellationToken.None).ConfigureAwait(false);
+            foreach (WorkflowImportedPanel panel in imported.Panels)
+            {
+                var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(panel, panel.Original, null),
+                    panel.Original, WorkflowImageVariant.Original, Guid.NewGuid(), projectId,
+                    store.Get(panel.PanelId).CopyOriginalBytes());
+                ProductionDecodedRaster raster = new ProductionRasterFrameDecoder().Decode(request, CancellationToken.None);
+                ProductionAxisGeometryEvidence axis = await new ProductionAxisGeometryAdapter(nativeSha256, isApproved: false)
+                    .DetectForLocalSyntheticCandidateEvaluationAsync(request, CancellationToken.None).ConfigureAwait(false);
+                var structures = new[] { (Kind: "x_axis", Line: axis.Geometry.XAxis.Line), (Kind: "y_axis", Line: axis.Geometry.YAxis.Line) }
+                    .Concat(axis.Geometry.Ticks.Select(static tick => (Kind: "tick", tick.Line)))
+                    .Concat(axis.Geometry.PhaseDividers.Select(static divider => (Kind: "divider", divider.Line)))
+                    .Concat(axis.Geometry.AmbiguousGridOrDividers.Select(static item => (Kind: "ambiguous_grid", item.Line)));
+                var invalid = structures.Where(item => !item.Line.Start.IsFinite || !item.Line.End.IsFinite ||
+                    item.Line.Start.X < 0 || item.Line.End.X < 0 || item.Line.Start.Y < 0 || item.Line.End.Y < 0 ||
+                    item.Line.Start.X > raster.Width || item.Line.End.X > raster.Width ||
+                    item.Line.Start.Y > raster.Height || item.Line.End.Y > raster.Height || item.Line.Length <= double.Epsilon)
+                    .Select(static item => new { item.Kind, item.Line }).ToArray();
+                string? failure = null;
+                try { _ = raster.CreateOcrDetectorImage(axis.Geometry, CancellationToken.None); }
+                catch (ProductionWorkflowStageException error) { failure = error.Message; }
+                outcomes.Add(new { source.Ordinal, raster.Width, raster.Height, InvalidLines = invalid, MaskFailure = failure });
+            }
+        }
+        return new { Status = outcomes.Count > 0 ? "completed" : "empty", NativeSha256 = nativeSha256,
+            OpenDevelopmentFixture = true, PrivateReads = 0, SealedReads = 0, ModelInference = false,
+            ProductionApproved = false, Panels = outcomes };
     }
 
     private static IReadOnlyList<OriginalDbOcrSealedSourcePayload> ReadFixture(

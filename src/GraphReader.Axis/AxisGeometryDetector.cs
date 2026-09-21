@@ -872,7 +872,10 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             var selectedFamily = selectedMembers.Length == family.Members.Count
                 ? family
                 : FitFamily(selectedMembers, Orientation.Vertical);
-            var line = ClipVerticalFamilyToPlot(selectedFamily, pair, plotHeight);
+            if (ClipVerticalFamilyToPlot(selectedFamily, pair, plotHeight) is not { } line)
+            {
+                continue;
+            }
             var spanFraction = VerticalPlotSpan(selectedFamily, pair, plotHeight) / Math.Max(1d, plotHeight);
             var patternConfidence = style == DividerStyle.Unknown ? 0.45d : 0.9d;
             var confidence = Clamp01(
@@ -910,6 +913,10 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         for (var index = 0; index < ordered.Length; index++)
         {
             var family = ordered[index];
+            if (ClipVerticalFamilyToPlot(family, pair, plotHeight) is not { } line)
+            {
+                continue;
+            }
             var spanFraction = Clamp01(
                 VerticalPlotSpan(family, pair, plotHeight) / Math.Max(1d, plotHeight));
             var confidence = Clamp01(
@@ -919,7 +926,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
                 (0.10d / (1d + family.RootMeanSquareError)));
             result.Add(new AmbiguousGridOrDividerGeometry(
                 $"grid-or-divider-{index + 1:D3}",
-                ClipVerticalFamilyToPlot(family, pair, plotHeight),
+                line,
                 confidence,
                 spanFraction,
                 family.CoverageFraction,
@@ -1163,7 +1170,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         return family.CoverageFraction >= 0.8d ? DividerStyle.Solid : DividerStyle.Unknown;
     }
 
-    private static GeometryLineSegment ClipVerticalFamilyToPlot(
+    private static GeometryLineSegment? ClipVerticalFamilyToPlot(
         LineFamily family,
         AxisPair pair,
         double plotHeight)
@@ -1171,7 +1178,30 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
         var bottom = IntersectWithParallelThrough(family, pair.Intersection, pair.XDirection);
         var topAxisPoint = Add(pair.Intersection, pair.UpDirection, plotHeight);
         var top = IntersectWithParallelThrough(family, topAxisPoint, pair.XDirection);
-        return new GeometryLineSegment(bottom, top);
+        // Intersections with the top and bottom alone can extend a slanted line
+        // outside a narrow plot. Clip its horizontal plot coordinate as well.
+        // At each boundary the offset from its axis point is parallel to X,
+        // including when the fitted X and Y axes are not perpendicular.
+        double bottomX = Project(bottom, pair.Intersection, pair.XDirection);
+        double topX = Project(top, topAxisPoint, pair.XDirection);
+        double deltaX = topX - bottomX;
+        double start = 0d, end = 1d;
+        if (Math.Abs(deltaX) <= 1e-9d)
+        {
+            if (bottomX < 0d || bottomX > pair.RightDistance) return null;
+        }
+        else
+        {
+            double left = -bottomX / deltaX;
+            double right = (pair.RightDistance - bottomX) / deltaX;
+            start = Math.Max(0d, Math.Min(left, right));
+            end = Math.Min(1d, Math.Max(left, right));
+            if (start >= end) return null;
+        }
+        PixelPoint At(double fraction) => new(
+            bottom.X + fraction * (top.X - bottom.X),
+            bottom.Y + fraction * (top.Y - bottom.Y));
+        return new GeometryLineSegment(start == 0d ? bottom : At(start), end == 1d ? top : At(end));
     }
 
     private static double VerticalPlotSpan(LineFamily family, AxisPair pair, double plotHeight)

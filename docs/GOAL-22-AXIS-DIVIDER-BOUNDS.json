@@ -1,0 +1,204 @@
+{
+  "schema": "graphreader.goal22.axis-divider-bounds-repair.v1",
+  "base_commit": "88bdb6ad4a61d42d1a83bedc88cf9bf788fbfaa9",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Axis/AxisGeometryDetector.cs",
+      "sha256": "012bdced1a9280281978e703c545cd271d89984d43dbba8254244090a7fd3b15"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAxisGeometryAdapter.cs",
+      "sha256": "0ed6a31ab06c78fc9002abc5433c1be7580be712dbabfbd7ffcb10b73f850d93"
+    },
+    {
+      "path": "tests/GraphReader.Axis.Tests/AxisDividerBoundsTests.cs",
+      "sha256": "38988c4ef0e7d62b6414c822bd11e9ccc61c5f3c4692ae0645a9368540b05f20"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "982ceebb113c71e80bd2aebd8af72f79ec31dc0b960dea1dfa09659dff4b18c6"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OpenOcrArchiveFixtureCheck.cs",
+      "sha256": "17c226cc91fbb356a21bdaf0edee54ddbfcdd8750300ac1fae22da49e1430cc8"
+    }
+  ],
+  "tests": {
+    "Axis": {
+      "total": 68,
+      "executed": 68,
+      "passed": 68,
+      "failed": 0
+    },
+    "App": {
+      "total": 428,
+      "executed": 428,
+      "passed": 428,
+      "failed": 0
+    }
+  },
+  "observed_failure": {
+    "source_scope": "explicitly-open-owned-development",
+    "image_width": 600,
+    "image_height": 4484,
+    "invalid_divider_count": 2,
+    "extrapolated_start_x": [
+      -45.408914484940624,
+      -69.54328754102386
+    ]
+  },
+  "repaired_probe": {
+    "sources": 21,
+    "panels": 26,
+    "invalid_lines": 0,
+    "mask_failures": 0,
+    "native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31"
+  },
+  "native_baseline": {
+    "sources": 23,
+    "panels": 39,
+    "completed": 17,
+    "failed": 6,
+    "correct_values": 479,
+    "correct_rows": 474,
+    "all_metrics_and_scientific_outputs_unchanged": true,
+    "inference_milliseconds": 144490.1035
+  },
+  "open_ocr": {
+    "source_count": 21,
+    "panel_count": 26,
+    "metrics": {
+      "source_count": 21,
+      "raw_detector_geometry": {
+        "truth_region_count": 453,
+        "predicted_region_count": 349,
+        "true_positives": 215,
+        "false_positives": 134,
+        "false_negatives": 238,
+        "precision": 0.6160458452722063,
+        "recall": 0.4746136865342163,
+        "intersection_over_union_minimum": 0.5
+      },
+      "assembled_geometry": {
+        "truth_region_count": 453,
+        "predicted_region_count": 359,
+        "true_positives": 233,
+        "false_positives": 126,
+        "false_negatives": 220,
+        "precision": 0.649025069637883,
+        "recall": 0.5143487858719646,
+        "intersection_over_union_minimum": 0.5
+      },
+      "full_ocr_metrics": {
+        "truth_region_count": 453,
+        "predicted_region_count": 359,
+        "geometry_matched_region_count": 233,
+        "geometry_false_positive_count": 126,
+        "geometry_false_negative_count": 220,
+        "recognition_exact_count": 186,
+        "recognition_exact_accuracy": 0.4105960264900662,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 121,
+        "unmatched_truth_deletion_edit_count": 1443,
+        "unmatched_prediction_insertion_edit_count": 323,
+        "character_error_count": 1887,
+        "character_error_rate": 0.6087096774193549,
+        "role_correct_count": 159,
+        "role_accuracy": 0.3509933774834437,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 18,
+            "accuracy": 0.2903225806451613
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 28,
+            "accuracy": 0.5384615384615384
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 17,
+            "accuracy": 0.4594594594594595
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 2,
+            "accuracy": 0.06451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 63,
+            "accuracy": 0.37058823529411766
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 29,
+            "accuracy": 0.29292929292929293
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "recognition_failed_region_count": 0
+    }
+  },
+  "open_ocr_inference_milliseconds": 32500.8779,
+  "open_ocr_shared_bars_passed": false,
+  "open_ocr_failures_retained": true,
+  "development_runtime_note": "Composed OCR already uses reviewed c96 source-native bytes. The earlier full-workflow baseline uses NuGet development-native 1fa. The new full-workflow run binds c96 and preserves baseline outputs. No promotion of 1fa is intended.",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/axis-divider-bounds-repair-v1/status.json",
+      "sha256": "473274fc5f784209d5888948f1de12fef7c2c1e3aecb4117a42b800d6d338cae"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-divider-bounds-repair-v1/import-result.json",
+      "sha256": "3cb1ed85d96468811dbf5053f6510e77d3bc977311c5a698a777f07d4e857890"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-divider-bounds-repair-v1/open-result.json",
+      "sha256": "e4c7042d52c7dc849976e3771972b2de14020dfc1d9a253e39997de92942e887"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-divider-bounds-repair-v1/baseline-result.json",
+      "sha256": "eb15da9a91974dc6bbfbb25bb44296e7f6732a552a5fb1843379d9d306219b94"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-divider-workflow-v1/comparison.json",
+      "sha256": "4a11a39dad3eda634f9e61f2c0780dc746ed727b7cf63fb94a2fd931506118e7"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-divider-workflow-v1/status.json",
+      "sha256": "21cfd293d157900b20eae856872ab538e7d3f4f88274fbefc28dd44ad7e0d7e3"
+    },
+    {
+      "path": "artifacts/goal22-runs/open-axis-coordinate-probe-v1/result.json",
+      "sha256": "89a3bab217d98f2c857eead24b188fc6da4ddfcd7ffb0f43bf027fd5f4225091"
+    },
+    {
+      "path": "artifacts/goal22-runs/open-coverage-workflow-v2/open-ocr-diagnosis.json",
+      "sha256": "43c2a5afa42888f026dcb6f00e3acfbc2e19507f7f02c1e762b14f9d5933be60"
+    },
+    {
+      "path": "packaging/opencv-source/review/source-build-review-policy.json",
+      "sha256": "1da05079d0c3b980265bc8699ab3ff04fb5b67b2a4fdda42acacecfb1cd54898"
+    }
+  ],
+  "commands": [
+    "pwsh -NoProfile -File artifacts/goal22-tools/Run-AxisBoundsRepair.ps1",
+    "pwsh -NoProfile -File artifacts/goal22-tools/Run-AxisDividerWorkflow.ps1",
+    "python artifacts/goal22-tools/Diagnose-OpenCoverageOcr.py artifacts/goal22-runs/open-coverage-workflow-v2"
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "all_goal22_outcomes_complete": false
+}
