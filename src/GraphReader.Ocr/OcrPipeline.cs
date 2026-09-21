@@ -428,7 +428,7 @@ public sealed class OcrPipeline
         if (_options.EnableHeaderLayoutRoleResolution)
         {
             HeaderLayoutRoleResolution layout = HeaderLayoutRoleResolver.Resolve(
-                regions, detectedRegions, request.PlotBounds, cancellationToken);
+                regions, detectedRegions, request.PlotBounds, request.OriginalImage, cancellationToken);
             regions = layout.Regions;
             warnings.AddRange(layout.DetachedRegionIds.Select(id =>
                 $"ocr_role_needs_review:{id}:detached_above_header_row"));

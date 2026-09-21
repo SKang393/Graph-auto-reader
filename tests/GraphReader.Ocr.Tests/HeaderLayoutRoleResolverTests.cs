@@ -66,6 +66,55 @@ public sealed class HeaderLayoutRoleResolverTests
     }
 
     [TestMethod]
+    public void MeasuredBracketSeparatesANearbyNoteWithoutChangingItsTextOrGeometry()
+    {
+        var rows = Fixture();
+        OcrPolygon nearby = OcrPolygon.FromRectangle(new OcrRectangle(45, 47, 35, 10));
+        var detected = rows.Detected.Select(r => r.RegionId == "note" ? r with { Polygon = nearby } : r).ToArray();
+        var recognized = rows.Regions.Select(r => r.RegionId == "note" ? r with { Polygon = nearby } : r).ToArray();
+        OcrImage image = BracketImage();
+        var result = HeaderLayoutRoleResolver.Resolve(recognized, detected, rows.Plot, originalImage: image);
+        CollectionAssert.AreEqual(ExpectedNoteIds, result.DetachedRegionIds.ToArray());
+        OcrRegion note = result.Regions.Single(r => r.RegionId == "note");
+        Assert.AreEqual(recognized.Single(r => r.RegionId == "note") with { Role = OcrTextRole.Annotation, Confidence = 0.64 }, note);
+        Assert.IsEmpty(HeaderLayoutRoleResolver.Resolve(recognized, detected, rows.Plot).DetachedRegionIds);
+        Assert.IsEmpty(HeaderLayoutRoleResolver.Resolve(recognized, detected, rows.Plot,
+            originalImage: OcrTestFixtures.Image(width: 160, height: 190)).DetachedRegionIds);
+        Assert.IsEmpty(HeaderLayoutRoleResolver.Resolve(recognized.Where(r => r.RegionId != "right").ToArray(), detected,
+            rows.Plot, originalImage: image).DetachedRegionIds);
+    }
+
+    [TestMethod]
+    public void BracketDoesNotOverrideExplicitOrReviewedRolesOrStandalonePhaseCodes()
+    {
+        var rows = Fixture();
+        OcrPolygon nearby = OcrPolygon.FromRectangle(new OcrRectangle(45, 47, 35, 10));
+        var recognized = rows.Regions.Select(r => r.RegionId == "note" ? r with { Polygon = nearby } : r).ToArray();
+        var detected = rows.Detected.Select(r => r.RegionId == "note" ? r with { Polygon = nearby } : r).ToArray();
+        foreach (OcrReviewStatus status in new[] { OcrReviewStatus.Accepted, OcrReviewStatus.Corrected, OcrReviewStatus.Rejected })
+        {
+            var protectedRows = recognized.Select(r => r.RegionId == "note" ? r with { ReviewStatus = status } : r).ToArray();
+            Assert.IsEmpty(HeaderLayoutRoleResolver.Resolve(protectedRows, detected, rows.Plot, originalImage: BracketImage()).DetachedRegionIds);
+        }
+        foreach (OcrRegionContext context in new[] { new OcrRegionContext(ExplicitRoleHint: OcrTextRole.PhaseHeading), new(NearPhaseDivider: true) })
+        {
+            var protectedDetections = detected.Select(r => r.RegionId == "note" ? r with { Context = context } : r).ToArray();
+            Assert.IsEmpty(HeaderLayoutRoleResolver.Resolve(recognized, protectedDetections, rows.Plot, originalImage: BracketImage()).DetachedRegionIds);
+        }
+        var codes = recognized.Select(r => r.RegionId == "note" ? r with { Text = "PHASE4" } : r).ToArray();
+        Assert.IsEmpty(HeaderLayoutRoleResolver.Resolve(codes, detected, rows.Plot, originalImage: BracketImage()).DetachedRegionIds);
+    }
+
+    private static OcrImage BracketImage()
+    {
+        int width = 160, height = 190;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        for (int x = 35; x <= 95; x++) pixels[59 * width + x] = 0;
+        for (int y = 59; y <= 64; y++) { pixels[y * width + 35] = 0; pixels[y * width + 95] = 0; }
+        return new OcrImage(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity);
+    }
+
+    [TestMethod]
     [DataRow("PHASE4", true)]
     [DataRow("Phase 12", true)]
     [DataRow(" phase3 ", true)]

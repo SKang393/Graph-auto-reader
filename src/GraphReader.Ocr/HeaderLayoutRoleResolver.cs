@@ -9,7 +9,7 @@ namespace GraphReader.Ocr;
 /// </summary>
 public static class HeaderLayoutRoleResolver
 {
-    public const string CompositionVersion = "detached-header-note-context-v2";
+    public const string CompositionVersion = "detached-header-note-and-bracket-context-v3";
     private const double MinimumVerticalOverlapRatio = 0.35;
     private const double DetachedNoteConfidence = 0.64;
 
@@ -17,6 +17,14 @@ public static class HeaderLayoutRoleResolver
         IReadOnlyList<OcrRegion> regions,
         IReadOnlyList<OcrDetectedRegion> detectedRegions,
         OcrRectangle plotBounds,
+        CancellationToken cancellationToken = default) =>
+        Resolve(regions, detectedRegions, plotBounds, originalImage: null, cancellationToken);
+
+    public static HeaderLayoutRoleResolution Resolve(
+        IReadOnlyList<OcrRegion> regions,
+        IReadOnlyList<OcrDetectedRegion> detectedRegions,
+        OcrRectangle plotBounds,
+        OcrImage? originalImage,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(regions);
@@ -77,6 +85,7 @@ public static class HeaderLayoutRoleResolver
             ? (heights[middle - 1] + heights[middle]) / 2
             : heights[middle];
         double bandTop = band.Min(static region => region.Polygon.Bounds.Top);
+        HeaderBracketEvidence? brackets = originalImage is null ? null : new(originalImage, cancellationToken);
         var detached = new HashSet<string>(StringComparer.Ordinal);
         foreach (OcrRegion region in headings)
         {
@@ -85,7 +94,8 @@ public static class HeaderLayoutRoleResolver
             if (region.ReviewStatus == OcrReviewStatus.Unreviewed &&
                 context?.ExplicitRoleHint is null && context?.NearPhaseDivider is not true &&
                 !GraphTextRoleClassifier.IsStandalonePhaseCode(region.Text) &&
-                bandTop - region.Polygon.Bounds.Bottom >= typicalHeight)
+                (bandTop - region.Polygon.Bounds.Bottom >= typicalHeight ||
+                 brackets?.HasBracketBelow(region.Polygon.Bounds, bandTop, cancellationToken) == true))
             {
                 detached.Add(region.RegionId);
             }
