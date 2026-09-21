@@ -57,6 +57,38 @@ public sealed class FramedLegendTextCompletionTests
     }
 
     [TestMethod]
+    [DataRow(1)]
+    [DataRow(2)]
+    public void MultiRowLegendUsesCompleteNeighborFrameAndKeepsRowsSeparate(int scale)
+    {
+        var fixture = MultiRowFixture(scale);
+        byte[] before = fixture.Image.Pixels.ToArray();
+        var refined = OriginalPixelTextRegionRefiner.Refine(fixture.Image, fixture.Regions);
+        var result = FramedLegendRoleResolver.AssembleDetectedRows(fixture.Image, refined);
+        Assert.HasCount(2, result);
+        OcrDetectedRegion completed = result.Single(r => r.RegionId.StartsWith("framed-legend-row:", StringComparison.Ordinal));
+        Assert.AreEqual(new OcrRectangle(70 * scale, 31 * scale, 139 * scale, 15 * scale), completed.Polygon.Bounds);
+        Assert.AreEqual(refined.Single(r => r.RegionId == "neighbor"), result.Single(r => r.RegionId == "neighbor"));
+        Assert.AreEqual(completed, FramedLegendRoleResolver.AssembleDetectedRows(fixture.Image, refined.Reverse().ToArray())
+            .Single(r => r.RegionId == completed.RegionId));
+        CollectionAssert.AreEqual(result.ToArray(), FramedLegendRoleResolver.AssembleDetectedRows(fixture.Image, result).ToArray());
+        CollectionAssert.AreEqual(before, fixture.Image.Pixels.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow("no-anchor-detection")]
+    [DataRow("protected-anchor")]
+    [DataRow("no-current-symbol")]
+    [DataRow("no-neighbor-symbol")]
+    [DataRow("missing-edge")]
+    public void MultiRowCompletionRequiresIndependentFrameAndEachRowsSymbol(string defect)
+    {
+        var fixture = MultiRowFixture(defect: defect);
+        var refined = OriginalPixelTextRegionRefiner.Refine(fixture.Image, fixture.Regions);
+        CollectionAssert.AreEqual(refined.ToArray(), FramedLegendRoleResolver.AssembleDetectedRows(fixture.Image, refined).ToArray());
+    }
+
+    [TestMethod]
     [DataRow("missing-edge")]
     [DataRow("no-symbol")]
     [DataRow("two-symbols")]
@@ -255,6 +287,28 @@ public sealed class FramedLegendTextCompletionTests
         cancellation.Cancel();
         Assert.ThrowsExactly<OperationCanceledException>(() => FramedLegendRoleResolver.AssembleDetectedRows(
             fixture.Image, [fixture.Detection], cancellation.Token));
+    }
+
+    private static (OcrImage Image, IReadOnlyList<OcrDetectedRegion> Regions) MultiRowFixture(int scale = 1, string? defect = null)
+    {
+        var fixture = Fixture(scale, "tall-frame");
+        byte[] pixels = fixture.Image.Pixels.ToArray();
+        void Fill(int left, int top, int right, int bottom, byte value = 0)
+        {
+            for (int y = top * scale; y < bottom * scale; y++)
+            for (int x = left * scale; x < right * scale; x++) pixels[y * fixture.Image.Stride + x] = value;
+        }
+        if (defect != "no-neighbor-symbol") Fill(45, 75, 58, 87);
+        if (defect == "no-current-symbol") Fill(45, 31, 58, 43, 255);
+        if (defect == "missing-edge") Fill(35, 21, 36, 124, 255);
+        for (int x = 70; x < 210; x += 9) Fill(x, 75, x + 3, 87);
+        Fill(206, 84, 209, 90);
+        OcrDetectedRegion neighbor = OcrTestFixtures.Region("neighbor", 70 * scale, 75 * scale, 139 * scale, 15 * scale);
+        if (defect == "protected-anchor") neighbor = neighbor with { Context = new(NumericExpected: true) };
+        OcrDetectedRegion suffix = OcrTestFixtures.Region("suffix", 125 * scale, 31 * scale, 84 * scale, 15 * scale);
+        OcrDetectedRegion[] regions = defect == "no-anchor-detection"
+            ? [fixture.Detection, suffix] : [fixture.Detection, suffix, neighbor];
+        return (fixture.Image with { Pixels = pixels }, regions);
     }
 
     private static (OcrImage Image, OcrDetectedRegion Detection) Fixture(int scale = 1, string? defect = null)

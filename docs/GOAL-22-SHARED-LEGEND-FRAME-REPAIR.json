@@ -1,0 +1,558 @@
+{
+  "schema": "graphreader.shared-legend-frame-repair.v1",
+  "status": "implemented_and_verified_on_open_synthetic_inputs",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+      "sha256": "0352eacb3f8055ca0fe8789607ec675e720decb509b77e36fde50356f216d8f2"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/FramedLegendTextCompletionTests.cs",
+      "sha256": "052a849a5f34a91bd530e4d46241ce74f5e1848274ea12b194f82c555e480bae"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/shared-frame-checks-v1/source-bindings.json",
+      "sha256": "bdba9cb70e056c1ef0660b7aa6c4df2b45b763ec4fdd5f54eea2c4dcbd86c100"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-checks-v1/status.json",
+      "sha256": "8cc9f9fd9af86e649918b35ce4513708c51e259a9cc7362e4038ddfcaf02d68e"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-checks-v1/Run.ps1",
+      "sha256": "1dec70093e719465098dcdd77137c79ffbaa2baa64e7031d0d862620dc3c610f"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-checks-v1/test-results/App.trx",
+      "sha256": "4a28ab0299cdd1b2bfe0e20f9e2d4ad65e6454c927a87175b702d0ecd387ed4d"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-checks-v1/test-results/Ocr.trx",
+      "sha256": "d817a2fa728726cbf2173aed789de33cc04decb3ce2fa1d93d61bb8f0a44cf3f"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-checks-v1/Ocr.log",
+      "sha256": "9e49f36cecfbe75ae54676b22a695139ef7370b76e996d3c7e0cce683c44ace9"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-checks-v1/App.log",
+      "sha256": "e5f7bde35ddd6747f2088a3a87344dee29944ad7f7d75b35ba9ca48d8ccc2b52"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-checks-v1/build.log",
+      "sha256": "0923388d59cbe5ea19e67edde23e5ec2783cc95f967855ef6e2dc485ca8c69f7"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/input-diagnosis.json",
+      "sha256": "d184ad14b207e6a255727db0ed4df6c364aa66fa47053c1f34f142f3e44de07d"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/status.json",
+      "sha256": "18e497c7650d884ff50eefccf89a6914a247f82344a057636329f49492479d73"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/protocol.json",
+      "sha256": "4adfd4e1038f2fcc0441ee84e1a1ea7b388c6eedfd1548719744eebc50e42d9a"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/candidate-binding.json",
+      "sha256": "9c86139381c3291f271d75be59f69a12bc138513aa000cdc12a689a300e87745"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/input-manifest.json",
+      "sha256": "16e40b9afec7b51c34eff6de39933230bdfcc135d6d759297e1a33667e0062ef"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/runtime-description.json",
+      "sha256": "8b9e5b6c7673e1f3f00c9ada8f77201986e862a47c9d96ff91d4a3ed7d8ae2e3"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/preparation.json",
+      "sha256": "89417a3675e0211d946588c45d93032aa061ab7061b216a6ea53144a63d55963"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/execution/report.json",
+      "sha256": "2398dac5e882f234ab93f4f9002f3e27cca9d18ac75032865089e45deb667b33"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/native-marker-score.json",
+      "sha256": "4ff0bf5852ceccd0612fd775752d1a4c5b50fa7cca8d99b0bda03e24f2ead940"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/native-ocr-score.json",
+      "sha256": "7efd746ecb11596beb4eddbbfaa373c1bce99729b274e383cc15eee72c72d406"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/native-ocr-details.json",
+      "sha256": "d5d2e42d19d1f8dcb472c40caa5c48e146f8fd49311809ac1108ee11daa61b8f"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-shared-frame-v1/axis-geometry-comparison.json",
+      "sha256": "33c76bdaf812abf6181e9b2bfd6ba73344157f2a093a826201b84bfab63a236a"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-workflow-v1/status.json",
+      "sha256": "4b8c574071060fa452a9e3f40c984478e2cd5d2404888b703157f962f94061f0"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-workflow-v1/protocol.json",
+      "sha256": "16490e924f65d1529112cfb527d3044ffeeb137f9df800d4ac27ec04f088af1c"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-workflow-v1/candidate-binding.json",
+      "sha256": "90852f6e21c8380dfc98997bce2c9d059d60c25820369b375f2556852f9d3bda"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-workflow-v1/input-manifest.json",
+      "sha256": "666289f4d15c423a6e020bc3db7c5c268f886600e92b2f47ccbaf0e3862f2ecd"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-workflow-v1/execution/report.json",
+      "sha256": "8f5625bc8ff1811e9f8c3e0a6d3354b9f7703ca23979b4135c5b7a6bd5a9f32b"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-workflow-v1/comparison.json",
+      "sha256": "e3100575731182d928d8c2afe92901741934cb722deda47ae370f517c20f645b"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "797ff2daa223aaab02026e46cb0b6ca51468a50c34fcb2341ad100d466b57c82"
+    },
+    {
+      "path": "artifacts/goal22-runs/shared-frame-workflow-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "d730f92b87539b4114a896b55d0324e2be77304d948596b40ff577f959b4b52f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-SharedFrameContext.py",
+      "sha256": "d88deba0e3002466d6ae6d472a024029f6ba28ee6cf045b0631ae8e0fe68cfc5"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-SharedFrameContext.ps1",
+      "sha256": "aaf37927ba7010726f8cfceb9c1775e95785c6b4d79b5a1dd61ba1f4b79dc009"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-SharedFrameContext.py",
+      "sha256": "3896a6993033362bbc326d3d8d401c81e72e32558088b4a15f2a0756e794b9b1"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-SharedFrameOcr.py",
+      "sha256": "689b3d60231b50c514b48561a73636abefe1b43266639de904c9269b0bccb615"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-SharedFrameGeometry.py",
+      "sha256": "f4cca4722dfb605753827865289d95ef011b5e81a9e44ff6ea5c2a75fb8a1852"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-SharedFrameWorkflow.py",
+      "sha256": "5279f413a58e9f6ea2b0980af5a9562977a8fd968f3f225fd88140d272a85d63"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-SharedFrameWorkflow.ps1",
+      "sha256": "3960a46b4256485e5c74887a23a78efd5afc3f51f75c836fefc1006b3e343e6b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-SharedFrameWorkflow.py",
+      "sha256": "85b3f623b468dee3976ed0766c977cb7c099650133d942930fb20ac7345fb4fc"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/status.json",
+      "sha256": "64cf8a36144291effbef21373ce58c62e12a416c8f61128809a849e7fbea4ef0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/source-bindings.json",
+      "sha256": "bc4ad05559f52896d64d8e6ef7431ba240c8789e9e85c2851a60e2b757914fd0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/Program.cs",
+      "sha256": "5f18177adf6205ec49288267cbc3a0dbdf8d161476c679a1a39b16d7bfe74d79"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/NativeLegendFrameReplay.csproj",
+      "sha256": "28650bf929a903ffff4c3a00b7ab839dcd3731fe7dd95dd0d6d95046de4bab87"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/replay/report.json",
+      "sha256": "ff3b80d3f1aab5d9f93e29d2c3b6322033dbe0b14c8722bafb0c50f9f243b42d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-LegendFrameReplay.py",
+      "sha256": "139cac43109970f8e077c5fa7185cd268b197b40c055b80d9c754bcd80eff4b9"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LegendFrameReplay.ps1",
+      "sha256": "e0898358f917253a1e47e07d3740afe6d485ebe519d688b70d5f1b2ee583ac44"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-fdcaa91c91a8/status.json",
+      "sha256": "9c51f2c453e9d405154d28398fe9b6467dd49320232e74ab17b3129c064c35b6"
+    }
+  ],
+  "tests": {
+    "Ocr": {
+      "total": 443,
+      "passed": 427,
+      "skipped": 16,
+      "failed": 0
+    },
+    "App": {
+      "total": 478,
+      "passed": 478,
+      "skipped": 0,
+      "failed": 0
+    }
+  },
+  "ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 519,
+        "geometry_matched_region_count": 382,
+        "geometry_false_positive_count": 137,
+        "geometry_false_negative_count": 71,
+        "recognition_exact_count": 334,
+        "recognition_exact_accuracy": 0.7373068432671082,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 71,
+        "unmatched_truth_deletion_edit_count": 514,
+        "unmatched_prediction_insertion_edit_count": 319,
+        "character_error_count": 904,
+        "character_error_rate": 0.29161290322580646,
+        "role_correct_count": 353,
+        "role_accuracy": 0.7792494481236203,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 132,
+            "accuracy": 0.7764705882352941
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 81,
+            "accuracy": 0.8181818181818182
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 517,
+        "geometry_matched_region_count": 383,
+        "geometry_false_positive_count": 134,
+        "geometry_false_negative_count": 70,
+        "recognition_exact_count": 338,
+        "recognition_exact_accuracy": 0.7461368653421634,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 66,
+        "unmatched_truth_deletion_edit_count": 496,
+        "unmatched_prediction_insertion_edit_count": 301,
+        "character_error_count": 863,
+        "character_error_rate": 0.27838709677419354,
+        "role_correct_count": 354,
+        "role_accuracy": 0.7814569536423841,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 30,
+            "accuracy": 0.8108108108108109
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 132,
+            "accuracy": 0.7764705882352941
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 81,
+            "accuracy": 0.8181818181818182
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "ocr_truth_changes": [
+    {
+      "before": {
+        "split": "validation",
+        "source_sha256": "2bc26c3e65879749d081820b77677739f54b60717a51a49e546221567f8b1c62",
+        "truth_id": "d8374681a78e4ecd58da0361451ccc56448642bdd0269ebe2a63b4c5b1661ed2",
+        "text": "Maintenance probes",
+        "role": "legend_text",
+        "box": [
+          1001.486428,
+          134.211467,
+          1141.7059490000001,
+          150.108193
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null
+      },
+      "after": {
+        "split": "validation",
+        "source_sha256": "2bc26c3e65879749d081820b77677739f54b60717a51a49e546221567f8b1c62",
+        "truth_id": "d8374681a78e4ecd58da0361451ccc56448642bdd0269ebe2a63b4c5b1661ed2",
+        "text": "Maintenance probes",
+        "role": "legend_text",
+        "box": [
+          1001.486428,
+          134.211467,
+          1141.7059490000001,
+          150.108193
+        ],
+        "matched": true,
+        "predicted_text": "Maintenance probes",
+        "predicted_role": "legendtext"
+      }
+    },
+    {
+      "before": {
+        "split": "validation",
+        "source_sha256": "5c1344de22199951a60548f82939fb56b5ba8406065916b6a8548523809dc9c3",
+        "truth_id": "94db2c1f43855597ec3d22ffdcdbd74349d25f5dea0236b912f8833c21dd41f6",
+        "text": "Participant 01",
+        "role": "participant",
+        "box": [
+          29.878119,
+          53.137463,
+          134.091501,
+          67.847066
+        ],
+        "matched": true,
+        "predicted_text": "Participant O1",
+        "predicted_role": "participant"
+      },
+      "after": {
+        "split": "validation",
+        "source_sha256": "5c1344de22199951a60548f82939fb56b5ba8406065916b6a8548523809dc9c3",
+        "truth_id": "94db2c1f43855597ec3d22ffdcdbd74349d25f5dea0236b912f8833c21dd41f6",
+        "text": "Participant 01",
+        "role": "participant",
+        "box": [
+          29.878119,
+          53.137463,
+          134.091501,
+          67.847066
+        ],
+        "matched": true,
+        "predicted_text": "Participant 01",
+        "predicted_role": "participant"
+      }
+    },
+    {
+      "before": {
+        "split": "validation",
+        "source_sha256": "5c1344de22199951a60548f82939fb56b5ba8406065916b6a8548523809dc9c3",
+        "truth_id": "8283204eef4887c4eb623b3806572965339e9ab59340e263830b8e8763148025",
+        "text": "Treatment B",
+        "role": "legend_text",
+        "box": [
+          1003.029612,
+          176.037147,
+          1094.184481,
+          186.914636
+        ],
+        "matched": true,
+        "predicted_text": "Treatment",
+        "predicted_role": "legendtext"
+      },
+      "after": {
+        "split": "validation",
+        "source_sha256": "5c1344de22199951a60548f82939fb56b5ba8406065916b6a8548523809dc9c3",
+        "truth_id": "8283204eef4887c4eb623b3806572965339e9ab59340e263830b8e8763148025",
+        "text": "Treatment B",
+        "role": "legend_text",
+        "box": [
+          1003.029612,
+          176.037147,
+          1094.184481,
+          186.914636
+        ],
+        "matched": true,
+        "predicted_text": "Treatment B",
+        "predicted_role": "legendtext"
+      }
+    },
+    {
+      "before": {
+        "split": "validation",
+        "source_sha256": "6a4385eb5721e01396688e1646e77e09688bec15c766ae6babb9a24e24120e61",
+        "truth_id": "d5405b36cdbf5b685960f42d5afb45bda8d1dbce32e2e65c6311d1e249b46baa",
+        "text": "Treatment B",
+        "role": "legend_text",
+        "box": [
+          1005.835793,
+          132.777875,
+          1096.821617,
+          143.743374
+        ],
+        "matched": true,
+        "predicted_text": "Treatment",
+        "predicted_role": "legendtext"
+      },
+      "after": {
+        "split": "validation",
+        "source_sha256": "6a4385eb5721e01396688e1646e77e09688bec15c766ae6babb9a24e24120e61",
+        "truth_id": "d5405b36cdbf5b685960f42d5afb45bda8d1dbce32e2e65c6311d1e249b46baa",
+        "text": "Treatment B",
+        "role": "legend_text",
+        "box": [
+          1005.835793,
+          132.777875,
+          1096.821617,
+          143.743374
+        ],
+        "matched": true,
+        "predicted_text": "Treatment B",
+        "predicted_role": "legendtext"
+      }
+    }
+  ],
+  "all_334_previous_exact_readings_retained": true,
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 665,
+    "matched": 579,
+    "extra": 86,
+    "missing": 259,
+    "precision": 0.8706766917293233,
+    "recall": 0.6909307875894988
+  },
+  "native_geometry": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 85,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 85,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_outputs_and_statuses_identical": true,
+  "every_observed_model_used_cpu": true,
+  "frame_replay": {
+    "panels": 31,
+    "source_runtime_hashes_verified": true,
+    "model_inference_runs": 0,
+    "limitation": "Replays frame and symbol functions on saved final OCR geometry, not the complete OCR pipeline."
+  },
+  "seconds": {
+    "checks": 142.1942813,
+    "native": 135.0960336,
+    "csv": 146.4373985,
+    "frame_replay": 9.3138134
+  },
+  "recognition_changes": {
+    "direct_legend_recoveries": 3,
+    "additional_participant_correction": 1,
+    "participant_change_cause": "not independently traced; no participant or recognizer code changed"
+  },
+  "models_and_thresholds_unchanged": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

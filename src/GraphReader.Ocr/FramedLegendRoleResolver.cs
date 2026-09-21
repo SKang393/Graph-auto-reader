@@ -10,7 +10,7 @@ namespace GraphReader.Ocr;
 public static class FramedLegendRoleResolver
 {
     public const string CompositionVersion = "original-pixel-framed-legend-context-v2";
-    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v3";
+    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v4";
 
     /// <summary>Joins detected words only when original pixels establish one framed legend row.</summary>
     public static IReadOnlyList<OcrDetectedRegion> AssembleDetectedRows(
@@ -271,6 +271,7 @@ public static class FramedLegendRoleResolver
     {
         bool[] ink = CreateInkMask(image, cancellationToken);
         List<HorizontalRun> runs = FindRuns(ink, image.Width, image.Height, cancellationToken);
+        FramedLegendRoleEvidence[]? establishedFrames = null;
         var result = new List<OcrDetectedRegion>(regions.Count);
         foreach (OcrDetectedRegion region in regions)
         {
@@ -288,6 +289,28 @@ public static class FramedLegendRoleResolver
             }
             FramedLegendRoleEvidence? frame = FindContext(
                 ink, image.Width, runs, region.RegionId, box, cancellationToken, incompleteRow: true);
+            if (frame is null)
+            {
+                // A complete neighboring row can establish a taller legend's
+                // closed frame. The partial row must still have its own single
+                // detached symbol; sharing a frame never supplies text.
+                establishedFrames ??= regions.Where(r => !HasProtectedContext(r) &&
+                        r.Polygon.Bounds.Width >= 2 * r.Polygon.Bounds.Height)
+                    .Select(r => FindContext(ink, image.Width, runs, r.RegionId, r.Polygon.Bounds, cancellationToken))
+                    .OfType<FramedLegendRoleEvidence>().ToArray();
+                FramedLegendRoleEvidence[] shared = establishedFrames
+                    .Where(item => item.RegionId != region.RegionId &&
+                        item.FrameBounds.Left < box.Left && item.FrameBounds.Right > box.Right &&
+                        item.FrameBounds.Top < box.Top && item.FrameBounds.Bottom > box.Bottom &&
+                        item.FrameBounds.Right <= box.Left + 40 * box.Height)
+                    .DistinctBy(static item => item.FrameBounds)
+                    .Select(item => (item.FrameBounds, Glyph: FindSymbol(
+                        ink, image.Width, item.FrameBounds, box, cancellationToken)))
+                    .Where(static item => item.Glyph.HasValue)
+                    .Select(item => new FramedLegendRoleEvidence(region.RegionId, item.FrameBounds, item.Glyph!.Value))
+                    .ToArray();
+                if (shared.Length == 1) frame = shared[0];
+            }
             // A row already reaching the normal two-height frame margin is
             // complete enough for existing legend context. Do not chase noise
             // or an overlapping arrow beyond that established text extent.
