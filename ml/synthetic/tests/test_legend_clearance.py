@@ -8,6 +8,8 @@ import pytest
 from ml.synthetic.annotation_clearance import _ltrb, _overlap
 from ml.synthetic.legend_clearance import separate_legends
 from ml.synthetic.renderer import render_scene
+from ml.synthetic.renderer import _font_settings
+from ml.synthetic.fonts import FontResolver
 from ml.synthetic.templates import build_scene
 
 
@@ -91,3 +93,57 @@ def test_measured_label_extents_can_differ_from_legend_entry_dimensions():
     assert moved["box"][2:] == [121.0, 11.0]
     assert new_entry["text_box"][2:] == entry["text_box"][2:]
     assert moved["box"][:2] == new_entry["text_box"][:2]
+
+
+def _translate_legend(scene, dx, dy):
+    panel = scene["panels"][0]
+    legend = panel["legend"]
+    legend["position"] = "outside"
+    boxes = [legend["box"]] + [e[field] for e in legend["entries"] for field in ("text_box", "glyph_box")]
+    boxes += [r["box"] for r in scene["annotations"]["text_regions"] if r["role"] == "legend_text"]
+    boxes += [a["geometry"]["coordinates"] for a in scene["annotations"]["artifacts"] if
+              a["kind"] == "legend" or a["role"] == "legend_text"]
+    for box in boxes:
+        box[0] += dx
+        box[1] += dy
+
+
+@pytest.mark.parametrize("left", [-220.0, 1180.0, 1400.0])
+def test_clipped_or_fully_outside_legend_is_relocated_without_losing_letters(left):
+    scene = _scene()
+    _translate_legend(scene, left - scene["panels"][0]["legend"]["box"][0], 0)
+    before = deepcopy(scene)
+    result = separate_legends(scene)
+    assert scene == before and len(result.changes) == 1 and not result.unresolved
+    assert result.changes[0]["canvas_clipped_before"]
+    old, new = scene["panels"][0], result.scene["panels"][0]
+    assert {k: v for k, v in old.items() if k != "legend"} == {k: v for k, v in new.items() if k != "legend"}
+    frame = _ltrb(new["legend"]["box"])
+    image, _, mask = render_scene(result.scene)
+    assert 0 <= frame[0] < frame[2] <= image.width and 0 <= frame[1] < frame[3] <= image.height
+    assert not _overlap(frame, _ltrb(new["plot_box"]), 4)
+    _, _, original_mask = render_scene(scene)
+    assert np.array_equal(original_mask, mask)
+    assert [e["text"] for e in new["legend"]["entries"]] == [e["text"] for e in old["legend"]["entries"]]
+    assert separate_legends(result.scene).scene == result.scene
+
+
+def test_frame_contains_measured_font_extents_even_when_template_width_is_too_small():
+    scene = _scene()
+    legend = scene["panels"][0]["legend"]
+    region = next(r for r in scene["annotations"]["text_regions"] if r["role"] == "legend_text")
+    text = "A much longer outcome label"
+    region["text"] = legend["entries"][0]["text"] = text
+    result = separate_legends(scene)
+    assert result.changes and not result.unresolved and result.changes[0]["frame_resized"]
+    new = result.scene["panels"][0]["legend"]
+    label = next(r for r in result.scene["annotations"]["text_regions"] if r["role"] == "legend_text")
+    name, size, paths = _font_settings(result.scene)
+    font = FontResolver(paths).resolve(name, size).load()
+    a, b, c, d = font.getbbox(text, anchor="lt")
+    x, y = label["box"][:2]
+    left, top, right, bottom = _ltrb(new["box"])
+    assert left + 4 <= x + a < x + c <= right - 4
+    assert top + 4 <= y + b < y + d <= bottom - 4
+    assert label["text"] == text and label["box"][2:] == region["box"][2:]
+    assert separate_legends(result.scene).scene == result.scene
