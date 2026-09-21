@@ -138,6 +138,10 @@ internal static class ComposedOcrDevEvidence
             characters = Count(full, "truth_character_count"), edits = Count(full, "character_error_count");
         if (exact > matches || roles > matches || characters == 0 || edits != checked(Count(full, "matched_pair_edit_count") +
             Count(full, "unmatched_truth_deletion_edit_count") + Count(full, "unmatched_prediction_insertion_edit_count"))) Fail("COUNTS");
+        long matchedEdits = Count(full, "matched_pair_edit_count");
+        if (matchedEdits < matches - exact || (exact == matches && matchedEdits != 0) ||
+            (Count(full, "geometry_false_negative_count") == 0 && Count(full, "unmatched_truth_deletion_edit_count") != 0) ||
+            (Count(full, "geometry_false_positive_count") == 0 && Count(full, "unmatched_prediction_insertion_edit_count") != 0)) Fail("COUNTS");
         Equal(Number(full, "recognition_exact_accuracy"), (double)exact / truth);
         Equal(Number(full, "role_accuracy"), (double)roles / truth);
         Equal(Number(full, "character_error_rate"), (double)edits / characters);

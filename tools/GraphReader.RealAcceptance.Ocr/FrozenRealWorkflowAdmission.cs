@@ -19,7 +19,8 @@ internal sealed record FrozenRealWorkflowCandidateIdentity(
     string OcrDetectionSha256,
     string OcrRecognitionSha256,
     string MarkerCenterSha256,
-    string MarkerClassifierSha256);
+    string MarkerClassifierSha256,
+    string? ComposedOcrExecutionSha256 = null);
 
 internal sealed record FrozenRealWorkflowAdmissionResult(
     string ProtocolPath,
@@ -45,7 +46,7 @@ internal sealed record FrozenRealWorkflowAdmissionResult(
 /// reads protocol and prerequisite evidence only. It never opens corpus data,
 /// constructs a model, or grants production approval.
 /// </summary>
-internal static class FrozenRealWorkflowAdmission
+internal static partial class FrozenRealWorkflowAdmission
 {
     private sealed record CanonicalBars(
         double TextPrecisionMinimum,
@@ -321,6 +322,7 @@ internal static class FrozenRealWorkflowAdmission
     {
         using JsonDocument evidence = ParseExact(bytes);
         JsonElement value = evidence.RootElement;
+        bool composedDev = Text(value, "schema") == ComposedOcrDevPrerequisiteSchema;
         RequireProperties(value,
         [
             "schema", "task", "split", "stage_revision", "stage_candidate_id",
@@ -328,8 +330,11 @@ internal static class FrozenRealWorkflowAdmission
             "operating_point_identity", "models", "source_result", "benchmarks", "parity",
             "aggregate_only", "case_level_output", "truth_rows_output", "prediction_output",
             "pixel_output",
+            .. composedDev ? ComposedOcrSourceIdentityFields : Array.Empty<string>(),
         ], "prerequisite evidence");
-        if (Text(value, "schema") != PrerequisiteSchema || Text(value, "task") != expectedTask ||
+        if ((!composedDev && Text(value, "schema") != PrerequisiteSchema) ||
+            (composedDev && (expectedTask != "ocr-detection-recognition" || expectedSplit != "synthetic-dev")) ||
+            Text(value, "task") != expectedTask ||
             Text(value, "split") != expectedSplit || Sha(value, "evidence_policy_sha256") != policySha ||
             Sha(value, "acceptance_bar_sha256") != barsSha ||
             !Boolean(value, "aggregate_only") || Boolean(value, "case_level_output") ||
@@ -363,6 +368,11 @@ internal static class FrozenRealWorkflowAdmission
         byte[] sourceBytes = ReadReferenced(root, sourcePath, sourceSha, cancellationToken);
         JsonElement parity = value.GetProperty("parity");
         JsonElement benchmarks = value.GetProperty("benchmarks");
+        if (composedDev)
+        {
+            ValidateComposedOcrDevPrerequisite(sourceBytes, candidate, value, benchmarks, parity, bars);
+            return;
+        }
         ValidateParity(parity);
         ValidateBenchmarks(benchmarks, expectedTask, expectedSplit, bars);
         ValidateSourceResult(
@@ -533,7 +543,8 @@ internal static class FrozenRealWorkflowAdmission
         JsonElement value,
         string task,
         string split,
-        CanonicalBars bars)
+        CanonicalBars bars,
+        bool composedOcrSource = false)
     {
         if (value.ValueKind != JsonValueKind.Array)
         {
@@ -574,7 +585,13 @@ internal static class FrozenRealWorkflowAdmission
             }
             double precision = Number(row, "precision");
             double recall = Number(row, "recall");
-            double prohibited = RequiredNullableNumber(row, "prohibited_structure_hit_rate");
+            // The composed OCR protocol measures five full-source bars. It has
+            // no separate attribution of false regions to graph structures.
+            // Keep that unavailable field null instead of inventing zero hits.
+            double? prohibited = composedOcrSource && task == "ocr-detection-recognition"
+                ? null : RequiredNullableNumber(row, "prohibited_structure_hit_rate");
+            if (composedOcrSource && row.GetProperty("prohibited_structure_hit_rate").ValueKind != JsonValueKind.Null)
+                throw new InvalidDataException("REAL_WORKFLOW_COMPOSED_OCR_UNMEASURED_METRIC_INVALID");
             double expectedPrecision = tp + fp == 0 ? 0 : (double)tp / (tp + fp);
             double expectedRecall = (double)tp / truth;
             double precisionMinimum = task == "marker-center"
@@ -739,7 +756,10 @@ internal static class FrozenRealWorkflowAdmission
             candidate.OcrDetection.Payload.Sha256,
             candidate.OcrRecognition.Payload.Sha256,
             candidate.MarkerCenter.Payload.Sha256,
-            candidate.MarkerClassifier.ModelSha256);
+            candidate.MarkerClassifier.ModelSha256,
+            candidate.Algorithms.OcrCompositionVersion is "original-db-head-source-scale-windows-v1" or
+                "original-db-head-tick-header-and-legend-lanes-v4"
+                ? ComposedOcrDevEvidence.ExecutionIdentity(candidate) : null);
     }
 
     internal static string ComputeExecutionDescriptorSha256(byte[] candidateDocumentBytes)

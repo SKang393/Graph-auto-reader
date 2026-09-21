@@ -25,6 +25,7 @@ internal static class FrozenRealWorkflowAdmissionSelfTest
             FrozenRealCorpusSelection devInventory = Inventory(FrozenRealCorpusInventory.RealDev, 120);
             (string devPath, string devSha, FrozenRealWorkflowCandidateIdentity devCandidate) =
                 WriteProtocol(root, FrozenRealCorpusInventory.RealDev, devInventory, policySha, barsSha, []);
+            checks.AddRange(ComposedOcrDevPrerequisiteSelfTest.Run(root, policySha, barsSha, devCandidate));
             FrozenRealWorkflowAdmissionResult dev = FrozenRealWorkflowAdmission.LoadForTest(
                 root, devPath, devSha, devCandidate, devInventory,
                 FrozenRealCorpusInventory.RealDev, explicitOptIn: true,

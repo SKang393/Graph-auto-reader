@@ -31,6 +31,10 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 8 && args[0] == "--write-composed-ocr-dev-prerequisite")
+        {
+            return FrozenRealWorkflowAdmission.RunComposedOcrDevPrerequisiteWriter(args);
+        }
         if (args.Length == 7 && args[0] == "--validate-composed-ocr-dev-evidence")
         {
             return ComposedOcrDevEvidence.RunCommand(args);

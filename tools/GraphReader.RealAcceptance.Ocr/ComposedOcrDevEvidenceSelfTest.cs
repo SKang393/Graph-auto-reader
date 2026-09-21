@@ -52,6 +52,7 @@ internal static class ComposedOcrDevEvidenceSelfTest
             ("false_role_rate", d => Full(d)["role_accuracy"] = 1.0),
             ("false_character_rate", d => Full(d)["character_error_rate"] = 0),
             ("missing_errors", d => Full(d)["character_error_count"] = 0),
+            ("exact_text_with_edit_errors", d => { Full(d)["recognition_exact_count"] = 3; Full(d)["recognition_exact_accuracy"] = 0.75; }),
             ("missing_role_count", d => Full(d)["by_expected_runtime_role"]!["annotation"]!["truth_count"] = 3),
             ("negative_duration", d => d["elapsed_milliseconds"] = -1),
         };
@@ -97,7 +98,7 @@ internal static class ComposedOcrDevEvidenceSelfTest
         throw new InvalidDataException("Invalid evidence was accepted");
     }
 
-    private static JsonObject Report()
+    internal static JsonObject Report()
     {
         object geometry = new { truth_region_count = 4, predicted_region_count = 4, true_positives = 3,
             false_positives = 1, false_negatives = 1, precision = 0.75, recall = 0.75, intersection_over_union_minimum = 0.5 };

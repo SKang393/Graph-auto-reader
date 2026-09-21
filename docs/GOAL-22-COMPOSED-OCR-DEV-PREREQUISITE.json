@@ -1,0 +1,165 @@
+{
+  "schema": "goal22-composed-ocr-dev-prerequisite-v1",
+  "scope": "synthetic-fixture-and-evidence-adapter-validation",
+  "source_bindings": [
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenRealWorkflowAdmission.cs",
+      "sha256": "bf637e17155df8717e5e92eaf4216e3fd8a7303e0dab000978fd1c9dcd8a5957"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/ComposedOcrDevEvidence.cs",
+      "sha256": "fc7d348c4cf1cb42a3b2fc0ae3e9cc95a8b0e30cbfaa3a55ddda10aeba628c7a"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/ComposedOcrDevEvidenceSelfTest.cs",
+      "sha256": "734ea532ceb285f0ab7e453a263de6ff008732b844768087c5d587051957b029"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenRealWorkflowAdmissionSelfTest.cs",
+      "sha256": "47187ff95fa746b9c858add2cc4126f57aff0d3e2401f9746b9b0a0393cde42c"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/ComposedOcrDevPrerequisite.cs",
+      "sha256": "70ccf260f14136b3b77eb04dfd7fb79dcf3b9dd59c50cfb3826ec0134b11e4ff"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/ComposedOcrDevPrerequisiteSelfTest.cs",
+      "sha256": "3a95b02580246ec2014719d96bf016e4645c501bab4b1818fb621d1603660a24"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/ComposedOcrDevPrerequisiteWriter.cs",
+      "sha256": "a842a097e0b20870427c7f1a625d609f6a327e732c2e6212e6daa935b41a2128"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/Program.cs",
+      "sha256": "f21b398423e11d70644e4f765a71c1946eb51170ca4caea2be7ae93cc480de13"
+    }
+  ],
+  "evidence": {
+    "definition.json": {
+      "path": "artifacts/goal22-runs/composed-dev-admission-v2/definition.json",
+      "sha256": "9fc2184f2dbb054304d4df77bbac1accee91687c281083ccecbba5bc80e89862"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/composed-dev-admission-v2/source-bindings.json",
+      "sha256": "7f3cb6a1362752fca784e0971d93a52aacdd5aab9d7b8d34f53fa56f89683158"
+    },
+    "status.json": {
+      "path": "artifacts/goal22-runs/composed-dev-admission-v2/status.json",
+      "sha256": "27bb7749e38c125242b9c47a9fa779855edaa942a013da0bf01e3a7b3510ac36"
+    },
+    "build.log": {
+      "path": "artifacts/goal22-runs/composed-dev-admission-v2/build.log",
+      "sha256": "e23cfeceee7d1f93d4ef09985cdd317293fbc81ef3e88a4d0a83d2e273fd8596"
+    }
+  },
+  "tests": {
+    "composed-ocr-dev-evidence": {
+      "artifact": {
+        "path": "artifacts/goal22-runs/composed-dev-admission-v2/composed-ocr-dev-evidence.json",
+        "sha256": "4f5da2cb298a5cdd03ffae6a2e6039bafb3e036d9e27b0f243d43a727aae8fb9"
+      },
+      "check_count": 35
+    },
+    "real-workflow-admission": {
+      "artifact": {
+        "path": "artifacts/goal22-runs/composed-dev-admission-v2/real-workflow-admission.json",
+        "sha256": "eeab2974e4d1441ff46afdfb14960b4ee97dab9e1b29056949e352eb0667af89"
+      },
+      "check_count": 33
+    },
+    "v26-synthetic-dev-adapter": {
+      "artifact": {
+        "path": "artifacts/goal22-runs/composed-dev-admission-v2/v26-synthetic-dev-adapter.json",
+        "sha256": "14c21c9a2a55a2673d386758e589f370d41e94b774211bbaa7265542f16f6e1b"
+      },
+      "check_count": null
+    },
+    "real-workflow-worker": {
+      "artifact": {
+        "path": "artifacts/goal22-runs/composed-dev-admission-v2/real-workflow-worker.json",
+        "sha256": "2a619a6e7c70868619ef367335d6c1e240f197e0244fcf29ba4c406efefb7058"
+      },
+      "check_count": 8
+    },
+    "real-workflow-runner": {
+      "artifact": {
+        "path": "artifacts/goal22-runs/composed-dev-admission-v2/real-workflow-runner.json",
+        "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+      },
+      "check_count": 5
+    }
+  },
+  "runner": {
+    "path": "artifacts/goal22-tools/Run-ComposedDevAdmissionV2.ps1",
+    "sha256": "0b5e9d07ea190031506c4a877573b3e94916bec7455cae2c3b8f6db041f99ac1"
+  },
+  "prior_void_build": {
+    "status": {
+      "path": "artifacts/goal22-runs/composed-dev-admission-v1/status.json",
+      "sha256": "4c4c77fc814900c21f7d1576227a7b7a96d8dab01481f30d114bb73e90e21c42"
+    },
+    "build": {
+      "path": "artifacts/goal22-runs/composed-dev-admission-v1/build.log",
+      "sha256": "f4fa81074c793b04fa6670d9adf866eed81d01054cca783b80bbf6a0bca7627e"
+    },
+    "failure": "CA1861 at FrozenRealWorkflowAdmission.cs:333: prefer a static readonly array. Fixed without changing gates.",
+    "model_inference": false
+  },
+  "commands": [
+    "dotnet build tools/GraphReader.RealAcceptance.Ocr/GraphReader.RealAcceptance.Ocr.csproj -c Release --artifacts-path artifacts/goal22-runs/composed-dev-admission-v2/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo",
+    "GraphReader.RealAcceptance.Ocr --self-test-composed-ocr-dev-evidence",
+    "GraphReader.RealAcceptance.Ocr --self-test-real-workflow-admission",
+    "GraphReader.RealAcceptance.Ocr --self-test-v26-synthetic-dev-adapter",
+    "GraphReader.RealAcceptance.Ocr --self-test-real-workflow-worker",
+    "GraphReader.RealAcceptance.Ocr --self-test-real-workflow-runner"
+  ],
+  "policy_bindings": [
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/ocr_sealed_evaluation.py",
+      "sha256": "d77fd60e531f90188a11d70c1da729b287fdd55263729a8a044d4088dd3205c5"
+    },
+    {
+      "path": "ml/ocr/composed_runtime_v1/PROTOCOL.json",
+      "sha256": "fb0f18a3dc160d78c9ef4936524127dac124a90145f49cf72d59eaff3b85ffa5"
+    }
+  ],
+  "ocr_bars": {
+    "precision_minimum": 0.95,
+    "recall_minimum": 0.95,
+    "exact_text_minimum": 0.95,
+    "character_error_maximum": 0.05,
+    "role_accuracy_minimum": 0.95
+  },
+  "unmeasured_structure_attribution": "must be null, never fabricated zero",
+  "parity_kind": "identical-native-execution, not training-framework numerical parity",
+  "legacy_prerequisite_checks_unchanged": true,
+  "sealed_prerequisite_still_required": true,
+  "existing_real_data_restrictions_preserved": true,
+  "writer_uses_actual_validated_source_counts": true,
+  "writer_refuses_failing_metrics": true,
+  "writer_refuses_overwrite": true,
+  "total_seconds": 54.202104,
+  "actual_passing_model_prerequisite_created": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_inference": false,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "goal22_passed": false,
+  "shared_policy_files_changed": false,
+  "application_behavior_changed": false,
+  "new_dependencies": false,
+  "license_change": false,
+  "packaged_build_created": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33"
+}
