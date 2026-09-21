@@ -81,6 +81,8 @@ public sealed record CtcDecodedAlternative(string Text, double Confidence);
 
 public static class CtcRecognitionDecoder
 {
+    internal const string ConfigurationVersion = "ctc-single-path-support-v3";
+
     public static IReadOnlyList<CtcDecodedAlternative> Decode(
         ReadOnlySpan<float> logits,
         int timeSteps,
@@ -147,6 +149,13 @@ public static class CtcRecognitionDecoder
                 break;
             }
 
+            // A zero-probability class is not recognition evidence. In particular,
+            // changing a certain blank must not manufacture an extra character.
+            if (uncertainty[time] <= 0)
+            {
+                continue;
+            }
+
             var modified = (int[])bestClasses.Clone();
             modified[time] = secondClasses[time];
             var probabilities = (double[])bestProbabilities.Clone();
@@ -156,7 +165,15 @@ public static class CtcRecognitionDecoder
             {
                 candidates.Add(candidate with
                 {
-                    Confidence = Math.Min(candidate.Confidence, greedy.Confidence * 0.99),
+                    // This path differs from the greedy path at exactly one time
+                    // step. Its relative support is second/best at that step.
+                    // Averaging the other, certain characters would otherwise
+                    // give an unsupported insertion or deletion high confidence.
+                    // This cap is not a summed CTC sequence posterior.
+                    // Preserve the existing strict ordering below the primary
+                    // reading, including equal-probability CTC paths.
+                    Confidence = Math.Min(candidate.Confidence,
+                        greedy.Confidence * Math.Min(0.99, uncertainty[time])),
                 });
             }
         }
@@ -507,6 +524,8 @@ public sealed class LocalOnnxTextRecognizer : ITextRecognizer
 
     private static string CreateConfigurationFingerprint(LocalOnnxTextRecognizerOptions options) =>
         HashStrings([
+            CtcRecognitionDecoder.ConfigurationVersion,
+            options.MaximumAlternatives.ToString(System.Globalization.CultureInfo.InvariantCulture),
             options.Alphabet,
             options.InputWidth.ToString(System.Globalization.CultureInfo.InvariantCulture),
             options.InputHeight.ToString(System.Globalization.CultureInfo.InvariantCulture),

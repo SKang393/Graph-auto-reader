@@ -14,6 +14,29 @@ public sealed class LocalOnnxTextRecognizerTests
     private static readonly float[] ExpectedBgrCropPixels = [0.1f, 0.2f, 0.3f];
 
     [TestMethod]
+    public async Task DifferentAlternativeBudgetsCannotReuseTheSameRecognizedResultCacheKey()
+    {
+        string directory = CreateDirectory();
+        try
+        {
+            var identity = new ModelIdentity("decoder-cache", "1", new string('a', 64),
+                Path.Combine(directory, "unused.onnx"));
+            await using InferenceRuntime runtime = CreateRuntime(directory, new FakeInferenceSessionFactory());
+            var options = new LocalOnnxTextRecognizerOptions(identity, "01");
+            var one = new LocalOnnxTextRecognizer(runtime, options with { MaximumAlternatives = 1 });
+            var three = new LocalOnnxTextRecognizer(runtime, options with { MaximumAlternatives = 3 });
+
+            Assert.AreNotEqual(one.ConfigurationFingerprint, three.ConfigurationFingerprint);
+            Assert.AreEqual(three.ConfigurationFingerprint,
+                new LocalOnnxTextRecognizer(runtime, options with { MaximumAlternatives = 3 }).ConfigurationFingerprint);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task LocalAdapterBatchesThroughInferenceRuntimeAndDecodesCtcOutput()
     {
         string directory = CreateDirectory();

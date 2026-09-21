@@ -1,0 +1,709 @@
+{
+  "schema": "graphreader.ctc-alternative-confidence-repair.v1",
+  "status": "source_repair_verified_product_accuracy_still_fails",
+  "sources": [
+    {
+      "path": "src/GraphReader.Ocr/LocalOnnxTextRecognizer.cs",
+      "sha256": "b510f470bc7860cf2ccb48a0cabb073b7b2d30c6185358cabf5baedfb28ce710"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/CtcRecognitionDecoderTests.cs",
+      "sha256": "c7689e317b3f87a071aa9c5b65c4488d758e3ef61fa8e6e9d00a1fba446e3261"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/LocalOnnxTextRecognizerTests.cs",
+      "sha256": "23a4bafef0acbc0f8abc4713901375f5f31b18e61396ff856f0fb70fac7f0ccf"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v2/source-bindings.json",
+      "sha256": "5190d3d877c95fd6009526ebe32beefaf831d8e48a0c14bdc5e9501a4409b2ad"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v2/status.json",
+      "sha256": "acf00166947219ae57930b917a45dd771d52c2ee374a7e0132474833f47aa150"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v2/ocr-tests.log",
+      "sha256": "166e962d255db04d425008ff69c9f2ab1c2f1757b3468fbcc0045699c7852d7d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v2/app-tests.log",
+      "sha256": "5fcba5e6a14d0295a25b04acb0ab7ed6f00a8730a2f425a05f871222ca2ac512"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v2/native-build.log",
+      "sha256": "ed3fd05f6a06ac8f0e570cf01c1bd36cdb69f85423d6d488eb976e33b7da1fe6"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v2/test-results/ocr.trx",
+      "sha256": "70b8be317d343b1d2f5d3584bd4571b7fcc2b9aa6254e4b3f1e1e6eb15d7c1db"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v2/test-results/app.trx",
+      "sha256": "b241971fd0510c2251f2402fabc886cf77958b4b13a50cde4a1c2cb9b00725c5"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/protocol.json",
+      "sha256": "9313eedb419bf8514bb379d83e82fdaee5b8d1320f574e0428519aff76d69ce5"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/candidate-binding.json",
+      "sha256": "a07c7141cda38fa926c9569f92fbb5155751a2a7417b96e6b6bb51079491cab6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/input-manifest.json",
+      "sha256": "b394698f97af4dfdf2212b54c5da8bed2afaa857f93f299962223e30b99e24d6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/status.json",
+      "sha256": "469e8904cf88878b9664868ddeff767d6f409ceeda955e3f846e4a7cb69fdf88"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/execution/report.json",
+      "sha256": "2bbdcff1ed9d3cb2babc397ca840e5227e639b00444991e2d7dda0c3c5a83dd8"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/native-marker-score.json",
+      "sha256": "fc8c0728b50f9d8761cfa19ecde29b6b367bf30482992407d6c563b10bccfe48"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/native-ocr-score.json",
+      "sha256": "e53eb7925ea3ba597d3e136437c27ff1fec756c7164cdf15fb093fdb5ad43aaa"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/axis-geometry-comparison.json",
+      "sha256": "5c3a5cda7c518bf1e5fbf904c0f2ed952867a629090608aa7720936ab9278b55"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/observation-change-audit.json",
+      "sha256": "196a3dff67b8a132f4bee388910110dfce06ed95be550aa080c022a389716bf9"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/observation-change-details.json",
+      "sha256": "a70fdda74f1249d92501760799d5139009953ada671443a700cb8ca45751dd91"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/protocol.json",
+      "sha256": "0c67e048efaacf40d1a8756d0e37be5119d1362f0dc2a52b443ac591739534f0"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/candidate-binding.json",
+      "sha256": "808af58c643460aff066cf127a6ef0727f989aae79f61df20c66e0e6f0ab276d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/input-manifest.json",
+      "sha256": "24899dcb183dfdae62db8fbc61f8c048e53f888b5221052ec0755e1aa564ef6e"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/status.json",
+      "sha256": "5d8ac63e80a2fc8f7717d3a152b06fa909af67948b262112a5766fdfdabf415a"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/execution/report.json",
+      "sha256": "236b0f354901d32da79e60dd49688e4b9a99766c43d6850e6580c3d9ba6622c2"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/comparison.json",
+      "sha256": "8e08b5da869bcf2c83cd3ed7997f9ff5adb300294d3c79e6597e0dc5bd8d7a44"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/csv-score-normalized-phases.json",
+      "sha256": "f793b96008194a258da02fe331c82cdbae6f6ade09a69388a07f365d01d18d0c"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/observation-change-audit.json",
+      "sha256": "9c4f3dff86e8450c7fe17b1f98fda27ebdaba8bafd5f847b197b68b9f821970c"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/observation-change-details.json",
+      "sha256": "38f85d15f39ec1ac49660618e6646239f708bf7abdbcf08fb24883894f67d50d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-probe-v2/before.json",
+      "sha256": "7f3b304d6ef1b6e7992c3f0d2ba750993e1c99a7cd288e481573ecda6677737d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-probe-v2/after.json",
+      "sha256": "abb7401c5e21948048174c41d4035ff7e84d3d7af200e256f0db91df9b1211ff"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v1/archived-source-bindings.json",
+      "sha256": "92bbd3d537990ffa91e36badcab4b3b8cae32929f3b2730895021752c44211dc"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v1/status.json",
+      "sha256": "cc357e7e64b0adad17cb20aa266056e4cbbdf7bcaa064337bd6d10f133c2a19b"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v1/status.json",
+      "sha256": "2fac94ae592b5ed5a306f08832c9dac9c63fdfb562b7f7eb8451adcfaa399c03"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-workflow-v1/status.json",
+      "sha256": "609f996a6ae3e3921b2d6d7cb208776eef2eda952918a4da5e27e40cc97443c3"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-af5c66ffc9e3/status.json",
+      "sha256": "6528079f395b0593b21c2dc53489029b9dba896671b3c01398b0d806399b3915"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v1/source-snapshot/src/GraphReader.Ocr/LocalOnnxTextRecognizer.cs",
+      "sha256": "d79b68ede8f501ce071eb865ef0bf1dd6e6516010ba8043848ea5d8b84764617"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v1/source-snapshot/tests/GraphReader.Ocr.Tests/CtcRecognitionDecoderTests.cs",
+      "sha256": "c994159f7258e7fed4f0eeebd0ec6d2395038c4aac07b49b7123a346538e0404"
+    },
+    {
+      "path": "artifacts/goal22-runs/ctc-confidence-checks-v1/source-snapshot/tests/GraphReader.Ocr.Tests/LocalOnnxTextRecognizerTests.cs",
+      "sha256": "23a4bafef0acbc0f8abc4713901375f5f31b18e61396ff856f0fb70fac7f0ccf"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CtcConfidenceChecksV2.ps1",
+      "sha256": "21af91fd00176a4cffebbe8474743ac9c449453fac51aa967800410d7a735d6a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CtcConfidenceContextV2.py",
+      "sha256": "12c75c98198e626507c094fda9ee566c2e55c056d8244aedff50c46a0105f091"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CtcConfidenceContextV2.py",
+      "sha256": "011acb937b363beb21516236e48c2514e58f18846eb9aa3462473c328f07f995"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CtcConfidenceOcrV2.py",
+      "sha256": "ab81fd4c3fedd0103f1b0a1749adb10d03881d2ab0fda80ee02a00ef54d0e5ad"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CtcConfidenceGeometryV2.py",
+      "sha256": "5c4049ee23a1a3f545677ca1624c5da957647abc7f064e854bcd4a713ab58dd3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CtcConfidenceContextV2.ps1",
+      "sha256": "c9872e70fc1007840b066f2fb12df365610ee32b29d1d8752dc1b9a7203aca3f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CtcConfidenceWorkflowV2.py",
+      "sha256": "7e0120cd26e3e0aa5d0aa098cdb4596283519ebc7232f98f8d3bd2cdccfd33f1"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-CtcConfidenceWorkflowV2.py",
+      "sha256": "c5347ad62d2bb7ee8f8a034bf30d55f3d4649ce5c4024796b25528db32c92038"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CtcConfidenceWorkflowV2.ps1",
+      "sha256": "19a7a0f199c7ca14133b443cdbe3658e7ae4f0cd203d82ed83ecfa766bcb4a99"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-CtcConfidenceObservations.py",
+      "sha256": "01c110f9feddc54a05b1d7e863d1f2ffa6ec322f59f2308e4af6c73101acd417"
+    }
+  ],
+  "tests": {
+    "ocr": {
+      "total": 463,
+      "passed": 447,
+      "failed": 0,
+      "skipped": 16
+    },
+    "app": {
+      "total": 478,
+      "passed": 478,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "probe_before": {
+    "ocr_sha256": "50fe7ce95cfeab7a022262b6b8b502463f48316311e729aacd4d7fbe64d13b84",
+    "cases": [
+      {
+        "kind": "replacement",
+        "length": 1,
+        "alternatives": [
+          {
+            "Text": "A",
+            "Confidence": 0.9999989867210388
+          },
+          {
+            "Text": "B",
+            "Confidence": 9.999999974752427e-07
+          }
+        ]
+      },
+      {
+        "kind": "replacement",
+        "length": 8,
+        "alternatives": [
+          {
+            "Text": "AAAAAAAA",
+            "Confidence": 0.9999989867210388
+          },
+          {
+            "Text": "BAAAAAAA",
+            "Confidence": 0.8749992383809087
+          }
+        ]
+      },
+      {
+        "kind": "replacement",
+        "length": 32,
+        "alternatives": [
+          {
+            "Text": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "Confidence": 0.9999989867210388
+          },
+          {
+            "Text": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "Confidence": 0.9687490496360063
+          }
+        ]
+      },
+      {
+        "kind": "insertion",
+        "alternatives": [
+          {
+            "Text": "A",
+            "Confidence": 1
+          },
+          {
+            "Text": "AB",
+            "Confidence": 0.5000004999999987
+          }
+        ]
+      },
+      {
+        "kind": "deletion",
+        "alternatives": [
+          {
+            "Text": "AA",
+            "Confidence": 1
+          },
+          {
+            "Text": "A",
+            "Confidence": 0.99
+          }
+        ]
+      },
+      {
+        "kind": "impossible_class",
+        "alternatives": [
+          {
+            "Text": "AA",
+            "Confidence": 1
+          },
+          {
+            "Text": "A",
+            "Confidence": 0.99
+          }
+        ]
+      },
+      {
+        "kind": "equal_support_deletion",
+        "alternatives": [
+          {
+            "Text": "AA",
+            "Confidence": 1
+          },
+          {
+            "Text": "A",
+            "Confidence": 0.99
+          }
+        ]
+      }
+    ],
+    "model_inference_runs": 0,
+    "private_reads": 0,
+    "sealed_reads": 0
+  },
+  "probe_after": {
+    "ocr_sha256": "05edaf2da1294190f9e4bafc1dcc6de811253a11fc3622c231e4b05916abb093",
+    "cases": [
+      {
+        "kind": "replacement",
+        "length": 1,
+        "alternatives": [
+          {
+            "Text": "A",
+            "Confidence": 0.9999989867210388
+          },
+          {
+            "Text": "B",
+            "Confidence": 9.999999974752427e-07
+          }
+        ]
+      },
+      {
+        "kind": "replacement",
+        "length": 8,
+        "alternatives": [
+          {
+            "Text": "AAAAAAAA",
+            "Confidence": 0.9999989867210388
+          },
+          {
+            "Text": "BAAAAAAA",
+            "Confidence": 9.999999974752427e-07
+          }
+        ]
+      },
+      {
+        "kind": "replacement",
+        "length": 32,
+        "alternatives": [
+          {
+            "Text": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "Confidence": 0.9999989867210388
+          },
+          {
+            "Text": "BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "Confidence": 9.999999974752427e-07
+          }
+        ]
+      },
+      {
+        "kind": "insertion",
+        "alternatives": [
+          {
+            "Text": "A",
+            "Confidence": 1
+          },
+          {
+            "Text": "AB",
+            "Confidence": 1.0000010107552281e-06
+          }
+        ]
+      },
+      {
+        "kind": "deletion",
+        "alternatives": [
+          {
+            "Text": "AA",
+            "Confidence": 1
+          },
+          {
+            "Text": "A",
+            "Confidence": 1.0000010107552281e-06
+          }
+        ]
+      },
+      {
+        "kind": "impossible_class",
+        "alternatives": [
+          {
+            "Text": "AA",
+            "Confidence": 1
+          }
+        ]
+      },
+      {
+        "kind": "equal_support_deletion",
+        "alternatives": [
+          {
+            "Text": "AA",
+            "Confidence": 1
+          },
+          {
+            "Text": "A",
+            "Confidence": 0.99
+          }
+        ]
+      }
+    ],
+    "model_inference_runs": 0,
+    "private_reads": 0,
+    "sealed_reads": 0
+  },
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 586,
+    "matched": 569,
+    "extra": 17,
+    "missing": 269,
+    "precision": 0.9709897610921502,
+    "recall": 0.6789976133651552
+  },
+  "native_ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 499,
+        "geometry_matched_region_count": 381,
+        "geometry_false_positive_count": 118,
+        "geometry_false_negative_count": 72,
+        "recognition_exact_count": 337,
+        "recognition_exact_accuracy": 0.7439293598233996,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 64,
+        "unmatched_truth_deletion_edit_count": 516,
+        "unmatched_prediction_insertion_edit_count": 287,
+        "character_error_count": 867,
+        "character_error_rate": 0.2796774193548387,
+        "role_correct_count": 349,
+        "role_accuracy": 0.7704194260485652,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 38,
+            "accuracy": 0.6129032258064516
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 131,
+            "accuracy": 0.7705882352941177
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 80,
+            "accuracy": 0.8080808080808081
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 499,
+        "geometry_matched_region_count": 381,
+        "geometry_false_positive_count": 118,
+        "geometry_false_negative_count": 72,
+        "recognition_exact_count": 337,
+        "recognition_exact_accuracy": 0.7439293598233996,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 64,
+        "unmatched_truth_deletion_edit_count": 516,
+        "unmatched_prediction_insertion_edit_count": 287,
+        "character_error_count": 867,
+        "character_error_rate": 0.2796774193548387,
+        "role_correct_count": 349,
+        "role_accuracy": 0.7704194260485652,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 38,
+            "accuracy": 0.6129032258064516
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 131,
+            "accuracy": 0.7705882352941177
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 80,
+            "accuracy": 0.8080808080808081
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "axis_and_paired_marker_metrics": {
+    "totals": {
+      "before": {
+        "axis_corners": 93,
+        "within_2px": 84,
+        "panels_all_corners_within_2px": 23
+      },
+      "after": {
+        "axis_corners": 93,
+        "within_2px": 84,
+        "panels_all_corners_within_2px": 23
+      }
+    },
+    "paired_marker_truths": {
+      "retained": 569,
+      "recovered": 0,
+      "lost": 0,
+      "missed_by_both": 269
+    }
+  },
+  "workflow_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "workflow_failure_detail_changes": [
+    {
+      "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+      "before": "failed",
+      "after": "failed",
+      "before_error": "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | Numeric tick evidence is ambiguous because competing alternative models have equal support. | Independent session-origin sources disagree beyond the configured tolerance. | Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance. | ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected",
+      "after_error": "Automatic calibration is incomplete: Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance. | ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected"
+    }
+  ],
+  "observation_changes": {
+    "native": {
+      "panels": 31,
+      "regions": 499,
+      "changed_field_counts": {
+        "ocr.alternatives": 487,
+        "calibration": 6,
+        "ocr.confidence": 19
+      },
+      "regions_changed_outside_alternatives": 19,
+      "regions_with_changed_alternatives": 487,
+      "primary_readings_roles_geometry_and_confidence_unchanged": false,
+      "calibration_changes": 6,
+      "original_report": {
+        "path": "artifacts/goal22-runs/native-contextual-input-v1-retry1/execution/report.json",
+        "sha256": "beb93cc15deddb7f0b14e34efa189abc8555b16188cf0ca1488f2edae50b39c0"
+      },
+      "current_report": {
+        "path": "artifacts/goal22-runs/native-ctc-confidence-v2/execution/report.json",
+        "sha256": "2bbdcff1ed9d3cb2babc397ca840e5227e639b00444991e2d7dda0c3c5a83dd8"
+      },
+      "details": {
+        "path": "artifacts/goal22-runs/native-ctc-confidence-v2/observation-change-details.json",
+        "sha256": "a70fdda74f1249d92501760799d5139009953ada671443a700cb8ca45751dd91"
+      }
+    },
+    "workflow": {
+      "panels": 39,
+      "regions": 842,
+      "changed_field_counts": {
+        "ocr.alternatives": 825,
+        "calibration": 2,
+        "ocr.confidence": 6
+      },
+      "regions_changed_outside_alternatives": 6,
+      "regions_with_changed_alternatives": 825,
+      "primary_readings_roles_geometry_and_confidence_unchanged": false,
+      "calibration_changes": 2,
+      "original_report": {
+        "path": "artifacts/goal22-runs/partial-row-workflow-v1/execution/report.json",
+        "sha256": "3ca2d94765e77509a0664453f2ac221079ee58fd5a680c6f7f751e6fbbf93c9a"
+      },
+      "current_report": {
+        "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/execution/report.json",
+        "sha256": "236b0f354901d32da79e60dd49688e4b9a99766c43d6850e6580c3d9ba6622c2"
+      },
+      "details": {
+        "path": "artifacts/goal22-runs/ctc-confidence-workflow-v2/observation-change-details.json",
+        "sha256": "38f85d15f39ec1ac49660618e6646239f708bf7abdbcf08fb24883894f67d50d"
+      }
+    }
+  },
+  "source_completion_states_unchanged": true,
+  "exported_numeric_values_unchanged": true,
+  "calibration_changes": "Six native and two full-workflow panel calibration records change beyond elapsed times. Confidence weighting can change fits and ambiguous alternatives. All eight affected panels remain review-blocked, including one full-workflow session assignment change. No exported values change.",
+  "primary_text_roles_and_geometry_unchanged": true,
+  "primary_region_confidence_can_change": true,
+  "observed_model_providers": {
+    "native": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-structural-context-v5:cpu": 31
+    },
+    "workflow": {
+      "OpenCvSharpExtern:cpu": 39,
+      "graph-text-extent-db-head-v44-p1:cpu": 39,
+      "en_PP-OCRv5_mobile_rec:cpu": 39,
+      "marker-center-component-diversity-v27:cpu": 39,
+      "marker-classifier-structural-context-v5:cpu": 39
+    }
+  },
+  "model_weights_thresholds_and_numeric_review_guards_unchanged": true,
+  "seconds": {
+    "tests_and_build": 106.7759457,
+    "native": 130.1513321,
+    "workflow": 148.6868878
+  },
+  "first_pass": "Archived earlier source and results are superseded by final v2 evidence. Review found exact-tie ordering and restored the existing 0.99 primary-order cap before final verification.",
+  "license": "Apache-2.0 project implementation; no new dependency or weights",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

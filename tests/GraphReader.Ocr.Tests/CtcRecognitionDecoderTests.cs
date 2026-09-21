@@ -9,6 +9,80 @@ namespace GraphReader.Ocr.Tests;
 public sealed class CtcRecognitionDecoderTests
 {
     [TestMethod]
+    [DataRow(1)]
+    [DataRow(8)]
+    [DataRow(32)]
+    public void CertainSurroundingCharactersCannotInflateAnUnsupportedReplacement(int length)
+    {
+        var probabilities = new float[length * 2 * 3];
+        for (var index = 0; index < length; index++)
+        {
+            probabilities[index * 6 + 1] = 0.999999f;
+            probabilities[index * 6 + 2] = 0.000001f;
+            probabilities[index * 6 + 3] = 1f;
+        }
+
+        IReadOnlyList<CtcDecodedAlternative> alternatives = CtcRecognitionDecoder.Decode(
+            probabilities, length * 2, "AB", maximumAlternatives: 2,
+            outputActivation: OcrRecognitionOutputActivation.Probabilities);
+
+        Assert.HasCount(2, alternatives);
+        Assert.AreEqual(new string('A', length), alternatives[0].Text);
+        Assert.IsGreaterThan(0.99, alternatives[0].Confidence);
+        Assert.AreEqual('B' + new string('A', length - 1), alternatives[1].Text);
+        Assert.IsTrue(alternatives[1].Confidence is > 0 and < 0.000002);
+    }
+
+    [TestMethod]
+    public void UnsupportedBlankInsertionCannotBorrowTheRecognizedCharactersConfidence()
+    {
+        IReadOnlyList<CtcDecodedAlternative> alternatives = CtcRecognitionDecoder.Decode(
+            [0f, 1f, 0f, 0.999999f, 0f, 0.000001f], 2, "AB",
+            outputActivation: OcrRecognitionOutputActivation.Probabilities);
+
+        Assert.AreEqual("A", alternatives[0].Text);
+        CtcDecodedAlternative insertion = alternatives.Single(candidate => candidate.Text == "AB");
+        Assert.IsTrue(insertion.Confidence is > 0 and < 0.000002);
+    }
+
+    [TestMethod]
+    public void RemovingASeparatingBlankCannotBorrowTheRemainingCharactersConfidence()
+    {
+        IReadOnlyList<CtcDecodedAlternative> alternatives = CtcRecognitionDecoder.Decode(
+            [0f, 1f, 0.999999f, 0.000001f, 0f, 1f], 3, "A",
+            outputActivation: OcrRecognitionOutputActivation.Probabilities);
+
+        Assert.AreEqual("AA", alternatives[0].Text);
+        CtcDecodedAlternative deletion = alternatives.Single(candidate => candidate.Text == "A");
+        Assert.IsTrue(deletion.Confidence is > 0 and < 0.000002);
+    }
+
+    [TestMethod]
+    public void ZeroProbabilityClassesCannotManufactureAlternativeText()
+    {
+        IReadOnlyList<CtcDecodedAlternative> alternatives = CtcRecognitionDecoder.Decode(
+            [0f, 1f, 0f, 1f, 0f, 0f, 0f, 1f, 0f], 3, "AB",
+            outputActivation: OcrRecognitionOutputActivation.Probabilities);
+
+        Assert.HasCount(1, alternatives);
+        Assert.AreEqual("AA", alternatives[0].Text);
+        Assert.AreEqual(1d, alternatives[0].Confidence);
+    }
+
+    [TestMethod]
+    public void EqualSupportDeletionRemainsBelowThePrimaryReading()
+    {
+        IReadOnlyList<CtcDecodedAlternative> alternatives = CtcRecognitionDecoder.Decode(
+            [0f, 1f, 0.5f, 0.5f, 0f, 1f], 3, "A",
+            outputActivation: OcrRecognitionOutputActivation.Probabilities);
+
+        Assert.AreEqual("AA", alternatives[0].Text);
+        CtcDecodedAlternative deletion = alternatives.Single(candidate => candidate.Text == "A");
+        Assert.AreEqual(0.99d, deletion.Confidence);
+        Assert.IsTrue(deletion.Confidence < alternatives[0].Confidence);
+    }
+
+    [TestMethod]
     public void DecoderCollapsesRepeatsAndBlankClassesDeterministically()
     {
         float[] logits = Logits(
