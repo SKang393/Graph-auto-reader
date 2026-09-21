@@ -1,0 +1,462 @@
+{
+  "schema": "graphreader.enclosed-center-recovery.v1",
+  "status": "evaluated_accuracy_still_fails",
+  "incremental_retention_supported": true,
+  "newly_failed_source_count": 0,
+  "tested_sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionMarkerEnclosedCenterRecovery.cs",
+      "sha256": "24454d27073aba044e3b06950fb942d7289fcf10870a2c9192ebd8a2028af684"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "cc366ae8936a1f6edec477d15011198d817e1c57d4baf1024597ea89f2bc9d3c"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionMarkerEnclosedCenterRecoveryTests.cs",
+      "sha256": "1c0a519b50ce7295504e76660b73875fbcf6c12959e3676dbef4696711e151d7"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts\\goal22-runs\\native-enclosed-center-v1\\protocol.json",
+      "sha256": "6124ae7123ffc37e88223d2c10afd1d5a7e7729c4750b8ae1c787bc1fb7f6b58"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\native-enclosed-center-v1\\candidate-binding.json",
+      "sha256": "52d646e2986b6f7187ae00af47279228ec40bb06b410d39a9c2f7fe99e4542d0"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\native-enclosed-center-v1\\input-manifest.json",
+      "sha256": "7a6e32c5e9e0958f7d0a52acc2edde57d10bf7b35bedb26d9fe78b06ff66eb86"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\native-enclosed-center-v1\\status.json",
+      "sha256": "4186260acb65414a90230ebfe15031559f928b5c6bb6170c823e7ec11402d073"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\native-enclosed-center-v1\\execution\\report.json",
+      "sha256": "2be7fa727474d27a901e5d53909fe11a41e3a52f2a3f58344723cb877d543ce1"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-workflow-v1\\protocol.json",
+      "sha256": "f75c6c53a940087436d600635083d2022614cf3dd0f8870a85f152d1048fa8ef"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-workflow-v1\\candidate-binding.json",
+      "sha256": "4d8bdea74a007748f85e323e081bcc23b0e46f8cdb44f1193b4b991ed7f0cbe6"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-workflow-v1\\input-manifest.json",
+      "sha256": "a9678b1c567badf5f1281725583ce863b8c12b43c9528aef5d737349f6faf4c7"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-workflow-v1\\status.json",
+      "sha256": "5a0bc23a7f1b9929100c8ab987069d1371f08c4224eea532b466c3925ed6cfe3"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-workflow-v1\\execution\\report.json",
+      "sha256": "69d1116792f83f04d09c12ffc63f664ca61fae1a91ad211c56f8a0a67e17b09a"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-checks-v1\\source-bindings.json",
+      "sha256": "4adfbaaf01b8ed3896d3bcd92fa4412871d9227567f65d6bc7d6ace28e8b496d"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-checks-v1\\status.json",
+      "sha256": "b05092f85f4fab144811322f66ab7ff5bca7adfd11ca9d1c193ce9fe564fe6b4"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-checks-v1\\app-tests.log",
+      "sha256": "03e11c0c482a85d18019dfb6ae00f5bd3f949ed3df022bf5624efb226ff380c4"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-checks-v1\\native-build.log",
+      "sha256": "c836751ef656816844b4d3d5f22d1c3f70ff56ec101387371dc7ac247ce11660"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-checks-v1\\test-results\\app.trx",
+      "sha256": "0d5eb17a72002d32d0793d60e6bf801a8226c51a6228e332f58cd80e9a6b488f"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\native-enclosed-center-v1\\native-marker-score.json",
+      "sha256": "5773a10037d7960a713dd5265a085858297499e034c276c5844344e9e2df3454"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\native-enclosed-center-v1\\native-ocr-score.json",
+      "sha256": "8c04aab0b1e9c79cf2a3ee996a8010f2bd0147d05153dd1514b49f2f63e732b1"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\native-enclosed-center-v1\\axis-geometry-comparison.json",
+      "sha256": "8032d905efccef179b3e6043ea3df09ebbca17bfbc8f1baf0ba95b8661401d8b"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-workflow-v1\\comparison.json",
+      "sha256": "e9d3f3ae4bdfdec637abde7b96d81b2f03893f6cfcb6c7be85504ae5ce8e1e39"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-workflow-v1\\csv-score-normalized-phases.json",
+      "sha256": "a1c45d07f7d9498d5a287327e324dd31c01530ab6be35fc925eef6dd63a972c5"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v2\\protocol.json",
+      "sha256": "0257c336bffef084da76f457fb123f1af4f848441a8d0ba014b6a54f26fe0b02"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v2\\score.json",
+      "sha256": "e2b831be1d5f200eb12faab745334e811723c83a018ec1ae5172fac54b4a2df5"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v2\\status.json",
+      "sha256": "2ca905bbe4f093e86e32507d8c13fc379b76a12e76d083d92d1cfe6164a325d0"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v2\\replay\\report.json",
+      "sha256": "26beecd80f48bf8665cbbea8327a363299b4da904d86fb62695cb81515e24d14"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v2\\Program.cs",
+      "sha256": "adf21fabe9134e8039e9f2f00b1d61dd6c78a774bfd9da370207a2285cd5f8f3"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v2\\EnclosedCenterDiagnostic.csproj",
+      "sha256": "ff180e2bc0549e1b3a568e87ef7ef904f2c862a1fdb697e6cd4ff427c6cf00ce"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v1\\protocol.json",
+      "sha256": "ea7504c0ebde335feb06f1ae22101288f0bdaf88055a003b10203892e59c9373"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v1\\status.json",
+      "sha256": "a9945cf2a97a41b9f90c3000065f0bb7236df36bc2cb7efb19a88cf564fb6487"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v1\\replay.log",
+      "sha256": "bf8be647102b45b8ee4b10faec2a9f18c21d29c8b08d38d4ba52f55dce12f292"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\enclosed-center-diagnostic-v1\\failed-process.json",
+      "sha256": "11947f45f29c755c39a6c81c197e6c5d96a78ef912a1c1baa0b828425463f69e"
+    },
+    {
+      "path": "artifacts\\goal22-runs\\dense-marker-losses-v1\\analysis.json",
+      "sha256": "96a90a0167212074940aa213f42061f15b92b139c8cd75e0b9e4d892521becfb"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Audit-DenseMarkerLosses.py",
+      "sha256": "58c60323862c6b03a6c5f2b5e1aba70e3daea2135edf10ffd8ec97fece4ba81f"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Prepare-EnclosedCenterDiagnostic.py",
+      "sha256": "70f750c21a362d73375304ae39839074e4ce9b53233868152eea1ff44e9c8bf4"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Run-EnclosedCenterDiagnostic.ps1",
+      "sha256": "78ee387b0380e40f24ec5a7be44c667aa64c4be833ae0d17427d7ae761952bb2"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Prepare-EnclosedCenterRetry.py",
+      "sha256": "108424bdbac5816365985a5d7bed06dfbf76275f7f3eb0edcd841ec83dc0ebf4"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Run-EnclosedCenterDiagnosticRetry.ps1",
+      "sha256": "ab27739ca56bc857a4e9de24150beca8461a95b929dc3906f9cd1baffc556bed"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Inspect-EnclosedCenterExtras.py",
+      "sha256": "5b4b3f745e3fe7bf8278c02f6d45476291dfceca678bf324d06182cd18b758d4"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Prepare-EnclosedCenterVerification.py",
+      "sha256": "002b3ca2183f01f0ae8ddfa587ce68f9339188f8ae7b963138eb50623195b598"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Run-EnclosedCenterChecks.ps1",
+      "sha256": "b5418a263e13e3b92229cbc5e87484e066ed1eb0861b705f24383300d766edc6"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Prepare-EnclosedCenterContext.py",
+      "sha256": "e74d61b8da692c932479cddd828928b1b7c340a7ea374f1dc5be2edc63fa37bc"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Run-EnclosedCenterContext.ps1",
+      "sha256": "df20ababcf2e7a38820300a0c04e6cce6439d3662aea410cb89d56983cedf067"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Score-EnclosedCenterContext.py",
+      "sha256": "f17b234e061e06c87797faca78ca72e818db055060a22fe900ae60d0a455677a"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Score-EnclosedCenterOcr.py",
+      "sha256": "c7b9ece4581dff4cc61121e0b1635e91c6959b962cd10e2fba2c14968820ff31"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Score-EnclosedCenterGeometry.py",
+      "sha256": "12896171fe0685cd72f6f3fe6b751dda7b4bf692ce44d8a2fdfce968c72d74bb"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Prepare-EnclosedCenterWorkflow.py",
+      "sha256": "8daec7ccbde97c5febb18fa38b4e2860462b56d446954e150f7fccedc681cda4"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Run-EnclosedCenterWorkflow.ps1",
+      "sha256": "ddeb2432e64498f535b583fdd183f4a337fa70130bd3baf719322e50b88320e2"
+    },
+    {
+      "path": "artifacts\\goal22-tools\\Audit-EnclosedCenterWorkflow.py",
+      "sha256": "104b7225097718203f874c7d115c57b6fb4cb9448e5f716e3c19372b9943497b"
+    }
+  ],
+  "recorder": {
+    "path": "C:\\Users\\Sungwoo\\Desktop\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\goal22-tools\\Record-EnclosedCenterRecovery.py",
+    "sha256": "eac1086430cbbcce638a0708f4f65aeb68a0d108c06f8058fea611e2fcacb9fe"
+  },
+  "tests": {
+    "total": 494,
+    "passed": 494,
+    "failed": 0
+  },
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 748,
+    "matched": 721,
+    "extra": 27,
+    "missing": 117,
+    "precision": 0.963903743315508,
+    "recall": 0.860381861575179
+  },
+  "paired_marker_truths": {
+    "retained": 666,
+    "recovered": 55,
+    "lost": 0,
+    "missed_by_both": 117
+  },
+  "native_ocr_metrics": {
+    "truth_region_count": 453,
+    "predicted_region_count": 499,
+    "geometry_matched_region_count": 389,
+    "geometry_false_positive_count": 110,
+    "geometry_false_negative_count": 64,
+    "recognition_exact_count": 345,
+    "recognition_exact_accuracy": 0.7615894039735099,
+    "truth_character_count": 3100,
+    "matched_pair_edit_count": 64,
+    "unmatched_truth_deletion_edit_count": 476,
+    "unmatched_prediction_insertion_edit_count": 240,
+    "character_error_count": 780,
+    "character_error_rate": 0.25161290322580643,
+    "role_correct_count": 357,
+    "role_accuracy": 0.7880794701986755,
+    "by_expected_runtime_role": {
+      "annotation": {
+        "truth_count": 62,
+        "correct_count": 40,
+        "accuracy": 0.6451612903225806
+      },
+      "axistitle": {
+        "truth_count": 52,
+        "correct_count": 49,
+        "accuracy": 0.9423076923076923
+      },
+      "legendtext": {
+        "truth_count": 37,
+        "correct_count": 29,
+        "accuracy": 0.7837837837837838
+      },
+      "participant": {
+        "truth_count": 31,
+        "correct_count": 20,
+        "accuracy": 0.6451612903225806
+      },
+      "phaseheading": {
+        "truth_count": 170,
+        "correct_count": 133,
+        "accuracy": 0.7823529411764706
+      },
+      "xtick": {
+        "truth_count": 2,
+        "correct_count": 2,
+        "accuracy": 1.0
+      },
+      "ytick": {
+        "truth_count": 99,
+        "correct_count": 84,
+        "accuracy": 0.8484848484848485
+      }
+    },
+    "intersection_over_union_minimum": 0.5
+  },
+  "axis_metrics": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 419,
+    "matched_points": 408,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 419,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 407,
+    "correct_rows": 404,
+    "missing_rows": 317,
+    "extra_rows": 12,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 408,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 298,
+    "unique_point_extra": 11,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9737470167064439,
+    "unique_point_structural_coverage": 0.5779036827195467,
+    "unique_point_value_precision": 0.9737470167064439,
+    "unique_point_value_coverage": 0.5779036827195467,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.964200477326969,
+    "relational_row_coverage": 0.5580110497237569,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9926289926289926,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_baseline_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_status_changes": [],
+  "csv_value_changes": [
+    {
+      "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+      "added": 2,
+      "removed": 0
+    }
+  ],
+  "csv_upstream_changes": [],
+  "all_models_unchanged": true,
+  "observed_model_providers": {
+    "native": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-structural-context-v5:cpu": 51
+    },
+    "workflow": {
+      "OpenCvSharpExtern:cpu": 39,
+      "graph-text-extent-db-head-v44-p1:cpu": 39,
+      "en_PP-OCRv5_mobile_rec:cpu": 39,
+      "marker-center-component-diversity-v27:cpu": 39,
+      "marker-classifier-structural-context-v5:cpu": 44
+    }
+  },
+  "observed_marker_review_states": {
+    "native": {
+      "Unreviewed": 683,
+      "NeedsReview": 65
+    },
+    "workflow": {
+      "Unreviewed": 708,
+      "NeedsReview": 41
+    }
+  },
+  "seconds": {
+    "checks": 88.4853212,
+    "native": 147.9419243,
+    "workflow": 158.9009568,
+    "diagnostic": 11.3580784
+  },
+  "diagnostic_void": {
+    "status": "void",
+    "error": "Legend-template replay failed; see complete replay.log",
+    "seconds": 133.2878311,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "training": false
+  },
+  "limits": [
+    "Recall remains below 95%.",
+    "Enclosed text and arrowhead interiors can produce false points.",
+    "The 0.5 geometric confidence is uncalibrated and disclosed. Runtime NeedsReview maps to the frozen domain Unreviewed status with confidence and provenance retained.",
+    "This is open synthetic development evidence, not production or real-data acceptance."
+  ],
+  "license": "Apache-2.0 project source and existing reviewed dependencies/models only.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

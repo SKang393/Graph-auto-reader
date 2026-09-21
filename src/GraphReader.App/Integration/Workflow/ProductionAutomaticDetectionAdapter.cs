@@ -85,6 +85,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionLegendSymbolInputs.Version,
         ProductionTextMarkerExclusion.Version,
         ProductionMarkerTemplateRecovery.Version,
+        ProductionMarkerEnclosedCenterRecovery.Version,
         ProductionPhaseGeometryContext.Version,
         ProductionTickLabelGeometry.Version,
         ProductionSeriesPhaseContext.Version,
@@ -351,41 +352,51 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 .ToArray();
             try
             {
-                var recoveryTimer = System.Diagnostics.Stopwatch.StartNew();
-                IReadOnlyList<MarkerCenter> recoveryCandidates = ProductionMarkerTemplateRecovery.Find(
-                    raster.CreateOcrImage(), markerPlot, ocr.Result.Regions, acceptedMarkers,
-                    legendInputs.OriginalPixelContentBounds, legendInputs.OriginalPixelFrameBounds, cancellationToken);
-                recoveryTimer.Stop();
-                if (recoveryCandidates.Count > 0)
+                foreach (string recoveryVersion in new[]
+                    { ProductionMarkerTemplateRecovery.Version, ProductionMarkerEnclosedCenterRecovery.Version })
                 {
-                    chain.Append(new WorkflowVisionEnvelope(
-                        1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
-                        "markers", ProductionMarkerTemplateRecovery.Version, request.Image.Sha256, null,
-                        new WorkflowVisionTiming(recoveryTimer.Elapsed.TotalMilliseconds, 0, 0,
-                            recoveryTimer.Elapsed.TotalMilliseconds),
-                        recoveryCandidates.Average(static marker => marker.CenterConfidence), transforms: request.Transforms));
-                    ProductionMarkerClassificationEvidence recovered = await
-                        (candidateEvaluation && !markerClassificationAdapter.IsApproved
-                            ? ((IProductionCandidateMarkerClassificationAdapter)markerClassificationAdapter)
-                                .ClassifyForCandidateEvaluationAsync(request, markerFrame, recoveryCandidates,
-                                    new Dictionary<string, MarkerRectangle>(), cancellationToken)
-                            : markerClassificationAdapter.ClassifyAsync(request, markerFrame, recoveryCandidates, cancellationToken))
-                        .ConfigureAwait(false);
-                    WorkflowVisionEnvelope recoveredEnvelope = recovered.Envelope;
-                    chain.Append(new WorkflowVisionEnvelope(
-                        recoveredEnvelope.ContractVersion, recoveredEnvelope.RunId, recoveredEnvelope.ProjectId,
-                        recoveredEnvelope.PanelId, recoveredEnvelope.Stage,
-                        recoveredEnvelope.StageVersion + ":" + ProductionMarkerTemplateRecovery.Version,
-                        recoveredEnvelope.InputSha256, recoveredEnvelope.Model, recoveredEnvelope.Timing,
-                        recoveredEnvelope.Confidence, recoveredEnvelope.Warnings, recoveredEnvelope.Transforms));
-                    IReadOnlyList<ClassifiedMarker> added = ProductionMarkerTemplateRecovery.SelectNew(
-                        acceptedMarkers, CanonicalizeMarkers(request, recovered.Markers, ProductionMarkerTemplateRecovery.Version),
-                        ArtifactRejectionThreshold, cancellationToken);
-                    // Recovery is additive. Every new center still passes the existing classifier;
-                    // calibration, session assignment and export retain their normal review guards.
-                    acceptedMarkers = [.. acceptedMarkers, .. added];
-                    plotMarkers = [.. plotMarkers, .. added];
-                    canonicalMarkers = [.. canonicalMarkers, .. added];
+                    var recoveryTimer = System.Diagnostics.Stopwatch.StartNew();
+                    IReadOnlyList<MarkerCenter> recoveryCandidates = recoveryVersion == ProductionMarkerTemplateRecovery.Version
+                        ? ProductionMarkerTemplateRecovery.Find(
+                        raster.CreateOcrImage(), markerPlot, ocr.Result.Regions, acceptedMarkers,
+                        legendInputs.OriginalPixelContentBounds, legendInputs.OriginalPixelFrameBounds, cancellationToken)
+                        : ProductionMarkerEnclosedCenterRecovery.Find(
+                            raster.CreateOcrImage(), markerPlot, ocr.Result.Regions, acceptedMarkers,
+                            legendInputs.OriginalPixelFrameBounds, cancellationToken);
+                    recoveryTimer.Stop();
+                    if (recoveryCandidates.Count > 0)
+                    {
+                        chain.Append(new WorkflowVisionEnvelope(
+                            1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                            "markers", recoveryVersion, request.Image.Sha256, null,
+                            new WorkflowVisionTiming(recoveryTimer.Elapsed.TotalMilliseconds, 0, 0,
+                                recoveryTimer.Elapsed.TotalMilliseconds),
+                            recoveryCandidates.Average(static marker => marker.CenterConfidence),
+                            warnings: recoveryVersion == ProductionMarkerEnclosedCenterRecovery.Version
+                                ? ["marker_enclosed_center_confidence_uncalibrated"] : [], transforms: request.Transforms));
+                        ProductionMarkerClassificationEvidence recovered = await
+                            (candidateEvaluation && !markerClassificationAdapter.IsApproved
+                                ? ((IProductionCandidateMarkerClassificationAdapter)markerClassificationAdapter)
+                                    .ClassifyForCandidateEvaluationAsync(request, markerFrame, recoveryCandidates,
+                                        new Dictionary<string, MarkerRectangle>(), cancellationToken)
+                                : markerClassificationAdapter.ClassifyAsync(request, markerFrame, recoveryCandidates, cancellationToken))
+                            .ConfigureAwait(false);
+                        WorkflowVisionEnvelope recoveredEnvelope = recovered.Envelope;
+                        chain.Append(new WorkflowVisionEnvelope(
+                            recoveredEnvelope.ContractVersion, recoveredEnvelope.RunId, recoveredEnvelope.ProjectId,
+                            recoveredEnvelope.PanelId, recoveredEnvelope.Stage,
+                            recoveredEnvelope.StageVersion + ":" + recoveryVersion,
+                            recoveredEnvelope.InputSha256, recoveredEnvelope.Model, recoveredEnvelope.Timing,
+                            recoveredEnvelope.Confidence, recoveredEnvelope.Warnings, recoveredEnvelope.Transforms));
+                        IReadOnlyList<ClassifiedMarker> added = ProductionMarkerTemplateRecovery.SelectNew(
+                            acceptedMarkers, CanonicalizeMarkers(request, recovered.Markers, recoveryVersion),
+                            ArtifactRejectionThreshold, cancellationToken);
+                        // Recovery is additive. Every new center still passes the existing classifier;
+                        // calibration, session assignment and export retain their normal review guards.
+                        acceptedMarkers = [.. acceptedMarkers, .. added];
+                        plotMarkers = [.. plotMarkers, .. added];
+                        canonicalMarkers = [.. canonicalMarkers, .. added];
+                    }
                 }
             }
             catch (Exception exception) when (exception is not

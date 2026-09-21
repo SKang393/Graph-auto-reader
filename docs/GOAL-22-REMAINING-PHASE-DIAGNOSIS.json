@@ -1,0 +1,134 @@
+{
+  "schema": "graphreader.remaining-phase-diagnosis.v1",
+  "status": "closed_no_reasoner_change",
+  "finding": "All three wrong-phase rows retain an explicit unknown phase5 after damaged OCR letters prevent interpretation of the later heading. The source report warns later_phase_semantic_unknown. The audit rows are unreviewed; no automatic correction or invented phase meaning is justified.",
+  "metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "seconds": 6.3243684,
+  "affected_sources": 1,
+  "affected_rows": 3,
+  "expected_phase": "a3",
+  "exported_phase": "phase5",
+  "existing_spacing_repair_preserved": true,
+  "validation": "Instrumented canonical scorer retains all 23 sources and 706 points and exactly reproduces every aggregate metric. All three emitted rows are authenticated against actual CSV audit artifacts.",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/remaining-phase-audit-v1/protocol.json",
+      "sha256": "3eddae097f791accfa92c7ae68821a9a5d072c357fa65ae3f2c3dda36bf236c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-phase-audit-v1/status.json",
+      "sha256": "c54229c1c598b54ee424600eca0138e1a5500fb3beba2f1606feee54f44836e1"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-phase-audit-v1/analysis.json",
+      "sha256": "be79f55910b69dd786804852defbedccd27c9e7eedd4902dad0369dcca8e0bd9"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-phase-audit-v1/Program.cs",
+      "sha256": "1e525c29bb3c4b7c10efdcc59e234c816774af96955e6cb3ab0f5a708ac95915"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-phase-audit-v1/DiagnosticEvaluator.cs",
+      "sha256": "034bd39563a191ed322b05a00f54d88137c474e8fbbd7617c6a3d5e86e3c2df5"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-phase-audit-v1/RemainingPhaseAudit.csproj",
+      "sha256": "e7b6d40fd504fc87343c404eaaba40c9f9be976ff3ab4ffec555195a09295c6a"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-phase-audit-v1/build.log",
+      "sha256": "8bce3394f7c7cf5fc836d9dcc1d5d416465fa482c610a4b2d26c3692e1b30efb"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-phase-audit-v1/error.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-RemainingPhaseAudit.py",
+      "sha256": "113377727bd06c45d80202007cf758e0dd196f260eb936f6ca3110ed1d24991a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-RemainingPhaseAudit.ps1",
+      "sha256": "b510a3403df50171baf52002b7ec379bc42c1d3bffb618beee34396dcd76391a"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "32e8ddd9b99b5cca4aa20a5b805454980a66703bd53ab5cf880849509fa160a4"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/execution/report.json",
+      "sha256": "3a3a1f5509efef74d222f8b39b94ca8cd71b20c9687391184d990d373ae29f00"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/execution/cases/3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6/participant_Primary observation.audit.json",
+      "sha256": "a32170ce6c2d503e0616a828ec74367fdce636ff2544710349d743c02120f869"
+    },
+    {
+      "path": "src/GraphReader.Phases/PhaseReasoningService.cs",
+      "sha256": "98845df7c22c260d4454cfb2d40045c3ce40e194d2a5b4cbf38655d3edf7468d"
+    },
+    {
+      "path": "docs/GOAL-22-PHASE-HEADING-SPACING.json",
+      "sha256": "210aeebf6d4c5f1f76e3139161ebfc8b330e579552e37d783494ffff0443f754"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-RemainingPhaseDiagnosis.py",
+    "sha256": "7a6da14bcbdb1f090f1cdc8d7d0e2995cb803561334cfad154809d735fde31ed"
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "product_behavior_changed": false,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "goal22_all_four_outcomes_verified": false
+}
