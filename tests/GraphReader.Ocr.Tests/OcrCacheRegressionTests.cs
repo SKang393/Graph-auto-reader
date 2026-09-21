@@ -268,6 +268,59 @@ public sealed class OcrCacheRegressionTests
             dividers, recognizer, new OcrPipelineOptions(), "detector-v1"));
     }
 
+    [TestMethod]
+    public async Task ChangingWidthModeDoesNotReuseEarlierFixedWidthResult()
+    {
+        var widths = new List<int>();
+        var recognizer = WidthRecorder(widths);
+        var cache = new InMemoryOcrResultCache();
+        var detector = new StubTextRegionDetector([]);
+        var options = new OcrPipelineOptions { CropPaddingPixels = 0, MaximumCropWidth = 512 };
+        OcrRequest request = OcrTestFixtures.Request([OcrTestFixtures.Region("wide", 20, 40, 120, 8)]);
+
+        OcrResult fixedWidth = await new OcrPipeline(detector, recognizer, cache, options).RecognizeAsync(request);
+        OcrResult dynamicWidth = await new OcrPipeline(detector, recognizer, cache,
+            options with { CropWidthMode = OcrCropWidthMode.PaddleBatchMaximumAspectRatio }).RecognizeAsync(request);
+
+        Assert.IsTrue(fixedWidth.Succeeded, fixedWidth.Failure?.TechnicalMessage);
+        Assert.IsTrue(dynamicWidth.Succeeded, dynamicWidth.Failure?.TechnicalMessage);
+        Assert.IsFalse(dynamicWidth.Cache.CacheHit);
+        Assert.HasCount(2, widths);
+        Assert.AreEqual(128, widths[0]);
+        Assert.AreEqual(480, widths[1]);
+        Assert.AreNotEqual(fixedWidth.Cache.CacheKey, dynamicWidth.Cache.CacheKey);
+    }
+
+    [TestMethod]
+    public async Task TighterWidthBoundCannotBeBypassedByWarmResultCache()
+    {
+        var widths = new List<int>();
+        var recognizer = WidthRecorder(widths);
+        var cache = new InMemoryOcrResultCache();
+        var detector = new StubTextRegionDetector([]);
+        var options = new OcrPipelineOptions { CropPaddingPixels = 0, MaximumCropWidth = 512,
+            CropWidthMode = OcrCropWidthMode.PaddleBatchMaximumAspectRatio };
+        OcrRequest request = OcrTestFixtures.Request([OcrTestFixtures.Region("wide", 20, 40, 120, 8)]);
+
+        OcrResult allowed = await new OcrPipeline(detector, recognizer, cache, options).RecognizeAsync(request);
+        OcrResult bounded = await new OcrPipeline(detector, recognizer, cache,
+            options with { MaximumCropWidth = 256 }).RecognizeAsync(request);
+
+        Assert.IsTrue(allowed.Succeeded, allowed.Failure?.TechnicalMessage);
+        Assert.IsFalse(bounded.Succeeded);
+        Assert.AreEqual("OCR_CROP_PREPROCESS_FAILED", bounded.Failure?.Code);
+        Assert.IsFalse(bounded.Cache.CacheHit);
+        Assert.HasCount(1, widths);
+        Assert.AreEqual(480, widths[0]);
+    }
+
+    private static StubTextRecognizer WidthRecorder(List<int> widths) => new((crops, _) =>
+    {
+        widths.AddRange(crops.Select(static crop => crop.Width));
+        return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(static crop => new OcrRecognition(
+            crop.RegionId, crop.SourceImage, [new("Sessions", 0.95, crop.SourceImage)], 0.1)).ToArray());
+    });
+
     private static OcrDetectorImage DetectorImage(OcrImage image) => new(
         image,
         Convert.ToHexStringLower(SHA256.HashData(image.Pixels.Span)));

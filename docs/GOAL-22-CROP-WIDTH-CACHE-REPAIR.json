@@ -1,0 +1,133 @@
+{
+  "schema": "graphreader.ocr-crop-width-cache-repair.v1",
+  "status": "source_repair_verified_accuracy_work_remaining",
+  "sources": [
+    {
+      "path": "src/GraphReader.Ocr/OcrResultCache.cs",
+      "sha256": "5c7b788cfede35e6787cd466eaefa1b9fd2a5783e70341185d3e31221054f757"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/OcrCacheRegressionTests.cs",
+      "sha256": "ce7d1bfdd13ca19f0d4e4281a2e0345cc2295633b75b4bfaeff4136885943822"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/source-bindings.json",
+      "sha256": "f7fc7c0a5fd095bf20ada95d747b23144615bf2e739fec8f53c68d754d587336"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/status.json",
+      "sha256": "fe332632c174acfb246d0fbb126a8c35bb9ba47834c7e9233e7ba41fd1ebca23"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/Program.cs",
+      "sha256": "67e337e2651ac01ceb15362b3b113ff71841e80104ea44e09358d57d4af36d28"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/CropWidthCacheBaseline.csproj",
+      "sha256": "a0496e3ad738faaa34e7e499ee012d89a6058da36bce059f5ad43adc8392a49a"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/baseline-build.log",
+      "sha256": "e520e5ee55ba1356caeeef10de5c828e41f2d5e4d9e9eda011d5d9ee1c0f20f1"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/baseline-result.json",
+      "sha256": "f76e8113891d6158a17bbc1141cebf828a37947f1d5b26852aa723992b070338"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/baseline-error.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/ocr-tests.log",
+      "sha256": "dc6a59748d3662a2b58673c8d812683bd039c3b2b85f7bbc493ed0031b588d83"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/app-tests.log",
+      "sha256": "a61841d36b0977143e4ff0abe163f26e774e0e6aa042f82745f7d4e7b07a08c2"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/native-build.log",
+      "sha256": "98443501d0c44139d650a64955e1774d5975772c0e29e2e826b624898edf1cb3"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/test-results/ocr.trx",
+      "sha256": "bc8fb8afd9ac9a350620cf5cc18637c67dfd3bfb22219bd9edc90e9777c62804"
+    },
+    {
+      "path": "artifacts/goal22-runs/crop-width-cache-checks-v1/test-results/app.trx",
+      "sha256": "9c4d3f068de35666adc718e6c4367f72b563843f62587f0f46d5caa40877e876"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CropWidthCacheChecks.py",
+      "sha256": "d2e8588581259409f53391478d3b28199d268aae0884653d975c497b8c1aaaf7"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CropWidthCacheChecks.ps1",
+      "sha256": "0b2894ec300e97b0426cc00c36b44905b114fbb535996e026537a35da075baba"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-checks-v1/build/bin/GraphReader.RealAcceptance.Ocr/release/GraphReader.Ocr.dll",
+      "sha256": "c213dc8f0146d5545f80e3bcb12f228625d85e424053159fb6091d1ebfe81fec"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-CropWidthCacheRepair.py",
+    "sha256": "9e9fb993451974f434b047878445e019856a2d681dae8ed16ccca64a20d19ebc"
+  },
+  "before": {
+    "status": "both_prior_defects_reproduced",
+    "width_mode_stale_result": true,
+    "width_bound_bypassed": true,
+    "ocr_assembly_sha256": "c213dc8f0146d5545f80e3bcb12f228625d85e424053159fb6091d1ebfe81fec",
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "model_inference_runs": 0
+  },
+  "tests": {
+    "ocr": {
+      "total": 494,
+      "passed": 478,
+      "failed": 0,
+      "skipped": 16
+    },
+    "app": {
+      "total": 486,
+      "passed": 486,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "seconds": 109.2109276,
+  "behavior": "Result and request-alias cache identities now include crop width mode and maximum allowed crop width. Recognition-cache content identities remain unchanged.",
+  "verified_regressions": [
+    "A fixed 128-pixel cached result cannot satisfy a dynamic 480-pixel request.",
+    "A successful 480-pixel result cached with a 512-pixel limit cannot bypass a new 256-pixel limit; the pipeline returns OCR_CROP_PREPROCESS_FAILED."
+  ],
+  "validation_scope": "Both cache defects reproduced in the retained prior compiled runtime. Full OCR and App test suites pass; native harness compiles. No cold-model workflow rerun because recognition inputs, models, algorithms and operating settings are unchanged.",
+  "historical_accuracy_baseline": {
+    "evidence": {
+      "path": "docs/GOAL-22-CONTAINED-TEXT-FRAGMENT-REPAIR.json",
+      "sha256": "c31608cb6223b77ca7f8120cb25e3afd40e30d61c7b7a38bbd0305ce8750afc7"
+    },
+    "exact_ocr": 345,
+    "truth_text_regions": 453,
+    "matched_markers": 666,
+    "truth_markers": 838,
+    "successful_csv_sources": 12,
+    "total_csv_sources": 23,
+    "not_rerun_for_this_cache_only_change": true
+  },
+  "license": "Apache-2.0 project code and existing dependencies only; no dependency or model import.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

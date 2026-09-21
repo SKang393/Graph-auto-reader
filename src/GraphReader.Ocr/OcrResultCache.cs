@@ -150,6 +150,8 @@ public static class OcrCacheKeyDeriver
             options.BatchSize.ToString(CultureInfo.InvariantCulture),
             options.CropWidth.ToString(CultureInfo.InvariantCulture),
             options.CropHeight.ToString(CultureInfo.InvariantCulture),
+            options.CropWidthMode.ToString(),
+            options.MaximumCropWidth.ToString(CultureInfo.InvariantCulture),
             options.CropPaddingPixels.ToString("R", CultureInfo.InvariantCulture),
             NullableDouble(options.CropHorizontalPaddingPixels),
             NullableDouble(options.CropVerticalPaddingPixels),
