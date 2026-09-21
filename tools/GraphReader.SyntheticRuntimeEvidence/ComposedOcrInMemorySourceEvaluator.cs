@@ -65,7 +65,8 @@ internal static class ComposedOcrInMemorySourceEvaluator
         ArgumentNullException.ThrowIfNull(axis);
         cancellationToken.ThrowIfCancellationRequested();
         if (ocr.IsApproved || axis.IsApproved || ocr.ConfigurationScope != "unapproved_frozen_candidate" ||
-            !ocr.AdapterId.StartsWith("graphreader-ocr:" + ProductionOcrAdapter.TickLaneCandidateCompositionVersion + ":", StringComparison.Ordinal))
+            (!ocr.AdapterId.StartsWith("graphreader-ocr:" + ProductionOcrAdapter.TickLaneCandidateCompositionVersion + ":", StringComparison.Ordinal) &&
+             !ocr.AdapterId.StartsWith("graphreader-ocr:" + ProductionOcrAdapter.SourceScaleCandidateCompositionVersion + ":", StringComparison.Ordinal)))
             throw new InvalidDataException("COMPOSED_OCR_CANDIDATE_SCOPE_INVALID");
         string stage = "import";
         try

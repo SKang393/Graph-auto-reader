@@ -72,9 +72,12 @@ internal static class OriginalDbOcrMemoryRuntime
         {
             using JsonDocument document = JsonDocument.Parse(Lock(candidatePath, candidateSha256));
             JsonElement candidate = document.RootElement;
+            string composition = Text(candidate, "composition_version");
+            bool sourceScaleWindows = composed &&
+                composition == ProductionOcrAdapter.SourceScaleCandidateCompositionVersion;
             if (Text(candidate, "schema") != (composed ? "graphreader.frozen-composed-ocr-candidate.v1" : "graphreader.frozen-db-head-ocr-candidate.v1") ||
                 Text(candidate, "scope") != "project-owned-synthetic-train-dev-unapproved-frozen-candidate" ||
-                Text(candidate, "composition_version") != (composed ? ProductionOcrAdapter.TickLaneCandidateCompositionVersion : ProductionOcrAdapter.OriginalDbCandidateCompositionVersion) ||
+                (!sourceScaleWindows && composition != (composed ? ProductionOcrAdapter.TickLaneCandidateCompositionVersion : ProductionOcrAdapter.OriginalDbCandidateCompositionVersion)) ||
                 Text(candidate, "native_scope") != "reviewed-source-runtime-local-diagnostic" ||
                 candidate.GetProperty("production_approved").GetBoolean() ||
                 candidate.GetProperty("training_input_ready").GetBoolean())
@@ -125,7 +128,8 @@ internal static class OriginalDbOcrMemoryRuntime
                 insidePlotAssembly: composed, pixelBoundsRefinement: composed,
                 participantLaneAssembly: composed, headerLayoutContext: composed,
                 framedLegendContext: composed, tickLaneRecovery: composed,
-                detectionObserver: observationBuffer is null ? null : observationBuffer.Capture).ConfigureAwait(false);
+                detectionObserver: observationBuffer is null ? null : observationBuffer.Capture,
+                sourceScaleWindows: sourceScaleWindows).ConfigureAwait(false);
             var raw = new LocalOnnxTextRegionDetector(runtime.Runtime,
                 ProductionOcrAdapter.ReadDetectionOptions(detection.Identity, detection.ManifestPath) with
                 { AllowedProviders = [InferenceProvider.Cpu] });

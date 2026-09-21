@@ -148,6 +148,19 @@ internal static class FrozenCandidateBindingSelfTest
             Require(FrozenCandidateWorkflowFactory.ResolveOcrComposition(contextual) ==
                 FrozenCandidateWorkflowFactory.OcrCompositionKind.OriginalDbContext,
                 "FROZEN_CANDIDATE_CONTEXT_OCR_ROUTE_NOT_BOUND");
+            FrozenCandidateAlgorithms sourceScale = contextual with
+            {
+                OcrCompositionVersion = GraphReader.App.Integration.Workflow.ProductionOcrAdapter.SourceScaleCandidateCompositionVersion,
+            };
+            Require(FrozenCandidateWorkflowFactory.ResolveOcrComposition(sourceScale) ==
+                FrozenCandidateWorkflowFactory.OcrCompositionKind.OriginalDbSourceScale,
+                "FROZEN_CANDIDATE_SOURCE_SCALE_OCR_ROUTE_NOT_BOUND");
+            Require(FrozenCandidateWorkflowFactory.SupportsRawOcrObservation(sourceScale) &&
+                FrozenCandidateWorkflowFactory.SupportsRawOcrObservation(contextual) &&
+                FrozenCandidateWorkflowFactory.SupportsRawOcrObservation(originalDb) &&
+                !FrozenCandidateWorkflowFactory.SupportsRawOcrObservation(tiled) &&
+                !FrozenCandidateWorkflowFactory.SupportsRawOcrObservation(loaded.Algorithms),
+                "FROZEN_CANDIDATE_OCR_OBSERVATION_ROUTE_INCOMPLETE");
             foreach (FrozenCandidateAlgorithms mismatched in new[]
                      {
                          tiled with { OcrOutputGeometry = "model_polygon" },
@@ -156,6 +169,7 @@ internal static class FrozenCandidateBindingSelfTest
                          originalDb with { OcrOutputGeometry = "unknown" },
                          contextual with { OcrOutputGeometry = "model_polygon" },
                          contextual with { OcrOutputGeometry = "tiled_probability_components" },
+                         sourceScale with { OcrOutputGeometry = "model_polygon" },
                          originalDb with { OcrOutputGeometry = "original_pixel_context_regions" },
                          loaded.Algorithms with { OcrCompositionVersion = "unknown" },
                      })

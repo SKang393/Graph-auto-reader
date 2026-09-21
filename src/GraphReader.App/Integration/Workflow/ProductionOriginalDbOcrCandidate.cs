@@ -24,6 +24,8 @@ public sealed partial class ProductionOcrAdapter
         "original-db-head-legend-context-v1";
     internal const string TickLaneCandidateCompositionVersion =
         "original-db-head-tick-header-and-legend-lanes-v4";
+    internal const string SourceScaleCandidateCompositionVersion =
+        "original-db-head-source-scale-windows-v1";
 
     internal static async Task<ProductionOcrAdapter> CreateForFrozenDbHeadCandidateEvaluationAsync(
         FrozenCandidateOcrModelDescriptor detectionModel,
@@ -37,7 +39,8 @@ public sealed partial class ProductionOcrAdapter
         bool headerLayoutContext = false,
         bool framedLegendContext = false,
         bool tickLaneRecovery = false,
-        Action<OcrDetectionObservation>? detectionObserver = null)
+        Action<OcrDetectionObservation>? detectionObserver = null,
+        bool sourceScaleWindows = false)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -67,6 +70,11 @@ public sealed partial class ProductionOcrAdapter
         {
             throw new ArgumentException("The tick-lane trial requires the framed-legend baseline.",
                 nameof(framedLegendContext));
+        }
+        if (sourceScaleWindows && !tickLaneRecovery)
+        {
+            throw new ArgumentException("Source-scale windows require the complete tick/header/legend baseline.",
+                nameof(tickLaneRecovery));
         }
         reviewedOpenCvRuntimeSha256 = ValidateSha256(reviewedOpenCvRuntimeSha256,
             nameof(reviewedOpenCvRuntimeSha256));
@@ -102,7 +110,9 @@ public sealed partial class ProductionOcrAdapter
             await ValidateRecognizerExecutableAsync(recognition.Recognizer, runtime, cancellationToken)
                 .ConfigureAwait(false);
         }, cancellationToken).ConfigureAwait(false);
-        string candidateComposition = tickLaneRecovery
+        string candidateComposition = sourceScaleWindows
+            ? SourceScaleCandidateCompositionVersion
+            : tickLaneRecovery
             ? TickLaneCandidateCompositionVersion
             : framedLegendContext
             ? LegendContextCandidateCompositionVersion
@@ -117,8 +127,12 @@ public sealed partial class ProductionOcrAdapter
             : OriginalDbCandidateCompositionVersion;
         return new ProductionOcrAdapter(() =>
         {
-            ITextRegionDetector detector = new OriginalDbInputDetector(
-                new LocalOnnxTextRegionDetector(runtime, options), candidateComposition);
+            ITextRegionDetector modelDetector = new LocalOnnxTextRegionDetector(runtime, options);
+            if (sourceScaleWindows)
+            {
+                modelDetector = new ProductionSourceScaleOcrDetector(modelDetector);
+            }
+            ITextRegionDetector detector = new OriginalDbInputDetector(modelDetector, candidateComposition);
             ITextRecognizer recognizer = new LocalOnnxTextRecognizer(runtime, recognition.Recognizer);
             if (spacing)
             {

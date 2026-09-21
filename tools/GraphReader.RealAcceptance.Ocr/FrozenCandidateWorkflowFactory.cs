@@ -68,8 +68,7 @@ internal static class FrozenCandidateWorkflowFactory
         ArgumentNullException.ThrowIfNull(binding);
         cancellationToken.ThrowIfCancellationRequested();
         ValidateOcrObservationScope(aggregateOnly, allowSyntheticClassifier, ocrDetectionObserver is not null);
-        if (ocrDetectionObserver is not null && ResolveOcrComposition(binding.Algorithms) is not
-                (OcrCompositionKind.OriginalDb or OcrCompositionKind.OriginalDbContext))
+        if (ocrDetectionObserver is not null && !SupportsRawOcrObservation(binding.Algorithms))
             throw new InvalidDataException("Raw OCR observation requires the original-DB candidate composition.");
         if (binding.MarkerClassifier.SyntheticCandidate is not null && (!allowSyntheticClassifier || aggregateOnly))
             throw new InvalidDataException("Unapproved classifier weights are restricted to synthetic development.");
@@ -176,12 +175,13 @@ internal static class FrozenCandidateWorkflowFactory
                 recognitionIdentity, recognitionManifestPath, binding.OcrRecognition.Manifest.Sha256);
             ProductionOcrAdapter ocr = await (ResolveOcrComposition(binding.Algorithms) switch
             {
-                OcrCompositionKind.OriginalDbContext => ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
+                OcrCompositionKind.OriginalDbContext or OcrCompositionKind.OriginalDbSourceScale => ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
                     detectorDescriptor, recognizerDescriptor, runtimeHost,
                     binding.OpenCvNative.Sha256, cancellationToken,
                     insidePlotAssembly: true, pixelBoundsRefinement: true,
                     participantLaneAssembly: true, headerLayoutContext: true,
-                    framedLegendContext: true, tickLaneRecovery: true, detectionObserver: ocrDetectionObserver),
+                    framedLegendContext: true, tickLaneRecovery: true, detectionObserver: ocrDetectionObserver,
+                    sourceScaleWindows: binding.Algorithms.OcrCompositionVersion == ProductionOcrAdapter.SourceScaleCandidateCompositionVersion),
                 OcrCompositionKind.OriginalDb => ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
                     detectorDescriptor, recognizerDescriptor, runtimeHost,
                     binding.OpenCvNative.Sha256, cancellationToken, detectionObserver: ocrDetectionObserver),
@@ -407,14 +407,24 @@ internal static class FrozenCandidateWorkflowFactory
         TiledProbability,
         OriginalDb,
         OriginalDbContext,
+        OriginalDbSourceScale,
     }
 
     internal static bool IsTiledProbabilityComposition(FrozenCandidateAlgorithms algorithms) =>
         ResolveOcrComposition(algorithms) == OcrCompositionKind.TiledProbability;
 
+    internal static bool SupportsRawOcrObservation(FrozenCandidateAlgorithms algorithms) =>
+        ResolveOcrComposition(algorithms) is OcrCompositionKind.OriginalDb or
+            OcrCompositionKind.OriginalDbContext or OcrCompositionKind.OriginalDbSourceScale;
+
     internal static OcrCompositionKind ResolveOcrComposition(FrozenCandidateAlgorithms algorithms)
     {
         ArgumentNullException.ThrowIfNull(algorithms);
+        if (algorithms.OcrCompositionVersion == ProductionOcrAdapter.SourceScaleCandidateCompositionVersion &&
+            algorithms.OcrOutputGeometry == "original_pixel_context_regions")
+        {
+            return OcrCompositionKind.OriginalDbSourceScale;
+        }
         if (algorithms.OcrCompositionVersion == ProductionOcrAdapter.TickLaneCandidateCompositionVersion &&
             algorithms.OcrOutputGeometry == "original_pixel_context_regions")
         {

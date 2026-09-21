@@ -128,9 +128,7 @@ internal static class FrozenCandidateSyntheticRunner
                 sha256 = hash,
             });
         }
-        bool captureRawOcr = FrozenCandidateWorkflowFactory.ResolveOcrComposition(binding.Algorithms) is
-            FrozenCandidateWorkflowFactory.OcrCompositionKind.OriginalDb or
-            FrozenCandidateWorkflowFactory.OcrCompositionKind.OriginalDbContext;
+        bool captureRawOcr = FrozenCandidateWorkflowFactory.SupportsRawOcrObservation(binding.Algorithms);
         await using FrozenCandidateWorkflowRuntime candidate =
             await FrozenCandidateWorkflowFactory.CreateAsync(
                     repositoryRoot, outputRoot, binding, cancellationToken, allowSyntheticClassifier: true,
