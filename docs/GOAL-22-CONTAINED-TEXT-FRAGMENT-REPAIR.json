@@ -1,0 +1,525 @@
+{
+  "schema": "graphreader.contained-text-fragment-repair.v1",
+  "status": "source_repair_verified_accuracy_still_fails",
+  "sources": [
+    {
+      "path": "src/GraphReader.Ocr/ContainedTextFragmentResolver.cs",
+      "sha256": "4293efe7ab19186e88f95cc566b6b5ff53393a1ac54164f598b364e520d540dc"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "8ae56e4a974353f09a0044579ac2fc43c586c1b99180c2466c2dbebee3f49ca9"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrResultCache.cs",
+      "sha256": "ed87bd25e1bcf23879ae244c4daa15a0951476ab40decb7324c17a5438c6702c"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/ContainedTextFragmentResolverTests.cs",
+      "sha256": "5b3340277a74449101e11b2923bca209d291be0dc65f0e2555e74ff0e83d9501"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-checks-v1/source-bindings.json",
+      "sha256": "6abb0b08946f645d454764ab943d9776420f591a364e3ac3bcf70c5b3675fd54"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-checks-v1/status.json",
+      "sha256": "47c143c54b4d11297b467f92030986744a804f5890a08e7fd4fa8c22c039edd0"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-checks-v1/ocr-tests.log",
+      "sha256": "e9ad4edde48ac2931ad2655dd042414239affe34825b6e35957f28f0234aa9f1"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-checks-v1/app-tests.log",
+      "sha256": "82b78edb0c16e682ea29da9490fb851bf3d487c29e11371f75518b40bcdb347a"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-checks-v1/native-build.log",
+      "sha256": "7c40b4c46c8cc61111812abd18423323262e552586e4d91b6fe4559c8c386d59"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-checks-v1/test-results/ocr.trx",
+      "sha256": "de7961c5a081f5a26a4ab8bed2869fad7bed4c65c547c26682806c0b68292354"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-checks-v1/test-results/app.trx",
+      "sha256": "21b37d1c7d1d43adc65669c76121b323de3e39e52f82994cf9a1767e5034ee60"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-contained-fragment-v1/protocol.json",
+      "sha256": "4fa7540be7464492f79ec43a0d6016aa6e7977f88c43cd566cf0c2ec14ff3b3f"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-contained-fragment-v1/candidate-binding.json",
+      "sha256": "ddcec813b2ca9a9f16860315142f9dc3808ce8f4f05385f1d1b5a7d71f2853f1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-contained-fragment-v1/input-manifest.json",
+      "sha256": "241d5e05b0d586b8487012c41423895b8532396b166db07de17a0df1d98c6c3e"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-contained-fragment-v1/status.json",
+      "sha256": "133344bd000481a7a7c801de3581233e4932144c2c32c0dcf774e9b225715f71"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-contained-fragment-v1/execution/report.json",
+      "sha256": "ad04065f9ac1029ef9842ba7d08c4e7f2687c30bf3198444963d49a85975190b"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-contained-fragment-v1/native-marker-score.json",
+      "sha256": "4c2656e7ba0c2935f199c82df481355d43c010720b33e5adc89f325fd5805910"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-contained-fragment-v1/native-ocr-score.json",
+      "sha256": "63257f1bd3da5c1f41d58f14b5ce755f98283cb7ebb5d33809a2d4340669190b"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-contained-fragment-v1/native-ocr-details.json",
+      "sha256": "6739ebdac78c9326053315521a4dd28f3c8512f820ba7f922149402178c084b2"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-contained-fragment-v1/axis-geometry-comparison.json",
+      "sha256": "7a20474ccb6254ae7175b1143471f1ed2c399c37904ecf546e6abab3c11f8898"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/protocol.json",
+      "sha256": "87bfda10f578a01d1f207aba77fc354ce5a21e3a9f04474f2186669b9b28b839"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/candidate-binding.json",
+      "sha256": "18581675f3f4757b1968a875b7bb7cb1c664c09ad6bf20c8938d40a4c022f667"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/input-manifest.json",
+      "sha256": "d05a3703dbe0be8cd019e936f28ba1b401a39e4e2e3f300f551ef1f8fdcfc7fd"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/status.json",
+      "sha256": "c94d8181c7e034a72ab11809c8374663c578e168ac2cead574e15b729e1345d6"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/execution/report.json",
+      "sha256": "3a3a1f5509efef74d222f8b39b94ca8cd71b20c9687391184d990d373ae29f00"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/comparison.json",
+      "sha256": "f01ddc3543833d2864895c7af171b6accd8462cd15732345f285d60196461c69"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "32e8ddd9b99b5cca4aa20a5b805454980a66703bd53ab5cf880849509fa160a4"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-0328e49cbd51/status.json",
+      "sha256": "c985a4f2dea72e68dd33b256e1156a87442588d72a507e69b04576f5b31e3793"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-diagnosis-v1/analysis.json",
+      "sha256": "39487e9ecdffe4bd8781ba3260f632d56f08e46bdad6aef487619134cfcbc867"
+    },
+    {
+      "path": "artifacts/goal22-runs/contained-fragment-diagnosis-v1/original-pixel-crops.png",
+      "sha256": "99d3e23cf8694881245920cf0427542da88479d0453778375b188b7dfee6a205"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-CurrentContainedFragments.py",
+      "sha256": "533d6f1cbbe854fa165d7df346377be5fe9a76ab8a7fb8c72838b58bff10c9e9"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ContainedFragmentVerification.py",
+      "sha256": "2c995fe2837576cdec247630fed89f9812c4112c6569377e478ecc2325a0fb1a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ContainedFragmentChecks.ps1",
+      "sha256": "2899caf0326068bca40e0782850cecb0602aff2c4b2aa4139b6d20b6812597cf"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ContainedFragmentContext.py",
+      "sha256": "27bfcbde4e29dd0c264a066b01f344339ad6446094c26a52efe2999bb5f59934"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ContainedFragmentContext.ps1",
+      "sha256": "6c03954a22528e5727dd52230e0f6679c3b849ded33b9ef396a573f13f4ad632"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-ContainedFragmentContext.py",
+      "sha256": "89a401a166ca7c2426821c0dcd4c60cbc2ffb9d4cb8f8bb414ab709da7b40d35"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-ContainedFragmentOcr.py",
+      "sha256": "459c9112cf0af69331e44f8891f53711905f581b52853fb28d214993206c6b34"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-ContainedFragmentGeometry.py",
+      "sha256": "9a99fe2b5e7f558fa6ada5204792f86f7fcad5093f815555e2a1c2ffc568967d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ContainedFragmentWorkflow.py",
+      "sha256": "a4bcbf0fb80be1def7f2efd9d8ba8a02d0564ea8406ace58a37dd80d583fb2da"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ContainedFragmentWorkflow.ps1",
+      "sha256": "506fc43d8618d8a1d07da42e9cb42d696581f2d40fb3681bd2d80bc2826b738c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-ContainedFragmentWorkflow.py",
+      "sha256": "ad9f6ff5108846b5c86843c2691da47b852236f3a9dfe24b4baf14b975850101"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-ContainedFragmentRepair.py",
+    "sha256": "a73368947abd4c768c514a26455650cdd15fdd8c5d33c01b7dbe67b31eae74ff"
+  },
+  "tests": {
+    "ocr": {
+      "total": 492,
+      "passed": 476,
+      "failed": 0,
+      "skipped": 16
+    },
+    "app": {
+      "total": 486,
+      "passed": 486,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "observed_model_providers": {
+    "native": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-structural-context-v5:cpu": 41
+    },
+    "csv": {
+      "OpenCvSharpExtern:cpu": 39,
+      "graph-text-extent-db-head-v44-p1:cpu": 39,
+      "en_PP-OCRv5_mobile_rec:cpu": 39,
+      "marker-center-component-diversity-v27:cpu": 39,
+      "marker-classifier-structural-context-v5:cpu": 40
+    }
+  },
+  "native_ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 505,
+        "geometry_matched_region_count": 389,
+        "geometry_false_positive_count": 116,
+        "geometry_false_negative_count": 64,
+        "recognition_exact_count": 345,
+        "recognition_exact_accuracy": 0.7615894039735099,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 64,
+        "unmatched_truth_deletion_edit_count": 476,
+        "unmatched_prediction_insertion_edit_count": 255,
+        "character_error_count": 795,
+        "character_error_rate": 0.2564516129032258,
+        "role_correct_count": 357,
+        "role_accuracy": 0.7880794701986755,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 133,
+            "accuracy": 0.7823529411764706
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 84,
+            "accuracy": 0.8484848484848485
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 499,
+        "geometry_matched_region_count": 389,
+        "geometry_false_positive_count": 110,
+        "geometry_false_negative_count": 64,
+        "recognition_exact_count": 345,
+        "recognition_exact_accuracy": 0.7615894039735099,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 64,
+        "unmatched_truth_deletion_edit_count": 476,
+        "unmatched_prediction_insertion_edit_count": 240,
+        "character_error_count": 780,
+        "character_error_rate": 0.25161290322580643,
+        "role_correct_count": 357,
+        "role_accuracy": 0.7880794701986755,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 133,
+            "accuracy": 0.7823529411764706
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 84,
+            "accuracy": 0.8484848484848485
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "matched_truth_readings_identical": true,
+  "previous_exact_readings_retained": 345,
+  "lost_exact_readings": 0,
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 683,
+    "matched": 666,
+    "extra": 17,
+    "missing": 172,
+    "precision": 0.9751098096632503,
+    "recall": 0.7947494033412887
+  },
+  "axis_metrics": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "reading_and_calibration_changes": {
+    "native": {
+      "removed_regions": [
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": [
+            0,
+            313,
+            1200,
+            270
+          ],
+          "text": "t 02",
+          "role": "Other",
+          "count": 1
+        },
+        {
+          "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+          "crop": [
+            0,
+            0,
+            863,
+            395
+          ],
+          "text": "p",
+          "role": "Other",
+          "count": 1
+        },
+        {
+          "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+          "crop": [
+            0,
+            0,
+            863,
+            395
+          ],
+          "text": "es",
+          "role": "AxisTitle",
+          "count": 1
+        },
+        {
+          "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+          "crop": [
+            0,
+            0,
+            1338,
+            492
+          ],
+          "text": "ollo",
+          "role": "Other",
+          "count": 1
+        },
+        {
+          "source_sha256": "a84e52c6bb0974832642fad174ba40280f69d515c3a84ba8782e59c57f71d6c3",
+          "crop": [
+            0,
+            0,
+            1338,
+            492
+          ],
+          "text": "lo",
+          "role": "Other",
+          "count": 1
+        },
+        {
+          "source_sha256": "c4760964a8a182261f8eb38777565b8820f8390c7dce1439c53182348601d40f",
+          "crop": [
+            0,
+            0,
+            1338,
+            492
+          ],
+          "text": "lo",
+          "role": "Other",
+          "count": 1
+        }
+      ],
+      "added_or_altered_regions": [],
+      "calibration_changes": []
+    },
+    "csv": {
+      "removed_regions": [
+        {
+          "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+          "crop": [
+            0,
+            0,
+            1200,
+            350
+          ],
+          "text": "ary",
+          "role": "Annotation",
+          "count": 1
+        }
+      ],
+      "added_or_altered_regions": [],
+      "calibration_changes": []
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_numeric_values_and_source_states_identical": true,
+  "csv_upstream_changes": [
+    {
+      "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "field": "ocr"
+    }
+  ],
+  "scope": "After recognition, remove only unreviewed nonnumeric exact-substring fragments fully contained within a strictly longer reading in the same panel, coordinate space and image evidence. Preserve numeric/tick readings, reviewed regions, rejected parents, irregular polygons and conflicts. Version result caches; preserve recognition inputs.",
+  "seconds": {
+    "checks": 98.9839587,
+    "native": 145.7027862,
+    "csv": 158.649852
+  },
+  "limitations": [
+    "OCR stays 345/453 exact and remains below 95%; markers remain 666/838. This is not a passed accuracy gate or production approval.",
+    "Only complete rectangular containment and exact primary-text agreement are deduplicated. Similar, partial, numeric and conflicting fragments remain visible.",
+    "Existing recognition, phase and real-acceptance gaps remain. Single-agent source review is not independent reviewer approval."
+  ],
+  "license": "Apache-2.0 project code and existing reviewed dependencies only; no new model or dependency.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

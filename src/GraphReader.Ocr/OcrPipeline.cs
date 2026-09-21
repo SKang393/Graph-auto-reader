@@ -533,6 +533,10 @@ public sealed class OcrPipeline
             }
             postprocessStopwatch.Start();
         }
+        ContainedTextFragmentResolution fragments = ContainedTextFragmentResolver.Resolve(regions, cancellationToken);
+        regions = fragments.Regions;
+        warnings.AddRange(fragments.RemovedRegionIds.Select(static id =>
+            $"ocr_duplicate_text_fragment_removed:{id}"));
         var detectedById = detectedRegions.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
         var maskRegionIds = regions
             .Where(region => IsCredibleTextMask(
