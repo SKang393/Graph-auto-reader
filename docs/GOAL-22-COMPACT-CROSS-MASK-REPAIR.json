@@ -1,0 +1,294 @@
+{
+  "schema": "graphreader.compact-cross-mask-repair.v1",
+  "status": "implemented_and_verified_with_recorded_regressions",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskProvider.cs",
+      "sha256": "944c18505af8e5ab47baeec058028a5a4686a3c2e7b62902e0bffda010df906d"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/RasterResidualArtifactMaskProviderTests.cs",
+      "sha256": "1fff60aabf3b92e8acccceec1c9a4eea37765ee9db181682062fc48882b41d52"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-checks-v1/source-bindings.json",
+      "sha256": "471d61534c11e34c82131db5adc5ed26a24bcfd74b9900f5bf35c9107d8bf5fc"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-checks-v1/status.json",
+      "sha256": "b82b7b83608564ac17125347f56fb6bcfb6df24a3752c3da4e79fb9c4f49a3f8"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-checks-v1/Run.ps1",
+      "sha256": "e94654cb9c0f754392f25a1731cf9e8dcdc7a9218f22d93ebf979f7ee2349ca0"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-checks-v1/test-results/App.trx",
+      "sha256": "834981a31a247dedc73964e2ae12bc76c0d5c4ee725b47f31eac322cc96a157b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-checks-v1/App.log",
+      "sha256": "81c21f0df92b16aef24bf9adb7fd81f4f329ce5975396d9f8cf7804311c43885"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-checks-v1/build.log",
+      "sha256": "f69a6947c7ba9a1f359dc48d9b4c68673ed1f818cef4762162bccdbc6232562a"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/status.json",
+      "sha256": "4af58ba7419c178a64981ab9b7b8a2ce076007a3990aaefce18341651655100d"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/protocol.json",
+      "sha256": "5ff288ebb933035b0729914031fa105035b8ac383249e3f49c1b7c033444b6f1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/candidate-binding.json",
+      "sha256": "8cc29d79116e2a38eae408fd239986e901fbf7c2979bfb796904b2d2594f9df2"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/input-manifest.json",
+      "sha256": "3bef3b37c2b85f9215d3c4eeb7750fa9a307fdf3c0cda01a1c31b1603d341c3e"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/preparation.json",
+      "sha256": "c1db60d6fbe17eddbb79ac178914a4cb5034fb8a7a7057efe6fd6d93e04d90a7"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/runtime-description.json",
+      "sha256": "6720b90c46b18d8703df05ff44bbc6cbc5e249767288d8dec2a204fc32e1a4bd"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/execution/report.json",
+      "sha256": "de9193dbacb96090be453ee6d4139ea6196838350823e17cdf5ff61f7e2c4939"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/native-marker-score.json",
+      "sha256": "b5f3a8a2fd7a46081914307530f4bb48f77a3633991df05e721ab9235a07b6ba"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/native-ocr-score.json",
+      "sha256": "8b2ea2b3238e0c7e0cec0b7491af023ea3450fd8fc9a6500d60895c386de4d35"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/axis-geometry-comparison.json",
+      "sha256": "0828f73142478f73b2f66d531f89524adeb01f94413e524ff8d8af5cad139d7d"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/marker-stage-diagnosis.json",
+      "sha256": "b1350d179028aa7ac7bf83b37f20f9cc6f94143e684368eef20201ea3386b6a6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-cross-mask-v1/lost-point-diagnosis.json",
+      "sha256": "d060184d7efa19e2e3695ce0437ab87dd4fcab87b7a0862ffa287504c4652115"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/status.json",
+      "sha256": "ef6a44de243abb13ed832bda3a6deecebebc5e6f615731190e74415eea7b68a6"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/protocol.json",
+      "sha256": "91bee92faeffc8b9a1e82c1e74647b37a23fcb1f8d0b0322663c612d8c3b3e27"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/candidate-binding.json",
+      "sha256": "f5c9d8701b7e794afebb83418e5ec53d1d33be0de81c37353556c7d72f3b4763"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/input-manifest.json",
+      "sha256": "d4aec9f70a3d013921d29603ddc5a5a92f04a552b187189a148b0da694cdd92f"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/execution/report.json",
+      "sha256": "de23a74795f75996d0d462e889e179dfd072d6d088abdaa6281fd2467094311c"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "4fa6420fcd7a08c7c73d71da88361fe6d17b007c9348aac93a41770193ff9b09"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "1a0bda4488cc45e5435a09970a27b68663711348cdab14878c6d82b17e138ce9"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/comparison.json",
+      "sha256": "2c59a4f89d90369f70a566646e8373a8d95185b286f3b6f9517e34daa8c721a5"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/value-deltas.json",
+      "sha256": "25e5be4f95cdc24f45a7434d6eb98d608ca89834681837db15b3f57886d8e87b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/value-deltas-v2.json",
+      "sha256": "40cb61c4d22299d6ece355b7dffb83db5117cc70a3f5003a74d51094467e4fdd"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-MarkerCrossContext.py",
+      "sha256": "11516adfeff08e4ebd72632dd8cc37d87ce7d679d447c8e4e72cd19ec975e561"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-MarkerCrossOcr.py",
+      "sha256": "6fae9d1f2a00f747db29864618410cfe57bcc1883778f4716596de2c5abeb1c3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-MarkerCrossGeometry.py",
+      "sha256": "ee78ff627c87bef6e0b545431125166333b45fb5ae614e573dda6709e791aff5"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-MarkerCrossStages.py",
+      "sha256": "939bcc36ab788e3370b0e10a0a15f4c4bb54b087e31103d75f167c921bbbe45f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Explain-MarkerCrossLosses.py",
+      "sha256": "f8ad68eadfa7f4dff3ec9c0e948fa5819c344270c5d298571b761e7c81690b9b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-MarkerCrossWorkflow.py",
+      "sha256": "152c1b80b095167c9f0767e8257bce36ecfb6ef8e6af63ef6c20fe5fc174400b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-CrossMaskValueChanges.py",
+      "sha256": "18e2ec19febd3bcc7dbde00b063d5a607542449b5ce018a14147bad71280533b"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-bd6456f75a9f/status.json",
+      "sha256": "f53575e943fc7c3abcf3a0d38e7141159c90130ef2df8c78e28373d387301a16"
+    }
+  ],
+  "application_tests": {
+    "total": "469",
+    "executed": "469",
+    "passed": "469",
+    "failed": "0",
+    "error": "0",
+    "timeout": "0",
+    "aborted": "0",
+    "inconclusive": "0",
+    "passedButRunAborted": "0",
+    "notRunnable": "0",
+    "notExecuted": "0",
+    "disconnected": "0",
+    "warning": "0",
+    "completed": "0",
+    "inProgress": "0",
+    "pending": "0"
+  },
+  "native_metrics": {
+    "truth": 838,
+    "predicted": 665,
+    "matched": 579,
+    "extra": 86,
+    "missing": 259,
+    "precision": 0.8706766917293233,
+    "recall": 0.6909307875894988
+  },
+  "paired_native_truths": {
+    "retained": 563,
+    "recovered": 16,
+    "lost": 5,
+    "missed_by_both": 254
+  },
+  "native_loss_categories": {
+    "no_nearby_above_threshold_center": 3,
+    "classifier_artifact_rejection": 2
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_changes": {
+    "schema": "graphreader.compact-cross-export-delta.v1",
+    "source": {
+      "path": "artifacts/goal22-tools/Audit-CrossMaskValueChanges.py",
+      "sha256": "18e2ec19febd3bcc7dbde00b063d5a607542449b5ce018a14147bad71280533b"
+    },
+    "before": {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/execution/report.json",
+      "sha256": "cd447ab4502167e742a3d38d8460578819962ce4d4e0bc176dcd6fabd9840e38"
+    },
+    "after": {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/execution/report.json",
+      "sha256": "de23a74795f75996d0d462e889e179dfd072d6d088abdaa6281fd2467094311c"
+    },
+    "paired_changed_unique_records": 55,
+    "changed_sources": 4,
+    "maximum_pixel_movement": 0.9282043853809725,
+    "maximum_y_change": 0.3834051638203846,
+    "maximum_x_change": 0,
+    "all_export_metadata_unchanged": true,
+    "pairing": "Nearest original-pixel one-to-one pairing within five pixels. Unpaired removed/added rows are recorded separately, never described as point movement. Official CSV accuracy is scored separately.",
+    "supersedes_unbounded_pairing": {
+      "path": "artifacts/goal22-runs/marker-cross-mask-workflow-v1/value-deltas.json",
+      "sha256": "25e5be4f95cdc24f45a7434d6eb98d608ca89834681837db15b3f57886d8e87b"
+    },
+    "unpaired_removed_count": 2,
+    "unpaired_added_count": 2,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "model_inference_runs": 0
+  },
+  "timing_seconds": {
+    "checks": 86.4180871,
+    "native": 133.2124118,
+    "csv": 147.5086755
+  },
+  "configuration_fingerprint": "raster-residual-v2;gray<=196;seed>=0.5;component=8;arrow-span>=14;bracket-span>=14;intersection-arm=5..64;intersection-radius=2;nms=6;compact-review-span<=13;intersection-pair-span>13;legend-left-gap<=3.5h",
+  "provenance_note": "The inherited native protocol retains older source/runtime narrative fields. Current execution identity is established by the verified source bindings, fresh runtime-description, candidate binding, executable hashes and report, not those stale narrative fields.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_revision": false,
+  "all_model_weights_and_thresholds_unchanged": true,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false,
+  "license": "Project-owned Apache-2.0 code and synthetic input; existing reviewed model and runtime notices unchanged."
+}

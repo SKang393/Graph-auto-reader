@@ -99,9 +99,9 @@ public sealed class RasterResidualArtifactMaskProvider
     private const float StructuralConfirmationBonus = 0.02f;
 
     public const string ConfigurationFingerprint =
-        "raster-residual-v1;gray<=196;seed>=0.5;component=8;arrow-span>=14;" +
+        "raster-residual-v2;gray<=196;seed>=0.5;component=8;arrow-span>=14;" +
         "bracket-span>=14;intersection-arm=5..64;intersection-radius=2;nms=6;" +
-        "compact-review-span<=13;legend-left-gap<=3.5h";
+        "compact-review-span<=13;intersection-pair-span>13;legend-left-gap<=3.5h";
 
     private readonly IPreOcrStructuralProbabilityProvider structuralProvider;
 
@@ -236,7 +236,7 @@ public sealed class RasterResidualArtifactMaskProvider
             }
         }
 
-        AddIntersections(
+        int ambiguousIntersectionCount = AddIntersections(
             width,
             height,
             foreground,
@@ -253,6 +253,10 @@ public sealed class RasterResidualArtifactMaskProvider
         if (ambiguousCompactCount > 0)
         {
             warnings.Add($"{ambiguousCompactCount} compact marker-like component(s) remained reviewable instead of being suppressed.");
+        }
+        if (ambiguousIntersectionCount > 0)
+        {
+            warnings.Add($"{ambiguousIntersectionCount} short crossing candidate(s) remained reviewable because their arms fit a compact marker.");
         }
 
         return new RasterResidualArtifactMaskResult(
@@ -400,7 +404,7 @@ public sealed class RasterResidualArtifactMaskProvider
         return false;
     }
 
-    private static void AddIntersections(
+    private static int AddIntersections(
         int width,
         int height,
         bool[] foreground,
@@ -411,6 +415,7 @@ public sealed class RasterResidualArtifactMaskProvider
         CancellationToken cancellationToken)
     {
         var candidates = new List<IntersectionCandidate>();
+        int ambiguousCount = 0;
         for (int y = MinimumIntersectionArm; y < height - MinimumIntersectionArm; y++)
         {
             for (int x = MinimumIntersectionArm; x < width - MinimumIntersectionArm; x++)
@@ -427,6 +432,7 @@ public sealed class RasterResidualArtifactMaskProvider
                 }
 
                 int pairCount = 0;
+                int extendedPairCount = 0;
                 int strength = 0;
                 foreach ((int X, int Y) direction in OpposingDirections)
                 {
@@ -436,11 +442,21 @@ public sealed class RasterResidualArtifactMaskProvider
                     {
                         pairCount++;
                         strength += Math.Min(forward, MaximumIntersectionArm) + Math.Min(backward, MaximumIntersectionArm);
+                        if (forward + backward + 1 > MaximumCompactMarkerSpan)
+                            extendedPairCount++;
                     }
                 }
 
                 if (pairCount >= 2)
                 {
+                    // A small X has the same four short arms as a crossing.
+                    // Require both line pairs to extend beyond the existing
+                    // compact-symbol span, including when a connector joins it.
+                    if (extendedPairCount < 2)
+                    {
+                        ambiguousCount++;
+                        continue;
+                    }
                     candidates.Add(new IntersectionCandidate(x, y, strength, connectorProbabilities[index]));
                 }
             }
@@ -483,6 +499,7 @@ public sealed class RasterResidualArtifactMaskProvider
                 inkPixels,
                 "two nonparallel line pairs cross inside the axis plot"));
         }
+        return ambiguousCount;
     }
 
     private static readonly (int X, int Y)[] OpposingDirections =

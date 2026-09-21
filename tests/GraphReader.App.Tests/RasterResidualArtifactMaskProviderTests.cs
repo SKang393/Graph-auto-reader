@@ -68,6 +68,27 @@ public sealed class RasterResidualArtifactMaskProviderTests
     }
 
     [TestMethod]
+    [DataRow(5, false)]
+    [DataRow(6, false)]
+    [DataRow(5, true)]
+    [DataRow(6, true)]
+    [DataRow(10, false)]
+    [DataRow(10, true)]
+    public async Task ShortCrossesRemainReviewableAndLongCrossingsRemainMasked(int armLength, bool connected)
+    {
+        TestInputs inputs = CreateCompositeInputs(armLength, connected);
+        RasterResidualArtifactMaskResult result = await new RasterResidualArtifactMaskProvider().AnalyzeAsync(
+            inputs.Raster, inputs.Axis, inputs.Ocr, inputs.Seed, CancellationToken.None);
+
+        bool longCrossing = armLength == 10;
+        Assert.AreEqual(longCrossing, result.Mask.Span[Index(inputs.Raster.Width, 80, 32)] >= 0.5f);
+        Assert.IsTrue(result.Mask.Span[Index(inputs.Raster.Width, 55, 52)] >= 0.5f,
+            "The existing long connecting-line intersection must remain excluded.");
+        if (!longCrossing)
+            Assert.IsTrue(result.Warnings.Any(warning => warning.Contains("short crossing", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public async Task AnalyzeAsyncHonorsPreCanceledToken()
     {
         TestInputs inputs = CreateCompositeInputs();
@@ -83,7 +104,7 @@ public sealed class RasterResidualArtifactMaskProviderTests
             source.Token));
     }
 
-    private static TestInputs CreateCompositeInputs()
+    private static TestInputs CreateCompositeInputs(int crossArmLength = 0, bool connectedCross = false)
     {
         const int width = 160;
         const int height = 110;
@@ -99,6 +120,13 @@ public sealed class RasterResidualArtifactMaskProviderTests
         DrawLine(gray, width, 42, 69, 42, 75);
         DrawRing(gray, width, 72, 69, 78, 75);
         DrawFilledRectangle(gray, width, 20, 15, 28, 21);
+        if (crossArmLength > 0)
+        {
+            DrawLine(gray, width, 80 - crossArmLength, 32 - crossArmLength, 80 + crossArmLength, 32 + crossArmLength);
+            DrawLine(gray, width, 80 - crossArmLength, 32 + crossArmLength, 80 + crossArmLength, 32 - crossArmLength);
+            if (connectedCross)
+                DrawLine(gray, width, 65, 32, 95, 32);
+        }
 
         string sha256 = Convert.ToHexStringLower(SHA256.HashData(gray));
         var raster = new ProductionDecodedRaster(
