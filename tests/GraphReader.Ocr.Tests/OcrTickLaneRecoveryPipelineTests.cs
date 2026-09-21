@@ -50,6 +50,39 @@ public sealed class OcrTickLaneRecoveryPipelineTests
     }
 
     [TestMethod]
+    [DataRow("37")]
+    [DataRow("T")]
+    public async Task LeftAlignedYRecoveryReadsPixelsAndPreservesExistingReadings(string recoveredText)
+    {
+        const int width = 240, height = 200;
+        OcrDetectedRegion[] anchors = [OcrTestFixtures.Region("one", 20, 20, 8, 8),
+            OcrTestFixtures.Region("two", 20, 80, 16, 8), OcrTestFixtures.Region("three", 20, 140, 24, 8)];
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        for (int y = 110; y < 118; y++)
+            for (int x = 20; x < 32; x++) pixels[y * width + x] = 0;
+        var request = OcrTestFixtures.Request(anchors) with
+        {
+            OriginalImage = new OcrImage(width, height, width, pixels,
+                OcrSourceImage.Original, OcrFrameTransform.Identity),
+            PlotBounds = new OcrRectangle(60, 10, 160, 160),
+        };
+        var seen = new List<OcrCrop>();
+        var recognizer = Recognizer(recoveredText, seen);
+        OcrResult baseline = await Pipeline(recognizer, new InMemoryOcrResultCache(), false).RecognizeAsync(request);
+        OcrResult result = await Pipeline(recognizer, new InMemoryOcrResultCache(), true).RecognizeAsync(request);
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.HasCount(4, result.Regions);
+        Assert.AreEqual(JsonSerializer.Serialize(baseline.Regions), JsonSerializer.Serialize(result.Regions.Take(3)));
+        OcrRegion added = result.Regions[^1];
+        Assert.AreEqual(recoveredText, added.Text);
+        Assert.AreEqual(new OcrRectangle(20, 110, 12, 8), added.Polygon.Bounds);
+        Assert.AreEqual(OcrReviewStatus.Unreviewed, added.ReviewStatus);
+        Assert.Contains($"ocr_role_needs_review:{added.RegionId}:original_pixel_tick_recovery", result.Warnings);
+        Assert.IsTrue(seen.Single(crop => crop.RegionId == added.RegionId).Pixels.ToArray().Any(value => value == 0));
+        Assert.IsTrue(pixels.Skip(110 * width + 20).Take(12).All(value => value == 0));
+    }
+
+    [TestMethod]
     public async Task InsufficientAnchorsDoNotTriggerAdditionalRecognition()
     {
         OcrRequest request = Request();

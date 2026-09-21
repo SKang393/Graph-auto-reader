@@ -1,0 +1,550 @@
+{
+  "schema": "graphreader.measured-axis-label-alignment-repair.v1",
+  "status": "source_repair_verified_accuracy_still_fails",
+  "sources": [
+    {
+      "path": "src/GraphReader.Ocr/TickLaneTextRegionRecovery.cs",
+      "sha256": "9caebd392761ba977c9cf3d924a3cf3e0c67d7dc997e1fb8c616ed79d4e7894d"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/TickLaneTextRegionRecoveryTests.cs",
+      "sha256": "ae73d7fbc5fb0ffcb137fe75c837eb60e3edd4fdcacd8543f13a7ab92c85acca"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/OcrTickLaneRecoveryPipelineTests.cs",
+      "sha256": "a3b90ab74346625b7a8701398a7cd0c1e7061ed01047094e39f1e0b38e8bf81d"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v2/source-bindings.json",
+      "sha256": "4d53cfb2b3c16e61ffe92fb62afb9786406ad2226c13de808abf3f66453aacbf"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v2/status.json",
+      "sha256": "20f5a56358d5a0d92e0b7425f879afbe7ace000a21caec48fe3e9eacea1fd880"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v2/ocr-tests.log",
+      "sha256": "8375813b535bdc98f1e55ce24c24a827c463c690f1e90777eb2c131bbcd167e7"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v2/app-tests.log",
+      "sha256": "c5b54d88862ffbffeb4022d967cf358d216b638268709929dcbfe376da823747"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v2/native-build.log",
+      "sha256": "c8f797cc8539ffcdb6ad3263d5b0779e4b59d561a4bba4b75a586778cb09038b"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v2/test-results/ocr.trx",
+      "sha256": "092f261ac9c36f2ee194be0aea995a025a3fa242a8ba0cca2ba8e1b75298ab01"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v2/test-results/app.trx",
+      "sha256": "2cd4220450e221d728a80954fbce1f1408b04624ea3ce6eb8b9266e0e2a314dd"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-tick-alignment-v1/protocol.json",
+      "sha256": "fa62ed0052fd7a2ef13ea0cbaa389b4b2a8dc335f4108579b3d9b08672041a4e"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-tick-alignment-v1/candidate-binding.json",
+      "sha256": "0b5b941e3e040ac981492c1ec80ac935280312d00edeab35dd678224e8be98c3"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-tick-alignment-v1/input-manifest.json",
+      "sha256": "4ac5b79c36af59bb07671f5df1f59495352e054083796cda79ee52733e9fc326"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-tick-alignment-v1/status.json",
+      "sha256": "162af3949785a8dd502ad55e7b29a0e26dbbf6758e99557349a9201fdcc30c03"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-tick-alignment-v1/execution/report.json",
+      "sha256": "a07c4f7e80890192dc821ae45104e064c441c3534100c10acc805c35b31f5ded"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-tick-alignment-v1/native-marker-score.json",
+      "sha256": "ee03246c408ba96ddc4ea027976d57afdd59015dffd77bdbf5b83e86c5567bdb"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-tick-alignment-v1/native-ocr-score.json",
+      "sha256": "5a302ade41d09f4c21ddb9277f1d54937b3923a6687d3828b53ffa9ef2ee3261"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-tick-alignment-v1/native-ocr-details.json",
+      "sha256": "125436d74dc10cde5025b53e833a090a447fcf13a27d6204120296121abc45c9"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-tick-alignment-v1/axis-geometry-comparison.json",
+      "sha256": "643877d423eac653a81a0f2ca1ca130a76fa99d19e63551f02967caa1aba5cdf"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-workflow-v1/protocol.json",
+      "sha256": "bd4af51f04af8453bffebfb8a6b9d6df7875844083b4ba9754ec255df1d22cdb"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-workflow-v1/candidate-binding.json",
+      "sha256": "cfe0eb8060a4d77c9bda8e157ff2c3a1a36d9e38f5f673f5b85a0de33f329529"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-workflow-v1/input-manifest.json",
+      "sha256": "c351eb2eddfab7ef82b359ec9e3fe1dcb777663501b9e722f898013194c8e45d"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-workflow-v1/status.json",
+      "sha256": "0b3040d1d43415324165cf928df77bc470ddf5523366ac2909242d4543072e91"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-workflow-v1/execution/report.json",
+      "sha256": "f19a93969fbdf482597897cef2d602d9e4bd3d7210c8fd0987194ad93c880951"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-workflow-v1/comparison.json",
+      "sha256": "8ed32497ef3c1350c117e378ee13d1ff65d58492ab4c35d40ea28c0fcde80016"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "1f663b51fe446a7797d53ea4dcdc3d3f14ca8a26490023c5b350acae9f1430b0"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-component-audit-v1/protocol.json",
+      "sha256": "65d3d42c9d3ebe8fff36e35fce886a4adb539a476c6aa2ae7cc83fd77c5cde2b"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-component-audit-v1/status.json",
+      "sha256": "04539acdb135e20113fd699f589ea7a9765339059044a6c80713b21e3e147ab5"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-component-audit-v1/replay/report.json",
+      "sha256": "9de6de411ac663e611905605a7b2ca804e52885a5a554e46b46d0a8797517f25"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-component-audit-v1/analysis.json",
+      "sha256": "b17d0a8ab0f83b20dc4fc9492df2e5fcd0eb49af019d3b92c61f29026fa2a8e5"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v1/status.json",
+      "sha256": "5e83f609b6e1319d0c19210e04a7f163173ed7bc4c32846c017fdff9cce7d590"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v1/ocr-tests.log",
+      "sha256": "408b7a7b61eaab28eb6f03a9721de5586575973b39982df141fe7d714a61414f"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v1/source-bindings.json",
+      "sha256": "116b5ce8b8c5aa14952df50c9668b7194150cf27790aac335f07146f99f5402b"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v1/source/src/GraphReader.Ocr/TickLaneTextRegionRecovery.cs",
+      "sha256": "9caebd392761ba977c9cf3d924a3cf3e0c67d7dc997e1fb8c616ed79d4e7894d"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v1/source/tests/GraphReader.Ocr.Tests/TickLaneTextRegionRecoveryTests.cs",
+      "sha256": "a74a805fe6cd9e00ae1ce039755692797453d234361248281f152f99f6216873"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-alignment-checks-v1/source/tests/GraphReader.Ocr.Tests/OcrTickLaneRecoveryPipelineTests.cs",
+      "sha256": "a3b90ab74346625b7a8701398a7cd0c1e7061ed01047094e39f1e0b38e8bf81d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-TickAlignmentChecksV2.py",
+      "sha256": "c5d07e48965a3098e4533ba23aa6314d7a57ddd9484859d8fdb8d90fe2f5aa0b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-TickAlignmentChecks.ps1",
+      "sha256": "ecf9edddec2bb794837cfb7ddc407b6a7cb8bf39c232a46728a0aab566db7d03"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-TickAlignmentContext.py",
+      "sha256": "200d01cd864a42e0464a3c007f129ccd95ac88aed364aeaf5db4b9b7fad49590"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-TickAlignmentContext.ps1",
+      "sha256": "dc1c744ac7c12275fe6cf2815fe21f3431d09bf2e45456190f6379b832c36e0d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-TickAlignmentContext.py",
+      "sha256": "996914b2b26ebc15ad758d07c9e6d786260f564540e82144c98d62f9fe979ad5"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-TickAlignmentOcr.py",
+      "sha256": "38f5ce70c5502276b04e3d18c83be257ef350fb590048a418f2b50a96f1e928f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-TickAlignmentGeometry.py",
+      "sha256": "b9acfff79963a6dc80c77ea07814642c3116755742776c8b37e147784634da43"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-TickAlignmentWorkflow.py",
+      "sha256": "8265433c514ed7cadfb859b24078d91e8176b10d7077be011c25e6a1a1afa230"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-TickAlignmentWorkflow.ps1",
+      "sha256": "ba48687b57eb5d6139f271bba0b2d5160ff93c489e445c8a57a92174b51b9dec"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-TickAlignmentWorkflow.py",
+      "sha256": "86dda637762570cce72c31abfca9bca0b5ccce17a38cfd14fa8b8249a607f098"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-TickAlignmentRepair.py",
+    "sha256": "8337db9b245d5cffc8bff311a339e316b727c5f6f1fbc943f7b25e7b2b1bb98d"
+  },
+  "tests": {
+    "ocr": {
+      "total": 468,
+      "passed": 452,
+      "failed": 0,
+      "skipped": 16
+    },
+    "app": {
+      "total": 486,
+      "passed": 486,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "void_attempts": [
+    {
+      "run": "tick-alignment-checks-v1",
+      "reason": "Test compile CA1861 constant-array analyzer failure; no inference or sealed read. Fixed assertion only; exact first-pass source retained."
+    }
+  ],
+  "native_ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 499,
+        "geometry_matched_region_count": 381,
+        "geometry_false_positive_count": 118,
+        "geometry_false_negative_count": 72,
+        "recognition_exact_count": 337,
+        "recognition_exact_accuracy": 0.7439293598233996,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 64,
+        "unmatched_truth_deletion_edit_count": 516,
+        "unmatched_prediction_insertion_edit_count": 287,
+        "character_error_count": 867,
+        "character_error_rate": 0.2796774193548387,
+        "role_correct_count": 349,
+        "role_accuracy": 0.7704194260485652,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 38,
+            "accuracy": 0.6129032258064516
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 131,
+            "accuracy": 0.7705882352941177
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 80,
+            "accuracy": 0.8080808080808081
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 503,
+        "geometry_matched_region_count": 385,
+        "geometry_false_positive_count": 118,
+        "geometry_false_negative_count": 68,
+        "recognition_exact_count": 340,
+        "recognition_exact_accuracy": 0.7505518763796909,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 65,
+        "unmatched_truth_deletion_edit_count": 506,
+        "unmatched_prediction_insertion_edit_count": 287,
+        "character_error_count": 858,
+        "character_error_rate": 0.2767741935483871,
+        "role_correct_count": 353,
+        "role_accuracy": 0.7792494481236203,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 38,
+            "accuracy": 0.6129032258064516
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 131,
+            "accuracy": 0.7705882352941177
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 84,
+            "accuracy": 0.8484848484848485
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "previous_exact_readings_retained": 337,
+  "new_exact_readings": 3,
+  "lost_exact_readings": 0,
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 683,
+    "matched": 666,
+    "extra": 17,
+    "missing": 172,
+    "precision": 0.9751098096632503,
+    "recall": 0.7947494033412887
+  },
+  "axis_metrics": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "reading_and_calibration_changes": {
+    "native": {
+      "new_readings": [
+        {
+          "source_sha256": "ef8f24b226f68dcb823690604f4cf6cbbe0c3b9dfeb694aa4992f63d12506a41",
+          "crop": [
+            0,
+            0,
+            1200,
+            350
+          ],
+          "text": "200",
+          "review_status": "Unreviewed",
+          "calibration_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+          "crop": [
+            0,
+            0,
+            1200,
+            350
+          ],
+          "text": "50",
+          "review_status": "Unreviewed",
+          "calibration_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": [
+            0,
+            1393,
+            1200,
+            307
+          ],
+          "text": "1.50",
+          "review_status": "Unreviewed",
+          "calibration_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": [
+            0,
+            853,
+            1200,
+            270
+          ],
+          "text": "50",
+          "review_status": "Unreviewed",
+          "calibration_validity": "InvalidSessionOrigin"
+        }
+      ],
+      "existing_readings_preserved": true,
+      "changed_calibrations": [
+        {
+          "source_sha256": "ef8f24b226f68dcb823690604f4cf6cbbe0c3b9dfeb694aa4992f63d12506a41",
+          "crop": [
+            0,
+            0,
+            1200,
+            350
+          ],
+          "before_validity": "NeedsReview",
+          "after_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+          "crop": [
+            0,
+            0,
+            1200,
+            350
+          ],
+          "before_validity": "NeedsReview",
+          "after_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": [
+            0,
+            1393,
+            1200,
+            307
+          ],
+          "before_validity": "NeedsReview",
+          "after_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": [
+            0,
+            853,
+            1200,
+            270
+          ],
+          "before_validity": "InvalidSessionOrigin",
+          "after_validity": "InvalidSessionOrigin"
+        }
+      ]
+    },
+    "csv": {
+      "new_readings": [],
+      "existing_readings_preserved": true,
+      "changed_calibrations": []
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_status_changes": [],
+  "csv_numeric_value_changes": [],
+  "csv_upstream_changes": [],
+  "observed_model_providers": {
+    "native": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-structural-context-v5:cpu": 41
+    },
+    "csv": {
+      "OpenCvSharpExtern:cpu": 39,
+      "graph-text-extent-db-head-v44-p1:cpu": 39,
+      "en_PP-OCRv5_mobile_rec:cpu": 39,
+      "marker-center-component-diversity-v27:cpu": 39,
+      "marker-classifier-structural-context-v5:cpu": 40
+    }
+  },
+  "seconds": {
+    "checks": 101.3744596,
+    "native": 146.1536162,
+    "csv": 159.6917277
+  },
+  "scope": "Add measured left-edge support to y-label recovery; retain measured right-edge and x-axis behavior. No expected numeric sequence supplies text. Original-image recognition and explicit review warnings remain required.",
+  "limitations": [
+    "Exact OCR remains 340/453, below the unchanged 95% bar.",
+    "One recovered region reads 1.50 instead of 150; its calibration remains NeedsReview. Do not claim correct recognition of all recovered regions.",
+    "Component merging, missing initial anchors and model detection/recognition failures remain.",
+    "Open synthetic development evidence does not establish real acceptance or production approval."
+  ],
+  "license": "Apache-2.0 project code; no new dependency or model.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

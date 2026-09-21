@@ -9,7 +9,7 @@ namespace GraphReader.Ocr;
 /// </summary>
 public static class TickLaneTextRegionRecovery
 {
-    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v2";
+    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v3";
 
     public static async ValueTask<IReadOnlyList<OcrDetectedRegion>> FindAsync(
         OcrImage image,
@@ -141,15 +141,25 @@ public static class TickLaneTextRegionRecovery
         }
         double height = Median(bounds.Select(static rectangle => rectangle.Height));
         double cross = Median(bounds.Select(rectangle => role == OcrTextRole.XTick ? rectangle.Center.Y : rectangle.Right));
+        double? alignedCross = bounds.All(rectangle => Math.Abs(
+            (role == OcrTextRole.XTick ? rectangle.Center.Y : rectangle.Right) - cross) <= height / 2)
+            ? cross : null;
+        // Y labels can align either edge. Different digit counts do not move
+        // their leading edge on a left-aligned axis. Measure both possibilities
+        // from the existing readings without supplying a missing tick value.
+        double leadingEdge = Median(bounds.Select(static rectangle => rectangle.Left));
+        double? alignedLeadingEdge = role == OcrTextRole.YTick &&
+            bounds.All(rectangle => Math.Abs(rectangle.Left - leadingEdge) <= height / 2)
+            ? leadingEdge : null;
         double[] along = bounds.Select(rectangle => role == OcrTextRole.XTick ? rectangle.Center.X : rectangle.Center.Y)
             .Distinct().Order().ToArray();
         if (along.Length < Math.Min(bounds.Length, 3) ||
             along.Length > 1 && along[^1] - along[0] < 4 * height ||
-            bounds.Any(rectangle => Math.Abs((role == OcrTextRole.XTick ? rectangle.Center.Y : rectangle.Right) - cross) > height / 2))
+            alignedCross is null && alignedLeadingEdge is null)
         {
             return null;
         }
-        return new Lane(role, height, bounds.Max(static rectangle => rectangle.Width), cross);
+        return new Lane(role, height, bounds.Max(static rectangle => rectangle.Width), alignedCross, alignedLeadingEdge);
     }
 
     private static double Along(OcrRectangle bounds, OcrTextRole role) =>
@@ -216,11 +226,14 @@ public static class TickLaneTextRegionRecovery
         {
             double tolerance = Math.Max(4, plot.Width * 0.05);
             return bounds.Top > plot.Bottom && bounds.Center.X >= plot.Left - tolerance &&
-                bounds.Center.X <= plot.Right + tolerance && Math.Abs(bounds.Center.Y - lane.Cross) <= lane.Height / 2;
+                bounds.Center.X <= plot.Right + tolerance && lane.Cross is { } cross &&
+                Math.Abs(bounds.Center.Y - cross) <= lane.Height / 2;
         }
         double verticalTolerance = Math.Max(4, plot.Height * 0.05);
         return bounds.Right < plot.Left && bounds.Center.Y >= plot.Top - verticalTolerance &&
-            bounds.Center.Y <= plot.Bottom + verticalTolerance && Math.Abs(bounds.Right - lane.Cross) <= lane.Height / 2;
+            bounds.Center.Y <= plot.Bottom + verticalTolerance &&
+            (lane.Cross is { } trailing && Math.Abs(bounds.Right - trailing) <= lane.Height / 2 ||
+             lane.LeadingEdge is { } leading && Math.Abs(bounds.Left - leading) <= lane.Height / 2);
     }
 
     private static bool Covered(OcrRectangle a, OcrRectangle b)
@@ -237,5 +250,6 @@ public static class TickLaneTextRegionRecovery
         return sorted.Length % 2 == 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
     }
 
-    private sealed record Lane(OcrTextRole Role, double Height, double MaximumWidth, double Cross);
+    private sealed record Lane(OcrTextRole Role, double Height, double MaximumWidth,
+        double? Cross, double? LeadingEdge);
 }

@@ -69,6 +69,46 @@ public sealed class TickLaneTextRegionRecoveryTests
     }
 
     [TestMethod]
+    public void YLaneAcceptsMeasuredLeftAlignmentAcrossDifferentDigitWidths()
+    {
+        OcrDetectedRegion[] detected = [OcrTestFixtures.Region("one", 8, 25, 5, 8),
+            OcrTestFixtures.Region("two", 8, 45, 14, 8), OcrTestFixtures.Region("three", 8, 65, 20, 8)];
+        OcrRegion[] recognized = detected.Select(region => Recognized(region, "10", OcrTextRole.YTick)).ToArray();
+        var result = TickLaneTextRegionRecovery.SelectCandidates([
+            OcrTestFixtures.Region("missing", 8, 35, 10, 8),
+            OcrTestFixtures.Region("unestablished-right-edge", 18, 55, 10, 8),
+            OcrTestFixtures.Region("inside", 50, 35, 10, 8)], detected, recognized, Plot);
+        Assert.HasCount(1, result);
+        Assert.AreEqual("tick-lane:missing", result[0].RegionId);
+        Assert.IsNull(result[0].Context);
+    }
+
+    [TestMethod]
+    public void EqualWidthYAnchorsSupportBothEdgesWithoutDuplicatingExistingLabels()
+    {
+        OcrDetectedRegion[] detected = [OcrTestFixtures.Region("one", 8, 25, 20, 8),
+            OcrTestFixtures.Region("two", 8, 45, 20, 8), OcrTestFixtures.Region("three", 8, 65, 20, 8)];
+        OcrRegion[] recognized = detected.Select(region => Recognized(region, "100", OcrTextRole.YTick)).ToArray();
+        var result = TickLaneTextRegionRecovery.SelectCandidates([
+            OcrTestFixtures.Region("left", 8, 35, 10, 8),
+            OcrTestFixtures.Region("right", 18, 55, 10, 8),
+            OcrTestFixtures.Region("duplicate", 8, 45, 20, 8)], detected, recognized, Plot);
+        Assert.HasCount(2, result);
+        Assert.AreEqual("tick-lane:left", result[0].RegionId);
+        Assert.AreEqual("tick-lane:right", result[1].RegionId);
+    }
+
+    [TestMethod]
+    public void ScatteredYLabelsCannotEstablishEitherEdge()
+    {
+        OcrDetectedRegion[] detected = [OcrTestFixtures.Region("one", 2, 25, 5, 8),
+            OcrTestFixtures.Region("two", 13, 45, 5, 8), OcrTestFixtures.Region("three", 23, 65, 5, 8)];
+        OcrRegion[] recognized = detected.Select(region => Recognized(region, "10", OcrTextRole.YTick)).ToArray();
+        Assert.IsEmpty(TickLaneTextRegionRecovery.SelectCandidates(
+            [OcrTestFixtures.Region("not-a-lane", 13, 35, 5, 8)], detected, recognized, Plot));
+    }
+
+    [TestMethod]
     public async Task InvalidCoordinatesEnhancedPixelsAndCancellationStopBeforeRecovery()
     {
         var rows = XAnchors();

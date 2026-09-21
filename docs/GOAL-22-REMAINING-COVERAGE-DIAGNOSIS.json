@@ -1,0 +1,345 @@
+{
+  "schema": "graphreader.goal22-remaining-coverage-diagnosis.v1",
+  "status": "diagnosis_completed_accuracy_still_incomplete",
+  "scope": "Owned open synthetic development only. Both rejected marker probes use the earlier 569/838 baseline, not the integrated 666/838 product.",
+  "source_checkpoint": "41b8a6851eca9deb9b5c3ca564af029db31bc5b5",
+  "ci": {
+    "status": "completed",
+    "commit": "41b8a6851eca9deb9b5c3ca564af029db31bc5b5",
+    "started_utc": "2026-09-21T17:05:41.4714785Z",
+    "updated_utc": "2026-09-21T17:14:58.4259548Z",
+    "notifier_pid": 35952,
+    "run_id": 35629755178,
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35629755178",
+    "conclusion": "success",
+    "error": null,
+    "user_continuation_required": false
+  },
+  "isolated_component_classifier": {
+    "before": {
+      "similarity": 1,
+      "template_only": {
+        "truth": 838,
+        "predicted": 301,
+        "matched": 272,
+        "extra": 29,
+        "missing": 566,
+        "precision": 0.9036544850498339,
+        "recall": 0.324582338902148
+      },
+      "baseline_union": {
+        "truth": 838,
+        "predicted": 722,
+        "matched": 679,
+        "extra": 43,
+        "missing": 159,
+        "precision": 0.9404432132963989,
+        "recall": 0.8102625298329356
+      },
+      "baseline_matches_retained": 569,
+      "recovered": 110,
+      "lost": 0
+    },
+    "after": {
+      "similarity": 1,
+      "template_only": {
+        "truth": 838,
+        "predicted": 350,
+        "matched": 286,
+        "extra": 64,
+        "missing": 552,
+        "precision": 0.8171428571428572,
+        "recall": 0.3412887828162291
+      },
+      "baseline_union": {
+        "truth": 838,
+        "predicted": 758,
+        "matched": 679,
+        "extra": 79,
+        "missing": 159,
+        "precision": 0.895778364116095,
+        "recall": 0.8102625298329356
+      },
+      "baseline_matches_retained": 569,
+      "recovered": 110,
+      "lost": 0
+    },
+    "seconds": 10.7738263,
+    "decision": "Reject integration: 36 additional false points and no additional correct union matches."
+  },
+  "suppressed_distinct_component_proposals": {
+    "result": {
+      "similarity": 1,
+      "template_only": {
+        "truth": 838,
+        "predicted": 9,
+        "matched": 3,
+        "extra": 6,
+        "missing": 835,
+        "precision": 0.3333333333333333,
+        "recall": 0.003579952267303103
+      },
+      "baseline_union": {
+        "truth": 838,
+        "predicted": 592,
+        "matched": 571,
+        "extra": 21,
+        "missing": 267,
+        "precision": 0.964527027027027,
+        "recall": 0.6813842482100239
+      },
+      "baseline_matches_retained": 569,
+      "recovered": 2,
+      "lost": 0
+    },
+    "seconds": 9.4738035,
+    "decision": "Reject integration: nine raw candidates give only two additional correct union matches and four extras, before classifier checks. No NMS or model cutoff change."
+  },
+  "marker_stage_totals": {
+    "decoded_above_threshold": {
+      "truth": 838,
+      "predicted": 2047,
+      "matched": 652,
+      "extra": 1395,
+      "missing": 186
+    },
+    "pre_nms": {
+      "truth": 838,
+      "predicted": 1638,
+      "matched": 650,
+      "extra": 988,
+      "missing": 188
+    },
+    "after_nms": {
+      "truth": 838,
+      "predicted": 763,
+      "matched": 621,
+      "extra": 142,
+      "missing": 217
+    },
+    "classifier_accepted": {
+      "truth": 838,
+      "predicted": 703,
+      "matched": 673,
+      "extra": 30,
+      "missing": 165
+    },
+    "final_accepted": {
+      "truth": 838,
+      "predicted": 683,
+      "matched": 666,
+      "extra": 17,
+      "missing": 172
+    }
+  },
+  "largest_missed_source": {
+    "source_ordinal": 10,
+    "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+    "stages": {
+      "decoded_above_threshold": {
+        "truth": 148,
+        "predicted": 185,
+        "matched": 100,
+        "extra": 85,
+        "missing": 48
+      },
+      "pre_nms": {
+        "truth": 148,
+        "predicted": 182,
+        "matched": 100,
+        "extra": 82,
+        "missing": 48
+      },
+      "after_nms": {
+        "truth": 148,
+        "predicted": 85,
+        "matched": 79,
+        "extra": 6,
+        "missing": 69
+      },
+      "classifier_accepted": {
+        "truth": 148,
+        "predicted": 46,
+        "matched": 46,
+        "extra": 0,
+        "missing": 102
+      },
+      "final_accepted": {
+        "truth": 148,
+        "predicted": 44,
+        "matched": 44,
+        "extra": 0,
+        "missing": 104
+      }
+    },
+    "transitions": {
+      "decoded_above_threshold__pre_nms": {
+        "lost": 0,
+        "recovered": 0
+      },
+      "pre_nms__after_nms": {
+        "lost": 21,
+        "recovered": 0
+      },
+      "after_nms__classifier_accepted": {
+        "lost": 33,
+        "recovered": 0
+      },
+      "classifier_accepted__final_accepted": {
+        "lost": 2,
+        "recovered": 0
+      }
+    }
+  },
+  "stage_limitations": [
+    "Global classified observations include additive template recovery; stages are not a pure attrition chain.",
+    "A drop in five-pixel one-to-one matches does not prove that NMS discarded distinct visible markers. Duplicate proposals can match different nearby truths."
+  ],
+  "missing_ocr_regions": {
+    "total": 72,
+    "raw_categories": {
+      "raw_detector_partial_overlap": 20,
+      "raw_detector_no_overlap": 47,
+      "raw_detector_matches": 5
+    },
+    "roles": {
+      "legend_text": {
+        "raw_detector_partial_overlap": 5,
+        "raw_detector_no_overlap": 3
+      },
+      "phase_heading": {
+        "raw_detector_no_overlap": 4,
+        "raw_detector_partial_overlap": 5,
+        "raw_detector_matches": 1
+      },
+      "annotation": {
+        "raw_detector_matches": 2,
+        "raw_detector_no_overlap": 6,
+        "raw_detector_partial_overlap": 2
+      },
+      "condition_label": {
+        "raw_detector_matches": 2,
+        "raw_detector_no_overlap": 15,
+        "raw_detector_partial_overlap": 3
+      },
+      "y_tick": {
+        "raw_detector_no_overlap": 16,
+        "raw_detector_partial_overlap": 1
+      },
+      "participant": {
+        "raw_detector_no_overlap": 3,
+        "raw_detector_partial_overlap": 4
+      }
+    }
+  },
+  "axis_label_diagnosis": {
+    "missing_y_tick_regions": 17,
+    "component_replay_seconds": 9.4822874,
+    "finding": "Several missing labels have complete measured components. Existing recovery assumes right alignment, rejecting left-aligned labels when digit counts change. Some other cases merge with neighboring ink or have no initial tick anchor; this is not a complete explanation of OCR failure.",
+    "next_change": "Support either y-label edge only when aligned existing readings establish that edge. Keep original-pixel recognition and review warnings."
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_imports": 0,
+  "production_approved": false,
+  "packaged_builds": 0,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-bounds-v1/Program.cs",
+      "sha256": "afd55ecda2190b12c7618861927f52c502832f2833fca574d345e903b92a6bc0"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-bounds-v1/protocol.json",
+      "sha256": "693587d4eb8beec719cd05ebb69b3109ebd102fca436e2b65d4610457ae29d72"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-bounds-v1/status.json",
+      "sha256": "564b3778eba2d54d9b510e39c6295a87fcf1d1ebd8a7f691960bc65694738777"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-bounds-v1/replay/report.json",
+      "sha256": "b4d82918dd1042ace442ca2f6ba59e743fb7829de1ebf7f7e678c4ca3db7d869"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-bounds-v1/score.json",
+      "sha256": "549d7d1eec2be699ea3b435f2ca60c66720c4f4d973c36929d467f51de0a3c68"
+    },
+    {
+      "path": "artifacts/goal22-runs/distinct-component-proposals-v1/Program.cs",
+      "sha256": "74fdeb9f8c52a664c3a24626b33d25af6138d30b6a78a0dbb48dfe26bcdf9e80"
+    },
+    {
+      "path": "artifacts/goal22-runs/distinct-component-proposals-v1/protocol.json",
+      "sha256": "795419fd4071188e621c4e3b732165e94dc42d923934ab7e34b24b773d04215a"
+    },
+    {
+      "path": "artifacts/goal22-runs/distinct-component-proposals-v1/status.json",
+      "sha256": "0dad93c880373bc5aa5877b66f74b3cbcb3cc3986003814353b474d44a280c1b"
+    },
+    {
+      "path": "artifacts/goal22-runs/distinct-component-proposals-v1/replay/report.json",
+      "sha256": "f7501d1725cf0890bb92ff355893189a57c0b5448e63cea9baeeaf04efe90c3e"
+    },
+    {
+      "path": "artifacts/goal22-runs/distinct-component-proposals-v1/score.json",
+      "sha256": "1b4ef3c520f9b6260f1d04e38b2e553757fd13093f7b0790af2395b6aeb821c3"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-v1/score.json",
+      "sha256": "9afc447a8e009c3b961f681562c8eb786d0bed4431367fedbd74244aefebd0d7"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1-retry1/stage-coverage-audit.json",
+      "sha256": "31f9b7fb5483f2dcafee4389dde35bce54cf3c25d0cb8fee6ec38da774183c55"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/raw-detector-coverage-audit.json",
+      "sha256": "1df3d2b84721cdc001ee21b6d8849298dee321177b642f18c4ac0cb23326dc91"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-ctc-confidence-v2/remaining-ocr-geometry-audit.json",
+      "sha256": "867bcd48a1b64e9bb90000c7f5e490af7ae6f608d74d104e657a6f08083f8b25"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-component-audit-v1/protocol.json",
+      "sha256": "65d3d42c9d3ebe8fff36e35fce886a4adb539a476c6aa2ae7cc83fd77c5cde2b"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-component-audit-v1/status.json",
+      "sha256": "04539acdb135e20113fd699f589ea7a9765339059044a6c80713b21e3e147ab5"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-component-audit-v1/replay/report.json",
+      "sha256": "9de6de411ac663e611905605a7b2ca804e52885a5a554e46b46d0a8797517f25"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-component-audit-v1/analysis.json",
+      "sha256": "b17d0a8ab0f83b20dc4fc9492df2e5fcd0eb49af019d3b92c61f29026fa2a8e5"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-41b8a6851eca/status.json",
+      "sha256": "ff786c040c7af85f8b41298dfe622c6604dbfea0ed463aad066e9fb6a29e5f15"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-MarkerStageCoverage.py",
+      "sha256": "10cc7cd477e300b0a63cd0d0ded1c371fe34fb0aa04116c80dac8ce68c1e9027"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-RawDetectorCoverage.py",
+      "sha256": "58e84c3e1f1d6fb8b32f164915019d73374522a6db5fbb3c54e847ba43fc04ee"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-RemainingOcrGeometry.py",
+      "sha256": "b034ed9351331260a231025df62a7b1b1b0ed11edc7e6a4cdfa31c9a50de220d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-TickComponents.py",
+      "sha256": "a5d8c357790a2311c2691f2266f1da6e02ad473c515ca4f4726da39c30e24816"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-RemainingCoverageDiagnosis.py",
+    "sha256": "a5cd774c3540977394a123520d8d6a185885cb3f0c8e1f830c44f07dad9a606f"
+  }
+}
