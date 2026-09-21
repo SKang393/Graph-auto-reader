@@ -75,7 +75,12 @@ internal static class ComposedOcrMemorySelfTest
             Require(image.Length == 1 && image[0] == calls && Hash(image) == hash, "inference receives image and hash only");
             var box = new OriginalDbOcrAggregateBox(1, 2, 11, 7);
             IReadOnlyList<OriginalDbOcrAggregatePrediction> raw = calls++ == 0 ? [new(box, null, null)] : [];
-            return Task.FromResult(new ComposedOcrSourcePredictions(2, 0, raw, [new(box, "private-label", OcrRole.PhaseHeading)]));
+            var prediction = new OriginalDbOcrAggregatePrediction(box, "private-label", OcrRole.PhaseHeading);
+            return Task.FromResult(new ComposedOcrSourcePredictions(2, 0, raw, [prediction])
+            {
+                RecognitionEvidence = [new(prediction, [new("private-alternative", 0.8, OcrSourceImage.Original)])],
+                Warnings = ["private-warning"],
+            });
         }
         ComposedOcrCorpusAggregate aggregate = await ComposedOcrInMemoryCorpusEvaluator.EvaluateAsync(
             sources, Infer, CancellationToken.None).ConfigureAwait(false);
@@ -91,6 +96,10 @@ internal static class ComposedOcrMemorySelfTest
         calls = 0;
         ComposedOcrSourcePredictions example = await Infer(sources[0].ImageBytes, sources[0].ImageSha256, CancellationToken.None);
         Require(!JsonSerializer.Serialize(example).Contains("private-label", StringComparison.Ordinal), "prediction fields excluded from serialization");
+        Require(!JsonSerializer.Serialize(example).Contains("private-alternative", StringComparison.Ordinal) &&
+            !JsonSerializer.Serialize(example).Contains("private-warning", StringComparison.Ordinal) &&
+            !JsonSerializer.Serialize(example.RecognitionEvidence).Contains("private-", StringComparison.Ordinal),
+            "recognition alternatives and warnings excluded from shared serialization");
         checks++;
         calls = 0;
         var openCases = new List<ComposedOcrMemoryDevCheck.OpenDiagnosticCase>();
@@ -107,6 +116,11 @@ internal static class ComposedOcrMemorySelfTest
             openCases[0].AssembledRegions[0].Role == "phaseheading" &&
             openCases[0].SourceSha256 == sources[0].ImageSha256 && openCases[1].RawDetectorRegions.Count == 0,
             "explicit projection preserves predictions and their source identity");
+        Require(openCases[0].RecognitionEvidence[0].FinalPrediction == openCases[0].AssembledRegions[0] &&
+            openCases[0].RecognitionEvidence[0].Alternatives[0] is { Text: "private-alternative", Confidence: 0.8, SourceImage: "Original" } &&
+            openCases[0].Warnings.Single() == "private-warning" &&
+            JsonSerializer.Serialize(openCases).Contains("private-alternative", StringComparison.Ordinal),
+            "only explicit open projection includes unchanged recognition alternatives and warnings");
         checks++;
         checks += OpenDiagnosticScopeChecks();
         foreach (OriginalDbOcrSealedSourcePayload[] invalid in new[]

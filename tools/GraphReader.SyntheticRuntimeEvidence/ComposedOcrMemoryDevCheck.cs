@@ -148,14 +148,23 @@ internal static class ComposedOcrMemoryDevCheck
     internal static OpenDiagnosticCase ProjectOpenCase(string hash, ComposedOcrSourcePredictions output) =>
         new(hash, output.PanelCount, output.RecognitionFailedRegionCount,
             output.RawDetectorRegions.Select(ProjectOpenPrediction).ToArray(),
-            output.AssembledRegions.Select(ProjectOpenPrediction).ToArray());
+            output.AssembledRegions.Select(ProjectOpenPrediction).ToArray(),
+            output.RecognitionEvidence.Select(static evidence => new OpenDiagnosticRecognition(
+                ProjectOpenPrediction(evidence.Prediction),
+                evidence.Alternatives.Select(static alternative => new OpenDiagnosticAlternative(
+                    alternative.Text, alternative.Confidence, alternative.SourceImage.ToString())).ToArray())).ToArray(),
+            output.Warnings);
 
     private static OpenDiagnosticPrediction ProjectOpenPrediction(OriginalDbOcrAggregatePrediction prediction) =>
         new(prediction.Box, prediction.Text, prediction.Role?.ToString().ToLowerInvariant());
 
     internal sealed record OpenDiagnosticPrediction(OriginalDbOcrAggregateBox Box, string? Text, string? Role);
+    internal sealed record OpenDiagnosticAlternative(string Text, double Confidence, string SourceImage);
+    internal sealed record OpenDiagnosticRecognition(OpenDiagnosticPrediction FinalPrediction,
+        IReadOnlyList<OpenDiagnosticAlternative> Alternatives);
     internal sealed record OpenDiagnosticCase(string SourceSha256, int PanelCount, int RecognitionFailedRegionCount,
-        IReadOnlyList<OpenDiagnosticPrediction> RawDetectorRegions, IReadOnlyList<OpenDiagnosticPrediction> AssembledRegions);
+        IReadOnlyList<OpenDiagnosticPrediction> RawDetectorRegions, IReadOnlyList<OpenDiagnosticPrediction> AssembledRegions,
+        IReadOnlyList<OpenDiagnosticRecognition> RecognitionEvidence, IReadOnlyList<string> Warnings);
 
     internal static string SafeFailureStage(Exception error, string fallback) => error.Message switch
     {

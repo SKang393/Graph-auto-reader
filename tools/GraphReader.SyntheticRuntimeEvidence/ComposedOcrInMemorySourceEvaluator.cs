@@ -45,7 +45,18 @@ internal sealed record ComposedOcrSourcePredictions(
     int PanelCount,
     int RecognitionFailedRegionCount,
     [property: JsonIgnore] IReadOnlyList<OriginalDbOcrAggregatePrediction> RawDetectorRegions,
-    [property: JsonIgnore] IReadOnlyList<OriginalDbOcrAggregatePrediction> AssembledRegions);
+    [property: JsonIgnore] IReadOnlyList<OriginalDbOcrAggregatePrediction> AssembledRegions)
+{
+    [JsonIgnore]
+    internal IReadOnlyList<ComposedOcrRecognitionEvidence> RecognitionEvidence { get; init; } = [];
+
+    [JsonIgnore]
+    internal IReadOnlyList<string> Warnings { get; init; } = [];
+}
+
+internal sealed record ComposedOcrRecognitionEvidence(
+    [property: JsonIgnore] OriginalDbOcrAggregatePrediction Prediction,
+    [property: JsonIgnore] IReadOnlyList<OcrRecognitionAlternative> Alternatives);
 
 internal static class ComposedOcrInMemorySourceEvaluator
 {
@@ -87,6 +98,8 @@ internal static class ComposedOcrInMemorySourceEvaluator
                 throw new InvalidDataException("COMPOSED_OCR_IMPORT_EMPTY");
             var raw = new List<OriginalDbOcrAggregatePrediction>();
             var assembled = new List<OriginalDbOcrAggregatePrediction>();
+            var recognitionEvidence = new List<ComposedOcrRecognitionEvidence>();
+            var warnings = new List<string>();
             int failures = 0;
             foreach (WorkflowImportedPanel panel in imported.Panels)
             {
@@ -126,9 +139,16 @@ internal static class ComposedOcrInMemorySourceEvaluator
                 raw.AddRange(observed.Select(region => new OriginalDbOcrAggregatePrediction(Map(region.Polygon), null, null)));
                 assembled.AddRange(recognized.Result.Regions.Select(region => new OriginalDbOcrAggregatePrediction(
                     Map(region.Polygon), region.Text, MapRole(region.Role))));
+                recognitionEvidence.AddRange(recognized.Result.Regions.Select(region => new ComposedOcrRecognitionEvidence(
+                    new(Map(region.Polygon), region.Text, MapRole(region.Role)), region.Alternatives)));
+                warnings.AddRange(recognized.Result.Warnings);
                 failures = checked(failures + (recognized.Result.RegionFailures?.Count ?? 0));
             }
-            return new(imported.Panels.Count, failures, raw.AsReadOnly(), assembled.AsReadOnly());
+            return new(imported.Panels.Count, failures, raw.AsReadOnly(), assembled.AsReadOnly())
+            {
+                RecognitionEvidence = recognitionEvidence.AsReadOnly(),
+                Warnings = warnings.AsReadOnly(),
+            };
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception error) when (error is not OutOfMemoryException)

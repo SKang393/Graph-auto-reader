@@ -155,3 +155,13 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 - **Why:** all three delegated review workers reported workspace credit exhaustion on 2026-09-15. Local implementation and capped verification still work and continue. The lead cannot count review of its own implementation as independent approval.
 - **Files:** [readiness](1.0-READINESS.md), [capture evidence](GOAL-22-TEXT-EXTENT-CAPTURE.json), [disclosure safeguards](GOAL-22-OCR-DISCLOSURE-SAFEGUARDS.json)
 - **Unblocks when:** resolved by restored independent review. The resulting findings are tracked in readiness and the parent admission evidence.
+
+## REV-009 - identify the larger pretrained OCR models for comparison
+
+- **Status:** open; only this additional model-import work is waiting
+- **Blocks:** optional larger pretrained OCR comparison within Phase 4R; other implementation continues
+- **Effort:** one choice, about 30 seconds
+- **Action:** authorize importing PaddlePaddle/PP-OCRv5_server_det and PaddlePaddle/PP-OCRv5_server_rec, or retain the existing models only
+- **Why:** the current OCR still fails development acceptance, and the existing original mobile detector performs worse. The local external-file rule requires explicit identification of a new imported model. Testing pretrained weights precedes considering more training.
+- **Files:** [plain-language choice and official sources](GOAL-22-PRETRAINED-OCR-CHOICE.md)
+- **Unblocks when:** the maintainer identifies these two models for the local comparison. This is not candidate selection, production approval or a public release.

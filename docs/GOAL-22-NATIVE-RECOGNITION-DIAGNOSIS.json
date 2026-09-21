@@ -1,0 +1,118 @@
+{
+  "schema": "graphreader.goal22.native-recognition-diagnosis.v1",
+  "base_commit": "c639130a27b745933264f8afb0d72149dca429bc",
+  "source_bindings": [
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrInMemorySourceEvaluator.cs",
+      "sha256": "18831e2087415f8355ca2f165d207873872035a8e80681fe4be18d41fc06da5f"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrMemoryDevCheck.cs",
+      "sha256": "b8018fe0fd9eef9258aca8da2656162e2de4520978c762dc11d88d7cb435e0d4"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrMemorySelfTest.cs",
+      "sha256": "080791177241368aebe3893e217a059d90ba54fb250cac184a73a53c7d417d71"
+    }
+  ],
+  "job_seconds": 117.911235,
+  "native_inference_milliseconds": 53190.5114,
+  "boundary_worker_archive_checks": [
+    50,
+    15,
+    13
+  ],
+  "existing_case_predictions_and_aggregate_metrics_unchanged": true,
+  "matched_misreads": 50,
+  "numeric_misreads": 21,
+  "numeric_alternative_overrides": 6,
+  "overrides_correcting_text": 3,
+  "overrides_damaging_correct_text": 3,
+  "numeric_crop_probe": {
+    "regions": 74,
+    "native_final_reproduced": 65,
+    "refined_exact": 56,
+    "detected_exact": 60,
+    "interpretation": "Diagnostic only, not native parity; mixed effects do not justify selecting a new crop."
+  },
+  "original_mobile_detector_control": {
+    "current_exact": 328,
+    "original_pretrained_exact": 295,
+    "current_false_positives": 147,
+    "original_pretrained_false_positives": 309,
+    "seconds": 127.8801412,
+    "decision": "Retain V44; original pretrained detector is worse on the same open development inputs."
+  },
+  "finding": "Sequence selection replaces multiple correct high-confidence readings to match one other misread. Automatic calibration does not consult the existing OCR sequence-review warnings. Repair independent support and propagate unresolved sequence review before export.",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/definition.json",
+      "sha256": "ee5411d01d80ba9c13e81c936bdecae81ecba478e587999637c4ec05e534af24"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/source-bindings.json",
+      "sha256": "38fddcc879d14c6d6f0d95f6832e6ccc66f9b145863d7852bc23190e546e4173"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/candidate.json",
+      "sha256": "932630df39c4855ab87d31d571a42ec3f568df5cb1562e2eb0b4f69e7fc0df3f"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/result.json",
+      "sha256": "d9eed5595391815929b4e3e3e004ba7f203e0dd104898a28b37c1dc5c71a15b7"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/analysis.json",
+      "sha256": "ceed853cd46eb453e5a886b4cdd7cf940cfd079e12091cb2b50a3115ef28ee62"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/integrity.json",
+      "sha256": "4873e109827435442110514629e23a5fc190aad88788aa9d2f3e84dbf84d19bf"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/status.json",
+      "sha256": "5d7193988c164783229775d1ee8d260f8feb37b881b12ff7487a9da11284a4da"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/composed-ocr-memory-self-test.json",
+      "sha256": "496059e4a2bc22d13e707ec3f0647d772b36fdef91029b9a3e6166f099c743ca"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/composed-ocr-worker-self-test.json",
+      "sha256": "9df876f11d5364ff022c54a09193b790d3e550b3c76030d2ee103fab1fc49712"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-trace-v1/sealed-ocr-archive-self-test.json",
+      "sha256": "7a583fc601bba9994366ba4945832a7f4bacaa2d2c603ea8e612157c7f411f60"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-crop-context-v1/definition.json",
+      "sha256": "21e5e3ea975ced9792d8efc9753b1b12ec23153dfe4002cd8d51f0fca0b7c3a0"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-crop-context-v1/result.json",
+      "sha256": "dd70e94116a6862c6c319cd05a20d76e4ab3e9190e832780b06e7ea1e7c58349"
+    },
+    {
+      "path": "artifacts/goal22-runs/pretrained-source-scale-control-v1/definition.json",
+      "sha256": "73a0a57838c6df36e9d5c577af01aaaa76c97a25f4475863a69f45b2c022be02"
+    },
+    {
+      "path": "artifacts/goal22-runs/pretrained-source-scale-control-v1/open-result.json",
+      "sha256": "b45ddcc73fd2302f135ce085fbe7d46d01865507b0308d13e7c09b812c2d2230"
+    },
+    {
+      "path": "artifacts/goal22-runs/pretrained-source-scale-control-v1/baseline-result.json",
+      "sha256": "927ba40ae14e58f0986f05d529556408e1bc186e101af0ed009cf507ad811b3b"
+    },
+    {
+      "path": "artifacts/goal22-runs/pretrained-source-scale-control-v1/status.json",
+      "sha256": "b8bb87b1120e808edc2c14d5ef6555fa4f2d86bc9ca49dff1f4ceead4c1b04d3"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "all_goal22_outcomes_complete": false
+}
