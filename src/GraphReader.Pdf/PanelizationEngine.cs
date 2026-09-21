@@ -110,6 +110,10 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
         }
 
         List<AxisPair> axes = DetectAxes(context!, cancellationToken);
+        if (context!.ExtendSingleRasterGroupToSourceEdges)
+        {
+            axes = RemoveRasterAxisFragments(axes, cancellationToken);
+        }
         int rejectedCount = 0;
         List<CandidateDraft> drafts = BuildEmbeddedCandidates(
             context!,
@@ -132,6 +136,10 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             ref rejectedCount));
 
         List<CandidateDraft> selected = SelectNonOverlappingCandidates(drafts, cancellationToken);
+        if (context!.ExtendSingleRasterGroupToSourceEdges)
+        {
+            selected = CombineOverlappingRasterFigures(context, selected, warnings, cancellationToken);
+        }
         if (context!.ExtendSingleRasterGroupToSourceEdges &&
             selected.Count == 1 &&
             selected[0].Figure.SourceKind == PdfFigureSourceKind.RenderedPage &&
@@ -698,6 +706,13 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
     {
         PdfRectD boundsPoints = new(0d, 0d, context.Page.WidthPoints, context.Page.HeightPoints);
         PdfRectD boundsPixels = context.Transform.PagePointsToPixels(boundsPoints);
+        return ResizeRasterFigure(context, draft, boundsPixels, draft.Axes);
+    }
+
+    private static CandidateDraft ResizeRasterFigure(
+        PanelizationContext context, CandidateDraft draft, PdfRectD boundsPixels, IReadOnlyList<AxisPair> axes)
+    {
+        PdfRectD boundsPoints = context.Transform.PagePixelsToPoints(boundsPixels);
         PdfFigureCandidate original = draft.Figure;
         PdfFigureCandidate expanded = new(
             CreateDeterministicGuid(FormatIdentity(
@@ -720,7 +735,84 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             original.Confidence,
             original.PagePointsToPagePixels,
             original.SourcePixelsToPagePoints);
-        return new CandidateDraft(expanded, draft.Axes);
+        return new CandidateDraft(expanded, axes);
+    }
+
+    private static List<AxisPair> RemoveRasterAxisFragments(
+        IReadOnlyList<AxisPair> axes, CancellationToken cancellationToken)
+    {
+        List<AxisPair> retained = [];
+        foreach (AxisPair candidate in axes.OrderByDescending(static axis => axis.PlotBoundsPagePoints.Area))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            PdfRectD bounds = candidate.PlotBoundsPagePoints;
+            // A slanted or interrupted raster axis can produce several lengths at
+            // one observed origin. Keep its complete extent, not stacked subplots.
+            if (candidate.FromRaster && retained.Any(existing => existing.FromRaster &&
+                Math.Abs(existing.PlotBoundsPagePoints.X - bounds.X) <= AxisEndpointTolerancePoints &&
+                Math.Abs(existing.PlotBoundsPagePoints.Y - bounds.Y) <= AxisEndpointTolerancePoints &&
+                bounds.Right <= existing.PlotBoundsPagePoints.Right + AxisEndpointTolerancePoints &&
+                bounds.Bottom <= existing.PlotBoundsPagePoints.Bottom + AxisEndpointTolerancePoints))
+            {
+                continue;
+            }
+            retained.Add(candidate);
+        }
+        return retained;
+    }
+
+    private static List<CandidateDraft> CombineOverlappingRasterFigures(
+        PanelizationContext context, IReadOnlyList<CandidateDraft> selected, List<string> warnings,
+        CancellationToken cancellationToken)
+    {
+        List<CandidateDraft> remaining = selected.OrderByDescending(static draft => draft.Figure.BoundsPagePixels.Area)
+            .ThenBy(static draft => draft.Figure.FigureId).ToList();
+        List<CandidateDraft> output = [];
+        while (remaining.Count > 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            CandidateDraft primary = remaining[0];
+            remaining.RemoveAt(0);
+            if (primary.Figure.SourceKind != PdfFigureSourceKind.RenderedPage ||
+                primary.Axes.Any(static axis => !axis.FromRaster))
+            {
+                output.Add(primary);
+                continue;
+            }
+            PdfRectD bounds = primary.Figure.BoundsPagePixels;
+            List<AxisPair> axes = primary.Axes.ToList();
+            bool combined = false;
+            for (int index = 0; index < remaining.Count;)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                CandidateDraft other = remaining[index];
+                PdfRectD next = other.Figure.BoundsPagePixels;
+                // Encoding rounds outward. Test those pixel extents as well as
+                // the floating bounds so two regions never claim the same pixel.
+                bool overlaps = Math.Floor(bounds.X) < Math.Ceiling(next.Right) &&
+                    Math.Floor(next.X) < Math.Ceiling(bounds.Right) &&
+                    Math.Floor(bounds.Y) < Math.Ceiling(next.Bottom) &&
+                    Math.Floor(next.Y) < Math.Ceiling(bounds.Bottom);
+                if (other.Figure.SourceKind != PdfFigureSourceKind.RenderedPage ||
+                    other.Axes.Any(static axis => !axis.FromRaster) || !overlaps)
+                {
+                    index++;
+                    continue;
+                }
+                bounds = Union([bounds, next]);
+                axes.AddRange(other.Axes);
+                remaining.RemoveAt(index);
+                combined = true;
+                index = 0;
+            }
+            output.Add(combined ? ResizeRasterFigure(context, primary, bounds,
+                RemoveRasterAxisFragments(axes, cancellationToken)) : primary);
+            if (combined)
+            {
+                warnings.Add("Overlapping raster figure proposals were combined; review panel boundaries before export.");
+            }
+        }
+        return output;
     }
 
     private static CandidateEvidence EvaluateEvidence(
@@ -933,11 +1025,21 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
                 .ThenBy(static bounds => bounds.X)
                 .ToArray();
             bool snapSharedRasterBoundary = context.ExtendSingleRasterGroupToSourceEdges &&
-                draft.Figure.SourceKind == PdfFigureSourceKind.RenderedPage &&
-                draft.Figure.BoundsPagePixels.X == 0d &&
-                draft.Figure.BoundsPagePixels.Y == 0d &&
-                draft.Figure.BoundsPagePixels.Width == context.Transform.PixelWidth &&
-                draft.Figure.BoundsPagePixels.Height == context.Transform.PixelHeight;
+                draft.Figure.SourceKind == PdfFigureSourceKind.RenderedPage;
+            if (snapSharedRasterBoundary)
+            {
+                List<PdfRectD> rows = [];
+                foreach (PdfRectD plot in plots)
+                {
+                    // A nearby frame or a partial axis in the same vertical band
+                    // is not evidence for a horizontal cut through a graph.
+                    if (rows.Count > 0 && plot.Y < rows[^1].Bottom)
+                        rows[^1] = Union([rows[^1], plot]);
+                    else
+                        rows.Add(plot);
+                }
+                plots = rows.ToArray();
+            }
             List<double> boundaries = [];
             for (int index = 0; index < plots.Length - 1; index++)
             {

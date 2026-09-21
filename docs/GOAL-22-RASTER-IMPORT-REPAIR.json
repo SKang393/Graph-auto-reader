@@ -1,0 +1,170 @@
+{
+  "schema": "graphreader.goal22.raster-import-repair.v1",
+  "scope": "owned-open-development-and-native-regression",
+  "base_commit": "0937429ed5e0cda4409a983582326d89d5c32759",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Pdf/PanelizationEngine.cs",
+      "sha256": "1a8ca894b3b1a0c005f9221429e3bb2866864bc20237b6c12021f4ae5d509be6"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionRasterPanelizerTests.cs",
+      "sha256": "d959bd1ca0f957621a43cb7693d34115cfaa5aa17d8c9f97c4a1b01622ae20d9"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "ee9f3cd88ad36b75a46f2fc39eaa894f0e388e446439ec7383277b9660b89afd"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OpenOcrArchiveFixtureCheck.cs",
+      "sha256": "1abe536352000bf0e94aa72630aa918f4ae2a28d1038ee855b3a5f0485ff25c7"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrInMemoryCorpusEvaluator.cs",
+      "sha256": "a10761e122d274a706ad7f202f1f35e5aaab49f92c06e8602deadebba4554cf3"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrMemoryDevCheck.cs",
+      "sha256": "f2841bce46d125a438d5852b7219fc209028851e59790ff1894a6a8d80338d9f"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrMemorySelfTest.cs",
+      "sha256": "c3d8a41724e18c2365c6f98e870ac5a7e77e8c215cf19e69f77e7f832189bf12"
+    }
+  ],
+  "import": {
+    "before": 16,
+    "after": 21,
+    "sources": 21,
+    "panels_after": 26,
+    "failures_after": 0,
+    "panel_accuracy_claimed": false
+  },
+  "tests": {
+    "App": {
+      "total": 428,
+      "executed": 428,
+      "passed": 428,
+      "failed": 0,
+      "notExecuted": 0
+    },
+    "Pdf": {
+      "total": 60,
+      "executed": 59,
+      "passed": 59,
+      "failed": 0,
+      "notExecuted": 0,
+      "skipped": 1
+    }
+  },
+  "native_self_tests": {
+    "sealed-ocr-archive": {
+      "status": "passed",
+      "check_count": 13,
+      "model_inference": false,
+      "file_io": false,
+      "archive_extraction": false,
+      "case_data_returned": false,
+      "private_data": false,
+      "sealed_data": false,
+      "production_approved": false
+    },
+    "composed-ocr-memory": {
+      "status": "pass",
+      "checks": 30,
+      "model_inference_runs": 0,
+      "private_reads": 0,
+      "sealed_reads": 0
+    },
+    "composed-ocr-worker": {
+      "schema": "graphreader.composed-ocr-sealed-worker-self-test.v1",
+      "checks": 15,
+      "status": "passed",
+      "model_inference": false,
+      "file_io": false,
+      "sealed_reads": 0,
+      "private_reads": 0,
+      "production_approved": false
+    }
+  },
+  "native_baseline": {
+    "sources": 23,
+    "panels": 39,
+    "completed": 17,
+    "failed": 6,
+    "correct_unique_values": 479,
+    "expected_unique_values": 706,
+    "correct_rows": 474,
+    "expected_rows": 724,
+    "all_metrics_identical": true,
+    "all_model_weights_unchanged": true,
+    "inference_milliseconds": 146325.1332
+  },
+  "open_followup": {
+    "in_memory_failure_stage": "source-axis",
+    "full_workflow_sources": 22,
+    "unchanged_train_controls": 1,
+    "open_development_sources": 21,
+    "completed_controls": 1,
+    "open_calibration_failures": 20,
+    "open_invalid_ocr_exclusion_line_failures": 1,
+    "accuracy_pass_claimed": false
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/raster-import-repair-v1/import-result.json",
+      "sha256": "a621c3065f7d3016c5e78689b56b3acf9f1ef70ac19e4db5e780e764ed403682"
+    },
+    {
+      "path": "artifacts/goal22-runs/raster-import-repair-v1/baseline-result.json",
+      "sha256": "7ac400d3e57fce7e93ec056f30b9ced9d81cb5dbfad8f3b2816e02b5e3f1f724"
+    },
+    {
+      "path": "artifacts/goal22-runs/raster-import-repair-v1/status.json",
+      "sha256": "5c6b1f0af4c0e8cf4d383adffbf46c78129c21bfc52b70dcce3a6c49b906ec31"
+    },
+    {
+      "path": "artifacts/goal22-runs/raster-import-workflow-v3/comparison.json",
+      "sha256": "c6407c4d8325d23a8055be712fed6a97b137be60cef1e81587039d4f355fa0e7"
+    },
+    {
+      "path": "artifacts/goal22-runs/raster-import-workflow-v3/native-ocr-score.json",
+      "sha256": "1f7ff6b0a995e45704ab952dc54d48261f4008800eca35623226d2540c29b6e5"
+    },
+    {
+      "path": "artifacts/goal22-runs/raster-import-workflow-v3/native-marker-score.json",
+      "sha256": "7fc0828614e3d91d4ca6de6536174e6be166bbfc551852a88ce6743b1e40fd10"
+    },
+    {
+      "path": "artifacts/goal22-runs/raster-import-workflow-v3/status.json",
+      "sha256": "171a1277d4219639e426f03c5454bbd376429e2b6fa549b05d57290bd7f001b8"
+    },
+    {
+      "path": "artifacts/goal22-runs/open-coverage-workflow-v2/execution/report.json",
+      "sha256": "70c8257e2595d2e55cbdd4083f3730a944572d8379e0e103d3ff5874a808bec4"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-open-coverage-v3/generator.json",
+      "sha256": "d570792b894114c6050fbad37fb931244af61454599aba3b3d46aa3a9fa3ef95"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build": {
+    "number": 433,
+    "version": "0.4.33",
+    "changed": false
+  },
+  "commands": [
+    "dotnet test tests/GraphReader.{App,Pdf}.Tests/GraphReader.{App,Pdf}.Tests.csproj -c Release --artifacts-path artifacts/goal22-runs/raster-import-repair-v1/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo --logger trx --results-directory artifacts/goal22-runs/raster-import-repair-v1/tests",
+    "dotnet build tools/GraphReader.SyntheticRuntimeEvidence/GraphReader.SyntheticRuntimeEvidence.csproj -c Release --artifacts-path artifacts/goal22-runs/raster-import-repair-v1/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo",
+    "GraphReader.SyntheticRuntimeEvidence.exe --self-test-sealed-ocr-archive",
+    "GraphReader.SyntheticRuntimeEvidence.exe --self-test-composed-ocr-memory",
+    "GraphReader.SyntheticRuntimeEvidence.exe --self-test-composed-ocr-worker",
+    "pwsh -NoProfile -File artifacts/goal22-tools/Run-RasterImportRepair.ps1",
+    "pwsh -NoProfile -File artifacts/goal22-tools/Run-RasterImportWorkflowV3.ps1",
+    "pwsh -NoProfile -File artifacts/goal22-tools/Run-OpenCoverageWorkflowV2.ps1"
+  ]
+}

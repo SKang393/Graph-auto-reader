@@ -32,6 +32,18 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == "--check-open-ocr-import-fixture")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(await OpenOcrArchiveFixtureCheck.RunImportAsync(
+                RepositoryRoot(), args[1], args[2]).ConfigureAwait(false), JsonOptions));
+            return 0;
+        }
+        if (args.Length == 3 && args[0] == OpenOcrArchiveFixtureCheck.Command)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(OpenOcrArchiveFixtureCheck.Run(
+                RepositoryRoot(), args[1], args[2]), JsonOptions));
+            return 0;
+        }
         if (args.Length == 1 && args[0] == "--self-test-composed-ocr-worker")
         {
             Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSealedWorkerSelfTest.Run(composed: true), JsonOptions));

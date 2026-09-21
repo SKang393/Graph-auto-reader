@@ -173,6 +173,67 @@ public sealed class ProductionRasterPanelizerTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PartialAxisLengthsAtOneOriginDoNotSplitThePlot(bool nearbyLegend)
+    {
+        const int width = 1200;
+        const int height = 350;
+        byte[] scanlines = CreateWhiteScanlines(width, height);
+        DrawHorizontal(scanlines, width, height, 104, 960, 260, thickness: 2);
+        DrawVertical(scanlines, width, height, 104, 90, 260, thickness: 1);
+        DrawVertical(scanlines, width, height, 108, 150, 260, thickness: 1);
+        DrawHorizontal(scanlines, width, height, 220, 450, 205, thickness: 1);
+        if (nearbyLegend)
+        {
+            DrawHorizontal(scanlines, width, height, 977, 1127, 104, thickness: 1);
+            DrawHorizontal(scanlines, width, height, 977, 1127, 180, thickness: 1);
+            DrawVertical(scanlines, width, height, 977, 104, 180, thickness: 1);
+            DrawVertical(scanlines, width, height, 1127, 104, 180, thickness: 1);
+        }
+        byte[] source = EncodeGrayscalePng(width, height, scanlines);
+        string sourceSha256 = Convert.ToHexStringLower(SHA256.HashData(source));
+        ProductionRasterPanelizationResult result = await new ProductionRasterPanelizer().PanelizeAsync(
+            new ImmutableByteBuffer(source), sourceSha256, width, height, CancellationToken.None);
+
+        Assert.HasCount(1, result.Panels, "Observed axis fragments and a nearby frame must not cut through the data plot.");
+        Assert.AreEqual(new PdfRectD(0, 0, width, height), result.Panels[0].EncodedCropInSourcePixels);
+        CollectionAssert.AreEqual(source, result.Panels[0].CopyEncodedBytes());
+        if (nearbyLegend)
+            Assert.IsTrue(result.Warnings.Any(static warning => warning.Contains("review panel boundaries", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public async Task LocalStackedFigureUsesIntegerSharedBoundariesBesideAnIndependentFigure()
+    {
+        const int width = 1200;
+        const int height = 650;
+        byte[] scanlines = CreateWhiteScanlines(width, height);
+        foreach ((int top, int baseline) in new[] { (80, 250), (331, 501) })
+        {
+            DrawHorizontal(scanlines, width, height, 80, 580, baseline, thickness: 2);
+            DrawVertical(scanlines, width, height, 80, top, baseline, thickness: 2);
+            DrawHorizontal(scanlines, width, height, 140, 330, baseline - 70, thickness: 2);
+        }
+        DrawHorizontal(scanlines, width, height, 850, 1120, 520, thickness: 2);
+        DrawVertical(scanlines, width, height, 850, 400, 520, thickness: 2);
+        DrawHorizontal(scanlines, width, height, 900, 1090, 470, thickness: 1);
+        byte[] source = EncodeGrayscalePng(width, height, scanlines);
+        string sourceSha256 = Convert.ToHexStringLower(SHA256.HashData(source));
+        ProductionRasterPanelizationResult result = await new ProductionRasterPanelizer().PanelizeAsync(
+            new ImmutableByteBuffer(source), sourceSha256, width, height, CancellationToken.None);
+
+        Assert.HasCount(3, result.Panels);
+        ProductionRasterPanel[] stacked = result.Panels.Where(static panel => panel.EncodedCropInSourcePixels.X < 600)
+            .OrderBy(static panel => panel.EncodedCropInSourcePixels.Y).ToArray();
+        Assert.HasCount(2, stacked);
+        Assert.AreEqual(stacked[0].RequestedCropInSourcePixels.Bottom, stacked[1].RequestedCropInSourcePixels.Y);
+        Assert.AreEqual(stacked[0].EncodedCropInSourcePixels.Bottom, stacked[1].EncodedCropInSourcePixels.Y);
+        Assert.AreEqual(Math.Round(stacked[0].RequestedCropInSourcePixels.Bottom), stacked[0].RequestedCropInSourcePixels.Bottom);
+        Assert.IsTrue(result.Panels.All(panel => panel.EncodedCropInSourcePixels != new PdfRectD(0, 0, width, height)));
+    }
+
+    [TestMethod]
     public async Task ChecksumMismatchFailsBeforePanelization()
     {
         byte[] source = CreateStackedGraphPng(width: 640, height: 900);

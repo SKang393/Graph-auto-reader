@@ -15,6 +15,7 @@ internal static class ComposedOcrInMemoryCorpusEvaluator
         Func<byte[], string, CancellationToken, Task<ComposedOcrSourcePredictions>> infer,
         CancellationToken cancellationToken)
     {
+        string stage = "input-validation";
         try
         {
             ArgumentNullException.ThrowIfNull(sources);
@@ -32,11 +33,13 @@ internal static class ComposedOcrInMemoryCorpusEvaluator
                     Convert.ToHexStringLower(SHA256.HashData(source.ImageBytes)) != source.ImageSha256 ||
                     Convert.ToHexStringLower(SHA256.HashData(source.AnnotationBytes)) != source.AnnotationSha256)
                     throw new InvalidDataException();
+                stage = "annotation-validation";
                 IReadOnlyList<OriginalDbOcrAggregateTruth> rows = OriginalDbOcrAnnotationReader.Read(
                     source.AnnotationBytes, source.Width, source.Height);
                 if (rows.Count == 0) throw new InvalidDataException();
                 truthCount = CheckCount(rows.Count, truthCount);
                 truths.Add(rows);
+                stage = "input-validation";
             }
             var scorer = new ComposedOcrAggregateScorer();
             int panels = 0, rawCount = 0, finalCount = 0;
@@ -45,9 +48,11 @@ internal static class ComposedOcrInMemoryCorpusEvaluator
                 cancellationToken.ThrowIfCancellationRequested();
                 OriginalDbOcrSealedSourcePayload source = sources[index];
                 // Neither annotations nor truth-derived geometry cross this boundary.
+                stage = "source-inference";
                 ComposedOcrSourcePredictions output = await infer(source.ImageBytes,
                     source.ImageSha256, cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
+                stage = "aggregate-scoring";
                 if (output.PanelCount <= 0) throw new InvalidDataException();
                 rawCount = CheckCount(output.RawDetectorRegions.Count, rawCount);
                 finalCount = CheckCount(output.AssembledRegions.Count, finalCount);
@@ -62,9 +67,19 @@ internal static class ComposedOcrInMemoryCorpusEvaluator
         catch (Exception error) when (error is not OutOfMemoryException)
         {
             // Abort instead of reporting partial success or leaking case-level errors.
-            throw new InvalidDataException("COMPOSED_OCR_CORPUS_EVALUATION_FAILED");
+            throw new InvalidDataException("COMPOSED_OCR_CORPUS_EVALUATION_FAILED:" + SafeFailureStage(error, stage));
         }
     }
+
+    internal static string SafeFailureStage(Exception error, string fallback) => error.Message switch
+    {
+        "COMPOSED_OCR_SOURCE_EVALUATION_FAILED:import" => "source-import",
+        "COMPOSED_OCR_SOURCE_EVALUATION_FAILED:axis" => "source-axis",
+        "COMPOSED_OCR_SOURCE_EVALUATION_FAILED:recognition" => "source-recognition",
+        "COMPOSED_OCR_SOURCE_EVALUATION_FAILED:coverage" => "source-coverage",
+        "COMPOSED_OCR_SOURCE_EVALUATION_FAILED:mapping" => "source-mapping",
+        _ => fallback,
+    };
 
     private static int CheckCount(int count, int previous)
     {

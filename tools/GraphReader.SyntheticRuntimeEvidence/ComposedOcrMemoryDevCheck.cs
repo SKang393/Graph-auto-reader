@@ -98,11 +98,25 @@ internal static class ComposedOcrMemoryDevCheck
         }
         catch (Exception error) when (error is not OutOfMemoryException)
         {
-            Console.Error.WriteLine("COMPOSED_OCR_MEMORY_DEV_FAILED:" + stage);
+            Console.Error.WriteLine("COMPOSED_OCR_MEMORY_DEV_FAILED:" + SafeFailureStage(error, stage));
             return 1;
         }
         finally { Console.CancelKeyPress -= cancel; }
     }
+
+    internal static string SafeFailureStage(Exception error, string fallback) => error.Message switch
+    {
+        "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:input-validation" => "input-validation",
+        "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:annotation-validation" => "annotation-validation",
+        "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:source-inference" => "source-inference",
+        "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:aggregate-scoring" => "aggregate-scoring",
+        "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:source-import" => "source-import",
+        "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:source-axis" => "source-axis",
+        "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:source-recognition" => "source-recognition",
+        "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:source-coverage" => "source-coverage",
+        "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:source-mapping" => "source-mapping",
+        _ => fallback,
+    };
 
     internal static string NormalizeOwnedSplit(string split) => split switch
     {

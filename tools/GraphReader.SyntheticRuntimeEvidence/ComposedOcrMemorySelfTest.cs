@@ -109,6 +109,21 @@ internal static class ComposedOcrMemorySelfTest
         await ExpectFailure(() => ComposedOcrInMemoryCorpusEvaluator.EvaluateAsync(sources,
             (_, _, _) => throw new IOException("secret-path-and-label"), CancellationToken.None));
         checks++;
+        foreach (string stage in new[] { "import", "axis", "recognition", "coverage", "mapping" })
+        {
+            var error = new InvalidDataException("COMPOSED_OCR_SOURCE_EVALUATION_FAILED:" + stage);
+            string safeStage = ComposedOcrInMemoryCorpusEvaluator.SafeFailureStage(error, "source-inference");
+            Require(safeStage == "source-" + stage &&
+                ComposedOcrMemoryDevCheck.SafeFailureStage(new InvalidDataException(
+                    "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:" + safeStage), "inference") == safeStage,
+                "known failure stages survive without case details");
+            Require(ComposedOcrInMemoryCorpusEvaluator.SafeFailureStage(new InvalidDataException(
+                error.Message + ":secret-label"), "source-inference") == "source-inference" &&
+                ComposedOcrMemoryDevCheck.SafeFailureStage(new InvalidDataException(
+                    "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:" + safeStage + ":secret-label"), "inference") == "inference",
+                "message suffixes cannot disclose private details");
+            checks++;
+        }
         using var cancellation = new CancellationTokenSource();
         calls = 0;
         try
@@ -148,7 +163,9 @@ internal static class ComposedOcrMemorySelfTest
         try { await action().ConfigureAwait(false); }
         catch (InvalidDataException error)
         {
-            Require(error.Message == "COMPOSED_OCR_CORPUS_EVALUATION_FAILED" && error.InnerException is null,
+            Require(error.Message is "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:input-validation" or
+                    "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:annotation-validation" or
+                    "COMPOSED_OCR_CORPUS_EVALUATION_FAILED:source-inference" && error.InnerException is null,
                 "source failures expose no case-level information");
             return;
         }
