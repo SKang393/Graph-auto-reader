@@ -135,6 +135,7 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         }
 
         AddConnectedInkBridges(candidates, frame, pixels, cancellationToken);
+        AddObservedCornerBridges(candidates, frame, pixels, cancellationToken);
         return candidates.AsReadOnly();
     }
 
@@ -237,6 +238,92 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
 
             bucket.Add(endpoint);
         }
+    }
+
+    private void AddObservedCornerBridges(
+        List<GeometryLineCandidate> candidates,
+        GrayscaleLineCandidateFrame frame,
+        byte[] pixels,
+        CancellationToken cancellationToken)
+    {
+        // A symbol near the origin can leave a terminal stub too short for
+        // either native detector. The observed perpendicular axis supplies
+        // the endpoint, but only a connected original-pixel path supplies
+        // the missing support. Empty gaps remain disconnected.
+        var geometryOptions = new AxisGeometryOptions();
+        double minimumGap = geometryOptions.MergeDistancePixels * 2d;
+        double maximumGap = _options.HoughMinimumLineLengthPixels * 2d;
+        double axisCosine = Math.Cos(geometryOptions.MaximumAxisDeviationDegrees * Math.PI / 180d);
+        double perpendicularTolerance = Math.Sin(geometryOptions.MergeAngleToleranceDegrees * Math.PI / 180d);
+        var lines = candidates.Where(candidate => candidate.Segment.Length >= minimumGap)
+            .Select(candidate => (Candidate: candidate, Direction: new PixelPoint(
+                (candidate.Segment.End.X - candidate.Segment.Start.X) / candidate.Segment.Length,
+                (candidate.Segment.End.Y - candidate.Segment.Start.Y) / candidate.Segment.Length)))
+            .Where(line => Math.Max(Math.Abs(line.Direction.X), Math.Abs(line.Direction.Y)) >= axisCosine)
+            .ToArray();
+        var bridges = new List<GeometryLineCandidate>();
+        foreach (var line in lines)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (var support in lines)
+            {
+                double supportDimension = Math.Abs(support.Direction.X) >= axisCosine ? frame.Width : frame.Height;
+                if (support.Candidate.Segment.Length < geometryOptions.MinimumAxisSpanFraction * supportDimension ||
+                    Math.Abs(line.Direction.X * support.Direction.X + line.Direction.Y * support.Direction.Y) > perpendicularTolerance)
+                    continue;
+
+                PixelPoint start = line.Candidate.Segment.Start;
+                PixelPoint otherStart = support.Candidate.Segment.Start;
+                double dx = otherStart.X - start.X, dy = otherStart.Y - start.Y;
+                double cross = line.Direction.X * support.Direction.Y - line.Direction.Y * support.Direction.X;
+                double alongLine = (dx * support.Direction.Y - dy * support.Direction.X) / cross;
+                double alongSupport = (dx * line.Direction.Y - dy * line.Direction.X) / cross;
+                if (alongSupport < 0 || alongSupport > support.Candidate.Segment.Length)
+                    continue;
+
+                PixelPoint endpoint;
+                double gap;
+                if (alongLine < 0)
+                {
+                    endpoint = start;
+                    gap = -alongLine;
+                }
+                else
+                {
+                    endpoint = line.Candidate.Segment.End;
+                    gap = alongLine - line.Candidate.Segment.Length;
+                }
+                if (gap <= minimumGap || gap > maximumGap)
+                    continue;
+
+                var intersection = new PixelPoint(start.X + alongLine * line.Direction.X, start.Y + alongLine * line.Direction.Y);
+                // Do not add a second, differently weighted extent when native
+                // collinear evidence already reaches this corner.
+                if (lines.Any(existing =>
+                    Math.Abs(existing.Direction.X * line.Direction.X + existing.Direction.Y * line.Direction.Y) >=
+                        Math.Cos(geometryOptions.MergeAngleToleranceDegrees * Math.PI / 180d) &&
+                    DistanceToSegment(intersection, existing.Candidate.Segment) <= geometryOptions.MergeDistancePixels))
+                    continue;
+                if (!HasLocalInkPath(endpoint, intersection, frame, pixels, (int)Math.Ceiling(maximumGap), cancellationToken))
+                    continue;
+
+                bridges.Add(new GeometryLineCandidate(
+                    $"raster-corner-bridge-{bridges.Count:D6}", new GeometryLineSegment(endpoint, intersection),
+                    LineCandidateSource.Other, Math.Min(line.Candidate.Strength, support.Candidate.Strength),
+                    Math.Min(line.Candidate.StrokeWidthPixels, support.Candidate.StrokeWidthPixels)));
+            }
+        }
+        candidates.AddRange(bridges);
+    }
+
+    private static double DistanceToSegment(PixelPoint point, GeometryLineSegment segment)
+    {
+        double dx = segment.End.X - segment.Start.X, dy = segment.End.Y - segment.Start.Y;
+        double position = Math.Clamp(((point.X - segment.Start.X) * dx + (point.Y - segment.Start.Y) * dy) /
+            ((dx * dx) + (dy * dy)), 0d, 1d);
+        double offsetX = point.X - (segment.Start.X + position * dx);
+        double offsetY = point.Y - (segment.Start.Y + position * dy);
+        return Math.Sqrt(offsetX * offsetX + offsetY * offsetY);
     }
 
     private static bool HasLocalInkPath(

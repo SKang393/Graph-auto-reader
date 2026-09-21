@@ -1,0 +1,775 @@
+{
+  "schema": "graphreader.native-marker-input-and-axis-corner-repair.v1",
+  "status": "verified_development_repair_not_product_acceptance",
+  "source_base_commit": "87d12798d6a4e862d42cb2a4705296c06af0899a",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Axis/OpenCvLineCandidateProvider.cs",
+      "sha256": "c4dc730bbff1038564055ce8c4cfe6f97f79cb1db9cac7531896fc125d110006"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAxisGeometryAdapter.cs",
+      "sha256": "1b6192269b4aa82bb22f3f283add1f2c44534e0307ba8d947045ff1095da0f5d"
+    },
+    {
+      "path": "tests/GraphReader.Axis.Tests/OpenCvLineCandidateProviderTests.cs",
+      "sha256": "303b65fc214ff206266bb8abf4490b326a92e9df1e87a1f795f822b24a06df56"
+    }
+  ],
+  "checks": [
+    {
+      "suite": "Axis",
+      "passed": 84,
+      "skipped": 0,
+      "evidence": {
+        "path": "artifacts/goal22-runs/axis-corner-checks-v3/test-results/Axis.trx",
+        "sha256": "f146a6897c8cb65b1d7428f979a26ecab16ce6aac143ef7e193195d4a660e631"
+      }
+    },
+    {
+      "suite": "App",
+      "passed": 463,
+      "skipped": 0,
+      "evidence": {
+        "path": "artifacts/goal22-runs/axis-corner-checks-v3/test-results/App.trx",
+        "sha256": "a231e9cb2c10f435846916d2ec6cefe9658a2b247442d94a3de87fb11955d600"
+      }
+    },
+    {
+      "suite": "Inference",
+      "passed": 92,
+      "skipped": 1,
+      "evidence": {
+        "path": "artifacts/goal22-runs/axis-corner-checks-v3/test-results/Inference.trx",
+        "sha256": "bbc2e020bf06a389dbed3af84e177fe2196b7157cbbccf8a752140bd8c91863d"
+      }
+    }
+  ],
+  "defect": "Two native plot polygons start at an interior phase divider because an overlaid marker leaves an axis terminal stub too short for the native line detectors. Fourteen truths then receive no nearby proposal.",
+  "repair": "Recover the endpoint from a long observed perpendicular segment only when a local original-pixel ink path connects it to the truncated line. Do not change a corner already supported within the existing line merge tolerance. No empty-gap extrapolation.",
+  "input_replay": {
+    "schema": "graphreader.native-marker-input-diagnosis.v1",
+    "status": "diagnostic_only_not_acceptance",
+    "source": {
+      "path": "artifacts/goal22-tools/Score-NativeMarkerInputs.py",
+      "sha256": "a85f2784ea157c14a3e7f46af51c199508f996efc2be381b30cefd7b23fd0c09"
+    },
+    "native_report": {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/execution/report.json",
+      "sha256": "9787ee53219be26dcda46011bf53fea4d19476643fa7708ae0d1813743b837f2"
+    },
+    "replay_report": {
+      "path": "artifacts/goal22-runs/native-marker-input-replay-v3/replay/report.json",
+      "sha256": "adb0d79777fdea8c411af3568b5077cd89c98032738b566d2ceab7681e962a76"
+    },
+    "panel_count": 31,
+    "source_count": 21,
+    "proposal_count": 148122,
+    "all_panel_pixels_assemblies_residual_counts_and_proposal_counts_match": true,
+    "missing_truths": 277,
+    "groups": {
+      "no_above_threshold_decoded_center_nearby": {
+        "every_nearby_proposal_has_center_mask": 49,
+        "no_emitted_proposal_within_5px": 14,
+        "emitted_proposal_with_clear_center_mask_in_patch": 87,
+        "emitted_proposal_with_completely_clear_patch": 49
+      },
+      "text_exclusion_after_classification": {
+        "every_nearby_proposal_has_center_mask": 5
+      },
+      "all_nearby_classified_centers_rejected_as_artifacts": {
+        "emitted_proposal_with_completely_clear_patch": 7,
+        "emitted_proposal_with_clear_center_mask_in_patch": 27,
+        "every_nearby_proposal_has_center_mask": 18
+      },
+      "nearby_pre_nms_center_not_retained": {
+        "every_nearby_proposal_has_center_mask": 1,
+        "emitted_proposal_with_clear_center_mask_in_patch": 8,
+        "emitted_proposal_with_completely_clear_patch": 2
+      },
+      "accepted_nearby_but_one_to_one_collision": {
+        "emitted_proposal_with_completely_clear_patch": 2,
+        "every_nearby_proposal_has_center_mask": 3,
+        "emitted_proposal_with_clear_center_mask_in_patch": 5
+      }
+    },
+    "no_above_threshold_by_shape": {
+      "triangle_up": {
+        "every_nearby_proposal_has_center_mask": 1,
+        "no_emitted_proposal_within_5px": 5,
+        "emitted_proposal_with_clear_center_mask_in_patch": 1,
+        "emitted_proposal_with_completely_clear_patch": 13
+      },
+      "diamond": {
+        "every_nearby_proposal_has_center_mask": 1,
+        "emitted_proposal_with_clear_center_mask_in_patch": 2
+      },
+      "star": {
+        "emitted_proposal_with_clear_center_mask_in_patch": 3
+      },
+      "asterisk": {
+        "emitted_proposal_with_completely_clear_patch": 1,
+        "every_nearby_proposal_has_center_mask": 2,
+        "emitted_proposal_with_clear_center_mask_in_patch": 3
+      },
+      "cross": {
+        "no_emitted_proposal_within_5px": 9,
+        "emitted_proposal_with_clear_center_mask_in_patch": 32,
+        "every_nearby_proposal_has_center_mask": 27,
+        "emitted_proposal_with_completely_clear_patch": 27
+      },
+      "other": {
+        "every_nearby_proposal_has_center_mask": 12,
+        "emitted_proposal_with_completely_clear_patch": 7,
+        "emitted_proposal_with_clear_center_mask_in_patch": 32
+      },
+      "circle": {
+        "emitted_proposal_with_clear_center_mask_in_patch": 14,
+        "every_nearby_proposal_has_center_mask": 5,
+        "emitted_proposal_with_completely_clear_patch": 1
+      },
+      "square": {
+        "every_nearby_proposal_has_center_mask": 1
+      }
+    },
+    "limits": "Truth coordinates are used only after native preprocessing, for proximity diagnosis. Patch-mask absence does not prove localization or classification correctness.",
+    "training": false,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "model_inference_runs": 0
+  },
+  "marker_metrics": {
+    "truth": 838,
+    "predicted": 652,
+    "matched": 568,
+    "extra": 84,
+    "missing": 270,
+    "precision": 0.8711656441717791,
+    "recall": 0.6778042959427207
+  },
+  "paired_marker_truths": {
+    "retained": 561,
+    "recovered": 7,
+    "lost": 0,
+    "missed_by_both": 270
+  },
+  "axis_corner_metrics": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 82,
+      "panels_all_corners_within_2px": 22
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 85,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 525,
+        "geometry_matched_region_count": 378,
+        "geometry_false_positive_count": 147,
+        "geometry_false_negative_count": 75,
+        "recognition_exact_count": 330,
+        "recognition_exact_accuracy": 0.7284768211920529,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 71,
+        "unmatched_truth_deletion_edit_count": 574,
+        "unmatched_prediction_insertion_edit_count": 384,
+        "character_error_count": 1029,
+        "character_error_rate": 0.3319354838709677,
+        "role_correct_count": 344,
+        "role_accuracy": 0.7593818984547461,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 38,
+            "accuracy": 0.6129032258064516
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 25,
+            "accuracy": 0.6756756756756757
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 128,
+            "accuracy": 0.7529411764705882
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 82,
+            "accuracy": 0.8282828282828283
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 525,
+        "geometry_matched_region_count": 378,
+        "geometry_false_positive_count": 147,
+        "geometry_false_negative_count": 75,
+        "recognition_exact_count": 330,
+        "recognition_exact_accuracy": 0.7284768211920529,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 71,
+        "unmatched_truth_deletion_edit_count": 574,
+        "unmatched_prediction_insertion_edit_count": 384,
+        "character_error_count": 1029,
+        "character_error_rate": 0.3319354838709677,
+        "role_correct_count": 350,
+        "role_accuracy": 0.7726269315673289,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 25,
+            "accuracy": 0.6756756756756757
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 132,
+            "accuracy": 0.7764705882352941
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 82,
+            "accuracy": 0.8282828282828283
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_baseline_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_values_and_statuses_unchanged": false,
+  "timing": {
+    "axis-corner-checks-v3": {
+      "status": "completed",
+      "seconds": 103.9669556,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "model_inference_runs": 0
+    },
+    "native-axis-corner-context-v3": {
+      "status": "completed",
+      "seconds": 134.3366408,
+      "inference_exit_code": 1,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "training": false
+    },
+    "axis-corner-workflow-v3": {
+      "status": "completed",
+      "inference_exit_code": 1,
+      "seconds": 145.5614082,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "training": false
+    }
+  },
+  "prior_attempts": [
+    {
+      "run": "native-marker-input-replay-v1",
+      "status": {
+        "status": "replaying_native_preprocessing",
+        "pid": 49456
+      },
+      "evidence": {
+        "path": "artifacts/goal22-runs/native-marker-input-replay-v1/status.json",
+        "sha256": "6c4160fd41d7a9ab562282dc939a8741be0c41947a76d49790e310fb244f45af"
+      }
+    },
+    {
+      "run": "native-marker-input-replay-v2",
+      "status": {
+        "status": "replaying_native_preprocessing",
+        "pid": 50224
+      },
+      "evidence": {
+        "path": "artifacts/goal22-runs/native-marker-input-replay-v2/status.json",
+        "sha256": "a191990143407b40d6d55d193aa7bc35ba2928b5e32330a001082c117cfab5aa"
+      }
+    },
+    {
+      "run": "axis-corner-checks-v1",
+      "status": {
+        "status": "completed",
+        "seconds": 96.0017066,
+        "private_reads": 0,
+        "sealed_reads": 0,
+        "model_inference_runs": 0
+      },
+      "evidence": {
+        "path": "artifacts/goal22-runs/axis-corner-checks-v1/status.json",
+        "sha256": "886edd624eeeb465c4606db03bd34e6036dceb0092251b1a140edb0c7ec0fe3d"
+      }
+    },
+    {
+      "run": "native-axis-corner-context-v1",
+      "status": {
+        "status": "completed",
+        "seconds": 134.5178551,
+        "inference_exit_code": 1,
+        "private_reads": 0,
+        "sealed_reads": 0,
+        "training": false
+      },
+      "evidence": {
+        "path": "artifacts/goal22-runs/native-axis-corner-context-v1/status.json",
+        "sha256": "e6192a95938b314ebe602751fb64a075c9666adde6101237a1f402beac648c38"
+      }
+    },
+    {
+      "run": "axis-corner-workflow-v1",
+      "status": {
+        "status": "completed",
+        "inference_exit_code": 1,
+        "seconds": 146.3680645,
+        "private_reads": 0,
+        "sealed_reads": 0,
+        "training": false
+      },
+      "evidence": {
+        "path": "artifacts/goal22-runs/axis-corner-workflow-v1/status.json",
+        "sha256": "e58e80f8d6729a4762f1c231f25f5b1c85e880ddf048d82fb28b94194429f10d"
+      }
+    },
+    {
+      "run": "axis-corner-checks-v2",
+      "status": {
+        "status": "failed",
+        "error": "Axis checks failed",
+        "seconds": 11.1783948
+      },
+      "evidence": {
+        "path": "artifacts/goal22-runs/axis-corner-checks-v2/status.json",
+        "sha256": "2740756be4a69a8c12b75c5908c398c7b6c5dc0330da01d38401c6f5dbc61a94"
+      }
+    },
+    {
+      "run": "native-axis-corner-context-v2",
+      "status": {
+        "status": "failed",
+        "error": "Axis checks must complete before inference",
+        "seconds": 10.9078889
+      },
+      "evidence": {
+        "path": "artifacts/goal22-runs/native-axis-corner-context-v2/status.json",
+        "sha256": "53a5feb2fbf67f3f53a0121af88f99ab2b8a5637547e874362889f4bb0647e72"
+      }
+    },
+    {
+      "run": "axis-corner-workflow-v2",
+      "status": {
+        "status": "failed",
+        "error": "Native marker comparison must complete first",
+        "seconds": 10.626657
+      },
+      "evidence": {
+        "path": "artifacts/goal22-runs/axis-corner-workflow-v2/status.json",
+        "sha256": "e688faa42275e46a2ff4e06998fa7e0b7040d468def8e7881fd0e54274576928"
+      }
+    }
+  ],
+  "next_repair": "Diagnose and preserve small cross-shaped markers currently labeled as line intersections; evaluate the existing mask rule independently.",
+  "limitations": [
+    "The 95 percent marker and OCR gates still fail. Two additional false positive detections remain in the native comparison.",
+    "Axis corners remain within two pixels for 85 of 93 endpoints; all three corners clear that descriptive tolerance on 23 of 31 panels.",
+    "Private and sealed acceptance, normal Production activation, Chandler verification and final distributions remain outstanding."
+  ],
+  "models_changed": false,
+  "model_thresholds_changed": false,
+  "acceptance_bars_changed": false,
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "license_review": "Project-owned Apache-2.0 code and synthetic scenes, with existing reviewed dependencies and model payloads only.",
+  "artifacts": [
+    {
+      "path": "artifacts/goal22-runs/axis-corner-checks-v3/source-bindings.json",
+      "sha256": "1be8301092bc5d6ce996a0b3c03fce76692038e8e7eeb96e9ad544049c515d34"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-checks-v3/status.json",
+      "sha256": "6dcaf25a0c511b2dde88f10a3b67a9cdec18c78091d8f55288fe507b9b707b75"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-checks-v3/build.log",
+      "sha256": "362d6404b58d36d422513083df8094d5c6165335204e3aa644e55603de708681"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-checks-v3/Run.ps1",
+      "sha256": "657e41394bc895cf47804ec5bc6c965c0d9167dddd7f5a5b7167ffcd482a095c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/status.json",
+      "sha256": "0f230ec1aeebd70f6f361281198d41bb5ee1f7d3854a84a2b286d0a58228f02f"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/preparation.json",
+      "sha256": "bfe5c5bf7055d907e934b168c0d2f9a1a6805298df15c711ee3e8c30ab7dd620"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/protocol.json",
+      "sha256": "69146d36c1e83b7aa27afe23d7d43141a186c7f17d9695ba5eb50cea29b08fc4"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/candidate-binding.json",
+      "sha256": "100499a1e222fecc3d271444fd35681194722be99ec0cf8394cb3e3b59e551ca"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/input-manifest.json",
+      "sha256": "8c3e53c20952ca6db0475c6e5decf508cb897535a89da21ebb8b873b66ad0d96"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/runtime-description.json",
+      "sha256": "d84aee1dbc1b6fab16170802e166edb347589d05c22357c173d40b3e2f56fdc2"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/execution/report.json",
+      "sha256": "1e18e89a8a43bbd86baa8fcb28f84cecef67676b59ea923558bb23c2aac71471"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/native-marker-score.json",
+      "sha256": "86b367580076c3b8d2528bf9d682618b171c7e78020e3ec90b9ffee0fa642264"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/native-marker-details.json",
+      "sha256": "169b3be60d52f2f930072cc53f730d8cf30ac5aab3b091fe272e234ab60d7247"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/native-ocr-score.json",
+      "sha256": "421566ae62eed6e2f201afa94dca6754125856c700115b3a5f16860c2b4747ba"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/native-ocr-details.json",
+      "sha256": "5cb2191f5723682b1ab934154c13a323ba6ce77cbf49fa56c61227d124baf7ba"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-corner-context-v3/axis-geometry-comparison.json",
+      "sha256": "9c5dcfb5794b6e2620adce39c1db80662e6ba6f8325cc6b40705abc042e386d2"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/status.json",
+      "sha256": "93bed89d1b7711dbc64f7352053d53422cc59baf5f98831380d153d6a4763553"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/preparation.json",
+      "sha256": "17ef2a68948754244af502caae5f781b65495d0a31f394210380d09951b8df9e"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/protocol.json",
+      "sha256": "45f695257317779d6a702d6054c23ace7310c6e59ee2a8a6c4f9ff199e6c945c"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/candidate-binding.json",
+      "sha256": "33d09799f69d66d629a4641ad1bea8154dc1ff8f09b4fffe9c20741e4b7df1d3"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/input-manifest.json",
+      "sha256": "65c07870f7bceb5698477e0c1cf29e9c2574cb00db3ec9421f4e21fe00c8a264"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/execution/report.json",
+      "sha256": "cd447ab4502167e742a3d38d8460578819962ce4d4e0bc176dcd6fabd9840e38"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/comparison.json",
+      "sha256": "dcdb0898192af9fa114af0c3a9a1a06404fbc9b6de3e8f857446570e6e70e8ce"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/csv-score-normalized-phases.json",
+      "sha256": "6545c5c323a66b1b9da316944d6772d9476753e5fa6b82a186cfd27d98378715"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-corner-workflow-v3/csv-evaluation-input-normalized-phases.json",
+      "sha256": "2520807240dae9a49ec9013e34697698ed5916899340c2e95cdd7973611f0437"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-input-replay-v3/status.json",
+      "sha256": "5f9594f259034556645e4678f6464962583c6ed27f76f114bdf76429071013bf"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-input-replay-v3/build.log",
+      "sha256": "59087dae6f77a3fd6220e34607f8665f3089e140889d6761a0a6aaaa93eaeb62"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-input-replay-v3/replay/report.json",
+      "sha256": "adb0d79777fdea8c411af3568b5077cd89c98032738b566d2ceab7681e962a76"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-input-replay-v3/input-diagnosis.json",
+      "sha256": "689e125d9968fff10b8dbec36308fd4cf84812b93f4610ecd2899691056fec94"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-input-replay-v3/input-details.json",
+      "sha256": "6699a019737a83de09abf5d41211c1d25ca866bf21cef5c6aba3c0e5a96a43aa"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-input-replay-v3/intersection-ambiguity-inspection.json",
+      "sha256": "24cabc60aaac2aa104befed3770b7f9af7f1afb11d9b2356cdb5ba0b4b78f143"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-input-replay-v3/Program.cs",
+      "sha256": "27c6329b754fb18261439e6ab429eed1b916a23b0ca9e36d6be57c55a7f83707"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-input-replay-v3/Run.ps1",
+      "sha256": "92cad6d599c7b5a894778b855a9a45c1749b7588a8703c9f4a5214978f2e2a65"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-AxisCornerWorkflow.py",
+      "sha256": "6fdf53142fc3429d69a67b97b69c510d602693aa8e55ae6d13de7839fe726e08"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-AxisCornerWorkflowV2.py",
+      "sha256": "a83b0fc0a38854773cab47b2835f2c97d8c7e9b9c874998e4617b50afa4e7ee8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-AxisCornerWorkflowV3.py",
+      "sha256": "73636a6f21810e5f1acdf76a86af92bacaba5df1b65b2f6d5e98ae52c2c4d17b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-AxisCornerContext.py",
+      "sha256": "4c35945b13f1c36e7cbbb7f78b09b3c122abc8335275edcd6a68a0f81eb16b38"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-AxisCornerContextV2.py",
+      "sha256": "a1e9e475315800f039d4dd71c4965212fd7605b026c77895d8bc5652fbfbb519"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-AxisCornerContextV3.py",
+      "sha256": "308885239d323c70eb8317692667fb47a40a0abd29f61eab94dbe67cd33d4405"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-AxisCornerWorkflow.py",
+      "sha256": "e9a7b51a6ea7c6571bdc9386d84b6751e825f5a3483ade732f4d75699ff76f32"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-AxisCornerWorkflowV2.py",
+      "sha256": "8b282da69c3edca7939ed1f1a706b3b40a1e96569dee06e424aacc4adcd756c3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-AxisCornerWorkflowV3.py",
+      "sha256": "46aac3da9770b85023b4fafcb757a2a33521b4b86f8f98a15ddc210d4654ac59"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-AxisCornerRepair.py",
+      "sha256": "291b51f9d777590aaac572b6e89371d2bef18cf204d2de3ad7fe146a9dd9c815"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-AxisCornerContext.ps1",
+      "sha256": "f9dd01ff35e710c8c378ea48c0bb497dd835f09f32dbeb944601dca4405f1e90"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-AxisCornerContextV2.ps1",
+      "sha256": "47c7202b0bee8d41042137f5791d5a983ee20ad210e8b15031d7554973f36a08"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-AxisCornerContextV3.ps1",
+      "sha256": "c06c196cf3dd68c53f27db3d584dbd7514bb170fdd758a2bbf8314cc6b32eb79"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-AxisCornerWorkflow.ps1",
+      "sha256": "8d0d1b8d6b19afa2f4087adbe705d0e061e0e05b20e30049dccd3e81b587d65f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-AxisCornerWorkflowV2.ps1",
+      "sha256": "d34de98db8fbb4d012eabd8ce1195f7480ba16bf0c48093ca787e5cb57fdd0a1"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-AxisCornerWorkflowV3.ps1",
+      "sha256": "bf12e4d2902f652d797ad3b47a2f9017df023dd18f0582afbe2d4aa618c01dd4"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisCornerGeometry.py",
+      "sha256": "df9b072ea0daca398f260a8a53ef9275e7e1f91e9afa1206549b5fd5d446c285"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisCornerGeometryV2.py",
+      "sha256": "cc663e2e7497badf1341abfacc0671eeab4821e70ce0944cf647336b132ac919"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisCornerGeometryV3.py",
+      "sha256": "ad96ea5034d87bc61aba8e89d1df9ecd9ad78303778dc07e92b0d624340256d7"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisCornerMarkers.py",
+      "sha256": "1424a160fa4664679c635b3f9a80d068f3c9891a4686318d443862ed6a61ec36"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisCornerMarkersV2.py",
+      "sha256": "ce8705f9893616d9eb5585aeb4acc4f1737a867702b4fc4a3d3fc1229e38e5af"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisCornerMarkersV3.py",
+      "sha256": "c287a3b0f18482d9430eea8aea860e54ca5e9158c49c3204b3a0990ddb7d83d5"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisCornerOcr.py",
+      "sha256": "8a4c4526182be17f667c95eaaaba2a369c31508222805245f92756b4c6a72c3d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisCornerOcrV2.py",
+      "sha256": "c3b87daf7a33fef0b112d2c9586076713ecebb51e0872dea3e79f16d0b998545"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisCornerOcrV3.py",
+      "sha256": "bc09224b83a5d16b04a280812d90416492c96d4997f53bfe60e24bd38975a24d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-NativeMarkerInputs.py",
+      "sha256": "a85f2784ea157c14a3e7f46af51c199508f996efc2be381b30cefd7b23fd0c09"
+    },
+    {
+      "path": "artifacts/goal22-tools/Inspect-MarkerIntersectionAmbiguity.py",
+      "sha256": "d903bfc9ab2ed094224becb8fc0c1b587da53ab3268a0ffc7be6564828921a3b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Replay-NativeMarkerInputs.cs",
+      "sha256": "27c6329b754fb18261439e6ab429eed1b916a23b0ca9e36d6be57c55a7f83707"
+    }
+  ]
+}

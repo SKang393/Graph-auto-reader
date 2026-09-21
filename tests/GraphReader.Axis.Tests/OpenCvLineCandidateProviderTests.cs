@@ -72,6 +72,38 @@ public sealed class OpenCvLineCandidateProviderTests
     }
 
     [TestMethod]
+    [DataRow(false, true, 126)]
+    [DataRow(true, true, 126)]
+    [DataRow(false, false, 126)]
+    [DataRow(true, false, 126)]
+    [DataRow(false, true, 128)]
+    [DataRow(true, true, 128)]
+    [DataRow(false, false, 128)]
+    [DataRow(true, false, 128)]
+    public async Task SymbolNearCornerRequiresObservedInkToReachTheOtherAxis(
+        bool horizontal, bool connected, int gapEnd)
+    {
+        GrayscaleLineCandidateFrame frame = CreateOccludedAxisFrame(horizontal, connected, gapEnd, gapStart: 112);
+        byte[] original = frame.Pixels.ToArray();
+        IReadOnlyList<GeometryLineCandidate> candidates = await new OpenCvLineCandidateProvider()
+            .DetectLinesAsync(frame, CancellationToken.None);
+        bool hasCornerBridge = candidates.Any(candidate => candidate.CandidateId.StartsWith("raster-corner-bridge-", StringComparison.Ordinal) &&
+            (horizontal
+                ? Math.Abs(candidate.Segment.Midpoint.Y - 30.5) < 3 && Math.Max(candidate.Segment.Start.X, candidate.Segment.End.X) >= 128
+                : Math.Abs(candidate.Segment.Midpoint.X - 30.5) < 3 && Math.Max(candidate.Segment.Start.Y, candidate.Segment.End.Y) >= 128));
+        Assert.AreEqual(connected, hasCornerBridge, "The corner cannot be extrapolated across empty pixels.");
+        CollectionAssert.AreEqual(original, frame.Pixels.ToArray());
+        if (connected && !horizontal)
+        {
+            AxisGeometryResult geometry = await new AxisGeometryDetector().DetectAsync(
+                new AxisGeometryRequest(frame.Width, frame.Height, candidates));
+            Assert.AreEqual(30.5d, geometry.PlotPolygon.BottomLeft.X, 4d);
+            Assert.AreEqual(130.5d, geometry.PlotPolygon.BottomLeft.Y, 4d);
+            Assert.AreEqual(20d, geometry.PlotPolygon.TopLeft.Y, 4d);
+        }
+    }
+
+    [TestMethod]
     public async Task NativeProviderReturnsLsdAndHoughCandidatesForCleanAxes()
     {
         GrayscaleLineCandidateFrame frame = CreateCleanAxisFrame();
@@ -156,11 +188,11 @@ public sealed class OpenCvLineCandidateProviderTests
     }
 
     private static GrayscaleLineCandidateFrame CreateOccludedAxisFrame(
-        bool horizontal, bool connected, int gapEnd = 104)
+        bool horizontal, bool connected, int gapEnd = 104, int gapStart = 100)
     {
         GrayscaleLineCandidateFrame original = CreateCleanAxisFrame();
         byte[] pixels = original.Pixels.ToArray();
-        for (int y = 100; y <= gapEnd; y++)
+        for (int y = gapStart; y <= gapEnd; y++)
         {
             pixels[(y * original.Stride) + 30] = byte.MaxValue;
             pixels[(y * original.Stride) + 31] = byte.MaxValue;
@@ -170,11 +202,11 @@ public sealed class OpenCvLineCandidateProviderTests
         {
             for (int x = 26; x <= 35; x++)
             {
-                SetBlack(pixels, original.Stride, x, 99);
+                SetBlack(pixels, original.Stride, x, gapStart - 1);
                 SetBlack(pixels, original.Stride, x, gapEnd + 1);
             }
 
-            for (int y = 99; y <= gapEnd + 1; y++)
+            for (int y = gapStart - 1; y <= gapEnd + 1; y++)
             {
                 SetBlack(pixels, original.Stride, 26, y);
                 SetBlack(pixels, original.Stride, 35, y);
