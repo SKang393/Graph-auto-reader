@@ -109,6 +109,10 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
             }
         }
 
+        if (context!.ExtendSingleRasterGroupToSourceEdges && context.Raster is not null)
+        {
+            context.Raster.IncludeConnectedAxes(context.Transform, cancellationToken);
+        }
         List<AxisPair> axes = DetectAxes(context!, cancellationToken);
         if (context!.ExtendSingleRasterGroupToSourceEdges)
         {
@@ -2025,6 +2029,72 @@ public sealed class PanelizationEngine : IPdfPanelizationEngine
         public int Height { get; }
 
         public List<AxisPair> Axes { get; }
+
+        public void IncludeConnectedAxes(PdfPageCoordinateTransform transform, CancellationToken cancellationToken)
+        {
+            // Scanline runs fragment even a mildly skewed axis. Recover the
+            // extent of an observed connected L without bridging absent ink.
+            // These bounds only propose raster crops; the axis module still
+            // fits scientific geometry independently from the original pixels.
+            int minimumWidth = Math.Max((int)Math.Ceiling(MinimumAxisLengthPoints * transform.ScaleX),
+                (int)Math.Ceiling(Width * MinimumHorizontalPageFraction));
+            int minimumHeight = Math.Max((int)Math.Ceiling(MinimumAxisLengthPoints * transform.ScaleY),
+                (int)Math.Ceiling(Height * MinimumVerticalPageFraction));
+            var visited = new byte[_ink.Length];
+            var component = new List<int>();
+            for (int seed = 0; seed < _ink.Length; seed++)
+            {
+                if ((seed & 4095) == 0) cancellationToken.ThrowIfCancellationRequested();
+                if (_ink[seed] == 0 || visited[seed] != 0) continue;
+                component.Clear();
+                component.Add(seed);
+                visited[seed] = 1;
+                int left = seed % Width, right = left, top = seed / Width, bottom = top;
+                for (int index = 0; index < component.Count; index++)
+                {
+                    if ((index & 4095) == 0) cancellationToken.ThrowIfCancellationRequested();
+                    int pixel = component[index], x = pixel % Width, y = pixel / Width;
+                    left = Math.Min(left, x); right = Math.Max(right, x);
+                    top = Math.Min(top, y); bottom = Math.Max(bottom, y);
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            int nx = x + dx, ny = y + dy;
+                            if (nx < 0 || ny < 0 || nx >= Width || ny >= Height) continue;
+                            int next = ny * Width + nx;
+                            if (_ink[next] == 0 || visited[next] != 0) continue;
+                            visited[next] = 1;
+                            component.Add(next);
+                        }
+                    }
+                }
+                int width = right - left, height = bottom - top;
+                if (width < minimumWidth || height < minimumHeight) continue;
+                // A connected diagonal data trace is not an L. Require observed
+                // coverage along its left and bottom edges, allowing 15 degrees
+                // of skew, as supported by the downstream axis geometry fitter.
+                int leftBand = Math.Max(RasterAxisEndpointTolerancePixels, (int)Math.Ceiling(height * Math.Tan(Math.PI / 12d)));
+                int bottomBand = Math.Max(RasterAxisEndpointTolerancePixels, (int)Math.Ceiling(width * Math.Tan(Math.PI / 12d)));
+                bool[] rows = new bool[height + 1], columns = new bool[width + 1];
+                foreach (int pixel in component)
+                {
+                    int x = pixel % Width, y = pixel / Width;
+                    if (x <= left + leftBand) rows[y - top] = true;
+                    if (y >= bottom - bottomBand) columns[x - left] = true;
+                }
+                if (rows.Count(static present => present) < rows.Length * DuplicateOverlapFraction ||
+                    columns.Count(static present => present) < columns.Length * DuplicateOverlapFraction)
+                    continue;
+                PdfRectD bounds = transform.PagePixelsToPoints(new PdfRectD(left, top, width, height));
+                // Keep complete existing straight-axis evidence byte-stable.
+                // A supplemental extent is needed only when the scanline
+                // proposal omits a substantial part of this connected shape.
+                if (Axes.Any(axis => IntersectionArea(axis.PlotBoundsPagePoints, bounds) / bounds.Area >= DuplicateOverlapFraction))
+                    continue;
+                Axes.Add(new AxisPair(bounds, FromRaster: true));
+            }
+        }
 
         public static RasterAnalysis Create(
             int width,

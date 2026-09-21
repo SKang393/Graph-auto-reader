@@ -18,6 +18,48 @@ public sealed class ProductionRasterPanelizerTests
     private static readonly int[] ExpectedPanelOrder = [1, 2, 3];
 
     [TestMethod]
+    public async Task SkewedConnectedAxesKeepAllStackedPlotsAndSourceMargins()
+    {
+        const int width = 1200, height = 900;
+        byte[] scanlines = CreateWhiteScanlines(width, height);
+        for (int row = 0; row < 3; row++)
+        {
+            int baseline = 270 + row * 260;
+            int originX = 105 + row * 8;
+            // Connected one-pixel lines move across scanlines. A horizontal or
+            // vertical run detector alone sees only short, cropped fragments.
+            for (int y = baseline - 165; y <= baseline; y++)
+            {
+                int x = originX + (y - baseline) / 30;
+                DrawHorizontal(scanlines, width, height, x, x + 1, y, thickness: 1);
+            }
+            for (int x = originX; x <= originX + 840; x++)
+            {
+                int y = baseline - (x - originX) / 140;
+                DrawHorizontal(scanlines, width, height, x, x + 1, y, thickness: 1);
+            }
+            DrawHorizontal(scanlines, width, height, 20, 65, baseline - 90, thickness: 2);
+            DrawHorizontal(scanlines, width, height, 980, 1110, baseline - 130, thickness: 2);
+        }
+        byte[] source = EncodeGrayscalePng(width, height, scanlines);
+        string digest = Convert.ToHexStringLower(SHA256.HashData(source));
+        ProductionRasterPanelizationResult result = await new ProductionRasterPanelizer().PanelizeAsync(
+            new ImmutableByteBuffer(source), digest, width, height, CancellationToken.None);
+
+        Assert.HasCount(3, result.Panels);
+        Assert.AreEqual(0d, result.Panels[0].EncodedCropInSourcePixels.Y);
+        Assert.AreEqual((double)height, result.Panels[^1].EncodedCropInSourcePixels.Bottom);
+        foreach (ProductionRasterPanel panel in result.Panels)
+        {
+            Assert.AreEqual(0d, panel.EncodedCropInSourcePixels.X);
+            Assert.AreEqual((double)width, panel.EncodedCropInSourcePixels.Width);
+        }
+        for (int index = 1; index < result.Panels.Count; index++)
+            Assert.AreEqual(result.Panels[index - 1].EncodedCropInSourcePixels.Bottom,
+                result.Panels[index].EncodedCropInSourcePixels.Y);
+    }
+
+    [TestMethod]
     [DataRow(false, true)]
     [DataRow(true, true)]
     [DataRow(false, false)]
