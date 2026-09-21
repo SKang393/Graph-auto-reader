@@ -1,0 +1,136 @@
+{
+  "schema": "graphreader.goal22.marker-cascade-component-diagnostic.v1",
+  "status": "failed_dev_unapproved",
+  "report": {
+    "path": "artifacts/goal22-runs/marker-cascade-component-v1/report.json",
+    "sha256": "ed1e509ac6779c99d8fe66c818349ec5bb68dbff638247dd62532f154aa6fe15"
+  },
+  "binding": {
+    "path": "artifacts/goal22-runs/marker-cascade-component-v1/binding.json",
+    "sha256": "066866d3e1356137207df12bad33244bd813cd5d7947f96b0a035895d8d8e5d8"
+  },
+  "details": {
+    "path": "artifacts/goal22-runs/marker-cascade-component-v1/details.json",
+    "sha256": "f64b7a5b7158f01a8a80255c2e4b26a01635720e8a72bf7148640e85ce44c287"
+  },
+  "crop_diagnosis": {
+    "path": "artifacts/goal22-runs/marker-cascade-component-v1/crop-diagnosis.json",
+    "sha256": "9a555bb3a86e0b6b186b1a37a3e562492d0a69cb9f4353c06687ea4504fd5291"
+  },
+  "tests": {
+    "path": "artifacts/goal22-runs/marker-cascade-component-job-v1/tests.xml",
+    "sha256": "c3abe4b383889ebd1714c32dd21a4f21b50fe3832319b92f1068dcbf4a0708ba"
+  },
+  "results": {
+    "component": {
+      "historical": {
+        "scene_count": 167,
+        "truth_count": 2004,
+        "true_positives": 1796,
+        "false_positives": 238,
+        "false_negatives": 208,
+        "proposal_true_positives": 2004,
+        "duplicate_count": 0,
+        "prohibited_structure_hits": 0,
+        "precision": 0.8829891838741396,
+        "recall": 0.8962075848303394,
+        "proposal_recall": 1.0,
+        "prohibited_structure_hit_rate": 0.0
+      },
+      "balanced": {
+        "scene_count": 167,
+        "truth_count": 2004,
+        "true_positives": 1862,
+        "false_positives": 358,
+        "false_negatives": 142,
+        "proposal_true_positives": 2004,
+        "duplicate_count": 0,
+        "prohibited_structure_hits": 0,
+        "precision": 0.8387387387387387,
+        "recall": 0.9291417165668663,
+        "proposal_recall": 1.0,
+        "prohibited_structure_hit_rate": 0.0
+      },
+      "classified": {
+        "scene_count": 167,
+        "truth_count": 2004,
+        "true_positives": 1382,
+        "false_positives": 43,
+        "false_negatives": 622,
+        "proposal_true_positives": 2004,
+        "duplicate_count": 0,
+        "prohibited_structure_hits": 0,
+        "precision": 0.9698245614035088,
+        "recall": 0.689620758483034,
+        "proposal_recall": 1.0,
+        "prohibited_structure_hit_rate": 0.0
+      }
+    },
+    "family": {
+      "historical": {
+        "scene_count": 9,
+        "truth_count": 206,
+        "true_positives": 190,
+        "false_positives": 39,
+        "false_negatives": 16,
+        "proposal_true_positives": 206,
+        "duplicate_count": 0,
+        "prohibited_structure_hits": 5,
+        "precision": 0.8296943231441049,
+        "recall": 0.9223300970873787,
+        "proposal_recall": 1.0,
+        "prohibited_structure_hit_rate": 0.021834061135371178
+      },
+      "balanced": {
+        "scene_count": 9,
+        "truth_count": 206,
+        "true_positives": 201,
+        "false_positives": 75,
+        "false_negatives": 5,
+        "proposal_true_positives": 206,
+        "duplicate_count": 0,
+        "prohibited_structure_hits": 6,
+        "precision": 0.7282608695652174,
+        "recall": 0.9757281553398058,
+        "proposal_recall": 1.0,
+        "prohibited_structure_hit_rate": 0.021739130434782608
+      },
+      "classified": {
+        "scene_count": 9,
+        "truth_count": 206,
+        "true_positives": 195,
+        "false_positives": 24,
+        "false_negatives": 11,
+        "proposal_true_positives": 206,
+        "duplicate_count": 0,
+        "prohibited_structure_hits": 6,
+        "precision": 0.8904109589041096,
+        "recall": 0.9466019417475728,
+        "proposal_recall": 1.0,
+        "prohibited_structure_hit_rate": 0.0273972602739726
+      }
+    }
+  },
+  "first_unmatched_stage": {
+    "component": {
+      "geometry": 7,
+      "decoded": 75,
+      "retained": 1382,
+      "classified": 480,
+      "nms": 60
+    },
+    "family": {
+      "decoded": 4,
+      "retained": 195,
+      "classified": 6,
+      "nms": 1
+    }
+  },
+  "seconds": 7.088310400024056,
+  "tests_passed": 7,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "next_step": "Address unsupported elongated marker morphology and crop-scale coverage on owned train data. The center recall ceiling also remains below the shared bar. Preserve current native workflow results and all historical failures."
+}
