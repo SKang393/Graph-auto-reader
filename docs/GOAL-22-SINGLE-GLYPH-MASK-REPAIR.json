@@ -1,0 +1,587 @@
+{
+  "schema": "graphreader.single-glyph-mask-repair.v1",
+  "status": "evaluated_accuracy_still_fails",
+  "tests": {
+    "ocr": {
+      "Passed": 489,
+      "NotExecuted": 16
+    },
+    "app": {
+      "Passed": 494
+    }
+  },
+  "tested_sources": [
+    {
+      "path": "src/GraphReader.Ocr/SingleGlyphTextMaskReview.cs",
+      "sha256": "719744f8635c2ba23ec400fe18d0fd708a36ece6284336b15596ddb3940ab25c"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "636284a27a34dd54484de70cae3ad225034062ff98d8e21ff9f657fd7fd2e6f1"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrResultCache.cs",
+      "sha256": "17bd1f624b7cb3e32b9ec10f54bda053a4ee1960c24d8e19c7b525c65060063e"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/SingleGlyphTextMaskReviewTests.cs",
+      "sha256": "cfae4e2c8db8dbcf10c77f45d33b2109006d3a107bdd6dbb06e11cab431f219f"
+    }
+  ],
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 751,
+    "matched": 726,
+    "extra": 25,
+    "missing": 112,
+    "precision": 0.966711051930759,
+    "recall": 0.8663484486873508
+  },
+  "paired_marker_truths": {
+    "retained": 721,
+    "recovered": 5,
+    "lost": 0,
+    "missed_by_both": 112
+  },
+  "native_ocr_metrics": {
+    "truth_region_count": 453,
+    "predicted_region_count": 499,
+    "geometry_matched_region_count": 389,
+    "geometry_false_positive_count": 110,
+    "geometry_false_negative_count": 64,
+    "recognition_exact_count": 345,
+    "recognition_exact_accuracy": 0.7615894039735099,
+    "truth_character_count": 3100,
+    "matched_pair_edit_count": 64,
+    "unmatched_truth_deletion_edit_count": 476,
+    "unmatched_prediction_insertion_edit_count": 240,
+    "character_error_count": 780,
+    "character_error_rate": 0.25161290322580643,
+    "role_correct_count": 357,
+    "role_accuracy": 0.7880794701986755,
+    "by_expected_runtime_role": {
+      "annotation": {
+        "truth_count": 62,
+        "correct_count": 40,
+        "accuracy": 0.6451612903225806
+      },
+      "axistitle": {
+        "truth_count": 52,
+        "correct_count": 49,
+        "accuracy": 0.9423076923076923
+      },
+      "legendtext": {
+        "truth_count": 37,
+        "correct_count": 29,
+        "accuracy": 0.7837837837837838
+      },
+      "participant": {
+        "truth_count": 31,
+        "correct_count": 20,
+        "accuracy": 0.6451612903225806
+      },
+      "phaseheading": {
+        "truth_count": 170,
+        "correct_count": 133,
+        "accuracy": 0.7823529411764706
+      },
+      "xtick": {
+        "truth_count": 2,
+        "correct_count": 2,
+        "accuracy": 1.0
+      },
+      "ytick": {
+        "truth_count": 99,
+        "correct_count": 84,
+        "accuracy": 0.8484848484848485
+      }
+    },
+    "intersection_over_union_minimum": 0.5
+  },
+  "axis_metrics": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "mask_effects": {
+    "native": {
+      "panels": 31,
+      "removed_mask_count": 9,
+      "removed_text_counts": {
+        "*": 2,
+        "X": 1,
+        ")": 2,
+        "L": 1,
+        "A": 2,
+        "\u0394": 1
+      },
+      "changed_ocr_region_panels": 0,
+      "changed_axis_panels": 0,
+      "calibration_changes": [
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "before_validity": "NeedsReview",
+          "after_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+          "before_validity": "NeedsReview",
+          "after_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+          "before_validity": "InvalidSessionOrigin",
+          "after_validity": "InvalidSessionOrigin"
+        },
+        {
+          "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+          "before_validity": "NeedsReview",
+          "after_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "c4760964a8a182261f8eb38777565b8820f8390c7dce1439c53182348601d40f",
+          "before_validity": "NeedsReview",
+          "after_validity": "NeedsReview"
+        }
+      ]
+    },
+    "workflow": {
+      "panels": 39,
+      "removed_mask_count": 1,
+      "removed_text_counts": {
+        "\u0394": 1
+      },
+      "changed_ocr_region_panels": 0,
+      "changed_axis_panels": 0,
+      "calibration_changes": [
+        {
+          "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+          "before_validity": "Valid",
+          "after_validity": "Valid"
+        }
+      ]
+    }
+  },
+  "five_recovered_truths_match_the_traced_single_glyph_exclusions": true,
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 420,
+    "matched_points": 409,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 420,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 408,
+    "correct_rows": 405,
+    "missing_rows": 316,
+    "extra_rows": 12,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 409,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 297,
+    "unique_point_extra": 11,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9738095238095238,
+    "unique_point_structural_coverage": 0.5793201133144475,
+    "unique_point_value_precision": 0.9738095238095238,
+    "unique_point_value_coverage": 0.5793201133144475,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9642857142857143,
+    "relational_row_coverage": 0.5593922651933702,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9926470588235294,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_baseline_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 419,
+    "matched_points": 408,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 419,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 407,
+    "correct_rows": 404,
+    "missing_rows": 317,
+    "extra_rows": 12,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 408,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 298,
+    "unique_point_extra": 11,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9737470167064439,
+    "unique_point_structural_coverage": 0.5779036827195467,
+    "unique_point_value_precision": 0.9737470167064439,
+    "unique_point_value_coverage": 0.5779036827195467,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.964200477326969,
+    "relational_row_coverage": 0.5580110497237569,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9926289926289926,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_value_changes": [
+    {
+      "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+      "added": 1,
+      "removed": 0
+    }
+  ],
+  "csv_status_changes": [],
+  "csv_upstream_changes": [],
+  "observed_model_providers": {
+    "native": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-structural-context-v5:cpu": 51
+    },
+    "workflow": {
+      "OpenCvSharpExtern:cpu": 39,
+      "graph-text-extent-db-head-v44-p1:cpu": 39,
+      "en_PP-OCRv5_mobile_rec:cpu": 39,
+      "marker-center-component-diversity-v27:cpu": 39,
+      "marker-classifier-structural-context-v5:cpu": 44
+    }
+  },
+  "observed_marker_review_states": {
+    "native": {
+      "Unreviewed": 686,
+      "NeedsReview": 65
+    },
+    "workflow": {
+      "Unreviewed": 709,
+      "NeedsReview": 41
+    }
+  },
+  "seconds": {
+    "checks": 98.0519059,
+    "native": 147.4676161,
+    "workflow": 161.5613391
+  },
+  "first_check_failure": {
+    "status": "failed",
+    "error": "OCR tests failed",
+    "seconds": 14.0939587
+  },
+  "first_failure_repair": "Tests now exercise the public pipeline; an inaccessible direct internal-helper test was removed. Original failing source and output remain. Production implementation did not change.",
+  "workflow_scoring_retry": {
+    "first_attempt": {
+      "status": "failed",
+      "error": "CSV workflow scoring failed",
+      "seconds": 159.8668069
+    },
+    "completion": {
+      "status": "completed",
+      "seconds": 161.5613391,
+      "timing_scope": "Sum of original execution attempt and scoring-only retry; excludes time between attempts",
+      "original_attempt_seconds": 159.8668069,
+      "scoring_retry_seconds": 1.6960447,
+      "inference_rerun": false,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "training": false
+    },
+    "repair": "The scorer pointed at the preserved failed test-build directory. Use the verified second build and the already saved identical evaluation input. Inference was not repeated."
+  },
+  "all_models_unchanged": true,
+  "prior_source_ci": {
+    "status": "completed",
+    "commit": "1b41fac28ef842305034edecbd6612323de39ba7",
+    "started_utc": "2026-09-21T19:26:23.1213067Z",
+    "updated_utc": "2026-09-21T19:34:39.8487381Z",
+    "notifier_pid": 44552,
+    "run_id": 35644736561,
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35644736561",
+    "conclusion": "success",
+    "error": null,
+    "user_continuation_required": false
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v2/protocol.json",
+      "sha256": "429770a12258996b8cf1a0f278df87421526a082f76258e220e8a7e0d31d87f1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v2/candidate-binding.json",
+      "sha256": "95480c6bd0072e00a0cd6ce140bf4e99a8a8fbdf64f5a8619bd6bd73d91123a1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v2/input-manifest.json",
+      "sha256": "829d45c1818eb9dd184291c4fac35486bdee7c7c77b1500d3c72f2e3fe4c1aea"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v2/status.json",
+      "sha256": "51e378b07ed1a9004d0a8533f52bc5ff522c92ac1645e54b3b72daa803146450"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v2/execution/report.json",
+      "sha256": "ad7979c7b1534e0b35d6b281f19ee02bb7e473cc3b0b1ec40fc44b2ac98f031f"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/protocol.json",
+      "sha256": "79fa8eaa41175069ca5114d6ffe9c96d891a40489f895ade9afe5e3be198a15d"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/candidate-binding.json",
+      "sha256": "3fd477a99527452b7e5ded1735c6c9d532416b86050db34f46d171769eba6c82"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/input-manifest.json",
+      "sha256": "fe245cca716e0addd7dbd728dd337d36d9dba94bedaaab2a60232d4a936fa3bd"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/status.json",
+      "sha256": "5a7a298efaa0d2b1f3ec32c0d37111ba09d4941d5189d200daa338cc79cf4215"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/execution/report.json",
+      "sha256": "562da77e1400470582d4b050bbf71b6584bdb1eb830af4ff1b38aed6a9aac4be"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v2/source-bindings.json",
+      "sha256": "2e291f9bde5079bbd4afe685568dbf8c07976b4292670450de9322df1e56cc72"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v2/status.json",
+      "sha256": "ddc39a60f4304e2a70fd7ceec9057174a35238c3db80bb2930af76ae1a3fe3ad"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v2/ocr-tests.log",
+      "sha256": "3184f2dd0cefd0c9e481fc13e1ad60213a1d67dfa505531c7cc9829b767cd38d"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v2/app-tests.log",
+      "sha256": "8381334dc0d4cdff93a87e5e66269081f1124c8acb6d423f65490c6120278c59"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v2/native-build.log",
+      "sha256": "33b6cd8789685b805d2e381b5ae80a9917f53fbea8edee445eaa1af4203cfbc8"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v2/test-results/ocr.trx",
+      "sha256": "636308816c12d9f96ef7f5353bf4854485d6ecaac32b387aacf12d5eebe18bcf"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v2/test-results/app.trx",
+      "sha256": "6b00ae890dbc5f3c6059deb83939799547e760e68a6888bb4dbc24055dade602"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v1/source-bindings.json",
+      "sha256": "e840049ba7192163c0fd3c4bd5e44d25c74c711f67fb661b6d5128db63fe430b"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v1/status.json",
+      "sha256": "749e79d6c9ead6c96cd451e4d97c1e4570879a518c6dd983e72d21edfe5a6f76"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-checks-v1/ocr-tests.log",
+      "sha256": "c922a3798412ef0430be858aed2f55bfdf6d5132d4615da9e5123e06a6358560"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v1/status.json",
+      "sha256": "3d5417c84e9f275f2b487b1f894e56055c1161c3676f85a34af3221bd2d7f5fe"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v1/COMPLETION-NOTIFICATION.txt",
+      "sha256": "643e41b891bf1e2711d925dcce32f66aec7b17601c0dc6e37a6c990f1c1deba1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v2/native-marker-score.json",
+      "sha256": "a498a145618c4502639e5ce25900e28694281f25815c651cc396c5b7da3d6273"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v2/native-ocr-score.json",
+      "sha256": "d14bd1073716bbda4c6a164088b64cb15b9f53d346e22fe7694556aaca779aa0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-single-glyph-mask-v2/axis-geometry-comparison.json",
+      "sha256": "b91e59bd23c929a1aabbde19ebb497924f1a54100554bae45b0efb2de6ccc878"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/comparison.json",
+      "sha256": "5e3fea362953f38f125a2c9cd9eb14fcc6ab72594fe04ed506d5408ad201c6f3"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "aa1451039b43ed300c832e04146486af39060557d72df5ef70b0ea02192501d0"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/mask-effects.json",
+      "sha256": "dd8f7007f92e138a2cde124cb7b973f5c7e3b2b3aaecdaf532cb8a3abce19e96"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/mask-effects-normalized.json",
+      "sha256": "c8cee74e0f47e9f5e68e09e1d662c6a466ba4383b1153d031a2fd102b951fbc0"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/before-score-retry-status.json",
+      "sha256": "d411550c162e0147878bc13ce31270b55f177cdba41e810a5158fb48b005e331"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/scoring.log",
+      "sha256": "16628996eb850fd645a2117271306889723ea9d082f9de8cd88b4b20d2f6db56"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/score.log",
+      "sha256": "6a8693feb24e684580faadbe6ae6d9aa2c6db5f83a7d424594062df7bebc481a"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/scoring-retry.log",
+      "sha256": "367a06b97f4b7b3a0a241138a5ba595d912e1f502d037d9dc7b2c3aff2b5e178"
+    },
+    {
+      "path": "artifacts/goal22-runs/single-glyph-mask-workflow-v1/score-retry.log",
+      "sha256": "8a40d6e0d518b4f093f001c85a8c753217c7dd7f13efe75fd2de9d433aeef419"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-marker-geometry-v1/aggregate.json",
+      "sha256": "123ef33a08653893fa3f86ee5f6426b788f5ea116e4eab43ece979298732e4e6"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-marker-geometry-v1/details.json",
+      "sha256": "306200ce6fcf8ef6497ec01763def9c7eef62bcca558a6334c3300242bf26afa"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-marker-geometry-v1/text-exclusion-traces.json",
+      "sha256": "d95e51ce6fb07d6028852d29d15a621f148b0c20cdf0e0ff7b491eb25f602d90"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-marker-geometry-v1/missing-point-crops.png",
+      "sha256": "6ecb67318e777aec5ecf2e42d5b00aa7514bcda7f4461f27837e68d1f673befb"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-RemainingMarkerGeometry.py",
+      "sha256": "fea3060218a14cf913f03814280f6688e9a1ee92dc57e9c05534b74285cfb137"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-SingleGlyphMaskVerification.py",
+      "sha256": "b5bc9b354dd75eb90c4dfb5c4d3ebe2c52b9d0f0a4b4dddf79d7d39c66cac2ec"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-SingleGlyphMaskChecks.ps1",
+      "sha256": "093eb40a81954ab27a50be5eee8f1d38566d5b6fa69baa86895754ed6a083a03"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-SingleGlyphMaskChecksV2.ps1",
+      "sha256": "f03fcedd274246a70a422b040211cf77de27706c9a66a7e00d02ea81f79d9cfb"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-SingleGlyphMaskContext.py",
+      "sha256": "f65840891634514e94cdd11523f95de89afc6e97e53c300ab77743dec4d1e960"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-SingleGlyphMaskContextV2.py",
+      "sha256": "4c6f4d4da744eed5ad67af0340836948d559f03e4174ed8831ee4ec8a3d0f3a4"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-SingleGlyphMaskContext.ps1",
+      "sha256": "fc0d85e3c6acc545993a7927a9675af87777aefff73572f94d57c2b65b6e9418"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-SingleGlyphMaskContextV2.ps1",
+      "sha256": "208c2a1ab9780b303f3bc4552bdb6899cc20619fafd3ea1f0ce48ac8472c8575"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-SingleGlyphMaskContextV2.py",
+      "sha256": "2c2c2169473abbc9d7fb7f50c8e6d7b8e388134226a65d96c5587170c3cfd232"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-SingleGlyphMaskOcrV2.py",
+      "sha256": "63b9e397d21cdb3ffc6c4ccdc130525d749d340afab8c44ad9baf1d0be55cc4d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-SingleGlyphMaskGeometryV2.py",
+      "sha256": "3c4734e6696024d3b5d8e10bbe2c38f2a286de8d6b07b16466ba0a6f91677f55"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-SingleGlyphMaskWorkflow.py",
+      "sha256": "a6ed089391d7ded89588bb4147f75309a1ee968dff24f620c8f0d959bb8324d8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-SingleGlyphMaskWorkflow.ps1",
+      "sha256": "a373187d0876996f4f8884c395ca66ce4a7b8a72eb50531612bdba4d5d69a5b8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-SingleGlyphMaskWorkflow.py",
+      "sha256": "52b23660ba5cfa109188e23bf8f89d1737f7c0cb431d8b7da8e198bda451ed26"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-SingleGlyphMaskWorkflowRetry.py",
+      "sha256": "39462d9d19606e965184cc06e277c44d1dc60562de57ea0ee9863b07a0207aa9"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-SingleGlyphMaskEffects.py",
+      "sha256": "fcb6cb96a74f37216ca0acb07c2166d51c3207039e3c24ce6ab68f4bb7aa3328"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-SingleGlyphMaskEffectsV2.py",
+      "sha256": "e0a8acf60dc8a8442efdeacb449ccf44ed7ef57e63e1139f7964928ccf45be8d"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-SingleGlyphMaskRepair.py",
+    "sha256": "da43f42759d3a47f64b2325ec464f058d1350d8d0964ce58ea02df3c2bd64d84"
+  },
+  "limitations": [
+    "A real one-glyph annotation can resemble a data marker; both remain unreviewed with explicit overlap warnings.",
+    "Multiple-glyph false text regions and other point/text detection failures remain.",
+    "Open synthetic development evidence does not authorize production or replace real/sealed acceptance."
+  ],
+  "license": "Apache-2.0 project source and existing reviewed dependencies/models only.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

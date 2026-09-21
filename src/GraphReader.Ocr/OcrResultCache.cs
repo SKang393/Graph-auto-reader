@@ -102,6 +102,7 @@ public static class OcrCacheKeyDeriver
         yield return options.StageVersion;
         yield return OcrPipeline.TickAlternativeResolutionVersion;
         yield return ContainedTextFragmentResolver.CompositionVersion;
+        yield return SingleGlyphTextMaskReview.Version;
         yield return GraphTextRoleClassifier.Version;
         if (options.EnableFramedLegendTextRecovery)
         {
