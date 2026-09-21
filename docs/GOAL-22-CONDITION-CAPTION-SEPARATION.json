@@ -1,0 +1,76 @@
+{
+  "schema": "graphreader.goal22.condition-caption-separation.v1",
+  "base_commit": "e47d13f49e8c404d7cecfef7a6a317f1c7db717f",
+  "source_bindings": [
+    {
+      "path": "ml/synthetic/condition_label_layout.py",
+      "sha256": "34b9a666f137a1d4e0d4b7c92f34119f7ed4aaa316be56938441b3aea8749a9a"
+    },
+    {
+      "path": "ml/synthetic/tests/test_condition_label_layout.py",
+      "sha256": "37a64592c73d6cfed32d3c92123c211a7250a01b5a9cee6dcb948c59b26c5a5e"
+    }
+  ],
+  "definition": {
+    "path": "artifacts/goal22-runs/condition-caption-separation-v1/definition.json",
+    "sha256": "e2fa7d3912d34e4436910aef80bde3fa8cb4cb1333cd1723617c2df23d4b3ec3"
+  },
+  "generator": {
+    "path": "artifacts/goal22-runs/condition-caption-separation-v1/generator.json",
+    "sha256": "a8971315542c6448808ea71653b360d48df6ea7aa7a1a2577b7c6f4582759249"
+  },
+  "tests": {
+    "count": 16,
+    "failures": 0,
+    "seconds": 25.942
+  },
+  "crowded_caption_pairs_before": 17,
+  "crowded_caption_pairs_after": 1,
+  "moved_captions": 16,
+  "unresolved_captions": 1,
+  "all_453_labels_3100_characters_retained": true,
+  "all_scientific_fields_and_marker_masks_unchanged": true,
+  "idempotence_verified_all_21_sources": true,
+  "ocr_metrics_on_distinct_inputs": {
+    "recognition_exact_count": 328,
+    "role_correct_count": 337,
+    "geometry_matched_region_count": 378,
+    "geometry_false_positive_count": 147,
+    "geometry_false_negative_count": 75,
+    "character_error_count": 1031
+  },
+  "ocr_inference_milliseconds": 50467.6802,
+  "job_seconds": 435.627799,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/condition-caption-separation-v1/tests.xml",
+      "sha256": "96461929146bf90629b829cf56d67e0a34d9fa78a8455c678603c2a79578e281"
+    },
+    {
+      "path": "artifacts/goal22-runs/condition-caption-separation-v1/status.json",
+      "sha256": "cd139f738e048d62166a8df88bf4c85ab7b9b36a18651178b723e886f3fec774"
+    },
+    {
+      "path": "artifacts/goal22-runs/condition-caption-separation-v1/source-bindings.json",
+      "sha256": "df925d778e2cec2f2ebd2b7cb078a96f2eced04534c0ae3ab624620cdcb1c69e"
+    },
+    {
+      "path": "artifacts/goal22-runs/condition-caption-separation-v1/changes.json",
+      "sha256": "50db2aa789a77d5c0717537bc706cdd974f3a9bcf8c271bfd38b0b50a3fd2dc1"
+    },
+    {
+      "path": "artifacts/goal22-runs/condition-caption-separation-v1/final-spacing-audit.json",
+      "sha256": "84a8ef57d6d32b96aeb99d896fe2dec681c60c8845f3cd71adabb961d3e93ddf"
+    },
+    {
+      "path": "artifacts/goal22-runs/condition-caption-separation-v1/result.json",
+      "sha256": "f383d053f7b1bfad811bade146630d832c1ba669bbad3a1f230244e6082c6ab0"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "ocr_acceptance_pass": false,
+  "all_goal22_outcomes_complete": false
+}

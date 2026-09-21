@@ -21,7 +21,7 @@ from .fonts import FontResolver
 from .renderer import _font_settings, render_scene
 from .schema import validate_scene
 
-VERSION = "synthetic-condition-label-phase-layout-v1"
+VERSION = "synthetic-condition-label-phase-layout-v2"
 
 
 def bind_condition_label_layout(
@@ -81,6 +81,26 @@ def bind_condition_label_layout(
         footprint = (old_box[0] + measured[0], old_box[1] + measured[1],
                      old_box[0] + measured[2], old_box[1] + measured[3])
         width, height = footprint[2] - footprint[0], footprint[3] - footprint[1]
+        # Distinct annotated captions need a visible group boundary, not merely
+        # non-touching ink. Otherwise a nearby caption becomes part of a note or
+        # participant name. Use font geometry only, never OCR predictions.
+        neighbours = []
+        for other in result["annotations"]["text_regions"]:
+            if (other is region or other["panel_id"] != region["panel_id"] or
+                    not other.get("visible", True)):
+                continue
+            a, b, c, d = font.getbbox(other["text"], anchor="lt")
+            x, y = other["box"][:2]
+            neighbours.append((x + a, y + b, x + c, y + d))
+
+        def adjacent_groups(box):
+            return sum(
+                min(box[3], other[3]) - max(box[1], other[1]) >=
+                0.35 * min(height, other[3] - other[1]) and
+                max(other[0] - box[2], box[0] - other[2]) <
+                max(CLEARANCE, height, other[3] - other[1])
+                for other in neighbours)
+
         scratch = deepcopy(result)
         scratch["degradations"] = []
         next(r for r in scratch["annotations"]["text_regions"] if r["region_id"] == region["region_id"])["visible"] = False
@@ -90,18 +110,23 @@ def bind_condition_label_layout(
             integral = np.pad(occupied.cumsum(0).cumsum(1), ((1, 0), (1, 0)))
 
             def count(box):
-                x0, y0 = max(0, math.floor(box[0] - CLEARANCE)), max(0, math.floor(box[1] - CLEARANCE))
-                x1, y1 = min(image.width, math.ceil(box[2] + CLEARANCE)), min(image.height, math.ceil(box[3] + CLEARANCE))
+                x0, y0 = min(image.width, max(0, math.floor(box[0] - CLEARANCE))), min(image.height, max(0, math.floor(box[1] - CLEARANCE)))
+                x1, y1 = max(0, min(image.width, math.ceil(box[2] + CLEARANCE))), max(0, min(image.height, math.ceil(box[3] + CLEARANCE)))
+                if x1 <= x0 or y1 <= y0:
+                    return 0
                 return int(integral[y1, x1] - integral[y0, x1] - integral[y1, x0] + integral[y0, x0])
 
             inside = area[0] <= footprint[0] and footprint[2] <= area[2] and area[1] <= footprint[1] and footprint[3] <= area[3]
             occupied_before = count(footprint)
-            if inside and occupied_before == 0:
+            adjacent_before = adjacent_groups(footprint)
+            if inside and occupied_before == 0 and adjacent_before == 0:
                 continue
             candidates = [(x, y) for y in range(math.ceil(area[1] + CLEARANCE), math.floor(area[3] - height - CLEARANCE) + 1, CLEARANCE)
                           for x in range(math.ceil(area[0] + CLEARANCE), math.floor(area[2] - width - CLEARANCE) + 1, CLEARANCE)]
             candidates.sort(key=lambda p: ((p[0] - footprint[0]) ** 2 + (p[1] - footprint[1]) ** 2, p[1], p[0]))
-            chosen = next((p for p in candidates if count((p[0], p[1], p[0] + width, p[1] + height)) == 0), None)
+            chosen = next((p for p in candidates if
+                           adjacent_groups((p[0], p[1], p[0] + width, p[1] + height)) == 0 and
+                           count((p[0], p[1], p[0] + width, p[1] + height)) == 0), None)
             if chosen is None:
                 unresolved.append({"region_id": region["region_id"], "reason": "no_clear_header_space_in_authored_phase"})
                 continue
@@ -115,6 +140,7 @@ def bind_condition_label_layout(
             changes.append({"old_region_id": old_id, "region_id": region["region_id"], "phase_id": phase["phase_id"],
                             "bar_id": bar["bar_id"], "old_box": old_box, "box": region["box"][:],
                             "phase_header_area": list(area), "outside_phase_before": not inside,
+                            "adjacent_text_groups_before": adjacent_before, "adjacent_text_groups_after": 0,
                             "occupied_pixels_before": occupied_before, "occupied_pixels_after": 0})
         finally:
             image.close()

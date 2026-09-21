@@ -7,7 +7,8 @@ import numpy as np
 import pytest
 
 from ml.synthetic.condition_label_layout import VERSION, bind_condition_label_layout
-from ml.synthetic.renderer import render_scene
+from ml.synthetic.fonts import FontResolver
+from ml.synthetic.renderer import _font_settings, render_scene
 from ml.synthetic.templates import build_scene
 
 
@@ -128,3 +129,44 @@ def test_ambiguous_artifact_origin_is_rejected():
     scene["annotations"]["artifacts"].append(duplicate)
     with pytest.raises(ValueError, match="unique artifact"):
         bind_condition_label_layout(scene, split="dev", label_bindings=bindings)
+
+
+@pytest.mark.parametrize("separate_row", [False, True])
+def test_condition_caption_remains_visibly_separate_from_nearby_text(separate_row):
+    scene, bindings = _fixture("ab")
+    label = next(r for r in scene["annotations"]["text_regions"] if r["role"] == "condition_label")
+    heading = next(r for r in scene["annotations"]["text_regions"] if r["role"] == "phase_heading")
+    requested, size, paths = _font_settings(scene)
+    font = FontResolver(paths).resolve(requested, size).load()
+    a, b, c, d = font.getbbox(heading["text"], anchor="lt")
+    _move(scene, heading, 200, 45)
+    # Five pixels separate the actual letters, but on one row these independent
+    # labels read as one phrase. A different row does not have that ambiguity.
+    _move(scene, label, 200 + c + 5, 45 if not separate_row else 45 + d + 10)
+    before = deepcopy(scene)
+    result = bind_condition_label_layout(scene, split="dev", label_bindings=bindings)
+    assert scene == before and result.scene["panels"] == scene["panels"]
+    changes = [c for c in result.changes if c["old_region_id"] == label["region_id"]]
+    if separate_row:
+        assert not changes
+    else:
+        assert len(changes) == 1
+        assert changes[0]["adjacent_text_groups_before"] >= 1
+        assert changes[0]["adjacent_text_groups_after"] == 0
+        moved = next(r for r in result.scene["annotations"]["text_regions"]
+                     if r["region_id"] == changes[0]["region_id"])
+        la, lb, lc, ld = font.getbbox(moved["text"], anchor="lt")
+        x, y = moved["box"][:2]
+        overlap = min(y + ld, 45 + d) - max(y + lb, 45 + b)
+        gap = max(x + la - (200 + c), 200 + a - (x + lc))
+        assert overlap < 0.35 * min(ld - lb, d - b) or gap >= max(ld - lb, d - b)
+
+
+def test_fully_off_canvas_caption_is_relocated_without_an_index_error():
+    scene, bindings = _fixture("ab")
+    label = next(r for r in scene["annotations"]["text_regions"] if r["role"] == "condition_label")
+    _move(scene, label, scene["canvas"]["width"] + 100, 45)
+    result = bind_condition_label_layout(scene, split="dev", label_bindings=bindings)
+    change = next(c for c in result.changes if c["old_region_id"] == label["region_id"])
+    assert change["outside_phase_before"] and change["occupied_pixels_after"] == 0
+    assert result.scene["panels"] == scene["panels"]
