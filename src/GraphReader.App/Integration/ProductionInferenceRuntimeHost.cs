@@ -62,7 +62,7 @@ public sealed class ProductionInferenceRuntimeHost : IAsyncDisposable
                     sessionFactory,
                     cpuThreadConfiguration);
                 var scheduler = new BoundedInferenceScheduler(queueCapacity, workerCount);
-                return new InferenceRuntime(registry, scheduler, cache);
+                return new InferenceRuntime(registry, scheduler, cache, allowedProviders: ProviderOrder);
             },
             LazyThreadSafetyMode.ExecutionAndPublication);
     }

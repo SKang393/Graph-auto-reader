@@ -339,6 +339,11 @@ public sealed class ProductionCandidateWorkflowTests
         Assert.HasCount(2, observation.AcceptedMarkers);
         Assert.AreEqual(CalibrationValidity.Valid, observation.Calibration.Validity);
         Assert.IsTrue(observation.Provenance.Any(static envelope => envelope.StageVersion == ProductionTextMarkerExclusion.Version));
+        Assert.HasCount(3, observation.MarkerPipeline.ClassifiedPlotMarkers);
+        Assert.HasCount(1, observation.MarkerPipeline.TextExcludedMarkerIds);
+        Assert.IsTrue(observation.MarkerPipeline.ClassifiedPlotMarkers.Any(marker =>
+            observation.MarkerPipeline.TextExcludedMarkerIds.Contains(marker.Marker.MarkerId)));
+        Assert.IsNull(observation.MarkerPipeline.CenterCounters, "The fake center stage supplies no proposal diagnostics.");
         WorkflowReviewPanel panel = result.Review.Panels.Single();
         Assert.HasCount(2, panel.Points);
         ProductionPanelExportEvidence evidence = store.Get(panel.PanelId).ExportEvidence!;

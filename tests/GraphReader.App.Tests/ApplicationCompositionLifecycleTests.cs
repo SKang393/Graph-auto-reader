@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.IO;
+using System.Security.Cryptography;
 using System.Windows.Threading;
 using GraphReader.App.Integration;
 using GraphReader.App.Integration.Workflow;
@@ -107,6 +108,43 @@ public sealed class ApplicationCompositionLifecycleTests
             queue, workers);
         Assert.ThrowsExactly<InvalidDataException>(() => ProductionOcrAdapter.ValidateApprovedOriginalDbRuntime(host));
         Assert.IsFalse(host.IsInitialized);
+    }
+
+    [TestMethod]
+    public async Task HostCpuProfileConstrainsStagesThatOmitOrBroadenTheirProviderChoice()
+    {
+        string root = Path.Combine(Path.GetTempPath(), "GraphReader.HostCpuPolicy", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            string modelPath = Path.Combine(root, "fake.bin");
+            File.WriteAllBytes(modelPath, [1, 3, 5]);
+            var model = new ModelIdentity("fake", "1",
+                Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(modelPath))), modelPath);
+            var factory = new FakeInferenceSessionFactory();
+            await using var host = new ProductionInferenceRuntimeHost(
+                new FakeExecutionProviderDiscovery("DmlExecutionProvider", "CPUExecutionProvider"),
+                new WindowsExecutionProviderPolicy(), factory, CpuThreadConfiguration.Create(1),
+                [InferenceProvider.Cpu], Path.Combine(root, "cache"), 2, 1);
+            var request = new InferenceRequest(model, new InferenceInput(new float[] { 1, 2, 3 }, new long[] { 1, 3 }),
+                new StageCacheMaterial("input", "crop", "original", "host-test", "1", new Dictionary<string, object?>(), 1),
+                TimeSpan.FromSeconds(2));
+
+            InferenceResponse automatic = await host.Runtime.RunAsync(request, CancellationToken.None);
+            InferenceResponse broadened = await host.Runtime.RunAsync(request with
+            {
+                AllowedProviders = [InferenceProvider.DirectMl, InferenceProvider.Cpu], BypassCache = true,
+            }, CancellationToken.None);
+
+            Assert.AreEqual(InferenceProvider.Cpu, automatic.Execution?.Provider);
+            Assert.AreEqual(InferenceProvider.Cpu, broadened.Execution?.Provider);
+            Assert.AreEqual(InferenceProvider.Cpu, factory.Sessions.Single().Provider);
+            Assert.AreEqual(2, factory.Sessions.Single().RunCount);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
     }
 
     private sealed class TestApplicationPaths(string root) : IApplicationPaths

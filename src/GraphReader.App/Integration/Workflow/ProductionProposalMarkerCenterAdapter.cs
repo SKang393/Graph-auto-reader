@@ -789,7 +789,10 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             diagnostic.StageCounters.FinalCandidates,
             CacheHit: false,
             Failure: null);
-        return new ProductionMarkerCenterEvidence(envelope, diagnostic.Candidates, [report]);
+        return new ProductionMarkerCenterEvidence(envelope, diagnostic.Candidates, [report])
+        {
+            CandidateDiagnostics = IsApproved ? null : diagnostic,
+        };
     }
 
     /// <summary>

@@ -195,6 +195,76 @@ public sealed class InferenceRuntimeTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task HostCpuPolicyCannotBeBroadenedOrReuseGpuCache(bool explicitBroadRequest)
+    {
+        using var model = TestOnnxModel.CreateIdentity();
+        string cacheRoot = TempDirectory();
+        try
+        {
+            var factory = new FakeInferenceSessionFactory();
+            OnnxSessionRegistry Registry() => new(
+                new FakeExecutionProviderDiscovery("DmlExecutionProvider", "CPUExecutionProvider"),
+                new WindowsExecutionProviderPolicy(), factory,
+                CpuThreadConfiguration.Create(1, new FixedCoreDetector()));
+            await using var normal = new InferenceRuntime(Registry(), new BoundedInferenceScheduler(2, 1),
+                new ContentAddressedStageCache(cacheRoot));
+            InferenceRequest request = Request(model, TimeSpan.FromSeconds(2));
+            Assert.AreEqual(InferenceProvider.DirectMl,
+                (await normal.RunAsync(request, CancellationToken.None)).Execution?.Provider);
+            var hostProviders = new List<InferenceProvider> { InferenceProvider.Cpu };
+            await using var cpuOnly = new InferenceRuntime(Registry(), new BoundedInferenceScheduler(2, 1),
+                new ContentAddressedStageCache(cacheRoot), allowedProviders: hostProviders);
+            hostProviders.Add(InferenceProvider.DirectMl); // Constructor must retain its own policy snapshot.
+            if (explicitBroadRequest)
+                request = request with { AllowedProviders = [InferenceProvider.DirectMl, InferenceProvider.Cpu] };
+
+            InferenceResponse cold = await cpuOnly.RunAsync(request, CancellationToken.None);
+            InferenceResponse cached = await cpuOnly.RunAsync(request, CancellationToken.None);
+
+            Assert.AreEqual(InferenceProvider.Cpu, cold.Execution?.Provider);
+            Assert.IsFalse(cold.Execution?.Timing.CacheHit);
+            Assert.AreEqual(InferenceProvider.Cpu, cached.Execution?.Provider);
+            Assert.IsTrue(cached.Execution?.Timing.CacheHit);
+            Assert.AreEqual(2, factory.CreatedCount);
+        }
+        finally
+        {
+            Directory.Delete(cacheRoot, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public async Task RequestCanNarrowTheHostPolicyToCpu()
+    {
+        using var model = TestOnnxModel.CreateIdentity();
+        string cacheRoot = TempDirectory();
+        try
+        {
+            var factory = new FakeInferenceSessionFactory();
+            var registry = new OnnxSessionRegistry(
+                new FakeExecutionProviderDiscovery("DmlExecutionProvider", "CPUExecutionProvider"),
+                new WindowsExecutionProviderPolicy(), factory,
+                CpuThreadConfiguration.Create(1, new FixedCoreDetector()));
+            await using var runtime = new InferenceRuntime(registry, new BoundedInferenceScheduler(2, 1),
+                new ContentAddressedStageCache(cacheRoot),
+                allowedProviders: [InferenceProvider.DirectMl, InferenceProvider.Cpu]);
+
+            InferenceResponse result = await runtime.RunAsync(
+                Request(model, TimeSpan.FromSeconds(2)) with { AllowedProviders = [InferenceProvider.Cpu] },
+                CancellationToken.None);
+
+            Assert.AreEqual(InferenceProvider.Cpu, result.Execution?.Provider);
+            Assert.AreEqual(InferenceProvider.Cpu, factory.Sessions.Single().Provider);
+        }
+        finally
+        {
+            Directory.Delete(cacheRoot, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task ExplicitProviderPolicyRejectsMissingCpuFakeAndDuplicates()
     {
         using var model = TestOnnxModel.CreateIdentity();

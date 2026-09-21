@@ -1,0 +1,451 @@
+{
+  "schema": "graphreader.goal22-runtime-provider-marker-diagnosis.v1",
+  "status": "verified_runtime_repair_and_development_diagnosis_not_product_acceptance",
+  "source_base_commit": "81ffdb06eca8b888140b01c52f0478d75db71939",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Inference/InferenceRuntime.cs",
+      "sha256": "57f32ecb20200350f98feaba3ac10a9c24334181a384de3b3d77369391fd8af8"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/ProductionInferenceRuntimeHost.cs",
+      "sha256": "f527a0b73e86db38b206a0fd8c60f8144872b028751ac6f5d4074ac9e339cb84"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "d157e7555ce691fc1da028fec4fd2d88ff7b966c30d379677a8f6ea9de1bddd2"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionCandidateCalibrationObservation.cs",
+      "sha256": "a66ee7e0d499bc718c923939890fa93d78384be899e1a197f75178146e87eba0"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionMarkerCenterAdapter.cs",
+      "sha256": "9b95e405de2b07ff3dcad306333bfd6fc87b5f81d085ae1f83ddea0004b410d4"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
+      "sha256": "6a294d6fe33383acf8bfae6eef50f8371261c22b60001c997e8ef47efbffe25d"
+    },
+    {
+      "path": "tests/GraphReader.Inference.Tests/InferenceRuntimeTests.cs",
+      "sha256": "21c43da94131c99a8ad6041772ba5b71723d41fd1a5a5051e329a8d2e318453e"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ApplicationCompositionLifecycleTests.cs",
+      "sha256": "94c154279b09ded58d5fe794af2ebe9a2889e2138aafd2312b129bb11521f75e"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionCandidateWorkflowTests.cs",
+      "sha256": "97fe068f773d49164c6fbf507a800109a390498d9234ad28ac301695f206a9b6"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs",
+      "sha256": "0835928a478b12dc2106b959e1bc406fad41f4a1ea34c1db21a613673dd340e0"
+    }
+  ],
+  "failure": "Host ProviderOrder was descriptive metadata. A classifier request without AllowedProviders could select DirectML in a declared CPU-only run.",
+  "repair": "Freeze a host provider allowlist and intersect each request before cache identity, cache reuse and session acquisition. Stages may narrow but cannot broaden the host policy.",
+  "validation": [
+    {
+      "evidence": {
+        "path": "artifacts/goal22-runs/cpu-marker-pipeline-checks-v1/test-results/Inference.trx",
+        "sha256": "e976238a3768571c818b72c4f4359296f88476ffe1287608806db167707879ae"
+      },
+      "passed": 92,
+      "skipped": 1,
+      "counts": {
+        "total": "93",
+        "executed": "92",
+        "passed": "92",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "evidence": {
+        "path": "artifacts/goal22-runs/cpu-marker-pipeline-checks-v1/test-results/App.trx",
+        "sha256": "11e67d8727e1f008c7b20689061cefd626ef3a2222529c271a57698cec2f0cb5"
+      },
+      "passed": 463,
+      "skipped": 0,
+      "counts": {
+        "total": "463",
+        "executed": "463",
+        "passed": "463",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ],
+  "skipped_probe": "The optional exact production-classifier store probe lacks GRAPHREADER_PRODUCTION_MODEL_STORE; it is not counted as passing.",
+  "synthetic_diagnostic_scope": "Only the explicit synthetic candidate observer writes detailed marker observations. Approved production keeps no candidate diagnostic payload and private acceptance installs no writer.",
+  "native_diagnosis": {
+    "schema": "graphreader.native-marker-stage-diagnosis.v1",
+    "status": "diagnostic_only_unapproved",
+    "source_count": 21,
+    "panel_count": 31,
+    "all_838_truths_retained": true,
+    "observed_model_providers": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-structural-context-v5:cpu": 31
+    },
+    "every_observed_model_used_cpu": true,
+    "all_axis_polygons_unchanged": true,
+    "marker_metrics": {
+      "truth": 838,
+      "predicted": 643,
+      "matched": 561,
+      "extra": 82,
+      "missing": 277,
+      "precision": 0.8724727838258165,
+      "recall": 0.6694510739856802
+    },
+    "stage_counts": {
+      "center_candidates": 821,
+      "classified_plot_candidates": 821,
+      "classifier_artifact_rejects": 159,
+      "text_rejects_after_classifier": 19,
+      "accepted_markers": 643
+    },
+    "proposal_counters": {
+      "proposal_grid_positions_considered": 1174824,
+      "low_ink_rejects": 966974,
+      "ocr_mask_rejects": 0,
+      "artifact_mask_rejects": 0,
+      "emitted_proposals": 148122,
+      "inference_outputs": 148122,
+      "outputs_above_0_25": 1330,
+      "decoded_points_masked": 0,
+      "geometry_consensus_rejects_after_1px_refinement_attempts": 154,
+      "decoded_points_outside_plot": 216,
+      "candidates_before_nms": 1717,
+      "nms_suppressions": 896,
+      "final_candidates": 821,
+      "outputs_above_operating_threshold": 2087
+    },
+    "missing_truth_categories": {
+      "no_above_threshold_decoded_center_nearby": 199,
+      "text_exclusion_after_classification": 5,
+      "all_nearby_classified_centers_rejected_as_artifacts": 52,
+      "nearby_pre_nms_center_not_retained": 11,
+      "accepted_nearby_but_one_to_one_collision": 10
+    },
+    "missing_by_shape": {
+      "triangle_up": {
+        "no_above_threshold_decoded_center_nearby": 20,
+        "text_exclusion_after_classification": 2
+      },
+      "diamond": {
+        "no_above_threshold_decoded_center_nearby": 3
+      },
+      "star": {
+        "no_above_threshold_decoded_center_nearby": 3,
+        "text_exclusion_after_classification": 1
+      },
+      "asterisk": {
+        "no_above_threshold_decoded_center_nearby": 6,
+        "all_nearby_classified_centers_rejected_as_artifacts": 2,
+        "text_exclusion_after_classification": 1
+      },
+      "cross": {
+        "no_above_threshold_decoded_center_nearby": 95,
+        "all_nearby_classified_centers_rejected_as_artifacts": 12,
+        "nearby_pre_nms_center_not_retained": 1
+      },
+      "other": {
+        "no_above_threshold_decoded_center_nearby": 51,
+        "nearby_pre_nms_center_not_retained": 9,
+        "all_nearby_classified_centers_rejected_as_artifacts": 35,
+        "accepted_nearby_but_one_to_one_collision": 10
+      },
+      "circle": {
+        "all_nearby_classified_centers_rejected_as_artifacts": 3,
+        "no_above_threshold_decoded_center_nearby": 20,
+        "nearby_pre_nms_center_not_retained": 1
+      },
+      "square": {
+        "text_exclusion_after_classification": 1,
+        "no_above_threshold_decoded_center_nearby": 1
+      }
+    },
+    "attribution_limit": "Nearby means the unchanged five-original-pixel match radius. Pre-refinement proximity groups do not prove one proposal lineage or separate masking from geometry rejection.",
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "production_approved": false
+  },
+  "ocr_metrics_unchanged": true,
+  "csv_values_and_statuses_unchanged": true,
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_observed_model_providers": {
+    "OpenCvSharpExtern:cpu": 39,
+    "graph-text-extent-db-head-v44-p1:cpu": 39,
+    "en_PP-OCRv5_mobile_rec:cpu": 39,
+    "marker-center-component-diversity-v27:cpu": 39,
+    "marker-classifier-structural-context-v5:cpu": 39
+  },
+  "timing": {
+    "cpu-marker-pipeline-checks-v1": {
+      "status": "completed",
+      "seconds": 95.0512028,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "model_inference_runs": 0
+    },
+    "native-cpu-marker-context-v1": {
+      "status": "completed",
+      "seconds": 132.6549785,
+      "inference_exit_code": 1,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "training": false
+    },
+    "cpu-marker-workflow-v1": {
+      "status": "completed",
+      "inference_exit_code": 1,
+      "seconds": 145.5884185,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "training": false
+    }
+  },
+  "model_weights_changed": false,
+  "thresholds_changed": false,
+  "training": false,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "packaged_build": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "next_step": "Inspect native proposal inputs for the 199 truths without nearby above-threshold decoded centers, especially crosses and other symbols. Separate mask/input defects from learned confidence before deciding on model reuse or adaptation.",
+  "license_review": "Project-owned Apache-2.0 code and synthetic scenes; existing reviewed dependencies and models only.",
+  "artifacts": [
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-pipeline-checks-v1/status.json",
+      "sha256": "c62a9718ae60e38089c3e0c27cbcd8151dc6b35350b6b7f46f47e1c6d20b150c"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-pipeline-checks-v1/source-bindings.json",
+      "sha256": "c3ae2240d423dcaad37e963305c5d1953685aeead890851e07722aa42f983387"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-pipeline-checks-v1/build.log",
+      "sha256": "547ce8fc661963638e018f4e6fa135979c59f10399225f0b20c90afdc3885319"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/status.json",
+      "sha256": "aa1721078a4b75a82eb8ccc83874aaa1e0a55e1309ddccf3c21adf94c21a5ff9"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/preparation.json",
+      "sha256": "88344b582595b3400813e16b3329c4a8b87627e43f2aad422e67cd681b439062"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/candidate-binding.json",
+      "sha256": "2aaa874127b5c19022c8528e2696bacb4be33cf6118796e688b5a86198307559"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/input-manifest.json",
+      "sha256": "671faf108d154f045291776095536b21a9435cd96fb249ebc9b099a5140c3500"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/protocol.json",
+      "sha256": "1bc05ce58a5b971886c6fa5a865f506a3ee4d0c29463cb2663179868e46650eb"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/runtime-description.json",
+      "sha256": "d5a6711cf529739370d477c561556bccf1e64315ab8f2c3a366f3fc2d725cae0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/execution/report.json",
+      "sha256": "9787ee53219be26dcda46011bf53fea4d19476643fa7708ae0d1813743b837f2"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/native-marker-score.json",
+      "sha256": "bcf657e68d1e17d4c24dac7e01201d02d87e78a56343033d31abb9a23819f8b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/native-marker-details.json",
+      "sha256": "b49d933dab84a466222cc702ac2d318c9ff6554c876532ec653ca4fc7db9ac06"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/native-ocr-score.json",
+      "sha256": "34b299783fcf899e224d3d22aa99d1849002b496230a8978c42e3d5ad20cd7be"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/marker-stage-diagnosis.json",
+      "sha256": "d887a7622af7d49ae8fda7a6e291c56a3f34f5bdab7f35d1ec05560b060375bf"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-cpu-marker-context-v1/marker-stage-details.json",
+      "sha256": "a840a223e9ad1e2505a1271e4bb39b8ee49146f051246c6341c728ac2321b487"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-workflow-v1/status.json",
+      "sha256": "9f696572e889125b492dd033e8bb5470a5db487bdfdd8b9c121e3f312cf81551"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-workflow-v1/preparation.json",
+      "sha256": "d1ffe32c177df8e85330c3c506198239ef08da85d0af54208aba384f1b409530"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-workflow-v1/candidate-binding.json",
+      "sha256": "2c2f296e64d60c4572b4f2bf5c327f3d5eebc1ee5ba151cc0cc6222f7849cb5a"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-workflow-v1/input-manifest.json",
+      "sha256": "d350ab136049c651ee68aeb13b62e5c31120316eb6ef9b029c950a08bc87ab38"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-workflow-v1/protocol.json",
+      "sha256": "122c981f39a5fed45da6f564a2a50c89373d28e400cb0b68b9327162117498f4"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-workflow-v1/execution/report.json",
+      "sha256": "aa72a4fd104f14413d9b8e91380e4a847fb72356d7a6eb47c9616bcd5c2f61f0"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-workflow-v1/comparison.json",
+      "sha256": "7f336666caaa6bd322b5e88682ed9206a0cec2e904af05de065600ce2c1ba946"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "962ceda013d3e24ee843bc20531e41a137b19e240f9e601a1510cea03efb8b33"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-marker-workflow-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "20d5186cd7ea3bf01c7565d350d02051d0386499c9e754055f102f1eb1bae6d6"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-CpuMarkerWorkflow.py",
+      "sha256": "a36ec01fb56052546d3eecc563103d411cccf6332e59092dd86f711decc57906"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CpuMarkerContext.py",
+      "sha256": "be36c0c6fb5bf87e7ace79a78bf776e3b6f68f557f27887ea5102675aa8c247e"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CpuMarkerWorkflow.py",
+      "sha256": "9a1184296f47f9c351b64784130b0c5c409d3bba3fabae198ed6fc91bea8dc9f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Probe-TrainingCpuBudget.py",
+      "sha256": "166d2be07d1feb486b9673be1bf7fe10d92c1cadb6c3af5183daee33759f48e8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-CpuMarkerPipeline.py",
+      "sha256": "9f9a793a31417adce5b3701bd1c59d1c881a6617664e35406044897943a89112"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CpuMarkerContext.ps1",
+      "sha256": "2271fab69785a16b72c1fb80d8448c2f5f32f50df8a0b739a9a9e0a5e9ccf91e"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CpuMarkerWorkflow.ps1",
+      "sha256": "3ef876c1c8d421cccd66f5e7b6571562ba2ea3e42e1bdc98a88a612c2fea6b21"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CpuContextOcr.py",
+      "sha256": "7f2d4a6482ae468805ac928cda911cf53c96a35f52b2ffdf6bd03ed58a05641b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CpuMarkerContext.py",
+      "sha256": "2031ae25c3ee7fcf5223960967ed5eb57b945508c3915c78f7455036b7d59401"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CpuMarkerStages.py",
+      "sha256": "9ef56d64563b9d34c7cf7ad492ef804808778c5dc740b9b9b0b0b50ce9b73f75"
+    },
+    {
+      "path": "artifacts/goal22-tools/Test-CpuMarkerPipeline.ps1",
+      "sha256": "1e169ac70d70bc56becc9518aad5976947fcada4cb5264c1cbe1c821048f2cc2"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/execution/report.json",
+      "sha256": "984c449946a8124c2a35e9493baa49db537e3c9b24a7b46ae10f3920973ae17f"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/execution/report.json",
+      "sha256": "a8740effcf293a770fbba6b6d06aef2deace6e8f2e86e9e65ded5172071d0998"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-81ffdb06eca8/status.json",
+      "sha256": "c8d511efcb5eee3fe9882588e4028afda6003c711647d9982ade8f31a067abf9"
+    }
+  ]
+}

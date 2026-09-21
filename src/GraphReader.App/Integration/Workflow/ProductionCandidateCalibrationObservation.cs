@@ -3,6 +3,7 @@
 
 using GraphReader.Axis;
 using GraphReader.Markers.Classification;
+using GraphReader.Markers.Detection;
 using GraphReader.Ocr;
 
 namespace GraphReader.App.Integration.Workflow;
@@ -17,4 +18,13 @@ internal sealed record ProductionCandidateCalibrationObservation(
     OcrResult Ocr,
     IReadOnlyList<ClassifiedMarker> AcceptedMarkers,
     SessionFirstCalibrationResult Calibration,
-    IReadOnlyList<WorkflowVisionEnvelope> Provenance);
+    IReadOnlyList<WorkflowVisionEnvelope> Provenance,
+    ProductionCandidateMarkerPipelineObservation MarkerPipeline);
+
+internal sealed record ProductionCandidateMarkerPipelineObservation(
+    IReadOnlyList<MarkerCenter> CentersBeforeClassification,
+    IReadOnlyList<ClassifiedMarker> ClassifiedPlotMarkers,
+    IReadOnlyList<string> TextExcludedMarkerIds,
+    ProposalMarkerStageCounters? CenterCounters,
+    IReadOnlyList<MarkerPoint> AboveThresholdDecodedPoints,
+    IReadOnlyList<MarkerCenter> PreNmsCenters);

@@ -29,7 +29,10 @@ public interface IProductionMarkerCenterAdapter
 public sealed record ProductionMarkerCenterEvidence(
     WorkflowVisionEnvelope Envelope,
     IReadOnlyList<MarkerCenter> Markers,
-    IReadOnlyList<MarkerFrameReport> Frames);
+    IReadOnlyList<MarkerFrameReport> Frames)
+{
+    internal ProposalMarkerCandidateDiagnosticResult? CandidateDiagnostics { get; init; }
+}
 
 /// <summary>
 /// Binds a checksum-resolved marker-center manifest to the shared lazy

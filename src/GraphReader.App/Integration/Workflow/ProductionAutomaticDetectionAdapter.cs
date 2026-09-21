@@ -365,7 +365,14 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 observe(new ProductionCandidateCalibrationObservation(
                     request.RunId, request.Panel.ImportedPanel.SourceId,
                     request.Panel.ImportedPanel.PanelId, request.Image.Sha256,
-                    axis.Geometry, ocr.Result, Array.AsReadOnly(acceptedMarkers), calibration, chain.Snapshot));
+                    axis.Geometry, ocr.Result, Array.AsReadOnly(acceptedMarkers), calibration, chain.Snapshot,
+                    new ProductionCandidateMarkerPipelineObservation(
+                        centers.Markers,
+                        Array.AsReadOnly(plotMarkers),
+                        Array.AsReadOnly(textExclusion.ExcludedMarkerIds.Order(StringComparer.Ordinal).ToArray()),
+                        centers.CandidateDiagnostics?.StageCounters,
+                        centers.CandidateDiagnostics?.AboveThresholdDecodedPoints ?? [],
+                        centers.CandidateDiagnostics?.PreNmsCandidates ?? [])));
             }
             RequireCompleteCalibration(calibration, chain);
 

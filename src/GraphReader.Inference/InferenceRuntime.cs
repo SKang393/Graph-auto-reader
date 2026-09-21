@@ -13,17 +13,21 @@ public sealed class InferenceRuntime : IAsyncDisposable
     private readonly BoundedInferenceScheduler _queue;
     private readonly IStageCache _cache;
     private readonly TimeSpan _disposalTimeout;
+    private readonly IReadOnlyList<InferenceProvider>? _allowedProviders;
     private int _disposed;
 
     public InferenceRuntime(
         OnnxSessionRegistry registry,
         BoundedInferenceScheduler queue,
         IStageCache cache,
-        TimeSpan? disposalTimeout = null)
+        TimeSpan? disposalTimeout = null,
+        IReadOnlyList<InferenceProvider>? allowedProviders = null)
     {
         _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         _queue = queue ?? throw new ArgumentNullException(nameof(queue));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        _allowedProviders = allowedProviders is null ? null : Array.AsReadOnly(allowedProviders.ToArray());
+        ValidateAllowedProviders(_allowedProviders);
         _disposalTimeout = disposalTimeout ?? TimeSpan.FromSeconds(2);
         if (_disposalTimeout <= TimeSpan.Zero)
         {
@@ -45,6 +49,17 @@ public sealed class InferenceRuntime : IAsyncDisposable
                 AllowedProviders = Array.AsReadOnly(request.AllowedProviders.ToArray()),
             };
         ValidateAllowedProviders(request.AllowedProviders);
+        if (_allowedProviders is not null)
+        {
+            // A stage may narrow the host's execution policy, never widen it.
+            // Apply the effective policy before both cache and session lookup.
+            request = request with
+            {
+                AllowedProviders = request.AllowedProviders is null
+                    ? _allowedProviders
+                    : Array.AsReadOnly(_allowedProviders.Intersect(request.AllowedProviders).ToArray()),
+            };
+        }
 
         var cacheKey = InferenceCacheKeyDeriver.Derive(request);
         if (!request.BypassCache)

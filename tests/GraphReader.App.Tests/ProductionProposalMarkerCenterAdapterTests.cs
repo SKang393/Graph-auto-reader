@@ -175,21 +175,32 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
     }
 
     [TestMethod]
-    public async Task ApprovedV24PathProducesCpuBoundWorkflowEvidence()
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task MaskPreservingWorkflowEvidenceKeepsDiagnosticsOnlyForCandidates(bool isApproved)
     {
         var runner = new FakeRunner(static count => Enumerable.Repeat(1f, count * 4).ToArray());
-        var adapter = CreateMaskPreservingAdapter(runner, isApproved: true);
+        var adapter = CreateMaskPreservingAdapter(runner, isApproved: isApproved);
         ProductionWorkflowDetectionRequest request = CreateRequest();
 
-        ProductionMarkerCenterEvidence evidence = await adapter.DetectAsync(
+        ProductionMarkerCenterEvidence evidence = isApproved ? await adapter.DetectAsync(
             request,
             FrameWithMarkers(),
             MarkerPolygon.FromRectangle(new(0, 0, 512, 512)),
             enhancedImage: null,
             enhancedTransforms: null,
-            CancellationToken.None);
+            CancellationToken.None) : await ((IProductionCandidateMarkerCenterAdapter)adapter)
+                .DetectForCandidateEvaluationAsync(request, FrameWithMarkers(),
+                    MarkerPolygon.FromRectangle(new(0, 0, 512, 512)), CancellationToken.None);
 
-        Assert.IsTrue(adapter.IsApproved);
+        Assert.AreEqual(isApproved, adapter.IsApproved);
+        Assert.AreEqual(!isApproved, evidence.CandidateDiagnostics is not null);
+        if (evidence.CandidateDiagnostics is { } diagnostic)
+        {
+            Assert.AreSame(evidence.Markers, diagnostic.Candidates);
+            Assert.AreEqual(evidence.Markers.Count, diagnostic.StageCounters.FinalCandidates);
+            Assert.IsNotEmpty(diagnostic.AboveThresholdDecodedPoints);
+        }
         Assert.AreEqual("markers", evidence.Envelope.Stage);
         Assert.AreEqual("cpu", evidence.Envelope.Model?.Provider);
         Assert.AreEqual(request.Image.Sha256, evidence.Envelope.InputSha256);
