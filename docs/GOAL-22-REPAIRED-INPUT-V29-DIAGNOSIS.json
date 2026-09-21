@@ -1,0 +1,376 @@
+{
+  "schema": "graphreader.repaired-native-input-v29-diagnosis.v1",
+  "status": "diagnostic_failed_replacement_not_approved",
+  "disposition": "Retain V27 development baseline; original V29 failed outcome remains unchanged. No new model revision, threshold search or promotion.",
+  "evidence": [
+    {
+      "path": "ml/markers/center/train_negative_v29/P1_RESULT.json",
+      "sha256": "5e4854f7508be7fd9dcb5ea53c72fc61b1cbf7eb9f5de470600bddf72cc75b2d"
+    },
+    {
+      "path": "artifacts/goal22-runs/partial-row-checks-v1/source-bindings.json",
+      "sha256": "47bc7c169115ac7d3fb9f10d5e16b39a13df2ab1f460ac4842452abb410ef6ca"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-repaired-input-v29-v1/status.json",
+      "sha256": "e7a05a62e98118e2659fc70bdbd14a2a1e456fc3e59342087a61823e1d11cf1c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-repaired-input-v29-v1/protocol.json",
+      "sha256": "3b423a8ab8afdef6842488c93f5d562d49e9de1e1d9245665388e7c65bb1ede0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-repaired-input-v29-v1/candidate-binding.json",
+      "sha256": "67c02572fddf4ce5eafcb157b7c9f281287b3d86fbe9f589c7feac0d487014b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-repaired-input-v29-v1/input-manifest.json",
+      "sha256": "06536033b8979abf1a5b6892dc9fe654620296f63adb6ba6a7ca09c360c6fcf0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-repaired-input-v29-v1/execution/report.json",
+      "sha256": "49d280c5530744e541e2960f646f61158e3c42c9033f4026032c2c55c73c5c5c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-repaired-input-v29-v1/native-marker-score.json",
+      "sha256": "664bf5761ddecf9558927d5ade132f234110124a9dbe9a2e484d1644ca798820"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-repaired-input-v29-v1/native-ocr-score.json",
+      "sha256": "a2c0d9acf8d95228052567bda0a0c0671bdd7e68a61f2c89f4fe9df17754d108"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-repaired-input-v29-v1/axis-geometry-comparison.json",
+      "sha256": "70a3e9e50c6850ec90ddeee44da5aff58ede6283e2fc6e93c0461b1ab68d88af"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-repaired-input-v29-v1/marker-stage-diagnosis.json",
+      "sha256": "669e95c74a2d2c40dd52bf5fca14e378aee4abc0aa9af150183866c530db9675"
+    },
+    {
+      "path": "artifacts/goal22-runs/repaired-input-v29-workflow-v1/status.json",
+      "sha256": "21147484dc2ce783d7d0b7f2901c2028048969065aa01fd5f9c786fc957c1528"
+    },
+    {
+      "path": "artifacts/goal22-runs/repaired-input-v29-workflow-v1/protocol.json",
+      "sha256": "f74d33553175e339e9762e84b1c6b1e92248772daaacdd50327aafbd5c603009"
+    },
+    {
+      "path": "artifacts/goal22-runs/repaired-input-v29-workflow-v1/candidate-binding.json",
+      "sha256": "6a84b5f4a39a39e3e7eb9b408ce25ec8f3c989abbc77bfb5a40524bfb85dede2"
+    },
+    {
+      "path": "artifacts/goal22-runs/repaired-input-v29-workflow-v1/input-manifest.json",
+      "sha256": "16fba80ee184d114b527395af46dc8f12b7a4f8ff0d465bd1d504b591f3bd328"
+    },
+    {
+      "path": "artifacts/goal22-runs/repaired-input-v29-workflow-v1/execution/report.json",
+      "sha256": "aae3b804ec6fd2295c757679b4ac578a411d6976cee4bfb67150af847d7168c9"
+    },
+    {
+      "path": "artifacts/goal22-runs/repaired-input-v29-workflow-v1/comparison.json",
+      "sha256": "5a573097700f3a3049d02b1437b3b6baf6841126890373f77c3af9c406c123e9"
+    },
+    {
+      "path": "artifacts/goal22-runs/repaired-input-v29-workflow-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "a17a5dc5ebd30dc84480250a03ac6740f2f703694a93e4e71a643770fad48f2f"
+    },
+    {
+      "path": "artifacts/goal22-runs/repaired-input-v29-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "0bd8b4ea8cb7207383641d8db7ffaf5428fd44630aaf58d94adc3c3025f98a41"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-fa1862afcd27/status.json",
+      "sha256": "d532ae22b95e990450d2ddf3ddeb4173d2cd3ab87c06fb80a63faadfca08069c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-RepairedInputV29.py",
+      "sha256": "f01a27cf2b9c65b36f9f5b4b27fda11c74f4e39f5aa21c0b7ead9d327c28eb86"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-RepairedInputV29.ps1",
+      "sha256": "800e7f6a275db0cb2aeb65d4e9e731f51effc3c1b31c4e8cf29471b9bb5ccb6f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-RepairedV29Context.py",
+      "sha256": "5616dd2e15bfa20861efc97bfc98db2305ea37606016ff10d8a69c77104f1781"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-RepairedV29Ocr.py",
+      "sha256": "535eabda780a3136ad8879a1796962864bbfd8242bb22e182b689eab6ea2d3b0"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-RepairedV29Geometry.py",
+      "sha256": "66e2414a605ebca7b2e212db8ffcb29bfc9499bd5c717cce1c9902582d18145c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-RepairedV29Stages.py",
+      "sha256": "ec6d278f018dc532e9a78ed840980547a26babda199f4b2c4345d3c7fe52a8f7"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-RepairedV29Workflow.py",
+      "sha256": "4aa4d00fb7d7f0bbfd54307d4521e421642c91f649244755966b45ffdadab27e"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-RepairedV29Workflow.ps1",
+      "sha256": "1826a3a138283717135e91ed614406e11fc8cff7277203b7eda209a3ed418cfb"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-RepairedV29Workflow.py",
+      "sha256": "4a1ec95d02e3a8bd5b796465a16245e0ce63d822ef88d7545a8ba36043d329e3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-RepairedV29Sequence.ps1",
+      "sha256": "56cee90b978e3b20eaa138c2a8d4dd7cccb0e0deb68f6e7014ef81ef5d60055f"
+    }
+  ],
+  "existing_center_model": {
+    "manifest": {
+      "file": "artifacts/goal22-runs/ocr-complete-workflow-center-train-negative-v29-v1/marker-center-manifest.json",
+      "sha256": "a67d7bc39a45564c40bee8534cd0f68d0a2dab8794543e7147269b75ec1cf044"
+    },
+    "model_id": "marker-center-train-negative-v29",
+    "payload": {
+      "file": "artifacts/goal22-runs/center-train-negative-v29/P1/marker-center.onnx",
+      "sha256": "6fd23f5bd8c91ad76ef48a9fc6df97bdc85fe642b5840dd751b0e87b25f98a35"
+    },
+    "reviewed_license_inputs": [
+      {
+        "declared_path": "LICENSE",
+        "file": "LICENSE",
+        "role": "license_text",
+        "sha256": "a59b18d0733b03daad84f60cacb7a2c5cbfbf89e46c5acc7bbaa83cff8b0a7f8"
+      },
+      {
+        "declared_path": "artifacts/goal22-runs/ocr-complete-workflow-center-train-negative-v29-v1/MODEL_NOTICE.md",
+        "file": "artifacts/goal22-runs/ocr-complete-workflow-center-train-negative-v29-v1/MODEL_NOTICE.md",
+        "role": "notice",
+        "sha256": "c3e82e66928f6cd5feb0514379e240cdad83d18880b25a70792c99934c0d2919"
+      }
+    ],
+    "task": "marker_center",
+    "version": "0.0.1"
+  },
+  "baseline_center_threshold": 0.1,
+  "compared_center_threshold": 0.25,
+  "weight_only_attribution": false,
+  "baseline_native_metrics": {
+    "truth": 838,
+    "predicted": 665,
+    "matched": 579,
+    "extra": 86,
+    "missing": 259,
+    "precision": 0.8706766917293233,
+    "recall": 0.6909307875894988
+  },
+  "native_metrics": {
+    "truth": 838,
+    "predicted": 735,
+    "matched": 637,
+    "extra": 98,
+    "missing": 201,
+    "precision": 0.8666666666666667,
+    "recall": 0.7601431980906921
+  },
+  "paired_native_truths": {
+    "retained": 533,
+    "recovered": 104,
+    "lost": 46,
+    "missed_by_both": 155
+  },
+  "native_missing_categories": {
+    "no_above_threshold_decoded_center_nearby": 153,
+    "text_exclusion_after_classification": 8,
+    "all_nearby_classified_centers_rejected_as_artifacts": 27,
+    "nearby_pre_nms_center_not_retained": 7,
+    "accepted_nearby_but_one_to_one_collision": 6
+  },
+  "baseline_csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 29,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 415,
+    "matched_points": 404,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 415,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 403,
+    "correct_rows": 400,
+    "missing_rows": 321,
+    "extra_rows": 12,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 404,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 302,
+    "unique_point_extra": 11,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9734939759036144,
+    "unique_point_structural_coverage": 0.5722379603399433,
+    "unique_point_value_precision": 0.9734939759036144,
+    "unique_point_value_coverage": 0.5722379603399433,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.963855421686747,
+    "relational_row_coverage": 0.5524861878453039,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925558312655087,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "source_status_changes": [],
+  "source_error_detail_changes": [
+    {
+      "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+      "before": "failed",
+      "after": "failed",
+      "before_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 8, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+      "after_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 3, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null."
+    }
+  ],
+  "exported_numeric_value_changes": [
+    {
+      "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+      "added": 2,
+      "removed": 2
+    },
+    {
+      "source_sha256": "91025ec0955623c4d8955162d2d91a46c39870841327391a38e604f3c00b2506",
+      "added": 24,
+      "removed": 24
+    },
+    {
+      "source_sha256": "1d54389dbdf2655fdcb24363b3fb13152728c5a799cc54a11b71be8d06bb02f6",
+      "added": 2,
+      "removed": 2
+    },
+    {
+      "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d",
+      "added": 24,
+      "removed": 24
+    },
+    {
+      "source_sha256": "3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6",
+      "added": 17,
+      "removed": 17
+    },
+    {
+      "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+      "added": 22,
+      "removed": 24
+    },
+    {
+      "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+      "added": 57,
+      "removed": 57
+    },
+    {
+      "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+      "added": 24,
+      "removed": 24
+    },
+    {
+      "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+      "added": 24,
+      "removed": 24
+    },
+    {
+      "source_sha256": "66b9d453b029155079528274ee60176ea28b423dd6e9bb8ca11853b25b52e9fd",
+      "added": 57,
+      "removed": 57
+    },
+    {
+      "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+      "added": 23,
+      "removed": 23
+    },
+    {
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "added": 139,
+      "removed": 139
+    }
+  ],
+  "exported_outputs_identical": false,
+  "all_axis_and_ocr_outputs_unchanged": true,
+  "every_observed_model_used_cpu": true,
+  "passing_source_ci": {
+    "commit": "fa1862afcd27901236592c94a8c11a2ca84de6bc",
+    "run_id": 35616871698,
+    "conclusion": "success"
+  },
+  "seconds": {
+    "native": 132.5411849,
+    "csv": 144.8499225
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}
