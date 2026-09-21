@@ -116,7 +116,7 @@ def _score(root: Path, candidate: Path) -> dict[str, object]:
     }
 
 
-def _runtime_fixture(tmp_path: Path) -> tuple[Path, Path, evaluation.AuthenticatedFullOcrEvidence]:
+def _runtime_fixture(tmp_path: Path, *, composed=False) -> tuple[Path, Path, evaluation.AuthenticatedFullOcrEvidence]:
     root = tmp_path.resolve()
     artifacts = root / "artifacts"
     runtime = artifacts / "runtime"
@@ -136,13 +136,14 @@ def _runtime_fixture(tmp_path: Path) -> tuple[Path, Path, evaluation.Authenticat
         })
     candidate = artifacts / "candidate.json"
     candidate.write_text(json.dumps({
-        "schema": "graphreader.frozen-db-head-ocr-candidate.v1",
+        "schema": ("graphreader.frozen-composed-ocr-candidate.v1" if composed
+                   else "graphreader.frozen-db-head-ocr-candidate.v1"),
         "execution_assemblies": assemblies,
     }), encoding="utf-8")
     score_path = artifacts / "full-score.json"
     score_path.write_text(json.dumps(_score(root, candidate)), encoding="utf-8")
     evidence = evaluation.AuthenticatedFullOcrEvidence(
-        schema=evaluation.FULL_OCR_EVIDENCE_SCHEMA,
+        schema=evaluation.COMPOSED_EVIDENCE_SCHEMA if composed else evaluation.FULL_OCR_EVIDENCE_SCHEMA,
         full_ocr_score_path=score_path,
         full_ocr_score_sha256=sha256_file(score_path),
         candidate_path=candidate,
@@ -244,9 +245,10 @@ def test_changed_preflight_is_rejected_before_recovery_mutates_admission(tmp_pat
     ('preack_disclosure','case_data_disclosure','none',0),
     ('preack_unclassified','void','none',0),
 ])
+@pytest.mark.parametrize('composed', [False, True])
 def test_parent_uses_real_admission_and_closes_exactly_one_fixture_read(
-        tmp_path, monkeypatch, scenario, status, read_status, uses):
-    root,candidate,evidence = _runtime_fixture(tmp_path)
+        tmp_path, monkeypatch, scenario, status, read_status, uses, composed):
+    root,candidate,evidence = _runtime_fixture(tmp_path, composed=composed)
     monkeypatch.setattr(admission_fixture, 'CANDIDATE_SHA256', sha256_file(candidate))
     registry,set_ids = admission_fixture._registry(root)
     training,gate = admission_fixture._source_bound_objects(root)
@@ -257,6 +259,8 @@ def test_parent_uses_real_admission_and_closes_exactly_one_fixture_read(
     def forbid_archive(*a,**k): pytest.fail('Fixture accounting must never open archives')
     monkeypatch.setattr(evaluation.sealed_reserve.zipfile, 'ZipFile', forbid_archive)
     def transport(command,root,expected,acknowledge,confirm,**kwargs):
+        assert command[1] == ('--evaluate-composed-ocr-sealed' if composed else '--evaluate-original-db-sealed')
+        assert isinstance(expected, evaluation.ComposedOcrSealedRequestIdentity) is composed
         if scenario == 'preack': raise RuntimeError('fixture before ACK')
         if scenario == 'preack_disclosure':
             raise OcrSealedDisclosureError(('truth',),'e'*64)
@@ -278,6 +282,16 @@ def test_parent_uses_real_admission_and_closes_exactly_one_fixture_read(
                 'raw_detector_geometry':_geometry(8), 'successfully_recognized_region_geometry':_geometry(8),
                 'recognition_failures':{'raw_regions_without_successful_recognition':0},
                 'full_ocr_metrics':_full_metrics(8,10)}
+        if composed:
+            previous = envelope['aggregate']['metrics']
+            envelope['schema'] = evaluation.COMPOSED_RESULT_SCHEMA
+            envelope['aggregate']['metrics'] = {
+                'source_count': expected.source_count,
+                'raw_detector_geometry': previous['raw_detector_geometry'],
+                'assembled_geometry': previous['successfully_recognized_region_geometry'],
+                'full_ocr_metrics': previous['full_ocr_metrics'],
+                'recognition_failed_region_count': 0,
+            }
         envelope['aggregate']['source_count'] = expected.source_count
         envelope['aggregate']['panel_count'] = expected.source_count
         return evaluation.OcrSealedTransportResult(envelope,HASH,0,0.1)
@@ -524,6 +538,7 @@ def test_resume_finishes_partial_canonical_closure_without_worker(
     }
     attempt_id = sha256_bytes(canonical_json_bytes(preflight_binding))
     request_path.write_bytes(canonical_json_bytes({
+        "schema": evaluation.REQUEST_SCHEMA,
         "attempt_id": attempt_id, "admission_binding_sha256": HASH,
         "candidate_sha256": evidence.candidate_sha256, "set_id": HASH,
         "archive_sha256": HASH, "archive_manifest_sha256": HASH, "source_count": 3,

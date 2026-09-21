@@ -37,6 +37,8 @@ from ml.policy import sealed_reserve
 from ml.policy.evidence_policy import evidence_policy_reference
 from ml.policy.ocr_sealed_transport import (
     ACCEPTANCE_SCOPE,
+    COMPOSED_RESULT_SCHEMA,
+    ComposedOcrSealedRequestIdentity,
     COVERAGE_PROTOCOL_SHA256,
     METRIC_REFERENCE_SHA256,
     OcrSealedDisclosureError,
@@ -67,6 +69,11 @@ REQUEST_SCHEMA = "graphreader.original-db-ocr-sealed-worker-request.v1"
 OUTCOME_SCHEMA = "graphreader.original-db-ocr-sealed-evaluation.v1"
 FULL_OCR_EVIDENCE_SCHEMA = "graphreader.authenticated-full-ocr-train-dev-evidence.v1"
 FULL_OCR_SCORE_SCHEMA = "graphreader.full-ocr-candidate-score.v2"
+COMPOSED_EVIDENCE_SCHEMA = "graphreader.authenticated-composed-ocr-train-dev-evidence.v1"
+COMPOSED_SCORE_SCHEMA = "graphreader.composed-ocr-memory-dev-result.v1"
+COMPOSED_REQUEST_SCHEMA = "graphreader.composed-ocr-sealed-worker-request.v1"
+COMPOSED_OUTCOME_SCHEMA = "graphreader.composed-ocr-sealed-evaluation.v1"
+COMPOSED_PREFLIGHT_SCHEMA = "graphreader.composed-ocr-sealed-preflight-binding.v1"
 ACCEPTANCE_BARS_PATH = Path("ml/policy/acceptance-bars.json")
 ACCEPTANCE_BARS_SHA256 = "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
 COVERAGE_PROTOCOL_PATH = Path("ml/policy/goal22-ocr-sealed-coverage-v1.json")
@@ -235,7 +242,10 @@ def _resolved_command_files(root: Path, command: Sequence[str]) -> tuple[Path, .
 
 def _candidate_execution_inventory(root: Path, candidate_path: Path) -> dict[Path, str]:
     candidate = _read_json_object(candidate_path)
-    if candidate.get("schema") != "graphreader.frozen-db-head-ocr-candidate.v1":
+    if candidate.get("schema") not in {
+        "graphreader.frozen-db-head-ocr-candidate.v1",
+        "graphreader.frozen-composed-ocr-candidate.v1",
+    }:
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_RUNTIME_INVALID")
     records = candidate.get("execution_assemblies")
     if type(records) is not list or len(records) != 4:
@@ -287,7 +297,9 @@ def _runtime_identity(
     if any(files.get(path) != digest for path, digest in inventory.items()):
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_RUNTIME_INVALID")
     identity = {
-        "schema": "graphreader.original-db-ocr-runtime-execution.v1",
+        "schema": ("graphreader.composed-ocr-runtime-execution.v1"
+                   if evidence.schema == COMPOSED_EVIDENCE_SCHEMA
+                   else "graphreader.original-db-ocr-runtime-execution.v1"),
         "command_prefix": list(evidence.runtime_command_prefix),
         "files": [
             {"path": str(path), "sha256": files[path]}
@@ -308,6 +320,77 @@ def _revalidate_evidence_files(
         or _runtime_identity(evidence, root, candidate_path) != evidence.runtime_identity_sha256
     ):
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_IDENTITY_INVALID")
+
+
+def _composed_dev_evidence(
+    evidence: AuthenticatedFullOcrEvidence, bars: _CanonicalOcrBars,
+) -> None:
+    """Gate the assembled boundary, while preserving raw detection as evidence."""
+    score = _read_json_object(evidence.full_ocr_score_path.resolve())
+    required = {
+        "schema", "status", "sources", "metrics", "elapsed_milliseconds",
+        "request_sha256", "candidate_sha256", "model_inference",
+        "truth_consumed_by_inference", "case_output", "private_reads", "sealed_reads",
+        "stage_admission_granted", "production_approved",
+    }
+    if (
+        set(score) != required or score.get("schema") != COMPOSED_SCORE_SCHEMA
+        or score.get("status") != "completed" or score.get("sources") != 23
+        or type(score.get("sources")) is not int
+        or score.get("candidate_sha256") != evidence.candidate_sha256
+        or score.get("model_inference") is not True
+        or any(score.get(key) is not False for key in (
+            "truth_consumed_by_inference", "case_output", "stage_admission_granted",
+            "production_approved",
+        ))
+        or any(type(score.get(key)) is not int or score[key] != 0
+               for key in ("private_reads", "sealed_reads"))
+        or type(score.get("elapsed_milliseconds")) not in (int, float)
+        or not math.isfinite(score["elapsed_milliseconds"])
+        or score["elapsed_milliseconds"] < 0
+        or type(score.get("metrics")) is not dict
+        or set(score["metrics"]) != {"train", "validation"}
+    ):
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_PREFLIGHT_INVALID")
+    _sha256(score["request_sha256"], "development request")
+    validated = {}
+    try:
+        for split, sources, panels, labels, characters in (
+            ("train", 20, 30, 709, 3415), ("validation", 3, 9, 183, 1019),
+        ):
+            expected = ComposedOcrSealedRequestIdentity(
+                attempt_id=f"authenticated-composed-ocr-{split}",
+                admission_binding_sha256="0" * 64, set_id="1" * 64,
+                candidate_sha256=evidence.candidate_sha256, archive_sha256="2" * 64,
+                archive_manifest_sha256="3" * 64,
+                coverage_protocol_sha256=COVERAGE_PROTOCOL_SHA256,
+                request_sha256=score["request_sha256"], source_count=sources,
+            )
+            envelope = {
+                "schema": COMPOSED_RESULT_SCHEMA, "status": "completed", "split": "sealed",
+                "acceptance_scope": ACCEPTANCE_SCOPE,
+                **{key: getattr(expected, key) for key in (
+                    "attempt_id", "admission_binding_sha256", "set_id", "candidate_sha256",
+                    "archive_sha256", "archive_manifest_sha256", "coverage_protocol_sha256",
+                    "request_sha256",
+                )},
+                "metric_reference_sha256": METRIC_REFERENCE_SHA256,
+                "execution_provider": "CPUExecutionProvider", "cpu_threads": 1,
+                "graph_optimization": "ORT_DISABLE_ALL", "model_inference": True,
+                "case_output": False, "production_approved": False, "elapsed_ms": 0.0,
+                "aggregate": score["metrics"][split],
+            }
+            validated[split] = validate_result_envelope(envelope, expected)
+            aggregate = validated[split]["aggregate"]
+            full = aggregate["metrics"]["full_ocr_metrics"]
+            if (aggregate["panel_count"] != panels or full["truth_region_count"] != labels
+                    or full["truth_character_count"] != characters):
+                raise OcrSealedTransportError("OCR_SEALED_TRANSPORT_RESULT_INVALID")
+        dev_status = _bar_result(validated["validation"], bars)[0]
+    except (KeyError, TypeError, ValueError, OverflowError, OcrSealedTransportError):
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_PREFLIGHT_INVALID") from None
+    if dev_status != "pass":
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_DEV_GATE_FAILED")
 
 
 def _full_ocr_dev_evidence(
@@ -492,7 +575,7 @@ def _authenticate_preflight(
     if not isinstance(evidence, AuthenticatedFullOcrEvidence):
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_PREFLIGHT_INVALID")
     expected_scalars = (
-        evidence.schema == FULL_OCR_EVIDENCE_SCHEMA,
+        evidence.schema in {FULL_OCR_EVIDENCE_SCHEMA, COMPOSED_EVIDENCE_SCHEMA},
         evidence.candidate_path.resolve() == candidate_path,
         evidence.candidate_sha256 == candidate_sha256,
         evidence.acceptance_bars_sha256 == ACCEPTANCE_BARS_SHA256,
@@ -501,6 +584,11 @@ def _authenticate_preflight(
         evidence.coverage_protocol_sha256 == COVERAGE_PROTOCOL_SHA256,
     )
     if not all(expected_scalars):
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_PREFLIGHT_INVALID")
+    composed = evidence.schema == COMPOSED_EVIDENCE_SCHEMA
+    candidate_schema = ("graphreader.frozen-composed-ocr-candidate.v1" if composed
+                        else "graphreader.frozen-db-head-ocr-candidate.v1")
+    if _read_json_object(candidate_path).get("schema") != candidate_schema:
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_PREFLIGHT_INVALID")
     for value in (
         evidence.full_ocr_score_sha256,
@@ -518,7 +606,10 @@ def _authenticate_preflight(
     bars = _canonical_bars(root)
     _read_exact_file(root, COVERAGE_PROTOCOL_PATH, COVERAGE_PROTOCOL_SHA256, "coverage protocol")
     _read_exact_file(root, METRIC_REFERENCE_PATH, METRIC_REFERENCE_SHA256, "metric reference")
-    _full_ocr_dev_evidence(root, evidence, candidate_path, bars)
+    if composed:
+        _composed_dev_evidence(evidence, bars)
+    else:
+        _full_ocr_dev_evidence(root, evidence, candidate_path, bars)
     return evidence, bars
 
 
@@ -531,7 +622,8 @@ def _preflight_binding(
     training_authorization: TrainingAuthorization,
 ) -> tuple[str, dict[str, object]]:
     binding = {
-        "schema": "graphreader.original-db-ocr-sealed-preflight-binding.v1",
+        "schema": (COMPOSED_PREFLIGHT_SCHEMA if evidence.schema == COMPOSED_EVIDENCE_SCHEMA
+                   else "graphreader.original-db-ocr-sealed-preflight-binding.v1"),
         "registry_sha256": _sha256(registry_sha256, "registry"),
         "set_id": _sha256(set_id, "set"),
         "full_ocr_score_sha256": evidence.full_ocr_score_sha256,
@@ -558,6 +650,7 @@ def _request(
     metadata: Mapping[str, object],
     candidate_relative: str,
     candidate_sha256: str,
+    composed: bool = False,
 ) -> dict[str, object]:
     archive = metadata.get("archive")
     chain = metadata.get("chain")
@@ -565,7 +658,7 @@ def _request(
     if not isinstance(archive, dict) or not isinstance(chain, dict) or not isinstance(scope, dict):
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_RESERVE_INVALID")
     request = {
-        "schema": REQUEST_SCHEMA,
+        "schema": COMPOSED_REQUEST_SCHEMA if composed else REQUEST_SCHEMA,
         "acceptance_scope": ACCEPTANCE_SCOPE,
         "split": "sealed",
         "attempt_id": attempt_id,
@@ -602,14 +695,14 @@ def _bar_result(
 ) -> tuple[str, dict[str, bool]]:
     aggregate = envelope["aggregate"]
     metrics = aggregate["metrics"]
-    raw = metrics["raw_detector_geometry"]
+    detection = metrics["assembled_geometry"] if envelope["schema"] == COMPOSED_RESULT_SCHEMA else metrics["raw_detector_geometry"]
     full = metrics["full_ocr_metrics"]
     verdicts = {
         "text_region_detection_precision": (
-            float(raw["precision"]) >= bars.detection_precision_minimum
+            float(detection["precision"]) >= bars.detection_precision_minimum
         ),
         "text_region_detection_recall": (
-            float(raw["recall"]) >= bars.detection_recall_minimum
+            float(detection["recall"]) >= bars.detection_recall_minimum
         ),
         "recognition_exact_match": (
             float(full["recognition_exact_accuracy"]) >= bars.recognition_exact_minimum
@@ -641,7 +734,8 @@ def _outcome(
     if sha256_bytes(canonical_json_bytes(dict(preflight_binding))) != attempt_id:
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
     return {
-        "schema": OUTCOME_SCHEMA,
+        "schema": (COMPOSED_OUTCOME_SCHEMA if preflight_binding.get("schema") == COMPOSED_PREFLIGHT_SCHEMA
+                   else OUTCOME_SCHEMA),
         "status": status,
         "read_status": read_status,
         "split": "sealed",
@@ -816,8 +910,10 @@ def _validate_recovered_outcome(root, outcome, record, request_path, request_sha
     """Recompute a saved verdict before completing an interrupted close."""
     conflict = "OCR_SEALED_EVALUATION_CLOSURE_CONFLICT"
     status = outcome["status"]
+    composed = record.get("attempt_binding", {}).get("schema") == COMPOSED_PREFLIGHT_SCHEMA
     if (
-        outcome.get("read_status") != record.get("read_status")
+        outcome.get("schema") != (COMPOSED_OUTCOME_SCHEMA if composed else OUTCOME_SCHEMA)
+        or outcome.get("read_status") != record.get("read_status")
         or outcome.get("split") != "sealed"
         or outcome.get("acceptance_scope") != ACCEPTANCE_SCOPE
         or outcome.get("acceptance_bars_sha256") != ACCEPTANCE_BARS_SHA256
@@ -838,7 +934,8 @@ def _validate_recovered_outcome(root, outcome, record, request_path, request_sha
     if request_sha256 is not None:
         request = _read_json_object(request_path)
         if (
-            request.get("attempt_id") != record.get("attempt_id")
+            request.get("schema") != (COMPOSED_REQUEST_SCHEMA if composed else REQUEST_SCHEMA)
+            or request.get("attempt_id") != record.get("attempt_id")
             or request.get("admission_binding_sha256") != record.get("admission_id")
             or request.get("candidate_sha256") != record.get("candidate_sha256")
         ):
@@ -880,7 +977,8 @@ def _validate_recovered_outcome(root, outcome, record, request_path, request_sha
     try:
         if request is None:
             raise OcrSealedEvaluationError(conflict)
-        expected = OcrSealedRequestIdentity(
+        identity_type = ComposedOcrSealedRequestIdentity if composed else OcrSealedRequestIdentity
+        expected = identity_type(
             attempt_id=record["attempt_id"],
             admission_binding_sha256=outcome["admission_binding_sha256"],
             set_id=request["set_id"], candidate_sha256=outcome["candidate_sha256"],
@@ -890,7 +988,7 @@ def _validate_recovered_outcome(root, outcome, record, request_path, request_sha
             request_sha256=request_sha256, source_count=request["source_count"],
         )
         envelope = {
-            "schema": "graphreader.original-db-ocr-sealed-worker-result.v1",
+            "schema": COMPOSED_RESULT_SCHEMA if composed else "graphreader.original-db-ocr-sealed-worker-result.v1",
             "status": "completed", "split": "sealed",
             "acceptance_scope": ACCEPTANCE_SCOPE,
             **{key: getattr(expected, key) for key in (
@@ -956,7 +1054,8 @@ def _resume_existing_evaluation(
         if (
             outcome_path.read_bytes() != canonical_json_bytes(outcome)
             or
-            outcome.get("schema") != OUTCOME_SCHEMA
+            outcome.get("schema") != (COMPOSED_OUTCOME_SCHEMA
+                if evidence.schema == COMPOSED_EVIDENCE_SCHEMA else OUTCOME_SCHEMA)
             or outcome.get("admission_binding_sha256") != admission_id
             or outcome.get("attempt_id") != record.get("attempt_id")
             or outcome.get("candidate_sha256") != record.get("attempt_binding", {}).get("candidate_sha256")
@@ -1174,12 +1273,15 @@ def evaluate_ocr_sealed_candidate(
             metadata=metadata,
             candidate_relative=candidate_relative,
             candidate_sha256=candidate_sha256,
+            composed=evidence.schema == COMPOSED_EVIDENCE_SCHEMA,
         )
         request_sha256 = _publish_exact(
             request_path, canonical_json_bytes(request), maximum_bytes=64 * 1024
         )
         request_relative = _relative_artifact(root, request_path, "request")
-        expected = OcrSealedRequestIdentity(
+        composed = evidence.schema == COMPOSED_EVIDENCE_SCHEMA
+        identity_type = ComposedOcrSealedRequestIdentity if composed else OcrSealedRequestIdentity
+        expected = identity_type(
             attempt_id=attempt_id,
             admission_binding_sha256=admission.admission_id,
             set_id=str(request["set_id"]),
@@ -1192,7 +1294,7 @@ def evaluate_ocr_sealed_candidate(
         )
         command = [
             *worker_command_prefix,
-            "--evaluate-original-db-sealed",
+            "--evaluate-composed-ocr-sealed" if composed else "--evaluate-original-db-sealed",
             request_relative,
             request_sha256,
         ]

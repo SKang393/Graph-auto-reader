@@ -8,6 +8,7 @@ import importlib.util
 import json
 from pathlib import Path
 from types import SimpleNamespace
+import pytest
 
 from ml.markers.gate_seal import GateSeal, canonical_json_bytes, sha256_file
 from ml.markers.training_budget import TrainingAuthorization
@@ -213,8 +214,15 @@ def _fixture(root: Path) -> argparse.Namespace:
     )
 
 
-def test_exact_authenticator_and_existing_metadata_reach_parent(tmp_path: Path) -> None:
+@pytest.mark.parametrize('composed', [False, True])
+def test_exact_authenticator_and_existing_metadata_reach_parent(tmp_path: Path, composed) -> None:
     args = _fixture(tmp_path)
+    if composed:
+        request = tmp_path/'artifacts/goal22-runs/fixture/request.json'
+        _write_json(request, {'handwritten': 'fixture'})
+        args.evidence_kind = 'composed-ocr'
+        args.development_request = request.relative_to(tmp_path)
+        args.development_request_sha256 = sha256_file(request)
     captured: dict[str, object] = {}
 
     def fake_parent(repository_root, registry_path, **kwargs):
@@ -241,11 +249,25 @@ def test_exact_authenticator_and_existing_metadata_reach_parent(tmp_path: Path) 
     assert captured["worker_command_prefix"] == (
         str((tmp_path / args.apphost).resolve()),
     )
-    assert type(captured["full_ocr_evidence_authenticator"]) is command.TextExtentFullOcrAuthenticator
+    expected_type = command.ComposedOcrEvidenceAuthenticator if composed else command.TextExtentFullOcrAuthenticator
+    assert type(captured["full_ocr_evidence_authenticator"]) is expected_type
     assert isinstance(captured["training_authorization"], TrainingAuthorization)
     assert isinstance(captured["gate_seal"], GateSeal)
     assert captured["training_authorization"].binding["candidate_id"] == "P1"
     assert payload["outcome"]["path"].startswith("artifacts/")
+
+
+@pytest.mark.parametrize('mode,request_value,digest', [
+    ('composed-ocr', None, None), ('composed-ocr', 'missing.json', None),
+    ('original-db', 'missing.json', '0'*64), ('unknown', None, None),
+])
+def test_incomplete_or_cross_route_development_arguments_never_reach_parent(tmp_path, mode, request_value, digest):
+    args = _fixture(tmp_path)
+    args.evidence_kind, args.development_request, args.development_request_sha256 = mode, request_value, digest
+    def forbid(*args, **kwargs):
+        pytest.fail('Invalid request must never reach sealed admission')
+    with pytest.raises(command.OcrSealedCommandError, match='ARGUMENT_INVALID'):
+        command.execute(args, evaluator=forbid)
 
 
 def test_changed_live_sources_preserve_frozen_metadata_for_parent_recovery(tmp_path: Path) -> None:

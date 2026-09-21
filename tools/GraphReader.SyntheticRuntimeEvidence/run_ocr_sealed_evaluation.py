@@ -18,6 +18,7 @@ for _path in (_IMPORT_ROOT, _TOOL_DIRECTORY):
         sys.path.insert(0, str(_path))
 
 from authenticate_text_extent_evidence import TextExtentFullOcrAuthenticator
+from authenticate_composed_ocr_evidence import ComposedOcrEvidenceAuthenticator
 from ml.markers import gate_seal as gate_authority
 from ml.markers import training_budget as training_authority
 from ml.markers.gate_seal import (
@@ -414,9 +415,24 @@ def execute(
         root, Path(args.training_opened), args.training_opened_sha256
     )
     gate = _load_gate_seal(root, Path(args.gate_opened), args.gate_opened_sha256)
-    authenticator = TextExtentFullOcrAuthenticator(
-        score.relative_to(root), score_sha256, apphost.relative_to(root)
-    )
+    evidence_kind = getattr(args, "evidence_kind", "original-db")
+    development_request = getattr(args, "development_request", None)
+    development_request_sha256 = getattr(args, "development_request_sha256", None)
+    if evidence_kind == "composed-ocr":
+        if development_request is None or development_request_sha256 is None:
+            raise OcrSealedCommandError("OCR_SEALED_COMMAND_ARGUMENT_INVALID")
+        request = _repository_path(root, Path(development_request), required_parent=Path("artifacts/goal22-runs"))
+        request_sha256 = _sha256(development_request_sha256)
+        if sha256_file(request) != request_sha256:
+            raise OcrSealedCommandError("OCR_SEALED_COMMAND_IDENTITY_INVALID")
+        authenticator = ComposedOcrEvidenceAuthenticator(
+            score.relative_to(root), score_sha256, apphost.relative_to(root),
+            request.relative_to(root), request_sha256)
+    elif evidence_kind == "original-db" and development_request is None and development_request_sha256 is None:
+        authenticator = TextExtentFullOcrAuthenticator(
+            score.relative_to(root), score_sha256, apphost.relative_to(root))
+    else:
+        raise OcrSealedCommandError("OCR_SEALED_COMMAND_ARGUMENT_INVALID")
     result = evaluator(
         root,
         registry,
@@ -460,6 +476,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--full-ocr-score", type=Path, required=True)
     parser.add_argument("--full-ocr-score-sha256", required=True)
     parser.add_argument("--apphost", type=Path, required=True)
+    parser.add_argument("--evidence-kind", choices=("original-db", "composed-ocr"), default="original-db")
+    parser.add_argument("--development-request", type=Path)
+    parser.add_argument("--development-request-sha256")
     parser.add_argument("--timeout-seconds", type=float, default=300.0)
     return parser
 

@@ -1,0 +1,91 @@
+{
+  "schema": "graphreader.goal22.composed-ocr-preflight.v1",
+  "status": "development_preflight_verified",
+  "sources": 23,
+  "panels": 39,
+  "truth_labels": 892,
+  "python_tests_passed": 145,
+  "python_test_seconds": 27.45,
+  "development_seconds": 130.86183749999964,
+  "native_development_replays": 2,
+  "runtime_identity_sha256": "b4a7a4d5c82db4949d85ca62a1a5bf3efffc5140acfc13033efb2d48e4f7eb1e",
+  "runtime_file_count": 37,
+  "native_metrics_equal_prior_workflow": true,
+  "source_bindings": [
+    {
+      "path": "ml/policy/ocr_sealed_evaluation.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-parent-development-v1/source/ml/policy/ocr_sealed_evaluation.py",
+      "sha256": "d77fd60e531f90188a11d70c1da729b287fdd55263729a8a044d4088dd3205c5"
+    },
+    {
+      "path": "ml/policy/ocr_sealed_transport.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-parent-development-v1/source/ml/policy/ocr_sealed_transport.py",
+      "sha256": "83856468d5f1dfd4c07f4c944f8d578d99654ba88074884fc2d51273f4b28cdc"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/authenticate_composed_ocr_evidence.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-parent-development-v1/source/tools/GraphReader.SyntheticRuntimeEvidence/authenticate_composed_ocr_evidence.py",
+      "sha256": "d4017de1ecf570428e19b04c28ffe654a56ba4750fce5d42d78aa4b4b041482f"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/run_ocr_sealed_evaluation.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-parent-development-v1/source/tools/GraphReader.SyntheticRuntimeEvidence/run_ocr_sealed_evaluation.py",
+      "sha256": "da9955a885c15a1be1c67d7f060fe1c76813bda07b55979ca9370e6d0b2f281f"
+    },
+    {
+      "path": "tests/test_composed_ocr_sealed_evaluation.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-parent-development-v1/source/tests/test_composed_ocr_sealed_evaluation.py",
+      "sha256": "78e44958dabe62ea149bf53ac0fe1a8e1426854a92293c21b1b6d05cc00cb90b"
+    },
+    {
+      "path": "tests/test_composed_ocr_evidence_authenticator.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-parent-development-v1/source/tests/test_composed_ocr_evidence_authenticator.py",
+      "sha256": "0bb5ab7be88ec84896832d292c9909ddbbf8018d600d4d6783313873c076edf9"
+    },
+    {
+      "path": "tests/test_ocr_sealed_evaluation.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-parent-development-v1/source/tests/test_ocr_sealed_evaluation.py",
+      "sha256": "f5d2edbf93d830c2d4524a1822b8ec44898c50790dc88961c7ff70349e3666c2"
+    },
+    {
+      "path": "tests/test_ocr_sealed_command.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-parent-development-v1/source/tests/test_ocr_sealed_command.py",
+      "sha256": "28c7014fba57660e347daf354364ebd25b76dfd2478f52ca85078c3bb6868a67"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/authentication.json",
+      "sha256": "1479707d769553e1fc9e4bfc350cd5b066a997825a8c0f3f02c0b059c4952b1c"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/result.json",
+      "sha256": "86f64451e23dfbf5776d995e6ef622561394dbfe2c924f919ddeb722e4ea49ff"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/candidate.json",
+      "sha256": "c200adc6c44eb69b0ade7969828b922dc9414a9bc5d9dc9ff8fac607486c1675"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/request.json",
+      "sha256": "24de1d2797b5916fd78d4785ecdf5b533308e6943e79d228c1567a03185685ce"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/source-bindings.json",
+      "sha256": "3f458b163b54829d5ef461584541594b6ac59326a636010b16057dda87912866"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-parent-checks-v2/tests.xml",
+      "sha256": "6014bd247655639e1ad377e008621e4c7ff6f1fe32187e63847a3d0e597384cd"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "stage_admission_granted": false,
+  "production_approved": false,
+  "retained_failed_attempt": "composed-ocr-parent-checks-v1: reserved pytest fixture name, fixed before execution",
+  "license_review": "No dependency or payload additions; native runtime authenticated existing model manifests and license inputs",
+  "build_number": 433,
+  "version": "0.4.33"
+}
