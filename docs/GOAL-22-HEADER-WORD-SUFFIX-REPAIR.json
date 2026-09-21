@@ -1,0 +1,525 @@
+{
+  "schema": "graphreader.heading-word-suffix-repair.v1",
+  "status": "evaluated_accuracy_still_fails",
+  "tested_sources": [
+    {
+      "path": "src/GraphReader.Ocr/HeaderWordSuffixRecovery.cs",
+      "sha256": "3a56de46f7845c7065523bee962045cdb9749d955d1e2485b88f021b720c23fa"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "11ab892811d713588e6ef6a521c76d5e442e9de0b08d39dad240e0b3ecdfb44c"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrResultCache.cs",
+      "sha256": "b5bdd5745a9686b54c161cd708749f577bc15ec5c3d3fd9ab858ee78082d74d9"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/HeaderWordSuffixRecoveryTests.cs",
+      "sha256": "fbb02c6a822a72f794ceec86001abe2957febfd2a2280dc2caa00adfa928432d"
+    }
+  ],
+  "tests": {
+    "ocr": {
+      "Passed": 506,
+      "NotExecuted": 16
+    },
+    "app": {
+      "Passed": 494
+    }
+  },
+  "native_ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 499,
+        "geometry_matched_region_count": 389,
+        "geometry_false_positive_count": 110,
+        "geometry_false_negative_count": 64,
+        "recognition_exact_count": 345,
+        "recognition_exact_accuracy": 0.7615894039735099,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 64,
+        "unmatched_truth_deletion_edit_count": 476,
+        "unmatched_prediction_insertion_edit_count": 240,
+        "character_error_count": 780,
+        "character_error_rate": 0.25161290322580643,
+        "role_correct_count": 357,
+        "role_accuracy": 0.7880794701986755,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 133,
+            "accuracy": 0.7823529411764706
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 84,
+            "accuracy": 0.8484848484848485
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 499,
+        "geometry_matched_region_count": 389,
+        "geometry_false_positive_count": 110,
+        "geometry_false_negative_count": 64,
+        "recognition_exact_count": 348,
+        "recognition_exact_accuracy": 0.7682119205298014,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 58,
+        "unmatched_truth_deletion_edit_count": 476,
+        "unmatched_prediction_insertion_edit_count": 240,
+        "character_error_count": 774,
+        "character_error_rate": 0.2496774193548387,
+        "role_correct_count": 357,
+        "role_accuracy": 0.7880794701986755,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 133,
+            "accuracy": 0.7823529411764706
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 84,
+            "accuracy": 0.8484848484848485
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "paired_exact_readings": {
+    "retained": 345,
+    "missed_by_both": 105,
+    "recovered": 3
+  },
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 751,
+    "matched": 726,
+    "extra": 25,
+    "missing": 112,
+    "precision": 0.966711051930759,
+    "recall": 0.8663484486873508
+  },
+  "paired_marker_truths": {
+    "retained": 726,
+    "recovered": 0,
+    "lost": 0,
+    "missed_by_both": 112
+  },
+  "axis_metrics": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "effect_counts": {
+    "native": {
+      "ocr_changes": 3,
+      "numeric_changes": 0,
+      "axis_changes": 0,
+      "calibration_changes": 0,
+      "marker_changes": 0
+    },
+    "workflow": {
+      "ocr_changes": 0,
+      "numeric_changes": 0,
+      "axis_changes": 0,
+      "calibration_changes": 0,
+      "marker_changes": 0
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 420,
+    "matched_points": 409,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 420,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 408,
+    "correct_rows": 405,
+    "missing_rows": 316,
+    "extra_rows": 12,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 409,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 297,
+    "unique_point_extra": 11,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9738095238095238,
+    "unique_point_structural_coverage": 0.5793201133144475,
+    "unique_point_value_precision": 0.9738095238095238,
+    "unique_point_value_coverage": 0.5793201133144475,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9642857142857143,
+    "relational_row_coverage": 0.5593922651933702,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9926470588235294,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_baseline_outputs_identical": true,
+  "observed_model_providers": {
+    "native": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-structural-context-v5:cpu": 51
+    },
+    "workflow": {
+      "OpenCvSharpExtern:cpu": 39,
+      "graph-text-extent-db-head-v44-p1:cpu": 39,
+      "en_PP-OCRv5_mobile_rec:cpu": 39,
+      "marker-center-component-diversity-v27:cpu": 39,
+      "marker-classifier-structural-context-v5:cpu": 44
+    }
+  },
+  "all_models_and_thresholds_unchanged": true,
+  "seconds": {
+    "checks": 98.2962072,
+    "native": 145.4336694,
+    "workflow": 160.4221301
+  },
+  "retained_attempts": {
+    "v1": "First implementation passes 505 OCR and 494 App tests; native exact readings increase 345 to 348 and all exported values remain unchanged. Preserved as the original attempt.",
+    "v2": "Separate completion batches to prevent padding changes to existing recovered tick/glyph crops. Its new regression fixture grouped adjacent black rectangles as one word and failed before native inference. Preserve the 20.44-second failed check and blocked downstream launch records.",
+    "v3": "Widen only the synthetic fixture spacing so it contains distinct tick labels. Production code is unchanged from v2. All 506 OCR and 494 App tests pass, and native/full CSV comparisons are completed.",
+    "effect_audit": "Initial audit counts execution-scoped marker IDs as changes. The normalized audit ignores only elapsed fields and marker IDs while preserving every center, radius, probability, embedding, label and review state."
+  },
+  "prior_source_ci": {
+    "status": "completed",
+    "commit": "bff1179205ba34fc9e7f85bbec0b620af9e57497",
+    "started_utc": "2026-09-21T20:27:13.7867959Z",
+    "updated_utc": "2026-09-21T20:35:30.8572644Z",
+    "notifier_pid": 31504,
+    "run_id": 35651107978,
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35651107978",
+    "conclusion": "success",
+    "error": null,
+    "user_continuation_required": false
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v3/protocol.json",
+      "sha256": "b7bc8def8fb73a7e70fb948b09ced98c3c8d6bbe5fa82d09e55f90aa6b5c6e73"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v3/candidate-binding.json",
+      "sha256": "4a8552912496f9939ab82587ea9fd5cad71502c26611ff22ac031127b9049da5"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v3/input-manifest.json",
+      "sha256": "ce3434e968d853cf8c4aea5b29c3dc625b0a084173dcf05a3b1c1cb565e908a2"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v3/status.json",
+      "sha256": "0c91ac8c43fe4c6e1002b6f32f1e536d56563b2f265ac44026a438ead81274b9"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v3/execution/report.json",
+      "sha256": "b703b74bc5220d6d1de062bf51b46453830a7019b90a30006c09189a6c295b87"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v3/protocol.json",
+      "sha256": "3948f504641ca28531382dd5e75b97f963cb0e083bcc4477958fe06d3215ce94"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v3/candidate-binding.json",
+      "sha256": "316fa0af1694e7fff5a07c2887ce6d1380f58b7e6e96a2eb71d201b903fe2c0c"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v3/input-manifest.json",
+      "sha256": "cfe42ce85d5ab6c2d977a84088758f156d69da2658c5a914d3ccda8fdab8a963"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v3/status.json",
+      "sha256": "af53d459c3a85ace263cdd2b8b690eba6decc99674d1ec20e7ebb933ed809005"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v3/execution/report.json",
+      "sha256": "ab44474f4736cf0c0df7c61a01f5c74b0750bf871c90a4fdf7edd8f45b2e474c"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v1/source-bindings.json",
+      "sha256": "a87b77dc434fbe296c8c8c331788639373e2ef955c03ede034b3d96e6df722d7"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v1/status.json",
+      "sha256": "26a8a0762cd67c662d76871e854615a73ab5118a3911ccec11408f0b5049d68f"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v1/ocr-tests.log",
+      "sha256": "911a1f2ce089f074be226e621886ea0dceeb28bc26906d80d4bfbd4da44444fa"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v1/test-results/ocr.trx",
+      "sha256": "9dda42eb8473b8babdd9300dfbc52d6e5916d149e0125de28a5d7a6ab8e99081"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v2/source-bindings.json",
+      "sha256": "665d60c2625ce9743475f45aa57c622d8c669dd58e67f673526c549ccf0248c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v2/status.json",
+      "sha256": "2be01a5c864b53eec7b2f58e066b2210ed605a149ae68cdd1c43869b6ff34f80"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v2/ocr-tests.log",
+      "sha256": "73179480a62907a9a9abd222a41c08b61f3e1d82c96a29350a089d0aeca4e558"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v2/test-results/ocr.trx",
+      "sha256": "eab0703f20d888b12acfdad5abf68b933bbb302576e502ebf4f4202dcaa19a4f"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v3/source-bindings.json",
+      "sha256": "1f3e0dec649fd5733db88369f20d57693f35467c13cfad0a8aabd1130ec441bd"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v3/status.json",
+      "sha256": "a78915830cf7f7985d1c66ac0e179bba97a7f4d2e47fbc6caed2943767b48a95"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v3/ocr-tests.log",
+      "sha256": "3694d294f0154a0abbec43ae2eddb8c876b2b7ef710235a646410e71508a2ef9"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v3/test-results/ocr.trx",
+      "sha256": "c46ba7fe564905b26e46a084f969f768683ad62ddb030bc83f80ed293d0fc7a7"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v1/status.json",
+      "sha256": "ed4da54244dcd9c586fc0c591c872a692a92eec04e75f6c621f5757c327b7389"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v1/status.json",
+      "sha256": "20c06ff7d768b5dec9008b29f6dfc3bc6d58e0a8db9c41b3016ab87c9ec498aa"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v2/status.json",
+      "sha256": "ab0c664b214b89a89cfb5d212b456984b926c5b7b94dee7ed59332eeff10a8bb"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v2/status.json",
+      "sha256": "97627ccf38f262d46c2fbe1158119e930a8e3e508430bc49e37e72a8e12b3510"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v3/app-tests.log",
+      "sha256": "63674dcf55a23a2fc3643d97a0481b47319a6a599ba82a2d5d014e67f1a0c074"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v3/native-build.log",
+      "sha256": "73d05550d645cae1197806d1d8ad6963eb6480b3e1a945d7e457b4af2ce54243"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-checks-v3/test-results/app.trx",
+      "sha256": "5a60d21381d61dbb01b18d83573d2e731d7b450eaf98e479f6f207005d312ab3"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v3/native-marker-score.json",
+      "sha256": "48b137e7671a0e9f649ca84fb6f98c2a76d65400d902ea424a90709597f36e2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v3/native-ocr-score.json",
+      "sha256": "28200ace64f1c13863d7f8f499413d082f667d4924c686510fbe5f64ac271678"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-header-word-suffix-v3/axis-geometry-comparison.json",
+      "sha256": "3302d59ae52f328859510aaf5109225611b67d83fc915af1860afbdfe8ff6646"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v3/comparison.json",
+      "sha256": "103f63809ab539086753488ee9847c5adccd538dcb4b9aee483f2fde06a4aaf2"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v3/csv-score-normalized-phases.json",
+      "sha256": "4077ee1d01a4583390d61088b33e459ecaa83cf13b6ce0353dccbe7b17f407ad"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v3/suffix-effects-normalized.json",
+      "sha256": "6d86f4ccb15f162d3c0ba4697123d76740a051c65741ac43481704ff5f449295"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v1/comparison.json",
+      "sha256": "888a10cdae1523c9953bb5eee2566855ff6e2d2fd11749b2e14a5ba425c80b94"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v1/suffix-effects.json",
+      "sha256": "49112d02ab7c048b5fe363d4c162a5163d47b35d6f26f7edf7759239cb7423be"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-word-suffix-workflow-v1/suffix-effects-normalized.json",
+      "sha256": "9d7bec87963c1f5ef56dc4013cc6bedfdba2305a331cb185c49d16785002c587"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-suffix-coverage-v1/report.json",
+      "sha256": "1e9a85fd3ab3fc400b493e53c82bc36dc0b7380862bfbbb07992323e29f1654a"
+    },
+    {
+      "path": "artifacts/goal22-runs/tick-component-audit-v1/replay/report.json",
+      "sha256": "9de6de411ac663e611905605a7b2ca804e52885a5a554e46b46d0a8797517f25"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-HeaderWordSuffixVerification.py",
+      "sha256": "a95de8cae30d53ec588aa1a22555e0302f19ea5b0d22266310c8ec9910c1c693"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-HeaderWordSuffixVerificationV2.py",
+      "sha256": "8592cf36070e1feece4052eac7ba216ece92f1c9fbaa08f72fcd0480dad55ecf"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-HeaderWordSuffixVerificationV3.py",
+      "sha256": "9ed4fac12f5ae850a59da06a268d7ae0114bed5b014c38b13854282a4b44f431"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-HeaderWordSuffixChecksV3.ps1",
+      "sha256": "d8105a5ef3f5b0497f7c2dddf335538afd6d485346ed5086e3b7ef8e26134af4"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-HeaderWordSuffixContextV3.py",
+      "sha256": "508656e3d3d86e1fdebf2dc04e4629551fafec402c4ba8b77550e105f752da4d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-HeaderWordSuffixContextV3.ps1",
+      "sha256": "f6aaf5babac0dd5cfe0bda8d55ae56c59b1069c1973cd7dd38753671a9cd09f6"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-HeaderWordSuffixContextV3.py",
+      "sha256": "d005b4ec85be4309b20fc94c2996c9281c32975906dc23b82c67b3623ab7ca58"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-HeaderWordSuffixOcrV3.py",
+      "sha256": "3cb4dadcb41d4bf7ff9598c22e5cc829a832d2939e7a8d05274ea79f2e94b29c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-HeaderWordSuffixGeometryV3.py",
+      "sha256": "c946423c1621a744255215e5ae80ff89a1037987e98ff6a836e0c6eb38e7f20f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-HeaderWordSuffixWorkflowV3.py",
+      "sha256": "9f0cbc9a81e59f9e11892792f7a93ff080e0d6c1e799a6c8fde6a968c7da6761"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-HeaderWordSuffixWorkflowV3.ps1",
+      "sha256": "dc2f3105baf20772461bf6b852a55637e7304e6a8a864228099f33a59acd6438"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-HeaderWordSuffixWorkflowV3.py",
+      "sha256": "0f0d0ef505bd8b65b2e171fcecb9aa5f0d6603c2f41962c9b4db975254815892"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-HeaderWordSuffixEffects.py",
+      "sha256": "9b0421fc35335554cc93ddb572e013971c44ed8e88612c40d41b5d6af0bfd088"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-HeaderWordSuffixEffectsV2.py",
+      "sha256": "37155d155e36a0b9e7b6816b23d5a0fae62d374b71e3b6d0ae05926d393f3cba"
+    },
+    {
+      "path": "artifacts/goal22-tools/Diagnose-HeaderSuffixCoverage.py",
+      "sha256": "faad72fbd93781a80899e8bcc35c612b32cf177bd3f26a34bec1d40ad73cfc07"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-HeaderWordSuffixRepair.py",
+    "sha256": "d7c89795a1088c14af5ed4aadb8332a36023eeaa9047fc335b3b991510c8c7ab"
+  },
+  "limitations": [
+    "Only right-side glyph suffixes of bound unreviewed horizontal phase headings are recovered.",
+    "Left prefixes, unresolved detector failures and damaged recognition remain.",
+    "The recovered text remains unreviewed and does not supply an expected scientific value.",
+    "Synthetic accuracy still fails the unchanged shared bars; private and sealed acceptance remain required."
+  ],
+  "license": "Apache-2.0 project source and existing reviewed dependencies; no new dependency or model import.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

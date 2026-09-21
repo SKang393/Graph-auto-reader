@@ -455,6 +455,7 @@ public sealed class OcrPipeline
             IReadOnlyList<IReadOnlyList<OcrCrop>> recoveryBatches;
             try
             {
+                IReadOnlyList<OcrDetectedRegion> headingSuffixes = Array.Empty<OcrDetectedRegion>();
                 recovered = _options.EnableTickLaneRecovery
                     ? await TickLaneTextRegionRecovery.FindAsync(
                         request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
@@ -466,10 +467,21 @@ public sealed class OcrPipeline
                         request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
                         .ConfigureAwait(false);
                     recovered = OcrCollections.Freeze(recovered.Concat(headerGlyphs));
+                    if (request.PhaseDividerXs is not null)
+                    {
+                        headingSuffixes = await HeaderWordSuffixRecovery.FindAsync(
+                            request.OriginalImage, detectedRegions, regions, request.PlotBounds,
+                            request.PhaseDividerXs, cancellationToken).ConfigureAwait(false);
+                    }
                 }
-                ValidateDetectedRegions(detectedRegions.Concat(recovered).ToArray());
+                ValidateDetectedRegions(detectedRegions.Concat(recovered).Concat(headingSuffixes).ToArray());
+                // Batch width affects recognizer padding. Keep every existing
+                // tick/glyph tensor unchanged when adding wider heading crops.
                 recoveryBatches = OcrCropBatcher.CreateBatches(
-                    request.OriginalImage, recovered, cropOptions, cancellationToken);
+                    request.OriginalImage, recovered, cropOptions, cancellationToken)
+                    .Concat(OcrCropBatcher.CreateBatches(
+                        request.OriginalImage, headingSuffixes, cropOptions, cancellationToken)).ToArray();
+                recovered = OcrCollections.Freeze(recovered.Concat(headingSuffixes));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -514,8 +526,10 @@ public sealed class OcrPipeline
                 regions = OcrCollections.Freeze(regions.Concat(recoveredRegions));
                 warnings.AddRange(recoveredRegions.Select(region =>
                     $"ocr_role_needs_review:{region.RegionId}:" +
-                    (region.RegionId.StartsWith("header-glyph:", StringComparison.Ordinal)
-                        ? "original_pixel_header_glyph_recovery" : "original_pixel_tick_recovery")));
+                    (region.RegionId.StartsWith("header-word-suffix:", StringComparison.Ordinal)
+                        ? "original_pixel_header_word_suffix_recovery"
+                        : region.RegionId.StartsWith("header-glyph:", StringComparison.Ordinal)
+                            ? "original_pixel_header_glyph_recovery" : "original_pixel_tick_recovery")));
                 regionFailures = OcrCollections.Freeze(regionFailures.Concat(
                     ExtractRegionFailures(recoveryResults, warnings)));
                 recognitionResults.AddRange(recoveryResults);

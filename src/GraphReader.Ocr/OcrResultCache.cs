@@ -115,6 +115,7 @@ public static class OcrCacheKeyDeriver
         if (options.EnableHeaderGlyphRecovery)
         {
             yield return HeaderGlyphTextRegionRecovery.CompositionVersion;
+            yield return HeaderWordSuffixRecovery.CompositionVersion;
         }
         if (options.EnableFramedLegendRoleResolution)
         {
