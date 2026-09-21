@@ -1,0 +1,181 @@
+{
+  "schema": "graphreader.existing-numeric-v5-diagnosis.v1",
+  "status": "closed_no_product_change",
+  "probe": {
+    "scope": "owned-open-synthetic-development",
+    "metrics": {
+      "refined": {
+        "regions": 73,
+        "baseline_exact": 56,
+        "numeric_exact": 0,
+        "baseline_character_edits": 17,
+        "numeric_character_edits": 174,
+        "recovered": 0,
+        "regressed": 56,
+        "empty_readings": 73,
+        "nonempty_wrong_readings": 0
+      },
+      "detected": {
+        "regions": 73,
+        "baseline_exact": 59,
+        "numeric_exact": 0,
+        "baseline_character_edits": 14,
+        "numeric_character_edits": 174,
+        "recovered": 0,
+        "regressed": 59,
+        "empty_readings": 73,
+        "nonempty_wrong_readings": 0
+      }
+    },
+    "inference_seconds": 2.9460426,
+    "total_seconds": 16.1500124,
+    "intra_operation_threads": 10,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "production_approved": false,
+    "truth_used_by_inference": false,
+    "definition_sha256": "af3b807fb162c80cf2bae27a27b274fa301ea86d43eb1e740d99e7d8b98b4ff7",
+    "result_sha256": "c088f109ddecd44d2bdfd15b4893a9634dbd407bdf9b1fba6df62abe3a06cbcf"
+  },
+  "trace": {
+    "scope": "owned-open-synthetic-development",
+    "crops": 146,
+    "counts": {
+      "structural_pre_rejections": 51,
+      "no_components": 0,
+      "cpu_calls": 95,
+      "exact_python_csharp_input_matches": 95,
+      "model_reject_class_crops": 95,
+      "also_below_confidence_rule": 6
+    },
+    "argmax_class_counts": {
+      "1": 5,
+      "2": 1,
+      "4": 2,
+      "7": 3,
+      "8": 9,
+      "10": 5,
+      "11": 11,
+      "13": 107
+    },
+    "maximum_python_csharp_encoded_input_difference": 0,
+    "all_prior_crops_and_readings_reproduced": true,
+    "inference_seconds": 3.6208315,
+    "total_seconds": 16.4622176,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "production_approved": false,
+    "decision": "Do not compose the existing V5 specialist into current OCR. All crops fail; exact encoded-input parity rules out a C# feature-encoding discrepancy in these calls. Axis strokes appear in some padded crops, but even unobstructed digits are rejected. No threshold change or new training justified by this diagnostic alone."
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-probe-v1/definition.json",
+      "sha256": "af3b807fb162c80cf2bae27a27b274fa301ea86d43eb1e740d99e7d8b98b4ff7"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-probe-v1/result.json",
+      "sha256": "c088f109ddecd44d2bdfd15b4893a9634dbd407bdf9b1fba6df62abe3a06cbcf"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-probe-v1/analysis.json",
+      "sha256": "abb8fd573652d6a1ef4e538c1cd51d093f23d4baa96abf0053483a3cddbc8b9c"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-probe-v1/status.json",
+      "sha256": "ad37db2dd1b2ec960dc3473a49a1ef139fbf9f4d09c0ffa691667ef0bcf82f65"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-probe-v1/build.log",
+      "sha256": "7a43dad1ffe7634bc074c91f71fe6841b53714520017dad33b5966c30cbdddd5"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-trace-v1/definition.json",
+      "sha256": "0d816949b475df810c48d69a59e0b828df454b435a48b0b3166540f45faf49f7"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-trace-v1/result.json",
+      "sha256": "4f43a53e653f8417b3adcc88cb34b939dbe0de6b0621bb6f7655d3020aece8e3"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-trace-v1/analysis.json",
+      "sha256": "b0827bd6c8c3c8a174ac3d71cff89ba041dd48373bcedfa217367ac07f0d3bdd"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-trace-v1/status.json",
+      "sha256": "29b0f09dbe583cf2d828e24a6e7a05dbf2127a5bdd24d60868759a62c99cc5d3"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-trace-v1/build.log",
+      "sha256": "c845b79a63e7e68410eb865a62166afd24134c54ef52ced70fca1ac29456238a"
+    },
+    {
+      "path": "artifacts/goal22-runs/existing-numeric-v5-trace-v1/crop-contact-sheet.png",
+      "sha256": "bf99cccd0830ecdece617dbd3e2c288cbbde64f388d30ca1c3bac1651392c208"
+    },
+    {
+      "path": "artifacts/goal22-tools/ExistingNumericProbe/Program.cs",
+      "sha256": "47c04e6d68a6ce373b95d035aac8eb7e8ad2fb431fdde9c07dd3b68bc08b7016"
+    },
+    {
+      "path": "artifacts/goal22-tools/ExistingNumericProbe/ExistingNumericProbe.csproj",
+      "sha256": "68cba640c0c5be7eca4c328865572385ceb0a94a95b392ee2b2b2e982485556c"
+    },
+    {
+      "path": "artifacts/goal22-tools/ExistingNumericTrace/Program.cs",
+      "sha256": "5337480e91efebfe67e0010b8c9b73c56135a682a95024058a4cb2b2e8bbce88"
+    },
+    {
+      "path": "artifacts/goal22-tools/ExistingNumericTrace/ExistingNumericTrace.csproj",
+      "sha256": "68cba640c0c5be7eca4c328865572385ceb0a94a95b392ee2b2b2e982485556c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ExistingNumericProbe.py",
+      "sha256": "ff2ce2f9f077bdb73ad67261501b2ea1c694235aa45effba212e8f26681ae35b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ExistingNumericProbe.ps1",
+      "sha256": "90291f5d7a6650eadac8df668ade40a3dbb0c4d50fa4d4b4ac5d2d4997212d1f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-ExistingNumericProbe.py",
+      "sha256": "2245f2ea00d645017a989ec5df42b5153079a71a299425e49906a68802607e19"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ExistingNumericTrace.py",
+      "sha256": "a05e37b752f6c5f53cfafa513af98dc0ff102b666cef09db352ea83290396a95"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ExistingNumericTrace.ps1",
+      "sha256": "d6618ff1f2d7703c890e218e995e82ee55260ca50ebf009bb3e27fddc1a0f746"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-ExistingNumericTrace.py",
+      "sha256": "9dae98cfe4b8d779234ba6388a37b20728de309c0fd3ad38f3ba5250a85b9359"
+    },
+    {
+      "path": "ml/ocr/component_ensemble_v5/dataset.py",
+      "sha256": "f2aa415255fe7d322acdfb41a87e60fe9d6fb5920df8c431851b6836a30e93d9"
+    },
+    {
+      "path": "ml/ocr/component_ensemble_v5/protocol.py",
+      "sha256": "ae5d140f0bb3cc0fb822de574a49d2c1e944f1efe4ae1475d9c5e503a0c0b6ac"
+    },
+    {
+      "path": "ml/ocr/component_geometric_v4/dataset.py",
+      "sha256": "a1d316c728ce5b95828cde171ed5e167757cd10c1a18251e89f19c7543fc2f1c"
+    },
+    {
+      "path": "src/GraphReader.Inference/InferenceContracts.cs",
+      "sha256": "f56c658044518149d90a5d10521b568e14521fea97107b453cb8739fd9d82b04"
+    }
+  ],
+  "existing_model_sha256": "9db95c41ce396e8b2dff3b525556615528a00ca87f4cc531274374b961417c84",
+  "license": "Apache-2.0 project-owned synthetic model; no external import",
+  "bar_or_product_threshold_changed": false,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "goal22_all_four_outcomes_verified": false,
+  "source_head": "7d7d2de2cc15255b6fea3b681f41296bd01d7de2"
+}
