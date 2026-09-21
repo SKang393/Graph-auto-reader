@@ -23,7 +23,7 @@ public sealed class ProductionSourceScaleOcrDetectorTests
         var detector = new ProductionSourceScaleOcrDetector(inner);
         Assert.AreSame(expected, await detector.DetectAsync(original, CancellationToken.None));
         Assert.AreEqual(1, inner.Calls);
-        StringAssert.Contains(detector.ConfigurationFingerprint, "source-scale-windows-v1");
+        StringAssert.Contains(detector.ConfigurationFingerprint, "source-scale-windows-v2");
         StringAssert.Contains(detector.ConfigurationFingerprint, inner.ConfigurationFingerprint);
     }
 
@@ -82,6 +82,54 @@ public sealed class ProductionSourceScaleOcrDetectorTests
         Assert.AreEqual(20d, regions[0].Polygon.Bounds.Width);
         Assert.AreEqual(6d, regions[0].Polygon.Bounds.Height);
         Assert.HasCount(2, regions.Select(static region => region.RegionId).Distinct().ToArray());
+    }
+
+    [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(false, false)]
+    [DataRow(true, true)]
+    [DataRow(false, true)]
+    public async Task InternalEdgeFragmentYieldsToCompletePeerEvenWithHigherConfidence(bool rightEdge, bool transformed)
+    {
+        OcrImage original = Image(1400, 100, gray: 31, bgr: 72);
+        if (transformed) original = original with { OriginalToImage = new OcrFrameTransform(2, 2, -20, -40) };
+        byte[] before = original.Pixels.ToArray();
+        var inner = new RecordingDetector((_, index) => rightEdge
+            ? index == 0 ? [Region("fragment", 1170, 20, 27, 12, .99)] : [Region("complete", 970, 22, 80, 14, .75)]
+            : index == 0 ? [Region("complete", 160, 22, 80, 14, .75)] : [Region("fragment", 2, 20, 20, 12, .99)]);
+        OcrDetectedRegion result = (await new ProductionSourceScaleOcrDetector(inner)
+            .DetectAsync(original, CancellationToken.None)).Single();
+        StringAssert.EndsWith(result.RegionId, ":complete");
+        Assert.AreEqual(.75, result.DetectionConfidence);
+        var expected = new OcrRectangle(rightEdge ? 1170 : 160, 22, 80, 14);
+        if (transformed) expected = new OcrRectangle((expected.X + 20) / 2, 31, 40, 7);
+        Assert.AreEqual(expected, result.Polygon.Bounds);
+        CollectionAssert.AreEqual(before, original.Pixels.ToArray());
+        Assert.IsTrue(original.BgrPixels!.Pixels.Span.ToArray().All(static value => value == 72));
+    }
+
+    [TestMethod]
+    [DataRow("different-row")]
+    [DataRow("tall-region")]
+    [DataRow("different-orientation")]
+    [DataRow("protected-context")]
+    [DataRow("does-not-cross-edge")]
+    public async Task EdgeFragmentRequiresCompatiblePeerThatActuallyCrossesTheWindowBoundary(string reason)
+    {
+        var inner = new RecordingDetector((_, index) =>
+        {
+            if (index == 0) return [Region("fragment", 1170, 20, 27, 12, .99)];
+            OcrDetectedRegion peer = Region("peer", 970, reason == "different-row" ? 50 : 20,
+                80, reason == "tall-region" ? 60 : 12, .75);
+            if (reason == "different-orientation") peer = peer with { OrientationDegrees = 90 };
+            if (reason == "protected-context") peer = peer with { Context = new(NumericExpected: true) };
+            if (reason == "does-not-cross-edge") peer = Region("peer", 900, 20, 98, 12, .75);
+            return [peer];
+        });
+        IReadOnlyList<OcrDetectedRegion> results = await new ProductionSourceScaleOcrDetector(inner)
+            .DetectAsync(Image(1400, 100), CancellationToken.None);
+        Assert.HasCount(2, results);
+        Assert.IsTrue(results.Any(region => region.RegionId.EndsWith(":fragment", StringComparison.Ordinal)));
     }
 
     [TestMethod]

@@ -18,7 +18,7 @@ internal sealed class ProductionSourceScaleOcrDetector(ITextRegionDetector inner
     private readonly ITextRegionDetector inner = inner ?? throw new ArgumentNullException(nameof(inner));
 
     public string ConfigurationFingerprint =>
-        $"source-scale-windows-v1:size=1200:overlap=256:pad=white:cross-window-iou=0.5:{inner.ConfigurationFingerprint}";
+        $"source-scale-windows-v2:size=1200:overlap=256:pad=white:cross-window-iou=0.5:horizontal-edge-fragments=complete-peer:{inner.ConfigurationFingerprint}";
 
     public async ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
         OcrImage image, CancellationToken cancellationToken)
@@ -32,7 +32,7 @@ internal sealed class ProductionSourceScaleOcrDetector(ITextRegionDetector inner
             return await inner.DetectAsync(image, cancellationToken).ConfigureAwait(false);
         }
 
-        var candidates = new List<(int Window, OcrDetectedRegion Region)>();
+        var candidates = new List<WindowDetection>();
         int ordinal = 0;
         foreach (int y in WindowStarts(image.Height))
         {
@@ -51,7 +51,10 @@ internal sealed class ProductionSourceScaleOcrDetector(ITextRegionDetector inner
                     if (clipped is null) continue;
                     var mapped = new OcrPolygon(clipped.Points.Select(point =>
                         image.OriginalToImage.MapToOriginal(new OcrPoint(point.X + x, point.Y + y))).ToArray());
-                    candidates.Add((ordinal, region with
+                    OcrRectangle bounds = clipped.Bounds;
+                    candidates.Add(new WindowDetection(ordinal,
+                        new OcrRectangle(x, y, width, height),
+                        new OcrRectangle(bounds.X + x, bounds.Y + y, bounds.Width, bounds.Height), region with
                     {
                         RegionId = string.Create(CultureInfo.InvariantCulture, $"window-{x}-{y}:{region.RegionId}"),
                         Polygon = mapped,
@@ -61,10 +64,11 @@ internal sealed class ProductionSourceScaleOcrDetector(ITextRegionDetector inner
             }
         }
 
-        var selected = new List<(int Window, OcrDetectedRegion Region)>();
+        var selected = new List<WindowDetection>();
         foreach (var candidate in candidates.OrderByDescending(static candidate => candidate.Region.DetectionConfidence))
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (HasCompletePeerAcrossWindowEdge(candidate, candidates, image.Width)) continue;
             // Only remove duplicates introduced by overlapping windows. The
             // unchanged model owns all detections within an individual window.
             if (!selected.Any(previous => previous.Window != candidate.Window &&
@@ -75,6 +79,42 @@ internal sealed class ProductionSourceScaleOcrDetector(ITextRegionDetector inner
         }
         return selected.Select(static candidate => candidate.Region).ToArray();
     }
+
+    private static bool HasCompletePeerAcrossWindowEdge(
+        WindowDetection candidate, IReadOnlyList<WindowDetection> candidates, int imageWidth)
+    {
+        if (GraphTextRoleClassifier.GetOrientation(candidate.Region.OrientationDegrees) != OcrOrientation.Horizontal)
+            return false;
+        OcrRectangle box = candidate.ImageBounds;
+        bool nearLeft = candidate.WindowBounds.Left > 0 &&
+            box.Left <= candidate.WindowBounds.Left + box.Height;
+        bool nearRight = candidate.WindowBounds.Right < imageWidth &&
+            box.Right >= candidate.WindowBounds.Right - box.Height;
+        if (!nearLeft && !nearRight) return false;
+
+        foreach (WindowDetection other in candidates)
+        {
+            if (other.Window == candidate.Window || !Equals(other.Region.Context, candidate.Region.Context) ||
+                GraphTextRoleClassifier.GetOrientation(other.Region.OrientationDegrees) != OcrOrientation.Horizontal)
+                continue;
+            OcrRectangle peer = other.ImageBounds;
+            double overlap = Math.Min(box.Bottom, peer.Bottom) - Math.Max(box.Top, peer.Top);
+            if (Math.Max(box.Height, peer.Height) > 2 * Math.Min(box.Height, peer.Height) ||
+                overlap < 0.5 * Math.Min(box.Height, peer.Height)) continue;
+
+            // A partial word near an internal window edge can have higher
+            // confidence than the full word. Require a same-row peer from a
+            // different window to cover it and extend beyond that exact edge.
+            // This never removes a same-window detection or an image-edge word.
+            if ((nearLeft && peer.Left < candidate.WindowBounds.Left && peer.Right >= box.Right) ||
+                (nearRight && peer.Right > candidate.WindowBounds.Right && peer.Left <= box.Left))
+                return true;
+        }
+        return false;
+    }
+
+    private readonly record struct WindowDetection(
+        int Window, OcrRectangle WindowBounds, OcrRectangle ImageBounds, OcrDetectedRegion Region);
 
     private static IEnumerable<int> WindowStarts(int length)
     {

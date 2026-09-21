@@ -1,0 +1,471 @@
+{
+  "schema": "graphreader.source-window-edge-fragment-repair.v1",
+  "status": "implemented_and_verified_on_open_synthetic_inputs",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionSourceScaleOcrDetector.cs",
+      "sha256": "6b56653521b35ec875c8b7a98734d87f46609dbaa20ee432ec6c94095f4846ab"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionSourceScaleOcrDetectorTests.cs",
+      "sha256": "251706c4b7935cbf29cbcec9e79c76746fb30c0b033349e2c6206c0d03c4cbb3"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/window-edge-checks-v1/source-bindings.json",
+      "sha256": "d70f0527fa77091d1e0c745ad36ca8ed25811936ea2b130b497f501c8b539252"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-checks-v1/status.json",
+      "sha256": "0aa279b99d0c4aa319c7873aa2eca2e324f5ed9cafdf19c046a1aff432d2614f"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-checks-v1/Run.ps1",
+      "sha256": "0642a056bfc29b886e48025ffd1912db877e164748a40b35d520c9e9696ad62f"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-checks-v1/test-results/App.trx",
+      "sha256": "69ff3a3bb787161aedb0a4423118b7acd2ee777ae730061b0dcb77b4be5db80b"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-checks-v1/App.log",
+      "sha256": "8dfa6afbfd93ac6d0150cbffef060311cbdc27556d4cd4d36fa9794cb01e5f61"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-checks-v1/build.log",
+      "sha256": "47df737a6eac5344c1a3477215a6d8df0d45adf228a35d173a1b940319626d90"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/status.json",
+      "sha256": "e614dc20183c9c69f3b33f9105258efeb203e9833a4dbb21e5acdcc43577c3e1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/protocol.json",
+      "sha256": "d4f75064c8a3c370e4d2ec421faafaed14c7c6778f01b09d61fcbd57fa2d1087"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/candidate-binding.json",
+      "sha256": "2d245be221b16eba243f5745f1e9abb8e6038a92715435cd3c867af5c1c13ac7"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/input-manifest.json",
+      "sha256": "01d092fb2fb4b82c72ead71185afc3dd05efe0bd6c72cc86070c0fc3468e07ac"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/runtime-description.json",
+      "sha256": "1b14bd408b640294eb4c540cca40dcd8a16b0fbfcd6daeac4c2acf9a0536dc7d"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/preparation.json",
+      "sha256": "139ba5456c6a91f6b7db082ab88eadfff4736f746f6beb0bd7794714c2f78881"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/execution/report.json",
+      "sha256": "7cafa1b98d419e60b55e90d42264a7653334787b98513436920951739e6d78b4"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/native-marker-score.json",
+      "sha256": "6d278d6e16167871eb8b19f297d4364f7bce6e49cde8515bd2f0501a1c445022"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/native-ocr-score.json",
+      "sha256": "269e330b4e6e2619268f1494e607c72847b2c8fa5ecd36d05b7772e246ddb8b2"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/native-ocr-details.json",
+      "sha256": "455b0f1f775d8161cd4a474720d89ba74215b71e3ceb5d7a410373e4ef38887d"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-window-edge-v1/axis-geometry-comparison.json",
+      "sha256": "4d90e57d46f60f50b7f1e0dfcf41144f7ea66d0628cc21f90e3be3170531df3e"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-workflow-v1/status.json",
+      "sha256": "594926836b2620bb05c33e426d701223fdb1a85cc014aef5fe00216335195223"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-workflow-v1/protocol.json",
+      "sha256": "2bb484ecaad3f94caebe90461f8a4f5508f9c39de49acfb1fb0a342536b87dfc"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-workflow-v1/candidate-binding.json",
+      "sha256": "f4e094f47fce49fb79ccc9913d9df4ad6305d6a960a583c4ed9425438ef21c33"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-workflow-v1/input-manifest.json",
+      "sha256": "6e492118064993387ecddcfcd390926bb03d0b2557a23511ec037fa14348d679"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-workflow-v1/execution/report.json",
+      "sha256": "0df1512283c09f3e1832095162c5437cc984a64c025614cca3b8f0148f0e6a23"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-workflow-v1/comparison.json",
+      "sha256": "67de8961b87a4cb0a37eb7c39ac2238fbb5e5d84900ac47d928218d2ebccf373"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "a42eb3186ccd96f86477a0700435ae168d68f2bdc0e6886d1416665f0cb05081"
+    },
+    {
+      "path": "artifacts/goal22-runs/window-edge-workflow-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "b8e0865f1d29446ea7e88539629370f6b12bb165767858bd7408fb2fa3605e97"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-WindowEdgeBatch.py",
+      "sha256": "846d69ac28e1192f5b7e66f6a6207ad6a4bfd8c5012313f1180fa27e4490f2af"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-WindowEdgeContext.py",
+      "sha256": "32d6e8d71bc8a04407f59ed5f9b7c47ac9ed91882028af4b0666acedb319883c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-WindowEdgeContext.ps1",
+      "sha256": "574c8d7b973b66c9dd426d6706773ee2729fd9149fe6bf23b2c587afd9df526c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-WindowEdgeContext.py",
+      "sha256": "4da09c03767e7628d1c33f83e70bae264548af7d56eb6c2ee30c7d575bb25d50"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-WindowEdgeOcr.py",
+      "sha256": "eb6ac6e4f72d2e49c3d8e129d80c0b4a89466933364b215d546862a1b3345fa7"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-WindowEdgeGeometry.py",
+      "sha256": "238d1e024624af546d925167d12167d24122286852b4e2ef06fc8e33ddf45ee6"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-WindowEdgeWorkflow.py",
+      "sha256": "66f6d880f744e971831d8f083ee8bc70d06e0e84bf39d582a52a5a4b1c781221"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-WindowEdgeWorkflow.ps1",
+      "sha256": "9f29a67de1c6fd94136d262dc81bf097e3448d0f7245727b814897f40d3daea0"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-WindowEdgeWorkflow.py",
+      "sha256": "9f22a3bc8fb0b47104503dda996b284f97d2c916e1e257fd9c559797fb9fcb41"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/status.json",
+      "sha256": "64cf8a36144291effbef21373ce58c62e12a416c8f61128809a849e7fbea4ef0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/source-bindings.json",
+      "sha256": "bc4ad05559f52896d64d8e6ef7431ba240c8789e9e85c2851a60e2b757914fd0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/Program.cs",
+      "sha256": "5f18177adf6205ec49288267cbc3a0dbdf8d161476c679a1a39b16d7bfe74d79"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/NativeLegendFrameReplay.csproj",
+      "sha256": "28650bf929a903ffff4c3a00b7ab839dcd3731fe7dd95dd0d6d95046de4bab87"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-frame-replay-v1/replay/report.json",
+      "sha256": "ff3b80d3f1aab5d9f93e29d2c3b6322033dbe0b14c8722bafb0c50f9f243b42d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-LegendFrameReplay.py",
+      "sha256": "139cac43109970f8e077c5fa7185cd268b197b40c055b80d9c754bcd80eff4b9"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LegendFrameReplay.ps1",
+      "sha256": "e0898358f917253a1e47e07d3740afe6d485ebe519d688b70d5f1b2ee583ac44"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-fdcaa91c91a8/status.json",
+      "sha256": "9c51f2c453e9d405154d28398fe9b6467dd49320232e74ab17b3129c064c35b6"
+    }
+  ],
+  "tests": {
+    "App": {
+      "total": 478,
+      "passed": 478,
+      "skipped": 0,
+      "failed": 0
+    }
+  },
+  "ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 523,
+        "geometry_matched_region_count": 380,
+        "geometry_false_positive_count": 143,
+        "geometry_false_negative_count": 73,
+        "recognition_exact_count": 332,
+        "recognition_exact_accuracy": 0.7328918322295805,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 71,
+        "unmatched_truth_deletion_edit_count": 544,
+        "unmatched_prediction_insertion_edit_count": 354,
+        "character_error_count": 969,
+        "character_error_rate": 0.3125806451612903,
+        "role_correct_count": 351,
+        "role_accuracy": 0.7748344370860927,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 27,
+            "accuracy": 0.7297297297297297
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 132,
+            "accuracy": 0.7764705882352941
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 81,
+            "accuracy": 0.8181818181818182
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 519,
+        "geometry_matched_region_count": 382,
+        "geometry_false_positive_count": 137,
+        "geometry_false_negative_count": 71,
+        "recognition_exact_count": 334,
+        "recognition_exact_accuracy": 0.7373068432671082,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 71,
+        "unmatched_truth_deletion_edit_count": 514,
+        "unmatched_prediction_insertion_edit_count": 319,
+        "character_error_count": 904,
+        "character_error_rate": 0.29161290322580646,
+        "role_correct_count": 353,
+        "role_accuracy": 0.7792494481236203,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 132,
+            "accuracy": 0.7764705882352941
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 81,
+            "accuracy": 0.8181818181818182
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "ocr_truth_changes": [
+    {
+      "before": {
+        "split": "validation",
+        "source_sha256": "4b7c004758d4847e561e5135db0355078c1378098043f13448b4754297ea2d9a",
+        "truth_id": "61a086e6fa23de4806d9750dbf915545505a979e4c684f9cc700b7cc74a6d10c",
+        "text": "Primary outcome",
+        "role": "legend_text",
+        "box": [
+          1170.505614,
+          83.013231,
+          1329.5377799999999,
+          103.270578
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null
+      },
+      "after": {
+        "split": "validation",
+        "source_sha256": "4b7c004758d4847e561e5135db0355078c1378098043f13448b4754297ea2d9a",
+        "truth_id": "61a086e6fa23de4806d9750dbf915545505a979e4c684f9cc700b7cc74a6d10c",
+        "text": "Primary outcome",
+        "role": "legend_text",
+        "box": [
+          1170.505614,
+          83.013231,
+          1329.5377799999999,
+          103.270578
+        ],
+        "matched": true,
+        "predicted_text": "Primary outcome",
+        "predicted_role": "legendtext"
+      }
+    },
+    {
+      "before": {
+        "split": "validation",
+        "source_sha256": "e29bd120a32f59903a59ef4388fdc25599ad1c1cb682cd8ca2180dc379c23d88",
+        "truth_id": "886e681eab390596be2542c642c8c9c2541a3e6f21a38e74369eaa6d047a677b",
+        "text": "Primary outcome",
+        "role": "legend_text",
+        "box": [
+          1164.711657,
+          84.100294,
+          1324.713776,
+          104.67518000000001
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null
+      },
+      "after": {
+        "split": "validation",
+        "source_sha256": "e29bd120a32f59903a59ef4388fdc25599ad1c1cb682cd8ca2180dc379c23d88",
+        "truth_id": "886e681eab390596be2542c642c8c9c2541a3e6f21a38e74369eaa6d047a677b",
+        "text": "Primary outcome",
+        "role": "legend_text",
+        "box": [
+          1164.711657,
+          84.100294,
+          1324.713776,
+          104.67518000000001
+        ],
+        "matched": true,
+        "predicted_text": "Primary outcome",
+        "predicted_role": "legendtext"
+      }
+    }
+  ],
+  "all_332_previous_exact_readings_retained": true,
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 665,
+    "matched": 579,
+    "extra": 86,
+    "missing": 259,
+    "precision": 0.8706766917293233,
+    "recall": 0.6909307875894988
+  },
+  "native_geometry": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 85,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 85,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_outputs_and_statuses_identical": true,
+  "every_observed_model_used_cpu": true,
+  "frame_replay": {
+    "panels": 31,
+    "source_runtime_hashes_verified": true,
+    "model_inference_runs": 0,
+    "limitation": "Replays frame and symbol functions on saved final OCR geometry, not the complete OCR pipeline."
+  },
+  "seconds": {
+    "checks": 86.4420261,
+    "native": 133.7008901,
+    "csv": 147.1396686,
+    "frame_replay": 9.3138134
+  },
+  "models_and_thresholds_unchanged": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}
