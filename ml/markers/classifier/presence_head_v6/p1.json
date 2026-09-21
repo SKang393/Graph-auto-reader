@@ -1,0 +1,33 @@
+{
+  "optimizer": "full_batch_lbfgs",
+  "maximum_iterations": 64,
+  "maximum_evaluations": 96,
+  "learning_rate": 1.0,
+  "l2_weight": 0.0001,
+  "batch_size": 128,
+  "seed": 20260923,
+  "trainable_parameters": "artifact_head_only",
+  "feature_dropout": "disabled",
+  "checkpoint_selection": "fixed_final_optimizer_state_no_dev_selection",
+  "schema_version": 1,
+  "task": "marker-classifier",
+  "revision": "marker-classifier-presence-head-v6",
+  "candidate_id": "P1",
+  "source_checkpoint_path": "artifacts/goal22-runs/classifier-structural-context-v5/P1/marker-classifier.pt",
+  "source_checkpoint_sha256": "92546ffffb7c863533a70069a4621e0d61b9c41a886cb1d40c32cb1079a5ea67",
+  "cache_path": "artifacts/goal22-runs/classifier-presence-context-cache-v1",
+  "cache_manifest_sha256": "75d163fe96fb78172339482200254b15c5b0b965665687b91613aa050c81409a",
+  "protocol_sha256": "629d1c0b868d912a7b7efc725212acec3c247e0130fa2eff6876ce2c30af76b4",
+  "expected_runner_source_bundle_sha256": "76d37a37f29faa1319067b856878d73645909ca046b9f05452e152c514a06a1c",
+  "resource_policy": {
+    "aggregate_backstop_percent": 80,
+    "synchronous_work_rest_percent": 80,
+    "all_processors_eligible": true,
+    "priority": "Idle",
+    "omp_wait_policy": "PASSIVE",
+    "kmp_blocktime": "0"
+  },
+  "private_reads": 0,
+  "sealed_runs_authorized": 0,
+  "production_approval": false
+}

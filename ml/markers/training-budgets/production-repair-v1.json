@@ -10253,6 +10253,51 @@
       "candidate_report_sha256": "0ba47c468e8ed29c646a1203b2a8e7b6f7a66582aa9f1696513f0b745a26386a",
       "optimizer_steps": 5868,
       "closed_utc_date": "2026-09-21"
+    },
+    {
+      "task": "marker-classifier",
+      "revision": "marker-classifier-presence-head-v6",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/classifier/presence_head_v6/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "f590412e771fcb4a7ecc4c23181b401ba56107ad2a0ac175636c805ea37e935b"
+      },
+      "protocol_path": "ml/markers/classifier/presence_head_v6/protocol.json",
+      "protocol_sha256": "629d1c0b868d912a7b7efc725212acec3c247e0130fa2eff6876ce2c30af76b4",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned synthetic presence-head repair under continued Goal22 authorization. No private/sealed reads, model activation or release.",
+      "isolated_change": "Fit only the existing artifact head on frozen V5 encoder/projection features. Preserve every shape, fill, embedding and encoder parameter byte-for-byte. Add presence-only crops from all 2004 owned training component centers: all six fixed crop recipes each, plus 3313 authored non-marker crops that avoid truth glyphs. Retain all 62512 previous train rows and all unchanged dev bytes. No invented shape/fill targets, model-driven sampling, private images or architecture change. Use one full-batch class-balanced binary fit with fixed LBFGS maximum 64 iterations/96 evaluations and l2 0.0001; no development-driven stopping or checkpoint selection.",
+      "optimizer_steps_maximum": 64,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/classifier/presence_head_v6/P1_RESULT.json",
+      "outcome_sha256": "c744b580bbbebab4d4d1eeff04c1dadc584785e76397ad15e09e34590058a018",
+      "candidate_report_sha256": "eb514dabee853088bd2b57c344effaa0bf0a9799dd484a7d8e6116b2a7591f09",
+      "optimizer_steps": 64,
+      "closed_utc_date": "2026-09-21"
     }
   ]
 }

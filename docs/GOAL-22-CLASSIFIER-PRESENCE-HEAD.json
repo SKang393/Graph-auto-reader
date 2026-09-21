@@ -1,0 +1,151 @@
+{
+  "schema": "graphreader.goal22.presence-head-repair.v1",
+  "status": "failed_dev_unapproved",
+  "outcome": {
+    "path": "ml/markers/classifier/presence_head_v6/P1_RESULT.json",
+    "sha256": "c744b580bbbebab4d4d1eeff04c1dadc584785e76397ad15e09e34590058a018"
+  },
+  "evidence": {
+    "cascade_report": {
+      "path": "artifacts/goal22-runs/classifier-presence-head-v6/cascade-dev/report.json",
+      "sha256": "24d03d0c2c4d3c4eda03ed9aa0927ce9c87c59ebae460879986f01062492b3bc"
+    },
+    "cascade_binding": {
+      "path": "artifacts/goal22-runs/classifier-presence-head-v6/cascade-dev/binding.json",
+      "sha256": "091ef78e3b8cdcc28a5564d9f6bc3f476707c0f33a58bf03598c076857f5e74c"
+    },
+    "workflow_report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-presence-head-v6-v1/execution/report.json",
+      "sha256": "1ae60db9e696a3a07a6b09c92751fd821dfd9e8a0957195d8604afa8423c15bc"
+    },
+    "workflow_comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-presence-head-v6-v1/comparison.json",
+      "sha256": "9a59f3b17b1f924ff348a4ed256c4a0e52f526d6c95ce8288a01fda34b006bbf"
+    },
+    "native_marker_score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-presence-head-v6-v1/native-marker-score.json",
+      "sha256": "92af227459c2aed8310480a00e05469b1b230e78cea4f03b223e7227d84cdd49"
+    },
+    "native_ocr_score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-presence-head-v6-v1/native-ocr-score.json",
+      "sha256": "0180c7844d1937679712f77620a4f5251cbfc0a430431d1fc325dc886ca10c8a"
+    },
+    "workflow_completion": {
+      "path": "artifacts/goal22-runs/presence-head-workflow-queue-v1/status.json",
+      "sha256": "ad6d65397c56d30ac0e45c9b875b079cc123d01cbdefd1136c7166319d602b31"
+    },
+    "cache_manifest": {
+      "path": "artifacts/goal22-runs/classifier-presence-context-cache-v1/manifest.json",
+      "sha256": "75d163fe96fb78172339482200254b15c5b0b965665687b91613aa050c81409a"
+    },
+    "coverage_tests": {
+      "path": "artifacts/goal22-runs/classifier-presence-preparation-v1/tests.xml",
+      "sha256": "3f24d063a406c155d5ecd606e30098b105acfa950fa5626e1cc54053d370e9f1"
+    },
+    "runner_tests": {
+      "path": "artifacts/goal22-runs/classifier-presence-preparation-v1/runner-tests.xml",
+      "sha256": "4c56e2efa5b885517fb395266a3c30c4c0da2171f0cfaed613e1b5589898bece"
+    }
+  },
+  "cascade_metrics": {
+    "component": {
+      "scene_count": 167,
+      "truth_count": 2004,
+      "true_positives": 1734,
+      "false_positives": 116,
+      "false_negatives": 270,
+      "proposal_true_positives": 2004,
+      "duplicate_count": 0,
+      "prohibited_structure_hits": 0,
+      "precision": 0.9372972972972973,
+      "recall": 0.8652694610778443,
+      "proposal_recall": 1.0,
+      "prohibited_structure_hit_rate": 0.0
+    },
+    "family": {
+      "scene_count": 9,
+      "truth_count": 206,
+      "true_positives": 203,
+      "false_positives": 41,
+      "false_negatives": 3,
+      "proposal_true_positives": 206,
+      "duplicate_count": 0,
+      "prohibited_structure_hits": 10,
+      "precision": 0.8319672131147541,
+      "recall": 0.9854368932038835,
+      "proposal_recall": 1.0,
+      "prohibited_structure_hit_rate": 0.040983606557377046
+    }
+  },
+  "native_workflow_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 16,
+    "failed_cases": 7,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 36,
+    "matched_series": 26,
+    "truth_points": 706,
+    "predicted_points": 439,
+    "matched_points": 423,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 439,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 421,
+    "correct_rows": 418,
+    "missing_rows": 303,
+    "extra_rows": 18,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 423,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 283,
+    "unique_point_extra": 16,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9635535307517085,
+    "unique_point_structural_coverage": 0.5991501416430595,
+    "unique_point_value_precision": 0.9635535307517085,
+    "unique_point_value_coverage": 0.5991501416430595,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9521640091116174,
+    "relational_row_coverage": 0.5773480662983426,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9928741092636579,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 7
+    }
+  },
+  "native_marker_metrics": {
+    "train": {
+      "truth": 500,
+      "predicted": 501,
+      "matched": 487,
+      "extra": 14,
+      "missing": 13,
+      "precision": 0.9720558882235529,
+      "recall": 0.974
+    },
+    "dev": {
+      "truth": 206,
+      "predicted": 202,
+      "matched": 201,
+      "extra": 1,
+      "missing": 5,
+      "precision": 0.995049504950495,
+      "recall": 0.9757281553398058
+    }
+  },
+  "training_seconds": 39.3579219999956,
+  "workflow_milliseconds": 153080.81,
+  "reason": "The artifact-head-only fit improves component recall but still fails shared precision/recall bars and regresses one complete native source export. Frozen features are insufficient for the missing morphology. Keep V5 as the current native diagnostic baseline; do not activate V6."
+}

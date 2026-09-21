@@ -1,0 +1,40 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V5 rejects 480 correctly detected component markers after the raw stage. The owned component renderer contains elongated and overlapping glyphs outside classifier training morphology. Fixed V28 already reaches 95.96 percent component and 98.54 percent family recall before classification, so repair presence rejection before considering any further center training.",
+  "isolated_change": "Fit only the existing artifact head on frozen V5 encoder/projection features. Preserve every shape, fill, embedding and encoder parameter byte-for-byte. Add presence-only crops from all 2004 owned training component centers: all six fixed crop recipes each, plus 3313 authored non-marker crops that avoid truth glyphs. Retain all 62512 previous train rows and all unchanged dev bytes. No invented shape/fill targets, model-driven sampling, private images or architecture change. Use one full-batch class-balanced binary fit with fixed LBFGS maximum 64 iterations/96 evaluations and l2 0.0001; no development-driven stopping or checkpoint selection.",
+  "metric": "All 3136 previous classifier dev cases and all 176 component/family development scenes remain. Report component and family precision/recall at center cutoff 0.10 and artifact cutoff 0.5, then every source in the complete native workflow with 706 points and 724 rows. Report unchanged non-artifact parameters and full train/dev/presence ONNX parity at 1e-5. Prior raw-model and cascade failures remain failures; this does not approve a model.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json, unchanged. Shared Tier 1 95-percent bars and structural Tier 2 runtime checks. No new robustness or scene-exact gate.",
+  "split_identities": {
+    "cache": {
+      "path": "artifacts/goal22-runs/classifier-presence-context-cache-v1/manifest.json",
+      "sha256": "75d163fe96fb78172339482200254b15c5b0b965665687b91613aa050c81409a"
+    },
+    "previous_train_rows": 62512,
+    "presence_rows": 15337,
+    "presence_marker_rows": 12024,
+    "dev_rows": 3136,
+    "dev_files": {
+      "dev.npy": "31a71b84003f9ffae53fc9f9cf354bc5dfff847f4d59b554d1cdecc8b91673ba",
+      "dev.json": "7de81c32d9acbca31ef7321a50b5605c228fff708a678f1cfecd915919cbf076"
+    },
+    "diagnosis": {
+      "path": "docs/GOAL-22-MARKER-CASCADE-COMPONENTS.json",
+      "sha256": "c8ac99965aaa4464af0733b4808b4e889e90ca3af7ca0bfbdc8b1fefefef58b8"
+    },
+    "existing_center_comparison": {
+      "path": "docs/GOAL-22-EXISTING-MARKER-CANDIDATES.json",
+      "sha256": "19da69aafe114ce042b90192f1f4a08864d9bcde8d55a397d79e45444de5d3fd"
+    },
+    "component_dev_scenes": 167,
+    "component_dev_truths": 2004,
+    "family_dev_panels": 9,
+    "family_dev_truths": 206
+  },
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "sealed_runs_authorized": 0,
+    "private_reads": 0,
+    "production_approval": false
+  }
+}
