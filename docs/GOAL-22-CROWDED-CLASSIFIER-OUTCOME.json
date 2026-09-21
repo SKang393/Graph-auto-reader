@@ -1,0 +1,86 @@
+{
+  "schema": "graphreader.goal22-crowded-classifier-outcome.v1",
+  "outcome": {
+    "path": "ml/markers/classifier/crowded_context_v8/P1_RESULT.json",
+    "sha256": "967507964a8cd6d570a29c8e706c73baae4163efd480ac426364ff885bae87f3"
+  },
+  "source_sha256": {
+    "ml/markers/classifier/crowded_context_cache.py": "2de5c6f9024c28eb1e129feef72ec1027705567dfa86a98fcfa755f2438065c8",
+    "ml/markers/classifier/crowded_context_data.py": "c461d9af41374f6bcd0704234095f8f9eaea7ff9fb68d67fc350a87d09e76132",
+    "ml/markers/classifier/crowded_context_v8/__init__.py": "780a0fca98012948df9ad668be09c7ad0d768df4c26c6c6687af37c17100df7b",
+    "ml/markers/classifier/crowded_context_v8/protocol.json": "af1a2150427a609f92b19f66290b627554241dc70de9d4fa306cba4700a90969",
+    "ml/markers/classifier/crowded_context_v8/runner.py": "3b8c8c32d7c879f5dc6d60db65280bf8edcdc046cdd8238d619d88dbd6b702b5",
+    "ml/markers/classifier/dataset.py": "0abd4c20e86412d8e5048626e4e1c9160592d58b2330cef1cd8a4ec24c6f68dd",
+    "ml/markers/classifier/graph_context_cache.py": "cc6d52a8a44abb8a7e53dd725e3a7f0d420e3df8de67a9770388ffeeb78f59d4",
+    "ml/markers/classifier/graph_context_data.py": "ba3e861e44fd814f05026be5ad5b9d61f175edc4af548232f9afa9f56ca53d02",
+    "ml/markers/classifier/metrics.py": "80c55f5b4b45d495c147ffd47c97e81841ed43f4919a7b002325fbe11071bbc5",
+    "ml/markers/classifier/model.py": "41304a31ed09edca78c79e28ed5f93a48070d1306a8617a8a8e4fe09e845e022",
+    "ml/markers/classifier/native_context_cache.py": "99dc5f39d78959b5b27ccf2922976b67c31c853e1acdd58e0b47530d49eadaef",
+    "ml/markers/classifier/native_context_data.py": "b301339144761187bb43d93caef57744ebbd56536312cab95bd1243222ba7d4f",
+    "ml/markers/classifier/native_context_evaluation.py": "82ffe7c175701cb329a2f82c53601d4e2a5a95c785511c3606cd8225a89e5cc4",
+    "ml/markers/classifier/native_context_v3/__init__.py": "650da40a947142031b92d210766705bd592ba08a24e0d3fdc8d7e8bd3f721c6d",
+    "ml/markers/classifier/native_context_v3/protocol.json": "443a16b7f8edf875c92e4496edb31db23aa3c38671f5c1ee6376949d07418e52",
+    "ml/markers/classifier/native_context_v3/runner.py": "e1c04921dc7902441e19443e404cf7ca231457d0c71cb9c5ec485e383959e066",
+    "ml/markers/classifier/runtime_diagnostic.py": "d13a933e48bd099cb015315964ea25c4c573cb3faf0baf588b184beca69ddd55",
+    "ml/markers/classifier/runtime_patches.py": "cd45ba52abad2d0805449f28e2fd6c78b9b0587c6234c665cece01047e03a961",
+    "ml/markers/classifier/runtime_v2.py": "91d752c91690ea3309f8f811d85d2b611dc67def9ddcf638993ccf941d9d22ce",
+    "ml/markers/classifier/structural_context_cache.py": "604f6c17917425f7ba8b7cfc957d06f398c148a80abb900d431875b3f3629483",
+    "ml/markers/gate_seal.py": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725",
+    "ml/markers/training_budget.py": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4",
+    "ml/policy/acceptance-bars.json": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "ml/policy/evidence-policy.json": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed",
+    "ml/policy/evidence_policy.py": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7",
+    "ml/synthetic/fonts.py": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+    "ml/synthetic/renderer.py": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283",
+    "ml/training_cpu_budget.py": "d28aa7b5bb9a2e8a98360c9d503a867bbaf26fa5e964b604f36b5d66dea7e5ab",
+    "tools/Run-TrainingCpuBudget.ps1": "31c62185f6539b986f4ec07ec0b7ce7d7571251412a7be0eca62d761f9e4964e"
+  },
+  "evaluation_sources": [
+    {
+      "path": "artifacts/goal22-tools/Prepare-CrowdedClassifierEvaluation.py",
+      "archive": "artifacts/goal22-runs/crowded-classifier-evaluation-v8/source-snapshot/Prepare-CrowdedClassifierEvaluation.py",
+      "sha256": "c0ea08963c927362b3b61824e28b5fb92b130b722d3f8727186eed21d7fcf437"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CrowdedClassifierContext.py",
+      "archive": "artifacts/goal22-runs/crowded-classifier-evaluation-v8/source-snapshot/Score-CrowdedClassifierContext.py",
+      "sha256": "84184d39a04f71ca71086e0933f961e4b44d569306bd4564790ee54b45f4bfeb"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CrowdedClassifierOcr.py",
+      "archive": "artifacts/goal22-runs/crowded-classifier-evaluation-v8/source-snapshot/Score-CrowdedClassifierOcr.py",
+      "sha256": "1578534a7d5723947dd02148a41933da2b537e2ff50be83dccf831930e3d0397"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CrowdedClassifierGeometry.py",
+      "archive": "artifacts/goal22-runs/crowded-classifier-evaluation-v8/source-snapshot/Score-CrowdedClassifierGeometry.py",
+      "sha256": "e2f1931dacde0c8c4add7ca9ec4c8b466665de08c47da540c0a9ace52e1c78f5"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-CrowdedClassifierWorkflow.py",
+      "archive": "artifacts/goal22-runs/crowded-classifier-evaluation-v8/source-snapshot/Audit-CrowdedClassifierWorkflow.py",
+      "sha256": "d67bb735a89a9f93df25ef5a369bf913b4add5026b06f3dff427d469685d5ca8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CrowdedClassifierEvaluation.ps1",
+      "archive": "artifacts/goal22-runs/crowded-classifier-evaluation-v8/source-snapshot/Run-CrowdedClassifierEvaluation.ps1",
+      "sha256": "8d50a71bbfc279b51c313bff89eefd0e84373f1857c3a70a38d220a3330fb520"
+    }
+  ],
+  "scoring_derivation": {
+    "path": "artifacts/goal22-runs/crowded-context-preflight-v1/scoring-source-bindings.json",
+    "sha256": "75da0de9a6629997696c5ce9d0de54abb7c654e45b3c51511d5cf20b6160eb04"
+  },
+  "training_admission": {
+    "path": "artifacts/goal22-runs/crowded-context-preflight-v1/admission-preparation.json",
+    "sha256": "2bc377a4429a30d42c93a3d0f76059455116a8191cfb042ec2641dc60abe2c4a"
+  },
+  "config": {
+    "path": "ml/markers/classifier/crowded_context_v8/p1.json",
+    "sha256": "9c28c9a49841313ce3be4d909ca31293d7ba2e645d60441b8be3c292e9353e41"
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "goal22_complete": false
+}

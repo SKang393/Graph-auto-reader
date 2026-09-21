@@ -10671,6 +10671,51 @@
       "aggregate_only": true,
       "retained_void_attempts": 1,
       "remaining_unused_reserves": 2
+    },
+    {
+      "task": "marker-classifier",
+      "revision": "marker-classifier-crowded-context-v8",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/classifier/crowded_context_v8/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "9c28c9a49841313ce3be4d909ca31293d7ba2e645d60441b8be3c292e9353e41"
+      },
+      "protocol_path": "ml/markers/classifier/crowded_context_v8/protocol.json",
+      "protocol_sha256": "af1a2150427a609f92b19f66290b627554241dc70de9d4fa306cba4700a90969",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned train/dev-only adaptation under continued Goal22 authorization. No private/sealed reads, production activation or release.",
+      "isolated_change": "Warm-start the fixed V5 classifier on all 62512 unchanged previous training rows plus 6912 newly authored train-only crowded-marker crops. Include all nine shapes, open/filled/degraded fill, separated and overlapping pairs, close rows and three neighbors, and both target-first/target-last drawing orders. Reject invisible supervision before training. Preserve every prior positive and negative, dev bytes, architecture, crops, losses, temperatures 0.7/0.7 and artifact cutoff 0.5. Fixed 12 epochs, batch 128, AdamW learning rate 0.0001, weight decay 0.0001, seed 20260925 and final checkpoint only. No prediction mining, private inputs or rejected V6/V7 initializer.",
+      "optimizer_steps_expected": 6516,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/classifier/crowded_context_v8/P1_RESULT.json",
+      "outcome_sha256": "967507964a8cd6d570a29c8e706c73baae4163efd480ac426364ff885bae87f3",
+      "candidate_report_sha256": "4eecd61c9f77e6ea01ba3045212eb905b9474e480bd20fb3c402ef84c47216e0",
+      "optimizer_steps": 6516,
+      "closed_utc_date": "2026-09-21"
     }
   ]
 }

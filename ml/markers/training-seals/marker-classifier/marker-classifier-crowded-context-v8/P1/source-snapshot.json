@@ -1,0 +1,177 @@
+{
+  "base_commit": "d3fdbc6c7fb791b534875c8752e94da1a066da64",
+  "captured_utc": "2026-09-21T20:08:42.098423+00:00",
+  "identity": {
+    "candidate_id": "P1",
+    "revision": "marker-classifier-crowded-context-v8",
+    "task": "marker-classifier"
+  },
+  "inline_hashes": {},
+  "preregistered_ledger_entry": {
+    "authorization_scope": "One owned train/dev-only adaptation under continued Goal22 authorization. No private/sealed reads, production activation or release.",
+    "authorized_candidate_id": "P1",
+    "budget_consumption_event": "first_sealed_split_read",
+    "candidate_config_paths": {
+      "P1": "ml/markers/classifier/crowded_context_v8/p1.json"
+    },
+    "candidate_config_sha256": {
+      "P1": "9c28c9a49841313ce3be4d909ca31293d7ba2e645d60441b8be3c292e9353e41"
+    },
+    "consumed_candidate_ids": [],
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "execution_authorized": true,
+    "experiment_budget": 1,
+    "isolated_change": "Warm-start the fixed V5 classifier on all 62512 unchanged previous training rows plus 6912 newly authored train-only crowded-marker crops. Include all nine shapes, open/filled/degraded fill, separated and overlapping pairs, close rows and three neighbors, and both target-first/target-last drawing orders. Reject invisible supervision before training. Preserve every prior positive and negative, dev bytes, architecture, crops, losses, temperatures 0.7/0.7 and artifact cutoff 0.5. Fixed 12 epochs, batch 128, AdamW learning rate 0.0001, weight decay 0.0001, seed 20260925 and final checkpoint only. No prediction mining, private inputs or rejected V6/V7 initializer.",
+    "optimizer_steps_expected": 6516,
+    "preregistered_candidate_ids": [
+      "P1"
+    ],
+    "protocol_path": "ml/markers/classifier/crowded_context_v8/protocol.json",
+    "protocol_sha256": "af1a2150427a609f92b19f66290b627554241dc70de9d4fa306cba4700a90969",
+    "resource_policy": {
+      "aggregate_backstop_percent": 80,
+      "all_processors_eligible": true,
+      "kmp_blocktime": "0",
+      "omp_wait_policy": "PASSIVE",
+      "priority": "Idle",
+      "synchronous_work_rest_percent": 80
+    },
+    "revision": "marker-classifier-crowded-context-v8",
+    "sealed_runs_authorized": 0,
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "status": "candidate_1_preregistered",
+    "task": "marker-classifier"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "ml/markers/classifier/crowded_context_cache.py",
+      "sha256": "2de5c6f9024c28eb1e129feef72ec1027705567dfa86a98fcfa755f2438065c8"
+    },
+    {
+      "path": "ml/markers/classifier/crowded_context_data.py",
+      "sha256": "c461d9af41374f6bcd0704234095f8f9eaea7ff9fb68d67fc350a87d09e76132"
+    },
+    {
+      "path": "ml/markers/classifier/crowded_context_v8/__init__.py",
+      "sha256": "780a0fca98012948df9ad668be09c7ad0d768df4c26c6c6687af37c17100df7b"
+    },
+    {
+      "path": "ml/markers/classifier/crowded_context_v8/p1.json",
+      "sha256": "9c28c9a49841313ce3be4d909ca31293d7ba2e645d60441b8be3c292e9353e41"
+    },
+    {
+      "path": "ml/markers/classifier/crowded_context_v8/protocol.json",
+      "sha256": "af1a2150427a609f92b19f66290b627554241dc70de9d4fa306cba4700a90969"
+    },
+    {
+      "path": "ml/markers/classifier/crowded_context_v8/runner.py",
+      "sha256": "3b8c8c32d7c879f5dc6d60db65280bf8edcdc046cdd8238d619d88dbd6b702b5"
+    },
+    {
+      "path": "ml/markers/classifier/dataset.py",
+      "sha256": "0abd4c20e86412d8e5048626e4e1c9160592d58b2330cef1cd8a4ec24c6f68dd"
+    },
+    {
+      "path": "ml/markers/classifier/graph_context_cache.py",
+      "sha256": "cc6d52a8a44abb8a7e53dd725e3a7f0d420e3df8de67a9770388ffeeb78f59d4"
+    },
+    {
+      "path": "ml/markers/classifier/graph_context_data.py",
+      "sha256": "ba3e861e44fd814f05026be5ad5b9d61f175edc4af548232f9afa9f56ca53d02"
+    },
+    {
+      "path": "ml/markers/classifier/metrics.py",
+      "sha256": "80c55f5b4b45d495c147ffd47c97e81841ed43f4919a7b002325fbe11071bbc5"
+    },
+    {
+      "path": "ml/markers/classifier/model.py",
+      "sha256": "41304a31ed09edca78c79e28ed5f93a48070d1306a8617a8a8e4fe09e845e022"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_cache.py",
+      "sha256": "99dc5f39d78959b5b27ccf2922976b67c31c853e1acdd58e0b47530d49eadaef"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_data.py",
+      "sha256": "b301339144761187bb43d93caef57744ebbd56536312cab95bd1243222ba7d4f"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_evaluation.py",
+      "sha256": "82ffe7c175701cb329a2f82c53601d4e2a5a95c785511c3606cd8225a89e5cc4"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/__init__.py",
+      "sha256": "650da40a947142031b92d210766705bd592ba08a24e0d3fdc8d7e8bd3f721c6d"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/protocol.json",
+      "sha256": "443a16b7f8edf875c92e4496edb31db23aa3c38671f5c1ee6376949d07418e52"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_v3/runner.py",
+      "sha256": "e1c04921dc7902441e19443e404cf7ca231457d0c71cb9c5ec485e383959e066"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_diagnostic.py",
+      "sha256": "d13a933e48bd099cb015315964ea25c4c573cb3faf0baf588b184beca69ddd55"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_patches.py",
+      "sha256": "cd45ba52abad2d0805449f28e2fd6c78b9b0587c6234c665cece01047e03a961"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_v2.py",
+      "sha256": "91d752c91690ea3309f8f811d85d2b611dc67def9ddcf638993ccf941d9d22ce"
+    },
+    {
+      "path": "ml/markers/classifier/structural_context_cache.py",
+      "sha256": "604f6c17917425f7ba8b7cfc957d06f398c148a80abb900d431875b3f3629483"
+    },
+    {
+      "path": "ml/markers/gate_seal.py",
+      "sha256": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725"
+    },
+    {
+      "path": "ml/markers/training-budgets/production-repair-v1.json",
+      "sha256": "5c2ccd278344f3c4866bd455172945c2ee795507f96d27d97c6d22956e4d776f"
+    },
+    {
+      "path": "ml/markers/training_budget.py",
+      "sha256": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/evidence_policy.py",
+      "sha256": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7"
+    },
+    {
+      "path": "ml/synthetic/fonts.py",
+      "sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d"
+    },
+    {
+      "path": "ml/synthetic/renderer.py",
+      "sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283"
+    },
+    {
+      "path": "ml/training_cpu_budget.py",
+      "sha256": "d28aa7b5bb9a2e8a98360c9d503a867bbaf26fa5e964b604f36b5d66dea7e5ab"
+    },
+    {
+      "path": "tools/Run-TrainingCpuBudget.ps1",
+      "sha256": "31c62185f6539b986f4ec07ec0b7ce7d7571251412a7be0eca62d761f9e4964e"
+    }
+  ]
+}

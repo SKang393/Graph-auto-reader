@@ -1,0 +1,489 @@
+{
+  "schema": "graphreader.marker-classifier-crowded-context-outcome.v1",
+  "task": "marker-classifier",
+  "revision": "marker-classifier-crowded-context-v8",
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "acceptance_status": "FAIL",
+  "closed_utc": "2026-09-21T20:23:28.636831+00:00",
+  "decision": "Reject integration. Patch development passes, but actual native marker precision and recall remain below the unchanged 95 percent bars and false points rise materially. Preserve V27 centers with V5 classifier as the baseline. No threshold change or sealed run.",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/classifier-crowded-context-v8/P1/report.json",
+    "sha256": "4eecd61c9f77e6ea01ba3045212eb905b9474e480bd20fb3c402ef84c47216e0"
+  },
+  "training_report_status": "dev_pass",
+  "canonical_training_result": {
+    "path": "ml/markers/training-seals/marker-classifier/marker-classifier-crowded-context-v8/P1/result.json",
+    "sha256": "60bd1caa8a62fb18a4b51ffd833bdc59c52937b229b3f2b395070a9d6bb49d85"
+  },
+  "candidate_config": {
+    "path": "ml/markers/classifier/crowded_context_v8/p1.json",
+    "sha256": "9c28c9a49841313ce3be4d909ca31293d7ba2e645d60441b8be3c292e9353e41"
+  },
+  "protocol": {
+    "path": "ml/markers/classifier/crowded_context_v8/protocol.json",
+    "sha256": "af1a2150427a609f92b19f66290b627554241dc70de9d4fa306cba4700a90969"
+  },
+  "source_snapshot": {
+    "path": "ml/markers/training-seals/marker-classifier/marker-classifier-crowded-context-v8/P1/source-snapshot.json",
+    "sha256": "9c2822903b61aea0a4732bba6be75802f6cb9f90cd2cbf20b99a2c84b7e3858a"
+  },
+  "checkpoint_sha256": "e121a10f8e3b04706795df0fee2e3c431f8f10f22f8b17afa218c3bcb4655836",
+  "onnx_sha256": "f045bf985ce5de45045d5b9c9a6f305300985f44da320b26ab29b855118195b4",
+  "epochs": 12,
+  "optimizer_steps": 6516,
+  "candidate_seconds": 484.81058029999986,
+  "training_wall_seconds": 490.9309397,
+  "classifier_dev_metrics": {
+    "artifacts": 256,
+    "artifacts_accepted": 0,
+    "count": 3136,
+    "fill_accuracy": 0.9972222222222222,
+    "fill_ambiguous_rows": 0,
+    "fill_correct": 2872,
+    "markers": 2880,
+    "prohibited_structure_hit_rate": 0.0,
+    "retained_correct_shape": 2826,
+    "retained_marker_precision": 1.0,
+    "retained_marker_recall": 1.0,
+    "shape_accuracy": 0.98125,
+    "shape_ambiguous_rows": 0,
+    "shape_correct": 2826,
+    "true_markers_retained": 2880
+  },
+  "parity": {
+    "dev": {
+      "artifact_decision_changes": 0,
+      "count": 3136,
+      "fill_decision_changes": 0,
+      "maximum_absolute_error": 3.0994415283203125e-06,
+      "shape_decision_changes": 0
+    },
+    "train": {
+      "artifact_decision_changes": 0,
+      "count": 69424,
+      "fill_decision_changes": 0,
+      "maximum_absolute_error": 6.079673767089844e-06,
+      "shape_decision_changes": 0
+    }
+  },
+  "cpu": {
+    "cycles": 7669,
+    "maximum_completed_cycle_duty": 0.799928403182523,
+    "rest_seconds": 98.83332560015697,
+    "scope": "Synchronous guarded work/rest average; not instantaneous per-core utilization",
+    "work_seconds": 379.9718465000042
+  },
+  "native": {
+    "report": {
+      "path": "artifacts/goal22-runs/native-crowded-classifier-v8/execution/report.json",
+      "sha256": "4229ba04acd0913d3c1c906726afe7c7c9a26b2c14830da6b32272eb3bd0d9cb"
+    },
+    "marker_score": {
+      "path": "artifacts/goal22-runs/native-crowded-classifier-v8/native-marker-score.json",
+      "sha256": "ae4a1d2c57b75f9ceb5c920187c11c188aa727a99ca86ca4c12f8e78894a49cd"
+    },
+    "metrics": {
+      "truth": 838,
+      "predicted": 835,
+      "matched": 746,
+      "extra": 89,
+      "missing": 92,
+      "precision": 0.8934131736526946,
+      "recall": 0.8902147971360382
+    },
+    "paired_truths": {
+      "retained": 715,
+      "recovered": 31,
+      "lost": 11,
+      "missed_by_both": 81
+    },
+    "axis_totals": {
+      "before": {
+        "axis_corners": 93,
+        "within_2px": 84,
+        "panels_all_corners_within_2px": 23
+      },
+      "after": {
+        "axis_corners": 93,
+        "within_2px": 84,
+        "panels_all_corners_within_2px": 23
+      }
+    },
+    "ocr_metrics": {
+      "before": {
+        "validation": {
+          "truth_region_count": 453,
+          "predicted_region_count": 499,
+          "geometry_matched_region_count": 389,
+          "geometry_false_positive_count": 110,
+          "geometry_false_negative_count": 64,
+          "recognition_exact_count": 345,
+          "recognition_exact_accuracy": 0.7615894039735099,
+          "truth_character_count": 3100,
+          "matched_pair_edit_count": 64,
+          "unmatched_truth_deletion_edit_count": 476,
+          "unmatched_prediction_insertion_edit_count": 240,
+          "character_error_count": 780,
+          "character_error_rate": 0.25161290322580643,
+          "role_correct_count": 357,
+          "role_accuracy": 0.7880794701986755,
+          "by_expected_runtime_role": {
+            "annotation": {
+              "truth_count": 62,
+              "correct_count": 40,
+              "accuracy": 0.6451612903225806
+            },
+            "axistitle": {
+              "truth_count": 52,
+              "correct_count": 49,
+              "accuracy": 0.9423076923076923
+            },
+            "legendtext": {
+              "truth_count": 37,
+              "correct_count": 29,
+              "accuracy": 0.7837837837837838
+            },
+            "participant": {
+              "truth_count": 31,
+              "correct_count": 20,
+              "accuracy": 0.6451612903225806
+            },
+            "phaseheading": {
+              "truth_count": 170,
+              "correct_count": 133,
+              "accuracy": 0.7823529411764706
+            },
+            "xtick": {
+              "truth_count": 2,
+              "correct_count": 2,
+              "accuracy": 1.0
+            },
+            "ytick": {
+              "truth_count": 99,
+              "correct_count": 84,
+              "accuracy": 0.8484848484848485
+            }
+          },
+          "intersection_over_union_minimum": 0.5
+        }
+      },
+      "after": {
+        "validation": {
+          "truth_region_count": 453,
+          "predicted_region_count": 499,
+          "geometry_matched_region_count": 389,
+          "geometry_false_positive_count": 110,
+          "geometry_false_negative_count": 64,
+          "recognition_exact_count": 345,
+          "recognition_exact_accuracy": 0.7615894039735099,
+          "truth_character_count": 3100,
+          "matched_pair_edit_count": 64,
+          "unmatched_truth_deletion_edit_count": 476,
+          "unmatched_prediction_insertion_edit_count": 240,
+          "character_error_count": 780,
+          "character_error_rate": 0.25161290322580643,
+          "role_correct_count": 357,
+          "role_accuracy": 0.7880794701986755,
+          "by_expected_runtime_role": {
+            "annotation": {
+              "truth_count": 62,
+              "correct_count": 40,
+              "accuracy": 0.6451612903225806
+            },
+            "axistitle": {
+              "truth_count": 52,
+              "correct_count": 49,
+              "accuracy": 0.9423076923076923
+            },
+            "legendtext": {
+              "truth_count": 37,
+              "correct_count": 29,
+              "accuracy": 0.7837837837837838
+            },
+            "participant": {
+              "truth_count": 31,
+              "correct_count": 20,
+              "accuracy": 0.6451612903225806
+            },
+            "phaseheading": {
+              "truth_count": 170,
+              "correct_count": 133,
+              "accuracy": 0.7823529411764706
+            },
+            "xtick": {
+              "truth_count": 2,
+              "correct_count": 2,
+              "accuracy": 1.0
+            },
+            "ytick": {
+              "truth_count": 99,
+              "correct_count": 84,
+              "accuracy": 0.8484848484848485
+            }
+          },
+          "intersection_over_union_minimum": 0.5
+        }
+      }
+    },
+    "providers": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-crowded-context-v8:cpu": 51
+    },
+    "seconds": 149.0745416,
+    "baseline_metrics": {
+      "truth": 838,
+      "predicted": 751,
+      "matched": 726,
+      "extra": 25,
+      "missing": 112,
+      "precision": 0.966711051930759,
+      "recall": 0.8663484486873508
+    }
+  },
+  "workflow": {
+    "report": {
+      "path": "artifacts/goal22-runs/crowded-classifier-workflow-v8/execution/report.json",
+      "sha256": "f30d7f662fe9587e4890385b4818e7649db3d319b101bb5c4cd295e2a07ca8a4"
+    },
+    "comparison": {
+      "path": "artifacts/goal22-runs/crowded-classifier-workflow-v8/comparison.json",
+      "sha256": "2a9eebfad965c02345905ff3291a2548ed9ce374eaa32cd9e4923bffa4f00bf8"
+    },
+    "completed_sources": 8,
+    "failed_sources": 15,
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 8,
+      "failed_cases": 15,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 16,
+      "matched_series": 11,
+      "truth_points": 706,
+      "predicted_points": 195,
+      "matched_points": 190,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 195,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 189,
+      "correct_rows": 186,
+      "missing_rows": 535,
+      "extra_rows": 6,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 190,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 516,
+      "unique_point_extra": 5,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9743589743589743,
+      "unique_point_structural_coverage": 0.26912181303116145,
+      "unique_point_value_precision": 0.9743589743589743,
+      "unique_point_value_coverage": 0.26912181303116145,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9538461538461539,
+      "relational_row_coverage": 0.2569060773480663,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9841269841269841,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 15
+      }
+    },
+    "baseline_metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 12,
+      "failed_cases": 11,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 30,
+      "matched_series": 22,
+      "truth_points": 706,
+      "predicted_points": 420,
+      "matched_points": 409,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 420,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 408,
+      "correct_rows": 405,
+      "missing_rows": 316,
+      "extra_rows": 12,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 409,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 297,
+      "unique_point_extra": 11,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9738095238095238,
+      "unique_point_structural_coverage": 0.5793201133144475,
+      "unique_point_value_precision": 0.9738095238095238,
+      "unique_point_value_coverage": 0.5793201133144475,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9642857142857143,
+      "relational_row_coverage": 0.5593922651933702,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9926470588235294,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 11
+      }
+    },
+    "status_changes": [
+      {
+        "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Automatic calibration is incomplete: Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance."
+      },
+      {
+        "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED."
+      },
+      {
+        "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED."
+      },
+      {
+        "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED."
+      }
+    ],
+    "exported_numeric_value_changes": [
+      {
+        "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+        "added": 0,
+        "removed": 2
+      },
+      {
+        "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d",
+        "added": 0,
+        "removed": 24
+      },
+      {
+        "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+        "added": 0,
+        "removed": 57
+      },
+      {
+        "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+        "added": 0,
+        "removed": 3
+      },
+      {
+        "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+        "added": 0,
+        "removed": 139
+      }
+    ],
+    "upstream_changes": [],
+    "providers": {
+      "OpenCvSharpExtern:cpu": 39,
+      "graph-text-extent-db-head-v44-p1:cpu": 39,
+      "en_PP-OCRv5_mobile_rec:cpu": 39,
+      "marker-center-component-diversity-v27:cpu": 39,
+      "marker-classifier-crowded-context-v8:cpu": 44
+    },
+    "seconds": 162.7127184,
+    "all_39_panels_observed": true,
+    "failed_sources_retained": {
+      "source_failures_retained": 15,
+      "panels_attempted": 4,
+      "observations_written": 4,
+      "panel_failures_retained": 4,
+      "sources_skipped": 0,
+      "export_attempted": false
+    }
+  },
+  "preparation": {
+    "report": {
+      "path": "artifacts/goal22-runs/crowded-context-cache-preparation-v1/status.json",
+      "sha256": "51fd27be4de647ac6555e61a791d9e7c345cbb82d1de0cfdaf66f4ac27f1292b"
+    },
+    "cache_manifest": {
+      "path": "artifacts/goal22-runs/classifier-crowded-context-cache-v1/manifest.json",
+      "sha256": "ef9c902a80afddeb63dc3782176c631f6dfa43647e5503a285785c901b374dc7"
+    },
+    "cache_validation": {
+      "path": "artifacts/goal22-runs/crowded-context-preflight-v1/cache-validation.json",
+      "sha256": "70f486c6f815a8c91dfedd3305c7178d5752eff13084a0fa908c120db0f0e1d6"
+    },
+    "admission": {
+      "path": "artifacts/goal22-runs/crowded-context-preflight-v1/admission-preparation.json",
+      "sha256": "2bc377a4429a30d42c93a3d0f76059455116a8191cfb042ec2641dc60abe2c4a"
+    },
+    "prior_train_rows_preserved": 62512,
+    "added_train_markers": 6912,
+    "new_artifacts": 0,
+    "unchanged_dev_rows": 3136,
+    "tests_passed": 86,
+    "test_reports": [
+      {
+        "path": "artifacts/goal22-runs/crowded-context-preflight-v1/runner-tests.xml",
+        "sha256": "93c1053fcabf2ec267e208dc29d0bb388726eb672844dafef4bd10ae55fc3043"
+      },
+      {
+        "path": "artifacts/goal22-runs/crowded-context-data-checks-v1/tests.xml",
+        "sha256": "38e5097d82200e2d94f600f3ae4acf7d1382ade88aac63deb086d6815afff725"
+      }
+    ],
+    "visual_example_sheet_inspected": true
+  },
+  "license": {
+    "model": "Apache-2.0 owned checkpoint and owned synthetic data",
+    "new_dependency": false,
+    "external_weights_imported": false,
+    "notice": {
+      "path": "artifacts/goal22-runs/crowded-classifier-workflow-v8/classifier/MODEL_NOTICE.md",
+      "sha256": "6f3ed20fbac9050fa237826b6beb9ebc2cee9aea0b5e8db9afb04f1422079c98"
+    },
+    "candidate_manifest": {
+      "path": "artifacts/goal22-runs/crowded-classifier-workflow-v8/classifier/manifest.json",
+      "sha256": "8b11f209369e763dca7b51665ee8c04e54512190bdb607e327b8e44334ec12ba"
+    }
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "budget_consumed": false,
+  "production_approved": false,
+  "release_eligible": false,
+  "goal22_complete": false,
+  "known_limits": [
+    "Synthetic patch classification does not represent all native proposal or crowded-background crops.",
+    "The added examples supervise visible authored targets only; target-absent counterfactuals check visibility and are not training negatives.",
+    "Native final matches include original-pixel recovery and unchanged classifier cutoff 0.5; classifier changes can alter duplicate resolution and calibration.",
+    "CPU duty is a synchronous work/rest average, not an instantaneous per-core guarantee."
+  ]
+}

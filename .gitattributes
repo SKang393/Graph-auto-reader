@@ -80,3 +80,7 @@ ml/markers/training-seals/marker-center/marker-center-shape-coverage-v28/P1/void
 tools/Run-TrainingCpuBudget.ps1 -text whitespace=cr-at-eol
 # Recreate the historical classifier protocol bytes referenced by V5's snapshot.
 ml/markers/classifier/native_context_v3/protocol.json text eol=crlf
+# Preserve V8's source-bound execution bytes, including its recorded line endings.
+ml/markers/classifier/crowded_context_v8/__init__.py -text whitespace=cr-at-eol
+ml/markers/classifier/crowded_context_v8/p1.json -text whitespace=cr-at-eol
+ml/markers/classifier/crowded_context_v8/protocol.json -text whitespace=cr-at-eol

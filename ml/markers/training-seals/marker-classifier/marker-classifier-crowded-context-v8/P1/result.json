@@ -1,0 +1,7 @@
+{
+  "budget_status": "pending_sealed_read",
+  "opened_sha256": "f7ea7e3ff942b87c95957c425fc95012c03495d10682460f6ca983040ae2186a",
+  "report_sha256": "4eecd61c9f77e6ea01ba3045212eb905b9474e480bd20fb3c402ef84c47216e0",
+  "schema_version": 1,
+  "status": "dev_pass"
+}
