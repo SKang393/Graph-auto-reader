@@ -32,6 +32,17 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 3 && args[0] == ComposedOcrDevelopmentReplay.Command)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(
+                ComposedOcrDevelopmentReplay.Run(RepositoryRoot(), args[1], args[2]), JsonOptions));
+            return 0;
+        }
+        if (args.Length == 1 && args[0] == "--self-test-composed-ocr-aggregate")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(ComposedOcrAggregateScorerSelfTest.Run(), JsonOptions));
+            return 0;
+        }
         if (args.Length == 1 && args[0] == "--self-test-sealed-ocr-worker-fixture")
         {
             Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSealedWorkerSelfTest.ResultFixture(), JsonOptions));

@@ -1,0 +1,278 @@
+{
+  "schema": "graphreader.goal22.composed-ocr-native-aggregate.v1",
+  "status": "development_metric_parity_verified",
+  "scope": "owned-synthetic-development",
+  "metrics": {
+    "train": {
+      "source_count": 20,
+      "raw_detector_geometry": {
+        "truth_region_count": 709,
+        "predicted_region_count": 646,
+        "true_positives": 616,
+        "false_positives": 30,
+        "false_negatives": 93,
+        "precision": 0.9535603715170279,
+        "recall": 0.8688293370944993,
+        "intersection_over_union_minimum": 0.5
+      },
+      "assembled_geometry": {
+        "truth_region_count": 709,
+        "predicted_region_count": 653,
+        "true_positives": 638,
+        "false_positives": 15,
+        "false_negatives": 71,
+        "precision": 0.9770290964777948,
+        "recall": 0.8998589562764457,
+        "intersection_over_union_minimum": 0.5
+      },
+      "full_ocr_metrics": {
+        "truth_region_count": 709,
+        "predicted_region_count": 653,
+        "geometry_matched_region_count": 638,
+        "geometry_false_positive_count": 15,
+        "geometry_false_negative_count": 71,
+        "recognition_exact_count": 416,
+        "recognition_exact_accuracy": 0.5867418899858956,
+        "truth_character_count": 3415,
+        "matched_pair_edit_count": 994,
+        "unmatched_truth_deletion_edit_count": 282,
+        "unmatched_prediction_insertion_edit_count": 54,
+        "character_error_count": 1330,
+        "character_error_rate": 0.38945827232796487,
+        "role_correct_count": 465,
+        "role_accuracy": 0.6558533145275035,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 60,
+            "correct_count": 37,
+            "accuracy": 0.6166666666666667
+          },
+          "axistitle": {
+            "truth_count": 50,
+            "correct_count": 34,
+            "accuracy": 0.68
+          },
+          "legendtext": {
+            "truth_count": 30,
+            "correct_count": 30,
+            "accuracy": 1
+          },
+          "participant": {
+            "truth_count": 30,
+            "correct_count": 16,
+            "accuracy": 0.5333333333333333
+          },
+          "phaseheading": {
+            "truth_count": 160,
+            "correct_count": 76,
+            "accuracy": 0.475
+          },
+          "xtick": {
+            "truth_count": 175,
+            "correct_count": 129,
+            "accuracy": 0.7371428571428571
+          },
+          "ytick": {
+            "truth_count": 204,
+            "correct_count": 143,
+            "accuracy": 0.7009803921568627
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "recognition_failed_region_count": 0
+    },
+    "validation": {
+      "source_count": 3,
+      "raw_detector_geometry": {
+        "truth_region_count": 183,
+        "predicted_region_count": 198,
+        "true_positives": 157,
+        "false_positives": 41,
+        "false_negatives": 26,
+        "precision": 0.7929292929292929,
+        "recall": 0.8579234972677595,
+        "intersection_over_union_minimum": 0.5
+      },
+      "assembled_geometry": {
+        "truth_region_count": 183,
+        "predicted_region_count": 189,
+        "true_positives": 181,
+        "false_positives": 8,
+        "false_negatives": 2,
+        "precision": 0.9576719576719577,
+        "recall": 0.9890710382513661,
+        "intersection_over_union_minimum": 0.5
+      },
+      "full_ocr_metrics": {
+        "truth_region_count": 183,
+        "predicted_region_count": 189,
+        "geometry_matched_region_count": 181,
+        "geometry_false_positive_count": 8,
+        "geometry_false_negative_count": 2,
+        "recognition_exact_count": 177,
+        "recognition_exact_accuracy": 0.9672131147540983,
+        "truth_character_count": 1019,
+        "matched_pair_edit_count": 6,
+        "unmatched_truth_deletion_edit_count": 2,
+        "unmatched_prediction_insertion_edit_count": 8,
+        "character_error_count": 16,
+        "character_error_rate": 0.015701668302257114,
+        "role_correct_count": 174,
+        "role_accuracy": 0.9508196721311475,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 18,
+            "correct_count": 13,
+            "accuracy": 0.7222222222222222
+          },
+          "axistitle": {
+            "truth_count": 12,
+            "correct_count": 12,
+            "accuracy": 1
+          },
+          "legendtext": {
+            "truth_count": 11,
+            "correct_count": 11,
+            "accuracy": 1
+          },
+          "participant": {
+            "truth_count": 9,
+            "correct_count": 9,
+            "accuracy": 1
+          },
+          "phaseheading": {
+            "truth_count": 60,
+            "correct_count": 58,
+            "accuracy": 0.9666666666666667
+          },
+          "xtick": {
+            "truth_count": 48,
+            "correct_count": 46,
+            "accuracy": 0.9583333333333334
+          },
+          "ytick": {
+            "truth_count": 25,
+            "correct_count": 25,
+            "accuracy": 1
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "recognition_failed_region_count": 0
+    }
+  },
+  "comparison": {
+    "schema": "graphreader.composed-ocr-native-python-parity.v1",
+    "status": "pass",
+    "native_report": {
+      "path": "artifacts/goal22-runs/composed-ocr-aggregate-checks-v2/replay.json",
+      "sha256": "e489c2442f81315ef4f9ae13fa18a5dbfffff22f736e4a59366d7dcc44ddcace"
+    },
+    "python_report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-raw-ocr-observation-v1/separated-ocr-score.json",
+      "sha256": "b5c66a051cd00d04504676e36a32e4b3e441edb6e706b0ab1bc4e985a02d810a"
+    },
+    "input": {
+      "path": "artifacts/goal22-runs/composed-ocr-aggregate-checks-v2/input.json",
+      "sha256": "0cc855ed6f154c6ba30228f5efa24efce029184025b680aab89dee159151cbad"
+    },
+    "sources": 23,
+    "panels": 39,
+    "truth_labels": 892,
+    "raw_and_assembled_metrics_equal": true,
+    "full_ocr_metrics_equal": true,
+    "case_output": false,
+    "model_inference_runs": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approved": false
+  },
+  "checks": {
+    "composed-ocr-aggregate": {
+      "status": "pass",
+      "checks": 16,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "model_inference_runs": 0
+    },
+    "original-db-ocr-aggregate": {
+      "status": "passed",
+      "check_count": 15,
+      "model_inference": false,
+      "private_data": false,
+      "sealed_data": false,
+      "production_approved": false,
+      "case_data_returned": false
+    },
+    "sealed-ocr-corpus": {
+      "status": "passed",
+      "check_count": 12,
+      "model_inference": false,
+      "file_io": false,
+      "private_data": false,
+      "sealed_data": false,
+      "case_output": false,
+      "production_approved": false
+    },
+    "sealed-ocr-source-mapping": {
+      "status": "pass",
+      "checks": 11,
+      "model_inference": false,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "scope": "coordinate_mapping_recognition_order_and_output_boundary"
+    },
+    "sealed-ocr-worker": {
+      "schema": "graphreader.original-db-ocr-sealed-worker-self-test.v1",
+      "checks": 14,
+      "status": "passed",
+      "model_inference": false,
+      "file_io": false,
+      "sealed_reads": 0,
+      "private_reads": 0,
+      "production_approved": false
+    }
+  },
+  "seconds": 56.9062747,
+  "evidence": {
+    "build": {
+      "path": "artifacts/goal22-runs/composed-ocr-aggregate-checks-v2/build.log",
+      "sha256": "fa6e37aad8090cbd1de306c4ec258c4e667ccf4dc3ecf36aa095ce3697c3f177"
+    },
+    "source_bindings": {
+      "path": "artifacts/goal22-runs/composed-ocr-aggregate-checks-v2/source-bindings.json",
+      "sha256": "33ea369352a9bee94e1d3a25aeb3ae6b55ceb1f58b569f58f4bbf8e2d50f5e6f"
+    },
+    "binding": {
+      "path": "artifacts/goal22-runs/composed-ocr-aggregate-checks-v2/binding.json",
+      "sha256": "c0a6085e5dd927e8cd588aeef302c420d25327ef36af1b98cbf012b7d0e055fd"
+    },
+    "native_replay": {
+      "path": "artifacts/goal22-runs/composed-ocr-aggregate-checks-v2/replay.json",
+      "sha256": "e489c2442f81315ef4f9ae13fa18a5dbfffff22f736e4a59366d7dcc44ddcace"
+    },
+    "comparison": {
+      "path": "artifacts/goal22-runs/composed-ocr-aggregate-checks-v2/comparison.json",
+      "sha256": "d5da40e175860108b209703fa831e3dd8d9d28c535c4e316acee89f61777647e"
+    },
+    "status": {
+      "path": "artifacts/goal22-runs/composed-ocr-aggregate-checks-v2/status.json",
+      "sha256": "2cca0efe1a1985fc9242a8dd84b924585d3ba43a554adb2c5f1a3d056c5e5477"
+    }
+  },
+  "preserved_failed_build": {
+    "path": "artifacts/goal22-runs/composed-ocr-aggregate-checks-v1/build.log",
+    "sha256": "f74b4a287b726ffcf4ff65f448ca32289db21f7c0837c5c9b553dc656403321a"
+  },
+  "repair": "Reuse JsonSerializerOptions to satisfy the production analyzer; no inference or metric change.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_inference_runs": 0,
+  "stage_admission_granted": false,
+  "production_approved": false,
+  "limitations": [
+    "A metric replay is not a composed inference or sealed gate.",
+    "The composed in-memory source evaluator and authentic stage admission remain incomplete."
+  ]
+}
