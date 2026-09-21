@@ -10298,6 +10298,51 @@
       "candidate_report_sha256": "eb514dabee853088bd2b57c344effaa0bf0a9799dd484a7d8e6116b2a7591f09",
       "optimizer_steps": 64,
       "closed_utc_date": "2026-09-21"
+    },
+    {
+      "task": "marker-classifier",
+      "revision": "marker-classifier-presence-feature-v7",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/classifier/presence_feature_v7/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "a65199b91d40825a555ee3cc64d457bf837e00af5ce1917dc0c547d1c7c2cd20"
+      },
+      "protocol_path": "ml/markers/classifier/presence_feature_v7/protocol.json",
+      "protocol_sha256": "b4d20d381748faff87161364d493178ce9635e583b09bcb784630cb37b18b1ad",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned synthetic presence-feature refinement under continued Goal22 authorization. No private/sealed reads, activation or release.",
+      "isolated_change": "Start from V5, not rejected V6. Refine the existing encoder and heads for 12 fixed epochs with the prior V5 AdamW, batch size 128, learning rate 0.0001, weight decay 0.0001 and unchanged loss weights. All 62512 prior train rows and all 15337 presence rows appear once per epoch. Presence-only rows supervise only artifact rejection; no shape, fill or embedding identity is guessed. Fixed final epoch, no checkpoint or development selection. No new data, architecture, payload dependency or threshold.",
+      "optimizer_steps_maximum": 7308,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/classifier/presence_feature_v7/P1_RESULT.json",
+      "outcome_sha256": "ec39471df7577a8828d87c19610d6259ac1b98ac076d91f05fcf4944c10c101e",
+      "candidate_report_sha256": "9b06f3bb63fb6c3deaca941bf22fccce8bf8da00cfea9b8f187097f7f2f34657",
+      "optimizer_steps": 7308,
+      "closed_utc_date": "2026-09-21"
     }
   ]
 }

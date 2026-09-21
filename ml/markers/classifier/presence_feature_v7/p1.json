@@ -1,0 +1,31 @@
+{
+  "epochs": 12,
+  "batch_size": 128,
+  "learning_rate": 0.0001,
+  "weight_decay": 0.0001,
+  "seed": 20260924,
+  "trainable_parameters": "existing_encoder_and_all_heads",
+  "presence_only_auxiliary_targets": "masked_no_shape_fill_or_embedding_labels",
+  "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+  "schema_version": 1,
+  "task": "marker-classifier",
+  "candidate_id": "P1",
+  "source_checkpoint_path": "artifacts/goal22-runs/classifier-structural-context-v5/P1/marker-classifier.pt",
+  "source_checkpoint_sha256": "92546ffffb7c863533a70069a4621e0d61b9c41a886cb1d40c32cb1079a5ea67",
+  "cache_path": "artifacts/goal22-runs/classifier-presence-context-cache-v1",
+  "cache_manifest_sha256": "75d163fe96fb78172339482200254b15c5b0b965665687b91613aa050c81409a",
+  "resource_policy": {
+    "aggregate_backstop_percent": 80,
+    "synchronous_work_rest_percent": 80,
+    "all_processors_eligible": true,
+    "priority": "Idle",
+    "omp_wait_policy": "PASSIVE",
+    "kmp_blocktime": "0"
+  },
+  "private_reads": 0,
+  "sealed_runs_authorized": 0,
+  "production_approval": false,
+  "revision": "marker-classifier-presence-feature-v7",
+  "protocol_sha256": "b4d20d381748faff87161364d493178ce9635e583b09bcb784630cb37b18b1ad",
+  "expected_runner_source_bundle_sha256": "876950d174fac1f74847484cd9996d31b32fad7ab34e70372c54aedb2f5940f8"
+}

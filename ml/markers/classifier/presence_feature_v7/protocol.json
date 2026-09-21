@@ -1,0 +1,44 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The V6 head-only repair reaches only 86.53 percent component recall and 83.20 percent family precision, despite fixed V28 raw recall above 95 percent. Rejection features, not just the binary boundary, lack the owned elongated/large-marker morphology. Adapt the existing V5 features on the already authenticated presence-only extension while retaining its complete classification training.",
+  "isolated_change": "Start from V5, not rejected V6. Refine the existing encoder and heads for 12 fixed epochs with the prior V5 AdamW, batch size 128, learning rate 0.0001, weight decay 0.0001 and unchanged loss weights. All 62512 prior train rows and all 15337 presence rows appear once per epoch. Presence-only rows supervise only artifact rejection; no shape, fill or embedding identity is guessed. Fixed final epoch, no checkpoint or development selection. No new data, architecture, payload dependency or threshold.",
+  "metric": "Unchanged prior classifier dev, all 176 component/family development scenes, then all 23 native synthetic workflow sources with 706 points and 724 relational rows. Center cutoff 0.10 and rejection cutoff 0.5 remain. Check numerical ONNX parity over all train/dev/presence tensors at the existing 1e-5 tolerance. Preserve every prior failure.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json; unchanged shared task bars and structural runtime safeguards. No new gate or threshold selection.",
+  "split_identities": {
+    "cache": {
+      "path": "artifacts/goal22-runs/classifier-presence-context-cache-v1/manifest.json",
+      "sha256": "75d163fe96fb78172339482200254b15c5b0b965665687b91613aa050c81409a"
+    },
+    "previous_train_rows": 62512,
+    "presence_rows": 15337,
+    "presence_marker_rows": 12024,
+    "dev_rows": 3136,
+    "dev_files": {
+      "dev.npy": "31a71b84003f9ffae53fc9f9cf354bc5dfff847f4d59b554d1cdecc8b91673ba",
+      "dev.json": "7de81c32d9acbca31ef7321a50b5605c228fff708a678f1cfecd915919cbf076"
+    },
+    "diagnosis": {
+      "path": "docs/GOAL-22-MARKER-CASCADE-COMPONENTS.json",
+      "sha256": "c8ac99965aaa4464af0733b4808b4e889e90ca3af7ca0bfbdc8b1fefefef58b8"
+    },
+    "existing_center_comparison": {
+      "path": "docs/GOAL-22-EXISTING-MARKER-CANDIDATES.json",
+      "sha256": "19da69aafe114ce042b90192f1f4a08864d9bcde8d55a397d79e45444de5d3fd"
+    },
+    "component_dev_scenes": 167,
+    "component_dev_truths": 2004,
+    "family_dev_panels": 9,
+    "family_dev_truths": 206,
+    "prior_head_only_outcome": {
+      "path": "ml/markers/classifier/presence_head_v6/P1_RESULT.json",
+      "sha256": "c744b580bbbebab4d4d1eeff04c1dadc584785e76397ad15e09e34590058a018"
+    }
+  },
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "sealed_runs_authorized": 0,
+    "private_reads": 0,
+    "production_approval": false
+  }
+}

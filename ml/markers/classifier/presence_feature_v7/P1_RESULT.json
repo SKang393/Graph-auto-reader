@@ -1,0 +1,254 @@
+{
+  "schema": "graphreader.marker-classifier-presence-feature-outcome.v1",
+  "task": "marker-classifier",
+  "revision": "marker-classifier-presence-feature-v7",
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "acceptance_status": "FAIL",
+  "closed_utc": "2026-09-21T01:50:16.717385+00:00",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/classifier-presence-feature-v7/P1/report.json",
+    "sha256": "9b06f3bb63fb6c3deaca941bf22fccce8bf8da00cfea9b8f187097f7f2f34657"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-classifier/marker-classifier-presence-feature-v7/P1/result.json",
+    "sha256": "e245ec56d53088257a6d74b6f21f718dcea8798cea535ef9b30e153b8fca6dae"
+  },
+  "candidate_config": {
+    "path": "ml/markers/classifier/presence_feature_v7/p1.json",
+    "sha256": "a65199b91d40825a555ee3cc64d457bf837e00af5ce1917dc0c547d1c7c2cd20"
+  },
+  "protocol": {
+    "path": "ml/markers/classifier/presence_feature_v7/protocol.json",
+    "sha256": "b4d20d381748faff87161364d493178ce9635e583b09bcb784630cb37b18b1ad"
+  },
+  "source_snapshot": {
+    "path": "ml/markers/training-seals/marker-classifier/marker-classifier-presence-feature-v7/P1/source-snapshot.json",
+    "sha256": "de29df5db7b2c40cd64a7173d04002f3a442ad4aea2f58679b0d1eeed860e57a"
+  },
+  "onnx_sha256": "404b273edac29d549284e328ddab139bf336ddf8fb30f99ff09dbc717a3c78fb",
+  "checkpoint_sha256": "41077d9e34a17c9083ad35b7843d47e69e28d602b272b5b1296aae8738a3fa18",
+  "optimizer_steps": 7308,
+  "trainable_parameters": 78601,
+  "changed_checkpoint_tensors": [
+    "encoder.0.weight",
+    "encoder.0.bias",
+    "encoder.2.weight",
+    "encoder.2.bias",
+    "encoder.5.weight",
+    "encoder.5.bias",
+    "encoder.8.weight",
+    "encoder.8.bias",
+    "projection.1.weight",
+    "projection.1.bias",
+    "shape_head.weight",
+    "shape_head.bias",
+    "fill_head.weight",
+    "fill_head.bias",
+    "artifact_head.weight",
+    "artifact_head.bias",
+    "embedding_head.weight",
+    "embedding_head.bias"
+  ],
+  "feature_refinement_performed": true,
+  "classifier_dev_metrics": {
+    "artifacts": 256,
+    "artifacts_accepted": 1,
+    "count": 3136,
+    "fill_accuracy": 0.9920138888888889,
+    "fill_ambiguous_rows": 0,
+    "fill_correct": 2857,
+    "markers": 2880,
+    "prohibited_structure_hit_rate": 0.00390625,
+    "retained_correct_shape": 2801,
+    "retained_marker_precision": 0.9996526571726294,
+    "retained_marker_recall": 0.9993055555555556,
+    "shape_accuracy": 0.9732638888888889,
+    "shape_ambiguous_rows": 0,
+    "shape_correct": 2803,
+    "true_markers_retained": 2878
+  },
+  "presence_training_metrics": {
+    "artifact_count": 3313,
+    "artifacts_accepted": 0,
+    "count": 15337,
+    "marker_count": 12024,
+    "markers_retained": 11966,
+    "shape_and_fill_labels": "unspecified_not_trained_or_scored"
+  },
+  "cascade_metrics": {
+    "component": {
+      "scene_count": 167,
+      "truth_count": 2004,
+      "true_positives": 1819,
+      "false_positives": 105,
+      "false_negatives": 185,
+      "proposal_true_positives": 2004,
+      "duplicate_count": 0,
+      "prohibited_structure_hits": 0,
+      "precision": 0.9454261954261954,
+      "recall": 0.9076846307385229,
+      "proposal_recall": 1.0,
+      "prohibited_structure_hit_rate": 0.0
+    },
+    "family": {
+      "scene_count": 9,
+      "truth_count": 206,
+      "true_positives": 199,
+      "false_positives": 29,
+      "false_negatives": 7,
+      "proposal_true_positives": 206,
+      "duplicate_count": 0,
+      "prohibited_structure_hits": 11,
+      "precision": 0.8728070175438597,
+      "recall": 0.9660194174757282,
+      "proposal_recall": 1.0,
+      "prohibited_structure_hit_rate": 0.04824561403508772
+    }
+  },
+  "native_workflow_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 16,
+    "failed_cases": 7,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 35,
+    "matched_series": 26,
+    "truth_points": 706,
+    "predicted_points": 439,
+    "matched_points": 422,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 439,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 421,
+    "correct_rows": 418,
+    "missing_rows": 303,
+    "extra_rows": 18,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 422,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 284,
+    "unique_point_extra": 17,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9612756264236902,
+    "unique_point_structural_coverage": 0.5977337110481586,
+    "unique_point_value_precision": 0.9612756264236902,
+    "unique_point_value_coverage": 0.5977337110481586,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9521640091116174,
+    "relational_row_coverage": 0.5773480662983426,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9928741092636579,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 7
+    }
+  },
+  "native_marker_metrics": {
+    "train": {
+      "truth": 500,
+      "predicted": 495,
+      "matched": 487,
+      "extra": 8,
+      "missing": 13,
+      "precision": 0.9838383838383838,
+      "recall": 0.974
+    },
+    "dev": {
+      "truth": 206,
+      "predicted": 201,
+      "matched": 201,
+      "extra": 0,
+      "missing": 5,
+      "precision": 1.0,
+      "recall": 0.9757281553398058
+    }
+  },
+  "parity": {
+    "dev": {
+      "artifact_decision_changes": 0,
+      "count": 3136,
+      "fill_decision_changes": 0,
+      "maximum_absolute_error": 6.616115570068359e-06,
+      "shape_decision_changes": 0
+    },
+    "presence": {
+      "artifact_decision_changes": 0,
+      "count": 15337,
+      "fill_decision_changes": 0,
+      "maximum_absolute_error": 9.834766387939453e-06,
+      "shape_decision_changes": 0
+    },
+    "train": {
+      "artifact_decision_changes": 0,
+      "count": 62512,
+      "fill_decision_changes": 0,
+      "maximum_absolute_error": 9.179115295410156e-06,
+      "shape_decision_changes": 0
+    }
+  },
+  "cpu": {
+    "cycles": 8593,
+    "maximum_completed_cycle_duty": 0.7999423109665176,
+    "rest_seconds": 181.83744819299318,
+    "scope": "Synchronous guarded work/rest average; not instantaneous per-core utilization",
+    "work_seconds": 709.2758345968323
+  },
+  "training_seconds": 897.1740159000037,
+  "cascade_seconds": 5.281129600014538,
+  "workflow_milliseconds": 152902.3097,
+  "evidence": {
+    "cascade_report": {
+      "path": "artifacts/goal22-runs/classifier-presence-feature-v7/cascade-dev/report.json",
+      "sha256": "d78a7bc113e6084f56ff9c5fc56b7e2c2a4519b609cba8c4fb1cccf1152c25de"
+    },
+    "cascade_binding": {
+      "path": "artifacts/goal22-runs/classifier-presence-feature-v7/cascade-dev/binding.json",
+      "sha256": "0c960076f52ea085e0920b9ddff6f93171e6ef01c0d5fe53792c726d873c7efb"
+    },
+    "workflow_report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-presence-feature-v7-v1/execution/report.json",
+      "sha256": "1da3f65257189b235b171e8fce8b40a6532fea96d3aab7f7659411e9246ecc3f"
+    },
+    "workflow_comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-presence-feature-v7-v1/comparison.json",
+      "sha256": "bc9dd3045df94804fce78fa6b58f5fbb9201f7552e8252ee45664f436abb11fd"
+    },
+    "native_marker_score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-presence-feature-v7-v1/native-marker-score.json",
+      "sha256": "e9cefc0979772b086d353680e93b4cfdbb9e9bd755a9fcf2411fe654a8f0c15e"
+    },
+    "native_ocr_score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-presence-feature-v7-v1/native-ocr-score.json",
+      "sha256": "52f9b4029a965954c08590f7d0ca44297c53b7a4502ba7761023976badb805ef"
+    },
+    "workflow_completion": {
+      "path": "artifacts/goal22-runs/presence-head-workflow-queue-v1/status.json",
+      "sha256": "ad6d65397c56d30ac0e45c9b875b079cc123d01cbdefd1136c7166319d602b31"
+    },
+    "cache_manifest": {
+      "path": "artifacts/goal22-runs/classifier-presence-context-cache-v1/manifest.json",
+      "sha256": "75d163fe96fb78172339482200254b15c5b0b965665687b91613aa050c81409a"
+    },
+    "runner_and_cache_tests": {
+      "path": "artifacts/goal22-runs/classifier-presence-feature-preparation-v1/tests.xml",
+      "sha256": "c0c2d9e35fd48dd4edc27e39f978bce1f08ab4d8dcb02b3b603a80a9d5cd8148"
+    }
+  },
+  "reason": "Feature refinement improves component recall but still fails shared stage precision/recall and structural-hit bars, and regresses one native source export. Patch-level success does not authorize this combined candidate. Keep V5 as the native diagnostic baseline; diagnose remaining structure errors before another training revision. Do not activate V7.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "budget_consumed": false,
+  "production_approval": false,
+  "release_eligible": false
+}
