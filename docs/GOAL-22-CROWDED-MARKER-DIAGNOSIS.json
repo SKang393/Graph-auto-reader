@@ -1,0 +1,1011 @@
+{
+  "schema": "graphreader.crowded-marker-diagnosis.v1",
+  "status": "diagnosed_accuracy_still_fails",
+  "filled_core": {
+    "decision": "Rejected without runtime integration or a threshold sweep.",
+    "baseline": {
+      "truth": 838,
+      "predicted": 748,
+      "matched": 721,
+      "extra": 27,
+      "missing": 117,
+      "precision": 0.963903743315508,
+      "recall": 0.860381861575179
+    },
+    "result": {
+      "similarity": 1,
+      "template_only": {
+        "truth": 838,
+        "predicted": 615,
+        "matched": 485,
+        "extra": 130,
+        "missing": 353,
+        "precision": 0.7886178861788617,
+        "recall": 0.5787589498806682
+      },
+      "baseline_union": {
+        "truth": 838,
+        "predicted": 928,
+        "matched": 747,
+        "extra": 181,
+        "missing": 91,
+        "precision": 0.8049568965517241,
+        "recall": 0.8914081145584726
+      },
+      "baseline_matches_retained": 721,
+      "recovered": 26,
+      "lost": 0
+    },
+    "seconds": 11.3544424,
+    "full_csv_replay": false,
+    "csv_replay_reason": "False-point precision is already 80.50%, below the existing 95% bar; no product change is proposed."
+  },
+  "density": {
+    "train": {
+      "sources": 20,
+      "summary": {
+        "markers": 500,
+        "shape_counts": {
+          "circle": 215,
+          "square": 285
+        },
+        "fill_counts": {
+          "degraded": 215,
+          "filled": 180,
+          "open": 105
+        },
+        "radius_pixels": {
+          "min": 3.5,
+          "p05": 3.5,
+          "p25": 4.0,
+          "median": 4.5,
+          "p75": 4.5,
+          "p95": 6.0,
+          "max": 6.0
+        },
+        "nearest_center_distance_pixels": {
+          "min": 41.32206935621696,
+          "p05": 41.4422431643124,
+          "p25": 43.16553669323765,
+          "median": 43.77045997621083,
+          "p75": 45.67409208303982,
+          "p95": 50.33979657158868,
+          "max": 952.9836682635018
+        },
+        "nearest_normalized_separation": {
+          "min": 3.5875165317176196,
+          "p05": 3.601590275920993,
+          "p25": 4.617370104772242,
+          "median": 5.004890061186949,
+          "p75": 5.654566014528104,
+          "p95": 6.268700822854572,
+          "max": 136.14052403764313
+        },
+        "markers_with_overlapping_bounding_discs": 0,
+        "markers_with_two_or_more_overlapping_bounding_discs": 0,
+        "markers_with_other_center_in_crop_extent": 0,
+        "markers_with_two_or_more_other_centers_in_crop_extent": 0
+      },
+      "by_shape": {
+        "circle": {
+          "markers": 215,
+          "shape_counts": {
+            "circle": 215
+          },
+          "fill_counts": {
+            "degraded": 120,
+            "filled": 85,
+            "open": 10
+          },
+          "radius_pixels": {
+            "min": 3.5,
+            "p05": 4.0,
+            "p25": 4.0,
+            "median": 4.5,
+            "p75": 4.5,
+            "p95": 6.0,
+            "max": 6.0
+          },
+          "nearest_center_distance_pixels": {
+            "min": 41.32206935621696,
+            "p05": 41.55732783471591,
+            "p25": 43.097652236403775,
+            "median": 43.66316287501398,
+            "p75": 46.49331450663317,
+            "p95": 51.128826859830674,
+            "max": 952.9836682635018
+          },
+          "nearest_normalized_separation": {
+            "min": 3.5875165317176196,
+            "p05": 3.5914710197003146,
+            "p25": 4.78482899322896,
+            "median": 4.8651849358350745,
+            "p75": 5.59566916271099,
+            "p95": 6.011704718544555,
+            "max": 136.14052403764313
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        },
+        "square": {
+          "markers": 285,
+          "shape_counts": {
+            "square": 285
+          },
+          "fill_counts": {
+            "degraded": 95,
+            "filled": 95,
+            "open": 95
+          },
+          "radius_pixels": {
+            "min": 3.5,
+            "p05": 3.5,
+            "p25": 4.0,
+            "median": 4.5,
+            "p75": 4.5,
+            "p95": 6.0,
+            "max": 6.0
+          },
+          "nearest_center_distance_pixels": {
+            "min": 41.400332399752635,
+            "p05": 41.43646633240304,
+            "p25": 43.21165598493078,
+            "median": 43.8163461228798,
+            "p75": 45.07622983524687,
+            "p95": 46.36482625288946,
+            "max": 90.03016585656165
+          },
+          "nearest_normalized_separation": {
+            "min": 3.6000536732206423,
+            "p05": 3.601788606982413,
+            "p25": 4.604351083901747,
+            "median": 5.009673112533836,
+            "p75": 5.675362927602076,
+            "p95": 6.272553626574323,
+            "max": 11.794392555795492
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        }
+      }
+    },
+    "dev": {
+      "sources": 21,
+      "summary": {
+        "markers": 838,
+        "shape_counts": {
+          "asterisk": 24,
+          "circle": 102,
+          "cross": 114,
+          "diamond": 72,
+          "other": 148,
+          "square": 129,
+          "star": 67,
+          "triangle_down": 66,
+          "triangle_up": 116
+        },
+        "fill_counts": {
+          "degraded": 292,
+          "filled": 263,
+          "open": 283
+        },
+        "radius_pixels": {
+          "min": 2.966396,
+          "p05": 4.05911795,
+          "p25": 4.53243375,
+          "median": 5.510450499999999,
+          "p75": 5.944882,
+          "p95": 6.393113,
+          "max": 12.019409
+        },
+        "nearest_center_distance_pixels": {
+          "min": 0.1212498135462449,
+          "p05": 7.7513907744469845,
+          "p25": 19.109496146906793,
+          "median": 31.1362337249467,
+          "p75": 40.982104868775906,
+          "p95": 78.27089965302372,
+          "max": 825.282471329103
+        },
+        "nearest_normalized_separation": {
+          "min": 0.013256744062800316,
+          "p05": 0.8611420125559412,
+          "p25": 1.6999456572652285,
+          "median": 2.665651630963019,
+          "p75": 4.249602655766909,
+          "p95": 8.792032596772586,
+          "max": 117.88281107397808
+        },
+        "markers_with_overlapping_bounding_discs": 84,
+        "markers_with_two_or_more_overlapping_bounding_discs": 28,
+        "markers_with_other_center_in_crop_extent": 135,
+        "markers_with_two_or_more_other_centers_in_crop_extent": 84
+      },
+      "by_shape": {
+        "asterisk": {
+          "markers": 24,
+          "shape_counts": {
+            "asterisk": 24
+          },
+          "fill_counts": {
+            "degraded": 5,
+            "filled": 10,
+            "open": 9
+          },
+          "radius_pixels": {
+            "min": 5.455313,
+            "p05": 5.4570227,
+            "p25": 5.46836525,
+            "median": 5.49728,
+            "p75": 6.19253975,
+            "p95": 6.2048711,
+            "max": 6.207425
+          },
+          "nearest_center_distance_pixels": {
+            "min": 25.678025268990197,
+            "p05": 26.33306817017692,
+            "p25": 32.74163694598841,
+            "median": 36.927126317636784,
+            "p75": 57.67986934027351,
+            "p95": 78.19750470544659,
+            "max": 78.49683529312159
+          },
+          "nearest_normalized_separation": {
+            "min": 2.0713066052650886,
+            "p05": 2.123685396014819,
+            "p25": 2.818805287351412,
+            "median": 3.3767806924957102,
+            "p75": 5.251675781878101,
+            "p95": 7.127297033835877,
+            "max": 7.153466011612557
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        },
+        "circle": {
+          "markers": 102,
+          "shape_counts": {
+            "circle": 102
+          },
+          "fill_counts": {
+            "degraded": 48,
+            "filled": 28,
+            "open": 26
+          },
+          "radius_pixels": {
+            "min": 2.966396,
+            "p05": 2.96836305,
+            "p25": 3.72656675,
+            "median": 4.513846,
+            "p75": 6.000897,
+            "p95": 12.019408,
+            "max": 12.019409
+          },
+          "nearest_center_distance_pixels": {
+            "min": 7.536340329594073,
+            "p05": 8.637841004383446,
+            "p25": 31.296730432159766,
+            "median": 35.093608360142525,
+            "p75": 41.55042246522129,
+            "p95": 72.62991610461557,
+            "max": 825.282471329103
+          },
+          "nearest_normalized_separation": {
+            "min": 1.2694226846157792,
+            "p05": 1.389353912310222,
+            "p25": 1.7272049612631593,
+            "median": 2.7529275484897138,
+            "p75": 3.5820776368577607,
+            "p95": 8.231588106454494,
+            "max": 117.88281107397808
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        },
+        "cross": {
+          "markers": 114,
+          "shape_counts": {
+            "cross": 114
+          },
+          "fill_counts": {
+            "degraded": 38,
+            "filled": 38,
+            "open": 38
+          },
+          "radius_pixels": {
+            "min": 5.912072,
+            "p05": 5.91793585,
+            "p25": 5.930214749999999,
+            "median": 5.941299,
+            "p75": 5.964374749999999,
+            "p95": 5.9915542,
+            "max": 6.005152
+          },
+          "nearest_center_distance_pixels": {
+            "min": 17.24016204560923,
+            "p05": 17.78572706451747,
+            "p25": 19.078658997280428,
+            "median": 21.716535343309424,
+            "p75": 23.304098807961605,
+            "p95": 25.56082903852982,
+            "max": 46.27995364336249
+          },
+          "nearest_normalized_separation": {
+            "min": 1.4435277851040411,
+            "p05": 1.4940428805415062,
+            "p25": 1.6078185966791736,
+            "median": 1.8324126455218408,
+            "p75": 1.9628816305549084,
+            "p95": 2.133774066588049,
+            "max": 3.8869319623594176
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        },
+        "diamond": {
+          "markers": 72,
+          "shape_counts": {
+            "diamond": 72
+          },
+          "fill_counts": {
+            "degraded": 24,
+            "filled": 24,
+            "open": 24
+          },
+          "radius_pixels": {
+            "min": 5.615208,
+            "p05": 5.615208,
+            "p25": 5.615208,
+            "median": 5.615208,
+            "p75": 5.615208,
+            "p95": 5.615208,
+            "max": 5.615209
+          },
+          "nearest_center_distance_pixels": {
+            "min": 22.838087779991547,
+            "p05": 25.773952415319336,
+            "p25": 28.711770065687617,
+            "median": 31.276592301984905,
+            "p75": 36.567709583820246,
+            "p95": 45.28638818152984,
+            "max": 46.54674743598495
+          },
+          "nearest_normalized_separation": {
+            "min": 2.033592324629074,
+            "p05": 2.295013151366729,
+            "p25": 2.5566078821735205,
+            "median": 2.7849896479333363,
+            "p75": 3.2561313475672007,
+            "p95": 4.032476462272621,
+            "max": 4.144703761284084
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        },
+        "other": {
+          "markers": 148,
+          "shape_counts": {
+            "other": 148
+          },
+          "fill_counts": {
+            "degraded": 49,
+            "filled": 49,
+            "open": 50
+          },
+          "radius_pixels": {
+            "min": 4.532414,
+            "p05": 4.53299965,
+            "p25": 4.535115,
+            "median": 4.545914,
+            "p75": 4.560221,
+            "p95": 4.57064495,
+            "max": 4.57314
+          },
+          "nearest_center_distance_pixels": {
+            "min": 0.1212498135462449,
+            "p05": 2.9322346177002423,
+            "p25": 7.512630232790443,
+            "median": 8.701576063141964,
+            "p75": 10.31992804187544,
+            "p95": 12.168816285387566,
+            "max": 17.070385624594415
+          },
+          "nearest_normalized_separation": {
+            "min": 0.013256744062800316,
+            "p05": 0.32177071354299647,
+            "p25": 0.8215051652277072,
+            "median": 0.959585929100984,
+            "p75": 1.137846037103043,
+            "p95": 1.3417078178883441,
+            "max": 1.880365170849338
+          },
+          "markers_with_overlapping_bounding_discs": 84,
+          "markers_with_two_or_more_overlapping_bounding_discs": 28,
+          "markers_with_other_center_in_crop_extent": 135,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 84
+        },
+        "square": {
+          "markers": 129,
+          "shape_counts": {
+            "square": 129
+          },
+          "fill_counts": {
+            "degraded": 43,
+            "filled": 43,
+            "open": 43
+          },
+          "radius_pixels": {
+            "min": 4.038649,
+            "p05": 4.0492822,
+            "p25": 4.079517,
+            "median": 4.998325,
+            "p75": 5.032787,
+            "p95": 6.393114,
+            "max": 6.393114
+          },
+          "nearest_center_distance_pixels": {
+            "min": 17.439721400187185,
+            "p05": 30.076586798025676,
+            "p25": 39.62387859143227,
+            "median": 45.93946708540474,
+            "p75": 54.581179672092304,
+            "p95": 237.0423517181143,
+            "max": 259.71610886214995
+          },
+          "nearest_normalized_separation": {
+            "min": 1.7427241752368314,
+            "p05": 3.008328935489395,
+            "p25": 4.317444390346736,
+            "median": 5.1155821908085075,
+            "p75": 6.681050254922381,
+            "p95": 18.53888155605096,
+            "max": 20.31217563632918
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        },
+        "star": {
+          "markers": 67,
+          "shape_counts": {
+            "star": 67
+          },
+          "fill_counts": {
+            "degraded": 19,
+            "filled": 24,
+            "open": 24
+          },
+          "radius_pixels": {
+            "min": 5.615208,
+            "p05": 5.615208,
+            "p25": 5.615208,
+            "median": 5.615208,
+            "p75": 6.140043,
+            "p95": 6.1752942,
+            "max": 6.18315
+          },
+          "nearest_center_distance_pixels": {
+            "min": 24.366848451649023,
+            "p05": 24.59530835298632,
+            "p25": 28.837300229217565,
+            "median": 31.179935468527923,
+            "p75": 35.39920357668919,
+            "p95": 44.38363582592315,
+            "max": 46.778107839441404
+          },
+          "nearest_normalized_separation": {
+            "min": 1.9778888964074517,
+            "p05": 2.037146072200964,
+            "p25": 2.4234889460690336,
+            "median": 2.776382946858596,
+            "p75": 3.1405698955674533,
+            "p95": 3.9520918749513063,
+            "max": 4.165304993104566
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        },
+        "triangle_down": {
+          "markers": 66,
+          "shape_counts": {
+            "triangle_down": 66
+          },
+          "fill_counts": {
+            "degraded": 24,
+            "filled": 9,
+            "open": 33
+          },
+          "radius_pixels": {
+            "min": 4.4,
+            "p05": 4.4,
+            "p25": 4.4,
+            "median": 5.615208,
+            "p75": 5.995482,
+            "p95": 6.0052995,
+            "max": 6.00817
+          },
+          "nearest_center_distance_pixels": {
+            "min": 16.498338891157697,
+            "p05": 20.563834849482184,
+            "p25": 27.67777903487632,
+            "median": 35.70650007718205,
+            "p75": 41.5673469570352,
+            "p95": 47.03378971192875,
+            "max": 48.130023260850436
+          },
+          "nearest_normalized_separation": {
+            "min": 1.3754066937827774,
+            "p05": 1.7131508924886445,
+            "p25": 2.453869530747302,
+            "median": 3.1794458973899142,
+            "p75": 4.572756600656553,
+            "p95": 5.3183423222440265,
+            "max": 5.46932082509664
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        },
+        "triangle_up": {
+          "markers": 116,
+          "shape_counts": {
+            "triangle_up": 116
+          },
+          "fill_counts": {
+            "degraded": 42,
+            "filled": 38,
+            "open": 36
+          },
+          "radius_pixels": {
+            "min": 4.058568,
+            "p05": 4.06359775,
+            "p25": 4.4,
+            "median": 4.4,
+            "p75": 5.99117625,
+            "p95": 6.381845,
+            "max": 6.381846
+          },
+          "nearest_center_distance_pixels": {
+            "min": 20.897188744434732,
+            "p05": 22.958115048196333,
+            "p25": 32.496358734814,
+            "median": 39.61203946230289,
+            "p75": 46.041763948011955,
+            "p95": 85.95931431522637,
+            "max": 98.19072187378069
+          },
+          "nearest_normalized_separation": {
+            "min": 1.7463947761259229,
+            "p05": 1.9163126751937853,
+            "p25": 3.2413934066725627,
+            "median": 4.087888762507891,
+            "p75": 4.6943769492068705,
+            "p95": 10.561520093922391,
+            "max": 12.086097812330301
+          },
+          "markers_with_overlapping_bounding_discs": 0,
+          "markers_with_two_or_more_overlapping_bounding_discs": 0,
+          "markers_with_other_center_in_crop_extent": 0,
+          "markers_with_two_or_more_other_centers_in_crop_extent": 0
+        }
+      }
+    }
+  },
+  "density_definitions": {
+    "nearest_normalized_separation": "Minimum Euclidean center distance divided by the sum of the two annotated radii, among other data markers in the same panel.",
+    "overlapping_bounding_discs": "Center distance < sum of radii. A geometric crowding proxy, not proof of overlapping ink or visibility.",
+    "crop_extent": "Other center lies in the axis-aligned square with half-width max(4, 2.25 * target radius). Descriptive nominal extraction extent, not the actual jittered runtime crop.",
+    "scope": "All data markers from the twenty complete graphs included in V5 training, and all twenty-one current open development sources. Patch-only recipes are assessed separately by source inspection."
+  },
+  "density_first_pass": "Preserved v1 uses an explicitly measured two-radius square; v2 uses the actual nominal max(4,2.25*radius) crop extent. No model or threshold changed.",
+  "patch_recipe_source_inspection": {
+    "native_context": "One neighbor at 2.4 radii; target drawn last.",
+    "graph_context": "One neighbor at 2.1 to 3.2 radii horizontally, up to 0.6 radii vertically; target drawn last.",
+    "shape_coverage": "All nine shapes already exist in patch training. Complete-graph train crops contain only circles and squares.",
+    "limitation": "Geometric proximity is not measured visible-ink occlusion. These observations locate a coverage gap, not a proven exclusive cause."
+  },
+  "train_coordinate_check": {
+    "sources": 20,
+    "points": 500,
+    "maximum_center_difference_pixels": 0
+  },
+  "ideal_geometry": {
+    "splits": {
+      "train": {
+        "totals": {
+          "markers": 500,
+          "retained": 500,
+          "rejected": 0,
+          "shape_correct": 499,
+          "fill_correct": 495,
+          "accepted_correct_shape": 499
+        },
+        "by_shape": {
+          "circle": {
+            "markers": 215,
+            "retained": 215,
+            "rejected": 0,
+            "shape_correct": 214,
+            "fill_correct": 214,
+            "accepted_correct_shape": 214
+          },
+          "square": {
+            "markers": 285,
+            "retained": 285,
+            "rejected": 0,
+            "shape_correct": 285,
+            "fill_correct": 281,
+            "accepted_correct_shape": 285
+          }
+        },
+        "crowding": {
+          "overlapping_discs": {
+            "markers": 0,
+            "retained": 0,
+            "rejected": 0,
+            "shape_correct": 0,
+            "fill_correct": 0,
+            "accepted_correct_shape": 0
+          },
+          "non_overlapping_discs": {
+            "markers": 500,
+            "retained": 500,
+            "rejected": 0,
+            "shape_correct": 499,
+            "fill_correct": 495,
+            "accepted_correct_shape": 499
+          },
+          "neighbor_center_in_crop": {
+            "markers": 0,
+            "retained": 0,
+            "rejected": 0,
+            "shape_correct": 0,
+            "fill_correct": 0,
+            "accepted_correct_shape": 0
+          },
+          "no_neighbor_center_in_crop": {
+            "markers": 500,
+            "retained": 500,
+            "rejected": 0,
+            "shape_correct": 499,
+            "fill_correct": 495,
+            "accepted_correct_shape": 499
+          }
+        }
+      },
+      "dev": {
+        "totals": {
+          "markers": 838,
+          "retained": 795,
+          "rejected": 43,
+          "shape_correct": 752,
+          "fill_correct": 792,
+          "accepted_correct_shape": 738
+        },
+        "by_shape": {
+          "asterisk": {
+            "markers": 24,
+            "retained": 23,
+            "rejected": 1,
+            "shape_correct": 23,
+            "fill_correct": 24,
+            "accepted_correct_shape": 22
+          },
+          "circle": {
+            "markers": 102,
+            "retained": 101,
+            "rejected": 1,
+            "shape_correct": 87,
+            "fill_correct": 101,
+            "accepted_correct_shape": 86
+          },
+          "cross": {
+            "markers": 114,
+            "retained": 113,
+            "rejected": 1,
+            "shape_correct": 114,
+            "fill_correct": 114,
+            "accepted_correct_shape": 113
+          },
+          "diamond": {
+            "markers": 72,
+            "retained": 72,
+            "rejected": 0,
+            "shape_correct": 68,
+            "fill_correct": 72,
+            "accepted_correct_shape": 68
+          },
+          "other": {
+            "markers": 148,
+            "retained": 109,
+            "rejected": 39,
+            "shape_correct": 84,
+            "fill_correct": 107,
+            "accepted_correct_shape": 74
+          },
+          "square": {
+            "markers": 129,
+            "retained": 128,
+            "rejected": 1,
+            "shape_correct": 127,
+            "fill_correct": 127,
+            "accepted_correct_shape": 126
+          },
+          "star": {
+            "markers": 67,
+            "retained": 67,
+            "rejected": 0,
+            "shape_correct": 67,
+            "fill_correct": 67,
+            "accepted_correct_shape": 67
+          },
+          "triangle_down": {
+            "markers": 66,
+            "retained": 66,
+            "rejected": 0,
+            "shape_correct": 66,
+            "fill_correct": 66,
+            "accepted_correct_shape": 66
+          },
+          "triangle_up": {
+            "markers": 116,
+            "retained": 116,
+            "rejected": 0,
+            "shape_correct": 116,
+            "fill_correct": 114,
+            "accepted_correct_shape": 116
+          }
+        },
+        "crowding": {
+          "overlapping_discs": {
+            "markers": 84,
+            "retained": 55,
+            "rejected": 29,
+            "shape_correct": 35,
+            "fill_correct": 46,
+            "accepted_correct_shape": 31
+          },
+          "non_overlapping_discs": {
+            "markers": 754,
+            "retained": 740,
+            "rejected": 14,
+            "shape_correct": 717,
+            "fill_correct": 746,
+            "accepted_correct_shape": 707
+          },
+          "neighbor_center_in_crop": {
+            "markers": 135,
+            "retained": 99,
+            "rejected": 36,
+            "shape_correct": 74,
+            "fill_correct": 94,
+            "accepted_correct_shape": 66
+          },
+          "no_neighbor_center_in_crop": {
+            "markers": 703,
+            "retained": 696,
+            "rejected": 7,
+            "shape_correct": 678,
+            "fill_correct": 698,
+            "accepted_correct_shape": 672
+          }
+        },
+        "native_missing": {
+          "markers": 117,
+          "retained": 84,
+          "rejected": 33,
+          "shape_correct": 81,
+          "fill_correct": 86,
+          "accepted_correct_shape": 69
+        }
+      }
+    },
+    "seconds": 4.736314899993886,
+    "wall_seconds": 10.3395599,
+    "provider": [
+      "CPUExecutionProvider"
+    ],
+    "cpu": {
+      "configured_percent": 80.0,
+      "last_completed_cycle": {
+        "work_seconds": 0.0011970999985351227,
+        "rest_seconds": 0.0007595999995828606,
+        "requested_rest_seconds": 0.0002992749996337807
+      },
+      "last_completed_cycle_duty": 0.6117953695949976,
+      "scope": "Only the last completed work/rest cycle is reported, not instantaneous per-core utilization."
+    },
+    "limits": [
+      "Truth supplies crop geometry in this diagnostic only. No native recall, precision, export or acceptance claim follows.",
+      "All data points are retained, including overlapping or partially occluded glyphs. No private or sealed source is present."
+    ]
+  },
+  "void_diagnostic": {
+    "status": "void",
+    "error": "Classifier geometry diagnostic failed; see run.log",
+    "seconds": 10.488002,
+    "training": false,
+    "private_reads": 0,
+    "sealed_reads": 0
+  },
+  "next_step": "Inspect proposal and crop geometry for the 84 currently missing markers retained at authored geometry. Keep the 33 remaining classifier rejections visible. No new training revision is opened by this diagnosis.",
+  "earlier_outcomes": "V6 head-only and V7 feature adaptation remain rejected; no candidate is reactivated.",
+  "ci": {
+    "status": "completed",
+    "commit": "5fe3cade9f8d02f88c345bc4089779498cc9ec2b",
+    "started_utc": "2026-09-21T19:06:21.1882194Z",
+    "updated_utc": "2026-09-21T19:11:32.4885023Z",
+    "notifier_pid": 21744,
+    "run_id": 35642604511,
+    "run_url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35642604511",
+    "conclusion": "success",
+    "error": null,
+    "user_continuation_required": false
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/filled-center-diagnostic-v1/protocol.json",
+      "sha256": "746377d97c45321d16f32f9896e2bff088cc827d2c000e53a2afd0376bb8ac56"
+    },
+    {
+      "path": "artifacts/goal22-runs/filled-center-diagnostic-v1/score.json",
+      "sha256": "f7d63440fa64f997e6fa21a52552191a50894d66ee164d9b1beb16b3810b9812"
+    },
+    {
+      "path": "artifacts/goal22-runs/filled-center-diagnostic-v1/status.json",
+      "sha256": "bce8c7111e9996b1fd5d35aab756e9bd22c2890d002f31432d946ea0c0b614cd"
+    },
+    {
+      "path": "artifacts/goal22-runs/filled-center-diagnostic-v1/replay/report.json",
+      "sha256": "46e815d3e6e861a330a1c118ab1c05a8ac2a42e6c4e04f76bfc2ca7cb9a9d32d"
+    },
+    {
+      "path": "artifacts/goal22-runs/filled-center-diagnostic-v1/Program.cs",
+      "sha256": "d36a2765c6128959ca948f1a703002ae771e6d9953e3df6b83ff8b44f104d69a"
+    },
+    {
+      "path": "artifacts/goal22-runs/filled-center-diagnostic-v1/FilledCenterDiagnostic.csproj",
+      "sha256": "67f3cb47fd79a68c7acdf8d3ff4ed1d29c84f8b5c9257e2aa502f5838a81df7e"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-density-coverage-v2/aggregate.json",
+      "sha256": "dd42afba958a4b8dc83206c3b86639ecc80af64e81b40b76ae17b944088fddb4"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-density-coverage-v2/details.json",
+      "sha256": "06d229b5f39c8bc493f65a3435545f7bce836f39c9cb6c8edccf7b014476eaf9"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-density-coverage-v2/train-coordinate-check.json",
+      "sha256": "1cb6e9893eac21b309ae3de4406f9888c6dad61ced9ff1431bb099aaf46ba1ca"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-density-coverage-v1/aggregate.json",
+      "sha256": "fb06f2c39da36cc33d9e730b2ce96ce834a4501bab8ad7d074ea184fd2f48889"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-density-coverage-v1/details.json",
+      "sha256": "3b2c9db448e48498dbb3e7d55c1aeead185fcc9d7698640582769aedcc1191dc"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-ideal-geometry-v2/protocol.json",
+      "sha256": "8fdef47c374c10d5b466b4f29a6f2827b4dafbcf407be26cdaafada7ce6e79fa"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-ideal-geometry-v2/report.json",
+      "sha256": "0a19fb98add3ac96441e835fc0d95d0e770aefc2dd48aa5302acf994059a3526"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-ideal-geometry-v2/details.json",
+      "sha256": "5f791a6a2241d690bf9ae8c09af22e45825f198b6b83a05f089b30b83c541755"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-ideal-geometry-v2/status.json",
+      "sha256": "32b715ab4ce8a8d13ff149f3ae90922f979f4d6ee00aafb5c366dd8259daedae"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-ideal-geometry-v2/run.log",
+      "sha256": "0dc7fad10555ddf276fe7b5b35bc1138c646b0c3e8e0e61a56fe3e9b7bf15a2b"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-ideal-geometry-v1/protocol.json",
+      "sha256": "09413b014fb27fd68b260fdcd6eb2cac7c5b73a63e963e72c6b21c732c8ba0eb"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-ideal-geometry-v1/status.json",
+      "sha256": "f154eb8d4baccada2fab320680e45878e59496c7c3585744302ad9076448f1e1"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-ideal-geometry-v1/run.log",
+      "sha256": "6e0bd8eb05d087ad10e732c16b0ee9376c4ed753ab0be3f173de2cc97487b7c2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-FilledCenterDiagnostic.py",
+      "sha256": "dd060c932c25d3221ffb7d8515528df3972964ff11cabad987286e2de5959009"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-FilledCenterDiagnostic.ps1",
+      "sha256": "8705119f256e9ef6afcc001311845cb46f9fd7ceac6326e9571638095ef0fb81"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-ClassifierDensityCoverage.py",
+      "sha256": "33172b8083538bd74886c09c0949a062e72349613ad9f4604f760e269775168e"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-ClassifierDensityCoverageV2.py",
+      "sha256": "8e3724c74c035cf28825677678042b7ccfcc5f0743c201fa85bd569cc6f94a7d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Diagnose-ClassifierIdealGeometry.py",
+      "sha256": "1fa5489ab3f7984f3dc5ea42115615e5879cd6bde2078e22424046077bf2615b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Diagnose-ClassifierIdealGeometryRetry.py",
+      "sha256": "a47efb3852bc863bfc47f16be98970a43b98c2318abb18cc0dd8bcb5653e64ba"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ClassifierIdealGeometry.ps1",
+      "sha256": "301048d0cdf74a741c2bf2be67489fbb3155d2e957f9e931398a3ecbdcb993f1"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ClassifierIdealGeometryRetry.ps1",
+      "sha256": "b00b8c84b60f2c170c1f6b581065d8549921ed260f76150958b7380aeb8759c7"
+    },
+    {
+      "path": "ml/markers/classifier/native_context_data.py",
+      "sha256": "b301339144761187bb43d93caef57744ebbd56536312cab95bd1243222ba7d4f"
+    },
+    {
+      "path": "ml/markers/classifier/graph_context_data.py",
+      "sha256": "ba3e861e44fd814f05026be5ad5b9d61f175edc4af548232f9afa9f56ca53d02"
+    },
+    {
+      "path": "ml/markers/classifier/runtime_patches.py",
+      "sha256": "cd45ba52abad2d0805449f28e2fd6c78b9b0587c6234c665cece01047e03a961"
+    },
+    {
+      "path": "ml/markers/classifier/structural_context_v5/protocol.json",
+      "sha256": "68092ae17f20cb0c2f489df94cd277a2173a5979a4f23a315bcb61ab9d44fe25"
+    },
+    {
+      "path": "ml/markers/classifier/presence_head_v6/P1_RESULT.json",
+      "sha256": "c744b580bbbebab4d4d1eeff04c1dadc584785e76397ad15e09e34590058a018"
+    },
+    {
+      "path": "ml/markers/classifier/presence_feature_v7/P1_RESULT.json",
+      "sha256": "ec39471df7577a8828d87c19610d6259ac1b98ac076d91f05fcf4944c10c101e"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-5fe3cade9f8d/status.json",
+      "sha256": "b1d2c349be5cbb699625e9b9f48dc1a3672096e11d61a25044c74f4184b5aae7"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-CrowdedMarkerDiagnosis.py",
+    "sha256": "3310595c893752750f7f9c9b19a8bdce53580e385ed8972aa4b8acf565098cfe"
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}
