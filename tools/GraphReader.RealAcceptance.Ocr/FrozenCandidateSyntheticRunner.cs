@@ -515,9 +515,11 @@ internal static class FrozenCandidateSyntheticRunner
         RequireFalse(document.RootElement, "contains_truth");
         RequireFalse(document.RootElement, "contains_precomputed_masks");
         JsonElement images = document.RootElement.GetProperty("images");
-        if (images.ValueKind != JsonValueKind.Array || images.GetArrayLength() == 0)
+        if (images.ValueKind != JsonValueKind.Array ||
+            (images.GetArrayLength() == 0 && expectedSplit != "train"))
         {
-            throw new InvalidDataException("Protocol source manifest requires a non-empty images array.");
+            throw new InvalidDataException(
+                "Protocol source manifest requires an images array; the development array must be non-empty.");
         }
 
         string manifestDirectory = Path.GetDirectoryName(manifestPath)

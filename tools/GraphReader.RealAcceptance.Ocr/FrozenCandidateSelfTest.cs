@@ -4,6 +4,7 @@
 using System.Security.Cryptography;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -155,6 +156,45 @@ internal static class FrozenCandidateSelfTest
             () => FrozenCandidateSyntheticRunner.ValidateProtocolDefinedSources(
                 repositoryRoot, protocol, reordered, CancellationToken.None),
             "ordered source sequence");
+
+        // An explicitly empty training inventory permits development-only
+        // diagnosis without relabeling held-out images or dropping declared data.
+        byte[] emptyTrain = SourceManifest("train", 10, []);
+        File.WriteAllBytes(trainManifestPath, emptyTrain);
+        JsonObject devOnlyDocument = JsonNode.Parse(protocolBytes)!.AsObject();
+        JsonObject devOnlyIdentity = devOnlyDocument["input_identity"]!.AsObject();
+        devOnlyIdentity["train_manifest_sha256"] = FrozenCandidateBinding.Hash(emptyTrain);
+        devOnlyIdentity["source_count"] = 1;
+        devOnlyIdentity["expected_prepared_panels_from_prior_upstream_run"] = 1;
+        byte[] devOnlyBytes = JsonSerializer.SerializeToUtf8Bytes(devOnlyDocument);
+        var devOnlyProtocol = new FrozenCandidateFile(
+            "dev-only-protocol.json", FrozenCandidateBinding.Hash(devOnlyBytes), devOnlyBytes);
+        FrozenSyntheticInput devOnlyInput = LoadSyntheticInput(
+            repositoryRoot, root, "dev-only-input.json", devOnlyProtocol.Sha256, dev);
+        FrozenCandidateSyntheticRunner.ValidateProtocolDefinedSources(
+            repositoryRoot, devOnlyProtocol, devOnlyInput, CancellationToken.None);
+
+        // The original mixed protocol still requires its original training
+        // inventory. Emptying it is not permission to silently reduce a run.
+        ExpectInvalidData(
+            () => FrozenCandidateSyntheticRunner.ValidateProtocolDefinedSources(
+                repositoryRoot, protocol, devOnlyInput, CancellationToken.None),
+            "source manifest checksum mismatch");
+        ExpectInvalidData(
+            () => FrozenCandidateSyntheticRunner.ValidateProtocolDefinedSources(
+                repositoryRoot, devOnlyProtocol, complete, CancellationToken.None),
+            "complete protocol-defined source set");
+
+        byte[] emptyDev = SourceManifest("validation", 20, []);
+        File.WriteAllBytes(devManifestPath, emptyDev);
+        devOnlyIdentity["dev_manifest_sha256"] = FrozenCandidateBinding.Hash(emptyDev);
+        byte[] emptyDevBytes = JsonSerializer.SerializeToUtf8Bytes(devOnlyDocument);
+        var emptyDevProtocol = new FrozenCandidateFile(
+            "empty-dev-protocol.json", FrozenCandidateBinding.Hash(emptyDevBytes), emptyDevBytes);
+        ExpectInvalidData(
+            () => FrozenCandidateSyntheticRunner.ValidateProtocolDefinedSources(
+                repositoryRoot, emptyDevProtocol, devOnlyInput, CancellationToken.None),
+            "development array must be non-empty");
     }
 
     private static FrozenSyntheticInput LoadSyntheticInput(

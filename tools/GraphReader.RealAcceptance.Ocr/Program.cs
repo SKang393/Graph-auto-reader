@@ -147,16 +147,31 @@ internal static class Program
                 return 2;
             }
 
-            FrozenCandidateSyntheticExecution execution = await FrozenCandidateSyntheticRunner.RunAsync(
-                Environment.CurrentDirectory,
-                Path.GetFullPath(bindingPath!),
-                bindingSha256!,
-                Path.GetFullPath(inputPath!),
-                inputSha256!,
-                Path.GetFullPath(outputPath!),
-                CancellationToken.None);
-            Console.WriteLine(JsonSerializer.Serialize(execution.Report, JsonOptions));
-            return execution.FailedCount == 0 ? 0 : 1;
+            try
+            {
+                FrozenCandidateSyntheticExecution execution = await FrozenCandidateSyntheticRunner.RunAsync(
+                    Environment.CurrentDirectory,
+                    Path.GetFullPath(bindingPath!),
+                    bindingSha256!,
+                    Path.GetFullPath(inputPath!),
+                    inputSha256!,
+                    Path.GetFullPath(outputPath!),
+                    CancellationToken.None);
+                Console.WriteLine(JsonSerializer.Serialize(execution.Report, JsonOptions));
+                return execution.FailedCount == 0 ? 0 : 1;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                Console.Error.WriteLine(JsonSerializer.Serialize(new
+                {
+                    schema = "graphreader.frozen-synthetic-execution-error.v1",
+                    status = "failed",
+                    failure_type = exception.GetType().Name,
+                    error = exception.Message,
+                    production_approved = false,
+                }, JsonOptions));
+                return 2;
+            }
         }
         if (!args.Contains("--explicit-opt-in", StringComparer.Ordinal))
         {

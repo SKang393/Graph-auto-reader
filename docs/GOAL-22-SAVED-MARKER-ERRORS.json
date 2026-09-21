@@ -1,0 +1,643 @@
+{
+  "schema": "graphreader.goal22.saved-marker-errors.v1",
+  "base_commit": "db778459943979553b35af6b313462ed91ce9533",
+  "status": "native_diagnosis_and_development_runner_repair_verified_acceptance_failed",
+  "sources": [
+    {
+      "path": "ml/markers/center/diagnose_saved_cascade_errors.py",
+      "sha256": "d7a863b27b688253b8fa9176508ec2056d8f97ca4c8b60ccdc84d5a588134185"
+    },
+    {
+      "path": "ml/markers/center/cascade_component_diagnostic.py",
+      "sha256": "e8b24eda3c80a4e019297eeb47d692672092dcaa39903c70cbbdae946f34678b"
+    },
+    {
+      "path": "ml/markers/center/shape_coverage_evaluation.py",
+      "sha256": "e0ee974033ec6bbc9b2af7b46679f8e13ffdebff58ebca0edefee07714110f5c"
+    },
+    {
+      "path": "ml/markers/center/plot_domain_v25/diagnose_dev.py",
+      "sha256": "7d138c9cb7d29bb97f2d88d7b76f15e90f9bcda32817850d54e263e8203a0bb2"
+    },
+    {
+      "path": "ml/markers/center/mask_preserving_v24/mask_preserving.py",
+      "sha256": "171ddcc2efbd2742f5699dad8d16ecec217ca983ee06cec4bc63e1f17e3120e2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Plot-SavedMarkerErrors.py",
+      "sha256": "54dbe36f0cd10d9f9a3fda5e55ed4e93bd431d8105fc587fcc0be1f78f287802"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs",
+      "sha256": "c431a636e78a2a40ec4575d70cf94c58572b7a1a124fc2dca7abe0448c04da7e"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSelfTest.cs",
+      "sha256": "abfe696a445ba5692d79494023a2fe647a44ccf8de08ab6c8a92ef14f6697680"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/Program.cs",
+      "sha256": "6e51eda1abb835bb06b736126cf4896d888191e61772d780fc1495df377b0746"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-NativeOpenMarkerContextV2.py",
+      "sha256": "54d62a2999744e3547dbd07846955f106e1a593968d746e80162bbec035e4eca"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-NativeOpenMarkerContextV2.ps1",
+      "sha256": "26e6f590b74bfde0cb787ab2e56df2cc95abb88ec5c5aef9b4f5edffe50c5aa2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-NativeOpenMarkerContextV2.py",
+      "sha256": "f316b262eb084b228ea89e2f2a1bcc0955ed7d886ded401351d415bc20427bf5"
+    },
+    {
+      "path": "artifacts/goal22-tools/Attribute-NativeMarkerLocations.py",
+      "sha256": "9689fa6f8d03c2a45fa3981004db9d885da0c834eef114316ba519f312861802"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-NativeAxisExtent.ps1",
+      "sha256": "7cb90533b1a4d9ba6e7794b4b2b207f5f100a29f976b587f3f7e14f8cf565fd2"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/saved-marker-errors-v1/report.json",
+      "sha256": "8dfe2a6a188f29cf76698db5f3ae5a51df45092c86e16a6210e221a916478a01"
+    },
+    {
+      "path": "artifacts/goal22-runs/saved-marker-errors-v1/details.json",
+      "sha256": "e683ff174fc5158e5231a6ccac92d4b36feff676fec98e1445afe6dd2193f50d"
+    },
+    {
+      "path": "artifacts/goal22-runs/saved-marker-errors-v1/error-contact-sheet.png",
+      "sha256": "a124b7d6d50ad4c486e28a3c2a8d88cd0d0ad9d85ca2328699ec34b097ec2a4e"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cascade-component-v28-v1/report.json",
+      "sha256": "8d65718715c22c765cc38ee040d7220671f61e8b32d7d25538af6945caa00c28"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cascade-component-v28-v1/details.json",
+      "sha256": "e8ea0a478690f89cb346cf6ea29b6cace327f94215caf135fe8420878779c1ed"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-cascade-component-v28-v1/binding.json",
+      "sha256": "ea47a811a667b0f6b8489c290477cf98933258a53f0d3b787ef19c65552a3306"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-presence-feature-v7/cascade-dev/report.json",
+      "sha256": "d78a7bc113e6084f56ff9c5fc56b7e2c2a4519b609cba8c4fb1cccf1152c25de"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-presence-feature-v7/cascade-dev/details.json",
+      "sha256": "0ff939847b038cef38667a332f296bc470aaa3c7d514a750496e70fecbe03878"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-presence-feature-v7/cascade-dev/binding.json",
+      "sha256": "0c960076f52ea085e0920b9ddff6f93171e6ef01c0d5fe53792c726d873c7efb"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev-inventory.json",
+      "sha256": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/source-bindings.json",
+      "sha256": "c3184c3fbda6ae292ba8edff701f92f063e9f9f958bf0f27745158c5e9f9b07d"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/preparation.json",
+      "sha256": "30b3a4d4856d5e35da56c2f2307d75063dfb130a69c29956965c5c80dccf0cb3"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/protocol.json",
+      "sha256": "6bb654227b6fbf78eed04c8c6dd763aa9fdbcb87a163858139d808577c6f1a59"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/candidate-binding.json",
+      "sha256": "a909460e6084f127d6c5b6ad4f3955d20b2044ba8f49f5a2e2b036fe8ccbf548"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/input-manifest.json",
+      "sha256": "ba1e33f8abc97653873e4a9f3235e621a1cb34f8ff9aab740355ac4ab5be50de"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/self-test.json",
+      "sha256": "d49a6e03cb12b8eeaf0454c9a00b0846db366a28dee69de7a67623e9c37ee098"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/invalid-stderr.json",
+      "sha256": "e174df90d87c484b9ebf3f18ab6a699047e834f4a66ebab1ff73783e86830c24"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/build.log",
+      "sha256": "f0f0294bac4ab1c52e19f225d7ae464969aa6e51a46d856f19d4a731f21e1cba"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/status.json",
+      "sha256": "9339cf7a2fda0e5b3a93f50b4faf3f631ecc396ba4e27e5a24901cb045502fa5"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/execution/report.json",
+      "sha256": "b94771eaba4b7ababf4613177a016d3c676d78ba3279e151b80a8b7fd94d7189"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/native-marker-score.json",
+      "sha256": "09b17bed0fe8a2fd7f30a90bec5fe10e59ad51b676999fc432eb11da1aac3984"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/native-marker-details.json",
+      "sha256": "81e7f087598115bc468f5b7cb81539d08c35d52c8fd8492bd3ee5d8a72eb15a1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/native-marker-location.json",
+      "sha256": "41fc53a87aada2898ad6e21f913116c3475eab77952893559c220bcd73db1c6a"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/Program.cs",
+      "sha256": "0d8d61024acb756695c370b426c6d98b929d1b3aa69f6af5f012f9a111fb1fff"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/AxisCandidateReplay.csproj",
+      "sha256": "fa394661a1f1c1d2a8cf12407fbeb38fadf5f82858660cbeb7d43fe8bc1722ff"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/jobs.json",
+      "sha256": "d3b7370c7ead598b040ab6499d84baa6fd8b763ceea9385053ac886251b44ed1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/status.json",
+      "sha256": "9f7c55945fb2fcfc5a81c5e52d63e90eee5c9862a9fb6d724da36a15b6602135"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/build.log",
+      "sha256": "da281536bca1f9789ebaae72074d0b03c211caa387877b1db52a94de6c56ef6e"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/replay.log",
+      "sha256": "f8f60edd06b2e253b7445cd87f47d1cb2b99cb5a3fa282a157489b7c03b59a7a"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/9354f146-4a6a-5f55-a4b9-a60cd2a34280.json",
+      "sha256": "4d2dba169c7090d7f9ade8b7d950c04eb6eca526d376d70d2ddb4ec6e7f87062"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/d58c6c7e-cff6-775a-890b-8bf230ba63d2.json",
+      "sha256": "5b8a77e7f7cdb634d8661380eb1109a4d604c90e75d39f64fe90760e511aabb1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/38a3d2cc-62bd-9258-8969-30cb28950d37.json",
+      "sha256": "82d36e0de38be5c6fde3ace905ba6d25df4e1d507a7c956ae6bbf9f41b23a972"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/32fd276a-23da-335a-a599-88b7edc251ee.json",
+      "sha256": "9c0aab903ad669b93b2909d61c4c27b58cc156ec72aafaa346c06de600d162e5"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/62252cab-e977-715f-a1f9-7981f88a61bf.json",
+      "sha256": "a58d1965ee07f3a86326cf03bf4f5866980a2a28e19a8b07e95a39daa28a6726"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/a540592f-c847-2156-856d-382870db7008.json",
+      "sha256": "a929f5cc2b03b794d5f3f1a3601d4d6cc79117f764e9b2eca3bc806c04add5ba"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/81a8888c-e170-b158-8b8c-5ecec8915da7.json",
+      "sha256": "7190e72f587351bb2ab813c2ff62b0fc8ef7aaa5de094f5468e558d004d07450"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/74f28382-2380-0257-b218-31f10a59c8ab.json",
+      "sha256": "ef3788aa20473b10af3058731b7f08d296f91770b15a6904fc8c27b43172c840"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/43942043-8678-a053-b71f-fa582c31d33a.json",
+      "sha256": "6506f53ae9ddc861ea38bf8d80f5e9839ccd7e4aa22ec1c4bb6b142a31eb94b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/d2bd6d3f-370a-745f-9e05-e15286ab79e1.json",
+      "sha256": "88b09e2d483d62169d857148c3f2e45b76c689a0a720fb63a35dc62db0bebe5f"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/472b1585-c2a6-5057-848d-eb8e354cf21f.json",
+      "sha256": "2df565aa390ecc0d52919bcffcbf452b2ab235bcca403471523d300f214b464f"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/5ea4ee2a-373b-905f-9ac1-5ff7178b78cb.json",
+      "sha256": "677f4f8c994a8449e497b78d360b036436b8f4cf8c4ae476bc39aa624276e11c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/9e47cf0d-4942-b75c-9353-4321521aea57.json",
+      "sha256": "31a182240d0a53613a6352a28e4886053a977df0a37f746faf507c60f6b9a8fa"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/ede7b73f-520f-c659-94af-ec417b37d9fd.json",
+      "sha256": "3004388366df6c50b68f223bb8c490ca1f1b776f5fae3f3a42579d5c257e21c0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/f5592b4b-7822-3557-b21d-4a1a2534cb8e.json",
+      "sha256": "c82c464b8d2e4a4489389c9c0eaaeb080dbbdd043dac17e5c823de267dfd7a47"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/3d5d4489-311f-3153-be88-16f9ab43e6f5.json",
+      "sha256": "8627e79ea6138d7ddfec89ec4eb381d097e7e3efe1314bc2e1a37a269ec82975"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/00c15d4f-4e2c-1558-8404-270df7069d57.json",
+      "sha256": "263db604abdb701ff2103cac35ebd9620b2676eb9457e1f52827667db9d57887"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/27b770d6-81db-955f-9bfd-e46fa37e0e14.json",
+      "sha256": "9c49c6f7b93216ffc92a19462c5eef04e12fbca76afa76b4a66d076113329591"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/64f1261f-4432-af5c-952a-de7e33a5d12c.json",
+      "sha256": "509f50a9682b888903cf1a7bf440a185e1ba73950aefcae72b62e4887fbc9d2b"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/7501ea23-5a77-0659-b571-9c1a9dba4b46.json",
+      "sha256": "9e901644521c8cee229cdc320ad6dc5a8e0b8bb6ab8c64db98f20da34c5a17e8"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/94a038bd-d3f9-3b50-a937-b6df07dd6ca7.json",
+      "sha256": "073be60b0b3da189e11a50671d6383657e3da0396bc29ace7d018d89e8fcdf2d"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/388bca29-1752-d955-af91-8971c0315b07.json",
+      "sha256": "79827843e6d53d4f3fbf9a1c1e32c6c38cecc65f7d043b2448e3b430acb76bb4"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/0eeef81f-f109-a852-b465-98a85ca061c5.json",
+      "sha256": "4d7674ce62cc687e623e09e7229e1c9c110d7c6820819e33515472dc83e08e9c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/2c709e96-8712-d75c-b6af-be310f26f1aa.json",
+      "sha256": "76d30bf07c67e1c878f73cbc4350254002afd77af5df8fa7c563446099ede9a1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/da2360e1-f426-e150-832b-9b442ee99185.json",
+      "sha256": "32606464e9cf4a43ec2ec13a4961b38cc288abc9aad48aecce3bb2e9f1d7042c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/e8c8c911-bf49-c752-8b90-e5e07f09eaf1.json",
+      "sha256": "4055ea293dc73bbed7e27e76b0fb1f7abef481ef75c196e3de2f74aa0f6534a7"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/6c1c026a-8402-625d-9548-1552e68891a5.json",
+      "sha256": "09cbb893b170f2b1f9e9588bdf70eeda011b8bfbbbcb84af403cb8c8d5c93f76"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/f0b2186c-b0c9-795d-af56-0c45bbe5dfaf.json",
+      "sha256": "b36833fca53c80e37d3ebe8fb01649904c40c67a6aeadae2fc54279402227edd"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/74afacdc-0e7c-ca53-b954-7bed31781784.json",
+      "sha256": "1f6ca1dae0b55c7386468476982a3771e45dee7f6f6b7c4019092134c56b78f6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/c3100a2d-cf27-2d50-aa1d-b752950e8139.json",
+      "sha256": "8a7237376554f197c12b00c4f931bd866bf9c3fa6451ce17c91bc4707cbdfa65"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-v1/048b0104-0c95-255b-9619-934bf356aea7.json",
+      "sha256": "0f4d2bc6411b67923bdae27a5f72418a4858bb81a6c3566990a27a3096231007"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v1/status.json",
+      "sha256": "49282317539cad4639d96a5ff76de3d0c34634b02fa51ccc1dce14319725df21"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v1/inference.log",
+      "sha256": "af0cba8de5ec17a6fc9221212fe167e57be35f8f5f397f41984ff8293f32a1b7"
+    }
+  ],
+  "aggregate": {
+    "schema": "graphreader.saved-cascade-error-diagnosis.v1",
+    "scope": "owned-open-synthetic-development",
+    "totals": {
+      "v5": {
+        "component": {
+          "scene_count": 167,
+          "truth_count": 2004,
+          "true_positives": 1450,
+          "false_positives": 53,
+          "false_negatives": 554,
+          "proposal_true_positives": 2004,
+          "duplicate_count": 0,
+          "prohibited_structure_hits": 0
+        },
+        "family": {
+          "scene_count": 9,
+          "truth_count": 206,
+          "true_positives": 199,
+          "false_positives": 27,
+          "false_negatives": 7,
+          "proposal_true_positives": 206,
+          "duplicate_count": 0,
+          "prohibited_structure_hits": 11
+        }
+      },
+      "v7": {
+        "component": {
+          "scene_count": 167,
+          "truth_count": 2004,
+          "true_positives": 1819,
+          "false_positives": 105,
+          "false_negatives": 185,
+          "proposal_true_positives": 2004,
+          "duplicate_count": 0,
+          "prohibited_structure_hits": 0
+        },
+        "family": {
+          "scene_count": 9,
+          "truth_count": 206,
+          "true_positives": 199,
+          "false_positives": 29,
+          "false_negatives": 7,
+          "proposal_true_positives": 206,
+          "duplicate_count": 0,
+          "prohibited_structure_hits": 11
+        }
+      }
+    },
+    "false_positive_proximity": {
+      "v5": {
+        "component": {
+          "unattributed": 20,
+          "within_nominal_marker_radius": 33
+        },
+        "family": {
+          "unattributed": 15,
+          "annotated_structure_center": 11,
+          "structure:bracket": 2,
+          "structure:marker_like_letter": 3,
+          "structure:arrowhead": 3,
+          "structure:legend_symbol": 3,
+          "within_nominal_marker_radius": 1
+        }
+      },
+      "v7": {
+        "component": {
+          "unattributed": 52,
+          "within_nominal_marker_radius": 53
+        },
+        "family": {
+          "annotated_structure_center": 11,
+          "structure:bracket": 2,
+          "unattributed": 17,
+          "structure:marker_like_letter": 3,
+          "structure:arrowhead": 3,
+          "structure:legend_symbol": 3,
+          "within_nominal_marker_radius": 1
+        }
+      }
+    },
+    "miss_causes": {
+      "v5": {
+        "component": {
+          "no_geometric_center_within_5px_before_classifier": 81,
+          "all_nearby_centers_rejected_by_classifier": 473
+        },
+        "family": {
+          "no_geometric_center_within_5px_before_classifier": 3,
+          "all_nearby_centers_rejected_by_classifier": 4
+        }
+      },
+      "v7": {
+        "component": {
+          "no_geometric_center_within_5px_before_classifier": 81,
+          "all_nearby_centers_rejected_by_classifier": 104
+        },
+        "family": {
+          "no_geometric_center_within_5px_before_classifier": 3,
+          "all_nearby_centers_rejected_by_classifier": 4
+        }
+      }
+    },
+    "diameter_counts": {
+      "v5": {
+        "component": {
+          "1.0": {
+            "truth": 10,
+            "matched": 0
+          },
+          "7.0": {
+            "truth": 100,
+            "matched": 85
+          },
+          "9.0": {
+            "truth": 100,
+            "matched": 78
+          },
+          "11.0": {
+            "truth": 300,
+            "matched": 235
+          },
+          "13.0": {
+            "truth": 500,
+            "matched": 399
+          },
+          "17.0": {
+            "truth": 300,
+            "matched": 227
+          },
+          "21.0": {
+            "truth": 200,
+            "matched": 151
+          },
+          "25.0": {
+            "truth": 300,
+            "matched": 185
+          },
+          "29.0": {
+            "truth": 100,
+            "matched": 58
+          },
+          "33.0": {
+            "truth": 80,
+            "matched": 29
+          },
+          "41.0": {
+            "truth": 13,
+            "matched": 3
+          },
+          "49.0": {
+            "truth": 1,
+            "matched": 0
+          }
+        },
+        "family": {
+          "9.0": {
+            "truth": 26,
+            "matched": 26
+          },
+          "12.0": {
+            "truth": 180,
+            "matched": 173
+          }
+        }
+      },
+      "v7": {
+        "component": {
+          "1.0": {
+            "truth": 10,
+            "matched": 0
+          },
+          "7.0": {
+            "truth": 100,
+            "matched": 98
+          },
+          "9.0": {
+            "truth": 100,
+            "matched": 97
+          },
+          "11.0": {
+            "truth": 300,
+            "matched": 283
+          },
+          "13.0": {
+            "truth": 500,
+            "matched": 483
+          },
+          "17.0": {
+            "truth": 300,
+            "matched": 276
+          },
+          "21.0": {
+            "truth": 200,
+            "matched": 188
+          },
+          "25.0": {
+            "truth": 300,
+            "matched": 256
+          },
+          "29.0": {
+            "truth": 100,
+            "matched": 77
+          },
+          "33.0": {
+            "truth": 80,
+            "matched": 57
+          },
+          "41.0": {
+            "truth": 13,
+            "matched": 4
+          },
+          "49.0": {
+            "truth": 1,
+            "matched": 0
+          }
+        },
+        "family": {
+          "9.0": {
+            "truth": 26,
+            "matched": 26
+          },
+          "12.0": {
+            "truth": 180,
+            "matched": 173
+          }
+        }
+      }
+    },
+    "paired_truth_outcomes": {
+      "component": {
+        "retained": 1449,
+        "recovered": 370,
+        "lost": 1,
+        "missed_by_both": 184
+      },
+      "family": {
+        "retained": 199,
+        "recovered": 0,
+        "lost": 0,
+        "missed_by_both": 7
+      }
+    },
+    "details_sha256": "e683ff174fc5158e5231a6ccac92d4b36feff676fec98e1445afe6dd2193f50d",
+    "seconds": 3.39434909999909,
+    "model_inference_runs": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "thresholds_changed": false,
+    "production_approved": false,
+    "limits": "Nominal-radius and hard-negative-point proximity are descriptive, not pixel-level semantic attribution. V28 cached geometry is not native V27 workflow parity."
+  },
+  "validation": {
+    "per_scene_metric_records_reproduced": 352,
+    "all_component_truths": 2004,
+    "all_family_truths": 206,
+    "dropped_predictions": 0,
+    "native_runtime_build_warnings": 0,
+    "native_runtime_build_errors": 0,
+    "new_source_binding_scenarios": 4,
+    "synthetic_export_self_test_cases": 7,
+    "invalid_cli_exit_code": 2,
+    "invalid_cli_output_directory_created": false,
+    "application_source_and_model_changes": false
+  },
+  "visual_limit": "First three distinct scenes in four fixed groups; diagnostic illustration, not numerical selection. Nominal-radius proximity does not establish semantic attribution.",
+  "plotting_preflight": "Initial plotting helper found no matplotlib in the local interpreter. It was replaced with an internal Pillow tensor contact sheet; no dependency was added.",
+  "next": "Repair connected-axis extent using original-pixel connectivity; verify broad synthetic fixtures, then remeasure actual native marker losses. No new classifier revision yet.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "native": {
+    "schema": "graphreader.native-open-marker-context-diagnostic.v1",
+    "status": "diagnostic_only_unapproved",
+    "workflow_report": {
+      "path": "artifacts/goal22-runs/native-open-marker-context-v2/execution/report.json",
+      "sha256": "b94771eaba4b7ababf4613177a016d3c676d78ba3279e151b80a8b7fd94d7189"
+    },
+    "generator_report": {
+      "file": "artifacts/goal22-runs/condition-caption-separation-v1/generator.json",
+      "sha256": "a8971315542c6448808ea71653b360d48df6ea7aa7a1a2577b7c6f4582759249"
+    },
+    "scorer": {
+      "path": "artifacts/goal22-tools/Score-NativeOpenMarkerContextV2.py",
+      "sha256": "f316b262eb084b228ea89e2f2a1bcc0955ed7d886ded401351d415bc20427bf5"
+    },
+    "source_count": 21,
+    "authored_panels": 31,
+    "observed_panels": 31,
+    "all_truths_retained": true,
+    "match_distance_pixels": 5,
+    "metrics": {
+      "truth": 838,
+      "predicted": 577,
+      "matched": 503,
+      "extra": 74,
+      "missing": 335,
+      "precision": 0.8717504332755632,
+      "recall": 0.6002386634844868
+    },
+    "scope": "Final classified centers after actual native panel, axis, OCR, text/legend exclusions and artifact filtering, including every calibration failure.",
+    "ocr_detector": "V44",
+    "marker_center": "V27",
+    "classifier": "V5",
+    "center_threshold": 0.1,
+    "geometry_support": "multiradius_enclosed_balanced_v2",
+    "csv_acceptance": false,
+    "model_inference_runs_by_scorer": 0,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approved": false,
+    "seconds": 0.4212088999993284
+  },
+  "missing_locations": {
+    "outside_plot": 180,
+    "inside_ocr_mask": 10,
+    "inside_any_ocr_region": 19,
+    "inside_plot": 155
+  },
+  "axis_replay": {
+    "status": "completed",
+    "panels": 31,
+    "seconds": 23.8339384,
+    "model_inference_runs": 0,
+    "private_reads": 0,
+    "sealed_reads": 0
+  }
+}
