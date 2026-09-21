@@ -1,0 +1,225 @@
+{
+  "schema": "graphreader.goal22.existing-marker-cascade-comparison.v1",
+  "status": "failed_dev_unapproved",
+  "candidates": {
+    "v28": {
+      "report": {
+        "path": "artifacts/goal22-runs/marker-cascade-component-v28-v1/report.json",
+        "sha256": "8d65718715c22c765cc38ee040d7220671f61e8b32d7d25538af6945caa00c28"
+      },
+      "binding": {
+        "path": "artifacts/goal22-runs/marker-cascade-component-v28-v1/binding.json",
+        "sha256": "ea47a811a667b0f6b8489c290477cf98933258a53f0d3b787ef19c65552a3306"
+      },
+      "results": {
+        "component": {
+          "historical": {
+            "scene_count": 167,
+            "truth_count": 2004,
+            "true_positives": 1796,
+            "false_positives": 238,
+            "false_negatives": 208,
+            "proposal_true_positives": 2004,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 0,
+            "precision": 0.8829891838741396,
+            "recall": 0.8962075848303394,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.0
+          },
+          "balanced": {
+            "scene_count": 167,
+            "truth_count": 2004,
+            "true_positives": 1923,
+            "false_positives": 441,
+            "false_negatives": 81,
+            "proposal_true_positives": 2004,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 0,
+            "precision": 0.8134517766497462,
+            "recall": 0.9595808383233533,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.0
+          },
+          "classified": {
+            "scene_count": 167,
+            "truth_count": 2004,
+            "true_positives": 1450,
+            "false_positives": 53,
+            "false_negatives": 554,
+            "proposal_true_positives": 2004,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 0,
+            "precision": 0.9647371922821024,
+            "recall": 0.7235528942115769,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.0
+          }
+        },
+        "family": {
+          "historical": {
+            "scene_count": 9,
+            "truth_count": 206,
+            "true_positives": 190,
+            "false_positives": 39,
+            "false_negatives": 16,
+            "proposal_true_positives": 206,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 5,
+            "precision": 0.8296943231441049,
+            "recall": 0.9223300970873787,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.021834061135371178
+          },
+          "balanced": {
+            "scene_count": 9,
+            "truth_count": 206,
+            "true_positives": 203,
+            "false_positives": 196,
+            "false_negatives": 3,
+            "proposal_true_positives": 206,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 11,
+            "precision": 0.5087719298245614,
+            "recall": 0.9854368932038835,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.02756892230576441
+          },
+          "classified": {
+            "scene_count": 9,
+            "truth_count": 206,
+            "true_positives": 199,
+            "false_positives": 27,
+            "false_negatives": 7,
+            "proposal_true_positives": 206,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 11,
+            "precision": 0.8805309734513275,
+            "recall": 0.9660194174757282,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.048672566371681415
+          }
+        }
+      },
+      "seconds": 29.413456699927337,
+      "center_inference_runs": 176,
+      "private_reads": 0,
+      "sealed_reads": 0
+    },
+    "v29": {
+      "report": {
+        "path": "artifacts/goal22-runs/marker-cascade-component-v29-v1/report.json",
+        "sha256": "8bc15d7fd51611c03ded54bed9713c065984dfdec3bd11a7ff224b411ab1d3e1"
+      },
+      "binding": {
+        "path": "artifacts/goal22-runs/marker-cascade-component-v29-v1/binding.json",
+        "sha256": "45f0f18ffa98b8c2812349ab46c746227c1affe60f6219836f2fd9b5712bffa3"
+      },
+      "results": {
+        "component": {
+          "historical": {
+            "scene_count": 167,
+            "truth_count": 2004,
+            "true_positives": 1796,
+            "false_positives": 238,
+            "false_negatives": 208,
+            "proposal_true_positives": 2004,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 0,
+            "precision": 0.8829891838741396,
+            "recall": 0.8962075848303394,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.0
+          },
+          "balanced": {
+            "scene_count": 167,
+            "truth_count": 2004,
+            "true_positives": 1883,
+            "false_positives": 155,
+            "false_negatives": 121,
+            "proposal_true_positives": 2004,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 0,
+            "precision": 0.9239450441609421,
+            "recall": 0.939620758483034,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.0
+          },
+          "classified": {
+            "scene_count": 167,
+            "truth_count": 2004,
+            "true_positives": 1423,
+            "false_positives": 33,
+            "false_negatives": 581,
+            "proposal_true_positives": 2004,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 0,
+            "precision": 0.9773351648351648,
+            "recall": 0.7100798403193613,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.0
+          }
+        },
+        "family": {
+          "historical": {
+            "scene_count": 9,
+            "truth_count": 206,
+            "true_positives": 190,
+            "false_positives": 39,
+            "false_negatives": 16,
+            "proposal_true_positives": 206,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 5,
+            "precision": 0.8296943231441049,
+            "recall": 0.9223300970873787,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.021834061135371178
+          },
+          "balanced": {
+            "scene_count": 9,
+            "truth_count": 206,
+            "true_positives": 203,
+            "false_positives": 70,
+            "false_negatives": 3,
+            "proposal_true_positives": 206,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 10,
+            "precision": 0.7435897435897436,
+            "recall": 0.9854368932038835,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.03663003663003663
+          },
+          "classified": {
+            "scene_count": 9,
+            "truth_count": 206,
+            "true_positives": 198,
+            "false_positives": 17,
+            "false_negatives": 8,
+            "proposal_true_positives": 206,
+            "duplicate_count": 0,
+            "prohibited_structure_hits": 10,
+            "precision": 0.9209302325581395,
+            "recall": 0.9611650485436893,
+            "proposal_recall": 1.0,
+            "prohibited_structure_hit_rate": 0.046511627906976744
+          }
+        }
+      },
+      "seconds": 25.42560890002642,
+      "center_inference_runs": 176,
+      "private_reads": 0,
+      "sealed_reads": 0
+    }
+  },
+  "decision": "V28 has 1923/2004 component and 203/206 family centers before classification at the fixed diagnostic 0.10 cutoff. Reuse it to evaluate the planned classifier presence-head repair; no additional center training is justified by this comparison. V5 classification still fails recall. No candidate is approved.",
+  "prior_attempt": {
+    "status": "void_before_inference",
+    "cause": "Missing passive-wait environment variable. Repaired in the launcher; no metric, dataset or model change.",
+    "log": {
+      "path": "artifacts/goal22-runs/marker-fixed-candidates-job-v1/v28.log",
+      "sha256": "ad5baa80d081da7da0d7d3fdf70edeeafe980e69f8fbd51ee1401231903eea63"
+    }
+  },
+  "optimizer_steps": 0,
+  "production_approved": false
+}

@@ -44,6 +44,14 @@ INPUTS = {
 }
 SCORE = .10
 ARTIFACT = .5
+FIXED_CENTERS = {
+    "v28": ("artifacts/goal22-runs/center-shape-v28/P1-retry1",
+            "a9db0b508a8c3b909d457adbe0e6aa4259369b6389cdad8e726164ea467ba099",
+            "624b35bf67d9903448bd0b20026c9436af4afc57806e5b66fbf24381e4697f2d"),
+    "v29": ("artifacts/goal22-runs/center-train-negative-v29/P1",
+            "6fd23f5bd8c91ad76ef48a9fc6df97bdc85fe642b5840dd751b0e87b25f98a35",
+            "8abdd8ecb476e27db2f6c85ea03b91cdaf2b5803d7a53b64dd66c727caaf3327"),
+}
 
 
 def sha(path: Path) -> str:
@@ -117,7 +125,23 @@ def truth_diagnosis(scene, stages):
     return rows
 
 
-def run(root: Path, output: Path) -> dict:
+def infer_center(session, scene, coordinates, budget):
+    if not np.equal(coordinates, np.floor(coordinates)).all():
+        raise ValueError("Frozen proposal coordinates must be integral")
+    padded = np.pad(scene.tensor.numpy(), ((0, 0), (16, 16), (16, 16)))
+    chunks = []
+    for start in range(0, len(coordinates), 128):
+        with budget.work_block():
+            pixels = np.stack([padded[:, int(y):int(y)+33, int(x):int(x)+33]
+                               for x, y in coordinates[start:start+128]])
+            actual = session.run(["candidate_predictions"], {"candidate_patches": pixels})[0]
+            if actual.shape != (len(pixels), 4) or not np.isfinite(actual).all():
+                raise ValueError("Invalid fixed-center runtime output")
+            chunks.append(actual)
+    return np.concatenate(chunks)
+
+
+def run(root: Path, output: Path, *, center_candidate: str = "v27") -> dict:
     started = time.perf_counter()
     if os.environ.get("GOAL22_CPU_CEILING_PERCENT") != "80" or os.environ.get("OMP_WAIT_POLICY") != "PASSIVE":
         raise RuntimeError("Use the existing CPU guard and passive worker waits")
@@ -125,13 +149,20 @@ def run(root: Path, output: Path) -> dict:
     torch.set_num_threads(int(os.environ["OMP_NUM_THREADS"]))
     torch.set_num_interop_threads(1)
     budget = WorkBudget(output/"CANCEL")
+    if center_candidate not in ("v27", *FIXED_CENTERS):
+        raise ValueError("Only the named existing development candidates are allowed")
+    inputs = dict(INPUTS)
+    if center_candidate != "v27":
+        directory, model_sha, report_sha = FIXED_CENTERS[center_candidate]
+        inputs[directory+"/marker-center.onnx"] = model_sha
+        inputs[directory+"/report.json"] = report_sha
     sources = {Path(m.__file__).resolve().relative_to(root).as_posix(): sha(Path(m.__file__))
                for name, m in tuple(sys.modules.items()) if name.startswith("ml.")
                and getattr(m, "__file__", None) and Path(m.__file__).resolve().is_relative_to(root)}
     sources[Path(__file__).resolve().relative_to(root).as_posix()] = sha(Path(__file__))
     sources["ml/policy/acceptance-bars.json"] = sha(root/"ml/policy/acceptance-bars.json")
     with budget.work_block():
-        if {p: sha(root/p) for p in INPUTS} != INPUTS:
+        if {p: sha(root/p) for p in inputs} != inputs:
             raise ValueError("Frozen development input changed")
         paths, old_report, prior_report, hashes = source._authenticate(root, historical.SOURCE_DIAGNOSTIC_SHA256)
         coordinates_cache, _ = source._load_caches(paths, old_report, prior_report)
@@ -141,8 +172,10 @@ def run(root: Path, output: Path) -> dict:
                 "component": (167, 2004), "family": (9, 206)}:
             raise ValueError("Complete development denominator changed")
         session = create_session(root/next(p for p in INPUTS if p.endswith(".onnx")))
-    binding = {"schema": "graphreader.marker-cascade-development-binding.v1", "inputs": INPUTS,
+        center_session = None if center_candidate == "v27" else create_session(root/directory/"marker-center.onnx")
+    binding = {"schema": "graphreader.marker-cascade-development-binding.v1", "inputs": inputs,
                "sources": sources, "center_threshold": SCORE, "artifact_threshold": ARTIFACT,
+               "center_candidate": center_candidate,
                "geometry": "multiradius_enclosed_balanced_v2", "match_distance_pixels": 5,
                "historical_threshold": .25, "private_reads": 0, "sealed_reads": 0,
                "optimizer_steps": 0, "production_approved": False}
@@ -165,6 +198,9 @@ def run(root: Path, output: Path) -> dict:
                         or source.cache_helper._array_sha(values) != baseline["v27_candidate_predictions_sha256"]):
                     raise ValueError("Scene, coordinate or prediction join changed")
                 historical_items = predictions(scene, coordinates, values, domain, balanced=False)
+            if center_session is not None:
+                values = infer_center(center_session, scene, coordinates, budget)
+            with budget.work_block():
                 decoded, geometric, balanced = decode(scene, coordinates, values, domain)
                 if decode(scene, coordinates, values, domain, threshold=.25)[2] != predictions(
                         scene, coordinates, values, domain, balanced=True):
@@ -178,6 +214,7 @@ def run(root: Path, output: Path) -> dict:
                 classified = retain(balanced, classification)
                 classification_rows += len(classification)
                 np.savez_compressed(output/f"{scope}-{index:03d}.npz", classification=classification,
+                    proposal_predictions=values,
                     centers=np.asarray([(p.x, p.y, p.radius, p.confidence) for p in balanced], dtype=np.float32).reshape(-1, 4))
                 per_scene = {}
                 for kind, items in (("historical", historical_items), ("balanced", balanced), ("classified", classified)):
@@ -193,7 +230,7 @@ def run(root: Path, output: Path) -> dict:
             raise ValueError("Historical raw-model failure did not reproduce")
     with budget.work_block():
         source._verify_inputs_unchanged(root, paths, hashes)
-        if {p: sha(root/p) for p in INPUTS} != INPUTS or {p: sha(root/p) for p in sources} != sources:
+        if {p: sha(root/p) for p in inputs} != inputs or {p: sha(root/p) for p in sources} != sources:
             raise ValueError("Diagnostic input or source changed during execution")
     results = {s: {k: summarize_counts(c) for k, c in kinds.items()} for s, kinds in totals.items()}
     bar = bars._shared_marker_acceptance_bar()
@@ -204,7 +241,8 @@ def run(root: Path, output: Path) -> dict:
                                                        for row in r["truth_diagnosis"])) for s in totals},
               "acceptance_bar": bar, "clears_shared_dev_bars": bars._passes_required_dev_gates(
                   results["component"]["classified"], results["family"]["classified"], bar),
-              "details_sha256": sha(output/"details.json"), "center_inference_runs": 0,
+              "details_sha256": sha(output/"details.json"), "center_inference_runs": 0 if center_session is None else len(records),
+              "center_candidate": center_candidate,
               "classifier_rows": classification_rows, "optimizer_steps": 0, "private_reads": 0, "sealed_reads": 0,
               "production_approved": False, "native_runtime_parity_proven": False,
               "cpu": budget.report(), "seconds": time.perf_counter()-started}
@@ -215,6 +253,7 @@ def run(root: Path, output: Path) -> dict:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--center-candidate", choices=("v27", *FIXED_CENTERS), default="v27")
     arguments = parser.parse_args()
-    result = run(Path.cwd().resolve(), arguments.output)
+    result = run(Path.cwd().resolve(), arguments.output, center_candidate=arguments.center_candidate)
     print(json.dumps({k: result[k] for k in ("status", "results", "first_unmatched_stage", "seconds")}))

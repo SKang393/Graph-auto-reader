@@ -65,3 +65,21 @@ The [evidence index](GOAL-22-MARKER-CASCADE-COMPONENTS.json) binds all artifacts
 The code and examples are project-owned Apache-2.0 work. No dependency, model
 activation, package or public release is added. Build 433 / 0.4.33 remains the
 retained package. All four Goal 22 outcomes remain incomplete.
+
+## Existing center candidates, measured next
+
+A [fixed-weight comparison](GOAL-22-EXISTING-MARKER-CANDIDATES.json) reuses V28
+and V29. Each runs once on all 176 development scenes, in 29.41 and 25.43
+seconds respectively. At the existing diagnostic cutoff of 0.10, V28 recovers
+1,923/2,004 component centers (95.96%) and 203/206 family centers (98.54%) before
+classification. V29 recovers 1,883/2,004 and 203/206. V5 rejection reduces these
+to 1,450 and 199 for V28, and 1,423 and 198 for V29. All combinations still
+fail; no old outcome is rewritten and no sealed read occurs.
+
+Use the existing V28 weights for the planned presence-head repair. Train only
+the classifier's artifact head on frozen features, keeping shape, fill,
+embedding and encoder parameters byte-identical. Every original component
+training marker supplies fixed uncertain-size and shifted crops. Arbitrary
+composite glyphs receive presence labels only, not invented shape or fill
+labels. Preserve all previous training and development examples. There is no
+reason to start another center-model training run at this point.
