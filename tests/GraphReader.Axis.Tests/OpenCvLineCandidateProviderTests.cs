@@ -35,6 +35,43 @@ public sealed class OpenCvLineCandidateProviderTests
     }
 
     [TestMethod]
+    [DataRow(false, true, 114)]
+    [DataRow(true, true, 114)]
+    [DataRow(false, false, 114)]
+    [DataRow(true, false, 114)]
+    [DataRow(false, true, 120)]
+    [DataRow(true, true, 120)]
+    [DataRow(false, false, 120)]
+    [DataRow(true, false, 120)]
+    public async Task LargerSymbolOutlineConnectsAxesButAnEmptyGapDoesNot(
+        bool horizontal, bool connected, int gapEnd)
+    {
+        GrayscaleLineCandidateFrame frame = CreateOccludedAxisFrame(horizontal, connected, gapEnd);
+        byte[] original = frame.Pixels.ToArray();
+        IReadOnlyList<GeometryLineCandidate> candidates = await new OpenCvLineCandidateProvider()
+            .DetectLinesAsync(frame, CancellationToken.None);
+        bool crossesGap = candidates.Any(candidate => candidate.Source == LineCandidateSource.Other &&
+            (horizontal
+                ? Math.Abs(candidate.Segment.Midpoint.Y - 30.5) < 3 &&
+                    Math.Min(candidate.Segment.Start.X, candidate.Segment.End.X) <= 100 &&
+                    Math.Max(candidate.Segment.Start.X, candidate.Segment.End.X) >= gapEnd
+                : Math.Abs(candidate.Segment.Midpoint.X - 30.5) < 3 &&
+                    Math.Min(candidate.Segment.Start.Y, candidate.Segment.End.Y) <= 100 &&
+                    Math.Max(candidate.Segment.Start.Y, candidate.Segment.End.Y) >= gapEnd));
+
+        Assert.AreEqual(connected, crossesGap);
+        CollectionAssert.AreEqual(original, frame.Pixels.ToArray());
+        if (connected && !horizontal)
+        {
+            AxisGeometryResult geometry = await new AxisGeometryDetector().DetectAsync(
+                new AxisGeometryRequest(frame.Width, frame.Height, candidates));
+            Assert.AreEqual(20d, geometry.PlotPolygon.TopLeft.Y, 4d,
+                "An open symbol must not collapse the plot to the terminal axis stub.");
+            Assert.AreEqual(130.5d, geometry.PlotPolygon.BottomLeft.Y, 4d);
+        }
+    }
+
+    [TestMethod]
     public async Task NativeProviderReturnsLsdAndHoughCandidatesForCleanAxes()
     {
         GrayscaleLineCandidateFrame frame = CreateCleanAxisFrame();
@@ -118,11 +155,12 @@ public sealed class OpenCvLineCandidateProviderTests
         return new GrayscaleLineCandidateFrame(width, height, width, pixels);
     }
 
-    private static GrayscaleLineCandidateFrame CreateOccludedAxisFrame(bool horizontal, bool connected)
+    private static GrayscaleLineCandidateFrame CreateOccludedAxisFrame(
+        bool horizontal, bool connected, int gapEnd = 104)
     {
         GrayscaleLineCandidateFrame original = CreateCleanAxisFrame();
         byte[] pixels = original.Pixels.ToArray();
-        for (int y = 100; y <= 104; y++)
+        for (int y = 100; y <= gapEnd; y++)
         {
             pixels[(y * original.Stride) + 30] = byte.MaxValue;
             pixels[(y * original.Stride) + 31] = byte.MaxValue;
@@ -133,10 +171,10 @@ public sealed class OpenCvLineCandidateProviderTests
             for (int x = 26; x <= 35; x++)
             {
                 SetBlack(pixels, original.Stride, x, 99);
-                SetBlack(pixels, original.Stride, x, 105);
+                SetBlack(pixels, original.Stride, x, gapEnd + 1);
             }
 
-            for (int y = 99; y <= 105; y++)
+            for (int y = 99; y <= gapEnd + 1; y++)
             {
                 SetBlack(pixels, original.Stride, 26, y);
                 SetBlack(pixels, original.Stride, 35, y);

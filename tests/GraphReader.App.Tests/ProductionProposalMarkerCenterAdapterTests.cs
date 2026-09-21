@@ -438,6 +438,47 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
     }
 
     [TestMethod]
+    [DataRow(0.25d, 1d, 1, true)]
+    [DataRow(2d, 1d, 1, true)]
+    [DataRow(2.01d, 1d, 0, true)]
+    [DataRow(2d, 2d, 1, true)]
+    [DataRow(2.01d, 2d, 0, true)]
+    [DataRow(0.25d, 1d, 0, false)]
+    public async Task AxisBoundaryUncertaintyPreservesObservedCenterInOriginalPixels(
+        double outsidePixels, double scale, int expectedCount, bool plotDomainCandidate)
+    {
+        var runner = new FakeRunner(count =>
+        {
+            var output = new float[count * 4];
+            output[18 * 4] = 0.9f; // Original grid point (8,8).
+            output[18 * 4 + 3] = 3f;
+            return output;
+        });
+        var frame = new MarkerImageFrame(32, 32, 1, new float[32 * 32],
+            MarkerSourceImage.Original, new MarkerAffineTransform(scale, 0, 0, 0, scale, 0),
+            MarkerMask.Empty(32, 32), MarkerMask.Empty(32, 32));
+        double left = 8 / scale + outsidePixels;
+        var plot = MarkerPolygon.FromRectangle(new(left, 0, 28 / scale - left, 28 / scale));
+        var adapter = plotDomainCandidate
+            ? CreatePlotDomainAdapter(runner, true, true)
+            : CreateMaskPreservingAdapter(runner);
+
+        ProposalMarkerCandidateDiagnosticResult result = await adapter.DetectCandidateWithDiagnosticsAsync(
+            frame, plot, CancellationToken.None);
+
+        Assert.AreEqual(expectedCount, result.Candidates.Count);
+        Assert.AreEqual(1 - expectedCount, result.StageCounters.DecodedPointsOutsidePlot);
+        Assert.AreEqual(plotDomainCandidate,
+            runner.LastRequest!.CacheMaterial.Parameters.ContainsKey("final_boundary_original_pixels"));
+        if (plotDomainCandidate)
+            Assert.AreEqual(2d, runner.LastRequest.CacheMaterial.Parameters["final_boundary_original_pixels"]);
+        Assert.AreEqual(plotDomainCandidate,
+            adapter.AdapterId.Contains("original-boundary-2px-v1", StringComparison.Ordinal));
+        if (expectedCount == 1)
+            Assert.AreEqual(new MarkerPoint(8 / scale, 8 / scale), result.Candidates[0].Center);
+    }
+
+    [TestMethod]
     public async Task PlotDomainCandidateMatchesPythonSkewedCoordinatesAndPatchBytes()
     {
         var runner = new FakeRunner(static count => new float[count * 4]);
@@ -531,7 +572,7 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
         ProductionProposalMarkerCenterAdapter adapter = CreatePlotDomainAdapter(runner);
 
         Assert.IsFalse(adapter.IsApproved);
-        StringAssert.EndsWith(adapter.AdapterId, ":plot-domain-v25");
+        StringAssert.EndsWith(adapter.AdapterId, ":plot-domain-v25:original-boundary-2px-v1");
         Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(
             new ModelIdentity(
                 ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,

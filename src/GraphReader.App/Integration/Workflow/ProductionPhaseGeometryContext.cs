@@ -25,6 +25,30 @@ internal static class ProductionPhaseGeometryContext
             plot.Height * Math.Tan(GeometryOptions.MaximumAxisDeviationDegrees * Math.PI / 180)),
     };
 
+    internal static PhaseRectangle IncludeBoundaryPoints(
+        PhaseRectangle plot, IReadOnlyList<PhasePointEvidence> points, int imageWidth, int imageHeight)
+    {
+        double left = plot.Left, top = plot.Top, right = plot.Right, bottom = plot.Bottom;
+        foreach (PhasePointEvidence evidence in points)
+        {
+            PhasePoint point = evidence.Center;
+            if (!point.IsFinite || point.X < 0 || point.X >= imageWidth ||
+                point.Y < 0 || point.Y >= imageHeight || plot.Contains(point))
+                continue;
+            double dx = Math.Max(0, Math.Max(plot.Left - point.X, point.X - plot.Right));
+            double dy = Math.Max(0, Math.Max(plot.Top - point.Y, point.Y - plot.Bottom));
+            if (Math.Sqrt(dx * dx + dy * dy) > ProductionProposalMarkerCenterAdapter.FinalPlotBoundaryPixels)
+                continue;
+            // Bound the phase regions by the retained original-pixel evidence.
+            // Neither the measured center nor the calibration axis is moved.
+            left = Math.Min(left, point.X);
+            top = Math.Min(top, point.Y);
+            right = Math.Max(right, point.X);
+            bottom = Math.Max(bottom, point.Y);
+        }
+        return new PhaseRectangle(left, top, right - left, bottom - top);
+    }
+
     internal static PhaseGeometryContextResult Resolve(
         AxisGeometryResult axis, OcrImage original, IReadOnlyList<OcrRegion> regions,
         IReadOnlyList<OcrRectangle> legendFrames, IReadOnlyList<OcrRectangle> markerBounds,

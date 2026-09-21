@@ -17,6 +17,41 @@ public sealed class ProductionPhaseGeometryContextTests
     private static readonly OcrRectangle LegendFrame = new(180, 70, 45, 28);
 
     [TestMethod]
+    [DataRow(9.75, 25d, true)]
+    [DataRow(8d, 25d, true)]
+    [DataRow(7.99, 25d, false)]
+    [DataRow(72d, 25d, true)]
+    [DataRow(25d, 8d, true)]
+    [DataRow(25d, 52d, true)]
+    [DataRow(8.5, 8.5, false)]
+    [DataRow(-0.25, 25d, false)]
+    public async Task BoundaryPointsRemainUnchangedAndReachTheRealPhaseReasoner(
+        double x, double y, bool accepted)
+    {
+        const string panel = "11111111-1111-1111-1111-111111111111";
+        const string series = "22222222-2222-2222-2222-222222222222";
+        var point = new PhasePointEvidence("33333333-3333-3333-3333-333333333333",
+            series, panel, new PhasePoint(x, y));
+        var originalPlot = new PhaseRectangle(10, 10, 60, 40);
+        PhaseRectangle plot = ProductionPhaseGeometryContext.IncludeBoundaryPoints(
+            originalPlot, [point], 80, 60);
+        var request = new PhaseReasoningRequest(panel, panel, new string('a', 64), plot,
+            [], [], [point], [new PhaseSeriesEvidence(series, PhaseNormalizedType.Baseline, [point.PointId], [])]);
+
+        PhaseReasoningResult result = await new PhaseReasoningService().ResolveAsync(request, CancellationToken.None);
+
+        Assert.AreEqual(accepted, result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.AreEqual(new PhasePoint(x, y), point.Center);
+        if (accepted)
+        {
+            Assert.IsTrue(plot.Contains(point.Center));
+            Assert.HasCount(1, result.Payload.Assignments);
+        }
+        else
+            Assert.AreEqual(originalPlot, plot);
+    }
+
+    [TestMethod]
     public async Task HeadingRowResolvesMeasuredBoundariesWithoutChangingTextOrGuessingLabels()
     {
         AxisGeometryResult axis = Axis();

@@ -358,6 +358,7 @@ internal static class FrozenCandidateWorkflowFactory
             (expected.MarkerProposalDomain == "axis_polygon_or_16px_v25" ? ":plot-domain-v25" : string.Empty) +
             (expected.MarkerGeometrySupport == "multiradius_enclosed_balanced_v2" ? ":enclosed-balanced-support-v2" :
                 expected.MarkerGeometrySupport == "multiradius_enclosed_v1" ? ":enclosed-support-v1" : string.Empty) +
+            (expected.MarkerProposalDomain == "axis_polygon_or_16px_v25" ? ":original-boundary-2px-v1" : string.Empty) +
             (expected.MarkerCenterThreshold == ProductionProposalMarkerCenterAdapter.CascadeCenterThreshold ? ":cascade-010-v1" : string.Empty);
         if (!ocr.AdapterId.StartsWith($"graphreader-ocr:{expected.OcrCompositionVersion}:", StringComparison.Ordinal) ||
             !string.Equals(marker.AdapterId, expectedMarkerAdapterId, StringComparison.Ordinal) ||

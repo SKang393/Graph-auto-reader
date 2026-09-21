@@ -106,6 +106,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
     public const int ProposalStride = 4;
     public const int BatchSize = 256;
     internal const double PlotDomainBoundaryPixels = 16;
+    internal const double FinalPlotBoundaryPixels = 2;
     internal const double MinimumCenterSeparationForTesting = 6.5;
     private const float InkSupportThreshold = 0.11f;
     private const float MaskRejectionThreshold = 0.35f;
@@ -369,9 +370,10 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         GeometrySupportSuffix,
         centerThreshold == CascadeCenterThreshold ? ":cascade-010-v1" : string.Empty);
 
-    private string GeometrySupportSuffix => balancedRingSupport
+    private string GeometrySupportSuffix => (balancedRingSupport
         ? ":enclosed-balanced-support-v2"
-        : enclosedGeometrySupport ? ":enclosed-support-v1" : string.Empty;
+        : enclosedGeometrySupport ? ":enclosed-support-v1" : string.Empty) +
+        (plotDomainProposalFiltering ? ":original-boundary-2px-v1" : string.Empty);
 
     public bool IsApproved { get; }
 
@@ -773,7 +775,9 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             new WorkflowVisionModel(Model.ModelId, Model.Version, Model.Sha256, "cpu"),
             new WorkflowVisionTiming(0, 0, 0, total.Elapsed.TotalMilliseconds),
             confidence,
-            [$"proposal_marker_counts:{diagnostic.StageCounters.CandidatesBeforeNms}:{diagnostic.StageCounters.FinalCandidates}"],
+            [$"proposal_marker_counts:{diagnostic.StageCounters.CandidatesBeforeNms}:{diagnostic.StageCounters.FinalCandidates}",
+                .. diagnostic.Candidates.Where(marker => !plotPolygon.Contains(marker.Center))
+                    .Select(marker => $"marker_center_near_plot_boundary:{marker.MarkerId}")],
             []);
         var report = new MarkerFrameReport(
             MarkerSourceImage.Original,
@@ -838,6 +842,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             if (plotDomainProposalFiltering)
             {
                 cacheParameters["proposal_domain"] = "axis-polygon-or-16px-boundary";
+                cacheParameters["final_boundary_original_pixels"] = FinalPlotBoundaryPixels;
             }
             if (enclosedGeometrySupport)
                 cacheParameters["geometry_support"] = balancedRingSupport ? BalancedGeometrySupport : EnclosedGeometrySupport;
@@ -914,7 +919,16 @@ public sealed class ProductionProposalMarkerCenterAdapter :
                     continue;
                 }
 
-                if (plotPolygon.Contains(frame.OriginalToFrame.MapToOriginal(refined)))
+                // A fitted axis can move within its two-original-pixel geometry
+                // tolerance. Keep a nearby observed center at its actual pixel
+                // position instead of erasing an axis-touching first session.
+                // Historical non-plot-domain postprocessors remain unchanged.
+                MarkerPoint originalPoint = frame.OriginalToFrame.MapToOriginal(refined);
+                bool inPlot = plotDomainProposalFiltering
+                    ? refined.X >= 0 && refined.X < frame.Width && refined.Y >= 0 && refined.Y < frame.Height &&
+                        SupportsPlotDomain(plotPolygon, originalPoint, FinalPlotBoundaryPixels)
+                    : plotPolygon.Contains(originalPoint);
+                if (inPlot)
                 {
                     if (predictions.Count >= maximumDecodedCandidates)
                     {
@@ -1337,7 +1351,8 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         return new MarkerPolygon(points);
     }
 
-    private static bool SupportsPlotDomain(MarkerPolygon polygon, MarkerPoint point)
+    private static bool SupportsPlotDomain(
+        MarkerPolygon polygon, MarkerPoint point, double boundaryPixels = PlotDomainBoundaryPixels)
     {
         if (polygon.Contains(point))
         {
@@ -1348,7 +1363,7 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         {
             MarkerPoint current = polygon.Points[index];
             MarkerPoint previous = polygon.Points[index == 0 ? polygon.Points.Count - 1 : index - 1];
-            if (DistanceToSegment(point, current, previous) <= PlotDomainBoundaryPixels)
+            if (DistanceToSegment(point, current, previous) <= boundaryPixels)
             {
                 return true;
             }

@@ -1003,6 +1003,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     request.Panel.ImportedPanel.PanelId.ToString("D"),
                     new PhasePoint(marker.Marker.Center.X, marker.Marker.Center.Y));
             })).ToArray();
+        bounds = ProductionPhaseGeometryContext.IncludeBoundaryPoints(
+            bounds, points, request.Image.Width, request.Image.Height);
         PhaseSeriesEvidence[] seriesEvidence = grouping.Series.Select(series =>
         {
             _ = legendSeries.TryGetValue(series.SeriesId, out LegendSeriesResolution? resolved);

@@ -29,7 +29,7 @@ public sealed class ProductionAxisGeometryAdapter :
     IProductionAxisGeometryAdapter,
     IProductionCandidateAxisGeometryAdapter
 {
-    public const string StageVersion = "axis-opencv-v5-bounded-dividers";
+    public const string StageVersion = "axis-opencv-v6-connected-symbol-extents";
 
     private readonly IAxisGeometryDetector detector;
     private readonly ILineCandidateProvider candidateProvider;

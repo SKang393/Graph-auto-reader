@@ -132,7 +132,7 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
             algorithm: ProductionProposalMarkerCenterAdapter.EnclosedPostprocessingAlgorithm);
         var candidate = ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(enclosed, new NoRunInference());
         Assert.IsFalse(candidate.IsApproved);
-        StringAssert.EndsWith(candidate.AdapterId, ":plot-domain-v25:enclosed-support-v1");
+        StringAssert.EndsWith(candidate.AdapterId, ":plot-domain-v25:enclosed-support-v1:original-boundary-2px-v1");
         Assert.ThrowsExactly<InvalidDataException>(() =>
             ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidatePlotDomainEvaluation(enclosed, new NoRunInference()));
         FrozenCandidateMarkerCenterModelDescriptor changed = WriteDescriptor(directory.Path,
@@ -155,7 +155,7 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
         var candidate = ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(
             balanced, new NoRunInference(), balancedRingSupport: true);
         Assert.IsFalse(candidate.IsApproved);
-        StringAssert.EndsWith(candidate.AdapterId, ":plot-domain-v25:enclosed-balanced-support-v2");
+        StringAssert.EndsWith(candidate.AdapterId, ":plot-domain-v25:enclosed-balanced-support-v2:original-boundary-2px-v1");
         Assert.ThrowsExactly<InvalidDataException>(() =>
             ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(balanced, new NoRunInference()));
         var changed = WriteDescriptor(directory.Path,
@@ -178,7 +178,7 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
             algorithm: ProductionProposalMarkerCenterAdapter.BalancedPostprocessingAlgorithm);
         var candidate = ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateCascadeEvaluation(cascade, new NoRunInference());
         Assert.IsFalse(candidate.IsApproved);
-        StringAssert.EndsWith(candidate.AdapterId, ":enclosed-balanced-support-v2:cascade-010-v1");
+        StringAssert.EndsWith(candidate.AdapterId, ":enclosed-balanced-support-v2:original-boundary-2px-v1:cascade-010-v1");
         Assert.ThrowsExactly<InvalidDataException>(() =>
             ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateEnclosedGeometryEvaluation(
                 cascade, new NoRunInference(), balancedRingSupport: true));

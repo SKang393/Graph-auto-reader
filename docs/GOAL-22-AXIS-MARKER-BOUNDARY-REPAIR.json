@@ -1,0 +1,641 @@
+{
+  "schema": "graphreader.goal22-axis-marker-boundary-repair.v1",
+  "status": "verified_development_repair_not_product_acceptance",
+  "source_base_commit": "c50c7f8a25305aac105483e9c01557d6422bd0b7",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Axis/OpenCvLineCandidateProvider.cs",
+      "sha256": "6ecf19f896ae26ee013985fc81b3f4ff8f44301d9965c0547a044cebe1121cc7"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAxisGeometryAdapter.cs",
+      "sha256": "7fa9fcfdd93cc8c91ec6bf57b34ae6c944251781032c76fb89679deb331b93c7"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
+      "sha256": "1c5c160fef2067f08009fb69da16f75ac706c1e45b4619a9c88ff0fa909ecd3d"
+    },
+    {
+      "path": "tests/GraphReader.Axis.Tests/OpenCvLineCandidateProviderTests.cs",
+      "sha256": "2e96759e0a64f355724afdf2c4df05bc11f5353783f42e536e78328670567b9f"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs",
+      "sha256": "006a701b1d18b38974b874861c8c05feee9fdeead42cbe2fa941a648fdfe640d"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionMarkerFrozenCandidateFactoryTests.cs",
+      "sha256": "9ba9d17ad3b4fcbeeecfe5819c1c605b970879f826d55085b40f3e5ce50efda1"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateWorkflowFactory.cs",
+      "sha256": "be9462f705e36d9fa4a564976c6fdff9c9401aaaba08c4cca3affbe3371abecc"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "b8f538787884ef5e5b19ee475f691e50c2b9a1cb60b93602ba96694953a15820"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionPhaseGeometryContext.cs",
+      "sha256": "b4ab682927c2e97c61205dce219e697cc22b49e05ab5a849683969281b824103"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionPhaseGeometryContextTests.cs",
+      "sha256": "cfd147a7891cecab952365e4027f7b1b0c4941f656edcab4c5b253028b723aa7"
+    }
+  ],
+  "changes": [
+    "Connected original-pixel ink can bridge open symbols up to twice the existing minimum line length; short terminal segments remain eligible.",
+    "Unapproved plot-domain marker candidates retain actual decoded centers within two original pixels of the fitted plot boundary, with explicit provenance warnings.",
+    "Phase bounds include retained boundary evidence within the same two-pixel tolerance without moving points, axes or calibrations.",
+    "Cache and adapter versions identify the changed application postprocessor; production V24 behavior and model manifests remain unchanged."
+  ],
+  "native_markers": {
+    "truth": 838,
+    "predicted": 643,
+    "matched": 561,
+    "extra": 82,
+    "missing": 277,
+    "precision": 0.8724727838258165,
+    "recall": 0.6694510739856802
+  },
+  "axis_geometry": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 80,
+      "panels_all_corners_within_2px": 21
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 82,
+      "panels_all_corners_within_2px": 22
+    }
+  },
+  "paired_marker_truths": {
+    "retained": 502,
+    "recovered": 59,
+    "lost": 1,
+    "missed_by_both": 276
+  },
+  "ocr": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 525,
+        "geometry_matched_region_count": 378,
+        "geometry_false_positive_count": 147,
+        "geometry_false_negative_count": 75,
+        "recognition_exact_count": 330,
+        "recognition_exact_accuracy": 0.7284768211920529,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 71,
+        "unmatched_truth_deletion_edit_count": 574,
+        "unmatched_prediction_insertion_edit_count": 384,
+        "character_error_count": 1029,
+        "character_error_rate": 0.3319354838709677,
+        "role_correct_count": 337,
+        "role_accuracy": 0.7439293598233996,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 38,
+            "accuracy": 0.6129032258064516
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 48,
+            "accuracy": 0.9230769230769231
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 25,
+            "accuracy": 0.6756756756756757
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 127,
+            "accuracy": 0.7470588235294118
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 77,
+            "accuracy": 0.7777777777777778
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 525,
+        "geometry_matched_region_count": 378,
+        "geometry_false_positive_count": 147,
+        "geometry_false_negative_count": 75,
+        "recognition_exact_count": 330,
+        "recognition_exact_accuracy": 0.7284768211920529,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 71,
+        "unmatched_truth_deletion_edit_count": 574,
+        "unmatched_prediction_insertion_edit_count": 384,
+        "character_error_count": 1029,
+        "character_error_rate": 0.3319354838709677,
+        "role_correct_count": 344,
+        "role_accuracy": 0.7593818984547461,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 38,
+            "accuracy": 0.6129032258064516
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 25,
+            "accuracy": 0.6756756756756757
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 128,
+            "accuracy": 0.7529411764705882
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 82,
+            "accuracy": 0.8282828282828283
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "csv_before": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_after": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "validation": [
+    {
+      "evidence": {
+        "path": "artifacts/goal22-runs/native-axis-extent-repair-v2/test-results/axis.trx",
+        "sha256": "25336a833a204275cb9aa0755b6447319192b7a2addb985f27f3ee8d02efb134"
+      },
+      "counts": {
+        "total": "76",
+        "executed": "76",
+        "passed": "76",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    {
+      "evidence": {
+        "path": "artifacts/goal22-runs/native-axis-extent-repair-v5/test-results/app.trx",
+        "sha256": "d21924804b3cba396147a5d07409ea74b6ae71eb70258e9748a6f1dd993896d7"
+      },
+      "counts": {
+        "total": "461",
+        "executed": "461",
+        "passed": "461",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    }
+  ],
+  "timing": {
+    "native-axis-extent-repair-v5": {
+      "status": "completed",
+      "seconds": 84.8440442,
+      "reused_axis_tests": "artifacts/goal22-runs/native-axis-extent-repair-v2/test-results/axis.trx",
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "model_inference_runs": 0
+    },
+    "native-axis-marker-context-v4": {
+      "status": "completed",
+      "seconds": 132.2396712,
+      "inference_exit_code": 1,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "training": false
+    },
+    "axis-symbol-extent-workflow-v5": {
+      "status": "completed",
+      "inference_exit_code": 1,
+      "seconds": 148.7957435,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "training": false
+    }
+  },
+  "observed_model_providers": {
+    "OpenCvSharpExtern:cpu": 31,
+    "graph-text-extent-db-head-v44-p1:cpu": 31,
+    "en_PP-OCRv5_mobile_rec:cpu": 31,
+    "marker-center-component-diversity-v27:cpu": 31,
+    "marker-classifier-structural-context-v5:directml": 31
+  },
+  "declared_cpu_profile_fully_enforced": false,
+  "retained_failures": [
+    "Axis-only v1 recovered marker centers but lost one previously exportable source due to strict final plot clipping.",
+    "v2 app tests rejected four stale adapter suffix expectations. All five new behavior cases passed.",
+    "v3 app tests passed, but the native factory rejected its stale expected adapter identity before workflow inference.",
+    "v4 retained boundary points were rejected by downstream phase bounds. v5 aligns those bounds with the unchanged observed points and restores all baseline CSV export statuses.",
+    "An early local geometry diagnostic confused inset session calibration anchors with actual printed axis endpoints; the corrected report retains and supersedes it."
+  ],
+  "known_limitations": [
+    "All four Goal 22 outcomes are not yet jointly verified.",
+    "One tall narrow development plot extends farther into adjacent heading ink; the complete geometry comparison retains this regression.",
+    "OCR and marker accuracy remain below the unchanged acceptance bars. Native development diagnostics do not grant sealed or production approval.",
+    "Classifier provenance reports DirectML despite the declared CPU-only workflow. Preserve these descriptive comparisons, repair host-level provider enforcement and rerun CPU development evidence before any acceptance claim."
+  ],
+  "model_weights_changed": false,
+  "model_selection_performed": false,
+  "training": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "packaged_build": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "license_review": "Project-owned Apache-2.0 implementation and synthetic fixtures; existing reviewed runtimes and models only.",
+  "artifacts": [
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-repair-v5/status.json",
+      "sha256": "072dc467f1666e31cd3d935fdf9facd95e60bc184e3f6ff4f2ad86b233872b13"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-repair-v5/source-bindings.json",
+      "sha256": "834f6e2b8b7eccbb79a2983af04ae7fdcad1e21092dec174f1970fb86d1f0e4f"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-repair-v5/build.log",
+      "sha256": "1300934dba8f67cce7f77d36c4295b64a9bb5cee66fe4d384b88546038322730"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/status.json",
+      "sha256": "8cf28409571d5577721c58ee464e5ff1cc05c3ddc0a93d9b9de7aa2cecf43182"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/preparation.json",
+      "sha256": "199100f8c38426459cfea4825797ebf8c50f229c1dde005f8eb2884fe93a6e26"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/runtime-description.json",
+      "sha256": "a15ffee967e3146297c694f7e88afa5b97696286700885f433b96cecbd1ef1ed"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/candidate-binding.json",
+      "sha256": "7cb1954fa9dd02a2cd6361be41826a3f131aa69ef06a1dfc0412b156abefa64d"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/input-manifest.json",
+      "sha256": "6f2fe56f8d705d629c1d8dcdff7403f00783a0df1132d79b54d907aff39af6b0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/protocol.json",
+      "sha256": "c7c1889d4e4bac007731fc96d8f44e3b1436d1214849f6a904575876d4466748"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/execution/report.json",
+      "sha256": "984c449946a8124c2a35e9493baa49db537e3c9b24a7b46ae10f3920973ae17f"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/native-marker-score.json",
+      "sha256": "6884b163c92b946032f835c8863ca492c7bc1952bdc9f5cd0cdcc862abc8d5dd"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/native-marker-details.json",
+      "sha256": "78f1fce4d7d2ec73e1570fb838c1a9f74f612c2faebf7e167c98795cb79088d5"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/native-ocr-score.json",
+      "sha256": "cc47cb3796275e761753ba520eacab2de4ac97bff1f311d5cdce0ba211cf1b8c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/native-ocr-details.json",
+      "sha256": "fc799e79cf59baa492fa18249f6e4cab02d281be2990f1589fc02069d2edf41b"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v4/axis-geometry-comparison.json",
+      "sha256": "aa448033326be9298a8f1b7c60cc624b46c559680344f8f8e1f6a8292874f261"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/status.json",
+      "sha256": "23d8d0a445c27063ae175a566b649980671162a708ccce8b7d1dce8b18ddf66c"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/preparation.json",
+      "sha256": "137ab4b6489dc60ae1e232a293b301bbd28fd0cc9833c4e4ee1efae76da3600f"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/runtime-description.json",
+      "sha256": "c4ae3e5c3b8a41c8ed8632f924756b2eed87b6827cf914730c88ccc5d1a16de6"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/candidate-binding.json",
+      "sha256": "9b8c388ccb94db552f3faf6ec5819ebb3dfb1a56f2e2b0f2a68d59eaf3ce2e8e"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/input-manifest.json",
+      "sha256": "a5d6ecdd3573e78867c423f2983af1337f54ed4b8e2a743b007761c9f875bdb7"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/protocol.json",
+      "sha256": "69c798a19a2772360a06ba42cc027642c7b2fd19f04492fe5cb369ac3de86e17"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/execution/report.json",
+      "sha256": "a8740effcf293a770fbba6b6d06aef2deace6e8f2e86e9e65ded5172071d0998"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/comparison.json",
+      "sha256": "f3af6b1bd939914ae3f83350827db4098458423c12953bfbcc291742671f0571"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/csv-score-normalized-phases.json",
+      "sha256": "8bf2e390af21d8d370626485af0147134a0085195a85fe5abbe871f2b759d927"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v5/csv-evaluation-input-normalized-phases.json",
+      "sha256": "196f722ed5a61e6fe044191ea0afe148902349fc8d8aa1edce6477cf7f94e890"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-repair-v1/status.json",
+      "sha256": "923cbe502887c317a5808925ee59fd76faf74501dc401cec16893d5e68d29ba0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-repair-v2/status.json",
+      "sha256": "f0997a0c4f2a470fdad5cd21136a5be7effa0f629744a48a8fe5ce83551664fe"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-repair-v3/status.json",
+      "sha256": "0fb31df5959285c74ad6216da5181bf4ce514b01e3435d0d88c20f82b6b976c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v1/status.json",
+      "sha256": "3196987cc072d10beb95f204a451d9592a8f6000dbf79722e9db305edde960d5"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v1/axis-comparison.json",
+      "sha256": "d68ca373f9a01a51ca931a67ac40f703f7dc37c315431948d18ecbabe1d672c1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v1/axis-geometry-comparison.json",
+      "sha256": "3b5f55b56a79a3da6f85faa1919f28f111f1471db5fda9008676a2ff3aefb5b2"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v1/inference.log",
+      "sha256": "049c7490ea66c96d12ff8bd62e8dbc2baa3be0c2f8e062cfcaef8bd2747db04e"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v2/status.json",
+      "sha256": "904baf3cf759bcb3929d2a8db564eea41e5504f239fe0e389a88cf5e8d0880d3"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v3/status.json",
+      "sha256": "bd555b54a81bf11943c4cfe3a5276f6c3915b835773db55d3251c836d867397c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-marker-context-v3/inference.log",
+      "sha256": "c20d235e725f70876ea4f29bc56e245f55c0d2b2b72a1895cabae02357f4dcae"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v1/status.json",
+      "sha256": "73caf692c22869138e73b513daabaa90d0aab2df6d7784485de82ab60a227b47"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v1/comparison.json",
+      "sha256": "276c1cc8208e32665c05b51c0809421351c1282d6fcfe6ee94f318f775d98dfb"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v1/inference.log",
+      "sha256": "ddfa14141448d3782d69c73e2e5a130c700919bfeb38ee1d259a40c7f89521e2"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v2/status.json",
+      "sha256": "1d26025a6f30fcef306440110e76995698d05aa3a7f9d1f91bd264fb39b87718"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v3/status.json",
+      "sha256": "dd0c09a4bb1c61fd8fff130f28e5f779a73147f15cf14af86e82f773fbbd8076"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-axis-extent-repair-v4/status.json",
+      "sha256": "b7579bd3c2ed1d11198c2d562e88bd5a167ce1e1510ce0feec4c8aac7fe50cd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v4/status.json",
+      "sha256": "76df891b9536640b0b3a648f9d6b6a45955f6ab75b3e016f4b26bf91227621c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v4/comparison.json",
+      "sha256": "3294d352418f4a43afabd6f20347c0ccd27e3d14ab65db292ca4dff6d36d051e"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v4/inference.log",
+      "sha256": "9ad85bf62e2ebd0920acf0018ca48221a2b03b1162f20b1f9f3eadfdca80fd89"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-AxisSymbolExtentWorkflowV4.py",
+      "sha256": "74caa79b08a36c2d95a5760618f1abe975c67fd00474acd5d084838216d33fd5"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-AxisMarkerContextV4.py",
+      "sha256": "779fa7e2b01bb5a137d635e6983eb5d1a529f87a198db22f9b035ef2b21f6df3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-AxisSymbolExtentWorkflowV4.py",
+      "sha256": "4cafa3d3d21416249f76a76057b8826d7ac5bec1f732e3617221ddafe15e7a01"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-AxisMarkerContextV4.ps1",
+      "sha256": "5437eb2916f31cfccf510896519c5e03a1f6488547535d5afec0e79930610876"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-AxisSymbolExtentWorkflowV4.ps1",
+      "sha256": "8931946ebdecfa65c9514308ce479bc4d4a2000316a51489aff0dc80fe37395d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisContextOcrV4.py",
+      "sha256": "6bc598518baa40c912b5f231726287cdad2ab46353aa5ec21073fed23752b4d8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisMarkerContextV4.py",
+      "sha256": "1f0355cc7fc280ea661db7717b3cfe9dc963b98043e90e123071d19ce88312cf"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-AxisSymbolExtentV4.py",
+      "sha256": "5dab71a5408cfc9505c73612633245c8364d9c123e9e677d06f5ea38f4c65bd4"
+    },
+    {
+      "path": "artifacts/goal22-tools/Test-AxisSymbolExtentV4.ps1",
+      "sha256": "b24d9ade91a5a2b6ee858651d0957ebb7518e106d5801f2ad8b10a3380a073a5"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-AxisSymbolExtentWorkflowV5.py",
+      "sha256": "932ecdf60bcc0c2b5d32cc97b6e78a97279247eb0c4baf2852067cf309868a8f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-AxisSymbolExtentWorkflowV5.py",
+      "sha256": "a0043e39652037ebe8f626a56cc0d082577a108822550d9d03cb6cc84c37ac4b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-AxisMarkerBoundaryRepairV5.py",
+      "sha256": "93d59a9a6b29aae08408d86557afe0d2cb5522631b09e9409737ac6e5048b5df"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-AxisSymbolExtentWorkflowV5.ps1",
+      "sha256": "d32d1ed0fd47e61b5985656d82b44498ba1fd7fc151b20279d181450b26446d3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Test-AxisSymbolExtentV5.ps1",
+      "sha256": "76d113beff42ad9fa8b789ecd3bd0694f28bcae8391bc2601ab68926c1991c33"
+    },
+    {
+      "path": "artifacts/goal22-runs/axis-symbol-extent-workflow-v4/repair-summary-before-phase-fix.json",
+      "sha256": "740190816fd0aa1a67b4e9aa8b7002c9ac4c2b84abadb038f1d4adec04ed57ea"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-AxisMarkerBoundaryRepairV5.py",
+      "sha256": "93d59a9a6b29aae08408d86557afe0d2cb5522631b09e9409737ac6e5048b5df"
+    }
+  ]
+}

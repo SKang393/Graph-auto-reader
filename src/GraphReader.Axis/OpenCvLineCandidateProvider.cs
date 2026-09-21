@@ -149,9 +149,10 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         // Supply that local connection only between existing collinear lines.
         var geometryOptions = new AxisGeometryOptions();
         double minimumGap = geometryOptions.MergeDistancePixels * 2d;
-        double maximumGap = Math.Min(
-            (_options.HoughMaximumLineGapPixels * 2d) + 1d,
-            geometryOptions.MergeDistancePixels * 3d);
+        // Hough's empty-gap allowance is not the size of a connected symbol.
+        // Search at most two minimum-length segments, then require a real ink
+        // path. Short LSD terminal stubs still carry valid endpoint evidence.
+        double maximumGap = _options.HoughMinimumLineLengthPixels * 2d;
         if (maximumGap <= minimumGap)
         {
             return;
@@ -167,7 +168,7 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         {
             cancellationToken.ThrowIfCancellationRequested();
             double length = candidate.Segment.Length;
-            if (length < _options.HoughMinimumLineLengthPixels)
+            if (length < minimumGap)
             {
                 continue;
             }
