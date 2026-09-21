@@ -10,7 +10,7 @@ namespace GraphReader.Ocr;
 public static class FramedLegendRoleResolver
 {
     public const string CompositionVersion = "original-pixel-framed-legend-context-v2";
-    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v4";
+    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v5";
 
     /// <summary>Joins detected words only when original pixels establish one framed legend row.</summary>
     public static IReadOnlyList<OcrDetectedRegion> AssembleDetectedRows(
@@ -82,6 +82,55 @@ public static class FramedLegendRoleResolver
         GraphTextRoleClassifier.GetOrientation(region.OrientationDegrees) != OcrOrientation.Horizontal ||
         region.Context is { ExplicitRoleHint: not null } or { NearAnnotationArrow: true } or
             { NearPhaseDivider: true } or { NumericExpected: true } or { AxisTitleExpected: true } or { InParticipantBand: true };
+
+    /// <summary>Replaces partial detections only inside an independently measured single legend row.</summary>
+    public static async ValueTask<IReadOnlyList<OcrDetectedRegion>> RecoverPartialTextRowsAsync(
+        OcrImage image, IReadOnlyList<OcrDetectedRegion> regions, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        ArgumentNullException.ThrowIfNull(regions);
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateImage(image);
+        foreach (OcrDetectedRegion region in regions)
+        {
+            OcrRectangle box = region.Polygon.Bounds;
+            if (!box.IsValid || box.Left < 0 || box.Top < 0 || box.Right > image.Width || box.Bottom > image.Height ||
+                region.CoordinateSpace != OcrContract.CoordinateSpace)
+                throw new ArgumentException("Partial legend detections must retain original pixel geometry.", nameof(regions));
+        }
+        if (regions.Count == 0) return Array.Empty<OcrDetectedRegion>();
+        // Use the existing strict frame, detached-symbol, component-count and
+        // single-row checks without allowing a partial detector box to veto
+        // the pixel search. No recognition answer is supplied by this search.
+        IReadOnlyList<OcrDetectedRegion> measured = await RecoverMissingTextAsync(
+            image, [], cancellationToken).ConfigureAwait(false);
+        var result = regions.ToList();
+        foreach (OcrDetectedRegion row in measured)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            OcrRectangle bounds = row.Polygon.Bounds;
+            OcrDetectedRegion[] members = result.Where(r => Overlaps(bounds, r.Polygon.Bounds)).ToArray();
+            if (members.Length == 0 || members.Any(r => HasProtectedContext(r) ||
+                    !Contains(bounds, r.Polygon.Bounds) || r.Polygon.Bounds == bounds)) continue;
+            string material = RecoveryCompositionVersion + "\n" + row.RegionId + "\n" +
+                string.Join('\n', members.Select(static r => r.RegionId).Order(StringComparer.Ordinal));
+            var ids = members.Select(static r => r.RegionId).ToHashSet(StringComparer.Ordinal);
+            result.RemoveAll(r => ids.Contains(r.RegionId));
+            result.Add(row with
+            {
+                RegionId = "framed-legend-row:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(material))),
+                DetectionConfidence = Math.Min(row.DetectionConfidence, members.Min(static r => r.DetectionConfidence)),
+                Context = members.All(r => Equals(r.Context, members[0].Context)) ? members[0].Context : null,
+                Evidence = null,
+            });
+        }
+        return OcrCollections.Freeze(result);
+
+        static bool Overlaps(OcrRectangle a, OcrRectangle b) => a.Left < b.Right && a.Right > b.Left &&
+            a.Top < b.Bottom && a.Bottom > b.Top;
+        static bool Contains(OcrRectangle outer, OcrRectangle inner) => inner.Left >= outer.Left && inner.Top >= outer.Top &&
+            inner.Right <= outer.Right && inner.Bottom <= outer.Bottom;
+    }
 
     /// <summary>Proposes missing text crops from pixels, without supplying a word or role.</summary>
     public static async ValueTask<IReadOnlyList<OcrDetectedRegion>> RecoverMissingTextAsync(

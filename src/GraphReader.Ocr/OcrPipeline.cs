@@ -235,9 +235,11 @@ public sealed class OcrPipeline
             }
             if (_options.EnableFramedLegendTextRecovery)
             {
-                IReadOnlyList<OcrDetectedRegion> assembled = FramedLegendRoleResolver.AssembleDetectedRows(
-                    request.OriginalImage, detectedRegions, cancellationToken);
                 var previousIds = detectedRegions.Select(static region => region.RegionId).ToHashSet(StringComparer.Ordinal);
+                IReadOnlyList<OcrDetectedRegion> completed = await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(
+                    request.OriginalImage, detectedRegions, cancellationToken).ConfigureAwait(false);
+                IReadOnlyList<OcrDetectedRegion> assembled = FramedLegendRoleResolver.AssembleDetectedRows(
+                    request.OriginalImage, completed, cancellationToken);
                 warnings.AddRange(assembled.Where(region => !previousIds.Contains(region.RegionId)).Select(static region =>
                     $"ocr_role_needs_review:{region.RegionId}:original_pixel_framed_legend_assembly"));
                 detectedRegions = assembled;

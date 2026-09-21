@@ -79,6 +79,80 @@ public sealed class FramedLegendTextRecoveryTests
     }
 
     [TestMethod]
+    [DataRow(1, false)]
+    [DataRow(2, false)]
+    [DataRow(1, true)]
+    [DataRow(2, true)]
+    public async Task MeasuredSingleRowReplacesContainedFragmentsWithoutDuplicatingText(int scale, bool suffixOnly)
+    {
+        OcrImage image = Fixture(scale);
+        byte[] before = image.Pixels.ToArray();
+        OcrDetectedRegion prefix = OcrTestFixtures.Region("prefix", 72 * scale, 36 * scale, 10 * scale, 10 * scale);
+        OcrDetectedRegion suffix = OcrTestFixtures.Region("suffix", 139 * scale, 36 * scale, 8 * scale, 10 * scale);
+        OcrDetectedRegion outside = OcrTestFixtures.Region("outside", 10 * scale, 70 * scale, 25 * scale, 10 * scale);
+        OcrDetectedRegion[] input = suffixOnly ? [suffix, outside] : [prefix, suffix, outside];
+        var result = await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, input);
+        Assert.HasCount(2, result);
+        Assert.AreEqual(outside, result.Single(r => r.RegionId == "outside"));
+        OcrDetectedRegion row = result.Single(r => r.RegionId != "outside");
+        Assert.AreEqual(new OcrRectangle(72 * scale, 36 * scale, 75 * scale, 10 * scale), row.Polygon.Bounds);
+        Assert.IsTrue(row.DetectionConfidence <= 0.7);
+        Assert.IsNull(row.Context);
+        Assert.IsNull(row.Evidence);
+        Assert.AreEqual(row, (await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, input.Reverse().ToArray()))
+            .Single(r => r.RegionId != "outside"));
+        CollectionAssert.AreEqual(result.ToArray(), (await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, result)).ToArray());
+        CollectionAssert.AreEqual(before, image.Pixels.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow("complete")]
+    [DataRow("protected")]
+    [DataRow("vertical")]
+    [DataRow("overlapping-outside")]
+    [DataRow("missing-edge")]
+    [DataRow("two-symbols")]
+    [DataRow("extra-row")]
+    public async Task PartialRowRecoveryPreservesCompleteProtectedAndAmbiguousDetections(string reason)
+    {
+        OcrImage image = Fixture(defect: reason);
+        OcrDetectedRegion prior = OcrTestFixtures.Region("prior", reason == "overlapping-outside" ? 68 : 72,
+            36, reason == "complete" ? 75 : 10, 10);
+        if (reason == "protected") prior = prior with { Context = new(NumericExpected: true) };
+        if (reason == "vertical") prior = prior with { OrientationDegrees = 90 };
+        CollectionAssert.AreEqual(new[] { prior }, (await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, [prior])).ToArray());
+    }
+
+    [TestMethod]
+    public async Task PipelineRecognizesTheRecoveredRowOnceAndRetainsReviewWarning()
+    {
+        OcrImage image = Fixture();
+        var request = OcrTestFixtures.Request([OcrTestFixtures.Region("fragment", 72, 36, 10, 10)]) with
+        {
+            OriginalImage = image,
+            PlotBounds = new OcrRectangle(5, 5, 190, 80),
+        };
+        var recognizer = new StubTextRecognizer((crops, _) =>
+        {
+            Assert.HasCount(1, crops);
+            Assert.AreEqual(new OcrRectangle(72, 36, 75, 10), crops[0].OriginalPolygon.Bounds);
+            return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>([new(crops[0].RegionId,
+                crops[0].SourceImage, [new("Measured label", 0.95, crops[0].SourceImage)], 0.1)]);
+        });
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), recognizer, new InMemoryOcrResultCache(),
+            new OcrPipelineOptions { CropPaddingPixels = 0, EnableFramedLegendTextRecovery = true, EnableFramedLegendRoleResolution = true });
+        OcrResult result = await pipeline.RecognizeAsync(request);
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.HasCount(1, result.Regions);
+        Assert.AreEqual("Measured label", result.Regions[0].Text);
+        Assert.AreEqual(OcrReviewStatus.Unreviewed, result.Regions[0].ReviewStatus);
+        Assert.IsTrue(result.Warnings.Any(w => w.EndsWith(":original_pixel_framed_legend_assembly", StringComparison.Ordinal)));
+        Assert.AreEqual(1, recognizer.CallCount);
+        Assert.IsTrue((await pipeline.RecognizeAsync(request)).Cache.CacheHit);
+        Assert.AreEqual(1, recognizer.CallCount);
+    }
+
+    [TestMethod]
     public async Task InvalidImageGeometryAndCancellationFailClosed()
     {
         OcrImage image = Fixture();
