@@ -1,0 +1,68 @@
+{
+  "schema": "goal22-classifier-structural-context-diagnosis-v1",
+  "workflow": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-marker-cascade-010-v1/execution/report.json",
+    "sha256": "85fa25c3f9e43f4e27c12970e5e991bac19f2f9ce8b74e957508d827bf093dbf"
+  },
+  "native_marker_score": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-marker-cascade-010-v1/native-marker-score.json",
+    "sha256": "9029adfe0349858dc018d5ac0f5af73851fd12b55add79e951d08fc2df4abe65"
+  },
+  "comparison": {
+    "path": "artifacts/goal22-runs/ocr-complete-workflow-marker-cascade-010-v1/comparison.json",
+    "sha256": "e4b9b1f9dbea941798ad6a8e99d2949be12e04bac70625a7cfc672b125b5ab65"
+  },
+  "failure_mode": "The 0.10 proposal trial adds false centers at divider/connector intersections and a legend frame. Each unknown-session point correctly blocks source export. The classifier is the responsible rejection subsystem; export is not repaired by assigning guessed x values.",
+  "dev_evidence": {
+    "matched": 200,
+    "truth": 206,
+    "extra": 1,
+    "extra_center": [
+      1076.2440185546875,
+      170.7095489501953
+    ],
+    "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284"
+  },
+  "train_evidence": {
+    "matched": 486,
+    "truth": 500,
+    "extra": 19
+  },
+  "coverage_gap": "V4 whole-graph crops include markers and text components; its authored intersection recipes use only orthogonal lines, and its legend negatives center on symbols. Oblique line crossings and actual legend-border crops are absent from the whole-graph extension.",
+  "files_inspected": [
+    "ml/markers/classifier/graph_context_cache.py",
+    "ml/markers/classifier/graph_context_data.py",
+    "src/GraphReader.Markers/Classification/MarkerPatchExtractor.cs",
+    "src/GraphReader.App/Integration/Workflow/WorkflowOrchestrator.cs"
+  ],
+  "files_to_change": [
+    "ml/markers/classifier/structural_context_cache.py",
+    "ml/markers/classifier/structural_context_v5/",
+    "ml/markers/classifier/tests/test_structural_context_cache.py",
+    "ml/markers/classifier/tests/test_structural_context_runner.py",
+    "ml/markers/training-budgets/production-repair-v1.json",
+    "docs/1.0-READINESS.md"
+  ],
+  "runtime_impact": "No production source or availability change. Only an unapproved synthetic candidate may load the refined weights; calibration, unknown-x blocking, source denominators and thresholds remain unchanged.",
+  "validation": "Run coverage/admission tests, fixed final-epoch classifier dev and ONNX parity, then all 23 synthetic workflow sources and 39 panels with the unchanged 706-point/724-row denominator.",
+  "prepared_cache": {
+    "path": "artifacts/goal22-runs/classifier-structural-context-cache-v1/manifest.json",
+    "sha256": "8cf200793651e65aff02661ef9e8fcbe6fbe9281a618170d21da8552c02c259f"
+  },
+  "all_23818_prior_train_rows_and_tensors_identical": true,
+  "prior_dev_bytes_identical": true,
+  "checks": [
+    {
+      "path": "artifacts/goal22-runs/classifier-structural-context-preflight-v1/tests.xml",
+      "sha256": "da89132cd9311b64c77860beb3d3f7c444e2ce3d34f9f3dc015dfd05faf8ce4e"
+    },
+    {
+      "path": "artifacts/goal22-runs/classifier-structural-context-preflight-v1/runner-tests.xml",
+      "sha256": "39846da946370c801ba34e0f33aef8b7fcfcc75e925a5ad770fd53273f4d42b4"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false
+}

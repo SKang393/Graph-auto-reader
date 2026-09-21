@@ -78,3 +78,5 @@ ml/markers/center/shape_coverage_v28/P1_PRETRAINING_VOID.json -text whitespace=c
 ml/markers/training-seals/marker-center/marker-center-shape-coverage-v28/P1/void-attempts/*/void.json -text whitespace=cr-at-eol
 # Preserve the CPU launcher's checkout bytes bound by the completed V29 run.
 tools/Run-TrainingCpuBudget.ps1 -text whitespace=cr-at-eol
+# Recreate the historical classifier protocol bytes referenced by V5's snapshot.
+ml/markers/classifier/native_context_v3/protocol.json text eol=crlf

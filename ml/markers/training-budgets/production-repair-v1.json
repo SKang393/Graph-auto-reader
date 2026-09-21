@@ -10208,6 +10208,51 @@
       "candidate_report_sha256": "8abdd8ecb476e27db2f6c85ea03b91cdaf2b5803d7a53b64dd66c727caaf3327",
       "optimizer_steps": 5624,
       "closed_utc_date": "2026-09-20"
+    },
+    {
+      "task": "marker-classifier",
+      "revision": "marker-classifier-structural-context-v5",
+      "status": "dev_pass_workflow_incomplete_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/classifier/structural_context_v5/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "03d68e45c122eedc500b7e92551805fcd3c3e18c8754bd0d26dbecaefe3f88dd"
+      },
+      "protocol_path": "ml/markers/classifier/structural_context_v5/protocol.json",
+      "protocol_sha256": "68092ae17f20cb0c2f489df94cd277a2173a5979a4f23a315bcb61ab9d44fe25",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned synthetic classifier refinement under continued Goal22 authorization. No private/sealed reads, activation or release.",
+      "isolated_change": "Fine-tune the fixed owned V4 checkpoint on all 23818 prior training rows plus 38694 authored structural negative crops from the same twenty train images. Sample axes, ticks, dividers, connectors, oblique intersections, arrows, brackets, bars and legend frames; protect every data marker and legend glyph. No prediction mining. Keep all previous dev bytes, architecture, probability temperatures, crop, losses and artifact cutoff 0.5 unchanged. Use 12 fixed epochs, batch 128, AdamW learning rate 0.0001 and weight decay 0.0001; final checkpoint only.",
+      "optimizer_steps_expected": 5868,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/classifier/structural_context_v5/P1_RESULT.json",
+      "outcome_sha256": "cb63393bee2455307af9e5d82fcd12e4411aa6758dda443c7b51931c8e4a52e0",
+      "candidate_report_sha256": "0ba47c468e8ed29c646a1203b2a8e7b6f7a66582aa9f1696513f0b745a26386a",
+      "optimizer_steps": 5868,
+      "closed_utc_date": "2026-09-21"
     }
   ]
 }

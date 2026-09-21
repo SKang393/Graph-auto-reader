@@ -1,0 +1,40 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The saved full-workflow development false center lies on a legend structure. Nineteen training false centers include oblique connector/divider intersections. Add missing native structural background to the existing classifier training population so the classifier, rather than the export guard, rejects those non-markers.",
+  "isolated_change": "Fine-tune the fixed owned V4 checkpoint on all 23818 prior training rows plus 38694 authored structural negative crops from the same twenty train images. Sample axes, ticks, dividers, connectors, oblique intersections, arrows, brackets, bars and legend frames; protect every data marker and legend glyph. No prediction mining. Keep all previous dev bytes, architecture, probability temperatures, crop, losses and artifact cutoff 0.5 unchanged. Use 12 fixed epochs, batch 128, AdamW learning rate 0.0001 and weight decay 0.0001; final checkpoint only.",
+  "metric": "Retain all 2880 classifier dev markers and 256 artifacts. Report shape/fill accuracy, retained-marker precision/recall and artifact hit rate; verify final ONNX parity over every train/dev tensor at the existing 1e-5 tolerance. Then report all complete-workflow outcomes, including every failed source, and all 206 development centers. Patch scores do not authorize production or replace whole-workflow evidence.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json, unchanged; shared Tier 1 metrics and Tier 2 runtime safeguards. No extra sensitivity or scene-exact gate.",
+  "split_identities": {
+    "cache": {
+      "path": "artifacts/goal22-runs/classifier-structural-context-cache-v1/manifest.json",
+      "sha256": "8cf200793651e65aff02661ef9e8fcbe6fbe9281a618170d21da8552c02c259f"
+    },
+    "train_rows": 62512,
+    "dev_rows": 3136,
+    "unchanged_dev_file_sha256": {
+      "json": "7de81c32d9acbca31ef7321a50b5605c228fff708a678f1cfecd915919cbf076",
+      "npy": "31a71b84003f9ffae53fc9f9cf354bc5dfff847f4d59b554d1cdecc8b91673ba"
+    },
+    "complete_workflow_sources": 23,
+    "complete_workflow_truth_points": 706,
+    "complete_workflow_truth_rows": 724,
+    "complete_workflow_baseline": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-marker-cascade-010-v1/execution/report.json",
+      "sha256": "85fa25c3f9e43f4e27c12970e5e991bac19f2f9ce8b74e957508d827bf093dbf"
+    },
+    "diagnosis": {
+      "path": "docs/GOAL-22-CLASSIFIER-STRUCTURAL-DIAGNOSIS.json",
+      "sha256": "229b5a6b0bc143eac41eff381c52ea690e7ae91ba78136c044963c393b0de52f"
+    },
+    "source_checkpoint_sha256": "55c53a57cfa9fa55384404ffa321fa3634a90580a03760631ee76c8eb862dea7"
+  },
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "training_requires_canonical_authorization": true,
+    "sealed_runs_authorized": 0,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false
+  }
+}
