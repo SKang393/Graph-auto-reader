@@ -212,6 +212,7 @@ public sealed class OcrPipeline
                     detectedRegions,
                     request.PlotBounds,
                     request.PhaseDividerXs,
+                    _options.EnableHeaderLayoutRoleResolution ? request.OriginalImage : null,
                     cancellationToken);
             }
             if (_options.EnableFramedLegendTextRecovery)

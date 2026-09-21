@@ -34,6 +34,47 @@ public sealed class OcrInsidePlotAssemblyPipelineTests
     }
 
     [TestMethod]
+    public async Task HeaderContextKeepsBracketedCaptionAndNeighborInSeparateOriginalCrops()
+    {
+        const int width = 200, height = 120;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        for (int x = 45; x <= 95; x++) pixels[36 * width + x] = 0;
+        for (int y = 36; y <= 42; y++)
+        {
+            pixels[y * width + 45] = 0;
+            pixels[y * width + 95] = 0;
+        }
+        OcrRequest request = OcrTestFixtures.Request([
+            OcrTestFixtures.Region("caption", 50, 20, 40, 12),
+            OcrTestFixtures.Region("neighbor", 98, 20, 30, 12)]) with
+        {
+            OriginalImage = new OcrImage(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity),
+            PlotBounds = new OcrRectangle(30, 70, 160, 40),
+            PhaseDividerXs = [],
+        };
+        var seen = new List<OcrCrop>();
+        var recognizer = new StubTextRecognizer((crops, _) =>
+        {
+            seen.AddRange(crops);
+            return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop =>
+                new OcrRecognition(crop.RegionId, crop.SourceImage,
+                    [new OcrRecognitionAlternative(crop.RegionId, 0.95, crop.SourceImage)], 0.1)).ToArray());
+        });
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), recognizer, new InMemoryOcrResultCache(),
+            new OcrPipelineOptions { EnableInsidePlotAssembly = true, EnableHeaderLayoutRoleResolution = true,
+                CropPaddingPixels = 0 });
+        OcrResult result = await pipeline.RecognizeAsync(request);
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.HasCount(2, seen);
+        Assert.AreEqual(request.DetectedRegions![0].Polygon.Bounds, seen[0].OriginalPolygon.Bounds);
+        Assert.AreEqual(request.DetectedRegions[1].Polygon.Bounds, seen[1].OriginalPolygon.Bounds);
+        Assert.IsTrue(seen.All(crop => crop.SourceImage == OcrSourceImage.Original));
+        Assert.HasCount(2, result.Regions);
+        Assert.AreEqual("caption", result.Regions[0].Text);
+        Assert.AreEqual("neighbor", result.Regions[1].Text);
+    }
+
+    [TestMethod]
     public async Task AssemblyIsDisabledByDefaultAndUnavailableGeometryFailsClosed()
     {
         OcrDetectedRegion word = OcrTestFixtures.Region("word", 40, 30, 12, 10);

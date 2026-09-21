@@ -1,0 +1,625 @@
+{
+  "schema": "graphreader.original-pixel-caption-bracket-assembly-repair.v1",
+  "status": "source_repair_verified_accuracy_still_fails",
+  "sources": [
+    {
+      "path": "src/GraphReader.Ocr/InsidePlotTextRegionAssembler.cs",
+      "sha256": "38dc3d55b7349d1c510eab1740885218a5782dad8b602c110343a4da3d865cf9"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "d906833cb556a60aaafce58335877c17c56513a3b3d9df9b0d628436f0e92271"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/InsidePlotTextRegionAssemblerTests.cs",
+      "sha256": "badd71408f95cf64337b197862c60f764c66a74582f2ef056f53ca53c86725b5"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/OcrInsidePlotAssemblyPipelineTests.cs",
+      "sha256": "9a5f99d0e6f029d9f45aa7acc93a4e0d8c1d4e32cab19b29171d151d4f311e48"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/header-bracket-checks-v1/source-bindings.json",
+      "sha256": "9a8caf498a94fee4f4a9efc51601babc173538258e83bda85b136ad837ee2cbc"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-checks-v1/status.json",
+      "sha256": "add54d2b8cb3000983cbb395808be78e255690e5e6777aee725f86e1900e5b78"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-checks-v1/ocr-tests.log",
+      "sha256": "90a0617f801e8347194842d0317a6d9a6779962fdd4e8fbafb3afab57d04b74e"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-checks-v1/app-tests.log",
+      "sha256": "8f6baa4cd767b03379ef3dde3ab1b3b5dc7fb315f90cf63485aff6fe1a1bb5e9"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-checks-v1/native-build.log",
+      "sha256": "7d570a4cfceda5c096b1827f84fb094e51af889ea57935b9c4d4f1efa99e5cb6"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-checks-v1/test-results/ocr.trx",
+      "sha256": "6bc574be761fd12ef9b2d88c42f634f55771692e5b9d3f3e89633e000bc0e991"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-checks-v1/test-results/app.trx",
+      "sha256": "4cba7b332bc82e03162b6e0171d910f190f11d5026c097acf8ce2513f1250a4b"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-checks-v1/verification-preparation-void.json",
+      "sha256": "a68022bbbe78b2037fd08a137c73b0d60a96cb1d91814b908dc9fccc13cf5c04"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-caption-bracket-v1/protocol.json",
+      "sha256": "344a2e4b9963674870ee0c0b86ce1a82f9553447d1514bd42fc135ec4bd297c0"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-caption-bracket-v1/candidate-binding.json",
+      "sha256": "d89fd14b1a9dfe8c6fa050c8f86b98e72c628b99df70e3d09cc232f2b0cf76d5"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-caption-bracket-v1/input-manifest.json",
+      "sha256": "e86f623f4304d195a2a9e7ed44d07120a39c7824f6bbddda5887de890bc27c37"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-caption-bracket-v1/status.json",
+      "sha256": "20b037757e05b03f3644e20177fa59267c62bdb51c0dccf2ba78ff8b4efa2081"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-caption-bracket-v1/execution/report.json",
+      "sha256": "d48944eb247fe20d5b5309e591bd2261b75aa120b8d4c3c1c92e8a4642b455e6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-caption-bracket-v1/native-marker-score.json",
+      "sha256": "5990b8799b3321d870973fb54e33ec90ab65fb2e8c48afe6e64950cac0ee5f60"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-caption-bracket-v1/native-ocr-score.json",
+      "sha256": "5cb899e18c69b17b03383367e7bb4555b9e61e6686cfa115c26256d84fa890c1"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-caption-bracket-v1/native-ocr-details.json",
+      "sha256": "93b80d6fa6b3291baaa0b8b4c9f85bc2e3ddf57087e4596a26eed7a8ef2ed15c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-caption-bracket-v1/axis-geometry-comparison.json",
+      "sha256": "83300654a7dae8033773f2f2d66e0840d96c40edc00822f6b08d86e1144dfccd"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-bracket-workflow-v1/protocol.json",
+      "sha256": "e65c50da53f0ffcd9ec4aaed059acc8220ccc5f6f00ba8ba8fec7b5ca58e35e8"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-bracket-workflow-v1/candidate-binding.json",
+      "sha256": "b9a96d5c60aa9be8429ca43a56017c180e440a40bc4c7326be3b6373bb4ca265"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-bracket-workflow-v1/input-manifest.json",
+      "sha256": "bbf40615588d025dea378f4d88bf11843e0f462f91fb7f95bbea99f4a9277ce8"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-bracket-workflow-v1/status.json",
+      "sha256": "d99f8cc799ca924d58d31dbb8b50b5fa73db16fd5ed82edc68e89ae12139d070"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-bracket-workflow-v1/execution/report.json",
+      "sha256": "6c83c3a61244d45189bb29a59b50d2b70d4c36f594c0318afe4f2486f2c3f7d5"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-bracket-workflow-v1/comparison.json",
+      "sha256": "7d7a9d59cec8cbeb93945f5387a8c65ad9b4b31fac3720472cfa70c89072c54e"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-bracket-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "8130fbc3f2bf3b260c3d7ec89421a039bf60957c36202a115cb566cc9eaf08d4"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-assembly-audit-v1/protocol.json",
+      "sha256": "a9e2866522ae2da6d7d0cf2f56d2d333e4ba2a8e723e1fc3d2fe5f2397e19fdd"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-assembly-audit-v1/status.json",
+      "sha256": "800ea74c8c80225e1934fcf7d53f2d41ca1cb2e4254ab6491e3999ba2f01c4d2"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-assembly-audit-v1/Program.cs",
+      "sha256": "448458685ec5392af60abfa168d0f31d6c31c7e722122b9f357b239bf7539bcf"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-bracket-assembly-audit-v1/replay/report.json",
+      "sha256": "49c378a26222eadb1ba4440ee32ede14aee0e552e291bbb30ca28874a504b140"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-d11b0636c79e/status.json",
+      "sha256": "30886e6102fb37e2004e155c6a29ae73f4e13b070a069fb425ee034bfcc851d6"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-HeaderBracketChecks.py",
+      "sha256": "f6e2500bcc747eb4f8fce604d3e2bec94634dd233b19761876d6e075950c88bc"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-HeaderBracketChecks.ps1",
+      "sha256": "f9286f533fb82f0ce3f0552f2b5ea34297a6232363044ee5b1a242237e7a45d6"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CaptionBracketVerificationScripts.py",
+      "sha256": "2d84b7ce25fab01804c7b0a800a1b149ea225480f6302cad567ccb67f3e44f5a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CaptionBracketContext.py",
+      "sha256": "d88b0c0db1b575fa6b927b8bc31b26f564c2ad71a3d80ad548692c19e1540666"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CaptionBracketContext.ps1",
+      "sha256": "2fe654a24000f7dcf110a9fc368d21fd2bbbd00d678e4fe9c55f972c3b9a53b2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CaptionBracketContext.py",
+      "sha256": "7c64271ae9d067b753070499ebf3416066958f5b54b5021d927018ef4d99f94b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CaptionBracketOcr.py",
+      "sha256": "8e3dd112098935707cb6a615202f4da648c7aa74ecb3bfc73155a4275e53357c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CaptionBracketGeometry.py",
+      "sha256": "99d52241bd07bf4517c3bca190d422f6bfaa146c8d09112d3cd3e8f919896b75"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CaptionBracketWorkflow.py",
+      "sha256": "ec9e459f0bfaaa94317b99332098d2cc5bf97e4e5069fbf6f97679bc729574f2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CaptionBracketWorkflow.ps1",
+      "sha256": "286e7d08019523c4296921fc2666c856c2c391841dc43bafbf0f49266dd2f5e8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-CaptionBracketWorkflow.py",
+      "sha256": "6d522c0b08c5addcd53d714f467c0a60d6b4c2c993967dc8591371655dbd6dc0"
+    }
+  ],
+  "recorder": {
+    "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-CaptionBracketRepair.py",
+    "sha256": "05c7508beffe0224b59b0db0d3c9ac0e842d095eba8e830e330264aea56e5910"
+  },
+  "tests": {
+    "ocr": {
+      "total": 474,
+      "passed": 458,
+      "failed": 0,
+      "skipped": 16
+    },
+    "app": {
+      "total": 486,
+      "passed": 486,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "observed_model_providers": {
+    "native": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-structural-context-v5:cpu": 41
+    },
+    "csv": {
+      "OpenCvSharpExtern:cpu": 39,
+      "graph-text-extent-db-head-v44-p1:cpu": 39,
+      "en_PP-OCRv5_mobile_rec:cpu": 39,
+      "marker-center-component-diversity-v27:cpu": 39,
+      "marker-classifier-structural-context-v5:cpu": 40
+    }
+  },
+  "native_ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 503,
+        "geometry_matched_region_count": 385,
+        "geometry_false_positive_count": 118,
+        "geometry_false_negative_count": 68,
+        "recognition_exact_count": 340,
+        "recognition_exact_accuracy": 0.7505518763796909,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 65,
+        "unmatched_truth_deletion_edit_count": 506,
+        "unmatched_prediction_insertion_edit_count": 287,
+        "character_error_count": 858,
+        "character_error_rate": 0.2767741935483871,
+        "role_correct_count": 353,
+        "role_accuracy": 0.7792494481236203,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 38,
+            "accuracy": 0.6129032258064516
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 131,
+            "accuracy": 0.7705882352941177
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 84,
+            "accuracy": 0.8484848484848485
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 505,
+        "geometry_matched_region_count": 389,
+        "geometry_false_positive_count": 116,
+        "geometry_false_negative_count": 64,
+        "recognition_exact_count": 345,
+        "recognition_exact_accuracy": 0.7615894039735099,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 64,
+        "unmatched_truth_deletion_edit_count": 476,
+        "unmatched_prediction_insertion_edit_count": 255,
+        "character_error_count": 795,
+        "character_error_rate": 0.2564516129032258,
+        "role_correct_count": 357,
+        "role_accuracy": 0.7880794701986755,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 133,
+            "accuracy": 0.7823529411764706
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 84,
+            "accuracy": 0.8484848484848485
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "native_changed_truth_readings": [
+    {
+      "truth_id": "5b8eda48f930600c544ca4091c9535570bcda7c59f2e8d1d36ec34370af0f71b",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "role": "y_tick",
+      "truth": "100",
+      "before": "1.00",
+      "after": "100",
+      "before_matched": true,
+      "after_matched": true
+    },
+    {
+      "truth_id": "0431450fc6366f7d8ca634cd9f92d6b840a37c22981f49447f08f6faeeb0d138",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "role": "participant",
+      "truth": "Participant 01",
+      "before": "Participant 01.",
+      "after": "Participant O1",
+      "before_matched": true,
+      "after_matched": true
+    },
+    {
+      "truth_id": "b57e46a78fa93c39d7c96ce4fce6642d7fa3c5d9ef98cb4d1bd18a6445fe74a3",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "role": "annotation",
+      "truth": "Follow-up",
+      "before": null,
+      "after": "Follow-up",
+      "before_matched": false,
+      "after_matched": true
+    },
+    {
+      "truth_id": "8b9a0aa931f190d4c057862ba6f3a351da25540877763e3f9aebbb1ec3f12b9f",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "role": "condition_label",
+      "truth": "PHASE4",
+      "before": null,
+      "after": "PHASE4",
+      "before_matched": false,
+      "after_matched": true
+    },
+    {
+      "truth_id": "8b50dc84da99d86c6f1a19dea1a707423869248487775ef6eca0e7f08c8df1fa",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "role": "annotation",
+      "truth": "Follow-up",
+      "before": null,
+      "after": "Follow-up",
+      "before_matched": false,
+      "after_matched": true
+    },
+    {
+      "truth_id": "40598bc122fc1def671d6892f91d75633915102da4af0c3985963d942ec0d32e",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "role": "condition_label",
+      "truth": "PHASE4",
+      "before": null,
+      "after": "PHASE4",
+      "before_matched": false,
+      "after_matched": true
+    }
+  ],
+  "previous_exact_readings_retained": 340,
+  "new_exact_readings": 5,
+  "lost_exact_readings": 0,
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 683,
+    "matched": 666,
+    "extra": 17,
+    "missing": 172,
+    "precision": 0.9751098096632503,
+    "recall": 0.7947494033412887
+  },
+  "axis_metrics": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "reading_and_calibration_changes": {
+    "native": {
+      "ocr_changes_ignoring_region_ids": [
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": [
+            0,
+            0,
+            1200,
+            313
+          ]
+        },
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": [
+            0,
+            583,
+            1200,
+            270
+          ]
+        }
+      ],
+      "calibration_changes": [
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": [
+            0,
+            0,
+            1200,
+            313
+          ],
+          "before_validity": "NeedsReview",
+          "after_validity": "NeedsReview"
+        },
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": [
+            0,
+            583,
+            1200,
+            270
+          ],
+          "before_validity": "NeedsReview",
+          "after_validity": "NeedsReview"
+        }
+      ]
+    },
+    "csv": {
+      "ocr_changes_ignoring_region_ids": [],
+      "calibration_changes": []
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_numeric_values_and_source_states_identical": true,
+  "csv_upstream_changes": [
+    {
+      "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+      "crop": [
+        0,
+        313,
+        1200,
+        307
+      ],
+      "field": "ocr"
+    },
+    {
+      "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "field": "ocr"
+    },
+    {
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "crop": [
+        0,
+        313,
+        1200,
+        270
+      ],
+      "field": "ocr"
+    },
+    {
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "crop": [
+        0,
+        1393,
+        1200,
+        307
+      ],
+      "field": "ocr"
+    },
+    {
+      "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "field": "ocr"
+    },
+    {
+      "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "field": "ocr"
+    },
+    {
+      "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+      "crop": [
+        0,
+        0,
+        1200,
+        313
+      ],
+      "field": "ocr"
+    },
+    {
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "crop": [
+        0,
+        853,
+        1200,
+        270
+      ],
+      "field": "ocr"
+    }
+  ],
+  "scope": "Use the existing original-pixel bracket evidence before merging header words. Keep a caption separate when the proposed union extends beyond its bracket; preserve whole-caption and in-plot assembly. Increment composition/cache identity to v3.",
+  "seconds": {
+    "checks": 97.091882,
+    "native": 146.4361276,
+    "csv": 158.9543043
+  },
+  "void_preparation": "A historical helper filename already existed. It was preserved and unique CaptionBracket helper names were used. No inference ran before this correction.",
+  "limitations": [
+    "OCR remains 345/453 exact, below 95%. No accuracy gate or production approval is claimed.",
+    "Four target labels recover correctly. An incidental 1.00-to-100 correction and a changed but still incorrect participant reading are observed; their full recognition-input cause is not independently traced.",
+    "Region identities change with the new assembly version; do not claim byte-identical OCR or calibration evidence.",
+    "Existing marker, numeric recognition, phase and real-acceptance gaps remain."
+  ],
+  "license": "Apache-2.0 project code and existing reviewed dependencies only; no new model or dependency.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}

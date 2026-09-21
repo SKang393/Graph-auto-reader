@@ -8,7 +8,7 @@ namespace GraphReader.Ocr;
 
 public static class InsidePlotTextRegionAssembler
 {
-    public const string CompositionVersion = "inside-plot-and-header-word-assembly-v2";
+    public const string CompositionVersion = "inside-plot-and-header-word-assembly-v3";
 
     // Keep these thresholds aligned with ParticipantLaneTextRegionAssembler.
     private const double MinimumVerticalOverlapRatio = 0.35;
@@ -33,6 +33,23 @@ public static class InsidePlotTextRegionAssembler
         IReadOnlyList<OcrDetectedRegion> regions,
         OcrRectangle plotBounds,
         IReadOnlyList<double> phaseDividerXs,
+        CancellationToken cancellationToken = default) =>
+        AssembleWithMembership(regions, plotBounds, phaseDividerXs, null, cancellationToken);
+
+    public static IReadOnlyList<OcrDetectedRegion> Assemble(
+        IReadOnlyList<OcrDetectedRegion> regions,
+        OcrRectangle plotBounds,
+        IReadOnlyList<double> phaseDividerXs,
+        OcrImage? originalImage,
+        CancellationToken cancellationToken = default) =>
+        OcrCollections.Freeze(AssembleWithMembership(regions, plotBounds, phaseDividerXs,
+            originalImage, cancellationToken).Select(static group => group.Region));
+
+    public static IReadOnlyList<InsidePlotTextRegionAssemblyGroup> AssembleWithMembership(
+        IReadOnlyList<OcrDetectedRegion> regions,
+        OcrRectangle plotBounds,
+        IReadOnlyList<double> phaseDividerXs,
+        OcrImage? originalImage,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(regions);
@@ -52,6 +69,8 @@ public static class InsidePlotTextRegionAssembler
                 nameof(phaseDividerXs));
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+        HeaderBracketEvidence? brackets = originalImage is null ? null : new(originalImage, cancellationToken);
         double[] dividers = phaseDividerXs.Distinct().Order().ToArray();
         var remaining = regions
             .Select(static region => new InsidePlotTextRegionAssemblyGroup(
@@ -84,7 +103,8 @@ public static class InsidePlotTextRegionAssembler
                     if (!CanMerge(line.Region.Polygon.Bounds, candidate.Region.Polygon.Bounds) ||
                         !IsPermittedTextRow(line.Region.Polygon.Bounds, candidate.Region.Polygon.Bounds,
                             mergedBounds, plotBounds) ||
-                        SpansDivider(mergedBounds, dividers))
+                        SpansDivider(mergedBounds, dividers) ||
+                        CrossesCaptionBracket(line.Region.Polygon.Bounds, candidate.Region.Polygon.Bounds, mergedBounds))
                     {
                         continue;
                     }
@@ -105,6 +125,20 @@ public static class InsidePlotTextRegionAssembler
             .ThenBy(static group => group.Region.Polygon.Bounds.Bottom)
             .ThenBy(static group => group.Region.Polygon.Bounds.Right)
             .ThenBy(static group => group.Region.RegionId, StringComparer.Ordinal));
+
+        bool CrossesCaptionBracket(OcrRectangle first, OcrRectangle second, OcrRectangle merged)
+        {
+            if (brackets is null || originalImage is null || merged.Bottom > plotBounds.Top ||
+                plotBounds.Top > originalImage.Height || merged.Left < 0 || merged.Top < 0 ||
+                merged.Right > originalImage.Width || merged.Bottom > originalImage.Height)
+                return false;
+            // A bracket establishes the extent of its caption. Keep a detached
+            // neighboring label separate when the union would outgrow that
+            // evidence; words still join when the complete caption fits.
+            return !brackets.HasBracketBelow(merged, plotBounds.Top, cancellationToken) &&
+                (brackets.HasBracketBelow(first, plotBounds.Top, cancellationToken) ||
+                 brackets.HasBracketBelow(second, plotBounds.Top, cancellationToken));
+        }
     }
 
     private static InsidePlotTextRegionAssemblyGroup Merge(

@@ -95,6 +95,66 @@ public sealed class InsidePlotTextRegionAssemblerTests
     }
 
     [TestMethod]
+    [DataRow(1)]
+    [DataRow(2)]
+    public void CaptionBracketSeparatesAnAdjacentLabelWithoutChangingPixels(int scale)
+    {
+        var (image, plot, regions) = BracketFixture(scale, completeCaption: false, hooks: true);
+        byte[] before = image.Pixels.ToArray();
+        Assert.HasCount(1, InsidePlotTextRegionAssembler.Assemble(regions, plot, []));
+        var result = InsidePlotTextRegionAssembler.AssembleWithMembership(regions, plot, [], image);
+        Assert.HasCount(2, result);
+        Assert.AreSame(regions[0], result[0].Region);
+        Assert.AreSame(regions[1], result[1].Region);
+        CollectionAssert.AreEqual(before, image.Pixels.ToArray());
+        var reversed = InsidePlotTextRegionAssembler.AssembleWithMembership(regions.Reverse().ToArray(), plot, [], image);
+        CollectionAssert.AreEqual(result.Select(g => g.Region.RegionId).ToArray(),
+            reversed.Select(g => g.Region.RegionId).ToArray());
+    }
+
+    [TestMethod]
+    [DataRow(true, true)]
+    [DataRow(false, false)]
+    public void CompleteCaptionAndUncorroboratedUnderlinePreserveWordAssembly(bool completeCaption, bool hooks)
+    {
+        var (image, plot, regions) = BracketFixture(1, completeCaption, hooks);
+        Assert.HasCount(1, InsidePlotTextRegionAssembler.Assemble(regions, plot, [], image));
+    }
+
+    [TestMethod]
+    public void BracketDoesNotSeparateInsidePlotWordsAndRejectsEnhancedEvidence()
+    {
+        var (image, plot, regions) = BracketFixture(1, completeCaption: false, hooks: true);
+        Assert.HasCount(1, InsidePlotTextRegionAssembler.Assemble(regions, plot with { Y = 10, Height = 100 }, [], image));
+        Assert.ThrowsExactly<ArgumentException>(() => InsidePlotTextRegionAssembler.Assemble(
+            regions, plot, [], image with { SourceImage = OcrSourceImage.Enhanced }));
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        Assert.ThrowsExactly<OperationCanceledException>(() =>
+            InsidePlotTextRegionAssembler.Assemble(regions, plot, [], image, cancellation.Token));
+    }
+
+    private static (OcrImage Image, OcrRectangle Plot, OcrDetectedRegion[] Regions) BracketFixture(
+        int scale, bool completeCaption, bool hooks)
+    {
+        int width = 200 * scale, height = 120 * scale;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        int left = 45 * scale, right = (completeCaption ? 133 : 95) * scale, top = 36 * scale;
+        for (int y = top; y < top + scale; y++)
+            for (int x = left; x <= right; x++) pixels[y * width + x] = 0;
+        if (hooks)
+            for (int y = top; y <= top + 6 * scale; y++)
+            {
+                pixels[y * width + left] = 0;
+                pixels[y * width + right] = 0;
+            }
+        return (new OcrImage(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity),
+            new OcrRectangle(30 * scale, 70 * scale, 160 * scale, 40 * scale),
+            [OcrTestFixtures.Region("caption", 50 * scale, 20 * scale, 40 * scale, 12 * scale),
+             OcrTestFixtures.Region("separate", 98 * scale, 20 * scale, 30 * scale, 12 * scale)]);
+    }
+
+    [TestMethod]
     public void HeaderWordsJoinOnlyAcrossAWordSpaceWithinOnePhase()
     {
         OcrDetectedRegion word = OcrTestFixtures.Region("word", 60, 2, 30, 10);
