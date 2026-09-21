@@ -1,0 +1,32 @@
+{
+  "schema": "graphreader.scheduler-ci-repair.v1",
+  "status": "locally_verified_remote_followup_pending",
+  "source_base_commit": "b689de9cae9102bb8958d4eaeb9b5e54d6ca99bb",
+  "failure_run": "https://github.com/SKang393/Graph-auto-reader/actions/runs/35603370607",
+  "failure": "SchedulerBoundsConcurrentRequests exceeded its two-second per-request deadline under concurrent solution tests.",
+  "repair": "Explicit start and release signals hold two workers concurrently. Assert exactly two workers and retain a 30-second deadlock guard. Production timeouts and timeout-specific tests are unchanged.",
+  "source": {
+    "path": "tests/GraphReader.Inference.Tests/CacheAndSchedulerTests.cs",
+    "sha256": "ccce899d9f5066e5100d5675e17e57010d743b750086bc09bcf0218f74f4965a"
+  },
+  "validation": {
+    "path": "artifacts/goal22-runs/axis-corner-checks-v3/test-results/Inference.trx",
+    "sha256": "bbc2e020bf06a389dbed3af84e177fe2196b7157cbbccf8a752140bd8c91863d",
+    "passed": 92,
+    "failed": 0,
+    "skipped": 1,
+    "total": 93
+  },
+  "skipped": "ExactClassifierResolvesForCpuAndDirectMl requires an optional model store; it is not counted as passing.",
+  "failure_log": {
+    "path": "artifacts/goal22-runs/ocr-inside-plot-ci-b689de9cae91/failure.log",
+    "sha256": "0fd4489dd3020ac461dc877c7d7ab4676bd378b1b7fdda5a67ed6c4801db00e9"
+  },
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "training": false,
+  "runtime_change": false,
+  "packaged_build": false,
+  "build_number": 433,
+  "version": "0.4.33"
+}

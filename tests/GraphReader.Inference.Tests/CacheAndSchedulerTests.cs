@@ -52,14 +52,19 @@ public sealed class CacheAndSchedulerTests
         await using var scheduler = new BoundedInferenceScheduler(capacity: 3, workerCount: 2);
         var running = 0;
         var maximum = 0;
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var bothWorkersStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var tasks = Enumerable.Range(0, 8).Select(index => scheduler.EnqueueAsync(
             async token =>
             {
                 var current = Interlocked.Increment(ref running);
                 UpdateMaximum(ref maximum, current);
+                if (current == 2)
+                    bothWorkersStarted.TrySetResult();
                 try
                 {
-                    await Task.Delay(30, token);
+                    await release.Task.WaitAsync(token);
                     return index;
                 }
                 finally
@@ -67,13 +72,22 @@ public sealed class CacheAndSchedulerTests
                     Interlocked.Decrement(ref running);
                 }
             },
-            TimeSpan.FromSeconds(2),
-            CancellationToken.None).AsTask()).ToArray();
+            Timeout.InfiniteTimeSpan,
+            deadline.Token).AsTask()).ToArray();
+
+        try
+        {
+            await bothWorkersStarted.Task.WaitAsync(deadline.Token);
+        }
+        finally
+        {
+            release.TrySetResult();
+        }
 
         var results = await Task.WhenAll(tasks);
 
         CollectionAssert.AreEquivalent(Enumerable.Range(0, 8).ToArray(), results);
-        Assert.IsTrue(maximum <= 2);
+        Assert.AreEqual(2, maximum);
         Assert.IsTrue(scheduler.MaximumObservedRunning <= 2);
     }
 
