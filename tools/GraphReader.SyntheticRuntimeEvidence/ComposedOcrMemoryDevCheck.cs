@@ -13,6 +13,7 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 internal static class ComposedOcrMemoryDevCheck
 {
     internal const string Command = "--check-composed-ocr-memory-dev";
+    internal const string OpenDiagnosticCommand = "--diagnose-open-composed-ocr";
     private static readonly JsonSerializerOptions Options = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
 
     internal static async Task<int> RunAsync(string[] args, string root)
@@ -23,11 +24,13 @@ internal static class ComposedOcrMemoryDevCheck
         string stage = "setup";
         try
         {
-            if (args.Length != 5) throw new InvalidDataException();
+            if (args.Length != 5 || args[0] is not (Command or OpenDiagnosticCommand)) throw new InvalidDataException();
+            bool diagnostic = args[0] == OpenDiagnosticCommand;
             byte[] requestBytes = Read(root, args[1], args[2], 4 * 1024 * 1024);
             using JsonDocument request = JsonDocument.Parse(requestBytes);
             JsonElement value = request.RootElement;
-            if (value.GetProperty("schema").GetString() != "graphreader.composed-ocr-memory-dev-check.v1" ||
+            string requestSchema = diagnostic ? "graphreader.composed-ocr-open-diagnostic.v1" : "graphreader.composed-ocr-memory-dev-check.v1";
+            if (value.GetProperty("schema").GetString() != requestSchema ||
                 value.GetProperty("scope").GetString() != "owned-synthetic-development" ||
                 value.GetProperty("private_reads").GetInt32() != 0 || value.GetProperty("sealed_reads").GetInt32() != 0)
                 throw new InvalidDataException();
@@ -38,6 +41,8 @@ internal static class ComposedOcrMemoryDevCheck
             if (manifest.GetProperty("private_reads").GetInt32() != 0 || manifest.GetProperty("sealed_reads").GetInt32() != 0 ||
                 manifest.GetProperty("production_approved").GetBoolean()) throw new InvalidDataException();
             JsonElement[] entries = manifest.GetProperty("sources").EnumerateArray().ToArray();
+            // Validate the entire explicit open scope before reading any source pixels.
+            if (diagnostic) ValidateOpenDiagnosticScope(value, manifest);
             if (entries.Length is <= 0 or > OriginalDbOcrInMemoryCorpusEvaluator.MaximumSources ||
                 entries.Length != value.GetProperty("source_count").GetInt32() ||
                 entries.Length != manifest.GetProperty("source_count").GetInt32()) throw new InvalidDataException();
@@ -68,6 +73,7 @@ internal static class ComposedOcrMemoryDevCheck
                     .Distinct(StringComparer.Ordinal).Count() != entries.Length) throw new InvalidDataException();
             stage = "runtime";
             var timer = Stopwatch.StartNew();
+            var cases = new List<OpenDiagnosticCase>();
             Dictionary<string, ComposedOcrCorpusAggregate> metrics = await OriginalDbOcrMemoryRuntime.RunComposedAsync(
                 root, args[3], args[4], async (ocr, observations, axis, token) =>
                 {
@@ -76,12 +82,28 @@ internal static class ComposedOcrMemoryDevCheck
                     foreach ((string split, List<OriginalDbOcrSealedSourcePayload> sources) in splits)
                     {
                         result.Add(split, await ComposedOcrInMemoryCorpusEvaluator.EvaluateAsync(sources,
-                            (image, hash, ct) => ComposedOcrInMemorySourceEvaluator.EvaluateAsync(
-                                image, hash, ocr, observations, axis, ct), token).ConfigureAwait(false));
+                            async (image, hash, ct) =>
+                            {
+                                ComposedOcrSourcePredictions output = await ComposedOcrInMemorySourceEvaluator.EvaluateAsync(
+                                    image, hash, ocr, observations, axis, ct).ConfigureAwait(false);
+                                if (diagnostic) cases.Add(ProjectOpenCase(hash, output));
+                                return output;
+                            }, token).ConfigureAwait(false));
                     }
                     return result;
                 }, cancellation.Token).ConfigureAwait(false);
-            Console.WriteLine(JsonSerializer.Serialize(new
+            if (diagnostic)
+            {
+                Console.WriteLine(JsonSerializer.Serialize(new
+                {
+                    schema = "graphreader.composed-ocr-open-diagnostic-result.v1", status = "completed",
+                    sources = entries.Length, metrics, cases, elapsed_milliseconds = timer.Elapsed.TotalMilliseconds,
+                    request_sha256 = args[2], candidate_sha256 = args[4], model_inference = true,
+                    truth_consumed_by_inference = false, case_output = true, private_reads = 0,
+                    sealed_reads = 0, stage_admission_granted = false, production_approved = false,
+                }, Options));
+            }
+            else Console.WriteLine(JsonSerializer.Serialize(new
             {
                 schema = "graphreader.composed-ocr-memory-dev-result.v1", status = "completed",
                 sources = entries.Length, metrics, elapsed_milliseconds = timer.Elapsed.TotalMilliseconds,
@@ -103,6 +125,37 @@ internal static class ComposedOcrMemoryDevCheck
         }
         finally { Console.CancelKeyPress -= cancel; }
     }
+
+    internal static void ValidateOpenDiagnosticScope(JsonElement request, JsonElement manifest)
+    {
+        if (request.GetProperty("schema").GetString() != "graphreader.composed-ocr-open-diagnostic.v1" ||
+            request.GetProperty("scope").GetString() != "owned-synthetic-development" ||
+            !request.GetProperty("open_development_fixture").GetBoolean() ||
+            request.GetProperty("registered_reserve").GetBoolean() ||
+            request.GetProperty("private_reads").GetInt32() != 0 || request.GetProperty("sealed_reads").GetInt32() != 0 ||
+            manifest.GetProperty("schema").GetString() is not ("graphreader.owned-open-ocr-coverage-fixture.v1" or
+                "graphreader.owned-open-ocr-layout-fixture.v1") ||
+            manifest.GetProperty("scope").GetString() != "owned-synthetic-development" ||
+            manifest.GetProperty("production_approved").GetBoolean() ||
+            manifest.GetProperty("private_reads").GetInt32() != 0 || manifest.GetProperty("sealed_reads").GetInt32() != 0 ||
+            (manifest.TryGetProperty("registered_reserve", out JsonElement reserve) && reserve.GetBoolean()) ||
+            manifest.GetProperty("sources").EnumerateArray().Any(static entry => entry.GetProperty("split").GetString() != "dev"))
+            throw new InvalidDataException("COMPOSED_OCR_OPEN_DIAGNOSTIC_SCOPE_INVALID");
+    }
+
+    // Explicit projection is available only in the open command. Shared prediction
+    // records retain JsonIgnore and sealed workers retain aggregate-only output.
+    internal static OpenDiagnosticCase ProjectOpenCase(string hash, ComposedOcrSourcePredictions output) =>
+        new(hash, output.PanelCount, output.RecognitionFailedRegionCount,
+            output.RawDetectorRegions.Select(ProjectOpenPrediction).ToArray(),
+            output.AssembledRegions.Select(ProjectOpenPrediction).ToArray());
+
+    private static OpenDiagnosticPrediction ProjectOpenPrediction(OriginalDbOcrAggregatePrediction prediction) =>
+        new(prediction.Box, prediction.Text, prediction.Role?.ToString().ToLowerInvariant());
+
+    internal sealed record OpenDiagnosticPrediction(OriginalDbOcrAggregateBox Box, string? Text, string? Role);
+    internal sealed record OpenDiagnosticCase(string SourceSha256, int PanelCount, int RecognitionFailedRegionCount,
+        IReadOnlyList<OpenDiagnosticPrediction> RawDetectorRegions, IReadOnlyList<OpenDiagnosticPrediction> AssembledRegions);
 
     internal static string SafeFailureStage(Exception error, string fallback) => error.Message switch
     {

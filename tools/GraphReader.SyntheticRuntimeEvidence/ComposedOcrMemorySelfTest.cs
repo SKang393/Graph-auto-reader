@@ -4,6 +4,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.Domain;
@@ -91,6 +92,23 @@ internal static class ComposedOcrMemorySelfTest
         ComposedOcrSourcePredictions example = await Infer(sources[0].ImageBytes, sources[0].ImageSha256, CancellationToken.None);
         Require(!JsonSerializer.Serialize(example).Contains("private-label", StringComparison.Ordinal), "prediction fields excluded from serialization");
         checks++;
+        calls = 0;
+        var openCases = new List<ComposedOcrMemoryDevCheck.OpenDiagnosticCase>();
+        ComposedOcrCorpusAggregate observed = await ComposedOcrInMemoryCorpusEvaluator.EvaluateAsync(sources,
+            async (image, hash, token) =>
+            {
+                ComposedOcrSourcePredictions prediction = await Infer(image, hash, token).ConfigureAwait(false);
+                openCases.Add(ComposedOcrMemoryDevCheck.ProjectOpenCase(hash, prediction));
+                return prediction;
+            }, CancellationToken.None).ConfigureAwait(false);
+        Require(calls == 2 && openCases.Count == 2 && JsonSerializer.Serialize(observed) == serialized,
+            "open observation neither reruns inference nor changes aggregate scoring");
+        Require(JsonSerializer.Serialize(openCases).Contains("private-label", StringComparison.Ordinal) &&
+            openCases[0].AssembledRegions[0].Role == "phaseheading" &&
+            openCases[0].SourceSha256 == sources[0].ImageSha256 && openCases[1].RawDetectorRegions.Count == 0,
+            "explicit projection preserves predictions and their source identity");
+        checks++;
+        checks += OpenDiagnosticScopeChecks();
         foreach (OriginalDbOcrSealedSourcePayload[] invalid in new[]
         {
             Array.Empty<OriginalDbOcrSealedSourcePayload>(),
@@ -139,6 +157,63 @@ internal static class ComposedOcrMemorySelfTest
         catch (OperationCanceledException) { Require(calls == 1, "cancel before next source"); }
         checks++;
         return new { status = "pass", checks, model_inference_runs = 0, private_reads = 0, sealed_reads = 0 };
+    }
+
+    private static int OpenDiagnosticScopeChecks()
+    {
+        const string requestText = """
+            {"schema":"graphreader.composed-ocr-open-diagnostic.v1","scope":"owned-synthetic-development",
+             "open_development_fixture":true,"registered_reserve":false,"private_reads":0,"sealed_reads":0}
+            """;
+        const string manifestText = """
+            {"schema":"graphreader.owned-open-ocr-coverage-fixture.v1","scope":"owned-synthetic-development",
+             "production_approved":false,"private_reads":0,"sealed_reads":0,"sources":[{"split":"dev"}]}
+            """;
+        void Validate(JsonNode request, JsonNode manifest)
+        {
+            using JsonDocument requestDocument = JsonDocument.Parse(request.ToJsonString());
+            using JsonDocument manifestDocument = JsonDocument.Parse(manifest.ToJsonString());
+            ComposedOcrMemoryDevCheck.ValidateOpenDiagnosticScope(requestDocument.RootElement, manifestDocument.RootElement);
+        }
+        int checks = 0;
+        foreach (string schema in new[] { "graphreader.owned-open-ocr-coverage-fixture.v1", "graphreader.owned-open-ocr-layout-fixture.v1" })
+        {
+            JsonNode manifest = JsonNode.Parse(manifestText)!;
+            manifest["schema"] = schema;
+            Validate(JsonNode.Parse(requestText)!, manifest);
+            checks++;
+        }
+        Action<JsonNode, JsonNode>[] invalidScopes =
+        [
+            (r, _) => r["schema"] = "graphreader.composed-ocr-memory-dev-check.v1",
+            (r, _) => r["scope"] = "private-acceptance",
+            (r, _) => r.AsObject().Remove("open_development_fixture"),
+            (r, _) => r["open_development_fixture"] = false,
+            (r, _) => r.AsObject().Remove("registered_reserve"),
+            (r, _) => r["registered_reserve"] = true,
+            (r, _) => r["private_reads"] = 1,
+            (r, _) => r["sealed_reads"] = 1,
+            (_, m) => m["schema"] = "graphreader.sealed-reserve.v1",
+            (_, m) => m["scope"] = "sealed",
+            (_, m) => m["private_reads"] = 1,
+            (_, m) => m["sealed_reads"] = 1,
+            (_, m) => m["production_approved"] = true,
+            (_, m) => m["registered_reserve"] = true,
+            (_, m) => m["sources"]!.AsArray().Add(new JsonObject { ["split"] = "train" }),
+            (_, m) => m["sources"]![0]!["split"] = "sealed",
+            (_, m) => m["sources"]![0]!["split"] = "real-dev",
+        ];
+        foreach (Action<JsonNode, JsonNode> mutate in invalidScopes)
+        {
+            JsonNode request = JsonNode.Parse(requestText)!, manifest = JsonNode.Parse(manifestText)!;
+            mutate(request, manifest);
+            bool rejected = false;
+            try { Validate(request, manifest); }
+            catch (Exception error) when (error is InvalidDataException or KeyNotFoundException) { rejected = true; }
+            Require(rejected, "open diagnostics reject non-open or implicit scope before source access");
+            checks++;
+        }
+        return checks;
     }
 
     private static OriginalDbOcrSealedSourcePayload Source(int ordinal)

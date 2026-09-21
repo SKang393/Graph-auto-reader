@@ -70,7 +70,7 @@ internal static class Program
                 await ComposedOcrMemorySelfTest.RunAsync().ConfigureAwait(false), JsonOptions));
             return 0;
         }
-        if (args.Length == 5 && args[0] == ComposedOcrMemoryDevCheck.Command)
+        if (args.Length == 5 && args[0] is ComposedOcrMemoryDevCheck.Command or ComposedOcrMemoryDevCheck.OpenDiagnosticCommand)
         {
             return await ComposedOcrMemoryDevCheck.RunAsync(args, RepositoryRoot()).ConfigureAwait(false);
         }

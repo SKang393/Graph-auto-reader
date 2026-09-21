@@ -1,0 +1,204 @@
+{
+  "schema": "graphreader.goal22.open-composed-ocr-diagnostic.v1",
+  "base_commit": "774b5a52cf50a007ac5e108130f25dc2e3bf39fb",
+  "source_bindings": [
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrMemoryDevCheck.cs",
+      "sha256": "5284a6070ae9ce08024ca8d47142a045cce8f18af3efddb44b0b02a3e8e34b51"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrMemorySelfTest.cs",
+      "sha256": "46f4750877e09c0d90fa7e895301404e7a0e715a805222f9250dcc279775de11"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "e720fd35e6813c7239daada8ac5993443183cdd31a941f4e2df04278b1ee6ac2"
+    }
+  ],
+  "self_checks": {
+    "composed-ocr-memory": 50,
+    "composed-ocr-worker": 15,
+    "sealed-ocr-archive": 13
+  },
+  "result": {
+    "baseline": {
+      "categories": {
+        "correct": 270,
+        "misread": 54,
+        "wrong_role": 31,
+        "missing": 98
+      },
+      "role_confusion": {
+        "annotation -> phaseheading": 18,
+        "participant -> other": 2,
+        "annotation -> other": 5,
+        "phaseheading -> other": 12,
+        "phaseheading -> axistitle": 1
+      },
+      "metrics": {
+        "truth_region_count": 453,
+        "predicted_region_count": 469,
+        "geometry_matched_region_count": 355,
+        "geometry_false_positive_count": 114,
+        "geometry_false_negative_count": 98,
+        "recognition_exact_count": 301,
+        "recognition_exact_accuracy": 0.6644591611479028,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 104,
+        "unmatched_truth_deletion_edit_count": 708,
+        "unmatched_prediction_insertion_edit_count": 319,
+        "character_error_count": 1131,
+        "character_error_rate": 0.3648387096774194,
+        "role_correct_count": 317,
+        "role_accuracy": 0.6997792494481236,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 22,
+            "accuracy": 0.3548387096774194
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 44,
+            "accuracy": 0.8461538461538461
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 25,
+            "accuracy": 0.6756756756756757
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 25,
+            "accuracy": 0.8064516129032258
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 124,
+            "accuracy": 0.7294117647058823
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 75,
+            "accuracy": 0.7575757575757576
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "milliseconds": 41649.0615
+    },
+    "source-scale": {
+      "categories": {
+        "correct": 282,
+        "misread": 56,
+        "wrong_role": 35,
+        "missing": 80
+      },
+      "role_confusion": {
+        "annotation -> phaseheading": 18,
+        "participant -> other": 4,
+        "annotation -> other": 6,
+        "phaseheading -> other": 13,
+        "phaseheading -> axistitle": 1,
+        "ytick -> other": 3,
+        "axistitle -> annotation": 2,
+        "axistitle -> other": 1
+      },
+      "metrics": {
+        "truth_region_count": 453,
+        "predicted_region_count": 529,
+        "geometry_matched_region_count": 373,
+        "geometry_false_positive_count": 156,
+        "geometry_false_negative_count": 80,
+        "recognition_exact_count": 317,
+        "recognition_exact_accuracy": 0.6997792494481236,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 93,
+        "unmatched_truth_deletion_edit_count": 625,
+        "unmatched_prediction_insertion_edit_count": 436,
+        "character_error_count": 1154,
+        "character_error_rate": 0.37225806451612903,
+        "role_correct_count": 325,
+        "role_accuracy": 0.717439293598234,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 23,
+            "accuracy": 0.3709677419354839
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 22,
+            "accuracy": 0.5945945945945946
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 131,
+            "accuracy": 0.7705882352941177
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 78,
+            "accuracy": 0.7878787878787878
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "milliseconds": 50477.0505
+    }
+  },
+  "aggregate_parity": true,
+  "seconds": 158.7657174,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/open-composed-diagnostic-v1/status.json",
+      "sha256": "f5b6075c010139266fc312aa3ffe384ae0f1fb320b7e94a549b5641744f68ffd"
+    },
+    {
+      "path": "artifacts/goal22-runs/open-composed-diagnostic-v1/request.json",
+      "sha256": "7ac939188782ef808bb45457e011b34760dc6e0efdc68117564db7793f95ed25"
+    },
+    {
+      "path": "artifacts/goal22-runs/open-composed-diagnostic-v1/baseline-result.json",
+      "sha256": "2aa04a77f5ef8e788c8964bbaa8e2aeb5265a9450b43170184960d3e7aaa61db"
+    },
+    {
+      "path": "artifacts/goal22-runs/open-composed-diagnostic-v1/source-scale-result.json",
+      "sha256": "03eff68049ff4aaf20fb449aeb49b71ab558a3a35ef450444320d3821d464806"
+    },
+    {
+      "path": "artifacts/goal22-runs/open-composed-diagnostic-v1/baseline-diagnosis.json",
+      "sha256": "b871524f371d379368f7ae711f9880a0273f8a2a23a41ec1c05aee9428270dce"
+    },
+    {
+      "path": "artifacts/goal22-runs/open-composed-diagnostic-v1/source-scale-diagnosis.json",
+      "sha256": "85b25b336ce3ca4dc0f2d37d1ff74cf5824b42c36d252afe5d6fb486b060bafc"
+    }
+  ],
+  "case_output_scope": "explicitly-open-owned-dev-only",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "goal22_complete": false
+}
