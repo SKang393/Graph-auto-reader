@@ -1,13 +1,82 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
+using System.Security.Cryptography;
+using System.Text;
+
 namespace GraphReader.Ocr;
 
 /// <summary>Supplies post-OCR legend context from an original-pixel frame and separate symbol.</summary>
 public static class FramedLegendRoleResolver
 {
     public const string CompositionVersion = "original-pixel-framed-legend-context-v2";
-    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-v1";
+    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v2";
+
+    /// <summary>Joins detected words only when original pixels establish one framed legend row.</summary>
+    public static IReadOnlyList<OcrDetectedRegion> AssembleDetectedRows(
+        OcrImage image, IReadOnlyList<OcrDetectedRegion> regions, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        ArgumentNullException.ThrowIfNull(regions);
+        cancellationToken.ThrowIfCancellationRequested();
+        ValidateImage(image);
+        foreach (OcrDetectedRegion region in regions)
+        {
+            OcrRectangle box = region.Polygon.Bounds;
+            if (!box.IsValid || box.Left < 0 || box.Top < 0 || box.Right > image.Width || box.Bottom > image.Height ||
+                region.CoordinateSpace != OcrContract.CoordinateSpace)
+                throw new ArgumentException("Legend words must retain original pixel geometry.", nameof(regions));
+        }
+        IReadOnlyList<OcrDetectedRegion> completed = CompleteSingleRowTextBounds(
+            image, regions, cancellationToken, preserveOtherDetections: false);
+        var replaced = new HashSet<int>();
+        var merged = new Dictionary<int, OcrDetectedRegion>();
+        foreach (int index in Enumerable.Range(0, regions.Count).OrderBy(i => regions[i].Polygon.Bounds.Left)
+                     .ThenBy(i => regions[i].Polygon.Bounds.Top).ThenBy(i => regions[i].RegionId, StringComparer.Ordinal))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (replaced.Contains(index) || completed[index].Polygon == regions[index].Polygon) continue;
+            OcrRectangle row = completed[index].Polygon.Bounds;
+            int[] members = Enumerable.Range(0, regions.Count).Where(i => Overlaps(row, regions[i].Polygon.Bounds))
+                .OrderBy(i => regions[i].Polygon.Bounds.Left).ToArray();
+            if (members.Length < 2 || members.Any(i => replaced.Contains(i) || HasProtectedContext(regions[i]) ||
+                    !Contains(row, regions[i].Polygon.Bounds))) continue;
+            bool aligned = true;
+            for (int i = 1; i < members.Length; i++)
+            {
+                OcrRectangle left = regions[members[i - 1]].Polygon.Bounds, right = regions[members[i]].Polygon.Bounds;
+                double overlap = Math.Min(left.Bottom, right.Bottom) - Math.Max(left.Top, right.Top);
+                double gap = right.Left - left.Right;
+                if (gap <= 0 || gap > Math.Min(left.Height, right.Height) ||
+                    overlap < 0.35 * Math.Min(left.Height, right.Height) ||
+                    Math.Max(left.Height, right.Height) > 2 * Math.Min(left.Height, right.Height)) aligned = false;
+            }
+            if (!aligned) continue;
+            string material = RecoveryCompositionVersion + "\n" + string.Join('\n',
+                members.Select(i => regions[i].RegionId).Order(StringComparer.Ordinal));
+            merged[index] = completed[index] with
+            {
+                RegionId = "framed-legend-row:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(material))),
+                DetectionConfidence = members.Min(i => regions[i].DetectionConfidence),
+                Context = members.All(i => Equals(regions[i].Context, regions[index].Context)) ? regions[index].Context : null,
+                Evidence = null,
+            };
+            foreach (int member in members) replaced.Add(member);
+        }
+        return OcrCollections.Freeze(Enumerable.Range(0, regions.Count)
+            .Where(i => !replaced.Contains(i) || merged.ContainsKey(i))
+            .Select(i => merged.TryGetValue(i, out OcrDetectedRegion? region) ? region : regions[i]));
+
+        static bool Overlaps(OcrRectangle a, OcrRectangle b) => a.Left < b.Right && a.Right > b.Left &&
+            a.Top < b.Bottom && a.Bottom > b.Top;
+        static bool Contains(OcrRectangle outer, OcrRectangle inner) => inner.Left >= outer.Left && inner.Top >= outer.Top &&
+            inner.Right <= outer.Right && inner.Bottom <= outer.Bottom;
+    }
+
+    private static bool HasProtectedContext(OcrDetectedRegion region) =>
+        GraphTextRoleClassifier.GetOrientation(region.OrientationDegrees) != OcrOrientation.Horizontal ||
+        region.Context is { ExplicitRoleHint: not null } or { NearAnnotationArrow: true } or
+            { NearPhaseDivider: true } or { NumericExpected: true } or { AxisTitleExpected: true } or { InParticipantBand: true };
 
     /// <summary>Proposes missing text crops from pixels, without supplying a word or role.</summary>
     public static async ValueTask<IReadOnlyList<OcrDetectedRegion>> RecoverMissingTextAsync(
@@ -193,7 +262,7 @@ public static class FramedLegendRoleResolver
     /// </summary>
     internal static IReadOnlyList<OcrDetectedRegion> CompleteSingleRowTextBounds(
         OcrImage image, IReadOnlyList<OcrDetectedRegion> regions, CancellationToken cancellationToken,
-        bool allowSingleGlyphSeed = false)
+        bool allowSingleGlyphSeed = false, bool preserveOtherDetections = true)
     {
         bool[] ink = CreateInkMask(image, cancellationToken);
         List<HorizontalRun> runs = FindRuns(ink, image.Width, image.Height, cancellationToken);
@@ -250,7 +319,7 @@ public static class FramedLegendRoleResolver
             bool overlapsOther = regions.Any(other => other.RegionId != region.RegionId &&
                 other.Polygon.Bounds.Left < completed.Right && other.Polygon.Bounds.Right > completed.Left &&
                 other.Polygon.Bounds.Top < completed.Bottom && other.Polygon.Bounds.Bottom > completed.Top);
-            result.Add(right > box.Right + 1 && !overlapsOther
+            result.Add(right > box.Right + 1 && (!preserveOtherDetections || !overlapsOther)
                 ? region with { Polygon = OcrPolygon.FromRectangle(completed), Evidence = null }
                 : region);
         }

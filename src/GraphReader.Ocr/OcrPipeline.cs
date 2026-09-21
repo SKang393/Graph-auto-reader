@@ -231,6 +231,15 @@ public sealed class OcrPipeline
                 }
                 detectedRegions = refined;
             }
+            if (_options.EnableFramedLegendTextRecovery)
+            {
+                IReadOnlyList<OcrDetectedRegion> assembled = FramedLegendRoleResolver.AssembleDetectedRows(
+                    request.OriginalImage, detectedRegions, cancellationToken);
+                var previousIds = detectedRegions.Select(static region => region.RegionId).ToHashSet(StringComparer.Ordinal);
+                warnings.AddRange(assembled.Where(region => !previousIds.Contains(region.RegionId)).Select(static region =>
+                    $"ocr_role_needs_review:{region.RegionId}:original_pixel_framed_legend_assembly"));
+                detectedRegions = assembled;
+            }
             detectedRegions = EnrichGeometry(detectedRegions, request.PlotBounds, _options);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
