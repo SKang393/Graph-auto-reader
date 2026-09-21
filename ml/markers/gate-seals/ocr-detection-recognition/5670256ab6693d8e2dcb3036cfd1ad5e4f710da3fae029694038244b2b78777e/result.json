@@ -1,0 +1,9 @@
+{
+  "budget_status": "consumed",
+  "evaluation_count": 1,
+  "key": "5670256ab6693d8e2dcb3036cfd1ad5e4f710da3fae029694038244b2b78777e",
+  "opened_sha256": "cb11abee0c483235513f6e5c685574e846739b56e7b7f7041fd76c32a6362f13",
+  "report_sha256": "aba989628cb4ea02d9c3e928bc3a143e0e71deb5ede872bc84706dd728d5390c",
+  "schema_version": 1,
+  "status": "sealed_error"
+}

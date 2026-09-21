@@ -1,0 +1,48 @@
+{
+  "acceptance_bar": {
+    "path": "ml/policy/acceptance-bars.json",
+    "selection": "all five tier1_reviewable_error OCR bars",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "production_approval": false,
+    "sealed_access": "One first-read-admitted evaluation only after current development replay passes; preserve two unused reserves.",
+    "sealed_run_budget": 1
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "The frozen full OCR composition corrects the raw-versus-assembled evidence mismatch. Its current owned development results are 181/189 region precision, 181/183 recall, 177/183 exact recognition, 16/1019 character error rate and 174/183 role accuracy. Test whether that same image-only composition clears the existing five OCR bars on the registered unseen five-family corpus.",
+  "isolated_change": "Evaluate the already implemented native import, axis context, original-BGR V44 detector, licensed official English recognizer, tick/header/legend recovery and role assembly as one frozen OCR stage. Detector and recognizer weights are unchanged. No optimizer step, architecture selection, threshold change or private-data access is authorized by this candidate.",
+  "metric": "Frozen full-OCR V2 one-to-one source-space IoU 0.5 matching. Score assembled geometry precision/recall, full-denominator exact text, character error rate and text role. Keep raw detector geometry as independent descriptive evidence, not another product gate. Emit aggregate metrics only. No truth reaches the image-only inference delegate.",
+  "split_identities": {
+    "designated_sealed_set_id": "3a40a023e2102d2c3adc7e53acf9c372cd7523c1056b1ebcd2c79696d09dea37",
+    "dev_panels": 9,
+    "dev_sources": 3,
+    "dev_truths": 183,
+    "development_authentication": {
+      "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/authentication.json",
+      "sha256": "1479707d769553e1fc9e4bfc350cd5b066a997825a8c0f3f02c0b059c4952b1c"
+    },
+    "development_generator": {
+      "path": "artifacts/goal22-runs/condition-label-layout-audit-v3/report.json",
+      "sha256": "2891886457562d2d49fb96ef3b3b635463299b2013b1eddac03332dc10c31598"
+    },
+    "development_score": {
+      "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/result.json",
+      "sha256": "86f64451e23dfbf5776d995e6ef622561394dbfe2c924f919ddeb722e4ea49ff"
+    },
+    "sealed_coverage_protocol_sha256": "26ab0e017ccc6dc17d26effe11b1fb40f440ed4471e896c1afac3c8cc96999c4",
+    "sealed_registry": {
+      "path": "ml/policy/goal22-ocr-sealed-reserve-registry.json",
+      "sha256": "d036199375680b3b834e7adfe694dd2615eba766be058a6edb53787180cd9fd6"
+    },
+    "sealed_scope": "goal22.full-ocr.five-axis-family.real-range.v1",
+    "train_panels": 30,
+    "train_sources": 20,
+    "train_truths": 709,
+    "unused_reserve_count_before_read": 3
+  }
+}

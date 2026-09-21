@@ -1,0 +1,1145 @@
+{
+  "base_commit": "e652060c8b0f658cfb6079a6d1a1b4fbe4a88389",
+  "captured_utc": "2026-09-21T05:59:15.166253+00:00",
+  "identity": {
+    "gate_key": "5670256ab6693d8e2dcb3036cfd1ad5e4f710da3fae029694038244b2b78777e",
+    "revision": "graph-composed-ocr-runtime-v1",
+    "task": "ocr-detection-recognition"
+  },
+  "inline_hashes": {
+    "candidate_hashes": "f86e45197c16b65c388e9252c4b25e784a8515946163e82c8356a0f96c9837fe",
+    "dataset_manifest": "05a4de5d8bba579b2b7caa6c5a9e363affb6479436d56d73f1489a87fcbd11c5",
+    "gate_config": "d691b40627f9ef2a0a8edfeeb039b0d8cfdad97e9c8781ae6192dcde1e0c2b53"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "Directory.Build.props",
+      "sha256": "60d9e363318a5e2b02990d7087ab6095d021e63c102996950e84181cca72294a"
+    },
+    {
+      "path": "Directory.Packages.props",
+      "sha256": "fc9461af6d05412c5656606c8f9f260f357561fe541d018c0e9a8beec4eff3d0"
+    },
+    {
+      "path": "ml/markers/gate-seals/retired-historical-pairs.json",
+      "sha256": "a6aa944a226320309ec8a2a0805bc3700334dedcc702f601a00bb99d282bd8a8"
+    },
+    {
+      "path": "ml/markers/gate_seal.py",
+      "sha256": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725"
+    },
+    {
+      "path": "ml/markers/training_budget.py",
+      "sha256": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4"
+    },
+    {
+      "path": "ml/ocr/composed_runtime_v1/PROTOCOL.json",
+      "sha256": "fb0f18a3dc160d78c9ef4936524127dac124a90145f49cf72d59eaff3b85ffa5"
+    },
+    {
+      "path": "ml/ocr/composed_runtime_v1/evaluation/sealed-split.json",
+      "sha256": "d638b44191d6f312ef06a4051fa5eeecc73caee3efcc7ccd75258158350a2f56"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/evidence_policy.py",
+      "sha256": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7"
+    },
+    {
+      "path": "ml/policy/ocr_sealed_evaluation.py",
+      "sha256": "d77fd60e531f90188a11d70c1da729b287fdd55263729a8a044d4088dd3205c5"
+    },
+    {
+      "path": "ml/policy/ocr_sealed_transport.py",
+      "sha256": "83856468d5f1dfd4c07f4c944f8d578d99654ba88074884fc2d51273f4b28cdc"
+    },
+    {
+      "path": "ml/policy/sealed_first_read_admission.py",
+      "sha256": "eced5fa29ca5f30047808ee45811c11925f3154614ddb8c7b68e3b625c13e094"
+    },
+    {
+      "path": "ml/policy/sealed_reserve.py",
+      "sha256": "c8b333951975228e8c61f5ec27d9b9ef9742c54e8c57761517ea7dc5bee61189"
+    },
+    {
+      "path": "src/GraphReader.App/App.xaml",
+      "sha256": "acce9372bf16db5983f2dfced5a3acd13a029bff689ee67a49ba4f8dbd12451a"
+    },
+    {
+      "path": "src/GraphReader.App/App.xaml.cs",
+      "sha256": "a67f0c471d195d3aac69e3d54f9ca0ba416b18c82d966cff0ee66c944ab8014e"
+    },
+    {
+      "path": "src/GraphReader.App/Appearance/ApplicationTheme.cs",
+      "sha256": "8bd84bccfdd28910844cf92f34fc93e953aa9a5d980d74122b81f5f5de38cc82"
+    },
+    {
+      "path": "src/GraphReader.App/Appearance/ISystemThemeProvider.cs",
+      "sha256": "d9a073d00d510d2616ce2959e3e24d023ce81e1ff8b79e56fd2ba5719eb65747"
+    },
+    {
+      "path": "src/GraphReader.App/Appearance/IThemeService.cs",
+      "sha256": "1d34b5f47f4c9f728dabcb22460360141ebf1541a79cc19d2e65e0f18233ff0a"
+    },
+    {
+      "path": "src/GraphReader.App/Appearance/ThemeChangedEventArgs.cs",
+      "sha256": "2c17100e69d1934bbcbff2c696b4df30c20ab440ece2a0dc530feaf31a42039d"
+    },
+    {
+      "path": "src/GraphReader.App/Appearance/ThemeService.cs",
+      "sha256": "b0e9d4e99a790286077f1ebbc28ae2cbed6e8b74bf8ed6f8e02e8431ce67cb10"
+    },
+    {
+      "path": "src/GraphReader.App/Appearance/WindowsSystemThemeProvider.cs",
+      "sha256": "c8f8a4c12dbdaa635aeddce112cdd5062d58719c1b24b1eac0e688283ff0c0ac"
+    },
+    {
+      "path": "src/GraphReader.App/Controls/CrosshairOverlay.cs",
+      "sha256": "8a606630c2fcc88f0115412f0f0fa8a67a767f83e8b536e182bb902c96132f9b"
+    },
+    {
+      "path": "src/GraphReader.App/Controls/GraphCanvasControl.xaml",
+      "sha256": "668a5e9c63910ba3f35d0e1fde3de9693271672a1343c0b3984ee6e5da06b216"
+    },
+    {
+      "path": "src/GraphReader.App/Controls/GraphCanvasControl.xaml.cs",
+      "sha256": "89e0756ceb5d122d10cd13919adb38e0e12851230e7870dfbc8b9817dbdb538f"
+    },
+    {
+      "path": "src/GraphReader.App/Controls/MagnifierControl.xaml",
+      "sha256": "5fa03eee9b6150b590620610b181d9aeb6eba7d0e07a3d84a3eaf2149ad344a9"
+    },
+    {
+      "path": "src/GraphReader.App/Controls/MagnifierControl.xaml.cs",
+      "sha256": "4a2f1dfb798523107b0016ee7ead4c7c2009f942f7851e8f8eb5ac976e6beae0"
+    },
+    {
+      "path": "src/GraphReader.App/Controls/ManualReviewOverlay.cs",
+      "sha256": "1463f0a3091793164d2881dee57e6332b6913a8404ffc33692860d7938726a6d"
+    },
+    {
+      "path": "src/GraphReader.App/Controls/PhaseDividerOverlay.cs",
+      "sha256": "e873f6f6bd39eb0c688af59d6bc5dbe9f87b6df1e184eb1e4e421ab86cad5ae6"
+    },
+    {
+      "path": "src/GraphReader.App/Controls/SeriesCardControl.xaml",
+      "sha256": "f13fc892f92612ae361f70f12a438343ba3728487a2827d1521a3cbbf0fa265f"
+    },
+    {
+      "path": "src/GraphReader.App/Controls/SeriesCardControl.xaml.cs",
+      "sha256": "1dc96bd594c704fa73fd1ad09fb2cfbff015c364d0b7acf936b28aa55a42f373"
+    },
+    {
+      "path": "src/GraphReader.App/GraphReader.App.csproj",
+      "sha256": "4d43c8ac11945e6d23927ea03f5276dc6175a617aaaac2d379c080bb830d49b6"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/ApplicationComposition.cs",
+      "sha256": "d23cc740ccbcf55f2343a6739e2fc6c5456bbe4101c9b9ef146fd24b0a903d9d"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/BuildIdentity.cs",
+      "sha256": "21ae53f87f2cf96cf493ac90ea43c95728dfb9182e373a1acf9a80e210a2e855"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/DispatcherUiThreadGuard.cs",
+      "sha256": "e5c5f33a5f9aecb396ecfa117641d18e0be68b8620f045aa811cfc3d55af257d"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/ProductionInferenceRuntimeHost.cs",
+      "sha256": "234ecab6d5c6f6af02a8c85df20d8ad13016eee931975da30e440f01b42d8da3"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/ProductionModelAvailabilityProbe.cs",
+      "sha256": "9bab116d70b43b8802985f10493a05b55a09b9f92724c078d85d5410a4b5331d"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/ProductionRuntimeAvailabilityProbe.cs",
+      "sha256": "56415542f51146291c7e595eea50ebe3da3016321738552270cce4d73b05b535"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/ProductionStageAvailabilityRegistry.cs",
+      "sha256": "28409adfc551909d649daf39f63b32daaa776381225626975e6e580b9a06033d"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Runtime/IRuntimeDirectoryAccess.cs",
+      "sha256": "bf564fb2ce2f061e67ce59e8c7dfe3efcd1205302b94572680e0e540dde42b5e"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Runtime/IRuntimePathEnvironment.cs",
+      "sha256": "e1229481f4f9b4608e75dcd2dfa88b923cf68154d97ebcd004ea2709e156eb8b"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Runtime/RuntimePathBootstrapper.cs",
+      "sha256": "4c64995f05958c007384237d3c1df6c7a5408130cc5bbd8c766cddb0921f0114"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/RuntimeModeSelector.cs",
+      "sha256": "1025ed1114bdb3bbbea4f276badb2eea209999388c1c5681f528f68ef0540940"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ManualCorrectionOverlay.cs",
+      "sha256": "40889b64e7244f687420754114f33d1ed0e709d4144776752a21deb486e1dbb7"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/OriginalEnhancedConsensus.cs",
+      "sha256": "e74d80d58a1622d13ba34015258f47c598644c17fcf9aa642187d239aed6ead7"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "ebea9a7eb4ee15c66d46f2369008c383ba49b1e3a7e8ff610ba383282e3a1e57"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAxisGeometryAdapter.cs",
+      "sha256": "093fc5507e9c2c354805ded9effeae7823f8efa74238c0efeb8ab2fe778fd161"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionCandidateCalibrationObservation.cs",
+      "sha256": "f7caaf3146362a6490e026d1b6680f3dd2b8dbb50992f2bfe287b69a1efeffad"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionCandidateWorkflowComposition.cs",
+      "sha256": "981d09cd4c57672ccf3844526f2643f1a5589a0e76d4548bb43b9943cdc274d4"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionCandidateWorkflowDetectionStage.cs",
+      "sha256": "8d4ba3fb8b36f17b1ca72a360a9923e2b07decff409c61cc44c53c650295d35b"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionComponentOcrAdapterFactory.cs",
+      "sha256": "4ca68a190ce9b4f3cee20a5906c2566d9ff0bde31e43eb6dd2729daf038076ad"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionDetectionEvidenceChain.cs",
+      "sha256": "de3f731844683a4b808f86d20501068ec71c7a8a143ab355c14585410bb57a40"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionDetectionMaskComposer.cs",
+      "sha256": "6ee67515c58d1756d759cc9e62d5d83cc44002c8761b1aefe57719f9e0fb9e96"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionLegendSymbolInputs.cs",
+      "sha256": "b9de5e49bace6d72e3aa9695461b9ed85b8bbb2ad8707f2ad61dfb0a17ce7c96"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionMarkerArtifactMaskAdapter.cs",
+      "sha256": "104ee186f8ee767fc43d9d23f34cadac8fa8981970b7f4e1223d44d792176b61"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionMarkerCenterAdapter.cs",
+      "sha256": "93283c69c9156c1125fdcbac9b525527e3ba2bb60eafd8e5653fd13dce358af7"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionMarkerClassificationAdapter.cs",
+      "sha256": "6db8ff4337aa3a875b1bcdc5c4fe0f18f8f27a61d6e415a49a0e697dd3b9ecf0"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionMarkerEnclosedSupport.cs",
+      "sha256": "229f568bda6d593b812509bd017cf12015510e4f75535e8407d90f8d19e9d3ea"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs",
+      "sha256": "d372cf373561991ca1f0e034835ffca4533e94f8a435ecc42ca75bbc397d53cf"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOcrApprovalGate.cs",
+      "sha256": "04d678e6fd1473c224f5bed28e663be17fd400f3ec07a2d004777a678cd5aad7"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrApprovalGate.cs",
+      "sha256": "d85693105aff15654a9a2792102bef4575a2001dcc016ab0461e865bef8e532f"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "sha256": "4d603a83967aca9b782002644719315e2ae6c9e20955e809b8c53bdfd49d5f15"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbRealSealedEvidence.cs",
+      "sha256": "6fc456848994e64b354fe7161cf99682722889ad50e1b70c5a20304d39be2efc"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbRuntimeFiles.cs",
+      "sha256": "441ad36ba1282166a5b1fc68ded3c94ee8007b4cc7ee7c723504375f5892eafc"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbWorkflowEvidence.cs",
+      "sha256": "0a1cbc70cdabcb1d02757c4a4a924460046313ea4b72ab1480f29d33692d6a94"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionPhaseGeometryContext.cs",
+      "sha256": "54813a98f4b28f4983b823f972ebfc0ae1a198b33d105ffede56925172cad5aa"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
+      "sha256": "c36cd7ee1eeda825a7cdb233132e9127965bd285b8d325a2971e712a58a09d37"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionRasterFrameDecoder.cs",
+      "sha256": "16050d8672bc75f0ed742a102b85334c11a387ad4b894a434bc77126c3bf8c89"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionRasterPanelizer.cs",
+      "sha256": "386fecd127c0b994c2d21360107715a4b1e1b9900bcaf5d6f2fdb64634d5129f"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionSemanticReasoningAdapters.cs",
+      "sha256": "eee951b5ad73cd46780ead4b980b806841b296653cae2df314b60394345d13d7"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionSeriesPhaseContext.cs",
+      "sha256": "4c1182c5513257a4aafbf568f189423a753a96c6182ce059e37cde7a3c932fe1"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionTextMarkerExclusion.cs",
+      "sha256": "a673f559505b914f549001944e111ef33e41bff2fbb6d58528f67ba6870081bc"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionTickLabelGeometry.cs",
+      "sha256": "a060ad09c3c33f24f06cb0a3f72d6d341969b0688f10a962b6fb7099062f8191"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionTiledProbabilityOcrCandidate.cs",
+      "sha256": "a2b40ba6efae9b6200d51653f15322ef7a9be7c2557129a78e6105383d1ac21c"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionWorkflowDetectionStage.cs",
+      "sha256": "d16a3817b44368d67f30456e2ae5c962323891fa1d48e3a10e8257a356beb886"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionWorkflowExportStage.cs",
+      "sha256": "6753c9154f44d9dad4e2bcef600e9f5e197703dc595fc0e49e938ad3d051136b"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionWorkflowImportStage.cs",
+      "sha256": "a10c87a7f1803e5d31339d92a1d03062a4e08ef049e9f6203ebc2410d0e7772d"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionWorkflowPanelStore.cs",
+      "sha256": "3c6ae559d0ec58d98f2c74cfd3e5ba76f772a0304a46279b8c1b601ee292423b"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionWorkflowPrepareStage.cs",
+      "sha256": "b3c8914abbe2ef7b2d72e68209c09c70fa504395998f652a766da2774df3f6b2"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/RasterPanelSourceProvenance.cs",
+      "sha256": "a68001e1e2822fb995cc00bb9dff8cbf1698869cec803512ee7280abbada8e35"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskAdapter.cs",
+      "sha256": "4f1a7ad11bb0cc7f8e84afe483ef9a23bf0475ce775fffaaba334917f7b3c803"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskProvider.cs",
+      "sha256": "547f6ec8cc06fc3e7c321ebb3201d1bf803117c3952d8b7b39408fb465915337"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/WorkflowComposition.cs",
+      "sha256": "15ab569552ed6c52e0b3c60539714c27ebcb88c36d76f755b101d3c06766a09a"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/WorkflowContracts.cs",
+      "sha256": "a3e348efbab61e92f8c31b561eaa5ae3209a8223d06f3590e4a35c4781ef5faa"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/WorkflowDetectionExecution.cs",
+      "sha256": "c5cf14805b20e24d580fb69da3108c46babe3478695cedd32fc8fbb135316329"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/WorkflowOrchestrator.cs",
+      "sha256": "ba6936e185d7ee288b81a3ffb4f0189bfe328869407f32d0f759358ef3cb7dc1"
+    },
+    {
+      "path": "src/GraphReader.App/Localization/ILocalizationService.cs",
+      "sha256": "05705d354c6df3d96cb78a9838ade7b74c50dfc7f67c80ba077282f8d34f1cc8"
+    },
+    {
+      "path": "src/GraphReader.App/Localization/LocalizationChangedEventArgs.cs",
+      "sha256": "d43aab26ef3aec5c02d1634bed954e0e7f698af995d596400adf47d093619fed"
+    },
+    {
+      "path": "src/GraphReader.App/Localization/LocalizationKeys.cs",
+      "sha256": "7742249ebc206b2fbf9a85dc6e8ed6233cbe9007e43c13c9864f5a4ba6a111f4"
+    },
+    {
+      "path": "src/GraphReader.App/Localization/LocalizationService.cs",
+      "sha256": "f7faeae4357d8b4ebf4ae19a29725e1bd0da8927087ad094e429bb7e20b57a03"
+    },
+    {
+      "path": "src/GraphReader.App/Localization/Resources.en-US.xaml",
+      "sha256": "d75f0d5b9be1c7bbf298cd456e06e3254bb366cc88d4028337b82739da436c04"
+    },
+    {
+      "path": "src/GraphReader.App/MainWindow.xaml",
+      "sha256": "912aa61390e795aa97db63427d33bd0d1ec411ae60d5e11874746cafcb8027b0"
+    },
+    {
+      "path": "src/GraphReader.App/MainWindow.xaml.cs",
+      "sha256": "23726a161fcd79b56f1bcd2c796af2d931f112305d36c472a57dc86d9692507a"
+    },
+    {
+      "path": "src/GraphReader.App/Models/CalmPrecisionModels.cs",
+      "sha256": "1101e6ad16dc0464170850eedbff17a7c1697df96c7a6603d889361c67d83095"
+    },
+    {
+      "path": "src/GraphReader.App/Models/GraphPoint.cs",
+      "sha256": "ac076c238c92f96a9161a2ae1afec70d876d812f5fc2677a724ef140f5a4b715"
+    },
+    {
+      "path": "src/GraphReader.App/Models/ManualWorkspaceModels.cs",
+      "sha256": "504964c28a2ffcba1b79907963c7da8f4adb0ffe27ba8cc72df477b8f911b5df"
+    },
+    {
+      "path": "src/GraphReader.App/Models/PhaseDivider.cs",
+      "sha256": "0ca7742f98627cca34d521fc8daf86a0a80f7499e85858a13f730181c558580e"
+    },
+    {
+      "path": "src/GraphReader.App/Resources/Identity/IdentityAssets.xaml",
+      "sha256": "a053bd9a78ce4f1f7d1a712b9a6f9191757f823605a727283cea5d640af733e0"
+    },
+    {
+      "path": "src/GraphReader.App/Services/FakeWorkspaceService.cs",
+      "sha256": "1f6cebca76593f929e53125c04af3907e830b5ee32db055e2c38cbba1a029d67"
+    },
+    {
+      "path": "src/GraphReader.App/Services/IWorkspaceDialogService.cs",
+      "sha256": "4b1101c25817c646e773c0eaf12086033ca35d720782b7e2a85594bda058fd00"
+    },
+    {
+      "path": "src/GraphReader.App/Services/IWorkspaceService.cs",
+      "sha256": "570d54e8905a93f731cd935bf383ef04fd4473013e34a6fb812edc6563d57594"
+    },
+    {
+      "path": "src/GraphReader.App/Services/ManualPreviewWorkspaceService.cs",
+      "sha256": "b4f1bcafca561a9978d7994b986cb21ca28d241453bb5b0318d60470bde0b0de"
+    },
+    {
+      "path": "src/GraphReader.App/Services/ProductionWorkspaceService.cs",
+      "sha256": "b3e28616191cc18fc9bafaf7e70badc570ab60367035d3541d43bd64f4daadee"
+    },
+    {
+      "path": "src/GraphReader.App/Services/UnavailableWorkspaceService.cs",
+      "sha256": "60d842962dfff53e0f8aa2a7a2110a791ce74ee3c8d2eaa45f924afc0d0d4acf"
+    },
+    {
+      "path": "src/GraphReader.App/Services/WorkspaceReviewProjectionService.cs",
+      "sha256": "257ef1ca03c905fd4568f6de5aa676e7d2d22ba877b3c49d7eda6341020a7c1d"
+    },
+    {
+      "path": "src/GraphReader.App/StartupArguments.cs",
+      "sha256": "fa5773f4382085be1447edbcff0c23011025adbd9dd09c32c5bf406712f44ae7"
+    },
+    {
+      "path": "src/GraphReader.App/Themes/Controls.xaml",
+      "sha256": "74158b3450e2ce4b54f167975160ceae31cc70049549e573a1aa0252de2bba3c"
+    },
+    {
+      "path": "src/GraphReader.App/Themes/DarkTheme.xaml",
+      "sha256": "8b994d2a1db88994d1774156c353405b9ed4145d2b0fedb2a0d13bf74a17de45"
+    },
+    {
+      "path": "src/GraphReader.App/Themes/DesignTokens.xaml",
+      "sha256": "656ae385831a30107a20e138f808a897b06fff558c0afedf52d93636acc70b6d"
+    },
+    {
+      "path": "src/GraphReader.App/Themes/LightTheme.xaml",
+      "sha256": "2a0412fb20931c2b3eb146cd2b10cd493c2b9ea608bd44b9d89a2581c033c97f"
+    },
+    {
+      "path": "src/GraphReader.App/Themes/SystemTheme.xaml",
+      "sha256": "f565108b68041da6daf472eafb8110a47136611720268ad3ec01a8ebf749dc27"
+    },
+    {
+      "path": "src/GraphReader.App/ViewModels/MainWindowViewModel.cs",
+      "sha256": "d459bfcd2644af3e1da269852beb1240defc26d48da3efe969c900a7ff735297"
+    },
+    {
+      "path": "src/GraphReader.App/ViewModels/ObservableObject.cs",
+      "sha256": "80b74248705d0e407471306499f917e5228e983a137d2e43fe1a0afeb50793cb"
+    },
+    {
+      "path": "src/GraphReader.App/ViewModels/WorkspaceViewModels.cs",
+      "sha256": "0b2bd376f3f456fe43a09e205ad7f2fd4fdd158d6eada244502b68b4b78d5379"
+    },
+    {
+      "path": "src/GraphReader.Axis/AxisGeometryContracts.cs",
+      "sha256": "b87d6b96ec871f65881cd45a9d60aa8cea790d387defbc0de0d97d56e2304535"
+    },
+    {
+      "path": "src/GraphReader.Axis/AxisGeometryDetector.cs",
+      "sha256": "43a19bc5066a6c9080865802a439531716e9792c8a610a62f444a8221f746220"
+    },
+    {
+      "path": "src/GraphReader.Axis/CalibrationContracts.cs",
+      "sha256": "d9ecc56a4d07ae9a7b370dacdc595adfa622acc4cc9359d202018bb7c52d5937"
+    },
+    {
+      "path": "src/GraphReader.Axis/GraphReader.Axis.csproj",
+      "sha256": "b0d64342ff3953f60ffcbd22a1b9296b9831438f18d8709b266b0903ca385aa5"
+    },
+    {
+      "path": "src/GraphReader.Axis/OpenCvLineCandidateProvider.cs",
+      "sha256": "d286e1c0f63832e82fc23672dea09b45be3bec3379a0ca850dd1cb731ce2d096"
+    },
+    {
+      "path": "src/GraphReader.Axis/RobustCalibration.cs",
+      "sha256": "e2cdb60bce2d4ae3a655f2da341af53e958e6db072a8ff71b43f01d889e22088"
+    },
+    {
+      "path": "src/GraphReader.Axis/SessionLattice.cs",
+      "sha256": "4074dc50233b133ac4b8f1b69307b40304138b494fbb6169592bd9c3838101db"
+    },
+    {
+      "path": "src/GraphReader.Domain/ApplicationPaths.cs",
+      "sha256": "cd066b9d23c5be167dfb8d80a15e0dd985f5570b87954be42884d403ef23f6fe"
+    },
+    {
+      "path": "src/GraphReader.Domain/Autosave.cs",
+      "sha256": "b3edbd14dc97545a9b2c2ac6e191293ac71426460e693ba632b9c47affdc9399"
+    },
+    {
+      "path": "src/GraphReader.Domain/DomainModels.cs",
+      "sha256": "90b17c5f5d23a84e7a5982b2e08d1be048cb8a2e026439e43db738bd9d31163c"
+    },
+    {
+      "path": "src/GraphReader.Domain/DomainResults.cs",
+      "sha256": "f152b3ba5e81172db17eb6166a0cdc3608429b3ae0473136b492c532aca7f3d5"
+    },
+    {
+      "path": "src/GraphReader.Domain/GraphReader.Domain.csproj",
+      "sha256": "c0c82dcba1614af8620133955ce6507cb892d6432306ba57a4087972426600ef"
+    },
+    {
+      "path": "src/GraphReader.Domain/ProjectFileStore.cs",
+      "sha256": "a42a392c17974d673375b5300c5774df217e6d1f1647a5429822b19b00bb4fc3"
+    },
+    {
+      "path": "src/GraphReader.Domain/ProjectJsonSerializer.cs",
+      "sha256": "63bedee503f28fed96107bbd9046473b041634e405b21000063aa7d4896cacb1"
+    },
+    {
+      "path": "src/GraphReader.Domain/ProjectMigrations.cs",
+      "sha256": "cdee966ea5e9e8f4fa994fab0c0a74a968452f5a761e14023288d298b53dd562"
+    },
+    {
+      "path": "src/GraphReader.Domain/ProjectRecoveryService.cs",
+      "sha256": "3d7104e7cee303f2fc9360d88e60144bdc5019d98fff7c0cc101b261b6a43e63"
+    },
+    {
+      "path": "src/GraphReader.Domain/ProjectSchemaV1Preflight.cs",
+      "sha256": "6c21cfe6948145888132810f110b47707adb2b4a682ca4a28433ff5fa4afadef"
+    },
+    {
+      "path": "src/GraphReader.Domain/ProjectStateFreezer.cs",
+      "sha256": "5246d42c16a9eda1233019b0a7e6c54c60616ed881513af08396074f35b44f20"
+    },
+    {
+      "path": "src/GraphReader.Domain/ProjectValidator.cs",
+      "sha256": "e68f3d461879524222ce393d8f846ea0260c62df6d7dc52d3f186a62c4bea6b2"
+    },
+    {
+      "path": "src/GraphReader.Domain/SourceIntegrityService.cs",
+      "sha256": "a986043efb98a1bd9ff7b436f8f197690e39ff16f1a1af290f297f183ca2ea4a"
+    },
+    {
+      "path": "src/GraphReader.Export/ExportContracts.cs",
+      "sha256": "f6231677ec6c1055b1358a5622aa652cedde3ce6744f0014e6520e01863a661f"
+    },
+    {
+      "path": "src/GraphReader.Export/ExportFileNames.cs",
+      "sha256": "ebd871d5f473cce25c62dc716a99b47f0abd796ee0c519c5c958e10cd354cbe6"
+    },
+    {
+      "path": "src/GraphReader.Export/ExportSerialization.cs",
+      "sha256": "ffe7822accbbe6ca1c601540b232281a49183f86f7eedfa2b7587c1bfdd6430b"
+    },
+    {
+      "path": "src/GraphReader.Export/ExportService.cs",
+      "sha256": "59b6a29fcd1ec02afb7a3a4f34198d79b537565fe4fc6823e65c8f4f84b24b6c"
+    },
+    {
+      "path": "src/GraphReader.Export/GraphReader.Export.csproj",
+      "sha256": "c0c82dcba1614af8620133955ce6507cb892d6432306ba57a4087972426600ef"
+    },
+    {
+      "path": "src/GraphReader.Imaging/CanvasServices.cs",
+      "sha256": "bab0de78e687ea7b7380d833d2de10ea668df20a950160450c3e20c0fc91acea"
+    },
+    {
+      "path": "src/GraphReader.Imaging/DerivedImageCache.cs",
+      "sha256": "1e2b8aa56e9b237df42fa8ac97c80bb814dc0f88b4ca4ea2f3b7590447bb9089"
+    },
+    {
+      "path": "src/GraphReader.Imaging/GraphReader.Imaging.csproj",
+      "sha256": "4c0271babd82d1246aed7e82e5b33df827284028c6c278e1c7d6413fb01b941e"
+    },
+    {
+      "path": "src/GraphReader.Imaging/ImageContracts.cs",
+      "sha256": "3cec37400756c12847db319f7ec62f793117273201b7e95e140df27f9207bf9f"
+    },
+    {
+      "path": "src/GraphReader.Imaging/ImageImportService.cs",
+      "sha256": "0b5fcfb1b9e31aef61eac33f2602a4959155a9556c11f0c84c1246686c225087"
+    },
+    {
+      "path": "src/GraphReader.Imaging/ImageTabServices.cs",
+      "sha256": "f6a86a08d7fea8ee8674b45722f651ee0cdcba3749027ec2b0dc3f582674faa5"
+    },
+    {
+      "path": "src/GraphReader.Imaging/Transforms.cs",
+      "sha256": "72e4253b7afc832fc7f172f967b959fade40c8981039ba23682b1fcd78521aae"
+    },
+    {
+      "path": "src/GraphReader.Inference/AssemblyInfo.cs",
+      "sha256": "79d5b3cc85e2eb7ff96b137e65ab2ce9e028ecd77d1e09379822d5afc4e197d4"
+    },
+    {
+      "path": "src/GraphReader.Inference/BoundedInferenceQueue.cs",
+      "sha256": "4a362b5c45e31b216fcd3b754c15c4742a83b7e6890ecc7b781c2f4bd5bcd0c3"
+    },
+    {
+      "path": "src/GraphReader.Inference/ExecutionProviders.cs",
+      "sha256": "83b661fb9c7c1bea1a9e03c64239e14f530db4b5de75dc4b3aa2bceaf91ae5d3"
+    },
+    {
+      "path": "src/GraphReader.Inference/FakeInferenceProvider.cs",
+      "sha256": "4836ec3c373bdf879120f25982f10534493e206a3fb8b8aee117891e8654cd19"
+    },
+    {
+      "path": "src/GraphReader.Inference/GraphReader.Inference.csproj",
+      "sha256": "3408ed6afb9273dc8fc40cf5861d38df822ab7ad8088a1e6c4339c232e748aac"
+    },
+    {
+      "path": "src/GraphReader.Inference/InferenceContracts.cs",
+      "sha256": "f56c658044518149d90a5d10521b568e14521fea97107b453cb8739fd9d82b04"
+    },
+    {
+      "path": "src/GraphReader.Inference/InferenceRuntime.cs",
+      "sha256": "affcd09679f7a9b8eb4e14224174a38b102f726888d3b5730c2986daef440879"
+    },
+    {
+      "path": "src/GraphReader.Inference/OnnxSessionRegistry.cs",
+      "sha256": "15d36ef8b5855da23f2f058ccd2a9c1996b3af9dd16dc07ed0a6f36b06200e73"
+    },
+    {
+      "path": "src/GraphReader.Inference/ProductionModelStore.cs",
+      "sha256": "80374ab80bc8a5e1c051dae9cde06b01c7a4ce0e199b81475313e6d7f6239b48"
+    },
+    {
+      "path": "src/GraphReader.Inference/StageCache.cs",
+      "sha256": "7708d20220d1633e4c15a2dc1d66472dc6c768f021da694505752a95fda9eb0b"
+    },
+    {
+      "path": "src/GraphReader.Legends/AnnotationArrowResolver.cs",
+      "sha256": "2c4a1fed5d1a76675cf74f84d2c23be3e34518d3f67fce9bb8915ae6292d67e6"
+    },
+    {
+      "path": "src/GraphReader.Legends/GraphReader.Legends.csproj",
+      "sha256": "c01e632b09e67653c5b82917061219bc0c46af7afb8946350f1e9db4f1a8c4de"
+    },
+    {
+      "path": "src/GraphReader.Legends/LegendReasoningContracts.cs",
+      "sha256": "96fcf4946ef2991a7eda14fd2b7def536dc14e68be6eb6a08e6bac4428896a50"
+    },
+    {
+      "path": "src/GraphReader.Legends/LegendReasoningService.cs",
+      "sha256": "81fc1b784c42d0e9c513a497af5c9903cc91dc6139acf05ac4b316dab1396327"
+    },
+    {
+      "path": "src/GraphReader.Legends/LegendRegionResolver.cs",
+      "sha256": "fbb0cfaaa6514162af834e921a350ead695804ca70b232d09d2281c029d7afe6"
+    },
+    {
+      "path": "src/GraphReader.Legends/LegendSemanticNormalizer.cs",
+      "sha256": "1c268f1a21690a1c8cedfb478007e31139de6520c3fe5a38c7d775818b7da0d7"
+    },
+    {
+      "path": "src/GraphReader.Markers/Classification/InferenceRuntimeMarkerClassificationRunner.cs",
+      "sha256": "419b96d2aafee4e69f2a705b632c07175c8d6326b1aed2e6572c6204479f6cce"
+    },
+    {
+      "path": "src/GraphReader.Markers/Classification/MarkerClassificationContracts.cs",
+      "sha256": "c38f541a828801cd271f47e1c3a1cc1ff687f8b5b41e67ec33ae41485a4cbad9"
+    },
+    {
+      "path": "src/GraphReader.Markers/Classification/MarkerClassificationService.cs",
+      "sha256": "c6835d703a6228712e895614fd5001d168276001fecd225e1b786ef71e651f47"
+    },
+    {
+      "path": "src/GraphReader.Markers/Classification/MarkerPatchExtractor.cs",
+      "sha256": "5c15dff2dd3f3dfd0685ba9f5380eb1e82dc0c37ee16438795fa00a033fd13ca"
+    },
+    {
+      "path": "src/GraphReader.Markers/Classification/MarkerSymbolMap.cs",
+      "sha256": "c1bbf3d1b417ce05602aec71cbea1aaad949f30f5e3365d527264681f899664b"
+    },
+    {
+      "path": "src/GraphReader.Markers/Detection/InferenceRuntimeMarkerRunner.cs",
+      "sha256": "3c58e6921b631944109f8ed23d16c18f80b5fff6037de9a328a2b7309eb1a5d4"
+    },
+    {
+      "path": "src/GraphReader.Markers/Detection/MarkerCenterDetector.cs",
+      "sha256": "bec797678297ff0839b46b18d805de336bd51315b9f8b80878c61c29877b0996"
+    },
+    {
+      "path": "src/GraphReader.Markers/Detection/MarkerDetectionContracts.cs",
+      "sha256": "4862002795406ae7ac624e9305a252b36753d8a02cd86a78c7b8bee5f994cb64"
+    },
+    {
+      "path": "src/GraphReader.Markers/Detection/MarkerTensorPipeline.cs",
+      "sha256": "90f859c31c660aeaf7fd5dda61f69d78cf30c4a1e4c2f99b26e866363a61568c"
+    },
+    {
+      "path": "src/GraphReader.Markers/Detection/NormalizedMarkerProposalDetector.cs",
+      "sha256": "93dd5ff1daf61026371852101ccf360648f0bb9bbd149a97042ac038a6f7a750"
+    },
+    {
+      "path": "src/GraphReader.Markers/Detection/NormalizedMarkerProposalPreprocessor.cs",
+      "sha256": "716cfab8ca31a47dab059160a4888113b3fab137ed33440596aed8c3f9c9eb38"
+    },
+    {
+      "path": "src/GraphReader.Markers/GraphReader.Markers.csproj",
+      "sha256": "9bdda94fb2f8a31613010c1025544c5e853803b981cd5fa00eb37e07eaf47df7"
+    },
+    {
+      "path": "src/GraphReader.Markers/Grouping/GroupingContracts.cs",
+      "sha256": "b263e810402edad45c34f0cb7471d717d5c1719bc85bacc9e4b4ea86eb51ee88"
+    },
+    {
+      "path": "src/GraphReader.Markers/Grouping/MarkerConnectionGraphBuilder.cs",
+      "sha256": "c84278dc6b69a913cfdbfa99df46e678c8d9ee685f0890d2573a9e8d09924d8a"
+    },
+    {
+      "path": "src/GraphReader.Markers/Grouping/MarkerGroupingEdits.cs",
+      "sha256": "a59e444d764f9c13307b53c60dcea2cf11abcfda8aef1fb0f3d32c5ddc3b2322"
+    },
+    {
+      "path": "src/GraphReader.Markers/Grouping/MarkerSeriesGrouper.cs",
+      "sha256": "d574e24cfb628b9a4ee48a08aca36998253ee2dcd937cdf3f79e0b370355046f"
+    },
+    {
+      "path": "src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs",
+      "sha256": "c904ecac411148285ae184d76cad1fe47ba9845f604a8d7641e39da701c151a9"
+    },
+    {
+      "path": "src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+      "sha256": "9b63c33de8cf051fc4acb6638a8a7b7cafb0c236f5a32ed601130c6943ca20bf"
+    },
+    {
+      "path": "src/GraphReader.Ocr/GraphNumericParser.cs",
+      "sha256": "e76967f6db9b3dfc29be6c127c3f54b5ae7923c2b578c04cae5bf3750fdc145c"
+    },
+    {
+      "path": "src/GraphReader.Ocr/GraphReader.Ocr.csproj",
+      "sha256": "d542f70667bcf4a1008166be4cadbd5427c5aac848fa4bf3181ff02edb69f723"
+    },
+    {
+      "path": "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs",
+      "sha256": "9d7df54faa7de48d965d91c36ef6cec660cdba7c367e9b9da259033bc158e38c"
+    },
+    {
+      "path": "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "sha256": "23dff892a7de4be39aafb23dc0dda8a8104cf0d023bb2999ef02fca7bfd48a01"
+    },
+    {
+      "path": "src/GraphReader.Ocr/HeaderGlyphTextRegionRecovery.cs",
+      "sha256": "039a1e2ce98496f8f6e9fb620afb8c70e7657b48e6072846c42e94755f9f6847"
+    },
+    {
+      "path": "src/GraphReader.Ocr/HeaderLayoutRoleResolver.cs",
+      "sha256": "57016992b1e8fcd83a3cd113ddb3f66fbee86f4797383ec0a6f03aa863742800"
+    },
+    {
+      "path": "src/GraphReader.Ocr/InsidePlotTextRegionAssembler.cs",
+      "sha256": "43cfcaf3c791e2d8536cf92b9209214d9a2f633c62e3dbda27c5ee1c89ca0975"
+    },
+    {
+      "path": "src/GraphReader.Ocr/LocalOnnxComponentTextRecognizer.cs",
+      "sha256": "a1123f51e21a9dc0c6c46b5248091417a9d556d422114089360363c58513e1ca"
+    },
+    {
+      "path": "src/GraphReader.Ocr/LocalOnnxProposalTextRegionDetector.cs",
+      "sha256": "b82246c047fa01ab88908aac97dc7db8f3b34994e6556ba3f3dfb054aa0b5eca"
+    },
+    {
+      "path": "src/GraphReader.Ocr/LocalOnnxTextRecognizer.cs",
+      "sha256": "bcd84ad5be7ab99f6ba03606c2b1d76a4e91e3d0ecd7bd78c7e63dc1e0f8dc81"
+    },
+    {
+      "path": "src/GraphReader.Ocr/LocalOnnxTextRegionDetector.cs",
+      "sha256": "26a558a893f11fcd2de8f142e99956485e04f942f9505755520ae54055f52754"
+    },
+    {
+      "path": "src/GraphReader.Ocr/LocalOnnxTiledProbabilityTextRegionDetector.cs",
+      "sha256": "1a9fa848c65ae365700e32211379febad796ab90648deeea886ef5b3caef9143"
+    },
+    {
+      "path": "src/GraphReader.Ocr/MonotonicTickResolver.cs",
+      "sha256": "dba9dd05cf566bb43aff4b362ddf2503619187759291a9739f02ca20284250c7"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrContracts.cs",
+      "sha256": "afd19c90e7d461d948d5644df26724c75b974e4a84a39b4858926abe1b371003"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrCropBatcher.cs",
+      "sha256": "25a2d4f701d6cea04dc82651f1129efed8d650c53e36a13ef8763444f6e542ef"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrDetectionObservation.cs",
+      "sha256": "9e7c42dea4559e628972d8afb9e4ff9f4ce35a6abc2abdb104ab68b944248ea5"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrDualRecognizerPipeline.cs",
+      "sha256": "3018a64686dba3ac2a0b89b3d4ed9271ded235f46257ff7fc4dbb4175ff304e2"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrMaskBuilder.cs",
+      "sha256": "fb576b7f971aea85c0351fedb028959ad76fde7c509630dceb7f4b2302058e38"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "24652479e17c53e5377b07682e2563a5f6b0bdee3155cd193bdcf3bdcc54c1ff"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrResultCache.cs",
+      "sha256": "80b3489f3f2bb284ad965b1c9fd313f87919896742971e466be2e3e71d61bc10"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrV11CandidateCompositionFactory.cs",
+      "sha256": "be42bf0386f476c229563b005f3139c0bddac1e29861e095a6fc27bf2a03665a"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrV8OfficialTextRecognizer.cs",
+      "sha256": "a46c7e11de18a98ccbf371eb5fe418420b89b06553b21335357814c980bb3104"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrV8ProductionCompositionFactory.cs",
+      "sha256": "883db3c175362c265c92775475286a6263907f99e37ad11e62a4abd8f9230399"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrV8ProductionCompositionPipeline.cs",
+      "sha256": "19aa2bf1578e6ec62a91ea0b3395bd8436e06dcd22281c6b0e3b20f2270e9958"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrV8SourcePostprocessor.cs",
+      "sha256": "5a641e42fa40080bd7d1891dbe2cd31ec8faf5af56b1014319a400a2cf105978"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrV9CandidateCompositionFactory.cs",
+      "sha256": "2c9b80f55970fcbdf51a6df4d5e3bbfb40d5a5fe984c6060d068c3ae67e618ba"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrV9P2CandidateCompositionPipeline.cs",
+      "sha256": "756e6620c133f41c9cfbef19d9f6ee8a7007f06afd33561f96a7a4c5359e668e"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrV9P3CrossModelConsensusPipeline.cs",
+      "sha256": "219550e7871d359c3d66e493122c4e969121f23c1dc3707c07239080a43e06ac"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OfficialRecognitionSpacingV2Postprocessor.cs",
+      "sha256": "96fa3eb468b823ae7e008323f4d9d3580e8feba376954e60402bf30f3a6aece9"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OfficialRecognitionSpacingV2TextRecognizer.cs",
+      "sha256": "da31170fe5f9f158eddc416a7cd99fae55ec9d2618c963f1e6976d2726dc7a91"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OriginalPixelTextRegionRefiner.cs",
+      "sha256": "f031cc5a9cfd55616bebf50d86774e0786d15582718f2ac426448e536681158e"
+    },
+    {
+      "path": "src/GraphReader.Ocr/ParticipantLaneTextRegionAssembler.cs",
+      "sha256": "0c76cbdbba7e2e62ee961e427f465f5757da3dc038b1c91022f52dcbba217069"
+    },
+    {
+      "path": "src/GraphReader.Ocr/PillowBilinearResizer.cs",
+      "sha256": "81443cd05aa6879addd15881a0a1a029fdb4911517cec72471d1514cbdaa066a"
+    },
+    {
+      "path": "src/GraphReader.Ocr/RasterPreOcrStructuralProbabilityProvider.cs",
+      "sha256": "cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100"
+    },
+    {
+      "path": "src/GraphReader.Ocr/TickLaneTextRegionRecovery.cs",
+      "sha256": "baf48aae84970ce982f76738b61f5163928139b0bea212a5039dcb608b5cddb1"
+    },
+    {
+      "path": "src/GraphReader.Pdf/GraphReader.Pdf.csproj",
+      "sha256": "abb17bf6a4362c7c6e3fbfad4fb596b123ecc3e011df54acc67fed8668e7583c"
+    },
+    {
+      "path": "src/GraphReader.Pdf/PageRendering.cs",
+      "sha256": "e59da0deabc382a9dd4e30afa3555d97b37cedf019bdf3d521f34c8863df594b"
+    },
+    {
+      "path": "src/GraphReader.Pdf/PanelizationEngine.cs",
+      "sha256": "ec968c40919c991083a3402e9e6fce3f17db279a85eb29094cf4733b0fde7faa"
+    },
+    {
+      "path": "src/GraphReader.Pdf/PdfContracts.cs",
+      "sha256": "25fe6c9610d9f163b6bc92a21cda781813f216176abe4f89b6f4bba9bf854b22"
+    },
+    {
+      "path": "src/GraphReader.Pdf/PdfImportService.cs",
+      "sha256": "b50a7d46512fefa820121b7d5aa60719a891d5ab3ac1af6d017f561580557e6c"
+    },
+    {
+      "path": "src/GraphReader.Pdf/PdfPigDocumentInspector.cs",
+      "sha256": "426aab641be39f5344f6fc3683794ccce402b7d54bb54d2a8de7bf5fcd773323"
+    },
+    {
+      "path": "src/GraphReader.Pdf/ReviewedPdfiumPageRendererBackend.cs",
+      "sha256": "8922d5fa9474593baed1a8d75428927f332f9506f3a3078f0c817dd5e1980c21"
+    },
+    {
+      "path": "src/GraphReader.Phases/GraphReader.Phases.csproj",
+      "sha256": "c0c82dcba1614af8620133955ce6507cb892d6432306ba57a4087972426600ef"
+    },
+    {
+      "path": "src/GraphReader.Phases/PhaseDividerDetector.cs",
+      "sha256": "9b3a35c1fdc36784aa4af6728e959e03767c21cae324afb578ff688f5fab98a4"
+    },
+    {
+      "path": "src/GraphReader.Phases/PhaseManualEditor.cs",
+      "sha256": "d002dccbaad619e2a0e1767e65bc012a978942ffe6170725d70263ddc8c6a3ea"
+    },
+    {
+      "path": "src/GraphReader.Phases/PhaseReasoningContracts.cs",
+      "sha256": "001e314fe15c8841959c098984202822fb4f59c4abb0a1005165c426b1264939"
+    },
+    {
+      "path": "src/GraphReader.Phases/PhaseReasoningService.cs",
+      "sha256": "98845df7c22c260d4454cfb2d40045c3ce40e194d2a5b4cbf38655d3edf7468d"
+    },
+    {
+      "path": "src/GraphReader.SuperResolution/EnhancementBenchmark.cs",
+      "sha256": "b4e9a67743807ce3dd62d1de2d1e4832022d05551a7d3054f9989a197273ade2"
+    },
+    {
+      "path": "src/GraphReader.SuperResolution/EnhancementCache.cs",
+      "sha256": "80a8622f4030f9695d6035bc15ec4dbd265f1f0974efca55b591efe6b7e6eed6"
+    },
+    {
+      "path": "src/GraphReader.SuperResolution/EnhancementConsensus.cs",
+      "sha256": "f5b81bc3c06fb1e5ab9e12f36a7b48c945b7f7f90c169f63ad2589c979699753"
+    },
+    {
+      "path": "src/GraphReader.SuperResolution/EnhancementContracts.cs",
+      "sha256": "8a59cad35493cf9eb365ffb4fe69f18be36b632f493e4bdf53c1b7881819eb63"
+    },
+    {
+      "path": "src/GraphReader.SuperResolution/EnhancementFiles.cs",
+      "sha256": "a4ac70c953e62034d06f2ce0a5b30201c44ee64136059b49da2575b821eece35"
+    },
+    {
+      "path": "src/GraphReader.SuperResolution/GraphReader.SuperResolution.csproj",
+      "sha256": "c0c82dcba1614af8620133955ce6507cb892d6432306ba57a4087972426600ef"
+    },
+    {
+      "path": "src/GraphReader.SuperResolution/ManifestDrivenRealEsrganBackend.cs",
+      "sha256": "4a874e70e2061e17149038fcc1569c636a6dbce703ee937209e106ed05f72a49"
+    },
+    {
+      "path": "src/GraphReader.SuperResolution/ProcessExecution.cs",
+      "sha256": "0c540b2f4f62bf66cac9ff7aa3c957ce45afa5461385da5dc5ca3bdc708a8961"
+    },
+    {
+      "path": "src/GraphReader.SuperResolution/RealEsrganAdapter.cs",
+      "sha256": "e72457bb8794a99825a08d1759dbb1ee19352b73db0618f9402831ab6e271324"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenRealFirstReadHandshake.cs",
+      "sha256": "0b9f71764fde25516d4f61c3696d2ab5591425f72f3c730d46e42344995eb854"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenRealFirstReadHandshakeSelfTest.cs",
+      "sha256": "13a770803a6471a6655f9bfcf4f69b7915d936d03bcc96baf0c38c45f4d4642a"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/NoPersistenceStageCache.cs",
+      "sha256": "d709893baeb51adf98211f621b1ab1a8cfad6db796d66dbcf2937875fe5bde63"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/AdvisoryStructureExperiment.cs",
+      "sha256": "a6bfb681385fa688bdb4261247f5ff6a22ba23ab1aa7b95c7b743d9e999c8db4"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/AxisContactReplay.cs",
+      "sha256": "928fa2e984d17be546bb46be737166a1fa598cc19eaf8b238fb58bd54713678c"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrAggregateScorer.cs",
+      "sha256": "ee1329a5d7efd30d283ceec604ab1dd066cf77e03069757f544a7cc5cc9ada12"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrAggregateScorerSelfTest.cs",
+      "sha256": "c699b9b40329af23beda32d01f17dda79a90692f3de349bf9568dfa9015d6cfb"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrDevelopmentReplay.cs",
+      "sha256": "272281b7858e3fa8bb9e6a842af6e7736af1bcca0fce4dfe40a501a20bced953"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrInMemoryCorpusEvaluator.cs",
+      "sha256": "4a017c3d27c900ae0f48d934e282802891e3f70f8603f8fc1ace44ac9bdcca3c"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrInMemorySourceEvaluator.cs",
+      "sha256": "b892aadb5b43d179174baf41acd9402faccf99d4258612a2e13b412e5eb456ac"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrMemoryDevCheck.cs",
+      "sha256": "260dc22369869a57290089924ab9cf22bb26f6003b45315f8fc7df14b5381406"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrMemorySelfTest.cs",
+      "sha256": "1d28297c835343b5938024ad809c143023a0c13c1a6621fe44e8d03e9d594eec"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/DbPostprocessReplay.cs",
+      "sha256": "37f2f48d836f347663b66107728804606d770faa2d0d8cca5c61e3b3b2219579"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/GraphReader.SyntheticRuntimeEvidence.csproj",
+      "sha256": "401cdb780f02329a3d09b45670681506d4df4ac63ceeed11bf92851e4f4d3182"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/HighResolutionExperiment.cs",
+      "sha256": "f90a0dbef7a0901d0dffe7488b66348818ec25f7a2e995093bcf392d8879970c"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/InitialContourOutputExperiment.cs",
+      "sha256": "da3680d2874db5472ada822e1132adc141a52c744a4330effc751ad9cb59f113"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/LayoutClearanceOcrInputs.cs",
+      "sha256": "c7440daf92784faf0c978ca0329ea9e1af673b2baf7b4e5f6d85c9557df7cf22"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialDbTargetOracle.cs",
+      "sha256": "fe3d5cd58b8ab4eeccab5ded06082f415aa25d1faeb4d25601a38c5329db4a0c"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialDbTargetOracleSelfTest.cs",
+      "sha256": "066054ba812e5670a3b984fd0fde538857f82a0f51e4314d8b759ecb2fc8d26d"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluation.cs",
+      "sha256": "6b787b433cebaa736011144e8615970aeec144b83c6e4a6c02055dcaf2a8dac3"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadCandidateEvaluationSelfTest.cs",
+      "sha256": "e53bb0c0c6dfba112967f882398b5ca046cda51329c181decc5b491ef2c98910"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadTensorCapture.cs",
+      "sha256": "5b388c8064ef06b22352c8df72afb6b63df7c2f2ae00812015e83975f848823d"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OfficialHeadTensorCaptureSelfTest.cs",
+      "sha256": "6b87f4474e66e77bf57719475dc5e90fa6eb9846adda1003e9a0d9c823175005"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorer.cs",
+      "sha256": "a7addc39ce604c97bf204e9ca3c696854af9eaf0da597fa0a8a90d9329759ad0"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAggregateScorerSelfTest.cs",
+      "sha256": "b9f319e0ba475b0ab66b5a01a9f4edc93ce3236778b86fd1078baeefd49a0b06"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAnnotationReader.cs",
+      "sha256": "bcadf80f5e10cb64ec7579fb1ce5e73c65bac06103027aa6183d8c3e73dc35b1"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrAnnotationReaderSelfTest.cs",
+      "sha256": "d9627a68c67ae38d025234351dac69c143ad438c1a80ca098f615d3289c3cb92"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemoryCorpusEvaluator.cs",
+      "sha256": "1458f7bcaefe8c71d7129cc509493960bf592676f57836577b8bd6f431978503"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemoryCorpusEvaluatorSelfTest.cs",
+      "sha256": "f942ae5b421fe4bc7d0639ae5d58c05a2ca5a87f65fbf7050b3d87aeaec8aa74"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrInMemorySourceEvaluator.cs",
+      "sha256": "926ca5c95b9295d871d8bc4cd3111fb18b2c88d8b1de53a91ce6d041eb8f6500"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryDevCheck.cs",
+      "sha256": "0e8fcb86dad251ece427cfe282a2e5969489af4330b0a3632b50b08c7f583bda"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMemoryRuntime.cs",
+      "sha256": "db44793f18f2657155952d9c61bf7d768f784671a06750e5a86956ca40eabb38"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrMetricFixtures.cs",
+      "sha256": "9d6fcca5de29493dc43ad8729fab7b849943ed07af93ce30ee9ebd520d75ee5f"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrReadReceiptStream.cs",
+      "sha256": "75d694a840a8eaef90adec10532edb5b4b2712aa6be427d075b03ea0761addb4"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedArchive.cs",
+      "sha256": "dec51d1e1e5d29ff47e7ee05f616aeb47898a21465f44762a576aa036e1f0c29"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedArchiveSelfTest.cs",
+      "sha256": "431de4e96acfe8a442c3dec83231f951b9b376056c7b4dc7faebd33fd96ac58a"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedWorker.cs",
+      "sha256": "3c83ec25bf637c727dea61dff1d21ec69d025cb58ad977f08b824027f2b89f38"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedWorkerSelfTest.cs",
+      "sha256": "435eb452bd177b35fa42011c0372cbc0eeee08fe4d9fdb637d7f705e0b54d3c5"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSourceMappingSelfTest.cs",
+      "sha256": "309d69b7fd16d6a2f7184597b0b336c8254bffbbe8f0b1deb3af22b84030e283"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalModelInputExperiment.cs",
+      "sha256": "c43fe4ea6d83b185c1b2c1db4b85403a444246ba212ab865f698cf4fe5bfdba7"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "76477fe7deb2efe894c3a728212ba1917032d3d0f7c5ea4fbfa9047902248493"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/WordFragmentStressCapture.cs",
+      "sha256": "3166608cfb12556d69b37c5d5ebac50490043be24c57985418c96587961841c6"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/authenticate_composed_ocr_evidence.py",
+      "sha256": "d4017de1ecf570428e19b04c28ffe654a56ba4750fce5d42d78aa4b4b041482f"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/run_ocr_sealed_evaluation.py",
+      "sha256": "da9955a885c15a1be1c67d7f060fe1c76813bda07b55979ca9370e6d0b2f281f"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate_v2.py",
+      "sha256": "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/score_official_head_candidate.py",
+      "sha256": "719bb18c30821cdd44b65fc9ede38f6d111fb3631e07c7c69d98d1116aa575a2"
+    }
+  ]
+}

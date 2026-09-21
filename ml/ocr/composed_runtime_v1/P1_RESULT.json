@@ -1,0 +1,66 @@
+{
+  "acceptance_bars_sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+  "accuracy_measured": false,
+  "aggregate": null,
+  "aggregate_only": true,
+  "bar_verdicts": null,
+  "candidate": {
+    "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/candidate.json",
+    "sha256": "c200adc6c44eb69b0ade7969828b922dc9414a9bc5d9dc9ff8fac607486c1675"
+  },
+  "candidate_config": {
+    "path": "ml/ocr/composed_runtime_v1/evaluation/p1.json",
+    "sha256": "3d647d3d865a32125b72b32d4e86079afc5d717dc973927c8916ebd06386c4a6"
+  },
+  "candidate_id": "P1",
+  "case_output": false,
+  "composition_version": "original-db-head-tick-header-and-legend-lanes-v4",
+  "detector_sha256": "615495cc882b6ae8633081d89c3ab08c0d4a80a04aa36bbde4157fc7828f5923",
+  "development_authentication": {
+    "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/authentication.json",
+    "sha256": "1479707d769553e1fc9e4bfc350cd5b066a997825a8c0f3f02c0b059c4952b1c"
+  },
+  "development_score": {
+    "path": "artifacts/goal22-runs/composed-ocr-parent-development-v1/result.json",
+    "sha256": "86f64451e23dfbf5776d995e6ef622561394dbfe2c924f919ddeb722e4ea49ff"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "policy_revision": "2026-08-19",
+    "schema_version": 1,
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "failure_code": "OCR_SEALED_TRANSPORT_CHILD_FAILED",
+  "known_limitations": [
+    "Synthetic aggregate evidence does not confer production approval.",
+    "Real corpus, complete workflow and Chandler review-burden gates remain.",
+    "Marker and calibration development failures remain."
+  ],
+  "metric_reference_sha256": "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656",
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "production_approved": false,
+  "protocol": {
+    "path": "ml/ocr/composed_runtime_v1/PROTOCOL.json",
+    "sha256": "fb0f18a3dc160d78c9ef4936524127dac124a90145f49cf72d59eaff3b85ffa5"
+  },
+  "read_status": "confirmed",
+  "recognizer_sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+  "release_eligible": false,
+  "remaining_unused_reserves": 2,
+  "retained_void_attempts": 1,
+  "revision": "graph-composed-ocr-runtime-v1",
+  "runtime_identity_sha256": "b4a7a4d5c82db4949d85ca62a1a5bf3efffc5140acfc13033efb2d48e4f7eb1e",
+  "schema": "graphreader.composed-ocr-evaluation-outcome.v1",
+  "sealed_admission_id": "432a436fa8066e36964e9eec817535a3e810ff17b8073152abc09254d4934613",
+  "sealed_outcome": {
+    "path": "artifacts/ocr-sealed-evaluations/432a436fa8066e36964e9eec817535a3e810ff17b8073152abc09254d4934613/aggregate-outcome.json",
+    "sha256": "aba989628cb4ea02d9c3e928bc3a143e0e71deb5ede872bc84706dd728d5390c"
+  },
+  "sealed_run_count": 1,
+  "sealed_set_id": "3a40a023e2102d2c3adc7e53acf9c372cd7523c1056b1ebcd2c79696d09dea37",
+  "sealed_set_retired": false,
+  "seconds_including_development_replay": 87.1801824,
+  "status": "sealed_execution_error_no_metrics",
+  "task": "ocr-detection-recognition"
+}

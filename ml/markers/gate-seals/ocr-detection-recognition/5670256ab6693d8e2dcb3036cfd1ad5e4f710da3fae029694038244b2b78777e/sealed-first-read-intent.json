@@ -1,0 +1,8 @@
+{
+  "binding_sha256": "200239a823140089fa72395d33fa9ab00bb37bcb514ff2a2f1cd68e06e4978f7",
+  "gate_identity_sha256": "5670256ab6693d8e2dcb3036cfd1ad5e4f710da3fae029694038244b2b78777e",
+  "opened_sha256": "cb11abee0c483235513f6e5c685574e846739b56e7b7f7041fd76c32a6362f13",
+  "read_binding_sha256": "432a436fa8066e36964e9eec817535a3e810ff17b8073152abc09254d4934613",
+  "role": "gate",
+  "schema": "graphreader.synthetic-sealed-first-read-gate-intent.v1"
+}

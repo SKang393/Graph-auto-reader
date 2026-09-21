@@ -1,0 +1,30 @@
+{
+  "acceptance_scope": "goal22.full-ocr.five-axis-family.real-range.v1",
+  "coverage_protocol_sha256": "26ab0e017ccc6dc17d26effe11b1fb40f440ed4471e896c1afac3c8cc96999c4",
+  "expected_candidate_hash_keys": [
+    "composition"
+  ],
+  "expected_dataset_manifest_sha256": "05a4de5d8bba579b2b7caa6c5a9e363affb6479436d56d73f1489a87fcbd11c5",
+  "expected_evaluator_source_bundle_sha256": "2b7c336346bdd2ec55679b5568c51a5c334ec91a952d26270f8b28a38beedbde",
+  "expected_gate_config_sha256": "d691b40627f9ef2a0a8edfeeb039b0d8cfdad97e9c8781ae6192dcde1e0c2b53",
+  "gate_config": {
+    "acceptance_bars_sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "acceptance_scope": "goal22.full-ocr.five-axis-family.real-range.v1",
+    "aggregate_only": true,
+    "coverage_protocol_sha256": "26ab0e017ccc6dc17d26effe11b1fb40f440ed4471e896c1afac3c8cc96999c4",
+    "detection_boundary": "assembled_geometry",
+    "metric_reference_sha256": "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656",
+    "optimizer_steps": 0,
+    "production_approved": false,
+    "raw_detector_geometry": "descriptive_only",
+    "worker_schema": "graphreader.composed-ocr-sealed-worker-request.v1"
+  },
+  "registry": {
+    "path": "ml/policy/goal22-ocr-sealed-reserve-registry.json",
+    "sha256": "d036199375680b3b834e7adfe694dd2615eba766be058a6edb53787180cd9fd6"
+  },
+  "revision": "graph-composed-ocr-runtime-v1",
+  "schema": "graphreader.composed-ocr-evaluation-split.v1",
+  "set_id": "3a40a023e2102d2c3adc7e53acf9c372cd7523c1056b1ebcd2c79696d09dea37",
+  "task": "ocr-detection-recognition"
+}

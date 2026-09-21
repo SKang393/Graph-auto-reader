@@ -5,7 +5,7 @@
     "schema_version": 1,
     "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
   },
-  "generation": 3,
+  "generation": 4,
   "schema": "graphreader.synthetic-sealed-reserve-registry.v2",
   "sets": [
     {
@@ -88,8 +88,17 @@
         "purpose": "sealed_acceptance"
       },
       "set_id": "3a40a023e2102d2c3adc7e53acf9c372cd7523c1056b1ebcd2c79696d09dea37",
-      "state": "unused",
-      "uses": []
+      "state": "reusable",
+      "uses": [
+        {
+          "aggregate_only": true,
+          "candidate_id": "P1",
+          "disclosures": [],
+          "gate_identity_sha256": "5670256ab6693d8e2dcb3036cfd1ad5e4f710da3fae029694038244b2b78777e",
+          "read_binding_sha256": "432a436fa8066e36964e9eec817535a3e810ff17b8073152abc09254d4934613",
+          "revision": "graph-composed-ocr-runtime-v1"
+        }
+      ]
     },
     {
       "archive": {

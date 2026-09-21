@@ -1,0 +1,7 @@
+{
+  "binding_sha256": "127aeb52ca83b81f45ece14d03cb2d77c29d01b2e811ee1908d67932a65c2424",
+  "opened_sha256": "de8078d216c4d32569e4b425ce4d2444a39f941199a3f92845639831e8898a7f",
+  "read_binding_sha256": "432a436fa8066e36964e9eec817535a3e810ff17b8073152abc09254d4934613",
+  "role": "training",
+  "schema": "graphreader.synthetic-sealed-first-read-training-intent.v1"
+}
