@@ -1,0 +1,171 @@
+{
+  "schema": "graphreader.goal22.numeric-ctc-diagnosis.v1",
+  "base_commit": "80fc7a6e502b270c0d155d9bbd806ef919348e52",
+  "status": "closed_no_improvement",
+  "metrics": {
+    "scope": "owned-open-synthetic-development",
+    "regions": 73,
+    "native_greedy_reproduced": 73,
+    "native_crop_hashes_reproduced": 73,
+    "greedy_exact": 56,
+    "beam_exact": 56,
+    "improved": 0,
+    "regressed": 0,
+    "changed": 0,
+    "greedy_character_edits": 17,
+    "beam_character_edits": 17,
+    "truth_characters": 174,
+    "beam_top3_contains_exact": 64,
+    "capture_seconds": 4.7129723,
+    "decode_seconds": 17.495656800001598,
+    "job_seconds": 29.2555994,
+    "intra_operation_threads": 10,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "truth_used_for_inference": false,
+    "diagnostic_only": true,
+    "production_approved": false
+  },
+  "verification": {
+    "status": "passed",
+    "exhaustive_matrices": 30,
+    "additional_assertions": 14,
+    "private_reads": 0,
+    "sealed_reads": 0
+  },
+  "definition": {
+    "scope": "owned-open-synthetic-development",
+    "failure": "Current fixed-width native recognition reads 56/73 reconciled horizontal numeric regions exactly; some multi-digit integers acquire punctuation.",
+    "hypothesis": "Language-model-free CTC prefix path summation may rank the image-supported transcription better than greedy best-path decoding.",
+    "parameters": {
+      "beam_width": 8,
+      "geometry": "refined",
+      "minimum_width": 320,
+      "height": 48,
+      "batch_size": 1,
+      "character_pruning": false,
+      "language_model": false,
+      "lexicon": false,
+      "length_penalty": false
+    },
+    "selection": "All 73 regions from the completed native crop probe, with identical image hashes and refined geometry. No new exclusions.",
+    "input": {
+      "path": "artifacts/goal22-runs/native-numeric-crop-v1/input.json",
+      "sha256": "faa6bb1c538b2bcc5bf2dbb86c1e5ad5b2fa0dd4d8497d9781c91d4bf861b547"
+    },
+    "scoring_only": {
+      "path": "artifacts/goal22-runs/native-numeric-crop-v1/scoring-only.json",
+      "sha256": "81d7945cb56414d84407c12d05261f2d531e421ee4dd3551f0d7bddaa232fda4"
+    },
+    "baseline": {
+      "path": "artifacts/goal22-runs/native-numeric-crop-v1/result.json",
+      "sha256": "170dad06947604baeb85ca30ff67a1eaac266b4fc4e13593e3343f9409cb95b7"
+    },
+    "source_bindings": [
+      {
+        "path": "artifacts/goal22-tools/NativeCtcCapture/Program.cs",
+        "sha256": "953b25c3af24259cca436df7152942623f4011efd2baa9e6a979c5354587bcc9"
+      },
+      {
+        "path": "artifacts/goal22-tools/NativeCtcCapture/NativeCtcCapture.csproj",
+        "sha256": "d82c1fa54458091773f0da2f5cd3fa871d715d01d8120c48afe01bc792fc2862"
+      },
+      {
+        "path": "tools/GraphReader.SyntheticRuntimeEvidence/diagnose_ctc_prefix_beam.py",
+        "sha256": "25360411de7a37f0e359dbfd5a5a009a45592cb66dba1b3b72e9b7cdf14e70ce"
+      },
+      {
+        "path": "src/GraphReader.Ocr/LocalOnnxTextRecognizer.cs",
+        "sha256": "bcd84ad5be7ab99f6ba03606c2b1d76a4e91e3d0ecd7bd78c7e63dc1e0f8dc81"
+      },
+      {
+        "path": "src/GraphReader.Ocr/OcrCropBatcher.cs",
+        "sha256": "25a2d4f701d6cea04dc82651f1129efed8d650c53e36a13ef8763444f6e542ef"
+      }
+    ],
+    "metric": "Exact text over all 73 fixed regions, paired improved/regressed counts, and character edits. Score only after inference and preserve every prediction.",
+    "acceptance_bar": "Diagnostic only. Product OCR still requires all five unchanged shared bars, including at least 95% exact text over full scenes. Improvement here alone grants no admission.",
+    "cpu": "Idle priority, all eligible logical threads, 80% aggregate JobObject backstop, no per-core peak guarantee.",
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "sealed_budget": 0,
+    "optimizer_steps": 0,
+    "product_change": false,
+    "production_approved": false
+  },
+  "build": {
+    "warnings": 0,
+    "errors": 0,
+    "seconds": 4.75
+  },
+  "void_attempt": {
+    "error": "CS0117: CountAlphabetSymbols is internal, not accessible to the diagnostic project.",
+    "seconds": 12.7944981,
+    "inference_started": false,
+    "sealed_reads": 0
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/definition.json",
+      "sha256": "1474585f1bd225d3f2ea7449adc774aa0182763fec4e1b9ca3c7bc223fb2f527"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/capture.json",
+      "sha256": "d33982a1f61444b6dce2cf40c88055bd74f9935c65a258e01ddbdd6b4ada8602"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/predictions.json",
+      "sha256": "d36cfa4ba99d7cb11e8c851a8ba62021fea5c3f2774034517bf4fc6e6f84208a"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/analysis.json",
+      "sha256": "1dbccba05c6b4e2c7bf08e5c2408ec9722778e4faf11411551e623af7458cd26"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/self-test.json",
+      "sha256": "1d72c2dc3e74c4bf423f4bc7dbb6ff94b44fe5dc20661b5fe87501c1121f93fb"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/build.log",
+      "sha256": "2873a29ce38f43c740934b7d94f51c6d7f79a279b92a25a57b20bc5e0038413e"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/status.json",
+      "sha256": "3f59038abe79335c9ce4edb677557c85f8f49f5c713aecbaa4d2df1ea307f782"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/void-definition.json",
+      "sha256": "471844cf2f6c82a5af15e584638105791439d877e958dffad75a5f5c94115631"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/void-status.json",
+      "sha256": "b217ffa70b4a5626384847b683f02f2cf2e9f351532047bf012f377682077933"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-ctc-decoding-v1/void-build.log",
+      "sha256": "9cd36e8911f074e829d2bfb1d5443c5c3dafcfa1e9a453eac7587b741ea27517"
+    }
+  ],
+  "helper_sources": [
+    {
+      "path": "artifacts/goal22-tools/Prepare-NumericCtcProbe.py",
+      "sha256": "c8f4ef042d054588934f9dc3c0f332aa46ec2b759e1583495e45ad81739004f0"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-NumericCtcProbe.ps1",
+      "sha256": "3aa93198908905707dc97389920f1c479ffeaef5ebf8f312aedb309d36e3a0b2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-NumericCtcProbe.py",
+      "sha256": "c984238891e97e3a350f421576c1a502b2a183a9f4f1d41c70f352243983ed69"
+    }
+  ],
+  "production_decoder_changed": false,
+  "model_revision_created": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "goal22_complete": false
+}
