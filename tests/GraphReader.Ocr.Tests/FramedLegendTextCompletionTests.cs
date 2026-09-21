@@ -27,6 +27,36 @@ public sealed class FramedLegendTextCompletionTests
     }
 
     [TestMethod]
+    [DataRow(1)]
+    [DataRow(2)]
+    public void OverlappingWordBoxesAssembleOnlyWhenBothContributeToTheFramedRow(int scale)
+    {
+        var fixture = Fixture(scale);
+        byte[] before = fixture.Image.Pixels.ToArray();
+        OcrDetectedRegion prefix = fixture.Detection with
+        {
+            Polygon = OcrPolygon.FromRectangle(new OcrRectangle(70 * scale, 31 * scale, 62 * scale, 15 * scale)),
+        };
+        OcrDetectedRegion suffix = OcrTestFixtures.Region("overlapping-suffix", 125 * scale, 31 * scale, 84 * scale, 15 * scale);
+        var refined = OriginalPixelTextRegionRefiner.Refine(fixture.Image, [prefix, suffix]);
+        Assert.IsTrue(refined[0].Polygon.Bounds.Right > refined[1].Polygon.Bounds.Left);
+        OcrDetectedRegion merged = FramedLegendRoleResolver.AssembleDetectedRows(fixture.Image, refined).Single();
+        Assert.AreEqual(new OcrRectangle(70 * scale, 31 * scale, 139 * scale, 15 * scale), merged.Polygon.Bounds);
+        Assert.AreEqual(merged, FramedLegendRoleResolver.AssembleDetectedRows(fixture.Image, refined.Reverse().ToArray()).Single());
+        Assert.AreEqual(merged, FramedLegendRoleResolver.AssembleDetectedRows(fixture.Image, [merged]).Single());
+        CollectionAssert.AreEqual(before, fixture.Image.Pixels.ToArray());
+
+        OcrDetectedRegion nested = prefix with
+        {
+            RegionId = "nested",
+            Polygon = OcrPolygon.FromRectangle(new OcrRectangle(80 * scale, 31 * scale, 25 * scale, 12 * scale)),
+        };
+        Assert.HasCount(2, FramedLegendRoleResolver.AssembleDetectedRows(fixture.Image, [prefix, nested]));
+        OcrDetectedRegion protectedSuffix = suffix with { Context = new(NumericExpected: true) };
+        Assert.HasCount(2, FramedLegendRoleResolver.AssembleDetectedRows(fixture.Image, [prefix, protectedSuffix]));
+    }
+
+    [TestMethod]
     [DataRow("missing-edge")]
     [DataRow("no-symbol")]
     [DataRow("two-symbols")]

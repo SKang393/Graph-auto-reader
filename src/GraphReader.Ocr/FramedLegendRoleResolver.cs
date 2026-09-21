@@ -10,7 +10,7 @@ namespace GraphReader.Ocr;
 public static class FramedLegendRoleResolver
 {
     public const string CompositionVersion = "original-pixel-framed-legend-context-v2";
-    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v2";
+    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v3";
 
     /// <summary>Joins detected words only when original pixels establish one framed legend row.</summary>
     public static IReadOnlyList<OcrDetectedRegion> AssembleDetectedRows(
@@ -47,7 +47,12 @@ public static class FramedLegendRoleResolver
                 OcrRectangle left = regions[members[i - 1]].Polygon.Bounds, right = regions[members[i]].Polygon.Bounds;
                 double overlap = Math.Min(left.Bottom, right.Bottom) - Math.Max(left.Top, right.Top);
                 double gap = right.Left - left.Right;
-                if (gap <= 0 || gap > Math.Min(left.Height, right.Height) ||
+                // Detector rectangles may overlap even when each contributes a
+                // different part of the same observed text row. The closed frame
+                // and original-ink completion above establish that row; require
+                // both boxes to contribute horizontal extent, not a positive gap.
+                if (right.Left <= left.Left || right.Right <= left.Right ||
+                    gap > Math.Min(left.Height, right.Height) ||
                     overlap < 0.35 * Math.Min(left.Height, right.Height) ||
                     Math.Max(left.Height, right.Height) > 2 * Math.Min(left.Height, right.Height)) aligned = false;
             }

@@ -1,0 +1,480 @@
+{
+  "schema": "graphreader.overlapping-legend-word-repair.v1",
+  "status": "implemented_and_verified_with_retained_numeric_role_change",
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Ocr/FramedLegendRoleResolver.cs",
+      "sha256": "26537cfc802069518cb573ecd0f2a2f2abb454b8540357d990c8ee7f1beaac86"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/FramedLegendTextCompletionTests.cs",
+      "sha256": "e4e344efaacbee4b17314aa1c2f08cb2b0b07d9b9ae437cde30755b8581cab15"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-checks-v1/source-bindings.json",
+      "sha256": "fcf8159bd260e112ce479df7d128bdb55892bc5dc5de59c98f9391e17fdef24f"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-checks-v1/status.json",
+      "sha256": "42dd22e7bb7bc251d9d2f52f9399662e350930e94846531b4f22d5be75405419"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-checks-v1/Run.ps1",
+      "sha256": "f140eadad4092b51c5ff5a1e5185b9a7787f9f579fb08bc2529dc8a79f539c6a"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-checks-v1/test-results/Ocr.trx",
+      "sha256": "02c437198f52a873283148d1e8b7cec67cfcbdb41be878ce5c2f6390c89dc3a5"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-checks-v1/test-results/App.trx",
+      "sha256": "d7119efdace81b062c8a42b1f4cedd432e0594f44da425fdcd2b1d16c802e83a"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-checks-v1/Ocr.log",
+      "sha256": "7f5299baeed835359a64a25d97880cce90c43b20310bafc324dbcbee0dfa17cc"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-checks-v1/App.log",
+      "sha256": "c5c456d5466bd7064ea0288f2c932ac029ac1de23e4ba55a7b8459ee8dc905f7"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-checks-v1/build.log",
+      "sha256": "eeddfb7849a1c21a2deb2c7e263ceedfe6e640e869bb5125c7a069b166412fac"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/status.json",
+      "sha256": "9b27538c7d4ed522af702103125fafbce624672b0f643b6191bbd0bcebb881ad"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/protocol.json",
+      "sha256": "ce0983e539609895afc726d3f0da69f4235424d700f2afd8a2547bc07a446163"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/candidate-binding.json",
+      "sha256": "271df6edb929748b2a5d023daf6742e37408118efbf0aa01f60f8349a3ec6ee9"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/input-manifest.json",
+      "sha256": "18c1c5160db7718c6af02cd0c0690aba002b8f1766db21a589e3308cca223bbd"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/runtime-description.json",
+      "sha256": "e2a120b4ea17f68920831ac6a4de0022852ce3a447db5f17ab094474d2d8b500"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/preparation.json",
+      "sha256": "3ed77974cfcd36146e3eb8bf0f157ba6fb73503ab7fc3318a65c301e875b9bf6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/execution/report.json",
+      "sha256": "7530d237700ef5076d20103ce4eca0fc283db6e756f9dc3d3748a72776f465f9"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/native-marker-score.json",
+      "sha256": "6315493d6292cfd77f8064f40402935f1a8ce61d4c2cbf782667d7ed15835d7a"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/native-ocr-score.json",
+      "sha256": "54585779f64e6e6537acdb3551ca2b085b93909e333bcadafad281fa432f3926"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/native-ocr-details.json",
+      "sha256": "eec8292b472a03def5ef2678a8864b6cde69c40020f8041ee7a164638d1fd94a"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-legend-overlap-v1/axis-geometry-comparison.json",
+      "sha256": "4eb0a3fec7af07ff73e041a7d40d3bbe69f059fe2118f87e128cd44b37cb05e6"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-workflow-v1/status.json",
+      "sha256": "c5b6e0199af53848ec6ca8726828a156ec618829a1c4ec46358cb6d77cf49f05"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-workflow-v1/protocol.json",
+      "sha256": "bc7ab7d8f42de96dbc8c3a2d07b2cd2e3e3d14a2e05555f8bb22ed0ffa58c460"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-workflow-v1/candidate-binding.json",
+      "sha256": "c15682c6b74cf50de484154300c18d655a2e33c27bca5747eff3caac2410ef10"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-workflow-v1/input-manifest.json",
+      "sha256": "0039ceee0512caa9dbb7a9dcafa1daa78add064fedab42efabac72434d601698"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-workflow-v1/execution/report.json",
+      "sha256": "7289381e009ef857f567a68b70da4b8049ad00bb93e98b57ddffbf88ba4e17c4"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-workflow-v1/comparison.json",
+      "sha256": "c8e60919d06847862fbe11da29cd66f47bcd54edc9bff04718ada80827e32eb2"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-workflow-v1/csv-score-normalized-phases.json",
+      "sha256": "cfd6a21d25470632296cd4a966904e9b4f76c0fd41f00408d5a5062275705bc5"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-workflow-v1/csv-evaluation-input-normalized-phases.json",
+      "sha256": "e33aaf2cb01f7486e3dac1fc158ff0f1ceeded50ba22ce1686d957c9b1537f40"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-LegendOverlapContext.py",
+      "sha256": "8297c1c278607562a3ed4446e2a2587d25374f7226b927662f8ac01de0fc2151"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LegendOverlapContext.ps1",
+      "sha256": "c20f5b5c0cf18c5f680e1098619b1b4bc21769948fe364af110cc2e3bc319316"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-LegendOverlapContext.py",
+      "sha256": "2f042500c29591f8e9deb22c39dd9c046252ec09f8e80b72cc2f1e376601db57"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-LegendOverlapOcr.py",
+      "sha256": "62388759b7e0c5652003b11f7e24d13a13055ffe1ae52abd18b972331c186433"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-LegendOverlapGeometry.py",
+      "sha256": "26c63ef8f1123d8f4ca68f3967bac22edef29a767fce3385965768d7a91ff1d3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-LegendOverlapWorkflow.py",
+      "sha256": "82fe530b633057a3e544653c77cab982a8c427e765d9dafa28d882e350f55d84"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LegendOverlapWorkflow.ps1",
+      "sha256": "560f2bbc475e6bd18a8af4dfc15eb337efc791e06d878b841ec4b9bc24e12e7a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-LegendOverlapWorkflow.py",
+      "sha256": "825abb1105ed6727d45ce419d450a2c6222d1a6854f3a00d440d2e0e653fed78"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-c8207598eda0/status.json",
+      "sha256": "cccfbd213de341f57ad8a76452ed9e5cb759f5acef3ff753b03296ddf6461c33"
+    }
+  ],
+  "tests": {
+    "Ocr": {
+      "total": 436,
+      "passed": 420,
+      "skipped": 16,
+      "failed": 0
+    },
+    "App": {
+      "total": 469,
+      "passed": 469,
+      "skipped": 0,
+      "failed": 0
+    }
+  },
+  "ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 525,
+        "geometry_matched_region_count": 378,
+        "geometry_false_positive_count": 147,
+        "geometry_false_negative_count": 75,
+        "recognition_exact_count": 330,
+        "recognition_exact_accuracy": 0.7284768211920529,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 71,
+        "unmatched_truth_deletion_edit_count": 574,
+        "unmatched_prediction_insertion_edit_count": 384,
+        "character_error_count": 1029,
+        "character_error_rate": 0.3319354838709677,
+        "role_correct_count": 350,
+        "role_accuracy": 0.7726269315673289,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 25,
+            "accuracy": 0.6756756756756757
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 132,
+            "accuracy": 0.7764705882352941
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 82,
+            "accuracy": 0.8282828282828283
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 523,
+        "geometry_matched_region_count": 380,
+        "geometry_false_positive_count": 143,
+        "geometry_false_negative_count": 73,
+        "recognition_exact_count": 332,
+        "recognition_exact_accuracy": 0.7328918322295805,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 71,
+        "unmatched_truth_deletion_edit_count": 544,
+        "unmatched_prediction_insertion_edit_count": 354,
+        "character_error_count": 969,
+        "character_error_rate": 0.3125806451612903,
+        "role_correct_count": 351,
+        "role_accuracy": 0.7748344370860927,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 27,
+            "accuracy": 0.7297297297297297
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 132,
+            "accuracy": 0.7764705882352941
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 81,
+            "accuracy": 0.8181818181818182
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "ocr_truth_changes": [
+    {
+      "before": {
+        "split": "validation",
+        "source_sha256": "36c6488d4439fc09d997263185c5341395cf9d749d3c0c520246bc107bf843ee",
+        "truth_id": "78c006940bbe442c39d03af018130a91ad969b3b06152a4bb3c89ff3fabfb4b9",
+        "text": "Primary outcome",
+        "role": "legend_text",
+        "box": [
+          429.537966,
+          858.330603,
+          587.503204,
+          878.4004199999999
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null
+      },
+      "after": {
+        "split": "validation",
+        "source_sha256": "36c6488d4439fc09d997263185c5341395cf9d749d3c0c520246bc107bf843ee",
+        "truth_id": "78c006940bbe442c39d03af018130a91ad969b3b06152a4bb3c89ff3fabfb4b9",
+        "text": "Primary outcome",
+        "role": "legend_text",
+        "box": [
+          429.537966,
+          858.330603,
+          587.503204,
+          878.4004199999999
+        ],
+        "matched": true,
+        "predicted_text": "Primary outcome",
+        "predicted_role": "legendtext"
+      }
+    },
+    {
+      "before": {
+        "split": "validation",
+        "source_sha256": "cb9f7f1f61c6bb58ef47a7ece75b73208e9405d4f9b2cb26dc90cfd2bf050d94",
+        "truth_id": "bde9c3e45e6649c26dfe8267d366197111898dcca89a79f506ebd87294e50b3c",
+        "text": "100",
+        "role": "y_tick",
+        "box": [
+          69.733585,
+          710.0,
+          98.92210800000001,
+          719.0
+        ],
+        "matched": true,
+        "predicted_text": "1.00",
+        "predicted_role": "ytick"
+      },
+      "after": {
+        "split": "validation",
+        "source_sha256": "cb9f7f1f61c6bb58ef47a7ece75b73208e9405d4f9b2cb26dc90cfd2bf050d94",
+        "truth_id": "bde9c3e45e6649c26dfe8267d366197111898dcca89a79f506ebd87294e50b3c",
+        "text": "100",
+        "role": "y_tick",
+        "box": [
+          69.733585,
+          710.0,
+          98.92210800000001,
+          719.0
+        ],
+        "matched": true,
+        "predicted_text": "1-00",
+        "predicted_role": "other"
+      }
+    },
+    {
+      "before": {
+        "split": "validation",
+        "source_sha256": "cb9f7f1f61c6bb58ef47a7ece75b73208e9405d4f9b2cb26dc90cfd2bf050d94",
+        "truth_id": "bc62d594682b1925ee336aac03e0bece8c3c7360889ddd6dfd2aa40ecb7fb808",
+        "text": "Primary outcome",
+        "role": "legend_text",
+        "box": [
+          1011.843777,
+          651.0,
+          1135.157982,
+          666.0
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null
+      },
+      "after": {
+        "split": "validation",
+        "source_sha256": "cb9f7f1f61c6bb58ef47a7ece75b73208e9405d4f9b2cb26dc90cfd2bf050d94",
+        "truth_id": "bc62d594682b1925ee336aac03e0bece8c3c7360889ddd6dfd2aa40ecb7fb808",
+        "text": "Primary outcome",
+        "role": "legend_text",
+        "box": [
+          1011.843777,
+          651.0,
+          1135.157982,
+          666.0
+        ],
+        "matched": true,
+        "predicted_text": "Primary outcome",
+        "predicted_role": "legendtext"
+      }
+    }
+  ],
+  "all_330_previous_exact_readings_retained": true,
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 665,
+    "matched": 579,
+    "extra": 86,
+    "missing": 259,
+    "precision": 0.8706766917293233,
+    "recall": 0.6909307875894988
+  },
+  "native_geometry": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 85,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 85,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_outputs_and_statuses_identical": true,
+  "every_observed_model_used_cpu": true,
+  "seconds": {
+    "checks": 98.6783812,
+    "native": 133.7872396,
+    "csv": 146.4609
+  },
+  "models_and_thresholds_unchanged": true,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}
