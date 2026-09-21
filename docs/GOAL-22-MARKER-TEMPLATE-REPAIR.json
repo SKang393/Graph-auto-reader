@@ -1,0 +1,1247 @@
+{
+  "schema": "graphreader.original-pixel-marker-template-repair.v1",
+  "status": "source_repair_verified_accuracy_still_fails",
+  "sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionMarkerTemplateRecovery.cs",
+      "sha256": "209d880aafdccafbd1726355aa54e5e188b044381fd572f113438c23eaab6dc1"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "1dbce0067fe27e5094ed75cffbb910afc93404d1ff0e16ac8faee562d16f0fed"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionMarkerTemplateRecoveryTests.cs",
+      "sha256": "399ee5c5407ddc616feeb106c341fb31395d785a772ceabe4e3756395ff18743"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/measured-marker-template-v1/protocol.json",
+      "sha256": "1f8afae118f43446e9b4647cbf1b681efacb212c09fb2f2e6a15fc0bb4dd6e7a"
+    },
+    {
+      "path": "artifacts/goal22-runs/measured-marker-template-v1/score.json",
+      "sha256": "8ffae45201a5b681e1d5f520ec41c2f19faa7761f6eee5fcb15a764666db7bde"
+    },
+    {
+      "path": "artifacts/goal22-runs/measured-marker-template-v1/status.json",
+      "sha256": "8f5d84e263af767a89406432edec2b709566ac826205d1b7c046abee4ba7eee7"
+    },
+    {
+      "path": "artifacts/goal22-runs/measured-marker-template-v1/replay/report.json",
+      "sha256": "1c3b1623a93d43007831d883e1a9432dac8de637fbbb2d396d9fc5f7e82a33c0"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-marker-template-v1/protocol.json",
+      "sha256": "315fad387196a0c9237cb5e2e917884f2c39aa755eb755a01305b5998d0dacac"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-marker-template-v1/score.json",
+      "sha256": "f120f634a89fdc73c17a5bb3aa37d41c5429c671d25cbef8ea2af69f4923f4bd"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-marker-template-v1/status.json",
+      "sha256": "c7cd18bd300a6b783baf1393efad2ee57ed4499b9d61895196551b4fe411a71a"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-marker-template-v1/replay/report.json",
+      "sha256": "8d0feffe3334ab977fa896f6a9a700c9a71d23b92b04962565a23923980dc01f"
+    },
+    {
+      "path": "artifacts/goal22-runs/complete-glyph-template-v1/protocol.json",
+      "sha256": "74438551d0b19a672419470e778dea4eee7b4cd90b2cad0b366ec6268b40c672"
+    },
+    {
+      "path": "artifacts/goal22-runs/complete-glyph-template-v1/score.json",
+      "sha256": "2ca191554b23316ff50a27050c8f20a4004b3a2828889945efc8fef81e4d82f9"
+    },
+    {
+      "path": "artifacts/goal22-runs/complete-glyph-template-v1/status.json",
+      "sha256": "b6b6e0f6772dbb5f50d96c461ba53d613e39ddb8ec7145067b8b8228319e8f79"
+    },
+    {
+      "path": "artifacts/goal22-runs/complete-glyph-template-v1/replay/report.json",
+      "sha256": "6525ec74477c368eaac2f69ee79433c176944f4e71e4f3977ba80dd84e4b5cdf"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-complete-glyph-v1-retry2/protocol.json",
+      "sha256": "a612195b5b7f7b9fd55a3b78b8cd37de717b6158a2de9e388c7ee4efca62397f"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-complete-glyph-v1-retry2/score.json",
+      "sha256": "705b80213d0c9dad8c895375c310cb835a85970863679855689ab01b8c4efae8"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-complete-glyph-v1-retry2/status.json",
+      "sha256": "939caf755ca892582ad78798ec515f890a6bed8986ddb4af333299580a9e96fb"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-complete-glyph-v1-retry2/replay/report.json",
+      "sha256": "8ff5f0cb8295c27f9294878b42971d8011e3b606b5cf5d8d8a561bdf656f240d"
+    },
+    {
+      "path": "artifacts/goal22-runs/isolated-component-centers-v1/protocol.json",
+      "sha256": "298c95ec91728350fbfbc5759cb42523a8f12d38aff16fbc3b590dd551c34b57"
+    },
+    {
+      "path": "artifacts/goal22-runs/isolated-component-centers-v1/score.json",
+      "sha256": "493e522637a96465cea29f054af7f252d253c6dfc253de3cc631143b50bb8957"
+    },
+    {
+      "path": "artifacts/goal22-runs/isolated-component-centers-v1/status.json",
+      "sha256": "411812528b298db84946f5ba60b9e467d6edad8224feec3bf9d6c85ab86a1c09"
+    },
+    {
+      "path": "artifacts/goal22-runs/isolated-component-centers-v1/replay/report.json",
+      "sha256": "8248108a116b04e6abc633953d5346245397bd48efbfd30032760bfb98dd3001"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-v1/protocol.json",
+      "sha256": "1281011d68bbc953d8d48cc81e975754a5652a10c6397ec30b30c0a6a701206e"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-v1/score.json",
+      "sha256": "9afc447a8e009c3b961f681562c8eb786d0bed4431367fedbd74244aefebd0d7"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-v1/status.json",
+      "sha256": "ccdf11145108ff5c7fcf172c8e10ec2669f95f1acc1f264ad500d39784ba033c"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-isolated-components-v1/replay/report.json",
+      "sha256": "56f764322c8623de13fdf4c77570bd764d7485190e9d9fbffbc8fb5781272131"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v3/source-bindings.json",
+      "sha256": "8209db487745aefb4650968070657e5330789c647cebb039edb845774ad56e88"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v3/status.json",
+      "sha256": "ce4e3593ae8ca880d18b0a1519a69bf33a31ff8b57b26bae013459e8c36ad6f3"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v3/app-tests.log",
+      "sha256": "8a5f9f173784699f9026232d8c6de5ed1cc8cc1c30ebda2cb744ff975a6d5cf6"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v3/native-build.log",
+      "sha256": "25cc231add98a6c345190d2009cdac278d99f71148526b841aaef45654651319"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v3/test-results/app.trx",
+      "sha256": "88bcb6c92b119c4162d22b9e5aaf833e7c54e54ccf806fb83e9ef0e39d4568c6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1-retry1/protocol.json",
+      "sha256": "8a81aa6e1d21b74de9618ed6eed69c9aaf4405add56db11379e656589f8aff4a"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1-retry1/candidate-binding.json",
+      "sha256": "2ab2dfb7cbdce3eb09863630aefb112b55393803d61ee515365dc8e347b5b5fd"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1-retry1/input-manifest.json",
+      "sha256": "f00fa50f5d83719e6cca84ed2acc84eb90622651437096ae148035cd7a498143"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1-retry1/status.json",
+      "sha256": "99fb0dc0e068f2713f27deff9359a949096d0826dfe757b8a94194208d4f32c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1-retry1/execution/report.json",
+      "sha256": "59ece30bcbf8cd2d0d795dd11976d61735a7bab442488e1956bdabca84b6691c"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1-retry1/native-marker-score.json",
+      "sha256": "29385c52c05450fdcaa1591170b57068f71d052488add5f6959b241c0dd4f1a6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1-retry1/native-ocr-score.json",
+      "sha256": "bb757f2638b43cc805a009122014976fd015efc02b740663645e9d3217aa0d08"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1-retry1/axis-geometry-comparison.json",
+      "sha256": "77e9446a74cca15e1c5d7709a6696fcdf199c43f921e30432dc1db9161088bd0"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-workflow-v1-retry1/protocol.json",
+      "sha256": "e08a81eabdd39ce54e52ea5f4171f3cf34a07068b2bd1e81299caf53c86fcfcd"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-workflow-v1-retry1/candidate-binding.json",
+      "sha256": "48bb03ce18f489d3336c6841835e6c9ea6b4c8e6567dea6e1f30b1cd981894f0"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-workflow-v1-retry1/input-manifest.json",
+      "sha256": "4997a7a9089f76190f0e9ba9e7f22ad666d3b1893ecef451711c2e2ae06be30b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-workflow-v1-retry1/status.json",
+      "sha256": "3f13d6072d13de8181c544ff0732ccb6ebc39e3dad10f7d9b2c3ca48fd8e6756"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-workflow-v1-retry1/execution/report.json",
+      "sha256": "5e6a3cab6de2b15ff00938ed4f44072bed31dd5e3eda0360ad57da1249b17c3b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-workflow-v1-retry1/comparison.json",
+      "sha256": "5ed4b7d8b9a4d7ef46d4945fd6012dbebeeecf8c653440fdd2190d58733b9efd"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-workflow-v1-retry1/csv-score-normalized-phases.json",
+      "sha256": "bf5f88066b2a554a641bb26cb8aaa360a5ed99589b9bc2df4eb80ce9a6ed2a40"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-inside-plot-ci-b41c3dfed9b3/status.json",
+      "sha256": "e1c6c594c1c3ea070cce5425b87a4954049024020d0b0a5cc31f3db9cfd916b3"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-complete-glyph-v1/status.json",
+      "sha256": "1316ddfccd3c381f9cf440b2c465f1e646e7175630641ba46b839328c4e178c6"
+    },
+    {
+      "path": "artifacts/goal22-runs/classified-complete-glyph-v1-retry1/status.json",
+      "sha256": "fa286bf4354e097a45e65f2a2f0872dc84f111edd63bba8ab6f0c5d6d17dd68b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v1/status.json",
+      "sha256": "0439220bc2c1f84290314100f45926eb55d409ed8459d49279e46c05a9752973"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v1/ProductionMarkerTemplateRecovery.cs",
+      "sha256": "3b049af7dd91fbb83caa9065463050dbad2f0db232b6087309cb01c10c14d95b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v1/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "1dbce0067fe27e5094ed75cffbb910afc93404d1ff0e16ac8faee562d16f0fed"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v1/ProductionMarkerTemplateRecoveryTests.cs",
+      "sha256": "20d1fa46d839362d8a020bf08fe04e770108848c5751da2502be01898a7f1ac2"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v1/source-bindings.json",
+      "sha256": "24dd0977d00cf239db2cd546ec9cb0cb357fba73baf181595f0651294a94ec80"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v2/status.json",
+      "sha256": "1b147e545938a22f1936d476cb9f8fb9d45d847b07e6a84a70da6f653b85dd8b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v2/ProductionMarkerTemplateRecovery.cs",
+      "sha256": "209d880aafdccafbd1726355aa54e5e188b044381fd572f113438c23eaab6dc1"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v2/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "1dbce0067fe27e5094ed75cffbb910afc93404d1ff0e16ac8faee562d16f0fed"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v2/ProductionMarkerTemplateRecoveryTests.cs",
+      "sha256": "20d1fa46d839362d8a020bf08fe04e770108848c5751da2502be01898a7f1ac2"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-checks-v2/source-bindings.json",
+      "sha256": "13240c6a716c11c1774c18e8cf377cdd6d80ec5898b45066fedfe995d3f54fd6"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-template-v1/status.json",
+      "sha256": "883e8e8263a5f857569271e50d3fe4163709775a271f04aa6bbccbb87fc400f3"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-template-workflow-v1/status.json",
+      "sha256": "e23e99c48bf836a9f130463eb42efc976f5fb66d49cb01e13bded6d74adc5132"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-MarkerTemplateChecksV3.ps1",
+      "sha256": "d731e67267cee2b96d292f961f0f806fa99cf3b2bb298acb97ed3913e99aba8f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-MarkerTemplateContext.py",
+      "sha256": "2847b358817559a5300878966bfdfe101a99a016172c0b70316e288f199de4cb"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-MarkerTemplateContext.py",
+      "sha256": "2d56d2fb6271e72734d10d97130f2c65b23acaae6a22c8f8a578cb63a2262b9c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-MarkerTemplateOcr.py",
+      "sha256": "307a5c499101563f3d5ce97c7f8de8cd2416ab2c60e24fd32a7fbae3c28ab305"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-MarkerTemplateGeometry.py",
+      "sha256": "06dec362c72934622772918bf593a3c0e9fc4c62fbc0b205df41d121db5951d9"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-MarkerTemplateContext.ps1",
+      "sha256": "9c9dd9fc377b5a76bba3d1996e67a30ff7f991ac325c36f986ee53d47fafe678"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-MarkerTemplateWorkflow.py",
+      "sha256": "4d052ca04994787c1ac951489cecb4467f962ed6bf970334b3d778c7f3ce8c62"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-MarkerTemplateWorkflow.py",
+      "sha256": "b293d8ed475faafea3855492a2ec1bebbd6e59fbdd024920bf1013cf42620291"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-MarkerTemplateWorkflow.ps1",
+      "sha256": "206e324dae0031dd314cf8a4747769903b058973c5adbacce1b98458797c4d86"
+    }
+  ],
+  "diagnostics": [
+    {
+      "name": "measured-marker-template-v1",
+      "seconds": 61.3684574,
+      "primary_result": {
+        "similarity": 0.9,
+        "template_only": {
+          "truth": 838,
+          "predicted": 516,
+          "matched": 419,
+          "extra": 97,
+          "missing": 419,
+          "precision": 0.812015503875969,
+          "recall": 0.5
+        },
+        "baseline_union": {
+          "truth": 838,
+          "predicted": 752,
+          "matched": 653,
+          "extra": 99,
+          "missing": 185,
+          "precision": 0.8683510638297872,
+          "recall": 0.779236276849642
+        },
+        "baseline_matches_retained": 569,
+        "recovered": 84,
+        "lost": 0
+      },
+      "sensitivity": [
+        {
+          "similarity": 0.6,
+          "template_only": {
+            "truth": 838,
+            "predicted": 2376,
+            "matched": 794,
+            "extra": 1582,
+            "missing": 44,
+            "precision": 0.3341750841750842,
+            "recall": 0.9474940334128878
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 2205,
+            "matched": 803,
+            "extra": 1402,
+            "missing": 35,
+            "precision": 0.364172335600907,
+            "recall": 0.9582338902147971
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 234,
+          "lost": 0
+        },
+        {
+          "similarity": 0.7,
+          "template_only": {
+            "truth": 838,
+            "predicted": 1212,
+            "matched": 729,
+            "extra": 483,
+            "missing": 109,
+            "precision": 0.6014851485148515,
+            "recall": 0.869928400954654
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 1169,
+            "matched": 758,
+            "extra": 411,
+            "missing": 80,
+            "precision": 0.6484174508126604,
+            "recall": 0.9045346062052506
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 189,
+          "lost": 0
+        },
+        {
+          "similarity": 0.8,
+          "template_only": {
+            "truth": 838,
+            "predicted": 797,
+            "matched": 640,
+            "extra": 157,
+            "missing": 198,
+            "precision": 0.8030112923462986,
+            "recall": 0.7637231503579952
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 859,
+            "matched": 726,
+            "extra": 133,
+            "missing": 112,
+            "precision": 0.8451688009313155,
+            "recall": 0.8663484486873508
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 157,
+          "lost": 0
+        },
+        {
+          "similarity": 0.9,
+          "template_only": {
+            "truth": 838,
+            "predicted": 516,
+            "matched": 419,
+            "extra": 97,
+            "missing": 419,
+            "precision": 0.812015503875969,
+            "recall": 0.5
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 752,
+            "matched": 653,
+            "extra": 99,
+            "missing": 185,
+            "precision": 0.8683510638297872,
+            "recall": 0.779236276849642
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 84,
+          "lost": 0
+        },
+        {
+          "similarity": 0.95,
+          "template_only": {
+            "truth": 838,
+            "predicted": 317,
+            "matched": 269,
+            "extra": 48,
+            "missing": 569,
+            "precision": 0.8485804416403786,
+            "recall": 0.32100238663484487
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 682,
+            "matched": 627,
+            "extra": 55,
+            "missing": 211,
+            "precision": 0.9193548387096774,
+            "recall": 0.7482100238663485
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 58,
+          "lost": 0
+        }
+      ],
+      "score": {
+        "path": "artifacts/goal22-runs/measured-marker-template-v1/score.json",
+        "sha256": "8ffae45201a5b681e1d5f520ec41c2f19faa7761f6eee5fcb15a764666db7bde"
+      }
+    },
+    {
+      "name": "classified-marker-template-v1",
+      "seconds": 11.78837,
+      "primary_result": {
+        "similarity": 0.9,
+        "template_only": {
+          "truth": 838,
+          "predicted": 439,
+          "matched": 390,
+          "extra": 49,
+          "missing": 448,
+          "precision": 0.8883826879271071,
+          "recall": 0.46539379474940334
+        },
+        "baseline_union": {
+          "truth": 838,
+          "predicted": 684,
+          "matched": 632,
+          "extra": 52,
+          "missing": 206,
+          "precision": 0.9239766081871345,
+          "recall": 0.7541766109785203
+        },
+        "baseline_matches_retained": 569,
+        "recovered": 63,
+        "lost": 0
+      },
+      "sensitivity": [
+        {
+          "similarity": 0.6,
+          "template_only": {
+            "truth": 838,
+            "predicted": 1103,
+            "matched": 715,
+            "extra": 388,
+            "missing": 123,
+            "precision": 0.6482320942883046,
+            "recall": 0.8532219570405728
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 1088,
+            "matched": 743,
+            "extra": 345,
+            "missing": 95,
+            "precision": 0.6829044117647058,
+            "recall": 0.8866348448687351
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 174,
+          "lost": 0
+        },
+        {
+          "similarity": 0.7,
+          "template_only": {
+            "truth": 838,
+            "predicted": 827,
+            "matched": 668,
+            "extra": 159,
+            "missing": 170,
+            "precision": 0.8077388149939541,
+            "recall": 0.7971360381861575
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 852,
+            "matched": 708,
+            "extra": 144,
+            "missing": 130,
+            "precision": 0.8309859154929577,
+            "recall": 0.8448687350835322
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 139,
+          "lost": 0
+        },
+        {
+          "similarity": 0.8,
+          "template_only": {
+            "truth": 838,
+            "predicted": 666,
+            "matched": 595,
+            "extra": 71,
+            "missing": 243,
+            "precision": 0.8933933933933934,
+            "recall": 0.7100238663484487
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 762,
+            "matched": 694,
+            "extra": 68,
+            "missing": 144,
+            "precision": 0.910761154855643,
+            "recall": 0.8281622911694511
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 125,
+          "lost": 0
+        },
+        {
+          "similarity": 0.9,
+          "template_only": {
+            "truth": 838,
+            "predicted": 439,
+            "matched": 390,
+            "extra": 49,
+            "missing": 448,
+            "precision": 0.8883826879271071,
+            "recall": 0.46539379474940334
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 684,
+            "matched": 632,
+            "extra": 52,
+            "missing": 206,
+            "precision": 0.9239766081871345,
+            "recall": 0.7541766109785203
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 63,
+          "lost": 0
+        },
+        {
+          "similarity": 0.95,
+          "template_only": {
+            "truth": 838,
+            "predicted": 275,
+            "matched": 246,
+            "extra": 29,
+            "missing": 592,
+            "precision": 0.8945454545454545,
+            "recall": 0.2935560859188544
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 646,
+            "matched": 611,
+            "extra": 35,
+            "missing": 227,
+            "precision": 0.9458204334365325,
+            "recall": 0.7291169451073986
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 42,
+          "lost": 0
+        }
+      ],
+      "score": {
+        "path": "artifacts/goal22-runs/classified-marker-template-v1/score.json",
+        "sha256": "f120f634a89fdc73c17a5bb3aa37d41c5429c671d25cbef8ea2af69f4923f4bd"
+      }
+    },
+    {
+      "name": "complete-glyph-template-v1",
+      "seconds": 37.2192938,
+      "primary_result": {
+        "similarity": 0.9,
+        "template_only": {
+          "truth": 838,
+          "predicted": 298,
+          "matched": 295,
+          "extra": 3,
+          "missing": 543,
+          "precision": 0.9899328859060402,
+          "recall": 0.3520286396181384
+        },
+        "baseline_union": {
+          "truth": 838,
+          "predicted": 700,
+          "matched": 683,
+          "extra": 17,
+          "missing": 155,
+          "precision": 0.9757142857142858,
+          "recall": 0.815035799522673
+        },
+        "baseline_matches_retained": 569,
+        "recovered": 114,
+        "lost": 0
+      },
+      "sensitivity": [
+        {
+          "similarity": 0.6,
+          "template_only": {
+            "truth": 838,
+            "predicted": 990,
+            "matched": 681,
+            "extra": 309,
+            "missing": 157,
+            "precision": 0.6878787878787879,
+            "recall": 0.8126491646778043
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 1061,
+            "matched": 790,
+            "extra": 271,
+            "missing": 48,
+            "precision": 0.7445805843543827,
+            "recall": 0.9427207637231504
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 221,
+          "lost": 0
+        },
+        {
+          "similarity": 0.7,
+          "template_only": {
+            "truth": 838,
+            "predicted": 621,
+            "matched": 571,
+            "extra": 50,
+            "missing": 267,
+            "precision": 0.9194847020933977,
+            "recall": 0.6813842482100239
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 795,
+            "matched": 752,
+            "extra": 43,
+            "missing": 86,
+            "precision": 0.9459119496855346,
+            "recall": 0.8973747016706444
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 183,
+          "lost": 0
+        },
+        {
+          "similarity": 0.8,
+          "template_only": {
+            "truth": 838,
+            "predicted": 463,
+            "matched": 458,
+            "extra": 5,
+            "missing": 380,
+            "precision": 0.9892008639308856,
+            "recall": 0.5465393794749404
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 737,
+            "matched": 719,
+            "extra": 18,
+            "missing": 119,
+            "precision": 0.9755766621438263,
+            "recall": 0.8579952267303103
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 150,
+          "lost": 0
+        },
+        {
+          "similarity": 0.9,
+          "template_only": {
+            "truth": 838,
+            "predicted": 298,
+            "matched": 295,
+            "extra": 3,
+            "missing": 543,
+            "precision": 0.9899328859060402,
+            "recall": 0.3520286396181384
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 700,
+            "matched": 683,
+            "extra": 17,
+            "missing": 155,
+            "precision": 0.9757142857142858,
+            "recall": 0.815035799522673
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 114,
+          "lost": 0
+        },
+        {
+          "similarity": 0.95,
+          "template_only": {
+            "truth": 838,
+            "predicted": 226,
+            "matched": 223,
+            "extra": 3,
+            "missing": 615,
+            "precision": 0.9867256637168141,
+            "recall": 0.26610978520286394
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 676,
+            "matched": 659,
+            "extra": 17,
+            "missing": 179,
+            "precision": 0.9748520710059172,
+            "recall": 0.7863961813842482
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 90,
+          "lost": 0
+        }
+      ],
+      "score": {
+        "path": "artifacts/goal22-runs/complete-glyph-template-v1/score.json",
+        "sha256": "2ca191554b23316ff50a27050c8f20a4004b3a2828889945efc8fef81e4d82f9"
+      }
+    },
+    {
+      "name": "classified-complete-glyph-v1-retry2",
+      "seconds": 11.6724042,
+      "primary_result": {
+        "similarity": 0.9,
+        "template_only": {
+          "truth": 838,
+          "predicted": 264,
+          "matched": 261,
+          "extra": 3,
+          "missing": 577,
+          "precision": 0.9886363636363636,
+          "recall": 0.31145584725536996
+        },
+        "baseline_union": {
+          "truth": 838,
+          "predicted": 683,
+          "matched": 666,
+          "extra": 17,
+          "missing": 172,
+          "precision": 0.9751098096632503,
+          "recall": 0.7947494033412887
+        },
+        "baseline_matches_retained": 569,
+        "recovered": 97,
+        "lost": 0
+      },
+      "sensitivity": [
+        {
+          "similarity": 0.6,
+          "template_only": {
+            "truth": 838,
+            "predicted": 626,
+            "matched": 564,
+            "extra": 62,
+            "missing": 274,
+            "precision": 0.9009584664536742,
+            "recall": 0.6730310262529833
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 775,
+            "matched": 718,
+            "extra": 57,
+            "missing": 120,
+            "precision": 0.9264516129032258,
+            "recall": 0.8568019093078759
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 149,
+          "lost": 0
+        },
+        {
+          "similarity": 0.7,
+          "template_only": {
+            "truth": 838,
+            "predicted": 507,
+            "matched": 494,
+            "extra": 13,
+            "missing": 344,
+            "precision": 0.9743589743589743,
+            "recall": 0.5894988066825776
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 731,
+            "matched": 708,
+            "extra": 23,
+            "missing": 130,
+            "precision": 0.9685362517099864,
+            "recall": 0.8448687350835322
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 139,
+          "lost": 0
+        },
+        {
+          "similarity": 0.8,
+          "template_only": {
+            "truth": 838,
+            "predicted": 410,
+            "matched": 407,
+            "extra": 3,
+            "missing": 431,
+            "precision": 0.9926829268292683,
+            "recall": 0.48568019093078757
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 710,
+            "matched": 693,
+            "extra": 17,
+            "missing": 145,
+            "precision": 0.976056338028169,
+            "recall": 0.8269689737470167
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 124,
+          "lost": 0
+        },
+        {
+          "similarity": 0.9,
+          "template_only": {
+            "truth": 838,
+            "predicted": 264,
+            "matched": 261,
+            "extra": 3,
+            "missing": 577,
+            "precision": 0.9886363636363636,
+            "recall": 0.31145584725536996
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 683,
+            "matched": 666,
+            "extra": 17,
+            "missing": 172,
+            "precision": 0.9751098096632503,
+            "recall": 0.7947494033412887
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 97,
+          "lost": 0
+        },
+        {
+          "similarity": 0.95,
+          "template_only": {
+            "truth": 838,
+            "predicted": 197,
+            "matched": 194,
+            "extra": 3,
+            "missing": 644,
+            "precision": 0.9847715736040609,
+            "recall": 0.2315035799522673
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 662,
+            "matched": 645,
+            "extra": 17,
+            "missing": 193,
+            "precision": 0.974320241691843,
+            "recall": 0.7696897374701671
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 76,
+          "lost": 0
+        }
+      ],
+      "score": {
+        "path": "artifacts/goal22-runs/classified-complete-glyph-v1-retry2/score.json",
+        "sha256": "705b80213d0c9dad8c895375c310cb835a85970863679855689ab01b8c4efae8"
+      }
+    },
+    {
+      "name": "isolated-component-centers-v1",
+      "seconds": 9.8133272,
+      "primary_result": {
+        "similarity": 1,
+        "template_only": {
+          "truth": 838,
+          "predicted": 400,
+          "matched": 311,
+          "extra": 89,
+          "missing": 527,
+          "precision": 0.7775,
+          "recall": 0.3711217183770883
+        },
+        "baseline_union": {
+          "truth": 838,
+          "predicted": 804,
+          "matched": 701,
+          "extra": 103,
+          "missing": 137,
+          "precision": 0.8718905472636815,
+          "recall": 0.8365155131264916
+        },
+        "baseline_matches_retained": 569,
+        "recovered": 132,
+        "lost": 0
+      },
+      "sensitivity": [
+        {
+          "similarity": 1,
+          "template_only": {
+            "truth": 838,
+            "predicted": 400,
+            "matched": 311,
+            "extra": 89,
+            "missing": 527,
+            "precision": 0.7775,
+            "recall": 0.3711217183770883
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 804,
+            "matched": 701,
+            "extra": 103,
+            "missing": 137,
+            "precision": 0.8718905472636815,
+            "recall": 0.8365155131264916
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 132,
+          "lost": 0
+        }
+      ],
+      "score": {
+        "path": "artifacts/goal22-runs/isolated-component-centers-v1/score.json",
+        "sha256": "493e522637a96465cea29f054af7f252d253c6dfc253de3cc631143b50bb8957"
+      }
+    },
+    {
+      "name": "classified-isolated-components-v1",
+      "seconds": 10.5100854,
+      "primary_result": {
+        "similarity": 1,
+        "template_only": {
+          "truth": 838,
+          "predicted": 301,
+          "matched": 272,
+          "extra": 29,
+          "missing": 566,
+          "precision": 0.9036544850498339,
+          "recall": 0.324582338902148
+        },
+        "baseline_union": {
+          "truth": 838,
+          "predicted": 722,
+          "matched": 679,
+          "extra": 43,
+          "missing": 159,
+          "precision": 0.9404432132963989,
+          "recall": 0.8102625298329356
+        },
+        "baseline_matches_retained": 569,
+        "recovered": 110,
+        "lost": 0
+      },
+      "sensitivity": [
+        {
+          "similarity": 1,
+          "template_only": {
+            "truth": 838,
+            "predicted": 301,
+            "matched": 272,
+            "extra": 29,
+            "missing": 566,
+            "precision": 0.9036544850498339,
+            "recall": 0.324582338902148
+          },
+          "baseline_union": {
+            "truth": 838,
+            "predicted": 722,
+            "matched": 679,
+            "extra": 43,
+            "missing": 159,
+            "precision": 0.9404432132963989,
+            "recall": 0.8102625298329356
+          },
+          "baseline_matches_retained": 569,
+          "recovered": 110,
+          "lost": 0
+        }
+      ],
+      "score": {
+        "path": "artifacts/goal22-runs/classified-isolated-components-v1/score.json",
+        "sha256": "9afc447a8e009c3b961f681562c8eb786d0bed4431367fedbd74244aefebd0d7"
+      }
+    }
+  ],
+  "void_attempts": [
+    {
+      "run": "classified-complete-glyph-v1",
+      "status": "void",
+      "error": "Legend-template diagnostic build failed",
+      "seconds": 5.3176319,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "training": false
+    },
+    {
+      "run": "classified-complete-glyph-v1-retry1",
+      "status": "void",
+      "error": "Legend-template replay failed; see complete replay.log",
+      "seconds": 170.5596521,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "training": false
+    },
+    {
+      "run": "marker-template-checks-v1",
+      "status": "failed",
+      "error": "App tests failed",
+      "seconds": 43.2596573
+    },
+    {
+      "run": "marker-template-checks-v2",
+      "status": "failed",
+      "error": "App tests failed",
+      "seconds": 52.0758825
+    },
+    {
+      "run": "native-marker-template-v1",
+      "status": "failed",
+      "error": "App checks must complete before inference",
+      "seconds": 0.3251301
+    },
+    {
+      "run": "marker-template-workflow-v1",
+      "status": "failed",
+      "error": "Native marker comparison must complete first",
+      "seconds": 0.2820134
+    }
+  ],
+  "tests": {
+    "total": 486,
+    "passed": 486,
+    "failed": 0
+  },
+  "native_marker_metrics": {
+    "truth": 838,
+    "predicted": 683,
+    "matched": 666,
+    "extra": 17,
+    "missing": 172,
+    "precision": 0.9751098096632503,
+    "recall": 0.7947494033412887
+  },
+  "paired_marker_truths": {
+    "retained": 569,
+    "recovered": 97,
+    "lost": 0,
+    "missed_by_both": 172
+  },
+  "native_ocr_metrics": {
+    "truth_region_count": 453,
+    "predicted_region_count": 499,
+    "geometry_matched_region_count": 381,
+    "geometry_false_positive_count": 118,
+    "geometry_false_negative_count": 72,
+    "recognition_exact_count": 337,
+    "recognition_exact_accuracy": 0.7439293598233996,
+    "truth_character_count": 3100,
+    "matched_pair_edit_count": 64,
+    "unmatched_truth_deletion_edit_count": 516,
+    "unmatched_prediction_insertion_edit_count": 287,
+    "character_error_count": 867,
+    "character_error_rate": 0.2796774193548387,
+    "role_correct_count": 349,
+    "role_accuracy": 0.7704194260485652,
+    "by_expected_runtime_role": {
+      "annotation": {
+        "truth_count": 62,
+        "correct_count": 38,
+        "accuracy": 0.6129032258064516
+      },
+      "axistitle": {
+        "truth_count": 52,
+        "correct_count": 49,
+        "accuracy": 0.9423076923076923
+      },
+      "legendtext": {
+        "truth_count": 37,
+        "correct_count": 29,
+        "accuracy": 0.7837837837837838
+      },
+      "participant": {
+        "truth_count": 31,
+        "correct_count": 20,
+        "accuracy": 0.6451612903225806
+      },
+      "phaseheading": {
+        "truth_count": 170,
+        "correct_count": 131,
+        "accuracy": 0.7705882352941177
+      },
+      "xtick": {
+        "truth_count": 2,
+        "correct_count": 2,
+        "accuracy": 1.0
+      },
+      "ytick": {
+        "truth_count": 99,
+        "correct_count": 80,
+        "accuracy": 0.8080808080808081
+      }
+    },
+    "intersection_over_union_minimum": 0.5
+  },
+  "axis_metrics": {
+    "before": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    },
+    "after": {
+      "axis_corners": 93,
+      "within_2px": 84,
+      "panels_all_corners_within_2px": 23
+    }
+  },
+  "csv_metrics": {
+    "truth_cases": 23,
+    "output_cases": 23,
+    "completed_cases": 12,
+    "failed_cases": 11,
+    "unexpected_cases": 0,
+    "integrity_failure_cases": 0,
+    "truth_series": 41,
+    "predicted_series": 30,
+    "matched_series": 22,
+    "truth_points": 706,
+    "predicted_points": 417,
+    "matched_points": 403,
+    "unique_point_value_metrics_available": true,
+    "relational_row_metrics_available": true,
+    "relational_phase_metrics_available": true,
+    "actual_rows": 417,
+    "residual_artifact_rows_from_failed_cases": 0,
+    "expected_rows": 724,
+    "structurally_matched_rows": 402,
+    "correct_rows": 399,
+    "missing_rows": 322,
+    "extra_rows": 15,
+    "duplicate_rows": 0,
+    "wrong_scale_rows": 0,
+    "wrong_export_mode_rows": 0,
+    "wrong_phase_rows": 3,
+    "wrong_relation_rows": 0,
+    "unique_point_value_correct": 403,
+    "unique_point_value_incorrect": 0,
+    "unique_point_missing": 303,
+    "unique_point_extra": 14,
+    "unique_point_wrong_scale": 0,
+    "unique_point_wrong_export_mode": 0,
+    "unique_point_structural_precision": 0.9664268585131894,
+    "unique_point_structural_coverage": 0.5708215297450425,
+    "unique_point_value_precision": 0.9664268585131894,
+    "unique_point_value_coverage": 0.5708215297450425,
+    "matched_unique_point_value_accuracy": 1,
+    "relational_row_precision": 0.9568345323741008,
+    "relational_row_coverage": 0.5511049723756906,
+    "matched_relational_graph_value_accuracy": 1,
+    "matched_relational_phase_accuracy": 0.9925373134328358,
+    "artifact_integrity_valid": true,
+    "failure_kinds": {
+      "workflow_failed": 11
+    }
+  },
+  "csv_values_statuses_and_upstream_ocr_axis_identical": true,
+  "observed_model_providers": {
+    "native": {
+      "OpenCvSharpExtern:cpu": 31,
+      "graph-text-extent-db-head-v44-p1:cpu": 31,
+      "en_PP-OCRv5_mobile_rec:cpu": 31,
+      "marker-center-component-diversity-v27:cpu": 31,
+      "marker-classifier-structural-context-v5:cpu": 41
+    },
+    "workflow": {
+      "OpenCvSharpExtern:cpu": 39,
+      "graph-text-extent-db-head-v44-p1:cpu": 39,
+      "en_PP-OCRv5_mobile_rec:cpu": 39,
+      "marker-center-component-diversity-v27:cpu": 39,
+      "marker-classifier-structural-context-v5:cpu": 40
+    }
+  },
+  "primary_similarity": 0.9,
+  "existing_classifier_artifact_cutoff": 0.5,
+  "models_and_existing_thresholds_unchanged": true,
+  "scope": "One additive pass from measured whole glyphs; existing classifier and numeric review/export guards remain required. Existing centers are preserved.",
+  "review": "Single-agent source review, eight new regression scenarios, native original-pixel inference, and actual CSV output comparison. No independent subagent was used under the maintainer instruction.",
+  "seconds": {
+    "tests_and_build": 86.4609177,
+    "native": 149.4401343,
+    "csv": 160.5943147
+  },
+  "limitations": [
+    "Recall is 79.47%, below the unchanged 95% bar.",
+    "Synthetic development evidence only; no real acceptance or production approval.",
+    "The broader diagnostic gains 97 points; the separate full-CSV fixture gains no exported values.",
+    "Connected or ambiguous components cannot seed matching. Fixed similarities/scales do not establish real-image coverage."
+  ],
+  "license": "Apache-2.0 project source; existing reviewed OpenCvSharp/native runtime and classifier only. No new dependency or model.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_all_four_outcomes_verified": false
+}
