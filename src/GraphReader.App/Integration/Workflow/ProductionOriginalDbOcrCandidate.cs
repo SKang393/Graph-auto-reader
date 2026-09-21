@@ -36,7 +36,8 @@ public sealed partial class ProductionOcrAdapter
         bool participantLaneAssembly = false,
         bool headerLayoutContext = false,
         bool framedLegendContext = false,
-        bool tickLaneRecovery = false)
+        bool tickLaneRecovery = false,
+        Action<OcrDetectionObservation>? detectionObserver = null)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -134,7 +135,7 @@ public sealed partial class ProductionOcrAdapter
                     EnableFramedLegendTextRecovery = tickLaneRecovery,
                     EnableTickLaneRecovery = tickLaneRecovery,
                     EnableHeaderGlyphRecovery = tickLaneRecovery,
-                });
+                }, detectionObserver);
         }, detectionModel.Identity, recognitionModel.Identity, reviewedOpenCvRuntimeSha256,
             candidateComposition);
     }

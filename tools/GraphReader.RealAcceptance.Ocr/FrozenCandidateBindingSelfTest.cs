@@ -25,6 +25,21 @@ internal static class FrozenCandidateBindingSelfTest
             var fixture = new Fixture(repositoryRoot, root);
             JsonObject valid = fixture.CreateBinding();
             FrozenCandidateBinding loaded = fixture.Load(valid);
+            FrozenCandidateWorkflowFactory.ValidateOcrObservationScope(false, true, true);
+            foreach ((bool aggregate, bool synthetic) in new[] { (true, true), (true, false), (false, false) })
+            {
+                FrozenCandidateWorkflowFactory.ValidateOcrObservationScope(aggregate, synthetic, false);
+                try
+                {
+                    FrozenCandidateWorkflowFactory.ValidateOcrObservationScope(aggregate, synthetic, true);
+                    throw new InvalidDataException("RAW_OCR_OBSERVER_REACHED_NON_SYNTHETIC_SCOPE");
+                }
+                catch (InvalidDataException error)
+                {
+                    Require(error.Message.StartsWith("Per-panel OCR observations are restricted to synthetic development", StringComparison.Ordinal),
+                        "RAW_OCR_OBSERVER_PRIVACY_GUARD_CHANGED");
+                }
+            }
             JsonObject classifierCandidate = Clone(valid);
             classifierCandidate["marker_classifier"] = fixture.CreateSyntheticClassifier();
             FrozenCandidateBinding classifierBinding = fixture.Load(classifierCandidate);

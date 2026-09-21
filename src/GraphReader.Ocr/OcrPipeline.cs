@@ -69,6 +69,7 @@ public sealed class OcrPipeline
     private readonly ITextRecognizer _recognizer;
     private readonly IOcrResultCache _cache;
     private readonly OcrPipelineOptions _options;
+    private readonly Action<OcrDetectionObservation>? _detectionObserver;
 
     public OcrPipeline(
         ITextRegionDetector detector,
@@ -83,12 +84,14 @@ public sealed class OcrPipeline
         ITextRegionDetector detector,
         ITextRecognizer recognizer,
         IOcrResultCache cache,
-        OcrPipelineOptions options)
+        OcrPipelineOptions options,
+        Action<OcrDetectionObservation>? detectionObserver = null)
     {
         _detector = detector ?? throw new ArgumentNullException(nameof(detector));
         _recognizer = recognizer ?? throw new ArgumentNullException(nameof(recognizer));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         _options = options ?? throw new ArgumentNullException(nameof(options));
+        _detectionObserver = detectionObserver;
         if (_options.BatchSize <= 0 || _options.CropWidth <= 0 || _options.CropHeight <= 0 ||
             _options.MaximumCropWidth < _options.CropWidth ||
             !Enum.IsDefined(_options.CropWidthMode) ||
@@ -139,7 +142,11 @@ public sealed class OcrPipeline
             _detector.ConfigurationFingerprint);
         try
         {
-            var requestCached = await _cache.TryGetAsync(requestCacheKey, cancellationToken).ConfigureAwait(false);
+            // A final-result cache cannot supply the unassembled detector
+            // inventory. Evidence callers must observe this request's detector.
+            var requestCached = _detectionObserver is null
+                ? await _cache.TryGetAsync(requestCacheKey, cancellationToken).ConfigureAwait(false)
+                : null;
             if (requestCached is not null &&
                 (requestCached.RegionFailures is null || requestCached.RegionFailures.Count == 0))
             {
@@ -187,6 +194,10 @@ public sealed class OcrPipeline
                     cancellationToken)
                 .ConfigureAwait(false);
             ValidateDetectedRegions(detectedRegions);
+            _detectionObserver?.Invoke(new OcrDetectionObservation(
+                request.ProjectId, request.PanelId, request.InputSha256,
+                request.OriginalImage.Width, request.OriginalImage.Height,
+                request.DetectedRegions is not null, Array.AsReadOnly(detectedRegions.ToArray())));
             if (_options.EnableParticipantLaneAssembly)
             {
                 detectedRegions = ParticipantLaneTextRegionAssembler.Assemble(

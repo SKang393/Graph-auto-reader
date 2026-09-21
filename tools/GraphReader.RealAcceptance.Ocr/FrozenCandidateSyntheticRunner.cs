@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.Imaging;
+using GraphReader.Ocr;
 
 namespace GraphReader.RealAcceptance.Ocr;
 
@@ -91,9 +92,49 @@ internal static class FrozenCandidateSyntheticRunner
         var caseReports = new List<object>(sourceSnapshots.Count);
         int completed = 0;
         int failed = 0;
+        var rawOcrFiles = new List<object>();
+        var rawOcrByPanel = new Dictionary<string, string>(StringComparer.Ordinal);
+        void CaptureDetection(OcrDetectionObservation observation)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (observation.SuppliedRegions || !Guid.TryParse(observation.PanelId, out Guid panelId))
+                throw new InvalidDataException("Synthetic OCR evidence requires actual detection and a bound panel identity.");
+            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(new
+            {
+                schema = "graphreader.synthetic-workflow-raw-ocr-observation.v1",
+                candidate_binding_sha256 = binding.Sha256,
+                input_manifest_sha256 = input.Sha256,
+                synthetic_only = true,
+                private_corpus_access = false,
+                sealed_corpus_access = false,
+                observation,
+            }, DiagnosticJsonOptions);
+            string hash = FrozenCandidateBinding.Hash(bytes);
+            if (rawOcrByPanel.TryGetValue(observation.PanelId, out string? earlier))
+            {
+                if (earlier != hash)
+                    throw new InvalidDataException("Repeated panel detection produced different raw OCR evidence.");
+                return;
+            }
+            string path = Path.Combine(outputRoot, "raw-ocr-evidence", $"{panelId:D}.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            WriteNew(path, bytes);
+            rawOcrByPanel.Add(observation.PanelId, hash);
+            rawOcrFiles.Add(new
+            {
+                panel_id = panelId,
+                input_sha256 = observation.InputSha256,
+                path = Path.GetRelativePath(outputRoot, path).Replace('\\', '/'),
+                sha256 = hash,
+            });
+        }
+        bool captureRawOcr = FrozenCandidateWorkflowFactory.ResolveOcrComposition(binding.Algorithms) is
+            FrozenCandidateWorkflowFactory.OcrCompositionKind.OriginalDb or
+            FrozenCandidateWorkflowFactory.OcrCompositionKind.OriginalDbContext;
         await using FrozenCandidateWorkflowRuntime candidate =
             await FrozenCandidateWorkflowFactory.CreateAsync(
-                    repositoryRoot, outputRoot, binding, cancellationToken, allowSyntheticClassifier: true)
+                    repositoryRoot, outputRoot, binding, cancellationToken, allowSyntheticClassifier: true,
+                    ocrDetectionObserver: captureRawOcr ? CaptureDetection : null)
                 .ConfigureAwait(false);
         var diagnosticFiles = new List<object>();
         var observedPanelIds = new HashSet<Guid>();
@@ -280,6 +321,8 @@ internal static class FrozenCandidateSyntheticRunner
             model_selection_performed = false,
             truth_consumed_by_inference = false,
             calibration_diagnostic_files = diagnosticFiles,
+            raw_ocr_diagnostic_files = rawOcrFiles,
+            raw_ocr_observation_enabled = captureRawOcr,
             post_failure_panel_diagnostics = postFailureDiagnostics,
             cases = caseReports,
         };

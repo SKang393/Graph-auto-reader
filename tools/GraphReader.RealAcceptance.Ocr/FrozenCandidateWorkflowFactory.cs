@@ -50,16 +50,27 @@ internal sealed class FrozenCandidateWorkflowRuntime : IAsyncDisposable
 
 internal static class FrozenCandidateWorkflowFactory
 {
+    internal static void ValidateOcrObservationScope(bool aggregateOnly, bool syntheticDevelopment, bool observing)
+    {
+        if (observing && (aggregateOnly || !syntheticDevelopment))
+            throw new InvalidDataException("Per-panel OCR observations are restricted to synthetic development.");
+    }
+
     internal static async Task<FrozenCandidateWorkflowRuntime> CreateAsync(
         string repositoryRoot,
         string outputRoot,
         FrozenCandidateBinding binding,
         CancellationToken cancellationToken,
         bool aggregateOnly = false,
-        bool allowSyntheticClassifier = false)
+        bool allowSyntheticClassifier = false,
+        Action<OcrDetectionObservation>? ocrDetectionObserver = null)
     {
         ArgumentNullException.ThrowIfNull(binding);
         cancellationToken.ThrowIfCancellationRequested();
+        ValidateOcrObservationScope(aggregateOnly, allowSyntheticClassifier, ocrDetectionObserver is not null);
+        if (ocrDetectionObserver is not null && ResolveOcrComposition(binding.Algorithms) is not
+                (OcrCompositionKind.OriginalDb or OcrCompositionKind.OriginalDbContext))
+            throw new InvalidDataException("Raw OCR observation requires the original-DB candidate composition.");
         if (binding.MarkerClassifier.SyntheticCandidate is not null && (!allowSyntheticClassifier || aggregateOnly))
             throw new InvalidDataException("Unapproved classifier weights are restricted to synthetic development.");
         string snapshotRoot = Path.Combine(outputRoot, "frozen-inputs", "candidate");
@@ -170,10 +181,10 @@ internal static class FrozenCandidateWorkflowFactory
                     binding.OpenCvNative.Sha256, cancellationToken,
                     insidePlotAssembly: true, pixelBoundsRefinement: true,
                     participantLaneAssembly: true, headerLayoutContext: true,
-                    framedLegendContext: true, tickLaneRecovery: true),
+                    framedLegendContext: true, tickLaneRecovery: true, detectionObserver: ocrDetectionObserver),
                 OcrCompositionKind.OriginalDb => ProductionOcrAdapter.CreateForFrozenDbHeadCandidateEvaluationAsync(
                     detectorDescriptor, recognizerDescriptor, runtimeHost,
-                    binding.OpenCvNative.Sha256, cancellationToken),
+                    binding.OpenCvNative.Sha256, cancellationToken, detectionObserver: ocrDetectionObserver),
                 OcrCompositionKind.TiledProbability => ProductionOcrAdapter.CreateForFrozenTiledProbabilityCandidateEvaluationAsync(
                     detectorDescriptor, recognizerDescriptor, runtimeHost,
                     binding.OpenCvNative.Sha256, cancellationToken),

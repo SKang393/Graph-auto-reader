@@ -1,0 +1,430 @@
+{
+  "schema": "graphreader.goal22.raw-ocr-observation.v1",
+  "status": "observation_verified_accuracy_incomplete",
+  "base_commit": "185ad6c226dfefe60e03fc990caaa8f4eb0eb702",
+  "evidence": {
+    "separated_ocr_score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-raw-ocr-observation-v1/separated-ocr-score.json",
+      "sha256": "b5c66a051cd00d04504676e36a32e4b3e441edb6e706b0ab1bc4e985a02d810a"
+    },
+    "workflow_comparison": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-raw-ocr-observation-v1/comparison.json",
+      "sha256": "2fa66fe1a683bf1e3091d661c5bbe26da73793e2a9ec03d557454c72939327ec"
+    },
+    "runtime_report": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-raw-ocr-observation-v1/execution/report.json",
+      "sha256": "9372e2c147ed831cb97b08fc1fe7bcce9439c9f708b3822509682dc0ca272c2b"
+    },
+    "csv_score": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-raw-ocr-observation-v1/csv-score-normalized-phases.json",
+      "sha256": "d5b6398988376a61366fcd179521b2d220dd7768470653bde8e3e8608359c162"
+    },
+    "source_bindings": {
+      "path": "artifacts/goal22-runs/ocr-observation-checks-v1/source-bindings.json",
+      "sha256": "e28476ae938ea914e372405342f1d279ac38ba4ad1504fba3c92ccaf6bf6010e"
+    },
+    "checks": {
+      "path": "artifacts/goal22-runs/ocr-observation-checks-v1/status.json",
+      "sha256": "a13c58e89ac58f23ed4c96ae8e6b460fa10b44f796d02568d26a709e8dbbbf45"
+    },
+    "ocr_tests": {
+      "path": "artifacts/goal22-runs/ocr-observation-checks-v1/test-results/ocr.trx",
+      "sha256": "7dc19dae9428b435b476d3c0a9be3c72e144c819d6d4a4d9fc3685a61d4fa55d"
+    },
+    "app_tests": {
+      "path": "artifacts/goal22-runs/ocr-observation-checks-v1/test-results/app.trx",
+      "sha256": "e81475b899165ddd9927b681fd0b0e1cf2ed6089020306544d48efe3b4f69596"
+    },
+    "build_log": {
+      "path": "artifacts/goal22-runs/ocr-observation-checks-v1/build.log",
+      "sha256": "fd9ae71265aa875c90ad322954a8735ea1d14f74ab8bf35505e1b4f8f423e6b6"
+    },
+    "scorer_tests": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-raw-ocr-observation-v1/scorer-tests.log",
+      "sha256": "b6029fabe502c720e74af042c7acdea1407af453b206866cb5cc5be62c4ca8fe"
+    },
+    "scorer_test_source": {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/test_score_native_workflow_ocr.py",
+      "sha256": "d60c6de6608cb18846a3dc3ae88310bd473d158e2af480c8bfc12443f6b08056"
+    }
+  },
+  "source_bindings": [
+    {
+      "path": "src/GraphReader.Ocr/OcrDetectionObservation.cs",
+      "archive": "artifacts/goal22-runs/ocr-observation-checks-v1/source-snapshot/src/GraphReader.Ocr/OcrDetectionObservation.cs",
+      "sha256": "9e7c42dea4559e628972d8afb9e4ff9f4ce35a6abc2abdb104ab68b944248ea5"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "archive": "artifacts/goal22-runs/ocr-observation-checks-v1/source-snapshot/src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "24652479e17c53e5377b07682e2563a5f6b0bdee3155cd193bdcf3bdcc54c1ff"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "archive": "artifacts/goal22-runs/ocr-observation-checks-v1/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrCandidate.cs",
+      "sha256": "4d603a83967aca9b782002644719315e2ae6c9e20955e809b8c53bdfd49d5f15"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateWorkflowFactory.cs",
+      "archive": "artifacts/goal22-runs/ocr-observation-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateWorkflowFactory.cs",
+      "sha256": "3ededf0b4a40e30371119fbf4209089df55587a28a95c12450343a70c8272e2c"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs",
+      "archive": "artifacts/goal22-runs/ocr-observation-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateSyntheticRunner.cs",
+      "sha256": "877693cd4771560b7e85844f108f2f1dceddecdd6b79b1d925c308cdd628234f"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBindingSelfTest.cs",
+      "archive": "artifacts/goal22-runs/ocr-observation-checks-v1/source-snapshot/tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBindingSelfTest.cs",
+      "sha256": "8a198972d5c215943b3690a6832e85479e3e171ab80238bb2c8a906184acb729"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/OcrDetectionObservationTests.cs",
+      "archive": "artifacts/goal22-runs/ocr-observation-checks-v1/source-snapshot/tests/GraphReader.Ocr.Tests/OcrDetectionObservationTests.cs",
+      "sha256": "244f2d555a11c92c3860ee2a223fe271b27b61d14c4ecfd7b40767f4db1667ae"
+    }
+  ],
+  "checks": {
+    "ocr_passed": 391,
+    "ocr_optional_skipped": 16,
+    "app_passed": 425,
+    "scorer_passed": 14,
+    "checker_commands_passed": 6,
+    "build_warnings": 0,
+    "build_errors": 0
+  },
+  "metrics": {
+    "train": {
+      "sources": 20,
+      "raw_detector": {
+        "truth_regions": 709,
+        "predicted_regions": 646,
+        "matched_regions": 616,
+        "false_positives": 30,
+        "false_negatives": 93,
+        "precision": 0.9535603715170279,
+        "recall": 0.8688293370944993,
+        "intersection_over_union_minimum": 0.5,
+        "by_role": {
+          "phaseheading": {
+            "truths": 160,
+            "matched": 130
+          },
+          "xtick": {
+            "truths": 175,
+            "matched": 151
+          },
+          "ytick": {
+            "truths": 204,
+            "matched": 188
+          },
+          "participant": {
+            "truths": 30,
+            "matched": 24
+          },
+          "axistitle": {
+            "truths": 50,
+            "matched": 38
+          },
+          "legendtext": {
+            "truths": 30,
+            "matched": 29
+          },
+          "annotation": {
+            "truths": 60,
+            "matched": 56
+          }
+        }
+      },
+      "assembled_geometry": {
+        "truth_regions": 709,
+        "predicted_regions": 653,
+        "matched_regions": 638,
+        "false_positives": 15,
+        "false_negatives": 71,
+        "precision": 0.9770290964777948,
+        "recall": 0.8998589562764457,
+        "intersection_over_union_minimum": 0.5,
+        "by_role": {
+          "phaseheading": {
+            "truths": 160,
+            "matched": 130
+          },
+          "xtick": {
+            "truths": 175,
+            "matched": 164
+          },
+          "ytick": {
+            "truths": 204,
+            "matched": 189
+          },
+          "participant": {
+            "truths": 30,
+            "matched": 27
+          },
+          "axistitle": {
+            "truths": 50,
+            "matched": 41
+          },
+          "legendtext": {
+            "truths": 30,
+            "matched": 30
+          },
+          "annotation": {
+            "truths": 60,
+            "matched": 57
+          }
+        }
+      },
+      "assembled_ocr": {
+        "truth_region_count": 709,
+        "predicted_region_count": 653,
+        "geometry_matched_region_count": 638,
+        "geometry_false_positive_count": 15,
+        "geometry_false_negative_count": 71,
+        "recognition_exact_count": 416,
+        "recognition_exact_accuracy": 0.5867418899858956,
+        "truth_character_count": 3415,
+        "matched_pair_edit_count": 994,
+        "unmatched_truth_deletion_edit_count": 282,
+        "unmatched_prediction_insertion_edit_count": 54,
+        "character_error_count": 1330,
+        "character_error_rate": 0.38945827232796487,
+        "role_correct_count": 465,
+        "role_accuracy": 0.6558533145275035,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 60,
+            "correct_count": 37,
+            "accuracy": 0.6166666666666667
+          },
+          "axistitle": {
+            "truth_count": 50,
+            "correct_count": 34,
+            "accuracy": 0.68
+          },
+          "legendtext": {
+            "truth_count": 30,
+            "correct_count": 30,
+            "accuracy": 1.0
+          },
+          "participant": {
+            "truth_count": 30,
+            "correct_count": 16,
+            "accuracy": 0.5333333333333333
+          },
+          "phaseheading": {
+            "truth_count": 160,
+            "correct_count": 76,
+            "accuracy": 0.475
+          },
+          "xtick": {
+            "truth_count": 175,
+            "correct_count": 129,
+            "accuracy": 0.7371428571428571
+          },
+          "ytick": {
+            "truth_count": 204,
+            "correct_count": 143,
+            "accuracy": 0.7009803921568627
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "bar_checks": {
+        "raw_detection_precision": true,
+        "raw_detection_recall": false,
+        "assembled_detection_precision": true,
+        "assembled_detection_recall": false,
+        "recognition_exact": false,
+        "character_error_rate": false,
+        "role_accuracy": false
+      }
+    },
+    "validation": {
+      "sources": 3,
+      "raw_detector": {
+        "truth_regions": 183,
+        "predicted_regions": 198,
+        "matched_regions": 157,
+        "false_positives": 41,
+        "false_negatives": 26,
+        "precision": 0.7929292929292929,
+        "recall": 0.8579234972677595,
+        "intersection_over_union_minimum": 0.5,
+        "by_role": {
+          "phaseheading": {
+            "truths": 60,
+            "matched": 53
+          },
+          "xtick": {
+            "truths": 48,
+            "matched": 39
+          },
+          "ytick": {
+            "truths": 25,
+            "matched": 24
+          },
+          "participant": {
+            "truths": 9,
+            "matched": 9
+          },
+          "axistitle": {
+            "truths": 12,
+            "matched": 10
+          },
+          "legendtext": {
+            "truths": 11,
+            "matched": 6
+          },
+          "annotation": {
+            "truths": 18,
+            "matched": 16
+          }
+        }
+      },
+      "assembled_geometry": {
+        "truth_regions": 183,
+        "predicted_regions": 189,
+        "matched_regions": 181,
+        "false_positives": 8,
+        "false_negatives": 2,
+        "precision": 0.9576719576719577,
+        "recall": 0.9890710382513661,
+        "intersection_over_union_minimum": 0.5,
+        "by_role": {
+          "phaseheading": {
+            "truths": 60,
+            "matched": 59
+          },
+          "xtick": {
+            "truths": 48,
+            "matched": 47
+          },
+          "ytick": {
+            "truths": 25,
+            "matched": 25
+          },
+          "participant": {
+            "truths": 9,
+            "matched": 9
+          },
+          "axistitle": {
+            "truths": 12,
+            "matched": 12
+          },
+          "legendtext": {
+            "truths": 11,
+            "matched": 11
+          },
+          "annotation": {
+            "truths": 18,
+            "matched": 18
+          }
+        }
+      },
+      "assembled_ocr": {
+        "truth_region_count": 183,
+        "predicted_region_count": 189,
+        "geometry_matched_region_count": 181,
+        "geometry_false_positive_count": 8,
+        "geometry_false_negative_count": 2,
+        "recognition_exact_count": 177,
+        "recognition_exact_accuracy": 0.9672131147540983,
+        "truth_character_count": 1019,
+        "matched_pair_edit_count": 6,
+        "unmatched_truth_deletion_edit_count": 2,
+        "unmatched_prediction_insertion_edit_count": 8,
+        "character_error_count": 16,
+        "character_error_rate": 0.015701668302257114,
+        "role_correct_count": 174,
+        "role_accuracy": 0.9508196721311475,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 18,
+            "correct_count": 13,
+            "accuracy": 0.7222222222222222
+          },
+          "axistitle": {
+            "truth_count": 12,
+            "correct_count": 12,
+            "accuracy": 1.0
+          },
+          "legendtext": {
+            "truth_count": 11,
+            "correct_count": 11,
+            "accuracy": 1.0
+          },
+          "participant": {
+            "truth_count": 9,
+            "correct_count": 9,
+            "accuracy": 1.0
+          },
+          "phaseheading": {
+            "truth_count": 60,
+            "correct_count": 58,
+            "accuracy": 0.9666666666666667
+          },
+          "xtick": {
+            "truth_count": 48,
+            "correct_count": 46,
+            "accuracy": 0.9583333333333334
+          },
+          "ytick": {
+            "truth_count": 25,
+            "correct_count": 25,
+            "accuracy": 1.0
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      },
+      "bar_checks": {
+        "raw_detection_precision": false,
+        "raw_detection_recall": false,
+        "assembled_detection_precision": true,
+        "assembled_detection_recall": true,
+        "recognition_exact": true,
+        "character_error_rate": true,
+        "role_accuracy": true
+      }
+    }
+  },
+  "source_count": 23,
+  "panel_count": 39,
+  "truth_count": 892,
+  "workflow_sources_completed": 17,
+  "retained_failed_sources": 6,
+  "correct_unique_values": 479,
+  "expected_unique_values": 706,
+  "correct_relational_rows": 474,
+  "expected_relational_rows": 724,
+  "baseline_outputs_identical": true,
+  "all_model_payloads_unchanged": true,
+  "timing_seconds": {
+    "dotnet_validation": 102.8155716,
+    "native_replay": 147.4594539,
+    "saved_output_scoring": 1.0313866999931633
+  },
+  "raw_detection_is_descriptive_intermediate_evidence": true,
+  "assembled_output_is_reported_separately": true,
+  "additional_acceptance_gate_created": false,
+  "production_approved": false,
+  "stage_admission_granted": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "packaged_builds": 0,
+  "prior_ci": {
+    "commit": "185ad6c226dfefe60e03fc990caaa8f4eb0eb702",
+    "run": 35549537112,
+    "result": "success",
+    "earlier_failed_run": 35548489420,
+    "earlier_failure": "SchedulerTimeoutReturnsPromptly exceeded the one-second test bound; successor CI passed"
+  },
+  "remaining": [
+    "calibration failures and phase/marker coverage",
+    "current composed stage evidence and sealed gates",
+    "real acceptance, production activation and final distribution verification"
+  ]
+}
