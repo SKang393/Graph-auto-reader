@@ -1,0 +1,96 @@
+{
+  "schema": "goal22-native-crop-padding-diagnosis-v1",
+  "scope": "owned-open-synthetic-development",
+  "input_regions": 73,
+  "previous_probe_regions": 74,
+  "geometry_changed_exclusions": 1,
+  "retained_earlier_exclusions": 8,
+  "rows": [
+    {
+      "geometry": "refined",
+      "width": 320,
+      "count": 73,
+      "exact": 56,
+      "native_final_reproduced": 67
+    },
+    {
+      "geometry": "refined",
+      "width": 480,
+      "count": 73,
+      "exact": 56,
+      "native_final_reproduced": 64
+    },
+    {
+      "geometry": "refined",
+      "width": 640,
+      "count": 73,
+      "exact": 55,
+      "native_final_reproduced": 59
+    },
+    {
+      "geometry": "detected",
+      "width": 320,
+      "count": 73,
+      "exact": 59,
+      "native_final_reproduced": 59
+    },
+    {
+      "geometry": "detected",
+      "width": 480,
+      "count": 73,
+      "exact": 58,
+      "native_final_reproduced": 59
+    },
+    {
+      "geometry": "detected",
+      "width": 640,
+      "count": 73,
+      "exact": 57,
+      "native_final_reproduced": 57
+    }
+  ],
+  "source_crops_and_two_pixel_margin_unchanged": true,
+  "truth_consumed_by_inference": false,
+  "runtime_intra_operation_threads": 10,
+  "inference_seconds": 32.3168303,
+  "total_seconds": 47.1733955,
+  "recognizer_sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+  "evidence": {
+    "definition.json": {
+      "path": "artifacts/goal22-runs/native-numeric-crop-v1/definition.json",
+      "sha256": "3d42936e0df576ddcbace4b908434be4a7e56a476fcce4970d586a3b04d5af49"
+    },
+    "input.json": {
+      "path": "artifacts/goal22-runs/native-numeric-crop-v1/input.json",
+      "sha256": "faa6bb1c538b2bcc5bf2dbb86c1e5ad5b2fa0dd4d8497d9781c91d4bf861b547"
+    },
+    "scoring-only.json": {
+      "path": "artifacts/goal22-runs/native-numeric-crop-v1/scoring-only.json",
+      "sha256": "81d7945cb56414d84407c12d05261f2d531e421ee4dd3551f0d7bddaa232fda4"
+    },
+    "result.json": {
+      "path": "artifacts/goal22-runs/native-numeric-crop-v1/result.json",
+      "sha256": "170dad06947604baeb85ca30ff67a1eaac266b4fc4e13593e3343f9409cb95b7"
+    },
+    "status.json": {
+      "path": "artifacts/goal22-runs/native-numeric-crop-v1/status.json",
+      "sha256": "88850e4d6622345b13b465b500bc779d558dd2bd43d28996ca41d1016ebb4a25"
+    },
+    "build.log": {
+      "path": "artifacts/goal22-runs/native-numeric-crop-v1/build.log",
+      "sha256": "437801e7fa8673ec3b048ef554b83193781db9fe5e0d5b476f2acbab19628001"
+    }
+  },
+  "per_case_selection": false,
+  "product_settings_changed": false,
+  "acceptance_gate": false,
+  "bit_exact_full_pipeline_parity_claimed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "new_dependencies": false,
+  "new_model_weights": false,
+  "packaged_build_created": false,
+  "goal22_passed": false
+}

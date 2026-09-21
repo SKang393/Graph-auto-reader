@@ -31,6 +31,14 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 7 && args[0] == "--validate-composed-ocr-dev-evidence")
+        {
+            return ComposedOcrDevEvidence.RunCommand(args);
+        }
+        if (args.Length == 1 && args[0] == "--self-test-composed-ocr-dev-evidence")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(ComposedOcrDevEvidenceSelfTest.Run()));
+        }
         if (args.Length == 1 && args[0] == "--self-test-synthetic-diagnostic-continuation")
         {
             return await RunEngaugeSelfTestAsync(FrozenSyntheticDiagnosticContinuationSelfTest.RunAsync);

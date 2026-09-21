@@ -15,6 +15,7 @@ internal static class FrozenRealWorkflowAdmissionSelfTest
 
     internal static object Run()
     {
+        _ = ComposedOcrDevEvidenceSelfTest.Run();
         string root = Path.Combine(Path.GetTempPath(), "graphreader-real-admission-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
         try

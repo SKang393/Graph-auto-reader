@@ -1,0 +1,249 @@
+{
+  "schema": "goal22-composed-ocr-execution-evidence-v1",
+  "scope": "owned-open-synthetic-development",
+  "source_bindings": [
+    {
+      "path": "tools/Shared/ComposedOcrExecutionIdentity.cs",
+      "sha256": "cb6e737e3feeb19197a15e65e05e631b07441da7b3d764a0adfdc2f1dcc9efba"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/ComposedOcrDevEvidence.cs",
+      "sha256": "a6e59aef803ecfb90fa882d7df932bbed9e8fe1446cb24f47aa61a14692365ef"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/ComposedOcrDevEvidenceSelfTest.cs",
+      "sha256": "681409a8e2d83738264626c4e1348b60ab67f3b6ad38639fdfd611221b71fe11"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/FrozenRealWorkflowAdmissionSelfTest.cs",
+      "sha256": "5370b57f628dbe7e723f1b8ff2b68cf417339566de560c2543fe79b969d851fb"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/Program.cs",
+      "sha256": "f16cae7393bbf0d43edd2cf9bdf655655a299e0fe60ded7df629ea568617b660"
+    },
+    {
+      "path": "tools/GraphReader.RealAcceptance.Ocr/GraphReader.RealAcceptance.Ocr.csproj",
+      "sha256": "fadc54d3f5ba4f21fc0ce81ab15f101a77345da7bf3f623102f9d35cb2b5f836"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/ComposedOcrMemoryDevCheck.cs",
+      "sha256": "600ab96f13421df4e70eb4876df974f8fd3433e878f90d491e71b5212a750428"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "230044f15c60b2eb8b29534230ed9bd0bbcb681259695be7691c3de36bb0040b"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/GraphReader.SyntheticRuntimeEvidence.csproj",
+      "sha256": "085f0d2d7ff8d35aef0b740925d52a552a1f9639c916b756abab0ed443f0c630"
+    }
+  ],
+  "evidence": {
+    "definition.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/definition.json",
+      "sha256": "c54801317edbdab0cfbedeacaf9fdd8815ffa49436e7bc258c2f08b32427f101"
+    },
+    "source-bindings.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/source-bindings.json",
+      "sha256": "eee5deda17481f24c1939617deaa82269ca4bc3d53800c64da11cfb92508699f"
+    },
+    "references.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/references.json",
+      "sha256": "f96c20b16cfb03981cb1b13a903be45268c3dc9a0c05e9618df024a651181f2b"
+    },
+    "stage-candidate.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/stage-candidate.json",
+      "sha256": "43d1e6baeff961cc71d7f03760e3e52f1e3f7e70c5c506de2a2de13652c31a5d"
+    },
+    "workflow-binding.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/workflow-binding.json",
+      "sha256": "46902ca464895ee678b193edc89364569721c70d95a93ab610c77c612ce3d3da"
+    },
+    "request.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/request.json",
+      "sha256": "a9b89b642aeab5cc55bda42f44ad2e8a393d4d735a344633e15a74acb643e730"
+    },
+    "result.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/result.json",
+      "sha256": "ad45d7a610da51b3329622a4a61a13bf70e3e723500d5e701184d19601594f4a"
+    },
+    "compatibility.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/compatibility.json",
+      "sha256": "edfaa5bb275ffae6b4978a8e67deb78d4c5c4ad8e826ca2ed852e66a1d825bb9"
+    },
+    "comparison.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/comparison.json",
+      "sha256": "37d2bf34dc5e920e72ef85ff1fd67fcb9ddbe5fd39fd00eec4f1ebb1a40953aa"
+    },
+    "status.json": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/status.json",
+      "sha256": "1b24499eaf94cf78c7c8e87d66eeaa98d5a8daad3c21841a1924793c621382aa"
+    },
+    "SyntheticRuntimeEvidence-build.log": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/SyntheticRuntimeEvidence-build.log",
+      "sha256": "3bc24bc84f15aaae579308c8eb186f55d5e64d3ed35d735e24bb1624ed38b445"
+    },
+    "RealAcceptance.Ocr-build.log": {
+      "path": "artifacts/goal22-runs/composed-dev-execution-v1/RealAcceptance.Ocr-build.log",
+      "sha256": "d1541a837b4186cb706a603c86324b18d67dcc06423721a79c4a4a911030b054"
+    }
+  },
+  "runner_sources": [
+    {
+      "path": "artifacts/goal22-tools/Prepare-ComposedDevExecutionV1.py",
+      "sha256": "23dbc6f394a655630e00977f90df7dd0c1e8bdc3563fbe30b163cbee1ed91845"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ComposedDevExecutionV1.ps1",
+      "sha256": "f0e87541078c1796287c61428cdfaf24f76a495ac809fb467efba8b3cc168758"
+    }
+  ],
+  "self_tests": {
+    "composed-ocr-dev-evidence": {
+      "artifact": {
+        "path": "artifacts/goal22-runs/composed-dev-execution-v1/composed-ocr-dev-evidence.json",
+        "sha256": "b0388da032d8371598352083e3af3b989a26b40e41ab1b4f152bbf3ed4647e38"
+      },
+      "checks": 34
+    },
+    "real-workflow-admission": {
+      "artifact": {
+        "path": "artifacts/goal22-runs/composed-dev-execution-v1/real-workflow-admission.json",
+        "sha256": "47402b653460ab2c0a8ac371f06c6b702bc35bcbc65c837cb1a6c4dac018926e"
+      },
+      "checks": 11
+    },
+    "real-workflow-worker": {
+      "artifact": {
+        "path": "artifacts/goal22-runs/composed-dev-execution-v1/real-workflow-worker.json",
+        "sha256": "2a619a6e7c70868619ef367335d6c1e240f197e0244fcf29ba4c406efefb7058"
+      },
+      "checks": 8
+    },
+    "real-workflow-runner": {
+      "artifact": {
+        "path": "artifacts/goal22-runs/composed-dev-execution-v1/real-workflow-runner.json",
+        "sha256": "40961d7c7b0138b285de37a1269834e974f201dc6328f826e0f611d7793417c7"
+      },
+      "checks": 5
+    }
+  },
+  "shared_execution_file_count": 30,
+  "execution_sha256": "6f59c0984cf04da88608e5cd7fe3a745db06871a1349b68e79e9ebe01a559eb5",
+  "native_metrics": {
+    "validation": {
+      "source_count": 21,
+      "panel_count": 31,
+      "metrics": {
+        "source_count": 21,
+        "raw_detector_geometry": {
+          "truth_region_count": 453,
+          "predicted_region_count": 491,
+          "true_positives": 359,
+          "false_positives": 132,
+          "false_negatives": 94,
+          "precision": 0.7311608961303462,
+          "recall": 0.7924944812362031,
+          "intersection_over_union_minimum": 0.5
+        },
+        "assembled_geometry": {
+          "truth_region_count": 453,
+          "predicted_region_count": 525,
+          "true_positives": 378,
+          "false_positives": 147,
+          "false_negatives": 75,
+          "precision": 0.72,
+          "recall": 0.8344370860927153,
+          "intersection_over_union_minimum": 0.5
+        },
+        "full_ocr_metrics": {
+          "truth_region_count": 453,
+          "predicted_region_count": 525,
+          "geometry_matched_region_count": 378,
+          "geometry_false_positive_count": 147,
+          "geometry_false_negative_count": 75,
+          "recognition_exact_count": 330,
+          "recognition_exact_accuracy": 0.7284768211920529,
+          "truth_character_count": 3100,
+          "matched_pair_edit_count": 71,
+          "unmatched_truth_deletion_edit_count": 574,
+          "unmatched_prediction_insertion_edit_count": 384,
+          "character_error_count": 1029,
+          "character_error_rate": 0.3319354838709677,
+          "role_correct_count": 337,
+          "role_accuracy": 0.7439293598233996,
+          "by_expected_runtime_role": {
+            "annotation": {
+              "truth_count": 62,
+              "correct_count": 38,
+              "accuracy": 0.6129032258064516
+            },
+            "axistitle": {
+              "truth_count": 52,
+              "correct_count": 48,
+              "accuracy": 0.9230769230769231
+            },
+            "legendtext": {
+              "truth_count": 37,
+              "correct_count": 25,
+              "accuracy": 0.6756756756756757
+            },
+            "participant": {
+              "truth_count": 31,
+              "correct_count": 20,
+              "accuracy": 0.6451612903225806
+            },
+            "phaseheading": {
+              "truth_count": 170,
+              "correct_count": 127,
+              "accuracy": 0.7470588235294118
+            },
+            "xtick": {
+              "truth_count": 2,
+              "correct_count": 2,
+              "accuracy": 1
+            },
+            "ytick": {
+              "truth_count": 99,
+              "correct_count": 77,
+              "accuracy": 0.7777777777777778
+            }
+          },
+          "intersection_over_union_minimum": 0.5
+        },
+        "recognition_failed_region_count": 0
+      }
+    }
+  },
+  "all_prior_metrics_identical": true,
+  "total_seconds": 117.4504816,
+  "native_replay_milliseconds": 49896.7371,
+  "commands": [
+    "dotnet build tools/GraphReader.<SyntheticRuntimeEvidence|RealAcceptance.Ocr>/GraphReader.<tool>.csproj -c Release --artifacts-path artifacts/goal22-runs/composed-dev-execution-v1/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo",
+    "GraphReader.RealAcceptance.Ocr --self-test-composed-ocr-dev-evidence",
+    "GraphReader.RealAcceptance.Ocr --self-test-real-workflow-admission",
+    "GraphReader.RealAcceptance.Ocr --self-test-real-workflow-worker",
+    "GraphReader.RealAcceptance.Ocr --self-test-real-workflow-runner",
+    "GraphReader.SyntheticRuntimeEvidence --check-composed-ocr-prerequisite-dev <request path/hash> <stage candidate path/hash>",
+    "GraphReader.RealAcceptance.Ocr --validate-composed-ocr-dev-evidence <report path/hash> <workflow binding path/hash> <request hash> <stage candidate hash>"
+  ],
+  "legacy_command_and_sealed_formats_unchanged": true,
+  "shared_acceptance_bars_unchanged": true,
+  "stage_admission_granted": false,
+  "accuracy_acceptance_passed": false,
+  "production_approved": false,
+  "goal22_passed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_dependencies": false,
+  "license_change": false,
+  "packaged_build_created": false,
+  "retained_build": 433,
+  "retained_version": "0.4.33",
+  "remaining": [
+    "Real-admission source adapters must bind authentic passing dev and sealed results. Compatibility alone never meets those requirements.",
+    "OCR geometry and recognition, marker/classifier, calibration, real acceptance, production promotion, and final 2.0.0 distribution remain unfinished."
+  ]
+}

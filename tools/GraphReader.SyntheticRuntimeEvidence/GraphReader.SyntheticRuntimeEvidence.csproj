@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\ComposedOcrExecutionIdentity.cs" Link="Shared\ComposedOcrExecutionIdentity.cs" />
     <ProjectReference Include="..\..\src\GraphReader.App\GraphReader.App.csproj" />
     <Compile Include="..\GraphReader.RealAcceptance.Ocr\FrozenRealFirstReadHandshake.cs" Link="Shared\FrozenRealFirstReadHandshake.cs" />
     <Compile Include="..\GraphReader.RealAcceptance.Ocr\FrozenRealFirstReadHandshakeSelfTest.cs" Link="Shared\FrozenRealFirstReadHandshakeSelfTest.cs" />

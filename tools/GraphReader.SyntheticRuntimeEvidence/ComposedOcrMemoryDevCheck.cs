@@ -6,6 +6,8 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Windows.Media.Imaging;
+using GraphReader.App.Integration.Workflow;
+using GraphReader.Evidence;
 
 namespace GraphReader.SyntheticRuntimeEvidence;
 
@@ -14,6 +16,7 @@ internal static class ComposedOcrMemoryDevCheck
 {
     internal const string Command = "--check-composed-ocr-memory-dev";
     internal const string OpenDiagnosticCommand = "--diagnose-open-composed-ocr";
+    internal const string PrerequisiteCommand = "--check-composed-ocr-prerequisite-dev";
     private static readonly JsonSerializerOptions Options = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
 
     internal static async Task<int> RunAsync(string[] args, string root)
@@ -24,8 +27,9 @@ internal static class ComposedOcrMemoryDevCheck
         string stage = "setup";
         try
         {
-            if (args.Length != 5 || args[0] is not (Command or OpenDiagnosticCommand)) throw new InvalidDataException();
+            if (args.Length != 5 || args[0] is not (Command or OpenDiagnosticCommand or PrerequisiteCommand)) throw new InvalidDataException();
             bool diagnostic = args[0] == OpenDiagnosticCommand;
+            bool prerequisite = args[0] == PrerequisiteCommand;
             byte[] requestBytes = Read(root, args[1], args[2], 4 * 1024 * 1024);
             using JsonDocument request = JsonDocument.Parse(requestBytes);
             JsonElement value = request.RootElement;
@@ -103,6 +107,15 @@ internal static class ComposedOcrMemoryDevCheck
                     sealed_reads = 0, stage_admission_granted = false, production_approved = false,
                 }, Options));
             }
+            else if (prerequisite) Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                schema = "graphreader.composed-ocr-memory-dev-result.v2", status = "completed",
+                sources = entries.Length, metrics, elapsed_milliseconds = timer.Elapsed.TotalMilliseconds,
+                request_sha256 = args[2], candidate_sha256 = args[4], model_inference = true,
+                execution_sha256 = ReadExecutionIdentity(root, args[3], args[4]),
+                truth_consumed_by_inference = false, case_output = false, private_reads = 0,
+                sealed_reads = 0, stage_admission_granted = false, production_approved = false,
+            }, Options));
             else Console.WriteLine(JsonSerializer.Serialize(new
             {
                 schema = "graphreader.composed-ocr-memory-dev-result.v1", status = "completed",
@@ -124,6 +137,19 @@ internal static class ComposedOcrMemoryDevCheck
             return 1;
         }
         finally { Console.CancelKeyPress -= cancel; }
+    }
+
+    private static string ReadExecutionIdentity(string root, string path, string hash)
+    {
+        using JsonDocument document = JsonDocument.Parse(Read(root, path, hash, 4 * 1024 * 1024));
+        JsonElement value = document.RootElement, detector = value.GetProperty("detector"), recognizer = value.GetProperty("recognizer");
+        IReadOnlyDictionary<string, string> files = ComposedOcrExecutionIdentity.ReadRuntimeFiles(AppContext.BaseDirectory);
+        if (files["OpenCvSharpExtern.dll"] != value.GetProperty("native_sha256").GetString())
+            throw new InvalidDataException("COMPOSED_OCR_EXECUTION_NATIVE_MISMATCH");
+        return ComposedOcrExecutionIdentity.Create(value.GetProperty("composition_version").GetString()!,
+            ProductionAxisGeometryAdapter.StageVersion, detector.GetProperty("model_sha256").GetString()!,
+            detector.GetProperty("manifest_sha256").GetString()!, recognizer.GetProperty("model_sha256").GetString()!,
+            recognizer.GetProperty("manifest_sha256").GetString()!, "cpu", "disabled", 1, 1, 1, 1, files);
     }
 
     internal static void ValidateOpenDiagnosticScope(JsonElement request, JsonElement manifest)

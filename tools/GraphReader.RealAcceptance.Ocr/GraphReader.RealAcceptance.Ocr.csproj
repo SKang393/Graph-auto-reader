@@ -10,6 +10,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Shared\ComposedOcrExecutionIdentity.cs" Link="Shared\ComposedOcrExecutionIdentity.cs" />
     <ProjectReference Include="..\..\src\GraphReader.App\GraphReader.App.csproj" />
     <ProjectReference Include="..\..\src\GraphReader.Export\GraphReader.Export.csproj" />
     <ProjectReference Include="..\..\src\GraphReader.Markers\GraphReader.Markers.csproj" />
