@@ -28,7 +28,7 @@ def test_real_coordinator_and_transport_share_one_confirmed_read(tmp_path: Path)
     admission, authorization, gate, registry_path = admission_fixture._prepare(tmp_path)
     metadata = bound_reserve_metadata(admission)
     expected = OcrSealedRequestIdentity(
-        attempt_id="fixture-attempt", admission_binding_sha256=admission.admission_id,
+        attempt_id=admission_fixture.ATTEMPT_ID, admission_binding_sha256=admission.admission_id,
         set_id=metadata["set_id"], candidate_sha256=admission_fixture.CANDIDATE_SHA256,
         archive_sha256=metadata["archive"]["sha256"],
         archive_manifest_sha256=metadata["chain"]["archive_manifest_sha256"],
@@ -89,7 +89,7 @@ def test_transport_failure_recovers_only_proven_accounting(
     admission, authorization, gate, registry_path = admission_fixture._prepare(tmp_path)
     metadata = bound_reserve_metadata(admission)
     expected = OcrSealedRequestIdentity(
-        attempt_id="fixture-attempt", admission_binding_sha256=admission.admission_id,
+        attempt_id=admission_fixture.ATTEMPT_ID, admission_binding_sha256=admission.admission_id,
         set_id=metadata["set_id"], candidate_sha256=admission_fixture.CANDIDATE_SHA256,
         archive_sha256=metadata["archive"]["sha256"],
         archive_manifest_sha256=metadata["chain"]["archive_manifest_sha256"],

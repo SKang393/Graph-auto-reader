@@ -32,6 +32,20 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--self-test-composed-ocr-worker")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSealedWorkerSelfTest.Run(composed: true), JsonOptions));
+            return 0;
+        }
+        if (args.Length == 1 && args[0] == "--self-test-composed-ocr-worker-fixture")
+        {
+            Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSealedWorkerSelfTest.ResultFixture(composed: true), JsonOptions));
+            return 0;
+        }
+        if (args.Length > 0 && args[0] == OriginalDbOcrSealedWorker.ComposedCommand)
+        {
+            return await OriginalDbOcrSealedWorker.RunAsync(args, RepositoryRoot(), composed: true).ConfigureAwait(false);
+        }
         if (args.Length == 1 && args[0] == "--self-test-composed-ocr-memory")
         {
             Console.WriteLine(JsonSerializer.Serialize(

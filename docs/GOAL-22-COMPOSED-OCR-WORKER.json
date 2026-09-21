@@ -1,0 +1,104 @@
+{
+  "schema": "graphreader.goal22.composed-ocr-worker-checks.v1",
+  "status": "fixture_validation_passed",
+  "python_tests_passed": 99,
+  "native_worker_checks_per_mode": 15,
+  "existing_native_fixture_suites": 4,
+  "warnings": 0,
+  "errors": 0,
+  "seconds": 94.318735,
+  "model_inference_runs": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "stage_admission_granted": false,
+  "sources": [
+    {
+      "path": "ml/policy/ocr_sealed_transport.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/source/ml/policy/ocr_sealed_transport.py",
+      "sha256": "83856468d5f1dfd4c07f4c944f8d578d99654ba88074884fc2d51273f4b28cdc"
+    },
+    {
+      "path": "ml/policy/tests/test_composed_ocr_sealed_transport.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/source/ml/policy/tests/test_composed_ocr_sealed_transport.py",
+      "sha256": "a6172af8f0886b2d964322c0aa832051dc48883898362e6325f4f7291805894b"
+    },
+    {
+      "path": "ml/policy/tests/test_ocr_sealed_admission_transport.py",
+      "archive": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/source/ml/policy/tests/test_ocr_sealed_admission_transport.py",
+      "sha256": "d7e466a6f20c074959fbdbec824c509cd6b2e8eb5a2b3c53b996b6e6c7cd40a3"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedWorker.cs",
+      "archive": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/source/tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedWorker.cs",
+      "sha256": "3c83ec25bf637c727dea61dff1d21ec69d025cb58ad977f08b824027f2b89f38"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedWorkerSelfTest.cs",
+      "archive": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/source/tools/GraphReader.SyntheticRuntimeEvidence/OriginalDbOcrSealedWorkerSelfTest.cs",
+      "sha256": "435eb452bd177b35fa42011c0372cbc0eeee08fe4d9fdb637d7f705e0b54d3c5"
+    },
+    {
+      "path": "tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "archive": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/source/tools/GraphReader.SyntheticRuntimeEvidence/Program.cs",
+      "sha256": "76477fe7deb2efe894c3a728212ba1917032d3d0f7c5ea4fbfa9047902248493"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/status.json",
+      "sha256": "4609ac2ec3d4a6760c28105bb27c1d5e286699149dde38e6bbfcd648983553fc"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/tests.xml",
+      "sha256": "3b3df44b95b37a89e18c352b4e12166a803537cb22a53eb730427766d458db0d"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/build.log",
+      "sha256": "ae015b1d28234c19148cf025b55bfbe43a9b71e8abf0106cb826d612ad5587f4"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/composed-ocr-worker.json",
+      "sha256": "9df876f11d5364ff022c54a09193b790d3e550b3c76030d2ee103fab1fc49712"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/sealed-ocr-worker.json",
+      "sha256": "baf5b2b7f209e7e4315b5a8b7f839808241168021d9191aff1c64da10389433e"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/composed-ocr-memory.json",
+      "sha256": "1163c21e8c7c65a03d86bdddd0363af9af262d276709d7a23598e529a66e3d71"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/composed-ocr-aggregate.json",
+      "sha256": "7140a4a36c4d72eb358c559e12c292add4c2cc50c4776147e17fdb93c6ba6a68"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/sealed-ocr-corpus.json",
+      "sha256": "c4b784ec5057667b4e488a6e3db9c733661b824fa5025793c57753b233aa4f50"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/sealed-ocr-source-mapping.json",
+      "sha256": "a6aae1a0f8de030ba51b8bf9e824c40901767a213395b5da4550e30aea617e4a"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/interop.json",
+      "sha256": "864233ff660102939d57a3e5816e0f5b9b20250f92b39d57b685208a2beb4a14"
+    },
+    {
+      "path": "artifacts/goal22-runs/composed-ocr-worker-checks-v3/source-bindings.json",
+      "sha256": "de3e84c622567ec61876581fd4e3dd3b2545cbbeeb07b0bf6d0990eda278bc0f"
+    }
+  ],
+  "retained_failed_attempts": [
+    "composed-ocr-worker-checks-v1",
+    "composed-ocr-worker-checks-v2"
+  ],
+  "remaining": [
+    "Current composed development evidence authenticator and parent/recovery integration",
+    "Genuine sealed and real acceptance",
+    "Marker and calibration defects"
+  ],
+  "build_number": 433,
+  "version": "0.4.33"
+}

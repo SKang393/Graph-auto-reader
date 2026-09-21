@@ -15,6 +15,9 @@ internal static class OriginalDbOcrSealedWorker
     internal const string Command = "--evaluate-original-db-sealed";
     internal const string RequestSchema = "graphreader.original-db-ocr-sealed-worker-request.v1";
     internal const string ResultSchema = "graphreader.original-db-ocr-sealed-worker-result.v1";
+    internal const string ComposedCommand = "--evaluate-composed-ocr-sealed";
+    internal const string ComposedRequestSchema = "graphreader.composed-ocr-sealed-worker-request.v1";
+    internal const string ComposedResultSchema = "graphreader.composed-ocr-sealed-worker-result.v1";
     internal const string MetricReferenceSha256 = "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656";
     private const int MaximumRequestBytes = 64 * 1024;
     private static readonly JsonSerializerOptions Options = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
@@ -29,7 +32,7 @@ internal static class OriginalDbOcrSealedWorker
         string CandidatePath, string CandidateSha256, string ArchivePath, string ArchiveSha256,
         string ArchiveManifestSha256, int SourceCount, string CoverageProtocolSha256);
 
-    internal static async Task<int> RunAsync(string[] args, string root)
+    internal static async Task<int> RunAsync(string[] args, string root, bool composed = false)
     {
         TextWriter output = Console.Out;
         TextWriter errors = Console.Error;
@@ -48,33 +51,37 @@ internal static class OriginalDbOcrSealedWorker
             byte[] requestBytes = new byte[checked((int)requestFile.Length)];
             await requestFile.ReadExactlyAsync(requestBytes, cancellation.Token).ConfigureAwait(false);
             if (Convert.ToHexStringLower(SHA256.HashData(requestBytes)) != args[2]) throw new InvalidDataException();
-            Request request = ParseRequest(requestBytes);
+            Request request = ParseRequest(requestBytes, composed);
             string archivePath = InsideArtifacts(root, request.ArchivePath, "synthetic-sealed-reserves");
             _ = InsideArtifacts(root, request.CandidatePath);
             var timer = Stopwatch.StartNew();
 
-            OriginalDbOcrCorpusAggregate aggregate = await OriginalDbOcrMemoryRuntime.RunAsync(
-                root, request.CandidatePath, request.CandidateSha256,
-                async (ocr, raw, axis, token) =>
+            // Both routes authenticate model/runtime bytes before invoking this reader.
+            IReadOnlyList<OriginalDbOcrSealedSourcePayload> ReadSources(CancellationToken token)
+            {
+                using var archiveFile = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                string nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
+                var handshake = new FrozenRealFirstReadHandshake(Console.In, output,
+                    request.AttemptId, request.CandidateSha256, TimeSpan.FromSeconds(30), nonce);
+                using var stream = new OriginalDbOcrReadReceiptStream(archiveFile, () =>
                 {
-                    // Model files and the executing runtime are authenticated before sealed admission.
-                    using var archiveFile = new FileStream(archivePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    string nonce = Convert.ToHexStringLower(RandomNumberGenerator.GetBytes(32));
-                    var handshake = new FrozenRealFirstReadHandshake(Console.In, output,
-                        request.AttemptId, request.CandidateSha256, TimeSpan.FromSeconds(30), nonce);
-                    using var stream = new OriginalDbOcrReadReceiptStream(archiveFile, () =>
-                    {
-                        output.WriteLine($"G22_POSITIVE_READ/1 {request.AttemptId} {request.CandidateSha256} {nonce}");
-                        output.Flush();
-                    });
-                    IReadOnlyList<OriginalDbOcrSealedSourcePayload> sources = OriginalDbOcrSealedArchive.Read(
-                        stream, request.ArchiveSha256, request.ArchiveManifestSha256, request.SourceCount,
-                        request.CoverageProtocolSha256, handshake.BeforeFirstPayloadRead, token);
-                    return await OriginalDbOcrInMemoryCorpusEvaluator.EvaluateAsync(sources, ocr, raw, axis, token)
-                        .ConfigureAwait(false);
-                }, cancellation.Token).ConfigureAwait(false);
+                    output.WriteLine($"G22_POSITIVE_READ/1 {request.AttemptId} {request.CandidateSha256} {nonce}");
+                    output.Flush();
+                });
+                return OriginalDbOcrSealedArchive.Read(stream, request.ArchiveSha256,
+                    request.ArchiveManifestSha256, request.SourceCount,
+                    request.CoverageProtocolSha256, handshake.BeforeFirstPayloadRead, token);
+            }
+            object aggregate = composed
+                ? await OriginalDbOcrMemoryRuntime.RunComposedAsync<object>(root, request.CandidatePath, request.CandidateSha256,
+                    async (ocr, observations, axis, token) => await ComposedOcrInMemoryCorpusEvaluator.EvaluateAsync(
+                        ReadSources(token), (image, hash, ct) => ComposedOcrInMemorySourceEvaluator.EvaluateAsync(
+                            image, hash, ocr, observations, axis, ct), token).ConfigureAwait(false), cancellation.Token).ConfigureAwait(false)
+                : await OriginalDbOcrMemoryRuntime.RunAsync<object>(root, request.CandidatePath, request.CandidateSha256,
+                    async (ocr, raw, axis, token) => await OriginalDbOcrInMemoryCorpusEvaluator.EvaluateAsync(
+                        ReadSources(token), ocr, raw, axis, token).ConfigureAwait(false), cancellation.Token).ConfigureAwait(false);
             cancellation.Token.ThrowIfCancellationRequested();
-            output.WriteLine(SerializeResult(request, args[2], timer.Elapsed.TotalMilliseconds, aggregate));
+            output.WriteLine(SerializeCore(request, args[2], timer.Elapsed.TotalMilliseconds, aggregate, composed));
             output.Flush();
             return 0;
         }
@@ -97,9 +104,15 @@ internal static class OriginalDbOcrSealedWorker
     }
 
     internal static string SerializeResult(Request request, string requestSha256, double elapsedMilliseconds,
-        OriginalDbOcrCorpusAggregate aggregate) => JsonSerializer.Serialize(new
+        OriginalDbOcrCorpusAggregate aggregate) => SerializeCore(request, requestSha256, elapsedMilliseconds, aggregate, composed: false);
+
+    internal static string SerializeComposedResult(Request request, string requestSha256, double elapsedMilliseconds,
+        ComposedOcrCorpusAggregate aggregate) => SerializeCore(request, requestSha256, elapsedMilliseconds, aggregate, composed: true);
+
+    private static string SerializeCore(Request request, string requestSha256, double elapsedMilliseconds,
+        object aggregate, bool composed) => JsonSerializer.Serialize(new
         {
-            schema = ResultSchema, status = "completed", split = "sealed",
+            schema = composed ? ComposedResultSchema : ResultSchema, status = "completed", split = "sealed",
             acceptance_scope = OriginalDbOcrSealedArchive.AcceptanceScope,
             request.AttemptId, request.AdmissionBindingSha256, request.SetId, request.CandidateSha256,
             request.ArchiveSha256, request.ArchiveManifestSha256, request.CoverageProtocolSha256,
@@ -110,7 +123,7 @@ internal static class OriginalDbOcrSealedWorker
             aggregate,
         }, Options);
 
-    internal static Request ParseRequest(byte[] payload)
+    internal static Request ParseRequest(byte[] payload, bool composed = false)
     {
         try
         {
@@ -121,7 +134,7 @@ internal static class OriginalDbOcrSealedWorker
             var names = new HashSet<string>(StringComparer.Ordinal);
             foreach (JsonProperty property in value.EnumerateObject())
                 if (!names.Add(property.Name)) throw new InvalidDataException();
-            if (!names.SetEquals(RequestFields) || Text("schema") != RequestSchema ||
+            if (!names.SetEquals(RequestFields) || Text("schema") != (composed ? ComposedRequestSchema : RequestSchema) ||
                 Text("acceptance_scope") != OriginalDbOcrSealedArchive.AcceptanceScope || Text("split") != "sealed" ||
                 Hash("coverage_protocol_sha256") != OriginalDbOcrSealedArchive.CoverageProtocolSha256)
                 throw new InvalidDataException();

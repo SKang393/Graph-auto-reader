@@ -12,11 +12,11 @@ internal static class OriginalDbOcrSealedWorkerSelfTest
 {
     private const string HashValue = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
-    internal static object ResultFixture()
+    internal static object ResultFixture(bool composed = false)
     {
-        Dictionary<string, object?> fields = ValidFields();
+        Dictionary<string, object?> fields = ValidFields(composed);
         fields["source_count"] = 1;
-        OriginalDbOcrSealedWorker.Request request = OriginalDbOcrSealedWorker.ParseRequest(Json(fields));
+        OriginalDbOcrSealedWorker.Request request = OriginalDbOcrSealedWorker.ParseRequest(Json(fields), composed);
         var scorer = new OriginalDbOcrAggregateScorer();
         OriginalDbOcrGeneratorRole[] roles = Enum.GetValues<OriginalDbOcrGeneratorRole>();
         OcrRole[] runtimeRoles = [OcrRole.XTick, OcrRole.YTick, OcrRole.AxisTitle, OcrRole.PhaseHeading,
@@ -26,18 +26,24 @@ internal static class OriginalDbOcrSealedWorkerSelfTest
         OriginalDbOcrAggregatePrediction[] predictions = truths.Select((truth, index) =>
             new OriginalDbOcrAggregatePrediction(truth.Box, truth.Text, runtimeRoles[index])).ToArray();
         scorer.AddSource(truths, predictions);
-        using JsonDocument result = JsonDocument.Parse(OriginalDbOcrSealedWorker.SerializeResult(
-            request, HashValue, 1, new(1, 1, scorer.Score())));
+        var composedScorer = new ComposedOcrAggregateScorer();
+        composedScorer.AddSource(truths, predictions.Take(predictions.Length - 1)
+            .Select(static p => p with { Text = null, Role = null }).ToArray(), predictions, 0);
+        using JsonDocument result = JsonDocument.Parse(composed
+            ? OriginalDbOcrSealedWorker.SerializeComposedResult(request, HashValue, 1, new(1, 1, composedScorer.Score()))
+            : OriginalDbOcrSealedWorker.SerializeResult(request, HashValue, 1, new(1, 1, scorer.Score())));
         return new { unsealed_fixture = true, model_inference = false, private_reads = 0,
             sealed_reads = 0, envelope = result.RootElement.Clone() };
     }
 
-    internal static object Run()
+    internal static object Run(bool composed = false)
     {
         int checks = 0;
         OriginalDbOcrSealedWorker.Request request =
-            OriginalDbOcrSealedWorker.ParseRequest(Json(ValidFields()));
+            OriginalDbOcrSealedWorker.ParseRequest(Json(ValidFields(composed)), composed);
         Require(request.AttemptId == "fixture-attempt" && request.SourceCount == 2, "valid request");
+        checks++;
+        ExpectInvalid(Json(ValidFields(!composed)), composed);
         checks++;
 
         foreach ((string name, Action<Dictionary<string, object?>> mutate) in new (string, Action<Dictionary<string, object?>>)[]
@@ -52,17 +58,17 @@ internal static class OriginalDbOcrSealedWorkerSelfTest
             ("excessive source count", fields => fields["source_count"] = int.MaxValue),
         })
         {
-            Dictionary<string, object?> fields = ValidFields();
+            Dictionary<string, object?> fields = ValidFields(composed);
             mutate(fields);
             if (name == "duplicate key")
             {
                 string validJson = System.Text.Encoding.UTF8.GetString(Json(fields));
                 ExpectInvalid(System.Text.Encoding.UTF8.GetBytes(
-                    "{\"schema\":\"" + OriginalDbOcrSealedWorker.RequestSchema + "\"," + validJson[1..]));
+                    "{\"schema\":\"" + fields["schema"] + "\"," + validJson[1..]), composed);
             }
             else
             {
-                ExpectInvalid(Json(fields));
+                ExpectInvalid(Json(fields), composed);
             }
             checks++;
         }
@@ -109,13 +115,13 @@ internal static class OriginalDbOcrSealedWorkerSelfTest
         }
         checks++;
 
-        return new { schema = "graphreader.original-db-ocr-sealed-worker-self-test.v1", checks, status = "passed",
+        return new { schema = composed ? "graphreader.composed-ocr-sealed-worker-self-test.v1" : "graphreader.original-db-ocr-sealed-worker-self-test.v1", checks, status = "passed",
             model_inference = false, file_io = false, sealed_reads = 0, private_reads = 0, production_approved = false };
     }
 
-    private static Dictionary<string, object?> ValidFields() => new()
+    private static Dictionary<string, object?> ValidFields(bool composed = false) => new()
     {
-        ["schema"] = OriginalDbOcrSealedWorker.RequestSchema,
+        ["schema"] = composed ? OriginalDbOcrSealedWorker.ComposedRequestSchema : OriginalDbOcrSealedWorker.RequestSchema,
         ["acceptance_scope"] = OriginalDbOcrSealedArchive.AcceptanceScope,
         ["split"] = "sealed",
         ["attempt_id"] = "fixture-attempt",
@@ -133,11 +139,11 @@ internal static class OriginalDbOcrSealedWorkerSelfTest
     private static byte[] Json(Dictionary<string, object?> fields) =>
         JsonSerializer.SerializeToUtf8Bytes(fields);
 
-    private static void ExpectInvalid(byte[] payload)
+    private static void ExpectInvalid(byte[] payload, bool composed = false)
     {
         try
         {
-            _ = OriginalDbOcrSealedWorker.ParseRequest(payload);
+            _ = OriginalDbOcrSealedWorker.ParseRequest(payload, composed);
             throw new InvalidOperationException("invalid request accepted");
         }
         catch (InvalidDataException error)

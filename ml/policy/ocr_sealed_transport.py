@@ -20,6 +20,7 @@ from typing import Any, BinaryIO
 
 
 RESULT_SCHEMA = "graphreader.original-db-ocr-sealed-worker-result.v1"
+COMPOSED_RESULT_SCHEMA = "graphreader.composed-ocr-sealed-worker-result.v1"
 ACCEPTANCE_SCOPE = "goal22.full-ocr.five-axis-family.real-range.v1"
 COVERAGE_PROTOCOL_SHA256 = "26ab0e017ccc6dc17d26effe11b1fb40f440ed4471e896c1afac3c8cc96999c4"
 METRIC_REFERENCE_SHA256 = "8b879664c33e83f2aaec0e637f4f0f4df0f9701fe04ac43867672dde2e662656"
@@ -56,6 +57,10 @@ _AGGREGATE_FIELDS = {"source_count", "panel_count", "metrics"}
 _METRICS_FIELDS = {
     "raw_detector_geometry", "successfully_recognized_region_geometry",
     "recognition_failures", "full_ocr_metrics",
+}
+_COMPOSED_METRICS_FIELDS = {
+    "source_count", "raw_detector_geometry", "assembled_geometry",
+    "full_ocr_metrics", "recognition_failed_region_count",
 }
 _GEOMETRY_FIELDS = {
     "truth_region_count", "predicted_region_count", "true_positives",
@@ -160,6 +165,11 @@ class OcrSealedRequestIdentity:
     request_sha256: str
     source_count: int
     acceptance_scope: str = ACCEPTANCE_SCOPE
+
+
+@dataclass(frozen=True)
+class ComposedOcrSealedRequestIdentity(OcrSealedRequestIdentity):
+    """Explicit composed route without adding a field to legacy wire identities."""
 
 
 @dataclass(frozen=True)
@@ -296,9 +306,10 @@ def validate_result_envelope(
     """Validate one deserialized worker envelope and return a detached plain dictionary."""
 
     _validate_expected(expected)
+    composed = isinstance(expected, ComposedOcrSealedRequestIdentity)
     row = _object(value, _ENVELOPE_FIELDS)
     identities = {
-        "schema": RESULT_SCHEMA,
+        "schema": COMPOSED_RESULT_SCHEMA if composed else RESULT_SCHEMA,
         "status": "completed",
         "split": "sealed",
         "acceptance_scope": expected.acceptance_scope,
@@ -328,11 +339,17 @@ def validate_result_envelope(
     panel_count = _integer(aggregate["panel_count"], 2**31 - 1)
     if source_count != expected.source_count or panel_count < source_count or panel_count > 2**31 - 1:
         raise _fail("OCR_SEALED_TRANSPORT_RESULT_INVALID")
-    metrics = _object(aggregate["metrics"], _METRICS_FIELDS)
+    metrics = _object(aggregate["metrics"], _COMPOSED_METRICS_FIELDS if composed else _METRICS_FIELDS)
     raw = _validate_geometry(metrics["raw_detector_geometry"])
-    recognized = _validate_geometry(metrics["successfully_recognized_region_geometry"])
-    failures = _object(metrics["recognition_failures"], _RECOGNITION_FAILURE_FIELDS)
-    recognition_failures = _integer(failures["raw_regions_without_successful_recognition"])
+    recognized = _validate_geometry(metrics["assembled_geometry"] if composed else
+                                    metrics["successfully_recognized_region_geometry"])
+    if composed:
+        if _integer(metrics["source_count"], _MAX_SOURCES) != source_count:
+            raise _fail("OCR_SEALED_TRANSPORT_RESULT_INVALID")
+        recognition_failures = _integer(metrics["recognition_failed_region_count"])
+    else:
+        failures = _object(metrics["recognition_failures"], _RECOGNITION_FAILURE_FIELDS)
+        recognition_failures = _integer(failures["raw_regions_without_successful_recognition"])
     full = _validate_full(metrics["full_ocr_metrics"])
     maximum_regions = min(
         _MAX_REGIONS_PER_CORPUS,
@@ -341,9 +358,13 @@ def validate_result_envelope(
     if (
         raw["truth"] != recognized["truth"] or raw["truth"] != full["truth"]
         or raw["truth"] > maximum_regions or raw["predicted"] > maximum_regions
-        or recognized["predicted"] > raw["predicted"]
-        or recognized["matched"] > raw["matched"]
-        or recognition_failures != raw["predicted"] - recognized["predicted"]
+        or recognized["predicted"] > maximum_regions
+        or recognition_failures > maximum_regions
+        or (not composed and (
+            recognized["predicted"] > raw["predicted"]
+            or recognized["matched"] > raw["matched"]
+            or recognition_failures != raw["predicted"] - recognized["predicted"]
+        ))
         or full != recognized
     ):
         raise _fail("OCR_SEALED_TRANSPORT_RESULT_INVALID")
@@ -722,11 +743,13 @@ __all__ = [
     "COVERAGE_PROTOCOL_SHA256",
     "METRIC_REFERENCE_SHA256",
     "OcrSealedRequestIdentity",
+    "ComposedOcrSealedRequestIdentity",
     "OcrSealedTransportError",
     "OcrSealedDisclosureError",
     "OcrSealedUnclassifiedOutputError",
     "OcrSealedTransportResult",
     "RESULT_SCHEMA",
+    "COMPOSED_RESULT_SCHEMA",
     "run_ocr_sealed_worker",
     "validate_result_envelope",
 ]
