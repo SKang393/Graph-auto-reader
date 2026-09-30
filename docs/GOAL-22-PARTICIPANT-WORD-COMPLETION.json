@@ -1,0 +1,613 @@
+{
+  "schema": "graphreader.participant-word-crop-completion.v1",
+  "status": "evaluated_accuracy_incomplete",
+  "failure_mode": "A detected peripheral word crop excluded connected original-pixel glyphs at both ends; the existing refiner only tightened its bounds.",
+  "implementation": "Complete unreviewed horizontal nonnumeric peripheral words above the plot left edge using nearby original-pixel components. New crops use a separate recognizer batch, leaving existing readings and tensor widths fixed. Only contained recognized fragments are removed; conflicting readings remain visible. A numeric misread of a recovered word stays Other, visible for review and excluded from calibration; a dedicated pipeline test proves its unguarded geometric classification would be YTick.",
+  "tests": {
+    "ocr": {
+      "passed": 535,
+      "total": 551,
+      "failed": 0,
+      "outcomes": {
+        "Passed": 535,
+        "NotExecuted": 16
+      },
+      "trx": {
+        "path": "artifacts/goal22-runs/participant-word-checks-v3/test-results/ocr.trx",
+        "sha256": "38689a7504d5305de136121e0dcdffa6a74037b101cba524f3146bde3823c98c"
+      }
+    },
+    "app": {
+      "passed": 510,
+      "total": 510,
+      "failed": 0,
+      "outcomes": {
+        "Passed": 510
+      },
+      "trx": {
+        "path": "artifacts/goal22-runs/participant-word-checks-v3/test-results/app.trx",
+        "sha256": "d3dd2b4f8a432bc7b18dd8e68c8e78d7529b1bf09906880cafb14c90d7e6c9f3"
+      }
+    }
+  },
+  "scopes": {
+    "native": {
+      "sources": 21,
+      "panels": 31,
+      "seconds": 192.0648749,
+      "axis_geometry_unchanged": true,
+      "all_existing_recognition_records_preserved_unless_contained_fragment_removed": true,
+      "original_tick_regions_unchanged": 86,
+      "all_tick_review_warnings_preserved": true,
+      "changed_panel_fields": {
+        "ocr_masks": 4,
+        "ocr_confidence": 4,
+        "accepted_markers": 0,
+        "marker_pipeline": 1,
+        "calibration": 0
+      },
+      "recovered_roles": {
+        "Participant": 2,
+        "Other": 2
+      },
+      "recovered_readings": [
+        {
+          "source_sha256": "b86e150ec2a8890197c5d0e3e6e56d1fd7eed21e0344aa842222075547e477c2",
+          "text": "Participant O1",
+          "role": "Participant"
+        },
+        {
+          "source_sha256": "ec6bd084a69fae4600a09cc2d87af527ad959d9acceebcfd70c7555d2273c5de",
+          "text": "Participant",
+          "role": "Other"
+        },
+        {
+          "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+          "text": "Participant",
+          "role": "Other"
+        },
+        {
+          "source_sha256": "5ba2bc58eb55b8dbca25e9b7ae7511fc8b7d4c8b8f92c0918e433bacea5b4a68",
+          "text": "Participant O1",
+          "role": "Participant"
+        }
+      ],
+      "removed_contained_readings": [
+        {
+          "source_sha256": "b86e150ec2a8890197c5d0e3e6e56d1fd7eed21e0344aa842222075547e477c2",
+          "text": "Participant",
+          "role": "Other"
+        },
+        {
+          "source_sha256": "b86e150ec2a8890197c5d0e3e6e56d1fd7eed21e0344aa842222075547e477c2",
+          "text": "O",
+          "role": "Other"
+        },
+        {
+          "source_sha256": "5ba2bc58eb55b8dbca25e9b7ae7511fc8b7d4c8b8f92c0918e433bacea5b4a68",
+          "text": "Particip",
+          "role": "Other"
+        }
+      ],
+      "calibration_validity_transitions": {
+        "NeedsReview:NeedsReview": 24,
+        "InvalidSessionOrigin:InvalidSessionOrigin": 6,
+        "InsufficientEvidence:InsufficientEvidence": 1
+      },
+      "metrics": {
+        "truth": 838,
+        "predicted": 758,
+        "matched": 733,
+        "extra": 25,
+        "missing": 105,
+        "precision": 0.9670184696569921,
+        "recall": 0.8747016706443914
+      },
+      "axis_corners": {
+        "before": {
+          "axis_corners": 93,
+          "within_2px": 85,
+          "panels_all_corners_within_2px": 23
+        },
+        "after": {
+          "axis_corners": 93,
+          "within_2px": 85,
+          "panels_all_corners_within_2px": 23
+        }
+      },
+      "paired_marker_truths": {
+        "retained": 733,
+        "recovered": 0,
+        "lost": 0,
+        "missed_by_both": 105
+      },
+      "ocr_metrics": {
+        "before": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 499,
+            "geometry_matched_region_count": 389,
+            "geometry_false_positive_count": 110,
+            "geometry_false_negative_count": 64,
+            "recognition_exact_count": 348,
+            "recognition_exact_accuracy": 0.7682119205298014,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 58,
+            "unmatched_truth_deletion_edit_count": 476,
+            "unmatched_prediction_insertion_edit_count": 240,
+            "character_error_count": 774,
+            "character_error_rate": 0.2496774193548387,
+            "role_correct_count": 358,
+            "role_accuracy": 0.7902869757174393,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 40,
+                "accuracy": 0.6451612903225806
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 29,
+                "accuracy": 0.7837837837837838
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 20,
+                "accuracy": 0.6451612903225806
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 134,
+                "accuracy": 0.788235294117647
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "after": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 500,
+            "geometry_matched_region_count": 392,
+            "geometry_false_positive_count": 108,
+            "geometry_false_negative_count": 61,
+            "recognition_exact_count": 348,
+            "recognition_exact_accuracy": 0.7682119205298014,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 63,
+            "unmatched_truth_deletion_edit_count": 434,
+            "unmatched_prediction_insertion_edit_count": 231,
+            "character_error_count": 728,
+            "character_error_rate": 0.23483870967741935,
+            "role_correct_count": 360,
+            "role_accuracy": 0.7947019867549668,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 40,
+                "accuracy": 0.6451612903225806
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 29,
+                "accuracy": 0.7837837837837838
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 134,
+                "accuracy": 0.788235294117647
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        }
+      },
+      "paired_exact_text": {
+        "retained": 348,
+        "missed_by_both": 105
+      }
+    },
+    "csv": {
+      "sources": 23,
+      "panels": 39,
+      "seconds": 304.96556150000004,
+      "axis_geometry_unchanged": true,
+      "all_existing_recognition_records_preserved_unless_contained_fragment_removed": true,
+      "original_tick_regions_unchanged": 345,
+      "all_tick_review_warnings_preserved": true,
+      "changed_panel_fields": {
+        "ocr_masks": 0,
+        "ocr_confidence": 0,
+        "accepted_markers": 0,
+        "marker_pipeline": 0,
+        "calibration": 0
+      },
+      "recovered_roles": {},
+      "recovered_readings": [],
+      "removed_contained_readings": [],
+      "calibration_validity_transitions": {
+        "Valid:Valid": 27,
+        "InsufficientEvidence:InsufficientEvidence": 3,
+        "InvalidSessionOrigin:InvalidSessionOrigin": 3,
+        "NeedsReview:NeedsReview": 6
+      },
+      "metrics": {
+        "truth_cases": 23,
+        "output_cases": 23,
+        "completed_cases": 15,
+        "failed_cases": 8,
+        "unexpected_cases": 0,
+        "integrity_failure_cases": 0,
+        "truth_series": 41,
+        "predicted_series": 34,
+        "matched_series": 25,
+        "truth_points": 706,
+        "predicted_points": 426,
+        "matched_points": 414,
+        "unique_point_value_metrics_available": true,
+        "relational_row_metrics_available": true,
+        "relational_phase_metrics_available": true,
+        "actual_rows": 426,
+        "residual_artifact_rows_from_failed_cases": 0,
+        "expected_rows": 724,
+        "structurally_matched_rows": 412,
+        "correct_rows": 409,
+        "missing_rows": 312,
+        "extra_rows": 14,
+        "duplicate_rows": 0,
+        "wrong_scale_rows": 0,
+        "wrong_export_mode_rows": 0,
+        "wrong_phase_rows": 3,
+        "wrong_relation_rows": 0,
+        "unique_point_value_correct": 414,
+        "unique_point_value_incorrect": 0,
+        "unique_point_missing": 292,
+        "unique_point_extra": 12,
+        "unique_point_wrong_scale": 0,
+        "unique_point_wrong_export_mode": 0,
+        "unique_point_structural_precision": 0.971830985915493,
+        "unique_point_structural_coverage": 0.5864022662889519,
+        "unique_point_value_precision": 0.971830985915493,
+        "unique_point_value_coverage": 0.5864022662889519,
+        "matched_unique_point_value_accuracy": 1,
+        "relational_row_precision": 0.960093896713615,
+        "relational_row_coverage": 0.5649171270718232,
+        "matched_relational_graph_value_accuracy": 1,
+        "matched_relational_phase_accuracy": 0.9927184466019418,
+        "artifact_integrity_valid": true,
+        "failure_kinds": {
+          "workflow_failed": 8
+        }
+      },
+      "baseline_metrics": {
+        "truth_cases": 23,
+        "output_cases": 23,
+        "completed_cases": 15,
+        "failed_cases": 8,
+        "unexpected_cases": 0,
+        "integrity_failure_cases": 0,
+        "truth_series": 41,
+        "predicted_series": 34,
+        "matched_series": 25,
+        "truth_points": 706,
+        "predicted_points": 426,
+        "matched_points": 414,
+        "unique_point_value_metrics_available": true,
+        "relational_row_metrics_available": true,
+        "relational_phase_metrics_available": true,
+        "actual_rows": 426,
+        "residual_artifact_rows_from_failed_cases": 0,
+        "expected_rows": 724,
+        "structurally_matched_rows": 412,
+        "correct_rows": 409,
+        "missing_rows": 312,
+        "extra_rows": 14,
+        "duplicate_rows": 0,
+        "wrong_scale_rows": 0,
+        "wrong_export_mode_rows": 0,
+        "wrong_phase_rows": 3,
+        "wrong_relation_rows": 0,
+        "unique_point_value_correct": 414,
+        "unique_point_value_incorrect": 0,
+        "unique_point_missing": 292,
+        "unique_point_extra": 12,
+        "unique_point_wrong_scale": 0,
+        "unique_point_wrong_export_mode": 0,
+        "unique_point_structural_precision": 0.971830985915493,
+        "unique_point_structural_coverage": 0.5864022662889519,
+        "unique_point_value_precision": 0.971830985915493,
+        "unique_point_value_coverage": 0.5864022662889519,
+        "matched_unique_point_value_accuracy": 1,
+        "relational_row_precision": 0.960093896713615,
+        "relational_row_coverage": 0.5649171270718232,
+        "matched_relational_graph_value_accuracy": 1,
+        "matched_relational_phase_accuracy": 0.9927184466019418,
+        "artifact_integrity_valid": true,
+        "failure_kinds": {
+          "workflow_failed": 8
+        }
+      },
+      "split_metrics": {
+        "train": {
+          "truth_cases": 20,
+          "output_cases": 20,
+          "completed_cases": 13,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 30,
+          "predicted_series": 20,
+          "matched_series": 17,
+          "truth_points": 500,
+          "predicted_points": 261,
+          "matched_points": 258,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 261,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 500,
+          "structurally_matched_rows": 256,
+          "correct_rows": 253,
+          "missing_rows": 244,
+          "extra_rows": 5,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 258,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 242,
+          "unique_point_extra": 3,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9885057471264368,
+          "unique_point_structural_coverage": 0.516,
+          "unique_point_value_precision": 0.9885057471264368,
+          "unique_point_value_coverage": 0.516,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9693486590038314,
+          "relational_row_coverage": 0.506,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.98828125,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "dev": {
+          "truth_cases": 3,
+          "output_cases": 3,
+          "completed_cases": 2,
+          "failed_cases": 1,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 11,
+          "predicted_series": 14,
+          "matched_series": 8,
+          "truth_points": 206,
+          "predicted_points": 165,
+          "matched_points": 156,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 165,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 224,
+          "structurally_matched_rows": 156,
+          "correct_rows": 156,
+          "missing_rows": 68,
+          "extra_rows": 9,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 0,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 156,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 50,
+          "unique_point_extra": 9,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9454545454545454,
+          "unique_point_structural_coverage": 0.7572815533980582,
+          "unique_point_value_precision": 0.9454545454545454,
+          "unique_point_value_coverage": 0.7572815533980582,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.6964285714285714,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 1,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 1
+          }
+        }
+      },
+      "source_status_and_export_numeric_phase_row_counts_unchanged": true,
+      "verified_valid_nonnull_audit_rows": 426,
+      "status_changes": [],
+      "exported_value_changes": []
+    }
+  },
+  "checks_seconds": 174.3426064,
+  "workflow_sequence_seconds": 519.5738675,
+  "observed_cpu_model_envelopes": {
+    "OpenCvSharpExtern": 70,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-component-diversity-v27": 70,
+    "marker-classifier-structural-context-v5": 150
+  },
+  "void_attempt": "Checks-v1 failed CS1519 on an extra generic closing token before tests or model evaluation; syntax corrected and failed source/logs retained.",
+  "license_review": "Apache-2.0 project source, owned synthetic inputs and previously reviewed models. No dependency, model or license change.",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/status.json",
+      "sha256": "2098d5ef5b51322c246730e7e417aa7efc22272e76d4ea2e3c9ca7d581dc64fc"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/jobs.json",
+      "sha256": "e9b8cfa5763e575de62f11661f16c8184f5b861cd645e22aca6b9564a82b7ac5"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/source-bindings.json",
+      "sha256": "2c41b38a99e53245daab12970bf9c5b07b32c00051b3e861c4be05e53114ba15"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-checks-v3/status.json",
+      "sha256": "00d87a124ae4715c08d780ae16d266a58aff5d761ee7bd9860895c9286e510a2"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-checks-v3/source-bindings.json",
+      "sha256": "47242f69fbf7455b23b34979eb1b36b6efc9d982df3dcde4e722b7476dd62940"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-checks-v3/Ocr-build.log",
+      "sha256": "a1cb1b6638ac59accadc4ace920911dc65dcf028772e57ed35bbc6f6cd281657"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-checks-v3/App-build.log",
+      "sha256": "d45ff212b20186b831a15f8b6ad8cbc2fc17a7c8feb936356ce9ddd95c2d58e9"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-checks-v3/native-build.log",
+      "sha256": "55b04e544685fa85f640055c81f3a9f15fc5f5a598ed85326add2f43737b5510"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-checks-v1/status.json",
+      "sha256": "f3e6d566d03cf3df9b38f694ab53d4d23676a2a8fed5959a2ad0ac905f8fae8f"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-checks-v1/Ocr-build.log",
+      "sha256": "ef35f91fd5410b9a426b4007f621969a8daaeb78cb6e1e17de58e3f341d77a59"
+    },
+    {
+      "path": "artifacts/goal22-runs/peripheral-word-component-probe-v1/status.json",
+      "sha256": "43add83b7c8e6b335b52a3df367a16ebf1296452ec3c454dd11424db19e9f399"
+    },
+    {
+      "path": "artifacts/goal22-runs/peripheral-word-component-probe-v1/protocol.json",
+      "sha256": "f49ad486dbe223e9f583a158bfb6df71ee12b811c2fb25882d9668f7a46b7ee7"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-ParticipantWordRepair.py",
+      "sha256": "fe175a8cfdf073a5c54a060b30d6585dd9ed850b4bf643830e599413279d880c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ParticipantWordEvaluation.py",
+      "sha256": "3d3668541e7edf63deca358a97e114fc702431b8ea4ce33905e07afe609b8f7f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ParticipantWordEvaluation.ps1",
+      "sha256": "32c2b518f221854e2de39102b1194489fbd3fb79d81f3cf6f904c0b43fe3ac4d"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/native-marker-score.json",
+      "sha256": "677283aa6fcc160a0666495c8b220208f540811587fb004356d56e7389f1a9cd"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/native-ocr-score.json",
+      "sha256": "d5d1fba08fc92be6c0c6a39188123a556a13cf84727901bc8e4fd0c5251a0883"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/axis-geometry-comparison.json",
+      "sha256": "1db14029e60daccca7323e7c860a5f8c8f8453797f8708eed2fe7ba4574bada2"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/candidate-binding.json",
+      "sha256": "8bf79a7b59a6ef83551b9b8074e0752d2a8dd2432556479e46a9e1fb37e946d6"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/protocol.json",
+      "sha256": "7527a68134b0f0cb272ecd9a98edbbce318126a47e8403db45e04dadbc7ca598"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/input-manifest.json",
+      "sha256": "f7d09adcde1417d2eca374a8dac5e1706f5c809595dfecf534ad52c7c7a91eb5"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/report.json",
+      "sha256": "419779b011e477118ac81f5785d7bd22d3518c5a9115391ea6143e2f1a1780c8"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/status.json",
+      "sha256": "d9be9554b75fd075d171ee241d475011ef56bfe3fadca28f37a3cdf3acb9dfd4"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-csv/csv-score-normalized-phases.json",
+      "sha256": "a5fa3f8288d52aef41d4098b3217c5671916c0075f24e6db01701d7faca03619"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-csv/comparison.json",
+      "sha256": "39de022658d1f58eac7048c28ccb551802a1fe748f94099c966446f6f358ac06"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-csv/candidate-binding.json",
+      "sha256": "a6def35d9a0d73923b6719754f7cd5ab8174f70089e60a28c5a7876cc1c3ad9f"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-csv/protocol.json",
+      "sha256": "b32deebf8cfb7e65d70c70b09df502e3542e0651ddd36ac8e97956eea93c3db6"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-csv/input-manifest.json",
+      "sha256": "b6f29b5d19ba8d5b44371e37a6d53205e1ce6b96fc3b784b2d1c6752dd425356"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-csv/execution/report.json",
+      "sha256": "e9b0ce28d1cb7af879688980d6b357d6d680a18b10ff9d17cf20eeee5e41a626"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-csv/status.json",
+      "sha256": "48627d28f18a55aaa599edd9237865e3649434f9a1fe33f1d0ea8d22a8bd4703"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "goal22_complete": false,
+  "superseded_full_run": {
+    "path": "artifacts/goal22-runs/participant-word-evaluation-v1/repair-summary.json",
+    "sha256": "9b32f3d4d16f2b9837ae31f2a32511b2ea6d71353ad16779c89e953644e8c33d",
+    "reason": "Same word completion before the structural numeric-role guard. Completed checks and both workflow arms are retained; final evidence is v2."
+  }
+}

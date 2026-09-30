@@ -132,6 +132,7 @@ public static class OcrCacheKeyDeriver
         if (options.EnableParticipantLaneAssembly)
         {
             yield return ParticipantLaneTextRegionAssembler.CompositionVersion;
+            yield return ParticipantWordTextRegionRecovery.CompositionVersion;
         }
         if (options.EnableInsidePlotAssembly)
         {

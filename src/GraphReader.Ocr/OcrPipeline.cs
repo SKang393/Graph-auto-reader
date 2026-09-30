@@ -448,7 +448,7 @@ public sealed class OcrPipeline
         }
         regions = ResolveTickAlternatives(regions, detectedRegions, warnings, _options);
         var recoveredTickIds = new HashSet<string>(StringComparer.Ordinal);
-        if (_options.EnableTickLaneRecovery || _options.EnableHeaderGlyphRecovery)
+        if (_options.EnableTickLaneRecovery || _options.EnableHeaderGlyphRecovery || _options.EnableParticipantLaneAssembly)
         {
             postprocessStopwatch.Stop();
             preprocessStopwatch.Start();
@@ -457,6 +457,7 @@ public sealed class OcrPipeline
             try
             {
                 IReadOnlyList<OcrDetectedRegion> headingSuffixes = Array.Empty<OcrDetectedRegion>();
+                IReadOnlyList<OcrDetectedRegion> participantWords = Array.Empty<OcrDetectedRegion>();
                 recovered = _options.EnableTickLaneRecovery
                     ? await TickLaneTextRegionRecovery.FindAsync(
                         request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
@@ -476,14 +477,22 @@ public sealed class OcrPipeline
                             request.PhaseDividerXs, cancellationToken).ConfigureAwait(false);
                     }
                 }
-                ValidateDetectedRegions(detectedRegions.Concat(recovered).Concat(headingSuffixes).ToArray());
+                if (_options.EnableParticipantLaneAssembly)
+                {
+                    participantWords = await ParticipantWordTextRegionRecovery.FindAsync(
+                        request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                ValidateDetectedRegions(detectedRegions.Concat(recovered).Concat(headingSuffixes).Concat(participantWords).ToArray());
                 // Batch width affects recognizer padding. Keep every existing
                 // tick/glyph tensor unchanged when adding wider heading crops.
                 recoveryBatches = OcrCropBatcher.CreateBatches(
                     request.OriginalImage, recovered, cropOptions, cancellationToken)
                     .Concat(OcrCropBatcher.CreateBatches(
-                        request.OriginalImage, headingSuffixes, cropOptions, cancellationToken)).ToArray();
-                recovered = OcrCollections.Freeze(recovered.Concat(headingSuffixes));
+                        request.OriginalImage, headingSuffixes, cropOptions, cancellationToken))
+                    .Concat(OcrCropBatcher.CreateBatches(
+                        request.OriginalImage, participantWords, cropOptions, cancellationToken)).ToArray();
+                recovered = OcrCollections.Freeze(recovered.Concat(headingSuffixes).Concat(participantWords));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -525,10 +534,19 @@ public sealed class OcrPipeline
                 // Preserve every baseline reading, including its chosen numeric
                 // alternative. New values come only from the original-pixel crop.
                 var recoveredRegions = MergeResults(recovered, recoveryResults, request.PlotBounds, warnings);
+                // Word completion has no axis-tick evidence. A numeric misread
+                // remains visible, but must never enter calibration as a tick.
+                recoveredRegions = OcrCollections.Freeze(recoveredRegions.Select(static region =>
+                    region.RegionId.StartsWith("participant-word:", StringComparison.Ordinal) &&
+                    region.Role is OcrTextRole.XTick or OcrTextRole.YTick
+                        ? region with { Role = OcrTextRole.Other }
+                        : region));
                 regions = OcrCollections.Freeze(regions.Concat(recoveredRegions));
                 warnings.AddRange(recoveredRegions.Select(region =>
                     $"ocr_role_needs_review:{region.RegionId}:" +
-                    (region.RegionId.StartsWith("header-word-suffix:", StringComparison.Ordinal)
+                    (region.RegionId.StartsWith("participant-word:", StringComparison.Ordinal)
+                        ? "original_pixel_participant_word_recovery"
+                        : region.RegionId.StartsWith("header-word-suffix:", StringComparison.Ordinal)
                         ? "original_pixel_header_word_suffix_recovery"
                         : region.RegionId.StartsWith("header-glyph:", StringComparison.Ordinal)
                             ? "original_pixel_header_glyph_recovery" : "original_pixel_tick_recovery")));
