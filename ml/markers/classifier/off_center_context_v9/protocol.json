@@ -1,0 +1,77 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "V8 raised native development matches from 726 to 746 but also raised false points from 25 to 89, reducing complete CSV exports from 12 to eight. On 432 fixed authored training recipes, V8 accepted 118 off-center proposals versus 50 for V5. Its added crowded positive coverage lacked corresponding off-center negatives. The classifier should distinguish a centered marker from a visible neighboring marker without changing proposal or artifact thresholds.",
+  "isolated_change": "Warm-start the retained V5 checkpoint with the same fixed V8 recipe and seed, retaining all 69424 V8-cache training rows and adding 6912 authored off-center negatives. New crops reuse the exact owned crowded rasters, center six pixels from the authored target, and remain farther than the unchanged five-pixel match distance from every authored marker. Preserve all development bytes, architecture, losses, temperatures 0.7/0.7, artifact cutoff 0.5 and native operating points. Use 12 epochs, batch 128, AdamW learning rate 0.0001, weight decay 0.0001, seed 20260925 and only the final checkpoint. No prediction-mined crops or rejected-model initialization.",
+  "split_identities": {
+    "cache": {
+      "path": "artifacts/goal22-runs/classifier-off-center-context-cache-v2/manifest.json",
+      "sha256": "5226aed6d0ffad1a891af897783233ced2f95ddf7eeb20f9dd63e82a91b9bd7f"
+    },
+    "train_rows": 76336,
+    "dev_rows": 3136,
+    "unchanged_dev_file_sha256": {
+      "json": "7de81c32d9acbca31ef7321a50b5605c228fff708a678f1cfecd915919cbf076",
+      "npy": "31a71b84003f9ffae53fc9f9cf354bc5dfff847f4d59b554d1cdecc8b91673ba"
+    },
+    "native_baseline": "artifacts/goal22-runs/server-ocr-comparison-v4/baseline/native",
+    "native_source_count": 21,
+    "native_panel_count": 31,
+    "native_truth_points": 838,
+    "native_truth_texts": 453,
+    "csv_baseline": "artifacts/goal22-runs/server-ocr-comparison-v4/baseline/csv",
+    "complete_workflow_train_sources": 20,
+    "complete_workflow_dev_sources": 3,
+    "complete_workflow_truth_points": 706,
+    "complete_workflow_truth_rows": 724,
+    "source_checkpoint_sha256": "92546ffffb7c863533a70069a4621e0d61b9c41a886cb1d40c32cb1079a5ea67",
+    "baseline_bindings": {
+      "native": {
+        "candidate-binding.json": {
+          "path": "artifacts/goal22-runs/server-ocr-comparison-v4/baseline/native/candidate-binding.json",
+          "sha256": "2121daa3e95948286166f950d37708c08a8bb4703b74c98d4f7c24a7e319ffc4"
+        },
+        "input-manifest.json": {
+          "path": "artifacts/goal22-runs/server-ocr-comparison-v4/baseline/native/input-manifest.json",
+          "sha256": "3f64adffb9c9d35694c25683855b0cd77429bb53725f320ece676ed8eb09bc9b"
+        },
+        "execution/report.json": {
+          "path": "artifacts/goal22-runs/server-ocr-comparison-v4/baseline/native/execution/report.json",
+          "sha256": "a422d66f29f931b2ec0c25f8ea33d045c1d3f79e2254bccb99fc951aa0717b53"
+        }
+      },
+      "csv": {
+        "candidate-binding.json": {
+          "path": "artifacts/goal22-runs/server-ocr-comparison-v4/baseline/csv/candidate-binding.json",
+          "sha256": "47a6835ba0d5a697d23b686c9f720def1309a1604473a2b94c1a733f393b8a09"
+        },
+        "input-manifest.json": {
+          "path": "artifacts/goal22-runs/server-ocr-comparison-v4/baseline/csv/input-manifest.json",
+          "sha256": "b58f51a474c1a145ae16e3136c2a5b55950a0dade4c2fe2ca8841b649c6ac14e"
+        },
+        "execution/report.json": {
+          "path": "artifacts/goal22-runs/server-ocr-comparison-v4/baseline/csv/execution/report.json",
+          "sha256": "30d207387426184847bf49f717952115821be1f8a1088f8810c687cad4b33da7"
+        }
+      }
+    },
+    "prior_failed_revision": {
+      "path": "ml/markers/classifier/crowded_context_v8/P1_RESULT.json",
+      "sha256": "967507964a8cd6d570a29c8e706c73baae4163efd480ac426364ff885bae87f3"
+    },
+    "off_center_diagnosis": {
+      "path": "artifacts/goal22-runs/classifier-off-center-diagnostic-v1/report.json",
+      "sha256": "32a2b5c4ffd0366e61ca577c424933c31bbef2d6bbb87f60a5582793402d651e"
+    }
+  },
+  "metric": "Score all 2880 unchanged patch-dev markers and 256 artifacts for shape, fill, retained-marker precision and recall, and prohibited-structure hits. Check ONNX parity on every train/dev tensor at the existing 1e-5 tolerance. Evaluate the unchanged V27 center model, V44 detector, English mobile reader and candidate classifier on all 21 native dev sources and all 23 complete CSV sources, reporting train/dev CSV partitions separately. Preserve all failed sources and every truth in denominators. Report correct markers retained, recovered and lost, false points, exact text, axes, actual CSV values and rows, source completion, safety counts and runtime. Patch metrics alone cannot select a candidate.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json, unchanged shared per-item Tier 1 bars and structural Tier 2 safeguards. No threshold sweep or new compound scene gate. Owned development evidence does not authorize production.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "training_requires_canonical_authorization": true,
+    "sealed_runs_authorized": 0,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false
+  }
+}

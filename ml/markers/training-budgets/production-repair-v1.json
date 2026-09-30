@@ -10716,6 +10716,51 @@
       "candidate_report_sha256": "4eecd61c9f77e6ea01ba3045212eb905b9474e480bd20fb3c402ef84c47216e0",
       "optimizer_steps": 6516,
       "closed_utc_date": "2026-09-21"
+    },
+    {
+      "task": "marker-classifier",
+      "revision": "marker-classifier-off-center-context-v9",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/classifier/off_center_context_v9/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "b6d0736e05ffc4c61ef17dbd955daf52129e2a6773c0b7d37ed81f467a91a720"
+      },
+      "protocol_path": "ml/markers/classifier/off_center_context_v9/protocol.json",
+      "protocol_sha256": "d82a53a9cac7afd85d8b9f271d5e7fed79bcec8d6d56402341f84b3a08b5b47b",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned train/dev-only adaptation under continued Goal22 authorization. No private/sealed reads, production activation or release.",
+      "isolated_change": "Warm-start the retained V5 checkpoint with the same fixed V8 recipe and seed, retaining all 69424 V8-cache training rows and adding 6912 authored off-center negatives. New crops reuse the exact owned crowded rasters, center six pixels from the authored target, and remain farther than the unchanged five-pixel match distance from every authored marker. Preserve all development bytes, architecture, losses, temperatures 0.7/0.7, artifact cutoff 0.5 and native operating points. Use 12 epochs, batch 128, AdamW learning rate 0.0001, weight decay 0.0001, seed 20260925 and only the final checkpoint. No prediction-mined crops or rejected-model initialization.",
+      "optimizer_steps_expected": 7164,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/classifier/off_center_context_v9/P1_RESULT.json",
+      "outcome_sha256": "4eb7362d812b457538ebef90242388faed34f94f51ee694f627c6faf703b8093",
+      "candidate_report_sha256": "b32425e6e448507bee30b18a84d861f8ef13fed0c0b3555034590bb65de01c7c",
+      "optimizer_steps": 7164,
+      "closed_utc_date": "2026-09-30"
     }
   ]
 }

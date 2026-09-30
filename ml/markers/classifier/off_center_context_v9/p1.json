@@ -1,0 +1,29 @@
+{
+  "batch_size": 128,
+  "cache_manifest_sha256": "5226aed6d0ffad1a891af897783233ced2f95ddf7eeb20f9dd63e82a91b9bd7f",
+  "cache_path": "artifacts/goal22-runs/classifier-off-center-context-cache-v2",
+  "candidate_id": "P1",
+  "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+  "epochs": 12,
+  "expected_runner_source_bundle_sha256": "6ab88977e3da35f432de86c6ad963d7ca40244726b6bb44b32ed9a176744fa6e",
+  "learning_rate": 0.0001,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "d82a53a9cac7afd85d8b9f271d5e7fed79bcec8d6d56402341f84b3a08b5b47b",
+  "resource_policy": {
+    "aggregate_backstop_percent": 80,
+    "all_processors_eligible": true,
+    "kmp_blocktime": "0",
+    "omp_wait_policy": "PASSIVE",
+    "priority": "Idle",
+    "synchronous_work_rest_percent": 80
+  },
+  "revision": "marker-classifier-off-center-context-v9",
+  "schema_version": 1,
+  "sealed_runs_authorized": 0,
+  "seed": 20260925,
+  "source_checkpoint_path": "artifacts/goal22-runs/classifier-structural-context-v5/P1/marker-classifier.pt",
+  "source_checkpoint_sha256": "92546ffffb7c863533a70069a4621e0d61b9c41a886cb1d40c32cb1079a5ea67",
+  "task": "marker-classifier",
+  "weight_decay": 0.0001
+}
