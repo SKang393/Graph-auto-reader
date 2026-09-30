@@ -1,0 +1,605 @@
+{
+  "schema": "goal22-legend-pixel-separation-diagnosis-v1",
+  "scope": "owned synthetic development only",
+  "source_commit": "06331b4fb788249427a1b2b0643bd97df35286d4",
+  "failure": "Four independently measured closed-frame rows are rejected because exclusive right edges count blank columns instead of foreground pixel separation. One other row fails the separate height check and is outside this repair.",
+  "responsible_subsystem": "FramedLegendRoleResolver.RecoverMissingTextAsync",
+  "change": "Measure left - (glyph.Right - 1) using integer original-pixel components. Preserve the one-half first-component-height separation requirement and every other frame, symbol, component, height and protected-context check. Advance recovery cache identity.",
+  "metric": "Existing OCR exact text, matched regions, roles, marker centers, complete CSV values/rows and fail-closed calibration safeguards on fixed synthetic native and CSV inputs.",
+  "acceptance_bars": {
+    "file": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "baseline": "symbol-run-mask-evaluation-20260930-v2, V44/English and V46/server each compared with itself",
+  "budget": {
+    "native_runs_per_configuration": 1,
+    "csv_runs_per_configuration": 1,
+    "optimizer_steps": 0,
+    "sealed_runs": 0
+  },
+  "no_recognition_answer_supplied": true,
+  "model_weights_unchanged": true,
+  "model_thresholds_unchanged": true,
+  "rows": [
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "panel_sha256": "6f9fecb879cdbde6c1050e861938077227381aeb3970c7d5d37fceb2ac46e10a",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 316,
+        "right": 1200,
+        "bottom": 316,
+        "area": 379200,
+        "is_valid": true
+      },
+      "first_component": {
+        "x": 1003,
+        "y": 119,
+        "width": 9,
+        "height": 10,
+        "left": 1003,
+        "top": 119,
+        "right": 1012,
+        "bottom": 129,
+        "center": {
+          "x": 1007.5,
+          "y": 124,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "frame": {
+        "region_id": "framed-legend:b8dcef11-83f4-4618-7811-f5ec1c2a05db",
+        "frame_bounds": {
+          "x": 973,
+          "y": 112,
+          "width": 155,
+          "height": 34,
+          "left": 973,
+          "top": 112,
+          "right": 1128,
+          "bottom": 146,
+          "center": {
+            "x": 1050.5,
+            "y": 129,
+            "is_finite": true
+          },
+          "is_valid": true
+        },
+        "glyph_bounds": {
+          "x": 981,
+          "y": 118,
+          "width": 16,
+          "height": 16,
+          "left": 981,
+          "top": 118,
+          "right": 997,
+          "bottom": 134,
+          "center": {
+            "x": 989,
+            "y": 126,
+            "is_finite": true
+          },
+          "is_valid": true
+        }
+      },
+      "measured_text": {
+        "x": 1003,
+        "y": 118,
+        "width": 120,
+        "height": 16,
+        "left": 1003,
+        "top": 118,
+        "right": 1123,
+        "bottom": 134,
+        "center": {
+          "x": 1063,
+          "y": 126,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "blank_column_count": 6,
+      "foreground_horizontal_distance": 7,
+      "required_separation": 5.0,
+      "rejected_by_blank_column_comparison": false,
+      "still_rejected_by_existing_height_check": true,
+      "contained_components": 12,
+      "outside_components": 0,
+      "previously_recovered": false
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "panel_sha256": "9c9f2556bf72ff201a5770f8a7970200f7cb8f9faf0ea9e247cac74efe5a0953",
+      "crop": {
+        "x": 0,
+        "y": 316,
+        "width": 1200,
+        "height": 265,
+        "right": 1200,
+        "bottom": 581,
+        "area": 318000,
+        "is_valid": true
+      },
+      "first_component": {
+        "x": 1004,
+        "y": 68,
+        "width": 9,
+        "height": 10,
+        "left": 1004,
+        "top": 68,
+        "right": 1013,
+        "bottom": 78,
+        "center": {
+          "x": 1008.5,
+          "y": 73,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "frame": {
+        "region_id": "framed-legend:25f1b64c-cc01-4e6c-f874-4a1b70f195da",
+        "frame_bounds": {
+          "x": 974,
+          "y": 61,
+          "width": 155,
+          "height": 33,
+          "left": 974,
+          "top": 61,
+          "right": 1129,
+          "bottom": 94,
+          "center": {
+            "x": 1051.5,
+            "y": 77.5,
+            "is_finite": true
+          },
+          "is_valid": true
+        },
+        "glyph_bounds": {
+          "x": 982,
+          "y": 67,
+          "width": 16,
+          "height": 16,
+          "left": 982,
+          "top": 67,
+          "right": 998,
+          "bottom": 83,
+          "center": {
+            "x": 990,
+            "y": 75,
+            "is_finite": true
+          },
+          "is_valid": true
+        }
+      },
+      "measured_text": {
+        "x": 1004,
+        "y": 67,
+        "width": 120,
+        "height": 15,
+        "left": 1004,
+        "top": 67,
+        "right": 1124,
+        "bottom": 82,
+        "center": {
+          "x": 1064,
+          "y": 74.5,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "blank_column_count": 6,
+      "foreground_horizontal_distance": 7,
+      "required_separation": 5.0,
+      "rejected_by_blank_column_comparison": false,
+      "still_rejected_by_existing_height_check": false,
+      "contained_components": 11,
+      "outside_components": 0,
+      "previously_recovered": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "panel_sha256": "8efe018d4e88dc5022b7ee0d4a052bea1fb67d4173cc03004c48e788dac6dba8",
+      "crop": {
+        "x": 0,
+        "y": 581,
+        "width": 1200,
+        "height": 309,
+        "right": 1200,
+        "bottom": 890,
+        "area": 370800,
+        "is_valid": true
+      },
+      "first_component": {
+        "x": 1004,
+        "y": 68,
+        "width": 10,
+        "height": 11,
+        "left": 1004,
+        "top": 68,
+        "right": 1014,
+        "bottom": 79,
+        "center": {
+          "x": 1009,
+          "y": 73.5,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "frame": {
+        "region_id": "framed-legend:05c55634-38f5-6d35-b55b-5ca937e3be6a",
+        "frame_bounds": {
+          "x": 975,
+          "y": 61,
+          "width": 156,
+          "height": 34,
+          "left": 975,
+          "top": 61,
+          "right": 1131,
+          "bottom": 95,
+          "center": {
+            "x": 1053,
+            "y": 78,
+            "is_finite": true
+          },
+          "is_valid": true
+        },
+        "glyph_bounds": {
+          "x": 983,
+          "y": 67,
+          "width": 16,
+          "height": 17,
+          "left": 983,
+          "top": 67,
+          "right": 999,
+          "bottom": 84,
+          "center": {
+            "x": 991,
+            "y": 75.5,
+            "is_finite": true
+          },
+          "is_valid": true
+        }
+      },
+      "measured_text": {
+        "x": 1004,
+        "y": 67,
+        "width": 121,
+        "height": 16,
+        "left": 1004,
+        "top": 67,
+        "right": 1125,
+        "bottom": 83,
+        "center": {
+          "x": 1064.5,
+          "y": 75,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "blank_column_count": 5,
+      "foreground_horizontal_distance": 6,
+      "required_separation": 5.5,
+      "rejected_by_blank_column_comparison": true,
+      "still_rejected_by_existing_height_check": false,
+      "contained_components": 12,
+      "outside_components": 0,
+      "previously_recovered": false
+    },
+    {
+      "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+      "panel_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "first_component": {
+        "x": 1171,
+        "y": 84,
+        "width": 12,
+        "height": 14,
+        "left": 1171,
+        "top": 84,
+        "right": 1183,
+        "bottom": 98,
+        "center": {
+          "x": 1177,
+          "y": 91,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "frame": {
+        "region_id": "framed-legend:30dbf708-0502-cc11-d80f-54bb3ba98994",
+        "frame_bounds": {
+          "x": 1140,
+          "y": 76,
+          "width": 195,
+          "height": 35,
+          "left": 1140,
+          "top": 76,
+          "right": 1335,
+          "bottom": 111,
+          "center": {
+            "x": 1237.5,
+            "y": 93.5,
+            "is_finite": true
+          },
+          "is_valid": true
+        },
+        "glyph_bounds": {
+          "x": 1148,
+          "y": 83,
+          "width": 17,
+          "height": 16,
+          "left": 1148,
+          "top": 83,
+          "right": 1165,
+          "bottom": 99,
+          "center": {
+            "x": 1156.5,
+            "y": 91,
+            "is_finite": true
+          },
+          "is_valid": true
+        }
+      },
+      "measured_text": {
+        "x": 1171,
+        "y": 83,
+        "width": 159,
+        "height": 20,
+        "left": 1171,
+        "top": 83,
+        "right": 1330,
+        "bottom": 103,
+        "center": {
+          "x": 1250.5,
+          "y": 93,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "blank_column_count": 6,
+      "foreground_horizontal_distance": 7,
+      "required_separation": 7.0,
+      "rejected_by_blank_column_comparison": true,
+      "still_rejected_by_existing_height_check": false,
+      "contained_components": 13,
+      "outside_components": 0,
+      "previously_recovered": false
+    },
+    {
+      "source_sha256": "c4760964a8a182261f8eb38777565b8820f8390c7dce1439c53182348601d40f",
+      "panel_sha256": "c4760964a8a182261f8eb38777565b8820f8390c7dce1439c53182348601d40f",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "first_component": {
+        "x": 1178,
+        "y": 92,
+        "width": 11,
+        "height": 13,
+        "left": 1178,
+        "top": 92,
+        "right": 1189,
+        "bottom": 105,
+        "center": {
+          "x": 1183.5,
+          "y": 98.5,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "frame": {
+        "region_id": "framed-legend:1cd8af8a-a430-aec7-d60a-92e9d4e5a33e",
+        "frame_bounds": {
+          "x": 1148,
+          "y": 84,
+          "width": 186,
+          "height": 35,
+          "left": 1148,
+          "top": 84,
+          "right": 1334,
+          "bottom": 119,
+          "center": {
+            "x": 1241,
+            "y": 101.5,
+            "is_finite": true
+          },
+          "is_valid": true
+        },
+        "glyph_bounds": {
+          "x": 1156,
+          "y": 91,
+          "width": 16,
+          "height": 16,
+          "left": 1156,
+          "top": 91,
+          "right": 1172,
+          "bottom": 107,
+          "center": {
+            "x": 1164,
+            "y": 99,
+            "is_finite": true
+          },
+          "is_valid": true
+        }
+      },
+      "measured_text": {
+        "x": 1178,
+        "y": 91,
+        "width": 150,
+        "height": 18,
+        "left": 1178,
+        "top": 91,
+        "right": 1328,
+        "bottom": 109,
+        "center": {
+          "x": 1253,
+          "y": 100,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "blank_column_count": 6,
+      "foreground_horizontal_distance": 7,
+      "required_separation": 6.5,
+      "rejected_by_blank_column_comparison": true,
+      "still_rejected_by_existing_height_check": false,
+      "contained_components": 16,
+      "outside_components": 0,
+      "previously_recovered": false
+    },
+    {
+      "source_sha256": "5ba2bc58eb55b8dbca25e9b7ae7511fc8b7d4c8b8f92c0918e433bacea5b4a68",
+      "panel_sha256": "5ba2bc58eb55b8dbca25e9b7ae7511fc8b7d4c8b8f92c0918e433bacea5b4a68",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "first_component": {
+        "x": 1178,
+        "y": 92,
+        "width": 11,
+        "height": 13,
+        "left": 1178,
+        "top": 92,
+        "right": 1189,
+        "bottom": 105,
+        "center": {
+          "x": 1183.5,
+          "y": 98.5,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "frame": {
+        "region_id": "framed-legend:1cd8af8a-a430-aec7-d60a-92e9d4e5a33e",
+        "frame_bounds": {
+          "x": 1148,
+          "y": 84,
+          "width": 186,
+          "height": 35,
+          "left": 1148,
+          "top": 84,
+          "right": 1334,
+          "bottom": 119,
+          "center": {
+            "x": 1241,
+            "y": 101.5,
+            "is_finite": true
+          },
+          "is_valid": true
+        },
+        "glyph_bounds": {
+          "x": 1156,
+          "y": 91,
+          "width": 16,
+          "height": 16,
+          "left": 1156,
+          "top": 91,
+          "right": 1172,
+          "bottom": 107,
+          "center": {
+            "x": 1164,
+            "y": 99,
+            "is_finite": true
+          },
+          "is_valid": true
+        }
+      },
+      "measured_text": {
+        "x": 1178,
+        "y": 91,
+        "width": 150,
+        "height": 18,
+        "left": 1178,
+        "top": 91,
+        "right": 1328,
+        "bottom": 109,
+        "center": {
+          "x": 1253,
+          "y": 100,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "blank_column_count": 6,
+      "foreground_horizontal_distance": 7,
+      "required_separation": 6.5,
+      "rejected_by_blank_column_comparison": true,
+      "still_rejected_by_existing_height_check": false,
+      "contained_components": 16,
+      "outside_components": 0,
+      "previously_recovered": false
+    }
+  ],
+  "trace_seconds": 16.2013705,
+  "evidence": [
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/bindings.json",
+      "sha256": "7af7ed4efb3337207c321cb71111ce313f9482b24f5ac0708d774910d8f43514"
+    },
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/status.json",
+      "sha256": "9c1685d5575e2c45a3e754f5ad9e9c89250a2cccc9d1fb5f22b0254ce9dbcf2e"
+    },
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/Program.cs",
+      "sha256": "642d9d2393451fc9f0cc7e7cd936d5d809504c9432d9629d7fcfc1e26f241e36"
+    },
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/request.json",
+      "sha256": "9029686c60ab776b21da510b0780561c50ff80b76ebe540a516707f732980a43"
+    },
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/b51cd006-64f8-0851-9e65-294de80236f2.json",
+      "sha256": "4e3dfe5033d84038cfc05917706697068e1861fd09ff29d21f8c3fef1608fa42"
+    },
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/2f774c88-02cc-f354-8277-4b967d30471e.json",
+      "sha256": "dbc1cd8c670289477872858e5121b7b55a9c4db6bb59fb02e98945b9e903f8a4"
+    },
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/89a4a1cb-a4f5-a75d-b39c-aae4eef4655f.json",
+      "sha256": "4ef25b514c2ebf0a050a328d3be3c7456a0e9fed8d17b6fd8c65d7c4f66cdf4c"
+    },
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/4b175e85-e154-e858-8fa3-db0f3873fc6e.json",
+      "sha256": "656b6deaf66b62335279c5a9cd672aa3527fcb6dc6e6bd9e30fd0ce5dd3e1e57"
+    },
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/fde84d09-1c1c-4e55-aac0-2185181b2b5a.json",
+      "sha256": "5747165f54e4809127ac3ae96ecde920430429e1e2f2609c5da9d1dc1bb8ffd4"
+    },
+    {
+      "file": "artifacts/goal22-runs/legend-seed-trace-20260930-v1/613c061a-9c6f-155d-8f10-7f628168a381.json",
+      "sha256": "3ba479b495a56b2eefe2fe564c0ff695be8f49e095012fa77094740d06049009"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false
+}

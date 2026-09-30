@@ -10,7 +10,7 @@ namespace GraphReader.Ocr;
 public static class FramedLegendRoleResolver
 {
     public const string CompositionVersion = "original-pixel-framed-legend-context-v2";
-    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v6-symbol-overhang";
+    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v7-pixel-separation";
 
     /// <summary>Joins detected words only when original pixels establish one framed legend row.</summary>
     public static IReadOnlyList<OcrDetectedRegion> AssembleDetectedRows(
@@ -187,7 +187,10 @@ public static class FramedLegendRoleResolver
             if (frame is null || frames.Contains(frame.FrameBounds) ||
                 detected.Any(r => Overlaps(r.Polygon.Bounds, frame.FrameBounds))) continue;
             // A normal first letter must not become a supposed legend symbol.
-            if (seed.Polygon.Bounds.Left - frame.GlyphBounds.Right < 0.5 * seed.Polygon.Bounds.Height) continue;
+            // Component rectangles have exclusive right edges. Measure the
+            // distance from the last foreground pixel, not the blank columns
+            // between the symbol and first letter.
+            if (seed.Polygon.Bounds.Left - (frame.GlyphBounds.Right - 1) < 0.5 * seed.Polygon.Bounds.Height) continue;
 
             OcrDetectedRegion completed = CompleteSingleRowTextBounds(
                 image, [seed], cancellationToken, allowSingleGlyphSeed: true).Single();

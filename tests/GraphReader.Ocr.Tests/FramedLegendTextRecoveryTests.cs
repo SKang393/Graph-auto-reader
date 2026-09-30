@@ -45,6 +45,62 @@ public sealed class FramedLegendTextRecoveryTests
     }
 
     [TestMethod]
+    [DataRow(13, false)]
+    [DataRow(14, false)]
+    [DataRow(26, false)]
+    [DataRow(13, true)]
+    [DataRow(14, true)]
+    [DataRow(26, true)]
+    public async Task DetachedSymbolSeparationUsesForegroundPixelCenters(int textHeight, bool partial)
+    {
+        OcrImage image = SeparationFixture(textHeight, 0);
+        byte[] original = image.Pixels.ToArray();
+        OcrDetectedRegion suffix = OcrTestFixtures.Region("suffix", 144, 45, 8, textHeight);
+        var recovered = partial
+            ? await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, [suffix])
+            : await FramedLegendRoleResolver.RecoverMissingTextAsync(image, []);
+        Assert.HasCount(1, recovered);
+        Assert.AreEqual(new OcrRectangle(72, 45, 80, textHeight), recovered.Single().Polygon.Bounds);
+        Assert.IsNull(recovered.Single().Context);
+        Assert.IsNull(recovered.Single().Evidence);
+        CollectionAssert.AreEqual(original, image.Pixels.ToArray());
+        CollectionAssert.AreEqual(recovered.ToArray(),
+            (await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, recovered)).ToArray());
+    }
+
+    [TestMethod]
+    [DataRow(13)]
+    [DataRow(14)]
+    [DataRow(26)]
+    public async Task OnePixelBelowRequiredForegroundSeparationIsStillRejected(int textHeight)
+    {
+        OcrImage image = SeparationFixture(textHeight, -1);
+        Assert.IsEmpty(await FramedLegendRoleResolver.RecoverMissingTextAsync(image, []));
+        OcrDetectedRegion suffix = OcrTestFixtures.Region("suffix", 144, 45, 8, textHeight);
+        CollectionAssert.AreEqual(new[] { suffix },
+            (await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, [suffix])).ToArray());
+    }
+
+    private static OcrImage SeparationFixture(int textHeight, int gapOffset)
+    {
+        const int width = 220, height = 160, stride = 225;
+        byte[] pixels = Enumerable.Repeat((byte)255, stride * height).ToArray();
+        void Rectangle(int left, int top, int right, int bottom, bool outline = false)
+        {
+            for (int y = top; y < bottom; y++)
+            for (int x = left; x < right; x++)
+                if (!outline || x == left || x == right - 1 || y == top || y == bottom - 1)
+                    pixels[y * stride + x] = 0;
+        }
+        Rectangle(25, 32, 178, 45 + textHeight + 12, true);
+        int gap = (int)Math.Ceiling(textHeight / 2d) - 1 + gapOffset;
+        int symbolRight = 72 - gap;
+        Rectangle(symbolRight - textHeight, 45, symbolRight, 45 + textHeight, true);
+        for (int x = 72; x <= 144; x += 12) Rectangle(x, 45, x + 8, 45 + textHeight);
+        return new OcrImage(width, height, stride, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity);
+    }
+
+    [TestMethod]
     public async Task IndividualComponentsRemainOptInAndHaveDistinctConfigurationIdentity()
     {
         OcrImage image = Fixture(wideCanvas: true);
