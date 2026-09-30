@@ -1,0 +1,519 @@
+{
+  "schema": "graphreader.symbol-run-text-mask-diagnosis.v1",
+  "base_source_commit": "9406d25b076eebd49035eff2055cc1c1b39a2216",
+  "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+  "finding": "All eleven lost native marker truths had previously accepted centers inside one newly eligible mask. The server reader describes the plotted row using only Unicode symbols and punctuation; its eight text elements bypass the single-glyph ambiguity rule. The English reading remained unmasked through the existing confidence rule.",
+  "isolated_change": "Extend the existing inside-plot Unreviewed Annotation/Other review rule from one text element to runs composed only of Unicode symbols, punctuation and whitespace. Keep the exact text, original coordinates and role. Withhold the mask until review; retain existing single-glyph warning code and use a distinct symbol-run warning. Do not change numeric thresholds, words, multi-character numbers, other roles, out-of-plot annotations or reviewed labels.",
+  "observations": [
+    {
+      "evidence": {
+        "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/execution/stage-evidence/0e450b32-21df-9f50-84cd-d2cd2b175cb2.json",
+        "sha256": "35d8de44116d62532fb08218f4bb17cf0cc2931d5eaa36306838067c31c04127"
+      },
+      "ocr_region": {
+        "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+        "polygon": {
+          "points": [
+            {
+              "x": 63,
+              "y": 171,
+              "is_finite": true
+            },
+            {
+              "x": 166,
+              "y": 171,
+              "is_finite": true
+            },
+            {
+              "x": 166,
+              "y": 186,
+              "is_finite": true
+            },
+            {
+              "x": 63,
+              "y": 186,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 63,
+            "y": 171,
+            "width": 103,
+            "height": 15,
+            "left": 63,
+            "top": 171,
+            "right": 166,
+            "bottom": 186,
+            "center": {
+              "x": 114.5,
+              "y": 178.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "0\u00b0\u00b0",
+        "alternatives": [
+          {
+            "text": "0\u00b0\u00b0",
+            "confidence": 0.5060266156991323,
+            "source_image": "Original"
+          },
+          {
+            "text": "\u00b0\u00b0",
+            "confidence": 0.4783667703231209,
+            "source_image": "Original"
+          },
+          {
+            "text": "0\u00b0",
+            "confidence": 0.4562559150128497,
+            "source_image": "Original"
+          }
+        ],
+        "role": "Annotation",
+        "confidence": 0.6014432622554584,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "masks": [],
+      "accepted_markers": 25,
+      "plot": {
+        "bottom_left": {
+          "x": 50.76525499546396,
+          "y": 191.88325447278032,
+          "is_finite": true
+        },
+        "bottom_right": {
+          "x": 288.1184949152648,
+          "y": 191.61838832785196,
+          "is_finite": true
+        },
+        "top_right": {
+          "x": 288.41333218255136,
+          "y": 72.73280287585578,
+          "is_finite": true
+        },
+        "top_left": {
+          "x": 51.060092262750516,
+          "y": 72.99766902078413,
+          "is_finite": true
+        },
+        "points": [
+          {
+            "x": 50.76525499546396,
+            "y": 191.88325447278032,
+            "is_finite": true
+          },
+          {
+            "x": 288.1184949152648,
+            "y": 191.61838832785196,
+            "is_finite": true
+          },
+          {
+            "x": 288.41333218255136,
+            "y": 72.73280287585578,
+            "is_finite": true
+          },
+          {
+            "x": 51.060092262750516,
+            "y": 72.99766902078413,
+            "is_finite": true
+          }
+        ]
+      }
+    },
+    {
+      "evidence": {
+        "path": "artifacts/goal22-runs/server-reader-v46-context-evaluation-20260930-v1/v46-native/execution/stage-evidence/2f70314b-9242-2556-920a-3d8dd0d0dc7a.json",
+        "sha256": "24f48241fec952a9659cdae6a48aafb5a106aaf7cd17d8a1e8f4b19ff17547a6"
+      },
+      "ocr_region": {
+        "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+        "polygon": {
+          "points": [
+            {
+              "x": 63,
+              "y": 171,
+              "is_finite": true
+            },
+            {
+              "x": 166,
+              "y": 171,
+              "is_finite": true
+            },
+            {
+              "x": 166,
+              "y": 186,
+              "is_finite": true
+            },
+            {
+              "x": 63,
+              "y": 186,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 63,
+            "y": 171,
+            "width": 103,
+            "height": 15,
+            "left": 63,
+            "top": 171,
+            "right": 166,
+            "bottom": 186,
+            "center": {
+              "x": 114.5,
+              "y": 178.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "\u221e\u00b0\u3002\u221e\u3002\u00b0\u3002\u00b0",
+        "alternatives": [
+          {
+            "text": "\u221e\u00b0\u3002\u221e\u3002\u00b0\u3002\u00b0",
+            "confidence": 0.5572127141058445,
+            "source_image": "Original"
+          },
+          {
+            "text": "\u221e\u00b0\u221e\u3002\u00b0\u3002\u00b0",
+            "confidence": 0.5000346169057125,
+            "source_image": "Original"
+          },
+          {
+            "text": "\u221e\u00b0\u3002\u3002\u00b0\u3002\u00b0",
+            "confidence": 0.48763219782119543,
+            "source_image": "Original"
+          }
+        ],
+        "role": "Annotation",
+        "confidence": 0.6210747640451192,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "masks": [
+        {
+          "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+          "polygon": {
+            "points": [
+              {
+                "x": 62,
+                "y": 170,
+                "is_finite": true
+              },
+              {
+                "x": 167,
+                "y": 170,
+                "is_finite": true
+              },
+              {
+                "x": 167,
+                "y": 187,
+                "is_finite": true
+              },
+              {
+                "x": 62,
+                "y": 187,
+                "is_finite": true
+              }
+            ],
+            "bounds": {
+              "x": 62,
+              "y": 170,
+              "width": 105,
+              "height": 17,
+              "left": 62,
+              "top": 170,
+              "right": 167,
+              "bottom": 187,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          },
+          "confidence": 0.6717855497343765,
+          "coordinate_space": "original_pixels"
+        }
+      ],
+      "accepted_markers": 14,
+      "plot": {
+        "bottom_left": {
+          "x": 50.76525499546396,
+          "y": 191.88325447278032,
+          "is_finite": true
+        },
+        "bottom_right": {
+          "x": 288.1184949152648,
+          "y": 191.61838832785196,
+          "is_finite": true
+        },
+        "top_right": {
+          "x": 288.41333218255136,
+          "y": 72.73280287585578,
+          "is_finite": true
+        },
+        "top_left": {
+          "x": 51.060092262750516,
+          "y": 72.99766902078413,
+          "is_finite": true
+        },
+        "points": [
+          {
+            "x": 50.76525499546396,
+            "y": 191.88325447278032,
+            "is_finite": true
+          },
+          {
+            "x": 288.1184949152648,
+            "y": 191.61838832785196,
+            "is_finite": true
+          },
+          {
+            "x": 288.41333218255136,
+            "y": 72.73280287585578,
+            "is_finite": true
+          },
+          {
+            "x": 51.060092262750516,
+            "y": 72.99766902078413,
+            "is_finite": true
+          }
+        ]
+      }
+    }
+  ],
+  "lost_pairs": [
+    {
+      "prediction": {
+        "x": 152.5,
+        "y": 174.5,
+        "radius": 3.5,
+        "shape": "Diamond",
+        "fill": "Open",
+        "confidence": 0.9060360789299011,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "31af8774-8af8-5385-b054-5cbd1b6339df",
+      "distance": 0.5966147452963141,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 73.5,
+        "y": 175.5,
+        "radius": 3,
+        "shape": "Diamond",
+        "fill": "Open",
+        "confidence": 0.5,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "4cdf21c8-2c46-5435-a3a6-87014ffaadb3",
+      "distance": 1.1369325691196515,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 66.5,
+        "y": 180.5,
+        "radius": 3,
+        "shape": "Diamond",
+        "fill": "Open",
+        "confidence": 0.5,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "63a3a4cd-1274-599c-bc7f-3314cb522381",
+      "distance": 0.6440213089160927,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 107.5,
+        "y": 181,
+        "radius": 3,
+        "shape": "Circle",
+        "fill": "Open",
+        "confidence": 0.5,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "715743a6-0eb3-582e-aab7-fd67bdb455c9",
+      "distance": 0.6582501099810154,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 143.5,
+        "y": 179,
+        "radius": 3,
+        "shape": "Diamond",
+        "fill": "Open",
+        "confidence": 0.5,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "846ed713-a8ae-502d-a172-341ec96f60b7",
+      "distance": 1.1489922645953785,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 124.5,
+        "y": 181.5,
+        "radius": 3.5,
+        "shape": "Circle",
+        "fill": "Open",
+        "confidence": 0.9794986248016357,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "84d13129-a3a2-5d3f-b8c1-780654fdb86e",
+      "distance": 0.4977730612739143,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 87.5,
+        "y": 174.5,
+        "radius": 3.5,
+        "shape": "Circle",
+        "fill": "Open",
+        "confidence": 0.938313901424408,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "8607c415-606e-5c02-b336-a79fe059c723",
+      "distance": 0.6332508675161915,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 98.5,
+        "y": 181.5,
+        "radius": 3,
+        "shape": "Circle",
+        "fill": "Open",
+        "confidence": 0.5,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "b82e2c7c-e632-56ed-933f-fdf4656d573c",
+      "distance": 0.7729876367458982,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 133.43675231933594,
+        "y": 173.39352416992188,
+        "radius": 3.5681071281433105,
+        "shape": "Circle",
+        "fill": "Unknown",
+        "confidence": 0.5843997597694397,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "f8756f7c-0b87-5ed3-9244-157c67090590",
+      "distance": 1.8016051128838495,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 163.5,
+        "y": 178.5,
+        "radius": 3,
+        "shape": "Circle",
+        "fill": "Open",
+        "confidence": 0.5,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "f9a469e2-6388-54c1-9a71-a2832745a9fe",
+      "distance": 0.28126966243270024,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    },
+    {
+      "prediction": {
+        "x": 114,
+        "y": 177,
+        "radius": 3.5,
+        "shape": "Diamond",
+        "fill": "Open",
+        "confidence": 0.5,
+        "panel_id": "0e450b32-21df-9f50-84cd-d2cd2b175cb2"
+      },
+      "truth_id": "fc241e55-181d-5bb3-96f9-2493f7f10d59",
+      "distance": 1.1983971433218505,
+      "truth_shape": "circle",
+      "truth_fill": "open"
+    }
+  ],
+  "all_lost_centers_inside_new_mask": true,
+  "source_before": [
+    {
+      "file": "src/GraphReader.Ocr/SingleGlyphTextMaskReview.cs",
+      "sha256": "719744f8635c2ba23ec400fe18d0fd708a36ece6284336b15596ddb3940ab25c",
+      "archive": "artifacts/goal22-runs/symbol-run-mask-diagnosis-20260930-v1/source-before/src/GraphReader.Ocr/SingleGlyphTextMaskReview.cs"
+    },
+    {
+      "file": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "ecb8d7bf489fe95acdfef97f06ad87cf06f2325fa3de5f756a586f4645d05b61",
+      "archive": "artifacts/goal22-runs/symbol-run-mask-diagnosis-20260930-v1/source-before/src/GraphReader.Ocr/OcrPipeline.cs"
+    },
+    {
+      "file": "tests/GraphReader.Ocr.Tests/SingleGlyphTextMaskReviewTests.cs",
+      "sha256": "cfae4e2c8db8dbcf10c77f45d33b2109006d3a107bdd6dbb06e11cab431f219f",
+      "archive": "artifacts/goal22-runs/symbol-run-mask-diagnosis-20260930-v1/source-before/tests/GraphReader.Ocr.Tests/SingleGlyphTextMaskReviewTests.cs"
+    }
+  ],
+  "validation": {
+    "suites": [
+      "GraphReader.Ocr.Tests",
+      "GraphReader.App.Tests"
+    ],
+    "arms": [
+      "retained V44 with English reader",
+      "V46 with server reader"
+    ],
+    "baselines": [
+      "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1",
+      "artifacts/goal22-runs/server-reader-v46-context-evaluation-20260930-v1"
+    ],
+    "native_truth_regions": 453,
+    "native_truth_markers": 838,
+    "csv_truth_points": 706,
+    "csv_truth_rows": 724,
+    "acceptance_bars": {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "budget": {
+      "native_runs": 2,
+      "csv_runs": 2,
+      "optimizer_steps": 0,
+      "private_reads": 0,
+      "sealed_runs": 0
+    }
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/native-marker-details.json",
+      "sha256": "37adbd49975e386ce70939fb7c41fb9dfb10a6cf7040fa71c2d2901463aa9c91"
+    },
+    {
+      "path": "artifacts/goal22-runs/server-reader-v46-context-evaluation-20260930-v1/v46-native/native-marker-details.json",
+      "sha256": "fbe78c208da617f052fb1dba3aac38bc34d96dad8fdfcc7b1c380c917d355bc4"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false
+}

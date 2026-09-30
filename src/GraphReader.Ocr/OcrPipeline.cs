@@ -573,7 +573,7 @@ public sealed class OcrPipeline
             $"ocr_duplicate_text_fragment_removed:{id}"));
         RevalidateRecoveredTickWarnings(regions, detectedRegions, recoveredTickIds, warnings, _options, cancellationToken);
         warnings.AddRange(regions.Where(region => SingleGlyphTextMaskReview.RequiresReview(region, request.PlotBounds))
-            .Select(static region => $"ocr_single_glyph_annotation_needs_review:{region.RegionId}"));
+            .Select(static region => $"{SingleGlyphTextMaskReview.WarningCode(region)}:{region.RegionId}"));
         var detectedById = detectedRegions.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
         var maskRegionIds = regions
             .Where(region => IsCredibleTextMask(
@@ -908,7 +908,7 @@ public sealed class OcrPipeline
         OcrPipelineOptions options)
     {
         // Preserve both readings for Review when OCR cannot distinguish a
-        // standalone annotation glyph from a plotted marker of the same shape.
+        // annotation glyphs or symbol-only runs from plotted markers of the same shape.
         if (SingleGlyphTextMaskReview.RequiresReview(region, plotBounds)) return false;
 
         var recognitionConfidence = region.Alternatives.Count == 0
