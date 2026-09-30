@@ -6,31 +6,52 @@ param(
     [Parameter(ValueFromRemainingArguments=$true)][string[]]$ProgramArguments
 )
 $ErrorActionPreference='Stop'
+if (-not ('Goal22CpuBudget' -as [type])) {
 Add-Type -TypeDefinition @"
 using System;
 using System.Runtime.InteropServices;
 public static class Goal22CpuBudget {
+    public static IntPtr Job = IntPtr.Zero;
     [StructLayout(LayoutKind.Sequential)] public struct CpuRate { public uint Flags; public uint Rate; }
     [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] public static extern IntPtr CreateJobObject(IntPtr security, string name);
     [DllImport("kernel32.dll", SetLastError=true)] public static extern bool SetInformationJobObject(IntPtr job, int infoClass, ref CpuRate info, uint length);
     [DllImport("kernel32.dll", SetLastError=true)] public static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
     [DllImport("kernel32.dll", SetLastError=true)] public static extern bool QueryInformationJobObject(IntPtr job, int infoClass, out CpuRate info, uint length, IntPtr returnedLength);
+    [DllImport("kernel32.dll", SetLastError=true)] public static extern bool IsProcessInJob(IntPtr process, IntPtr job, out bool result);
+    [DllImport("kernel32.dll", SetLastError=true)] public static extern bool CloseHandle(IntPtr handle);
+    [DllImport("kernel32.dll")] public static extern uint GetActiveProcessorCount(ushort processorGroup);
 }
 "@
+}
 $taskHostProcess=[System.Diagnostics.Process]::GetCurrentProcess()
 $taskHostProcess.PriorityClass=[System.Diagnostics.ProcessPriorityClass]::Idle
-$taskLogicalCount=[Environment]::ProcessorCount
+# ProcessorCount can shrink after a job quota is applied. Affinity must still
+# include every hardware processor supported by this single-group helper.
+$taskLogicalCount=[int][Goal22CpuBudget]::GetActiveProcessorCount([ushort]::MaxValue)
 if ($taskLogicalCount -lt 1 -or $taskLogicalCount -gt 63) { throw 'Unsupported CPU topology.' }
 $taskAffinity=[long]([math]::Pow(2,$taskLogicalCount)-1)
 $taskCpuRate=[uint32]8000
 $taskHostProcess.ProcessorAffinity=[IntPtr]$taskAffinity
-$taskJob=[Goal22CpuBudget]::CreateJobObject([IntPtr]::Zero,$null)
-if ($taskJob -eq [IntPtr]::Zero) { throw 'Could not create background CPU budget.' }
-$taskRate=[Goal22CpuBudget+CpuRate]::new()
-$taskRate.Flags=5
-$taskRate.Rate=$taskCpuRate
-if (-not [Goal22CpuBudget]::SetInformationJobObject($taskJob,15,[ref]$taskRate,8)) { throw "Could not set CPU ceiling: $([Runtime.InteropServices.Marshal]::GetLastWin32Error())" }
-if (-not [Goal22CpuBudget]::AssignProcessToJobObject($taskJob,$taskHostProcess.Handle)) { throw "Could not apply CPU ceiling: $([Runtime.InteropServices.Marshal]::GetLastWin32Error())" }
+# Repeated calls from one launcher must reuse the same job. Assigning the host
+# to another capped job nests the quotas and multiplies their CPU restrictions.
+$taskJob=[Goal22CpuBudget]::Job
+if ($taskJob -eq [IntPtr]::Zero) {
+    $taskJob=[Goal22CpuBudget]::CreateJobObject([IntPtr]::Zero,$null)
+    if ($taskJob -eq [IntPtr]::Zero) { throw 'Could not create background CPU budget.' }
+    try {
+        $taskRate=[Goal22CpuBudget+CpuRate]::new()
+        $taskRate.Flags=5
+        $taskRate.Rate=$taskCpuRate
+        if (-not [Goal22CpuBudget]::SetInformationJobObject($taskJob,15,[ref]$taskRate,8)) { throw "Could not set CPU ceiling: $([Runtime.InteropServices.Marshal]::GetLastWin32Error())" }
+        if (-not [Goal22CpuBudget]::AssignProcessToJobObject($taskJob,$taskHostProcess.Handle)) { throw "Could not apply CPU ceiling: $([Runtime.InteropServices.Marshal]::GetLastWin32Error())" }
+        [Goal22CpuBudget]::Job=$taskJob
+    } catch {
+        [void][Goal22CpuBudget]::CloseHandle($taskJob)
+        throw
+    }
+}
+$taskIsInJob=$false
+if (-not [Goal22CpuBudget]::IsProcessInJob($taskHostProcess.Handle,$taskJob,[ref]$taskIsInJob) -or -not $taskIsInJob) { throw 'CPU budget membership verification failed.' }
 $verifiedRate=[Goal22CpuBudget+CpuRate]::new()
 if (-not [Goal22CpuBudget]::QueryInformationJobObject($taskJob,15,[ref]$verifiedRate,8,[IntPtr]::Zero) -or $verifiedRate.Flags -ne 5 -or $verifiedRate.Rate -ne $taskCpuRate) { throw 'CPU ceiling verification failed.' }
 $taskHostProcess.Refresh()

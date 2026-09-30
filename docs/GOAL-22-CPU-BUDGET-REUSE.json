@@ -1,0 +1,64 @@
+{
+  "schema": "graphreader.cpu-budget-reuse-repair.v1",
+  "status": "implemented_and_windows_verified",
+  "problem": "Repeated helper calls assigned the same launcher to another capped Windows job each time. Nested CPU rates are relative to their parent, so a sequence compounded the restrictions.",
+  "implementation": "Create one job per PowerShell host, retain its handle, and verify membership, flags and exact 80 percent rate before every child. Derive affinity and library thread counts from active hardware processors rather than quota-limited ProcessorCount.",
+  "tests": {
+    "repeated_calls": 8,
+    "jobs_created_by_helper": 1,
+    "rate": 8000,
+    "flags": 5,
+    "hardware_processors": 12,
+    "affinity": 4095,
+    "child_priority": "Idle",
+    "exit_codes_tested": [
+      0,
+      7
+    ],
+    "altered_rate_blocks_child": true,
+    "seconds": 6.5201418
+  },
+  "test_command": "pwsh -NoProfile -File tools/Test-TrainingCpuBudget.ps1 -GuardPath artifacts/goal22-tools/Run-TrainingCpuBudget.proposed.ps1 -OutputDirectory artifacts/goal22-runs/cpu-budget-reuse-check-v1",
+  "tested_proposal_identical_to_installed_source": true,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/cpu-budget-reuse-check-v1/result.json",
+      "sha256": "0c6712886e5a236039ca212da1187ae388c0c52c759200b515f7e4d5c36d3e13"
+    },
+    {
+      "path": "artifacts/goal22-runs/cpu-budget-reuse-check-v1/previous-guard.ps1",
+      "sha256": "31c62185f6539b986f4ec07ec0b7ce7d7571251412a7be0eca62d761f9e4964e"
+    },
+    {
+      "path": "tools/Run-TrainingCpuBudget.ps1",
+      "sha256": "bf3896720e1542b008f233c28c8fe9a0bdd002e390af8dff9ac225ce28dfe539"
+    },
+    {
+      "path": "tools/Test-TrainingCpuBudget.ps1",
+      "sha256": "7114d0cc3ab732eb4f1412dd60ce57c46db6b806893a67a90d42ba4111bc9f0a"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-CpuBudgetReuse.py",
+      "sha256": "15d9e349940f8fde5deda68d24ca300d8ffb9ba951cee4c7438182283c8e0684"
+    }
+  ],
+  "platform_references": [
+    "https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_cpu_rate_control_information",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getactiveprocessorcount"
+  ],
+  "historical_evidence": "Previous elapsed times remain actual wall times, but multi-call runs had compounded quotas and are not controlled speed comparisons. Their completed inference and scoring results are not rewritten or rerun.",
+  "limitations": [
+    "Still supports at most 63 active CPUs in one affinity mask.",
+    "An inherited external parent job may impose a stricter cap.",
+    "No instantaneous per-core ceiling or measured speedup is claimed.",
+    "Launch a fresh PowerShell host to use the repaired helper; old running jobs are not modified."
+  ],
+  "license": "Project-owned Apache-2.0 source using existing Windows APIs. No dependency or model change.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "packaged_build_created": false,
+  "production_approved": false,
+  "goal22_complete": false
+}
