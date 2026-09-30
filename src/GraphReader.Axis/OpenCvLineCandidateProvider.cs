@@ -33,6 +33,7 @@ public sealed record OpenCvLineCandidateOptions
 /// </summary>
 public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
 {
+    private const int InkEndpointRadius = 2;
     private readonly OpenCvLineCandidateOptions _options;
 
     public OpenCvLineCandidateProvider(OpenCvLineCandidateOptions? options = null)
@@ -151,9 +152,11 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         var geometryOptions = new AxisGeometryOptions();
         double minimumGap = geometryOptions.MergeDistancePixels * 2d;
         // Hough's empty-gap allowance is not the size of a connected symbol.
-        // Search at most two minimum-length segments, then require a real ink
-        // path. Short LSD terminal stubs still carry valid endpoint evidence.
-        double maximumGap = _options.HoughMinimumLineLengthPixels * 2d;
+        // Native endpoints stop short of ink. Include the same endpoint
+        // uncertainty used by the path check, without enlarging its detour.
+        // Short LSD terminal stubs still carry valid endpoint evidence.
+        double maximumInkSpan = _options.HoughMinimumLineLengthPixels * 2d;
+        double maximumGap = maximumInkSpan + (2 * InkEndpointRadius);
         if (maximumGap <= minimumGap)
         {
             return;
@@ -214,7 +217,8 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
                         if (distance <= minimumGap || distance > maximumGap ||
                             ((gapX * neighbor.Outward.X) + (gapY * neighbor.Outward.Y)) / distance < alignmentCosine ||
                             -((gapX * endpoint.Outward.X) + (gapY * endpoint.Outward.Y)) / distance < alignmentCosine ||
-                            !HasLocalInkPath(neighbor.Point, endpoint.Point, frame, pixels, cellSize, cancellationToken) ||
+                            !HasLocalInkPath(neighbor.Point, endpoint.Point, frame, pixels,
+                                (int)Math.Ceiling(maximumInkSpan), cancellationToken) ||
                             !usedPairs.Add((neighbor.Candidate.CandidateId, endpoint.Candidate.CandidateId)))
                         {
                             continue;
@@ -252,7 +256,8 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         // the missing support. Empty gaps remain disconnected.
         var geometryOptions = new AxisGeometryOptions();
         double minimumGap = geometryOptions.MergeDistancePixels * 2d;
-        double maximumGap = _options.HoughMinimumLineLengthPixels * 2d;
+        double maximumInkSpan = _options.HoughMinimumLineLengthPixels * 2d;
+        double maximumGap = maximumInkSpan + (2 * InkEndpointRadius);
         double axisCosine = Math.Cos(geometryOptions.MaximumAxisDeviationDegrees * Math.PI / 180d);
         double perpendicularTolerance = Math.Sin(geometryOptions.MergeAngleToleranceDegrees * Math.PI / 180d);
         var lines = candidates.Where(candidate => candidate.Segment.Length >= minimumGap)
@@ -304,7 +309,7 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
                         Math.Cos(geometryOptions.MergeAngleToleranceDegrees * Math.PI / 180d) &&
                     DistanceToSegment(intersection, existing.Candidate.Segment) <= geometryOptions.MergeDistancePixels))
                     continue;
-                if (!HasLocalInkPath(endpoint, intersection, frame, pixels, (int)Math.Ceiling(maximumGap), cancellationToken))
+                if (!HasLocalInkPath(endpoint, intersection, frame, pixels, (int)Math.Ceiling(maximumInkSpan), cancellationToken))
                     continue;
 
                 bridges.Add(new GeometryLineCandidate(
@@ -334,7 +339,6 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         int detourRadius,
         CancellationToken cancellationToken)
     {
-        const int edgeRadius = 2;
         const byte maximumInkGray = 200;
         int fromX = (int)Math.Round(from.X), fromY = (int)Math.Round(from.Y);
         int toX = (int)Math.Round(to.X), toY = (int)Math.Round(to.Y);
@@ -344,9 +348,9 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         int bottom = Math.Min(frame.Height - 1, Math.Max(fromY, toY) + detourRadius);
         var pending = new Queue<(int X, int Y)>();
         var visited = new HashSet<(int X, int Y)>();
-        for (int y = Math.Max(top, fromY - edgeRadius); y <= Math.Min(bottom, fromY + edgeRadius); y++)
+        for (int y = Math.Max(top, fromY - InkEndpointRadius); y <= Math.Min(bottom, fromY + InkEndpointRadius); y++)
         {
-            for (int x = Math.Max(left, fromX - edgeRadius); x <= Math.Min(right, fromX + edgeRadius); x++)
+            for (int x = Math.Max(left, fromX - InkEndpointRadius); x <= Math.Min(right, fromX + InkEndpointRadius); x++)
             {
                 if (pixels[(y * frame.Stride) + x] < maximumInkGray && visited.Add((x, y)))
                 {
@@ -358,7 +362,7 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         while (pending.TryDequeue(out var point))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (Math.Abs(point.X - toX) <= edgeRadius && Math.Abs(point.Y - toY) <= edgeRadius)
+            if (Math.Abs(point.X - toX) <= InkEndpointRadius && Math.Abs(point.Y - toY) <= InkEndpointRadius)
             {
                 return true;
             }

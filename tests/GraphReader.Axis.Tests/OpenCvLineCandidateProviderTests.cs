@@ -125,6 +125,39 @@ public sealed class OpenCvLineCandidateProviderTests
     }
 
     [TestMethod]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    public async Task EndpointUncertaintyPreservesAnAxisAcrossAConnectedRoundMarker(
+        bool horizontal, bool connected)
+    {
+        GrayscaleLineCandidateFrame frame = CreateRoundMarkerAxisFrame(horizontal, connected);
+        byte[] original = frame.Pixels.ToArray();
+        IReadOnlyList<GeometryLineCandidate> candidates = await new OpenCvLineCandidateProvider()
+            .DetectLinesAsync(frame, CancellationToken.None);
+        bool spansMarker = candidates.Any(candidate => candidate.Source == LineCandidateSource.Other &&
+            (horizontal
+                ? Math.Abs(candidate.Segment.Midpoint.Y - 30.5) < 3 &&
+                    Math.Min(candidate.Segment.Start.X, candidate.Segment.End.X) <= 78 &&
+                    Math.Max(candidate.Segment.Start.X, candidate.Segment.End.X) >= 102
+                : Math.Abs(candidate.Segment.Midpoint.X - 30.5) < 3 &&
+                    Math.Min(candidate.Segment.Start.Y, candidate.Segment.End.Y) <= 78 &&
+                    Math.Max(candidate.Segment.Start.Y, candidate.Segment.End.Y) >= 102));
+        Assert.AreEqual(connected, spansMarker,
+            "Endpoint uncertainty must preserve connected marker ink without bridging an empty gap.");
+        CollectionAssert.AreEqual(original, frame.Pixels.ToArray());
+        if (connected && !horizontal)
+        {
+            AxisGeometryResult geometry = await new AxisGeometryDetector().DetectAsync(
+                new AxisGeometryRequest(frame.Width, frame.Height, candidates));
+            Assert.AreEqual(30.5d, geometry.PlotPolygon.BottomLeft.X, 3d,
+                "A full-height internal divider must not replace the connected y-axis.");
+            Assert.AreEqual(20d, geometry.PlotPolygon.TopLeft.Y, 4d);
+        }
+    }
+
+    [TestMethod]
     public async Task NativeCandidatesFeedGeometryDetectorInOriginalPixels()
     {
         GrayscaleLineCandidateFrame frame = CreateCleanAxisFrame();
@@ -227,6 +260,41 @@ public sealed class OpenCvLineCandidateProviderTests
             }
         }
 
+        return new GrayscaleLineCandidateFrame(original.Height, original.Width, original.Height, transposed);
+    }
+
+    private static GrayscaleLineCandidateFrame CreateRoundMarkerAxisFrame(bool horizontal, bool connected)
+    {
+        GrayscaleLineCandidateFrame original = CreateCleanAxisFrame();
+        byte[] pixels = original.Pixels.ToArray();
+        for (int y = 20; y <= 130; y++)
+        {
+            SetBlack(pixels, original.Stride, 150, y);
+        }
+        for (int y = 77; y <= 103; y++)
+        {
+            for (int x = 18; x <= 43; x++)
+            {
+                double distance = Math.Sqrt(Math.Pow(x - 30.5, 2) + Math.Pow(y - 90d, 2));
+                if (distance <= 12d)
+                {
+                    pixels[(y * original.Stride) + x] = !connected ? byte.MaxValue
+                        : distance >= 11d ? (byte)0 : (byte)170;
+                }
+            }
+        }
+        if (!horizontal)
+        {
+            return original with { Pixels = pixels };
+        }
+        byte[] transposed = new byte[pixels.Length];
+        for (int y = 0; y < original.Height; y++)
+        {
+            for (int x = 0; x < original.Width; x++)
+            {
+                transposed[(x * original.Height) + y] = pixels[(y * original.Stride) + x];
+            }
+        }
         return new GrayscaleLineCandidateFrame(original.Height, original.Width, original.Height, transposed);
     }
 
