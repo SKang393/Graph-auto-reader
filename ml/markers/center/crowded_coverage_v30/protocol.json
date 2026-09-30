@@ -1,0 +1,82 @@
+{
+  "acceptance_bar": "Reference unchanged ml/policy/acceptance-bars.json through the shared evaluator. Synthetic development does not establish production approval; sealed, real, runtime, promotion and end-to-end requirements remain.",
+  "budget": {
+    "candidate_id": "P1",
+    "csv_diagnostic_runs": 1,
+    "experiment_budget": 1,
+    "native_diagnostic_runs": 1,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "sealed_runs_authorized": 0
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "Current owned native development has 54 missing markers without a nearby above-threshold decoded center, including 29 in one crowded hexagon graph. Single-marker shape coverage does not teach competing visible neighbors. A general all-shape crowded training supplement with every visible marker labeled may improve proposals. Stage attribution is descriptive and is not proof that this repairs every loss.",
+  "isolated_change": "Warm-start the exact V27 checkpoint using all 87638 authenticated historical/shape rows plus 182614 new owned crowded rows from 3456 scenes and 9504 visible markers. Keep architecture, three-channel 33-pixel input, stride/support, mask channels, loss coefficients and radius clamp. Use eight fixed AdamW epochs at 0.0003, batch 128, weight decay 0.0001, fixed final epoch only. Hold V5 classifier and the tested b1b6417 application runtime for complete workflow comparison. Candidate cutoff remains 0.25; retained V27 native baseline uses its existing 0.10, so the final workflow compares configurations rather than isolating weights.",
+  "metric": "Complete frozen 167 component and 9 family dev scenes, 2210 truths, at fixed 0.25 and existing 5-pixel matching. Reproduce V27 historical counts and report legacy/balanced support separately. Verify ONNX parity over all frozen development proposals. Then run all 21 native sources/31 panels/838 truths and all 23 CSV sources/39 panels/706 points/724 rows using retained source bytes, all failures and unchanged safeguards. Sensitivity and complete-scene exactness are descriptive.",
+  "split_identities": {
+    "cache": {
+      "path": "artifacts/goal22-runs/center-crowded-coverage-cache-v1/manifest.json",
+      "sha256": "1458a7f285f382b968b32e6b4ceb3e431544483bfcb2b0f5de3661278f3d8f03"
+    },
+    "coverage_definition": {
+      "all_visible_neighbors_are_truth": true,
+      "contexts": [
+        "separated_pair",
+        "overlapping_pair",
+        "close_row",
+        "three_neighbors"
+      ],
+      "count": 3456,
+      "draw_orders": [
+        "target_first",
+        "target_last"
+      ],
+      "grid_stride": 4,
+      "optimizer_steps": 0,
+      "patch_shape": [
+        3,
+        33,
+        33
+      ],
+      "population_sha256": "a25864a4f8c11a0e362644f93d7587435d76961b8dfc8dbfdcb285ac9e944c2c",
+      "positive_distance_px": 3.0,
+      "private_reads": 0,
+      "scope": "new_owned_train_only_supplement",
+      "sealed_reads": 0,
+      "shapes": [
+        "circle",
+        "square",
+        "triangle_up",
+        "triangle_down",
+        "diamond",
+        "star",
+        "asterisk",
+        "cross",
+        "other"
+      ],
+      "variants": 16,
+      "version": "proposal-center-owned-crowded-coverage-v1"
+    },
+    "development": {
+      "component_scenes": 167,
+      "family_scenes": 9,
+      "inventory_sha256": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099",
+      "truths": 2210
+    },
+    "diagnosis": {
+      "path": "docs/GOAL-22-CROWDED-CENTER-COVERAGE-DIAGNOSIS.json",
+      "sha256": "c5101ea219ef0c265236bf818dee03642bf675197ae4df31d5b2cb987faf7ca7"
+    },
+    "initializer": {
+      "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+      "sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+    },
+    "native_csv_baseline": {
+      "path": "docs/GOAL-22-AXIS-ENDPOINT-REPAIR.json",
+      "sha256": "126b28c9793dcc230169751309ac9bb61ce9117305e3c49107bceb530d9b7853"
+    },
+    "parent_cache_manifest_sha256": "d61e43d62891a5266dfd68dfd8286fdb0d28d685d2146763a9f49dfb24471700",
+    "separation": "The new recipe uses only project-owned primitive rendering and seeded training identities. Existing train/dev bytes and all truth denominators remain unchanged. No private or sealed inputs."
+  }
+}

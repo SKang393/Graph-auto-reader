@@ -1,0 +1,678 @@
+{
+  "schema": "graphreader.marker-center-crowded-coverage-outcome.v1",
+  "task": "marker-center",
+  "revision": "marker-center-crowded-coverage-v30",
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "acceptance_status": "FAIL",
+  "closed_utc": "2026-09-30T08:48:03.696637+00:00",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/center-crowded-coverage-v30/P1/report.json",
+    "sha256": "f3b327aff28f2c4e8343fe7cf0fe2457f26a8343aa4fdb512ec658793bec7bd3"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-crowded-coverage-v30/P1/result.json",
+    "sha256": "afad1fbf48d2130c0a657a53141d7c6996bd2bf046a5d2c66b68b07853748e85"
+  },
+  "candidate_config": {
+    "path": "ml/markers/center/crowded_coverage_v30/p1.json",
+    "sha256": "ee7c4242525e26119825a22615db3cfb0de1341880202e4579c90b0ff361e80a"
+  },
+  "protocol": {
+    "path": "ml/markers/center/crowded_coverage_v30/protocol.json",
+    "sha256": "b198498dea9e4ee7e12a7ac214032487686ce58b97b96d300b4b33fb6437a306"
+  },
+  "source_binding": {
+    "snapshot": {
+      "path": "ml/markers/training-seals/marker-center/marker-center-crowded-coverage-v30/P1/source-snapshot.json",
+      "sha256": "d72161c2874fe3d91b0324f0adcf0b4c327ceb946d163c1e966401a9a06af796"
+    },
+    "bundle_sha256": "4ceb6db757d306052fc9e4cac242b1e22458eb1236aca5ba055c1ed059718a52",
+    "verified_unchanged_at_close": true
+  },
+  "onnx_sha256": "87c15ac392cd25c5f419a0b1279134323a7ec43c4cea8b354ad45744e767abe3",
+  "checkpoint_sha256": "5e9cf6f901e1b473e7d46c9b6a556a38f9d530f32be8f577732649a1b19c398e",
+  "training": {
+    "completed_epochs": 8,
+    "history": [
+      {
+        "epoch": 1,
+        "mean_loss": 0.281016830608926,
+        "optimizer_steps": 2112
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 0.18998545298183506,
+        "optimizer_steps": 4224
+      },
+      {
+        "epoch": 3,
+        "mean_loss": 0.1605496333442826,
+        "optimizer_steps": 6336
+      },
+      {
+        "epoch": 4,
+        "mean_loss": 0.14224311831287306,
+        "optimizer_steps": 8448
+      },
+      {
+        "epoch": 5,
+        "mean_loss": 0.1285880206939482,
+        "optimizer_steps": 10560
+      },
+      {
+        "epoch": 6,
+        "mean_loss": 0.11864169967994906,
+        "optimizer_steps": 12672
+      },
+      {
+        "epoch": 7,
+        "mean_loss": 0.1104904332032399,
+        "optimizer_steps": 14784
+      },
+      {
+        "epoch": 8,
+        "mean_loss": 0.10339228250086308,
+        "optimizer_steps": 16896
+      }
+    ],
+    "optimizer_steps": 16896,
+    "resumed_from_epoch": 0
+  },
+  "seconds": 1908.5902665000176,
+  "cpu": {
+    "cycles": 19288,
+    "maximum_completed_cycle_duty": 0.7999513262919978,
+    "rest_seconds": 387.6241208066931,
+    "scope": "Synchronous guarded work/rest average; not instantaneous per-core utilization",
+    "work_seconds": 1511.3586172051728
+  },
+  "training_cache": {
+    "manifest": {
+      "path": "artifacts/goal22-runs/center-crowded-coverage-cache-v1/manifest.json",
+      "sha256": "1458a7f285f382b968b32e6b4ceb3e431544483bfcb2b0f5de3661278f3d8f03"
+    },
+    "added_counts": {
+      "hard_negative": 87774,
+      "negative": 165882,
+      "positive": 16732,
+      "positive_radius_over_model_maximum": 3214,
+      "rows": 182614
+    },
+    "added_inventory": {
+      "context_counts": {
+        "close_row": 864,
+        "overlapping_pair": 864,
+        "separated_pair": 864,
+        "three_neighbors": 864
+      },
+      "negative_rows": 165882,
+      "positive_rows": 16732,
+      "scenes": 3456,
+      "shape_counts": {
+        "asterisk": 1057,
+        "circle": 1062,
+        "cross": 1080,
+        "diamond": 1042,
+        "other": 1040,
+        "square": 1019,
+        "star": 1069,
+        "triangle_down": 1068,
+        "triangle_up": 1067
+      },
+      "truths": 9504,
+      "unsupported_truths": 4
+    },
+    "all_previous_rows_retained": 87638,
+    "total_rows": 270252,
+    "all_development_bytes_and_truth_unchanged": true,
+    "unsupported_authored_truths_retained": 4
+  },
+  "development": {
+    "component": {
+      "candidate_balanced": {
+        "duplicate_count": 43,
+        "false_negatives": 95,
+        "false_positives": 829,
+        "precision": 0.6972242512783053,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9525948103792415,
+        "scene_count": 167,
+        "true_positives": 1909,
+        "truth_count": 2004
+      },
+      "candidate_historical": {
+        "duplicate_count": 43,
+        "false_negatives": 93,
+        "false_positives": 908,
+        "precision": 0.6778999645264278,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9535928143712575,
+        "scene_count": 167,
+        "true_positives": 1911,
+        "truth_count": 2004
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 211,
+        "false_positives": 219,
+        "precision": 0.8911530815109344,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.8947105788423154,
+        "scene_count": 167,
+        "true_positives": 1793,
+        "truth_count": 2004
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 208,
+        "false_positives": 238,
+        "precision": 0.8829891838741396,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.8962075848303394,
+        "scene_count": 167,
+        "true_positives": 1796,
+        "truth_count": 2004
+      }
+    },
+    "family": {
+      "candidate_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 1,
+        "false_positives": 255,
+        "precision": 0.44565217391304346,
+        "prohibited_structure_hit_rate": 0.021739130434782608,
+        "prohibited_structure_hits": 10,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9951456310679612,
+        "scene_count": 9,
+        "true_positives": 205,
+        "truth_count": 206
+      },
+      "candidate_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 1,
+        "false_positives": 293,
+        "precision": 0.41164658634538154,
+        "prohibited_structure_hit_rate": 0.01606425702811245,
+        "prohibited_structure_hits": 8,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9951456310679612,
+        "scene_count": 9,
+        "true_positives": 205,
+        "truth_count": 206
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 16,
+        "false_positives": 38,
+        "precision": 0.8333333333333334,
+        "prohibited_structure_hit_rate": 0.021929824561403508,
+        "prohibited_structure_hits": 5,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9223300970873787,
+        "scene_count": 9,
+        "true_positives": 190,
+        "truth_count": 206
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 16,
+        "false_positives": 39,
+        "precision": 0.8296943231441049,
+        "prohibited_structure_hit_rate": 0.021834061135371178,
+        "prohibited_structure_hits": 5,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9223300970873787,
+        "scene_count": 9,
+        "true_positives": 190,
+        "truth_count": 206
+      }
+    }
+  },
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "operating_threshold": 0.25,
+  "onnx_torch_parity": {
+    "confidence_decision_changes": 0,
+    "maximum_absolute_error": 6.67572021484375e-06,
+    "rows": 270236
+  },
+  "threshold_sensitivity_descriptive_only": true,
+  "validation": {
+    "unique_tests_passed": 117,
+    "reports": [
+      {
+        "path": "artifacts/goal22-runs/crowded-center-preflight-v1/tests.xml",
+        "sha256": "3b199a76987e5e76e6d6f8c3583652ce23ced6cf088dbc406189e1addb11c127"
+      },
+      {
+        "path": "artifacts/goal22-runs/crowded-center-preparation-v1/tests.xml",
+        "sha256": "dbcd42b0f4b4c78e8a61113a701702157385a1c3d165ba558b155353dfbd25cd"
+      }
+    ],
+    "preflight": {
+      "path": "artifacts/goal22-runs/crowded-center-preflight-v1/report.json",
+      "sha256": "11265b0b061a74d001142cfc728a35a1b5fb073b8a3e3f6ed5f23a55d946f971"
+    }
+  },
+  "native": {
+    "metrics": {
+      "truth": 838,
+      "predicted": 783,
+      "matched": 762,
+      "extra": 21,
+      "missing": 76,
+      "precision": 0.9731800766283525,
+      "recall": 0.9093078758949881
+    },
+    "baseline": {
+      "truth": 838,
+      "predicted": 758,
+      "matched": 733,
+      "extra": 25,
+      "missing": 105,
+      "precision": 0.9670184696569921,
+      "recall": 0.8747016706443914
+    },
+    "paired": {
+      "retained": 716,
+      "recovered": 46,
+      "lost": 17,
+      "missed_by_both": 59
+    },
+    "ocr_exact": 348,
+    "ocr_truth": 453,
+    "axis_correct": 85,
+    "axis_corners": 93,
+    "sources": 21,
+    "panels": 31,
+    "remaining_miss_diagnosis": {
+      "path": "artifacts/goal22-runs/crowded-center-v30-residual-diagnosis-v1/report.json",
+      "sha256": "a3379769b9c6448bff9f01235854231c331c75b0eea577c6e783a21ef122480f"
+    }
+  },
+  "csv": {
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 6,
+      "failed_cases": 17,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 10,
+      "matched_series": 7,
+      "truth_points": 706,
+      "predicted_points": 103,
+      "matched_points": 99,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 103,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 98,
+      "correct_rows": 98,
+      "missing_rows": 626,
+      "extra_rows": 5,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 0,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 99,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 607,
+      "unique_point_extra": 4,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9611650485436893,
+      "unique_point_structural_coverage": 0.14022662889518414,
+      "unique_point_value_precision": 0.9611650485436893,
+      "unique_point_value_coverage": 0.14022662889518414,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9514563106796117,
+      "relational_row_coverage": 0.13535911602209943,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 1,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 17
+      }
+    },
+    "baseline": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 12,
+      "failed_cases": 11,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 30,
+      "matched_series": 22,
+      "truth_points": 706,
+      "predicted_points": 420,
+      "matched_points": 409,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 420,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 408,
+      "correct_rows": 405,
+      "missing_rows": 316,
+      "extra_rows": 12,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 409,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 297,
+      "unique_point_extra": 11,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9738095238095238,
+      "unique_point_structural_coverage": 0.5793201133144475,
+      "unique_point_value_precision": 0.9738095238095238,
+      "unique_point_value_coverage": 0.5793201133144475,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9642857142857143,
+      "relational_row_coverage": 0.5593922651933702,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9926470588235294,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 11
+      }
+    },
+    "split_metrics": {
+      "train": {
+        "truth_cases": 20,
+        "output_cases": 20,
+        "completed_cases": 5,
+        "failed_cases": 15,
+        "unexpected_cases": 0,
+        "integrity_failure_cases": 0,
+        "truth_series": 30,
+        "predicted_series": 8,
+        "matched_series": 5,
+        "truth_points": 500,
+        "predicted_points": 77,
+        "matched_points": 74,
+        "unique_point_value_metrics_available": true,
+        "relational_row_metrics_available": true,
+        "relational_phase_metrics_available": true,
+        "actual_rows": 77,
+        "residual_artifact_rows_from_failed_cases": 0,
+        "expected_rows": 500,
+        "structurally_matched_rows": 73,
+        "correct_rows": 73,
+        "missing_rows": 427,
+        "extra_rows": 4,
+        "duplicate_rows": 0,
+        "wrong_scale_rows": 0,
+        "wrong_export_mode_rows": 0,
+        "wrong_phase_rows": 0,
+        "wrong_relation_rows": 0,
+        "unique_point_value_correct": 74,
+        "unique_point_value_incorrect": 0,
+        "unique_point_missing": 426,
+        "unique_point_extra": 3,
+        "unique_point_wrong_scale": 0,
+        "unique_point_wrong_export_mode": 0,
+        "unique_point_structural_precision": 0.961038961038961,
+        "unique_point_structural_coverage": 0.148,
+        "unique_point_value_precision": 0.961038961038961,
+        "unique_point_value_coverage": 0.148,
+        "matched_unique_point_value_accuracy": 1,
+        "relational_row_precision": 0.948051948051948,
+        "relational_row_coverage": 0.146,
+        "matched_relational_graph_value_accuracy": 1,
+        "matched_relational_phase_accuracy": 1,
+        "artifact_integrity_valid": true,
+        "failure_kinds": {
+          "workflow_failed": 15
+        }
+      },
+      "dev": {
+        "truth_cases": 3,
+        "output_cases": 3,
+        "completed_cases": 1,
+        "failed_cases": 2,
+        "unexpected_cases": 0,
+        "integrity_failure_cases": 0,
+        "truth_series": 11,
+        "predicted_series": 2,
+        "matched_series": 2,
+        "truth_points": 206,
+        "predicted_points": 26,
+        "matched_points": 25,
+        "unique_point_value_metrics_available": true,
+        "relational_row_metrics_available": true,
+        "relational_phase_metrics_available": true,
+        "actual_rows": 26,
+        "residual_artifact_rows_from_failed_cases": 0,
+        "expected_rows": 224,
+        "structurally_matched_rows": 25,
+        "correct_rows": 25,
+        "missing_rows": 199,
+        "extra_rows": 1,
+        "duplicate_rows": 0,
+        "wrong_scale_rows": 0,
+        "wrong_export_mode_rows": 0,
+        "wrong_phase_rows": 0,
+        "wrong_relation_rows": 0,
+        "unique_point_value_correct": 25,
+        "unique_point_value_incorrect": 0,
+        "unique_point_missing": 181,
+        "unique_point_extra": 1,
+        "unique_point_wrong_scale": 0,
+        "unique_point_wrong_export_mode": 0,
+        "unique_point_structural_precision": 0.9615384615384616,
+        "unique_point_structural_coverage": 0.12135922330097088,
+        "unique_point_value_precision": 0.9615384615384616,
+        "unique_point_value_coverage": 0.12135922330097088,
+        "matched_unique_point_value_accuracy": 1,
+        "relational_row_precision": 0.9615384615384616,
+        "relational_row_coverage": 0.11160714285714286,
+        "matched_relational_graph_value_accuracy": 1,
+        "matched_relational_phase_accuracy": 1,
+        "artifact_integrity_valid": true,
+        "failure_kinds": {
+          "workflow_failed": 2
+        }
+      }
+    },
+    "sources": 23,
+    "panels": 39,
+    "previous_exports_lost": 6,
+    "source_status_changes": [
+      {
+        "source_sha256": "91025ec0955623c4d8955162d2d91a46c39870841327391a38e604f3c00b2506",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED."
+      },
+      {
+        "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+        "before": "failed",
+        "after": "failed",
+        "before_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 8, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+        "after_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | Only ordinal x evidence is available; exact printed and estimated x values remain null."
+      },
+      {
+        "source_sha256": "3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED."
+      },
+      {
+        "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED."
+      },
+      {
+        "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED."
+      },
+      {
+        "source_sha256": "66b9d453b029155079528274ee60176ea28b423dd6e9bb8ca11853b25b52e9fd",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED."
+      },
+      {
+        "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+        "before": "completed",
+        "after": "failed",
+        "before_error": null,
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED."
+      }
+    ],
+    "upstream_changes": 0
+  },
+  "evaluation_seconds": {
+    "native": 167.0540857,
+    "csv": 237.6015851,
+    "total": 420.9540405
+  },
+  "observed_cpu_model_envelopes": {
+    "OpenCvSharpExtern": 70,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-crowded-coverage-v30": 70,
+    "marker-classifier-structural-context-v5": 147
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/native/protocol.json",
+      "sha256": "3e8c12438533180778559d44aca90897816eb4dbe46f8f1bfa37d6f2c20eb949"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/native/candidate-binding.json",
+      "sha256": "611851ad58108af101077ccbdd5c081c4d0a2af95bf8d29189668808306384b9"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/native/preparation.json",
+      "sha256": "b6bf9c7d66c1b350f073b487ff5d5a53966705579d4b74b7de3c8c903db6f31f"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/native/execution/report.json",
+      "sha256": "40b4c9b2219027ca6fc2d94ee9159f244858a4e04abce8f76c6ff9ee0ec714e8"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/native/status.json",
+      "sha256": "745d147f2eb5081114b67452364fb03ad895ad53f6d232ead83296924c0bfb3c"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/csv/protocol.json",
+      "sha256": "d5ee9fc81631f4bf24b09a5f9c2594712c47bdd88cb140cc49ea00bf16db65a9"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/csv/candidate-binding.json",
+      "sha256": "9453434ebfaeb47f5558acd4cb6777ca53a8bc7fb7fc45d68489b592868236c6"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/csv/preparation.json",
+      "sha256": "715b42d1242214ce3377a3227789b68a93ccea23445127b6e60ae67ea817ffae"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/csv/execution/report.json",
+      "sha256": "4d06eff19fe741f8957698593c090aa774d9b879d9b93f6e59414f59c8ceaa64"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/csv/status.json",
+      "sha256": "1fbd23047e7ef5e7d1e2dc8143d9435249ce225d5418f94310b40a5d44059009"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/jobs.json",
+      "sha256": "6237ce3ac3bf7b186bbc6140359036b8ec767cbf1df6ab6d01bfde641091303a"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/status.json",
+      "sha256": "be559a6d68324b18f2ffe8af3b69b6293ae0ed09c9d8ec0a79a24c36bb1bcc1c"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/native/native-marker-score.json",
+      "sha256": "6f6339ab74841bdcaa997a1d7df7e6eed54e3b4b2a006c69799e818238a4eabf"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/native/axis-geometry-comparison.json",
+      "sha256": "c005e9b8653f1734f117d6687980d7f2b5af12b1b7b456153fe8fcaa21a6aef9"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/native/native-ocr-score.json",
+      "sha256": "07a319c139a4407ef3c044dc987bd6dab380e30b495ec8973e5b9a97f76e03b9"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/csv/comparison.json",
+      "sha256": "88e5ce6a918c591aed85b94a30da85cc7b79894bbb39628b57ce3000693ed876"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-evaluation-v1/csv/csv-score-normalized-phases.json",
+      "sha256": "04796f676608bd2d2392854f03119c5a8ca57cfb1f15f023db20431944572036"
+    },
+    {
+      "path": "docs/GOAL-22-CROWDED-CENTER-COVERAGE-DIAGNOSIS.json",
+      "sha256": "c5101ea219ef0c265236bf818dee03642bf675197ae4df31d5b2cb987faf7ca7"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Close-CrowdedCenterV30.py",
+      "sha256": "769d4dddfb8053970ab589609add45f04d2eae0e6e745e30eabf96ac103d1fe0"
+    }
+  ],
+  "decision": "Retain V27/V5. V30 gains native matches but loses six prior exports and 310 correct values. Do not activate or promote. Diagnose saved failures before another change.",
+  "limitations": [
+    "The complete workflow compares V30 at 0.25 with retained V27 at 0.10, not weights alone.",
+    "Component/family center-only precision fails the unchanged 95 percent bar; native recall remains 90.93 percent.",
+    "Source failures and all truth remain scored; zero wrong-scale rows do not establish a safety property.",
+    "The added crowded supplement uses zero OCR/artifact mask channels; all prior masked rows remain.",
+    "Some authored radii exceed the unchanged 8-pixel model clamp; four unsupported truths remain visible in the inventory."
+  ],
+  "license_review": "Project-owned Apache-2.0 code, weights and synthetic training. No new dependency or imported weights.",
+  "candidate_consumed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "release_eligible": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false
+}

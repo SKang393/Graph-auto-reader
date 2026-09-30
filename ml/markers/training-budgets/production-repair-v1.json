@@ -10761,6 +10761,51 @@
       "candidate_report_sha256": "b32425e6e448507bee30b18a84d861f8ef13fed0c0b3555034590bb65de01c7c",
       "optimizer_steps": 7164,
       "closed_utc_date": "2026-09-30"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-crowded-coverage-v30",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/crowded_coverage_v30/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "ee7c4242525e26119825a22615db3cfb0de1341880202e4579c90b0ff361e80a"
+      },
+      "protocol_path": "ml/markers/center/crowded_coverage_v30/protocol.json",
+      "protocol_sha256": "b198498dea9e4ee7e12a7ac214032487686ce58b97b96d300b4b33fb6437a306",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned train/dev-only adaptation under continued Goal22 authorization. No private/sealed read, production activation or release.",
+      "isolated_change": "Warm-start the exact V27 checkpoint using all 87638 authenticated historical/shape rows plus 182614 new owned crowded rows from 3456 scenes and 9504 visible markers. Keep architecture, three-channel 33-pixel input, stride/support, mask channels, loss coefficients and radius clamp. Use eight fixed AdamW epochs at 0.0003, batch 128, weight decay 0.0001, fixed final epoch only. Hold V5 classifier and the tested b1b6417 application runtime for complete workflow comparison. Candidate cutoff remains 0.25; retained V27 native baseline uses its existing 0.10, so the final workflow compares configurations rather than isolating weights.",
+      "optimizer_steps_expected": 16896,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/center/crowded_coverage_v30/P1_RESULT.json",
+      "outcome_sha256": "370229594b2f151470efd377336737b68aec51449b4ddfbcf35f12806c6f5a2c",
+      "candidate_report_sha256": "f3b327aff28f2c4e8343fe7cf0fe2457f26a8343aa4fdb512ec658793bec7bd3",
+      "optimizer_steps": 16896,
+      "closed_utc_date": "2026-09-30"
     }
   ]
 }

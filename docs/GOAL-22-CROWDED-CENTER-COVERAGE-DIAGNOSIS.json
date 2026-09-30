@@ -1,0 +1,100 @@
+{
+  "added_inventory": {
+    "context_counts": {
+      "close_row": 864,
+      "overlapping_pair": 864,
+      "separated_pair": 864,
+      "three_neighbors": 864
+    },
+    "negative_rows": 165882,
+    "positive_rows": 16732,
+    "scenes": 3456,
+    "shape_counts": {
+      "asterisk": 1057,
+      "circle": 1062,
+      "cross": 1080,
+      "diamond": 1042,
+      "other": 1040,
+      "square": 1019,
+      "star": 1069,
+      "triangle_down": 1068,
+      "triangle_up": 1067
+    },
+    "truths": 9504,
+    "unsupported_truths": 4
+  },
+  "baseline": {
+    "path": "docs/GOAL-22-AXIS-ENDPOINT-REPAIR.json",
+    "sha256": "126b28c9793dcc230169751309ac9bb61ce9117305e3c49107bceb530d9b7853"
+  },
+  "cache": {
+    "path": "artifacts/goal22-runs/center-crowded-coverage-cache-v1/manifest.json",
+    "sha256": "1458a7f285f382b968b32e6b4ceb3e431544483bfcb2b0f5de3661278f3d8f03"
+  },
+  "coverage_gap": "The 2160-raster V28 shape supplement labels one marker per scene and excludes neighboring markers. Historical component/family rows remain, but the fixed family training set covers circle/square plots without overlapping marker discs. This new general recipe covers all nine shapes with separately labeled visible neighbors; it does not reuse development pixels, geometry or answers.",
+  "existing_v29_recheck": {
+    "path": "docs/GOAL-22-REPAIRED-RUNTIME-V29-COMPARISON.json",
+    "sha256": "fa682285005824622126a4e970e8c48658ba60380a6eaacefdbac1b20c275fdb"
+  },
+  "failure": {
+    "crowded_hexagon_misses": {
+      "near_accepted_center_assigned_to_another_truth": 9,
+      "no_recorded_above_threshold_center_within_match_distance": 29,
+      "recorded_classifier_rejection": 21,
+      "suppressed_before_classification": 5,
+      "text_exclusion": 2
+    },
+    "limitation": "Nearest-stage attribution is descriptive. A center within five pixels may belong to a neighboring point; these counts do not prove a unique causal fix or permit relaxing matching or rejection thresholds.",
+    "misses": 105,
+    "source": {
+      "path": "artifacts/goal22-runs/axis-endpoint-residual-diagnosis-v1/report.json",
+      "sha256": "1e394d92fb54212fa0ad92da582c6942ab35790fdc00c53ebe6958e61ea095de"
+    },
+    "stage_categories": {
+      "geometry_or_plot_filter_before_nms": 1,
+      "near_accepted_center_assigned_to_another_truth": 9,
+      "no_recorded_above_threshold_center_within_match_distance": 54,
+      "recorded_classifier_rejection": 28,
+      "suppressed_before_classification": 11,
+      "text_exclusion": 2
+    }
+  },
+  "limitations": [
+    "This hypothesis may address missing or displaced proposals, not every classifier rejection or NMS conflict.",
+    "New scenes add zero OCR/artifact masks; the exact existing masked training tensors remain in the union.",
+    "Some authored radii exceed the existing 8-pixel regression clamp and remain recorded."
+  ],
+  "nearest_center_pixels": {
+    "max": 23.980176118684973,
+    "median": 11.889678871550638,
+    "min": 5.6030616184711,
+    "p10": 6.994399829992788,
+    "p90": 17.345047174997354
+  },
+  "optimizer_steps": 0,
+  "parent_cache": {
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3",
+    "sha256": "d61e43d62891a5266dfd68dfd8286fdb0d28d685d2146763a9f49dfb24471700"
+  },
+  "preflight": {
+    "path": "artifacts/goal22-runs/crowded-center-preflight-v1/report.json",
+    "sha256": "11265b0b061a74d001142cfc728a35a1b5fb073b8a3e3f6ed5f23a55d946f971"
+  },
+  "preview": {
+    "path": "artifacts/goal22-runs/crowded-center-preflight-v1/owned-training-preview.png",
+    "sha256": "8b236285b3e1e6730ad98ec28fe37f670c0c3e7ea77cc5243e6a8ad989d05648"
+  },
+  "preview_review": "Inspected all 16 displayed scenes across four shapes and four neighbor contexts. Authored center overlays match visible glyph locations, including partially occluded neighbors.",
+  "private_reads": 0,
+  "production_approval": false,
+  "schema": "graphreader.crowded-center-coverage-diagnosis.v1",
+  "sealed_reads": 0,
+  "status": "training_hypothesis_not_acceptance",
+  "training_counts": {
+    "component": 35838,
+    "coverage": 42747,
+    "crowded": 182614,
+    "family": 9053
+  },
+  "unsupported_truths": "Four visible authored markers have no assigned positive under the unchanged grid/support rule. They stay in the inventory; no fabricated positives or discarded scenes."
+}
