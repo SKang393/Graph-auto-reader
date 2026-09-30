@@ -103,6 +103,10 @@ were reverified after all eight jobs completed. Tests/build commands are in
 `artifacts/goal22-tools/Run-ServerResumeChecks.ps1` and
 `artifacts/goal22-tools/Run-ServerAppChecksV2.ps1`.
 
+Integration verification detected Git normalizing the protocol's CRLF bytes.
+A file-specific Git attribute preserves its recorded `cff28b41...` SHA-256
+across checkouts. The run protocol, its meaning and every result are unchanged.
+
 Native runs use CPU only, Idle priority, all 12 processors eligible and an
 80-percent aggregate Windows job cap. Explicit .NET processor count 12 avoids
 the cap shrinking its detected count to 10. Python parity additionally uses

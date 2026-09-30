@@ -84,3 +84,5 @@ ml/markers/classifier/native_context_v3/protocol.json text eol=crlf
 ml/markers/classifier/crowded_context_v8/__init__.py -text whitespace=cr-at-eol
 ml/markers/classifier/crowded_context_v8/p1.json -text whitespace=cr-at-eol
 ml/markers/classifier/crowded_context_v8/protocol.json -text whitespace=cr-at-eol
+# Preserve the exact server comparison protocol bytes bound by completed runs.
+ml/ocr/official_bakeoff/SERVER_COMPARISON_PROTOCOL.json -text whitespace=cr-at-eol
