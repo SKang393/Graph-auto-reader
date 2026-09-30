@@ -1,0 +1,838 @@
+{
+  "acceptance_function_scope": "Shared composed-OCR numeric bars only; no sealed admission, reserve read, transport or approval.",
+  "application_source_and_binaries_unchanged": true,
+  "candidate_consumed": false,
+  "candidate_id": "P1",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/candidate-report.json",
+    "sha256": "f97551f1364e0c1d01e7b37db1f6399259ae02147e7d0f1dc232d8876d31b383"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/ocr-detection/graph-scale-coverage-db-head-v46/P1/result.json",
+    "sha256": "03eb6ca75c0140fd8564eee80ba77e3c9ca4ca03981b9decd48d4a6f5bda93f9"
+  },
+  "csv": {
+    "baseline_metrics": {
+      "actual_rows": 426,
+      "artifact_integrity_valid": true,
+      "completed_cases": 15,
+      "correct_rows": 409,
+      "duplicate_rows": 0,
+      "expected_rows": 724,
+      "extra_rows": 14,
+      "failed_cases": 8,
+      "failure_kinds": {
+        "workflow_failed": 8
+      },
+      "integrity_failure_cases": 0,
+      "matched_points": 414,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9927184466019418,
+      "matched_series": 25,
+      "matched_unique_point_value_accuracy": 1,
+      "missing_rows": 312,
+      "output_cases": 23,
+      "predicted_points": 426,
+      "predicted_series": 34,
+      "relational_phase_metrics_available": true,
+      "relational_row_coverage": 0.5649171270718232,
+      "relational_row_metrics_available": true,
+      "relational_row_precision": 0.960093896713615,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "structurally_matched_rows": 412,
+      "truth_cases": 23,
+      "truth_points": 706,
+      "truth_series": 41,
+      "unexpected_cases": 0,
+      "unique_point_extra": 12,
+      "unique_point_missing": 292,
+      "unique_point_structural_coverage": 0.5864022662889519,
+      "unique_point_structural_precision": 0.971830985915493,
+      "unique_point_value_correct": 414,
+      "unique_point_value_coverage": 0.5864022662889519,
+      "unique_point_value_incorrect": 0,
+      "unique_point_value_metrics_available": true,
+      "unique_point_value_precision": 0.971830985915493,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_wrong_scale": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "wrong_scale_rows": 0
+    },
+    "coverage": {
+      "all_23_sources_and_706_truth_points_remain_scored": true,
+      "baseline_panels": 39,
+      "every_missing_panel_belongs_to_a_failed_source": true,
+      "missing_stage_panels": 0,
+      "raw_ocr_observations": 39,
+      "raw_without_completed_stage": 0,
+      "reason": "Adapter failures can precede a completed stage observation. Missing diagnostics are reported, never removed from CSV truth.",
+      "stage_observations": 39
+    },
+    "exported_value_changes": [
+      {
+        "added": 2,
+        "removed": 2,
+        "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac"
+      },
+      {
+        "added": 24,
+        "removed": 24,
+        "source_sha256": "91025ec0955623c4d8955162d2d91a46c39870841327391a38e604f3c00b2506"
+      },
+      {
+        "added": 2,
+        "removed": 2,
+        "source_sha256": "1d54389dbdf2655fdcb24363b3fb13152728c5a799cc54a11b71be8d06bb02f6"
+      },
+      {
+        "added": 0,
+        "removed": 24,
+        "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d"
+      },
+      {
+        "added": 2,
+        "removed": 2,
+        "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf"
+      },
+      {
+        "added": 17,
+        "removed": 17,
+        "source_sha256": "3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6"
+      },
+      {
+        "added": 24,
+        "removed": 24,
+        "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061"
+      },
+      {
+        "added": 57,
+        "removed": 57,
+        "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb"
+      },
+      {
+        "added": 2,
+        "removed": 2,
+        "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929"
+      },
+      {
+        "added": 24,
+        "removed": 24,
+        "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e"
+      },
+      {
+        "added": 2,
+        "removed": 2,
+        "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f"
+      },
+      {
+        "added": 18,
+        "removed": 18,
+        "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de"
+      },
+      {
+        "added": 57,
+        "removed": 57,
+        "source_sha256": "66b9d453b029155079528274ee60176ea28b423dd6e9bb8ca11853b25b52e9fd"
+      },
+      {
+        "added": 19,
+        "removed": 20,
+        "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d"
+      },
+      {
+        "added": 0,
+        "removed": 139,
+        "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284"
+      }
+    ],
+    "metrics": {
+      "actual_rows": 262,
+      "artifact_integrity_valid": true,
+      "completed_cases": 13,
+      "correct_rows": 252,
+      "duplicate_rows": 0,
+      "expected_rows": 724,
+      "extra_rows": 7,
+      "failed_cases": 10,
+      "failure_kinds": {
+        "workflow_failed": 10
+      },
+      "integrity_failure_cases": 0,
+      "matched_points": 257,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9882352941176471,
+      "matched_series": 18,
+      "matched_unique_point_value_accuracy": 1,
+      "missing_rows": 469,
+      "output_cases": 23,
+      "predicted_points": 262,
+      "predicted_series": 23,
+      "relational_phase_metrics_available": true,
+      "relational_row_coverage": 0.34806629834254144,
+      "relational_row_metrics_available": true,
+      "relational_row_precision": 0.9618320610687023,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "structurally_matched_rows": 255,
+      "truth_cases": 23,
+      "truth_points": 706,
+      "truth_series": 41,
+      "unexpected_cases": 0,
+      "unique_point_extra": 5,
+      "unique_point_missing": 449,
+      "unique_point_structural_coverage": 0.3640226628895184,
+      "unique_point_structural_precision": 0.9809160305343512,
+      "unique_point_value_correct": 257,
+      "unique_point_value_coverage": 0.3640226628895184,
+      "unique_point_value_incorrect": 0,
+      "unique_point_value_metrics_available": true,
+      "unique_point_value_precision": 0.9809160305343512,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_wrong_scale": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "wrong_scale_rows": 0
+    },
+    "split_metrics": {
+      "dev": {
+        "actual_rows": 25,
+        "artifact_integrity_valid": true,
+        "completed_cases": 1,
+        "correct_rows": 23,
+        "duplicate_rows": 0,
+        "expected_rows": 224,
+        "extra_rows": 2,
+        "failed_cases": 2,
+        "failure_kinds": {
+          "workflow_failed": 2
+        },
+        "integrity_failure_cases": 0,
+        "matched_points": 23,
+        "matched_relational_graph_value_accuracy": 1,
+        "matched_relational_phase_accuracy": 1,
+        "matched_series": 2,
+        "matched_unique_point_value_accuracy": 1,
+        "missing_rows": 201,
+        "output_cases": 3,
+        "predicted_points": 25,
+        "predicted_series": 4,
+        "relational_phase_metrics_available": true,
+        "relational_row_coverage": 0.10267857142857142,
+        "relational_row_metrics_available": true,
+        "relational_row_precision": 0.92,
+        "residual_artifact_rows_from_failed_cases": 0,
+        "structurally_matched_rows": 23,
+        "truth_cases": 3,
+        "truth_points": 206,
+        "truth_series": 11,
+        "unexpected_cases": 0,
+        "unique_point_extra": 2,
+        "unique_point_missing": 183,
+        "unique_point_structural_coverage": 0.11165048543689321,
+        "unique_point_structural_precision": 0.92,
+        "unique_point_value_correct": 23,
+        "unique_point_value_coverage": 0.11165048543689321,
+        "unique_point_value_incorrect": 0,
+        "unique_point_value_metrics_available": true,
+        "unique_point_value_precision": 0.92,
+        "unique_point_wrong_export_mode": 0,
+        "unique_point_wrong_scale": 0,
+        "wrong_export_mode_rows": 0,
+        "wrong_phase_rows": 0,
+        "wrong_relation_rows": 0,
+        "wrong_scale_rows": 0
+      },
+      "train": {
+        "actual_rows": 237,
+        "artifact_integrity_valid": true,
+        "completed_cases": 12,
+        "correct_rows": 229,
+        "duplicate_rows": 0,
+        "expected_rows": 500,
+        "extra_rows": 5,
+        "failed_cases": 8,
+        "failure_kinds": {
+          "workflow_failed": 8
+        },
+        "integrity_failure_cases": 0,
+        "matched_points": 234,
+        "matched_relational_graph_value_accuracy": 1,
+        "matched_relational_phase_accuracy": 0.9870689655172413,
+        "matched_series": 16,
+        "matched_unique_point_value_accuracy": 1,
+        "missing_rows": 268,
+        "output_cases": 20,
+        "predicted_points": 237,
+        "predicted_series": 19,
+        "relational_phase_metrics_available": true,
+        "relational_row_coverage": 0.458,
+        "relational_row_metrics_available": true,
+        "relational_row_precision": 0.9662447257383966,
+        "residual_artifact_rows_from_failed_cases": 0,
+        "structurally_matched_rows": 232,
+        "truth_cases": 20,
+        "truth_points": 500,
+        "truth_series": 30,
+        "unexpected_cases": 0,
+        "unique_point_extra": 3,
+        "unique_point_missing": 266,
+        "unique_point_structural_coverage": 0.468,
+        "unique_point_structural_precision": 0.9873417721518988,
+        "unique_point_value_correct": 234,
+        "unique_point_value_coverage": 0.468,
+        "unique_point_value_incorrect": 0,
+        "unique_point_value_metrics_available": true,
+        "unique_point_value_precision": 0.9873417721518988,
+        "unique_point_wrong_export_mode": 0,
+        "unique_point_wrong_scale": 0,
+        "wrong_export_mode_rows": 0,
+        "wrong_phase_rows": 3,
+        "wrong_relation_rows": 0,
+        "wrong_scale_rows": 0
+      }
+    },
+    "status_changes": [
+      {
+        "after": "failed",
+        "after_error": "Automatic calibration is incomplete: Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance.",
+        "before": "failed",
+        "before_error": "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | The x-axis ticks do not define a non-degenerate numeric transform. | Independent session-origin sources disagree beyond the configured tolerance. | ocr_tick_sequence_needs_review:XTick:ambiguous_or_irregular_spacing",
+        "source_sha256": "7124a5f3880b8ab3e31f37ef0b15ff3efae69bdf127a0fef02f1597073a199e4"
+      },
+      {
+        "after": "failed",
+        "after_error": "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | Printed session values must increase from left to right in original pixels. | Independent session-origin sources disagree beyond the configured tolerance. | The first observed column maps to session 5, not session 1. | ocr_tick_sequence_needs_review:XTick:insufficient_unchanged_tick_anchors",
+        "before": "failed",
+        "before_error": "Automatic calibration is incomplete: Y-axis graph values must increase upward while original-pixel y coordinates increase downward. | Printed x-axis tick evidence does not define a valid left-to-right session transform. | Printed session values must increase from left to right in original pixels. | Independent session-origin sources disagree beyond the configured tolerance. | The first observed column maps to session 5, not session 1. | ocr_tick_sequence_needs_review:XTick:contradictory_tick_evidence | ocr_tick_sequence_needs_review:YTick:insufficient_unchanged_tick_anchors",
+        "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f"
+      },
+      {
+        "after": "failed",
+        "after_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | The first observed column maps to session -182, not session 1. | ocr_tick_sequence_needs_review:XTick:insufficient_numeric_evidence",
+        "before": "failed",
+        "before_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 8, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+        "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6"
+      },
+      {
+        "after": "failed",
+        "after_error": "Candidate export failed closed: NO_EXPORTABLE_SERIES.",
+        "before": "completed",
+        "before_error": null,
+        "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d"
+      },
+      {
+        "after": "failed",
+        "after_error": "Automatic calibration is incomplete: ocr_tick_sequence_needs_review:YTick:contradictory_tick_evidence | ocr_tick_sequence_needs_review:YTick:invalid_confidence",
+        "before": "failed",
+        "before_error": "Automatic calibration is incomplete: ocr_tick_sequence_needs_review:XTick:contradictory_tick_evidence",
+        "source_sha256": "bd52e84c5df717093c120164aa76dac4fe4037be4c1b9e7f450aa358b03e2fff"
+      },
+      {
+        "after": "failed",
+        "after_error": "Automatic calibration is incomplete: Numeric tick evidence is ambiguous because competing alternative models have equal support. | Y-axis graph values must increase upward while original-pixel y coordinates increase downward. | Printed x-axis tick evidence does not define a valid left-to-right session transform. | The x-axis ticks do not define a non-degenerate numeric transform. | Independent session-origin sources disagree beyond the configured tolerance. | ocr_tick_sequence_needs_review:XTick:insufficient_unchanged_tick_anchors | ocr_tick_sequence_needs_review:YTick:ambiguous_or_irregular_spacing | ocr_tick_sequence_needs_review:XTick:invalid_confidence",
+        "before": "failed",
+        "before_error": "Automatic calibration is incomplete: Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance. | ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected",
+        "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2"
+      },
+      {
+        "after": "failed",
+        "after_error": "Automatic calibration is incomplete: Printed x-axis tick evidence does not define a valid left-to-right session transform. | Numeric tick evidence is ambiguous because competing alternative models have equal support. | Independent session-origin sources disagree beyond the configured tolerance. | Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance.",
+        "before": "failed",
+        "before_error": "Automatic calibration is incomplete: Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance. | ocr_tick_sequence_needs_review:XTick:ambiguous_or_irregular_spacing",
+        "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836"
+      },
+      {
+        "after": "failed",
+        "after_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED.",
+        "before": "completed",
+        "before_error": null,
+        "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284"
+      }
+    ],
+    "verified_valid_nonnull_audit_rows": 262
+  },
+  "evaluation_seconds": 415.4909965,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/dev-sources.json",
+      "sha256": "ae8fa6ec3d720cec77057662e390e2497f7f2fe9b2de70b2449c51cf62de1338"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-coverage-inputs-v2/manifest.json",
+      "sha256": "5748dcf05dca6083948d0054382c5e3c369f52db007c6ff2a3a5c86ae0ef90b5"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-coverage-v46/P1/detector-scale-coverage-v46-p1.onnx",
+      "sha256": "497a3527820ce0359496084e5afb1e0d3241aca79e192187f7ab737b27818b7f"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-coverage-v46/P1/parity.json",
+      "sha256": "000e1307ad4e05258abe987eb1a9b0a8e9f905960ce39f0bda1a17d8cede9ff3"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-coverage-v46/P1/selected-head.pt",
+      "sha256": "5fbc167a7cf87f9ded9f19faa22e9834a0e38cbfce931d80c6ea53ac98ea2ca3"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-coverage-v46/P1/training-stage.json",
+      "sha256": "573d90c54696f2e8f323fd85bc9c4e1b37b6e359ea62e69f73c0e414b1495946"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-parity-probe-v1/report.json",
+      "sha256": "e3ff0da73c53d720dd7d49b89a668e3fe9031843214d3715b41cffc55212a4cc"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-parity-probe-v2/report.json",
+      "sha256": "cbf2d7826eec954c2c1e8fa11e8a14436373cb4f77d8acc379e7e81310020b00"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-preparation-v1/void.json",
+      "sha256": "92e173901ad07b97641e976c7cbbec407e39274aa3a499c79c8afcc19e48cad0"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-preparation-v2/status.json",
+      "sha256": "55a5156e89c6cb92d72550edc4ee34d2500064fd16d7588c8a659ed7662252b1"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-preparation-v3/status.json",
+      "sha256": "268bad7323a3914fb27cc115c62cbb7a487d52c2a68cf1892bea7a82add7cc73"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-preparation-v3/tests.xml",
+      "sha256": "c38ca1fca72f12bc9198ccf9e74f92527939e79c26b3a4145e4a7a12532bc392"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/Audit-Workflow.py",
+      "sha256": "4f25f45a43ab75dc9182bf2235dad10c3e1ab0778a275a7be19c5cadf21a772f"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/candidate-binding.json",
+      "sha256": "8c8795f70b8aa1ed1931b7197a1cc3243c86874eedf0a87f522db35ab00f8f91"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/comparison.json",
+      "sha256": "fcca4f1e0c42c00916a1796f2d55e6308d0bc155fe83b0aa1b0209fd323e39a8"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/csv-evaluation-input-normalized-phases.json",
+      "sha256": "6e62dab6f917d9af9287968abbc59a1e5889f0830f9c3a19a417b5bdc2029638"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/csv-score-normalized-phases.json",
+      "sha256": "b5aff0415d8cda64d18d75710d5d50f3d204fd712c140b32c0ad1f0fd0fc2040"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/execution/report.json",
+      "sha256": "b7383ccc42bdd9342832543ecc3434d95b10eea446f25e5ab488ca758182afbb"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/input-manifest.json",
+      "sha256": "8d622069f41116d541b4123592d626aae7c532325471692f6d6f5456604b5936"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/preparation.json",
+      "sha256": "eedb69847d174551d7eda188116ae87b6a389bc68e3a54effb1e02866a79d4f1"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/protocol.json",
+      "sha256": "9a6b96366a4630fec4c55c20dd7ceadf490775c1f54e5d1d59f89cda1e1a43df"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/csv/status.json",
+      "sha256": "0c7d85c318844843a773aa5550f388fc774c8725055191a729ce7dd6838d583e"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/detector-manifest.json",
+      "sha256": "a690a324d43873b6b7833a6e8466c673477994d05be41f0ea8cc5e9dcdb3e75d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/jobs.json",
+      "sha256": "b7f59c40c2e2f0635d3adb735b0058e5c75e64f3b1f3503e12dcfefd3827c987"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/MODEL_NOTICE.txt",
+      "sha256": "f7cd9e2820101c6cbdb03b255136eb9c3666d8c0bd2368ba33b717741c686d81"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/axis-geometry-comparison.json",
+      "sha256": "33f62c83c63310a7121b8ef27a74bf26e62c1c138ee0e6c2ef577d679b02dcca"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/candidate-binding.json",
+      "sha256": "6e5127b953dca4cf6cd0f50ed39dae90c5c64db0ae0f5712e0cdb81d1de4bc33"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/execution/report.json",
+      "sha256": "e99fed9c9f4fb2d1ca96293745d1c18554e71079cd61b86c7d222f7623fe3151"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/input-manifest.json",
+      "sha256": "f731f008e0163b814265ea998e708e2813587ef44e3c76ca2db1f00564b0df25"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/loss-diagnosis.json",
+      "sha256": "eef783b4651121f3342ac9533f9854e59174dbea248bbaa66e526ce9fecd4260"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/native-marker-score.json",
+      "sha256": "91065b896be18e7f2b4994f162bbcff1d6c8ed36fd857321ba6a4f5e4a02b1c0"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/native-ocr-details.json",
+      "sha256": "5a6e61fb6c52eb52a322e302ea6abf85bc8a90233165e25460c13711c4f7f29d"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/native-ocr-score.json",
+      "sha256": "7e1c2ed20eb742f7e783a93c7a45f1200cfb65da69d83813aa9a6e7405ecfb35"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/preparation.json",
+      "sha256": "a36cc24bb07b4afd57390310f10e92ebb178f25f51f85db912962721fc87aed3"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/protocol.json",
+      "sha256": "28641dfdc74e8d4798520b8ee72341d0693a5c2cd643126f7fe63945fbbcbfef"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/Score-Context.py",
+      "sha256": "7952598fa4ffdc7865fff76bac36169ab341a4677d64591c0009bfc210ac2476"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/Score-Geometry.py",
+      "sha256": "fc9da2e90ed46cd990f10ae4766f2861f8bbfb2cbacbfaa25f037df29b677c63"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/Score-Ocr.py",
+      "sha256": "79fa9cbf3f9263e86074ee79ea536e9de5379ea425d61d4ce3b68169b5b5244a"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/status.json",
+      "sha256": "0ab6813f7cd438c46fc23d31cbb119f24ce8736290d2d773a0f179faa49f6d02"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/source-bindings.json",
+      "sha256": "2c41b38a99e53245daab12970bf9c5b07b32c00051b3e861c4be05e53114ba15"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/status.json",
+      "sha256": "798e778c3cf81dda4456dac1b2030e0b26a3cf0549afa16aa5f9d28c32f6a925"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-text-extent-tensors/report.json",
+      "sha256": "15e48b27ce3b8f5f53311abbef7235c35b3e8e361c8baddb09a4d3a7e7d5938e"
+    },
+    {
+      "path": "artifacts/goal22-tools/Diagnose-OcrScaleV46Native.py",
+      "sha256": "e1f785efc662114ba7737d2c6e8ea4c6d7cfd70c21548cad781f50c427d51543"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-OcrScaleV46Evaluation.py",
+      "sha256": "82e418043cdf0e8183572a7e503de31b82dbd5a45709713f54cfa35a51c86807"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-OcrScaleV46Outcome.py",
+      "sha256": "332894cac6309c588526376c491d71315a1fc44c59ddb143355e4d37fb75d8aa"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-OcrScaleV46Evaluation.ps1",
+      "sha256": "a1a74b729b99d5af71af83d0cba725c55c145e80d52a2dd2759403595c91341e"
+    },
+    {
+      "path": "docs/GOAL-22-OCR-SCALE-COVERAGE-DIAGNOSIS.json",
+      "sha256": "f4236d34378782b7f412737d0bcf4d17321386b9b4c597fa21277002188dde24"
+    },
+    {
+      "path": "ml/markers/training-seals/ocr-detection/graph-scale-coverage-db-head-v46/P1/opened.json",
+      "sha256": "69ced49436ecedaaddb57ca45b13533b5e70e489295dc39819c57fa410744a81"
+    },
+    {
+      "path": "ml/markers/training-seals/ocr-detection/graph-scale-coverage-db-head-v46/P1/source-snapshot.json",
+      "sha256": "1786b902803748175fadf15eb31acb6de450c0a97ab9f77bf7dbcda28971b616"
+    },
+    {
+      "path": "ml/ocr/scale_coverage_db_head_v46/p1.json",
+      "sha256": "b1fbfd1956ceac8be35e118b360305a430b52af3a9fd33819a1204cd68ca152e"
+    },
+    {
+      "path": "ml/ocr/scale_coverage_db_head_v46/protocol.json",
+      "sha256": "50178bad5b562e7e8ce5df06d2269ea88d5b9853ccd21ec625444882be3fc00c"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/ocr_sealed_evaluation.py",
+      "sha256": "d77fd60e531f90188a11d70c1da729b287fdd55263729a8a044d4088dd3205c5"
+    }
+  ],
+  "export_parity": {
+    "graph_optimization": "ORT_ENABLE_ALL",
+    "maximum_absolute_error": 1.1622905731201172e-05,
+    "provider": "CPUExecutionProvider",
+    "stricter_1e_5_passed": false,
+    "tolerance": 0.0001
+  },
+  "export_parity_inputs": 121,
+  "historical_dev_comparability": {
+    "current_sources": 3,
+    "historical_183_truth_comparison_claimed": false,
+    "historical_sources": 3,
+    "reason": "The complete current CSV fixture moved condition captions. Its three development source hashes differ from all three historical captured sources; do not combine the populations or claim a direct historical 183-label score.",
+    "same_source_bytes": false,
+    "shared_sources": 0
+  },
+  "license_review": "Existing reviewed Apache-2.0 PaddleOCR parent and reader, retained original notices plus owned adaptation notice. No new dependency.",
+  "native": {
+    "axis_corners": {
+      "after": {
+        "axis_corners": 93,
+        "panels_all_corners_within_2px": 23,
+        "within_2px": 85
+      },
+      "before": {
+        "axis_corners": 93,
+        "panels_all_corners_within_2px": 23,
+        "within_2px": 85
+      }
+    },
+    "markers": {
+      "extra": 17,
+      "matched": 715,
+      "missing": 123,
+      "precision": 0.976775956284153,
+      "predicted": 732,
+      "recall": 0.8532219570405728,
+      "truth": 838
+    },
+    "ocr": {
+      "after": {
+        "validation": {
+          "by_expected_runtime_role": {
+            "annotation": {
+              "accuracy": 0.6774193548387096,
+              "correct_count": 42,
+              "truth_count": 62
+            },
+            "axistitle": {
+              "accuracy": 0.9615384615384616,
+              "correct_count": 50,
+              "truth_count": 52
+            },
+            "legendtext": {
+              "accuracy": 0.8378378378378378,
+              "correct_count": 31,
+              "truth_count": 37
+            },
+            "participant": {
+              "accuracy": 0.9032258064516129,
+              "correct_count": 28,
+              "truth_count": 31
+            },
+            "phaseheading": {
+              "accuracy": 0.8529411764705882,
+              "correct_count": 145,
+              "truth_count": 170
+            },
+            "xtick": {
+              "accuracy": 1.0,
+              "correct_count": 2,
+              "truth_count": 2
+            },
+            "ytick": {
+              "accuracy": 0.9494949494949495,
+              "correct_count": 94,
+              "truth_count": 99
+            }
+          },
+          "character_error_count": 379,
+          "character_error_rate": 0.12225806451612903,
+          "geometry_false_negative_count": 19,
+          "geometry_false_positive_count": 127,
+          "geometry_matched_region_count": 434,
+          "intersection_over_union_minimum": 0.5,
+          "matched_pair_edit_count": 81,
+          "predicted_region_count": 561,
+          "recognition_exact_accuracy": 0.8543046357615894,
+          "recognition_exact_count": 387,
+          "role_accuracy": 0.8653421633554084,
+          "role_correct_count": 392,
+          "truth_character_count": 3100,
+          "truth_region_count": 453,
+          "unmatched_prediction_insertion_edit_count": 204,
+          "unmatched_truth_deletion_edit_count": 94
+        }
+      },
+      "before": {
+        "validation": {
+          "by_expected_runtime_role": {
+            "annotation": {
+              "accuracy": 0.6451612903225806,
+              "correct_count": 40,
+              "truth_count": 62
+            },
+            "axistitle": {
+              "accuracy": 0.9423076923076923,
+              "correct_count": 49,
+              "truth_count": 52
+            },
+            "legendtext": {
+              "accuracy": 0.7837837837837838,
+              "correct_count": 29,
+              "truth_count": 37
+            },
+            "participant": {
+              "accuracy": 0.7096774193548387,
+              "correct_count": 22,
+              "truth_count": 31
+            },
+            "phaseheading": {
+              "accuracy": 0.788235294117647,
+              "correct_count": 134,
+              "truth_count": 170
+            },
+            "xtick": {
+              "accuracy": 1.0,
+              "correct_count": 2,
+              "truth_count": 2
+            },
+            "ytick": {
+              "accuracy": 0.8484848484848485,
+              "correct_count": 84,
+              "truth_count": 99
+            }
+          },
+          "character_error_count": 728,
+          "character_error_rate": 0.23483870967741935,
+          "geometry_false_negative_count": 61,
+          "geometry_false_positive_count": 108,
+          "geometry_matched_region_count": 392,
+          "intersection_over_union_minimum": 0.5,
+          "matched_pair_edit_count": 63,
+          "predicted_region_count": 500,
+          "recognition_exact_accuracy": 0.7682119205298014,
+          "recognition_exact_count": 348,
+          "role_accuracy": 0.7947019867549668,
+          "role_correct_count": 360,
+          "truth_character_count": 3100,
+          "truth_region_count": 453,
+          "unmatched_prediction_insertion_edit_count": 231,
+          "unmatched_truth_deletion_edit_count": 434
+        }
+      }
+    },
+    "paired_exact_readings": {
+      "lost": 17,
+      "missed_by_both": 49,
+      "recovered": 56,
+      "retained": 331
+    },
+    "paired_marker_truths": {
+      "lost": 24,
+      "missed_by_both": 99,
+      "recovered": 6,
+      "retained": 709
+    },
+    "regression_diagnosis": {
+      "extra_ocr_by_role": {
+        "Annotation": 72,
+        "LegendText": 6,
+        "Other": 44,
+        "PhaseHeading": 5
+      },
+      "extra_ocr_regions": 127,
+      "extra_ocr_with_text_mask": 26,
+      "lost_marker_truths": 24,
+      "lost_truth_without_nearby_center_candidate": 23,
+      "new_text_mask_covers_lost_truth": 1
+    },
+    "shared_composed_ocr_bar_results": {
+      "after": {
+        "assembled_geometry": {
+          "precision": 0.7736185383244206,
+          "recall": 0.9580573951434879
+        },
+        "status": "fail",
+        "verdicts": {
+          "character_error_rate": false,
+          "recognition_exact_match": false,
+          "role_accuracy": false,
+          "text_region_detection_precision": false,
+          "text_region_detection_recall": true
+        }
+      },
+      "before": {
+        "assembled_geometry": {
+          "precision": 0.784,
+          "recall": 0.8653421633554084
+        },
+        "status": "fail",
+        "verdicts": {
+          "character_error_rate": false,
+          "recognition_exact_match": false,
+          "role_accuracy": false,
+          "text_region_detection_precision": false,
+          "text_region_detection_recall": false
+        }
+      }
+    }
+  },
+  "only_detector_weights_changed": true,
+  "packaged_build_created": false,
+  "private_reads": 0,
+  "probability_0_3_pixel_decision_changes": 0,
+  "production_approved": false,
+  "recorded_utc": "2026-09-30T11:52:11.324835+00:00",
+  "revision": "graph-scale-coverage-db-head-v46",
+  "runtime_baseline_commit": "f3480d8e4879d508b9a6ecb24c83bbf698cc2f75",
+  "schema": "graphreader.ocr-scale-coverage-v46-outcome.v1",
+  "sealed_reads": 0,
+  "status": "failed_dev_unconsumed",
+  "stricter_1e_5_failures": 4,
+  "task": "ocr-detection",
+  "tests": {
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "22",
+    "time": "8.530"
+  },
+  "training_and_export_seconds": 1634.8682758999057,
+  "training": {
+    "epochs": 24,
+    "frozen_batch_norm_sha256_after": "087c0167c529cc1e2bc3fe2efe13732287a92144af306296262a9910d1f423c9",
+    "frozen_batch_norm_sha256_before": "087c0167c529cc1e2bc3fe2efe13732287a92144af306296262a9910d1f423c9",
+    "optimizer_steps": 2688,
+    "panel_count": 112,
+    "recipe": {
+      "batch_size": 1,
+      "checkpoint_selection": "earliest_minimum_full_train_loss",
+      "epochs": 24,
+      "frozen_batch_norm": true,
+      "intraop_threads": 12,
+      "learning_rate": 3e-05,
+      "loss": "inverse_unclip_masked_dice_with_empty_mean_probability",
+      "seed": 20260930,
+      "torch_backend": "cpu-mkldnn-disabled-float64-conv0",
+      "weight_decay": 0.0001
+    },
+    "resumed_after_epoch": 0,
+    "seconds": 1570.8421706999652,
+    "selected_epoch": 24,
+    "selected_trainable_state_sha256": "bd8c94db718759d36ba542bb9d9c085c1f750698568d4adba121a9e53b81ddc5"
+  },
+  "retained_detector": "graph-text-extent-db-head-v44-p1",
+  "retained_detector_sha256": "615495cc882b6ae8633081d89c3ab08c0d4a80a04aa36bbde4157fc7828f5923",
+  "outcome": {
+    "path": "ml/ocr/scale_coverage_db_head_v46/P1_RESULT.json",
+    "sha256": "080bca93f0faef8f2c62739b3ec9b34093f8d86c60410eacdfb6a890aae31faf"
+  },
+  "disposition": "Retain V44 with the f3480d8 application. V46 passes text-region recall but fails the other four OCR bars and regresses complete CSV and marker coverage. No application source, configured detector or approval was changed.",
+  "next_diagnosis": "Trace changed OCR regions through marker candidate generation and newly failed CSV calibrations on owned development data. Twenty-three lost marker truths have no nearby center proposal, while only one is directly covered by a new OCR mask. Those associations do not establish the cause. Do not relax export guards or repeat the closed recipe."
+}

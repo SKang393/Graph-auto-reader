@@ -1,0 +1,48 @@
+{
+  "augmentation": {
+    "interpolation": "bilinear_normalized_bgr_align_corners_false",
+    "partial_text": "ignore_clipped_box_in_loss_preserve_full_positive_targets",
+    "retain_all_original_train_and_dev_bytes": true,
+    "scale": 2,
+    "window_lefts": [
+      0,
+      768,
+      1024
+    ],
+    "window_width": 1024
+  },
+  "cache_path": "artifacts/goal22-runs/ocr-scale-coverage-inputs-v2/manifest.json",
+  "cache_sha256": "5748dcf05dca6083948d0054382c5e3c369f52db007c6ff2a3a5c86ae0ef90b5",
+  "candidate_id": "P1",
+  "expected_runner_source_bundle_sha256": "1a405df8540b1d01ab4310418dd3f173077e44d0ba1e12160c8b148889d2922a",
+  "initializer_sha256": "977145c75972ba5cdcabbd3b86dcf1fc3ab62916be65e0d7159933c80e2f34cf",
+  "optimizer_steps_expected": 2688,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "50178bad5b562e7e8ce5df06d2269ea88d5b9853ccd21ec625444882be3fc00c",
+  "recipe": {
+    "batch_size": 1,
+    "checkpoint_selection": "earliest_minimum_full_train_loss",
+    "epochs": 24,
+    "frozen_batch_norm": true,
+    "intraop_threads": 12,
+    "learning_rate": 3e-05,
+    "loss": "inverse_unclip_masked_dice_with_empty_mean_probability",
+    "seed": 20260930,
+    "torch_backend": "cpu-mkldnn-disabled-float64-conv0",
+    "weight_decay": 0.0001
+  },
+  "resource_policy": {
+    "aggregate_backstop_percent": 80,
+    "all_processors_eligible": true,
+    "kmp_blocktime": "0",
+    "omp_wait_policy": "PASSIVE",
+    "priority": "Idle",
+    "synchronous_work_rest_percent": 80
+  },
+  "revision": "graph-scale-coverage-db-head-v46",
+  "schema": "graphreader.ocr-scale-coverage-v46-config.v1",
+  "sealed_runs_authorized": 0,
+  "task": "ocr-detection",
+  "training_panels": 112
+}

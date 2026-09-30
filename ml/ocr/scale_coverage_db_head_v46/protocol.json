@@ -1,0 +1,62 @@
+{
+  "acceptance_bar": "Use unchanged ml/policy/acceptance-bars.json for all five OCR per-item bars through the shared evaluator. The1e-4 numerical tolerance is referenced from the existing SERVER_COMPARISON_PROTOCOL.json conversion contract, with its applicability and failed stricter check recorded in the diagnosis. Synthetic performance and export parity do not establish private acceptance, production approval or end-to-end completion.",
+  "budget": {
+    "candidate_id": "P1",
+    "csv_diagnostic_runs": 1,
+    "experiment_budget": 1,
+    "native_diagnostic_runs": 1,
+    "private_reads": 0,
+    "production_approval": false,
+    "sealed_runs_authorized": 0
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "Owned native development retains61 missed text regions and348/453 exact readings. All28 V44 training panels have width1200 and709 label short sides span4.267 to15.36 model pixels. On two small native panels23/27 labels exceed the corresponding training-role maximum even with retained source padding. Broader training text scale may improve detection while preserving existing behavior. This is a scale-coverage hypothesis, not proof of the cause of every miss.",
+  "isolated_change": "Warm-start the exact V44 head. Preserve28 historical train inputs/features/targets and all709 truths; add84 train-only windows from bilinear2x enlargement of the captured normalized BGR pixels, before the frozen trunk. Three1024-wide windows start at0,768,1024. Ignore cut word boxes in the loss and preserve full positive targets. Train24 fixed AdamW epochs at0.00003,weight decay0.0001,batch1,seed20260930; select the earliest minimum combined full-train loss. Keep the frozen pretrained trunk, batch-normalization buffers, inverse-unclip targets, full original examples and application source-scale padding. These declared schedule/data changes form one recipe. No dev input or answer enters optimization or weight selection.",
+  "metric": "Verify exact initializer ONNX reconstruction and trained graph patch containment. Report raw probability parity on all112 train windows and9 unchanged dev panels using the existing1e-4 full-model conversion tolerance; report the stricter1e-5 and0.3 decision differences separately. Evaluate the complete current native pipeline on21 sources31 panels453text truths838markers and complete CSV on23sources39panels706points724rows, with the fixed runtime, English reader,V27 center,V5 classifier and thresholds. Use unchanged IoU0.5 one-to-one OCR,5px marker and CSV scorers; retain every failure and truth. Report historical9-panel183text dev separately when directly comparable.",
+  "split_identities": {
+    "augmented_training_windows": 84,
+    "cache": {
+      "path": "artifacts/goal22-runs/ocr-scale-coverage-inputs-v2/manifest.json",
+      "sha256": "5748dcf05dca6083948d0054382c5e3c369f52db007c6ff2a3a5c86ae0ef90b5"
+    },
+    "csv_baseline": {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-csv/execution/report.json",
+      "sha256": "e9b0ce28d1cb7af879688980d6b357d6d680a18b10ff9d17cf20eeee5e41a626"
+    },
+    "csv_sources": {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-csv/input-manifest.json",
+      "sha256": "b6f29b5d19ba8d5b44371e37a6d53205e1ce6b96fc3b784b2d1c6752dd425356"
+    },
+    "diagnosis": {
+      "path": "docs/GOAL-22-OCR-SCALE-COVERAGE-DIAGNOSIS.json",
+      "sha256": "f4236d34378782b7f412737d0bcf4d17321386b9b4c597fa21277002188dde24"
+    },
+    "historical_capture": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-tensors/report.json",
+      "sha256": "15e48b27ce3b8f5f53311abbef7235c35b3e8e361c8baddb09a4d3a7e7d5938e"
+    },
+    "historical_development_panels": 9,
+    "historical_development_sources": 3,
+    "historical_development_truths": 183,
+    "initializer": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/training-run3/selected-head.pt",
+      "sha256": "977145c75972ba5cdcabbd3b86dcf1fc3ab62916be65e0d7159933c80e2f34cf"
+    },
+    "initializer_onnx": {
+      "path": "artifacts/goal22-runs/ocr-v44-text-extent/candidate-run1/detector-text-extent-v44-p1.onnx",
+      "sha256": "615495cc882b6ae8633081d89c3ab08c0d4a80a04aa36bbde4157fc7828f5923"
+    },
+    "native_baseline": {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/report.json",
+      "sha256": "419779b011e477118ac81f5785d7bd22d3518c5a9115391ea6143e2f1a1780c8"
+    },
+    "native_sources": {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/input-manifest.json",
+      "sha256": "f7d09adcde1417d2eca374a8dac5e1706f5c809595dfecf534ad52c7c7a91eb5"
+    },
+    "original_training_panels": 28,
+    "original_training_truths": 709,
+    "separation": "Only the authenticated historical train tensors are enlarged. All original train/dev bytes remain. No private or sealed input.",
+    "training_sources": 20
+  }
+}

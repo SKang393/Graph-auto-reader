@@ -1,0 +1,132 @@
+{
+  "base_commit": "ba63bbde80511eace183cd197121737e7d4f48f5",
+  "captured_utc": "2026-09-30T11:17:13.815475+00:00",
+  "identity": {
+    "candidate_id": "P1",
+    "revision": "graph-scale-coverage-db-head-v46",
+    "task": "ocr-detection"
+  },
+  "inline_hashes": {},
+  "preregistered_ledger_entry": {
+    "authorization_scope": "One owned train/dev-only adaptation under continued Goal22 authorization. No private/sealed read, production activation or release.",
+    "authorized_candidate_id": "P1",
+    "budget_consumption_event": "first_sealed_split_read",
+    "candidate_config_paths": {
+      "P1": "ml/ocr/scale_coverage_db_head_v46/p1.json"
+    },
+    "candidate_config_sha256": {
+      "P1": "b1fbfd1956ceac8be35e118b360305a430b52af3a9fd33819a1204cd68ca152e"
+    },
+    "consumed_candidate_ids": [],
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "execution_authorized": true,
+    "experiment_budget": 1,
+    "isolated_change": "Warm-start the exact V44 head. Preserve28 historical train inputs/features/targets and all709 truths; add84 train-only windows from bilinear2x enlargement of the captured normalized BGR pixels, before the frozen trunk. Three1024-wide windows start at0,768,1024. Ignore cut word boxes in the loss and preserve full positive targets. Train24 fixed AdamW epochs at0.00003,weight decay0.0001,batch1,seed20260930; select the earliest minimum combined full-train loss. Keep the frozen pretrained trunk, batch-normalization buffers, inverse-unclip targets, full original examples and application source-scale padding. These declared schedule/data changes form one recipe. No dev input or answer enters optimization or weight selection.",
+    "preregistered_candidate_ids": [
+      "P1"
+    ],
+    "protocol_path": "ml/ocr/scale_coverage_db_head_v46/protocol.json",
+    "protocol_sha256": "50178bad5b562e7e8ce5df06d2269ea88d5b9853ccd21ec625444882be3fc00c",
+    "resource_policy": {
+      "aggregate_backstop_percent": 80,
+      "all_processors_eligible": true,
+      "kmp_blocktime": "0",
+      "omp_wait_policy": "PASSIVE",
+      "priority": "Idle",
+      "synchronous_work_rest_percent": 80
+    },
+    "revision": "graph-scale-coverage-db-head-v46",
+    "sealed_runs_authorized": 0,
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "status": "candidate_1_preregistered",
+    "task": "ocr-detection"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "ml/markers/classifier/native_context_v3/runner.py",
+      "sha256": "e1c04921dc7902441e19443e404cf7ca231457d0c71cb9c5ec485e383959e066"
+    },
+    {
+      "path": "ml/markers/gate_seal.py",
+      "sha256": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725"
+    },
+    {
+      "path": "ml/markers/training-budgets/production-repair-v1.json",
+      "sha256": "3e1c849f57fdb9675a8b211ae48ddb152c898b93c90b1dbd287b636ae0bbcc11"
+    },
+    {
+      "path": "ml/markers/training_budget.py",
+      "sha256": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/SERVER_COMPARISON_PROTOCOL.json",
+      "sha256": "cff28b41ee07ccb549afdae472dc38097020794597f3ec16f732c5d3a547a34c"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/captured_head_features.py",
+      "sha256": "e12293499afed7eed3a2f8feaa69f061f59ecff570770aa5298b1129e27bb075"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/db_inverse_targets.py",
+      "sha256": "ec273483050ef573853be797e4df38df4c907339dc3b426a939522343ebaeb86"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/frozen_head_training.py",
+      "sha256": "ef0f955794e6f5417560af2c752b6523340ee9a86c0a1aa73b299593d4850379"
+    },
+    {
+      "path": "ml/ocr/official_bakeoff/frozen_trunk_head.py",
+      "sha256": "6171df9298f785360695353087344229a8f761cfda51bb3aa728ddab10997703"
+    },
+    {
+      "path": "ml/ocr/scale_coverage_db_head_v46/__init__.py",
+      "sha256": "140aedea210f223b0b5b9c8441e4da9da30299d8ea130cff9a9d506e91950bbd"
+    },
+    {
+      "path": "ml/ocr/scale_coverage_db_head_v46/inputs.py",
+      "sha256": "3f0b1b8b29b9286b787d43dfe49b32005a1b9dfe9dcd8f3e5e5dc172de81b88a"
+    },
+    {
+      "path": "ml/ocr/scale_coverage_db_head_v46/p1.json",
+      "sha256": "b1fbfd1956ceac8be35e118b360305a430b52af3a9fd33819a1204cd68ca152e"
+    },
+    {
+      "path": "ml/ocr/scale_coverage_db_head_v46/protocol.json",
+      "sha256": "50178bad5b562e7e8ce5df06d2269ea88d5b9853ccd21ec625444882be3fc00c"
+    },
+    {
+      "path": "ml/ocr/scale_coverage_db_head_v46/runner.py",
+      "sha256": "7321f3e697212c8fe9a136f35cfbc2c451b033a998254008da3a25f84e09a4f0"
+    },
+    {
+      "path": "ml/ocr/scale_coverage_db_head_v46/training.py",
+      "sha256": "2c4a8a964426e498e9ca2d558cb9c5a8126ae03a1085ef4534c4693a9ed61df1"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/evidence_policy.py",
+      "sha256": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7"
+    },
+    {
+      "path": "ml/training_cpu_budget.py",
+      "sha256": "d28aa7b5bb9a2e8a98360c9d503a867bbaf26fa5e964b604f36b5d66dea7e5ab"
+    },
+    {
+      "path": "tools/Run-TrainingCpuBudget.ps1",
+      "sha256": "bf3896720e1542b008f233c28c8fe9a0bdd002e390af8dff9ac225ce28dfe539"
+    }
+  ]
+}

@@ -1,0 +1,516 @@
+{
+  "elapsed_seconds": 0.22666670009493828,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/ocr-text-extent-tensors/report.json",
+      "sha256": "15e48b27ce3b8f5f53311abbef7235c35b3e8e361c8baddb09a4d3a7e7d5938e"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-text-extent-preflight/train-text-truth.json",
+      "sha256": "60a474a7e417c5f4b3622a7920da18d70d2b6c8677a644f13137d1c08662e1d3"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/native-ocr-details.json",
+      "sha256": "60f6ca513e062db5c15273dcc1ebc45c926ba2c24be7f58cbff0ab7743c8e21b"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/report.json",
+      "sha256": "419779b011e477118ac81f5785d7bd22d3518c5a9115391ea6143e2f1a1780c8"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/14aa22a3-a09f-0853-9072-112741c65ca4.json",
+      "sha256": "be0257a7e480cea784e8800aaf5bf087c66ef905386b43c40518547abc651eca"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/db3d909c-0c43-e25b-9d78-3e79b70b7d31.json",
+      "sha256": "35d2ed25392b31b326f6c3c5665aa7d3629cc57bd8a6a7043ee5bad17f860f78"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/385ceda8-faf4-7c57-a4f6-c120e399a6da.json",
+      "sha256": "8259dcdb89fab9e4ea9af699469b52b0889da3cefd96db2b443321df801f071f"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/c8f82e40-d8d3-5358-b0ed-daee1687feaf.json",
+      "sha256": "6c48027b326810723a0763e98d0fcd62f7ebdc37934720bf890b6355ff9ac0e7"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/1003b9b4-668a-255e-bc83-e025cb28b268.json",
+      "sha256": "f7428a2ea65d285ef0486ec95ac84ebdeb30068e72da12c050493aee7aac6fe4"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/f46a7190-6b8d-2658-94ee-05374615fbdc.json",
+      "sha256": "4f423f1b4f22bbb7cb8b8c73ee4d68eb72cae71cad37a066e687256345b5f4e8"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/650d84c3-8963-c558-9e18-e16e8d35333d.json",
+      "sha256": "ced22758c93a81684d715f80b08893b8427f5898a7fe2524b173547b112cb7e8"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/849c4dad-7383-2f5e-81b1-d7ce1e381fe9.json",
+      "sha256": "03bc9b1afb54a7b736bb65d6a53486c2a9f9d4e93e28ccdf9ddfdadf1947b105"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/e080b717-bce3-ca5f-859e-ab23b5b5e7e1.json",
+      "sha256": "337b76e5a1d379b71886130d60eae04df5ec4982662e502a83e792e2ffd84cd8"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/563931e9-bc37-c05f-984e-7e411f1d807b.json",
+      "sha256": "35981f438fc49836273092f51e30598cf4605362e3ba8f2a6e6c66e2aa5bfc86"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/4054aae7-3eab-9355-af8b-b440e7426acd.json",
+      "sha256": "785a4fc3b476559e13143c3656296c02afceb0a865d72333392136570fd2e083"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/58ca0e48-e88f-a650-96bb-2d652c99ae09.json",
+      "sha256": "a9b42fb3304bb31a685759d2c32f4669e1d027c08b3ce6a1b1689ea430978751"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/973b8da0-bce1-2552-94ba-9a45be9c266b.json",
+      "sha256": "439b0b0e9de5ed357fcfa5e4227f97bf47cf4f721a44dc0bdbba00628f792e76"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/9f8e6e39-7b1d-0455-919d-68aa5275e860.json",
+      "sha256": "5c9f28f72f884d2775c463cc9fdc80db0f4623db68ca83ae2c2ecc6429bdb0b8"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/f3c67ddb-a542-dd5f-811c-661254f9dd2d.json",
+      "sha256": "98870ca16e472e862847908d399b5fdfca5833a51ab7c22bfa46e512044c0ae6"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/fd6a0fb4-6b67-a055-9e76-0d3cfc27d1a3.json",
+      "sha256": "43b6d7bdd5f21a3d3d0222532192788dde9b1c8add78ceed2122b91c389d6dd5"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/8513ecef-2205-b055-9d97-9ff79691ea74.json",
+      "sha256": "743f3ec2f1576416169de5011909754466d65aa78e9dafe510438ed4f230a78e"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/5a40a17e-d40f-7c54-a3bf-75161e501606.json",
+      "sha256": "c7ba42ee4a8cb467c91a879cbd4d329d8b3a2f1465b93fd01b55cb980e83a808"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/1a52ecb0-1362-bc55-a774-08e2f68341ef.json",
+      "sha256": "53e06289f136af6eb358aceceeaef8b73bfc6e903b56b5463f6ec7507419aa02"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/78684044-4146-0c54-b55d-ef5458224dcb.json",
+      "sha256": "1f7bd297e358dc1bf8dac49ab3244cdfbf8b2526e213b27254f5395161704f23"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/f6ba7dab-78e3-3a54-b92f-986184321c34.json",
+      "sha256": "d81e253a7d4934c18481fc5c4f127c1e5ef27a020ac68fc5e549319bcdbc87bb"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/a700a626-8d81-1052-a664-32964fa189b9.json",
+      "sha256": "d8fbdc3655b36e27f11a204cdc66532ff18311f954a8ff47022f7924a5728548"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/49963f69-18f0-b85f-baf4-78ce427c4d23.json",
+      "sha256": "5449b86839f08b4794c428d53772f4259470a86586916eb74221cd316bbf25b2"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/522b9d6a-6fef-d25c-94a0-4e5280c5ad8a.json",
+      "sha256": "93cce45c565ae66b7b05bc0b3778a81dc2a064b290c4ec890b18566a0585cec2"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/f0329e91-8a5e-ff5d-9302-2cf60b3e8189.json",
+      "sha256": "8d62eae95d17bd82f6135a3623892acf2effd32f63a80cb7a8149f19048df825"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/565b374b-d84b-385f-858e-fd36872a59ad.json",
+      "sha256": "ccb7e241c53a50fa5ba5536676c69db584d0e1530e1f31aa5410da955b997c26"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/650b3aca-a982-d950-9ce2-a67aba816e77.json",
+      "sha256": "e14bb0842f195b166a1161c1ad39bb89486a36a05e34b8be0c4a9d123e57be7d"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/76681506-233b-9751-8caa-2fd90887bf10.json",
+      "sha256": "b5181a2b5bd8f8d4b8eaacc7074da359e126facc6e705cffac65dda2ae3b8c52"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/18b69213-12c6-da50-84fb-0dc11d3221ea.json",
+      "sha256": "2975f7e3fdf139562470b10ed1d5e0a515be0ce97595fab503385182f5c40e88"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/4d81880a-d294-e45f-bb98-5de5da303b5d.json",
+      "sha256": "7eef19109c8812665a0eaa4ade1882b7bdb63a313d962d96e5b2631da7226cef"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/18efbbcc-ad39-2b5f-98d5-95a3e8432db2.json",
+      "sha256": "65a3ec5b2f51a71a3296ac1f0da957755dc73c88e3404c15757e3e99d0e368d0"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/raw-ocr-evidence/a700a626-8d81-1052-a664-32964fa189b9.json",
+      "sha256": "1825fbe8a882df8595aa92acf780eab622836b80b92eb91ce4338ed7744424e7"
+    },
+    {
+      "path": "artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/raw-ocr-evidence/49963f69-18f0-b85f-baf4-78ce427c4d23.json",
+      "sha256": "1053593cad3009e66402454432fcfc681fb7af7693c460c76c06fdd13b3b345f"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/report.json",
+      "sha256": "123adbfebb49a666a70ae605c3280a0b35cf1fbab4aa13f90e1ab0f08e94e813"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/32073fe5-d03a-cc53-8aa5-fdfa107d5365.json",
+      "sha256": "321b6035a5af3c070349306c558ce9b06191fd5ca6939b806d5a4cbd2dfdaee7"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/63c44f50-684f-9952-8b0c-edccba6ecaf0.json",
+      "sha256": "0d7ae46a844cd64c1441aec4029636105f64cd8660cbdcbaf88538ab98578ef0"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/a1bec7dc-4ab0-3457-ad7c-6206bf42c7e6.json",
+      "sha256": "8e99278b4e218d86dc540c08a7186a92fc0d23c3eac0f08319a70933eb93afc3"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/bca74c22-1f60-7e5c-8cc6-43a0817bfe35.json",
+      "sha256": "c41fe6b0bf214f7427f2e8b67979662c7bab74c34359e30ebffbe8b30565eba7"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/14307d06-71dc-1451-82ae-e88c932f6629.json",
+      "sha256": "2d6d345f177c104af3efabd0e500c47a4117f481c1b2094f7d2f1f3b123e4ea6"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/bd66875e-3157-ee51-889d-74372b2400b8.json",
+      "sha256": "91111089f257bf77695d7af4d30d0b1357c3d2170f37aa093f730e0ab38ac932"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/4ab14d44-6c24-6d5e-a371-7a64e28d1820.json",
+      "sha256": "bd2c03159f46359949856d77f244821701d1c1ba62360e0838faf6a9eb0b074a"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/471535f8-8b35-8856-b458-8c5228c4d71d.json",
+      "sha256": "8eb3fc552d0b9069189806698431db5286917518d91e4a1a34b6637ecfe3aab9"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/1823f3dd-5def-af52-ac54-6e5327721815.json",
+      "sha256": "8738c4641321fb896472146f63b193f0be3443c992612d6472540930db3bd28b"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/d145fbe3-07a7-575a-b417-86be206f597f.json",
+      "sha256": "b103ae16de2e2b66269bc46dec19f8e40afd2552649dc8555f003750dafa287f"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/1f9de00e-63fa-cb5f-b5ca-6c2c9c1f6d15.json",
+      "sha256": "e295b8abcf41e04adfdeb150a745fe3f49072b8ef321d7af99f957f68f619767"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/2c97392a-5cdf-0b53-b045-9a9cb7892b23.json",
+      "sha256": "20ac9310c991cd1096c3b18021e0e5aed049ea010a3c827e417aac98bced0d48"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/9df7be84-4149-965a-af85-90529dc93ac9.json",
+      "sha256": "8dd236c5fef26aefc168142f99aef36835b56ed703d55df740cb9ab0bda00a6c"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/a37f3eec-2143-a15a-935e-e4ec0cc6bec8.json",
+      "sha256": "8423804d630b0b26e22236989a11a932e863929370b951b883ae356047e90f80"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/e5a2d4d4-942d-a75a-aa33-bd5f87e635b4.json",
+      "sha256": "346e4486f6b472c4ced1ad223a8772758453dc916602006935060e73e90b0743"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/22e0a7f7-3429-7154-8a0b-95331e2d3591.json",
+      "sha256": "f3e08212717abc5f423f54d5435df3c97dc44ee5d400bcd8ef4d631d725aa7a9"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/c0699edd-e465-f159-b77b-00950dc90c2f.json",
+      "sha256": "740c59c9587ccb347dafa87785f3be9adbd7f1032193b6ce8e3a910305f0d453"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/17b893a3-e9ad-d650-ae66-31b7c3936b0c.json",
+      "sha256": "3c16e0f98f0d03c811ca5b5f6aead4e82e7fb5091b902551ad24ec8c2a686e17"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/bfe670e0-d0e9-2952-9161-b8c56db7e03a.json",
+      "sha256": "15820968370a6fca7e68256f138ac0c28412edde6b77a727505b8427e5ff2021"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/d11cb036-1805-e253-be74-05dd235fab17.json",
+      "sha256": "172121f0bc9ea78e9a417530858a48f5b9f7a0f4bb2348712efdedf2274c494b"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/39da4751-e7a2-6a5b-9b33-bdbcc2852c80.json",
+      "sha256": "ada0607568a1fe486b649d11ac0d6485e07532ee0b49595221d97b74ca47faa8"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/a266a994-cc87-6d52-8620-d4fc2a108297.json",
+      "sha256": "38c1a3eb618f70c17fb9fed22e3be6a449ec54c638711cad256faca6c9917079"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/a0404a9e-6671-d754-9540-333dce2ced41.json",
+      "sha256": "294fb69cc9c5a258adc1dd8a1a290040250fafb44c36023a87f72b6d3ccc05c6"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/dc35f6c4-411e-5051-8b91-5e433f42152c.json",
+      "sha256": "74a1944200e64c48b8831c4d9dbb398ef1e2f0d7411e99ed0ef03c10e2d9d12f"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/1d3c8e22-60c1-065f-8265-e7f1de9222a8.json",
+      "sha256": "dfb5b65859d68f0acc6c0c332cabe0b2667c5ee804888ffc4cb733bd45b0eb08"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/cf78688e-c093-9856-bd04-b0f272fe46c3.json",
+      "sha256": "dba3c0942becabb589bc6300ef639572e678625fc6bb76932fc402d80f1edd7f"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/46327fe6-2418-f154-ba79-4655e6fa7182.json",
+      "sha256": "2af8d812482a9073156dc5173a337d3c09a847c1c795d36f9787bcd055fcfd76"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/a4ecaa30-11f4-7e50-bb51-2c93fef51fee.json",
+      "sha256": "605fdbd429a06f66a8126968ff199b4c73c46b59aa4987071a2d5fafb55003b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/541283bb-a242-2950-a221-9ac87ab1af5e.json",
+      "sha256": "efde12c43d917847d3366d07bba3265ac92d697cb7cb2dd499f39776619dcd38"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/bb5afb49-52c5-2a55-8d4d-533fbacfad7c.json",
+      "sha256": "d8fc82ade6e4065fd83ab273aaa403645e1d3d1cabf3efb1ac381d0db31df74e"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/stage-evidence/d1ea0233-4ab6-ce5a-95c3-0b0f753593f0.json",
+      "sha256": "fa0a6ade57030869faed9959a27ef434fabc32ff0ae36f4ab500a0769462ce7a"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/raw-ocr-evidence/a266a994-cc87-6d52-8620-d4fc2a108297.json",
+      "sha256": "c5f2036a019d0f3569c8c8c1d59563cf53ecbff44309252b43462b81d6784a3d"
+    },
+    {
+      "path": "artifacts/goal22-runs/small-image-padding-evaluation-v1/v27-native/execution/raw-ocr-evidence/a0404a9e-6671-d754-9540-333dce2ced41.json",
+      "sha256": "5ff2ff6efd12aecf5fcf6f17dcd42247c0afaf0733504210711692bcb5235457"
+    }
+  ],
+  "interpretation": "Removing padding raises effective text scale beyond the historical training range for many labels. Raw proposal collapse precedes text assembly. This supports scale mismatch as a diagnostic hypothesis, not a proved model mechanism or coordinate defect. Keep the padded baseline. Further training requires an independently declared train-only recipe and unchanged held-out evaluation.",
+  "method": "Authenticate saved training captures and current synthetic workflow observations. Project full source truth boxes into actual saved training tensor geometry. Compare short sides to source-derived DB resize dimensions for the two small panels. Raw proposal geometry is runtime-observed. No inference rerun.",
+  "model_inference_runs": 0,
+  "numerical_preflight": {
+    "additional_precision_probe": {
+      "path": "artifacts/goal22-runs/ocr-scale-parity-probe-v2/report.json",
+      "sha256": "cbf2d7826eec954c2c1e8fa11e8a14436373cb4f77d8acc379e7e81310020b00"
+    },
+    "all_augmented_inputs_maximum_absolute_error": 1.4394521713256836e-05,
+    "augmented_inputs_exceeding_stricter_1e_5": 4,
+    "initial_attempt": {
+      "path": "artifacts/goal22-runs/ocr-scale-preparation-v1/void.json",
+      "sha256": "92e173901ad07b97641e976c7cbbec407e39274aa3a499c79c8afcc19e48cad0"
+    },
+    "probability_0_3_pixel_decision_changes": 0,
+    "probe": {
+      "path": "artifacts/goal22-runs/ocr-scale-parity-probe-v1/report.json",
+      "sha256": "e3ff0da73c53d720dd7d49b89a668e3fe9031843214d3715b41cffc55212a4cc"
+    },
+    "reason": "The existing V44 initializer reproduces the exact ONNX bytes. On a new enlarged training input, optimized ONNX and the PyTorch head differ by 1.1265277862548828e-5 at one pixel, with no 0.3 threshold decision change. Extra precision and thread-count changes do not remove it. Use the existing 1e-4 full-model conversion bound for this new revision; retain stricter 1e-5 failures and all operating-decision differences as evidence. No historical protocol or accuracy bar changes.",
+    "tolerance": 0.0001,
+    "tolerance_source": {
+      "path": "ml/ocr/official_bakeoff/SERVER_COMPARISON_PROTOCOL.json",
+      "sha256": "cff28b41ee07ccb549afdae472dc38097020794597f3ec16f732c5d3a547a34c"
+    }
+  },
+  "optimizer_steps": 0,
+  "packaged_build_created": false,
+  "preparation": {
+    "checks": {
+      "path": "artifacts/goal22-runs/ocr-scale-preparation-v3/tests.xml",
+      "sha256": "c38ca1fca72f12bc9198ccf9e74f92527939e79c26b3a4145e4a7a12532bc392"
+    },
+    "enlarged_truths_with_full_window": 709,
+    "manifest": {
+      "path": "artifacts/goal22-runs/ocr-scale-coverage-inputs-v2/manifest.json",
+      "sha256": "5748dcf05dca6083948d0054382c5e3c369f52db007c6ff2a3a5c86ae0ef90b5"
+    },
+    "partial_truth_occurrences": 72,
+    "preview": {
+      "path": "artifacts/goal22-runs/ocr-scale-coverage-inputs-v2/owned-training-preview.png",
+      "sha256": "c957750b1e181a67e70b4dd4888c35f43ae9fc0f3f034c0108389341d9dcd8b1"
+    },
+    "preview_inventory": {
+      "path": "artifacts/goal22-runs/ocr-scale-coverage-inputs-v2/preview.json",
+      "sha256": "75e2e02891821196161f2cff10e1787d5d462cf5c2045c2f25be2a7579cc367e"
+    },
+    "training_windows": 112,
+    "unchanged_development_panels": 9,
+    "visual_check": "Inspected four middle windows across original training scenes. Green targets follow visible complete text, orange masks cover boundary-cut words, and full positive targets survive overlapping cut-label masks. The preview alone is resized; training arrays are unchanged."
+  },
+  "private_reads": 0,
+  "production_approved": false,
+  "schema": "graphreader.adapted-detector-scale-diagnosis.v1",
+  "sealed_reads": 0,
+  "small_native_panels": [
+    {
+      "arms": {
+        "baseline": {
+          "raw_height_below_8_source_pixels": 1,
+          "raw_proposals": 9,
+          "raw_source_height": {
+            "count": 9,
+            "max": 22,
+            "median": 13,
+            "min": 6
+          },
+          "source_derived_tensor_height": 256,
+          "source_derived_tensor_width": 1024,
+          "truth_tensor_short_side": {
+            "count": 13,
+            "max": 21.004648533333334,
+            "median": 14.894466133333337,
+            "min": 9.312922453333352
+          },
+          "truths_above_training_same_role_maximum": 11
+        },
+        "rejected": {
+          "raw_height_below_8_source_pixels": 20,
+          "raw_proposals": 21,
+          "raw_source_height": {
+            "count": 21,
+            "max": 11,
+            "median": 3,
+            "min": 2
+          },
+          "source_derived_tensor_height": 640,
+          "source_derived_tensor_width": 1024,
+          "truth_tensor_short_side": {
+            "count": 13,
+            "max": 52.51162133333333,
+            "median": 37.23616533333334,
+            "min": 28.842346666666685
+          },
+          "truths_above_training_same_role_maximum": 13
+        }
+      },
+      "height": 240,
+      "paired_exact_readings": {
+        "lost": 4,
+        "missed_by_both": 9
+      },
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truths": 13,
+      "width": 361
+    },
+    {
+      "arms": {
+        "baseline": {
+          "raw_height_below_8_source_pixels": 2,
+          "raw_proposals": 12,
+          "raw_source_height": {
+            "count": 12,
+            "max": 21,
+            "median": 16.0,
+            "min": 7
+          },
+          "source_derived_tensor_height": 384,
+          "source_derived_tensor_width": 1024,
+          "truth_tensor_short_side": {
+            "count": 14,
+            "max": 19.688687149367087,
+            "median": 14.056632546835452,
+            "min": 10.291824639999977
+          },
+          "truths_above_training_same_role_maximum": 12
+        },
+        "rejected": {
+          "raw_height_below_8_source_pixels": 8,
+          "raw_proposals": 10,
+          "raw_source_height": {
+            "count": 10,
+            "max": 9,
+            "median": 6.0,
+            "min": 4
+          },
+          "source_derived_tensor_height": 512,
+          "source_derived_tensor_width": 1024,
+          "truth_tensor_short_side": {
+            "count": 14,
+            "max": 26.25158286582278,
+            "median": 18.742176729113936,
+            "min": 14.310764273464626
+          },
+          "truths_above_training_same_role_maximum": 14
+        }
+      },
+      "height": 395,
+      "paired_exact_readings": {
+        "lost": 7,
+        "missed_by_both": 7
+      },
+      "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+      "truths": 14,
+      "width": 863
+    }
+  ],
+  "status": "diagnosis_not_accuracy_acceptance",
+  "training": {
+    "panel_widths": {
+      "1200": 28
+    },
+    "panels": 28,
+    "sources": 20,
+    "tensor_shapes": {
+      "1x3x256x1024": 11,
+      "1x3x384x1024": 15,
+      "1x3x512x1024": 2
+    },
+    "tensor_short_side": {
+      "count": 709,
+      "max": 15.36,
+      "median": 8.782161234991424,
+      "min": 4.266666666666667
+    },
+    "tensor_short_side_by_role": {
+      "annotation": {
+        "count": 60,
+        "max": 14.262857142857143,
+        "median": 10.971428571428572,
+        "min": 8.178913738019169
+      },
+      "axis_title": {
+        "count": 50,
+        "max": 12.06857142857143,
+        "median": 10.971428571428572,
+        "min": 8.178913738019169
+      },
+      "condition_label": {
+        "count": 80,
+        "max": 14.262857142857143,
+        "median": 8.533333333333333,
+        "min": 6.826666666666667
+      },
+      "legend_text": {
+        "count": 30,
+        "max": 15.36,
+        "median": 12.06857142857143,
+        "min": 10.63258785942492
+      },
+      "participant": {
+        "count": 30,
+        "max": 15.36,
+        "median": 13.294391534391535,
+        "min": 10.63258785942492
+      },
+      "phase_heading": {
+        "count": 80,
+        "max": 12.06857142857143,
+        "median": 10.971428571428572,
+        "min": 8.178913738019169
+      },
+      "x_tick": {
+        "count": 175,
+        "max": 10.971428571428572,
+        "median": 8.178913738019169,
+        "min": 4.266666666666667
+      },
+      "y_tick": {
+        "count": 204,
+        "max": 10.971428571428572,
+        "median": 8.338762214983714,
+        "min": 5.973333333333334
+      }
+    },
+    "truths": 709
+  }
+}

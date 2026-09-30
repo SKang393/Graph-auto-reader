@@ -10806,6 +10806,50 @@
       "candidate_report_sha256": "f3b327aff28f2c4e8343fe7cf0fe2457f26a8343aa4fdb512ec658793bec7bd3",
       "optimizer_steps": 16896,
       "closed_utc_date": "2026-09-30"
+    },
+    {
+      "task": "ocr-detection",
+      "revision": "graph-scale-coverage-db-head-v46",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/ocr/scale_coverage_db_head_v46/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "b1fbfd1956ceac8be35e118b360305a430b52af3a9fd33819a1204cd68ca152e"
+      },
+      "protocol_path": "ml/ocr/scale_coverage_db_head_v46/protocol.json",
+      "protocol_sha256": "50178bad5b562e7e8ce5df06d2269ea88d5b9853ccd21ec625444882be3fc00c",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "sealed_runs_authorized": 0,
+      "authorization_scope": "One owned train/dev-only adaptation under continued Goal22 authorization. No private/sealed read, production activation or release.",
+      "isolated_change": "Warm-start the exact V44 head. Preserve28 historical train inputs/features/targets and all709 truths; add84 train-only windows from bilinear2x enlargement of the captured normalized BGR pixels, before the frozen trunk. Three1024-wide windows start at0,768,1024. Ignore cut word boxes in the loss and preserve full positive targets. Train24 fixed AdamW epochs at0.00003,weight decay0.0001,batch1,seed20260930; select the earliest minimum combined full-train loss. Keep the frozen pretrained trunk, batch-normalization buffers, inverse-unclip targets, full original examples and application source-scale padding. These declared schedule/data changes form one recipe. No dev input or answer enters optimization or weight selection.",
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/ocr/scale_coverage_db_head_v46/P1_RESULT.json",
+      "outcome_sha256": "080bca93f0faef8f2c62739b3ec9b34093f8d86c60410eacdfb6a890aae31faf",
+      "candidate_report_sha256": "f97551f1364e0c1d01e7b37db1f6399259ae02147e7d0f1dc232d8876d31b383",
+      "optimizer_steps": 2688,
+      "closed_utc_date": "2026-09-30"
     }
   ]
 }
