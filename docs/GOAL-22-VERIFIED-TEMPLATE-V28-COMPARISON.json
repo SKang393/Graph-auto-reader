@@ -1,0 +1,337 @@
+{
+  "schema": "graphreader.verified-template-v28-comparison.v1",
+  "status": "rejected_development_configuration",
+  "purpose": "Recheck existing V28 after the verified template repair without new training. V28 at its fixed 0.25 cutoff is compared with V27 at 0.10; this is a configuration comparison, not weights-only attribution.",
+  "runtime_commit": "fa9da8e5b305fa859682c25252541e40c3f91851",
+  "native": {
+    "metrics": {
+      "truth": 838,
+      "predicted": 760,
+      "matched": 733,
+      "extra": 27,
+      "missing": 105,
+      "precision": 0.9644736842105263,
+      "recall": 0.8747016706443914
+    },
+    "baseline": {
+      "truth": 838,
+      "predicted": 751,
+      "matched": 726,
+      "extra": 25,
+      "missing": 112,
+      "precision": 0.966711051930759,
+      "recall": 0.8663484486873508
+    },
+    "paired": {
+      "retained": 709,
+      "recovered": 24,
+      "lost": 17,
+      "missed_by_both": 88
+    },
+    "ocr_exact": 348,
+    "ocr_truth": 453,
+    "axis_correct": 84,
+    "axis_corners": 93,
+    "sources": 21,
+    "panels": 31
+  },
+  "csv": {
+    "metrics": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 9,
+      "failed_cases": 14,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 26,
+      "matched_series": 19,
+      "truth_points": 706,
+      "predicted_points": 348,
+      "matched_points": 338,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 348,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 337,
+      "correct_rows": 334,
+      "missing_rows": 387,
+      "extra_rows": 11,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 338,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 368,
+      "unique_point_extra": 10,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9712643678160919,
+      "unique_point_structural_coverage": 0.47875354107648727,
+      "unique_point_value_precision": 0.9712643678160919,
+      "unique_point_value_coverage": 0.47875354107648727,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9597701149425287,
+      "relational_row_coverage": 0.4613259668508287,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9910979228486647,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 14
+      }
+    },
+    "baseline": {
+      "truth_cases": 23,
+      "output_cases": 23,
+      "completed_cases": 12,
+      "failed_cases": 11,
+      "unexpected_cases": 0,
+      "integrity_failure_cases": 0,
+      "truth_series": 41,
+      "predicted_series": 30,
+      "matched_series": 22,
+      "truth_points": 706,
+      "predicted_points": 420,
+      "matched_points": 409,
+      "unique_point_value_metrics_available": true,
+      "relational_row_metrics_available": true,
+      "relational_phase_metrics_available": true,
+      "actual_rows": 420,
+      "residual_artifact_rows_from_failed_cases": 0,
+      "expected_rows": 724,
+      "structurally_matched_rows": 408,
+      "correct_rows": 405,
+      "missing_rows": 316,
+      "extra_rows": 12,
+      "duplicate_rows": 0,
+      "wrong_scale_rows": 0,
+      "wrong_export_mode_rows": 0,
+      "wrong_phase_rows": 3,
+      "wrong_relation_rows": 0,
+      "unique_point_value_correct": 409,
+      "unique_point_value_incorrect": 0,
+      "unique_point_missing": 297,
+      "unique_point_extra": 11,
+      "unique_point_wrong_scale": 0,
+      "unique_point_wrong_export_mode": 0,
+      "unique_point_structural_precision": 0.9738095238095238,
+      "unique_point_structural_coverage": 0.5793201133144475,
+      "unique_point_value_precision": 0.9738095238095238,
+      "unique_point_value_coverage": 0.5793201133144475,
+      "matched_unique_point_value_accuracy": 1,
+      "relational_row_precision": 0.9642857142857143,
+      "relational_row_coverage": 0.5593922651933702,
+      "matched_relational_graph_value_accuracy": 1,
+      "matched_relational_phase_accuracy": 0.9926470588235294,
+      "artifact_integrity_valid": true,
+      "failure_kinds": {
+        "workflow_failed": 11
+      }
+    },
+    "split_metrics": {
+      "train": {
+        "truth_cases": 20,
+        "output_cases": 20,
+        "completed_cases": 7,
+        "failed_cases": 13,
+        "unexpected_cases": 0,
+        "integrity_failure_cases": 0,
+        "truth_series": 30,
+        "predicted_series": 13,
+        "matched_series": 11,
+        "truth_points": 500,
+        "predicted_points": 183,
+        "matched_points": 181,
+        "unique_point_value_metrics_available": true,
+        "relational_row_metrics_available": true,
+        "relational_phase_metrics_available": true,
+        "actual_rows": 183,
+        "residual_artifact_rows_from_failed_cases": 0,
+        "expected_rows": 500,
+        "structurally_matched_rows": 180,
+        "correct_rows": 177,
+        "missing_rows": 320,
+        "extra_rows": 3,
+        "duplicate_rows": 0,
+        "wrong_scale_rows": 0,
+        "wrong_export_mode_rows": 0,
+        "wrong_phase_rows": 3,
+        "wrong_relation_rows": 0,
+        "unique_point_value_correct": 181,
+        "unique_point_value_incorrect": 0,
+        "unique_point_missing": 319,
+        "unique_point_extra": 2,
+        "unique_point_wrong_scale": 0,
+        "unique_point_wrong_export_mode": 0,
+        "unique_point_structural_precision": 0.9890710382513661,
+        "unique_point_structural_coverage": 0.362,
+        "unique_point_value_precision": 0.9890710382513661,
+        "unique_point_value_coverage": 0.362,
+        "matched_unique_point_value_accuracy": 1,
+        "relational_row_precision": 0.9672131147540983,
+        "relational_row_coverage": 0.354,
+        "matched_relational_graph_value_accuracy": 1,
+        "matched_relational_phase_accuracy": 0.9833333333333333,
+        "artifact_integrity_valid": true,
+        "failure_kinds": {
+          "workflow_failed": 13
+        }
+      },
+      "dev": {
+        "truth_cases": 3,
+        "output_cases": 3,
+        "completed_cases": 2,
+        "failed_cases": 1,
+        "unexpected_cases": 0,
+        "integrity_failure_cases": 0,
+        "truth_series": 11,
+        "predicted_series": 13,
+        "matched_series": 8,
+        "truth_points": 206,
+        "predicted_points": 165,
+        "matched_points": 157,
+        "unique_point_value_metrics_available": true,
+        "relational_row_metrics_available": true,
+        "relational_phase_metrics_available": true,
+        "actual_rows": 165,
+        "residual_artifact_rows_from_failed_cases": 0,
+        "expected_rows": 224,
+        "structurally_matched_rows": 157,
+        "correct_rows": 157,
+        "missing_rows": 67,
+        "extra_rows": 8,
+        "duplicate_rows": 0,
+        "wrong_scale_rows": 0,
+        "wrong_export_mode_rows": 0,
+        "wrong_phase_rows": 0,
+        "wrong_relation_rows": 0,
+        "unique_point_value_correct": 157,
+        "unique_point_value_incorrect": 0,
+        "unique_point_missing": 49,
+        "unique_point_extra": 8,
+        "unique_point_wrong_scale": 0,
+        "unique_point_wrong_export_mode": 0,
+        "unique_point_structural_precision": 0.9515151515151515,
+        "unique_point_structural_coverage": 0.7621359223300971,
+        "unique_point_value_precision": 0.9515151515151515,
+        "unique_point_value_coverage": 0.7621359223300971,
+        "matched_unique_point_value_accuracy": 1,
+        "relational_row_precision": 0.9515151515151515,
+        "relational_row_coverage": 0.7008928571428571,
+        "matched_relational_graph_value_accuracy": 1,
+        "matched_relational_phase_accuracy": 1,
+        "artifact_integrity_valid": true,
+        "failure_kinds": {
+          "workflow_failed": 1
+        }
+      }
+    },
+    "sources": 23,
+    "panels": 39,
+    "previous_exports_lost": 3,
+    "upstream_changes": 0
+  },
+  "timing_seconds": {
+    "native": 181.3022066,
+    "csv": 229.7338155,
+    "total": 423.5368047
+  },
+  "observed_cpu_model_envelopes": {
+    "OpenCvSharpExtern": 70,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-shape-coverage-v28": 70,
+    "marker-classifier-structural-context-v5": 146
+  },
+  "decision": "Retain V27/V5. V28 loses three exports and 71 correct values. Its original failed revision stays closed; this later diagnostic does not overwrite or promote it.",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/jobs.json",
+      "sha256": "530a8eeca332cf0cc6b3adc15ba3fdcd7a76e52168b9d43ff1b0b00f9167f53f"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/status.json",
+      "sha256": "de51e20ddecf7958b736b9df4c5faf626e7bcca442181bed9b1b6137aae403b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/native/protocol.json",
+      "sha256": "3a34415648e66e5a670415add70fa7868feaf94895ddf0e167e70884c2413ac2"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/native/candidate-binding.json",
+      "sha256": "0c8aef7f44da10ca82920cc30328f8fd3b78a003dc2090437de52f597da5b9a6"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/native/execution/report.json",
+      "sha256": "218b0c069a2b3b697964d31f7365fc902d9d7a00df51ac98d9f7fbb5620128ed"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/native/native-marker-score.json",
+      "sha256": "69e86f90172fa27250c90c9b08f9ad4f3642578fc9e199fec3cd14dd1e614360"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/native/native-ocr-score.json",
+      "sha256": "e622ea10cd4feb2717486d4d18b6812054865cab4d1558112b716508b38a0101"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/native/axis-geometry-comparison.json",
+      "sha256": "7826172dec237a87987e11522c6461b54a6b719d611eb026fa50653c2788df5e"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/csv/protocol.json",
+      "sha256": "ae4c92c9289b257e39da8165006ee1565f7bf09a51c74f3aefeb55566d81caeb"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/csv/candidate-binding.json",
+      "sha256": "b8989b8829d7720b5bc3bf8eda1fef59e670fd902eaab84b445d00bed549554f"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/csv/execution/report.json",
+      "sha256": "24da9aedaec0d00dfc5ef42464189c30a8400ed10a109c4dfe46249e86967ced"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/csv/comparison.json",
+      "sha256": "021bed8c696252e70ce45ae370786768d19a9f775dc94681b58c4115d60265c7"
+    },
+    {
+      "path": "artifacts/goal22-runs/verified-template-v28-v1/csv/csv-score-normalized-phases.json",
+      "sha256": "7148a131bf7432301d91dbd80a0e603e346faf7a57c6a464d45d6eb28b1023dc"
+    },
+    {
+      "path": "ml/markers/center/shape_coverage_v28/P1_RESULT.json",
+      "sha256": "aa6a340ad116ae293c8a821ea5f22e6b627cb03594c2b837ed1d17cab749a95e"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-VerifiedTemplateV28.py",
+      "sha256": "fc0bd0d4f078ac31769aa03f922b4f2eecc7c70333df2e4fac37564f1946c67d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-VerifiedTemplateV28.ps1",
+      "sha256": "c12deaf51a1fb71d35140e11e4b0d5ea1a74c85ae3688fdc7373ba110165fc98"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-VerifiedTemplateV28.py",
+      "sha256": "7098c42be66e68bd7962238db64065e76efe1d4e79f19d5ac1595bb5acd5f7b0"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    }
+  ],
+  "license_review": "Previously reviewed project-owned Apache-2.0 model, existing runtime and source; no new dependency or imported model.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "goal22_complete": false,
+  "limitations": [
+    "Native recall remains 87.47 percent, below the unchanged 95 percent bar.",
+    "This diagnostic is owned synthetic development evidence only.",
+    "Nonzero inference exits from failed graphs remain in the evidence and denominator."
+  ]
+}
