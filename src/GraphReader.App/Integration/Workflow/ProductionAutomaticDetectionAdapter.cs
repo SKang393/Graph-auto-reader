@@ -395,17 +395,21 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 IReadOnlyList<OcrRectangle> verifiedTemplates = ProductionMarkerTemplateRecovery.SelectVerifiedTemplates(
                     classifiedSeeds, seedInputs.ContentBounds, legendInputs.OriginalPixelContentBounds,
                     ArtifactRejectionThreshold, cancellationToken);
+                // OCR may retain ambiguous plot symbols for review without masking them.
+                // Recovery must preserve that eligibility, just as proposal detection does.
+                IReadOnlyList<OcrMask> recoveryTextMasks = ProductionTextMarkerExclusion.SelectMasks(
+                    ocr.Result.Regions, ocr.Result.Masks, cancellationToken);
                 foreach (string recoveryVersion in new[]
                     { ProductionMarkerTemplateRecovery.Version, ProductionMarkerEnclosedCenterRecovery.Version })
                 {
                     var recoveryTimer = System.Diagnostics.Stopwatch.StartNew();
                     IReadOnlyList<MarkerCenter> recoveryCandidates = recoveryVersion == ProductionMarkerTemplateRecovery.Version
                         ? ProductionMarkerTemplateRecovery.Find(
-                        raster.CreateOcrImage(), markerPlot, ocr.Result.Regions, acceptedMarkers,
+                        raster.CreateOcrImage(), markerPlot, recoveryTextMasks, acceptedMarkers,
                         legendInputs.OriginalPixelContentBounds, legendInputs.OriginalPixelFrameBounds, cancellationToken,
                         verifiedTemplates)
                         : ProductionMarkerEnclosedCenterRecovery.Find(
-                            raster.CreateOcrImage(), markerPlot, ocr.Result.Regions, acceptedMarkers,
+                            raster.CreateOcrImage(), markerPlot, recoveryTextMasks, acceptedMarkers,
                             legendInputs.OriginalPixelFrameBounds, cancellationToken);
                     recoveryTimer.Stop();
                     if (recoveryCandidates.Count > 0)

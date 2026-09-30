@@ -13,14 +13,14 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Finds repeated original-pixel glyphs for the existing classifier to review.</summary>
 internal static class ProductionMarkerTemplateRecovery
 {
-    internal const string Version = "original-pixel-marker-template-v2";
+    internal const string Version = "original-pixel-marker-template-v3-eligible-text-masks";
     internal const double MinimumSimilarity = 0.9;
     private static readonly double[] Scales = [0.5, 0.625, 0.75, 0.875, 1, 1.125, 1.25, 1.375, 1.5];
 
     internal static IReadOnlyList<MarkerCenter> Find(
         OcrImage image,
         MarkerPolygon plot,
-        IReadOnlyList<OcrRegion> text,
+        IReadOnlyList<OcrMask> textMasks,
         IReadOnlyList<ClassifiedMarker> accepted,
         IReadOnlyDictionary<string, MarkerRectangle> legendGlyphs,
         IReadOnlyList<OcrRectangle> legendFrames,
@@ -74,7 +74,7 @@ internal static class ProductionMarkerTemplateRecovery
                         if (!peak) continue;
                         var center = new MarkerPoint(x + width / 2.0, y + height / 2.0);
                         if (!plot.Contains(center) || legendFrames.Any(box => ContainsInclusive(box, center)) ||
-                            text.Any(region => ContainsInclusive(region.Polygon.Bounds, center))) continue;
+                            textMasks.Any(mask => ContainsInclusive(mask.Polygon.Bounds, center))) continue;
                         double radius = Math.Max(glyph.Width, glyph.Height) * scale / 2;
                         string identity = string.Create(CultureInfo.InvariantCulture,
                             $"{Version}:{center.X:R},{center.Y:R},{radius:R}");

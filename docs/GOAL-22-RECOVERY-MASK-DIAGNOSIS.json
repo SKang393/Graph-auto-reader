@@ -1,0 +1,1675 @@
+{
+  "schema": "graphreader.recovery-mask-eligibility-diagnosis.v1",
+  "summary": {
+    "lost_marker_truths": 24,
+    "saved_panel_replays": 16,
+    "source_images": 6,
+    "after_ocr_region_covers_truth": 24,
+    "new_ocr_region_covers_truth": 23,
+    "all_mask_channels_identical_within_20px": 22,
+    "after_region_covers_baseline_accepted_center": 24,
+    "after_unmasked_region_covers_truth": 23
+  },
+  "finding": "Template and enclosed-center recovery exclude every OCR region, including ambiguous plot glyphs deliberately omitted from OcrResult.Masks. Proposal detection and final text exclusion already preserve that eligibility.",
+  "legend_mask_hypothesis": "Not supported as the main cause: all three mask channels are byte-identical within 20 original pixels of 22 lost truths. The 361x240 image legend frame is above the plot.",
+  "repair": "Pass ProductionTextMarkerExclusion.SelectMasks output to both recovery paths; preserve existing geometric search, classifier cutoff, model payloads, axis calibration, review and export guards.",
+  "validation": {
+    "unit_cases": [
+      "unmasked OCR glyph remains recoverable",
+      "rejected and blank OCR do not suppress recovery",
+      "eligible unreviewed and accepted masks still exclude text",
+      "legend, plot, classifier and duplicate guards retained"
+    ],
+    "application_comparison": "Each frozen V44 and V46 arm compared with its own pre-repair native and CSV results, retaining all sources, truth and failures.",
+    "acceptance_policy": {
+      "file": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "budget": {
+      "native_runs": 2,
+      "csv_runs": 2,
+      "optimizer_steps": 0,
+      "private_reads": 0,
+      "sealed_runs": 0
+    },
+    "model_promotion_authorized": false
+  },
+  "results": [
+    {
+      "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+      "truth_id": "6b8bf91f-6731-5566-abfe-7e6c9b146021",
+      "center": [
+        687.537007,
+        137.937921
+      ],
+      "before": {
+        "panel_id": "8513ecef-2205-b055-9d97-9ff79691ea74",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "03b2f128-daa0-4152-826f-efd81b4d14aa",
+        "covered_regions": [
+          {
+            "region_id": "d56300bb-f717-d11e-b79c-2efd8dbeda91",
+            "text": "*",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 682,
+              "y": 135,
+              "width": 11,
+              "height": 8,
+              "left": 682,
+              "top": 135,
+              "right": 693,
+              "bottom": 143,
+              "center": {
+                "x": 687.5,
+                "y": 139,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        687,
+        138
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "truth_id": "0d75382b-d5fd-5707-83ad-cd948c3a8e60",
+      "center": [
+        310.233389,
+        241.476502
+      ],
+      "before": {
+        "panel_id": "5a40a17e-d40f-7c54-a3bf-75161e501606",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "ac4eb0a4-a315-7c5a-a542-3dbface82af9",
+        "covered_regions": [
+          {
+            "region_id": "d64412c2-ec93-0e69-6cad-6266f55e37e9",
+            "text": " x",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 281,
+              "y": 233,
+              "width": 36,
+              "height": 16,
+              "left": 281,
+              "top": 233,
+              "right": 317,
+              "bottom": 249,
+              "center": {
+                "x": 299,
+                "y": 241,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        310,
+        242
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "truth_id": "10cd0627-0aa9-530f-a0e9-f9adbc64d59a",
+      "center": [
+        355.851056,
+        774.292139
+      ],
+      "before": {
+        "panel_id": "78684044-4146-0c54-b55d-ef5458224dcb",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "401d9eb5-ada8-f95b-ad00-696324d2db9d",
+        "covered_regions": [
+          {
+            "region_id": "d2388581-d121-ae2a-0d28-2c14adb27c01",
+            "text": "x",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 355,
+              "y": 189,
+              "width": 6,
+              "height": 8,
+              "left": 355,
+              "top": 189,
+              "right": 361,
+              "bottom": 197,
+              "center": {
+                "x": 358,
+                "y": 193,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        355.5,
+        193.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "truth_id": "4d660f18-78f5-581b-956a-b2d03a3c3b0d",
+      "center": [
+        915.800365,
+        679.352679
+      ],
+      "before": {
+        "panel_id": "78684044-4146-0c54-b55d-ef5458224dcb",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "401d9eb5-ada8-f95b-ad00-696324d2db9d",
+        "covered_regions": [
+          {
+            "region_id": "5e89c54d-65cf-8e23-7a33-55ba59e0ef8a",
+            "text": "X",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 908,
+              "y": 93,
+              "width": 15,
+              "height": 12,
+              "left": 908,
+              "top": 93,
+              "right": 923,
+              "bottom": 105,
+              "center": {
+                "x": 915.5,
+                "y": 99,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 192,
+        "residual": 27,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        916.5,
+        98.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "truth_id": "512e90d6-9886-57de-aa54-2e646d0c5b05",
+      "center": [
+        356.513162,
+        241.605809
+      ],
+      "before": {
+        "panel_id": "5a40a17e-d40f-7c54-a3bf-75161e501606",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "ac4eb0a4-a315-7c5a-a542-3dbface82af9",
+        "covered_regions": [
+          {
+            "region_id": "9b6c69de-529f-8f11-3741-4e5126868a75",
+            "text": "X",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 355,
+              "y": 239,
+              "width": 6,
+              "height": 8,
+              "left": 355,
+              "top": 239,
+              "right": 361,
+              "bottom": 247,
+              "center": {
+                "x": 358,
+                "y": 243,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        356,
+        242
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "truth_id": "6d1c201f-6f61-5c88-bb3a-2dcbb4c0dd51",
+      "center": [
+        288.042734,
+        233.889128
+      ],
+      "before": {
+        "panel_id": "5a40a17e-d40f-7c54-a3bf-75161e501606",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "ac4eb0a4-a315-7c5a-a542-3dbface82af9",
+        "covered_regions": [
+          {
+            "region_id": "d64412c2-ec93-0e69-6cad-6266f55e37e9",
+            "text": " x",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 281,
+              "y": 233,
+              "width": 36,
+              "height": 16,
+              "left": 281,
+              "top": 233,
+              "right": 317,
+              "bottom": 249,
+              "center": {
+                "x": 299,
+                "y": 241,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        288,
+        234
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "truth_id": "8600fe1c-2b0a-5772-b9bf-735c3acc2892",
+      "center": [
+        765.998947,
+        423.771237
+      ],
+      "before": {
+        "panel_id": "1a52ecb0-1362-bc55-a774-08e2f68341ef",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "f6951a60-43a6-9f5b-8719-a70e1860ddbe",
+        "covered_regions": [
+          {
+            "region_id": "a2423900-70bc-dc81-d84e-6d056c530f4f",
+            "text": "x",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 759,
+              "y": 102,
+              "width": 13,
+              "height": 6,
+              "left": 759,
+              "top": 102,
+              "right": 772,
+              "bottom": 108,
+              "center": {
+                "x": 765.5,
+                "y": 105,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        765.5,
+        108
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "truth_id": "89a3d56e-9c22-5c7b-a196-6f3edb523ebb",
+      "center": [
+        309.826632,
+        502.305362
+      ],
+      "before": {
+        "panel_id": "1a52ecb0-1362-bc55-a774-08e2f68341ef",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "f6951a60-43a6-9f5b-8719-a70e1860ddbe",
+        "covered_regions": [
+          {
+            "region_id": "bb31bbc7-436b-e382-eb4c-b435a8a77445",
+            "text": "X",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 309,
+              "y": 182,
+              "width": 8,
+              "height": 12,
+              "left": 309,
+              "top": 182,
+              "right": 317,
+              "bottom": 194,
+              "center": {
+                "x": 313,
+                "y": 188,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        309.5,
+        187
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "truth_id": "9210dcec-ae14-5175-ab70-90e14329ca36",
+      "center": [
+        515.315876,
+        154.228204
+      ],
+      "before": {
+        "panel_id": "5a40a17e-d40f-7c54-a3bf-75161e501606",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "ac4eb0a4-a315-7c5a-a542-3dbface82af9",
+        "covered_regions": [
+          {
+            "region_id": "82382bef-32ea-84d9-578b-96f40c376652",
+            "text": "x",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 504,
+              "y": 147,
+              "width": 18,
+              "height": 9,
+              "left": 504,
+              "top": 147,
+              "right": 522,
+              "bottom": 156,
+              "center": {
+                "x": 513,
+                "y": 151.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        515,
+        154
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "truth_id": "b27e94f4-1534-52b8-a889-6cd2078c2670",
+      "center": [
+        940.556521,
+        682.600863
+      ],
+      "before": {
+        "panel_id": "78684044-4146-0c54-b55d-ef5458224dcb",
+        "covered_regions": [
+          {
+            "region_id": "cc328a09-d69f-0572-1931-2d7ecda00ca7",
+            "text": "X",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 935,
+              "y": 94,
+              "width": 15,
+              "height": 11,
+              "left": 935,
+              "top": 94,
+              "right": 950,
+              "bottom": 105,
+              "center": {
+                "x": 942.5,
+                "y": 99.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "after": {
+        "panel_id": "401d9eb5-ada8-f95b-ad00-696324d2db9d",
+        "covered_regions": [
+          {
+            "region_id": "a7c31b71-25bf-5958-d21f-4afa5cca3c29",
+            "text": "Xx",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": true,
+            "bounds": {
+              "x": 933,
+              "y": 92,
+              "width": 31,
+              "height": 18,
+              "left": 933,
+              "top": 92,
+              "right": 964,
+              "bottom": 110,
+              "center": {
+                "x": 948.5,
+                "y": 101,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 713,
+        "residual": 24,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        941.00341796875,
+        96.97592163085938
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+      "truth_id": "aa79e168-4e3c-5da6-88c5-45b0c81e20e8",
+      "center": [
+        408.088428,
+        236.501809
+      ],
+      "before": {
+        "panel_id": "f6ba7dab-78e3-3a54-b92f-986184321c34",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "236ff5ef-d97e-2b56-aa67-b8fa190205a0",
+        "covered_regions": [
+          {
+            "region_id": "42376be9-35b4-43fc-4be0-389184e89e6b",
+            "text": "o",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 405,
+              "y": 233,
+              "width": 10,
+              "height": 5,
+              "left": 405,
+              "top": 233,
+              "right": 415,
+              "bottom": 238,
+              "center": {
+                "x": 410,
+                "y": 235.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        407.5,
+        236
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "31af8774-8af8-5385-b054-5cbd1b6339df",
+      "center": [
+        152.492612,
+        175.096569
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        152.5,
+        174.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "4cdf21c8-2c46-5435-a3a6-87014ffaadb3",
+      "center": [
+        74.627058,
+        175.350481
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        73.5,
+        175.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "63a3a4cd-1274-599c-bc7f-3314cb522381",
+      "center": [
+        67.122163,
+        180.333637
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        66.5,
+        180.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "715743a6-0eb3-582e-aab7-fd67bdb455c9",
+      "center": [
+        107.366339,
+        181.644537
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        107.5,
+        181
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "846ed713-a8ae-502d-a172-341ec96f60b7",
+      "center": [
+        144.47404,
+        179.60945
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        143.5,
+        179
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "84d13129-a3a2-5d3f-b8c1-780654fdb86e",
+      "center": [
+        124.930527,
+        181.749849
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        124.5,
+        181.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "8607c415-606e-5c02-b336-a79fe059c723",
+      "center": [
+        86.945033,
+        174.804989
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        87.5,
+        174.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "b82e2c7c-e632-56ed-933f-fdf4656d573c",
+      "center": [
+        99.146619,
+        181.923549
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        98.5,
+        181.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "d8814778-5749-5d12-816f-31184c0da856",
+      "center": [
+        228.448457,
+        111.364668
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "inside-plot:a785e297e676b15f360f82a0abae96f488427cb3ed969a8c8aef02ca9e4c4fc8",
+            "text": "oo",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 222,
+              "y": 108,
+              "width": 29,
+              "height": 10,
+              "left": 222,
+              "top": 108,
+              "right": 251,
+              "bottom": 118,
+              "center": {
+                "x": 236.5,
+                "y": 113,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        228.5,
+        111.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "f9a469e2-6388-54c1-9a71-a2832745a9fe",
+      "center": [
+        163.776069,
+        178.553838
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        163.5,
+        178.5
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "truth_id": "fc241e55-181d-5bb3-96f9-2493f7f10d59",
+      "center": [
+        114.995899,
+        177.666589
+      ],
+      "before": {
+        "panel_id": "a700a626-8d81-1052-a664-32964fa189b9",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "b69d62c5-310c-4356-bc86-a9bfcf325a0a",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:5af2152b-17c9-3781-78e9-a5b45f4f341f",
+            "text": "0\u00b0\u00b0",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 63,
+              "y": 171,
+              "width": 103,
+              "height": 15,
+              "left": 63,
+              "top": 171,
+              "right": 166,
+              "bottom": 186,
+              "center": {
+                "x": 114.5,
+                "y": 178.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        114,
+        177
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+      "truth_id": "5781db6e-ef5b-52d1-b8b3-f31041da1be5",
+      "center": [
+        366.477603,
+        1560.706219
+      ],
+      "before": {
+        "panel_id": "565b374b-d84b-385f-858e-fd36872a59ad",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "9b28ac55-86a6-4155-a282-fccaeb50d708",
+        "covered_regions": [
+          {
+            "region_id": "window-0-944:880a1de8-4505-689b-675b-21a4ace05ee5",
+            "text": "\u00d7",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 363,
+              "y": 1555,
+              "width": 8,
+              "height": 8,
+              "left": 363,
+              "top": 1555,
+              "right": 371,
+              "bottom": 1563,
+              "center": {
+                "x": 367,
+                "y": 1559,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        366,
+        1561
+      ],
+      "baseline_center_covered_by_after_region": true
+    },
+    {
+      "source_sha256": "a84e52c6bb0974832642fad174ba40280f69d515c3a84ba8782e59c57f71d6c3",
+      "truth_id": "76eeec64-906a-596c-af67-f9e4e8ddfe60",
+      "center": [
+        582.8418,
+        352.9043
+      ],
+      "before": {
+        "panel_id": "18b69213-12c6-da50-84fb-0dc11d3221ea",
+        "covered_regions": []
+      },
+      "after": {
+        "panel_id": "23948f29-51e8-aa52-9bb6-d8270692cedb",
+        "covered_regions": [
+          {
+            "region_id": "window-0-0:1b190400-aa31-a1cd-abfc-7ec04a3e1918",
+            "text": "A",
+            "role": "Annotation",
+            "review_status": "Unreviewed",
+            "has_mask": false,
+            "bounds": {
+              "x": 579,
+              "y": 348,
+              "width": 8,
+              "height": 8,
+              "left": 579,
+              "top": 348,
+              "right": 587,
+              "bottom": 356,
+              "center": {
+                "x": 583,
+                "y": 352,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "changed_mask_pixels_within_20px_square": {
+        "ocr": 0,
+        "residual": 0,
+        "geometry": 0
+      },
+      "baseline_accepted_center": [
+        583,
+        353
+      ],
+      "baseline_center_covered_by_after_region": true
+    }
+  ],
+  "evidence": [
+    {
+      "file": "artifacts/goal22-tools/ResidualMaskCascadeReplay/jobs.json",
+      "sha256": "e1f327e890d31af0cd024de65948e8794fe2f2c56a12a5f169857bf4dbb0318c"
+    },
+    {
+      "file": "artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/loss-diagnosis.json",
+      "sha256": "eef783b4651121f3342ac9533f9854e59174dbea248bbaa66e526ce9fecd4260"
+    },
+    {
+      "file": "artifacts/goal22-runs/residual-mask-cascade-replay-v1/status.json",
+      "sha256": "d2f7c02a7d76d0034c7219a2d9e7cadbf4a064a90a8687a9fde47438fd1524cd"
+    },
+    {
+      "file": "artifacts/goal22-tools/ResidualMaskCascadeReplay/Program.cs",
+      "sha256": "4201117985b9123d1c7b4253a029c329ba816a39dc7cce6f6313c6cb727dad13"
+    },
+    {
+      "file": "artifacts/goal22-tools/Resume-ResidualMaskCascadeReplay.ps1",
+      "sha256": "8fbc26db1139cc5926ee03534bc8788c9dd8f92c233fa213caa633147cce561d"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/8513ecef-2205-b055-9d97-9ff79691ea74.json",
+      "sha256": "743f3ec2f1576416169de5011909754466d65aa78e9dafe510438ed4f230a78e"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-before-8513ecef-2205-b055-9d97-9ff79691ea74.json",
+      "sha256": "c4e9dd6a0920003e0c0c805ba331b86b0b297b39da6d71c974bbd0cbe9242bea"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-before-8513ecef-2205-b055-9d97-9ff79691ea74.json.gray8",
+      "sha256": "957d22240d43cd2e5468f79eb61a9c6fa481a2fbe4eae6620517307834d78ab0"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-before-8513ecef-2205-b055-9d97-9ff79691ea74.json.ocr.f32",
+      "sha256": "23f363960b978400ba7931f94f9ec0be32f5ea47f8db7282b3db73b20be648a4"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-before-8513ecef-2205-b055-9d97-9ff79691ea74.json.residual.f32",
+      "sha256": "e74074234be3b2cabaa15c937ca606194f49c42bb32bb5e767cc5c1ea86bd7b8"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-before-8513ecef-2205-b055-9d97-9ff79691ea74.json.geometry.f32",
+      "sha256": "f876341ff77877f73f0a7ac5070b9a7edd9cba4b24cc587c1b50cf921602dd71"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/5a40a17e-d40f-7c54-a3bf-75161e501606.json",
+      "sha256": "c7ba42ee4a8cb467c91a879cbd4d329d8b3a2f1465b93fd01b55cb980e83a808"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-5a40a17e-d40f-7c54-a3bf-75161e501606.json",
+      "sha256": "0be04bfa6ebb354fc409514a68c3401bfd20283eea02f2db0e07dc91bb2bdc77"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-5a40a17e-d40f-7c54-a3bf-75161e501606.json.gray8",
+      "sha256": "46ea35852ecb24ac09ddf5817c5502838982bef26b5ef00dc5074483aa134522"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-5a40a17e-d40f-7c54-a3bf-75161e501606.json.ocr.f32",
+      "sha256": "3e4897e5a1bb681cd6c316293a644ea0a9626167670f82502ec64035edc027c7"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-5a40a17e-d40f-7c54-a3bf-75161e501606.json.residual.f32",
+      "sha256": "cf5d6f4c83fc0caea0dd524c8063c04002f9b30f81800ee02ae52b6fd906a870"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-5a40a17e-d40f-7c54-a3bf-75161e501606.json.geometry.f32",
+      "sha256": "cf041ce41a7b7fe3175b7f3deb0915efc99cb07e53bf0d7c24980ccbac7ee82d"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/1a52ecb0-1362-bc55-a774-08e2f68341ef.json",
+      "sha256": "53e06289f136af6eb358aceceeaef8b73bfc6e903b56b5463f6ec7507419aa02"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-1a52ecb0-1362-bc55-a774-08e2f68341ef.json",
+      "sha256": "75ae104c7ba622ca712946cc9df592ffbdcfd2d5bc7ff6f6e7a56e36f1213190"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-1a52ecb0-1362-bc55-a774-08e2f68341ef.json.gray8",
+      "sha256": "a662370c2d34e533c7d53e1c4253d82697030405b02f4e2d4c2383128ba7412f"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-1a52ecb0-1362-bc55-a774-08e2f68341ef.json.ocr.f32",
+      "sha256": "c0c935d5a5bed22443f2d2534486f99ea39c3ba7ac9e5e46d2a3a614ff92ff56"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-1a52ecb0-1362-bc55-a774-08e2f68341ef.json.residual.f32",
+      "sha256": "6e40628c516a91bcfd944c280c69f74a82fbac3a34f00ddde9620c1fc58cdd17"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-1a52ecb0-1362-bc55-a774-08e2f68341ef.json.geometry.f32",
+      "sha256": "0481838c839714281dd5873a11e764d39cd599c73ac18ee01af181101507afc0"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/78684044-4146-0c54-b55d-ef5458224dcb.json",
+      "sha256": "1f7bd297e358dc1bf8dac49ab3244cdfbf8b2526e213b27254f5395161704f23"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-78684044-4146-0c54-b55d-ef5458224dcb.json",
+      "sha256": "ac8364d0d9a2c86dc8f924e91f00fed8ccb2bc934070dd09885b0baa29286da8"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-78684044-4146-0c54-b55d-ef5458224dcb.json.gray8",
+      "sha256": "3f32c2a47e93849e08bd5d1d0bb1875e92d3a6cdfe10744ef89c210d30c0f033"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-78684044-4146-0c54-b55d-ef5458224dcb.json.ocr.f32",
+      "sha256": "e7411f12271f119e68319897db81e2f9463b505da177d98c65f8281055d02250"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-78684044-4146-0c54-b55d-ef5458224dcb.json.residual.f32",
+      "sha256": "7cfb4c14dd3948c8c8692ae8323704e90e4b58cc30128bbd07e1458ee0479a19"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-before-78684044-4146-0c54-b55d-ef5458224dcb.json.geometry.f32",
+      "sha256": "96efeafea62e2b49626e38575c521debfaf810cbc3a12f5c8fe0c3f2bb39b962"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/f6ba7dab-78e3-3a54-b92f-986184321c34.json",
+      "sha256": "d81e253a7d4934c18481fc5c4f127c1e5ef27a020ac68fc5e549319bcdbc87bb"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-before-f6ba7dab-78e3-3a54-b92f-986184321c34.json",
+      "sha256": "59e55859586135ed9ccb24491a84c00e4c29b33947439df9dd89c88a8577aef8"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-before-f6ba7dab-78e3-3a54-b92f-986184321c34.json.gray8",
+      "sha256": "4c4f9b95fa619e936ce585ed145252844415d2be496c63427510d58f75c88bcf"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-before-f6ba7dab-78e3-3a54-b92f-986184321c34.json.ocr.f32",
+      "sha256": "d767aa29ab15e1e697598e77e5a4f0f606c9160d298548edf1756dad8f78be7a"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-before-f6ba7dab-78e3-3a54-b92f-986184321c34.json.residual.f32",
+      "sha256": "d5db6b6acf22cdedf5655d9333b85c1d121a49b865c20ec026361a9e2f4726e9"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-before-f6ba7dab-78e3-3a54-b92f-986184321c34.json.geometry.f32",
+      "sha256": "05af23d085036db8cef14543ada45dbb3ac9994114729c9a31edeeaee6cefca2"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/a700a626-8d81-1052-a664-32964fa189b9.json",
+      "sha256": "d8fbdc3655b36e27f11a204cdc66532ff18311f954a8ff47022f7924a5728548"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-before-a700a626-8d81-1052-a664-32964fa189b9.json",
+      "sha256": "2037b5fae5deb6cdd507f46a42d6761c34ace4ef0960da7050e061987b1b5063"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-before-a700a626-8d81-1052-a664-32964fa189b9.json.gray8",
+      "sha256": "491214bca5f6b6baa98fbbe474c356aa291d0906237954a27feee879e1f4f5c5"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-before-a700a626-8d81-1052-a664-32964fa189b9.json.ocr.f32",
+      "sha256": "84a5be08bf0be3df18e591ee81ea75517e8dd400fc31f6767205ffead5807cb8"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-before-a700a626-8d81-1052-a664-32964fa189b9.json.residual.f32",
+      "sha256": "462af6aabb01f3c762fd36190556bcba610e5f2d2ca7bcaad85d2231857c99c2"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-before-a700a626-8d81-1052-a664-32964fa189b9.json.geometry.f32",
+      "sha256": "c66c74abdb423fb45c4d008c780df33a3c94136863d47c0dc5d80dc57a27e32b"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/565b374b-d84b-385f-858e-fd36872a59ad.json",
+      "sha256": "ccb7e241c53a50fa5ba5536676c69db584d0e1530e1f31aa5410da955b997c26"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-before-565b374b-d84b-385f-858e-fd36872a59ad.json",
+      "sha256": "7f8f87c8c1ec48ba936dbf7dd69e1f9577d7e6d95416ddeb1c7699e8c7d29fa2"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-before-565b374b-d84b-385f-858e-fd36872a59ad.json.gray8",
+      "sha256": "c52e2e037e16d8786529ca8bf38433f05434d006af0d4f45c5cd061161dccfd1"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-before-565b374b-d84b-385f-858e-fd36872a59ad.json.ocr.f32",
+      "sha256": "1d37ca61e6b1564aba55f39786811ee8903c2e73725ed0d51270e15fe6f85063"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-before-565b374b-d84b-385f-858e-fd36872a59ad.json.residual.f32",
+      "sha256": "378562ea58d7a9709b850c11645bb7738739c4391623b4f4a6077e3eda377efb"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-before-565b374b-d84b-385f-858e-fd36872a59ad.json.geometry.f32",
+      "sha256": "dbb9682f42c18d243ee76f8fc33a4fe22a826d7dd03fb0ce07a7dba317db941f"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/participant-word-evaluation-v2/v27-native/execution/stage-evidence/18b69213-12c6-da50-84fb-0dc11d3221ea.json",
+      "sha256": "2975f7e3fdf139562470b10ed1d5e0a515be0ce97595fab503385182f5c40e88"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-before-18b69213-12c6-da50-84fb-0dc11d3221ea.json",
+      "sha256": "6fc01eec80c8d0b4312ad1513ed3aec201cee77548bb44f39296a65d2a66ac7a"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-before-18b69213-12c6-da50-84fb-0dc11d3221ea.json.gray8",
+      "sha256": "9df5c6fed109e9559743c9c47aa13318354b5d09112536566ea34c32bcd4f644"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-before-18b69213-12c6-da50-84fb-0dc11d3221ea.json.ocr.f32",
+      "sha256": "ce3fd12e5d26f6095fd524ba297bec7f8225226c1a384b52456ef6c141554fdb"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-before-18b69213-12c6-da50-84fb-0dc11d3221ea.json.residual.f32",
+      "sha256": "d63bd78d1b1a330a13844618b6b5f63337e906a3877d81845a303a9cbbd73a95"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-before-18b69213-12c6-da50-84fb-0dc11d3221ea.json.geometry.f32",
+      "sha256": "8f8749376bdc72771f7b2fc1c51afd2ce41e2a03fb78c0909d511ffad092b1aa"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/execution/stage-evidence/03b2f128-daa0-4152-826f-efd81b4d14aa.json",
+      "sha256": "99214c28d9db851c81eea218dc3ab136aa506db8806070293124b1184216c8ad"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-after-03b2f128-daa0-4152-826f-efd81b4d14aa.json",
+      "sha256": "d102262dcff785571f3720cbe15f15d2fb32ebbcec47b2a870b7bf09beb02347"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-after-03b2f128-daa0-4152-826f-efd81b4d14aa.json.gray8",
+      "sha256": "957d22240d43cd2e5468f79eb61a9c6fa481a2fbe4eae6620517307834d78ab0"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-after-03b2f128-daa0-4152-826f-efd81b4d14aa.json.ocr.f32",
+      "sha256": "c3758368211c352b64a47e307bbaf6e7b976ea1f29b3e418127a4fecc89f339d"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-after-03b2f128-daa0-4152-826f-efd81b4d14aa.json.residual.f32",
+      "sha256": "30a562baab80694b27aa85f07cd952542782dcfef0299e217229cfb51fc76ced"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/03581b619cb3-after-03b2f128-daa0-4152-826f-efd81b4d14aa.json.geometry.f32",
+      "sha256": "f876341ff77877f73f0a7ac5070b9a7edd9cba4b24cc587c1b50cf921602dd71"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/execution/stage-evidence/ac4eb0a4-a315-7c5a-a542-3dbface82af9.json",
+      "sha256": "5021886a507c054e31a65021c50d3d3ed2978e181d299403d184e56bbb9695bb"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-ac4eb0a4-a315-7c5a-a542-3dbface82af9.json",
+      "sha256": "8daf574846989a8d3f4102ee9158f5b9be7648dcd01b80eaf5dc0bb8c1ae7159"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-ac4eb0a4-a315-7c5a-a542-3dbface82af9.json.gray8",
+      "sha256": "46ea35852ecb24ac09ddf5817c5502838982bef26b5ef00dc5074483aa134522"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-ac4eb0a4-a315-7c5a-a542-3dbface82af9.json.ocr.f32",
+      "sha256": "a30a9b7b92d836c1ec9ea2ebe64d5ecae4640a843f8fd61d173fa00b585b2b59"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-ac4eb0a4-a315-7c5a-a542-3dbface82af9.json.residual.f32",
+      "sha256": "f2520dfafc76e60db4b8bd14f2ec380b9347bb6a452e5be8196bcb13bf971c3e"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-ac4eb0a4-a315-7c5a-a542-3dbface82af9.json.geometry.f32",
+      "sha256": "cf041ce41a7b7fe3175b7f3deb0915efc99cb07e53bf0d7c24980ccbac7ee82d"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/execution/stage-evidence/401d9eb5-ada8-f95b-ad00-696324d2db9d.json",
+      "sha256": "8b5294bbe7cd85f92d5c2725e9df9b6d7b615e22734430c6c33392e8c7527e45"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-401d9eb5-ada8-f95b-ad00-696324d2db9d.json",
+      "sha256": "445b7ae83ef09dc5a3f9ea37b0ea5c43dc339254b8545692a476aa38d9598565"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-401d9eb5-ada8-f95b-ad00-696324d2db9d.json.gray8",
+      "sha256": "3f32c2a47e93849e08bd5d1d0bb1875e92d3a6cdfe10744ef89c210d30c0f033"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-401d9eb5-ada8-f95b-ad00-696324d2db9d.json.ocr.f32",
+      "sha256": "9d1491a94a3f62fed76544fb424e75c732de89f53d013d32b61b612de5add967"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-401d9eb5-ada8-f95b-ad00-696324d2db9d.json.residual.f32",
+      "sha256": "8bff67ebe7dbbff010cb1b8e75cf389d4c83754833759ae78950b3857f97200a"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-401d9eb5-ada8-f95b-ad00-696324d2db9d.json.geometry.f32",
+      "sha256": "96efeafea62e2b49626e38575c521debfaf810cbc3a12f5c8fe0c3f2bb39b962"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/execution/stage-evidence/f6951a60-43a6-9f5b-8719-a70e1860ddbe.json",
+      "sha256": "318a2082dd5ecf55c183cd6eaa17af66b142255503d36aea89fbc93aa185d780"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-f6951a60-43a6-9f5b-8719-a70e1860ddbe.json",
+      "sha256": "46f720fc80001f046d68c3ad1ce4672f95b5d508e04cc2b008233aefa746719f"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-f6951a60-43a6-9f5b-8719-a70e1860ddbe.json.gray8",
+      "sha256": "a662370c2d34e533c7d53e1c4253d82697030405b02f4e2d4c2383128ba7412f"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-f6951a60-43a6-9f5b-8719-a70e1860ddbe.json.ocr.f32",
+      "sha256": "a98cb78b3e878a6750b942255ad5f24b1641de51b3add8ce300e6c9fc0f45997"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-f6951a60-43a6-9f5b-8719-a70e1860ddbe.json.residual.f32",
+      "sha256": "0fb7f5cd86aa19ba95ba34fa80fea588cce91f5ca070316071383ac8252ffe96"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/6cee2c2a7084-after-f6951a60-43a6-9f5b-8719-a70e1860ddbe.json.geometry.f32",
+      "sha256": "0481838c839714281dd5873a11e764d39cd599c73ac18ee01af181101507afc0"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/execution/stage-evidence/236ff5ef-d97e-2b56-aa67-b8fa190205a0.json",
+      "sha256": "e4847a4a3987391944702db551082ee86d82923ef8bac2e723fa69c00b9c8850"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-after-236ff5ef-d97e-2b56-aa67-b8fa190205a0.json",
+      "sha256": "e1ccbb017fcb35aadfa252203e36e1f1ef2f0ec642d85ebc36057c14c4ed5ede"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-after-236ff5ef-d97e-2b56-aa67-b8fa190205a0.json.gray8",
+      "sha256": "4c4f9b95fa619e936ce585ed145252844415d2be496c63427510d58f75c88bcf"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-after-236ff5ef-d97e-2b56-aa67-b8fa190205a0.json.ocr.f32",
+      "sha256": "5594cce4dce237423882f5f1a090b8f149ca7713a58f6644ac1f43d550a6936e"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-after-236ff5ef-d97e-2b56-aa67-b8fa190205a0.json.residual.f32",
+      "sha256": "bc04066d622575ca37a4f0639157a3377e63e8c711fb290342a231c2db0fba3e"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/dfa5093f9a18-after-236ff5ef-d97e-2b56-aa67-b8fa190205a0.json.geometry.f32",
+      "sha256": "05af23d085036db8cef14543ada45dbb3ac9994114729c9a31edeeaee6cefca2"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/execution/stage-evidence/b69d62c5-310c-4356-bc86-a9bfcf325a0a.json",
+      "sha256": "9cfdd62f247061c0661383bf50db977e55b2a13531c7ccf2caaa8fc53f044bdb"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-after-b69d62c5-310c-4356-bc86-a9bfcf325a0a.json",
+      "sha256": "ba8da04e35f4061092b8ed9a9b9a370d4e302e02aeb31342204a441a9950cb32"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-after-b69d62c5-310c-4356-bc86-a9bfcf325a0a.json.gray8",
+      "sha256": "491214bca5f6b6baa98fbbe474c356aa291d0906237954a27feee879e1f4f5c5"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-after-b69d62c5-310c-4356-bc86-a9bfcf325a0a.json.ocr.f32",
+      "sha256": "d2dc871473da9a47340ec516a8a3ac8c0d98ac9ce46361bfb9f3a95db1497a6e"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-after-b69d62c5-310c-4356-bc86-a9bfcf325a0a.json.residual.f32",
+      "sha256": "a5e1c99bc81fb5b72c396ece9b3858445c1732d17a3d6a21e767d17693b906c7"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/37dcd86f55ef-after-b69d62c5-310c-4356-bc86-a9bfcf325a0a.json.geometry.f32",
+      "sha256": "c66c74abdb423fb45c4d008c780df33a3c94136863d47c0dc5d80dc57a27e32b"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/execution/stage-evidence/9b28ac55-86a6-4155-a282-fccaeb50d708.json",
+      "sha256": "84b09dc3cb5acffb55cccbf6f01b5bd2940336638b8e48822e58c7d04c7638fc"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-after-9b28ac55-86a6-4155-a282-fccaeb50d708.json",
+      "sha256": "5c74a67c448d0b0b2f702acfde56f8eb74f54ed91255a43cb7efa3e463ad14d0"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-after-9b28ac55-86a6-4155-a282-fccaeb50d708.json.gray8",
+      "sha256": "c52e2e037e16d8786529ca8bf38433f05434d006af0d4f45c5cd061161dccfd1"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-after-9b28ac55-86a6-4155-a282-fccaeb50d708.json.ocr.f32",
+      "sha256": "7f024bb71b50c462d990c4e2600946c1335751ec957f49f686577d35bf6c8090"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-after-9b28ac55-86a6-4155-a282-fccaeb50d708.json.residual.f32",
+      "sha256": "378562ea58d7a9709b850c11645bb7738739c4391623b4f4a6077e3eda377efb"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/1c11f9ea5098-after-9b28ac55-86a6-4155-a282-fccaeb50d708.json.geometry.f32",
+      "sha256": "dbb9682f42c18d243ee76f8fc33a4fe22a826d7dd03fb0ce07a7dba317db941f"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-scale-v46-evaluation-v1/native/execution/stage-evidence/23948f29-51e8-aa52-9bb6-d8270692cedb.json",
+      "sha256": "52b66e65ad9fe7d41d98ae614e6f98240771ccbdf1910ed4a6a442a478bf949f"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-after-23948f29-51e8-aa52-9bb6-d8270692cedb.json",
+      "sha256": "ee7db2f1d9d8a82137e4873b9fe69b23350c5132b1bf2837af4e7684ecc56ef6"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-after-23948f29-51e8-aa52-9bb6-d8270692cedb.json.gray8",
+      "sha256": "9df5c6fed109e9559743c9c47aa13318354b5d09112536566ea34c32bcd4f644"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-after-23948f29-51e8-aa52-9bb6-d8270692cedb.json.ocr.f32",
+      "sha256": "7d9ca3d295651c72bb0c98121ab7c8696415b11f3717d0a0d2a706a1db4f42fa"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-after-23948f29-51e8-aa52-9bb6-d8270692cedb.json.residual.f32",
+      "sha256": "d63bd78d1b1a330a13844618b6b5f63337e906a3877d81845a303a9cbbd73a95"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/residual-mask-cascade-replay-v1/a84e52c6bb09-after-23948f29-51e8-aa52-9bb6-d8270692cedb.json.geometry.f32",
+      "sha256": "8f8749376bdc72771f7b2fc1c51afd2ce41e2a03fb78c0909d511ffad092b1aa"
+    }
+  ],
+  "model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "replay_seconds": 17.4181553,
+  "void_launch": "Initial job list expected six single-panel sources; actual loss observations covered eight panels per arm. Repaired before any replay. Build succeeded and was reused; failed status retained in void-launch.json."
+}

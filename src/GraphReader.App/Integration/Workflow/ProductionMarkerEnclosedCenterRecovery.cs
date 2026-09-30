@@ -10,18 +10,18 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Measures enclosed original-pixel interiors for classifier review.</summary>
 internal static class ProductionMarkerEnclosedCenterRecovery
 {
-    internal const string Version = "original-pixel-enclosed-center-v1";
+    internal const string Version = "original-pixel-enclosed-center-v2-eligible-text-masks";
     private const float InkThreshold = 0.12f;
     private const int MaximumInteriorDimension = 23;
 
     internal static IReadOnlyList<MarkerCenter> Find(
-        OcrImage image, MarkerPolygon plot, IReadOnlyList<OcrRegion> text,
+        OcrImage image, MarkerPolygon plot, IReadOnlyList<OcrMask> textMasks,
         IReadOnlyList<ClassifiedMarker> accepted, IReadOnlyList<OcrRectangle> legendFrames,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(image);
         ArgumentNullException.ThrowIfNull(plot);
-        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullException.ThrowIfNull(textMasks);
         ArgumentNullException.ThrowIfNull(accepted);
         ArgumentNullException.ThrowIfNull(legendFrames);
         cancellationToken.ThrowIfCancellationRequested();
@@ -71,7 +71,7 @@ internal static class ProductionMarkerEnclosedCenterRecovery
                 interiorWidth > MaximumInteriorDimension || interiorHeight > MaximumInteriorDimension) continue;
             var center = new MarkerPoint((minX + maxX) / 2.0, (minY + maxY) / 2.0);
             if (!plot.Contains(center) || legendFrames.Any(box => Contains(box, center)) ||
-                text.Any(region => Contains(region.Polygon.Bounds, center))) continue;
+                textMasks.Any(mask => Contains(mask.Polygon.Bounds, center))) continue;
             double radius = (Math.Max(interiorWidth, interiorHeight) + 2) / 2.0;
             if (accepted.Any(marker => Distance(marker.Marker.Center, center) <= Math.Max(2, radius))) continue;
             // This is measured geometric support, not a calibrated detector probability.

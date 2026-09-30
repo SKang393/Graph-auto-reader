@@ -68,8 +68,37 @@ public sealed class ProductionMarkerEnclosedCenterRecoveryTests
         Ring(pixels, 44, 40, 7);
         var text = new OcrRegion("annotation", OcrPolygon.FromRectangle(new(10, 10, 9, 9)), "note", [],
             OcrTextRole.Annotation, 0.9, OcrSourceImage.Original, OcrReviewStatus.Unreviewed);
-        Assert.IsEmpty(ProductionMarkerEnclosedCenterRecovery.Find(Image(pixels), Plot, [text], [],
+        Assert.IsEmpty(ProductionMarkerEnclosedCenterRecovery.Find(Image(pixels), Plot,
+            [new OcrMask(text.RegionId, text.Polygon, text.Confidence)], [],
             [new OcrRectangle(26, 10, 9, 9)], CancellationToken.None));
+    }
+
+    [TestMethod]
+    [DataRow("o", OcrReviewStatus.Unreviewed, false, true)]
+    [DataRow("note", OcrReviewStatus.Rejected, true, true)]
+    [DataRow(" ", OcrReviewStatus.Unreviewed, true, true)]
+    [DataRow("note", OcrReviewStatus.Unreviewed, true, false)]
+    [DataRow("o", OcrReviewStatus.Accepted, true, false)]
+    public void RecoveryPreservesOcrMaskEligibility(
+        string text, OcrReviewStatus review, bool hasMask, bool shouldRecover)
+    {
+        byte[] pixels = Blank();
+        Ring(pixels, 10, 10, 9);
+        var region = new OcrRegion("overlap", OcrPolygon.FromRectangle(new(10, 10, 9, 9)), text, [],
+            OcrTextRole.Annotation, 0.9, OcrSourceImage.Original, review);
+        OcrMask[] masks = hasMask ? [new(region.RegionId, region.Polygon, region.Confidence)] : [];
+        IReadOnlyList<OcrMask> eligible = ProductionTextMarkerExclusion.SelectMasks(
+            [region], masks, CancellationToken.None);
+
+        IReadOnlyList<MarkerCenter> recovered = ProductionMarkerEnclosedCenterRecovery.Find(
+            Image(pixels), Plot, eligible, [], [], CancellationToken.None);
+
+        Assert.AreEqual(shouldRecover ? 1 : 0, recovered.Count);
+        if (shouldRecover)
+        {
+            Assert.AreEqual(new MarkerPoint(14, 14), recovered[0].Center);
+            Assert.AreEqual(MarkerReviewState.NeedsReview, recovered[0].ReviewState);
+        }
     }
 
     [TestMethod]

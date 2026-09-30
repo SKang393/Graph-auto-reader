@@ -105,11 +105,35 @@ public sealed class ProductionMarkerTemplateRecoveryTests
         OcrRegion text = new("annotation", OcrPolygon.FromRectangle(new(49, 14, 9, 9)), "note", [],
             OcrTextRole.Annotation, 0.9, OcrSourceImage.Original, OcrReviewStatus.Unreviewed);
         IReadOnlyList<MarkerCenter> result = ProductionMarkerTemplateRecovery.Find(
-            image, Plot, [text], [Marker("existing", 13.5, 13.5)], NoLegends, [], CancellationToken.None);
+            image, Plot, [new OcrMask(text.RegionId, text.Polygon, text.Confidence)],
+            [Marker("existing", 13.5, 13.5)], NoLegends, [], CancellationToken.None);
         Assert.HasCount(1, result);
         Assert.AreEqual(new MarkerPoint(33.5, 23.5), result[0].Center);
         Assert.AreEqual(MarkerSourceImage.Original, result[0].SourceImage);
         CollectionAssert.AreEqual(before, image.Pixels.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow("x", OcrReviewStatus.Unreviewed, false, true)]
+    [DataRow("note", OcrReviewStatus.Rejected, true, true)]
+    [DataRow(" ", OcrReviewStatus.Unreviewed, true, true)]
+    [DataRow("note", OcrReviewStatus.Unreviewed, true, false)]
+    [DataRow("x", OcrReviewStatus.Accepted, true, false)]
+    public void RecoveryPreservesOcrMaskEligibility(
+        string text, OcrReviewStatus review, bool hasMask, bool shouldRecover)
+    {
+        var region = new OcrRegion("overlap", OcrPolygon.FromRectangle(new(29, 19, 9, 9)), text, [],
+            OcrTextRole.Annotation, 0.9, OcrSourceImage.Original, review);
+        OcrMask[] masks = hasMask ? [new(region.RegionId, region.Polygon, region.Confidence)] : [];
+        IReadOnlyList<OcrMask> eligible = ProductionTextMarkerExclusion.SelectMasks(
+            [region], masks, CancellationToken.None);
+
+        IReadOnlyList<MarkerCenter> recovered = ProductionMarkerTemplateRecovery.Find(
+            Image(new(10, 10, 7, 7), new(30, 20, 7, 7)), Plot, eligible,
+            [Marker("existing", 13.5, 13.5)], NoLegends, [], CancellationToken.None);
+
+        Assert.AreEqual(shouldRecover ? 1 : 0, recovered.Count);
+        if (shouldRecover) Assert.AreEqual(new MarkerPoint(33.5, 23.5), recovered[0].Center);
     }
 
     [TestMethod]
