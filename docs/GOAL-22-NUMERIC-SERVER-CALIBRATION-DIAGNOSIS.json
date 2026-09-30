@@ -1,0 +1,331 @@
+{
+  "schema": "graphreader.numeric-server-calibration-diagnosis.v1",
+  "status": "diagnostic_complete_runtime_integration_deferred",
+  "runtime_commit": "b1b64171ee51533d105483a3859e49eea0bbb6bb",
+  "selection": "Primary unreviewed XTick/YTick regions only, identical saved region identity/polygon/role, strict ASCII decimal server primary text with a matching alternative at the existing 0.65 confidence minimum. All words, masks, markers, axes and original review warnings remain fixed. Selection precedes truth scoring.",
+  "calibration_metrics": {
+    "native": {
+      "panels": 31,
+      "baseline_controls_reproduced": 31,
+      "ocr_regions_changed": 85,
+      "text_changes": 17,
+      "panels_with_text_changes": 12,
+      "calibrations_changed": 27,
+      "complete_before": 0,
+      "complete_after": 1,
+      "gained_complete": 1,
+      "lost_complete": 0,
+      "sources": 21,
+      "all_panel_calibrations_complete_before": 0,
+      "all_panel_calibrations_complete_after": 1,
+      "sources_gaining_complete_calibrations": 1,
+      "sources_losing_complete_calibrations": 0
+    },
+    "csv": {
+      "panels": 39,
+      "baseline_controls_reproduced": 39,
+      "ocr_regions_changed": 312,
+      "text_changes": 9,
+      "panels_with_text_changes": 5,
+      "calibrations_changed": 36,
+      "complete_before": 24,
+      "complete_after": 24,
+      "gained_complete": 0,
+      "lost_complete": 0,
+      "sources": 23,
+      "all_panel_calibrations_complete_before": 12,
+      "all_panel_calibrations_complete_after": 12,
+      "sources_gaining_complete_calibrations": 0,
+      "sources_losing_complete_calibrations": 0
+    }
+  },
+  "validity_transitions": {
+    "native": {
+      "NeedsReview -> NeedsReview": 23,
+      "InvalidSessionOrigin -> InvalidSessionOrigin": 6,
+      "NeedsReview -> Valid": 1,
+      "InsufficientEvidence -> InsufficientEvidence": 1
+    },
+    "csv": {
+      "NeedsReview -> NeedsReview": 9,
+      "InsufficientEvidence -> InsufficientEvidence": 2,
+      "Valid -> Valid": 24,
+      "InsufficientEvidence -> InvalidSessionOrigin": 1,
+      "InvalidSessionOrigin -> InvalidSessionOrigin": 2,
+      "InvalidSessionOrigin -> InsufficientEvidence": 1
+    }
+  },
+  "saved_native_ocr_metrics": {
+    "before": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 499,
+        "geometry_matched_region_count": 389,
+        "geometry_false_positive_count": 110,
+        "geometry_false_negative_count": 64,
+        "recognition_exact_count": 348,
+        "recognition_exact_accuracy": 0.7682119205298014,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 58,
+        "unmatched_truth_deletion_edit_count": 476,
+        "unmatched_prediction_insertion_edit_count": 240,
+        "character_error_count": 774,
+        "character_error_rate": 0.2496774193548387,
+        "role_correct_count": 358,
+        "role_accuracy": 0.7902869757174393,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 134,
+            "accuracy": 0.788235294117647
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 84,
+            "accuracy": 0.8484848484848485
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "after": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 502,
+        "geometry_matched_region_count": 390,
+        "geometry_false_positive_count": 112,
+        "geometry_false_negative_count": 63,
+        "recognition_exact_count": 377,
+        "recognition_exact_accuracy": 0.8322295805739515,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 26,
+        "unmatched_truth_deletion_edit_count": 474,
+        "unmatched_prediction_insertion_edit_count": 238,
+        "character_error_count": 738,
+        "character_error_rate": 0.23806451612903226,
+        "role_correct_count": 364,
+        "role_accuracy": 0.8035320088300221,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 50,
+            "accuracy": 0.9615384615384616
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 136,
+            "accuracy": 0.8
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 87,
+            "accuracy": 0.8787878787878788
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    },
+    "composed": {
+      "validation": {
+        "truth_region_count": 453,
+        "predicted_region_count": 499,
+        "geometry_matched_region_count": 389,
+        "geometry_false_positive_count": 110,
+        "geometry_false_negative_count": 64,
+        "recognition_exact_count": 365,
+        "recognition_exact_accuracy": 0.8057395143487859,
+        "truth_character_count": 3100,
+        "matched_pair_edit_count": 41,
+        "unmatched_truth_deletion_edit_count": 476,
+        "unmatched_prediction_insertion_edit_count": 240,
+        "character_error_count": 757,
+        "character_error_rate": 0.24419354838709678,
+        "role_correct_count": 358,
+        "role_accuracy": 0.7902869757174393,
+        "by_expected_runtime_role": {
+          "annotation": {
+            "truth_count": 62,
+            "correct_count": 40,
+            "accuracy": 0.6451612903225806
+          },
+          "axistitle": {
+            "truth_count": 52,
+            "correct_count": 49,
+            "accuracy": 0.9423076923076923
+          },
+          "legendtext": {
+            "truth_count": 37,
+            "correct_count": 29,
+            "accuracy": 0.7837837837837838
+          },
+          "participant": {
+            "truth_count": 31,
+            "correct_count": 20,
+            "accuracy": 0.6451612903225806
+          },
+          "phaseheading": {
+            "truth_count": 170,
+            "correct_count": 134,
+            "accuracy": 0.788235294117647
+          },
+          "xtick": {
+            "truth_count": 2,
+            "correct_count": 2,
+            "accuracy": 1.0
+          },
+          "ytick": {
+            "truth_count": 99,
+            "correct_count": 84,
+            "accuracy": 0.8484848484848485
+          }
+        },
+        "intersection_over_union_minimum": 0.5
+      }
+    }
+  },
+  "transform_delta_diagnostic": {
+    "scope": "saved_synthetic_calibration_transform_delta_only",
+    "panel_count": 24,
+    "maximum_graph_x_delta": 0.0008366439621649846,
+    "maximum_graph_y_delta": 0.5730278524574146,
+    "all_session_assignments_unchanged": true,
+    "limitation": "Descriptive transform comparison at held marker pixels, not truth accuracy or a CSV export. Confidence substitutions can change weighted fits even when text is unchanged.",
+    "model_inference_runs": 0,
+    "private_reads": 0,
+    "sealed_reads": 0
+  },
+  "seconds": 64.2156252,
+  "validation": {
+    "baseline_controls_reproduced": 70,
+    "build_warnings": 0,
+    "build_errors": 0
+  },
+  "decision": "Keep current OCR runtime. Saved substitutions unlock one native-panel calibration but no additional complete calibrations among the 23 CSV sources. No three-model integration or CSV accuracy claim is justified by this calibration-only diagnostic.",
+  "void_preparation": {
+    "path": "artifacts/goal22-runs/numeric-calibration-replay-v1/status.json",
+    "reason": "Historical authentication required every raw panel to have a completed calibration observation. One saved server CSV panel has raw OCR but no completed calibration. V2 authenticates both inventories and retains the unmatched baseline panel unchanged."
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/protocol.json",
+      "sha256": "ac4d5964db91f0b0a63daeaa218c6e44424a5238801ace13a4fd9d027c1f0832"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/jobs.json",
+      "sha256": "9db5edfa2a219275f030d479280b19eb5d8dbabdad865ec26cc78ffb64124ac9"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/report.json",
+      "sha256": "b749df4d6296f96a6712d808cfb79aebe34ce388b53c65ff0d0f381a03d16b8b"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/transform-deltas.json",
+      "sha256": "e8625dde425850c9e428c4b7ae3a2ba1cf0253eee4d7b23028d8442f92761655"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/status.json",
+      "sha256": "011ef69da7009e710a10091ff5330750bfedfb170d2b27b48723777a21647103"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/Program.cs",
+      "sha256": "c80590fbe71929d92df2929031f259081c7eb4ad5bc79e8081675aca8bdd65f9"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/NumericCalibrationReplay.csproj",
+      "sha256": "a26326368368dd33f606844016b38c89ab4d7517cee25f67cd116d6a9e2db079"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/build.log",
+      "sha256": "42332e0514b4f2f7e697e7de2b1c95fbdf4253e1ad5ce2fe63d0c706534aeeea"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/executed-preparation-source.py",
+      "sha256": "1d95eeb5c143ae3395724253ae1d67decdaf3720a3e803013c8b1d354a99f9e2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Analyze-NumericCalibrationReplay.py",
+      "sha256": "073fd499ab8d61c657c52138c5654815f3f25c45ff0ba1cbb64eba5271e487d3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-NumericCalibrationReplay.py",
+      "sha256": "92898bf69f58ee90abb764fb6678600ab50b4d1fc823e776a53a17cb54852818"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-NumericCalibrationReplay.ps1",
+      "sha256": "88578d0207f497c277282c6ce3872b75af904fe8fe0fe1345aded7b4d26860df"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v2/ocr-score-current/native-ocr-score.json",
+      "sha256": "983a11eec91100bfbcbf5485f28394f2804c7330c3c4e9808a5facd02c027d4f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-CurrentNumericSelection.py",
+      "sha256": "320602705246056524618485d9e97c4b7219542a6d0bfa14ec31fb346e4b498a"
+    },
+    {
+      "path": "artifacts/goal22-runs/numeric-calibration-replay-v1/status.json",
+      "sha256": "e91bad7abba617616eeba4fcbafcd0d5385c815d39a3a569e3f7694120daef1a"
+    }
+  ],
+  "license_review": "Previously reviewed Apache-2.0 official pretrained server reader and project-owned analysis code; no new model, dependency or import.",
+  "limitations": [
+    "Replay holds axis geometry, accepted markers, OCR masks and all prior review warnings fixed.",
+    "Source-level complete calibration counts are diagnostic eligibility, not observed exports or correct CSV values.",
+    "No three-model application composition has run; the saved server reader used an earlier runtime.",
+    "The missing saved server panel remains unchanged and participates in every denominator.",
+    "Numeric substitutions alter labels on two already-valid CSV panels; unchanged eligibility is not unchanged calibration or accuracy."
+  ],
+  "model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "goal22_complete": false,
+  "ocr_score_seconds": 1.1574455999070778
+}
