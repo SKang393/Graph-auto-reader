@@ -1,0 +1,85 @@
+{
+  "cache": {
+    "path": "artifacts/goal22-runs/center-crowded-negative-cache-20260930-v1/manifest.json",
+    "sha256": "d1944d243cefb21d0f05d8cb2f940208db78fba248d329b75d9285e09f1b7a70"
+  },
+  "coverage_gap": "On 28 authenticated training family graphs with 500 truths, fixed V30 yields 2433 confident clear-background proposals at 0.25. Only 412 have exact patch-byte membership in the complete 270252-row selected V30 negative population; 2021 are absent. Mine every clear training error, without ranking or dropping existing examples.",
+  "current_retained_model_baseline": {
+    "path": "docs/GOAL-22-SYMBOL-RUN-MASK-REVIEW.json",
+    "sha256": "c13230759e7596becd43bec3f14b9c4132e32356a1d6f3203d02f3e770c84883"
+  },
+  "current_v46_server_v27_residual_attribution": {
+    "path": "artifacts/goal22-runs/retained-center-residual-diagnosis-20260930-v1/report.json",
+    "sha256": "0b5f6f9c1d8ebdd7530423ada8fd85d8b15581eb07fbad4e2534a272dee9a5fd"
+  },
+  "failure": "The closed V30 candidate recovered crowded centers but failed the shared component/family precision bars and lost six CSV exports under its historical runtime. The current retained V27 diagnostic still has fifty missing truths without a nearby decoded proposal. These are different model/runtime observations, not a causal paired comparison.",
+  "frozen_development": {
+    "component_scenes": 167,
+    "family_scenes": 9,
+    "inventory_sha256": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099",
+    "truths": 2210
+  },
+  "license": "Owned Apache-2.0 model, source and synthetic data. No external dependency or weights added.",
+  "mined_counts": {
+    "hard_negative": 6366,
+    "negative": 6366,
+    "positive": 0,
+    "positive_radius_over_model_maximum": 0,
+    "rows": 6366
+  },
+  "mined_scope_totals": {
+    "component_proposals": 236056,
+    "component_selected": 3933,
+    "component_truth": 2004,
+    "family_proposals": 122900,
+    "family_selected": 2433,
+    "family_truth": 500
+  },
+  "negative_definition": "Use the already tested train-only rule: fixed V30 probability at least 0.25, proposal anchor farther than 8 pixels and decoded center farther than 5 pixels from every authored training marker. Preserve all channels. No development mining or near-marker relabeling.",
+  "optimizer_steps": 0,
+  "original_rows_retained": {
+    "component": 35838,
+    "coverage": 42747,
+    "crowded": 182614,
+    "family": 9053
+  },
+  "preflight": {
+    "path": "artifacts/goal22-runs/crowded-negative-preflight-20260930-v1/report.json",
+    "sha256": "aaba306cceb42426331e311dc318307e8acbceb0f3489f4efb4fb66b52dc7d36"
+  },
+  "preparation": {
+    "path": "artifacts/goal22-runs/crowded-negative-preparation-20260930-v1/status.json",
+    "sha256": "b05c2d8e5abb2ad87190b37829e59097668e61f9a0718e48c2ebd5a1c23a6829"
+  },
+  "prior_candidate_outcome": {
+    "path": "ml/markers/center/crowded_coverage_v30/P1_RESULT.json",
+    "sha256": "370229594b2f151470efd377336737b68aec51449b4ddfbcf35f12806c6f5a2c"
+  },
+  "private_reads": 0,
+  "production_approval": false,
+  "rejected_suppression_hypothesis": {
+    "path": "artifacts/goal22-runs/retained-center-suppression-diagnosis-20260930-v1/report.json",
+    "sha256": "71edc2796e5c021df9af3d77e7087cabe1c29285b49f2cd668d00b4d3806cce6"
+  },
+  "schema": "graphreader.crowded-negative-coverage-diagnosis.v1",
+  "sealed_reads": 0,
+  "status": "training_hypothesis_not_acceptance",
+  "training_audit": {
+    "path": "artifacts/goal22-runs/center-crowded-training-coverage-20260930-v1/report.json",
+    "sha256": "ac46555f8335616a457663a1e97dc5fa228f1d80a0a1d04a30ca8c6082708068"
+  },
+  "training_audit_seconds": 224.60940429999027,
+  "training_counts": {
+    "accepted": 892,
+    "clear_background": 116900,
+    "confident_clear_background": 2433,
+    "confident_clear_background_with_selected_negative_pixels": 412,
+    "false_negatives": 36,
+    "false_positives": 428,
+    "false_positives_on_ocr_mask": 54,
+    "proposals": 122900,
+    "selected_negative_pixels_in_native_proposals": 34556,
+    "true_positives": 464,
+    "truth": 500
+  }
+}

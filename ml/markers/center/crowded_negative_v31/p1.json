@@ -1,0 +1,39 @@
+{
+  "cache_manifest_sha256": "d1944d243cefb21d0f05d8cb2f940208db78fba248d329b75d9285e09f1b7a70",
+  "cache_path": "artifacts/goal22-runs/center-crowded-negative-cache-20260930-v1",
+  "candidate_id": "P1",
+  "expected_runner_source_bundle_sha256": "096718e92b50e838facd0adca8169a8f9f10a0105d94995ce7d6c906149172f5",
+  "optimizer_steps_expected": 17296,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "f7dfa0687c044d42425665dd8da57f6312d8aa9e29285e95359899663d1779e8",
+  "recipe": {
+    "batch_size": 128,
+    "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+    "confidence_threshold": 0.25,
+    "epochs": 8,
+    "focal_alpha": 0.25,
+    "focal_gamma": 2.0,
+    "hard_negative_loss_weight": 5.0,
+    "learning_rate": 0.0003,
+    "positive_loss_weight": 16.0,
+    "seed": 20260922,
+    "weight_decay": 0.0001
+  },
+  "resource_policy": {
+    "aggregate_backstop_percent": 80,
+    "all_processors_eligible": true,
+    "kmp_blocktime": "0",
+    "logical_processor_count": 12,
+    "omp_wait_policy": "PASSIVE",
+    "priority": "Idle",
+    "synchronous_work_rest_percent": 80
+  },
+  "revision": "marker-center-crowded-negative-v31",
+  "schema_version": 1,
+  "sealed_runs_authorized": 0,
+  "source_checkpoint_path": "artifacts/goal22-runs/center-crowded-coverage-v30/P1/marker-center.pt",
+  "source_checkpoint_sha256": "5e9cf6f901e1b473e7d46c9b6a556a38f9d530f32be8f577732649a1b19c398e",
+  "task": "marker-center",
+  "training_rows": 276618
+}

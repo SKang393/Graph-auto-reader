@@ -1,0 +1,45 @@
+{
+  "acceptance_bar": "Unchanged ml/policy/acceptance-bars.json through the shared evaluator. Synthetic results do not authorize production approval; real acceptance, sealed evidence, runtime, promotion and complete workflow gates still apply.",
+  "budget": {
+    "candidate_id": "P1",
+    "csv_diagnostic_runs": 1,
+    "experiment_budget": 1,
+    "native_diagnostic_runs": 1,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "sealed_runs_authorized": 0
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "Rehearsing the complete V30 training population with every authenticated clear training background error may reduce false proposals while retaining crowded-marker recall. Train evidence contains 2021 confident clear-background proposals whose patch bytes are absent from selected negatives, out of 2433 such proposals. This does not establish a fix for every missing or misclassified native point.",
+  "isolated_change": "Warm-start the exact closed V30 final checkpoint with all 270252 original training rows plus every newly mined background row. Use the unchanged architecture, three-channel 33-pixel input, stride, masks, focal coefficients, radius clamp, AdamW 0.0003, weight decay 0.0001, batch 128, fixed 8 epochs and final checkpoint only. Candidate cutoff remains 0.25; retained V27 uses 0.10, so whole-workflow comparison is between configurations. This is a declared adaptation recipe, not a single-factor causal experiment.",
+  "metric": "Complete frozen 167 component and 9 family development scenes, 2210 truths, fixed 0.25 operating point and existing 5-pixel matching. Use the shared evaluator, reproduce historical V27 counts, and report legacy/balanced geometry separately. Verify ONNX parity over every frozen development proposal. Then compare against the a6af334 V44/English/V27/V5 baseline on all 21 native sources/31 panels/838 truths and all 23 CSV sources/39 panels/706 points/724 rows, retaining all failures and export safeguards. Sensitivity is descriptive only.",
+  "split_identities": {
+    "cache": {
+      "path": "artifacts/goal22-runs/center-crowded-negative-cache-20260930-v1/manifest.json",
+      "sha256": "d1944d243cefb21d0f05d8cb2f940208db78fba248d329b75d9285e09f1b7a70"
+    },
+    "development": {
+      "component_scenes": 167,
+      "family_scenes": 9,
+      "inventory_sha256": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099",
+      "truths": 2210
+    },
+    "diagnosis": {
+      "path": "docs/GOAL-22-CROWDED-NEGATIVE-COVERAGE-DIAGNOSIS.json",
+      "sha256": "7367d4e7d4fc3e3046d8632028197c47897f7db91ced3575ca0b660c34ba44da"
+    },
+    "initializer": {
+      "path": "artifacts/goal22-runs/center-crowded-coverage-v30/P1/marker-center.pt",
+      "sha256": "5e9cf6f901e1b473e7d46c9b6a556a38f9d530f32be8f577732649a1b19c398e"
+    },
+    "mining_model_sha256": "87c15ac392cd25c5f419a0b1279134323a7ec43c4cea8b354ad45744e767abe3",
+    "native_csv_baseline": {
+      "path": "docs/GOAL-22-SYMBOL-RUN-MASK-REVIEW.json",
+      "sha256": "c13230759e7596becd43bec3f14b9c4132e32356a1d6f3203d02f3e770c84883"
+    },
+    "parent_cache_path": "artifacts/goal22-runs/center-crowded-coverage-cache-v1",
+    "parent_manifest_sha256": "1458a7f285f382b968b32e6b4ceb3e431544483bfcb2b0f5de3661278f3d8f03",
+    "separation": "Only authenticated train component/family predictions produce new rows. Every prior tensor, development source, truth and failure remains. No private/sealed access."
+  }
+}
