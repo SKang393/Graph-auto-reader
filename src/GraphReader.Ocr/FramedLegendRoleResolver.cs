@@ -10,7 +10,7 @@ namespace GraphReader.Ocr;
 public static class FramedLegendRoleResolver
 {
     public const string CompositionVersion = "original-pixel-framed-legend-context-v2";
-    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v5";
+    public const string RecoveryCompositionVersion = "original-pixel-framed-legend-text-recovery-and-assembly-v6-symbol-overhang";
 
     /// <summary>Joins detected words only when original pixels establish one framed legend row.</summary>
     public static IReadOnlyList<OcrDetectedRegion> AssembleDetectedRows(
@@ -105,13 +105,27 @@ public static class FramedLegendRoleResolver
         IReadOnlyList<OcrDetectedRegion> measured = await RecoverMissingTextAsync(
             image, [], cancellationToken).ConfigureAwait(false);
         var result = regions.ToList();
+        bool[]? ink = null;
+        List<HorizontalRun>? runs = null;
         foreach (OcrDetectedRegion row in measured)
         {
             cancellationToken.ThrowIfCancellationRequested();
             OcrRectangle bounds = row.Polygon.Bounds;
             OcrDetectedRegion[] members = result.Where(r => Overlaps(bounds, r.Polygon.Bounds)).ToArray();
-            if (members.Length == 0 || members.Any(r => HasProtectedContext(r) ||
-                    !Contains(bounds, r.Polygon.Bounds) || r.Polygon.Bounds == bounds)) continue;
+            if (members.Length == 0 || members.Any(r => HasProtectedContext(r) || r.Polygon.Bounds == bounds)) continue;
+            if (members.Any(r => !Contains(bounds, r.Polygon.Bounds)))
+            {
+                ink ??= CreateInkMask(image, cancellationToken);
+                runs ??= FindRuns(ink, image.Width, image.Height, cancellationToken);
+                FramedLegendRoleEvidence? frame = FindContext(
+                    ink, image.Width, runs, row.RegionId, bounds, cancellationToken);
+                // Recovery independently verified a closed frame, one detached
+                // symbol and one text row. A detector may include part of that
+                // symbol, but must not bring in pixels beyond the measured row
+                // on any other side or reach left of the verified symbol.
+                if (frame is null || members.Any(r => !Contains(bounds, r.Polygon.Bounds) &&
+                        !HasOnlySymbolOverhang(bounds, frame.GlyphBounds, r.Polygon.Bounds))) continue;
+            }
             string material = RecoveryCompositionVersion + "\n" + row.RegionId + "\n" +
                 string.Join('\n', members.Select(static r => r.RegionId).Order(StringComparer.Ordinal));
             var ids = members.Select(static r => r.RegionId).ToHashSet(StringComparer.Ordinal);
@@ -130,6 +144,9 @@ public static class FramedLegendRoleResolver
             a.Top < b.Bottom && a.Bottom > b.Top;
         static bool Contains(OcrRectangle outer, OcrRectangle inner) => inner.Left >= outer.Left && inner.Top >= outer.Top &&
             inner.Right <= outer.Right && inner.Bottom <= outer.Bottom;
+        static bool HasOnlySymbolOverhang(OcrRectangle text, OcrRectangle symbol, OcrRectangle detected) =>
+            detected.Left >= symbol.Left && detected.Left < symbol.Right && detected.Left < text.Left &&
+            detected.Top >= text.Top && detected.Right <= text.Right && detected.Bottom <= text.Bottom;
     }
 
     /// <summary>Proposes missing text crops from pixels, without supplying a word or role.</summary>

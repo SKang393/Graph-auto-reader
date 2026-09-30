@@ -1,0 +1,927 @@
+{
+  "schema": "graphreader.framed-legend-symbol-overlap-diagnosis.v1",
+  "base_source_commit": "3a784b836c0cbfde1a5eabaaaa701d748e656723",
+  "failure": "Three owned synthetic dev panels have OCR boxes starting at x954, x956 and x952 instead of the independently measured text edge x963. Each overlaps its separate legend symbol, preventing verified-frame context and leaving one extra accepted marker. The six-panel source fails WORKFLOW_RECALIBRATION_REQUIRED rather than exporting ambiguous sessions.",
+  "responsible_subsystem": "FramedLegendRoleResolver.RecoverPartialTextRowsAsync currently requires every overlapping detector rectangle to fit entirely inside the measured text row.",
+  "pixel_replay": "The unchanged original-pixel recovery independently measures the same x963,y112,width118,height13 text row in all six V44/V46 panel replays. All three V44 rows already fit and establish their symbol; all three V46 overlapping rows remain unchanged and establish none.",
+  "isolated_change": "Allow an existing detector rectangle to overhang only the left side of an independently measured text row into that frame's separately verified symbol. Require containment on the other three sides, overlap with the symbol and a left edge no earlier than the symbol. Preserve protected contexts, complete rows, missing/broken frames, ambiguous symbols and extra content. Recognize the resulting original-pixel crop without supplying text or role answers.",
+  "validation": {
+    "suites": [
+      "GraphReader.Ocr.Tests",
+      "GraphReader.App.Tests"
+    ],
+    "baseline": "qualified-heading-evaluation-v1",
+    "native_sources_per_arm": 21,
+    "native_panels_per_arm": 31,
+    "csv_sources_per_arm": 23,
+    "csv_panels_per_arm": 39,
+    "acceptance_bars": {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "dev_manifest": {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/dev-sources.json",
+      "sha256": "ae8fa6ec3d720cec77057662e390e2497f7f2fe9b2de70b2449c51cf62de1338"
+    },
+    "budget": {
+      "native_runs": 2,
+      "csv_runs": 2,
+      "optimizer_steps": 0,
+      "private_reads": 0,
+      "sealed_runs": 0
+    }
+  },
+  "replay": {
+    "status": "completed",
+    "panels": 6,
+    "seconds": 14.3114514,
+    "model_inference_runs": 0,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_reads": 0
+  },
+  "cases": [
+    {
+      "arm": "v44",
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "crop": {
+        "x": 0,
+        "y": 1393,
+        "width": 1200,
+        "height": 307,
+        "right": 1200,
+        "bottom": 1700,
+        "area": 368400,
+        "is_valid": true
+      },
+      "before": [
+        {
+          "region_id": "60916910-5249-b682-cf49-0a5560f37485",
+          "text": "24",
+          "role": "XTick",
+          "bounds": {
+            "x": 1046,
+            "y": 221,
+            "width": 15,
+            "height": 11,
+            "left": 1046,
+            "top": 221,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 226.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "inside-plot:632704a4121f943988dcc69d13e36ab032fb6cff59e0e93b734b272bb5e7df17",
+          "text": "Primary outcome",
+          "role": "LegendText",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "after_geometry": [
+        {
+          "region_id": "60916910-5249-b682-cf49-0a5560f37485",
+          "bounds": {
+            "x": 1046,
+            "y": 221,
+            "width": 15,
+            "height": 11,
+            "left": 1046,
+            "top": 221,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 226.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "inside-plot:632704a4121f943988dcc69d13e36ab032fb6cff59e0e93b734b272bb5e7df17",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "independently_measured_rows": [
+        {
+          "region_id": "framed-legend:3c750888-a2fd-66ae-07b4-8b8099d597ef",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "verified_symbols": [
+        {
+          "region_id": "inside-plot:632704a4121f943988dcc69d13e36ab032fb6cff59e0e93b734b272bb5e7df17",
+          "frame_bounds": {
+            "x": 933,
+            "y": 105,
+            "width": 151,
+            "height": 35,
+            "left": 933,
+            "top": 105,
+            "right": 1084,
+            "bottom": 140,
+            "center": {
+              "x": 1008.5,
+              "y": 122.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          },
+          "glyph_bounds": {
+            "x": 941,
+            "y": 112,
+            "width": 15,
+            "height": 14,
+            "left": 941,
+            "top": 112,
+            "right": 956,
+            "bottom": 126,
+            "center": {
+              "x": 948.5,
+              "y": 119,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "evidence": {
+        "path": "artifacts/goal22-runs/legend-overlap-diagnosis-v1/v44-1393.json",
+        "sha256": "ea657282a0b75cea6bd4a5ff477170566505986a26580dd8e03650298d97a78f"
+      }
+    },
+    {
+      "arm": "v44",
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "crop": {
+        "x": 0,
+        "y": 313,
+        "width": 1200,
+        "height": 270,
+        "right": 1200,
+        "bottom": 583,
+        "area": 324000,
+        "is_valid": true
+      },
+      "before": [
+        {
+          "region_id": "cc2c3f56-d3f9-e87c-6b77-58d94e3c8366",
+          "text": "24",
+          "role": "XTick",
+          "bounds": {
+            "x": 1046,
+            "y": 220,
+            "width": 15,
+            "height": 12,
+            "left": 1046,
+            "top": 220,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 226,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "inside-plot:2ab568fa0564169d1b377f07e2860f19665daf7ee78148022c8ca7c09bc01a7f",
+          "text": "Primary outcome",
+          "role": "LegendText",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "after_geometry": [
+        {
+          "region_id": "cc2c3f56-d3f9-e87c-6b77-58d94e3c8366",
+          "bounds": {
+            "x": 1046,
+            "y": 220,
+            "width": 15,
+            "height": 12,
+            "left": 1046,
+            "top": 220,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 226,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "inside-plot:2ab568fa0564169d1b377f07e2860f19665daf7ee78148022c8ca7c09bc01a7f",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "independently_measured_rows": [
+        {
+          "region_id": "framed-legend:3c750888-a2fd-66ae-07b4-8b8099d597ef",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "verified_symbols": [
+        {
+          "region_id": "inside-plot:2ab568fa0564169d1b377f07e2860f19665daf7ee78148022c8ca7c09bc01a7f",
+          "frame_bounds": {
+            "x": 933,
+            "y": 105,
+            "width": 151,
+            "height": 35,
+            "left": 933,
+            "top": 105,
+            "right": 1084,
+            "bottom": 140,
+            "center": {
+              "x": 1008.5,
+              "y": 122.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          },
+          "glyph_bounds": {
+            "x": 941,
+            "y": 112,
+            "width": 16,
+            "height": 16,
+            "left": 941,
+            "top": 112,
+            "right": 957,
+            "bottom": 128,
+            "center": {
+              "x": 949,
+              "y": 120,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "evidence": {
+        "path": "artifacts/goal22-runs/legend-overlap-diagnosis-v1/v44-313.json",
+        "sha256": "d512b3e27803f5e8b28677ff8299a89e69079a6cec01b19928e39c413b58cf99"
+      }
+    },
+    {
+      "arm": "v44",
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "crop": {
+        "x": 0,
+        "y": 853,
+        "width": 1200,
+        "height": 270,
+        "right": 1200,
+        "bottom": 1123,
+        "area": 324000,
+        "is_valid": true
+      },
+      "before": [
+        {
+          "region_id": "cc2c3f56-d3f9-e87c-6b77-58d94e3c8366",
+          "text": "24",
+          "role": "XTick",
+          "bounds": {
+            "x": 1046,
+            "y": 220,
+            "width": 15,
+            "height": 12,
+            "left": 1046,
+            "top": 220,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 226,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "framed-legend-row:9b36b62a4d37996db05257e8dff8155a800bc69a03d8f2f0cdd92ef0d843219e",
+          "text": "Primary outcome",
+          "role": "LegendText",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "after_geometry": [
+        {
+          "region_id": "cc2c3f56-d3f9-e87c-6b77-58d94e3c8366",
+          "bounds": {
+            "x": 1046,
+            "y": 220,
+            "width": 15,
+            "height": 12,
+            "left": 1046,
+            "top": 220,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 226,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "framed-legend-row:9b36b62a4d37996db05257e8dff8155a800bc69a03d8f2f0cdd92ef0d843219e",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "independently_measured_rows": [
+        {
+          "region_id": "framed-legend:3c750888-a2fd-66ae-07b4-8b8099d597ef",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "verified_symbols": [
+        {
+          "region_id": "framed-legend-row:9b36b62a4d37996db05257e8dff8155a800bc69a03d8f2f0cdd92ef0d843219e",
+          "frame_bounds": {
+            "x": 933,
+            "y": 105,
+            "width": 151,
+            "height": 35,
+            "left": 933,
+            "top": 105,
+            "right": 1084,
+            "bottom": 140,
+            "center": {
+              "x": 1008.5,
+              "y": 122.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          },
+          "glyph_bounds": {
+            "x": 941,
+            "y": 112,
+            "width": 16,
+            "height": 16,
+            "left": 941,
+            "top": 112,
+            "right": 957,
+            "bottom": 128,
+            "center": {
+              "x": 949,
+              "y": 120,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "evidence": {
+        "path": "artifacts/goal22-runs/legend-overlap-diagnosis-v1/v44-853.json",
+        "sha256": "d303324cda3715279f8a2a2db3e1231e7a915c77cf302eee8d61a7de68c8b1cf"
+      }
+    },
+    {
+      "arm": "v46",
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "crop": {
+        "x": 0,
+        "y": 1393,
+        "width": 1200,
+        "height": 307,
+        "right": 1200,
+        "bottom": 1700,
+        "area": 368400,
+        "is_valid": true
+      },
+      "before": [
+        {
+          "region_id": "bb70e84e-5675-783c-a033-fef3e237ed58",
+          "text": "24",
+          "role": "XTick",
+          "bounds": {
+            "x": 1046,
+            "y": 218,
+            "width": 15,
+            "height": 14,
+            "left": 1046,
+            "top": 218,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 225,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "d3b72f0d-e2b3-1ce8-9159-b340e2bd25c6",
+          "text": " Primary outcome",
+          "role": "Annotation",
+          "bounds": {
+            "x": 952,
+            "y": 112,
+            "width": 129,
+            "height": 13,
+            "left": 952,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1016.5,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "after_geometry": [
+        {
+          "region_id": "bb70e84e-5675-783c-a033-fef3e237ed58",
+          "bounds": {
+            "x": 1046,
+            "y": 218,
+            "width": 15,
+            "height": 14,
+            "left": 1046,
+            "top": 218,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 225,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "d3b72f0d-e2b3-1ce8-9159-b340e2bd25c6",
+          "bounds": {
+            "x": 952,
+            "y": 112,
+            "width": 129,
+            "height": 13,
+            "left": 952,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1016.5,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "independently_measured_rows": [
+        {
+          "region_id": "framed-legend:3c750888-a2fd-66ae-07b4-8b8099d597ef",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "verified_symbols": [],
+      "evidence": {
+        "path": "artifacts/goal22-runs/legend-overlap-diagnosis-v1/v46-1393.json",
+        "sha256": "38d3a49c290201ef95fc17354f973b3d70360b88b5f2aea2e4851f7d16642f9b"
+      }
+    },
+    {
+      "arm": "v46",
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "crop": {
+        "x": 0,
+        "y": 313,
+        "width": 1200,
+        "height": 270,
+        "right": 1200,
+        "bottom": 583,
+        "area": 324000,
+        "is_valid": true
+      },
+      "before": [
+        {
+          "region_id": "5ec10ce3-e289-0d07-55dc-af22a757387e",
+          "text": " Primary outcome",
+          "role": "Annotation",
+          "bounds": {
+            "x": 954,
+            "y": 112,
+            "width": 127,
+            "height": 13,
+            "left": 954,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1017.5,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "b7edc567-5fcb-ca6c-bf92-ef96653ad137",
+          "text": "24",
+          "role": "XTick",
+          "bounds": {
+            "x": 1046,
+            "y": 219,
+            "width": 15,
+            "height": 13,
+            "left": 1046,
+            "top": 219,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 225.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "after_geometry": [
+        {
+          "region_id": "5ec10ce3-e289-0d07-55dc-af22a757387e",
+          "bounds": {
+            "x": 954,
+            "y": 112,
+            "width": 127,
+            "height": 13,
+            "left": 954,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1017.5,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "b7edc567-5fcb-ca6c-bf92-ef96653ad137",
+          "bounds": {
+            "x": 1046,
+            "y": 219,
+            "width": 15,
+            "height": 13,
+            "left": 1046,
+            "top": 219,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 225.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "independently_measured_rows": [
+        {
+          "region_id": "framed-legend:3c750888-a2fd-66ae-07b4-8b8099d597ef",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "verified_symbols": [],
+      "evidence": {
+        "path": "artifacts/goal22-runs/legend-overlap-diagnosis-v1/v46-313.json",
+        "sha256": "66131efe462f464944f3b23033d7d0cd6eb745345a56dac803be41831842b4fe"
+      }
+    },
+    {
+      "arm": "v46",
+      "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+      "crop": {
+        "x": 0,
+        "y": 853,
+        "width": 1200,
+        "height": 270,
+        "right": 1200,
+        "bottom": 1123,
+        "area": 324000,
+        "is_valid": true
+      },
+      "before": [
+        {
+          "region_id": "a83b8029-6ad5-2887-3da9-453f2e40c913",
+          "text": "Primary outcome",
+          "role": "Annotation",
+          "bounds": {
+            "x": 956,
+            "y": 112,
+            "width": 125,
+            "height": 13,
+            "left": 956,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1018.5,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "b7edc567-5fcb-ca6c-bf92-ef96653ad137",
+          "text": "24",
+          "role": "XTick",
+          "bounds": {
+            "x": 1046,
+            "y": 219,
+            "width": 15,
+            "height": 13,
+            "left": 1046,
+            "top": 219,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 225.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "after_geometry": [
+        {
+          "region_id": "a83b8029-6ad5-2887-3da9-453f2e40c913",
+          "bounds": {
+            "x": 956,
+            "y": 112,
+            "width": 125,
+            "height": 13,
+            "left": 956,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1018.5,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "region_id": "b7edc567-5fcb-ca6c-bf92-ef96653ad137",
+          "bounds": {
+            "x": 1046,
+            "y": 219,
+            "width": 15,
+            "height": 13,
+            "left": 1046,
+            "top": 219,
+            "right": 1061,
+            "bottom": 232,
+            "center": {
+              "x": 1053.5,
+              "y": 225.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "independently_measured_rows": [
+        {
+          "region_id": "framed-legend:3c750888-a2fd-66ae-07b4-8b8099d597ef",
+          "bounds": {
+            "x": 963,
+            "y": 112,
+            "width": 118,
+            "height": 13,
+            "left": 963,
+            "top": 112,
+            "right": 1081,
+            "bottom": 125,
+            "center": {
+              "x": 1022,
+              "y": 118.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ],
+      "verified_symbols": [],
+      "evidence": {
+        "path": "artifacts/goal22-runs/legend-overlap-diagnosis-v1/v46-853.json",
+        "sha256": "50ca8a79cbf545b4373ec21a21c3b60b371fce8f9e563848df166a5f93970eda"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-diagnosis-v1/status.json",
+      "sha256": "8bbdf3d647b2f2de590dee87ce0d1b8850a3ca07ebb7b824d4693bc854efbae3"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-overlap-diagnosis-v1/build.log",
+      "sha256": "cb6601bd31b8d885d40928f5d33d2ab005028d9de33664a559741d4c38229ba2"
+    },
+    {
+      "path": "artifacts/goal22-tools/LegendOverlapReplay/Program.cs",
+      "sha256": "2b88a6c5e1f92fe8c019ee9c5817c63ea8ead12fcbe4bf8637044252521b7bfa"
+    },
+    {
+      "path": "artifacts/goal22-tools/LegendOverlapReplay/LegendOverlapReplay.csproj",
+      "sha256": "ff1326b660d15c36ac5b981d9076e24bb766356ffd88a600b44f31ff96ba7e2b"
+    },
+    {
+      "path": "artifacts/goal22-tools/LegendOverlapReplay/jobs.json",
+      "sha256": "43f51046444148129ee545179aa8b250214bcea1b5b0e7da4533e8f3ac119c89"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LegendOverlapReplay.ps1",
+      "sha256": "7927070a1da445b010b3e7ccbcac0085931e55ff6b1ad6eb61011f918f7ac645"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false
+}

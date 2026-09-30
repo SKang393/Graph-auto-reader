@@ -1,0 +1,5181 @@
+{
+  "schema": "graphreader.framed-legend-symbol-overlap-repair.v1",
+  "status": "repair_verified_accuracy_incomplete",
+  "arms": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "upstream_changes": [],
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 129.6914323,
+        "execution_seconds": 141.4042531,
+        "metrics": {
+          "truth": 838,
+          "predicted": 765,
+          "matched": 739,
+          "extra": 26,
+          "missing": 99,
+          "precision": 0.9660130718954248,
+          "recall": 0.8818615751789977
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 765,
+          "matched": 739,
+          "extra": 26,
+          "missing": 99,
+          "precision": 0.9660130718954248,
+          "recall": 0.8818615751789977
+        },
+        "paired_truths": {
+          "retained": 739,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 99
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 500,
+            "geometry_matched_region_count": 392,
+            "geometry_false_positive_count": 108,
+            "geometry_false_negative_count": 61,
+            "recognition_exact_count": 348,
+            "recognition_exact_accuracy": 0.7682119205298014,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 63,
+            "unmatched_truth_deletion_edit_count": 434,
+            "unmatched_prediction_insertion_edit_count": 231,
+            "character_error_count": 728,
+            "character_error_rate": 0.23483870967741935,
+            "role_correct_count": 360,
+            "role_accuracy": 0.7947019867549668,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 40,
+                "accuracy": 0.6451612903225806
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 29,
+                "accuracy": 0.7837837837837838
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 134,
+                "accuracy": 0.788235294117647
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 500,
+            "geometry_matched_region_count": 392,
+            "geometry_false_positive_count": 108,
+            "geometry_false_negative_count": 61,
+            "recognition_exact_count": 348,
+            "recognition_exact_accuracy": 0.7682119205298014,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 63,
+            "unmatched_truth_deletion_edit_count": 434,
+            "unmatched_prediction_insertion_edit_count": 231,
+            "character_error_count": 728,
+            "character_error_rate": 0.23483870967741935,
+            "role_correct_count": 360,
+            "role_accuracy": 0.7947019867549668,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 40,
+                "accuracy": 0.6451612903225806
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 29,
+                "accuracy": 0.7837837837837838
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 134,
+                "accuracy": 0.788235294117647
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "upstream_changes": [],
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 209.8790654,
+        "execution_seconds": 213.1705981,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 20,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 261,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 261,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9885057471264368,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9885057471264368,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9693486590038314,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 426
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "upstream_changes": [
+          {
+            "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "field": "ocr",
+            "regions_changed": true,
+            "masks_changed": true,
+            "added_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.999701186021169,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.002011390591492762,
+                    "source_image": "Original",
+                    "text": "Primary outcome."
+                  },
+                  {
+                    "confidence": 0.00034694963659936766,
+                    "source_image": "Original",
+                    "text": "Primary outcowe"
+                  }
+                ],
+                "confidence": 0.7454696805507043,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 126,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1084.5,
+                      "y": 118.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 1023,
+                    "right": 1146,
+                    "top": 111,
+                    "width": 123,
+                    "x": 1023,
+                    "y": 111
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1023,
+                      "y": 111
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1146,
+                      "y": 111
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1146,
+                      "y": 126
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1023,
+                      "y": 126
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ],
+            "removed_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.935239744537017,
+                    "source_image": "Original",
+                    "text": "7 Primary outcome"
+                  },
+                  {
+                    "confidence": 0.8867491498765837,
+                    "source_image": "Original",
+                    "text": "7Primary outcome"
+                  },
+                  {
+                    "confidence": 0.8023936842012118,
+                    "source_image": "Original",
+                    "text": " Primary outcome"
+                  }
+                ],
+                "confidence": 0.8199578213081266,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 126,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1080.5,
+                      "y": 118.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 1015,
+                    "right": 1146,
+                    "top": 111,
+                    "width": 131,
+                    "x": 1015,
+                    "y": 111
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1015,
+                      "y": 111
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1146,
+                      "y": 111
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1146,
+                      "y": 126
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1015,
+                      "y": 126
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "7 Primary outcome"
+              }
+            ]
+          },
+          {
+            "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "field": "ocr",
+            "regions_changed": true,
+            "masks_changed": true,
+            "added_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9995954116185506,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.0010338256770266558,
+                    "source_image": "Original",
+                    "text": "Primary outcowe"
+                  },
+                  {
+                    "confidence": 4.6574912299339214e-05,
+                    "source_image": "Original",
+                    "text": "Priwary outcome"
+                  }
+                ],
+                "confidence": 0.7454433878969966,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 83,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1068,
+                      "y": 75.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 1006,
+                    "right": 1130,
+                    "top": 68,
+                    "width": 124,
+                    "x": 1006,
+                    "y": 68
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1006,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1130,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1130,
+                      "y": 83
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1006,
+                      "y": 83
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ],
+            "removed_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9963209442794323,
+                    "source_image": "Original",
+                    "text": " Primary outcome"
+                  },
+                  {
+                    "confidence": 0.306892565445016,
+                    "source_image": "Original",
+                    "text": "> Primary outcome"
+                  },
+                  {
+                    "confidence": 0.02818943591552517,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  }
+                ],
+                "confidence": 0.8280682299933526,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 83,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1063.5,
+                      "y": 75.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 997,
+                    "right": 1130,
+                    "top": 68,
+                    "width": 133,
+                    "x": 997,
+                    "y": 68
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 997,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1130,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1130,
+                      "y": 83
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 997,
+                      "y": 83
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": " Primary outcome"
+              }
+            ]
+          },
+          {
+            "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "field": "ocr",
+            "regions_changed": true,
+            "masks_changed": true,
+            "added_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9700483935219901,
+                    "source_image": "Original",
+                    "text": "Participant 05"
+                  },
+                  {
+                    "confidence": 0.04368004819201347,
+                    "source_image": "Original",
+                    "text": "Participant O5"
+                  },
+                  {
+                    "confidence": 0.0006909165185885398,
+                    "source_image": "Original",
+                    "text": "Participant 0S"
+                  }
+                ],
+                "confidence": 0.9231925562858307,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 22,
+                    "center": {
+                      "is_finite": true,
+                      "x": 72,
+                      "y": 15.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 19,
+                    "right": 125,
+                    "top": 9,
+                    "width": 106,
+                    "x": 19,
+                    "y": 9
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 19,
+                      "y": 9
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 125,
+                      "y": 9
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 125,
+                      "y": 22
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 19,
+                      "y": 22
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 05"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.998144967989488,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 0.00012255877944849594,
+                    "source_image": "Original",
+                    "text": "Criterion  2"
+                  },
+                  {
+                    "confidence": 5.952554729281984e-05,
+                    "source_image": "Original",
+                    "text": "Criterion Z"
+                  }
+                ],
+                "confidence": 0.9116815587680952,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 39,
+                    "center": {
+                      "is_finite": true,
+                      "x": 593.5,
+                      "y": 34
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 555,
+                    "right": 632,
+                    "top": 29,
+                    "width": 77,
+                    "x": 555,
+                    "y": 29
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 555,
+                      "y": 29
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 632,
+                      "y": 29
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 632,
+                      "y": 39
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 555,
+                      "y": 39
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998697638511658,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.0003513641795682229,
+                    "source_image": "Original",
+                    "text": "Primary outcome."
+                  },
+                  {
+                    "confidence": 6.45510202283607e-05,
+                    "source_image": "Original",
+                    "text": "Primary outcowe"
+                  }
+                ],
+                "confidence": 0.745511580603666,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 83,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1062.5,
+                      "y": 75.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 1001,
+                    "right": 1124,
+                    "top": 68,
+                    "width": 123,
+                    "x": 1001,
+                    "y": 68
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1001,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1124,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1124,
+                      "y": 83
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1001,
+                      "y": 83
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ],
+            "removed_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9651030557496207,
+                    "source_image": "Original",
+                    "text": "Participant 05"
+                  },
+                  {
+                    "confidence": 0.04277710632082163,
+                    "source_image": "Original",
+                    "text": "Participant O5"
+                  },
+                  {
+                    "confidence": 0.0005380895097547164,
+                    "source_image": "Original",
+                    "text": "Participant 0S"
+                  }
+                ],
+                "confidence": 0.9216210610036744,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 22,
+                    "center": {
+                      "is_finite": true,
+                      "x": 72,
+                      "y": 15.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 19,
+                    "right": 125,
+                    "top": 9,
+                    "width": 106,
+                    "x": 19,
+                    "y": 9
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 19,
+                      "y": 9
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 125,
+                      "y": 9
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 125,
+                      "y": 22
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 19,
+                      "y": 22
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 05"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9987591830166903,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 5.6769028905631616e-05,
+                    "source_image": "Original",
+                    "text": "Criterion  2"
+                  },
+                  {
+                    "confidence": 5.235696671057104e-05,
+                    "source_image": "Original",
+                    "text": "Criterion Z"
+                  }
+                ],
+                "confidence": 0.9118685234911662,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 39,
+                    "center": {
+                      "is_finite": true,
+                      "x": 593.5,
+                      "y": 34
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 555,
+                    "right": 632,
+                    "top": 29,
+                    "width": 77,
+                    "x": 555,
+                    "y": 29
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 555,
+                      "y": 29
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 632,
+                      "y": 29
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 632,
+                      "y": 39
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 555,
+                      "y": 39
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9557457426015068,
+                    "source_image": "Original",
+                    "text": ": Primary outcome"
+                  },
+                  {
+                    "confidence": 0.5825669522909979,
+                    "source_image": "Original",
+                    "text": "; Primary outcome"
+                  },
+                  {
+                    "confidence": 0.019039655513009908,
+                    "source_image": "Original",
+                    "text": ":Primary outcome"
+                  }
+                ],
+                "confidence": 0.8454017604409241,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 83,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1057.5,
+                      "y": 75.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 991,
+                    "right": 1124,
+                    "top": 68,
+                    "width": 133,
+                    "x": 991,
+                    "y": 68
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 991,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1124,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1124,
+                      "y": 83
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 991,
+                      "y": 83
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": ": Primary outcome"
+              }
+            ]
+          },
+          {
+            "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "field": "ocr",
+            "regions_changed": true,
+            "masks_changed": true,
+            "added_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9982337270464215,
+                    "source_image": "Original",
+                    "text": "Participant 06"
+                  },
+                  {
+                    "confidence": 0.022816005949795118,
+                    "source_image": "Original",
+                    "text": "Participant O6"
+                  },
+                  {
+                    "confidence": 0.0010048695911664266,
+                    "source_image": "Original",
+                    "text": "Participant06"
+                  }
+                ],
+                "confidence": 0.8862460907913833,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 24,
+                    "center": {
+                      "is_finite": true,
+                      "x": 65.5,
+                      "y": 16.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 13,
+                    "right": 118,
+                    "top": 9,
+                    "width": 105,
+                    "x": 13,
+                    "y": 9
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 13,
+                      "y": 9
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 118,
+                      "y": 9
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 118,
+                      "y": 24
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 13,
+                      "y": 24
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 06"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998484055201212,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.0005079408691474972,
+                    "source_image": "Original",
+                    "text": "Primary outcome."
+                  },
+                  {
+                    "confidence": 7.200516919455177e-05,
+                    "source_image": "Original",
+                    "text": "Primary outcowe"
+                  }
+                ],
+                "confidence": 0.7455062722468212,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 83,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1056.5,
+                      "y": 75.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 995,
+                    "right": 1118,
+                    "top": 68,
+                    "width": 123,
+                    "x": 995,
+                    "y": 68
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 995,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1118,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1118,
+                      "y": 83
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 995,
+                      "y": 83
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ],
+            "removed_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9582314719172085,
+                    "source_image": "Original",
+                    "text": "? Primary outcome"
+                  },
+                  {
+                    "confidence": 0.504424887002802,
+                    "source_image": "Original",
+                    "text": "7 Primary outcome"
+                  },
+                  {
+                    "confidence": 0.044143848831444406,
+                    "source_image": "Original",
+                    "text": "?Primary outcome"
+                  }
+                ],
+                "confidence": 0.8167198299189278,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 83,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1051,
+                      "y": 75.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 984,
+                    "right": 1118,
+                    "top": 68,
+                    "width": 134,
+                    "x": 984,
+                    "y": 68
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 984,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1118,
+                      "y": 68
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1118,
+                      "y": 83
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 984,
+                      "y": 83
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "? Primary outcome"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9962198436260223,
+                    "source_image": "Original",
+                    "text": "Participant 06"
+                  },
+                  {
+                    "confidence": 0.05238475553852949,
+                    "source_image": "Original",
+                    "text": "Participant O6"
+                  },
+                  {
+                    "confidence": 0.0010749306321818357,
+                    "source_image": "Original",
+                    "text": "Participant06"
+                  }
+                ],
+                "confidence": 0.8856497047777159,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 24,
+                    "center": {
+                      "is_finite": true,
+                      "x": 65.5,
+                      "y": 16.5
+                    },
+                    "height": 15,
+                    "is_valid": true,
+                    "left": 13,
+                    "right": 118,
+                    "top": 9,
+                    "width": 105,
+                    "x": 13,
+                    "y": 9
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 13,
+                      "y": 9
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 118,
+                      "y": 9
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 118,
+                      "y": 24
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 13,
+                      "y": 24
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 06"
+              }
+            ]
+          },
+          {
+            "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+            "crop": [
+              0,
+              0,
+              1338,
+              492
+            ],
+            "field": "ocr",
+            "regions_changed": true,
+            "masks_changed": true,
+            "added_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9997528910636901,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 9.837594035831795e-05,
+                    "source_image": "Original",
+                    "text": "primary outcome"
+                  },
+                  {
+                    "confidence": 8.835981037058783e-05,
+                    "source_image": "Original",
+                    "text": "PrimAry outcome"
+                  }
+                ],
+                "confidence": 0.687900600083865,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 111,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1254,
+                      "y": 101
+                    },
+                    "height": 20,
+                    "is_valid": true,
+                    "left": 1175,
+                    "right": 1333,
+                    "top": 91,
+                    "width": 158,
+                    "x": 1175,
+                    "y": 91
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1175,
+                      "y": 91
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1333,
+                      "y": 91
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1333,
+                      "y": 111
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1175,
+                      "y": 111
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9997794151306152,
+                    "source_image": "Original",
+                    "text": "Probe"
+                  },
+                  {
+                    "confidence": 0.0005702938877828327,
+                    "source_image": "Original",
+                    "text": "Rrobe"
+                  },
+                  {
+                    "confidence": 2.0231402593254554e-05,
+                    "source_image": "Original",
+                    "text": "PrObe"
+                  }
+                ],
+                "confidence": 0.7821740156143275,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 139,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1110.5,
+                      "y": 130.5
+                    },
+                    "height": 17,
+                    "is_valid": true,
+                    "left": 1086,
+                    "right": 1135,
+                    "top": 122,
+                    "width": 49,
+                    "x": 1086,
+                    "y": 122
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1086,
+                      "y": 122
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1135,
+                      "y": 122
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1135,
+                      "y": 139
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1086,
+                      "y": 139
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Annotation",
+                "source_image": "Original",
+                "text": "Probe"
+              }
+            ],
+            "removed_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9997030893961588,
+                    "source_image": "Original",
+                    "text": "Pri"
+                  },
+                  {
+                    "confidence": 0.25682335828563446,
+                    "source_image": "Original",
+                    "text": "\u0394Pri"
+                  },
+                  {
+                    "confidence": 0.23572088573967112,
+                    "source_image": "Original",
+                    "text": " Pri"
+                  }
+                ],
+                "confidence": 0.7529628749423776,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 107,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1176,
+                      "y": 99
+                    },
+                    "height": 16,
+                    "is_valid": true,
+                    "left": 1152,
+                    "right": 1200,
+                    "top": 91,
+                    "width": 48,
+                    "x": 1152,
+                    "y": 91
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1152,
+                      "y": 91
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1200,
+                      "y": 91
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1200,
+                      "y": 107
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1152,
+                      "y": 107
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Other",
+                "source_image": "Original",
+                "text": "Pri"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999632835388184,
+                    "source_image": "Original",
+                    "text": "outcome"
+                  },
+                  {
+                    "confidence": 7.242510149291365e-05,
+                    "source_image": "Original",
+                    "text": "Outcome"
+                  },
+                  {
+                    "confidence": 3.889961416742517e-05,
+                    "source_image": "Original",
+                    "text": "outcomE"
+                  }
+                ],
+                "confidence": 0.7803612746331962,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 106,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1295.5,
+                      "y": 99
+                    },
+                    "height": 14,
+                    "is_valid": true,
+                    "left": 1258,
+                    "right": 1333,
+                    "top": 92,
+                    "width": 75,
+                    "x": 1258,
+                    "y": 92
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1258,
+                      "y": 92
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1333,
+                      "y": 92
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1333,
+                      "y": 106
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1258,
+                      "y": 106
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Other",
+                "source_image": "Original",
+                "text": "outcome"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9997514009475708,
+                    "source_image": "Original",
+                    "text": "Probe"
+                  },
+                  {
+                    "confidence": 0.0006551419376242193,
+                    "source_image": "Original",
+                    "text": "Rrobe"
+                  },
+                  {
+                    "confidence": 1.8731691662346294e-05,
+                    "source_image": "Original",
+                    "text": "PrObe"
+                  }
+                ],
+                "confidence": 0.7821667099459044,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 139,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1110.5,
+                      "y": 130.5
+                    },
+                    "height": 17,
+                    "is_valid": true,
+                    "left": 1086,
+                    "right": 1135,
+                    "top": 122,
+                    "width": 49,
+                    "x": 1086,
+                    "y": 122
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1086,
+                      "y": 122
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1135,
+                      "y": 122
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1135,
+                      "y": 139
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1086,
+                      "y": 139
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Annotation",
+                "source_image": "Original",
+                "text": "Probe"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.45872417092323303,
+                    "source_image": "Original",
+                    "text": "\u2212"
+                  },
+                  {
+                    "confidence": 0.012978099357561512,
+                    "source_image": "Original",
+                    "text": "\u2212~"
+                  },
+                  {
+                    "confidence": 0.00627497436312893,
+                    "source_image": "Original",
+                    "text": "\u2212\u2212"
+                  }
+                ],
+                "confidence": 0.6069337228937258,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 104,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1255,
+                      "y": 101.5
+                    },
+                    "height": 5,
+                    "is_valid": true,
+                    "left": 1252,
+                    "right": 1258,
+                    "top": 99,
+                    "width": 6,
+                    "x": 1252,
+                    "y": 99
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1252,
+                      "y": 99
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1258,
+                      "y": 99
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1258,
+                      "y": 104
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1252,
+                      "y": 104
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Other",
+                "source_image": "Original",
+                "text": "\u2212"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999378664152963,
+                    "source_image": "Original",
+                    "text": "Primary"
+                  },
+                  {
+                    "confidence": 0.00020150503469055334,
+                    "source_image": "Original",
+                    "text": "PrimarY"
+                  },
+                  {
+                    "confidence": 0.00010426493729383905,
+                    "source_image": "Original",
+                    "text": "primary"
+                  }
+                ],
+                "confidence": 0.7429582898107955,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 109,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1212,
+                      "y": 100
+                    },
+                    "height": 18,
+                    "is_valid": true,
+                    "left": 1175,
+                    "right": 1249,
+                    "top": 91,
+                    "width": 74,
+                    "x": 1175,
+                    "y": 91
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 1175,
+                      "y": 91
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1249,
+                      "y": 91
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1249,
+                      "y": 109
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1175,
+                      "y": 109
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Other",
+                "source_image": "Original",
+                "text": "Primary"
+              }
+            ]
+          },
+          {
+            "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+            "crop": [
+              0,
+              0,
+              1338,
+              492
+            ],
+            "field": "marker_pipeline",
+            "initial_centers_changed": true
+          }
+        ],
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 128.3901202,
+        "execution_seconds": 136.2692161,
+        "metrics": {
+          "truth": 838,
+          "predicted": 762,
+          "matched": 743,
+          "extra": 19,
+          "missing": 95,
+          "precision": 0.9750656167979003,
+          "recall": 0.8866348448687351
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 762,
+          "matched": 743,
+          "extra": 19,
+          "missing": 95,
+          "precision": 0.9750656167979003,
+          "recall": 0.8866348448687351
+        },
+        "paired_truths": {
+          "retained": 743,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 95
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 560,
+            "geometry_matched_region_count": 435,
+            "geometry_false_positive_count": 125,
+            "geometry_false_negative_count": 18,
+            "recognition_exact_count": 392,
+            "recognition_exact_accuracy": 0.8653421633554084,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 74,
+            "unmatched_truth_deletion_edit_count": 79,
+            "unmatched_prediction_insertion_edit_count": 189,
+            "character_error_count": 342,
+            "character_error_rate": 0.11032258064516129,
+            "role_correct_count": 395,
+            "role_accuracy": 0.8719646799116998,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 42,
+                "accuracy": 0.6774193548387096
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 32,
+                "accuracy": 0.8648648648648649
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 147,
+                "accuracy": 0.8647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 94,
+                "accuracy": 0.9494949494949495
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 563,
+            "geometry_matched_region_count": 434,
+            "geometry_false_positive_count": 129,
+            "geometry_false_negative_count": 19,
+            "recognition_exact_count": 387,
+            "recognition_exact_accuracy": 0.8543046357615894,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 81,
+            "unmatched_truth_deletion_edit_count": 94,
+            "unmatched_prediction_insertion_edit_count": 207,
+            "character_error_count": 382,
+            "character_error_rate": 0.12322580645161291,
+            "role_correct_count": 394,
+            "role_accuracy": 0.869757174392936,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 42,
+                "accuracy": 0.6774193548387096
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 31,
+                "accuracy": 0.8378378378378378
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 147,
+                "accuracy": 0.8647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 94,
+                "accuracy": 0.9494949494949495
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "upstream_changes": [
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "field": "ocr",
+            "regions_changed": true,
+            "masks_changed": true,
+            "added_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999128634279425,
+                    "source_image": "Original",
+                    "text": "Criterion 1"
+                  },
+                  {
+                    "confidence": 0.00036701671224106627,
+                    "source_image": "Original",
+                    "text": "Criterion1"
+                  },
+                  {
+                    "confidence": 0.00017991616556059994,
+                    "source_image": "Original",
+                    "text": "Criterjon 1"
+                  }
+                ],
+                "confidence": 0.8597819193495209,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 469.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 426,
+                    "right": 513,
+                    "top": 28,
+                    "width": 87,
+                    "x": 426,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 1"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998471140861511,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 0.00021050124526630115,
+                    "source_image": "Original",
+                    "text": "Criterjon 2"
+                  },
+                  {
+                    "confidence": 5.075184738854725e-05,
+                    "source_image": "Original",
+                    "text": "criterion 2"
+                  }
+                ],
+                "confidence": 0.895153112004338,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 708,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 665,
+                    "right": 751,
+                    "top": 28,
+                    "width": 86,
+                    "x": 665,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 665,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 665,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999274952071053,
+                    "source_image": "Original",
+                    "text": "Participant 02"
+                  },
+                  {
+                    "confidence": 0.00039731865542355096,
+                    "source_image": "Original",
+                    "text": "Participant02"
+                  },
+                  {
+                    "confidence": 5.859195528001575e-05,
+                    "source_image": "Original",
+                    "text": "participant 02"
+                  }
+                ],
+                "confidence": 0.8584086921345083,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 80,
+                      "y": 31.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 25,
+                    "right": 135,
+                    "top": 25,
+                    "width": 110,
+                    "x": 25,
+                    "y": 25
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 02"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998762885729472,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.0010307950364971277,
+                    "source_image": "Original",
+                    "text": "Primaryoutcome"
+                  },
+                  {
+                    "confidence": 0.00012409493230350235,
+                    "source_image": "Original",
+                    "text": "Primary outCome"
+                  }
+                ],
+                "confidence": 0.7,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 125,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1022,
+                      "y": 118.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 963,
+                    "right": 1081,
+                    "top": 112,
+                    "width": 118,
+                    "x": 963,
+                    "y": 112
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 963,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 125
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 963,
+                      "y": 125
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ],
+            "removed_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998989213596691,
+                    "source_image": "Original",
+                    "text": "Criterion 1"
+                  },
+                  {
+                    "confidence": 0.0004163601700569597,
+                    "source_image": "Original",
+                    "text": "Criterion1"
+                  },
+                  {
+                    "confidence": 0.00024366007437599048,
+                    "source_image": "Original",
+                    "text": "Criterjon 1"
+                  }
+                ],
+                "confidence": 0.859777923270005,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 469.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 426,
+                    "right": 513,
+                    "top": 28,
+                    "width": 87,
+                    "x": 426,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 1"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9843436144292355,
+                    "source_image": "Original",
+                    "text": " Primary outcome"
+                  },
+                  {
+                    "confidence": 0.6627978750141742,
+                    "source_image": "Original",
+                    "text": "> Primary outcome"
+                  },
+                  {
+                    "confidence": 0.1302656849453246,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  }
+                ],
+                "confidence": 0.779297723436418,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 125,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1017.5,
+                      "y": 118.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 954,
+                    "right": 1081,
+                    "top": 112,
+                    "width": 127,
+                    "x": 954,
+                    "y": 112
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 954,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 125
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 954,
+                      "y": 125
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Annotation",
+                "source_image": "Original",
+                "text": " Primary outcome"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998564178293402,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 0.00023142990662846727,
+                    "source_image": "Original",
+                    "text": "Criterjon 2"
+                  },
+                  {
+                    "confidence": 8.272089405188733e-05,
+                    "source_image": "Original",
+                    "text": "criterion 2"
+                  }
+                ],
+                "confidence": 0.8951558885117725,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 708,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 665,
+                    "right": 751,
+                    "top": 28,
+                    "width": 86,
+                    "x": 665,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 665,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 665,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999262988567352,
+                    "source_image": "Original",
+                    "text": "Participant 02"
+                  },
+                  {
+                    "confidence": 0.0003828014320067547,
+                    "source_image": "Original",
+                    "text": "Participant02"
+                  },
+                  {
+                    "confidence": 6.277646650022264e-05,
+                    "source_image": "Original",
+                    "text": "participant 02"
+                  }
+                ],
+                "confidence": 0.8584083497903646,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 80,
+                      "y": 31.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 25,
+                    "right": 135,
+                    "top": 25,
+                    "width": 110,
+                    "x": 25,
+                    "y": 25
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 02"
+              }
+            ]
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "field": "calibration",
+            "before_validity": "Valid",
+            "after_validity": "Valid",
+            "changed_fields": [
+              "lattice",
+              "anchors",
+              "confidence"
+            ]
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "field": "marker_pipeline",
+            "initial_centers_changed": true
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "field": "ocr",
+            "regions_changed": true,
+            "masks_changed": true,
+            "added_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999124705791473,
+                    "source_image": "Original",
+                    "text": "Participant 04"
+                  },
+                  {
+                    "confidence": 0.0005802480916639899,
+                    "source_image": "Original",
+                    "text": "Participant04"
+                  },
+                  {
+                    "confidence": 6.869374806543542e-05,
+                    "source_image": "Original",
+                    "text": "participant 04"
+                  }
+                ],
+                "confidence": 0.8584514382192232,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 80.5,
+                      "y": 31.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 25,
+                    "right": 136,
+                    "top": 25,
+                    "width": 111,
+                    "x": 25,
+                    "y": 25
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 136,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 136,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 04"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999052286148071,
+                    "source_image": "Original",
+                    "text": "Criterion 1"
+                  },
+                  {
+                    "confidence": 0.00043725215929192964,
+                    "source_image": "Original",
+                    "text": "Criterion1"
+                  },
+                  {
+                    "confidence": 0.00017645443735644573,
+                    "source_image": "Original",
+                    "text": "Criterjon 1"
+                  }
+                ],
+                "confidence": 0.8754833567008,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 469.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 426,
+                    "right": 513,
+                    "top": 28,
+                    "width": 87,
+                    "x": 426,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 1"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999086423353716,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 0.0003773751985087166,
+                    "source_image": "Original",
+                    "text": "Criterion2"
+                  },
+                  {
+                    "confidence": 0.00026510318757953896,
+                    "source_image": "Original",
+                    "text": "Criterjon 2"
+                  }
+                ],
+                "confidence": 0.8515311693283609,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 707.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 664,
+                    "right": 751,
+                    "top": 28,
+                    "width": 87,
+                    "x": 664,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 664,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 664,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998679161071777,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.00012130785680429494,
+                    "source_image": "Original",
+                    "text": "Primary outCome"
+                  },
+                  {
+                    "confidence": 6.382917134351606e-05,
+                    "source_image": "Original",
+                    "text": "Primary outcOme"
+                  }
+                ],
+                "confidence": 0.7,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 125,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1022,
+                      "y": 118.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 963,
+                    "right": 1081,
+                    "top": 112,
+                    "width": 118,
+                    "x": 963,
+                    "y": 112
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 963,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 125
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 963,
+                      "y": 125
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ],
+            "removed_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999141309942517,
+                    "source_image": "Original",
+                    "text": "Participant 04"
+                  },
+                  {
+                    "confidence": 0.0005087667443594109,
+                    "source_image": "Original",
+                    "text": "Participant04"
+                  },
+                  {
+                    "confidence": 0.00010118126159314755,
+                    "source_image": "Original",
+                    "text": "participant 04"
+                  }
+                ],
+                "confidence": 0.8584519133891296,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 80.5,
+                      "y": 31.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 25,
+                    "right": 136,
+                    "top": 25,
+                    "width": 111,
+                    "x": 25,
+                    "y": 25
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 136,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 136,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 04"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998973716389049,
+                    "source_image": "Original",
+                    "text": "Criterion 1"
+                  },
+                  {
+                    "confidence": 0.0005136989513758013,
+                    "source_image": "Original",
+                    "text": "Criterion1"
+                  },
+                  {
+                    "confidence": 0.00017350084960631983,
+                    "source_image": "Original",
+                    "text": "Criterjon 1"
+                  }
+                ],
+                "confidence": 0.8754810635935946,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 469.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 426,
+                    "right": 513,
+                    "top": 28,
+                    "width": 87,
+                    "x": 426,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 1"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.956281992522153,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 0.0002529723647326238,
+                    "source_image": "Original",
+                    "text": "Criterjon 2"
+                  },
+                  {
+                    "confidence": 5.619627318500103e-05,
+                    "source_image": "Original",
+                    "text": "criterion 2"
+                  }
+                ],
+                "confidence": 0.8389622788956381,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 707.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 664,
+                    "right": 751,
+                    "top": 28,
+                    "width": 87,
+                    "x": 664,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 664,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 664,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9992996056874593,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.14710882097341796,
+                    "source_image": "Original",
+                    "text": " Primary outcome"
+                  },
+                  {
+                    "confidence": 0.11679146304921606,
+                    "source_image": "Original",
+                    "text": ",Primary outcome"
+                  }
+                ],
+                "confidence": 0.774331603125909,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 125,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1018.5,
+                      "y": 118.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 956,
+                    "right": 1081,
+                    "top": 112,
+                    "width": 125,
+                    "x": 956,
+                    "y": 112
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 956,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 125
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 956,
+                      "y": 125
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Annotation",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ]
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "field": "calibration",
+            "before_validity": "Valid",
+            "after_validity": "Valid",
+            "changed_fields": [
+              "lattice",
+              "anchors",
+              "confidence"
+            ]
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "field": "marker_pipeline",
+            "initial_centers_changed": true
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "field": "ocr",
+            "regions_changed": true,
+            "masks_changed": true,
+            "added_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999197678906577,
+                    "source_image": "Original",
+                    "text": "Participant 05"
+                  },
+                  {
+                    "confidence": 0.0004457030385089307,
+                    "source_image": "Original",
+                    "text": "Participant05"
+                  },
+                  {
+                    "confidence": 7.382682690235457e-05,
+                    "source_image": "Original",
+                    "text": "participant 05"
+                  }
+                ],
+                "confidence": 0.8506691514779723,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 80,
+                      "y": 31.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 25,
+                    "right": 135,
+                    "top": 25,
+                    "width": 110,
+                    "x": 25,
+                    "y": 25
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 05"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999105876142328,
+                    "source_image": "Original",
+                    "text": "Criterion 1"
+                  },
+                  {
+                    "confidence": 0.0003892385529798482,
+                    "source_image": "Original",
+                    "text": "Criterion1"
+                  },
+                  {
+                    "confidence": 0.00020272290475703588,
+                    "source_image": "Original",
+                    "text": "Criterjon 1"
+                  }
+                ],
+                "confidence": 0.8620758381173681,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 469.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 426,
+                    "right": 513,
+                    "top": 28,
+                    "width": 87,
+                    "x": 426,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 1"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999032682842679,
+                    "source_image": "Original",
+                    "text": "Criterion"
+                  },
+                  {
+                    "confidence": 0.0004362774396465121,
+                    "source_image": "Original",
+                    "text": "Criterjon"
+                  },
+                  {
+                    "confidence": 0.00012106619761316612,
+                    "source_image": "Original",
+                    "text": "criterion"
+                  }
+                ],
+                "confidence": 0.8609098922751015,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 936.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 901,
+                    "right": 972,
+                    "top": 28,
+                    "width": 71,
+                    "x": 901,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 901,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 972,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 972,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 901,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.999901907010512,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 0.000449819805955452,
+                    "source_image": "Original",
+                    "text": "Criterion2"
+                  },
+                  {
+                    "confidence": 0.00025917231819982115,
+                    "source_image": "Original",
+                    "text": "Criterjon 2"
+                  }
+                ],
+                "confidence": 0.8590095480836137,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 707.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 664,
+                    "right": 751,
+                    "top": 28,
+                    "width": 87,
+                    "x": 664,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 664,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 664,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998828013737996,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.001034899214432215,
+                    "source_image": "Original",
+                    "text": "Primaryoutcome"
+                  },
+                  {
+                    "confidence": 0.00012814893032750104,
+                    "source_image": "Original",
+                    "text": "Primary outCome"
+                  }
+                ],
+                "confidence": 0.7,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 129,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1022,
+                      "y": 122.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 963,
+                    "right": 1081,
+                    "top": 116,
+                    "width": 118,
+                    "x": 963,
+                    "y": 116
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 963,
+                      "y": 116
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 116
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 129
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 963,
+                      "y": 129
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ],
+            "removed_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999140756470817,
+                    "source_image": "Original",
+                    "text": "Participant 05"
+                  },
+                  {
+                    "confidence": 0.000475532185702738,
+                    "source_image": "Original",
+                    "text": "Participant05"
+                  },
+                  {
+                    "confidence": 7.830366607185961e-05,
+                    "source_image": "Original",
+                    "text": "participant 05"
+                  }
+                ],
+                "confidence": 0.8506675372733942,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 80,
+                      "y": 31.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 25,
+                    "right": 135,
+                    "top": 25,
+                    "width": 110,
+                    "x": 25,
+                    "y": 25
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 05"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999013597315008,
+                    "source_image": "Original",
+                    "text": "Criterion 1"
+                  },
+                  {
+                    "confidence": 0.000555276947562877,
+                    "source_image": "Original",
+                    "text": "Criterion1"
+                  },
+                  {
+                    "confidence": 0.0001619462295799151,
+                    "source_image": "Original",
+                    "text": "Criterjon 1"
+                  }
+                ],
+                "confidence": 0.8620731861605129,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 469.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 426,
+                    "right": 513,
+                    "top": 28,
+                    "width": 87,
+                    "x": 426,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 513,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 1"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999259312947592,
+                    "source_image": "Original",
+                    "text": "Criterion"
+                  },
+                  {
+                    "confidence": 0.00018652554184774898,
+                    "source_image": "Original",
+                    "text": "Criterjon"
+                  },
+                  {
+                    "confidence": 0.00015627328683295876,
+                    "source_image": "Original",
+                    "text": "criterion"
+                  }
+                ],
+                "confidence": 0.8609163964584347,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 936.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 901,
+                    "right": 972,
+                    "top": 28,
+                    "width": 71,
+                    "x": 901,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 901,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 972,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 972,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 901,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998838359659369,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 0.000764474236188148,
+                    "source_image": "Original",
+                    "text": "Criterion2"
+                  },
+                  {
+                    "confidence": 0.00017073357091415333,
+                    "source_image": "Original",
+                    "text": "Criterjon 2"
+                  }
+                ],
+                "confidence": 0.8590043731448715,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 707.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 664,
+                    "right": 751,
+                    "top": 28,
+                    "width": 87,
+                    "x": 664,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 664,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 664,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9989915211995443,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.48889589649239773,
+                    "source_image": "Original",
+                    "text": " Primary outcome"
+                  },
+                  {
+                    "confidence": 0.0018771612553849266,
+                    "source_image": "Original",
+                    "text": "Primay outcome"
+                  }
+                ],
+                "confidence": 0.7428734249235248,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 128,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1013,
+                      "y": 122
+                    },
+                    "height": 12,
+                    "is_valid": true,
+                    "left": 945,
+                    "right": 1081,
+                    "top": 116,
+                    "width": 136,
+                    "x": 945,
+                    "y": 116
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 945,
+                      "y": 116
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 116
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 128
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 945,
+                      "y": 128
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Annotation",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ]
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "field": "marker_pipeline",
+            "initial_centers_changed": true
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "field": "ocr",
+            "regions_changed": true,
+            "masks_changed": true,
+            "added_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999113721506936,
+                    "source_image": "Original",
+                    "text": "Participant 06"
+                  },
+                  {
+                    "confidence": 0.0006322349030283395,
+                    "source_image": "Original",
+                    "text": "Participant06"
+                  },
+                  {
+                    "confidence": 5.821072772659441e-05,
+                    "source_image": "Original",
+                    "text": "participant 06"
+                  }
+                ],
+                "confidence": 0.8802327058080119,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 80,
+                      "y": 31.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 25,
+                    "right": 135,
+                    "top": 25,
+                    "width": 110,
+                    "x": 25,
+                    "y": 25
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 06"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998943751508539,
+                    "source_image": "Original",
+                    "text": "Criterion 1"
+                  },
+                  {
+                    "confidence": 0.0005058186556809222,
+                    "source_image": "Original",
+                    "text": "Criterion1"
+                  },
+                  {
+                    "confidence": 0.000229621406951792,
+                    "source_image": "Original",
+                    "text": "Criterjon 1"
+                  }
+                ],
+                "confidence": 0.874745810371426,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 469,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 426,
+                    "right": 512,
+                    "top": 28,
+                    "width": 86,
+                    "x": 426,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 512,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 512,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 1"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999144143528409,
+                    "source_image": "Original",
+                    "text": "Criterion"
+                  },
+                  {
+                    "confidence": 0.0003394413156273819,
+                    "source_image": "Original",
+                    "text": "Criterjon"
+                  },
+                  {
+                    "confidence": 0.00011288191040279892,
+                    "source_image": "Original",
+                    "text": "criterion"
+                  }
+                ],
+                "confidence": 0.9075874007647646,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 936.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 901,
+                    "right": 972,
+                    "top": 28,
+                    "width": 71,
+                    "x": 901,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 901,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 972,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 972,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 901,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998055371371183,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 0.0002039556315760768,
+                    "source_image": "Original",
+                    "text": "Criterjon 2"
+                  },
+                  {
+                    "confidence": 4.5417950610431825e-05,
+                    "source_image": "Original",
+                    "text": "criterion 2"
+                  }
+                ],
+                "confidence": 0.8712583730912696,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 708,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 665,
+                    "right": 751,
+                    "top": 28,
+                    "width": 86,
+                    "x": 665,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 665,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 665,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999118000268936,
+                    "source_image": "Original",
+                    "text": "Baseline"
+                  },
+                  {
+                    "confidence": 0.00020476684449639246,
+                    "source_image": "Original",
+                    "text": "BaSeline"
+                  },
+                  {
+                    "confidence": 0.00013314919888349094,
+                    "source_image": "Original",
+                    "text": "Base1ine"
+                  }
+                ],
+                "confidence": 0.860134469005771,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 221,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 190,
+                    "right": 252,
+                    "top": 28,
+                    "width": 62,
+                    "x": 190,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 190,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 252,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 252,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 190,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Baseline"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998699784278869,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.0011442079443119595,
+                    "source_image": "Original",
+                    "text": "Primaryoutcome"
+                  },
+                  {
+                    "confidence": 0.00012029246976878482,
+                    "source_image": "Original",
+                    "text": "Primary outCome"
+                  }
+                ],
+                "confidence": 0.7,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 125,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1022,
+                      "y": 118.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 963,
+                    "right": 1081,
+                    "top": 112,
+                    "width": 118,
+                    "x": 963,
+                    "y": 112
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 963,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 125
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 963,
+                      "y": 125
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "LegendText",
+                "source_image": "Original",
+                "text": "Primary outcome"
+              }
+            ],
+            "removed_region_values": [
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999144077301025,
+                    "source_image": "Original",
+                    "text": "Participant 06"
+                  },
+                  {
+                    "confidence": 0.0005995653686470043,
+                    "source_image": "Original",
+                    "text": "Participant06"
+                  },
+                  {
+                    "confidence": 6.982837147002085e-05,
+                    "source_image": "Original",
+                    "text": "participant 06"
+                  }
+                ],
+                "confidence": 0.8802335965581483,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 80,
+                      "y": 31.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 25,
+                    "right": 135,
+                    "top": 25,
+                    "width": 110,
+                    "x": 25,
+                    "y": 25
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 25
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 135,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 25,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Participant",
+                "source_image": "Original",
+                "text": "Participant 06"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998970519412648,
+                    "source_image": "Original",
+                    "text": "Criterion 1"
+                  },
+                  {
+                    "confidence": 0.0004964250685666336,
+                    "source_image": "Original",
+                    "text": "Criterion1"
+                  },
+                  {
+                    "confidence": 0.00020901999518727524,
+                    "source_image": "Original",
+                    "text": "Criterjon 1"
+                  }
+                ],
+                "confidence": 0.8747465909569111,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 469,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 426,
+                    "right": 512,
+                    "top": 28,
+                    "width": 86,
+                    "x": 426,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 512,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 512,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 426,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 1"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999224212434557,
+                    "source_image": "Original",
+                    "text": "Criterion"
+                  },
+                  {
+                    "confidence": 0.00027486290647863425,
+                    "source_image": "Original",
+                    "text": "Criterjon"
+                  },
+                  {
+                    "confidence": 0.00012148337691910758,
+                    "source_image": "Original",
+                    "text": "criterion"
+                  }
+                ],
+                "confidence": 0.9075898232833122,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 936.5,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 901,
+                    "right": 972,
+                    "top": 28,
+                    "width": 71,
+                    "x": 901,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 901,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 972,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 972,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 901,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9998349113897844,
+                    "source_image": "Original",
+                    "text": "Criterion 2"
+                  },
+                  {
+                    "confidence": 0.0001823813960438749,
+                    "source_image": "Original",
+                    "text": "Criterjon 2"
+                  },
+                  {
+                    "confidence": 7.52956440436116e-05,
+                    "source_image": "Original",
+                    "text": "criterion 2"
+                  }
+                ],
+                "confidence": 0.871266905521496,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 708,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 665,
+                    "right": 751,
+                    "top": 28,
+                    "width": 86,
+                    "x": 665,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 665,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 751,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 665,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Criterion 2"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9667955040931702,
+                    "source_image": "Original",
+                    "text": " Primary outcome"
+                  },
+                  {
+                    "confidence": 0.9321912835282247,
+                    "source_image": "Original",
+                    "text": "Primary outcome"
+                  },
+                  {
+                    "confidence": 0.3993481375631195,
+                    "source_image": "Original",
+                    "text": "; Primary outcome"
+                  }
+                ],
+                "confidence": 0.7796911261956182,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 125,
+                    "center": {
+                      "is_finite": true,
+                      "x": 1016.5,
+                      "y": 118.5
+                    },
+                    "height": 13,
+                    "is_valid": true,
+                    "left": 952,
+                    "right": 1081,
+                    "top": 112,
+                    "width": 129,
+                    "x": 952,
+                    "y": 112
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 952,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 112
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 1081,
+                      "y": 125
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 952,
+                      "y": 125
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "Annotation",
+                "source_image": "Original",
+                "text": " Primary outcome"
+              },
+              {
+                "alternatives": [
+                  {
+                    "confidence": 0.9999159425497055,
+                    "source_image": "Original",
+                    "text": "Baseline"
+                  },
+                  {
+                    "confidence": 0.00019116323669045687,
+                    "source_image": "Original",
+                    "text": "BaSeline"
+                  },
+                  {
+                    "confidence": 0.0001506650374385804,
+                    "source_image": "Original",
+                    "text": "Base1ine"
+                  }
+                ],
+                "confidence": 0.8601356568177821,
+                "coordinate_space": "original_pixels",
+                "polygon": {
+                  "bounds": {
+                    "bottom": 38,
+                    "center": {
+                      "is_finite": true,
+                      "x": 221,
+                      "y": 33
+                    },
+                    "height": 10,
+                    "is_valid": true,
+                    "left": 190,
+                    "right": 252,
+                    "top": 28,
+                    "width": 62,
+                    "x": 190,
+                    "y": 28
+                  },
+                  "points": [
+                    {
+                      "is_finite": true,
+                      "x": 190,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 252,
+                      "y": 28
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 252,
+                      "y": 38
+                    },
+                    {
+                      "is_finite": true,
+                      "x": 190,
+                      "y": 38
+                    }
+                  ]
+                },
+                "review_status": "Unreviewed",
+                "role": "PhaseHeading",
+                "source_image": "Original",
+                "text": "Baseline"
+              }
+            ]
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "field": "calibration",
+            "before_validity": "Valid",
+            "after_validity": "Valid",
+            "changed_fields": [
+              "lattice",
+              "anchors",
+              "confidence"
+            ]
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "field": "marker_pipeline",
+            "initial_centers_changed": true
+          }
+        ],
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              936.383544921875,
+              95.2881088256836
+            ],
+            "radius": 5.649606227874756
+          }
+        ],
+        "accepted_removals": [
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              947.70703125,
+              119.19824981689453
+            ],
+            "radius": 6.378742694854736
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              947.8262329101562,
+              119.38920593261719
+            ],
+            "radius": 6.1718363761901855
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              936.3795776367188,
+              95.28829193115234
+            ],
+            "radius": 5.6340484619140625
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              948.6288452148438,
+              119.22454071044922
+            ],
+            "radius": 5.251936912536621
+          }
+        ],
+        "inference_seconds": 202.4106333,
+        "execution_seconds": 205.7158509,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 33,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 425,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 425,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9741176470588235,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.9741176470588235,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9623529411764706,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 14,
+          "failed_cases": 9,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 24,
+          "matched_series": 19,
+          "truth_points": 706,
+          "predicted_points": 286,
+          "matched_points": 281,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 286,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 279,
+          "correct_rows": 276,
+          "missing_rows": 445,
+          "extra_rows": 7,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 281,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 425,
+          "unique_point_extra": 5,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9825174825174825,
+          "unique_point_structural_coverage": 0.3980169971671388,
+          "unique_point_value_precision": 0.9825174825174825,
+          "unique_point_value_coverage": 0.3980169971671388,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.965034965034965,
+          "relational_row_coverage": 0.3812154696132597,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.989247311827957,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 9
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 20,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 261,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 261,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9885057471264368,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9885057471264368,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9693486590038314,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 13,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 164,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 164,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 8,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9512195121951219,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9512195121951219,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9512195121951219,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "before": "failed",
+            "after": "completed",
+            "before_error": "Candidate export failed closed: WORKFLOW_RECALIBRATION_REQUIRED.",
+            "after_error": null
+          }
+        ],
+        "exported_numeric_value_changes": [
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "added": 139,
+            "removed": 0
+          }
+        ],
+        "validated_export_rows": 425
+      }
+    }
+  },
+  "tests": {
+    "ocr": {
+      "total": 579,
+      "executed": 563,
+      "passed": 563,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    },
+    "app": {
+      "total": 520,
+      "executed": 520,
+      "passed": 520,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    }
+  },
+  "checks_seconds": 121.0246514,
+  "workflow_sequence_seconds": 698.3118953,
+  "provider_counts": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 140,
+    "marker-center-component-diversity-v27": 140,
+    "marker-classifier-structural-context-v5": 306,
+    "graph-scale-coverage-db-head-v46-p1": 70
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/status.json",
+      "sha256": "54c02541f90f028aea7b2a7359fceb90aed77049d25de7385838b0dfc0004298"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/jobs.json",
+      "sha256": "087714262313d9eae148e39fe577d3cb812a3a62e837af51b158d0274ca1c1bf"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/source-bindings.json",
+      "sha256": "16ba77c21b578c912dfb972f862ef2ca04b30004512de1c6b9b0fd21ee1a1775"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-checks-20260930-v1/status.json",
+      "sha256": "fbee0b5c499abf708110eb804beb84a1678397a5ed5635e1eed872ea98ee2e6b"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-checks-20260930-v1/source-bindings.json",
+      "sha256": "95196410fb46a4e59a92a3e588d02321793194e8f317942af752815ca3226b19"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-checks-20260930-v1/test-results/ocr.trx",
+      "sha256": "42dd2237123da9acee455f1d14cd03a6c7ac1854e2b3e2a2604b57b8967f83fc"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-checks-20260930-v1/test-results/app.trx",
+      "sha256": "7159d186c7b9dea64fcfb528c2e0388cd82390186ee393158636ab59b487b850"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-checks-20260930-v1/Ocr-build.log",
+      "sha256": "9e8094d16484f7cb3436ae2ae3e7e23b8463b03e1cb65a0c9c6e86c2f2590250"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-checks-20260930-v1/App-build.log",
+      "sha256": "0c0cb35b42c944e0f652fc5be5235f5195e5f44918349b9ab252bd81739ac1af"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-checks-20260930-v1/native-build.log",
+      "sha256": "8e7ed49ecf17f0d867e9962051cc1c5928956585873460c90f42bdfe6a9ae259"
+    },
+    {
+      "path": "docs/GOAL-22-LEGEND-SYMBOL-OVERLAP-DIAGNOSIS.json",
+      "sha256": "43faafff5ac3d7baef6e1f09e5bb40804c664c9eec9f650c4de338d8a32e490a"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-LegendSymbolOverhangRepair.py",
+      "sha256": "7ac599f577b61593f36aa4cf817b7fd517e4114f3068c92d14c3da8c5e33ab8d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-LegendSymbolOverhangEvaluation.py",
+      "sha256": "cf4f41dde71097e18a6dd0978f28a9f35887b1bf6fc58b86e6098137c245520c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LegendSymbolOverhangEvaluation.ps1",
+      "sha256": "9fa98429d280f07d3f2082ed2e4ef8779576b44ba41b641514d6e19ac66a61c6"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/runtime-description.json",
+      "sha256": "6bf1e50a89cd4e1f830b807b204995be04f1436bcf5cb354e62b453896720022"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-native/native-marker-score.json",
+      "sha256": "066ca33a307f386d37565a932d278d559902e3ac3adaa5a7be344ab192a74395"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-native/native-ocr-score.json",
+      "sha256": "3fa0e0bfebc4c4a92736f9caea6f716419af53fd4beeae78570db5f34204993d"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-native/axis-geometry-comparison.json",
+      "sha256": "ba95d8cb0f666718949997eb0b64ceb0d4b1dc75587ffbf43e84dd4189eba481"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-native/protocol.json",
+      "sha256": "5797841fdf52c56b6f5f51abb70e80f7121ed07ff35a31fec4185dd7ad9a7af3"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-native/candidate-binding.json",
+      "sha256": "6a94df61950f70bb7b08e5ff6a9472892eb7ca2fe6d6fd7c39cff647d5fd2595"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-native/input-manifest.json",
+      "sha256": "910be9d5cebb3274b03e91496508e83f491ea82d92bb782805a7c7d85a26591c"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-native/execution/report.json",
+      "sha256": "d423d8446ded5261a5f901af576928a1e75e7310e24b5104baf4e2f2cf6aefcd"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-native/status.json",
+      "sha256": "1bd73be541393a4dbfa078c6155bd26dcacc7219a457616e156e3b764d1a9be8"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "d9650cb518ed35ac820c45fd0bc98f2b240cc04e5cd15685bc0e81e86ad6244f"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-csv/comparison.json",
+      "sha256": "aed3990bf0f3f945b98dad9a0c70c1571aa10e0198bc696077653347a67d1485"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-csv/protocol.json",
+      "sha256": "de86afded97e1b01ade039f7d945928b8d0f9e8633e07df3f91ad008f2e2dbc5"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-csv/candidate-binding.json",
+      "sha256": "2e9da759ae6243b7294c4b06df52c157f31aa93ce425eb79e33edee60e026182"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-csv/input-manifest.json",
+      "sha256": "ab60a7b2f1158b28fcde54841d998972e262e9324751f27008bbe48207bcb4b5"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-csv/execution/report.json",
+      "sha256": "5566f74b5317567d69f1f8d64ab6b3d24bd962c93630d9b46cadaf56a3eb95ae"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v44-csv/status.json",
+      "sha256": "8ad73fc6b0aaa90acd841fb7b46ec450e7f42642d21b799cdc7394e5d3b23fd0"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/native-marker-score.json",
+      "sha256": "75f5c94a32528849e8bd4e927bdfbffd93abb80f80f6f79ad2cc5c02ee8c7c5e"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/native-ocr-score.json",
+      "sha256": "14b4c0f91d4d019eb4782a9ccfd2feaf8da1d1539028722d4c79f20772fa84d0"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/axis-geometry-comparison.json",
+      "sha256": "5fc86a9f32776395c1720882bf6f28e6602b3f31c75e09cbe5fcd81bf74af044"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/protocol.json",
+      "sha256": "fb6c85f3ff2e290e80e9a7d0a09a76b4399540dfaf7f2456770de4a012e4ba67"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/candidate-binding.json",
+      "sha256": "93078d68c88cc53b4d52a121fa9f27c2573a8e86f874b67c51fadbbcfb4f64fa"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/input-manifest.json",
+      "sha256": "cf5dfcbd43c0a83e0af56c03c72ea111d3e9bdf9967204ba6394e75fde5fc7ab"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/execution/report.json",
+      "sha256": "de5858e8ade70237ab543f53cf8a90e588721af71dc203abfdb8d285c57667a3"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-native/status.json",
+      "sha256": "16e9de0155c99bda0946070e530e141b7329b85fc807962d6f032c4b515a4496"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "c4d304da66dc30801357eb36767ad1339605e4de4108a3dcf0a905de11d6309a"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-csv/comparison.json",
+      "sha256": "7c9e31ff167defb040396bc313bc4efb660b22dae876c02305459eb9418d230e"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-csv/protocol.json",
+      "sha256": "b8ba2b13ee979086256e534b05ea60af6799cbc150c1454fb3406794b28b6b68"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-csv/candidate-binding.json",
+      "sha256": "f73bbb6790473738b1644f1e8ac76dd09b403cb7d89374458fa383f48d5ac848"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-csv/input-manifest.json",
+      "sha256": "b63668acd754edac53e909c0f6018894e539ac4faf608e58092332f330bd8761"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-csv/execution/report.json",
+      "sha256": "bf9b384e04e3fc9fcb556f321d26f190b700799a60e70878aacb7915a1d77f80"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/v46-csv/status.json",
+      "sha256": "0a55b29e2b498a961fb01ba3df5b00635c7ced602e5e4b3640960c15f5a9e169"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-evaluation-20260930-v1/repair-summary.json",
+      "sha256": "9e2a9378a18530ad4cdbca263e6842d4cb94e4eaab52983e62379681fcd10db6"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Publish-LegendSymbolOverhangEvidence.py",
+      "sha256": "27c3a91bf0768a2a75506c14493fc7f09dd7992db28e8d4e507622c3eaa0d895"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-symbol-overhang-checks-20260930-v1/void-preparation.json",
+      "sha256": "757ccad93af681855a4da054e245343bd068bcc7a91c66bf9c69d07d53c64622"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "goal22_complete": false,
+  "decision": "Retain original-pixel legend symbol-overhang recovery. Keep V44/V27/V5 as the retained model baseline. V46 remains closed and unpromoted; compare the already reviewed server reader on this settled diagnostic context next.",
+  "evidence_curation": "The raw repair summary is preserved. Region identity-only differences are omitted from this publication; semantic region values are compared as multisets. Calibration changes retain affected field names, with unchanged x/y transforms verified. Full observations remain checksum-bound.",
+  "accepted_center_shift_pixels": 0.003971508419188828,
+  "license_review": "Project-owned Apache-2.0 source and synthetic inputs. Same reviewed model payloads, license inputs and dependencies. No new external file.",
+  "limitations": [
+    "The restored six-panel dev source contributes 139 exported rows, of which 133 are correct values and phase rows. Remaining extras and omissions stay scored.",
+    "V46 native text precision and exact recognition remain below shared acceptance bars. Native marker recall is still 743/838; V44 remains 739/838.",
+    "One retained plotted center in the restored source shifts by about 0.004 pixels and its radius changes. Initial detections also change in one native and four CSV panels; final native matches are all retained.",
+    "No private or sealed corpus was read, no optimizer ran, and WPF interaction was not manually exercised. Production activation and packaging remain pending."
+  ]
+}

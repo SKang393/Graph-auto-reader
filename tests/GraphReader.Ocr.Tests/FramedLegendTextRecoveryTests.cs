@@ -106,6 +106,55 @@ public sealed class FramedLegendTextRecoveryTests
     }
 
     [TestMethod]
+    [DataRow(1, false)]
+    [DataRow(2, false)]
+    [DataRow(1, true)]
+    [DataRow(2, true)]
+    public async Task IndependentlyMeasuredRowSeparatesAnOverlappingLegendSymbol(int scale, bool hollow)
+    {
+        OcrImage image = Fixture(scale, hollow);
+        byte[] before = image.Pixels.ToArray();
+        OcrDetectedRegion prior = OcrTestFixtures.Region("overlap", 55 * scale, 36 * scale, 92 * scale, 10 * scale);
+        OcrDetectedRegion outside = OcrTestFixtures.Region("outside", 10 * scale, 70 * scale, 25 * scale, 10 * scale);
+        var result = await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, [prior, outside]);
+        Assert.HasCount(2, result);
+        Assert.AreEqual(outside, result.Single(r => r.RegionId == "outside"));
+        OcrDetectedRegion row = result.Single(r => r.RegionId != "outside");
+        Assert.AreEqual(new OcrRectangle(72 * scale, 36 * scale, 75 * scale, 10 * scale), row.Polygon.Bounds);
+        Assert.IsTrue(row.DetectionConfidence <= 0.7);
+        Assert.IsNull(row.Context);
+        Assert.IsNull(row.Evidence);
+        Assert.AreEqual(row, (await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, [outside, prior]))
+            .Single(r => r.RegionId != "outside"));
+        CollectionAssert.AreEqual(result.ToArray(), (await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, result)).ToArray());
+        CollectionAssert.AreEqual(before, image.Pixels.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow("before-symbol")]
+    [DataRow("past-text")]
+    [DataRow("above-text")]
+    [DataRow("below-text")]
+    [DataRow("protected")]
+    [DataRow("vertical")]
+    [DataRow("missing-edge")]
+    [DataRow("two-symbols")]
+    [DataRow("extra-row")]
+    [DataRow("attached-symbol")]
+    [DataRow("no-symbol")]
+    public async Task SymbolOverhangRequiresCompleteIndependentGeometry(string defect)
+    {
+        OcrImage image = Fixture(defect: defect);
+        OcrDetectedRegion prior = OcrTestFixtures.Region("overlap",
+            defect == "before-symbol" ? 44 : 55, defect == "above-text" ? 35 : 36,
+            defect == "before-symbol" ? 103 : defect == "past-text" ? 93 : 92,
+            defect is "above-text" or "below-text" ? 11 : 10);
+        if (defect == "protected") prior = prior with { Context = new(ExplicitRoleHint: OcrTextRole.Annotation) };
+        if (defect == "vertical") prior = prior with { OrientationDegrees = 90 };
+        CollectionAssert.AreEqual(new[] { prior }, (await FramedLegendRoleResolver.RecoverPartialTextRowsAsync(image, [prior])).ToArray());
+    }
+
+    [TestMethod]
     [DataRow("complete")]
     [DataRow("protected")]
     [DataRow("vertical")]
@@ -124,10 +173,13 @@ public sealed class FramedLegendTextRecoveryTests
     }
 
     [TestMethod]
-    public async Task PipelineRecognizesTheRecoveredRowOnceAndRetainsReviewWarning()
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PipelineRecognizesTheRecoveredRowOnceAndRetainsReviewWarning(bool overlapsSymbol)
     {
         OcrImage image = Fixture();
-        var request = OcrTestFixtures.Request([OcrTestFixtures.Region("fragment", 72, 36, 10, 10)]) with
+        var request = OcrTestFixtures.Request([OcrTestFixtures.Region("fragment",
+            overlapsSymbol ? 55 : 72, 36, overlapsSymbol ? 92 : 10, 10)]) with
         {
             OriginalImage = image,
             PlotBounds = new OcrRectangle(5, 5, 190, 80),
@@ -145,6 +197,7 @@ public sealed class FramedLegendTextRecoveryTests
         Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
         Assert.HasCount(1, result.Regions);
         Assert.AreEqual("Measured label", result.Regions[0].Text);
+        Assert.AreEqual(OcrTextRole.LegendText, result.Regions[0].Role);
         Assert.AreEqual(OcrReviewStatus.Unreviewed, result.Regions[0].ReviewStatus);
         Assert.IsTrue(result.Warnings.Any(w => w.EndsWith(":original_pixel_framed_legend_assembly", StringComparison.Ordinal)));
         Assert.AreEqual(1, recognizer.CallCount);
