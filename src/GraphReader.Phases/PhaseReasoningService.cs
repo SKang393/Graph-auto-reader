@@ -525,6 +525,8 @@ public sealed class PhaseReasoningService : IPhaseReasoningService
         }
 
         if (normalized.Contains("baseline", StringComparison.Ordinal) ||
+            EndsWithHeadingTerm(normalized, "withdrawal") ||
+            EndsWithHeadingTerm(normalized, "withdrawal continued") ||
             wordsWithoutSpaces is "withdrawal" or "withdrawalcontinued")
         {
             return PhaseNormalizedType.Baseline;
@@ -532,6 +534,8 @@ public sealed class PhaseReasoningService : IPhaseReasoningService
 
         if (normalized.Contains("intervention", StringComparison.Ordinal) ||
             normalized.Contains("treatment", StringComparison.Ordinal) ||
+            EndsWithHeadingTerm(normalized, "reintroduction") ||
+            EndsWithHeadingTerm(normalized, "reintroduction continued") ||
             wordsWithoutSpaces is "reintroduction" or "reintroductioncontinued")
         {
             return PhaseNormalizedType.Intervention;
@@ -559,6 +563,10 @@ public sealed class PhaseReasoningService : IPhaseReasoningService
             ? PhaseNormalizedType.Generalization
             : null;
     }
+
+    private static bool EndsWithHeadingTerm(string text, string term) =>
+        text.EndsWith(term, StringComparison.Ordinal) &&
+        (text.Length == term.Length || char.IsWhiteSpace(text[text.Length - term.Length - 1]));
 
     private static bool IsLetterCode(string value, char prefix) =>
         value.Length >= 1 && value[0] == prefix &&

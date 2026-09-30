@@ -1,0 +1,513 @@
+{
+  "schema": "graphreader.qualified-phase-heading-diagnosis.v1",
+  "base_source_commit": "af87cd2ce97217c86308fede8605ce577e3dcb70",
+  "finding": "Existing complete phase terms at the end of qualified headings are recognized correctly but assigned Other by an exact-label OCR role gate. The header row loses corroboration, and an unchanged valid-calibration, 24-marker case fails with NO_EXPORTABLE_SERIES.",
+  "semantic_gap": "Phase reasoning already accepts baseline/intervention/treatment inside qualified labels, but withdrawal/reintroduction currently require exact compact text. Align complete suffix terms without guessing damaged words or consuming trailing narrative text.",
+  "isolated_change": "Recognize existing full phase terms at a whitespace boundary at the end of an above-plot label; preserve original text, geometry, explicit contexts, mask-eligibility rules, human review, model payloads and numerical gates. Extend withdrawal/reintroduction semantic normalization with the same suffix boundary. Advance only behavior identity versions, not frozen schema version.",
+  "validation": {
+    "suites": [
+      "GraphReader.Ocr.Tests",
+      "GraphReader.Phases.Tests",
+      "GraphReader.App.Tests"
+    ],
+    "negative_controls": [
+      "damaged words",
+      "words without a boundary",
+      "trailing narrative text",
+      "inside-plot annotations",
+      "explicit annotation context"
+    ],
+    "native_sources_per_arm": 21,
+    "native_panels_per_arm": 31,
+    "csv_sources_per_arm": 23,
+    "csv_panels_per_arm": 39,
+    "acceptance_bars": {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "budget": {
+      "native_runs": 2,
+      "csv_runs": 2,
+      "optimizer_steps": 0,
+      "private_reads": 0,
+      "sealed_runs": 0
+    }
+  },
+  "cases": [
+    {
+      "arm": "v44",
+      "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d",
+      "calibration": "Valid",
+      "marker_count": 24,
+      "case_status": "completed",
+      "error": null,
+      "phase_dividers": 1,
+      "ambiguous_grid_or_dividers": 3,
+      "header_regions": [
+        {
+          "text": "Follow-up",
+          "role": "Annotation",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 878,
+            "y": 46,
+            "width": 60,
+            "height": 12,
+            "left": 878,
+            "top": 46,
+            "right": 938,
+            "bottom": 58,
+            "center": {
+              "x": 908,
+              "y": 52,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Review",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 623,
+            "y": 73,
+            "width": 45,
+            "height": 10,
+            "left": 623,
+            "top": 73,
+            "right": 668,
+            "bottom": 83,
+            "center": {
+              "x": 645.5,
+              "y": 78,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Review",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 106,
+            "y": 73,
+            "width": 45,
+            "height": 10,
+            "left": 106,
+            "top": 73,
+            "right": 151,
+            "bottom": 83,
+            "center": {
+              "x": 128.5,
+              "y": 78,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Intervention",
+          "role": "PhaseHeading",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 417,
+            "y": 72,
+            "width": 73,
+            "height": 10,
+            "left": 417,
+            "top": 72,
+            "right": 490,
+            "bottom": 82,
+            "center": {
+              "x": 453.5,
+              "y": 77,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Probe.",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 1050,
+            "y": 83,
+            "width": 37,
+            "height": 9,
+            "left": 1050,
+            "top": 83,
+            "right": 1087,
+            "bottom": 92,
+            "center": {
+              "x": 1068.5,
+              "y": 87.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Review",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 881,
+            "y": 73,
+            "width": 45,
+            "height": 10,
+            "left": 881,
+            "top": 73,
+            "right": 926,
+            "bottom": 83,
+            "center": {
+              "x": 903.5,
+              "y": 78,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Withdrawal",
+          "role": "PhaseHeading",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 674,
+            "y": 72,
+            "width": 69,
+            "height": 10,
+            "left": 674,
+            "top": 72,
+            "right": 743,
+            "bottom": 82,
+            "center": {
+              "x": 708.5,
+              "y": 77,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Review",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 364,
+            "y": 73,
+            "width": 45,
+            "height": 10,
+            "left": 364,
+            "top": 73,
+            "right": 409,
+            "bottom": 83,
+            "center": {
+              "x": 386.5,
+              "y": 78,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Baseline",
+          "role": "PhaseHeading",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 159,
+            "y": 71,
+            "width": 52,
+            "height": 10,
+            "left": 159,
+            "top": 71,
+            "right": 211,
+            "bottom": 81,
+            "center": {
+              "x": 185,
+              "y": 76,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Participant 01",
+          "role": "Participant",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 25,
+            "y": 53,
+            "width": 84,
+            "height": 13,
+            "left": 25,
+            "top": 53,
+            "right": 109,
+            "bottom": 66,
+            "center": {
+              "x": 67,
+              "y": 59.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Reintroduction",
+          "role": "PhaseHeading",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 933,
+            "y": 72,
+            "width": 89,
+            "height": 10,
+            "left": 933,
+            "top": 72,
+            "right": 1022,
+            "bottom": 82,
+            "center": {
+              "x": 977.5,
+              "y": 77,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ]
+    },
+    {
+      "arm": "v46",
+      "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d",
+      "calibration": "Valid",
+      "marker_count": 24,
+      "case_status": "failed",
+      "error": "Candidate export failed closed: NO_EXPORTABLE_SERIES.",
+      "phase_dividers": 1,
+      "ambiguous_grid_or_dividers": 3,
+      "header_regions": [
+        {
+          "text": "Review Withdrawal",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 623,
+            "y": 72,
+            "width": 120,
+            "height": 11,
+            "left": 623,
+            "top": 72,
+            "right": 743,
+            "bottom": 83,
+            "center": {
+              "x": 683,
+              "y": 77.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Review Intervention",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 364,
+            "y": 72,
+            "width": 126,
+            "height": 11,
+            "left": 364,
+            "top": 72,
+            "right": 490,
+            "bottom": 83,
+            "center": {
+              "x": 427,
+              "y": 77.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Review Reintroduction",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 881,
+            "y": 67,
+            "width": 142,
+            "height": 16,
+            "left": 881,
+            "top": 67,
+            "right": 1023,
+            "bottom": 83,
+            "center": {
+              "x": 952,
+              "y": 75,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Follow-up",
+          "role": "PhaseHeading",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 878,
+            "y": 45,
+            "width": 60,
+            "height": 13,
+            "left": 878,
+            "top": 45,
+            "right": 938,
+            "bottom": 58,
+            "center": {
+              "x": 908,
+              "y": 51.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Probe",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 1047,
+            "y": 82,
+            "width": 44,
+            "height": 10,
+            "left": 1047,
+            "top": 82,
+            "right": 1091,
+            "bottom": 92,
+            "center": {
+              "x": 1069,
+              "y": 87,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "ReviewE",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 106,
+            "y": 71,
+            "width": 57,
+            "height": 12,
+            "left": 106,
+            "top": 71,
+            "right": 163,
+            "bottom": 83,
+            "center": {
+              "x": 134.5,
+              "y": 77,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Participant 01",
+          "role": "Participant",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 25,
+            "y": 53,
+            "width": 84,
+            "height": 13,
+            "left": 25,
+            "top": 53,
+            "right": 109,
+            "bottom": 66,
+            "center": {
+              "x": 67,
+              "y": 59.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "Baseline",
+          "role": "PhaseHeading",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 159,
+            "y": 71,
+            "width": 52,
+            "height": 10,
+            "left": 159,
+            "top": 71,
+            "right": 211,
+            "bottom": 81,
+            "center": {
+              "x": 185,
+              "y": 76,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        {
+          "text": "]",
+          "role": "Other",
+          "review_status": "Unreviewed",
+          "bounds": {
+            "x": 1086,
+            "y": 88,
+            "width": 7,
+            "height": 2,
+            "left": 1086,
+            "top": 88,
+            "right": 1093,
+            "bottom": 90,
+            "center": {
+              "x": 1089.5,
+              "y": 89,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/recovery-mask-evaluation-v1/v44-csv/execution/stage-evidence/952db24e-1d88-2752-ac39-99ff7ff7af54.json",
+      "sha256": "c85209155c58bf40d986400ee2d9726c59b52fd1e4ae09da8b29b5b382035a85"
+    },
+    {
+      "path": "artifacts/goal22-runs/recovery-mask-evaluation-v1/v44-csv/execution/report.json",
+      "sha256": "c371417af6091257f72ce0d2b846bad8c9d82271d08ac94a3976287d30f56d61"
+    },
+    {
+      "path": "artifacts/goal22-runs/recovery-mask-evaluation-v1/v44-csv/candidate-binding.json",
+      "sha256": "e8cf499ae614de046975d9cf12bd87610eee7fee2f9262ce3a948025d3e645d9"
+    },
+    {
+      "path": "artifacts/goal22-runs/recovery-mask-evaluation-v1/v46-csv/execution/stage-evidence/808fe226-735f-ec50-8c0f-f09cfe20e8d0.json",
+      "sha256": "40527b771375bc8a4ce7350098d1a26d7a2536ce6725b3660efc825bdb3e3ff3"
+    },
+    {
+      "path": "artifacts/goal22-runs/recovery-mask-evaluation-v1/v46-csv/execution/report.json",
+      "sha256": "60b6dbd394b29120fa4072502bc5a0d5e6c34add6f91cdfc77f81afdfe0bc871"
+    },
+    {
+      "path": "artifacts/goal22-runs/recovery-mask-evaluation-v1/v46-csv/candidate-binding.json",
+      "sha256": "53964f7e01d6201ac4be506d8cb05274a843f4cf2dbb9143e3efd0ba7d2cec42"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "production_approved": false
+}

@@ -139,6 +139,8 @@ public sealed class PhaseReasoningServiceTests
     [DataRow("Withdrawal continued", "Reintroduction continued")]
     [DataRow("Withdrawalcontinued", "Reintroductioncontinued")]
     [DataRow("Withdrawal   continued", "Reintroduction\tcontinued")]
+    [DataRow("Review Withdrawal", "Review Reintroduction")]
+    [DataRow("Second withdrawal continued", "Second reintroduction continued")]
     public async Task ExplicitWithdrawalAndReintroductionHeadingsPreserveAbabMeaning(string withdrawal, string reintroduction)
     {
         PhaseReasoningResult result = await PhaseTestFixture.ResolveAsync(
@@ -172,6 +174,9 @@ public sealed class PhaseReasoningServiceTests
     [DataRow("Wirhdrreal continped")]
     [DataRow("Withdrawalcontinued symptoms")]
     [DataRow("Reintroductioncontinues")]
+    [DataRow("Prewithdrawal")]
+    [DataRow("Prereintroduction")]
+    [DataRow("Second withdrawal continued symptoms")]
     public async Task UnclearOrIncidentalWithdrawalTextDoesNotSupplyALaterPhaseMeaning(string text)
     {
         PhaseReasoningResult result = await PhaseTestFixture.ResolveAsync(PhaseTestFixture.Request(

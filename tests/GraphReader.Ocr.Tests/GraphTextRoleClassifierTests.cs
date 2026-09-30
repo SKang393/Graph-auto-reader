@@ -21,6 +21,13 @@ public sealed class GraphTextRoleClassifierTests
     [DataRow("Reintroduction continued")]
     [DataRow("Reintroductioncontinued")]
     [DataRow("Reintroduction\tcontinued")]
+    [DataRow("Review Intervention")]
+    [DataRow("Initial baseline")]
+    [DataRow("Repeated withdrawal")]
+    [DataRow("Review Reintroduction")]
+    [DataRow("Second withdrawal continued")]
+    [DataRow("Second reintroduction continued")]
+    [DataRow("Group alternating treatments")]
     public void DesignTermsNeedHeadingGeometryAndRespectExplicitContext(string text)
     {
         var region = OcrTestFixtures.Region("heading", 50, 1, 50, 10);
@@ -37,6 +44,10 @@ public sealed class GraphTextRoleClassifierTests
     [DataRow("Withdreal")]
     [DataRow("Withdrawalcontinued symptoms")]
     [DataRow("Reintroductioncontinues")]
+    [DataRow("Prewithdrawal")]
+    [DataRow("Prereintroduction")]
+    [DataRow("Review Intervention was recorded")]
+    [DataRow("Second withdrawal continued symptoms")]
     public void DamagedWordsAndIncidentalTextRemainUnresolved(string text)
     {
         var region = OcrTestFixtures.Region("unclear-heading", 50, 1, 50, 10);

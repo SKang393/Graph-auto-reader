@@ -174,7 +174,10 @@ public sealed class HeaderLayoutRoleResolverTests
     }
 
     [TestMethod]
-    public async Task PipelineSeparatesRoleCacheButReusesUnchangedRecognitionAndEmitsReviewWarning()
+    [DataRow("A", "A")]
+    [DataRow("Initial baseline", "Review Intervention")]
+    public async Task PipelineSeparatesRoleCacheButReusesUnchangedRecognitionAndEmitsReviewWarning(
+        string leftHeading, string rightHeading)
     {
         var rows = Fixture();
         OcrRequest request = OcrTestFixtures.Request(rows.Detected) with
@@ -185,7 +188,8 @@ public sealed class HeaderLayoutRoleResolverTests
         var recognizer = new StubTextRecognizer((crops, _) =>
             ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop =>
                 new OcrRecognition(crop.RegionId, crop.SourceImage,
-                    [new OcrRecognitionAlternative(crop.RegionId == "note" ? "Maintenance" : "A", 0.95, crop.SourceImage)],
+                    [new OcrRecognitionAlternative(crop.RegionId == "note" ? "Maintenance" :
+                        crop.RegionId == "left" ? leftHeading : rightHeading, 0.95, crop.SourceImage)],
                     0.1)).ToArray()));
         var cache = new InMemoryOcrResultCache();
         var options = new OcrPipelineOptions { CropPaddingPixels = 0 };

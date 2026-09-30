@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    internal const string Version = "graph-text-role-classifier-v8";
+    internal const string Version = "graph-text-role-classifier-v9-qualified-headings";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -207,22 +207,27 @@ public static class GraphTextRoleClassifier
         return normalized.Equals("a", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("b", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("ab", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("baseline", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("intervention", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("treatment", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("alternating treatment", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("alternating treatments", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("withdrawal", StringComparison.OrdinalIgnoreCase) ||
+            EndsWithHeadingTerm(normalized, "baseline") ||
+            EndsWithHeadingTerm(normalized, "intervention") ||
+            EndsWithHeadingTerm(normalized, "treatment") ||
+            EndsWithHeadingTerm(normalized, "alternating treatments") ||
+            EndsWithHeadingTerm(normalized, "withdrawal") ||
+            EndsWithHeadingTerm(normalized, "withdrawal continued") ||
             wordsWithoutSpaces.Equals("withdrawalcontinued", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("reintroduction", StringComparison.OrdinalIgnoreCase) ||
+            EndsWithHeadingTerm(normalized, "reintroduction") ||
+            EndsWithHeadingTerm(normalized, "reintroduction continued") ||
             wordsWithoutSpaces.Equals("reintroductioncontinued", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("maintenance", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("generalization", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("followup", StringComparison.OrdinalIgnoreCase) ||
-            normalized.Equals("follow up", StringComparison.OrdinalIgnoreCase) ||
+            EndsWithHeadingTerm(normalized, "maintenance") ||
+            EndsWithHeadingTerm(normalized, "generalization") ||
+            EndsWithHeadingTerm(normalized, "followup") ||
+            EndsWithHeadingTerm(normalized, "follow up") ||
             IsCriterionHeading(text.Trim()) ||
             normalized.StartsWith("phase", StringComparison.OrdinalIgnoreCase);
     }
+
+    private static bool EndsWithHeadingTerm(string text, string term) =>
+        text.EndsWith(term, StringComparison.OrdinalIgnoreCase) &&
+        (text.Length == term.Length || char.IsWhiteSpace(text[text.Length - term.Length - 1]));
 
     private static bool IsCriterionHeading(string text)
     {
