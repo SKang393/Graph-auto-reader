@@ -2190,7 +2190,7 @@
       "sha256": "2bf47d689302620d9db4fced16653d038643b644d798db15d1be120dfc4b5b95"
     },
     {
-      "path": "docs/GOAL-22-RECOVERY-MASK-DIAGNOSIS.json",
+      "path": "artifacts/goal22-runs/recovery-mask-evaluation-v1/diagnosis-execution-input.json",
       "sha256": "a8d54567d162d0026086989e85812a1d8aa1feba1485388b2d638cb5ac6a3e23"
     },
     {
@@ -2332,6 +2332,10 @@
     {
       "path": "artifacts/goal22-tools/Run-RecoveryMaskEvaluation.ps1",
       "sha256": "0ab066c00e074661b989dc8cf6f99498b8fc0491a3accf9ab965dd7afd6b7feb"
+    },
+    {
+      "path": "docs/GOAL-22-RECOVERY-MASK-DIAGNOSIS.json",
+      "sha256": "1687f78be927dc25e8f9242ca03a25422c329a0b1207c26edb4f84888aa21130"
     }
   ],
   "private_reads": 0,
@@ -2350,5 +2354,20 @@
     "No private or sealed corpus was read. WPF interaction was not manually exercised.",
     "Failed sources and all truth denominators remain in CSV scores; valid calibration and non-null values are checked on every exported row."
   ],
-  "goal22_complete": false
+  "goal22_complete": false,
+  "evidence_serialization": {
+    "execution_diagnosis": {
+      "path": "artifacts/goal22-runs/recovery-mask-evaluation-v1/diagnosis-execution-input.json",
+      "sha256": "a8d54567d162d0026086989e85812a1d8aa1feba1485388b2d638cb5ac6a3e23",
+      "line_endings": "CRLF"
+    },
+    "repository_diagnosis": {
+      "path": "docs/GOAL-22-RECOVERY-MASK-DIAGNOSIS.json",
+      "sha256": "1687f78be927dc25e8f9242ca03a25422c329a0b1207c26edb4f84888aa21130",
+      "line_endings": "LF"
+    },
+    "json_values_identical": true,
+    "frozen_protocols_and_execution_results_modified": false,
+    "note": "Git normalizes this tracked JSON to LF. Frozen protocols and the original repair summary retain the checksum of the CRLF bytes read during execution. Those exact bytes are preserved in the execution archive; the repository copy is separately bound here."
+  }
 }

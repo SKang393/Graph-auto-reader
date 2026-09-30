@@ -63,6 +63,11 @@ tests, protocols and scores. The initial diagnostic launcher expected six
 single-panel cases but the affected cases contained eight panels per arm;
 that error was repaired before replay and its successful build was reused.
 
+The diagnosis used CRLF bytes during execution; Git stores the same JSON with
+LF line endings. The evidence record binds both the preserved execution input
+and the repository copy. Frozen protocols, results and their checksums remain
+unchanged; no validation run was repeated for this serialization correction.
+
 Licensing is unchanged: project-owned Apache-2.0 code and owned synthetic
 inputs, with the same reviewed models and dependencies. No training,
 private/sealed read, production activation, packaged build or release occurred.
