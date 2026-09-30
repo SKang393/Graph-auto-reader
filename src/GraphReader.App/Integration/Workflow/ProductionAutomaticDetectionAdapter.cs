@@ -867,14 +867,15 @@ public sealed class ProductionAutomaticDetectionAdapter :
         IReadOnlyList<ClassifiedMarker> markers,
         CancellationToken cancellationToken)
     {
-        NumericTickEvidence[] yTicks = ParseTicks(ocr, OcrTextRole.YTick)
+        var confidenceWarnings = new List<string>();
+        NumericTickEvidence[] yTicks = ParseTicks(ocr, OcrTextRole.YTick, confidenceWarnings)
             .Select(item => new NumericTickEvidence(
                 item.Region.RegionId,
                 tickGeometry.Positions.GetValueOrDefault(item.Region.RegionId, item.Region.Polygon.Bounds.Center.Y),
                 item.Value,
                 item.Confidence))
             .ToArray();
-        PrintedXTickEvidence[] xTicks = ParseTicks(ocr, OcrTextRole.XTick)
+        PrintedXTickEvidence[] xTicks = ParseTicks(ocr, OcrTextRole.XTick, confidenceWarnings)
             .Select(item => new PrintedXTickEvidence(
                 item.Region.RegionId,
                 tickGeometry.Positions.GetValueOrDefault(item.Region.RegionId, item.Region.Polygon.Bounds.Center.X),
@@ -908,7 +909,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
             },
             cancellationToken);
         string[] unresolvedTicks = ocr.Warnings.Where(static warning =>
-            warning.StartsWith("ocr_tick_sequence_needs_review:", StringComparison.Ordinal)).ToArray();
+            warning.StartsWith("ocr_tick_sequence_needs_review:", StringComparison.Ordinal))
+            .Concat(confidenceWarnings).Distinct(StringComparer.Ordinal).ToArray();
         if (unresolvedTicks.Length == 0) return calibration;
         // A regular fit cannot erase an unresolved recognition conflict.
         // Preserve the fit for Review while preventing an automatic export.
@@ -921,13 +923,20 @@ public sealed class ProductionAutomaticDetectionAdapter :
         };
     }
 
-    private static IEnumerable<ParsedTick> ParseTicks(OcrResult ocr, OcrTextRole role)
+    private static IEnumerable<ParsedTick> ParseTicks(
+        OcrResult ocr, OcrTextRole role, List<string> confidenceWarnings)
     {
         foreach (OcrRegion region in ocr.Regions.Where(region => region.Role == role && region.ReviewStatus != OcrReviewStatus.Rejected))
         {
             NumericParseResult parsed = GraphNumericParser.Parse(region.Text);
             if (parsed.IsSuccess && parsed.Value is { } value)
             {
+                if (!double.IsFinite(region.Confidence) || region.Confidence is <= 0 or > 1)
+                {
+                    // Review retains the reading, but an unweighted tick cannot fit an axis.
+                    confidenceWarnings.Add($"ocr_tick_sequence_needs_review:{role}:invalid_confidence");
+                    continue;
+                }
                 yield return new ParsedTick(
                     region,
                     value,

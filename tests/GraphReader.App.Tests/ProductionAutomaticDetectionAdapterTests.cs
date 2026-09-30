@@ -120,6 +120,43 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
+    [DataRow(OcrTextRole.XTick, false)]
+    [DataRow(OcrTextRole.YTick, false)]
+    [DataRow(OcrTextRole.XTick, true)]
+    [DataRow(OcrTextRole.YTick, true)]
+    public async Task ZeroConfidenceTicksRequireReviewUnlessAlreadyRejected(OcrTextRole role, bool rejected)
+    {
+        byte[] bytes = [1, 2, 3];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:zero-confidence-tick.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "zero-confidence-tick.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new RasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(zeroConfidenceRole: role, rejectZeroConfidenceTick: rejected),
+            new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(),
+            new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+
+        if (rejected)
+        {
+            await adapter.DetectAsync(request, CancellationToken.None);
+            Assert.IsNotNull(store.Get(panelId).ExportEvidence);
+        }
+        else
+        {
+            ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+                () => adapter.DetectAsync(request, CancellationToken.None));
+            Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, failure.Failure.Code);
+            StringAssert.Contains(failure.Failure.TechnicalMessage, $"ocr_tick_sequence_needs_review:{role}:invalid_confidence");
+            Assert.IsTrue(failure.CompletedEvidence.Any(static item => item.Stage == "ocr"));
+            Assert.IsNull(store.Get(panelId).ExportEvidence);
+        }
+    }
+
+    [TestMethod]
     [DataRow("ocr_tick_sequence_needs_review:XTick:ambiguous_or_irregular_spacing", true)]
     [DataRow("ocr_tick_sequence_needs_review:YTick:insufficient_unchanged_tick_anchors", true)]
     [DataRow("ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected", true)]
@@ -582,15 +619,20 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         private readonly bool framedLegend;
         private readonly bool invalidLegendBounds;
         private readonly string? warning;
+        private readonly OcrTextRole? zeroConfidenceRole;
+        private readonly bool rejectZeroConfidenceTick;
 
         public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
-            bool invalidLegendBounds = false, string? warning = null)
+            bool invalidLegendBounds = false, string? warning = null,
+            OcrTextRole? zeroConfidenceRole = null, bool rejectZeroConfidenceTick = false)
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
             this.framedLegend = framedLegend;
             this.invalidLegendBounds = invalidLegendBounds;
             this.warning = warning;
+            this.zeroConfidenceRole = zeroConfidenceRole;
+            this.rejectZeroConfidenceTick = rejectZeroConfidenceTick;
         }
 
         public string AdapterId => "test-ocr";
@@ -652,6 +694,17 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 Region("y100", 1, 18, "100", OcrTextRole.YTick),
                 Region("participant", 82, 84, participant, OcrTextRole.Participant),
             ];
+            if (zeroConfidenceRole is { } tickRole)
+            {
+                OcrRegion extra = tickRole == OcrTextRole.XTick
+                    ? Region("zero-weight-tick", 48, 92, "3", tickRole)
+                    : Region("zero-weight-tick", 1, 48, "50", tickRole);
+                regions = [.. regions, extra with
+                {
+                    Confidence = 0,
+                    ReviewStatus = rejectZeroConfidenceTick ? OcrReviewStatus.Rejected : OcrReviewStatus.Unreviewed,
+                }];
+            }
             if (includeLegendText)
             {
                 OcrRegion legend = Region("legend-label", 28, 18, "Series one", OcrTextRole.LegendText);

@@ -1,0 +1,221 @@
+{
+  "schema": "graphreader.zero-confidence-calibration-repair.v1",
+  "status": "verified",
+  "problem": "Numeric OCR with confidence zero reached the confidence-weighted calibration API and raised ArgumentException. This prevented structured review evidence and post-failure panel continuation.",
+  "implementation": "Exclude nonfinite, zero or out-of-range confidence from the fit. Preserve the OCR region and attach the existing tick-sequence-needs-review reason. Block export even if the remaining ticks fit. Respect explicitly rejected readings.",
+  "tests": {
+    "passed": 504,
+    "failed": 0,
+    "new_regression_cases": 4,
+    "report": {
+      "path": "artifacts/goal22-runs/zero-confidence-checks-v2/test-results/app.trx",
+      "sha256": "61e70d1010edb9dd01965a0b7ad9431c8c4f60e0074b97d2aaa7d4355b9cd667"
+    },
+    "build": {
+      "path": "artifacts/goal22-runs/zero-confidence-checks-v2/native-build.log",
+      "sha256": "f14987129684cbfa81e1eb95cc374390ed4cb965d89056f66599f47af567f9b3"
+    },
+    "warnings": 0,
+    "errors": 0,
+    "seconds": 106.1402278
+  },
+  "runtime_regressions": [
+    {
+      "status": "pass",
+      "arm": "baseline",
+      "report": {
+        "path": "artifacts/goal22-runs/zero-confidence-native-v3/baseline/execution/report.json",
+        "sha256": "e7e738616d790654e1d60b980fec0f71203181f5616642787533d654825eb34e"
+      },
+      "prior_report": {
+        "file": "artifacts/goal22-runs/server-ocr-comparison-v4/baseline/csv/execution/report.json",
+        "sha256": "30d207387426184847bf49f717952115821be1f8a1088f8810c687cad4b33da7"
+      },
+      "preparation": {
+        "path": "artifacts/goal22-runs/zero-confidence-native-v3/baseline/preparation.json",
+        "sha256": "8eac374432b142120cd9e09515fee3ab0157d7e0a6f5742cf977cf0f425bc811"
+      },
+      "selected_sources": 1,
+      "expected_panels": 2,
+      "complete_panel_observations": 2,
+      "retained_zero_confidence_ticks": 0,
+      "invalid_confidence_review_warnings": 0,
+      "unstructured_argument_failures": 0,
+      "failed_source_exports": 0,
+      "unaffected_control": [
+        {
+          "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+          "numeric_rows_exactly_preserved": 26,
+          "export_completion_preserved": true
+        }
+      ],
+      "seconds": 19.086108199999998,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "full_suite_accuracy_evaluated": false
+    },
+    {
+      "status": "pass",
+      "arm": "server-detector",
+      "report": {
+        "path": "artifacts/goal22-runs/zero-confidence-native-v3/server-detector/execution/report.json",
+        "sha256": "a49150649e26733a83b80af68ea7a30d3c4bd7150e4f0d55a7cf21a467483202"
+      },
+      "prior_report": {
+        "file": "artifacts/goal22-runs/server-ocr-comparison-v4/server-detector/csv/execution/report.json",
+        "sha256": "0db87db77f4402da346d899cf7ecf8050a60e6b7bfffeaf8cbbb0c8b50206418"
+      },
+      "preparation": {
+        "path": "artifacts/goal22-runs/zero-confidence-native-v3/server-detector/preparation.json",
+        "sha256": "db1d97352c48e88ba506f535fb408ae567e384c8973498c25a68399b7878659e"
+      },
+      "selected_sources": 2,
+      "expected_panels": 5,
+      "complete_panel_observations": 5,
+      "retained_zero_confidence_ticks": 3,
+      "invalid_confidence_review_warnings": 2,
+      "unstructured_argument_failures": 0,
+      "failed_source_exports": 0,
+      "unaffected_control": [],
+      "seconds": 37.54612,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "full_suite_accuracy_evaluated": false
+    },
+    {
+      "status": "pass",
+      "arm": "server-reader",
+      "report": {
+        "path": "artifacts/goal22-runs/zero-confidence-native-v3/server-reader/execution/report.json",
+        "sha256": "485cec0a6bd9d9be053300491d4f7f90d36fd0f3d809585b3f20af5417086ab2"
+      },
+      "prior_report": {
+        "file": "artifacts/goal22-runs/server-ocr-comparison-v4/server-reader/csv/execution/report.json",
+        "sha256": "a1d784b2943591709d13f3bd896d0f4f5a98cc271f93a44ce24ea67b8a19f95c"
+      },
+      "preparation": {
+        "path": "artifacts/goal22-runs/zero-confidence-native-v3/server-reader/preparation.json",
+        "sha256": "5422e7468163f3e6d27169478e03e8d0fe87f6897539dec52d6556a05465af8f"
+      },
+      "selected_sources": 2,
+      "expected_panels": 5,
+      "complete_panel_observations": 5,
+      "retained_zero_confidence_ticks": 1,
+      "invalid_confidence_review_warnings": 1,
+      "unstructured_argument_failures": 0,
+      "failed_source_exports": 0,
+      "unaffected_control": [
+        {
+          "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+          "numeric_rows_exactly_preserved": 26,
+          "export_completion_preserved": true
+        }
+      ],
+      "seconds": 38.4123012,
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "full_suite_accuracy_evaluated": false
+    }
+  ],
+  "panel_executions": 12,
+  "source_executions": 5,
+  "previously_failing_source_configuration_pairs": 3,
+  "retained_zero_confidence_ticks": 4,
+  "unstructured_argument_failures": 0,
+  "failed_source_exports": 0,
+  "control_numeric_rows_exactly_preserved": 52,
+  "control_scope": "26 rows from the same dev graph under baseline and server-reader configurations.",
+  "native_wall_seconds": 100.3308224,
+  "observed_providers": {
+    "OpenCvSharpExtern:cpu": 12,
+    "graph-text-extent-db-head-v44-p1:cpu": 7,
+    "en_PP-OCRv5_mobile_rec:cpu": 7,
+    "marker-center-component-diversity-v27:cpu": 12,
+    "marker-classifier-structural-context-v5:cpu": 16,
+    "PP-OCRv5_server_det:cpu": 5,
+    "PP-OCRv5_server_rec:cpu": 5
+  },
+  "source_bindings": {
+    "path": "artifacts/goal22-runs/zero-confidence-native-v3/source-bindings.json",
+    "sha256": "6ca10239e409070c4eeda476d856c6e1c6f6cdccb6684e69ed41d01d4b04257d"
+  },
+  "jobs": {
+    "path": "artifacts/goal22-runs/zero-confidence-native-v3/jobs.json",
+    "sha256": "c617e9bd4aa10d1b6b2e0bfe3b21a8f2d66a9b33e52df1dd2c14c51bf9c5aa62"
+  },
+  "source_line_ending_normalizations": [
+    {
+      "compiled_source": {
+        "path": "artifacts/goal22-runs/zero-confidence-native-v3/source-snapshot/src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+        "sha256": "f1e80b93956dad8515dc90b3776246561ada3dcdcab1d02363a9c3b2af66b60a"
+      },
+      "committed_source": {
+        "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+        "sha256": "be039e0b20f6fd245bbdc5754dc6bb0833145747f8c5ba2941f75001e8297709"
+      },
+      "verification": "Exact bytes equal after CRLF to LF normalization; no code or token changed."
+    }
+  ],
+  "sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "be039e0b20f6fd245bbdc5754dc6bb0833145747f8c5ba2941f75001e8297709"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionAutomaticDetectionAdapterTests.cs",
+      "sha256": "65764e329a51da04b7927c42673ae42968edeff9362efd329397f29187deefb6"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ZeroConfidenceRegression.py",
+      "sha256": "35352ea0485a3b25623e8b9c0455d3c9c837435603bdefd75b8b05f05b72fe88"
+    },
+    {
+      "path": "artifacts/goal22-tools/Score-ZeroConfidenceRegression.py",
+      "sha256": "18a0a996314dd1c022e3807ef22ebc0ba8385eb36814347ce3d34aada0f2da16"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ZeroConfidenceRegressionV3.ps1",
+      "sha256": "26d05773cc12c052bc1bb30e7571906350503a76f8b051570fddcc3f164fa3d1"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ZeroConfidenceChecksV2.ps1",
+      "sha256": "63eed49c9954c188d1010a177fddba77e59642faa665e86b09a3b0c7ed314dd3"
+    }
+  ],
+  "retained_unsuccessful_attempts": [
+    {
+      "path": "artifacts/goal22-runs/zero-confidence-checks-v1/status.json",
+      "sha256": "a14fb41187b3e040dcadf3d4ddefef2413672ec80969cb836d9f4ef564daae5c"
+    },
+    {
+      "path": "artifacts/goal22-runs/zero-confidence-checks-v1/app-tests.log",
+      "sha256": "be3b15f58e90ce0a2b917f10f0b6d122b4fa7cce1c4ef71d861eb9abef6cc6f0"
+    },
+    {
+      "path": "artifacts/goal22-runs/zero-confidence-native-v1/status.json",
+      "sha256": "bbf56dcf5658008b5006215530563f40cc40f7c57462ab5c4751c6ed58fdbb14"
+    },
+    {
+      "path": "artifacts/goal22-runs/zero-confidence-native-v1/baseline/inference.log",
+      "sha256": "d72ff60bed5c455e7ffc97ada138facc2e7b14bc748e3c6d7496ffa62e741ba4"
+    },
+    {
+      "path": "artifacts/goal22-runs/zero-confidence-native-v2/status.json",
+      "sha256": "bfec34d1939fefc7172486600378803a38eb9658402ae665240a28a109674181"
+    }
+  ],
+  "retry_explanation": "CA1859 required a concrete List parameter. The first runtime fixture omitted required split declarations; the next preparation found that the existing harness requires a dev source. Preserve original split membership and include an unaffected dev control. No model inference was repeated for either preparation failure.",
+  "license": "Existing Apache-2.0 project source; no new dependency or model.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "full_suite_accuracy_reevaluated": false,
+  "packaged_build_created": false,
+  "goal22_complete": false,
+  "limitations": [
+    "Targeted defect regression does not update complete OCR or marker accuracy estimates.",
+    "No WPF manual interaction or new installed/portable artifact was exercised.",
+    "Production model readiness and Goal 22 acceptance remain incomplete."
+  ]
+}
