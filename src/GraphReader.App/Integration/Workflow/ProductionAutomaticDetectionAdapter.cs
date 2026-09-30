@@ -346,15 +346,32 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     "markers", ProductionTextMarkerExclusion.Version, request.Image.Sha256, null,
                     new WorkflowVisionTiming(exclusionTimer.Elapsed.TotalMilliseconds, 0, 0, exclusionTimer.Elapsed.TotalMilliseconds),
                     ocr.Result.Confidence, textExclusion.Warnings, request.Transforms));
+            var frameExclusionTimer = System.Diagnostics.Stopwatch.StartNew();
+            IReadOnlySet<string> frameExcluded = ProductionLegendSymbolInputs.FindFrameExclusions(
+                plotMarkers, legendInputs.OriginalPixelFrameBounds, cancellationToken);
+            HashSet<string> excludedMarkerIds = textExclusion.ExcludedMarkerIds
+                .Concat(frameExcluded).ToHashSet(StringComparer.Ordinal);
+            frameExclusionTimer.Stop();
+            if (frameExcluded.Count > 0)
+                chain.Append(new WorkflowVisionEnvelope(
+                    1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                    "markers", ProductionLegendSymbolInputs.Version + ":frame-exclusion", request.Image.Sha256, null,
+                    new WorkflowVisionTiming(frameExclusionTimer.Elapsed.TotalMilliseconds, 0, 0,
+                        frameExclusionTimer.Elapsed.TotalMilliseconds),
+                    0.70, frameExcluded.Order(StringComparer.Ordinal)
+                        .Select(static id => $"legend_frame_marker_excluded:{id}").ToArray(), request.Transforms));
+            // Keep every classified candidate in the audit, but only plot
+            // candidates can seed recovery, calibrate sessions or become points.
+            plotMarkers = plotMarkers.Where(marker => !frameExcluded.Contains(marker.Marker.MarkerId)).ToArray();
             ClassifiedMarker[] acceptedMarkers = plotMarkers
                 .Where(marker => marker.ArtifactProbability < ArtifactRejectionThreshold &&
-                    !textExclusion.ExcludedMarkerIds.Contains(marker.Marker.MarkerId))
+                    !excludedMarkerIds.Contains(marker.Marker.MarkerId))
                 .ToArray();
             try
             {
                 MarkerTemplateSeedInputs seedInputs = ProductionMarkerTemplateRecovery.PrepareSeedInputs(
                     raster.CreateOcrImage(), markerPlot,
-                    plotMarkers.Where(marker => !textExclusion.ExcludedMarkerIds.Contains(marker.Marker.MarkerId)).ToArray(),
+                    plotMarkers.Where(marker => !excludedMarkerIds.Contains(marker.Marker.MarkerId)).ToArray(),
                     legendInputs.OriginalPixelContentBounds, cancellationToken);
                 IReadOnlyList<ClassifiedMarker> classifiedSeeds = [];
                 if (seedInputs.Markers.Count > 0)
@@ -544,7 +561,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 canonicalMarkers,
                 acceptedMarkers,
                 legendSymbols,
-                textExclusion.ExcludedMarkerIds,
+                excludedMarkerIds,
                 seriesContext.Grouping,
                 legend.Payload,
                 phases.Payload,
@@ -648,7 +665,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         IReadOnlyList<ClassifiedMarker> allMarkers,
         IReadOnlyList<ClassifiedMarker> acceptedMarkers,
         IReadOnlyList<ClassifiedMarker> legendSymbols,
-        IReadOnlySet<string> textExcludedMarkerIds,
+        IReadOnlySet<string> excludedMarkerIds,
         MarkerGroupingState grouping,
         LegendReasoningPayload legend,
         PhaseReasoningPayload phases,
@@ -662,7 +679,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             .ToDictionary(static assignment => assignment.PointId, StringComparer.Ordinal);
         HashSet<string> excluded = legend.ExcludedArtifactMarkerIds
             .Concat(legendSymbols.Select(static marker => marker.Marker.MarkerId))
-            .Concat(textExcludedMarkerIds)
+            .Concat(excludedMarkerIds)
             .ToHashSet(StringComparer.Ordinal);
         ClassifiedMarker[] projectedMarkers = acceptedMarkers
             .Where(marker => !excluded.Contains(marker.Marker.MarkerId))

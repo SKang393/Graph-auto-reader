@@ -4,6 +4,7 @@
 using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Globalization;
+using GraphReader.Markers.Classification;
 using GraphReader.Markers.Detection;
 using GraphReader.Ocr;
 
@@ -12,7 +13,26 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Separates image-backed legend samples from plotted observations.</summary>
 internal static class ProductionLegendSymbolInputs
 {
-    internal const string Version = "original-pixel-legend-symbol-inputs-v2";
+    internal const string Version = "original-pixel-legend-symbol-inputs-v3-frame-exclusion";
+
+    internal static IReadOnlySet<string> FindFrameExclusions(
+        IReadOnlyList<ClassifiedMarker> candidates,
+        IReadOnlyList<OcrRectangle> verifiedFrames,
+        CancellationToken cancellationToken)
+    {
+        var excluded = new HashSet<string>(StringComparer.Ordinal);
+        foreach (ClassifiedMarker candidate in candidates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            MarkerPoint center = candidate.Marker.Center;
+            // The measured frame includes its border pixels. Right and bottom
+            // are exclusive, so a plotted center just outside stays eligible.
+            if (verifiedFrames.Any(frame => center.X >= frame.Left && center.X < frame.Right &&
+                    center.Y >= frame.Top && center.Y < frame.Bottom))
+                excluded.Add(candidate.Marker.MarkerId);
+        }
+        return excluded.ToFrozenSet(StringComparer.Ordinal);
+    }
 
     internal static LegendSymbolInputBatch Prepare(
         ProductionWorkflowDetectionRequest request,

@@ -29,12 +29,14 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private static readonly string[] ExpectedPhaseCodes = ["a", "b"];
 
     [TestMethod]
-    [DataRow(false, false, false)]
-    [DataRow(true, false, false)]
-    [DataRow(false, true, false)]
-    [DataRow(true, false, true)]
+    [DataRow(false, false, false, false)]
+    [DataRow(true, false, false, false)]
+    [DataRow(false, true, false, false)]
+    [DataRow(true, false, true, false)]
+    [DataRow(false, false, false, true)]
+    [DataRow(true, false, true, true)]
     public async Task FramedLegendSymbolDoesNotRequireAPointDetectionOrEnterTheExport(
-        bool alreadyDetected, bool rejectedByClassifier, bool offsetLegendDetection)
+        bool alreadyDetected, bool rejectedByClassifier, bool offsetLegendDetection, bool includeFrameCorner)
     {
         string root = Path.Combine(Path.GetTempPath(), $"graphreader-independent-legend-{Guid.NewGuid():N}");
         Directory.CreateDirectory(root);
@@ -48,7 +50,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             var adapter = new ProductionAutomaticDetectionAdapter(
                 store, new ProductionRasterFrameDecoder(), new AxisAdapter(),
                 new OcrAdapter("Synthetic participant", includeLegendText: true, framedLegend: true),
-                new MaskComposer(), new CenterAdapter(alreadyDetected, measuredLegend: true, offsetLegendDetection), classifier,
+                new MaskComposer(), new CenterAdapter(alreadyDetected, measuredLegend: true, offsetLegendDetection, includeFrameCorner), classifier,
                 new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter(), new EmptyConnectionBuilder());
             bool candidateObserved = false;
             adapter.CandidateCalibrationObserver = _ => candidateObserved = true;
@@ -62,19 +64,32 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     enhancementEnabled: false)), null, CancellationToken.None);
             WorkflowReviewPanel panel = run.Review.Panels.Single();
             Assert.IsFalse(candidateObserved, "Approved production must not invoke candidate diagnostic recording.");
-            Assert.HasCount(offsetLegendDetection ? 4 : 3, classifier.LastInputs);
+            int expectedCandidates = (offsetLegendDetection ? 4 : 3) + (includeFrameCorner ? 1 : 0);
+            Assert.HasCount(expectedCandidates, classifier.LastInputs);
             Assert.HasCount(1, classifier.LastContentBounds);
             Assert.AreEqual(new MarkerRectangle(17, 21, 7, 7), classifier.LastContentBounds.Values.Single());
             Assert.IsFalse(classifier.LastContentBounds.ContainsKey("raw-1"));
             Assert.IsFalse(classifier.LastContentBounds.ContainsKey("raw-2"));
             Assert.IsTrue(classifier.LastInputs.Any(static marker => marker.Center.X == 20.5 && marker.Center.Y == 24.5));
             Assert.HasCount(2, panel.Points);
+            Assert.IsTrue(panel.Points.Any(static point => point.OriginalPixelX == 80),
+                "A plotted center at the frame's exclusive right edge must remain eligible.");
             Assert.IsFalse(panel.Points.Any(static point => point.OriginalPixelY == 24.5));
             ProductionPanelExportEvidence evidence = store.Get(panel.PanelId).ExportEvidence!;
             Assert.IsNotNull(evidence.ProjectionEvidence);
-            Assert.HasCount(offsetLegendDetection ? 4 : 3, evidence.ProjectionEvidence.Markers);
-            Assert.AreEqual(offsetLegendDetection ? 2 : 1, evidence.ProjectionEvidence.Markers.Count(static marker =>
+            Assert.HasCount(expectedCandidates, evidence.ProjectionEvidence.Markers);
+            Assert.AreEqual(expectedCandidates - 2, evidence.ProjectionEvidence.Markers.Count(static marker =>
                 marker.ReviewStatus == GraphReader.Domain.ReviewStatus.Rejected));
+            if (includeFrameCorner)
+            {
+                GraphReader.Domain.MarkerRecord corner = evidence.ProjectionEvidence.Markers.Single(static marker =>
+                    marker.Center.X == 77 && marker.Center.Y == 16);
+                Assert.AreEqual(GraphReader.Domain.ReviewStatus.Rejected, corner.ReviewStatus);
+                Assert.IsTrue(corner.ArtifactProbability < 0.5,
+                    "Measured legend context must exclude a frame corner even when the classifier accepts it.");
+                Assert.IsTrue(evidence.Provenance.SelectMany(static item => item.Warnings)
+                    .Any(static warning => warning.StartsWith("legend_frame_marker_excluded:", StringComparison.Ordinal)));
+            }
             Assert.HasCount(2, evidence.ProjectionEvidence.Points);
             Assert.IsTrue(evidence.Provenance.Any(static item => item.StageVersion == ProductionLegendSymbolInputs.Version));
             if (!rejectedByClassifier)
@@ -801,7 +816,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     private sealed class CenterAdapter(bool includeLegendGlyph = false, bool measuredLegend = false,
-        bool offsetLegendDetection = false) : IProductionMarkerCenterAdapter
+        bool offsetLegendDetection = false, bool includeFrameCorner = false) : IProductionMarkerCenterAdapter
     {
         public string AdapterId => "test-centers";
 
@@ -833,6 +848,9 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     measuredLegend ? new MarkerPoint(offsetLegendDetection ? 21 : 20.5, 24.5) : new MarkerPoint(20, 20),
                     measuredLegend ? 3.5 : 3, 0.01, 0.98, MarkerSourceImage.Original)];
             }
+            if (includeFrameCorner)
+                markers = [.. markers, new MarkerCenter("frame-corner", new MarkerPoint(77, 16),
+                    3, 0.01, 0.98, MarkerSourceImage.Original)];
             return Task.FromResult(new ProductionMarkerCenterEvidence(
                 Envelope(request, "markers", "center-v1", "test-center", 'd'),
                 markers,

@@ -1,0 +1,5244 @@
+{
+  "schema": "graphreader.legend-frame-exclusion-repair.v1",
+  "status": "repair_verified_accuracy_incomplete",
+  "failure_mode": "Initial detector frame corners remained eligible as plotted points even though template and enclosed-center recovery already exclude verified original-pixel legend frames.",
+  "implementation": "Apply the same verified frames to initial classified candidates before recovery, calibration, grouping and export. Use half-open bounds. Preserve every original candidate in projection audit and emit explicit frame-exclusion provenance.",
+  "tests": {
+    "app_passed": 510,
+    "failed": 0,
+    "skipped": 0,
+    "clean_app_and_native_builds": true
+  },
+  "arms": {
+    "v27": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "input_center_candidates_unchanged": true,
+        "axis_and_ocr_unchanged": true,
+        "models_and_operating_threshold_unchanged_within_arm": true,
+        "frame_excluded_candidates": 0,
+        "excluded_within_5px_of_truth": 0,
+        "exclusions": [],
+        "other_classification_or_recovery_changes": [],
+        "seconds": 176.2121719,
+        "metrics": {
+          "truth": 838,
+          "predicted": 758,
+          "matched": 733,
+          "extra": 25,
+          "missing": 105,
+          "precision": 0.9670184696569921,
+          "recall": 0.8747016706443914
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 758,
+          "matched": 733,
+          "extra": 25,
+          "missing": 105,
+          "precision": 0.9670184696569921,
+          "recall": 0.8747016706443914
+        },
+        "paired_truths": {
+          "retained": 733,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 105
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "before": {
+            "validation": {
+              "truth_region_count": 453,
+              "predicted_region_count": 499,
+              "geometry_matched_region_count": 389,
+              "geometry_false_positive_count": 110,
+              "geometry_false_negative_count": 64,
+              "recognition_exact_count": 348,
+              "recognition_exact_accuracy": 0.7682119205298014,
+              "truth_character_count": 3100,
+              "matched_pair_edit_count": 58,
+              "unmatched_truth_deletion_edit_count": 476,
+              "unmatched_prediction_insertion_edit_count": 240,
+              "character_error_count": 774,
+              "character_error_rate": 0.2496774193548387,
+              "role_correct_count": 358,
+              "role_accuracy": 0.7902869757174393,
+              "by_expected_runtime_role": {
+                "annotation": {
+                  "truth_count": 62,
+                  "correct_count": 40,
+                  "accuracy": 0.6451612903225806
+                },
+                "axistitle": {
+                  "truth_count": 52,
+                  "correct_count": 49,
+                  "accuracy": 0.9423076923076923
+                },
+                "legendtext": {
+                  "truth_count": 37,
+                  "correct_count": 29,
+                  "accuracy": 0.7837837837837838
+                },
+                "participant": {
+                  "truth_count": 31,
+                  "correct_count": 20,
+                  "accuracy": 0.6451612903225806
+                },
+                "phaseheading": {
+                  "truth_count": 170,
+                  "correct_count": 134,
+                  "accuracy": 0.788235294117647
+                },
+                "xtick": {
+                  "truth_count": 2,
+                  "correct_count": 2,
+                  "accuracy": 1.0
+                },
+                "ytick": {
+                  "truth_count": 99,
+                  "correct_count": 84,
+                  "accuracy": 0.8484848484848485
+                }
+              },
+              "intersection_over_union_minimum": 0.5
+            }
+          },
+          "after": {
+            "validation": {
+              "truth_region_count": 453,
+              "predicted_region_count": 499,
+              "geometry_matched_region_count": 389,
+              "geometry_false_positive_count": 110,
+              "geometry_false_negative_count": 64,
+              "recognition_exact_count": 348,
+              "recognition_exact_accuracy": 0.7682119205298014,
+              "truth_character_count": 3100,
+              "matched_pair_edit_count": 58,
+              "unmatched_truth_deletion_edit_count": 476,
+              "unmatched_prediction_insertion_edit_count": 240,
+              "character_error_count": 774,
+              "character_error_rate": 0.2496774193548387,
+              "role_correct_count": 358,
+              "role_accuracy": 0.7902869757174393,
+              "by_expected_runtime_role": {
+                "annotation": {
+                  "truth_count": 62,
+                  "correct_count": 40,
+                  "accuracy": 0.6451612903225806
+                },
+                "axistitle": {
+                  "truth_count": 52,
+                  "correct_count": 49,
+                  "accuracy": 0.9423076923076923
+                },
+                "legendtext": {
+                  "truth_count": 37,
+                  "correct_count": 29,
+                  "accuracy": 0.7837837837837838
+                },
+                "participant": {
+                  "truth_count": 31,
+                  "correct_count": 20,
+                  "accuracy": 0.6451612903225806
+                },
+                "phaseheading": {
+                  "truth_count": 170,
+                  "correct_count": 134,
+                  "accuracy": 0.788235294117647
+                },
+                "xtick": {
+                  "truth_count": 2,
+                  "correct_count": 2,
+                  "accuracy": 1.0
+                },
+                "ytick": {
+                  "truth_count": 99,
+                  "correct_count": 84,
+                  "accuracy": 0.8484848484848485
+                }
+              },
+              "intersection_over_union_minimum": 0.5
+            }
+          }
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "input_center_candidates_unchanged": true,
+        "axis_and_ocr_unchanged": true,
+        "models_and_operating_threshold_unchanged_within_arm": true,
+        "frame_excluded_candidates": 83,
+        "excluded_within_5px_of_truth": 0,
+        "exclusions": [
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              992.5264282226562,
+              121.31898498535156
+            ],
+            "radius": 6.258452892303467,
+            "previous_artifact_probability": 0.9998810887336731,
+            "nearest_truth_distance_px": 75.55026558525306,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1002.5901489257812,
+              119.78426361083984
+            ],
+            "radius": 4.487928867340088,
+            "previous_artifact_probability": 0.27430593967437744,
+            "nearest_truth_distance_px": 68.37083245869299,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1022.4974975585938,
+              118.59064483642578
+            ],
+            "radius": 4.642459869384766,
+            "previous_artifact_probability": 0.9998542070388794,
+            "nearest_truth_distance_px": 55.43784300554572,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1027.858642578125,
+              121.45030212402344
+            ],
+            "radius": 4.642003059387207,
+            "previous_artifact_probability": 0.9996740818023682,
+            "nearest_truth_distance_px": 50.02297985423712,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1034.9735107421875,
+              119.07620239257812
+            ],
+            "radius": 4.298436164855957,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 48.63052163999634,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1074.917724609375,
+              123.87899017333984
+            ],
+            "radius": 7.483042240142822,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 43.906440472083965,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "91025ec0955623c4d8955162d2d91a46c39870841327391a38e604f3c00b2506",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1075.8115234375,
+              161.81826782226562
+            ],
+            "radius": 7.826696872711182,
+            "previous_artifact_probability": 0.9999998807907104,
+            "nearest_truth_distance_px": 31.94539123701937,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "1d54389dbdf2655fdcb24363b3fb13152728c5a799cc54a11b71be8d06bb02f6",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1075.5419921875,
+              121.70549011230469
+            ],
+            "radius": 7.271823883056641,
+            "previous_artifact_probability": 0.9999934434890747,
+            "nearest_truth_distance_px": 44.39432717752714,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "1d54389dbdf2655fdcb24363b3fb13152728c5a799cc54a11b71be8d06bb02f6",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1077.7828369140625,
+              112.3940200805664
+            ],
+            "radius": 4.6391754150390625,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 53.766552892495255,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1075.8115234375,
+              157.81826782226562
+            ],
+            "radius": 7.826696872711182,
+            "previous_artifact_probability": 0.9999998807907104,
+            "nearest_truth_distance_px": 35.77377123749002,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              992.5264282226562,
+              121.31898498535156
+            ],
+            "radius": 6.258452892303467,
+            "previous_artifact_probability": 0.9998810887336731,
+            "nearest_truth_distance_px": 68.60706793743203,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1002.5901489257812,
+              119.78426361083984
+            ],
+            "radius": 4.487928867340088,
+            "previous_artifact_probability": 0.27430593967437744,
+            "nearest_truth_distance_px": 60.244126379270405,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1022.4974975585938,
+              118.59064483642578
+            ],
+            "radius": 4.642459869384766,
+            "previous_artifact_probability": 0.9998542070388794,
+            "nearest_truth_distance_px": 44.650666706440184,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1027.858642578125,
+              121.45030212402344
+            ],
+            "radius": 4.642003059387207,
+            "previous_artifact_probability": 0.9996740818023682,
+            "nearest_truth_distance_px": 38.7966031060971,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1034.9735107421875,
+              119.07620239257812
+            ],
+            "radius": 4.298436164855957,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 36.04541471928412,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1074.917724609375,
+              123.87899017333984
+            ],
+            "radius": 7.483042240142822,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 31.63483582477534,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1046.658935546875,
+              158.05938720703125
+            ],
+            "radius": 4.2383198738098145,
+            "previous_artifact_probability": 0.9999998211860657,
+            "nearest_truth_distance_px": 38.862575400573654,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1075.892822265625,
+              161.82421875
+            ],
+            "radius": 7.82309103012085,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 42.697640071110456,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              992.5264282226562,
+              121.31898498535156
+            ],
+            "radius": 6.258452892303467,
+            "previous_artifact_probability": 0.9998810887336731,
+            "nearest_truth_distance_px": 70.11806991281489,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1002.5901489257812,
+              119.78426361083984
+            ],
+            "radius": 4.487928867340088,
+            "previous_artifact_probability": 0.27430593967437744,
+            "nearest_truth_distance_px": 62.04810844558709,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1022.4974975585938,
+              118.59064483642578
+            ],
+            "radius": 4.642459869384766,
+            "previous_artifact_probability": 0.9998542070388794,
+            "nearest_truth_distance_px": 47.1471045010816,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1027.858642578125,
+              121.45030212402344
+            ],
+            "radius": 4.642003059387207,
+            "previous_artifact_probability": 0.9996740818023682,
+            "nearest_truth_distance_px": 41.398662372467676,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1034.9735107421875,
+              119.07620239257812
+            ],
+            "radius": 4.298436164855957,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 39.0507292364439,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1074.917724609375,
+              123.87899017333984
+            ],
+            "radius": 7.483042240142822,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 34.52578384057625,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              992.5264282226562,
+              165.31898498535156
+            ],
+            "radius": 6.258452892303467,
+            "previous_artifact_probability": 0.9998810887336731,
+            "nearest_truth_distance_px": 33.203018307485806,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1002.5901489257812,
+              163.78427124023438
+            ],
+            "radius": 4.487928867340088,
+            "previous_artifact_probability": 0.2743104100227356,
+            "nearest_truth_distance_px": 28.064506444101823,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1022.4974975585938,
+              162.5906524658203
+            ],
+            "radius": 4.642459869384766,
+            "previous_artifact_probability": 0.9998542070388794,
+            "nearest_truth_distance_px": 29.46739228878493,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1027.858642578125,
+              165.45030212402344
+            ],
+            "radius": 4.642003059387207,
+            "previous_artifact_probability": 0.9996740818023682,
+            "nearest_truth_distance_px": 34.64764893798218,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1034.9735107421875,
+              163.07620239257812
+            ],
+            "radius": 4.298436164855957,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 35.56635803333928,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1074.917724609375,
+              167.87899780273438
+            ],
+            "radius": 7.483042240142822,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 42.7434256158574,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              992.5264282226562,
+              121.31898498535156
+            ],
+            "radius": 6.258452892303467,
+            "previous_artifact_probability": 0.9998810887336731,
+            "nearest_truth_distance_px": 71.77669952156761,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1002.5901489257812,
+              119.78426361083984
+            ],
+            "radius": 4.487928867340088,
+            "previous_artifact_probability": 0.27430593967437744,
+            "nearest_truth_distance_px": 64.0025009221311,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1022.4974975585938,
+              118.59064483642578
+            ],
+            "radius": 4.642459869384766,
+            "previous_artifact_probability": 0.9998542070388794,
+            "nearest_truth_distance_px": 49.77708471044156,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1027.858642578125,
+              121.45030212402344
+            ],
+            "radius": 4.642003059387207,
+            "previous_artifact_probability": 0.9996740818023682,
+            "nearest_truth_distance_px": 44.139084475821676,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1034.9735107421875,
+              119.07620239257812
+            ],
+            "radius": 4.298436164855957,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 42.147212037655564,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1074.917724609375,
+              123.87899017333984
+            ],
+            "radius": 7.483042240142822,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 37.53704136619757,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              992.3356323242188,
+              161.31423950195312
+            ],
+            "radius": 6.2833356857299805,
+            "previous_artifact_probability": 0.9999452829360962,
+            "nearest_truth_distance_px": 44.313860580159684,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1002.5000610351562,
+              159.8810272216797
+            ],
+            "radius": 4.490034580230713,
+            "previous_artifact_probability": 0.7751213312149048,
+            "nearest_truth_distance_px": 40.178221055317515,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1022.5684814453125,
+              158.69911193847656
+            ],
+            "radius": 4.670444011688232,
+            "previous_artifact_probability": 0.999565601348877,
+            "nearest_truth_distance_px": 38.82616054495563,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1034.8236083984375,
+              159.15963745117188
+            ],
+            "radius": 4.3363142013549805,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 30.998926846899742,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1074.83349609375,
+              163.8835906982422
+            ],
+            "radius": 7.443800926208496,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 38.17260465028956,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              995.2981567382812,
+              169.70071411132812
+            ],
+            "radius": 6.676344394683838,
+            "previous_artifact_probability": 0.9200695753097534,
+            "nearest_truth_distance_px": 36.90667314283147,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              998.0901489257812,
+              159.88272094726562
+            ],
+            "radius": 4.804721832275391,
+            "previous_artifact_probability": 0.9999927282333374,
+            "nearest_truth_distance_px": 30.67709459995282,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              964.3033447265625,
+              71.95353698730469
+            ],
+            "radius": 4.593460559844971,
+            "previous_artifact_probability": 0.9994641542434692,
+            "nearest_truth_distance_px": 42.53358159478705,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              994.5969848632812,
+              74.89572143554688
+            ],
+            "radius": 4.4650983810424805,
+            "previous_artifact_probability": 0.9999945759773254,
+            "nearest_truth_distance_px": 57.90164692507812,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              1007.5309448242188,
+              75.43462371826172
+            ],
+            "radius": 4.678636074066162,
+            "previous_artifact_probability": 0.9864330887794495,
+            "nearest_truth_distance_px": 47.41022305887557,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              1074.557861328125,
+              69.41242980957031
+            ],
+            "radius": 5.435018062591553,
+            "previous_artifact_probability": 0.9999976754188538,
+            "nearest_truth_distance_px": 35.20912629098191,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              813.48779296875,
+              201.70294189453125
+            ],
+            "radius": 4.0433502197265625,
+            "previous_artifact_probability": 0.5589709877967834,
+            "nearest_truth_distance_px": 57.827004588534685,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              831.913330078125,
+              203.10934448242188
+            ],
+            "radius": 3.994229793548584,
+            "previous_artifact_probability": 0.9980758428573608,
+            "nearest_truth_distance_px": 64.802123961295,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              844.6199340820312,
+              202.5458221435547
+            ],
+            "radius": 4.196579933166504,
+            "previous_artifact_probability": 0.7362202405929565,
+            "nearest_truth_distance_px": 67.40550216104874,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              855.385009765625,
+              203.351318359375
+            ],
+            "radius": 4.243229389190674,
+            "previous_artifact_probability": 0.9999997019767761,
+            "nearest_truth_distance_px": 67.61797134251536,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              871.3828735351562,
+              202.3861541748047
+            ],
+            "radius": 4.33656120300293,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 68.93875898473576,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              889.1605834960938,
+              201.4772186279297
+            ],
+            "radius": 3.93296480178833,
+            "previous_artifact_probability": 0.9990822076797485,
+            "nearest_truth_distance_px": 62.79299873260704,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              890.0418090820312,
+              223.10537719726562
+            ],
+            "radius": 3.075106620788574,
+            "previous_artifact_probability": 0.9671359062194824,
+            "nearest_truth_distance_px": 83.42353147922329,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              1075.7003173828125,
+              156.42160034179688
+            ],
+            "radius": 5.321420192718506,
+            "previous_artifact_probability": 0.9990330338478088,
+            "nearest_truth_distance_px": 27.649564038434203,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              1076.2440185546875,
+              170.7095489501953
+            ],
+            "radius": 7.979825973510742,
+            "previous_artifact_probability": 0.7628741264343262,
+            "nearest_truth_distance_px": 39.08256079272765,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              967.7805786132812,
+              116.59078216552734
+            ],
+            "radius": 4.63477897644043,
+            "previous_artifact_probability": 0.9471193552017212,
+            "nearest_truth_distance_px": 24.844766507789135,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              994.7117309570312,
+              118.7967758178711
+            ],
+            "radius": 4.560757160186768,
+            "previous_artifact_probability": 0.9999999403953552,
+            "nearest_truth_distance_px": 31.576180236446003,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1007.5023803710938,
+              119.10443878173828
+            ],
+            "radius": 4.772971153259277,
+            "previous_artifact_probability": 0.9958188533782959,
+            "nearest_truth_distance_px": 30.415550305632344,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1076.1356201171875,
+              122.81685638427734
+            ],
+            "radius": 7.84306001663208,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 47.534381276707784,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1078.4044189453125,
+              112.24906921386719
+            ],
+            "radius": 5.5953497886657715,
+            "previous_artifact_probability": 0.019755661487579346,
+            "nearest_truth_distance_px": 39.57771517276855,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              967.60107421875,
+              120.28472900390625
+            ],
+            "radius": 4.580484390258789,
+            "previous_artifact_probability": 0.994721531867981,
+            "nearest_truth_distance_px": 35.42452177561134,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              994.734619140625,
+              122.79722595214844
+            ],
+            "radius": 4.581968307495117,
+            "previous_artifact_probability": 0.9999999403953552,
+            "nearest_truth_distance_px": 34.78044669614483,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1007.443115234375,
+              123.1015396118164
+            ],
+            "radius": 4.770761489868164,
+            "previous_artifact_probability": 0.9974261522293091,
+            "nearest_truth_distance_px": 29.20108476976467,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1076.103759765625,
+              126.79690551757812
+            ],
+            "radius": 7.848315715789795,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 38.898883503204615,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1078.396240234375,
+              116.28241729736328
+            ],
+            "radius": 5.592862129211426,
+            "previous_artifact_probability": 0.0170632004737854,
+            "nearest_truth_distance_px": 32.11456439115917,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              964.5309448242188,
+              115.9892807006836
+            ],
+            "radius": 4.558010101318359,
+            "previous_artifact_probability": 0.9993641376495361,
+            "nearest_truth_distance_px": 37.59164955166883,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              994.7321166992188,
+              118.78585052490234
+            ],
+            "radius": 4.587471961975098,
+            "previous_artifact_probability": 0.9999998211860657,
+            "nearest_truth_distance_px": 32.92521388450603,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1007.4340209960938,
+              119.08778381347656
+            ],
+            "radius": 4.769657135009766,
+            "previous_artifact_probability": 0.9973586797714233,
+            "nearest_truth_distance_px": 26.936482234353136,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1076.087646484375,
+              122.78196716308594
+            ],
+            "radius": 7.83957052230835,
+            "previous_artifact_probability": 0.9999999403953552,
+            "nearest_truth_distance_px": 49.00504290417164,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1078.4202880859375,
+              112.27509307861328
+            ],
+            "radius": 5.5817646980285645,
+            "previous_artifact_probability": 0.024850815534591675,
+            "nearest_truth_distance_px": 40.99174571555491,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              940.2245483398438,
+              142.7835693359375
+            ],
+            "radius": 5.117603302001953,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 51.10326867874663,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              965.072998046875,
+              120.80665588378906
+            ],
+            "radius": 4.6916704177856445,
+            "previous_artifact_probability": 0.9992311000823975,
+            "nearest_truth_distance_px": 27.522772103397802,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              994.73828125,
+              122.78889465332031
+            ],
+            "radius": 4.562333106994629,
+            "previous_artifact_probability": 0.9999998807907104,
+            "nearest_truth_distance_px": 32.87991425734884,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              1007.452880859375,
+              123.08175659179688
+            ],
+            "radius": 4.772554397583008,
+            "previous_artifact_probability": 0.9967797994613647,
+            "nearest_truth_distance_px": 35.74288183457236,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              1075.2398681640625,
+              117.57051086425781
+            ],
+            "radius": 6.541521072387695,
+            "previous_artifact_probability": 0.12393465638160706,
+            "nearest_truth_distance_px": 42.38052267889182,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              939.5994262695312,
+              107.5869369506836
+            ],
+            "radius": 7.858707904815674,
+            "previous_artifact_probability": 0.9989765882492065,
+            "nearest_truth_distance_px": 13.547545237822595,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              940.2265014648438,
+              138.78155517578125
+            ],
+            "radius": 5.146307945251465,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 44.553791847024655,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              964.0872192382812,
+              116.52787780761719
+            ],
+            "radius": 4.489546775817871,
+            "previous_artifact_probability": 0.9999827742576599,
+            "nearest_truth_distance_px": 35.30255845571512,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              994.7169799804688,
+              118.797119140625
+            ],
+            "radius": 4.554006576538086,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 39.26525978789299,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1007.461181640625,
+              119.09774017333984
+            ],
+            "radius": 4.771358966827393,
+            "previous_artifact_probability": 0.9973553419113159,
+            "nearest_truth_distance_px": 34.45009887690076,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1076.1422119140625,
+              122.78648376464844
+            ],
+            "radius": 7.841106414794922,
+            "previous_artifact_probability": 0.9999999403953552,
+            "nearest_truth_distance_px": 47.70480068636923,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1078.408447265625,
+              112.26091766357422
+            ],
+            "radius": 5.606696128845215,
+            "previous_artifact_probability": 0.018770188093185425,
+            "nearest_truth_distance_px": 39.76608069459477,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          }
+        ],
+        "other_classification_or_recovery_changes": [],
+        "seconds": 252.8856838,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 12,
+          "failed_cases": 11,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 30,
+          "matched_series": 22,
+          "truth_points": 706,
+          "predicted_points": 420,
+          "matched_points": 409,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 420,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 408,
+          "correct_rows": 405,
+          "missing_rows": 316,
+          "extra_rows": 12,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 409,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 297,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9738095238095238,
+          "unique_point_structural_coverage": 0.5793201133144475,
+          "unique_point_value_precision": 0.9738095238095238,
+          "unique_point_value_coverage": 0.5793201133144475,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9642857142857143,
+          "relational_row_coverage": 0.5593922651933702,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9926470588235294,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 11
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 12,
+          "failed_cases": 11,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 30,
+          "matched_series": 22,
+          "truth_points": 706,
+          "predicted_points": 420,
+          "matched_points": 409,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 420,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 408,
+          "correct_rows": 405,
+          "missing_rows": 316,
+          "extra_rows": 12,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 409,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 297,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9738095238095238,
+          "unique_point_structural_coverage": 0.5793201133144475,
+          "unique_point_value_precision": 0.9738095238095238,
+          "unique_point_value_coverage": 0.5793201133144475,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9642857142857143,
+          "relational_row_coverage": 0.5593922651933702,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9926470588235294,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 11
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 10,
+            "failed_cases": 10,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 16,
+            "matched_series": 14,
+            "truth_points": 500,
+            "predicted_points": 255,
+            "matched_points": 253,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 255,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 252,
+            "correct_rows": 249,
+            "missing_rows": 248,
+            "extra_rows": 3,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 253,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 247,
+            "unique_point_extra": 2,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9921568627450981,
+            "unique_point_structural_coverage": 0.506,
+            "unique_point_value_precision": 0.9921568627450981,
+            "unique_point_value_coverage": 0.506,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9764705882352941,
+            "relational_row_coverage": 0.498,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.9880952380952381,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 10
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "previously_accepted_plot_points_excluded": 0
+      }
+    },
+    "v30": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "input_center_candidates_unchanged": true,
+        "axis_and_ocr_unchanged": true,
+        "models_and_operating_threshold_unchanged_within_arm": true,
+        "frame_excluded_candidates": 0,
+        "excluded_within_5px_of_truth": 0,
+        "exclusions": [],
+        "other_classification_or_recovery_changes": [],
+        "seconds": 167.1582175,
+        "metrics": {
+          "truth": 838,
+          "predicted": 783,
+          "matched": 762,
+          "extra": 21,
+          "missing": 76,
+          "precision": 0.9731800766283525,
+          "recall": 0.9093078758949881
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 783,
+          "matched": 762,
+          "extra": 21,
+          "missing": 76,
+          "precision": 0.9731800766283525,
+          "recall": 0.9093078758949881
+        },
+        "paired_truths": {
+          "retained": 762,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 76
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "before": {
+            "validation": {
+              "truth_region_count": 453,
+              "predicted_region_count": 499,
+              "geometry_matched_region_count": 389,
+              "geometry_false_positive_count": 110,
+              "geometry_false_negative_count": 64,
+              "recognition_exact_count": 348,
+              "recognition_exact_accuracy": 0.7682119205298014,
+              "truth_character_count": 3100,
+              "matched_pair_edit_count": 58,
+              "unmatched_truth_deletion_edit_count": 476,
+              "unmatched_prediction_insertion_edit_count": 240,
+              "character_error_count": 774,
+              "character_error_rate": 0.2496774193548387,
+              "role_correct_count": 358,
+              "role_accuracy": 0.7902869757174393,
+              "by_expected_runtime_role": {
+                "annotation": {
+                  "truth_count": 62,
+                  "correct_count": 40,
+                  "accuracy": 0.6451612903225806
+                },
+                "axistitle": {
+                  "truth_count": 52,
+                  "correct_count": 49,
+                  "accuracy": 0.9423076923076923
+                },
+                "legendtext": {
+                  "truth_count": 37,
+                  "correct_count": 29,
+                  "accuracy": 0.7837837837837838
+                },
+                "participant": {
+                  "truth_count": 31,
+                  "correct_count": 20,
+                  "accuracy": 0.6451612903225806
+                },
+                "phaseheading": {
+                  "truth_count": 170,
+                  "correct_count": 134,
+                  "accuracy": 0.788235294117647
+                },
+                "xtick": {
+                  "truth_count": 2,
+                  "correct_count": 2,
+                  "accuracy": 1.0
+                },
+                "ytick": {
+                  "truth_count": 99,
+                  "correct_count": 84,
+                  "accuracy": 0.8484848484848485
+                }
+              },
+              "intersection_over_union_minimum": 0.5
+            }
+          },
+          "after": {
+            "validation": {
+              "truth_region_count": 453,
+              "predicted_region_count": 499,
+              "geometry_matched_region_count": 389,
+              "geometry_false_positive_count": 110,
+              "geometry_false_negative_count": 64,
+              "recognition_exact_count": 348,
+              "recognition_exact_accuracy": 0.7682119205298014,
+              "truth_character_count": 3100,
+              "matched_pair_edit_count": 58,
+              "unmatched_truth_deletion_edit_count": 476,
+              "unmatched_prediction_insertion_edit_count": 240,
+              "character_error_count": 774,
+              "character_error_rate": 0.2496774193548387,
+              "role_correct_count": 358,
+              "role_accuracy": 0.7902869757174393,
+              "by_expected_runtime_role": {
+                "annotation": {
+                  "truth_count": 62,
+                  "correct_count": 40,
+                  "accuracy": 0.6451612903225806
+                },
+                "axistitle": {
+                  "truth_count": 52,
+                  "correct_count": 49,
+                  "accuracy": 0.9423076923076923
+                },
+                "legendtext": {
+                  "truth_count": 37,
+                  "correct_count": 29,
+                  "accuracy": 0.7837837837837838
+                },
+                "participant": {
+                  "truth_count": 31,
+                  "correct_count": 20,
+                  "accuracy": 0.6451612903225806
+                },
+                "phaseheading": {
+                  "truth_count": 170,
+                  "correct_count": 134,
+                  "accuracy": 0.788235294117647
+                },
+                "xtick": {
+                  "truth_count": 2,
+                  "correct_count": 2,
+                  "accuracy": 1.0
+                },
+                "ytick": {
+                  "truth_count": 99,
+                  "correct_count": 84,
+                  "accuracy": 0.8484848484848485
+                }
+              },
+              "intersection_over_union_minimum": 0.5
+            }
+          }
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "input_center_candidates_unchanged": true,
+        "axis_and_ocr_unchanged": true,
+        "models_and_operating_threshold_unchanged_within_arm": true,
+        "frame_excluded_candidates": 154,
+        "excluded_within_5px_of_truth": 0,
+        "exclusions": [
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              959.5402221679688,
+              118.19058227539062
+            ],
+            "radius": 3.5740811824798584,
+            "previous_artifact_probability": 0.9999778270721436,
+            "nearest_truth_distance_px": 105.90437636427845,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              965.1665649414062,
+              116.52598571777344
+            ],
+            "radius": 4.682247638702393,
+            "previous_artifact_probability": 0.9997568726539612,
+            "nearest_truth_distance_px": 101.5940842361519,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              978.826171875,
+              117.7430419921875
+            ],
+            "radius": 3.4502902030944824,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 89.05440081737692,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              991.891357421875,
+              118.03782653808594
+            ],
+            "radius": 3.5663046836853027,
+            "previous_artifact_probability": 0.9999393820762634,
+            "nearest_truth_distance_px": 77.93436036571408,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1003.861572265625,
+              119.38141632080078
+            ],
+            "radius": 3.7755513191223145,
+            "previous_artifact_probability": 0.9982759952545166,
+            "nearest_truth_distance_px": 67.6538919316187,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1018.5831298828125,
+              117.7558364868164
+            ],
+            "radius": 3.7360785007476807,
+            "previous_artifact_probability": 0.2532792091369629,
+            "nearest_truth_distance_px": 58.4931946243036,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1028.330078125,
+              117.75479888916016
+            ],
+            "radius": 3.6488418579101562,
+            "previous_artifact_probability": 0.999995231628418,
+            "nearest_truth_distance_px": 52.9041292084355,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1052.242431640625,
+              117.68291473388672
+            ],
+            "radius": 3.5532021522521973,
+            "previous_artifact_probability": 0.974524974822998,
+            "nearest_truth_distance_px": 45.635254652597666,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8ed87e2ca70c071cdc65aed710932802180d4a471ab550cc23acae3a311fcbac",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1064.2808837890625,
+              118.61669158935547
+            ],
+            "radius": 3.2803797721862793,
+            "previous_artifact_probability": 0.9999985694885254,
+            "nearest_truth_distance_px": 45.46785930062582,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "91025ec0955623c4d8955162d2d91a46c39870841327391a38e604f3c00b2506",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              967.9290771484375,
+              155.70779418945312
+            ],
+            "radius": 4.536759376525879,
+            "previous_artifact_probability": 0.0005567967891693115,
+            "nearest_truth_distance_px": 24.99817375022298,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "91025ec0955623c4d8955162d2d91a46c39870841327391a38e604f3c00b2506",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1074.6778564453125,
+              152.2958526611328
+            ],
+            "radius": 6.425212383270264,
+            "previous_artifact_probability": 0.01967981457710266,
+            "nearest_truth_distance_px": 25.875941067169304,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "1d54389dbdf2655fdcb24363b3fb13152728c5a799cc54a11b71be8d06bb02f6",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1078.7373046875,
+              118.48788452148438
+            ],
+            "radius": 4.6567277908325195,
+            "previous_artifact_probability": 0.07738673686981201,
+            "nearest_truth_distance_px": 47.74183941466102,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              967.9290771484375,
+              151.70779418945312
+            ],
+            "radius": 4.536759376525879,
+            "previous_artifact_probability": 0.0005567967891693115,
+            "nearest_truth_distance_px": 23.833641149390274,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "2e08b85a3b270e2dd148b429d2dddf128fa464a2a1062a8bd52e99c9113ddc3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1074.63427734375,
+              148.30494689941406
+            ],
+            "radius": 6.163544654846191,
+            "previous_artifact_probability": 0.43834635615348816,
+            "nearest_truth_distance_px": 28.429822244468703,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              959.5402221679688,
+              118.19058227539062
+            ],
+            "radius": 3.5740811824798584,
+            "previous_artifact_probability": 0.9999778270721436,
+            "nearest_truth_distance_px": 100.62065318495452,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              965.1665649414062,
+              116.52598571777344
+            ],
+            "radius": 4.682247638702393,
+            "previous_artifact_probability": 0.9997568726539612,
+            "nearest_truth_distance_px": 95.82319460493079,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              978.826171875,
+              117.7430419921875
+            ],
+            "radius": 3.4502902030944824,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 82.6229144023551,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              991.891357421875,
+              118.03782653808594
+            ],
+            "radius": 3.5663046836853027,
+            "previous_artifact_probability": 0.9999393820762634,
+            "nearest_truth_distance_px": 70.55589138727696,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1003.861572265625,
+              119.38141632080078
+            ],
+            "radius": 3.7755513191223145,
+            "previous_artifact_probability": 0.9982759952545166,
+            "nearest_truth_distance_px": 59.331307522344076,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1018.5831298828125,
+              117.7558364868164
+            ],
+            "radius": 3.7360785007476807,
+            "previous_artifact_probability": 0.2532792091369629,
+            "nearest_truth_distance_px": 48.142318577202815,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1028.330078125,
+              117.75479888916016
+            ],
+            "radius": 3.6488418579101562,
+            "previous_artifact_probability": 0.999995231628418,
+            "nearest_truth_distance_px": 41.170935809087496,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1052.242431640625,
+              117.68291473388672
+            ],
+            "radius": 3.5532021522521973,
+            "previous_artifact_probability": 0.974524974822998,
+            "nearest_truth_distance_px": 31.25220697828383,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1064.2808837890625,
+              118.61669158935547
+            ],
+            "radius": 3.2803797721862793,
+            "previous_artifact_probability": 0.9999985694885254,
+            "nearest_truth_distance_px": 31.4389205671847,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              967.4154052734375,
+              156.53610229492188
+            ],
+            "radius": 4.529542922973633,
+            "previous_artifact_probability": 0.9984804391860962,
+            "nearest_truth_distance_px": 26.43193453580892,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              990.2659912109375,
+              157.5714111328125
+            ],
+            "radius": 3.453031539916992,
+            "previous_artifact_probability": 0.1419263482093811,
+            "nearest_truth_distance_px": 36.43418115654281,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1004.081298828125,
+              156.9498291015625
+            ],
+            "radius": 4.326350688934326,
+            "previous_artifact_probability": 0.9999997615814209,
+            "nearest_truth_distance_px": 37.55271506147574,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1031.1146240234375,
+              157.675537109375
+            ],
+            "radius": 3.551015853881836,
+            "previous_artifact_probability": 0.00039571523666381836,
+            "nearest_truth_distance_px": 36.42204125673285,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1059.333251953125,
+              157.54884338378906
+            ],
+            "radius": 3.707998275756836,
+            "previous_artifact_probability": 0.7509976625442505,
+            "nearest_truth_distance_px": 41.564313809567906,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1075.0098876953125,
+              152.11526489257812
+            ],
+            "radius": 6.71552848815918,
+            "previous_artifact_probability": 0.008060425519943237,
+            "nearest_truth_distance_px": 32.98361278569122,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              959.5402221679688,
+              118.19058227539062
+            ],
+            "radius": 3.5740811824798584,
+            "previous_artifact_probability": 0.9999778270721436,
+            "nearest_truth_distance_px": 101.76713831702072,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              965.1665649414062,
+              116.52598571777344
+            ],
+            "radius": 4.682247638702393,
+            "previous_artifact_probability": 0.9997568726539612,
+            "nearest_truth_distance_px": 97.08784192046035,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              978.826171875,
+              117.7430419921875
+            ],
+            "radius": 3.4502902030944824,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 84.03444537753127,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              991.891357421875,
+              118.03782653808594
+            ],
+            "radius": 3.5663046836853027,
+            "previous_artifact_probability": 0.9999393820762634,
+            "nearest_truth_distance_px": 72.18907932049049,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1003.861572265625,
+              119.38141632080078
+            ],
+            "radius": 3.7755513191223145,
+            "previous_artifact_probability": 0.9982759952545166,
+            "nearest_truth_distance_px": 61.1858167939519,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1018.5831298828125,
+              117.7558364868164
+            ],
+            "radius": 3.7360785007476807,
+            "previous_artifact_probability": 0.2532792091369629,
+            "nearest_truth_distance_px": 50.52556944731222,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1028.330078125,
+              117.75479888916016
+            ],
+            "radius": 3.6488418579101562,
+            "previous_artifact_probability": 0.999995231628418,
+            "nearest_truth_distance_px": 43.93408382608165,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1052.242431640625,
+              117.68291473388672
+            ],
+            "radius": 3.5532021522521973,
+            "previous_artifact_probability": 0.974524974822998,
+            "nearest_truth_distance_px": 34.819152583293466,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1064.2808837890625,
+              118.61669158935547
+            ],
+            "radius": 3.2803797721862793,
+            "previous_artifact_probability": 0.9999985694885254,
+            "nearest_truth_distance_px": 34.89106590614789,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              978.826171875,
+              161.7430419921875
+            ],
+            "radius": 3.4502902030944824,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 34.194387281625005,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              991.891357421875,
+              162.03782653808594
+            ],
+            "radius": 3.5663046836853027,
+            "previous_artifact_probability": 0.9999393820762634,
+            "nearest_truth_distance_px": 30.73952645816743,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1003.861572265625,
+              163.38140869140625
+            ],
+            "radius": 3.7755513191223145,
+            "previous_artifact_probability": 0.9982759952545166,
+            "nearest_truth_distance_px": 27.409603763286967,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1018.5831298828125,
+              161.75582885742188
+            ],
+            "radius": 3.7360785007476807,
+            "previous_artifact_probability": 0.2532978355884552,
+            "nearest_truth_distance_px": 27.098649103298623,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1028.330078125,
+              161.7548065185547
+            ],
+            "radius": 3.6488418579101562,
+            "previous_artifact_probability": 0.999995231628418,
+            "nearest_truth_distance_px": 31.902923614886195,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1052.242431640625,
+              161.68292236328125
+            ],
+            "radius": 3.5532021522521973,
+            "previous_artifact_probability": 0.9745265245437622,
+            "nearest_truth_distance_px": 29.85779149966974,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "139f03bce28b385330042072403edd2536e95405ca9d492449bf58ac3e87cc8e",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1064.2808837890625,
+              162.61668395996094
+            ],
+            "radius": 3.2803797721862793,
+            "previous_artifact_probability": 0.9999986886978149,
+            "nearest_truth_distance_px": 33.16513024350035,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              959.5402221679688,
+              118.19058227539062
+            ],
+            "radius": 3.5740811824798584,
+            "previous_artifact_probability": 0.9999778270721436,
+            "nearest_truth_distance_px": 103.02585573113537,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              965.1665649414062,
+              116.52598571777344
+            ],
+            "radius": 4.682247638702393,
+            "previous_artifact_probability": 0.9997568726539612,
+            "nearest_truth_distance_px": 98.46704042791686,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              978.826171875,
+              117.7430419921875
+            ],
+            "radius": 3.4502902030944824,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 85.57320062713846,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              991.891357421875,
+              118.03782653808594
+            ],
+            "radius": 3.5663046836853027,
+            "previous_artifact_probability": 0.9999393820762634,
+            "nearest_truth_distance_px": 73.96035894494058,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1003.861572265625,
+              119.38141632080078
+            ],
+            "radius": 3.7755513191223145,
+            "previous_artifact_probability": 0.9982759952545166,
+            "nearest_truth_distance_px": 63.189748455497266,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1018.5831298828125,
+              117.7558364868164
+            ],
+            "radius": 3.7360785007476807,
+            "previous_artifact_probability": 0.2532792091369629,
+            "nearest_truth_distance_px": 53.044567182540725,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1028.330078125,
+              117.75479888916016
+            ],
+            "radius": 3.6488418579101562,
+            "previous_artifact_probability": 0.999995231628418,
+            "nearest_truth_distance_px": 46.80923091827203,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1052.242431640625,
+              117.68291473388672
+            ],
+            "radius": 3.5532021522521973,
+            "previous_artifact_probability": 0.974524974822998,
+            "nearest_truth_distance_px": 38.38996038706317,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1064.2808837890625,
+              118.61669158935547
+            ],
+            "radius": 3.2803797721862793,
+            "previous_artifact_probability": 0.9999985694885254,
+            "nearest_truth_distance_px": 38.36806570519317,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              978.6953735351562,
+              157.7017364501953
+            ],
+            "radius": 3.4906885623931885,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 38.334396438712126,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              991.7048950195312,
+              158.0053253173828
+            ],
+            "radius": 3.5172533988952637,
+            "previous_artifact_probability": 0.9999566078186035,
+            "nearest_truth_distance_px": 41.52118000654145,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1003.6038818359375,
+              159.2456512451172
+            ],
+            "radius": 3.779491662979126,
+            "previous_artifact_probability": 0.9988530874252319,
+            "nearest_truth_distance_px": 39.3872073512546,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1018.4789428710938,
+              157.73475646972656
+            ],
+            "radius": 3.7393686771392822,
+            "previous_artifact_probability": 0.4432617127895355,
+            "nearest_truth_distance_px": 38.71720266732984,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1028.145263671875,
+              157.73121643066406
+            ],
+            "radius": 3.575244426727295,
+            "previous_artifact_probability": 0.9988923668861389,
+            "nearest_truth_distance_px": 34.09705396122251,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1052.1663818359375,
+              157.6612091064453
+            ],
+            "radius": 3.5614027976989746,
+            "previous_artifact_probability": 0.964017391204834,
+            "nearest_truth_distance_px": 24.336514149868712,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              1064.0650634765625,
+              158.55718994140625
+            ],
+            "radius": 3.2658028602600098,
+            "previous_artifact_probability": 0.999994158744812,
+            "nearest_truth_distance_px": 27.986611807026872,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              860.5202026367188,
+              161.00238037109375
+            ],
+            "radius": 7.841798305511475,
+            "previous_artifact_probability": 0.999762237071991,
+            "nearest_truth_distance_px": 25.718786669681553,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              885.6669311523438,
+              163.83447265625
+            ],
+            "radius": 4.852682590484619,
+            "previous_artifact_probability": 0.9869452118873596,
+            "nearest_truth_distance_px": 22.3175537439921,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              896.6160888671875,
+              163.31773376464844
+            ],
+            "radius": 5.366679668426514,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 27.420207456401258,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              915.5687866210938,
+              164.36517333984375
+            ],
+            "radius": 4.571443557739258,
+            "previous_artifact_probability": 0.9968355298042297,
+            "nearest_truth_distance_px": 42.89084309297954,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              928.5971069335938,
+              166.83778381347656
+            ],
+            "radius": 4.153135299682617,
+            "previous_artifact_probability": 0.011399835348129272,
+            "nearest_truth_distance_px": 55.559967593636486,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              951.0879516601562,
+              164.0561065673828
+            ],
+            "radius": 4.4007568359375,
+            "previous_artifact_probability": 0.9998663663864136,
+            "nearest_truth_distance_px": 36.866496161113915,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              987.2854614257812,
+              164.140380859375
+            ],
+            "radius": 5.358139514923096,
+            "previous_artifact_probability": 0.9999677538871765,
+            "nearest_truth_distance_px": 28.397645587223217,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              995.9735717773438,
+              160.9859161376953
+            ],
+            "radius": 6.266446113586426,
+            "previous_artifact_probability": 0.7853728532791138,
+            "nearest_truth_distance_px": 30.098405052716753,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              965.59912109375,
+              73.99495697021484
+            ],
+            "radius": 4.116873741149902,
+            "previous_artifact_probability": 0.10248464345932007,
+            "nearest_truth_distance_px": 41.405845064749286,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              996.1226806640625,
+              75.01898193359375
+            ],
+            "radius": 3.5571258068084717,
+            "previous_artifact_probability": 0.9999395608901978,
+            "nearest_truth_distance_px": 56.576932592546385,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              1012.2056884765625,
+              76.47213745117188
+            ],
+            "radius": 4.292356491088867,
+            "previous_artifact_probability": 0.9997326135635376,
+            "nearest_truth_distance_px": 43.33358373328518,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              1031.0367431640625,
+              74.41938018798828
+            ],
+            "radius": 3.909169912338257,
+            "previous_artifact_probability": 0.07406044006347656,
+            "nearest_truth_distance_px": 35.012843599789846,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              1043.991455078125,
+              74.5290298461914
+            ],
+            "radius": 3.5095009803771973,
+            "previous_artifact_probability": 0.9994981288909912,
+            "nearest_truth_distance_px": 33.03550628032167,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              1064.0836181640625,
+              74.69493865966797
+            ],
+            "radius": 3.823672294616699,
+            "previous_artifact_probability": 0.9959502220153809,
+            "nearest_truth_distance_px": 31.91905237170224,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "aa90e1e0c0a649afee158b2df1cf75b8f83d1c91738d60557443d8ab16b2ea3d",
+            "crop": [
+              0,
+              313,
+              1200,
+              307
+            ],
+            "center": [
+              1075.3260498046875,
+              68.1775131225586
+            ],
+            "radius": 6.665062427520752,
+            "previous_artifact_probability": 0.005656629800796509,
+            "nearest_truth_distance_px": 36.43840489742389,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              803.6002807617188,
+              222.973876953125
+            ],
+            "radius": 7.625383377075195,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 78.29743502405964,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              812.2937622070312,
+              179.15391540527344
+            ],
+            "radius": 5.685408115386963,
+            "previous_artifact_probability": 0.9999997615814209,
+            "nearest_truth_distance_px": 35.48495153597741,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              819.7630004882812,
+              223.99697875976562
+            ],
+            "radius": 4.342257499694824,
+            "previous_artifact_probability": 0.9988250732421875,
+            "nearest_truth_distance_px": 80.89143284894196,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              831.3018188476562,
+              224.32720947265625
+            ],
+            "radius": 4.327235221862793,
+            "previous_artifact_probability": 0.9985891580581665,
+            "nearest_truth_distance_px": 84.23324911768714,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              831.499755859375,
+              202.16685485839844
+            ],
+            "radius": 4.261360168457031,
+            "previous_artifact_probability": 0.9994511604309082,
+            "nearest_truth_distance_px": 63.77347622597401,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              839.1912841796875,
+              223.7053680419922
+            ],
+            "radius": 4.321637153625488,
+            "previous_artifact_probability": 0.09242919087409973,
+            "nearest_truth_distance_px": 86.55199073257823,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              847.5355224609375,
+              224.0531768798828
+            ],
+            "radius": 5.005281925201416,
+            "previous_artifact_probability": 0.9963594675064087,
+            "nearest_truth_distance_px": 88.51354508182214,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              848.0946655273438,
+              201.8786163330078
+            ],
+            "radius": 4.024899959564209,
+            "previous_artifact_probability": 0.9556596279144287,
+            "nearest_truth_distance_px": 66.36118671010252,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              855.1119995117188,
+              224.51446533203125
+            ],
+            "radius": 4.8995232582092285,
+            "previous_artifact_probability": 0.9999698400497437,
+            "nearest_truth_distance_px": 88.77133072115907,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              860.2776489257812,
+              201.7432098388672
+            ],
+            "radius": 4.227019309997559,
+            "previous_artifact_probability": 0.999942421913147,
+            "nearest_truth_distance_px": 66.31604207004726,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              870.8486328125,
+              223.9739990234375
+            ],
+            "radius": 4.204997539520264,
+            "previous_artifact_probability": 0.9999998807907104,
+            "nearest_truth_distance_px": 89.87128973158458,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              871.7703857421875,
+              202.07554626464844
+            ],
+            "radius": 4.401861190795898,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 68.73945589881846,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              888.9578857421875,
+              202.01573181152344
+            ],
+            "radius": 3.7694125175476074,
+            "previous_artifact_probability": 0.9982001185417175,
+            "nearest_truth_distance_px": 63.367827304503116,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "c82e2fb1f5dc21d8f9fe0b887856bf272b9d2621fc86d2b71a89a932a5a83836",
+            "crop": [
+              0,
+              0,
+              1200,
+              350
+            ],
+            "center": [
+              889.9646606445312,
+              223.1335906982422
+            ],
+            "radius": 4.280425071716309,
+            "previous_artifact_probability": 0.9988265037536621,
+            "nearest_truth_distance_px": 83.46825677431039,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              940.1373291015625,
+              171.0545654296875
+            ],
+            "radius": 7.98263692855835,
+            "previous_artifact_probability": 0.9999970197677612,
+            "nearest_truth_distance_px": 44.733243792645276,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              965.5159301757812,
+              159.18630981445312
+            ],
+            "radius": 4.905989646911621,
+            "previous_artifact_probability": 0.9999990463256836,
+            "nearest_truth_distance_px": 29.575818962568615,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              991.772216796875,
+              159.33578491210938
+            ],
+            "radius": 5.9654388427734375,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 31.801582175451937,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              1007.7974853515625,
+              162.091796875
+            ],
+            "radius": 4.418135166168213,
+            "previous_artifact_probability": 0.9994447231292725,
+            "nearest_truth_distance_px": 37.54769282415653,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              1031.5577392578125,
+              159.21084594726562
+            ],
+            "radius": 5.644478797912598,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 32.14575164209598,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              1051.3565673828125,
+              159.40899658203125
+            ],
+            "radius": 7.500391960144043,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 22.132089615363522,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              1067.1015625,
+              159.04214477539062
+            ],
+            "radius": 6.954085826873779,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 24.383931060565406,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              1073.7081298828125,
+              170.1057891845703
+            ],
+            "radius": 7.998757362365723,
+            "previous_artifact_probability": 0.9898344278335571,
+            "nearest_truth_distance_px": 37.26398822866684,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              0,
+              1200,
+              313
+            ],
+            "center": [
+              1076.29736328125,
+              155.9618682861328
+            ],
+            "radius": 7.355731010437012,
+            "previous_artifact_probability": 0.057257622480392456,
+            "nearest_truth_distance_px": 27.78572091631152,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              940.39599609375,
+              113.1734848022461
+            ],
+            "radius": 7.910554885864258,
+            "previous_artifact_probability": 0.8009562492370605,
+            "nearest_truth_distance_px": 35.36937623839194,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              964.6995849609375,
+              117.76203918457031
+            ],
+            "radius": 4.965242862701416,
+            "previous_artifact_probability": 0.9984599351882935,
+            "nearest_truth_distance_px": 27.106506165924834,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              988.673828125,
+              117.8826904296875
+            ],
+            "radius": 4.184804916381836,
+            "previous_artifact_probability": 0.9999995827674866,
+            "nearest_truth_distance_px": 27.64122051426079,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              996.1325073242188,
+              118.23048400878906
+            ],
+            "radius": 3.8586578369140625,
+            "previous_artifact_probability": 0.9999292492866516,
+            "nearest_truth_distance_px": 31.984750359651006,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1011.6364135742188,
+              119.2155990600586
+            ],
+            "radius": 5.3393874168396,
+            "previous_artifact_probability": 0.998240053653717,
+            "nearest_truth_distance_px": 29.666623092410642,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1031.480224609375,
+              117.76905059814453
+            ],
+            "radius": 4.67909574508667,
+            "previous_artifact_probability": 0.9997167587280273,
+            "nearest_truth_distance_px": 32.027427102579715,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1043.8707275390625,
+              117.8978271484375
+            ],
+            "radius": 5.578542709350586,
+            "previous_artifact_probability": 0.9999986290931702,
+            "nearest_truth_distance_px": 39.57103279526622,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1061.0325927734375,
+              117.72101593017578
+            ],
+            "radius": 5.506006240844727,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 38.09611230200322,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1068.31201171875,
+              117.66497802734375
+            ],
+            "radius": 5.682168006896973,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 39.775471478053355,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1073.683837890625,
+              129.59539794921875
+            ],
+            "radius": 7.995373725891113,
+            "previous_artifact_probability": 0.9767172336578369,
+            "nearest_truth_distance_px": 52.817415764223526,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              313,
+              1200,
+              270
+            ],
+            "center": [
+              1077.4482421875,
+              111.1968994140625
+            ],
+            "radius": 7.890126705169678,
+            "previous_artifact_probability": 0.002435445785522461,
+            "nearest_truth_distance_px": 38.16612435053992,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": true
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              965.0475463867188,
+              120.17930603027344
+            ],
+            "radius": 5.580550193786621,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 36.029124704132585,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              988.621337890625,
+              121.8687744140625
+            ],
+            "radius": 4.175780296325684,
+            "previous_artifact_probability": 0.9999991655349731,
+            "nearest_truth_distance_px": 38.03453149732327,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              996.17333984375,
+              122.208740234375
+            ],
+            "radius": 3.8756377696990967,
+            "previous_artifact_probability": 0.9999040365219116,
+            "nearest_truth_distance_px": 33.450084008108746,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1011.64453125,
+              123.22110748291016
+            ],
+            "radius": 5.344041347503662,
+            "previous_artifact_probability": 0.9983628988265991,
+            "nearest_truth_distance_px": 28.404911574432976,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1031.436767578125,
+              121.76519012451172
+            ],
+            "radius": 4.675271034240723,
+            "previous_artifact_probability": 0.9996742010116577,
+            "nearest_truth_distance_px": 30.893020856161524,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1043.888916015625,
+              121.92166137695312
+            ],
+            "radius": 5.599122047424316,
+            "previous_artifact_probability": 0.9999990463256836,
+            "nearest_truth_distance_px": 30.325785162217535,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1061.0469970703125,
+              121.7448501586914
+            ],
+            "radius": 5.531747341156006,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 28.445504762317782,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1068.3328857421875,
+              121.67515563964844
+            ],
+            "radius": 5.707275390625,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 30.669797528126995,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1073.6759033203125,
+              133.5934600830078
+            ],
+            "radius": 7.995636463165283,
+            "previous_artifact_probability": 0.9785257577896118,
+            "nearest_truth_distance_px": 43.73007494311516,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              583,
+              1200,
+              270
+            ],
+            "center": [
+              1077.4527587890625,
+              115.1898193359375
+            ],
+            "radius": 7.88955020904541,
+            "previous_artifact_probability": 0.0027123689651489258,
+            "nearest_truth_distance_px": 30.67655074074671,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": true
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              940.1026611328125,
+              112.96269989013672
+            ],
+            "radius": 7.933065414428711,
+            "previous_artifact_probability": 0.9981669187545776,
+            "nearest_truth_distance_px": 22.408245491072105,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              940.2925415039062,
+              130.4395751953125
+            ],
+            "radius": 7.86688232421875,
+            "previous_artifact_probability": 0.9999986886978149,
+            "nearest_truth_distance_px": 39.781418172762876,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              965.02734375,
+              117.77738952636719
+            ],
+            "radius": 5.200079917907715,
+            "previous_artifact_probability": 0.9792702198028564,
+            "nearest_truth_distance_px": 39.169899980142084,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              988.6572265625,
+              117.86358642578125
+            ],
+            "radius": 4.17045259475708,
+            "previous_artifact_probability": 0.9999995231628418,
+            "nearest_truth_distance_px": 36.484567148800096,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              996.15087890625,
+              118.21922302246094
+            ],
+            "radius": 3.8613739013671875,
+            "previous_artifact_probability": 0.9999098777770996,
+            "nearest_truth_distance_px": 31.59032922201603,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1011.6298828125,
+              119.22701263427734
+            ],
+            "radius": 5.33907413482666,
+            "previous_artifact_probability": 0.9976469874382019,
+            "nearest_truth_distance_px": 26.079176919933815,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1031.483642578125,
+              117.7746810913086
+            ],
+            "radius": 4.691972732543945,
+            "previous_artifact_probability": 0.9997410774230957,
+            "nearest_truth_distance_px": 28.914407854482256,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1043.8660888671875,
+              117.91937255859375
+            ],
+            "radius": 5.5899271965026855,
+            "previous_artifact_probability": 0.999998927116394,
+            "nearest_truth_distance_px": 37.21319791666953,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1061.0335693359375,
+              117.73236846923828
+            ],
+            "radius": 5.546665191650391,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 39.7756410448058,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1068.334716796875,
+              117.67294311523438
+            ],
+            "radius": 5.716365814208984,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 41.38834666697065,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1073.6785888671875,
+              129.59722900390625
+            ],
+            "radius": 7.995866298675537,
+            "previous_artifact_probability": 0.9798299670219421,
+            "nearest_truth_distance_px": 54.4021703934486,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              853,
+              1200,
+              270
+            ],
+            "center": [
+              1077.456298828125,
+              111.19364929199219
+            ],
+            "radius": 7.8892107009887695,
+            "previous_artifact_probability": 0.002221345901489258,
+            "nearest_truth_distance_px": 39.556034734308554,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": true
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              939.5217895507812,
+              116.55473327636719
+            ],
+            "radius": 7.933590888977051,
+            "previous_artifact_probability": 0.948228120803833,
+            "nearest_truth_distance_px": 24.917627687325336,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              965.3795776367188,
+              120.79862976074219
+            ],
+            "radius": 6.064553737640381,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 27.392888292962926,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              988.6544799804688,
+              121.87281036376953
+            ],
+            "radius": 4.184929370880127,
+            "previous_artifact_probability": 0.999999463558197,
+            "nearest_truth_distance_px": 29.045149815798762,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              996.138427734375,
+              122.22476196289062
+            ],
+            "radius": 3.8639650344848633,
+            "previous_artifact_probability": 0.9999159574508667,
+            "nearest_truth_distance_px": 33.236146460749055,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              1011.628173828125,
+              123.23484802246094
+            ],
+            "radius": 5.326920032501221,
+            "previous_artifact_probability": 0.9984264969825745,
+            "nearest_truth_distance_px": 35.156052452861736,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              1031.4412841796875,
+              121.76898193359375
+            ],
+            "radius": 4.6734747886657715,
+            "previous_artifact_probability": 0.9995846748352051,
+            "nearest_truth_distance_px": 36.91886441487312,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              1043.868896484375,
+              121.91348266601562
+            ],
+            "radius": 5.584009647369385,
+            "previous_artifact_probability": 0.999998927116394,
+            "nearest_truth_distance_px": 43.35438883500588,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              1061.005126953125,
+              121.72997283935547
+            ],
+            "radius": 5.495213508605957,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 41.98510491091545,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              1068.3226318359375,
+              121.66250610351562
+            ],
+            "radius": 5.727845191955566,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 43.50535677257774,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              1073.677978515625,
+              133.5897216796875
+            ],
+            "radius": 7.995566368103027,
+            "previous_artifact_probability": 0.9780570864677429,
+            "nearest_truth_distance_px": 56.50682063256208,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1123,
+              1200,
+              270
+            ],
+            "center": [
+              1077.447998046875,
+              115.20954895019531
+            ],
+            "radius": 7.889498233795166,
+            "previous_artifact_probability": 0.0026006996631622314,
+            "nearest_truth_distance_px": 41.44081971347365,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": true
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              940.5027465820312,
+              112.17005920410156
+            ],
+            "radius": 7.920783042907715,
+            "previous_artifact_probability": 0.9975868463516235,
+            "nearest_truth_distance_px": 18.217414999115228,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              965.13134765625,
+              116.32086181640625
+            ],
+            "radius": 5.943032264709473,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 35.721397199949486,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              988.6670532226562,
+              117.88158416748047
+            ],
+            "radius": 4.179986953735352,
+            "previous_artifact_probability": 0.9999995231628418,
+            "nearest_truth_distance_px": 37.648119039175675,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              996.12939453125,
+              118.23182678222656
+            ],
+            "radius": 3.858733654022217,
+            "previous_artifact_probability": 0.9999265670776367,
+            "nearest_truth_distance_px": 38.04035393684524,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1011.645751953125,
+              119.2220687866211
+            ],
+            "radius": 5.323569297790527,
+            "previous_artifact_probability": 0.9985575675964355,
+            "nearest_truth_distance_px": 33.80618556445276,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1031.4500732421875,
+              117.77820587158203
+            ],
+            "radius": 4.677824974060059,
+            "previous_artifact_probability": 0.9996793270111084,
+            "nearest_truth_distance_px": 35.71731830251354,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1043.8702392578125,
+              117.90278625488281
+            ],
+            "radius": 5.551794528961182,
+            "previous_artifact_probability": 0.9999980926513672,
+            "nearest_truth_distance_px": 39.78307764052907,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1061.0587158203125,
+              117.73792266845703
+            ],
+            "radius": 5.544951438903809,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 38.33081710757353,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1068.331787109375,
+              117.65229034423828
+            ],
+            "radius": 5.6879425048828125,
+            "previous_artifact_probability": 1,
+            "nearest_truth_distance_px": 39.974693775187994,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1073.677001953125,
+              129.59007263183594
+            ],
+            "radius": 7.9957170486450195,
+            "previous_artifact_probability": 0.9770821332931519,
+            "nearest_truth_distance_px": 53.01322708109163,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": false
+          },
+          {
+            "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+            "crop": [
+              0,
+              1393,
+              1200,
+              307
+            ],
+            "center": [
+              1077.4566650390625,
+              111.22126007080078
+            ],
+            "radius": 7.890469074249268,
+            "previous_artifact_probability": 0.002353847026824951,
+            "nearest_truth_distance_px": 38.367821924061076,
+            "within_5px_of_any_truth": false,
+            "previously_accepted_plot_point": true
+          }
+        ],
+        "other_classification_or_recovery_changes": [],
+        "seconds": 219.8009349,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 6,
+          "failed_cases": 17,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 10,
+          "matched_series": 7,
+          "truth_points": 706,
+          "predicted_points": 103,
+          "matched_points": 99,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 103,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 98,
+          "correct_rows": 98,
+          "missing_rows": 626,
+          "extra_rows": 5,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 0,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 99,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 607,
+          "unique_point_extra": 4,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9611650485436893,
+          "unique_point_structural_coverage": 0.14022662889518414,
+          "unique_point_value_precision": 0.9611650485436893,
+          "unique_point_value_coverage": 0.14022662889518414,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9514563106796117,
+          "relational_row_coverage": 0.13535911602209943,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 1,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 17
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 6,
+          "failed_cases": 17,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 10,
+          "matched_series": 7,
+          "truth_points": 706,
+          "predicted_points": 103,
+          "matched_points": 99,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 103,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 98,
+          "correct_rows": 98,
+          "missing_rows": 626,
+          "extra_rows": 5,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 0,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 99,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 607,
+          "unique_point_extra": 4,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9611650485436893,
+          "unique_point_structural_coverage": 0.14022662889518414,
+          "unique_point_value_precision": 0.9611650485436893,
+          "unique_point_value_coverage": 0.14022662889518414,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9514563106796117,
+          "relational_row_coverage": 0.13535911602209943,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 1,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 17
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 5,
+            "failed_cases": 15,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 8,
+            "matched_series": 5,
+            "truth_points": 500,
+            "predicted_points": 77,
+            "matched_points": 74,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 77,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 73,
+            "correct_rows": 73,
+            "missing_rows": 427,
+            "extra_rows": 4,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 74,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 426,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.961038961038961,
+            "unique_point_structural_coverage": 0.148,
+            "unique_point_value_precision": 0.961038961038961,
+            "unique_point_value_coverage": 0.148,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.948051948051948,
+            "relational_row_coverage": 0.146,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 15
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 1,
+            "failed_cases": 2,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 2,
+            "matched_series": 2,
+            "truth_points": 206,
+            "predicted_points": 26,
+            "matched_points": 25,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 26,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 25,
+            "correct_rows": 25,
+            "missing_rows": 199,
+            "extra_rows": 1,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 25,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 181,
+            "unique_point_extra": 1,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9615384615384616,
+            "unique_point_structural_coverage": 0.12135922330097088,
+            "unique_point_value_precision": 0.9615384615384616,
+            "unique_point_value_coverage": 0.12135922330097088,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9615384615384616,
+            "relational_row_coverage": 0.11160714285714286,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 2
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "previously_accepted_plot_points_excluded": 5
+      }
+    }
+  },
+  "workflow_sequence_seconds": 850.5383287,
+  "checks_seconds": 38.0189895,
+  "observed_cpu_model_envelopes": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 140,
+    "en_PP-OCRv5_mobile_rec": 140,
+    "marker-center-component-diversity-v27": 70,
+    "marker-classifier-structural-context-v5": 297,
+    "marker-center-crowded-coverage-v30": 70
+  },
+  "void_launches": "Checks-v1 used release instead of release_win-x64 after a successful build. Evaluation-v1 stopped before inference. Checks-v2 reused the successful build; evaluation-v2 completed the four serial arms.",
+  "license_review": "Existing project-owned Apache-2.0 source, synthetic inputs and reviewed dependencies; no new import or licensing change.",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/status.json",
+      "sha256": "d68ac4bd66a9243f3c6dd913302a242abd5d94fc2c23aa8124f447659598f136"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/jobs.json",
+      "sha256": "4fb6b26ee35a173c35bf19b2f6d703aa42d7043cc254867d492732f46da593f6"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/source-bindings.json",
+      "sha256": "56f7bcf161f4a12c2f56ab10bb2318fd46589b3769892150c1df0cd71654bd5b"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-checks-v2/status.json",
+      "sha256": "75dac6b1b2645e38128569d0a7f9729a77a6938507f55b916e2395f7b8a66ba9"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-checks-v2/source-bindings.json",
+      "sha256": "139803e28a3368c2212a3d52aea8eaaadce407d97f647518a49637e6e35675bd"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-checks-v2/test-results/app.trx",
+      "sha256": "6df679932b97851012b9cc868045ae9c13745d8883eb2086751ab3c44eec206b"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-checks-v2/native-build.log",
+      "sha256": "46b29f8219dee45450e5559ded1300475b5536f84116952289782b490e716a45"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-checks-v1/App-build.log",
+      "sha256": "49a9d46f63c0eda9b9d19b18d43e803ab7d41aad8ad98b1354ef1becb4b39ff5"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-checks-v1/status.json",
+      "sha256": "90e096e57a1064bb3a6a0a56f2ecf2b8c7135c1a14c0c495e9e8613cfc730660"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v1/status.json",
+      "sha256": "1e14c26691e2f74a384de778c17604a0190608d5334f95b70c046e97db65118e"
+    },
+    {
+      "path": "artifacts/goal22-runs/crowded-center-v30-export-diagnosis-v1/report.json",
+      "sha256": "20538f664cf9d523305a938d4e712fd21cb8adc44eeacc9f37aa740770441872"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-native/native-marker-score.json",
+      "sha256": "abfa0d14dbb237e9e90feefff2db50f36564a6fbb401dd39f1e70246428cb059"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-native/native-ocr-score.json",
+      "sha256": "15f97594acd7dc1530436cd2378071daac4bc452b411a1f70e081993887caff1"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-native/axis-geometry-comparison.json",
+      "sha256": "10b113499309e39fad76f703f9c5c955f3aaed7e58ef72b1622f993eaf6e45a5"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-native/protocol.json",
+      "sha256": "b6e081d0fec4db623adfc9a5b1b25d2173a5d3bd746e5dc885667e5b4f9498d3"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-native/candidate-binding.json",
+      "sha256": "58b8677e420aff7943d5d15ca5250cc8cd0cdc120d77e3ea3b6bc4ab9dba8a36"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-native/input-manifest.json",
+      "sha256": "b4f71996093384890d19d86bfb037e96cf65bf4443c2132f1db9a61729cbe216"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-native/execution/report.json",
+      "sha256": "65eadbf0480f30dc2f284cd18940977db47702ea650bfca23e2c56e48aa01b1f"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-native/status.json",
+      "sha256": "6fa7ad342c890495d48f5e42a69437e20937bdbc22643d73d5ee3ef405c7081d"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-csv/csv-score-normalized-phases.json",
+      "sha256": "6aeec383a6b532ac53f922b58a06483c752680451ae911907f1ab3fd4622e27a"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-csv/comparison.json",
+      "sha256": "62fcdcc06b63b2c33c95aee9957baf83d6f0e91ebad03e7aa900a9b0f2c5a41d"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-csv/protocol.json",
+      "sha256": "8c6b04db5037a98566cd445e351c5f49792980e74a3c9753ff3e0e3c8e350166"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-csv/candidate-binding.json",
+      "sha256": "e70a29b5ddd7285e25d90c9ceb8d708e9803810913eafdfbee96c8f4075ab0c3"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-csv/input-manifest.json",
+      "sha256": "62836e9f101b271e1407d3a26800a4dd8c98c55c1371b80c6cdfe017942be97a"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-csv/execution/report.json",
+      "sha256": "6e60268847d23a6747b8935ca2ec66f97a471da0f72889b36af144d51be77cab"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v27-csv/status.json",
+      "sha256": "ce74598a9ba85b1427717498b5e3817a234d2a72d26b1e41ae37a7153d825da2"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-native/native-marker-score.json",
+      "sha256": "c434266211860071d0786ad19bcb449abddaed63d24936a98a0e948d665b4282"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-native/native-ocr-score.json",
+      "sha256": "f277fb8bda0ba8f9b98bdb0fdeb90cc99b8d15cd5b7438505658c48c5aa34ca8"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-native/axis-geometry-comparison.json",
+      "sha256": "edf3ffa8de8849be5ad450cc642c258ba1ac876dd0e392bd5368ee022e7e7735"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-native/protocol.json",
+      "sha256": "5fd5d52127b38e04363e7251b1b8fdf4eb1b56b7bc456accb58aaec4082e823d"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-native/candidate-binding.json",
+      "sha256": "d08a2f9aa6a8a010862ddf606bd184aa7da1fe0177636753aca3be492a1f3540"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-native/input-manifest.json",
+      "sha256": "4a93a833f0920775863d64e94208204daab2d3bf11d7417679f6015698d80c2c"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-native/execution/report.json",
+      "sha256": "b069604fa35701858d0e439c79bc6e05363784130a74821808eafb9a171fe358"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-native/status.json",
+      "sha256": "5ab19b842df3b8703e52ad1881104b16ece951cdfb46b4d2597365a9dbece42f"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-csv/csv-score-normalized-phases.json",
+      "sha256": "e21d382b5f0143b65da9f5fae286d7de5f513c07a4a48de51a3be002133b4325"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-csv/comparison.json",
+      "sha256": "0489555fcfccf50d45be0f4ba0ef06703a76258c031d26a5b8f5229c937e851a"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-csv/protocol.json",
+      "sha256": "04b6c119dfd660698fde9e40d3a50ae2aff4dfc2dbba53b39722e3269f089e13"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-csv/candidate-binding.json",
+      "sha256": "ced082dae39f0e78da05aee71f0c56187fae76ce9e03c92a424f03d6ee183eca"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-csv/input-manifest.json",
+      "sha256": "2546b79f29e8bcb3b6e177bdb5b5cc6607bb5cee47dad34870dcd0653905d030"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-csv/execution/report.json",
+      "sha256": "fba7de148cf5d2f247803508a7b1ee69fbaf72013393a2e00c1839df5ec1d546"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/v30-csv/status.json",
+      "sha256": "43f58826d02c830b39afca7f9e0b9be6ee6830125146d82a9ebc4ea1683d2d74"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-LegendFrameRepair.py",
+      "sha256": "cdccbc137ca01fc15a1b78b53ce68cb20370911e8a12b17c59258cf58d06aa5a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-LegendFrameEvaluation.py",
+      "sha256": "688e313b5bde23c70bf63eea14c8186e3af7e26faa5b6be3d6bf94cf785bdcff"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LegendFrameEvaluation.ps1",
+      "sha256": "001c60d4c02dd675ff57a9343f47780016a88194602a3d6a07b28e70f2b2a229"
+    },
+    {
+      "path": "artifacts/goal22-runs/legend-frame-evaluation-v2/repair-summary.json",
+      "sha256": "b4fc2dae6d2aa367328ff3f956521bcd1de6ed35fc0eaec98b10ddba4fc79c98"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Publish-LegendFrameEvidence.py",
+      "sha256": "258077bae3c4bf88aa5ebf7a726760452842000f5103cfe8be872aa1444a2c97"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "goal22_complete": false,
+  "decision": "Integrate the consistent legend-frame exclusion. Retain V27/V5. V30 remains rejected and its training revision stays closed. This repair does not restore failed CSV sources or meet remaining accuracy bars.",
+  "limitations": [
+    "Verified frame geometry is required; unframed or unrecognized legends are unchanged.",
+    "The exclusion is applied to all classified frame candidates, including candidates previously rejected by text or artifact checks. Only previously accepted plot points represent a change in final point eligibility.",
+    "Native metrics and CSV numeric outputs remain unchanged. Other connecting-line and arrow candidates still block V30 exports.",
+    "Failed calibration sources retain raw candidates and explicit frame-exclusion stage provenance. Final projection audit is materialized only when workflow projection succeeds.",
+    "These are owned synthetic checks, not real acceptance or production approval. WPF interaction was not manually exercised."
+  ]
+}
