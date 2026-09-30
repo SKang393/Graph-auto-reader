@@ -65,7 +65,7 @@ public sealed record OcrPipelineOptions
 
 public sealed class OcrPipeline
 {
-    internal const string TickAlternativeResolutionVersion = "reviewable-unchanged-anchor-tick-resolution-v2";
+    internal const string TickAlternativeResolutionVersion = "reviewable-recovered-primary-tick-resolution-v3";
 
     private readonly ITextRegionDetector _detector;
     private readonly ITextRecognizer _recognizer;
@@ -447,6 +447,7 @@ public sealed class OcrPipeline
                 $"ocr_role_needs_review:{item.RegionId}:framed_legend_symbol_context"));
         }
         regions = ResolveTickAlternatives(regions, detectedRegions, warnings, _options);
+        var recoveredTickIds = new HashSet<string>(StringComparer.Ordinal);
         if (_options.EnableTickLaneRecovery || _options.EnableHeaderGlyphRecovery)
         {
             postprocessStopwatch.Stop();
@@ -461,6 +462,7 @@ public sealed class OcrPipeline
                         request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
                         .ConfigureAwait(false)
                     : Array.Empty<OcrDetectedRegion>();
+                recoveredTickIds.UnionWith(recovered.Select(static region => region.RegionId));
                 if (_options.EnableHeaderGlyphRecovery)
                 {
                     var headerGlyphs = await HeaderGlyphTextRegionRecovery.FindAsync(
@@ -551,6 +553,7 @@ public sealed class OcrPipeline
         regions = fragments.Regions;
         warnings.AddRange(fragments.RemovedRegionIds.Select(static id =>
             $"ocr_duplicate_text_fragment_removed:{id}"));
+        RevalidateRecoveredTickWarnings(regions, detectedRegions, recoveredTickIds, warnings, _options, cancellationToken);
         warnings.AddRange(regions.Where(region => SingleGlyphTextMaskReview.RequiresReview(region, request.PlotBounds))
             .Select(static region => $"ocr_single_glyph_annotation_needs_review:{region.RegionId}"));
         var detectedById = detectedRegions.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
@@ -948,6 +951,56 @@ public sealed class OcrPipeline
             Math.Abs(transform.OffsetX) <= double.Epsilon &&
             Math.Abs(transform.OffsetY) <= double.Epsilon;
         return identity ? (image.Width, image.Height) : (null, null);
+    }
+
+    private static void RevalidateRecoveredTickWarnings(
+        IReadOnlyList<OcrRegion> regions,
+        IReadOnlyList<OcrDetectedRegion> detectedRegions,
+        HashSet<string> recoveredTickIds,
+        List<string> warnings,
+        OcrPipelineOptions options,
+        CancellationToken cancellationToken)
+    {
+        if (recoveredTickIds.Count == 0) return;
+        RevalidateAxis(OcrTextRole.XTick, TickAxisDirection.IncreasingWithPixels, static bounds => bounds.Center.X);
+        RevalidateAxis(OcrTextRole.YTick, TickAxisDirection.DecreasingWithPixels, static bounds => bounds.Center.Y);
+
+        void RevalidateAxis(OcrTextRole role, TickAxisDirection direction, Func<OcrRectangle, double> pixelSelector)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string prefix = $"ocr_tick_sequence_needs_review:{role}:";
+            string insufficient = prefix + "insufficient_numeric_evidence";
+            if (!warnings.Contains(insufficient, StringComparer.Ordinal) || warnings.Any(warning =>
+                    warning.StartsWith(prefix, StringComparison.Ordinal) && warning != insufficient)) return;
+            OcrRegion[] ticks = regions.Where(region => region.Role == role).ToArray();
+            if (ticks.Length < 2 || !ticks.Any(region => recoveredTickIds.Contains(region.RegionId)) ||
+                !ticks.All(static region => region.SourceImage == OcrSourceImage.Original &&
+                    region.ReviewStatus == OcrReviewStatus.Unreviewed && double.IsFinite(region.Confidence) &&
+                    region.Confidence is > 0 and <= 1 && GraphNumericParser.IsLiteralGraphNumber(region.Text) &&
+                    region.Alternatives.OrderByDescending(static alternative => alternative.Confidence).FirstOrDefault() is { } primary &&
+                    primary.SourceImage == OcrSourceImage.Original && primary.Text == region.Text &&
+                    double.IsFinite(primary.Confidence) && primary.Confidence is > 0 and <= 1)) return;
+
+            // Missing crops can complete the evidence. Reuse the existing search
+            // only as a check: no selected text, confidence or polygon is applied.
+            var verificationWarnings = new List<string>();
+            IReadOnlyList<OcrRegion> checkedTicks = ResolveTickAlternatives(ticks, detectedRegions, verificationWarnings, options);
+            if (verificationWarnings.Any(warning => warning.StartsWith(prefix, StringComparison.Ordinal)) ||
+                checkedTicks.Count != ticks.Length || !checkedTicks.Zip(ticks).All(static pair =>
+                    pair.First.RegionId == pair.Second.RegionId && pair.First.Text == pair.Second.Text &&
+                    pair.First.SourceImage == pair.Second.SourceImage)) return;
+            TickCandidate[] primaryTicks = ticks.Select(region => new TickCandidate(region.RegionId,
+                pixelSelector(region.Polygon.Bounds), GraphNumericParser.Parse(region.Text).Value!.Value,
+                region.Confidence)).ToArray();
+            TickResolutionResult primaryFit = MonotonicTickResolver.Resolve(primaryTicks, direction);
+            if (primaryFit.NeedsReview || primaryFit.RejectedTicks.Count != 0 ||
+                primaryFit.ResolvedTicks.Count != ticks.Length) return;
+
+            // Other causes, especially a numeric replacement, still require
+            // review. Retain every reading and the recovered crop's provenance.
+            warnings.RemoveAll(warning => warning == insufficient);
+            warnings.Add($"ocr_tick_sequence_revalidated_after_recovery:{role}");
+        }
     }
 
     private static IReadOnlyList<OcrRegion> ResolveTickAlternatives(

@@ -10,6 +10,80 @@ namespace GraphReader.Ocr.Tests;
 public sealed class OcrTickLaneRecoveryPipelineTests
 {
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task RecoveredPrimaryTickCanResolveEarlierInsufficientEvidenceWithoutChangingAnyReading(bool vertical)
+    {
+        OcrRequest request = SparseRequest(vertical);
+        byte[] pixels = request.OriginalImage.Pixels.ToArray();
+        var cache = new InMemoryOcrResultCache();
+        var recognizer = SparseRecognizer("1");
+        OcrResult baseline = await Pipeline(recognizer, cache, false).RecognizeAsync(request);
+        var pipeline = Pipeline(recognizer, cache, true);
+        OcrResult result = await pipeline.RecognizeAsync(request);
+        string role = vertical ? "YTick" : "XTick";
+        string insufficient = $"ocr_tick_sequence_needs_review:{role}:insufficient_numeric_evidence";
+
+        Assert.Contains(insufficient, baseline.Warnings);
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.HasCount(2, result.Regions);
+        Assert.AreEqual(JsonSerializer.Serialize(baseline.Regions.Single()), JsonSerializer.Serialize(result.Regions[0]));
+        OcrRegion recovered = result.Regions[1];
+        Assert.AreEqual("1", recovered.Text);
+        Assert.AreEqual(OcrSourceImage.Original, recovered.SourceImage);
+        Assert.AreEqual(OcrReviewStatus.Unreviewed, recovered.ReviewStatus);
+        Assert.DoesNotContain(insufficient, result.Warnings);
+        Assert.Contains($"ocr_tick_sequence_revalidated_after_recovery:{role}", result.Warnings);
+        Assert.Contains($"ocr_role_needs_review:{recovered.RegionId}:original_pixel_tick_recovery", result.Warnings);
+        CollectionAssert.AreEqual(pixels, request.OriginalImage.Pixels.ToArray());
+        OcrResult cached = await pipeline.RecognizeAsync(request);
+        Assert.IsTrue(cached.Cache.CacheHit);
+        Assert.AreEqual(JsonSerializer.Serialize(result.Regions), JsonSerializer.Serialize(cached.Regions));
+        CollectionAssert.AreEqual(result.Warnings.ToArray(), cached.Warnings.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow("T", false, false, 0.95)]
+    [DataRow("3", false, false, 0.95)]
+    [DataRow("2", false, false, 0.95)]
+    [DataRow("1", true, false, 0.95)]
+    [DataRow("1", false, true, 0.95)]
+    [DataRow("1", false, false, 0.0)]
+    public async Task RecoveryKeepsReviewWhenPrimaryEvidenceIsMissingContradictoryOrAmbiguous(
+        string text, bool ambiguous, bool missingTick, double recoveredConfidence)
+    {
+        var recognizer = SparseRecognizer(text, ambiguous, recoveredConfidence);
+        OcrResult result = await Pipeline(recognizer, new InMemoryOcrResultCache(), true)
+            .RecognizeAsync(SparseRequest(vertical: false, missingTick));
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.AreEqual("2", result.Regions[0].Text);
+        Assert.Contains("ocr_tick_sequence_needs_review:XTick:insufficient_numeric_evidence", result.Warnings);
+        Assert.DoesNotContain("ocr_tick_sequence_revalidated_after_recovery:XTick", result.Warnings);
+        if (!missingTick) Assert.AreEqual(text, result.Regions[^1].Text);
+    }
+
+    [TestMethod]
+    public async Task AdditionalRecoveredLabelCannotClearReviewForAnEarlierNumericReplacement()
+    {
+        var recognizer = new StubTextRecognizer((crops, _) =>
+            ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop => new OcrRecognition(
+                crop.RegionId, crop.SourceImage, crop.RegionId switch
+                {
+                    "one" => [new("1", 0.99, crop.SourceImage)],
+                    "two" => [new("60", 0.99, crop.SourceImage), new("6", 0.82, crop.SourceImage)],
+                    "three" => [new("11", 0.99, crop.SourceImage)],
+                    _ => [new("3.5", 0.99, crop.SourceImage)],
+                }, 0.1)).ToArray()));
+        OcrResult result = await Pipeline(recognizer, new InMemoryOcrResultCache(), true).RecognizeAsync(Request());
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.HasCount(4, result.Regions);
+        Assert.AreEqual("6", result.Regions.Single(static region => region.RegionId == "two").Text);
+        Assert.AreEqual("3.5", result.Regions[^1].Text);
+        Assert.Contains("ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected", result.Warnings);
+        Assert.DoesNotContain("ocr_tick_sequence_revalidated_after_recovery:XTick", result.Warnings);
+    }
+
+    [TestMethod]
     [DataRow("7")]
     [DataRow("T")]
     public async Task OptInReadsOriginalPixelsWithoutReplacingBaselineOrGuessingADigit(string recoveredText)
@@ -127,6 +201,39 @@ public sealed class OcrTickLaneRecoveryPipelineTests
             await pipeline.RecognizeAsync(Request(), cancellation.Token));
         Assert.AreEqual(0, cache.WriteCount);
     }
+
+    private static OcrRequest SparseRequest(bool vertical, bool missingTick = false)
+    {
+        const int width = 260, height = 160;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        OcrDetectedRegion anchor = vertical ? OcrTestFixtures.Region("read", 24, 40, 8, 8) :
+            OcrTestFixtures.Region("read", 192, 126, 5, 8);
+        OcrRectangle missing = vertical ? new(24, 100, 8, 8) : new(70, 126, 5, 8);
+        foreach (OcrRectangle box in new[] { anchor.Polygon.Bounds, missing })
+            for (int y = (int)box.Top; y < box.Bottom; y++)
+                for (int x = (int)box.Left; x < box.Right; x++) pixels[y * width + x] = 0;
+        for (int x = 40; x <= 220; x++) pixels[120 * width + x] = 0;
+        for (int y = 30; y <= 120; y++) pixels[y * width + 40] = 0;
+        Tick(vertical ? 44 : 194);
+        if (!missingTick) Tick(vertical ? 104 : 72);
+        return OcrTestFixtures.Request([anchor]) with
+        {
+            OriginalImage = new OcrImage(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity),
+            PlotBounds = new OcrRectangle(40, 30, 180, 90),
+        };
+
+        void Tick(int along)
+        {
+            for (int cross = vertical ? 36 : 119; cross <= (vertical ? 41 : 124); cross++)
+                pixels[(vertical ? along : cross) * width + (vertical ? cross : along)] = 0;
+        }
+    }
+
+    private static StubTextRecognizer SparseRecognizer(string recoveredText, bool ambiguous = false, double recoveredConfidence = 0.95) =>
+        new((crops, _) => ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop => new OcrRecognition(
+            crop.RegionId, crop.SourceImage, crop.RegionId == "read"
+                ? [new("2", 0.95, crop.SourceImage), new("22", ambiguous ? 0.95 : 0.00005, crop.SourceImage)]
+                : [new(recoveredText, recoveredConfidence, crop.SourceImage)], 0.1)).ToArray()));
 
     private static OcrRequest Request()
     {
