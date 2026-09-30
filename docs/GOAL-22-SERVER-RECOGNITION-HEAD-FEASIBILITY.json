@@ -1,0 +1,210 @@
+{
+  "schema": "graphreader.server-recognition-head-feasibility-outcome.v1",
+  "status": "technical_feasibility_verified_no_training_authorized",
+  "purpose": "Separate recognition capability on authored boxes from full automatic OCR; verify a future head-only adaptation can preserve the approved model interface.",
+  "model": {
+    "path": "artifacts/goal22-runs/server-ocr-conversion-v2/PP-OCRv5_server_rec/conversion-1.onnx",
+    "sha256": "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418"
+  },
+  "manifest": {
+    "path": "artifacts/goal22-runs/server-ocr-comparison-v4/models/recognizer.json",
+    "sha256": "0da38be8c09e12cd8db243b327805a04950eb9502b48ada4f896ac98aaad3e95"
+  },
+  "reviewed_license_inputs": [
+    {
+      "role": "license_text",
+      "declared_path": "artifacts/goal22-runs/server-ocr-intake-v1/PP-OCRv5_server_rec/Apache-2.0.txt",
+      "file": "artifacts/goal22-runs/server-ocr-intake-v1/PP-OCRv5_server_rec/Apache-2.0.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "role": "notice",
+      "declared_path": "artifacts/goal22-runs/server-ocr-intake-v1/PP-OCRv5_server_rec/MODEL_NOTICE.md",
+      "file": "artifacts/goal22-runs/server-ocr-intake-v1/PP-OCRv5_server_rec/MODEL_NOTICE.md",
+      "sha256": "ced966a17ac31dca6d58303f27a6e55f65896ffd1f16cf941956f6f4c17c9785"
+    }
+  ],
+  "head_constants": [
+    "linear_9.w_0",
+    "linear_9.b_0"
+  ],
+  "feature_channels": 120,
+  "output_classes": 18385,
+  "trainable_parameter_count": 2224585,
+  "alphabet_tokens": 18384,
+  "multi_scalar_tokens": 10,
+  "all_other_graph_content_preserved": true,
+  "unchanged_roundtrip_sha256": "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418",
+  "parity": {
+    "batches": 102,
+    "crops": 1345,
+    "maximum_absolute_error": 3.5762786865234375e-07,
+    "argmax_changes": 0,
+    "all_within_existing_tolerance": true,
+    "existing_tolerance": 0.0001,
+    "policy_source": {
+      "path": "ml/ocr/official_bakeoff/SERVER_COMPARISON_PROTOCOL.json",
+      "sha256": "cff28b41ee07ccb549afdae472dc38097020794597f3ec16f732c5d3a547a34c"
+    }
+  },
+  "capture": {
+    "source_count": 44,
+    "regions": 1345,
+    "batches": 102,
+    "split_counts": {
+      "train": 709,
+      "csv-dev": 183,
+      "native-dev": 453
+    },
+    "production_crop_batcher_and_recognizer_normalization": true,
+    "immutable_original_pixels": true,
+    "authored_text_boxes_supplied_for_diagnosis": true,
+    "training_and_dev_source_identities_disjoint": true
+  },
+  "oracle_crop_metrics": {
+    "train": {
+      "truth": 709,
+      "exact": 454,
+      "characters": 3415,
+      "character_errors": 1306,
+      "exact_fraction": 0.6403385049365303,
+      "cer": 0.38243045387994146
+    },
+    "csv-dev": {
+      "truth": 183,
+      "exact": 177,
+      "characters": 1019,
+      "character_errors": 6,
+      "exact_fraction": 0.9672131147540983,
+      "cer": 0.005888125613346418
+    },
+    "native-dev": {
+      "truth": 453,
+      "exact": 433,
+      "characters": 3100,
+      "character_errors": 24,
+      "exact_fraction": 0.9558498896247241,
+      "cer": 0.007741935483870968
+    }
+  },
+  "native_workflow_context": {
+    "actual_exact": 412,
+    "truth": 453,
+    "actual_unmatched": 19,
+    "actual_matched_wrong_text": 22,
+    "known_box_exact": 433,
+    "paired": {
+      "both_exact": 402,
+      "oracle_only_exact": 31,
+      "workflow_only_exact": 10,
+      "neither_exact": 10
+    },
+    "pairing": {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/paired-native.json",
+      "sha256": "4eb4f1b2483b6bdcef2fa8f976b969647da839d5df7e713f19eff8eb68fc94e3"
+    }
+  },
+  "training_error_distribution": {
+    "wrong_crops": 255,
+    "sources_with_errors": 8,
+    "by_role": {
+      "y_tick": 69,
+      "x_tick": 53,
+      "condition_label": 28,
+      "annotation": 26,
+      "phase_heading": 34,
+      "axis_title": 19,
+      "participant": 13,
+      "legend_text": 13
+    }
+  },
+  "validation": {
+    "tests_passed": 23,
+    "tests": {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/tests.xml",
+      "sha256": "bc5e722dfaaac02d99e77373f7f8da6595278af87b0f090e60373055851ad96b"
+    },
+    "build": {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/build.log",
+      "sha256": "d92a5bbe1837a78c6478c8023c0fc26a765f480fa734de79ef199c34419b44fc"
+    },
+    "build_warnings": 0,
+    "build_errors": 0,
+    "capture_report": {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/capture/report.json",
+      "sha256": "f9f811a5a39073ca842130b315625d8da9fa4d5fd35846ed60887b8e9402fd3a"
+    },
+    "all_source_snapshot_hashes_verified": true
+  },
+  "seconds": {
+    "tests": 4.23,
+    "capture_build": 4.44,
+    "capture": 12.1725085,
+    "inference_and_parity": 248.02522299997509,
+    "complete_chain": 279.2999923
+  },
+  "execution": {
+    "provider": "CPUExecutionProvider",
+    "threads": 12,
+    "priority": "Idle",
+    "aggregate_cpu_ceiling_percent": 80,
+    "graph_optimization": "ORT_DISABLE_ALL",
+    "single_heavy_local_job": true
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/request.json",
+      "sha256": "449eba97e3c9b9763f2312dbcf7b63e2dcdc567f246a823e9e9fb9fe28b9af60"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/preparation.json",
+      "sha256": "3379e5fc86412bacca25bcf48df0adcc8ccc483f2caba973b6364ce6312d6c6f"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/source-bindings.json",
+      "sha256": "e7dbc77efb2ac0ca46862aee322f724a2f34949f1c01fdeaa5679cb28496405b"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/report.json",
+      "sha256": "60ec2444f70df1481ad34bb45ede9813aff09d9a69925432b324160ff9c5609e"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/status.json",
+      "sha256": "adfd08c11424db81360b2add2fa4b6557dea3d33c758ce3adb77e52e3e7ea536"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/parity.json",
+      "sha256": "49a3d721aa0a66350b35ee2a46d84dbd1fc0c010cc1ec81f64d5594cfc3ecb0a"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/features.json",
+      "sha256": "78ad8b239931fe91b89ac42c119bf8871c25e76bca0747953d75668014a355e1"
+    },
+    {
+      "path": "artifacts/goal22-runs/recognition-head-feasibility-20260930-v1/details.json",
+      "sha256": "9255d255fd6f05ef6313f97b14a8bf209cf99bc63bdd00355fb9e4156fdb7fd1"
+    },
+    {
+      "path": "artifacts/goal22-tools/Publish-RecognitionHeadFeasibility.py",
+      "sha256": "087e9769e2b5e615dd20c3d3e63ef2479147e849754d6e630e98e6a9b7e03ea5"
+    }
+  ],
+  "decision": "Prioritize automatic region/crop and assembly diagnosis. The unchanged reader exceeds 95 percent literal accuracy on both known-box dev sets, while the full pipeline remains below the requirement. Do not authorize an optimizer from this result or use truth boxes at runtime.",
+  "limitations": [
+    "Known-box accuracy is not detector, whole-workflow, sealed or real acceptance.",
+    "Known-box and actual pipeline results are configuration comparisons; the ten readings lost by known-box cropping remain counted.",
+    "Train accuracy is only 454/709. Errors concentrate in eight degraded sources; this does not establish a new adaptation recipe or justify removing those sources.",
+    "No learned parameters, alphabet classes, confidence threshold, numeric readings or production model approval were changed."
+  ],
+  "license_review": "The explicitly approved PaddlePaddle server recognizer retains its exact Apache-2.0 payload and notices. Utility source and synthetic inputs are project-owned Apache-2.0. No external dependency or weights added.",
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "training_revision_opened": false,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "release_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false
+}
