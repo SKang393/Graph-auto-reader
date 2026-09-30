@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.Globalization;
+using System.Collections.Frozen;
 using GraphReader.Markers.Classification;
 using GraphReader.Markers.Detection;
 using GraphReader.Ocr;
@@ -12,7 +13,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Finds repeated original-pixel glyphs for the existing classifier to review.</summary>
 internal static class ProductionMarkerTemplateRecovery
 {
-    internal const string Version = "original-pixel-marker-template-v1";
+    internal const string Version = "original-pixel-marker-template-v2";
     internal const double MinimumSimilarity = 0.9;
     private static readonly double[] Scales = [0.5, 0.625, 0.75, 0.875, 1, 1.125, 1.25, 1.375, 1.5];
 
@@ -23,10 +24,13 @@ internal static class ProductionMarkerTemplateRecovery
         IReadOnlyList<ClassifiedMarker> accepted,
         IReadOnlyDictionary<string, MarkerRectangle> legendGlyphs,
         IReadOnlyList<OcrRectangle> legendFrames,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IReadOnlyList<OcrRectangle>? verifiedSeedTemplates = null)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        IReadOnlyList<OcrRectangle> seeds = SelectTemplates(image, plot, accepted, legendGlyphs, cancellationToken);
+        IReadOnlyList<OcrRectangle> seeds = verifiedSeedTemplates ??
+            SelectTemplates(image, plot, accepted, legendGlyphs, cancellationToken);
+        ValidateTemplates(image, seeds, nameof(verifiedSeedTemplates));
         if (seeds.Count == 0) return [];
         byte[] pixels = PackedPixels(image);
         using var original = Mat.FromPixelData(image.Height, image.Width, MatType.CV_8UC1, pixels);
@@ -115,16 +119,14 @@ internal static class ProductionMarkerTemplateRecovery
 
     internal static IReadOnlyList<OcrRectangle> SelectTemplates(
         OcrImage image, MarkerPolygon plot, IReadOnlyList<ClassifiedMarker> accepted,
-        IReadOnlyDictionary<string, MarkerRectangle> legendGlyphs, CancellationToken cancellationToken)
+        IReadOnlyDictionary<string, MarkerRectangle> legendGlyphs, CancellationToken cancellationToken,
+        bool selectAll = false)
     {
         cancellationToken.ThrowIfCancellationRequested();
         byte[] pixels = PackedPixels(image);
         var seeds = legendGlyphs.Values.Select(static box =>
             new OcrRectangle(box.X, box.Y, box.Width, box.Height)).Distinct().ToList();
-        if (seeds.Any(box => box.Left < 0 || box.Top < 0 || box.Right > image.Width || box.Bottom > image.Height ||
-            !double.IsFinite(box.X) || !double.IsFinite(box.Y) ||
-            !double.IsFinite(box.Width) || !double.IsFinite(box.Height) || box.Width <= 0 || box.Height <= 0))
-            throw new ArgumentException("Marker templates must be finite original-pixel rectangles inside the image.", nameof(legendGlyphs));
+        ValidateTemplates(image, seeds, nameof(legendGlyphs));
         if (accepted.Count == 0) return seeds.AsReadOnly();
         IReadOnlyList<OcrRectangle> components = CompleteInkComponents(pixels, image.Width, image.Height, cancellationToken);
         foreach (var group in accepted.GroupBy(static item => (item.Shape, item.Fill)))
@@ -143,10 +145,63 @@ internal static class ProductionMarkerTemplateRecovery
                 OcrRectangle box = eligible[0];
                 if (accepted.Count(other => Contains(box, other.Marker.Center)) != 1 || seeds.Contains(box)) continue;
                 seeds.Add(box);
-                if (++selected == 2) break;
+                if (++selected == 2 && !selectAll) break;
             }
         }
         return seeds.AsReadOnly();
+    }
+
+    internal static MarkerTemplateSeedInputs PrepareSeedInputs(
+        OcrImage image, MarkerPolygon plot, IReadOnlyList<ClassifiedMarker> candidates,
+        IReadOnlyDictionary<string, MarkerRectangle> legendGlyphs, CancellationToken cancellationToken)
+    {
+        OcrRectangle[] legendTemplates = legendGlyphs.Values.Select(static box =>
+            new OcrRectangle(box.X, box.Y, box.Width, box.Height)).Distinct().ToArray();
+        OcrRectangle[] components = SelectTemplates(image, plot, candidates, legendGlyphs, cancellationToken, selectAll: true)
+            .Except(legendTemplates).ToArray();
+        var markers = new List<MarkerCenter>();
+        var bounds = new Dictionary<string, MarkerRectangle>(StringComparer.Ordinal);
+        foreach (OcrRectangle box in components)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string id = "isolated-seed-" + markers.Count.ToString(CultureInfo.InvariantCulture);
+            double confidence = candidates.Where(item => Contains(box, item.Marker.Center))
+                .Max(static item => item.Marker.CenterConfidence);
+            markers.Add(new MarkerCenter(id, new MarkerPoint(box.Center.X, box.Center.Y),
+                Math.Max(box.Width, box.Height) / 2, 0, confidence, MarkerSourceImage.Original));
+            bounds.Add(id, new MarkerRectangle(box.X, box.Y, box.Width, box.Height));
+        }
+        // These are search inputs only. A rejected off-center crop can still contain a complete glyph.
+        return new(markers.AsReadOnly(), bounds.ToFrozenDictionary(StringComparer.Ordinal));
+    }
+
+    internal static IReadOnlyList<OcrRectangle> SelectVerifiedTemplates(
+        IReadOnlyList<ClassifiedMarker> classified, IReadOnlyDictionary<string, MarkerRectangle> contentBounds,
+        IReadOnlyDictionary<string, MarkerRectangle> legendGlyphs, double artifactThreshold,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (classified.Count != contentBounds.Count ||
+            classified.Select(static item => item.Marker.MarkerId).Distinct(StringComparer.Ordinal).Count() != classified.Count ||
+            classified.Any(item => !contentBounds.ContainsKey(item.Marker.MarkerId)))
+            throw new ArgumentException("Every isolated template must have exactly one classifier result.", nameof(classified));
+        return classified.Where(item => item.ArtifactProbability < artifactThreshold)
+            .GroupBy(static item => (item.Shape, item.Fill))
+            .SelectMany(static group => group.OrderByDescending(static item =>
+                item.Marker.CenterConfidence * item.ShapeConfidence * (1 - item.ArtifactProbability))
+                .ThenBy(static item => item.Marker.MarkerId, StringComparer.Ordinal).Take(2))
+            .Select(item => contentBounds[item.Marker.MarkerId])
+            .Select(static box => new OcrRectangle(box.X, box.Y, box.Width, box.Height))
+            .Concat(legendGlyphs.Values.Select(static box => new OcrRectangle(box.X, box.Y, box.Width, box.Height)))
+            .Distinct().ToArray();
+    }
+
+    private static void ValidateTemplates(OcrImage image, IReadOnlyList<OcrRectangle> templates, string parameterName)
+    {
+        if (templates.Any(box => box.Left < 0 || box.Top < 0 || box.Right > image.Width || box.Bottom > image.Height ||
+            !double.IsFinite(box.X) || !double.IsFinite(box.Y) ||
+            !double.IsFinite(box.Width) || !double.IsFinite(box.Height) || box.Width <= 0 || box.Height <= 0))
+            throw new ArgumentException("Marker templates must be finite original-pixel rectangles inside the image.", parameterName);
     }
 
     private static byte[] PackedPixels(OcrImage image)
@@ -203,3 +258,7 @@ internal static class ProductionMarkerTemplateRecovery
     private static bool ContainsInclusive(OcrRectangle box, MarkerPoint point) =>
         point.X >= box.Left && point.X <= box.Right && point.Y >= box.Top && point.Y <= box.Bottom;
 }
+
+internal sealed record MarkerTemplateSeedInputs(
+    IReadOnlyList<MarkerCenter> Markers,
+    IReadOnlyDictionary<string, MarkerRectangle> ContentBounds);

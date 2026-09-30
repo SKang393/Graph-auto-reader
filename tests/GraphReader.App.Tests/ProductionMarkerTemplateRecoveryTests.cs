@@ -34,6 +34,59 @@ public sealed class ProductionMarkerTemplateRecoveryTests
     }
 
     [TestMethod]
+    public void RejectedOffCenterCropsStillProvideMeasuredIsolatedGlyphInputs()
+    {
+        MarkerTemplateSeedInputs inputs = ProductionMarkerTemplateRecovery.PrepareSeedInputs(
+            Image(new(10, 10, 7, 7), new(30, 10, 7, 7), new(50, 10, 7, 7)), Plot,
+            [Marker("first", 11, 11, 0.9), Marker("second", 31, 11, 0.9), Marker("third", 51, 11, 0.9)],
+            NoLegends, CancellationToken.None);
+        Assert.HasCount(3, inputs.Markers);
+        Assert.HasCount(3, inputs.ContentBounds);
+        Assert.IsTrue(inputs.Markers.Any(marker => marker.Center == new MarkerPoint(13.5, 13.5)));
+        Assert.IsTrue(inputs.Markers.All(marker => marker.Radius == 3.5));
+        Assert.IsTrue(inputs.ContentBounds.Values.Contains(new MarkerRectangle(10, 10, 7, 7)));
+    }
+
+    [TestMethod]
+    public void TemplateSelectionUsesIsolatedGlyphClassificationAndKeepsLegendEvidence()
+    {
+        var bounds = new Dictionary<string, MarkerRectangle>
+        {
+            ["accepted"] = new(10, 10, 7, 7), ["fragment"] = new(30, 10, 7, 7),
+        };
+        var legends = new Dictionary<string, MarkerRectangle> { ["legend"] = new(50, 10, 7, 7) };
+        IReadOnlyList<OcrRectangle> templates = ProductionMarkerTemplateRecovery.SelectVerifiedTemplates(
+            [Marker("accepted", 13.5, 13.5), Marker("fragment", 33.5, 13.5, 0.5)],
+            bounds, legends, 0.5, CancellationToken.None);
+        CollectionAssert.AreEqual(new[] { new OcrRectangle(10, 10, 7, 7), new OcrRectangle(50, 10, 7, 7) }, templates.ToArray());
+        Assert.ThrowsExactly<ArgumentException>(() => ProductionMarkerTemplateRecovery.SelectVerifiedTemplates(
+            [Marker("accepted", 13.5, 13.5)], bounds, legends, 0.5, CancellationToken.None));
+    }
+
+    [TestMethod]
+    public void VerifiedTemplatesRecoverCentersWithoutAcceptingTheRejectedSeedDetection()
+    {
+        IReadOnlyList<MarkerCenter> found = ProductionMarkerTemplateRecovery.Find(
+            Image(new(10, 10, 7, 7), new(30, 20, 7, 7)), Plot, [], [], NoLegends, [], CancellationToken.None,
+            [new(10, 10, 7, 7)]);
+        Assert.HasCount(2, found);
+        Assert.IsTrue(found.Any(marker => marker.Center == new MarkerPoint(13.5, 13.5)));
+        Assert.IsTrue(found.Any(marker => marker.Center == new MarkerPoint(33.5, 23.5)));
+        Assert.IsEmpty(ProductionMarkerTemplateRecovery.SelectNew([], found.Select(marker => new ClassifiedMarker(
+            marker, MarkerShape.Square, MarkerFill.Filled, "square", "Filled square", 0.5, 0.9, 0.9, [])).ToArray(),
+            0.5, CancellationToken.None));
+    }
+
+    [TestMethod]
+    public void VerifiedTemplateBoundsAndCancellationAreCheckedBeforeSearch()
+    {
+        Assert.ThrowsExactly<ArgumentException>(() => ProductionMarkerTemplateRecovery.Find(
+            Image(), Plot, [], [], NoLegends, [], CancellationToken.None, [new(-1, 0, 7, 7)]));
+        Assert.ThrowsExactly<OperationCanceledException>(() => ProductionMarkerTemplateRecovery.PrepareSeedInputs(
+            Image(), Plot, [], NoLegends, new CancellationToken(canceled: true)));
+    }
+
+    [TestMethod]
     public void AmbiguousAndConnectedComponentsCannotBecomeTemplates()
     {
         OcrImage image = Image(new(10, 10, 7, 7), new(16, 13, 35, 1), new(0, 20, 7, 7));

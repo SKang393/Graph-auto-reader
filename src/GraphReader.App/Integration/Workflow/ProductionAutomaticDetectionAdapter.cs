@@ -352,6 +352,32 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 .ToArray();
             try
             {
+                MarkerTemplateSeedInputs seedInputs = ProductionMarkerTemplateRecovery.PrepareSeedInputs(
+                    raster.CreateOcrImage(), markerPlot,
+                    plotMarkers.Where(marker => !textExclusion.ExcludedMarkerIds.Contains(marker.Marker.MarkerId)).ToArray(),
+                    legendInputs.OriginalPixelContentBounds, cancellationToken);
+                IReadOnlyList<ClassifiedMarker> classifiedSeeds = [];
+                if (seedInputs.Markers.Count > 0)
+                {
+                    ProductionMarkerClassificationEvidence seedClassification = await
+                        (candidateEvaluation && !markerClassificationAdapter.IsApproved
+                            ? ((IProductionCandidateMarkerClassificationAdapter)markerClassificationAdapter)
+                                .ClassifyForCandidateEvaluationAsync(request, markerFrame, seedInputs.Markers,
+                                    seedInputs.ContentBounds, cancellationToken)
+                            : markerClassificationAdapter.ClassifyAsync(request, markerFrame, seedInputs.Markers,
+                                seedInputs.ContentBounds, cancellationToken)).ConfigureAwait(false);
+                    WorkflowVisionEnvelope seedEnvelope = seedClassification.Envelope;
+                    chain.Append(new WorkflowVisionEnvelope(
+                        seedEnvelope.ContractVersion, seedEnvelope.RunId, seedEnvelope.ProjectId,
+                        seedEnvelope.PanelId, seedEnvelope.Stage,
+                        seedEnvelope.StageVersion + ":" + ProductionMarkerTemplateRecovery.Version + ":seed-verification",
+                        seedEnvelope.InputSha256, seedEnvelope.Model, seedEnvelope.Timing,
+                        seedEnvelope.Confidence, seedEnvelope.Warnings, seedEnvelope.Transforms));
+                    classifiedSeeds = seedClassification.Markers;
+                }
+                IReadOnlyList<OcrRectangle> verifiedTemplates = ProductionMarkerTemplateRecovery.SelectVerifiedTemplates(
+                    classifiedSeeds, seedInputs.ContentBounds, legendInputs.OriginalPixelContentBounds,
+                    ArtifactRejectionThreshold, cancellationToken);
                 foreach (string recoveryVersion in new[]
                     { ProductionMarkerTemplateRecovery.Version, ProductionMarkerEnclosedCenterRecovery.Version })
                 {
@@ -359,7 +385,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     IReadOnlyList<MarkerCenter> recoveryCandidates = recoveryVersion == ProductionMarkerTemplateRecovery.Version
                         ? ProductionMarkerTemplateRecovery.Find(
                         raster.CreateOcrImage(), markerPlot, ocr.Result.Regions, acceptedMarkers,
-                        legendInputs.OriginalPixelContentBounds, legendInputs.OriginalPixelFrameBounds, cancellationToken)
+                        legendInputs.OriginalPixelContentBounds, legendInputs.OriginalPixelFrameBounds, cancellationToken,
+                        verifiedTemplates)
                         : ProductionMarkerEnclosedCenterRecovery.Find(
                             raster.CreateOcrImage(), markerPlot, ocr.Result.Regions, acceptedMarkers,
                             legendInputs.OriginalPixelFrameBounds, cancellationToken);
