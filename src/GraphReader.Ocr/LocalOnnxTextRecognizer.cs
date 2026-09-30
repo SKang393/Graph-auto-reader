@@ -30,6 +30,9 @@ public sealed record LocalOnnxTextRecognizerOptions(
     ModelIdentity Model,
     string Alphabet)
 {
+    /// <summary>Optional exact model classes when a class contains multiple Unicode scalars.</summary>
+    public IReadOnlyList<string>? AlphabetTokens { get; init; }
+
     public int InputWidth { get; init; } = 128;
 
     public int InputHeight { get; init; } = 32;
@@ -89,10 +92,13 @@ public static class CtcRecognitionDecoder
         string alphabet,
         int blankClassIndex = 0,
         int maximumAlternatives = 3,
-        OcrRecognitionOutputActivation outputActivation = OcrRecognitionOutputActivation.Auto)
+        OcrRecognitionOutputActivation outputActivation = OcrRecognitionOutputActivation.Auto,
+        IReadOnlyList<string>? alphabetTokens = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(alphabet);
-        List<string> alphabetSymbols = GetAlphabetSymbols(alphabet);
+        List<string> alphabetSymbols = alphabetTokens?.ToList() ?? GetAlphabetSymbols(alphabet);
+        if (!ValidExplicitAlphabet(alphabet, alphabetTokens))
+            throw new ArgumentException("Explicit CTC classes must be unique, nonempty and preserve the alphabet.", nameof(alphabetTokens));
         var classCount = alphabetSymbols.Count + 1;
         if (timeSteps <= 0 || logits.Length != checked(timeSteps * classCount) ||
             blankClassIndex < 0 || blankClassIndex >= classCount || maximumAlternatives <= 0 ||
@@ -185,6 +191,11 @@ public static class CtcRecognitionDecoder
 
     internal static IReadOnlyList<string> GetAlphabetSymbolsForValidation(string? alphabet) =>
         string.IsNullOrEmpty(alphabet) ? Array.Empty<string>() : GetAlphabetSymbols(alphabet);
+
+    internal static bool ValidExplicitAlphabet(string alphabet, IReadOnlyList<string>? tokens) =>
+        tokens is null || (tokens.Count > 0 && tokens.All(static token => !string.IsNullOrEmpty(token)) &&
+            tokens.Distinct(StringComparer.Ordinal).Count() == tokens.Count &&
+            string.Equals(string.Concat(tokens), alphabet, StringComparison.Ordinal));
 
     private static List<string> GetAlphabetSymbols(string alphabet)
     {
@@ -303,6 +314,9 @@ public sealed class LocalOnnxTextRecognizer : ITextRecognizer
         ArgumentNullException.ThrowIfNull(options);
         _options = options with
         {
+            AlphabetTokens = options.AlphabetTokens is null
+                ? null
+                : Array.AsReadOnly(options.AlphabetTokens.ToArray()),
             ChannelMeans = options.ChannelMeans is null
                 ? null
                 : Array.AsReadOnly(options.ChannelMeans.ToArray()),
@@ -400,6 +414,7 @@ public sealed class LocalOnnxTextRecognizer : ITextRecognizer
                 new Dictionary<string, object?>(StringComparer.Ordinal)
                 {
                     ["alphabet_sha256"] = HashStrings([_options.Alphabet]),
+                    ["alphabet_tokens_sha256"] = AlphabetTokenFingerprint(_options.AlphabetTokens),
                     ["blank_class_index"] = _options.BlankClassIndex,
                     ["input_height"] = _options.InputHeight,
                     ["input_width"] = inputWidth,
@@ -452,7 +467,8 @@ public sealed class LocalOnnxTextRecognizer : ITextRecognizer
                 failure)));
         }
 
-        var classCount = CtcRecognitionDecoder.CountAlphabetSymbols(_options.Alphabet) + 1;
+        var classCount = (_options.AlphabetTokens?.Count ??
+            CtcRecognitionDecoder.CountAlphabetSymbols(_options.Alphabet)) + 1;
         var denominator = checked(crops.Count * classCount);
         if (response.Execution.Output.Count == 0 || response.Execution.Output.Count % denominator != 0)
         {
@@ -508,7 +524,8 @@ public sealed class LocalOnnxTextRecognizer : ITextRecognizer
                 _options.Alphabet,
                 _options.BlankClassIndex,
                 _options.MaximumAlternatives,
-                _options.OutputActivation);
+                _options.OutputActivation,
+                _options.AlphabetTokens);
             results[cropIndex] = new OcrRecognition(
                 crops[cropIndex].RegionId,
                 crops[cropIndex].SourceImage,
@@ -527,6 +544,7 @@ public sealed class LocalOnnxTextRecognizer : ITextRecognizer
             CtcRecognitionDecoder.ConfigurationVersion,
             options.MaximumAlternatives.ToString(System.Globalization.CultureInfo.InvariantCulture),
             options.Alphabet,
+            AlphabetTokenFingerprint(options.AlphabetTokens),
             options.InputWidth.ToString(System.Globalization.CultureInfo.InvariantCulture),
             options.InputHeight.ToString(System.Globalization.CultureInfo.InvariantCulture),
             options.DynamicInputWidth.ToString(System.Globalization.CultureInfo.InvariantCulture),
@@ -585,9 +603,10 @@ public sealed class LocalOnnxTextRecognizer : ITextRecognizer
     {
         ArgumentNullException.ThrowIfNull(options);
         options.Model.Validate();
-        IReadOnlyList<string> alphabetSymbols = CtcRecognitionDecoder.GetAlphabetSymbolsForValidation(
-            options.Alphabet);
+        IReadOnlyList<string> alphabetSymbols = options.AlphabetTokens ??
+            CtcRecognitionDecoder.GetAlphabetSymbolsForValidation(options.Alphabet);
         if (alphabetSymbols.Count == 0 ||
+            !CtcRecognitionDecoder.ValidExplicitAlphabet(options.Alphabet, options.AlphabetTokens) ||
             alphabetSymbols.Distinct(StringComparer.Ordinal).Count() != alphabetSymbols.Count ||
             options.InputWidth is < 1 or > 4096 || options.InputHeight is < 1 or > 4096 ||
             options.MaximumInputWidth < options.InputWidth || options.MaximumInputWidth > 4096 ||
@@ -617,6 +636,10 @@ public sealed class LocalOnnxTextRecognizer : ITextRecognizer
                 .Distinct()
                 .OrderBy(static provider => provider)
                 .Select(static provider => provider.ToString()));
+
+    private static string AlphabetTokenFingerprint(IReadOnlyList<string>? tokens) =>
+        tokens is null ? "unicode-scalars" : HashStrings(tokens.Select(static token =>
+            token.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" + token));
 
     private static ReadOnlySpan<float> GetCropOutput(
         float[] output,

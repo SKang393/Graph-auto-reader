@@ -9,6 +9,38 @@ namespace GraphReader.Ocr.Tests;
 public sealed class CtcRecognitionDecoderTests
 {
     [TestMethod]
+    public void MultiScalarModelClassesPreserveFollowingCharacterIndices()
+    {
+        string[] tokens = ["1", "\U0001F1E9\U0001F1EA", "A"];
+        IReadOnlyList<CtcDecodedAlternative> result = CtcRecognitionDecoder.Decode(
+            [0f, 1f, 0f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 0f, 1f], 3,
+            string.Concat(tokens), outputActivation: OcrRecognitionOutputActivation.Probabilities,
+            alphabetTokens: tokens);
+        Assert.HasCount(1, result);
+        Assert.AreEqual("1\U0001F1E9\U0001F1EAA", result[0].Text);
+        Assert.AreEqual(1d, result[0].Confidence);
+    }
+
+    [TestMethod]
+    public void MultiScalarClassRepetitionUsesCtcBlankBoundaries()
+    {
+        string[] tokens = ["\U0001F1E9\U0001F1EA", "A"];
+        IReadOnlyList<CtcDecodedAlternative> result = CtcRecognitionDecoder.Decode(
+            [1f, 0f, 0f, 1f, 0f, 0f, 0f, 1f, 0f, 1f, 0f, 0f, 0f, 0f, 1f], 5,
+            string.Concat(tokens), blankClassIndex: 1,
+            outputActivation: OcrRecognitionOutputActivation.Probabilities, alphabetTokens: tokens);
+        Assert.AreEqual(tokens[0] + tokens[0] + "A", result[0].Text);
+    }
+
+    [TestMethod]
+    public void ExplicitClassesCannotSilentlyReorderOrDuplicateTheDeclaredAlphabet()
+    {
+        foreach (string[] tokens in new string[][] { ["B", "A"], ["A", "A"], ["", "AB"], [] })
+            Assert.ThrowsExactly<ArgumentException>(() => CtcRecognitionDecoder.Decode(
+                [0f, 1f, 0f], 1, "AB", alphabetTokens: tokens));
+    }
+
+    [TestMethod]
     [DataRow(1)]
     [DataRow(8)]
     [DataRow(32)]

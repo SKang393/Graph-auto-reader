@@ -1,0 +1,131 @@
+{
+  "schema": "graphreader.server-ocr-comparison.v1",
+  "evidence_policy": {
+    "file": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "acceptance_bar": {
+    "file": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "source_commit": "c43d78e4299c4b8c8f02f69a3a6511d84b5ec7f4",
+  "authorization": "Maintainer explicitly approved testing both PaddlePaddle/PP-OCRv5_server_det and PP-OCRv5_server_rec in the pending REV-009 choice. Local comparison only; no training or private inputs.",
+  "hypothesis": "Larger licensed pretrained detector and recognizer may recover current missed or incorrectly read original-pixel text without additional training.",
+  "isolated_change": "Replace detector, recognizer, then both. Preserve current application assembly, upstream model preprocessing and alphabet, downstream reasoners, marker models, crop behavior and operating thresholds.",
+  "intake_sha256": "c8c2efb4259b75c08bc56ec0fffff944cbaf2ad4020f8e2ee287b1585c79ca67",
+  "conversion_source_sha256": "2e86017696bfef06460ddf70358191f3f5354d8fc9f85efb33850e9047fe4719",
+  "conversion": {
+    "repeated_exports": 2,
+    "require_byte_identity": true,
+    "opset": 11,
+    "cpu_raw_tensor_cases_per_model": 16,
+    "maximum_absolute_difference": 0.0001,
+    "seed": 20260805,
+    "detector_shapes": [
+      [
+        1,
+        3,
+        32,
+        32
+      ],
+      [
+        1,
+        3,
+        64,
+        96
+      ],
+      [
+        1,
+        3,
+        960,
+        960
+      ],
+      [
+        1,
+        3,
+        1280,
+        1280
+      ]
+    ],
+    "recognizer_shapes": [
+      [
+        1,
+        3,
+        48,
+        320
+      ],
+      [
+        1,
+        3,
+        48,
+        321
+      ],
+      [
+        2,
+        3,
+        48,
+        640
+      ],
+      [
+        1,
+        3,
+        48,
+        4096
+      ]
+    ],
+    "warning_review": "Retain every warning. Review actual server warning semantics before native comparison; do not borrow mobile model warning counts."
+  },
+  "arms": [
+    "current_v44_detector_english_mobile_recognizer",
+    "server_detector_english_mobile_recognizer",
+    "v44_detector_server_recognizer",
+    "server_detector_server_recognizer"
+  ],
+  "native_input": {
+    "file": "artifacts/goal22-runs/native-header-word-suffix-v3/input-manifest.json",
+    "sha256": "ce3434e968d853cf8c4aea5b29c3dc625b0a084173dcf05a3b1c1cb565e908a2"
+  },
+  "native_baseline": {
+    "file": "artifacts/goal22-runs/native-header-word-suffix-v3/candidate-binding.json",
+    "sha256": "4a8552912496f9939ab82587ea9fd5cad71502c26611ff22ac031127b9049da5"
+  },
+  "csv_fixture": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1",
+  "split_identities": {
+    "native": "Existing 21 owned dev sources, 31 panels, 453 text labels and 838 markers",
+    "csv": "Existing 23 owned sources, 39 panels; 20 train and three dev sources reported separately"
+  },
+  "metric": "Unchanged per-item text detection, exact reading, CER, role and marker matching; all 23 source-level CSV successes/failures, actual value and row matches, false points and missing points. All arms evaluated on native dev and CSV, no cherry-picking. Record model and full-workflow CPU time. This is development evidence, not sealed or production acceptance.",
+  "runtime": {
+    "provider": "CPUExecutionProvider",
+    "logical_processors": 12,
+    "intra_operation_threads": 12,
+    "inter_operation_threads": 1,
+    "graph_optimization": "disabled",
+    "idle_priority": true,
+    "cpu_work_rest_percent": 80,
+    "aggregate_cpu_backstop_percent": 80,
+    "scope": "All processors eligible; cooperative average, not an instantaneous per-core guarantee. Re-evaluate the unchanged baseline under identical threading for fair comparison."
+  },
+  "budget": {
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approval": false,
+    "public_release": false
+  },
+  "void_predecessor": {
+    "report": "artifacts\\goal22-runs\\server-ocr-conversion-v1\\report.json",
+    "sha256": "3328cc48570e792f6cb92f3ec5741f57d1bd4afae5ac1a3c2eb798d2db4bc983",
+    "frozen_protocol": "artifacts\\goal22-runs\\server-ocr-conversion-v1\\protocol.json",
+    "protocol_sha256": "06f2f34c161aa19e385f5041cd829cec4ea5f167b5ef9d175343be332e5b70f5",
+    "reason": "Pre-inference toolchain check rejected rebuilt console launcher. Verify complete launcher structure against locked pip/Paddle2ONNX plus signed Python, preserving all original package and conversion checks. No source model executed."
+  },
+  "detector_parity_retry": {
+    "report": "artifacts\\goal22-runs\\server-ocr-conversion-v2\\report.json",
+    "report_sha256": "42fb1f334db967d51afaf8dbe5c4d87318204cf58bad39f295e8618294dbd1a8",
+    "protocol_sha256": "87b61279965e20c3c805221713111f60085c9256d8365454046718795adb6216",
+    "runner": "artifacts/goal22-tools/Run-ServerDetectorParityV3.py",
+    "runner_sha256": "6294fc6f8a6bd501d1cac8c23c98b6149b3e1b8cde446f6c93516e06bc7460e3",
+    "reason": "Paddle itself rejects 1200 square because feature maps disagree at a stride boundary. Replace only that diagnostic shape with 1280 square. Reuse the four byte-verified exports and completed recognizer parity. No hypothesis, threshold, metric, private/sealed budget or model changed."
+  }
+}

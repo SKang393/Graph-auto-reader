@@ -14,6 +14,41 @@ public sealed class LocalOnnxTextRecognizerTests
     private static readonly float[] ExpectedBgrCropPixels = [0.1f, 0.2f, 0.3f];
 
     [TestMethod]
+    public async Task TokenBoundariesChangeCacheIdentityAndCannotBeMutatedAfterConstruction()
+    {
+        string directory = CreateDirectory();
+        try
+        {
+            string modelPath = Path.Combine(directory, "fixture.onnx");
+            await File.WriteAllBytesAsync(modelPath, [1, 3, 3, 7]);
+            var identity = new ModelIdentity("token-cache", "1",
+                Convert.ToHexString(SHA256.HashData(await File.ReadAllBytesAsync(modelPath))).ToLowerInvariant(), modelPath);
+            await using InferenceRuntime runtime = CreateRuntime(directory, new FakeInferenceSessionFactory(scale: 1));
+            var tokens = new List<string> { "AB", "C" };
+            var options = new LocalOnnxTextRecognizerOptions(identity, "ABC")
+            {
+                AlphabetTokens = tokens, InputWidth = 3, InputHeight = 1,
+                NormalizeMean = 0, NormalizeScale = 1,
+            };
+            var original = new LocalOnnxTextRecognizer(runtime, options);
+            var other = new LocalOnnxTextRecognizer(runtime, options with { AlphabetTokens = ["A", "BC"] });
+            Assert.AreNotEqual(original.ConfigurationFingerprint, other.ConfigurationFingerprint);
+            tokens[0] = "A";
+            tokens[1] = "BC";
+            Assert.AreEqual(original.ConfigurationFingerprint,
+                new LocalOnnxTextRecognizer(runtime, options with { AlphabetTokens = ["AB", "C"] }).ConfigurationFingerprint);
+            IReadOnlyList<OcrRecognition> result = await original.RecognizeBatchAsync(
+                [Crop("token", [0f, 8f, 1f])], CancellationToken.None);
+            Assert.IsNull(result[0].Failure);
+            Assert.AreEqual("AB", result[0].Alternatives[0].Text);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task DifferentAlternativeBudgetsCannotReuseTheSameRecognizedResultCacheKey()
     {
         string directory = CreateDirectory();

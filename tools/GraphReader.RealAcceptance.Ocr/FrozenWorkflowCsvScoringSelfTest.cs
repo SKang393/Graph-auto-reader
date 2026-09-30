@@ -64,6 +64,46 @@ internal static class FrozenWorkflowCsvScoringSelfTest
         Reject(input with { TruthConsumedByInference = true });
         Reject(input with { WorkflowReport = input.WorkflowReport with { Path = "../report.json" } });
 
+        JsonObject splitProvenance = JsonSerializer.SerializeToNode(new
+        {
+            source_splits = new
+            {
+                train = truths.Take(5).Select(static truth => truth.SourceSha256).ToArray(),
+                dev = truths.Skip(5).Select(static truth => truth.SourceSha256).ToArray(),
+            },
+        })!.AsObject();
+        FrozenWorkflowCsvEvaluationInput splitInput = input with
+        {
+            Provenance = JsonSerializer.SerializeToElement(splitProvenance),
+        };
+        IReadOnlyDictionary<string, WholeWorkflowEvaluationResult> splitMetrics =
+            FrozenWorkflowCsvScoring.ScoreSplits(splitInput, bound, CancellationToken.None)!;
+        if (splitMetrics["train"].FailedCases != 5 || splitMetrics["dev"].FailedCases != 2 ||
+            splitMetrics.Values.Sum(static value => value.TruthPoints) != metrics.TruthPoints ||
+            splitMetrics.Values.Sum(static value => value.FailedCases) != metrics.FailedCases ||
+            FrozenWorkflowCsvScoring.ScoreSplits(input, bound, CancellationToken.None) is not null)
+            throw new InvalidDataException("Split scoring lost failed sources or changed the full denominator.");
+        void RejectSplit(Action<JsonObject> change)
+        {
+            JsonObject altered = splitProvenance.DeepClone().AsObject();
+            change(altered);
+            try
+            {
+                FrozenWorkflowCsvScoring.ScoreSplits(input with
+                {
+                    Provenance = JsonSerializer.SerializeToElement(altered),
+                }, bound, CancellationToken.None);
+            }
+            catch (InvalidDataException) { rejected++; return; }
+            throw new InvalidDataException("Invalid split membership was accepted.");
+        }
+        RejectSplit(node => node["source_splits"]!["dev"]!.AsArray().RemoveAt(1));
+        RejectSplit(node => node["source_splits"]!["dev"]![0] = truths[0].SourceSha256);
+        RejectSplit(node => node["source_splits"]!["dev"]![0] = sourceHash);
+        RejectSplit(node => node["source_splits"]!["dev"] = new JsonArray());
+        RejectSplit(node => node["source_splits"]!["sealed"] = new JsonArray());
+        RejectSplit(node => node["source_splits"]!["train"]![0] = null);
+
         // A different inventory size must work without permitting partial scoring.
         JsonObject smallReport = JsonNode.Parse(report.GetRawText())!.AsObject();
         smallReport["source_count"] = 2;
@@ -122,8 +162,9 @@ internal static class FrozenWorkflowCsvScoringSelfTest
         RejectSnapshot(node => node["source_count"] = 1);
         return new
         {
-            status = "pass", model_free = true, scenarios_passed = 3 + rejected,
+            status = "pass", model_free = true, scenarios_passed = 4 + rejected,
             variable_inventory_verified = true, saved_source_snapshots_verified = true,
+            disjoint_complete_split_reporting_verified = true,
             failed_cases_preserve_full_truth = true, private_corpus_access = false,
             sealed_corpus_access = false, model_inference_runs = 0,
         };

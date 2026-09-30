@@ -1149,6 +1149,19 @@ public sealed partial class ProductionOcrAdapter :
                 : ["T", "N", "C"],
             "OCR recognition output");
         string alphabet = RequiredString(output, "alphabet", "OCR recognition output");
+        string[]? alphabetTokens = null;
+        if (output.TryGetProperty("alphabet_tokens", out _))
+        {
+            JsonElement tokens = RequiredArray(output, "alphabet_tokens", "OCR recognition output");
+            alphabetTokens = tokens.EnumerateArray().Select(static token =>
+                token.ValueKind == JsonValueKind.String && !string.IsNullOrEmpty(token.GetString())
+                    ? token.GetString()!
+                    : throw new InvalidDataException("OCR alphabet tokens must be nonempty strings.")).ToArray();
+            if (alphabetTokens.Length == 0 ||
+                alphabetTokens.Distinct(StringComparer.Ordinal).Count() != alphabetTokens.Length ||
+                !string.Equals(string.Concat(alphabetTokens), alphabet, StringComparison.Ordinal))
+                throw new InvalidDataException("OCR alphabet tokens must be unique and preserve the declared alphabet.");
+        }
         int? expectedTimeSteps = dynamicInputWidth
             ? null
             : RequiredInt32(output, "time_steps", "OCR recognition output");
@@ -1211,6 +1224,7 @@ public sealed partial class ProductionOcrAdapter :
             "OCR recognition postprocessing");
         var recognizer = new LocalOnnxTextRecognizerOptions(identity, alphabet)
         {
+            AlphabetTokens = alphabetTokens,
             InputWidth = inputWidth,
             InputHeight = inputHeight,
             DynamicInputWidth = dynamicInputWidth,

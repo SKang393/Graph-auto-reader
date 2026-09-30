@@ -70,6 +70,8 @@ internal static class FrozenWorkflowCsvScoring
         cancellationToken.ThrowIfCancellationRequested();
         WholeWorkflowEvaluationResult metrics = WholeWorkflowCsvEvaluator.Evaluate(
             input.TruthCases, outputs, input.Options, cancellationToken);
+        IReadOnlyDictionary<string, WholeWorkflowEvaluationResult>? splitMetrics = ScoreSplits(
+            input, outputs, cancellationToken);
         object result = new
         {
             schema = "graphreader.frozen-workflow-csv-evaluation-report.v1",
@@ -79,6 +81,7 @@ internal static class FrozenWorkflowCsvScoring
             workflow_report = input.WorkflowReport,
             source_count = input.TruthCases.Count,
             metrics,
+            split_metrics = splitMetrics,
             options = input.Options,
             acceptance_evaluated = false,
             production_approved = false,
@@ -91,6 +94,41 @@ internal static class FrozenWorkflowCsvScoring
         Directory.CreateDirectory(Path.GetDirectoryName(outputFile)!);
         FrozenCandidateSyntheticRunner.WriteNew(outputFile, JsonSerializer.SerializeToUtf8Bytes(result, JsonOptions));
         return result;
+    }
+
+    internal static IReadOnlyDictionary<string, WholeWorkflowEvaluationResult>? ScoreSplits(
+        FrozenWorkflowCsvEvaluationInput input, IReadOnlyList<WholeWorkflowCaseOutput> outputs,
+        CancellationToken cancellationToken)
+    {
+        if (!input.Provenance.TryGetProperty("source_splits", out JsonElement splits)) return null;
+        if (splits.ValueKind != JsonValueKind.Object || splits.EnumerateObject().Count() != 2 ||
+            !splits.TryGetProperty("train", out _) || !splits.TryGetProperty("dev", out _))
+            throw new InvalidDataException("CSV split reporting requires exactly train and dev partitions.");
+        var allSources = input.TruthCases.Select(static truth => truth.SourceSha256)
+            .ToHashSet(StringComparer.Ordinal);
+        var assigned = new HashSet<string>(StringComparer.Ordinal);
+        var members = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        foreach (string split in new[] { "train", "dev" })
+        {
+            JsonElement values = splits.GetProperty(split);
+            if (values.ValueKind != JsonValueKind.Array || values.GetArrayLength() == 0)
+                throw new InvalidDataException("CSV split reporting requires nonempty source arrays.");
+            var sources = new HashSet<string>(StringComparer.Ordinal);
+            foreach (JsonElement value in values.EnumerateArray())
+            {
+                string? hash = value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+                if (hash is null || !allSources.Contains(hash) || !assigned.Add(hash))
+                    throw new InvalidDataException("CSV split membership duplicates or changes a frozen source.");
+                sources.Add(hash);
+            }
+            members.Add(split, sources);
+        }
+        if (!assigned.SetEquals(allSources))
+            throw new InvalidDataException("CSV split reporting must retain every frozen source.");
+        return members.ToDictionary(static pair => pair.Key, pair => WholeWorkflowCsvEvaluator.Evaluate(
+            input.TruthCases.Where(truth => pair.Value.Contains(truth.SourceSha256)).ToArray(),
+            outputs.Where(output => pair.Value.Contains(output.SourceSha256)).ToArray(),
+            input.Options, cancellationToken), StringComparer.Ordinal);
     }
 
     internal static IReadOnlyList<WholeWorkflowCaseOutput> ValidateInput(

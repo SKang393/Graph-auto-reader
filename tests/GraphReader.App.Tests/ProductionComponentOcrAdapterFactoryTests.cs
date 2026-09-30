@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.Inference;
 using GraphReader.Ocr;
@@ -12,6 +13,53 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class ProductionComponentOcrAdapterFactoryTests
 {
+    private static readonly string[] ExpectedModelTokens = ["1", "\U0001F1E9\U0001F1EA", "A", " "];
+
+    [TestMethod]
+    public void ExactModelTokensPreserveMultiScalarDictionaryEntries()
+    {
+        string root = CreateTemporaryDirectory();
+        try
+        {
+            string path = WriteOfficialRecognitionManifest(root);
+            JsonNode manifest = JsonNode.Parse(File.ReadAllText(path))!;
+            manifest["outputs"]![0]!["alphabet"] = "1\U0001F1E9\U0001F1EAA ";
+            manifest["outputs"]![0]!["alphabet_tokens"] = new JsonArray("1", "\U0001F1E9\U0001F1EA", "A", " ");
+            File.WriteAllText(path, manifest.ToJsonString());
+            var identity = new ModelIdentity("token-reader", "1", new string('c', 64), Path.Combine(root, "model.onnx"));
+            var result = ProductionOcrAdapter.ReadRecognitionOptions(identity, path);
+            CollectionAssert.AreEqual(ExpectedModelTokens, result.Recognizer.AlphabetTokens!.ToArray());
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    [DataRow("[\"a\",\"\",\"b \"]")]
+    [DataRow("[\"b\",\"a\",\" \"]")]
+    [DataRow("[\"ab \",null]")]
+    [DataRow("[]")]
+    [DataRow("null")]
+    public void MalformedOrReorderedModelTokenDeclarationsFailClosed(string tokens)
+    {
+        string root = CreateTemporaryDirectory();
+        try
+        {
+            string path = WriteOfficialRecognitionManifest(root);
+            JsonNode manifest = JsonNode.Parse(File.ReadAllText(path))!;
+            manifest["outputs"]![0]!["alphabet_tokens"] = JsonNode.Parse(tokens);
+            File.WriteAllText(path, manifest.ToJsonString());
+            var identity = new ModelIdentity("token-reader", "1", new string('c', 64), Path.Combine(root, "model.onnx"));
+            Assert.ThrowsExactly<InvalidDataException>(() => ProductionOcrAdapter.ReadRecognitionOptions(identity, path));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     [TestMethod]
     public void ExactComponentManifestProducesReviewedRuntimeOptions()
     {

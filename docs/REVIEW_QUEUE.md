@@ -158,10 +158,11 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-009 - identify the larger pretrained OCR models for comparison
 
-- **Status:** open; only this additional model-import work is waiting
-- **Blocks:** optional larger pretrained OCR comparison within Phase 4R; other implementation continues
-- **Effort:** one choice, about 30 seconds
-- **Action:** authorize importing PaddlePaddle/PP-OCRv5_server_det and PaddlePaddle/PP-OCRv5_server_rec, or retain the existing models only
+- **Status:** resolved
+- **Resolution:** on 2026-09-21 the maintainer selected "Test both larger models" and explicitly authorized importing PaddlePaddle/PP-OCRv5_server_det and PaddlePaddle/PP-OCRv5_server_rec for the local comparison.
+- **Blocks:** none for this import; provenance, conversion parity and all four native comparisons completed on 2026-09-30. Accuracy acceptance remains failed and engineering repairs continue.
+- **Effort:** complete
+- **Action:** no maintainer action; continue repairs from the recorded comparison. The server detector and combined option regress; the reader improves text but does not meet development acceptance.
 - **Why:** the current OCR still fails development acceptance, and the existing original mobile detector performs worse. The local external-file rule requires explicit identification of a new imported model. Testing pretrained weights precedes considering more training.
-- **Files:** [plain-language choice and official sources](GOAL-22-PRETRAINED-OCR-CHOICE.md)
-- **Unblocks when:** the maintainer identifies these two models for the local comparison. This is not candidate selection, production approval or a public release.
+- **Files:** [plain-language choice and official sources](GOAL-22-PRETRAINED-OCR-CHOICE.md), [comparison outcome](GOAL-22-SERVER-OCR-COMPARISON.md)
+- **Unblocks when:** resolved by the explicit model identification and comparison authorization above. This is not candidate selection, production approval or a public release.
