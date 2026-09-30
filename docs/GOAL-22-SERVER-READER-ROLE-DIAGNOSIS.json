@@ -1,0 +1,143 @@
+{
+  "schema": "graphreader.server-reader-role-diagnosis.v1",
+  "status": "diagnosis_complete_no_model_selection",
+  "scope": "Owned synthetic evidence only. Native role breakdown is dev; the separate full-workflow phase regression is on one previously exporting train source.",
+  "native": {
+    "sources": 21,
+    "panels": 31,
+    "truth_regions": 453,
+    "by_truth_role": {
+      "phase_heading": {
+        "truth": 85,
+        "baseline_exact": 72,
+        "server_exact": 70,
+        "recovered": 0,
+        "lost": 2
+      },
+      "y_tick": {
+        "truth": 99,
+        "baseline_exact": 68,
+        "server_exact": 87,
+        "recovered": 19,
+        "lost": 0
+      },
+      "participant": {
+        "truth": 31,
+        "baseline_exact": 12,
+        "server_exact": 18,
+        "recovered": 7,
+        "lost": 1
+      },
+      "axis_title": {
+        "truth": 52,
+        "baseline_exact": 50,
+        "server_exact": 51,
+        "recovered": 1,
+        "lost": 0
+      },
+      "legend_text": {
+        "truth": 37,
+        "baseline_exact": 28,
+        "server_exact": 28,
+        "recovered": 0,
+        "lost": 0
+      },
+      "annotation": {
+        "truth": 62,
+        "baseline_exact": 54,
+        "server_exact": 54,
+        "recovered": 0,
+        "lost": 0
+      },
+      "condition_label": {
+        "truth": 85,
+        "baseline_exact": 63,
+        "server_exact": 67,
+        "recovered": 5,
+        "lost": 1
+      },
+      "x_tick": {
+        "truth": 2,
+        "baseline_exact": 1,
+        "server_exact": 2,
+        "recovered": 1,
+        "lost": 0
+      }
+    },
+    "baseline_exact": 348,
+    "server_exact": 377,
+    "retained": 344,
+    "recovered": 33,
+    "lost": 4,
+    "tick_readings_recovered": 20,
+    "tick_readings_lost": 0
+  },
+  "csv_phase_regression": {
+    "sources_retained": 23,
+    "wrong_phase_rows": 11,
+    "affected_sources": 1,
+    "split": "train",
+    "changes": [
+      {
+        "truth": "a1",
+        "exported": "a",
+        "rows": 6
+      },
+      {
+        "truth": "a2",
+        "exported": "phase3",
+        "rows": 2
+      },
+      {
+        "truth": "a3",
+        "exported": "phase5",
+        "rows": 3
+      }
+    ],
+    "interpretation": "Damaged or missing baseline/withdrawal headings remove later baseline evidence. The unchanged reasoner then leaves later phases unknown and no longer numbers the first baseline occurrence. No misspelling whitelist or guessed phase label is justified."
+  },
+  "evidence": {
+    "native_details": {
+      "path": "artifacts/goal22-runs/server-ocr-comparison-v4/server-reader/native/native-ocr-details.json",
+      "sha256": "fcb52c4e1676c27759b54ee6aadbec4908f6e11a69f50c3c53acee538760b3db"
+    },
+    "native_score": {
+      "path": "artifacts/goal22-runs/server-ocr-comparison-v4/server-reader/native/native-ocr-score.json",
+      "sha256": "5b9c6705d558bce326958454fe26c649ee4664996c2967c24195e1b60c5a937a"
+    },
+    "phase_analysis": {
+      "path": "artifacts/goal22-runs/server-reader-phase-audit-v1/analysis.json",
+      "sha256": "35d09682166c0e6e8d6e0b5d30aff84229a1ee025c64f5860a8ae02eab19b996"
+    },
+    "phase_protocol": {
+      "path": "artifacts/goal22-runs/server-reader-phase-audit-v1/protocol.json",
+      "sha256": "6d10fc4cf80ec9476bd92998741c326d6e9b4f0108a74cf6b7e43e79dbb9108f"
+    },
+    "phase_status": {
+      "path": "artifacts/goal22-runs/server-reader-phase-audit-v1/status.json",
+      "sha256": "7803686f60503e418ae4c37219cc62e89bab41a4337f95bdf1c3d22b4dcbb9f2"
+    },
+    "scorer": {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-ServerReaderRoleDiagnosis.py",
+      "sha256": "146130f901d537cf572ca35e0812d5e7b06d00b1cda147936fc0185fb200b160"
+    },
+    "phase_reasoner": {
+      "path": "src/GraphReader.Phases/PhaseReasoningService.cs",
+      "sha256": "98845df7c22c260d4454cfb2d40045c3ce40e194d2a5b4cbf38655d3edf7468d"
+    },
+    "existing_dual_pipeline": {
+      "path": "src/GraphReader.Ocr/OcrDualRecognizerPipeline.cs",
+      "sha256": "3018a64686dba3ac2a0b89b3d4ed9271ded235f46257ff7fc4dbb4175ff304e2"
+    },
+    "acceptance_bars": {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    }
+  },
+  "decision": "Retain current production configuration. Numeric-context composition is a possible separate experiment, not an evaluated or selected configuration.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "production_approved": false
+}
