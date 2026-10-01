@@ -94,6 +94,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         SeparatedHeaderGlyphRecovery.CompositionVersion,
         ProductionPhaseGeometryContext.Version,
         ProductionTickLabelGeometry.Version,
+        SessionLattice.CompositionVersion,
         ProductionSeriesPhaseContext.Version,
         axisAdapter.AdapterId,
         ocrAdapter.AdapterId,

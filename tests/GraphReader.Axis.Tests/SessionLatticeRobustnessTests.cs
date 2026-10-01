@@ -50,6 +50,55 @@ public sealed class SessionLatticeRobustnessTests
     }
 
     [TestMethod]
+    [DataRow(false, false, 0.5)]
+    [DataRow(false, true, 1.0)]
+    [DataRow(false, false, 2.0)]
+    [DataRow(true, true, 0.5)]
+    [DataRow(true, false, 1.0)]
+    [DataRow(true, true, 2.0)]
+    public void AnOutlyingSeedCannotMakeACompatibleMeasuredRunConflicting(
+        bool shorterGaps, bool reverse, double scale)
+    {
+        double[] tail = shorterGaps ? [621.5, 644, 667.5] : [628.5, 656, 681.5];
+        double[] pixels = Enumerable.Range(0, 21).Select(static index => 100d + (25d * index))
+            .Concat(tail).Select(pixel => pixel * scale).ToArray();
+        SessionLatticeRequest request = Request(reverse ? pixels.Reverse().ToArray() : pixels);
+        request = request with
+        {
+            PrintedTicks = request.PrintedTicks.Select(tick => tick with { PixelX = tick.PixelX * scale }).ToArray(),
+        };
+
+        SessionLatticeResult result = SessionLattice.Fit(request);
+
+        Assert.AreEqual(CalibrationValidity.Valid, result.Validity);
+        Assert.AreEqual(25d * scale, result.PitchPixels);
+        Assert.IsFalse(result.Uncertainty.HarmonicAmbiguity);
+        SessionXEvidence offGrid = result.Assignments.Single(point => point.PixelX == tail[1] * scale);
+        Assert.IsNull(offGrid.PrintedX);
+        Assert.IsNull(offGrid.EstimatedX, "A compatible run does not authorize guessing an off-grid session.");
+        Assert.IsTrue(result.Diagnostics.Warnings.Any(static warning => warning.Contains("unknown x", StringComparison.Ordinal)));
+        foreach (SessionXEvidence point in result.Assignments.Where(point => point.PixelX <= 600d * scale))
+            Assert.AreEqual(1d + ((point.PixelX / scale - 100d) / 25d), point.PrintedX ?? point.EstimatedX);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void ACompatibleWindowCannotHideALaterConflictingMeasuredRun(bool shorterGaps)
+    {
+        double[] tail = shorterGaps
+            ? [621.5, 644, 667.5, 767.5, 788.5, 810, 831]
+            : [628.5, 656, 681.5, 781.5, 811.5, 840.5, 870.5];
+        double[] pixels = Enumerable.Range(0, 21).Select(static index => 100d + (25d * index))
+            .Concat(tail).ToArray();
+
+        SessionLatticeResult result = SessionLattice.Fit(Request(pixels));
+
+        Assert.AreEqual(CalibrationValidity.NeedsReview, result.Validity);
+        Assert.IsTrue(result.Reasons.Any(static reason => reason.Contains("pitch evidence disagree", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     [DataRow(12.5, false)]
     [DataRow(50.0, false)]
     [DataRow(50.0, true)]

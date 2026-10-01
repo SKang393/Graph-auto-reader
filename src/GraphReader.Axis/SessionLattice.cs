@@ -7,6 +7,8 @@ namespace GraphReader.Axis;
 
 public static class SessionLattice
 {
+    public const string CompositionVersion = "measured-session-run-pitch-v1";
+
     private const double MinimumPitchPixels = 0.25d;
     private const int MaximumCandidatePitches = 50_000;
 
@@ -419,16 +421,12 @@ public static class SessionLattice
         {
             cancellationToken.ThrowIfCancellationRequested();
             double gap = observedColumns[index].PixelX - observedColumns[index - 1].PixelX;
-            double gapInPrintedPitches = gap / printedPitch;
-            double nearestPositiveInteger = Math.Max(1d, Math.Round(gapInPrintedPitches));
-            double relativeDisagreement = Math.Abs(gapInPrintedPitches - nearestPositiveInteger) /
-                nearestPositiveInteger;
-            if (relativeDisagreement <= request.AlignmentToleranceFraction)
+            if (AgreesWithPrintedPitch(gap, printedPitch, request.AlignmentToleranceFraction))
             {
                 compatibleGaps++;
             }
             else if (HasRegularDenseRun(observedColumns, gap,
-                request.AlignmentToleranceFraction, cancellationToken))
+                request.AlignmentToleranceFraction, cancellationToken, incompatibleWithPitch: printedPitch))
             {
                 // A second coherent grid is conflicting evidence, even in a minority.
                 return PitchConflictKind.Disagreement;
@@ -446,7 +444,8 @@ public static class SessionLattice
         IReadOnlyList<WeightedColumn> observedColumns,
         double referenceGap,
         double toleranceFraction,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        double? incompatibleWithPitch = null)
     {
         int consecutiveGaps = 0;
         for (int index = 1; index < observedColumns.Count; index++)
@@ -458,7 +457,15 @@ public static class SessionLattice
                 consecutiveGaps++;
                 if (consecutiveGaps >= 3)
                 {
-                    return true;
+                    // The seed only locates a run. Its measured span must itself
+                    // disagree before ordinary spacing variation becomes a conflict.
+                    double measuredPitch = (observedColumns[index].PixelX -
+                        observedColumns[index - 3].PixelX) / 3d;
+                    if (incompatibleWithPitch is not { } printedPitch ||
+                        !AgreesWithPrintedPitch(measuredPitch, printedPitch, toleranceFraction))
+                    {
+                        return true;
+                    }
                 }
             }
             else
@@ -468,6 +475,15 @@ public static class SessionLattice
         }
 
         return false;
+    }
+
+    private static bool AgreesWithPrintedPitch(double gap, double printedPitch, double toleranceFraction)
+    {
+        double gapInPrintedPitches = gap / printedPitch;
+        double nearestPositiveInteger = Math.Max(1d, Math.Round(gapInPrintedPitches));
+        double relativeDisagreement = Math.Abs(gapInPrintedPitches - nearestPositiveInteger) /
+            nearestPositiveInteger;
+        return relativeDisagreement <= toleranceFraction;
     }
 
     private static bool SharedPanelAuthoritiesConflict(

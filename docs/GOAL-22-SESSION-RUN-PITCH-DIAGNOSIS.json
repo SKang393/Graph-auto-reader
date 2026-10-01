@@ -1,0 +1,284 @@
+{
+  "schema": "graphreader.session-run-pitch-diagnosis.v1",
+  "base_commit": "7853b67e9e56e0fbe1baa6f4d71219215279a8f6",
+  "scope": "Owned synthetic train/dev only. Authored geometry is diagnostic only and must never enter the production request.",
+  "failure_mode": "An outlying individual marker gap seeds a three-gap run within tolerance of that seed. The run is called conflicting without measuring its own pitch. All matching three-gap spans agree with the printed pitch in this development case.",
+  "responsible_subsystem": "GraphReader.Axis SessionLattice cross-source pitch diagnostics",
+  "proposed_isolated_change": "Compare the measured three-gap span divided by three against the printed pitch before declaring a conflicting dense run. Keep the same tolerance, run length, majority consensus, harmonic tests, fitted transforms, residual checks, origin checks and point assignments.",
+  "metric_and_bar": {
+    "focused_regressions": "No false conflict when the measured coherent run agrees at the existing tolerance; actual minority, harmonic, origin and insufficient-consensus conflicts remain reviewable.",
+    "workflow": "Preserve prior correct values and marker/text evidence. All exported values must retain original-pixel provenance and valid calibration; unsupported x values must remain unknown and cannot export silently.",
+    "policy": {
+      "file": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    }
+  },
+  "budget": {
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_runs": 0,
+    "native_comparisons_per_arm": 1,
+    "csv_comparisons_per_arm": 1
+  },
+  "evidence": [
+    {
+      "file": "artifacts/goal22-runs/irregular-session-oracle-replay-20260930-v1/request.json",
+      "sha256": "ccec5bd507522548cdab5d3d9b4a694c7e74c9b3a1c62fbdaefcb7fc63f11bee"
+    },
+    {
+      "file": "artifacts/goal22-runs/irregular-session-oracle-replay-20260930-v1/bindings.json",
+      "sha256": "a3799baa820ffc8cc55da0a01303a724f842fcd17c91bdb64967482a4173f295"
+    },
+    {
+      "file": "artifacts/goal22-runs/irregular-session-oracle-replay-20260930-v1/report.json",
+      "sha256": "d03c58e6563ff1a3c9f6eb50515220f2eef6378053984684ea1f868317a4169b"
+    },
+    {
+      "file": "artifacts/goal22-runs/irregular-session-oracle-replay-20260930-v1/status.json",
+      "sha256": "a613b6c02f5d61fddf49c77d99235e2d2c203918dd626f2d796e4cd26b024a9a"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Diagnose-SessionRunPitch.py",
+      "sha256": "15f527ad6276534dd8efa8ace0524a0d476f3409ec53d0792bf01c1fcc2531ca"
+    },
+    {
+      "file": "src/GraphReader.Axis/SessionLattice.cs",
+      "sha256": "4074dc50233b133ac4b8f1b69307b40304138b494fbb6169592bd9c3838101db"
+    }
+  ],
+  "printed_pitch": 27.00030591705286,
+  "tolerance_fraction": 0.12,
+  "marker_columns": 36,
+  "compatible_gaps": 31,
+  "total_gaps": 35,
+  "seeded_runs": [
+    {
+      "seed_gap_index": 0,
+      "seed_gap": 30.751500000000007,
+      "seed_disagreement": 0.13893154005258768,
+      "windows": [
+        {
+          "start_gap_index": 0,
+          "gaps": [
+            30.751500000000007,
+            29.23859999999999,
+            27.9307
+          ],
+          "measured_pitch": 29.306933333333333,
+          "measured_disagreement": 0.08542967710686766,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 28,
+          "gaps": [
+            29.37080000000003,
+            27.369100000000003,
+            29.834600000000023
+          ],
+          "measured_pitch": 28.858166666666687,
+          "measured_disagreement": 0.06880887777054556,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 29,
+          "gaps": [
+            27.369100000000003,
+            29.834600000000023,
+            29.550299999999993
+          ],
+          "measured_pitch": 28.918000000000006,
+          "measured_disagreement": 0.07102490204512724,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 30,
+          "gaps": [
+            29.834600000000023,
+            29.550299999999993,
+            27.17629999999997
+          ],
+          "measured_pitch": 28.853733333333327,
+          "measured_disagreement": 0.06864468210006014,
+          "actually_conflicting": false
+        }
+      ]
+    },
+    {
+      "seed_gap_index": 4,
+      "seed_gap": 30.27969999999999,
+      "seed_disagreement": 0.12145766396209345,
+      "windows": [
+        {
+          "start_gap_index": 0,
+          "gaps": [
+            30.751500000000007,
+            29.23859999999999,
+            27.9307
+          ],
+          "measured_pitch": 29.306933333333333,
+          "measured_disagreement": 0.08542967710686766,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 7,
+          "gaps": [
+            28.286200000000008,
+            28.44629999999995,
+            26.74290000000002
+          ],
+          "measured_pitch": 27.825133333333326,
+          "measured_disagreement": 0.03054881743986182,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 8,
+          "gaps": [
+            28.44629999999995,
+            26.74290000000002,
+            26.912599999999998
+          ],
+          "measured_pitch": 27.367266666666655,
+          "measured_disagreement": 0.013590984885176072,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 9,
+          "gaps": [
+            26.74290000000002,
+            26.912599999999998,
+            28.61189999999999
+          ],
+          "measured_pitch": 27.42246666666667,
+          "measured_disagreement": 0.015635406165793952,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 28,
+          "gaps": [
+            29.37080000000003,
+            27.369100000000003,
+            29.834600000000023
+          ],
+          "measured_pitch": 28.858166666666687,
+          "measured_disagreement": 0.06880887777054556,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 29,
+          "gaps": [
+            27.369100000000003,
+            29.834600000000023,
+            29.550299999999993
+          ],
+          "measured_pitch": 28.918000000000006,
+          "measured_disagreement": 0.07102490204512724,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 30,
+          "gaps": [
+            29.834600000000023,
+            29.550299999999993,
+            27.17629999999997
+          ],
+          "measured_pitch": 28.853733333333327,
+          "measured_disagreement": 0.06864468210006014,
+          "actually_conflicting": false
+        }
+      ]
+    },
+    {
+      "seed_gap_index": 23,
+      "seed_gap": 23.654999999999973,
+      "seed_disagreement": 0.12389881534416458,
+      "windows": [
+        {
+          "start_gap_index": 23,
+          "gaps": [
+            23.654999999999973,
+            25.193700000000035,
+            25.800000000000068
+          ],
+          "measured_pitch": 24.882900000000024,
+          "measured_disagreement": 0.07842155283564856,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 24,
+          "gaps": [
+            25.193700000000035,
+            25.800000000000068,
+            24.001899999999978
+          ],
+          "measured_pitch": 24.99853333333336,
+          "measured_disagreement": 0.07413888531000756,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 25,
+          "gaps": [
+            25.800000000000068,
+            24.001899999999978,
+            25.564499999999953
+          ],
+          "measured_pitch": 25.122133333333334,
+          "measured_disagreement": 0.06956115939906105,
+          "actually_conflicting": false
+        }
+      ]
+    },
+    {
+      "seed_gap_index": 33,
+      "seed_gap": 23.20939999999996,
+      "seed_disagreement": 0.14040233205871344,
+      "windows": [
+        {
+          "start_gap_index": 23,
+          "gaps": [
+            23.654999999999973,
+            25.193700000000035,
+            25.800000000000068
+          ],
+          "measured_pitch": 24.882900000000024,
+          "measured_disagreement": 0.07842155283564856,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 24,
+          "gaps": [
+            25.193700000000035,
+            25.800000000000068,
+            24.001899999999978
+          ],
+          "measured_pitch": 24.99853333333336,
+          "measured_disagreement": 0.07413888531000756,
+          "actually_conflicting": false
+        },
+        {
+          "start_gap_index": 25,
+          "gaps": [
+            25.800000000000068,
+            24.001899999999978,
+            25.564499999999953
+          ],
+          "measured_pitch": 25.122133333333334,
+          "measured_disagreement": 0.06956115939906105,
+          "actually_conflicting": false
+        }
+      ]
+    }
+  ],
+  "baseline": {
+    "oracle_validity": "NeedsReview",
+    "regular_control_validity": "Valid",
+    "oracle_reasons": [
+      "Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance."
+    ],
+    "unknown_assignments": 12
+  },
+  "limitation": "The irregular scene has twelve unsupported x assignments even with exact authored evidence. Removing this false conflict does not establish a correct complete export or solve irregular session mapping.",
+  "runtime_changes": false,
+  "model_inference_runs": 0,
+  "private_reads": 0,
+  "sealed_reads": 0
+}
