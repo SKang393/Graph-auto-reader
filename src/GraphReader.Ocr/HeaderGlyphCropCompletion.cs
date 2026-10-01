@@ -11,7 +11,7 @@ public sealed record CompletedHeaderGlyph(string SourceRegionId, OcrDetectedRegi
 /// <summary>Completes a truncated single-glyph crop from one measured ink component.</summary>
 public static class HeaderGlyphCropCompletion
 {
-    public const string CompositionVersion = "original-pixel-header-glyph-completion-separate-batch-v1";
+    public const string CompositionVersion = "original-pixel-header-glyph-completion-measured-orientation-v2";
 
     public static async ValueTask<IReadOnlyList<CompletedHeaderGlyph>> FindAsync(
         OcrImage image, IReadOnlyList<OcrDetectedRegion> detected,
@@ -63,9 +63,13 @@ public static class HeaderGlyphCropCompletion
                 source.Context is { NumericExpected: true } or { AxisTitleExpected: true } or
                     { NearLegendGlyph: true } or { NearAnnotationArrow: true } or { InParticipantBand: true } ||
                 source.CoordinateSpace != OcrContract.CoordinateSpace ||
-                !source.Polygon.Points.SequenceEqual(reading.Polygon.Points) ||
-                GraphTextRoleClassifier.GetOrientation(source.OrientationDegrees) != OcrOrientation.Horizontal)
+                !source.Polygon.Points.SequenceEqual(reading.Polygon.Points))
                 continue;
+            OcrOrientation orientation = GraphTextRoleClassifier.GetOrientation(source.OrientationDegrees);
+            bool restoreHeadingOrientation = reading.SourceImage == OcrSourceImage.Original &&
+                reading.Role == OcrTextRole.PhaseHeading &&
+                orientation is OcrOrientation.RotatedClockwise or OcrOrientation.RotatedCounterClockwise;
+            if (orientation != OcrOrientation.Horizontal && !restoreHeadingOrientation) continue;
             OcrRectangle fragment = source.Polygon.Bounds;
             if (!fragment.IsValid || fragment.Left < plot.Left || fragment.Right > plot.Right ||
                 fragment.Top < 0 || fragment.Bottom > plot.Top || fragment.Width > 2 * height || fragment.Height > 2 * height)
@@ -74,6 +78,8 @@ public static class HeaderGlyphCropCompletion
             {
                 OcrRectangle glyph = component.Polygon.Bounds;
                 return Contains(glyph, fragment) && glyph != fragment &&
+                    (!restoreHeadingOrientation ||
+                        GraphTextRoleClassifier.GetOrientation(component.OrientationDegrees) == OcrOrientation.Horizontal) &&
                     glyph.Left >= plot.Left && glyph.Right <= plot.Right && glyph.Bottom <= plot.Top &&
                     glyph.Height >= height / 2 && glyph.Height <= height * 2 &&
                     glyph.Width >= height * .3 && glyph.Width <= height * 2 &&
@@ -88,6 +94,7 @@ public static class HeaderGlyphCropCompletion
             {
                 RegionId = "header-glyph-complete:" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(material))),
                 Polygon = full.Polygon,
+                OrientationDegrees = restoreHeadingOrientation ? 0 : source.OrientationDegrees,
                 DetectionConfidence = Math.Min(source.DetectionConfidence, full.DetectionConfidence),
                 Context = null,
                 Evidence = null,

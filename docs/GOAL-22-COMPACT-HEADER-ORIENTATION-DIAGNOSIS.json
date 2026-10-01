@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "scope": "owned synthetic open development only",
+  "base_source_commit": "eae8900d532ebfbf785d3a450f2ef6000f56674f",
+  "failure_mode": "The raw detector marks a compact 7 by 8 A fragment as -90 degrees. Existing original-pixel completion rejects it despite a containing 11 by 10 horizontal ink component and the existing corroborated heading band. The saved text is A, but the truncated polygon fails the full-text geometric match.",
+  "responsible_subsystem": "GraphReader.Ocr/HeaderGlyphCropCompletion",
+  "measured_example": {
+    "source": {
+      "region_id": "b4b81cce-d330-0d0a-075a-001ba6d41177",
+      "polygon": {
+        "points": [
+          {
+            "x": 112,
+            "y": 31,
+            "is_finite": true
+          },
+          {
+            "x": 119,
+            "y": 31,
+            "is_finite": true
+          },
+          {
+            "x": 119,
+            "y": 39,
+            "is_finite": true
+          },
+          {
+            "x": 112,
+            "y": 39,
+            "is_finite": true
+          }
+        ],
+        "bounds": {
+          "x": 112,
+          "y": 31,
+          "width": 7,
+          "height": 8,
+          "left": 112,
+          "top": 31,
+          "right": 119,
+          "bottom": 39,
+          "center": {
+            "x": 115.5,
+            "y": 35,
+            "is_finite": true
+          },
+          "is_valid": true
+        }
+      },
+      "orientation_degrees": -90,
+      "detection_confidence": 0.8088599503040313,
+      "context": {
+        "near_legend_glyph": false,
+        "near_phase_divider": false,
+        "in_participant_band": false,
+        "near_annotation_arrow": false,
+        "numeric_expected": false,
+        "axis_title_expected": false,
+        "explicit_role_hint": null
+      },
+      "coordinate_space": "original_pixels",
+      "evidence": {
+        "component_count": 1,
+        "ink_density": 0.8,
+        "text_likelihood": 0.8088599503040313,
+        "structure_likelihood": 0.19114004969596865,
+        "likely_graph_structure": false,
+        "reasons": [
+          "onnx_db_text_probability"
+        ]
+      }
+    },
+    "reading": {
+      "region_id": "b4b81cce-d330-0d0a-075a-001ba6d41177",
+      "polygon": {
+        "points": [
+          {
+            "x": 112,
+            "y": 31,
+            "is_finite": true
+          },
+          {
+            "x": 119,
+            "y": 31,
+            "is_finite": true
+          },
+          {
+            "x": 119,
+            "y": 39,
+            "is_finite": true
+          },
+          {
+            "x": 112,
+            "y": 39,
+            "is_finite": true
+          }
+        ],
+        "bounds": {
+          "x": 112,
+          "y": 31,
+          "width": 7,
+          "height": 8,
+          "left": 112,
+          "top": 31,
+          "right": 119,
+          "bottom": 39,
+          "center": {
+            "x": 115.5,
+            "y": 35,
+            "is_finite": true
+          },
+          "is_valid": true
+        }
+      },
+      "text": "A",
+      "alternatives": [
+        {
+          "text": "A",
+          "confidence": 0.9031049609184265,
+          "source_image": "Original"
+        },
+        {
+          "text": "4",
+          "confidence": 0.03173571452498436,
+          "source_image": "Original"
+        },
+        {
+          "text": "A ",
+          "confidence": 0.0005504611387950265,
+          "source_image": "Original"
+        }
+      ],
+      "role": "PhaseHeading",
+      "confidence": 0.8564526099951761,
+      "source_image": "Original",
+      "review_status": "Unreviewed",
+      "coordinate_space": "original_pixels"
+    },
+    "completed": {
+      "region_id": "header-glyph-complete:3bc4371c0a6339eb015597642d3880a3218ef5b0f2dd715b8dc76d45b7d5e30a",
+      "polygon": {
+        "points": [
+          {
+            "x": 110,
+            "y": 30,
+            "is_finite": true
+          },
+          {
+            "x": 121,
+            "y": 30,
+            "is_finite": true
+          },
+          {
+            "x": 121,
+            "y": 40,
+            "is_finite": true
+          },
+          {
+            "x": 110,
+            "y": 40,
+            "is_finite": true
+          }
+        ],
+        "bounds": {
+          "x": 110,
+          "y": 30,
+          "width": 11,
+          "height": 10,
+          "left": 110,
+          "top": 30,
+          "right": 121,
+          "bottom": 40,
+          "center": {
+            "x": 115.5,
+            "y": 35,
+            "is_finite": true
+          },
+          "is_valid": true
+        }
+      },
+      "orientation_degrees": 0,
+      "detection_confidence": 0.592,
+      "context": null,
+      "coordinate_space": "original_pixels",
+      "evidence": null
+    }
+  },
+  "diagnostic_replay": {
+    "report": {
+      "file": "artifacts/goal22-runs/compact-header-orientation-replay-20261001-v2/report.json",
+      "sha256": "dafbaae12d80e5e6f2f4bd527add9854f642cd52ce3cb0e43b010cd7c149f58b"
+    },
+    "bindings": {
+      "file": "artifacts/goal22-runs/compact-header-orientation-replay-20261001-v2/bindings.json",
+      "sha256": "aa773fb7a4173256d742b02288a43f1c0da23031b19c25a1f8bcff0d9271008f"
+    },
+    "status": {
+      "file": "artifacts/goal22-runs/compact-header-orientation-replay-20261001-v2/status.json",
+      "sha256": "882f49ce850206467bad2979463215e0268df572ebc99d47b5ddfb6b94681f6d"
+    },
+    "build": {
+      "file": "artifacts/goal22-runs/compact-header-orientation-replay-20261001-v2/build.log",
+      "sha256": "cf9072dcb6a2ae05e4d0227dfb8a1d02fd6efebd1894887ddf0d35581d095256"
+    },
+    "panels": 140,
+    "additional_candidates": {
+      "v44-native": 5,
+      "v44-csv": 4,
+      "v46-native": 6,
+      "v46-csv": 0
+    },
+    "limitations": "Final recognized regions are reused; this does not rerun recognition or reproduce initial merge timing. No truth selects a candidate."
+  },
+  "preserved_attempts": [
+    {
+      "file": "artifacts/goal22-runs/compact-header-orientation-diagnosis-20261001-v1/report.json",
+      "sha256": "60a0860b69dd6101c2bd8ee6c430759bca712a8411c2725916cb4108c500c44f"
+    },
+    {
+      "file": "artifacts/goal22-runs/compact-header-orientation-replay-20261001-v1/status.json",
+      "sha256": "bec7b2bfd23d9b0ef7101cdd3c850d497edde11452527705c3920b291543c276"
+    },
+    {
+      "file": "artifacts/goal22-runs/compact-header-orientation-replay-20261001-v1/build.log",
+      "sha256": "5a4f13374b012390a17068d62c616c24fe0b6e3efb451a03dce58cc3f6929058"
+    }
+  ],
+  "isolated_change": "Complete an already recognized original-pixel single-character PhaseHeading with a quarter-turn detector orientation only when one horizontal ink component contains it in the existing corroborated three-heading band. Keep all containment, size, collision and protected-context checks. Recognize the complete original crop in its existing separate batch; preserve the prior reading on failure. Preserve existing horizontal angles and advance the completion cache version. No text synthesis, model or threshold changes.",
+  "acceptance": {
+    "policy": {
+      "file": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "bars": {
+      "file": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "metrics": [
+      "native full-text geometry, exact text, character error, roles",
+      "native marker matching and axis geometry",
+      "complete CSV values, phases, confidence and export safety"
+    ],
+    "product_bars_unchanged": true,
+    "guard_checks": [
+      "original pixels and actual recognition only",
+      "existing human and protected-context decisions retained",
+      "failed or empty completion retains original reading",
+      "all complete workflow deltas reported, including regressions"
+    ]
+  },
+  "fixed_splits": [
+    {
+      "arm": "v44-native",
+      "input_manifest": {
+        "file": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/input-manifest.json",
+        "sha256": "409f91a0c5036706f9da848413d330b4f5ea2b452b24e4880d8e35b79a34eddc"
+      }
+    },
+    {
+      "arm": "v44-csv",
+      "input_manifest": {
+        "file": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-csv/input-manifest.json",
+        "sha256": "46f7e5dc4ec5b2069d76efa4e5ea9e614dad5d7627f5b5dea900dc268607ad1d"
+      }
+    },
+    {
+      "arm": "v46-native",
+      "input_manifest": {
+        "file": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/input-manifest.json",
+        "sha256": "911beef6f5c26e3ba6020de6f4db9b7efcc84f7f8f4e0cfb7f08a0c245ea5ba0"
+      }
+    },
+    {
+      "arm": "v46-csv",
+      "input_manifest": {
+        "file": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-csv/input-manifest.json",
+        "sha256": "a41c0ced9d94510bafa6c4fdc2c65c597af3da81d5457f89311a1fae1ac1ab2d"
+      }
+    }
+  ],
+  "budget": {
+    "native_runs_per_arm": 1,
+    "csv_runs_per_arm": 1,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_runs": 0
+  },
+  "limitations": [
+    "Shadow replay uses saved final readings with reproduced initial preprocessing, not a complete recognition rerun.",
+    "New crop selection is not evidence of correct recognition or recovered exports.",
+    "Two-heading layouts, multi-character words and arbitrary orientation remain outside this repair."
+  ],
+  "production_approved": false,
+  "goal22_complete": false
+}

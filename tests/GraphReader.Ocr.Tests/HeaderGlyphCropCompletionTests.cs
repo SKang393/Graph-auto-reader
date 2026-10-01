@@ -12,6 +12,85 @@ public sealed class HeaderGlyphCropCompletionTests
     private static readonly OcrRectangle Plot = new(30, 50, 220, 70);
 
     [TestMethod]
+    [DataRow(-90.0)]
+    [DataRow(90.0)]
+    [DataRow(270.0)]
+    public void RestoresQuarterTurnHeadingFragmentsFromHorizontalOriginalInk(double orientation)
+    {
+        var (detected, recognized, component) = Fixture();
+        detected[^1] = detected[^1] with { OrientationDegrees = orientation };
+        recognized[^1] = recognized[^1] with { Text = "A", Role = OcrTextRole.PhaseHeading };
+        var result = HeaderGlyphCropCompletion.SelectCandidates([component], detected, recognized, Plot);
+        Assert.HasCount(1, result);
+        Assert.AreEqual(component.Polygon, result[0].Region.Polygon);
+        Assert.AreEqual(0.0, result[0].Region.OrientationDegrees);
+        Assert.AreEqual(orientation, detected[^1].OrientationDegrees);
+        Assert.AreEqual("A", recognized[^1].Text);
+    }
+
+    [TestMethod]
+    [DataRow(0.0)]
+    [DataRow(10.0)]
+    [DataRow(180.0)]
+    public void PreservesExistingHorizontalCropOrientation(double orientation)
+    {
+        var (detected, recognized, component) = Fixture();
+        detected[^1] = detected[^1] with { OrientationDegrees = orientation };
+        var result = HeaderGlyphCropCompletion.SelectCandidates([component], detected, recognized, Plot);
+        Assert.HasCount(1, result);
+        Assert.AreEqual(orientation, result[0].Region.OrientationDegrees);
+    }
+
+    [TestMethod]
+    [DataRow(OcrTextRole.Other, OcrSourceImage.Original, OcrReviewStatus.Unreviewed, -90.0, 0.0)]
+    [DataRow(OcrTextRole.PhaseHeading, OcrSourceImage.Enhanced, OcrReviewStatus.Unreviewed, -90.0, 0.0)]
+    [DataRow(OcrTextRole.PhaseHeading, OcrSourceImage.Original, OcrReviewStatus.Accepted, -90.0, 0.0)]
+    [DataRow(OcrTextRole.PhaseHeading, OcrSourceImage.Original, OcrReviewStatus.Corrected, -90.0, 0.0)]
+    [DataRow(OcrTextRole.PhaseHeading, OcrSourceImage.Original, OcrReviewStatus.Rejected, -90.0, 0.0)]
+    [DataRow(OcrTextRole.PhaseHeading, OcrSourceImage.Original, OcrReviewStatus.Unreviewed, 45.0, 0.0)]
+    [DataRow(OcrTextRole.PhaseHeading, OcrSourceImage.Original, OcrReviewStatus.Unreviewed, -90.0, 90.0)]
+    [DataRow(OcrTextRole.PhaseHeading, OcrSourceImage.Original, OcrReviewStatus.Unreviewed, -90.0, 45.0)]
+    public void OrientationRepairRequiresAnUnreviewedOriginalHeadingAndHorizontalComponent(
+        OcrTextRole role, OcrSourceImage sourceImage, OcrReviewStatus reviewStatus,
+        double fragmentOrientation, double componentOrientation)
+    {
+        var (detected, recognized, component) = Fixture();
+        detected[^1] = detected[^1] with { OrientationDegrees = fragmentOrientation };
+        recognized[^1] = recognized[^1] with
+        {
+            Text = "A", Role = role, SourceImage = sourceImage, ReviewStatus = reviewStatus,
+        };
+        component = component with { OrientationDegrees = componentOrientation };
+        Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates([component], detected, recognized, Plot));
+    }
+
+    [TestMethod]
+    public void OrientationRepairKeepsCorroborationCollisionAndProtectedContextGuards()
+    {
+        var (detected, recognized, component) = Fixture();
+        detected[^1] = detected[^1] with { OrientationDegrees = -90 };
+        recognized[^1] = recognized[^1] with { Text = "A", Role = OcrTextRole.PhaseHeading };
+        Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates([component], detected,
+            [recognized[0], recognized[^1]], Plot));
+        Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates([component],
+            [.. detected, OcrTestFixtures.Region("neighbor", 100, 20, 4, 6)], recognized, Plot));
+        Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates(
+            [component, component with { RegionId = "ambiguous" }], detected, recognized, Plot));
+        OcrDetectedRegion source = detected[^1];
+        foreach (OcrRegionContext context in new[]
+        {
+            new OcrRegionContext(NumericExpected: true), new OcrRegionContext(AxisTitleExpected: true),
+            new OcrRegionContext(NearLegendGlyph: true), new OcrRegionContext(NearAnnotationArrow: true),
+            new OcrRegionContext(InParticipantBand: true),
+            new OcrRegionContext(ExplicitRoleHint: OcrTextRole.PhaseHeading),
+        })
+        {
+            detected[^1] = source with { Context = context };
+            Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates([component], detected, recognized, Plot));
+        }
+    }
+
+    [TestMethod]
     [DataRow("A", OcrTextRole.PhaseHeading)]
     [DataRow("3", OcrTextRole.Other)]
     [DataRow("𝒜", OcrTextRole.PhaseHeading)]
@@ -124,13 +203,21 @@ public sealed class HeaderGlyphCropCompletionTests
     }
 
     [TestMethod]
-    [DataRow("B", false)]
-    [DataRow("8", false)]
-    [DataRow("", false)]
-    [DataRow("B", true)]
-    public async Task PipelineUsesASeparateOriginalCropAndReplacesOnlySuccessfulReadings(string completedText, bool fail)
+    [DataRow("B", false, 0.0)]
+    [DataRow("8", false, 0.0)]
+    [DataRow("", false, 0.0)]
+    [DataRow("B", true, 0.0)]
+    [DataRow("A", false, -90.0)]
+    [DataRow("8", false, 90.0)]
+    [DataRow("", false, -90.0)]
+    [DataRow("A", true, -90.0)]
+    public async Task PipelineUsesASeparateOriginalCropAndReplacesOnlySuccessfulReadings(
+        string completedText, bool fail, double orientation)
     {
         var (detected, recognized, component) = Fixture();
+        detected[^1] = detected[^1] with { OrientationDegrees = orientation };
+        if (orientation != 0)
+            recognized[^1] = recognized[^1] with { Text = "A", Role = OcrTextRole.PhaseHeading };
         byte[] pixels = Enumerable.Repeat((byte)255, 260 * 130).ToArray();
         foreach (OcrRectangle rectangle in detected.Take(3).Select(static region => region.Polygon.Bounds).Append(component.Polygon.Bounds))
         for (int y = (int)rectangle.Top; y < rectangle.Bottom; y++)
@@ -181,7 +268,7 @@ public sealed class HeaderGlyphCropCompletionTests
             Assert.IsTrue((await pipeline.RecognizeAsync(request)).Cache.CacheHit);
             Assert.AreEqual(2, recognizer.CallCount);
         }
-        else Assert.AreEqual("3", result.Regions.Single(static region => region.RegionId == "fragment").Text);
+        else Assert.AreEqual(recognized[^1].Text, result.Regions.Single(static region => region.RegionId == "fragment").Text);
         Assert.AreNotEqual(baseline.Cache.CacheKey, result.Cache.CacheKey);
         CollectionAssert.AreEqual(before, pixels);
     }
