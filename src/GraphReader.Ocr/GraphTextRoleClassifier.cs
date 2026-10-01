@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    internal const string Version = "graph-text-role-classifier-v9-qualified-headings";
+    public const string Version = "graph-text-role-classifier-v10-phase-codes-and-plurals";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -102,7 +102,7 @@ public static class GraphTextRoleClassifier
         var rightOfPlot = region.Polygon.Bounds.Left >= plotBounds.Right - horizontalTolerance;
         var insidePlot = center.X >= plotBounds.Left && center.X <= plotBounds.Right &&
             center.Y >= plotBounds.Top && center.Y <= plotBounds.Bottom;
-        if (!numeric && abovePlot && withinPlotX && IsPhaseHeadingTerm(recognizedText))
+        if (!numeric && abovePlot && withinPlotX && IsPhaseHeadingTerm(recognizedText, region.Polygon.Bounds))
         {
             return Classification(OcrTextRole.PhaseHeading, 0.86, "phase_term_above_plot");
         }
@@ -200,16 +200,19 @@ public static class GraphTextRoleClassifier
         return true;
     }
 
-    private static bool IsPhaseHeadingTerm(string text)
+    private static bool IsPhaseHeadingTerm(string text, OcrRectangle bounds)
     {
         var normalized = text.Trim().Replace('_', ' ').Replace('-', ' ');
         string wordsWithoutSpaces = new(normalized.Where(character => !char.IsWhiteSpace(character)).ToArray());
         return normalized.Equals("a", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("b", StringComparison.OrdinalIgnoreCase) ||
             normalized.Equals("ab", StringComparison.OrdinalIgnoreCase) ||
+            IsCompactLetterPhaseCode(normalized, bounds) ||
             EndsWithHeadingTerm(normalized, "baseline") ||
             EndsWithHeadingTerm(normalized, "intervention") ||
+            EndsWithHeadingTerm(normalized, "interventions") ||
             EndsWithHeadingTerm(normalized, "treatment") ||
+            EndsWithHeadingTerm(normalized, "treatments") ||
             EndsWithHeadingTerm(normalized, "alternating treatments") ||
             EndsWithHeadingTerm(normalized, "withdrawal") ||
             EndsWithHeadingTerm(normalized, "withdrawal continued") ||
@@ -223,6 +226,26 @@ public static class GraphTextRoleClassifier
             EndsWithHeadingTerm(normalized, "follow up") ||
             IsCriterionHeading(text.Trim()) ||
             normalized.StartsWith("phase", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsCompactLetterPhaseCode(string text, OcrRectangle bounds)
+    {
+        if (text.Length == 0 || char.ToLowerInvariant(text[0]) is not ('a' or 'b' or 'm' or 'g'))
+        {
+            return false;
+        }
+        for (int index = 1; index < text.Length; index++)
+        {
+            if (!char.IsAsciiDigit(text[index]))
+            {
+                return false;
+            }
+        }
+
+        // Phase reasoning already supports these printed codes. A word-sized
+        // detector box recognized as one letter is not sufficient evidence:
+        // allow one text-height per glyph and one for detector padding.
+        return bounds.Width <= bounds.Height * (text.Length + 1);
     }
 
     private static bool EndsWithHeadingTerm(string text, string term) =>

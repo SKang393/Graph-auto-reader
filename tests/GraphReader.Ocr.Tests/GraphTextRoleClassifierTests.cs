@@ -28,6 +28,10 @@ public sealed class GraphTextRoleClassifierTests
     [DataRow("Second withdrawal continued")]
     [DataRow("Second reintroduction continued")]
     [DataRow("Group alternating treatments")]
+    [DataRow("Interventions")]
+    [DataRow("Treatments")]
+    [DataRow("Review interventions")]
+    [DataRow("Group treatments")]
     public void DesignTermsNeedHeadingGeometryAndRespectExplicitContext(string text)
     {
         var region = OcrTestFixtures.Region("heading", 50, 1, 50, 10);
@@ -48,9 +52,50 @@ public sealed class GraphTextRoleClassifierTests
     [DataRow("Prereintroduction")]
     [DataRow("Review Intervention was recorded")]
     [DataRow("Second withdrawal continued symptoms")]
+    [DataRow("Preinterventions")]
+    [DataRow("Pretreatments")]
+    [DataRow("Interventions con")]
+    [DataRow("Interventions were recorded")]
     public void DamagedWordsAndIncidentalTextRemainUnresolved(string text)
     {
         var region = OcrTestFixtures.Region("unclear-heading", 50, 1, 50, 10);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(region, text, Plot).Role);
+    }
+
+    [TestMethod]
+    [DataRow("M")]
+    [DataRow("G")]
+    [DataRow("m1")]
+    [DataRow("G2")]
+    [DataRow("A2")]
+    [DataRow("B12")]
+    public void PrintedPhaseCodesRequireCompactHeadingGeometryAndRespectContext(string text)
+    {
+        var region = OcrTestFixtures.Region("code", 50, 1, 9 * text.Length, 10);
+        Assert.AreEqual(OcrTextRole.PhaseHeading, GraphTextRoleClassifier.Classify(region, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(
+            region with { Polygon = OcrPolygon.FromRectangle(new OcrRectangle(50, 40, 9 * text.Length, 10)) }, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(
+            region with { Context = new OcrRegionContext(NearAnnotationArrow: true) }, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(
+            region with { Context = new OcrRegionContext(ExplicitRoleHint: OcrTextRole.Other) }, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.LegendText, GraphTextRoleClassifier.Classify(
+            region with { Context = new OcrRegionContext(NearLegendGlyph: true) }, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(
+            region with { Polygon = OcrPolygon.FromRectangle(new OcrRectangle(50, 1, 50 + 10 * text.Length, 10)) }, text, Plot).Role);
+    }
+
+    [TestMethod]
+    [DataRow("Map")]
+    [DataRow("Group")]
+    [DataRow("M 1")]
+    [DataRow("G2 note")]
+    [DataRow("B1a")]
+    [DataRow("A-2")]
+    [DataRow("M\u0661")]
+    public void NonCodeWordsAndDamagedCodesRemainUnresolved(string text)
+    {
+        var region = OcrTestFixtures.Region("not-code", 50, 1, 20, 10);
         Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(region, text, Plot).Role);
     }
 

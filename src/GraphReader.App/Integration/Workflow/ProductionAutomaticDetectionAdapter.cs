@@ -92,6 +92,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         HeaderFragmentWordRecovery.CompositionVersion,
         BracketCaptionGlyphRecovery.CompositionVersion,
         SeparatedHeaderGlyphRecovery.CompositionVersion,
+        GraphTextRoleClassifier.Version,
         HeaderLayoutRoleResolver.CompositionVersion,
         RasterResidualArtifactMaskProvider.CompositionVersion,
         ProductionPhaseGeometryContext.Version,

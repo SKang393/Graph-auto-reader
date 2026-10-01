@@ -1,0 +1,330 @@
+{
+  "status": "diagnosed_before_repair",
+  "base_commit": "534131434747d6122bd7d3ae92925997631bec49",
+  "failure_mode": "Three correctly recognized phase labels per native arm are rejected by the role vocabulary: M, G and Interventions. The downstream phase reasoner already normalizes maintenance/generalization letter codes and intervention/treatment terms.",
+  "responsible_subsystem": "GraphTextRoleClassifier.IsPhaseHeadingTerm",
+  "measured_correct_text_wrong_role": [
+    {
+      "arm": "v44",
+      "split": "validation",
+      "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+      "truth_id": "fdb7219950d7754b3e4b5faf0319b7704e67856e055300bb90aa780b2740ce91",
+      "text": "G",
+      "role": "condition_label",
+      "box": [
+        727.879256,
+        70.471621,
+        738.80893,
+        83.357954
+      ],
+      "matched": true,
+      "predicted_text": "G",
+      "predicted_role": "other"
+    },
+    {
+      "arm": "v44",
+      "split": "validation",
+      "source_sha256": "d84fe95baf0e38ae37eac37f01a7d7d2714a840c5af2fcd807cbed44fdab3595",
+      "truth_id": "070a6bf0ce88ebbf97876c4750ff296f0bcb76abee959aefcf7696839cc7a89e",
+      "text": "M",
+      "role": "condition_label",
+      "box": [
+        683.183996,
+        74.818961,
+        696.527551,
+        85.715925
+      ],
+      "matched": true,
+      "predicted_text": "M",
+      "predicted_role": "other"
+    },
+    {
+      "arm": "v44",
+      "split": "validation",
+      "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+      "truth_id": "a4a1895c816839e62d606b1935987fc22bdea4986128a4f12f1d88f7cfe77091",
+      "text": "Interventions",
+      "role": "phase_heading",
+      "box": [
+        575.353223,
+        71.70139,
+        666.057914,
+        83.493916
+      ],
+      "matched": true,
+      "predicted_text": "Interventions",
+      "predicted_role": "other"
+    },
+    {
+      "arm": "v46",
+      "split": "validation",
+      "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+      "truth_id": "fdb7219950d7754b3e4b5faf0319b7704e67856e055300bb90aa780b2740ce91",
+      "text": "G",
+      "role": "condition_label",
+      "box": [
+        727.879256,
+        70.471621,
+        738.80893,
+        83.357954
+      ],
+      "matched": true,
+      "predicted_text": "G",
+      "predicted_role": "other"
+    },
+    {
+      "arm": "v46",
+      "split": "validation",
+      "source_sha256": "d84fe95baf0e38ae37eac37f01a7d7d2714a840c5af2fcd807cbed44fdab3595",
+      "truth_id": "070a6bf0ce88ebbf97876c4750ff296f0bcb76abee959aefcf7696839cc7a89e",
+      "text": "M",
+      "role": "condition_label",
+      "box": [
+        683.183996,
+        74.818961,
+        696.527551,
+        85.715925
+      ],
+      "matched": true,
+      "predicted_text": "M",
+      "predicted_role": "other"
+    },
+    {
+      "arm": "v46",
+      "split": "validation",
+      "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+      "truth_id": "a4a1895c816839e62d606b1935987fc22bdea4986128a4f12f1d88f7cfe77091",
+      "text": "Interventions",
+      "role": "phase_heading",
+      "box": [
+        575.353223,
+        71.70139,
+        666.057914,
+        83.493916
+      ],
+      "matched": true,
+      "predicted_text": "Interventions",
+      "predicted_role": "other"
+    }
+  ],
+  "other_code_readings_to_protect": [
+    {
+      "arm": "v44-csv",
+      "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+      "text": "m",
+      "role": "Other",
+      "bounds": {
+        "x": 66,
+        "y": 88,
+        "width": 21,
+        "height": 10,
+        "left": 66,
+        "top": 88,
+        "right": 87,
+        "bottom": 98,
+        "center": {
+          "x": 76.5,
+          "y": 93,
+          "is_finite": true
+        },
+        "is_valid": true
+      }
+    },
+    {
+      "arm": "v44-csv",
+      "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+      "text": "m",
+      "role": "Other",
+      "bounds": {
+        "x": 66,
+        "y": 45,
+        "width": 22,
+        "height": 10,
+        "left": 66,
+        "top": 45,
+        "right": 88,
+        "bottom": 55,
+        "center": {
+          "x": 77,
+          "y": 50,
+          "is_finite": true
+        },
+        "is_valid": true
+      }
+    },
+    {
+      "arm": "v44-csv",
+      "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+      "text": "m",
+      "role": "Other",
+      "bounds": {
+        "x": 66,
+        "y": 45,
+        "width": 22,
+        "height": 10,
+        "left": 66,
+        "top": 45,
+        "right": 88,
+        "bottom": 55,
+        "center": {
+          "x": 77,
+          "y": 50,
+          "is_finite": true
+        },
+        "is_valid": true
+      }
+    },
+    {
+      "arm": "v44-csv",
+      "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+      "text": "m",
+      "role": "AxisTitle",
+      "bounds": {
+        "x": 497,
+        "y": 269,
+        "width": 9,
+        "height": 8,
+        "left": 497,
+        "top": 269,
+        "right": 506,
+        "bottom": 277,
+        "center": {
+          "x": 501.5,
+          "y": 273,
+          "is_finite": true
+        },
+        "is_valid": true
+      }
+    },
+    {
+      "arm": "v46-csv",
+      "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+      "text": "G",
+      "role": "Other",
+      "bounds": {
+        "x": 381,
+        "y": 72,
+        "width": 43,
+        "height": 12,
+        "left": 381,
+        "top": 72,
+        "right": 424,
+        "bottom": 84,
+        "center": {
+          "x": 402.5,
+          "y": 78,
+          "is_finite": true
+        },
+        "is_valid": true
+      }
+    },
+    {
+      "arm": "v46-csv",
+      "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+      "text": "m",
+      "role": "LegendText",
+      "bounds": {
+        "x": 992,
+        "y": 107,
+        "width": 138,
+        "height": 19,
+        "left": 992,
+        "top": 107,
+        "right": 1130,
+        "bottom": 126,
+        "center": {
+          "x": 1061,
+          "y": 116.5,
+          "is_finite": true
+        },
+        "is_valid": true
+      }
+    }
+  ],
+  "isolated_change": "Recognize existing downstream A/B/M/G codes with an optional ASCII digit suffix and plural interventions/treatments in above-plot role routing. Newly admitted letter codes require a compact box: at most one text-height per character plus one text-height of detector padding. Preserve geometry/context precedence, word boundaries, reviewed-role behavior, recognized text and downstream phase normalization.",
+  "runtime_impact": "Previously unknown headings can enter existing phase reasoning and context recovery. Advance OCR role and composed workflow cache identity. This may alter downstream phase assignment and must be measured, not assumed invariant.",
+  "files_to_inspect": [
+    "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+    "src/GraphReader.Phases/PhaseReasoningService.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+    "tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs"
+  ],
+  "files_to_change": [
+    "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+    "tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs"
+  ],
+  "validation": "OCR and App tests, clean native build, then the same V44/V46 native and CSV comparisons. Verify correct text retention, role deltas, all marker/calibration/export changes and source/model hashes.",
+  "metric_and_bar": {
+    "policy": {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "role_accuracy_minimum": 0.95,
+    "other_bars_unchanged": true,
+    "retention_and_full_deltas": "Record every lost truth or physical/CSV change; no passing claim from local role tests alone."
+  },
+  "fixed_splits": "Same owned synthetic native dev and CSV train/dev sources bound by the preceding comparison. No source, truth or denominator changes.",
+  "sealed_run_budget": 0,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v2/v44-native/native-ocr-details.json",
+      "sha256": "7cbbcfb48fb954f58c678561934b6e741ddcb82deca2bd70cc02e0459aa9ddb9"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v2/v46-native/native-ocr-details.json",
+      "sha256": "2c386a0324754bb6d375e1ccb7fdd4c28bf7846a0041832b582fa335819ab1fc"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v2/v44-csv/execution/stage-evidence/7fe4317f-05d5-c85a-8131-967680128eaf.json",
+      "sha256": "33cd2f9cb6a647468b45d950909c5b51d93aa9caf435819f7dd35ffafbefd8ac"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v2/v44-csv/execution/stage-evidence/02573145-6af6-785c-a739-c541bb3685b7.json",
+      "sha256": "e3e135adebc5727cfb9e7a9c13fa04614c043d7c24ec2c2fab0d4593ca29faa3"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v2/v44-csv/execution/stage-evidence/ab907ecc-0e20-be51-8a43-d77ceebc2315.json",
+      "sha256": "b8b15202c45cc47febf9596a79104ae99528597dd2706e52e97554038facde6c"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v2/v44-csv/execution/stage-evidence/ec99defb-46a8-7053-b8ca-b977fddefc35.json",
+      "sha256": "38c26541442285bb6ab94c49458b2821cd99928cae55e7abfbc02424e1e96717"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v2/v46-csv/execution/stage-evidence/73b69b6d-039d-a556-8458-b0580127099a.json",
+      "sha256": "2961ae0775d7d6c03cd869c544def6f83b975cdce4bea6b7561264577411449c"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v2/v46-csv/execution/stage-evidence/c4c5c2d8-59e1-6a50-9505-afd0cafd82e4.json",
+      "sha256": "8bbe05a24ae70df4a5037d7ee73c853261e839c9492f5e3ad79c9f3275802e5c"
+    },
+    {
+      "path": "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "sha256": "087e5586a61df997284cad06a14b9084dd259767edaf72ab815277a0414e5dd8"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs",
+      "sha256": "5f9a70ae017d191465af6fd9616efe1e460d15f3abeeead39c3cf55d499a28b9"
+    },
+    {
+      "path": "src/GraphReader.Phases/PhaseReasoningService.cs",
+      "sha256": "63e244c8e9b2505e8cb898382211ad2378d41fd1706aee36c79f05867c82ebe8"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "41fe3bb5a2fa2e279d7f605d1df86a04166f441ba80169bc6af3e9f2ae85be0e"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "docs/GOAL-22-OVERLAPPING-CAPTION-BRACKET-REPAIR.json",
+      "sha256": "e4f2e190ae922881dff92a71eb7365fbc22b2ef895d929dd910c51e6aab3e4f1"
+    }
+  ]
+}

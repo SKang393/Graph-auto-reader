@@ -1,0 +1,3113 @@
+{
+  "schema": "graphreader.phase-role-vocabulary-repair.v1",
+  "status": "literal_role_repair_verified_recovery_geometry_retention_failed",
+  "arms": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 229.1527845,
+        "execution_seconds": 240.4727831,
+        "metrics": {
+          "truth": 838,
+          "predicted": 768,
+          "matched": 741,
+          "extra": 27,
+          "missing": 97,
+          "precision": 0.96484375,
+          "recall": 0.8842482100238663
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 768,
+          "matched": 741,
+          "extra": 27,
+          "missing": 97,
+          "precision": 0.96484375,
+          "recall": 0.8842482100238663
+        },
+        "paired_truths": {
+          "retained": 741,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 97
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 379,
+            "role_accuracy": 0.8366445916114791,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 376,
+            "role_accuracy": 0.8300220750551877,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 139,
+                "accuracy": 0.8176470588235294
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 358,
+          "wrong_in_both": 95
+        },
+        "changed_truth_readings": [
+          {
+            "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+            "truth_id": "fdb7219950d7754b3e4b5faf0319b7704e67856e055300bb90aa780b2740ce91",
+            "truth": "G",
+            "before": {
+              "matched": true,
+              "predicted_text": "G",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "G",
+              "predicted_role": "phaseheading"
+            }
+          },
+          {
+            "source_sha256": "d84fe95baf0e38ae37eac37f01a7d7d2714a840c5af2fcd807cbed44fdab3595",
+            "truth_id": "070a6bf0ce88ebbf97876c4750ff296f0bcb76abee959aefcf7696839cc7a89e",
+            "truth": "M",
+            "before": {
+              "matched": true,
+              "predicted_text": "M",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "M",
+              "predicted_role": "phaseheading"
+            }
+          },
+          {
+            "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+            "truth_id": "a4a1895c816839e62d606b1935987fc22bdea4986128a4f12f1d88f7cfe77091",
+            "truth": "Interventions",
+            "before": {
+              "matched": true,
+              "predicted_text": "Interventions",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Interventions",
+              "predicted_role": "phaseheading"
+            }
+          }
+        ],
+        "pipeline_audit": {
+          "panels": 31,
+          "axis_calibration_and_final_markers_unchanged": true,
+          "post_geometry_marker_stages_unchanged": true,
+          "decoded_point_changes": [],
+          "exclusion_membership_unchanged": true,
+          "all_previous_exact_text_retained": true,
+          "role_changes": [
+            {
+              "source_sha256": "d84fe95baf0e38ae37eac37f01a7d7d2714a840c5af2fcd807cbed44fdab3595",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "before": {
+                "region_id": "header-glyph-complete:aa99a2b6564815951a8c0617704f42e3c6e26a6e49b825b251cdf63bc3b0401f",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 684,
+                      "y": 75,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 696,
+                      "y": 75,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 696,
+                      "y": 86,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 684,
+                      "y": 86,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 684,
+                    "y": 75,
+                    "width": 12,
+                    "height": 11,
+                    "left": 684,
+                    "top": 75,
+                    "right": 696,
+                    "bottom": 86,
+                    "center": {
+                      "x": 690,
+                      "y": 80.5,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "M",
+                "alternatives": [
+                  {
+                    "text": "M",
+                    "confidence": 0.999152421951294,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "\u039c",
+                    "confidence": 0.0003672704624477774,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "MM",
+                    "confidence": 3.816172351493757e-05,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "Other",
+                "confidence": 0.6572514655578472,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              },
+              "after": {
+                "region_id": "header-glyph-complete:aa99a2b6564815951a8c0617704f42e3c6e26a6e49b825b251cdf63bc3b0401f",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 684,
+                      "y": 75,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 696,
+                      "y": 75,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 696,
+                      "y": 86,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 684,
+                      "y": 86,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 684,
+                    "y": 75,
+                    "width": 12,
+                    "height": 11,
+                    "left": 684,
+                    "top": 75,
+                    "right": 696,
+                    "bottom": 86,
+                    "center": {
+                      "x": 690,
+                      "y": 80.5,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "M",
+                "alternatives": [
+                  {
+                    "text": "M",
+                    "confidence": 0.999152421951294,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "\u039c",
+                    "confidence": 0.0003672704624477774,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "MM",
+                    "confidence": 3.816172351493757e-05,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "PhaseHeading",
+                "confidence": 0.7982715186841425,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              }
+            },
+            {
+              "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "before": {
+                "region_id": "header-glyph:6bdfc39b-68bb-1caf-df45-923ec3ad8291",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 728,
+                      "y": 70,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 738,
+                      "y": 70,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 738,
+                      "y": 84,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 728,
+                      "y": 84,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 728,
+                    "y": 70,
+                    "width": 10,
+                    "height": 14,
+                    "left": 728,
+                    "top": 70,
+                    "right": 738,
+                    "bottom": 84,
+                    "center": {
+                      "x": 733,
+                      "y": 77,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "G",
+                "alternatives": [
+                  {
+                    "text": "G",
+                    "confidence": 0.9982227683067322,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "C",
+                    "confidence": 0.0005021471297368407,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "GI",
+                    "confidence": 6.869954397164568e-05,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "Other",
+                "confidence": 0.6570475574553244,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              },
+              "after": {
+                "region_id": "header-glyph:6bdfc39b-68bb-1caf-df45-923ec3ad8291",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 728,
+                      "y": 70,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 738,
+                      "y": 70,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 738,
+                      "y": 84,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 728,
+                      "y": 84,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 728,
+                    "y": 70,
+                    "width": 10,
+                    "height": 14,
+                    "left": 728,
+                    "top": 70,
+                    "right": 738,
+                    "bottom": 84,
+                    "center": {
+                      "x": 733,
+                      "y": 77,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "G",
+                "alternatives": [
+                  {
+                    "text": "G",
+                    "confidence": 0.9982227683067322,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "C",
+                    "confidence": 0.0005021471297368407,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "GI",
+                    "confidence": 6.869954397164568e-05,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "PhaseHeading",
+                "confidence": 0.7980238600037092,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              }
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "before": {
+                "region_id": "e28a91ce-a86f-e2c8-017d-e1542399a7f4",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 575,
+                      "y": 71,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 666,
+                      "y": 71,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 666,
+                      "y": 84,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 575,
+                      "y": 84,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 575,
+                    "y": 71,
+                    "width": 91,
+                    "height": 13,
+                    "left": 575,
+                    "top": 71,
+                    "right": 666,
+                    "bottom": 84,
+                    "center": {
+                      "x": 620.5,
+                      "y": 77.5,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "Interventions",
+                "alternatives": [
+                  {
+                    "text": "Interventions",
+                    "confidence": 0.9993188243645889,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "interventions",
+                    "confidence": 0.007845291932749627,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "INterventions",
+                    "confidence": 7.041768072043343e-05,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "Other",
+                "confidence": 0.7441139185784795,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              },
+              "after": {
+                "region_id": "e28a91ce-a86f-e2c8-017d-e1542399a7f4",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 575,
+                      "y": 71,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 666,
+                      "y": 71,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 666,
+                      "y": 84,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 575,
+                      "y": 84,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 575,
+                    "y": 71,
+                    "width": 91,
+                    "height": 13,
+                    "left": 575,
+                    "top": 71,
+                    "right": 666,
+                    "bottom": 84,
+                    "center": {
+                      "x": 620.5,
+                      "y": 77.5,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "Interventions",
+                "alternatives": [
+                  {
+                    "text": "Interventions",
+                    "confidence": 0.9993188243645889,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "interventions",
+                    "confidence": 0.007845291932749627,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "INterventions",
+                    "confidence": 7.041768072043343e-05,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "PhaseHeading",
+                "confidence": 0.9037712032387557,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              }
+            }
+          ],
+          "recovery_changes": [],
+          "mask_changes": [
+            {
+              "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [],
+              "added": [
+                {
+                  "region_id": "header-glyph:6bdfc39b-68bb-1caf-df45-923ec3ad8291",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 727,
+                        "y": 69,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 739,
+                        "y": 69,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 739,
+                        "y": 85,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 727,
+                        "y": 85,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 727,
+                      "y": 69,
+                      "width": 12,
+                      "height": 16,
+                      "left": 727,
+                      "top": 69,
+                      "right": 739,
+                      "bottom": 85,
+                      "center": {
+                        "x": 733,
+                        "y": 77,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "confidence": 0.592,
+                  "coordinate_space": "original_pixels"
+                }
+              ]
+            }
+          ],
+          "crop_count_changes": [],
+          "warning_changes": [
+            {
+              "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+              "crop": [
+                0,
+                0,
+                1200,
+                313
+              ],
+              "removed": [
+                "ocr_role_needs_review:header-glyph:2b6faf6e-7d7f-6a08-f6ba-94a9c80acd5c:ambiguous_above_plot_text"
+              ],
+              "added": []
+            },
+            {
+              "source_sha256": "d84fe95baf0e38ae37eac37f01a7d7d2714a840c5af2fcd807cbed44fdab3595",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                "ocr_role_needs_review:e93e76e3-7fcf-d886-f50f-86e0622d980e:ambiguous_above_plot_text",
+                "ocr_role_needs_review:header-glyph-complete:aa99a2b6564815951a8c0617704f42e3c6e26a6e49b825b251cdf63bc3b0401f:ambiguous_above_plot_text"
+              ],
+              "added": []
+            },
+            {
+              "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                "ocr_role_needs_review:header-glyph:6bdfc39b-68bb-1caf-df45-923ec3ad8291:ambiguous_above_plot_text"
+              ],
+              "added": []
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                "ocr_role_needs_review:e28a91ce-a86f-e2c8-017d-e1542399a7f4:ambiguous_above_plot_text"
+              ],
+              "added": []
+            }
+          ],
+          "export_rows_unchanged": null,
+          "native_geometry_retention_passed": true,
+          "exclusion_id_rebindings_count": 20,
+          "ocr_marker_warning_rebindings_count": 8
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 257.8180245,
+        "execution_seconds": 261.8643196,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 20,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 261,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 261,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9885057471264368,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9885057471264368,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9693486590038314,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 426,
+        "pipeline_audit": {
+          "panels": 39,
+          "axis_calibration_and_final_markers_unchanged": true,
+          "post_geometry_marker_stages_unchanged": true,
+          "decoded_point_changes": [],
+          "exclusion_membership_unchanged": true,
+          "all_previous_exact_text_retained": true,
+          "role_changes": [],
+          "recovery_changes": [],
+          "mask_changes": [],
+          "crop_count_changes": [],
+          "warning_changes": [],
+          "export_rows_unchanged": 426,
+          "native_geometry_retention_passed": null,
+          "exclusion_id_rebindings_count": 26,
+          "ocr_marker_warning_rebindings_count": 3
+        }
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 249.76396119999998,
+        "execution_seconds": 258.1275321,
+        "metrics": {
+          "truth": 838,
+          "predicted": 766,
+          "matched": 745,
+          "extra": 21,
+          "missing": 93,
+          "precision": 0.9725848563968669,
+          "recall": 0.8890214797136038
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 766,
+          "matched": 745,
+          "extra": 21,
+          "missing": 93,
+          "precision": 0.9725848563968669,
+          "recall": 0.8890214797136038
+        },
+        "paired_truths": {
+          "retained": 745,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 93
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 490,
+            "geometry_matched_region_count": 443,
+            "geometry_false_positive_count": 47,
+            "geometry_false_negative_count": 10,
+            "recognition_exact_count": 427,
+            "recognition_exact_accuracy": 0.9426048565121413,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 25,
+            "unmatched_truth_deletion_edit_count": 30,
+            "unmatched_prediction_insertion_edit_count": 65,
+            "character_error_count": 120,
+            "character_error_rate": 0.03870967741935484,
+            "role_correct_count": 423,
+            "role_accuracy": 0.9337748344370861,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 160,
+                "accuracy": 0.9411764705882353
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 493,
+            "geometry_matched_region_count": 444,
+            "geometry_false_positive_count": 49,
+            "geometry_false_negative_count": 9,
+            "recognition_exact_count": 427,
+            "recognition_exact_accuracy": 0.9426048565121413,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 30,
+            "unmatched_truth_deletion_edit_count": 25,
+            "unmatched_prediction_insertion_edit_count": 68,
+            "character_error_count": 123,
+            "character_error_rate": 0.03967741935483871,
+            "role_correct_count": 420,
+            "role_accuracy": 0.9271523178807947,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 157,
+                "accuracy": 0.9235294117647059
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 427,
+          "wrong_in_both": 26
+        },
+        "changed_truth_readings": [
+          {
+            "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+            "truth_id": "fdb7219950d7754b3e4b5faf0319b7704e67856e055300bb90aa780b2740ce91",
+            "truth": "G",
+            "before": {
+              "matched": true,
+              "predicted_text": "G",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "G",
+              "predicted_role": "phaseheading"
+            }
+          },
+          {
+            "source_sha256": "d84fe95baf0e38ae37eac37f01a7d7d2714a840c5af2fcd807cbed44fdab3595",
+            "truth_id": "070a6bf0ce88ebbf97876c4750ff296f0bcb76abee959aefcf7696839cc7a89e",
+            "truth": "M",
+            "before": {
+              "matched": true,
+              "predicted_text": "M",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "M",
+              "predicted_role": "phaseheading"
+            }
+          },
+          {
+            "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+            "truth_id": "a4a1895c816839e62d606b1935987fc22bdea4986128a4f12f1d88f7cfe77091",
+            "truth": "Interventions",
+            "before": {
+              "matched": true,
+              "predicted_text": "Interventions",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Interventions",
+              "predicted_role": "phaseheading"
+            }
+          },
+          {
+            "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+            "truth_id": "f64850a41f80c4504f8d9bdda06a0d4ec8479218419700c15f3cad8fd2cb7652",
+            "truth": "Interventions continued",
+            "before": {
+              "matched": true,
+              "predicted_text": "Interventions con",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Interventions continleabe",
+              "predicted_role": "other"
+            }
+          },
+          {
+            "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+            "truth_id": "cec89a9babd8f2ac610b878a2c949aa86b9875b46ee658811a2bcbf893d3cb7b",
+            "truth": "Probe",
+            "before": {
+              "matched": true,
+              "predicted_text": "sgbe",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": false,
+              "predicted_text": null,
+              "predicted_role": null
+            }
+          }
+        ],
+        "pipeline_audit": {
+          "panels": 31,
+          "axis_calibration_and_final_markers_unchanged": true,
+          "post_geometry_marker_stages_unchanged": true,
+          "decoded_point_changes": [
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "field": "above_threshold_decoded_points",
+              "removed": [
+                {
+                  "x": 779.7520751953125,
+                  "y": 82.85699462890625,
+                  "is_finite": true
+                }
+              ],
+              "added": [
+                {
+                  "x": 779.8469848632812,
+                  "y": 82.90400695800781,
+                  "is_finite": true
+                }
+              ]
+            }
+          ],
+          "exclusion_membership_unchanged": true,
+          "all_previous_exact_text_retained": true,
+          "role_changes": [
+            {
+              "source_sha256": "d84fe95baf0e38ae37eac37f01a7d7d2714a840c5af2fcd807cbed44fdab3595",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "before": {
+                "region_id": "header-glyph-complete:bd8830e2f0f8c92b0cde894943d3606f90952cc233f5e81033b4bb3cb5c58f85",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 684,
+                      "y": 75,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 696,
+                      "y": 75,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 696,
+                      "y": 86,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 684,
+                      "y": 86,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 684,
+                    "y": 75,
+                    "width": 12,
+                    "height": 11,
+                    "left": 684,
+                    "top": 75,
+                    "right": 696,
+                    "bottom": 86,
+                    "center": {
+                      "x": 690,
+                      "y": 80.5,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "M",
+                "alternatives": [
+                  {
+                    "text": "M",
+                    "confidence": 0.9962607026100159,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "m",
+                    "confidence": 0.001553837675601244,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "$M",
+                    "confidence": 0.0004379150891365368,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "Other",
+                "confidence": 0.656616786527581,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              },
+              "after": {
+                "region_id": "header-glyph-complete:bd8830e2f0f8c92b0cde894943d3606f90952cc233f5e81033b4bb3cb5c58f85",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 684,
+                      "y": 75,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 696,
+                      "y": 75,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 696,
+                      "y": 86,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 684,
+                      "y": 86,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 684,
+                    "y": 75,
+                    "width": 12,
+                    "height": 11,
+                    "left": 684,
+                    "top": 75,
+                    "right": 696,
+                    "bottom": 86,
+                    "center": {
+                      "x": 690,
+                      "y": 80.5,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "M",
+                "alternatives": [
+                  {
+                    "text": "M",
+                    "confidence": 0.9962607026100159,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "m",
+                    "confidence": 0.001553837675601244,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "$M",
+                    "confidence": 0.0004379150891365368,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "PhaseHeading",
+                "confidence": 0.7975006627486027,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              }
+            },
+            {
+              "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "before": {
+                "region_id": "header-glyph-complete:2a5b60dc668041d9c916a52807d0a9f95573aa78d6eb3096b1e0e4482f9a1e37",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 728,
+                      "y": 70,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 738,
+                      "y": 70,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 738,
+                      "y": 84,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 728,
+                      "y": 84,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 728,
+                    "y": 70,
+                    "width": 10,
+                    "height": 14,
+                    "left": 728,
+                    "top": 70,
+                    "right": 738,
+                    "bottom": 84,
+                    "center": {
+                      "x": 733,
+                      "y": 77,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "G",
+                "alternatives": [
+                  {
+                    "text": "G",
+                    "confidence": 0.9941080808639526,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "$G",
+                    "confidence": 0.001869887624876586,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "C",
+                    "confidence": 0.0016666293377056718,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "Other",
+                "confidence": 0.6561435279363224,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              },
+              "after": {
+                "region_id": "header-glyph-complete:2a5b60dc668041d9c916a52807d0a9f95573aa78d6eb3096b1e0e4482f9a1e37",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 728,
+                      "y": 70,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 738,
+                      "y": 70,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 738,
+                      "y": 84,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 728,
+                      "y": 84,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 728,
+                    "y": 70,
+                    "width": 10,
+                    "height": 14,
+                    "left": 728,
+                    "top": 70,
+                    "right": 738,
+                    "bottom": 84,
+                    "center": {
+                      "x": 733,
+                      "y": 77,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "G",
+                "alternatives": [
+                  {
+                    "text": "G",
+                    "confidence": 0.9941080808639526,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "$G",
+                    "confidence": 0.001869887624876586,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "C",
+                    "confidence": 0.0016666293377056718,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "PhaseHeading",
+                "confidence": 0.7969258616653464,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              }
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "before": {
+                "region_id": "83e22646-b192-9d97-ecde-322c01e90856",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 575,
+                      "y": 71,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 666,
+                      "y": 71,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 666,
+                      "y": 84,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 575,
+                      "y": 84,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 575,
+                    "y": 71,
+                    "width": 91,
+                    "height": 13,
+                    "left": 575,
+                    "top": 71,
+                    "right": 666,
+                    "bottom": 84,
+                    "center": {
+                      "x": 620.5,
+                      "y": 77.5,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "Interventions",
+                "alternatives": [
+                  {
+                    "text": "Interventions",
+                    "confidence": 0.9779196610817542,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "lnterventions",
+                    "confidence": 0.035978171576700385,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "Interventiors",
+                    "confidence": 0.001810426896484861,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "Other",
+                "confidence": 0.7242985707974465,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              },
+              "after": {
+                "region_id": "83e22646-b192-9d97-ecde-322c01e90856",
+                "polygon": {
+                  "points": [
+                    {
+                      "x": 575,
+                      "y": 71,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 666,
+                      "y": 71,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 666,
+                      "y": 84,
+                      "is_finite": true
+                    },
+                    {
+                      "x": 575,
+                      "y": 84,
+                      "is_finite": true
+                    }
+                  ],
+                  "bounds": {
+                    "x": 575,
+                    "y": 71,
+                    "width": 91,
+                    "height": 13,
+                    "left": 575,
+                    "top": 71,
+                    "right": 666,
+                    "bottom": 84,
+                    "center": {
+                      "x": 620.5,
+                      "y": 77.5,
+                      "is_finite": true
+                    },
+                    "is_valid": true
+                  }
+                },
+                "text": "Interventions",
+                "alternatives": [
+                  {
+                    "text": "Interventions",
+                    "confidence": 0.9779196610817542,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "lnterventions",
+                    "confidence": 0.035978171576700385,
+                    "source_image": "Original"
+                  },
+                  {
+                    "text": "Interventiors",
+                    "confidence": 0.001810426896484861,
+                    "source_image": "Original"
+                  }
+                ],
+                "role": "PhaseHeading",
+                "confidence": 0.8797042690509499,
+                "source_image": "Original",
+                "review_status": "Unreviewed",
+                "coordinate_space": "original_pixels"
+              }
+            }
+          ],
+          "recovery_changes": [
+            {
+              "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "kind": "identical_final_word_with_changed_fragment_provenance",
+              "removed": [
+                {
+                  "region_id": "header-fragment-word:8fa5baded1c1b0db9af953396183ddc7a4697d07394e884ec21c99c9ac850b4f",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 673,
+                        "y": 71,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 841,
+                        "y": 71,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 841,
+                        "y": 87,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 673,
+                        "y": 87,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 673,
+                      "y": 71,
+                      "width": 168,
+                      "height": 16,
+                      "left": 673,
+                      "top": 71,
+                      "right": 841,
+                      "bottom": 87,
+                      "center": {
+                        "x": 757,
+                        "y": 79,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "text": "Alternating Treatments",
+                  "alternatives": [
+                    {
+                      "text": "Alternating Treatments",
+                      "confidence": 0.9979294430125843,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "alternating Treatments",
+                      "confidence": 0.004946296198850796,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "AIternating Treatments",
+                      "confidence": 0.0022924352276199977,
+                      "source_image": "Original"
+                    }
+                  ],
+                  "role": "PhaseHeading",
+                  "confidence": 0.7884385395475594,
+                  "source_image": "Original",
+                  "review_status": "Unreviewed",
+                  "coordinate_space": "original_pixels"
+                }
+              ],
+              "added": [
+                {
+                  "region_id": "header-fragment-word:93c8b9bf5736175b11447ee7df5dc2134b1f66486098a897ce93f372db619d4b",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 673,
+                        "y": 71,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 841,
+                        "y": 71,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 841,
+                        "y": 87,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 673,
+                        "y": 87,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 673,
+                      "y": 71,
+                      "width": 168,
+                      "height": 16,
+                      "left": 673,
+                      "top": 71,
+                      "right": 841,
+                      "bottom": 87,
+                      "center": {
+                        "x": 757,
+                        "y": 79,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "text": "Alternating Treatments",
+                  "alternatives": [
+                    {
+                      "text": "Alternating Treatments",
+                      "confidence": 0.9979294430125843,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "alternating Treatments",
+                      "confidence": 0.004946296198850796,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "AIternating Treatments",
+                      "confidence": 0.0022924352276199977,
+                      "source_image": "Original"
+                    }
+                  ],
+                  "role": "PhaseHeading",
+                  "confidence": 0.7884385395475594,
+                  "source_image": "Original",
+                  "review_status": "Unreviewed",
+                  "coordinate_space": "original_pixels"
+                }
+              ]
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "kind": "recovery_merges_four_ambiguous_fragments_including_a_neighboring_annotation",
+              "removed": [
+                {
+                  "region_id": "10410e0c-c29e-de04-cd03-c7224cda5965",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 917,
+                        "y": 68,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 949,
+                        "y": 67,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 950,
+                        "y": 78,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 917,
+                        "y": 79,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 917,
+                      "y": 67,
+                      "width": 33,
+                      "height": 12,
+                      "left": 917,
+                      "top": 67,
+                      "right": 950,
+                      "bottom": 79,
+                      "center": {
+                        "x": 933.5,
+                        "y": 73,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "text": "sgbe",
+                  "alternatives": [
+                    {
+                      "text": "sgbe",
+                      "confidence": 0.812749907374382,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "ggbe",
+                      "confidence": 0.45444503313963736,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "Psgbe",
+                      "confidence": 0.4379563154710599,
+                      "source_image": "Original"
+                    }
+                  ],
+                  "role": "Other",
+                  "confidence": 0.6619387820049915,
+                  "source_image": "Original",
+                  "review_status": "Unreviewed",
+                  "coordinate_space": "original_pixels"
+                },
+                {
+                  "region_id": "header-glyph:c0eb0c19-89ca-7734-4fbd-806fc4bff87e",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 903,
+                        "y": 77,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 912,
+                        "y": 77,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 912,
+                        "y": 84,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 903,
+                        "y": 84,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 903,
+                      "y": 77,
+                      "width": 9,
+                      "height": 7,
+                      "left": 903,
+                      "top": 77,
+                      "right": 912,
+                      "bottom": 84,
+                      "center": {
+                        "x": 907.5,
+                        "y": 80.5,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "text": "n",
+                  "alternatives": [
+                    {
+                      "text": "n",
+                      "confidence": 0.3384387493133545,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "h",
+                      "confidence": 0.24281015992164612,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "n$",
+                      "confidence": 0.0014122440052673608,
+                      "source_image": "Original"
+                    }
+                  ],
+                  "role": "Other",
+                  "confidence": 0.4581570163393718,
+                  "source_image": "Original",
+                  "review_status": "Unreviewed",
+                  "coordinate_space": "original_pixels"
+                },
+                {
+                  "region_id": "header-glyph:db418a05-381a-e36a-e8ab-5b78ff502aaa",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 884,
+                        "y": 73,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 899,
+                        "y": 73,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 899,
+                        "y": 84,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 884,
+                        "y": 84,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 884,
+                      "y": 73,
+                      "width": 15,
+                      "height": 11,
+                      "left": 884,
+                      "top": 73,
+                      "right": 899,
+                      "bottom": 84,
+                      "center": {
+                        "x": 891.5,
+                        "y": 78.5,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "text": "nt",
+                  "alternatives": [
+                    {
+                      "text": "nt",
+                      "confidence": 0.9941911399364471,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "nti",
+                      "confidence": 0.003207276169598762,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "t",
+                      "confidence": 0.0022919620754705077,
+                      "source_image": "Original"
+                    }
+                  ],
+                  "role": "Other",
+                  "confidence": 0.7343950473804787,
+                  "source_image": "Original",
+                  "review_status": "Unreviewed",
+                  "coordinate_space": "original_pixels"
+                },
+                {
+                  "region_id": "inside-plot:d049bbeb2808ffbfd2a7bc70fead4a721769258a00d8e54537d2537bd3d45042",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 771,
+                        "y": 72,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 888,
+                        "y": 72,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 888,
+                        "y": 85,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 771,
+                        "y": 85,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 771,
+                      "y": 72,
+                      "width": 117,
+                      "height": 13,
+                      "left": 771,
+                      "top": 72,
+                      "right": 888,
+                      "bottom": 85,
+                      "center": {
+                        "x": 829.5,
+                        "y": 78.5,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "text": "Interventions con",
+                  "alternatives": [
+                    {
+                      "text": "Interventions con",
+                      "confidence": 0.9225726828855627,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "Interventions cor",
+                      "confidence": 0.18977228550356887,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "lnterventions con",
+                      "confidence": 0.017071942638495083,
+                      "source_image": "Original"
+                    }
+                  ],
+                  "role": "Other",
+                  "confidence": 0.6586100588844929,
+                  "source_image": "Original",
+                  "review_status": "Unreviewed",
+                  "coordinate_space": "original_pixels"
+                }
+              ],
+              "added": [
+                {
+                  "region_id": "header-fragment-word:9c9c2bf7cd65e6191b8ea647c45d4c262b619c32484fce98ea11f2c6c140bed0",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 771,
+                        "y": 66,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 952,
+                        "y": 66,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 952,
+                        "y": 85,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 771,
+                        "y": 85,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 771,
+                      "y": 66,
+                      "width": 181,
+                      "height": 19,
+                      "left": 771,
+                      "top": 66,
+                      "right": 952,
+                      "bottom": 85,
+                      "center": {
+                        "x": 861.5,
+                        "y": 75.5,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "text": "Interventions continleabe",
+                  "alternatives": [
+                    {
+                      "text": "Interventions continleabe",
+                      "confidence": 0.9017687809467315,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "Interventions continPeabe",
+                      "confidence": 0.6405435336419081,
+                      "source_image": "Original"
+                    },
+                    {
+                      "text": "Interventions continlegbe",
+                      "confidence": 0.15752201946155203,
+                      "source_image": "Original"
+                    }
+                  ],
+                  "role": "Other",
+                  "confidence": 0.6351642510554674,
+                  "source_image": "Original",
+                  "review_status": "Unreviewed",
+                  "coordinate_space": "original_pixels"
+                }
+              ]
+            }
+          ],
+          "mask_changes": [
+            {
+              "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                {
+                  "region_id": "header-fragment-word:8fa5baded1c1b0db9af953396183ddc7a4697d07394e884ec21c99c9ac850b4f",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 672,
+                        "y": 70,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 842,
+                        "y": 70,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 842,
+                        "y": 88,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 672,
+                        "y": 88,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 672,
+                      "y": 70,
+                      "width": 170,
+                      "height": 18,
+                      "left": 672,
+                      "top": 70,
+                      "right": 842,
+                      "bottom": 88,
+                      "center": {
+                        "x": 757,
+                        "y": 79,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "confidence": 0.5710909090909091,
+                  "coordinate_space": "original_pixels"
+                }
+              ],
+              "added": [
+                {
+                  "region_id": "header-fragment-word:93c8b9bf5736175b11447ee7df5dc2134b1f66486098a897ce93f372db619d4b",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 672,
+                        "y": 70,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 842,
+                        "y": 70,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 842,
+                        "y": 88,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 672,
+                        "y": 88,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 672,
+                      "y": 70,
+                      "width": 170,
+                      "height": 18,
+                      "left": 672,
+                      "top": 70,
+                      "right": 842,
+                      "bottom": 88,
+                      "center": {
+                        "x": 757,
+                        "y": 79,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "confidence": 0.5710909090909091,
+                  "coordinate_space": "original_pixels"
+                }
+              ]
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                {
+                  "region_id": "header-glyph:db418a05-381a-e36a-e8ab-5b78ff502aaa",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 883,
+                        "y": 72,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 900,
+                        "y": 72,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 900,
+                        "y": 85,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 883,
+                        "y": 85,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 883,
+                      "y": 72,
+                      "width": 17,
+                      "height": 13,
+                      "left": 883,
+                      "top": 72,
+                      "right": 900,
+                      "bottom": 85,
+                      "center": {
+                        "x": 891.5,
+                        "y": 78.5,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "confidence": 0.83,
+                  "coordinate_space": "original_pixels"
+                },
+                {
+                  "region_id": "inside-plot:d049bbeb2808ffbfd2a7bc70fead4a721769258a00d8e54537d2537bd3d45042",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 770,
+                        "y": 71,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 889,
+                        "y": 71,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 889,
+                        "y": 86,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 770,
+                        "y": 86,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 770,
+                      "y": 71,
+                      "width": 119,
+                      "height": 15,
+                      "left": 770,
+                      "top": 71,
+                      "right": 889,
+                      "bottom": 86,
+                      "center": {
+                        "x": 829.5,
+                        "y": 78.5,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "confidence": 0.6451240753134092,
+                  "coordinate_space": "original_pixels"
+                }
+              ],
+              "added": [
+                {
+                  "region_id": "header-fragment-word:9c9c2bf7cd65e6191b8ea647c45d4c262b619c32484fce98ea11f2c6c140bed0",
+                  "polygon": {
+                    "points": [
+                      {
+                        "x": 770,
+                        "y": 65,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 953,
+                        "y": 65,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 953,
+                        "y": 86,
+                        "is_finite": true
+                      },
+                      {
+                        "x": 770,
+                        "y": 86,
+                        "is_finite": true
+                      }
+                    ],
+                    "bounds": {
+                      "x": 770,
+                      "y": 65,
+                      "width": 183,
+                      "height": 21,
+                      "left": 770,
+                      "top": 65,
+                      "right": 953,
+                      "bottom": 86,
+                      "center": {
+                        "x": 861.5,
+                        "y": 75.5,
+                        "is_finite": true
+                      },
+                      "is_valid": true
+                    }
+                  },
+                  "confidence": 0.592,
+                  "coordinate_space": "original_pixels"
+                }
+              ]
+            }
+          ],
+          "crop_count_changes": [
+            {
+              "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "before": 22,
+              "after": 21
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "before": 26,
+              "after": 27
+            }
+          ],
+          "warning_changes": [
+            {
+              "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                "ocr_role_needs_review:1116a0e9-3649-f00f-61cc-33bfbd8bc978:ambiguous_above_plot_text",
+                "ocr_role_needs_review:header-glyph:60a71224-8118-4ae6-c567-768ea4b902a7:ambiguous_above_plot_text",
+                "ocr_role_needs_review:header-glyph:60a71224-8118-4ae6-c567-768ea4b902a7:original_pixel_header_glyph_recovery",
+                "ocr_header_fragment_replaced:1116a0e9-3649-f00f-61cc-33bfbd8bc978:header-fragment-word:8fa5baded1c1b0db9af953396183ddc7a4697d07394e884ec21c99c9ac850b4f",
+                "ocr_header_fragment_replaced:header-glyph:2a93e6af-725a-2cf3-b74c-9d77e858280b:header-fragment-word:8fa5baded1c1b0db9af953396183ddc7a4697d07394e884ec21c99c9ac850b4f",
+                "ocr_header_fragment_replaced:header-glyph:33b1680b-c13f-7f35-d28d-48c3195c6b2e:header-fragment-word:8fa5baded1c1b0db9af953396183ddc7a4697d07394e884ec21c99c9ac850b4f",
+                "ocr_header_fragment_replaced:header-glyph:60a71224-8118-4ae6-c567-768ea4b902a7:header-fragment-word:8fa5baded1c1b0db9af953396183ddc7a4697d07394e884ec21c99c9ac850b4f",
+                "ocr_header_fragment_replaced:header-glyph:fa9f5217-5df2-7ed3-0a88-ef61bc45d453:header-fragment-word:8fa5baded1c1b0db9af953396183ddc7a4697d07394e884ec21c99c9ac850b4f",
+                "ocr_role_needs_review:header-fragment-word:8fa5baded1c1b0db9af953396183ddc7a4697d07394e884ec21c99c9ac850b4f:original_pixel_header_fragment_word_recovery"
+              ],
+              "added": [
+                "ocr_header_fragment_replaced:1116a0e9-3649-f00f-61cc-33bfbd8bc978:header-fragment-word:93c8b9bf5736175b11447ee7df5dc2134b1f66486098a897ce93f372db619d4b",
+                "ocr_header_fragment_replaced:header-glyph:2a93e6af-725a-2cf3-b74c-9d77e858280b:header-fragment-word:93c8b9bf5736175b11447ee7df5dc2134b1f66486098a897ce93f372db619d4b",
+                "ocr_header_fragment_replaced:header-glyph:33b1680b-c13f-7f35-d28d-48c3195c6b2e:header-fragment-word:93c8b9bf5736175b11447ee7df5dc2134b1f66486098a897ce93f372db619d4b",
+                "ocr_header_fragment_replaced:header-glyph:fa9f5217-5df2-7ed3-0a88-ef61bc45d453:header-fragment-word:93c8b9bf5736175b11447ee7df5dc2134b1f66486098a897ce93f372db619d4b",
+                "ocr_role_needs_review:header-fragment-word:93c8b9bf5736175b11447ee7df5dc2134b1f66486098a897ce93f372db619d4b:original_pixel_header_fragment_word_recovery"
+              ]
+            },
+            {
+              "source_sha256": "d84fe95baf0e38ae37eac37f01a7d7d2714a840c5af2fcd807cbed44fdab3595",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                "ocr_role_needs_review:e1a188c6-13c3-1882-a489-bc5896050940:ambiguous_above_plot_text",
+                "ocr_role_needs_review:header-glyph-complete:bd8830e2f0f8c92b0cde894943d3606f90952cc233f5e81033b4bb3cb5c58f85:ambiguous_above_plot_text"
+              ],
+              "added": []
+            },
+            {
+              "source_sha256": "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                "ocr_role_needs_review:09950606-c702-7a29-2060-a475f1c0fc85:ambiguous_above_plot_text",
+                "ocr_role_needs_review:header-glyph-complete:2a5b60dc668041d9c916a52807d0a9f95573aa78d6eb3096b1e0e4482f9a1e37:ambiguous_above_plot_text"
+              ],
+              "added": []
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                "ocr_role_needs_review:83e22646-b192-9d97-ecde-322c01e90856:ambiguous_above_plot_text"
+              ],
+              "added": [
+                "ocr_role_needs_review:header-fragment-word:9c9c2bf7cd65e6191b8ea647c45d4c262b619c32484fce98ea11f2c6c140bed0:ambiguous_above_plot_text",
+                "ocr_header_fragment_replaced:10410e0c-c29e-de04-cd03-c7224cda5965:header-fragment-word:9c9c2bf7cd65e6191b8ea647c45d4c262b619c32484fce98ea11f2c6c140bed0",
+                "ocr_header_fragment_replaced:header-glyph:c0eb0c19-89ca-7734-4fbd-806fc4bff87e:header-fragment-word:9c9c2bf7cd65e6191b8ea647c45d4c262b619c32484fce98ea11f2c6c140bed0",
+                "ocr_header_fragment_replaced:header-glyph:db418a05-381a-e36a-e8ab-5b78ff502aaa:header-fragment-word:9c9c2bf7cd65e6191b8ea647c45d4c262b619c32484fce98ea11f2c6c140bed0",
+                "ocr_header_fragment_replaced:inside-plot:d049bbeb2808ffbfd2a7bc70fead4a721769258a00d8e54537d2537bd3d45042:header-fragment-word:9c9c2bf7cd65e6191b8ea647c45d4c262b619c32484fce98ea11f2c6c140bed0",
+                "ocr_role_needs_review:header-fragment-word:9c9c2bf7cd65e6191b8ea647c45d4c262b619c32484fce98ea11f2c6c140bed0:original_pixel_header_fragment_word_recovery"
+              ]
+            }
+          ],
+          "export_rows_unchanged": null,
+          "native_geometry_retention_passed": false,
+          "exclusion_id_rebindings_count": 21,
+          "ocr_marker_warning_rebindings_count": 11
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 279.628831,
+        "execution_seconds": 283.2247709,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 14,
+            "failed_cases": 6,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 18,
+            "truth_points": 500,
+            "predicted_points": 276,
+            "matched_points": 273,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 276,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 271,
+            "correct_rows": 260,
+            "missing_rows": 229,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 273,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 227,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9891304347826086,
+            "unique_point_structural_coverage": 0.546,
+            "unique_point_value_precision": 0.9891304347826086,
+            "unique_point_value_coverage": 0.546,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9420289855072463,
+            "relational_row_coverage": 0.52,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.959409594095941,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 6
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 13,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 164,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 164,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 8,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9512195121951219,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9512195121951219,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9512195121951219,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 440,
+        "pipeline_audit": {
+          "panels": 39,
+          "axis_calibration_and_final_markers_unchanged": true,
+          "post_geometry_marker_stages_unchanged": true,
+          "decoded_point_changes": [],
+          "exclusion_membership_unchanged": true,
+          "all_previous_exact_text_retained": true,
+          "role_changes": [],
+          "recovery_changes": [],
+          "mask_changes": [],
+          "crop_count_changes": [],
+          "warning_changes": [],
+          "export_rows_unchanged": 440,
+          "native_geometry_retention_passed": null,
+          "exclusion_id_rebindings_count": 26,
+          "ocr_marker_warning_rebindings_count": 3
+        }
+      }
+    }
+  },
+  "tests": {
+    "ocr": {
+      "total": 733,
+      "executed": 717,
+      "passed": 717,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    },
+    "app": {
+      "total": 578,
+      "executed": 578,
+      "passed": 578,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    }
+  },
+  "checks_seconds": 116.8973366,
+  "validation_note": "717 OCR and 578 App tests pass; 16 optional OCR skips. Three clean builds verify the changed role classifier and workflow cache identity.",
+  "workflow_sequence_seconds": 1045.7567764,
+  "provider_counts": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-component-diversity-v27": 140,
+    "marker-classifier-structural-context-v5": 306,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/status.json",
+      "sha256": "518259837332af78ce903832ada2ac8af2240c0e8082deb726c8ac3fd04ade24"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/jobs.json",
+      "sha256": "b8a723452a4573fee3888237a11607cf5008af0ecf8e081ebf74d42b728e3dee"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/source-bindings.json",
+      "sha256": "002e91a8922dc0ddca96a94e53f135a1d3eaafede68a60536af6a752b8c9f136"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-checks-20261001-v1/status.json",
+      "sha256": "d9d7982ba914676d65abbc0ca2645dcee1e8a843ec24825c28e404139aa6c754"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-checks-20261001-v1/source-bindings.json",
+      "sha256": "bf090ba60a02f7b61b1ae070b8c4d651ab6970b410b9a377459b7058e5a44a0f"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-checks-20261001-v1/input-bindings.json",
+      "sha256": "733c1bf3d9de952bd899d0977d7c6540fd19a389ab4c1ef022f33bf5c775f879"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-checks-20261001-v1/test-results/ocr.trx",
+      "sha256": "c55cb1cb1602c8bb3dd5d42b517b6f5b420cce579a58e79c3dd1c3f29fd868b8"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-checks-20261001-v1/test-results/app.trx",
+      "sha256": "e8def464808f8a3762d3c534ac0be544d57ee04e18dcff6ab1d57d485a092a5b"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-checks-20261001-v1/Ocr-build.log",
+      "sha256": "e8fb29249c3be3a3f9ac8da061a255bfc2ce4f8a8f93aec6dc146932b88a3f34"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-checks-20261001-v1/App-build.log",
+      "sha256": "d0eb908493ea17f83f7c771df117e91a091c8848c33de8bfd7d68dae265d866e"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-checks-20261001-v1/native-build.log",
+      "sha256": "1a64ed20514daa40d6778fa14a1609ff0161a3c29d64055a78bafd3843fbd49c"
+    },
+    {
+      "path": "docs/GOAL-22-PHASE-ROLE-VOCABULARY-DIAGNOSIS.json",
+      "sha256": "085068978223b94e64aa99cdc6d77d4b42b2c373c232a38ac19caa892ea1a779"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-PhaseRoleVocabularyRepair.py",
+      "sha256": "db24ff4823605706d998bb946cb7281d259f753ecba682541f932acc44765ff2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-PhaseRoleVocabularyEvaluation.py",
+      "sha256": "339a60432112382f08c2448475c0c9d8ed5e4089b5f5d4809ad00968e2f97032"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-PhaseRoleVocabularyEvaluation.ps1",
+      "sha256": "c2a5c9b8641b939f690d6a166900cd15cec50470a60cbb4ae20651343c5264e1"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-PhaseRoleVocabularyChecks.ps1",
+      "sha256": "94b0a625c1985232fd4aa3e47bd455a99a87a1a1f8f5f91a260a1540e461bf6c"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/runtime-description.json",
+      "sha256": "c3eaf14e75a1cf541bd58960560176d9413e9e1c91727a669ecee135dbe045a6"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-native/native-marker-score.json",
+      "sha256": "fbabae769f5b150befa3229eebd667d32aa71350b069bf2354647fc454650b40"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-native/native-ocr-score.json",
+      "sha256": "ec7c5b99b0f39a71a504d1a4be7e29add7ffa44ac79875468e06498d5c16f629"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-native/native-ocr-details.json",
+      "sha256": "4df085aaf163c5316499ae55f7a3f2f3451a83aca7134596347ca7c0c51c1ded"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-native/axis-geometry-comparison.json",
+      "sha256": "0545a35f470316e51eb695bafd6758cd5343b9e3d2b84cd82664ff99a9f391d9"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-native/protocol.json",
+      "sha256": "a843c73353c986e5f61d0bf9d594875611b231ce908a6e85e9215a40e735cb1d"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-native/candidate-binding.json",
+      "sha256": "d396ea0b177324209db505cb90e1480467307ba27e7919e88a0fa87288fbb681"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-native/input-manifest.json",
+      "sha256": "71f5eb82a731d090a9a19b52c4ebade801236e6df632a9d894ff36f68c76696c"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-native/execution/report.json",
+      "sha256": "ab14b3adc369740e0c3851bcb37dd2de36a9f896bb69784469c0f997d805c7c0"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-native/status.json",
+      "sha256": "7275e824fa0fc2deb1bd1ac8496c7a9afd752f3d5e034458a3825684bca53e43"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "682b1493a6a5359b906ccbf4c3aa54186cd2c54ecde577c2259912b0451e78e3"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-csv/comparison.json",
+      "sha256": "7dbc981cb5fccf36aaa2d0c784960d54cafd89310dfc9f484ffbbe1a76978554"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-csv/protocol.json",
+      "sha256": "3f8200181e489f84e4c82ebeecc55d7ca3051360120985a97aafc1f28cb4cffd"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-csv/candidate-binding.json",
+      "sha256": "14d975b6f0a0031cf67667e3c83716343a20e044fbb9c1077292d1edc650a354"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-csv/input-manifest.json",
+      "sha256": "ddee05f47ea5d5c44fedbd72d8c746f357a9694500560c61ab1fc209eef37ef3"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-csv/execution/report.json",
+      "sha256": "4c71ae0ad17960330666e642aea326a1bce632685c4d8be612143adc7240aa1f"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v44-csv/status.json",
+      "sha256": "0167599e1409f9509358b4f183d869830ab2bb85abae4685e034441f7d125f73"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-native/native-marker-score.json",
+      "sha256": "9fe61995b5321f94e42a6cd8054bbf43a76f49d05579ff43d4d2ff581a7d1af9"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-native/native-ocr-score.json",
+      "sha256": "bad4d2bf8a337ff6c9337af7ec0214d44ba5e4db5c488c9b2f483dda4bd701b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-native/native-ocr-details.json",
+      "sha256": "94f0c172bcef58e4c1b95c654f32aa75ee9cb06eabb1ad6eebb1a8af42161294"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-native/axis-geometry-comparison.json",
+      "sha256": "c4003ae8e627ae42d921c62d471216aee06742347c119fe3bb365f8c8a3ee070"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-native/protocol.json",
+      "sha256": "6039f8a75b23eb24c125001ec8ded91241840896ed344bab0b72873b6ad13797"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-native/candidate-binding.json",
+      "sha256": "76d3a220f308e934951928288fd3e997bdc55b4bfa6fa03beba0d323f5ee6cb5"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-native/input-manifest.json",
+      "sha256": "91159168335917081d26194f6f2e2741e9225d2c271f1783f63c4456ce56af3b"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-native/execution/report.json",
+      "sha256": "5e9a7efbc8a9a256b7336568226bfa3ef06f18e2cf6d81e2bed888a00d68cee7"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-native/status.json",
+      "sha256": "d256999924a34cf406c2af4b419f5f6418364322d29b58cc8f5d1b03b32c59a1"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "9e8581f357ada0cb8861e10a23b1841abfef74c00ec87460fb7b0876bb78fb3b"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-csv/comparison.json",
+      "sha256": "49294309ac27f767738681354ffe7211e66995d53a4ca5998c8704f1d481a13a"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-csv/protocol.json",
+      "sha256": "6c6e3b1f148b3dc8addb2c7f0949214ecf4f12596987b55273a6d95d83e7a8b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-csv/candidate-binding.json",
+      "sha256": "19a6f33e989df188ee291c66c41a86ce2806e717e40ffd273e0a2a6288ea6bfd"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-csv/input-manifest.json",
+      "sha256": "6c5a1c2ab684409858b538f4d3b1dd0b69865ff53d616f449eb2af78d3a3dff2"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-csv/execution/report.json",
+      "sha256": "1f2857c5be4e781e8c3ae99824dcc3dff5e79c33fd02d8f01c1198f2363215c1"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/v46-csv/status.json",
+      "sha256": "da08c2c9e2fc7c0221359e55ed057be5aa02174fe9f076e8a309131020f24719"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/repair-summary.json",
+      "sha256": "a685e35ce88c09d12e8c996467bcda2b7b6ec83cb1ed1d5b80e2d2dcc3f23a97"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/recovery-delta-diagnosis.json",
+      "sha256": "5e3df404c35d44fad835361e6385d2b90d5e74862043c2094e75679974ee5330"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/marker-intermediate-deltas.json",
+      "sha256": "c53b3ac14e8c750221bafbff5798035b01c589a35fb733e5729b53f947e83de7"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-PhaseRoleVocabularyCompleteDeltas.attempt1.py",
+      "sha256": "a944e8754d94684a42b15285ded632e5c28fc51f1533c9c9f9597ffd8ac40e78"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-PhaseRoleVocabularyRepair.py",
+      "sha256": "448c44e8c111af87e4ce7ada3d9e31b02ad813a579d8217571790374617dfec5"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Audit-PhaseRoleVocabularyCompleteDeltas.py",
+      "sha256": "637d01716ef8c63fb1fa2d2040c8e82c91939a615ddccc6b6795745b5eecf11a"
+    },
+    {
+      "path": "src/GraphReader.Ocr/HeaderFragmentWordRecovery.cs",
+      "sha256": "f98092f93e8a577f4acd7f1fe36d22afe5ed83fa1895b2f1748dae1fbf6e9097"
+    },
+    {
+      "path": "src/GraphReader.Ocr/OcrPipeline.cs",
+      "sha256": "7121ea6e1eb42a3b3c31fb1e5c7fe0203b24029a118f60c6faf5da4ab86a4e5e"
+    },
+    {
+      "path": "src/GraphReader.Ocr/HeaderGlyphTextRegionRecovery.cs",
+      "sha256": "62baeb45b160f84aa50964f23e895946cbe0671943fd24a43cc7a1afb7d96b7d"
+    },
+    {
+      "path": "src/GraphReader.Ocr/SingleGlyphTextMaskReview.cs",
+      "sha256": "2f3fd6f1be2644bf9f1a27689fdb0fc6cadd57d085b3ce2e2eec10c24bec8b32"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/complete-delta-audit.json",
+      "sha256": "63404f7fdd70a892d15cf49bc633b045f2ed991cc10af9af478e9a3ecd61e924"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Publish-PhaseRoleVocabularyRepair.py",
+      "sha256": "03ee8a1087897fe9b39941970c161af3901bbef9e25c0a283808aa3b6b3996d9"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "goal22_acceptance": "FAIL",
+  "base_commit": "534131434747d6122bd7d3ae92925997631bec49",
+  "hypothesis": {
+    "path": "docs/GOAL-22-PHASE-ROLE-VOCABULARY-DIAGNOSIS.json",
+    "sha256": "085068978223b94e64aa99cdc6d77d4b42b2c373c232a38ac19caa892ea1a779"
+  },
+  "frozen_complete_result": {
+    "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/repair-summary.json",
+    "sha256": "a685e35ce88c09d12e8c996467bcda2b7b6ec83cb1ed1d5b80e2d2dcc3f23a97"
+  },
+  "complete_delta_audit": {
+    "path": "artifacts/goal22-runs/phase-role-vocabulary-evaluation-20261001-v1/complete-delta-audit.json",
+    "sha256": "63404f7fdd70a892d15cf49bc633b045f2ed991cc10af9af478e9a3ecd61e924"
+  },
+  "implementation": [
+    "Recognize printed compact A/B/M/G phase codes with optional ASCII digit suffixes. New code forms must fit at most one text-height per character plus one for detector padding. Existing context and geometry precedence remains.",
+    "Accept plural interventions and treatments through the existing whole-word suffix rule. The downstream phase reasoner already understands these labels; recognized text and scientific values are not rewritten.",
+    "Include the public role-classifier version in the workflow adapter cache identity. Twenty-one new test cases protect lexical boundaries, damaged readings, wide boxes, inside-plot text, arrows, legends and explicit roles."
+  ],
+  "candidate_selection": "Keep V44/English/V27/V5. V46/server remains a closed development comparison; neither configuration gains production approval.",
+  "integration_decision": "Retain literal phase-role support, with all exact readings, accepted markers, calibration and CSV rows preserved. The closed V46 comparison exposes a separate word-recovery merge of a misread annotation; geometry retention fails and remains unresolved. No model promotion.",
+  "failed_preservation_audits": [
+    "The original role-only audit fails at line 110 because OCR masks change.",
+    "The first complete-delta audit fails at line 30 because one above-threshold decoded point moves before geometry filtering. Both failed scripts remain frozen."
+  ],
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "license_review": "New source and tests retain Apache-2.0 headers. No dependencies, weights, fonts or license terms changed. Fixed model payloads, manifests and reviewed license inputs were checksum verified.",
+  "limitations": [
+    "V46 header recovery merges four ambiguous fragments, including a previously misread Probe annotation, into one still-incorrect heading reading. Matched text geometry decreases from 444 to 443; this retention failure is unresolved.",
+    "Correct roles increase by three per arm. All earlier exact readings remain correct, but damaged text is not generally repaired.",
+    "One V44 mask is added for G. V46 changes one recovered-word identity and one merged-word mask; one decoded point moves before filtering. Later marker stages, accepted markers, calibration and every exported audit row are preserved.",
+    "The preceding caption/arrow repair lost one native marker truth per arm. This batch preserves its 741 and 745 matches; it does not repair that earlier loss.",
+    "OCR, marker and export requirements remain unmet. Real acceptance, production activation and final distribution remain unfinished.",
+    "Zero wrong-scale, duplicate or failed-source residual rows describes these fixed synthetic runs, not a universal safety proof.",
+    "No private/sealed reads, optimizer, production activation, packaged build, tag or release. Build 433 remains 0.4.33."
+  ]
+}
