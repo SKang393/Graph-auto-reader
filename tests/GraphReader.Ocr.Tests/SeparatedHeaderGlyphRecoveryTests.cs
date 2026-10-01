@@ -12,6 +12,101 @@ public sealed class SeparatedHeaderGlyphRecoveryTests
     private static readonly OcrRectangle Plot = new(40, 90, 180, 40);
 
     [TestMethod]
+    [DataRow(false, "A Baseline")]
+    [DataRow(true, "Intervention B")]
+    [DataRow(false, "𝒜 Withdrawal")]
+    public async Task PhaseWordsUseMeasuredCharacterSpacingOnEitherBoundary(bool right, string text)
+    {
+        var (image, source, reading, glyph, word) = Fixture(right, text, narrow: true);
+        byte[] original = image.Pixels.ToArray();
+        var result = await SeparatedHeaderGlyphRecovery.FindAsync(image, [source], [reading], Plot);
+        Assert.HasCount(1, result);
+        Assert.AreEqual(glyph.Polygon.Bounds, result[0].Glyph.Polygon.Bounds);
+        Assert.AreEqual(word.Polygon.Bounds, result[0].Word.Polygon.Bounds);
+        Assert.IsNull(result[0].Glyph.Context);
+        Assert.IsNull(result[0].Word.Context);
+        CollectionAssert.AreEqual(original, image.Pixels.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow(-1, false)]
+    [DataRow(0, false)]
+    [DataRow(2, false)]
+    [DataRow(3, false)]
+    [DataRow(4, true)]
+    [DataRow(5, true)]
+    public void PhaseWordGapMustExceedEveryInternalCharacterGap(int gap, bool expected)
+    {
+        var (image, source, reading, glyph, word) = Fixture(true, "Intervention B", true, gap);
+        OcrDetectedRegion[] members = [glyph, .. WordComponents(word)];
+        var result = SeparatedHeaderGlyphRecovery.SelectCandidates(image, members, [source], [reading], Plot);
+        Assert.AreEqual(expected ? 1 : 0, result.Count);
+        var reordered = SeparatedHeaderGlyphRecovery.SelectCandidates(image, members.Reverse().ToArray(),
+            [source], [reading], Plot);
+        Assert.AreEqual(JsonSerializer.Serialize(result), JsonSerializer.Serialize(reordered));
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void PhaseWordBoundaryCanStraddlePlotEdgeOnlyWithItsCenterInside(bool right)
+    {
+        var (image, source, reading, glyph, word) = Fixture(right,
+            right ? "Intervention B" : "A Baseline", narrow: true);
+        OcrDetectedRegion[] members = [glyph, .. WordComponents(word)];
+        OcrRectangle gb = glyph.Polygon.Bounds;
+        OcrRectangle inside = right ? Plot with { Width = gb.Center.X + 1 - Plot.Left }
+            : Plot with { X = gb.Center.X - 1, Width = Plot.Right - gb.Center.X + 1 };
+        Assert.HasCount(1, SeparatedHeaderGlyphRecovery.SelectCandidates(image, members, [source], [reading], inside));
+        OcrRectangle outside = right ? inside with { Width = inside.Width - 2 }
+            : inside with { X = inside.X + 2, Width = inside.Width - 2 };
+        Assert.IsEmpty(SeparatedHeaderGlyphRecovery.SelectCandidates(image, members, [source], [reading], outside));
+        Assert.IsEmpty(SeparatedHeaderGlyphRecovery.SelectCandidates(image, members, [source], [reading],
+            Plot with { Y = 55 }));
+    }
+
+    [TestMethod]
+    [DataRow("Participant 01 A")]
+    [DataRow("Experiment A")]
+    [DataRow("Followr-p A")]
+    [DataRow("Intervention 8")]
+    public async Task NarrowSpacingDoesNotInventPhaseWordsOrBoundaryLetters(string text)
+    {
+        var (image, source, reading, _, _) = Fixture(true, text, narrow: true);
+        Assert.IsEmpty(await SeparatedHeaderGlyphRecovery.FindAsync(image, [source], [reading], Plot));
+        Assert.IsEmpty(await SeparatedHeaderGlyphRecovery.FindAsync(image,
+            [source with { Context = new(NearPhaseDivider: true) }], [reading], Plot));
+    }
+
+    [TestMethod]
+    public void NarrowPhaseWordSpacingPreservesHumanContextBindingAndCollisionGuards()
+    {
+        var (image, source, reading, glyph, word) = Fixture(true, "Intervention B", narrow: true);
+        OcrDetectedRegion[] members = [glyph, .. WordComponents(word)];
+        foreach (OcrRegion invalid in new[]
+        {
+            reading with { ReviewStatus = OcrReviewStatus.Accepted },
+            reading with { ReviewStatus = OcrReviewStatus.Corrected },
+            reading with { ReviewStatus = OcrReviewStatus.Rejected },
+            reading with { SourceImage = OcrSourceImage.Enhanced },
+            reading with { Polygon = glyph.Polygon },
+            reading with { Role = OcrTextRole.YTick },
+        })
+            Assert.IsEmpty(SeparatedHeaderGlyphRecovery.SelectCandidates(image, members, [source], [invalid], Plot));
+        foreach (OcrRegionContext context in new[]
+        {
+            new OcrRegionContext(InParticipantBand: true), new(NearLegendGlyph: true),
+            new(NearAnnotationArrow: true), new(NumericExpected: true), new(AxisTitleExpected: true),
+            new(ExplicitRoleHint: OcrTextRole.PhaseHeading),
+        })
+            Assert.IsEmpty(SeparatedHeaderGlyphRecovery.SelectCandidates(image, members,
+                [source with { Context = context }], [reading], Plot));
+        Assert.IsEmpty(SeparatedHeaderGlyphRecovery.SelectCandidates(image, members, [source, glyph], [reading], Plot));
+        Assert.IsEmpty(SeparatedHeaderGlyphRecovery.SelectCandidates(image, members, [source],
+            [reading, reading with { RegionId = "protected", Polygon = glyph.Polygon, ReviewStatus = OcrReviewStatus.Accepted }], Plot));
+    }
+
+    [TestMethod]
     [DataRow(false, "A Experiment")]
     [DataRow(true, "Experiment A")]
     [DataRow(false, "𝒜 Experiment")]
@@ -114,17 +209,22 @@ public sealed class SeparatedHeaderGlyphRecoveryTests
     }
 
     [TestMethod]
-    [DataRow("B", "Experiment", false, false, false)]
-    [DataRow("8", "20", false, false, false)]
-    [DataRow("", "Experiment", false, false, false)]
-    [DataRow("B", "", false, false, false)]
-    [DataRow("B", "Experiment", true, false, false)]
-    [DataRow("B", "Experiment", false, true, false)]
-    [DataRow("B", "Experiment", false, false, true)]
+    [DataRow("B", "Experiment", false, false, false, false)]
+    [DataRow("8", "20", false, false, false, false)]
+    [DataRow("", "Experiment", false, false, false, false)]
+    [DataRow("B", "", false, false, false, false)]
+    [DataRow("B", "Experiment", true, false, false, false)]
+    [DataRow("B", "Experiment", false, true, false, false)]
+    [DataRow("B", "Experiment", false, false, true, false)]
+    [DataRow("Z", "Withdrawal", false, false, false, true)]
+    [DataRow("8", "20", false, false, false, true)]
+    [DataRow("", "Intervention", false, false, false, true)]
+    [DataRow("B", "", false, false, false, true)]
+    [DataRow("B", "Intervention", false, true, false, true)]
     public async Task ReplacesOnlyACompleteSuccessfulPairInSeparateBatches(
-        string glyphText, string wordText, bool failGlyph, bool failWord, bool throwWord)
+        string glyphText, string wordText, bool failGlyph, bool failWord, bool throwWord, bool narrow)
     {
-        var (image, source, reading, glyph, word) = Fixture();
+        var (image, source, reading, glyph, word) = Fixture(narrow, narrow ? "Intervention B" : null, narrow);
         byte[] original = image.Pixels.ToArray();
         OcrRequest request = OcrTestFixtures.Request([source]) with { OriginalImage = image, PlotBounds = Plot, PhaseDividerXs = [] };
         var batches = new List<IReadOnlyList<OcrCrop>>();
@@ -178,11 +278,12 @@ public sealed class SeparatedHeaderGlyphRecoveryTests
     }
 
     private static (OcrImage Image, OcrDetectedRegion Source, OcrRegion Reading, OcrDetectedRegion Glyph, OcrDetectedRegion Word)
-        Fixture(bool right = false, string? text = null)
+        Fixture(bool right = false, string? text = null, bool narrow = false, int boundaryGap = 5)
     {
         byte[] pixels = Enumerable.Repeat((byte)255, 240 * 140).ToArray();
-        var glyph = OcrTestFixtures.Region("glyph", right ? 146 : 70, 51, 10, 10);
-        var word = OcrTestFixtures.Region("word", right ? 70 : 96, 50, 60, 12);
+        int gap = narrow ? boundaryGap : 16;
+        var glyph = OcrTestFixtures.Region("glyph", right ? 130 + gap : 70, 51, 10, 10);
+        var word = OcrTestFixtures.Region("word", right ? 70 : 80 + gap, 50, 60, 12);
         OcrRectangle gb = glyph.Polygon.Bounds, wb = word.Polygon.Bounds;
         for (int y = (int)gb.Top; y < gb.Bottom; y++)
         for (int x = (int)gb.Left; x < gb.Right; x++) pixels[y * 240 + x] = 0;
@@ -191,9 +292,13 @@ public sealed class SeparatedHeaderGlyphRecoveryTests
         for (int letter = 0; letter < 3; letter++)
         for (int y = (int)wb.Top; y < wb.Bottom; y++)
         for (int x = (int)wb.Left + letter * 21; x < wb.Left + letter * 21 + 18; x++) pixels[y * 240 + x] = 0;
-        var source = OcrTestFixtures.Region("composite", 70, 50, 86, 12);
+        var source = OcrTestFixtures.Region("composite", 70, 50, 70 + gap, 12);
         var reading = new OcrRegion(source.RegionId, source.Polygon, text ?? (right ? "Experiment A" : "A Experiment"), [],
             OcrTextRole.Other, .9, OcrSourceImage.Original, OcrReviewStatus.Unreviewed);
         return (new(240, 140, 240, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity), source, reading, glyph, word);
     }
+
+    private static OcrDetectedRegion[] WordComponents(OcrDetectedRegion word) => Enumerable.Range(0, 3)
+        .Select(index => OcrTestFixtures.Region("word-" + index, word.Polygon.Bounds.Left + index * 21,
+            word.Polygon.Bounds.Top, 18, word.Polygon.Bounds.Height)).ToArray();
 }

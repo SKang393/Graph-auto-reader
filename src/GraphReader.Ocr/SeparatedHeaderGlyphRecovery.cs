@@ -9,10 +9,10 @@ namespace GraphReader.Ocr;
 public sealed record SeparatedHeaderGlyph(
     string SourceRegionId, OcrDetectedRegion Glyph, OcrDetectedRegion Word);
 
-/// <summary>Separates a widely spaced boundary glyph from a composite header crop.</summary>
+/// <summary>Separates a boundary glyph from a composite header crop using measured ink gaps.</summary>
 public static class SeparatedHeaderGlyphRecovery
 {
-    public const string CompositionVersion = "original-pixel-separated-header-glyph-batches-v1";
+    public const string CompositionVersion = "original-pixel-separated-header-phase-word-spacing-v2";
 
     public static async ValueTask<IReadOnlyList<SeparatedHeaderGlyph>> FindAsync(
         OcrImage image, IReadOnlyList<OcrDetectedRegion> detected, IReadOnlyList<OcrRegion> recognized,
@@ -76,10 +76,14 @@ public static class SeparatedHeaderGlyphRecovery
                 OcrRectangle gb = glyph.Polygon.Bounds;
                 OcrRectangle word = Union(wordMembers.Select(static c => c.Polygon.Bounds).ToArray());
                 double gap = side == 0 ? word.Left - gb.Right : gb.Left - word.Right;
-                if (gb.Left < plot.Left || gb.Right > plot.Right || gb.Bottom > plot.Top || word.Bottom > plot.Top ||
+                bool measuredPhaseGap = HasMeasuredPhaseWordGap(source, tokens, side, wordMembers, word, plot, gap);
+                bool outsidePlot = measuredPhaseGap
+                    ? gb.Center.X < plot.Left || gb.Center.X > plot.Right
+                    : gb.Left < plot.Left || gb.Right > plot.Right;
+                if (outsidePlot || gb.Bottom > plot.Top || word.Bottom > plot.Top ||
                     gb.Height < .5 * box.Height || gb.Height > 2 * box.Height ||
                     gb.Width < .3 * box.Height || gb.Width > 1.5 * box.Height ||
-                    gap <= Math.Min(gb.Height, word.Height) || word.Width < 2 * word.Height ||
+                    (gap <= Math.Min(gb.Height, word.Height) && !measuredPhaseGap) || word.Width < 2 * word.Height ||
                     Math.Abs(gb.Center.Y - word.Center.Y) > .5 * Math.Max(gb.Height, word.Height) ||
                     detected.Any(r => r.RegionId != source.RegionId &&
                         (Overlap(gb, r.Polygon.Bounds) >= .5 * Area(r.Polygon.Bounds) ||
@@ -106,6 +110,26 @@ public static class SeparatedHeaderGlyphRecovery
             if (candidates.Count == 1) result.Add(candidates[0]);
         }
         return OcrCollections.Freeze(result);
+    }
+
+    private static bool HasMeasuredPhaseWordGap(OcrDetectedRegion source, string[] tokens, int side,
+        OcrDetectedRegion[] wordMembers, OcrRectangle word, OcrRectangle plot, double gap)
+    {
+        if (gap <= 0) return false;
+        string text = string.Join(' ', side == 0 ? tokens.Skip(1) : tokens.Take(tokens.Length - 1));
+        OcrDetectedRegion measuredWord = source with { Polygon = OcrPolygon.FromRectangle(word), Context = null };
+        if (GraphTextRoleClassifier.Classify(measuredWord, text, plot).Role != OcrTextRole.PhaseHeading)
+            return false;
+        // A known phase word supplies a role cue only. Both crops are still
+        // recognized independently; no character is copied from the old text.
+        double right = double.NegativeInfinity, maximumGap = 0;
+        foreach (OcrRectangle bounds in wordMembers.Select(static region => region.Polygon.Bounds)
+            .OrderBy(static bounds => bounds.Left).ThenBy(static bounds => bounds.Right))
+        {
+            if (double.IsFinite(right)) maximumGap = Math.Max(maximumGap, bounds.Left - right);
+            right = Math.Max(right, bounds.Right);
+        }
+        return gap > maximumGap;
     }
 
     private static string[] Tokens(string text) => text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);

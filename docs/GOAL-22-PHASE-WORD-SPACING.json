@@ -1,0 +1,1459 @@
+{
+  "schema": "graphreader.phase-word-spacing.v1",
+  "status": "verified_phase_word_spacing_repair_accuracy_incomplete",
+  "arms": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 178.2467709,
+        "execution_seconds": 190.0702136,
+        "metrics": {
+          "truth": 838,
+          "predicted": 774,
+          "matched": 745,
+          "extra": 29,
+          "missing": 93,
+          "precision": 0.962532299741602,
+          "recall": 0.8890214797136038
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 774,
+          "matched": 745,
+          "extra": 29,
+          "missing": 93,
+          "precision": 0.962532299741602,
+          "recall": 0.8890214797136038
+        },
+        "paired_truths": {
+          "retained": 745,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 93
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 379,
+            "role_accuracy": 0.8366445916114791,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 379,
+            "role_accuracy": 0.8366445916114791,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 358,
+          "wrong_in_both": 95
+        },
+        "changed_truth_readings": [],
+        "accepted_geometry_change_counts": {
+          "added": 0,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 31,
+          "changed_panels": 1,
+          "changed_fields": {
+            "ocr": 1
+          },
+          "panels": [
+            {
+              "source_sha256": "269ed38a5788ef8ad6c128278a0b34813691c2b4607585b2ddc9e51b3f6230b5",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "ocr"
+              ]
+            }
+          ],
+          "export_rows": null
+        },
+        "separation_mechanism": {
+          "observed_panels": 31,
+          "raw_detector_regions_unchanged": true,
+          "counts": {
+            "previous_successful_separations": 1
+          }
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 214.4061172,
+        "execution_seconds": 217.6187871,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 20,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 261,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 261,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9885057471264368,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9885057471264368,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9693486590038314,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 426,
+        "accepted_geometry_change_counts": {
+          "added": 0,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 39,
+          "changed_panels": 3,
+          "changed_fields": {
+            "marker_pipeline": 3,
+            "ocr": 3
+          },
+          "panels": [
+            {
+              "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "marker_pipeline",
+                "ocr"
+              ]
+            },
+            {
+              "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "marker_pipeline",
+                "ocr"
+              ]
+            },
+            {
+              "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "marker_pipeline",
+                "ocr"
+              ]
+            }
+          ],
+          "export_rows": {
+            "before_count": 426,
+            "after_count": 426,
+            "retained_count": 426,
+            "removed": 0,
+            "added": 0
+          }
+        },
+        "separation_mechanism": {
+          "observed_panels": 39,
+          "raw_detector_regions_unchanged": true,
+          "counts": {
+            "new_successful_separations": 3,
+            "shadow_pair_geometry_verified": 3
+          }
+        }
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 228.4273935,
+        "execution_seconds": 236.7197978,
+        "metrics": {
+          "truth": 838,
+          "predicted": 772,
+          "matched": 749,
+          "extra": 23,
+          "missing": 89,
+          "precision": 0.9702072538860104,
+          "recall": 0.8937947494033412
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 772,
+          "matched": 749,
+          "extra": 23,
+          "missing": 89,
+          "precision": 0.9702072538860104,
+          "recall": 0.8937947494033412
+        },
+        "paired_truths": {
+          "retained": 749,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 89
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 491,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 45,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 63,
+            "character_error_count": 113,
+            "character_error_rate": 0.03645161290322581,
+            "role_correct_count": 427,
+            "role_accuracy": 0.9426048565121413,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 490,
+            "geometry_matched_region_count": 445,
+            "geometry_false_positive_count": 45,
+            "geometry_false_negative_count": 8,
+            "recognition_exact_count": 429,
+            "recognition_exact_accuracy": 0.9470198675496688,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 25,
+            "unmatched_truth_deletion_edit_count": 28,
+            "unmatched_prediction_insertion_edit_count": 63,
+            "character_error_count": 116,
+            "character_error_rate": 0.03741935483870968,
+            "role_correct_count": 425,
+            "role_accuracy": 0.9381898454746137,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 162,
+                "accuracy": 0.9529411764705882
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 429,
+          "wrong_in_both": 22,
+          "gained_exact": 2
+        },
+        "changed_truth_readings": [
+          {
+            "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+            "truth_id": "65ed4845be7d8fa72c73d12dcbe12350b85651506e14d97a92ce97b566cb7626",
+            "truth": "Intervention",
+            "before": {
+              "matched": true,
+              "predicted_text": "Intervention B",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Intervention",
+              "predicted_role": "phaseheading"
+            }
+          },
+          {
+            "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+            "truth_id": "d079803dbc8626429094a5eec6720b4e8120c2af5fb8a5ccbcb8d7f55f1a03b2",
+            "truth": "B",
+            "before": {
+              "matched": false,
+              "predicted_text": null,
+              "predicted_role": null
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "B",
+              "predicted_role": "phaseheading"
+            }
+          }
+        ],
+        "accepted_geometry_change_counts": {
+          "added": 0,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 31,
+          "changed_panels": 3,
+          "changed_fields": {
+            "ocr": 3,
+            "marker_pipeline": 1
+          },
+          "panels": [
+            {
+              "source_sha256": "269ed38a5788ef8ad6c128278a0b34813691c2b4607585b2ddc9e51b3f6230b5",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "ocr"
+              ]
+            },
+            {
+              "source_sha256": "ef8f24b226f68dcb823690604f4cf6cbbe0c3b9dfeb694aa4992f63d12506a41",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "ocr"
+              ]
+            },
+            {
+              "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+              "crop": [
+                0,
+                0,
+                361,
+                240
+              ],
+              "changed_fields": [
+                "marker_pipeline",
+                "ocr"
+              ]
+            }
+          ],
+          "export_rows": null
+        },
+        "separation_mechanism": {
+          "observed_panels": 31,
+          "raw_detector_regions_unchanged": true,
+          "counts": {
+            "previous_successful_separations": 2,
+            "new_successful_separations": 1,
+            "shadow_pair_geometry_verified": 1
+          }
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 260.4300043,
+        "execution_seconds": 264.098761,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 14,
+            "failed_cases": 6,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 18,
+            "truth_points": 500,
+            "predicted_points": 276,
+            "matched_points": 273,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 276,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 271,
+            "correct_rows": 260,
+            "missing_rows": 229,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 273,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 227,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9891304347826086,
+            "unique_point_structural_coverage": 0.546,
+            "unique_point_value_precision": 0.9891304347826086,
+            "unique_point_value_coverage": 0.546,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9420289855072463,
+            "relational_row_coverage": 0.52,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.959409594095941,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 6
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 13,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 164,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 164,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 8,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9512195121951219,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9512195121951219,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9512195121951219,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 440,
+        "accepted_geometry_change_counts": {
+          "added": 0,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 39,
+          "changed_panels": 3,
+          "changed_fields": {
+            "marker_pipeline": 3,
+            "ocr": 3
+          },
+          "panels": [
+            {
+              "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "marker_pipeline",
+                "ocr"
+              ]
+            },
+            {
+              "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "marker_pipeline",
+                "ocr"
+              ]
+            },
+            {
+              "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "marker_pipeline",
+                "ocr"
+              ]
+            }
+          ],
+          "export_rows": {
+            "before_count": 440,
+            "after_count": 440,
+            "retained_count": 440,
+            "removed": 0,
+            "added": 0
+          }
+        },
+        "separation_mechanism": {
+          "observed_panels": 39,
+          "raw_detector_regions_unchanged": true,
+          "counts": {
+            "new_successful_separations": 3,
+            "shadow_pair_geometry_verified": 3
+          }
+        }
+      }
+    }
+  },
+  "tests": {
+    "ocr": {
+      "total": 785,
+      "executed": 769,
+      "passed": 769,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    },
+    "app": {
+      "total": 607,
+      "executed": 607,
+      "passed": 607,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    }
+  },
+  "checks_seconds": 115.8664477,
+  "validation_note": "769 OCR and 607 App tests pass with 16 optional OCR skips. Twenty-one new cases cover measured phase-word gaps, both boundary sides, plot-edge centers, unknown/participant words, protected context, human decisions, actual separate crops, failed rereads and cached replacement. Three clean builds include the native workflow.",
+  "workflow_sequence_seconds": 910.5956808,
+  "provider_counts": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-component-diversity-v27": 140,
+    "marker-classifier-structural-context-v5": 344,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/status.json",
+      "sha256": "ebac61c13b6f35f9c743151c392f663ac7e24429293c7fccd7ad1d3fbc7ab9b8"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/jobs.json",
+      "sha256": "b0ff2876c89e212eed6426e1d1b5001878262a9c68131a80040a312971f869d2"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/source-bindings.json",
+      "sha256": "2e32d4e7100037d78501e08436e3d903af8020777686aecfd37bd5f3a7919c81"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-checks-20261001-v1/status.json",
+      "sha256": "876a1bc09d595f472fc7c061b68ea7a2555c594155a22f6bd913d78f52c5f180"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-checks-20261001-v1/source-bindings.json",
+      "sha256": "c5cdd5e4f1f6aae2efeff4f6899098836c92f49171279282081598587d5ff40b"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-checks-20261001-v1/input-bindings.json",
+      "sha256": "98d9406210bc9cb7fee221b1d7f2eb435a09c249e46e85a46eeeee6f2f9f172e"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-checks-20261001-v1/test-results/ocr.trx",
+      "sha256": "9aaa64d53837d1387a092a869b4a46b2780ec2559cecf096d384c79a2acdbe9d"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-checks-20261001-v1/test-results/app.trx",
+      "sha256": "32b64bcf133d71d671ef8603b7eb14d29bf5ac02182212658cd34bc556588e11"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-checks-20261001-v1/Ocr-build.log",
+      "sha256": "65106c607abd36afdf4dc1cbafe02a086414a228122672dd0821abdea53cb6f2"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-checks-20261001-v1/App-build.log",
+      "sha256": "9fd46f7da73b8714f70dba3bc080a185457019aa9ea997aeebf1ad1c1ec61dad"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-checks-20261001-v1/native-build.log",
+      "sha256": "08bab2efedf5903ba25534a5cfa0cc77cd668ba1b26f3ccf85ea4e661d61facc"
+    },
+    {
+      "path": "docs/GOAL-22-PHASE-WORD-SPACING-DIAGNOSIS.json",
+      "sha256": "368e4517dc8ea327603e25ad0955dea759da31871e6f6a231d69a94b7f861e4e"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-PhaseWordSpacing.py",
+      "sha256": "74b7431a05a9286452479acd8219cd85143688779268e51a6cdd71b51c7a7643"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-PhaseWordSpacingEvaluation.py",
+      "sha256": "aa1a9dbb3084e4019ea2fb630bbbeafe7c96afcf0d8e0f5f72c457fc4bf23316"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-PhaseWordSpacingEvaluation.ps1",
+      "sha256": "70856763f15dd5fc06ef0328cdd201940f1c70ab1f86d2a34899a1ea7a905536"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-PhaseWordSpacingChecks.ps1",
+      "sha256": "66d88e7dc1c8d4abf6d6b3ba4c2878ef16ea1a539093bea40901ba88d298dc8e"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/runtime-description.json",
+      "sha256": "176cee014945f190dddd5ad3241e0f92c59a08871957946437b81015ef68bdd6"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/native-marker-score.json",
+      "sha256": "c2c7b85433050a5e1a02821c74c7121f6d1f932b53616d4e2b9876641512ad2b"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/native-ocr-score.json",
+      "sha256": "c446321bb2c95c988f73da03ac1cffb5476bb739c1bc66521677b683dda1203f"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/native-ocr-details.json",
+      "sha256": "5c0470fbd5d53fdb1044c7c5d3213e1b237663e08fe36d533d2438aa4d7e6a69"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/axis-geometry-comparison.json",
+      "sha256": "584bf03ff5c8a8c164b7027b87a8bb3c0633b7e92988179848e254b30529a90c"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/protocol.json",
+      "sha256": "c8daaa9d7caa6114eb48f56a7fe3bffd5b88c03067aef9b4b06dd397e90fe628"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/candidate-binding.json",
+      "sha256": "93b78386275ca4bda6073413210c9e70757b7abe28affde5a1b820f6a47e0e11"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/input-manifest.json",
+      "sha256": "4ea7c71863976c7f5c82fcec04156faac16b5ee2a5c0303c5540efd9c4ffb755"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/execution/report.json",
+      "sha256": "24edb43cbd8b87cfe742cfbd4e189e8229c178da1b8f5fb61c88b5a36748b2b6"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/status.json",
+      "sha256": "17d76489f88c147d5ff9e710aa4b51e862f177751bb46945ba8cec85974e191d"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "18677e53c3134dc8d4473f853523257d5bc86b290fea11cfed37c17926ec5a32"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/comparison.json",
+      "sha256": "64f08b18bfa72ebd6a2c9681dd69122fc94764167ec913ce5816c7980c99b31a"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/protocol.json",
+      "sha256": "efdf69567793818e1f14d3458d992cb92cc7baad0175f34ec8a691bfb4bbe440"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/candidate-binding.json",
+      "sha256": "3d8f41f369d37195f4710e3ba98e18700fdc7e70923044011777f9c1cfecb57b"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/input-manifest.json",
+      "sha256": "0c00b6a86e67488a5c336962648a8309ce004a1005473dbdbd84b6fae4d9e54d"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/execution/report.json",
+      "sha256": "d83c77d88cfd55cce150cac47fcfc434e01f34fc5f9e811b85a68acfc3bdbea9"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/status.json",
+      "sha256": "51ea82959c6381c10b89deb92b3d97c34907e74ec15be16790af78dd711aa732"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/native-marker-score.json",
+      "sha256": "baa2314e3795322f5964ae09cffc83d212cd1714acd9da0ad3ea86db1984ab6e"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/native-ocr-score.json",
+      "sha256": "4cac1fab30a52d974c9e3ace200117d891ad79ed114a40999dafc9413405a06c"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/native-ocr-details.json",
+      "sha256": "e779bf1e6c6e778762da4492118ad21055aaba5da392ce5c9f64d63e75c779a4"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/axis-geometry-comparison.json",
+      "sha256": "5b9e8f0534fc5860ddb3e05a9c41a0772c3348bdb6ac23a84b7a27b333ee88b5"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/protocol.json",
+      "sha256": "dc10f3ef7955fb2d072b2d23939b848cbb65a0025e5473ba1b1cc0a916b0de37"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/candidate-binding.json",
+      "sha256": "8673673d1f8ef1547dea2bca4ae468725f55e2830f79e3f133223f2842269f6b"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/input-manifest.json",
+      "sha256": "8e70df61861dc609d3e7644248552ff5667357c3fc9f23d3ae4388a6de8d82e7"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/execution/report.json",
+      "sha256": "bfa0c2bad800ef298f2ad3e5febf9892bdad919a017ae19cd41e486f3dda1876"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/status.json",
+      "sha256": "130eca8528c3ba1ca10781feae79c90ffc7640fe006bcb0b32acb2727c823858"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "dc02901a9e4432aa846d37ae93d038726384c11c9ada4175aa5091ac77772355"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/comparison.json",
+      "sha256": "532957bdaf1aff7674733720919053ac74cee576046becece2dcc3fba9fc71cb"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/protocol.json",
+      "sha256": "86d9493c8baefbe9c6c16d0e6ca6741bb774280a0a6bb3e16d8d4b14fd2b26cf"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/candidate-binding.json",
+      "sha256": "60755d82a8ff83c47dc0b573c98046f52f11c377525e8e3d7612198e9f3fbe35"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/input-manifest.json",
+      "sha256": "249a17624c7c546fd045f970e9958d5b6f207df3f5455343d229f48834460727"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/execution/report.json",
+      "sha256": "455744aa7e567ab8ead5cb11eced42609ef6798ec66b67bdbbad7d5d748bbd7f"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/status.json",
+      "sha256": "be99afd299fc9102108a9e980ff6fcee70f2279ab013a85f18c7029b945dd9d6"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/repair-summary.json",
+      "sha256": "32078833cef2513644b6db4cf3a0bd2b73740e966f71345517955fdefc35275a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-PhaseRoleVocabularyRepair.py",
+      "sha256": "448c44e8c111af87e4ce7ada3d9e31b02ad813a579d8217571790374617dfec5"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Audit-PhaseWordSpacingDeltas.py",
+      "sha256": "88cdf291496ec39ff4f04e1d5562b6a727cc7c150b1525e112b814a855ce60d4"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/complete-delta-audit.json",
+      "sha256": "df74b90fbc17c19621e601181f319df8441255b29f312e7e54111513c0409c50"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-replay-20261001-v1/report.json",
+      "sha256": "5b2a9f3baf07a200dbcf79dadd564b63ef543290e94eb70ee4b788697b438f8d"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Audit-PhaseWordSpacingMechanism.py",
+      "sha256": "d9ca47ec1db51a8489f7cde586e97f97c52f2b4f3a1590f722852bc1b1bce961"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/mechanism-audit.json",
+      "sha256": "1e94906747022de06096546f07d524d1df6ea2f571c8562a5f248dd856f0d102"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/audit-status.json",
+      "sha256": "874f9ce75ccf06a57f60ce1eafa060d8c62472066fc2c7fd246d9388a6bb83db"
+    },
+    {
+      "path": "artifacts/goal22-runs/phase-word-spacing-checks-20261001-v1/audit-helper-bindings.json",
+      "sha256": "6a885ed3eb6be778832e52f073f3036f52ba66a3387ea17a1da2d539c52564e3"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-PhaseWordSpacingAudit.ps1",
+      "sha256": "458d1fe3d1fe62d86fe0ed71c94d2f898f391e51403ee7696c31c54027840541"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Publish-PhaseWordSpacing.py",
+      "sha256": "89d4c3cf0ca3aa2ee3ecbe1979ce2a22fa2359353a8c4e50785f61f7e2fb0289"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "goal22_acceptance": "FAIL",
+  "base_commit": "3e8e47a22370dae47c76d67817e8fa2b01ab845d",
+  "hypothesis": {
+    "path": "docs/GOAL-22-PHASE-WORD-SPACING-DIAGNOSIS.json",
+    "sha256": "368e4517dc8ea327603e25ad0955dea759da31871e6f6a231d69a94b7f861e4e"
+  },
+  "frozen_complete_result": {
+    "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/repair-summary.json",
+    "sha256": "32078833cef2513644b6db4cf3a0bd2b73740e966f71345517955fdefc35275a"
+  },
+  "complete_delta_audit": {
+    "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/complete-delta-audit.json",
+    "sha256": "df74b90fbc17c19621e601181f319df8441255b29f312e7e54111513c0409c50"
+  },
+  "mechanism_audit": {
+    "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/mechanism-audit.json",
+    "sha256": "1e94906747022de06096546f07d524d1df6ea2f571c8562a5f248dd856f0d102"
+  },
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "intermediate_marker_changes": [
+    {
+      "arm": "v44",
+      "scope": "csv",
+      "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "fields": [
+        "center_counters",
+        "above_threshold_decoded_points"
+      ]
+    },
+    {
+      "arm": "v44",
+      "scope": "csv",
+      "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "fields": [
+        "center_counters",
+        "above_threshold_decoded_points"
+      ]
+    },
+    {
+      "arm": "v44",
+      "scope": "csv",
+      "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "fields": [
+        "center_counters",
+        "above_threshold_decoded_points"
+      ]
+    },
+    {
+      "arm": "v46",
+      "scope": "native",
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "crop": [
+        0,
+        0,
+        361,
+        240
+      ],
+      "fields": [
+        "centers_before_classification",
+        "classified_plot_markers",
+        "text_excluded_marker_ids",
+        "center_counters",
+        "above_threshold_decoded_points",
+        "pre_nms_centers"
+      ],
+      "changed_classified_candidates": 1,
+      "unchanged_text_exclusion": true,
+      "artifact_probability_before_and_after": 1
+    },
+    {
+      "arm": "v46",
+      "scope": "csv",
+      "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "fields": [
+        "center_counters",
+        "above_threshold_decoded_points"
+      ]
+    },
+    {
+      "arm": "v46",
+      "scope": "csv",
+      "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "fields": [
+        "center_counters",
+        "above_threshold_decoded_points"
+      ]
+    },
+    {
+      "arm": "v46",
+      "scope": "csv",
+      "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+      "crop": [
+        0,
+        0,
+        1200,
+        350
+      ],
+      "fields": [
+        "center_counters",
+        "above_threshold_decoded_points"
+      ]
+    }
+  ],
+  "implementation": [
+    "Preserve the existing wide-gap separation rule. Additionally allow a phase-word boundary when the unchanged role classifier recognizes the remaining literal word and its positive boundary gap exceeds every internal component gap.",
+    "The measured phase-word path requires the boundary glyph center inside the plot. Keep original-pixel/source binding, human review, protected context, size, alignment and collision checks.",
+    "Recognize actual glyph and word crops in separate batches. Replace only a complete successful pair. No supplied text; failed or empty rereads retain the original and numeric rereads cannot become calibration ticks.",
+    "Advance the separation composition version already used by OCR and production cache identities."
+  ],
+  "integration_decision": "Retain the measured original-pixel separation repair. Seven Intervention B composites reread as separate B and Intervention regions. V46 exact text improves 429 to 431/453 with no previous exact reading lost. Accepted marker properties, axis, calibration and all 866 exported audit rows are unchanged. Goal22 remains incomplete.",
+  "candidate_selection": "Keep V44/English/V27/V5. V46/server remains the existing closed comparison; crossing one development bar does not reopen or approve a model.",
+  "license_review": "Apache-2.0 project source and tests. No dependency, weights, fonts or license terms changed. Existing model payloads, manifests and reviewed license inputs were checksum verified.",
+  "limitations": [
+    "V46 exact text reaches 431/453 (95.14 percent) and character error 113/3100. Role accuracy 427/453 (94.26 percent), text precision and marker recall remain below shared bars.",
+    "All three previous successful separations remain identical apart from cache-derived identities. Unknown words and participant labels cannot use the new narrower-gap path.",
+    "Text mask changes affect intermediate decoded proposals on three CSV panels per arm and one V46 native panel. One changed classified native candidate remains text-excluded with artifact probability 1 before and after. Final accepted markers are unchanged.",
+    "V44 retains 358/453 exact texts, 15/23 exports, 414/706 correct values and 409/724 correct rows. V46 retains 16/23 exports, 429/706 correct values and 416/724 correct rows. Three/eleven wrong-phase rows and eight/seven failed sources remain.",
+    "No private/sealed data, optimizer, model approval, packaged build, tag or release. Build 433 remains 0.4.33; sealed prerequisites, real acceptance, production activation and final distributions remain unfinished."
+  ]
+}

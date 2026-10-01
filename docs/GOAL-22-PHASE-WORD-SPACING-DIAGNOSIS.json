@@ -1,0 +1,1874 @@
+{
+  "schema_version": 1,
+  "scope": "owned synthetic open development only",
+  "base_source_commit": "3e8e47a22370dae47c76d67817e8fa2b01ab845d",
+  "failure_mode": "The composite crop contains a phase word and a separate boundary letter. Their original-ink gap is larger than internal character gaps but smaller than glyph height, so the existing wide-gap rule cannot separate them. One boundary glyph straddles the plot edge while its center remains inside.",
+  "responsible_subsystem": "SeparatedHeaderGlyphRecovery",
+  "isolated_change": "Preserve the existing wide-gap path. Add a path only when the existing classifier identifies the remaining literal word as a PhaseHeading, the positive boundary gap exceeds every internal word-component gap, and the glyph center lies inside the plot. Retain original/source binding, human review, context, size, alignment and collision guards. Reread actual glyph and word crops separately, replace only a complete successful pair, and advance the composition cache version.",
+  "replay": {
+    "report": {
+      "file": "artifacts/goal22-runs/phase-word-spacing-replay-20261001-v1/report.json",
+      "sha256": "5b2a9f3baf07a200dbcf79dadd564b63ef543290e94eb70ee4b788697b438f8d"
+    },
+    "bindings": {
+      "file": "artifacts/goal22-runs/phase-word-spacing-replay-20261001-v1/bindings.json",
+      "sha256": "74599a584fa818826181839064dd96c50bb2bb7518e94416b9947d3604bbda72"
+    },
+    "status": {
+      "file": "artifacts/goal22-runs/phase-word-spacing-replay-20261001-v1/status.json",
+      "sha256": "854ff15def84dd3c79e2984b33437fc2464b564884f752d3cc675f24583f2e88"
+    },
+    "build": {
+      "file": "artifacts/goal22-runs/phase-word-spacing-replay-20261001-v1/build.log",
+      "sha256": "da9af81a331e641450125ffdc82e02a3a629cd35a2308f93dc3a393db27a7266"
+    },
+    "source": {
+      "file": "artifacts/goal22-runs/phase-word-spacing-replay-20261001-v1/ShadowSeparatedHeaderGlyphRecovery.cs",
+      "sha256": "41f14b4b5765d3315bbd0ebde54da26ea1b62d105ba98589f57d70469bd5cc93"
+    },
+    "panels": 140,
+    "additional_candidates": {
+      "v44-native": 0,
+      "v44-csv": 3,
+      "v46-native": 1,
+      "v46-csv": 3
+    },
+    "limitation": "Final recognized regions are reused; this does not rerun recognition or reproduce initial merge timing. No truth selects a candidate."
+  },
+  "examples": [
+    {
+      "arm": "v44-csv",
+      "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "plot": {
+        "x": 104.95889386069217,
+        "y": 94.9920353692138,
+        "width": 990.0411132067975,
+        "height": 164.89704643630967,
+        "left": 104.95889386069217,
+        "top": 94.9920353692138,
+        "right": 1095.0000070674896,
+        "bottom": 259.88908180552346,
+        "center": {
+          "x": 599.9794504640909,
+          "y": 177.44055858736863,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "candidates": [
+        {
+          "source": {
+            "region_id": "a36cfdc2-a066-8cf2-8c00-cd75018f168c",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.7867086997822575,
+            "context": {
+              "near_legend_glyph": false,
+              "near_phase_divider": false,
+              "in_participant_band": false,
+              "near_annotation_arrow": false,
+              "numeric_expected": false,
+              "axis_title_expected": false,
+              "explicit_role_hint": null
+            },
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "reading": {
+            "region_id": "a36cfdc2-a066-8cf2-8c00-cd75018f168c",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "text": "Intervention B",
+            "alternatives": [
+              {
+                "text": "Intervention B",
+                "confidence": 0.9989791086741856,
+                "source_image": "Original"
+              },
+              {
+                "text": "Infervention B",
+                "confidence": 0.00032583279679031235,
+                "source_image": "Original"
+              },
+              {
+                "text": "InterVention B",
+                "confidence": 7.834258676525511e-05,
+                "source_image": "Original"
+              }
+            ],
+            "role": "Other",
+            "confidence": 0.7225543701669723,
+            "source_image": "Original",
+            "review_status": "Unreviewed",
+            "coordinate_space": "original_pixels"
+          },
+          "glyph": {
+            "region_id": "header-separated-glyph:16fc5864aa91fd5c053b513b1ed1c21558420e7b879522030659e5a307e33da5",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1081,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1081,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1081,
+                "y": 72,
+                "width": 8,
+                "height": 10,
+                "left": 1081,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1085,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "word": {
+            "region_id": "header-separated-word:16fc5864aa91fd5c053b513b1ed1c21558420e7b879522030659e5a307e33da5",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 73,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1074,
+                "bottom": 82,
+                "center": {
+                  "x": 1037.5,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          }
+        }
+      ]
+    },
+    {
+      "arm": "v44-csv",
+      "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "plot": {
+        "x": 104.95897106178327,
+        "y": 94.99204556024358,
+        "width": 990.0410360057064,
+        "height": 164.89703625873665,
+        "left": 104.95897106178327,
+        "top": 94.99204556024358,
+        "right": 1095.0000070674896,
+        "bottom": 259.88908181898023,
+        "center": {
+          "x": 599.9794890646365,
+          "y": 177.4405636896119,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "candidates": [
+        {
+          "source": {
+            "region_id": "a36cfdc2-a066-8cf2-8c00-cd75018f168c",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.7929690654079119,
+            "context": {
+              "near_legend_glyph": false,
+              "near_phase_divider": false,
+              "in_participant_band": false,
+              "near_annotation_arrow": false,
+              "numeric_expected": false,
+              "axis_title_expected": false,
+              "explicit_role_hint": null
+            },
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "reading": {
+            "region_id": "a36cfdc2-a066-8cf2-8c00-cd75018f168c",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "text": "Intervention B",
+            "alternatives": [
+              {
+                "text": "Intervention B",
+                "confidence": 0.9989791086741856,
+                "source_image": "Original"
+              },
+              {
+                "text": "Infervention B",
+                "confidence": 0.00032583279679031235,
+                "source_image": "Original"
+              },
+              {
+                "text": "InterVention B",
+                "confidence": 7.834258676525511e-05,
+                "source_image": "Original"
+              }
+            ],
+            "role": "Other",
+            "confidence": 0.7244659242123374,
+            "source_image": "Original",
+            "review_status": "Unreviewed",
+            "coordinate_space": "original_pixels"
+          },
+          "glyph": {
+            "region_id": "header-separated-glyph:16fc5864aa91fd5c053b513b1ed1c21558420e7b879522030659e5a307e33da5",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1081,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1081,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1081,
+                "y": 72,
+                "width": 8,
+                "height": 10,
+                "left": 1081,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1085,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "word": {
+            "region_id": "header-separated-word:16fc5864aa91fd5c053b513b1ed1c21558420e7b879522030659e5a307e33da5",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 73,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1074,
+                "bottom": 82,
+                "center": {
+                  "x": 1037.5,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          }
+        }
+      ]
+    },
+    {
+      "arm": "v44-csv",
+      "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "plot": {
+        "x": 104.95953290163413,
+        "y": 94.99203932312514,
+        "width": 990.0404741658555,
+        "height": 164.89704248274472,
+        "left": 104.95953290163413,
+        "top": 94.99203932312514,
+        "right": 1095.0000070674896,
+        "bottom": 259.88908180586986,
+        "center": {
+          "x": 599.9797699845619,
+          "y": 177.4405605644975,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "candidates": [
+        {
+          "source": {
+            "region_id": "a36cfdc2-a066-8cf2-8c00-cd75018f168c",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.7608173161853051,
+            "context": {
+              "near_legend_glyph": false,
+              "near_phase_divider": false,
+              "in_participant_band": false,
+              "near_annotation_arrow": false,
+              "numeric_expected": false,
+              "axis_title_expected": false,
+              "explicit_role_hint": null
+            },
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "reading": {
+            "region_id": "a36cfdc2-a066-8cf2-8c00-cd75018f168c",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "text": "Intervention B",
+            "alternatives": [
+              {
+                "text": "Intervention B",
+                "confidence": 0.9989791086741856,
+                "source_image": "Original"
+              },
+              {
+                "text": "Infervention B",
+                "confidence": 0.00032583279679031235,
+                "source_image": "Original"
+              },
+              {
+                "text": "InterVention B",
+                "confidence": 7.834258676525511e-05,
+                "source_image": "Original"
+              }
+            ],
+            "role": "Other",
+            "confidence": 0.7145391198154011,
+            "source_image": "Original",
+            "review_status": "Unreviewed",
+            "coordinate_space": "original_pixels"
+          },
+          "glyph": {
+            "region_id": "header-separated-glyph:16fc5864aa91fd5c053b513b1ed1c21558420e7b879522030659e5a307e33da5",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1081,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1081,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1081,
+                "y": 72,
+                "width": 8,
+                "height": 10,
+                "left": 1081,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1085,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "word": {
+            "region_id": "header-separated-word:16fc5864aa91fd5c053b513b1ed1c21558420e7b879522030659e5a307e33da5",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 73,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1074,
+                "bottom": 82,
+                "center": {
+                  "x": 1037.5,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          }
+        }
+      ]
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 361,
+        "height": 240,
+        "right": 361,
+        "bottom": 240,
+        "area": 86640,
+        "is_valid": true
+      },
+      "plot": {
+        "x": 50.76525499546396,
+        "y": 72.73280287585578,
+        "width": 237.64807718708738,
+        "height": 119.15045159692454,
+        "left": 50.76525499546396,
+        "top": 72.73280287585578,
+        "right": 288.41333218255136,
+        "bottom": 191.88325447278032,
+        "center": {
+          "x": 169.58929358900764,
+          "y": 132.30802867431805,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "candidates": [
+        {
+          "source": {
+            "region_id": "window-0-0:53847a46-d999-44cf-70fd-2617f6c0f88a",
+            "polygon": {
+              "points": [
+                {
+                  "x": 174,
+                  "y": 50,
+                  "is_finite": true
+                },
+                {
+                  "x": 292,
+                  "y": 50,
+                  "is_finite": true
+                },
+                {
+                  "x": 292,
+                  "y": 65,
+                  "is_finite": true
+                },
+                {
+                  "x": 174,
+                  "y": 65,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 174,
+                "y": 50,
+                "width": 118,
+                "height": 15,
+                "left": 174,
+                "top": 50,
+                "right": 292,
+                "bottom": 65,
+                "center": {
+                  "x": 233,
+                  "y": 57.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.8239215718962813,
+            "context": {
+              "near_legend_glyph": false,
+              "near_phase_divider": false,
+              "in_participant_band": false,
+              "near_annotation_arrow": false,
+              "numeric_expected": false,
+              "axis_title_expected": false,
+              "explicit_role_hint": null
+            },
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "reading": {
+            "region_id": "window-0-0:53847a46-d999-44cf-70fd-2617f6c0f88a",
+            "polygon": {
+              "points": [
+                {
+                  "x": 174,
+                  "y": 50,
+                  "is_finite": true
+                },
+                {
+                  "x": 292,
+                  "y": 50,
+                  "is_finite": true
+                },
+                {
+                  "x": 292,
+                  "y": 65,
+                  "is_finite": true
+                },
+                {
+                  "x": 174,
+                  "y": 65,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 174,
+                "y": 50,
+                "width": 118,
+                "height": 15,
+                "left": 174,
+                "top": 50,
+                "right": 292,
+                "bottom": 65,
+                "center": {
+                  "x": 233,
+                  "y": 57.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "text": "Intervention B",
+            "alternatives": [
+              {
+                "text": "Intervention B",
+                "confidence": 0.9842406553881509,
+                "source_image": "Original"
+              },
+              {
+                "text": "InterventionB",
+                "confidence": 0.10759633942758726,
+                "source_image": "Original"
+              },
+              {
+                "text": "lntervention B",
+                "confidence": 0.011512218418656898,
+                "source_image": "Original"
+              }
+            ],
+            "role": "Other",
+            "confidence": 0.7301455966535513,
+            "source_image": "Original",
+            "review_status": "Unreviewed",
+            "coordinate_space": "original_pixels"
+          },
+          "glyph": {
+            "region_id": "header-separated-glyph:3d2c494d68a7cd86c1301414affb4e997dd3014e6dbb80220459caefd1a24ccf",
+            "polygon": {
+              "points": [
+                {
+                  "x": 282,
+                  "y": 51,
+                  "is_finite": true
+                },
+                {
+                  "x": 292,
+                  "y": 51,
+                  "is_finite": true
+                },
+                {
+                  "x": 292,
+                  "y": 65,
+                  "is_finite": true
+                },
+                {
+                  "x": 282,
+                  "y": 65,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 282,
+                "y": 51,
+                "width": 10,
+                "height": 14,
+                "left": 282,
+                "top": 51,
+                "right": 292,
+                "bottom": 65,
+                "center": {
+                  "x": 287,
+                  "y": 58,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "word": {
+            "region_id": "header-separated-word:3d2c494d68a7cd86c1301414affb4e997dd3014e6dbb80220459caefd1a24ccf",
+            "polygon": {
+              "points": [
+                {
+                  "x": 174,
+                  "y": 49,
+                  "is_finite": true
+                },
+                {
+                  "x": 276,
+                  "y": 49,
+                  "is_finite": true
+                },
+                {
+                  "x": 276,
+                  "y": 64,
+                  "is_finite": true
+                },
+                {
+                  "x": 174,
+                  "y": 64,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 174,
+                "y": 49,
+                "width": 102,
+                "height": 15,
+                "left": 174,
+                "top": 49,
+                "right": 276,
+                "bottom": 64,
+                "center": {
+                  "x": 225,
+                  "y": 56.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          }
+        }
+      ]
+    },
+    {
+      "arm": "v46-csv",
+      "source_sha256": "efe1eaa07801c8126034a68c7950f38607826b278d01059464ad222409dbe1bf",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "plot": {
+        "x": 104.95889386069217,
+        "y": 94.9920353692138,
+        "width": 990.0411132067975,
+        "height": 164.89704643630967,
+        "left": 104.95889386069217,
+        "top": 94.9920353692138,
+        "right": 1095.0000070674896,
+        "bottom": 259.88908180552346,
+        "center": {
+          "x": 599.9794504640909,
+          "y": 177.44055858736863,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "candidates": [
+        {
+          "source": {
+            "region_id": "9c3e32c5-06ff-24b4-d4a6-67d4c0aceb45",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.7886739711062728,
+            "context": {
+              "near_legend_glyph": false,
+              "near_phase_divider": false,
+              "in_participant_band": false,
+              "near_annotation_arrow": false,
+              "numeric_expected": false,
+              "axis_title_expected": false,
+              "explicit_role_hint": null
+            },
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "reading": {
+            "region_id": "9c3e32c5-06ff-24b4-d4a6-67d4c0aceb45",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "text": "Intervention B",
+            "alternatives": [
+              {
+                "text": "Intervention B",
+                "confidence": 0.9917326995304653,
+                "source_image": "Original"
+              },
+              {
+                "text": "InterventionB",
+                "confidence": 0.11800946191240153,
+                "source_image": "Original"
+              },
+              {
+                "text": "lntervention B",
+                "confidence": 0.0021077574712160007,
+                "source_image": "Original"
+              }
+            ],
+            "role": "Other",
+            "confidence": 0.7214027487641365,
+            "source_image": "Original",
+            "review_status": "Unreviewed",
+            "coordinate_space": "original_pixels"
+          },
+          "glyph": {
+            "region_id": "header-separated-glyph:42f7ddb990e5557562aaabf9268cdf609302f2a65f2060c00a0d42cb758e6304",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1081,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1081,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1081,
+                "y": 72,
+                "width": 8,
+                "height": 10,
+                "left": 1081,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1085,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "word": {
+            "region_id": "header-separated-word:42f7ddb990e5557562aaabf9268cdf609302f2a65f2060c00a0d42cb758e6304",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 73,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1074,
+                "bottom": 82,
+                "center": {
+                  "x": 1037.5,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          }
+        }
+      ]
+    },
+    {
+      "arm": "v46-csv",
+      "source_sha256": "b0361d0377ecbe0de2d0204be68d680dd504d0f9bf030e4ebcc05661cd5ed929",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "plot": {
+        "x": 104.95897106178327,
+        "y": 94.99204556024358,
+        "width": 990.0410360057064,
+        "height": 164.89703625873665,
+        "left": 104.95897106178327,
+        "top": 94.99204556024358,
+        "right": 1095.0000070674896,
+        "bottom": 259.88908181898023,
+        "center": {
+          "x": 599.9794890646365,
+          "y": 177.4405636896119,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "candidates": [
+        {
+          "source": {
+            "region_id": "9c3e32c5-06ff-24b4-d4a6-67d4c0aceb45",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.7910623047950763,
+            "context": {
+              "near_legend_glyph": false,
+              "near_phase_divider": false,
+              "in_participant_band": false,
+              "near_annotation_arrow": false,
+              "numeric_expected": false,
+              "axis_title_expected": false,
+              "explicit_role_hint": null
+            },
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "reading": {
+            "region_id": "9c3e32c5-06ff-24b4-d4a6-67d4c0aceb45",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "text": "Intervention B",
+            "alternatives": [
+              {
+                "text": "Intervention B",
+                "confidence": 0.9917326995304653,
+                "source_image": "Original"
+              },
+              {
+                "text": "InterventionB",
+                "confidence": 0.11800946191240153,
+                "source_image": "Original"
+              },
+              {
+                "text": "lntervention B",
+                "confidence": 0.0021077574712160007,
+                "source_image": "Original"
+              }
+            ],
+            "role": "Other",
+            "confidence": 0.722130220559911,
+            "source_image": "Original",
+            "review_status": "Unreviewed",
+            "coordinate_space": "original_pixels"
+          },
+          "glyph": {
+            "region_id": "header-separated-glyph:42f7ddb990e5557562aaabf9268cdf609302f2a65f2060c00a0d42cb758e6304",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1081,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1081,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1081,
+                "y": 72,
+                "width": 8,
+                "height": 10,
+                "left": 1081,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1085,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "word": {
+            "region_id": "header-separated-word:42f7ddb990e5557562aaabf9268cdf609302f2a65f2060c00a0d42cb758e6304",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 73,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1074,
+                "bottom": 82,
+                "center": {
+                  "x": 1037.5,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          }
+        }
+      ]
+    },
+    {
+      "arm": "v46-csv",
+      "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "plot": {
+        "x": 104.95953290163413,
+        "y": 94.99203932312514,
+        "width": 990.0404741658555,
+        "height": 164.89704248274472,
+        "left": 104.95953290163413,
+        "top": 94.99203932312514,
+        "right": 1095.0000070674896,
+        "bottom": 259.88908180586986,
+        "center": {
+          "x": 599.9797699845619,
+          "y": 177.4405605644975,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "candidates": [
+        {
+          "source": {
+            "region_id": "388ee705-01b3-4aea-1516-6f89eccce1f7",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.8599796733562497,
+            "context": {
+              "near_legend_glyph": false,
+              "near_phase_divider": false,
+              "in_participant_band": false,
+              "near_annotation_arrow": false,
+              "numeric_expected": false,
+              "axis_title_expected": false,
+              "explicit_role_hint": null
+            },
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "reading": {
+            "region_id": "388ee705-01b3-4aea-1516-6f89eccce1f7",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 88,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1045,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "text": "Intervention B",
+            "alternatives": [
+              {
+                "text": "Intervention B",
+                "confidence": 0.9917326995304653,
+                "source_image": "Original"
+              },
+              {
+                "text": "InterventionB",
+                "confidence": 0.11800946191240153,
+                "source_image": "Original"
+              },
+              {
+                "text": "lntervention B",
+                "confidence": 0.0021077574712160007,
+                "source_image": "Original"
+              }
+            ],
+            "role": "Other",
+            "confidence": 0.7425197656288948,
+            "source_image": "Original",
+            "review_status": "Unreviewed",
+            "coordinate_space": "original_pixels"
+          },
+          "glyph": {
+            "region_id": "header-separated-glyph:380d7b7180168e36d92bba1fdc69038ef081782447c973ad1e4a90c95e293e98",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1081,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1089,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1081,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1081,
+                "y": 72,
+                "width": 8,
+                "height": 10,
+                "left": 1081,
+                "top": 72,
+                "right": 1089,
+                "bottom": 82,
+                "center": {
+                  "x": 1085,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          },
+          "word": {
+            "region_id": "header-separated-word:380d7b7180168e36d92bba1fdc69038ef081782447c973ad1e4a90c95e293e98",
+            "polygon": {
+              "points": [
+                {
+                  "x": 1001,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 72,
+                  "is_finite": true
+                },
+                {
+                  "x": 1074,
+                  "y": 82,
+                  "is_finite": true
+                },
+                {
+                  "x": 1001,
+                  "y": 82,
+                  "is_finite": true
+                }
+              ],
+              "bounds": {
+                "x": 1001,
+                "y": 72,
+                "width": 73,
+                "height": 10,
+                "left": 1001,
+                "top": 72,
+                "right": 1074,
+                "bottom": 82,
+                "center": {
+                  "x": 1037.5,
+                  "y": 77,
+                  "is_finite": true
+                },
+                "is_valid": true
+              }
+            },
+            "orientation_degrees": 0,
+            "detection_confidence": 0.592,
+            "context": null,
+            "coordinate_space": "original_pixels",
+            "evidence": null
+          }
+        }
+      ]
+    }
+  ],
+  "preliminary_spacing": {
+    "file": "artifacts/goal22-runs/boundary-word-spacing-diagnosis-20261001-v1/report.json",
+    "sha256": "9a490de786cdc82d4a5faf1e36e94928925f7519c007e8b930a2e57fe56592a5"
+  },
+  "fixed_splits": [
+    {
+      "arm": "v44-native",
+      "input_manifest": {
+        "file": "artifacts/goal22-runs/two-heading-completion-evaluation-20261001-v1/v44-native/input-manifest.json",
+        "sha256": "2f55a050023dea5cccb3c85b60f1b3bd525c4d36d1f273da6cc4e2d11a0c02ac"
+      }
+    },
+    {
+      "arm": "v44-csv",
+      "input_manifest": {
+        "file": "artifacts/goal22-runs/two-heading-completion-evaluation-20261001-v1/v44-csv/input-manifest.json",
+        "sha256": "29d0c7f38d3d4135b98604cf1315b9d9406058c6adc6a9ca2af17e5a56f73da6"
+      }
+    },
+    {
+      "arm": "v46-native",
+      "input_manifest": {
+        "file": "artifacts/goal22-runs/two-heading-completion-evaluation-20261001-v1/v46-native/input-manifest.json",
+        "sha256": "9326ed62c3e3e41c8d314636d53e02292b93a02ed71322b86b1bf4a6a298ddc2"
+      }
+    },
+    {
+      "arm": "v46-csv",
+      "input_manifest": {
+        "file": "artifacts/goal22-runs/two-heading-completion-evaluation-20261001-v1/v46-csv/input-manifest.json",
+        "sha256": "b2f2bd86eae190714596df4ce4dc7d5e5eb7fb091f66325584b999e2e3f7601a"
+      }
+    }
+  ],
+  "acceptance": {
+    "policy": {
+      "file": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "bars": {
+      "file": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "product_bars_unchanged": true,
+    "metrics": [
+      "full native OCR geometry, literal text, roles and character error",
+      "native marker matching and axis geometry",
+      "all exported CSV values, phases, confidence and safety"
+    ],
+    "guards": [
+      "unknown or participant words cannot use measured phase-word spacing",
+      "no supplied or normalized text",
+      "failed or incomplete rereads preserve the original region",
+      "all downstream changes and regressions retained"
+    ]
+  },
+  "budget": {
+    "native_runs_per_arm": 1,
+    "csv_runs_per_arm": 1,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_runs": 0
+  },
+  "limitations": [
+    "Replay reuses final readings and is not a complete recognition run.",
+    "Seven candidate splits are not seven measured OCR gains.",
+    "Visual inspection of the two distinct synthetic layouts confirms ink separation; it does not assign replacement text."
+  ],
+  "production_approved": false,
+  "goal22_complete": false
+}
