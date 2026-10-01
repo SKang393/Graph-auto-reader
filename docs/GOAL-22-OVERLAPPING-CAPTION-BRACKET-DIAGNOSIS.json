@@ -1,0 +1,1322 @@
+{
+  "status": "diagnostic_only",
+  "scope": "Existing original-pixel bracket predicate reproduced exactly. Only the diagnostic scan start expands from the bounding-box bottom to its vertical midpoint. No runtime behavior was changed.",
+  "candidate_counts": {
+    "v44-native": 6,
+    "v46-native": 7
+  },
+  "truth_role_counts": [
+    {
+      "arm": "v44-native",
+      "role": "annotation",
+      "count": 6
+    },
+    {
+      "arm": "v46-native",
+      "role": "annotation",
+      "count": 7
+    }
+  ],
+  "candidates": [
+    {
+      "arm": "v44-native",
+      "source_sha256": "baac6e29b0436f75c798b88edfa8720b2411400608e9766a9be1d5731667d5bd",
+      "crop": {
+        "x": 0,
+        "y": 585,
+        "width": 1200,
+        "height": 305,
+        "right": 1200,
+        "bottom": 890,
+        "area": 366000,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "fd2b3f9f-0915-3f94-492f-e01ca7152e06",
+        "polygon": {
+          "points": [
+            {
+              "x": 767,
+              "y": 0,
+              "is_finite": true
+            },
+            {
+              "x": 840,
+              "y": 0,
+              "is_finite": true
+            },
+            {
+              "x": 840,
+              "y": 19,
+              "is_finite": true
+            },
+            {
+              "x": 767,
+              "y": 19,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 767,
+            "y": 0,
+            "width": 73,
+            "height": 19,
+            "left": 767,
+            "top": 0,
+            "right": 840,
+            "bottom": 19,
+            "center": {
+              "x": 803.5,
+              "y": 9.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9998598164982266,
+            "source_image": "Original"
+          },
+          {
+            "text": "follow-up",
+            "confidence": 0.00018940267307288532,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow-np",
+            "confidence": 8.258505178627161e-05,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8563944840811948,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 26,
+      "measured_bracket": {
+        "left": 723,
+        "right": 893,
+        "row": 16,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "81da04e71a1c0d75aa1b2de93fd6e18f220d397942d28ef41e772b6f8b948c73",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.8077887136382506
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v44-native",
+      "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "crop": {
+        "x": 0,
+        "y": 581,
+        "width": 1200,
+        "height": 309,
+        "right": 1200,
+        "bottom": 890,
+        "area": 370800,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "e0e68e1b-5d19-5114-20dc-0cd577901901",
+        "polygon": {
+          "points": [
+            {
+              "x": 764,
+              "y": 2,
+              "is_finite": true
+            },
+            {
+              "x": 839,
+              "y": 2,
+              "is_finite": true
+            },
+            {
+              "x": 839,
+              "y": 21,
+              "is_finite": true
+            },
+            {
+              "x": 764,
+              "y": 21,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 764,
+            "y": 2,
+            "width": 75,
+            "height": 19,
+            "left": 764,
+            "top": 2,
+            "right": 839,
+            "bottom": 21,
+            "center": {
+              "x": 801.5,
+              "y": 11.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9997960991329617,
+            "source_image": "Original"
+          },
+          {
+            "text": "FOllow-up",
+            "confidence": 0.00034673714339045404,
+            "source_image": "Original"
+          },
+          {
+            "text": "follow-up",
+            "confidence": 0.00010814506544341013,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.9002044445788366,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 28,
+      "measured_bracket": {
+        "left": 721,
+        "right": 890,
+        "row": 18,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "a35cab5d5e87efe0b030064977a8dc3d13ccb2b80a1217422fa58897ccfe10e1",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.7714298258696832
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v44-native",
+      "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 863,
+        "height": 395,
+        "right": 863,
+        "bottom": 395,
+        "area": 340885,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-0-0:3185e8aa-c077-554e-92e0-0f5c14b48962",
+        "polygon": {
+          "points": [
+            {
+              "x": 545,
+              "y": 58,
+              "is_finite": true
+            },
+            {
+              "x": 637,
+              "y": 58,
+              "is_finite": true
+            },
+            {
+              "x": 637,
+              "y": 75,
+              "is_finite": true
+            },
+            {
+              "x": 545,
+              "y": 75,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 545,
+            "y": 58,
+            "width": 92,
+            "height": 17,
+            "left": 545,
+            "top": 58,
+            "right": 637,
+            "bottom": 75,
+            "center": {
+              "x": 591,
+              "y": 66.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9995298716757033,
+            "source_image": "Original"
+          },
+          {
+            "text": "Folow-up",
+            "confidence": 0.0006675791947588008,
+            "source_image": "Original"
+          },
+          {
+            "text": "FOllow-up",
+            "confidence": 0.0006093834726936757,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8367548967889954,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 81,
+      "measured_bracket": {
+        "left": 522,
+        "right": 644,
+        "row": 71,
+        "hook_depth": 3,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "0f131a7cf63c1c0d50afd6c75b0767636f9b37664620caa9c283f766a061f19a",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.827523074520037
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v44-native",
+      "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-0-0:721a4dbd-c5c4-91d3-b772-e35873b83ba4",
+        "polygon": {
+          "points": [
+            {
+              "x": 941,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1036,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1036,
+              "y": 94,
+              "is_finite": true
+            },
+            {
+              "x": 941,
+              "y": 94,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 941,
+            "y": 74,
+            "width": 95,
+            "height": 20,
+            "left": 941,
+            "top": 74,
+            "right": 1036,
+            "bottom": 94,
+            "center": {
+              "x": 988.5,
+              "y": 84,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9997324281268649,
+            "source_image": "Original"
+          },
+          {
+            "text": "FOllow-up",
+            "confidence": 0.00033464538077709454,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow-uP",
+            "confidence": 0.0002592057309232698,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8608224454342152,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 102,
+      "measured_bracket": {
+        "left": 875,
+        "right": 1086,
+        "row": 90,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "7e64e623efef95be93fd73e6de2ee0ea7e986df54c1e268ed629433711779d73",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.9220552832490071
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v44-native",
+      "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-0-0:9e98607c-34e8-dc3a-3d3c-154e3429823d",
+        "polygon": {
+          "points": [
+            {
+              "x": 943,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1039,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1039,
+              "y": 94,
+              "is_finite": true
+            },
+            {
+              "x": 943,
+              "y": 94,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 943,
+            "y": 74,
+            "width": 96,
+            "height": 20,
+            "left": 943,
+            "top": 74,
+            "right": 1039,
+            "bottom": 94,
+            "center": {
+              "x": 991,
+              "y": 84,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.999707923995124,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow-uP",
+            "confidence": 0.0004705005488459797,
+            "source_image": "Original"
+          },
+          {
+            "text": "Folow-up",
+            "confidence": 0.00031084683379763834,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8629620201932806,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 96,
+      "measured_bracket": {
+        "left": 879,
+        "right": 1090,
+        "row": 90,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "3aa02a444697ae07963eeb4c3b754be1afd3aa64926f9b45f720b3c871afc832",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.9436104062500009
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v44-native",
+      "source_sha256": "c4760964a8a182261f8eb38777565b8820f8390c7dce1439c53182348601d40f",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-0-0:9ec8bf80-3210-ed3d-6dc2-20a85255841c",
+        "polygon": {
+          "points": [
+            {
+              "x": 936,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1031,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1031,
+              "y": 94,
+              "is_finite": true
+            },
+            {
+              "x": 936,
+              "y": 94,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 936,
+            "y": 74,
+            "width": 95,
+            "height": 20,
+            "left": 936,
+            "top": 74,
+            "right": 1031,
+            "bottom": 94,
+            "center": {
+              "x": 983.5,
+              "y": 84,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9996298684014214,
+            "source_image": "Original"
+          },
+          {
+            "text": "FOllow-up",
+            "confidence": 0.000689633400921537,
+            "source_image": "Original"
+          },
+          {
+            "text": "Folow-up",
+            "confidence": 0.00023789718418436854,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8108816222768958,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 101,
+      "measured_bracket": {
+        "left": 875,
+        "right": 1085,
+        "row": 90,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "6b73788d80406ae52f2f001e5840096cef77fe37da64d43a706f0090778b1d40",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.9052631578947369
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "baac6e29b0436f75c798b88edfa8720b2411400608e9766a9be1d5731667d5bd",
+      "crop": {
+        "x": 0,
+        "y": 585,
+        "width": 1200,
+        "height": 305,
+        "right": 1200,
+        "bottom": 890,
+        "area": 366000,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "6425dcf4-34c8-f96e-3790-d0e4e78201b2",
+        "polygon": {
+          "points": [
+            {
+              "x": 767,
+              "y": 0,
+              "is_finite": true
+            },
+            {
+              "x": 841,
+              "y": 0,
+              "is_finite": true
+            },
+            {
+              "x": 841,
+              "y": 19,
+              "is_finite": true
+            },
+            {
+              "x": 767,
+              "y": 19,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 767,
+            "y": 0,
+            "width": 74,
+            "height": 19,
+            "left": 767,
+            "top": 0,
+            "right": 841,
+            "bottom": 19,
+            "center": {
+              "x": 804,
+              "y": 9.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9958760937054952,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow -up",
+            "confidence": 0.007546882596648318,
+            "source_image": "Original"
+          },
+          {
+            "text": "Folow-up",
+            "confidence": 0.004260570382182006,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8745358064994312,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 24,
+      "measured_bracket": {
+        "left": 723,
+        "right": 893,
+        "row": 16,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "81da04e71a1c0d75aa1b2de93fd6e18f220d397942d28ef41e772b6f8b948c73",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.7968726499404364
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 863,
+        "height": 395,
+        "right": 863,
+        "bottom": 395,
+        "area": 340885,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-0-0:6a8679a7-b4fa-1789-af99-fcafea9ec2f9",
+        "polygon": {
+          "points": [
+            {
+              "x": 544,
+              "y": 56,
+              "is_finite": true
+            },
+            {
+              "x": 641,
+              "y": 56,
+              "is_finite": true
+            },
+            {
+              "x": 641,
+              "y": 76,
+              "is_finite": true
+            },
+            {
+              "x": 544,
+              "y": 76,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 544,
+            "y": 56,
+            "width": 97,
+            "height": 20,
+            "left": 544,
+            "top": 56,
+            "right": 641,
+            "bottom": 76,
+            "center": {
+              "x": 592.5,
+              "y": 66,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9917418162027994,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow -up",
+            "confidence": 0.005824496950267744,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow-uP",
+            "confidence": 0.005749491069170885,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8534682621439421,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 79,
+      "measured_bracket": {
+        "left": 522,
+        "right": 644,
+        "row": 71,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "0f131a7cf63c1c0d50afd6c75b0767636f9b37664620caa9c283f766a061f19a",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.9200129384048461
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "ec6bd084a69fae4600a09cc2d87af527ad959d9acceebcfd70c7555d2273c5de",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-138-0:379e6d54-93db-57ab-47b9-cb9704139285",
+        "polygon": {
+          "points": [
+            {
+              "x": 935,
+              "y": 76,
+              "is_finite": true
+            },
+            {
+              "x": 1027,
+              "y": 77,
+              "is_finite": true
+            },
+            {
+              "x": 1026,
+              "y": 95,
+              "is_finite": true
+            },
+            {
+              "x": 934,
+              "y": 93,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 934,
+            "y": 76,
+            "width": 93,
+            "height": 19,
+            "left": 934,
+            "top": 76,
+            "right": 1027,
+            "bottom": 95,
+            "center": {
+              "x": 980.5,
+              "y": 85.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9931460751427544,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow-uP",
+            "confidence": 0.012101845084083844,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow -up",
+            "confidence": 0.011570773374068997,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8574009262479378,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 98,
+      "measured_bracket": {
+        "left": 869,
+        "right": 1080,
+        "row": 92,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "dac83ba28ae36457543197113b611daafd3bb2679a845a5361d02d09b23f45be",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.9026839253960078
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-0-0:f78a1f12-5700-d80c-bb46-6b3eb154a49a",
+        "polygon": {
+          "points": [
+            {
+              "x": 943,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1039,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1039,
+              "y": 94,
+              "is_finite": true
+            },
+            {
+              "x": 943,
+              "y": 94,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 943,
+            "y": 74,
+            "width": 96,
+            "height": 20,
+            "left": 943,
+            "top": 74,
+            "right": 1039,
+            "bottom": 94,
+            "center": {
+              "x": 991,
+              "y": 84,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9948159986072116,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow -up",
+            "confidence": 0.008351194615434952,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow-uP",
+            "confidence": 0.007453851169381327,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.902318397782196,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 96,
+      "measured_bracket": {
+        "left": 879,
+        "right": 1090,
+        "row": 90,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "3aa02a444697ae07963eeb4c3b754be1afd3aa64926f9b45f720b3c871afc832",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.9436104062500009
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "a84e52c6bb0974832642fad174ba40280f69d515c3a84ba8782e59c57f71d6c3",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-138-0:1cae837c-bfbf-7c64-e79d-61155c1b0a15",
+        "polygon": {
+          "points": [
+            {
+              "x": 939,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1030,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1030,
+              "y": 94,
+              "is_finite": true
+            },
+            {
+              "x": 939,
+              "y": 94,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 939,
+            "y": 74,
+            "width": 91,
+            "height": 20,
+            "left": 939,
+            "top": 74,
+            "right": 1030,
+            "bottom": 94,
+            "center": {
+              "x": 984.5,
+              "y": 84,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9929738773239983,
+            "source_image": "Original"
+          },
+          {
+            "text": "Folow-up",
+            "confidence": 0.00893140050930002,
+            "source_image": "Original"
+          },
+          {
+            "text": "FolloW-up",
+            "confidence": 0.008565701163783771,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8827580983497145,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 96,
+      "measured_bracket": {
+        "left": 875,
+        "right": 1085,
+        "row": 90,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "3093c13ca7466c2fd86d9987c03fb71f36769fbcc16b6efce52ed65c0751bae8",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.945054945054945
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "c4760964a8a182261f8eb38777565b8820f8390c7dce1439c53182348601d40f",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-0-0:1a3643f3-5e86-8848-2dea-bfb37055138e",
+        "polygon": {
+          "points": [
+            {
+              "x": 936,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1030,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1030,
+              "y": 94,
+              "is_finite": true
+            },
+            {
+              "x": 936,
+              "y": 94,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 936,
+            "y": 74,
+            "width": 94,
+            "height": 20,
+            "left": 936,
+            "top": 74,
+            "right": 1030,
+            "bottom": 94,
+            "center": {
+              "x": 983,
+              "y": 84,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9933449957105849,
+            "source_image": "Original"
+          },
+          {
+            "text": "FolloW-up",
+            "confidence": 0.009613992678006507,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow-uP",
+            "confidence": 0.009261738695333387,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8900266602734178,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 100,
+      "measured_bracket": {
+        "left": 875,
+        "right": 1085,
+        "row": 90,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "6b73788d80406ae52f2f001e5840096cef77fe37da64d43a706f0090778b1d40",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.9148936170212766
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "5ba2bc58eb55b8dbca25e9b7ae7511fc8b7d4c8b8f92c0918e433bacea5b4a68",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "window-138-0:74b52f97-96b4-f812-7368-6ce6215286bc",
+        "polygon": {
+          "points": [
+            {
+              "x": 939,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1030,
+              "y": 74,
+              "is_finite": true
+            },
+            {
+              "x": 1030,
+              "y": 94,
+              "is_finite": true
+            },
+            {
+              "x": 939,
+              "y": 94,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 939,
+            "y": 74,
+            "width": 91,
+            "height": 20,
+            "left": 939,
+            "top": 74,
+            "right": 1030,
+            "bottom": 94,
+            "center": {
+              "x": 984.5,
+              "y": 84,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Follow-up",
+        "alternatives": [
+          {
+            "text": "Follow-up",
+            "confidence": 0.9958469072977701,
+            "source_image": "Original"
+          },
+          {
+            "text": "Follow -up",
+            "confidence": 0.006533433453802163,
+            "source_image": "Original"
+          },
+          {
+            "text": "FolloW-up",
+            "confidence": 0.005192946126700361,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.8738981239210784,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "band_top": 100,
+      "measured_bracket": {
+        "left": 875,
+        "right": 1085,
+        "row": 90,
+        "hook_depth": 4,
+        "overlaps_label": true
+      },
+      "truth_match": {
+        "truth_id": "780aefb17e038a2269c6614f85a1f15ba14065379fcf4d874195e18f6ab6c32c",
+        "text": "Follow-up",
+        "role": "annotation",
+        "iou": 0.945054945054945
+      },
+      "scope": "Geometry-only shadow. Explicit context and full pipeline behavior still require verification before any runtime change."
+    }
+  ],
+  "evidence": [
+    {
+      "file": "artifacts/goal22-runs/overlapping-caption-bracket-trace-20261001-v1/request.json",
+      "sha256": "556202095b26e26573d663e8139ba66f48f94085d805f94f44407d4764393c54"
+    },
+    {
+      "file": "artifacts/goal22-runs/overlapping-caption-bracket-trace-20261001-v1/bindings.json",
+      "sha256": "7c3456075413808638bba6506919d3c687becaa1dfb3f1c39adcff5f41df5b99"
+    },
+    {
+      "file": "artifacts/goal22-runs/overlapping-caption-bracket-trace-20261001-v1/report.json",
+      "sha256": "a48b8b20df1a68dca2015aaebd0ebb4c55bd2478aa33fb263b62e05ef919a71f"
+    },
+    {
+      "file": "artifacts/goal22-runs/overlapping-caption-bracket-trace-20261001-v1/status.json",
+      "sha256": "5a4c12bd193af804e24002e50658f74b92654f8771ef7498cf643472ad543e69"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Analyze-OverlappingCaptionBracketTrace.py",
+      "sha256": "e341d3237fb83561c6e6233e972ad763516c0fd3810ec6f5a4bb2ce5febd3f86"
+    },
+    {
+      "file": "artifacts/goal22-runs/overlapping-caption-bracket-trace-20261001-v1/analysis.json",
+      "sha256": "6a3dc552237c1ff077f62923a7915fa14f1987b232dea92e720e4cf3ad62863a"
+    },
+    {
+      "file": "src/GraphReader.Ocr/HeaderBracketEvidence.cs",
+      "sha256": "350714d56446b30d446124d1f51c39fb5103929a1542146e360c6378f5da7d63"
+    },
+    {
+      "file": "src/GraphReader.Ocr/HeaderLayoutRoleResolver.cs",
+      "sha256": "1df1935198317e6ca2de48b4531bb987b1d1c45b3a8e1a66af15cca264d2629f"
+    }
+  ],
+  "new_model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "schema": "graphreader.overlapping-caption-bracket-diagnosis.v1",
+  "base_commit": "00eda0ef7d3afcf12d1e322e9241e1b4bcee6efa",
+  "failure_mode": "The recognized text rectangle includes a spanning bracket at its lower edge. Searching only below the rectangle misses the actual two-hook bracket, so a nearby caption stays a phase heading.",
+  "responsible_subsystem": "HeaderBracketEvidence scan boundary and HeaderLayoutRoleResolver bracket context",
+  "proposed_isolated_change": "Offer a role-resolution-only bracket search from the lower half of the recognized rectangle. Keep the existing spanning-line, two downward hook, width, depth and heading-row boundary checks. Keep the default below-box predicate for every other caller. Preserve numeric text, explicit contexts, reviewed decisions and standalone phase codes. Supply no text or phase answer.",
+  "metric_and_bar": {
+    "role": "Per-item correctness under ml/policy/acceptance-bars.json, with no new threshold or scene-exactness gate. The geometric shadow gives13annotation candidates, not a claim of runtime gains.",
+    "regression": "Retain all earlier correct readings, marker matches and CSV values, with finite original-pixel provenance, valid calibration and zero wrong-scale or duplicate exports.",
+    "policy": {
+      "file": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    }
+  },
+  "fixed_splits": "Same owned synthetic train/dev sources and denominators as the completed session-run pitch comparison. No private or sealed data.",
+  "budget": {
+    "native_runs_per_arm": 1,
+    "csv_runs_per_arm": 1,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_runs": 0
+  },
+  "trace_seconds": 5.3485076,
+  "trace_total_seconds": 17.5562427,
+  "limitations": [
+    "Geometric shadow uses final observed header bands; actual pre-recovery role resolution may differ and requires full workflow measurement.",
+    "Short brackets, missing hooks, absent corroborating headings and protected role evidence remain unchanged."
+  ]
+}

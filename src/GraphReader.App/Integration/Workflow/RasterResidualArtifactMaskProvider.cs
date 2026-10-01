@@ -98,8 +98,9 @@ public sealed class RasterResidualArtifactMaskProvider
     private const float IntersectionConfidence = 0.90f;
     private const float StructuralConfirmationBonus = 0.02f;
 
+    public const string CompositionVersion = "raster-residual-v3";
     public const string ConfigurationFingerprint =
-        "raster-residual-v2;gray<=196;seed>=0.5;component=8;arrow-span>=14;" +
+        CompositionVersion + ";gray<=196;seed>=0.5;component=8;arrow-span>=14;arrow-tail-ray-intersects-label;" +
         "bracket-span>=14;intersection-arm=5..64;intersection-radius=2;nms=6;" +
         "compact-review-span<=13;intersection-pair-span>13;legend-left-gap<=3.5h";
 
@@ -331,6 +332,7 @@ public sealed class RasterResidualArtifactMaskProvider
 
         OcrRectangle? matched = annotations
             .Where(annotation => !Contains(plot, annotation.Center))
+            .Where(annotation => TailRayIntersectsLabel(annotation, head, tail, horizontal))
             .OrderBy(annotation => Distance(annotation, tail))
             .Select(static annotation => (OcrRectangle?)annotation)
             .FirstOrDefault();
@@ -348,8 +350,21 @@ public sealed class RasterResidualArtifactMaskProvider
         classification = new Classification(
             RasterResidualArtifactCategory.AnnotationArrow,
             AddStructuralBonus(ArrowConfidence, component.ConnectorFraction),
-            "asymmetric shaft/head geometry directed from out-of-plot annotation OCR");
+            "asymmetric shaft/head geometry with its backward tail ray intersecting out-of-plot annotation OCR");
         return true;
+    }
+
+    private static bool TailRayIntersectsLabel(
+        OcrRectangle label, PixelPoint head, PixelPoint tail, bool horizontal)
+    {
+        // Proximity alone lets a wide caption above a graph turn a plotted
+        // connector and marker into an arrow. The shaft must lead from the
+        // label's actual box; unsupported associations stay reviewable.
+        return horizontal
+            ? label.Top <= tail.Y && label.Bottom >= tail.Y &&
+                (head.X < tail.X ? label.Right >= tail.X : label.Left <= tail.X)
+            : label.Left <= tail.X && label.Right >= tail.X &&
+                (head.Y < tail.Y ? label.Bottom >= tail.Y : label.Top <= tail.Y);
     }
 
     private static bool IsBracket(Component component)

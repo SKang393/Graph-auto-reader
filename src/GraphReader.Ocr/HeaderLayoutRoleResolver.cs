@@ -9,7 +9,7 @@ namespace GraphReader.Ocr;
 /// </summary>
 public static class HeaderLayoutRoleResolver
 {
-    public const string CompositionVersion = "detached-header-note-and-bracket-context-v3";
+    public const string CompositionVersion = "detached-header-note-and-overlapping-bracket-context-v4";
     private const double MinimumVerticalOverlapRatio = 0.35;
     private const double DetachedNoteConfidence = 0.64;
 
@@ -95,7 +95,7 @@ public static class HeaderLayoutRoleResolver
                 context?.ExplicitRoleHint is null && context?.NearPhaseDivider is not true &&
                 !GraphTextRoleClassifier.IsStandalonePhaseCode(region.Text) &&
                 (bandTop - region.Polygon.Bounds.Bottom >= typicalHeight ||
-                 brackets?.HasBracketBelow(region.Polygon.Bounds, bandTop, cancellationToken) == true))
+                 brackets?.HasBracketBelowOrOverlapping(region.Polygon.Bounds, bandTop, cancellationToken) == true))
             {
                 detached.Add(region.RegionId);
             }

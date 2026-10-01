@@ -29,6 +29,14 @@ public sealed class HeaderBracketEvidence
     }
 
     public bool HasBracketBelow(OcrRectangle label, double lowerBoundary,
+        CancellationToken cancellationToken = default) =>
+        HasBracket(label, lowerBoundary, includeLowerHalf: false, cancellationToken);
+
+    public bool HasBracketBelowOrOverlapping(OcrRectangle label, double lowerBoundary,
+        CancellationToken cancellationToken = default) =>
+        HasBracket(label, lowerBoundary, includeLowerHalf: true, cancellationToken);
+
+    private bool HasBracket(OcrRectangle label, double lowerBoundary, bool includeLowerHalf,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -41,7 +49,10 @@ public sealed class HeaderBracketEvidence
         int right = Math.Min(image.Width, (int)Math.Ceiling(label.Right + label.Width));
         int bottom = Math.Min((int)Math.Ceiling(label.Bottom + label.Height),
             Math.Min(image.Height - depth - 2, (int)Math.Floor(lowerBoundary) - depth - 1));
-        for (int y = (int)Math.Floor(label.Bottom); y < bottom; y++)
+        // Detector boxes can include the bracket beneath the actual letters.
+        // Only role resolution opts in; glyph recovery keeps its below-box scan.
+        double searchTop = includeLowerHalf ? label.Center.Y : label.Bottom;
+        for (int y = (int)Math.Floor(searchTop); y < bottom; y++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             int start = -1, last = -1;

@@ -89,6 +89,39 @@ public sealed class RasterResidualArtifactMaskProviderTests
     }
 
     [TestMethod]
+    [DataRow(0, "aligned", true)]
+    [DataRow(1, "aligned", true)]
+    [DataRow(2, "aligned", true)]
+    [DataRow(3, "aligned", true)]
+    [DataRow(0, "perpendicular", false)]
+    [DataRow(1, "perpendicular", false)]
+    [DataRow(2, "perpendicular", false)]
+    [DataRow(3, "perpendicular", false)]
+    [DataRow(0, "beyond-head", false)]
+    [DataRow(1, "beyond-head", false)]
+    [DataRow(2, "beyond-head", false)]
+    [DataRow(3, "beyond-head", false)]
+    [DataRow(0, "competing", true)]
+    [DataRow(1, "competing", true)]
+    [DataRow(2, "competing", true)]
+    [DataRow(3, "competing", true)]
+    public async Task AnnotationArrowRequiresLabelBehindAndAlongShaft(
+        int quarterTurns, string annotationLayout, bool expectedArrow)
+    {
+        TestInputs inputs = CreateCompositeInputs(quarterTurns: quarterTurns, annotationLayout: annotationLayout);
+        byte[] original = inputs.Raster.CreateOcrImage().Pixels.ToArray();
+
+        RasterResidualArtifactMaskResult result = await new RasterResidualArtifactMaskProvider().AnalyzeAsync(
+            inputs.Raster, inputs.Axis, inputs.Ocr, inputs.Seed, CancellationToken.None);
+
+        Assert.AreEqual(expectedArrow, result.Regions.Any(static region =>
+            region.Category == RasterResidualArtifactCategory.AnnotationArrow));
+        CollectionAssert.AreEqual(original, inputs.Raster.CreateOcrImage().Pixels.ToArray());
+        if (!expectedArrow)
+            Assert.IsTrue(result.Warnings.Any(static warning => warning.Contains("reviewable", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public async Task AnalyzeAsyncHonorsPreCanceledToken()
     {
         TestInputs inputs = CreateCompositeInputs();
@@ -104,10 +137,11 @@ public sealed class RasterResidualArtifactMaskProviderTests
             source.Token));
     }
 
-    private static TestInputs CreateCompositeInputs(int crossArmLength = 0, bool connectedCross = false)
+    private static TestInputs CreateCompositeInputs(
+        int crossArmLength = 0, bool connectedCross = false, int quarterTurns = 0, string annotationLayout = "aligned")
     {
-        const int width = 160;
-        const int height = 110;
+        int width = 160;
+        int height = 110;
         var gray = Enumerable.Repeat((byte)255, width * height).ToArray();
 
         DrawArrow(gray, width);
@@ -128,6 +162,29 @@ public sealed class RasterResidualArtifactMaskProviderTests
                 DrawLine(gray, width, 65, 32, 95, 32);
         }
 
+        PixelPoint Rotate(double x, double y)
+        {
+            int currentWidth = 160, currentHeight = 110;
+            for (int turn = 0; turn < quarterTurns; turn++)
+            {
+                (x, y) = (currentHeight - 1 - y, x);
+                (currentWidth, currentHeight) = (currentHeight, currentWidth);
+            }
+            return new PixelPoint(x, y);
+        }
+        if (quarterTurns != 0)
+        {
+            width = quarterTurns % 2 == 0 ? 160 : 110;
+            height = quarterTurns % 2 == 0 ? 110 : 160;
+            var rotated = new byte[gray.Length];
+            for (int y = 0; y < 110; y++)
+            for (int x = 0; x < 160; x++)
+            {
+                PixelPoint point = Rotate(x, y);
+                rotated[Index(width, (int)point.X, (int)point.Y)] = gray[Index(160, x, y)];
+            }
+            gray = rotated;
+        }
         string sha256 = Convert.ToHexStringLower(SHA256.HashData(gray));
         var raster = new ProductionDecodedRaster(
             width,
@@ -144,18 +201,18 @@ public sealed class RasterResidualArtifactMaskProviderTests
         var geometry = new AxisGeometryResult(
             AxisGeometryCoordinateSpaces.OriginalPixels,
             new PlotPolygon(
-                new PixelPoint(10, 95),
-                new PixelPoint(105, 95),
-                new PixelPoint(105, 10),
-                new PixelPoint(10, 10)),
+                Rotate(10, 95),
+                Rotate(105, 95),
+                Rotate(105, 10),
+                Rotate(10, 10)),
             new AxisLineFit(
-                new GeometryLineSegment(new PixelPoint(10, 95), new PixelPoint(105, 95)),
+                new GeometryLineSegment(Rotate(10, 95), Rotate(105, 95)),
                 0.98,
                 0,
                 1,
                 ["x"]),
             new AxisLineFit(
-                new GeometryLineSegment(new PixelPoint(10, 95), new PixelPoint(10, 10)),
+                new GeometryLineSegment(Rotate(10, 95), Rotate(10, 10)),
                 0.98,
                 0,
                 1,
@@ -173,7 +230,23 @@ public sealed class RasterResidualArtifactMaskProviderTests
         OcrRegion annotation = Region("annotation", 122, 75, 30, 9, OcrTextRole.Annotation, "change");
         OcrRegion legend = Region("legend", 130, 19, 24, 9, OcrTextRole.LegendText, "Series A");
         OcrRegion other = Region("other", 20, 15, 9, 7, OcrTextRole.Other, "note");
-        OcrRegion[] regions = [annotation, legend, other];
+        OcrRegion[] labels = annotationLayout switch
+        {
+            "aligned" => [annotation],
+            "perpendicular" => [Region("annotation", 112, 40, 40, 9, OcrTextRole.Annotation, "caption")],
+            "beyond-head" => [Region("annotation", 0, 25, 10, 75, OcrTextRole.Annotation, "caption")],
+            "competing" => [Region("nearer", 115, 68, 40, 9, OcrTextRole.Annotation, "caption"), annotation],
+            _ => throw new ArgumentException("Unknown annotation fixture.", nameof(annotationLayout)),
+        };
+        OcrRegion[] regions = [.. labels, legend, other];
+        regions = regions.Select(region => region with
+        {
+            Polygon = new OcrPolygon(region.Polygon.Points.Select(point =>
+            {
+                PixelPoint rotated = Rotate(point.X, point.Y);
+                return new OcrPoint(rotated.X, rotated.Y);
+            }).ToArray()),
+        }).ToArray();
         var ocr = new OcrResult(
             OcrContract.Version,
             Guid.Parse("30000000-0000-0000-0000-000000000022").ToString("D"),

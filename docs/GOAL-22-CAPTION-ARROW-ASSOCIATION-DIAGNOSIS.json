@@ -1,0 +1,236 @@
+{
+  "status": "diagnosed_before_repair",
+  "base_commit": "00eda0ef7d3afcf12d1e322e9241e1b4bcee6efa",
+  "failure_mode": "Correcting a bracket caption from PhaseHeading to Annotation exposes a residual-mask association defect. An asymmetric plotted connector and marker can be called an annotation arrow solely because it lies within 1.5 label widths, even when its shaft is perpendicular to the direction of the annotation.",
+  "responsible_subsystem": "RasterResidualArtifactMaskProvider.TryClassifyArrow annotation-to-tail association.",
+  "measured": {
+    "role_changed_panels": 14,
+    "new_arrow_masks": 3,
+    "changes": [
+      {
+        "arm": "v44-native",
+        "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+        "crop": [
+          0,
+          0,
+          863,
+          395
+        ],
+        "newly_masked_pixel_count": 195,
+        "new_regions": [
+          {
+            "category": "AnnotationArrow",
+            "bounds": {
+              "x": 578,
+              "y": 158,
+              "width": 63,
+              "height": 10,
+              "right": 640,
+              "bottom": 167
+            },
+            "confidence": 0.96,
+            "source_ink_pixel_count": 195,
+            "reason": "asymmetric shaft/head geometry directed from out-of-plot annotation OCR"
+          }
+        ],
+        "new_annotations": [
+          {
+            "text": "Follow-up",
+            "bounds": {
+              "x": 545,
+              "y": 58,
+              "width": 92,
+              "height": 17,
+              "left": 545,
+              "top": 58,
+              "right": 637,
+              "bottom": 75,
+              "center": {
+                "x": 591,
+                "y": 66.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      {
+        "arm": "v46-native",
+        "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+        "crop": [
+          0,
+          0,
+          863,
+          395
+        ],
+        "newly_masked_pixel_count": 195,
+        "new_regions": [
+          {
+            "category": "AnnotationArrow",
+            "bounds": {
+              "x": 578,
+              "y": 158,
+              "width": 63,
+              "height": 10,
+              "right": 640,
+              "bottom": 167
+            },
+            "confidence": 0.96,
+            "source_ink_pixel_count": 195,
+            "reason": "asymmetric shaft/head geometry directed from out-of-plot annotation OCR"
+          }
+        ],
+        "new_annotations": [
+          {
+            "text": "Follow-up",
+            "bounds": {
+              "x": 544,
+              "y": 56,
+              "width": 97,
+              "height": 20,
+              "left": 544,
+              "top": 56,
+              "right": 641,
+              "bottom": 76,
+              "center": {
+                "x": 592.5,
+                "y": 66,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      {
+        "arm": "v46-native",
+        "source_sha256": "ec6bd084a69fae4600a09cc2d87af527ad959d9acceebcfd70c7555d2273c5de",
+        "crop": [
+          0,
+          0,
+          1338,
+          492
+        ],
+        "newly_masked_pixel_count": 182,
+        "new_regions": [
+          {
+            "category": "AnnotationArrow",
+            "bounds": {
+              "x": 969,
+              "y": 202,
+              "width": 41,
+              "height": 13,
+              "right": 1009,
+              "bottom": 214
+            },
+            "confidence": 0.94,
+            "source_ink_pixel_count": 182,
+            "reason": "asymmetric shaft/head geometry directed from out-of-plot annotation OCR"
+          }
+        ],
+        "new_annotations": [
+          {
+            "text": "Follow-up",
+            "bounds": {
+              "x": 934,
+              "y": 76,
+              "width": 93,
+              "height": 19,
+              "left": 934,
+              "top": 76,
+              "right": 1027,
+              "bottom": 95,
+              "center": {
+                "x": 980.5,
+                "y": 85.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      }
+    ],
+    "trace_seconds": 3.8988789,
+    "total_trace_seconds": 15.747689,
+    "native_marker_truth_matches_preserved": true,
+    "native_marker_centers_shifted": 3,
+    "csv_rows_preserved": 866,
+    "first_audit_rejected": "Caption-only audit required identical physical marker stages and calibration. It failed and remains preserved."
+  },
+  "repair": "Filter candidate annotation boxes by intersection with the axis-aligned ray from the measured shaft tail away from its head, then retain the existing nearest-box distance and arrow topology requirements. Require no guessed text, role answer, new threshold or model. An unsupported association remains reviewable.",
+  "files_to_inspect": [
+    "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskProvider.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionDetectionMaskComposer.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+    "tests/GraphReader.App.Tests/RasterResidualArtifactMaskProviderTests.cs"
+  ],
+  "files_to_change": [
+    "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskProvider.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+    "tests/GraphReader.App.Tests/RasterResidualArtifactMaskProviderTests.cs"
+  ],
+  "runtime_impact": "Only residual arrow-to-annotation association and its cache identity change in addition to the pending caption fix. Existing masks, model weights, inference thresholds and calibration algorithms stay fixed.",
+  "validation": "OCR/App tests and clean native build; fixed V44 and closed V46 native/CSV comparisons; full before/after text, mask, marker, calibration and export audit. Measure all deltas and preserve prior correct truth matches.",
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "metric": "Existing per-item OCR/marker truth metrics and pixel-traced export checks; no new gate threshold. Overall Goal 22 remains incomplete.",
+  "splits": "Same owned synthetic train/dev inputs bound by the caption comparison; no new source, private or sealed inputs.",
+  "sealed_run_budget": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/caption-arrow-mask-trace-20261001-v1/request.json",
+      "sha256": "25f595ea015310d043c52744a1dfeb6c8aadede1af09d49937716893c0aa87a2"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-arrow-mask-trace-20261001-v1/bindings.json",
+      "sha256": "252478c4a4e7704b26a1a25ac5c4b00b4de8a3427d77c176cdd48a1cd407df80"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-arrow-mask-trace-20261001-v1/report.json",
+      "sha256": "2adf2001f36bb914e81a9c8852f81df9070321a2cc6837a5297de82e24739504"
+    },
+    {
+      "path": "artifacts/goal22-runs/caption-arrow-mask-trace-20261001-v1/status.json",
+      "sha256": "756d06410df2f203f481802be90114e0e6baa09607e1d1ba1e85e2f8377f293f"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v1/repair-summary.json",
+      "sha256": "3cc1693c42256f24e7dd936d0dfe00f57e48862e52fef711d39575e4d68e35ad"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v1/downstream-diagnosis.json",
+      "sha256": "96f37935d70d89a2096e8308650c2a96528e61c0f27177bbd6adfcac8fd0fd2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v1/audit-attempt-v1.py",
+      "sha256": "3dcc3ead55e940b8adcd347bf79aaab2fa6929aee9a549e0b15029ce89ecc292"
+    },
+    {
+      "path": "artifacts/goal22-runs/overlapping-caption-bracket-evaluation-20261001-v1/audit-attempt-v1.json",
+      "sha256": "f47ee46e5efcc26963c4535cc65481b307798cc85435af31b5e5407897459f89"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-CaptionArrowMaskTrace.py",
+      "sha256": "ac3a2811c2457e3803a1b2c96d6902f37b4f253da346a3027a3cee3d163c8d7a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-CaptionArrowMaskTrace.ps1",
+      "sha256": "c5a8cc2ab0e938f283580bec6ba9c33aedc892a22bba45e27d728a1c49820e4a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Diagnose-CaptionRoleDownstream.py",
+      "sha256": "49065b37dd52a25eccfbbb03dc30779c815bcbac953ec46a3e2e6a74887b91d8"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskProvider.cs",
+      "sha256": "944c18505af8e5ab47baeec058028a5a4686a3c2e7b62902e0bffda010df906d"
+    }
+  ]
+}

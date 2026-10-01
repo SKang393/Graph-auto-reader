@@ -66,10 +66,12 @@ public sealed class HeaderLayoutRoleResolverTests
     }
 
     [TestMethod]
-    public void MeasuredBracketSeparatesANearbyNoteWithoutChangingItsTextOrGeometry()
+    [DataRow(false)]
+    [DataRow(true)]
+    public void MeasuredBracketSeparatesANearbyNoteWithoutChangingItsTextOrGeometry(bool overlap)
     {
         var rows = Fixture();
-        OcrPolygon nearby = OcrPolygon.FromRectangle(new OcrRectangle(45, 47, 35, 10));
+        OcrPolygon nearby = OcrPolygon.FromRectangle(new OcrRectangle(45, 47, 35, overlap ? 16 : 10));
         var detected = rows.Detected.Select(r => r.RegionId == "note" ? r with { Polygon = nearby } : r).ToArray();
         var recognized = rows.Regions.Select(r => r.RegionId == "note" ? r with { Polygon = nearby } : r).ToArray();
         OcrImage image = BracketImage();
@@ -85,10 +87,12 @@ public sealed class HeaderLayoutRoleResolverTests
     }
 
     [TestMethod]
-    public void BracketDoesNotOverrideExplicitOrReviewedRolesOrStandalonePhaseCodes()
+    [DataRow(false)]
+    [DataRow(true)]
+    public void BracketDoesNotOverrideExplicitOrReviewedRolesOrStandalonePhaseCodes(bool overlap)
     {
         var rows = Fixture();
-        OcrPolygon nearby = OcrPolygon.FromRectangle(new OcrRectangle(45, 47, 35, 10));
+        OcrPolygon nearby = OcrPolygon.FromRectangle(new OcrRectangle(45, 47, 35, overlap ? 16 : 10));
         var recognized = rows.Regions.Select(r => r.RegionId == "note" ? r with { Polygon = nearby } : r).ToArray();
         var detected = rows.Detected.Select(r => r.RegionId == "note" ? r with { Polygon = nearby } : r).ToArray();
         foreach (OcrReviewStatus status in new[] { OcrReviewStatus.Accepted, OcrReviewStatus.Corrected, OcrReviewStatus.Rejected })
@@ -174,16 +178,20 @@ public sealed class HeaderLayoutRoleResolverTests
     }
 
     [TestMethod]
-    [DataRow("A", "A")]
-    [DataRow("Initial baseline", "Review Intervention")]
+    [DataRow("A", "A", false)]
+    [DataRow("Initial baseline", "Review Intervention", false)]
+    [DataRow("A", "A", true)]
+    [DataRow("Initial baseline", "Review Intervention", true)]
     public async Task PipelineSeparatesRoleCacheButReusesUnchangedRecognitionAndEmitsReviewWarning(
-        string leftHeading, string rightHeading)
+        string leftHeading, string rightHeading, bool overlap)
     {
         var rows = Fixture();
-        OcrRequest request = OcrTestFixtures.Request(rows.Detected) with
+        var detected = rows.Detected.Select(r => overlap && r.RegionId == "note"
+            ? r with { Polygon = OcrPolygon.FromRectangle(new OcrRectangle(45, 47, 35, 16)) } : r).ToArray();
+        OcrRequest request = OcrTestFixtures.Request(detected) with
         {
             PlotBounds = rows.Plot,
-            OriginalImage = OcrTestFixtures.Image(width: 160, height: 190),
+            OriginalImage = overlap ? BracketImage() : OcrTestFixtures.Image(width: 160, height: 190),
         };
         var recognizer = new StubTextRecognizer((crops, _) =>
             ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop =>

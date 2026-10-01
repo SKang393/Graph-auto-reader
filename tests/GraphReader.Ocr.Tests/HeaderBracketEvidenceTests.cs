@@ -21,6 +21,34 @@ public sealed class HeaderBracketEvidenceTests
     }
 
     [TestMethod]
+    [DataRow(1, 0)]
+    [DataRow(2, 15)]
+    public void RoleContextCanSeeABracketInsideTheLabelLowerEdgeWithoutChangingDefaultRecovery(int scale, int offset)
+    {
+        var fixture = Fixture(scale, offset);
+        var overlapping = new OcrRectangle(offset + 85 * scale, offset + 45 * scale, 60 * scale, 20 * scale);
+        byte[] before = fixture.Image.Pixels.ToArray();
+        var evidence = new HeaderBracketEvidence(fixture.Image);
+        Assert.IsFalse(evidence.HasBracketBelow(overlapping, offset + 72 * scale));
+        Assert.IsTrue(evidence.HasBracketBelowOrOverlapping(overlapping, offset + 72 * scale));
+        CollectionAssert.AreEqual(before, fixture.Image.Pixels.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow("underline")]
+    [DataRow("one-hook")]
+    [DataRow("upward")]
+    [DataRow("short-line")]
+    [DataRow("far-below")]
+    [DataRow("above-label")]
+    public void OverlappingRoleContextRetainsSpanningLineAndTwoHookRequirements(string defect)
+    {
+        var fixture = Fixture(defect: defect);
+        var overlapping = new OcrRectangle(85, 45, 60, 20);
+        Assert.IsFalse(new HeaderBracketEvidence(fixture.Image).HasBracketBelowOrOverlapping(overlapping, 72));
+    }
+
+    [TestMethod]
     [DataRow("underline")]
     [DataRow("one-hook")]
     [DataRow("upward")]
@@ -37,6 +65,7 @@ public sealed class HeaderBracketEvidenceTests
     {
         var fixture = Fixture();
         Assert.IsFalse(new HeaderBracketEvidence(fixture.Image).HasBracketBelow(fixture.Label, 63));
+        Assert.IsFalse(new HeaderBracketEvidence(fixture.Image).HasBracketBelowOrOverlapping(new(85, 45, 60, 20), 63));
     }
 
     [TestMethod]
@@ -47,10 +76,12 @@ public sealed class HeaderBracketEvidenceTests
         Assert.ThrowsExactly<ArgumentException>(() => new HeaderBracketEvidence(fixture.Image with { OriginalToImage = new(2, 2, 0, 0) }));
         var evidence = new HeaderBracketEvidence(fixture.Image);
         Assert.ThrowsExactly<ArgumentException>(() => evidence.HasBracketBelow(new(-1, 1, 20, 10), 72));
+        Assert.ThrowsExactly<ArgumentException>(() => evidence.HasBracketBelowOrOverlapping(new(-1, 1, 20, 10), 72));
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         Assert.ThrowsExactly<OperationCanceledException>(() => new HeaderBracketEvidence(fixture.Image, cancellation.Token));
         Assert.ThrowsExactly<OperationCanceledException>(() => evidence.HasBracketBelow(fixture.Label, 72, cancellation.Token));
+        Assert.ThrowsExactly<OperationCanceledException>(() => evidence.HasBracketBelowOrOverlapping(fixture.Label, 72, cancellation.Token));
     }
 
     private static (OcrImage Image, OcrRectangle Label) Fixture(int scale = 1, int offset = 0, string? defect = null)
@@ -62,7 +93,7 @@ public sealed class HeaderBracketEvidenceTests
             for (int y = offset + y0 * scale; y < offset + (y1 + 1) * scale; y++)
             for (int x = offset + x0 * scale; x < offset + (x1 + 1) * scale; x++) pixels[y * stride + x] = 0;
         }
-        int top = defect == "far-below" ? 80 : 61;
+        int top = defect == "far-below" ? 80 : defect == "above-label" ? 35 : 61;
         int left = defect == "short-line" ? 90 : 60, right = defect == "short-line" ? 110 : 170;
         Stroke(left, top, right, top);
         if (defect == "upward") { Stroke(left, top - 7, left, top); Stroke(right, top - 7, right, top); }
