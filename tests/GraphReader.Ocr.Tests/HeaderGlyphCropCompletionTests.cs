@@ -12,6 +12,68 @@ public sealed class HeaderGlyphCropCompletionTests
     private static readonly OcrRectangle Plot = new(30, 50, 220, 70);
 
     [TestMethod]
+    [DataRow(0.0)]
+    [DataRow(90.0)]
+    [DataRow(-90.0)]
+    public void PairedHeadingsCompleteOnlyTheExistingPhaseGlyph(double orientation)
+    {
+        var (detected, recognized, component) = Fixture();
+        detected[^1] = detected[^1] with { OrientationDegrees = orientation };
+        recognized[^1] = recognized[^1] with { Text = "A", Role = OcrTextRole.PhaseHeading };
+        int peers = orientation == 0 ? 1 : 2;
+        detected = [.. detected.Take(peers), detected[^1]];
+        recognized = [.. recognized.Take(peers), recognized[^1]];
+        var completed = HeaderGlyphCropCompletion.SelectCandidates([component], detected, recognized, Plot);
+        Assert.HasCount(1, completed);
+        Assert.AreEqual(component.Polygon, completed[0].Region.Polygon);
+        Assert.AreEqual("fragment", completed[0].SourceRegionId);
+        Assert.IsEmpty(HeaderGlyphTextRegionRecovery.SelectCandidates(
+            [OcrTestFixtures.Region("unrecognized", 190, 20, 9, 10)], detected, recognized, Plot));
+    }
+
+    [TestMethod]
+    public void PairedHeadingCompletionProtectsUnboundRolesAndDerivedReadings()
+    {
+        var (detected, recognized, component) = Fixture();
+        Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates([component], detected,
+            [recognized[0], recognized[1], recognized[^1]], Plot));
+        recognized[^1] = recognized[^1] with
+        {
+            Text = "A", Role = OcrTextRole.PhaseHeading, SourceImage = OcrSourceImage.Enhanced,
+        };
+        Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates([component], detected,
+            [recognized[0], recognized[^1]], Plot));
+    }
+
+    [TestMethod]
+    [DataRow(45.0)]
+    [DataRow(90.0)]
+    public void PairedHeadingCompletionRequiresHorizontalMeasuredInk(double orientation)
+    {
+        var (detected, recognized, component) = Fixture();
+        recognized[^1] = recognized[^1] with { Text = "A", Role = OcrTextRole.PhaseHeading };
+        Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates(
+            [component with { OrientationDegrees = orientation }], detected,
+            [recognized[0], recognized[^1]], Plot));
+    }
+
+    [TestMethod]
+    public void PairedHeadingCompletionRequiresAnIndependentBoundPeer()
+    {
+        var (detected, recognized, component) = Fixture();
+        recognized[^1] = recognized[^1] with { Text = "A", Role = OcrTextRole.PhaseHeading };
+        Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates([component], detected, [recognized[^1]], Plot));
+        foreach (OcrRegion peer in new[]
+        {
+            recognized[0] with { ReviewStatus = OcrReviewStatus.Rejected },
+            recognized[0] with { RegionId = "unbound" },
+            recognized[0] with { Polygon = component.Polygon },
+        })
+            Assert.IsEmpty(HeaderGlyphCropCompletion.SelectCandidates([component], detected,
+                [peer, recognized[^1]], Plot));
+    }
+
+    [TestMethod]
     [DataRow(-90.0)]
     [DataRow(90.0)]
     [DataRow(270.0)]
@@ -203,21 +265,28 @@ public sealed class HeaderGlyphCropCompletionTests
     }
 
     [TestMethod]
-    [DataRow("B", false, 0.0)]
-    [DataRow("8", false, 0.0)]
-    [DataRow("", false, 0.0)]
-    [DataRow("B", true, 0.0)]
-    [DataRow("A", false, -90.0)]
-    [DataRow("8", false, 90.0)]
-    [DataRow("", false, -90.0)]
-    [DataRow("A", true, -90.0)]
+    [DataRow("B", false, 0.0, 3)]
+    [DataRow("8", false, 0.0, 3)]
+    [DataRow("", false, 0.0, 3)]
+    [DataRow("B", true, 0.0, 3)]
+    [DataRow("A", false, -90.0, 3)]
+    [DataRow("8", false, 90.0, 3)]
+    [DataRow("", false, -90.0, 3)]
+    [DataRow("A", true, -90.0, 3)]
+    [DataRow("B", false, 0.0, 1)]
+    [DataRow("8", false, 0.0, 1)]
+    [DataRow("", false, 0.0, 1)]
+    [DataRow("B", true, 0.0, 1)]
+    [DataRow("B", false, 90.0, 2)]
     public async Task PipelineUsesASeparateOriginalCropAndReplacesOnlySuccessfulReadings(
-        string completedText, bool fail, double orientation)
+        string completedText, bool fail, double orientation, int peerHeadings)
     {
         var (detected, recognized, component) = Fixture();
         detected[^1] = detected[^1] with { OrientationDegrees = orientation };
-        if (orientation != 0)
+        if (orientation != 0 || peerHeadings < 3)
             recognized[^1] = recognized[^1] with { Text = "A", Role = OcrTextRole.PhaseHeading };
+        detected = [.. detected.Take(peerHeadings), detected[^1]];
+        recognized = [.. recognized.Take(peerHeadings), recognized[^1]];
         byte[] pixels = Enumerable.Repeat((byte)255, 260 * 130).ToArray();
         foreach (OcrRectangle rectangle in detected.Take(3).Select(static region => region.Polygon.Bounds).Append(component.Polygon.Bounds))
         for (int y = (int)rectangle.Top; y < rectangle.Bottom; y++)

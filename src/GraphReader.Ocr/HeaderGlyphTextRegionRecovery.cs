@@ -103,7 +103,7 @@ public static class HeaderGlyphTextRegionRecovery
 
     internal static OcrRectangle[] FindCorroboratedHeadingBand(
         IReadOnlyList<OcrDetectedRegion> detected, IReadOnlyList<OcrRegion> recognized,
-        OcrRectangle plot, CancellationToken cancellationToken)
+        OcrRectangle plot, CancellationToken cancellationToken, int minimumHeadingCount = 3)
     {
         OcrRectangle[] headings = HeadingBounds(detected, recognized, plot);
         OcrRectangle[] band = [];
@@ -118,7 +118,8 @@ public static class HeaderGlyphTextRegionRecovery
                 band = aligned;
             }
         }
-        if (band.Length < 3 || band.Select(static bounds => bounds.Center.X).Distinct().Count() < 3)
+        if (band.Length < minimumHeadingCount ||
+            band.Select(static bounds => bounds.Center.X).Distinct().Count() < minimumHeadingCount)
         {
             return [];
         }
