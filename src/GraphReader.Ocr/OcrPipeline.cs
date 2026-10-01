@@ -576,6 +576,64 @@ public sealed class OcrPipeline
                 recognitionResults.AddRange(recoveryResults);
                 detectedRegions = OcrCollections.Freeze(detectedRegions.Concat(recovered));
                 batches = batches.Concat(recoveryBatches).ToArray();
+                if (_options.EnableHeaderGlyphRecovery && request.PhaseDividerXs is not null)
+                {
+                    postprocessStopwatch.Stop();
+                    preprocessStopwatch.Start();
+                    IReadOnlyList<RecoveredHeaderWord> words;
+                    IReadOnlyList<IReadOnlyList<OcrCrop>> wordBatches;
+                    try
+                    {
+                        words = await HeaderFragmentWordRecovery.FindAsync(request.OriginalImage, detectedRegions,
+                            regions, request.PlotBounds, request.PhaseDividerXs, cancellationToken).ConfigureAwait(false);
+                        ValidateDetectedRegions(detectedRegions.Concat(words.Select(static word => word.Region)).ToArray());
+                        wordBatches = OcrCropBatcher.CreateBatches(request.OriginalImage,
+                            words.Select(static word => word.Region).ToArray(), cropOptions, cancellationToken);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+                    catch (Exception exception)
+                    {
+                        return FailureResult(request, Error("OCR_HEADER_WORD_RECOVERY_FAILED", exception.Message, "retry"),
+                            totalStopwatch.Elapsed.TotalMilliseconds, warnings, regionFailures);
+                    }
+                    preprocessStopwatch.Stop();
+                    var wordResults = new List<OcrRecognition>();
+                    foreach (var batch in wordBatches)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        try
+                        {
+                            var recognized = await _recognizer.RecognizeBatchAsync(batch, cancellationToken).ConfigureAwait(false);
+                            wordResults.AddRange(recognized);
+                            inferenceMilliseconds += recognized.Sum(static result => result.InferenceMilliseconds);
+                        }
+                        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+                        catch (Exception exception)
+                        {
+                            warnings.Add("ocr_recognition_batch_failed");
+                            wordResults.AddRange(batch.Select(crop => new OcrRecognition(crop.RegionId, crop.SourceImage, [], 0,
+                                Error("OCR_RECOGNITION_FAILED", exception.Message, "retry"))));
+                        }
+                    }
+                    postprocessStopwatch.Start();
+                    HashSet<string> failedWords = wordResults.Where(static r => r.Failure is not null)
+                        .Select(static r => r.RegionId).ToHashSet(StringComparer.Ordinal);
+                    IReadOnlyList<OcrRegion> wordRegions = OcrCollections.Freeze(MergeResults(
+                            words.Select(static word => word.Region).ToArray(), wordResults, request.PlotBounds, warnings)
+                        .Where(r => !failedWords.Contains(r.RegionId) && !string.IsNullOrWhiteSpace(r.Text))
+                        .Select(static r => r.Role is OcrTextRole.XTick or OcrTextRole.YTick ? r with { Role = OcrTextRole.Other } : r));
+                    HashSet<string> successfulWords = wordRegions.Select(static r => r.RegionId).ToHashSet(StringComparer.Ordinal);
+                    RecoveredHeaderWord[] replacedWords = words.Where(word => successfulWords.Contains(word.Region.RegionId)).ToArray();
+                    HashSet<string> wordFragmentIds = replacedWords.SelectMany(static word => word.SourceRegionIds).ToHashSet(StringComparer.Ordinal);
+                    regions = OcrCollections.Freeze(regions.Where(r => !wordFragmentIds.Contains(r.RegionId)).Concat(wordRegions));
+                    warnings.AddRange(replacedWords.SelectMany(word => word.SourceRegionIds.Select(id =>
+                        $"ocr_header_fragment_replaced:{id}:{word.Region.RegionId}")));
+                    warnings.AddRange(wordRegions.Select(static r => $"ocr_role_needs_review:{r.RegionId}:original_pixel_header_fragment_word_recovery"));
+                    regionFailures = OcrCollections.Freeze(regionFailures.Concat(ExtractRegionFailures(wordResults, warnings)));
+                    recognitionResults.AddRange(wordResults);
+                    detectedRegions = OcrCollections.Freeze(detectedRegions.Concat(words.Select(static word => word.Region)));
+                    batches = batches.Concat(wordBatches).ToArray();
+                }
                 crops = batches.SelectMany(static batch => batch).ToArray();
                 cacheKey = OcrCacheKeyDeriver.Create(crops, _recognizer, request, _options,
                     _detector.ConfigurationFingerprint);

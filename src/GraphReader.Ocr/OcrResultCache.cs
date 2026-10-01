@@ -116,6 +116,7 @@ public static class OcrCacheKeyDeriver
         {
             yield return HeaderGlyphTextRegionRecovery.CompositionVersion;
             yield return HeaderGlyphCropCompletion.CompositionVersion;
+            yield return HeaderFragmentWordRecovery.CompositionVersion;
             yield return HeaderWordSuffixRecovery.CompositionVersion;
         }
         if (options.EnableFramedLegendRoleResolution)
@@ -138,6 +139,9 @@ public static class OcrCacheKeyDeriver
         if (options.EnableInsidePlotAssembly)
         {
             yield return InsidePlotTextRegionAssembler.CompositionVersion;
+        }
+        if (options.EnableInsidePlotAssembly || options.EnableHeaderGlyphRecovery)
+        {
             yield return request.PhaseDividerXs is null
                 ? "phase_dividers_unavailable"
                 : request.PhaseDividerXs.Count == 0

@@ -1,0 +1,716 @@
+{
+  "schema": "graphreader.header-fragment-word-recovery-diagnosis.v1",
+  "base_commit": "282fed4d64262a8eeeb282495346d70da435a841",
+  "status": "frozen_before_implementation",
+  "failure_mode": "Missing or partly detected header words are recovered as isolated glyph crops. On current V46/server native dev, 11 false-positive glyph fragments belong to two missed headings: Criterion 3 and Alternating Treatments. Two additional glyph extras overlap a crowded heading and annotation; preserve ambiguous neighboring text.",
+  "responsible_subsystem": "Original-pixel header recovery groups no separated letters because MaximumLineGapHeightRatio is zero. The later word suffix path requires a bound heading and cannot assemble fully missed headings.",
+  "hypothesis": "After existing recovery, group original ink components on the unchanged corroborated header band using the existing word-completion overlap, gap and height envelope. Require at least two recovered header fragments, a horizontal word extent and no crossed phase divider or incompatible overlapping reading. Read each group in a separate batch. Only successful nonempty results replace wholly contained unreviewed fragments; never fabricate text or promote numeric results to ticks.",
+  "isolated_change": "Runtime crop grouping and recognition only. No model payload, model operating threshold, existing batch tensor or acceptance metric change.",
+  "dev_evidence": {
+    "current_false_positive_regions": {
+      "v44": 104,
+      "v46": 113
+    },
+    "current_geometry_misses": {
+      "v44": 56,
+      "v46": 15
+    },
+    "current_wrong_matched_readings": {
+      "v44": 44,
+      "v46": 19
+    },
+    "component_replay_panels": 62,
+    "component_replay_seconds": 12.0467795,
+    "geometry_groups_by_arm": {
+      "v44": 4,
+      "v46": 2
+    }
+  },
+  "geometry_diagnosis": [
+    {
+      "arm": "v44",
+      "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "groups": [
+        {
+          "box": [
+            673,
+            71,
+            841,
+            87
+          ],
+          "source_box": [
+            673,
+            71,
+            841,
+            87
+          ],
+          "component_count": 22,
+          "fragment_count": 6,
+          "replaced_readings": [
+            {
+              "text": "e",
+              "role": "Other",
+              "region_id": "header-glyph:2a93e6af-725a-2cf3-b74c-9d77e858280b",
+              "box": [
+                696,
+                75,
+                702,
+                83
+              ]
+            },
+            {
+              "text": "A",
+              "role": "PhaseHeading",
+              "region_id": "header-glyph:33b1680b-c13f-7f35-d28d-48c3195c6b2e",
+              "box": [
+                673,
+                73,
+                684,
+                83
+              ]
+            },
+            {
+              "text": "me",
+              "role": "Other",
+              "region_id": "header-glyph:3b0c79df-2e38-14a3-f234-6f2d4df562c5",
+              "box": [
+                799,
+                75,
+                818,
+                83
+              ]
+            },
+            {
+              "text": "at",
+              "role": "Other",
+              "region_id": "header-glyph:4223ac3e-0d44-67d2-55bf-27b3aaace0c8",
+              "box": [
+                783,
+                73,
+                798,
+                83
+              ]
+            },
+            {
+              "text": "ng",
+              "role": "Other",
+              "region_id": "header-glyph:60a71224-8118-4ae6-c567-768ea4b902a7",
+              "box": [
+                738,
+                76,
+                754,
+                87
+              ]
+            },
+            {
+              "text": "It",
+              "role": "Other",
+              "region_id": "header-glyph:fa9f5217-5df2-7ed3-0a88-ef61bc45d453",
+              "box": [
+                685,
+                71,
+                695,
+                83
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "arm": "v44",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 313,
+        "right": 1200,
+        "bottom": 313,
+        "area": 375600,
+        "is_valid": true
+      },
+      "groups": [
+        {
+          "box": [
+            796,
+            71,
+            874,
+            83
+          ],
+          "source_box": [
+            796,
+            71,
+            874,
+            83
+          ],
+          "component_count": 9,
+          "fragment_count": 7,
+          "replaced_readings": [
+            {
+              "text": "3",
+              "role": "Other",
+              "region_id": "header-glyph:201bee99-53d5-26a3-d1d2-e806d27650b8",
+              "box": [
+                865,
+                72,
+                874,
+                81
+              ]
+            },
+            {
+              "text": "M",
+              "role": "Other",
+              "region_id": "header-glyph:2b6faf6e-7d7f-6a08-f6ba-94a9c80acd5c",
+              "box": [
+                831,
+                75,
+                841,
+                82
+              ]
+            },
+            {
+              "text": "e",
+              "role": "Other",
+              "region_id": "header-glyph:4cb0e7fb-9d34-8e3f-2cc6-cafacd0377a4",
+              "box": [
+                824,
+                74,
+                830,
+                82
+              ]
+            },
+            {
+              "text": "n",
+              "role": "Other",
+              "region_id": "header-glyph:63fbe99c-92d7-8b9a-5b1e-746929d4545c",
+              "box": [
+                850,
+                75,
+                858,
+                82
+              ]
+            },
+            {
+              "text": "o",
+              "role": "Other",
+              "region_id": "header-glyph:8e1d30e2-3099-6a27-b8ad-616b2fc41ab0",
+              "box": [
+                842,
+                75,
+                849,
+                83
+              ]
+            },
+            {
+              "text": "C",
+              "role": "Other",
+              "region_id": "header-glyph:9124afea-88f7-abcf-ab1d-f477c3d299df",
+              "box": [
+                796,
+                71,
+                805,
+                82
+              ]
+            },
+            {
+              "text": "rit",
+              "role": "Other",
+              "region_id": "header-glyph:bcedf696-1fc3-1103-2807-9a78614ec075",
+              "box": [
+                806,
+                71,
+                823,
+                82
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "arm": "v44",
+      "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "groups": [
+        {
+          "box": [
+            260,
+            72,
+            308,
+            84
+          ],
+          "source_box": [
+            260,
+            72,
+            308,
+            84
+          ],
+          "component_count": 5,
+          "fragment_count": 3,
+          "replaced_readings": [
+            {
+              "text": "h",
+              "role": "Other",
+              "region_id": "header-glyph:26c11e16-2436-e94e-11f1-09f7ea07f07a",
+              "box": [
+                269,
+                72,
+                277,
+                84
+              ]
+            },
+            {
+              "text": "S",
+              "role": "Other",
+              "region_id": "header-glyph:2cbdd748-9e46-5a9f-7bb2-32e93f9de452",
+              "box": [
+                260,
+                73,
+                268,
+                84
+              ]
+            },
+            {
+              "text": "a",
+              "role": "PhaseHeading",
+              "region_id": "header-glyph:5d5d9fca-fa1c-6d18-1a86-64e09abfe8f6",
+              "box": [
+                278,
+                76,
+                285,
+                84
+              ]
+            }
+          ]
+        },
+        {
+          "box": [
+            771,
+            69,
+            952,
+            85
+          ],
+          "source_box": [
+            771,
+            69,
+            952,
+            85
+          ],
+          "component_count": 19,
+          "fragment_count": 12,
+          "replaced_readings": [
+            {
+              "text": "rve",
+              "role": "Other",
+              "region_id": "header-glyph:069f786d-d509-4d3a-5731-e6a4f731a64b",
+              "box": [
+                798,
+                75,
+                819,
+                84
+              ]
+            },
+            {
+              "text": "n",
+              "role": "Other",
+              "region_id": "header-glyph:67bf6405-9adb-1a8b-8271-e00e647d669f",
+              "box": [
+                820,
+                77,
+                828,
+                84
+              ]
+            },
+            {
+              "text": "o",
+              "role": "Other",
+              "region_id": "header-glyph:6cd85417-8e33-9219-9b1d-a99a4db31e1f",
+              "box": [
+                840,
+                76,
+                847,
+                85
+              ]
+            },
+            {
+              "text": "o",
+              "role": "Other",
+              "region_id": "header-glyph:720f24fb-873b-cf6a-3cda-2d12ef972400",
+              "box": [
+                876,
+                76,
+                883,
+                85
+              ]
+            },
+            {
+              "text": "t",
+              "role": "Other",
+              "region_id": "header-glyph:93c9edbe-3a4c-ab23-cd18-af6ddce9d246",
+              "box": [
+                784,
+                74,
+                790,
+                84
+              ]
+            },
+            {
+              "text": "ns",
+              "role": "Other",
+              "region_id": "header-glyph:b7b99250-dc7e-134c-ff32-3bfbe8131775",
+              "box": [
+                848,
+                75,
+                862,
+                84
+              ]
+            },
+            {
+              "text": "e",
+              "role": "Other",
+              "region_id": "header-glyph:c0715b20-7d13-537b-e9c3-0758aee5201f",
+              "box": [
+                791,
+                75,
+                797,
+                84
+              ]
+            },
+            {
+              "text": "n",
+              "role": "Other",
+              "region_id": "header-glyph:c0eb0c19-89ca-7734-4fbd-806fc4bff87e",
+              "box": [
+                903,
+                77,
+                912,
+                84
+              ]
+            },
+            {
+              "text": "nt",
+              "role": "Other",
+              "region_id": "header-glyph:db418a05-381a-e36a-e8ab-5b78ff502aaa",
+              "box": [
+                884,
+                73,
+                899,
+                84
+              ]
+            },
+            {
+              "text": "t",
+              "role": "Other",
+              "region_id": "header-glyph:e07941ba-63d8-0872-143a-ac4f72041760",
+              "box": [
+                829,
+                74,
+                835,
+                84
+              ]
+            },
+            {
+              "text": "c",
+              "role": "Other",
+              "region_id": "header-glyph:e3605d70-cfc0-37b2-20f0-13ace2b92fa4",
+              "box": [
+                868,
+                75,
+                874,
+                84
+              ]
+            },
+            {
+              "text": "In",
+              "role": "Other",
+              "region_id": "header-glyph:f0b617a6-5376-b050-1d96-796a14a1e67d",
+              "box": [
+                771,
+                74,
+                783,
+                84
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "arm": "v46",
+      "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "groups": [
+        {
+          "box": [
+            673,
+            71,
+            841,
+            87
+          ],
+          "source_box": [
+            673,
+            71,
+            841,
+            87
+          ],
+          "component_count": 22,
+          "fragment_count": 4,
+          "replaced_readings": [
+            {
+              "text": "Treatments",
+              "role": "Other",
+              "region_id": "1116a0e9-3649-f00f-61cc-33bfbd8bc978",
+              "box": [
+                760,
+                73,
+                841,
+                84
+              ]
+            },
+            {
+              "text": "e",
+              "role": "Other",
+              "region_id": "header-glyph:2a93e6af-725a-2cf3-b74c-9d77e858280b",
+              "box": [
+                696,
+                75,
+                702,
+                83
+              ]
+            },
+            {
+              "text": "A",
+              "role": "PhaseHeading",
+              "region_id": "header-glyph:33b1680b-c13f-7f35-d28d-48c3195c6b2e",
+              "box": [
+                673,
+                73,
+                684,
+                83
+              ]
+            },
+            {
+              "text": "ng",
+              "role": "Other",
+              "region_id": "header-glyph:60a71224-8118-4ae6-c567-768ea4b902a7",
+              "box": [
+                738,
+                76,
+                754,
+                87
+              ]
+            },
+            {
+              "text": "lt",
+              "role": "Other",
+              "region_id": "header-glyph:fa9f5217-5df2-7ed3-0a88-ef61bc45d453",
+              "box": [
+                685,
+                71,
+                695,
+                83
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "arm": "v46",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 313,
+        "right": 1200,
+        "bottom": 313,
+        "area": 375600,
+        "is_valid": true
+      },
+      "groups": [
+        {
+          "box": [
+            796,
+            71,
+            874,
+            83
+          ],
+          "source_box": [
+            796,
+            71,
+            874,
+            83
+          ],
+          "component_count": 9,
+          "fragment_count": 7,
+          "replaced_readings": [
+            {
+              "text": "3",
+              "role": "Other",
+              "region_id": "header-glyph:201bee99-53d5-26a3-d1d2-e806d27650b8",
+              "box": [
+                865,
+                72,
+                874,
+                81
+              ]
+            },
+            {
+              "text": "r",
+              "role": "Other",
+              "region_id": "header-glyph:2b6faf6e-7d7f-6a08-f6ba-94a9c80acd5c",
+              "box": [
+                831,
+                75,
+                841,
+                82
+              ]
+            },
+            {
+              "text": "e",
+              "role": "Other",
+              "region_id": "header-glyph:4cb0e7fb-9d34-8e3f-2cc6-cafacd0377a4",
+              "box": [
+                824,
+                74,
+                830,
+                82
+              ]
+            },
+            {
+              "text": "h",
+              "role": "Other",
+              "region_id": "header-glyph:63fbe99c-92d7-8b9a-5b1e-746929d4545c",
+              "box": [
+                850,
+                75,
+                858,
+                82
+              ]
+            },
+            {
+              "text": "0",
+              "role": "Other",
+              "region_id": "header-glyph:8e1d30e2-3099-6a27-b8ad-616b2fc41ab0",
+              "box": [
+                842,
+                75,
+                849,
+                83
+              ]
+            },
+            {
+              "text": "C",
+              "role": "Other",
+              "region_id": "header-glyph:9124afea-88f7-abcf-ab1d-f477c3d299df",
+              "box": [
+                796,
+                71,
+                805,
+                82
+              ]
+            },
+            {
+              "text": "rit",
+              "role": "Other",
+              "region_id": "header-glyph:bcedf696-1fc3-1103-2807-9a78614ec075",
+              "box": [
+                806,
+                71,
+                823,
+                82
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "shadow_refinement": "The first geometry replay could union a nearby Probe reading into a heading. The second rejects any partly overlapping reading and checks dividers after building whole component groups, preserving that ambiguity. Neither replay used recognition or optimized parameters.",
+  "metrics": [
+    "literal-exact text and paired gained/lost correct readings",
+    "text geometry recall/precision and character errors",
+    "matched and extra markers",
+    "completed CSV sources, correct values/rows and retained numeric values",
+    "finite original-pixel calibrated rows, wrong-scale/duplicate/failed-source residual rows"
+  ],
+  "acceptance_bars": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "repair_acceptance": "Improve diagnosed word grouping without losing earlier correct readings or degrading marker/CSV correctness. Do not call the models or Goal22 accepted merely because this local runtime repair passes. Published project bars remain authoritative.",
+  "splits": "Same owned synthetic native dev (21 sources,31 panels,453 text truths,838 marker truths) and existing owned CSV train/dev (23 sources,39 panels). Never read private or sealed splits.",
+  "sealed_run_budget": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/current-ocr-error-diagnosis-20260930-v1/report.json",
+      "sha256": "bab638bcd7513319e2d1d961e089fed6b0d6b1d6b562b809240a7519fad00d76"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-fragment-component-trace-20260930-v1/report.json",
+      "sha256": "184237b76078388eec84de2b6c37df816cb459ad5e2bfdb90744653ee57b7979"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-fragment-component-trace-20260930-v1/bindings.json",
+      "sha256": "a6743ba94fc1cd16202fe2dd301d86f4e0f1dd3c618389e179b02dbec406f875"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-fragment-component-trace-20260930-v1/status.json",
+      "sha256": "46b8969bc0009e2c638e6960a34fde9178d32603fccd2ea8224038dd1f2f0e44"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-fragment-component-trace-20260930-v1/group-diagnosis.json",
+      "sha256": "8fc43314c41bb52aeb6a8368d278425067322362c36767043202562e324a598d"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-fragment-component-trace-20260930-v1/group-diagnosis-v2.json",
+      "sha256": "1e9e1f518b5bc529d858b959b9d61e27b99ca691e4ca917ef0e7f9a6339df9b9"
+    },
+    {
+      "path": "artifacts/goal22-tools/Diagnose-HeaderFragmentGroupsV2.py",
+      "sha256": "1dd86bbf55827bdb5dd819f8f2b93ac0f2c5a1a4eb96215eb6d86d5b68b2591e"
+    },
+    {
+      "path": "docs/GOAL-22-HEADER-GLYPH-CROP-COMPLETION.json",
+      "sha256": "f2b414d3ef5d99bb7eb8f1ce9e213bfcb596c69636c37f832787fdf878b9d1d8"
+    }
+  ]
+}
