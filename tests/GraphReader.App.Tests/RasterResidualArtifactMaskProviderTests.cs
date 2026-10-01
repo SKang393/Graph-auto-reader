@@ -68,24 +68,52 @@ public sealed class RasterResidualArtifactMaskProviderTests
     }
 
     [TestMethod]
-    [DataRow(5, false)]
-    [DataRow(6, false)]
-    [DataRow(5, true)]
-    [DataRow(6, true)]
-    [DataRow(10, false)]
-    [DataRow(10, true)]
-    public async Task ShortCrossesRemainReviewableAndLongCrossingsRemainMasked(int armLength, bool connected)
+    [DataRow(5, false, false)]
+    [DataRow(6, false, false)]
+    [DataRow(5, true, false)]
+    [DataRow(6, true, false)]
+    [DataRow(10, false, true)]
+    [DataRow(10, true, false)]
+    public async Task CrossingMasksRespectCompactAndMarkerLikeConflicts(int armLength, bool connected, bool expectedMasked)
     {
         TestInputs inputs = CreateCompositeInputs(armLength, connected);
         RasterResidualArtifactMaskResult result = await new RasterResidualArtifactMaskProvider().AnalyzeAsync(
             inputs.Raster, inputs.Axis, inputs.Ocr, inputs.Seed, CancellationToken.None);
 
-        bool longCrossing = armLength == 10;
-        Assert.AreEqual(longCrossing, result.Mask.Span[Index(inputs.Raster.Width, 80, 32)] >= 0.5f);
+        // The third line makes a dense core that the existing morphology
+        // provider marks as marker-like. Keep that conflict reviewable too.
+        Assert.AreEqual(expectedMasked, result.Mask.Span[Index(inputs.Raster.Width, 80, 32)] >= 0.5f);
         Assert.IsTrue(result.Mask.Span[Index(inputs.Raster.Width, 55, 52)] >= 0.5f,
             "The existing long connecting-line intersection must remain excluded.");
-        if (!longCrossing)
-            Assert.IsTrue(result.Warnings.Any(warning => warning.Contains("short crossing", StringComparison.Ordinal)));
+        if (!expectedMasked)
+            Assert.IsTrue(result.Warnings.Any(warning => warning.Contains("crossing candidate(s)", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    [DataRow(3, 0, false)]
+    [DataRow(3, 0, true)]
+    [DataRow(3, -2, false)]
+    [DataRow(3, 2, true)]
+    [DataRow(4, 0, false)]
+    [DataRow(4, 0, true)]
+    [DataRow(4, -2, true)]
+    [DataRow(4, 2, false)]
+    public async Task FilledMarkerCoreAtLongCrossingRemainsReviewable(int radius, int offset, bool connected)
+    {
+        TestInputs inputs = CreateCompositeInputs(
+            crossArmLength: 10, connectedCross: connected, centerBlobRadius: radius, centerBlobOffset: offset);
+        byte[] original = inputs.Raster.CreateOcrImage().Pixels.ToArray();
+
+        RasterResidualArtifactMaskResult result = await new RasterResidualArtifactMaskProvider().AnalyzeAsync(
+            inputs.Raster, inputs.Axis, inputs.Ocr, inputs.Seed, CancellationToken.None);
+
+        Assert.AreEqual(0f, result.Mask.Span[Index(inputs.Raster.Width, 80, 32)],
+            "Long connecting strokes must not hide conflicting marker-like ink.");
+        Assert.AreEqual(0f, result.Mask.Span[Index(inputs.Raster.Width, 80 + offset, 32)]);
+        Assert.IsTrue(result.Mask.Span[Index(inputs.Raster.Width, 55, 52)] >= 0.5f,
+            "A separate thin line intersection must remain masked.");
+        Assert.IsTrue(result.Warnings.Any(static warning => warning.Contains("marker-like ink", StringComparison.Ordinal)));
+        CollectionAssert.AreEqual(original, inputs.Raster.CreateOcrImage().Pixels.ToArray());
     }
 
     [TestMethod]
@@ -138,7 +166,8 @@ public sealed class RasterResidualArtifactMaskProviderTests
     }
 
     private static TestInputs CreateCompositeInputs(
-        int crossArmLength = 0, bool connectedCross = false, int quarterTurns = 0, string annotationLayout = "aligned")
+        int crossArmLength = 0, bool connectedCross = false, int quarterTurns = 0, string annotationLayout = "aligned",
+        int centerBlobRadius = 0, int centerBlobOffset = 0)
     {
         int width = 160;
         int height = 110;
@@ -160,6 +189,10 @@ public sealed class RasterResidualArtifactMaskProviderTests
             DrawLine(gray, width, 80 - crossArmLength, 32 + crossArmLength, 80 + crossArmLength, 32 - crossArmLength);
             if (connectedCross)
                 DrawLine(gray, width, 65, 32, 95, 32);
+            if (centerBlobRadius > 0)
+                DrawFilledRectangle(gray, width,
+                    80 + centerBlobOffset - centerBlobRadius, 32 - centerBlobRadius,
+                    80 + centerBlobOffset + centerBlobRadius, 32 + centerBlobRadius);
         }
 
         PixelPoint Rotate(double x, double y)

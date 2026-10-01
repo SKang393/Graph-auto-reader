@@ -1,0 +1,1567 @@
+{
+  "schema": "graphreader.marker-core-intersection-repair.v1",
+  "status": "marker_conflict_review_guard_verified_native_retention_failed",
+  "arms": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 171.1564334,
+        "execution_seconds": 181.8403813,
+        "metrics": {
+          "truth": 838,
+          "predicted": 768,
+          "matched": 740,
+          "extra": 28,
+          "missing": 98,
+          "precision": 0.9635416666666666,
+          "recall": 0.883054892601432
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 768,
+          "matched": 741,
+          "extra": 27,
+          "missing": 97,
+          "precision": 0.96484375,
+          "recall": 0.8842482100238663
+        },
+        "paired_truths": {
+          "retained": 739,
+          "recovered": 1,
+          "lost": 2,
+          "missed_by_both": 96
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 379,
+            "role_accuracy": 0.8366445916114791,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 379,
+            "role_accuracy": 0.8366445916114791,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 358,
+          "wrong_in_both": 95
+        },
+        "changed_truth_readings": [],
+        "accepted_geometry_change_counts": {
+          "added": 6,
+          "removed": 6
+        },
+        "pipeline_audit": {
+          "observed_panels": 31,
+          "changed_panels": 4,
+          "changed_fields": {
+            "calibration": 4,
+            "accepted_markers": 4,
+            "marker_pipeline": 4
+          },
+          "panels": [
+            {
+              "source_sha256": "baac6e29b0436f75c798b88edfa8720b2411400608e9766a9be1d5731667d5bd",
+              "crop": [
+                0,
+                319,
+                1200,
+                266
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "759eadf9a90a5e8523c5902676d6f1ef781b3cef78aca03cd2de58af12e4a7f9",
+              "crop": [
+                0,
+                0,
+                6352,
+                600
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            }
+          ],
+          "export_rows": null
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 195.7742838,
+        "execution_seconds": 199.1155888,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 20,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 261,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 261,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9885057471264368,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9885057471264368,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9693486590038314,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [
+          {
+            "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+            "before": "failed",
+            "after": "failed",
+            "before_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 8, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+            "after_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 17, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null."
+          }
+        ],
+        "exported_numeric_value_changes": [
+          {
+            "source_sha256": "3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6",
+            "added": 3,
+            "removed": 3
+          },
+          {
+            "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+            "added": 2,
+            "removed": 2
+          }
+        ],
+        "validated_export_rows": 426,
+        "accepted_geometry_change_counts": {
+          "added": 44,
+          "removed": 46
+        },
+        "pipeline_audit": {
+          "observed_panels": 39,
+          "changed_panels": 10,
+          "changed_fields": {
+            "calibration": 9,
+            "accepted_markers": 9,
+            "marker_pipeline": 10
+          },
+          "panels": [
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                0,
+                1200,
+                313
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                583,
+                1200,
+                307
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+              "crop": [
+                0,
+                583,
+                1200,
+                307
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "6ef826c33fbd1aa41c913026e7def95d00bf5aabdc6af42fb7aa15b204c26f37",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+              "crop": [
+                0,
+                583,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            }
+          ],
+          "export_rows": {
+            "before_count": 426,
+            "after_count": 426,
+            "retained_count": 421,
+            "removed": 5,
+            "added": 5
+          }
+        }
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 210.5997047,
+        "execution_seconds": 218.5018753,
+        "metrics": {
+          "truth": 838,
+          "predicted": 766,
+          "matched": 744,
+          "extra": 22,
+          "missing": 94,
+          "precision": 0.9712793733681462,
+          "recall": 0.8878281622911695
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 766,
+          "matched": 745,
+          "extra": 21,
+          "missing": 93,
+          "precision": 0.9725848563968669,
+          "recall": 0.8890214797136038
+        },
+        "paired_truths": {
+          "retained": 743,
+          "recovered": 1,
+          "lost": 2,
+          "missed_by_both": 92
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 490,
+            "geometry_matched_region_count": 443,
+            "geometry_false_positive_count": 47,
+            "geometry_false_negative_count": 10,
+            "recognition_exact_count": 427,
+            "recognition_exact_accuracy": 0.9426048565121413,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 25,
+            "unmatched_truth_deletion_edit_count": 30,
+            "unmatched_prediction_insertion_edit_count": 65,
+            "character_error_count": 120,
+            "character_error_rate": 0.03870967741935484,
+            "role_correct_count": 423,
+            "role_accuracy": 0.9337748344370861,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 160,
+                "accuracy": 0.9411764705882353
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 490,
+            "geometry_matched_region_count": 443,
+            "geometry_false_positive_count": 47,
+            "geometry_false_negative_count": 10,
+            "recognition_exact_count": 427,
+            "recognition_exact_accuracy": 0.9426048565121413,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 25,
+            "unmatched_truth_deletion_edit_count": 30,
+            "unmatched_prediction_insertion_edit_count": 65,
+            "character_error_count": 120,
+            "character_error_rate": 0.03870967741935484,
+            "role_correct_count": 423,
+            "role_accuracy": 0.9337748344370861,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 160,
+                "accuracy": 0.9411764705882353
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 427,
+          "wrong_in_both": 26
+        },
+        "changed_truth_readings": [],
+        "accepted_geometry_change_counts": {
+          "added": 6,
+          "removed": 6
+        },
+        "pipeline_audit": {
+          "observed_panels": 31,
+          "changed_panels": 4,
+          "changed_fields": {
+            "calibration": 4,
+            "accepted_markers": 4,
+            "marker_pipeline": 4
+          },
+          "panels": [
+            {
+              "source_sha256": "baac6e29b0436f75c798b88edfa8720b2411400608e9766a9be1d5731667d5bd",
+              "crop": [
+                0,
+                319,
+                1200,
+                266
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "759eadf9a90a5e8523c5902676d6f1ef781b3cef78aca03cd2de58af12e4a7f9",
+              "crop": [
+                0,
+                0,
+                6352,
+                600
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            }
+          ],
+          "export_rows": null
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 240.5927125,
+        "execution_seconds": 243.9384207,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 14,
+            "failed_cases": 6,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 18,
+            "truth_points": 500,
+            "predicted_points": 276,
+            "matched_points": 273,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 276,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 271,
+            "correct_rows": 260,
+            "missing_rows": 229,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 273,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 227,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9891304347826086,
+            "unique_point_structural_coverage": 0.546,
+            "unique_point_value_precision": 0.9891304347826086,
+            "unique_point_value_coverage": 0.546,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9420289855072463,
+            "relational_row_coverage": 0.52,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.959409594095941,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 6
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 13,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 164,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 164,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 8,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9512195121951219,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9512195121951219,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9512195121951219,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [
+          {
+            "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+            "before": "failed",
+            "after": "failed",
+            "before_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 8, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null.",
+            "after_error": "Automatic calibration is incomplete: At least two finite y-axis numeric ticks are required. | No printed, shared-panel, expected, or manual session-1 origin is available. | The first observed column maps to session 17, not session 1. | Only ordinal x evidence is available; exact printed and estimated x values remain null."
+          }
+        ],
+        "exported_numeric_value_changes": [
+          {
+            "source_sha256": "3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6",
+            "added": 3,
+            "removed": 3
+          },
+          {
+            "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+            "added": 2,
+            "removed": 2
+          }
+        ],
+        "validated_export_rows": 440,
+        "accepted_geometry_change_counts": {
+          "added": 44,
+          "removed": 46
+        },
+        "pipeline_audit": {
+          "observed_panels": 39,
+          "changed_panels": 10,
+          "changed_fields": {
+            "calibration": 9,
+            "accepted_markers": 9,
+            "marker_pipeline": 10,
+            "ocr": 1
+          },
+          "panels": [
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                0,
+                1200,
+                313
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                583,
+                1200,
+                307
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline",
+                "ocr"
+              ]
+            },
+            {
+              "source_sha256": "3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+              "crop": [
+                0,
+                583,
+                1200,
+                307
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "6ef826c33fbd1aa41c913026e7def95d00bf5aabdc6af42fb7aa15b204c26f37",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+              "crop": [
+                0,
+                583,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            }
+          ],
+          "export_rows": {
+            "before_count": 440,
+            "after_count": 440,
+            "retained_count": 417,
+            "removed": 23,
+            "added": 23
+          }
+        }
+      }
+    }
+  },
+  "tests": {
+    "app": {
+      "total": 586,
+      "executed": 586,
+      "passed": 586,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    }
+  },
+  "checks_seconds": 88.4844029,
+  "validation_note": "586 App tests pass, including eight new filled-marker conflict cases. Two clean builds verify the changed mask provider and native workflow. OCR sources are unchanged; their previous 717 passing tests and 16 optional skips are not rerun.",
+  "workflow_sequence_seconds": 845.2255144,
+  "provider_counts": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-component-diversity-v27": 140,
+    "marker-classifier-structural-context-v5": 306,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/status.json",
+      "sha256": "eba170687469cf76ef0924e20e2d6a8eb1480048be340f16e4e2f8bd284df910"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/jobs.json",
+      "sha256": "7aa39435d0b110944a2e74c62000f62bea9be282bc9a155d2954979e7262f131"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/source-bindings.json",
+      "sha256": "85f97561a841af045cac11659f3ffe92038ab0d214949b9ac9c32af75f4b2cf7"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v2/status.json",
+      "sha256": "7be4dfcbe30d9f108bd2cbcae375ba5f23ebd89c5bfcd979033c072d3e3add36"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v2/source-bindings.json",
+      "sha256": "d9bdfd84eaefb9b3712acbdf6696af69b7c59835c3321991136bf605b899341b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v2/input-bindings.json",
+      "sha256": "ad027433f7e14c9f94da0a8d14592813c77ace3ed1694998e440058a10918d65"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v2/test-results/app.trx",
+      "sha256": "2a501c531fbc8b8e2be623a3b70b0b604318c79b2ce235c74536d9ae700ce5f6"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v2/App-build.log",
+      "sha256": "4b5ca87851afc2094fce4b3b42c631594a7bd5a3616d2f9b6d8020286223ee1b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v2/native-build.log",
+      "sha256": "7094986dd43cffadd6378f317738873ff9b6b9e8ec6f9627dcb163c2a67d2862"
+    },
+    {
+      "path": "docs/GOAL-22-MARKER-CORE-INTERSECTION-DIAGNOSIS.json",
+      "sha256": "fd6c97ba8ba8c001eb825f830ba97ff7011b839e4ffe9f9fc2f85783bd3d02fb"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-MarkerCoreIntersectionRepair.py",
+      "sha256": "d013d0a55a7fe2bee6e5f5d0f30eb61b315ecb5bf2d9da7122b1ad406ccc0dc6"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-MarkerCoreIntersectionEvaluationV2.py",
+      "sha256": "8bf7c5d0d05ff7b746704c5b44e3afb05c4638e203d1ea296a5049c113b27956"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-MarkerCoreIntersectionEvaluationV2.ps1",
+      "sha256": "e865d65b7e4580077a895018026298fddbff757428749bc9b6618eb59497456b"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-MarkerCoreIntersectionChecksV2.ps1",
+      "sha256": "e5f1c9238469a4fed9c6b08ac46cdaf1f8029ef1079d0defa2b143cd18851c5a"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/runtime-description.json",
+      "sha256": "73aded17e1b596386f4719d6a0757b98b740471eaec972446aba29733ee9b5b8"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v2/first-attempt-failure.json",
+      "sha256": "0204abf8e8612cef15592d64d1f82069c81f17c25c2717a68d1b2362b4cc255b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v1/status.json",
+      "sha256": "fa7b86fe6b75f283c511441e5331fa0bb26b8ba65497fe97105cd5c7b25d5130"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v1/test-results/app.trx",
+      "sha256": "c4bcc8429bade3343a17cbc04ae152607a56a20fdd709944a47159b56dad8943"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v1/source-bindings.json",
+      "sha256": "f02b07c1afbf7baf311e781fbba96cc92c75dd274ab7e274b5ce84d4b14c0952"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-MarkerCoreIntersectionTestFailure.py",
+      "sha256": "6c34432c4f24483a4a13540ff814fa16fdc114d81d8dadd9ab1ff48b8f313150"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/native-marker-score.json",
+      "sha256": "2059d80a2fc1516a950c9733cdb255d659bd0e33726ecc25efd90a0e2a671231"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/native-ocr-score.json",
+      "sha256": "97f74904186f0e784f817bcb329b744638dbd603dff35dc1114f83c9293ca733"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/native-ocr-details.json",
+      "sha256": "5c0470fbd5d53fdb1044c7c5d3213e1b237663e08fe36d533d2438aa4d7e6a69"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/axis-geometry-comparison.json",
+      "sha256": "6a3916a5ad7f4c315f4749bccf074d1f37cb9fef8a04d9e306f5b477dffba4ad"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/protocol.json",
+      "sha256": "7db25bcd83cb81906274803b61b3fda360c677187337cadd893691840f5c1c9b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/candidate-binding.json",
+      "sha256": "6c70c5bd13aaee0bb6c3c82bef977c0694085cabd8e17d453bdb4913b24e688a"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/input-manifest.json",
+      "sha256": "e044d4bbe1685abd76d853e2f0b8178157b84ee429fea084a2b4d79388b60b26"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/execution/report.json",
+      "sha256": "f0cf2554d3425cc4d67103b5803d8cdebad94d9998860d57b1f22e9a16e64c74"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/status.json",
+      "sha256": "426c931a41caf3bddd0d31403a0a47e6b8eaeada3a89913be4791a442deba28d"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "ab53b7fe732b3f008717d8ae3019a4e9672a9384b1ed015ffb21e0ad164736fd"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/comparison.json",
+      "sha256": "10e35f4f80c485689bee466cac3d97417d01c159a06a51cef978778063bbfd58"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/protocol.json",
+      "sha256": "a9d0a20fdcdd8041afbf2ec87729214a224c0af33af97f1785dcc53f248d2834"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/candidate-binding.json",
+      "sha256": "dc7f63e499208536aeee61a70b20626aa7521597dc9af1d590c3aa7bb6a39d56"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/input-manifest.json",
+      "sha256": "7f1d469d6a9c293fc6b586a1a8321a69fac952714a0c89bc61dfdb7413901992"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/execution/report.json",
+      "sha256": "68d66f0a4bdde615177120dae0c71fc0ebafefd1e6aa598e6c270b86cb85025e"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/status.json",
+      "sha256": "b315f10a7013f0e3aaf62ecb72465c8b1d58ccbb70120952129d0bea8e2544fc"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/native-marker-score.json",
+      "sha256": "ed2e2ac66f754b87c14449caf7c2cf08fc1961c7a65028ab79d78e54931816c6"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/native-ocr-score.json",
+      "sha256": "f903530494b8ac169e05e12988265e1e1e8f5dc47d5a298e4bf5b8833e7968fa"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/native-ocr-details.json",
+      "sha256": "db54dc6eecaff1516552f3e2ba5c3b5f37d95f634c05e69e2a0d5a3f48f9971c"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/axis-geometry-comparison.json",
+      "sha256": "1b5033b437bc79c4abebc2f5b08c6b2653d86d2af38b3bc5f854a3df9e2490fe"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/protocol.json",
+      "sha256": "75877570f71bcce8972effcf78828ca02046b68f984c90fd62e0930582e3b1eb"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/candidate-binding.json",
+      "sha256": "17f596bd18d9b96c56a61028c8656ab2222d12b1855212ea60d6739daeb88208"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/input-manifest.json",
+      "sha256": "13b76ecb96aa937c6673c1f6f148bbde9db0142919ec1f2a28e8a367cf231566"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/execution/report.json",
+      "sha256": "ceed6e98bea11c682f112cab6fb2ecdc1e72b2080e90687e55793195d658d0ec"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/status.json",
+      "sha256": "d98767e82d92f12116916028276d3c3ecee8c19e4bd3644c8f7fc18003934c42"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "21371a2be3625c59f0a6cf640b836df8ea20450014d3ca598c6fc0465a5ff351"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/comparison.json",
+      "sha256": "3dbd3a623ffc52f195da2749426103f12b7e3486d719afb61fb31eb9342f41c1"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/protocol.json",
+      "sha256": "9e3f7d1b06175eb281c525c8a60653ea1a39114b6c9e72143b1e1728145c65c4"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/candidate-binding.json",
+      "sha256": "b4afc9df0b0a24febe625d4ce67c4e36cfaa189877bdc002bba33ca4eb35004d"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/input-manifest.json",
+      "sha256": "9bae7081801da7a63102f428d299b05f65736c9f28f7c87a7dbb9f2e31843bf4"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/execution/report.json",
+      "sha256": "5e23e34cdf7a69af40d0f7c4bf033427f0c1bdfd4f886183f127f14b1334f3f7"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/status.json",
+      "sha256": "74c19c21515d5394f87e7ba26682d06080caf4f2918200f794ee26a2b59da380"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/repair-summary.json",
+      "sha256": "ed362b154c306a5189548abdd50b1e35ca401f3e90381a18d0b518ae33b535d8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-PhaseRoleVocabularyRepair.py",
+      "sha256": "448c44e8c111af87e4ce7ada3d9e31b02ad813a579d8217571790374617dfec5"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Audit-MarkerCoreIntersectionDeltas.py",
+      "sha256": "136393fc2463a38756635509f714fc2c4e02b23160a6f1bbfceedbf10ce7e8df"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/complete-delta-audit.json",
+      "sha256": "1182ecec570f6c31c971fbb64dcdc3d606a720ce6171875ac94936bc2f5cd254"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/audit-status.json",
+      "sha256": "a62485c1bd95ad7a2ebcacb09b4557360e73bf6bba92e1d8b97a20d4a25d71c7"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-MarkerCoreIntersectionAudit.ps1",
+      "sha256": "4d677650725e72345c1cb64501f429e68ff47c29db0f2d1a651c3ca23e97c7e2"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Publish-MarkerCoreIntersectionRepair.py",
+      "sha256": "96c111da1aab1cb03fe71beb3f61d76477c082cbd018fe01baaccb09857bcec5"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "goal22_acceptance": "FAIL",
+  "base_commit": "e6398b6403c9370cdef1c1b8950f372916e314ba",
+  "hypothesis": {
+    "path": "docs/GOAL-22-MARKER-CORE-INTERSECTION-DIAGNOSIS.json",
+    "sha256": "fd6c97ba8ba8c001eb825f830ba97ff7011b839e4ffe9f9fc2f85783bd3d02fb"
+  },
+  "frozen_complete_result": {
+    "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/repair-summary.json",
+    "sha256": "ed362b154c306a5189548abdd50b1e35ca401f3e90381a18d0b518ae33b535d8"
+  },
+  "complete_delta_audit": {
+    "path": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/complete-delta-audit.json",
+    "sha256": "1182ecec570f6c31c971fbb64dcdc3d606a720ce6171875ac94936bc2f5cd254"
+  },
+  "first_test_failure": {
+    "path": "artifacts/goal22-runs/marker-core-intersection-checks-20261001-v2/first-attempt-failure.json",
+    "sha256": "0204abf8e8612cef15592d64d1f82069c81f17c25c2717a68d1b2362b4cc255b"
+  },
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "implementation": [
+    "Pass the already-computed marker-like morphology plane into line-intersection analysis. Leave a candidate reviewable if any pixel in its existing five-by-five mask footprint reaches the existing 0.5 mask boundary.",
+    "Preserve all line geometry, model weights, crop rules, classification thresholds and suppression distances. Advance the residual composition/cache identity to raster-residual-v4-marker-core-review.",
+    "Eight new cases cover filled cores of two sizes with offset centers and connecting strokes. Existing two-line crossings remain masked. A dense three-line crossing also remains reviewable because the existing morphology descriptor identifies conflicting marker-like ink."
+  ],
+  "integration_decision": "Retain the conservative conflict guard so line geometry alone cannot suppress ink carrying contrary marker-like evidence. The native accuracy tradeoff is not an improvement: one truth is recovered and two are lost per arm, with one additional false detection. Keep these losses open and continue marker diagnosis. Shared gates and production approval remain failed.",
+  "candidate_selection": "Keep V44/English/V27/V5. V46/server remains a closed development comparison. No model promotion.",
+  "license_review": "Source and tests retain Apache-2.0 notices. No dependency, weights, fonts or license terms changed. Fixed payloads, manifests and reviewed license inputs were checksum verified.",
+  "limitations": [
+    "Native recall falls from 741 to 740 of 838 in V44 and 745 to 744 in V46. Extras rise from 27 to 28 and 21 to 22. A recovered filled square does not offset two lost truths in the crowded hexagonal-marker scene.",
+    "The structural descriptor can also mark a dense three-line crossing as marker-like. Such conflicts now remain reviewable; this does not prove a true marker is present.",
+    "The mask shadow removed masks near thirteen currently missed native truths per arm. Only one truth was actually recovered in each complete workflow. Mask removal is not a recovery metric.",
+    "Accepted geometry and calibration change on four native panels and nine CSV panels per arm. Marker intermediates change on ten CSV panels. Axis geometry and OCR region/mask/text outputs remain unchanged; one V46 OCR-to-marker warning association follows a changed physical marker.",
+    "CSV aggregate scores remain unchanged, but five numeric rows change in each arm. Eighteen additional V46 rows change only x confidence. One already-failed source reports session 17 instead of session 8 and still emits no rows.",
+    "All 866 exported rows retain valid calibration and finite original-pixel traces. Zero wrong-scale, duplicate or failed-source residual rows describes these runs, not a universal safety proof.",
+    "The first test attempt passed 585 cases and failed the old three-line crossing expectation. That failure is preserved. Only the explicit expectation changed; production source is byte-identical across test attempts.",
+    "OCR, marker and export gates, real acceptance, production activation and final distributions remain unfinished. No private/sealed reads, optimizer, package, tag or release. Build 433 remains 0.4.33."
+  ]
+}

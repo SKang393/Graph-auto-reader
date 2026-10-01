@@ -1,0 +1,858 @@
+{
+  "status": "diagnosed_before_runtime_repair",
+  "base_commit": "e6398b6403c9370cdef1c1b8950f372916e314ba",
+  "failure_mode": "Residual line-intersection masking ignores the already computed marker-like morphology plane. Connected filled markers can have two long opposing line pairs and be suppressed despite that conflicting marker evidence.",
+  "responsible_subsystem": "RasterResidualArtifactMaskProvider.AddIntersections",
+  "isolated_change": "Abstain from an intersection mask if any pixel in its unchanged five-by-five footprint has existing structural marker-like evidence at the existing 0.5 mask boundary. Do not emit a marker or alter coordinates, models or thresholds.",
+  "runtime_impact": "Changes proposal eligibility and model input context on affected panels; accepted markers, calibration, phase and exports may change. Complete native and CSV comparisons are required.",
+  "files_to_inspect": [
+    "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskProvider.cs",
+    "src/GraphReader.Ocr/RasterPreOcrStructuralProbabilityProvider.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionDetectionMaskComposer.cs",
+    "tests/GraphReader.App.Tests/RasterResidualArtifactMaskProviderTests.cs"
+  ],
+  "files_to_change": [
+    "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskProvider.cs",
+    "tests/GraphReader.App.Tests/RasterResidualArtifactMaskProviderTests.cs"
+  ],
+  "validation": "Run GraphReader.App.Tests Release and clean App/native-tool builds, then all four frozen native and CSV comparisons against phase-role-vocabulary-evaluation-20261001-v1. Audit every delta, including lost truths and extra predictions.",
+  "metric_and_bar": {
+    "policy": {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "requirement": "Existing per-item 95 percent bars remain; all earlier errors, truth and extras count. A mask shadow is not an accuracy pass."
+  },
+  "fixed_splits": {
+    "native": "21 owned synthetic dev sources,31 panels,838markers,453texts",
+    "csv": "23 owned sources,20train and3dev,39panels,706points,724rows"
+  },
+  "sealed_run_budget": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "visibility_diagnosis": {
+    "markers": 838,
+    "zero_difference_markers": 0,
+    "changed_pixel_count_quantiles": {
+      "0": 10.0,
+      "0.01": 75.0,
+      "0.05": 87.0,
+      "0.5": 129.0,
+      "0.95": 242.0,
+      "1": 563.0
+    },
+    "by_shape": {
+      "asterisk": {
+        "markers": 24,
+        "zero_difference_markers": 0
+      },
+      "circle": {
+        "markers": 102,
+        "zero_difference_markers": 0
+      },
+      "cross": {
+        "markers": 114,
+        "zero_difference_markers": 0
+      },
+      "diamond": {
+        "markers": 72,
+        "zero_difference_markers": 0
+      },
+      "other": {
+        "markers": 148,
+        "zero_difference_markers": 0
+      },
+      "square": {
+        "markers": 129,
+        "zero_difference_markers": 0
+      },
+      "star": {
+        "markers": 67,
+        "zero_difference_markers": 0
+      },
+      "triangle_down": {
+        "markers": 66,
+        "zero_difference_markers": 0
+      },
+      "triangle_up": {
+        "markers": 116,
+        "zero_difference_markers": 0
+      }
+    },
+    "pixel_comparison": "Exact RGB after integer alpha compositing on white, matching native decode.",
+    "reused_sources": 13,
+    "new_sources": 8,
+    "limitations": [
+      "This diagnosis does not remove a truth from scoring, alter old datasets, authorize a revised denominator, select weights or change a threshold.",
+      "A nonzero difference establishes some visible contribution, not that a human or model can localize its center or recover its shape. Small changes and degradation effects remain descriptive.",
+      "The omitted target retains its authored connector endpoints. Removing its entire data point would confound visibility with changing the lines.",
+      "Renderer monkey-patching exists only inside the isolated diagnostic process; repository source and application runtime remain unchanged."
+    ]
+  },
+  "visibility_attempts": {
+    "first_seconds": 263.9680056,
+    "first_failure": "Source13 RGBA post-render alpha wrapper was omitted. Prior13 RGB source results remain valid and were reused; original failure preserved.",
+    "repair_seconds": 70.4659908,
+    "original_png_mask_and_truth_checks_retained": true
+  },
+  "mask_coverage": {
+    "v44": {
+      "all": {
+        "truths": 838,
+        "no_eligible_near_grid_anchor": 64,
+        "no_ink_supported_near_grid_anchor": 0,
+        "all_ink_supported_anchors_geometry_rejected": 33,
+        "all_ink_supported_anchors_residual_rejected": 27,
+        "all_ink_supported_anchors_text_rejected": 4,
+        "any_residual_anchor_rejection": 69,
+        "any_geometry_anchor_rejection": 57,
+        "any_text_anchor_rejection": 7,
+        "residual_any_mask_in_33px_patch": 104,
+        "geometry_any_mask_in_33px_patch": 231,
+        "text_any_mask_in_33px_patch": 22
+      },
+      "matched": {
+        "truths": 741,
+        "no_eligible_near_grid_anchor": 48,
+        "no_ink_supported_near_grid_anchor": 0,
+        "all_ink_supported_anchors_geometry_rejected": 29,
+        "all_ink_supported_anchors_residual_rejected": 19,
+        "all_ink_supported_anchors_text_rejected": 0,
+        "any_residual_anchor_rejection": 38,
+        "any_geometry_anchor_rejection": 46,
+        "any_text_anchor_rejection": 3,
+        "residual_any_mask_in_33px_patch": 57,
+        "geometry_any_mask_in_33px_patch": 206,
+        "text_any_mask_in_33px_patch": 17
+      },
+      "missing": {
+        "truths": 97,
+        "no_eligible_near_grid_anchor": 16,
+        "no_ink_supported_near_grid_anchor": 0,
+        "all_ink_supported_anchors_geometry_rejected": 4,
+        "all_ink_supported_anchors_residual_rejected": 8,
+        "all_ink_supported_anchors_text_rejected": 4,
+        "any_residual_anchor_rejection": 31,
+        "any_geometry_anchor_rejection": 11,
+        "any_text_anchor_rejection": 4,
+        "residual_any_mask_in_33px_patch": 47,
+        "geometry_any_mask_in_33px_patch": 25,
+        "text_any_mask_in_33px_patch": 5
+      },
+      "missing_without_near_decoded_point": {
+        "truths": 49,
+        "no_eligible_near_grid_anchor": 7,
+        "no_ink_supported_near_grid_anchor": 0,
+        "all_ink_supported_anchors_geometry_rejected": 2,
+        "all_ink_supported_anchors_residual_rejected": 5,
+        "all_ink_supported_anchors_text_rejected": 0,
+        "any_residual_anchor_rejection": 15,
+        "any_geometry_anchor_rejection": 5,
+        "any_text_anchor_rejection": 0,
+        "residual_any_mask_in_33px_patch": 23,
+        "geometry_any_mask_in_33px_patch": 15,
+        "text_any_mask_in_33px_patch": 1
+      }
+    },
+    "v46": {
+      "all": {
+        "truths": 838,
+        "no_eligible_near_grid_anchor": 60,
+        "no_ink_supported_near_grid_anchor": 0,
+        "all_ink_supported_anchors_geometry_rejected": 33,
+        "all_ink_supported_anchors_residual_rejected": 27,
+        "all_ink_supported_anchors_text_rejected": 0,
+        "any_residual_anchor_rejection": 72,
+        "any_geometry_anchor_rejection": 57,
+        "any_text_anchor_rejection": 0,
+        "residual_any_mask_in_33px_patch": 108,
+        "geometry_any_mask_in_33px_patch": 231,
+        "text_any_mask_in_33px_patch": 15
+      },
+      "matched": {
+        "truths": 745,
+        "no_eligible_near_grid_anchor": 48,
+        "no_ink_supported_near_grid_anchor": 0,
+        "all_ink_supported_anchors_geometry_rejected": 29,
+        "all_ink_supported_anchors_residual_rejected": 19,
+        "all_ink_supported_anchors_text_rejected": 0,
+        "any_residual_anchor_rejection": 41,
+        "any_geometry_anchor_rejection": 46,
+        "any_text_anchor_rejection": 0,
+        "residual_any_mask_in_33px_patch": 61,
+        "geometry_any_mask_in_33px_patch": 206,
+        "text_any_mask_in_33px_patch": 14
+      },
+      "missing": {
+        "truths": 93,
+        "no_eligible_near_grid_anchor": 12,
+        "no_ink_supported_near_grid_anchor": 0,
+        "all_ink_supported_anchors_geometry_rejected": 4,
+        "all_ink_supported_anchors_residual_rejected": 8,
+        "all_ink_supported_anchors_text_rejected": 0,
+        "any_residual_anchor_rejection": 31,
+        "any_geometry_anchor_rejection": 11,
+        "any_text_anchor_rejection": 0,
+        "residual_any_mask_in_33px_patch": 47,
+        "geometry_any_mask_in_33px_patch": 25,
+        "text_any_mask_in_33px_patch": 1
+      },
+      "missing_without_near_decoded_point": {
+        "truths": 49,
+        "no_eligible_near_grid_anchor": 7,
+        "no_ink_supported_near_grid_anchor": 0,
+        "all_ink_supported_anchors_geometry_rejected": 2,
+        "all_ink_supported_anchors_residual_rejected": 5,
+        "all_ink_supported_anchors_text_rejected": 0,
+        "any_residual_anchor_rejection": 15,
+        "any_geometry_anchor_rejection": 5,
+        "any_text_anchor_rejection": 0,
+        "residual_any_mask_in_33px_patch": 23,
+        "geometry_any_mask_in_33px_patch": 15,
+        "text_any_mask_in_33px_patch": 1
+      }
+    }
+  },
+  "shadow": {
+    "v44-native": {
+      "panels": 31,
+      "changed_panels": 5,
+      "changes": [
+        {
+          "source_sha256": "baac6e29b0436f75c798b88edfa8720b2411400608e9766a9be1d5731667d5bd",
+          "crop": {
+            "x": 0,
+            "y": 319,
+            "width": 1200,
+            "height": 266,
+            "right": 1200,
+            "bottom": 585,
+            "area": 319200,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 1,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": {
+            "x": 0,
+            "y": 583,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 853,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 1,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 350,
+            "right": 1200,
+            "bottom": 350,
+            "area": 420000,
+            "is_valid": true
+          },
+          "removed_pixels": 400,
+          "old_intersections": 28,
+          "new_intersections": 12
+        },
+        {
+          "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1338,
+            "height": 492,
+            "right": 1338,
+            "bottom": 492,
+            "area": 658296,
+            "is_valid": true
+          },
+          "removed_pixels": 75,
+          "old_intersections": 94,
+          "new_intersections": 91
+        },
+        {
+          "source_sha256": "759eadf9a90a5e8523c5902676d6f1ef781b3cef78aca03cd2de58af12e4a7f9",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 6352,
+            "height": 600,
+            "right": 6352,
+            "bottom": 600,
+            "area": 3811200,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 1,
+          "new_intersections": 0
+        }
+      ],
+      "categories_before": {
+        "LegendStructure": 67,
+        "Bracket": 3,
+        "ConnectingLineIntersection": 125
+      },
+      "categories_after": {
+        "LegendStructure": 67,
+        "Bracket": 3,
+        "ConnectingLineIntersection": 103
+      },
+      "removed_mask_pixels": 550,
+      "added_mask_pixels": 0,
+      "native_truths_with_mask_within_two_pixels_before": 50,
+      "native_truths_with_mask_within_two_pixels_after": 31,
+      "currently_missing_truths_with_near_mask_removed": 13
+    },
+    "v44-csv": {
+      "panels": 39,
+      "changed_panels": 10,
+      "changes": [
+        {
+          "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 313,
+            "right": 1200,
+            "bottom": 313,
+            "area": 375600,
+            "is_valid": true
+          },
+          "removed_pixels": 50,
+          "old_intersections": 31,
+          "new_intersections": 29
+        },
+        {
+          "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+          "crop": {
+            "x": 0,
+            "y": 313,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 583,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 50,
+          "old_intersections": 32,
+          "new_intersections": 30
+        },
+        {
+          "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+          "crop": {
+            "x": 0,
+            "y": 583,
+            "width": 1200,
+            "height": 307,
+            "right": 1200,
+            "bottom": 890,
+            "area": 368400,
+            "is_valid": true
+          },
+          "removed_pixels": 75,
+          "old_intersections": 31,
+          "new_intersections": 28
+        },
+        {
+          "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 350,
+            "right": 1200,
+            "bottom": 350,
+            "area": 420000,
+            "is_valid": true
+          },
+          "removed_pixels": 600,
+          "old_intersections": 24,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 350,
+            "right": 1200,
+            "bottom": 350,
+            "area": 420000,
+            "is_valid": true
+          },
+          "removed_pixels": 150,
+          "old_intersections": 23,
+          "new_intersections": 17
+        },
+        {
+          "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+          "crop": {
+            "x": 0,
+            "y": 313,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 583,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 31,
+          "new_intersections": 30
+        },
+        {
+          "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+          "crop": {
+            "x": 0,
+            "y": 583,
+            "width": 1200,
+            "height": 307,
+            "right": 1200,
+            "bottom": 890,
+            "area": 368400,
+            "is_valid": true
+          },
+          "removed_pixels": 50,
+          "old_intersections": 39,
+          "new_intersections": 37
+        },
+        {
+          "source_sha256": "6ef826c33fbd1aa41c913026e7def95d00bf5aabdc6af42fb7aa15b204c26f37",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 350,
+            "right": 1200,
+            "bottom": 350,
+            "area": 420000,
+            "is_valid": true
+          },
+          "removed_pixels": 1300,
+          "old_intersections": 52,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+          "crop": {
+            "x": 0,
+            "y": 313,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 583,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 50,
+          "old_intersections": 2,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+          "crop": {
+            "x": 0,
+            "y": 583,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 853,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 25,
+          "new_intersections": 24
+        }
+      ],
+      "categories_before": {
+        "Bracket": 58,
+        "LegendStructure": 36,
+        "ConnectingLineIntersection": 299
+      },
+      "categories_after": {
+        "Bracket": 58,
+        "LegendStructure": 36,
+        "ConnectingLineIntersection": 204
+      },
+      "removed_mask_pixels": 2375,
+      "added_mask_pixels": 0,
+      "native_truths_with_mask_within_two_pixels_before": 0,
+      "native_truths_with_mask_within_two_pixels_after": 0,
+      "currently_missing_truths_with_near_mask_removed": 0
+    },
+    "v46-native": {
+      "panels": 31,
+      "changed_panels": 5,
+      "changes": [
+        {
+          "source_sha256": "baac6e29b0436f75c798b88edfa8720b2411400608e9766a9be1d5731667d5bd",
+          "crop": {
+            "x": 0,
+            "y": 319,
+            "width": 1200,
+            "height": 266,
+            "right": 1200,
+            "bottom": 585,
+            "area": 319200,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 1,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+          "crop": {
+            "x": 0,
+            "y": 583,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 853,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 1,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 350,
+            "right": 1200,
+            "bottom": 350,
+            "area": 420000,
+            "is_valid": true
+          },
+          "removed_pixels": 400,
+          "old_intersections": 29,
+          "new_intersections": 13
+        },
+        {
+          "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1338,
+            "height": 492,
+            "right": 1338,
+            "bottom": 492,
+            "area": 658296,
+            "is_valid": true
+          },
+          "removed_pixels": 75,
+          "old_intersections": 94,
+          "new_intersections": 91
+        },
+        {
+          "source_sha256": "759eadf9a90a5e8523c5902676d6f1ef781b3cef78aca03cd2de58af12e4a7f9",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 6352,
+            "height": 600,
+            "right": 6352,
+            "bottom": 600,
+            "area": 3811200,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 1,
+          "new_intersections": 0
+        }
+      ],
+      "categories_before": {
+        "LegendStructure": 67,
+        "ConnectingLineIntersection": 126,
+        "Bracket": 3
+      },
+      "categories_after": {
+        "LegendStructure": 67,
+        "Bracket": 3,
+        "ConnectingLineIntersection": 104
+      },
+      "removed_mask_pixels": 550,
+      "added_mask_pixels": 0,
+      "native_truths_with_mask_within_two_pixels_before": 51,
+      "native_truths_with_mask_within_two_pixels_after": 32,
+      "currently_missing_truths_with_near_mask_removed": 13
+    },
+    "v46-csv": {
+      "panels": 39,
+      "changed_panels": 10,
+      "changes": [
+        {
+          "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 313,
+            "right": 1200,
+            "bottom": 313,
+            "area": 375600,
+            "is_valid": true
+          },
+          "removed_pixels": 50,
+          "old_intersections": 31,
+          "new_intersections": 29
+        },
+        {
+          "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+          "crop": {
+            "x": 0,
+            "y": 583,
+            "width": 1200,
+            "height": 307,
+            "right": 1200,
+            "bottom": 890,
+            "area": 368400,
+            "is_valid": true
+          },
+          "removed_pixels": 75,
+          "old_intersections": 31,
+          "new_intersections": 28
+        },
+        {
+          "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+          "crop": {
+            "x": 0,
+            "y": 313,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 583,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 50,
+          "old_intersections": 32,
+          "new_intersections": 30
+        },
+        {
+          "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 350,
+            "right": 1200,
+            "bottom": 350,
+            "area": 420000,
+            "is_valid": true
+          },
+          "removed_pixels": 600,
+          "old_intersections": 24,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "3fc242cdc47214bcd650b02bb9855028179c994a10a8e8b4ef5a3fba4b1b23e6",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 350,
+            "right": 1200,
+            "bottom": 350,
+            "area": 420000,
+            "is_valid": true
+          },
+          "removed_pixels": 150,
+          "old_intersections": 23,
+          "new_intersections": 17
+        },
+        {
+          "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+          "crop": {
+            "x": 0,
+            "y": 313,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 583,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 31,
+          "new_intersections": 30
+        },
+        {
+          "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+          "crop": {
+            "x": 0,
+            "y": 583,
+            "width": 1200,
+            "height": 307,
+            "right": 1200,
+            "bottom": 890,
+            "area": 368400,
+            "is_valid": true
+          },
+          "removed_pixels": 50,
+          "old_intersections": 39,
+          "new_intersections": 37
+        },
+        {
+          "source_sha256": "6ef826c33fbd1aa41c913026e7def95d00bf5aabdc6af42fb7aa15b204c26f37",
+          "crop": {
+            "x": 0,
+            "y": 0,
+            "width": 1200,
+            "height": 350,
+            "right": 1200,
+            "bottom": 350,
+            "area": 420000,
+            "is_valid": true
+          },
+          "removed_pixels": 1300,
+          "old_intersections": 52,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+          "crop": {
+            "x": 0,
+            "y": 313,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 583,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 50,
+          "old_intersections": 2,
+          "new_intersections": 0
+        },
+        {
+          "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+          "crop": {
+            "x": 0,
+            "y": 583,
+            "width": 1200,
+            "height": 270,
+            "right": 1200,
+            "bottom": 853,
+            "area": 324000,
+            "is_valid": true
+          },
+          "removed_pixels": 25,
+          "old_intersections": 25,
+          "new_intersections": 24
+        }
+      ],
+      "categories_before": {
+        "Bracket": 64,
+        "LegendStructure": 30,
+        "ConnectingLineIntersection": 299
+      },
+      "categories_after": {
+        "Bracket": 64,
+        "LegendStructure": 30,
+        "ConnectingLineIntersection": 204
+      },
+      "removed_mask_pixels": 2375,
+      "added_mask_pixels": 0,
+      "native_truths_with_mask_within_two_pixels_before": 0,
+      "native_truths_with_mask_within_two_pixels_after": 0,
+      "currently_missing_truths_with_near_mask_removed": 0
+    }
+  },
+  "shadow_seconds": 33.53389,
+  "shadow_replay_seconds": 11.3285278,
+  "mask_coverage_seconds": 14.0760928,
+  "limitations": [
+    "All838markers have nonzero visible contribution, but visibility does not establish localizable centers or identifiable shapes. No truth is removed.",
+    "Mask coverage uses saved final OCR observations and the exact current raster algorithms. It identifies conflicts, not causal accuracy improvement. Full workflow validation must measure the actual preceding masks and outcomes.",
+    "The shadow removes22native and95CSVintersection masks per arm, preserving other categories. This may expose false positives. No recovery count or improved export accuracy is claimed.",
+    "The earlier phase-role V46 neighboring-annotation merge remains unresolved. Models V46 and all rejected marker candidates remain closed. No production approval or packaged build."
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-shadow-20261001-v1/bindings.json",
+      "sha256": "d1401916c7353cf70433f2cd08432ec55be68a4de2d7be8ea7edd4d88d5679cb"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-shadow-20261001-v1/request.json",
+      "sha256": "f824218fa1049ebd1a83b79f9ee4d169710fa0a8b46599ca95894a86789dc390"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-shadow-20261001-v1/report.json",
+      "sha256": "e556b76c4ccb2fc28dad9ccc3a6a19f3ceddaa6444710d82efd39a3ad7bd379f"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-shadow-20261001-v1/status.json",
+      "sha256": "4261d8b6897fc2ec40194ce9a8a3e5bc51a4fbb580bba41bc591dd55b8c237f8"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-core-intersection-shadow-20261001-v1/MarkerCoreShadowResidualArtifactMaskProvider.cs",
+      "sha256": "f75de1afd122e8110161f1db64710b4828ec649540cdf5d9cebb53d225f84a9a"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-mask-coverage-20261001-v1/bindings.json",
+      "sha256": "938ac08e74f5818e2a9876fd6eaba84b2b437267c37fb7eeeb549b881d43cab5"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-mask-coverage-20261001-v1/report.json",
+      "sha256": "854258e441d1bce41d81504634a56460bc7fab67cf85eaf37db3e2d32aa156b4"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-mask-coverage-20261001-v1/analysis.json",
+      "sha256": "933dd54cc5b93fd398d1e1da87821d1f376168e854f397c27436f1ae3252c282"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-mask-coverage-20261001-v1/status.json",
+      "sha256": "91a538baa17b84dc6361190d80bd70942eefa9bf7c138751de8b0e0fff79c917"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-visibility-20261001-v2/protocol.json",
+      "sha256": "68fbc0f31ef573fc375d167ba02acde61ef1ca2b150849017ec08483a9835a51"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-visibility-20261001-v2/report.json",
+      "sha256": "169c1c117e1093a2d948d66c9f469508847063437363fe777f7dbb85797aae79"
+    },
+    {
+      "path": "artifacts/goal22-runs/native-marker-visibility-20261001-v2/status.json",
+      "sha256": "0094c2cd2acd452724eaea0d38dba3bdcef98fa49342aba8eb2df213b72e3752"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-MarkerCoreIntersectionDiagnosis.py",
+      "sha256": "2f7368127aeedef351177ec46a20c821e649d787bed76247986ca0a91012db88"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskProvider.cs",
+      "sha256": "1d876edb52e315cbe1585b938a8aae00d48dd7c8d21681ce7c91a8517f53006a"
+    },
+    {
+      "path": "src/GraphReader.Ocr/RasterPreOcrStructuralProbabilityProvider.cs",
+      "sha256": "cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/RasterResidualArtifactMaskProviderTests.cs",
+      "sha256": "3e7d9245901d04de738ebdebe202977a3ace937249ad3e3b5162562aa049ec44"
+    }
+  ]
+}

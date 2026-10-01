@@ -98,11 +98,11 @@ public sealed class RasterResidualArtifactMaskProvider
     private const float IntersectionConfidence = 0.90f;
     private const float StructuralConfirmationBonus = 0.02f;
 
-    public const string CompositionVersion = "raster-residual-v3";
+    public const string CompositionVersion = "raster-residual-v4-marker-core-review";
     public const string ConfigurationFingerprint =
         CompositionVersion + ";gray<=196;seed>=0.5;component=8;arrow-span>=14;arrow-tail-ray-intersects-label;" +
         "bracket-span>=14;intersection-arm=5..64;intersection-radius=2;nms=6;" +
-        "compact-review-span<=13;intersection-pair-span>13;legend-left-gap<=3.5h";
+        "compact-review-span<=13;intersection-pair-span>13;intersection-marker-like-footprint<0.5;legend-left-gap<=3.5h";
 
     private readonly IPreOcrStructuralProbabilityProvider structuralProvider;
 
@@ -243,6 +243,7 @@ public sealed class RasterResidualArtifactMaskProvider
             foreground,
             mask,
             plot,
+            markerProbabilities,
             connectorProbabilities,
             regions,
             cancellationToken);
@@ -257,7 +258,7 @@ public sealed class RasterResidualArtifactMaskProvider
         }
         if (ambiguousIntersectionCount > 0)
         {
-            warnings.Add($"{ambiguousIntersectionCount} short crossing candidate(s) remained reviewable because their arms fit a compact marker.");
+            warnings.Add($"{ambiguousIntersectionCount} crossing candidate(s) remained reviewable because their arms fit a compact marker or their mask overlaps marker-like ink.");
         }
 
         return new RasterResidualArtifactMaskResult(
@@ -425,6 +426,7 @@ public sealed class RasterResidualArtifactMaskProvider
         bool[] foreground,
         float[] mask,
         PlotPolygon plot,
+        float[] markerProbabilities,
         float[] connectorProbabilities,
         List<RasterResidualArtifactRegion> regions,
         CancellationToken cancellationToken)
@@ -472,6 +474,14 @@ public sealed class RasterResidualArtifactMaskProvider
                         ambiguousCount++;
                         continue;
                     }
+                    // Connected filled markers can also form long line pairs.
+                    // Conflicting morphology must stay reviewable throughout
+                    // the mask footprint, without declaring it a marker.
+                    if (OverlapsMarkerLikeInk(markerProbabilities, width, x, y))
+                    {
+                        ambiguousCount++;
+                        continue;
+                    }
                     candidates.Add(new IntersectionCandidate(x, y, strength, connectorProbabilities[index]));
                 }
             }
@@ -515,6 +525,19 @@ public sealed class RasterResidualArtifactMaskProvider
                 "two nonparallel line pairs cross inside the axis plot"));
         }
         return ambiguousCount;
+    }
+
+    private static bool OverlapsMarkerLikeInk(float[] markerProbabilities, int width, int centerX, int centerY)
+    {
+        for (int y = centerY - IntersectionMaskRadius; y <= centerY + IntersectionMaskRadius; y++)
+        {
+            for (int x = centerX - IntersectionMaskRadius; x <= centerX + IntersectionMaskRadius; x++)
+            {
+                if (markerProbabilities[(y * width) + x] >= SeedMaskedThreshold)
+                    return true;
+            }
+        }
+        return false;
     }
 
     private static readonly (int X, int Y)[] OpposingDirections =
