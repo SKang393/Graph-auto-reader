@@ -89,6 +89,39 @@ public sealed class HeaderFragmentWordRecoveryTests
     }
 
     [TestMethod]
+    public void BoundHeadingWordsBridgeConnectedInkWiderThanOneGlyph()
+    {
+        var (detected, recognized, components) = Fixture(secondHeadingX: 200);
+        var word = OcrTestFixtures.Region("bound-word", 137, 20, 30, 12);
+        var reading = new OcrRegion(word.RegionId, word.Polygon, "Baseline", [], OcrTextRole.PhaseHeading, .9,
+            OcrSourceImage.Original, OcrReviewStatus.Unreviewed);
+        // No character string is used to construct the crop; only the bound geometry is added.
+        var result = HeaderFragmentWordRecovery.SelectCandidates([.. components, word],
+            [.. detected, word], [.. recognized, reading], Plot, []);
+        Assert.HasCount(1, result);
+        Assert.AreEqual(new OcrRectangle(90, 20, 77, 12), result[0].Region.Polygon.Bounds);
+        CollectionAssert.Contains(result[0].SourceRegionIds.ToArray(), "bound-word");
+        Assert.IsNull(result[0].Region.Context);
+    }
+
+    [TestMethod]
+    [DataRow(OcrReviewStatus.Accepted, OcrTextRole.PhaseHeading)]
+    [DataRow(OcrReviewStatus.Unreviewed, OcrTextRole.Annotation)]
+    [DataRow(OcrReviewStatus.Unreviewed, OcrTextRole.Other)]
+    public void ProtectedOrUncorroboratedWordsDoNotBecomeGeometryAnchors(OcrReviewStatus review, OcrTextRole role)
+    {
+        var (detected, recognized, components) = Fixture(secondHeadingX: 200);
+        var word = OcrTestFixtures.Region("bound-word", 137, 20, 30, 12);
+        var reading = new OcrRegion(word.RegionId, word.Polygon, "Note", [], role, .9,
+            OcrSourceImage.Original, review);
+        var result = HeaderFragmentWordRecovery.SelectCandidates([.. components, word],
+            [.. detected, word], [.. recognized, reading], Plot, []);
+        Assert.HasCount(1, result);
+        Assert.AreEqual(new OcrRectangle(90, 20, 41, 12), result[0].Region.Polygon.Bounds);
+        CollectionAssert.DoesNotContain(result[0].SourceRegionIds.ToArray(), "bound-word");
+    }
+
+    [TestMethod]
     public async Task RejectsInvalidGeometryDerivedPixelsAndCancellation()
     {
         var (detected, recognized, components) = Fixture();
@@ -177,11 +210,11 @@ public sealed class HeaderFragmentWordRecoveryTests
         CollectionAssert.AreEqual(original, pixels);
     }
 
-    private static (OcrDetectedRegion[] Detected, OcrRegion[] Recognized, OcrDetectedRegion[] Components) Fixture()
+    private static (OcrDetectedRegion[] Detected, OcrRegion[] Recognized, OcrDetectedRegion[] Components) Fixture(int secondHeadingX = 170)
     {
         OcrDetectedRegion[] components = Enumerable.Range(0, 4).Select(i => OcrTestFixtures.Region("component-" + i, 90 + 11 * i, 20, 8, 12)).ToArray();
         OcrDetectedRegion[] detected = [OcrTestFixtures.Region("first", 35, 20, 25, 12),
-            OcrTestFixtures.Region("second", 170, 20, 25, 12), OcrTestFixtures.Region("third", 240, 20, 25, 12),
+            OcrTestFixtures.Region("second", secondHeadingX, 20, 25, 12), OcrTestFixtures.Region("third", 240, 20, 25, 12),
             .. components.Select(static c => c with { RegionId = "header-glyph:" + c.RegionId })];
         string[] labels = ["Baseline", "Intervention", "Maintenance", "C", "r", "a", "b"];
         OcrRegion[] recognized = detected.Select((d, i) => new OcrRegion(d.RegionId, d.Polygon, labels[i], [],

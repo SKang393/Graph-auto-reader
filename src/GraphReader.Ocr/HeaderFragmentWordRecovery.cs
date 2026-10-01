@@ -11,7 +11,7 @@ public sealed record RecoveredHeaderWord(IReadOnlyList<string> SourceRegionIds, 
 /// <summary>Reads adjacent recovered header fragments together from their measured original ink.</summary>
 public static class HeaderFragmentWordRecovery
 {
-    public const string CompositionVersion = "original-pixel-header-fragment-word-separate-batch-v1";
+    public const string CompositionVersion = "original-pixel-header-fragment-word-separate-batch-v2-bound-words";
 
     public static async ValueTask<IReadOnlyList<RecoveredHeaderWord>> FindAsync(
         OcrImage image, IReadOnlyList<OcrDetectedRegion> detected, IReadOnlyList<OcrRegion> recognized,
@@ -50,13 +50,21 @@ public static class HeaderFragmentWordRecovery
         double height = HeaderGlyphTextRegionRecovery.Median(band.Select(static b => b.Height));
         double centerY = HeaderGlyphTextRegionRecovery.Median(band.Select(static b => b.Center.Y));
         var byId = detected.ToDictionary(static r => r.RegionId, StringComparer.Ordinal);
+        IEnumerable<OcrDetectedRegion> boundWords = recognized.Where(region =>
+        {
+            OcrRectangle b = region.Polygon.Bounds;
+            return region.Role == OcrTextRole.PhaseHeading && b.Width > height * 2 &&
+                b.Left >= plot.Left && b.Right <= plot.Right && b.Bottom <= plot.Top &&
+                b.Height >= height / 2 && b.Height <= height * 2 &&
+                Math.Abs(b.Center.Y - centerY) <= height / 2 && CanReplace(region, b, byId);
+        }).Select(region => byId[region.RegionId]);
         var remaining = components.Where(component =>
         {
             OcrRectangle b = component.Polygon.Bounds;
             return b.Left >= plot.Left && b.Right <= plot.Right && b.Bottom <= plot.Top &&
                 b.Height >= height / 2 && b.Height <= height * 2 && b.Width <= height * 2 &&
                 Math.Abs(b.Center.Y - centerY) <= height / 2;
-        }).OrderBy(static c => c.Polygon.Bounds.Left).ThenBy(static c => c.Polygon.Bounds.Top)
+        }).Concat(boundWords).OrderBy(static c => c.Polygon.Bounds.Left).ThenBy(static c => c.Polygon.Bounds.Top)
             .ThenBy(static c => c.Polygon.Bounds.Right).ThenBy(static c => c.Polygon.Bounds.Bottom)
             .ThenBy(static c => c.RegionId, StringComparer.Ordinal).ToList();
         var result = new List<RecoveredHeaderWord>();

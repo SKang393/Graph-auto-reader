@@ -1,0 +1,87 @@
+{
+  "schema": "graphreader.bound-header-word-diagnosis.v1",
+  "base_commit": "7067b8f3e45162ef62d29db20a0c85f46d3478ab",
+  "status": "frozen_before_implementation",
+  "failure_mode": "A readable adjacent recognized heading word is excluded from component grouping because connected ink is wider than the standalone-glyph envelope. The current retained runtime reads Shared and Baseline separately instead of the authored Shared Baseline heading.",
+  "responsible_subsystem": "HeaderFragmentWordRecovery component-only width filter.",
+  "measured_dev_case": {
+    "source_sha256": "dfa5093f",
+    "glyph_height_median_pixels": 12,
+    "component_width_limit_pixels": 24,
+    "excluded_connected_component_xywh": [
+      315,
+      73,
+      30,
+      12
+    ],
+    "bound_recognized_heading": {
+      "text": "Baseline",
+      "xywh": [
+        315,
+        72,
+        54,
+        13
+      ],
+      "role": "PhaseHeading"
+    },
+    "current_group_xywh": [
+      260,
+      72,
+      48,
+      12
+    ],
+    "shadow_group_xywh": [
+      260,
+      72,
+      109,
+      13
+    ]
+  },
+  "hypothesis": "Use already recognized, bound, horizontal and unreviewed PhaseHeading word regions as additional geometry anchors when their ink exceeds the single-glyph width cap. Keep all remaining word-group geometry, multiple-recovered-fragment requirement, semantic and human-decision guards, original-pixel recognition and failure behavior unchanged.",
+  "isolated_change": "Geometry anchors only; never concatenate text. The recognizer reads the complete original-pixel crop. Advance the grouping composition version and verify the same fixed model configurations.",
+  "shadow_scope": "The 62-panel owned native geometry replay changes only the retained Shared group; V46/server candidate geometry is unchanged. This is a geometry-only diagnosis, not a recognition result.",
+  "metrics": [
+    "paired literal-exact native text",
+    "geometry/role/character errors",
+    "matched and extra markers",
+    "CSV completed sources, correct values and rows",
+    "unchanged or explained numeric rows and valid original-pixel calibration"
+  ],
+  "acceptance_bars": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "repair_acceptance": "Repair the diagnosed clipped group without losing previously correct native readings or marker/CSV correctness. Preserve project acceptance bars; this local repair does not approve a model or Goal22.",
+  "splits": "Same owned native dev 21 sources/31 panels/453 texts/838 markers and CSV train/dev 23 sources/39 panels. No private or sealed inputs.",
+  "sealed_run_budget": 0,
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "evidence": [
+    {
+      "path": "docs/GOAL-22-HEADER-FRAGMENT-WORD-RECOVERY.json",
+      "sha256": "9ccba50aac035c11b98ac25b6f8d4eca6a754eee9034e26587e70aa23662ed93"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-fragment-component-trace-20260930-v1/report.json",
+      "sha256": "184237b76078388eec84de2b6c37df816cb459ad5e2bfdb90744653ee57b7979"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-fragment-component-trace-20260930-v1/group-diagnosis-v2.json",
+      "sha256": "1e9e1f518b5bc529d858b959b9d61e27b99ca691e4ca917ef0e7f9a6339df9b9"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-fragment-component-trace-20260930-v1/bound-heading-word-shadow.json",
+      "sha256": "06017fab7625c8e86d858c0227b9c22df462e3c4177c5f5d2d3ea564234993a6"
+    },
+    {
+      "path": "artifacts/goal22-tools/Diagnose-BoundHeaderWordGroups.py",
+      "sha256": "96e16575ad8a9e525860fbb5cef98b1dce31e801c74b83a12e7ca4def44e190d"
+    }
+  ]
+}
