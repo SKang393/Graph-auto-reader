@@ -118,6 +118,7 @@ public static class OcrCacheKeyDeriver
             yield return HeaderGlyphCropCompletion.CompositionVersion;
             yield return HeaderFragmentWordRecovery.CompositionVersion;
             yield return BracketCaptionGlyphRecovery.CompositionVersion;
+            yield return SeparatedHeaderGlyphRecovery.CompositionVersion;
             yield return HeaderWordSuffixRecovery.CompositionVersion;
         }
         if (options.EnableFramedLegendRoleResolution)

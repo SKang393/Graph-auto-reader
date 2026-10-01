@@ -1,0 +1,457 @@
+{
+  "schema": "graphreader.separated-header-glyph-recovery-diagnosis.v1",
+  "base_source_commit": "817dd7043aa7a2db6ab8c4ae40241be778e1f2ab",
+  "failure_mode": "Automatic detector boxes combine a separately spaced boundary glyph with a neighboring participant or phase word. The resulting OCR string merges two authored labels and hides the condition glyph.",
+  "responsible_subsystem": "Original-pixel OCR crop preparation and semantic region assembly.",
+  "hypothesis": "Re-read one isolated compact boundary component and the remaining word as separate original-pixel crops when existing OCR already identifies a one-letter boundary token and the gap exceeds the shorter ink height. Keep all protected contexts and human decisions unchanged. Replace the composite only when both new reads succeed.",
+  "metrics": [
+    "Native per-region exact text, detection precision/recall, role accuracy and character error rate.",
+    "Paired retained, gained and lost correct readings; markers, calibration and full CSV values/rows with train/dev split results."
+  ],
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "repair_regression_requirement": "No loss of existing exact readings or correct markers/CSV rows. Every changed semantic region must map to the measured separated original-pixel components. No relaxation of product bars or calibration checks.",
+  "fixed_splits": {
+    "native": "21 owned development sources, 31 panels, 453 text regions and 838 markers.",
+    "csv": "23 owned sources: 20 train and 3 dev, 39 panels, 706 unique points and 724 expected rows."
+  },
+  "budget": {
+    "native_runs_per_configuration": 1,
+    "csv_runs_per_configuration": 1,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "sealed_runs": 0
+  },
+  "diagnosed_candidates": [
+    {
+      "arm": "v44-native",
+      "source_sha256": "269ed38a5788ef8ad6c128278a0b34813691c2b4607585b2ddc9e51b3f6230b5",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "51de5d39-b905-8657-c801-503c3af56e79",
+        "polygon": {
+          "points": [
+            {
+              "x": 24,
+              "y": 51,
+              "is_finite": true
+            },
+            {
+              "x": 156,
+              "y": 51,
+              "is_finite": true
+            },
+            {
+              "x": 156,
+              "y": 66,
+              "is_finite": true
+            },
+            {
+              "x": 24,
+              "y": 66,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 24,
+            "y": 51,
+            "width": 132,
+            "height": 15,
+            "left": 24,
+            "top": 51,
+            "right": 156,
+            "bottom": 66,
+            "center": {
+              "x": 90,
+              "y": 58.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Participant OI A",
+        "alternatives": [
+          {
+            "text": "Participant OI A",
+            "confidence": 0.9304701648652554,
+            "source_image": "Original"
+          },
+          {
+            "text": "Participant O1 A",
+            "confidence": 0.3891464152092658,
+            "source_image": "Original"
+          },
+          {
+            "text": "Participant 0I A",
+            "confidence": 0.23205518909369027,
+            "source_image": "Original"
+          }
+        ],
+        "role": "Participant",
+        "confidence": 0.8206604618757496,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "side": "right",
+      "glyph": {
+        "x": 145,
+        "y": 55,
+        "width": 11,
+        "height": 10,
+        "left": 145,
+        "top": 55,
+        "right": 156,
+        "bottom": 65,
+        "center": {
+          "x": 150.5,
+          "y": 60,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "word": {
+        "left": 24,
+        "top": 51,
+        "right": 128,
+        "bottom": 66,
+        "width": 104,
+        "height": 15
+      },
+      "gap": 17,
+      "overlapping_truth": [
+        {
+          "truth_id": "0e8f229d-4dcb-5fca-b4ba-a4e4f55da317",
+          "text": "Participant 01",
+          "role": "participant",
+          "box": [
+            23.823553,
+            51.107769,
+            128.825421,
+            66.120848
+          ]
+        },
+        {
+          "truth_id": "1b9255a6-ced2-59c5-89c8-dbaeb4975229",
+          "text": "A",
+          "role": "condition_label",
+          "box": [
+            143.823677,
+            55.122717,
+            155.824923,
+            65.124212
+          ]
+        }
+      ]
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "269ed38a5788ef8ad6c128278a0b34813691c2b4607585b2ddc9e51b3f6230b5",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "participant-lane:d6e6ab197a50b6edf942b7f3fa7d6727608327c3b232a49c695f6e8a5a1f0256",
+        "polygon": {
+          "points": [
+            {
+              "x": 24,
+              "y": 51,
+              "is_finite": true
+            },
+            {
+              "x": 156,
+              "y": 51,
+              "is_finite": true
+            },
+            {
+              "x": 156,
+              "y": 66,
+              "is_finite": true
+            },
+            {
+              "x": 24,
+              "y": 66,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 24,
+            "y": 51,
+            "width": 132,
+            "height": 15,
+            "left": 24,
+            "top": 51,
+            "right": 156,
+            "bottom": 66,
+            "center": {
+              "x": 90,
+              "y": 58.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "Participant 01 A",
+        "alternatives": [
+          {
+            "text": "Participant 01 A",
+            "confidence": 0.9714490510523319,
+            "source_image": "Original"
+          },
+          {
+            "text": "Participant 01A",
+            "confidence": 0.19696961230557905,
+            "source_image": "Original"
+          },
+          {
+            "text": "Participant O1 A",
+            "confidence": 0.0900026119017347,
+            "source_image": "Original"
+          }
+        ],
+        "role": "Participant",
+        "confidence": 0.8561841468012711,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "side": "right",
+      "glyph": {
+        "x": 145,
+        "y": 55,
+        "width": 11,
+        "height": 10,
+        "left": 145,
+        "top": 55,
+        "right": 156,
+        "bottom": 65,
+        "center": {
+          "x": 150.5,
+          "y": 60,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "word": {
+        "left": 24,
+        "top": 51,
+        "right": 128,
+        "bottom": 66,
+        "width": 104,
+        "height": 15
+      },
+      "gap": 17,
+      "overlapping_truth": [
+        {
+          "truth_id": "0e8f229d-4dcb-5fca-b4ba-a4e4f55da317",
+          "text": "Participant 01",
+          "role": "participant",
+          "box": [
+            23.823553,
+            51.107769,
+            128.825421,
+            66.120848
+          ]
+        },
+        {
+          "truth_id": "1b9255a6-ced2-59c5-89c8-dbaeb4975229",
+          "text": "A",
+          "role": "condition_label",
+          "box": [
+            143.823677,
+            55.122717,
+            155.824923,
+            65.124212
+          ]
+        }
+      ]
+    },
+    {
+      "arm": "v46-native",
+      "source_sha256": "ef8f24b226f68dcb823690604f4cf6cbbe0c3b9dfeb694aa4992f63d12506a41",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "region": {
+        "region_id": "inside-plot:02b416c241bc5ca1cfa406a044ad8372055ee99c75ac37df1197cf0792d98794",
+        "polygon": {
+          "points": [
+            {
+              "x": 558,
+              "y": 73,
+              "is_finite": true
+            },
+            {
+              "x": 664,
+              "y": 73,
+              "is_finite": true
+            },
+            {
+              "x": 664,
+              "y": 86,
+              "is_finite": true
+            },
+            {
+              "x": 558,
+              "y": 86,
+              "is_finite": true
+            }
+          ],
+          "bounds": {
+            "x": 558,
+            "y": 73,
+            "width": 106,
+            "height": 13,
+            "left": 558,
+            "top": 73,
+            "right": 664,
+            "bottom": 86,
+            "center": {
+              "x": 611,
+              "y": 79.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          }
+        },
+        "text": "A Withdrawal",
+        "alternatives": [
+          {
+            "text": "A Withdrawal",
+            "confidence": 0.9436884870131811,
+            "source_image": "Original"
+          },
+          {
+            "text": "AWithdrawal",
+            "confidence": 0.5397113667119872,
+            "source_image": "Original"
+          },
+          {
+            "text": "A withdrawal",
+            "confidence": 0.34205359732626145,
+            "source_image": "Original"
+          }
+        ],
+        "role": "PhaseHeading",
+        "confidence": 0.793486041661449,
+        "source_image": "Original",
+        "review_status": "Unreviewed",
+        "coordinate_space": "original_pixels"
+      },
+      "side": "left",
+      "glyph": {
+        "x": 556,
+        "y": 75,
+        "width": 11,
+        "height": 10,
+        "left": 556,
+        "top": 75,
+        "right": 567,
+        "bottom": 85,
+        "center": {
+          "x": 561.5,
+          "y": 80,
+          "is_finite": true
+        },
+        "is_valid": true
+      },
+      "word": {
+        "left": 583,
+        "top": 73,
+        "right": 664,
+        "bottom": 86,
+        "width": 81,
+        "height": 13
+      },
+      "gap": 16,
+      "overlapping_truth": [
+        {
+          "truth_id": "2b967cee-6170-56c7-9fe5-d176b2d1490b",
+          "text": "Withdrawal",
+          "role": "phase_heading",
+          "box": [
+            582.227632,
+            72.702037,
+            664.229575,
+            85.714297
+          ]
+        },
+        {
+          "truth_id": "aca1151f-50cb-5020-8903-4a98c23d8f9f",
+          "text": "A",
+          "role": "condition_label",
+          "box": [
+            555.227782,
+            74.698,
+            567.229277,
+            84.699794
+          ]
+        }
+      ]
+    }
+  ],
+  "candidate_counts": {
+    "v44-native": 1,
+    "v46-native": 2
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/separated-header-glyph-diagnosis-20260930-v2/report.json",
+      "sha256": "eaf67a4ed78411abca538ee111eaa877080c450fa02cee437d94fc42f5a4ff73"
+    },
+    {
+      "path": "artifacts/goal22-runs/remaining-crop-context-diagnosis-20260930-v1/report.json",
+      "sha256": "a4e6a13873e90269f10196c57b1b8b3e69baab54a47ee41b66d7ce1bfbbc15c9"
+    },
+    {
+      "path": "artifacts/goal22-runs/separated-header-glyph-trace-20260930-v1/report.json",
+      "sha256": "981cb20471ba046ed2e5744d52f782ec4ddf5c8cc7498193be407e298f6c8452"
+    },
+    {
+      "path": "artifacts/goal22-runs/separated-header-glyph-trace-20260930-v1/bindings.json",
+      "sha256": "ba1faf3fec0af5eb0758b04f2e6b0f3f9bb4037ad7be8d1cf6e615e9411dd8bc"
+    },
+    {
+      "path": "docs/GOAL-22-MARKER-GLYPH-DISAMBIGUATION.json",
+      "sha256": "fcc81916fb87c78561bd729ff3239756b631e996d388c287f9786cd47a4860af"
+    }
+  ],
+  "constraints": [
+    "Use the same V44/English/V27/V5 and closed V46/server/V27/V5 model configurations.",
+    "Supply no character, string, role hint or truth box to the runtime recovery.",
+    "Preserve the original reading if either crop returns a failure or empty text. Numeric misreads cannot become calibration ticks.",
+    "New batches leave all existing recognition crops and their padding unchanged.",
+    "Geometry-only diagnosis establishes no new recognition result; actual workflow validation remains required."
+  ],
+  "license_review": "Owned code and synthetic inputs; existing checksum-reviewed Apache-2.0 models. No dependency or model payload change.",
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false
+}
