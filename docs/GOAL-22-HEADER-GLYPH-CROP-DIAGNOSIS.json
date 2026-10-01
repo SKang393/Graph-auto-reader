@@ -1,0 +1,664 @@
+{
+  "schema": "goal22-header-glyph-crop-diagnosis-v1",
+  "status": "fixed_dev_hypothesis_before_implementation",
+  "base_source_commit": "709f3b0cb964802bde06cd82c76f704ab8e4e798",
+  "failure_mode": "Five condition-label regions preserve only fragments of complete original-pixel glyphs. Four still read A but fail geometric matching; one B reads 3. Existing overlap suppression treats those partial crops as covering the complete components.",
+  "responsible_subsystem": "OCR header glyph recovery and crop construction before a separate recognition batch.",
+  "scope": "Existing owned synthetic train/dev only; no private answers or sealed inputs.",
+  "measurement": {
+    "condition_label_truths": 85,
+    "unmatched": 12,
+    "truncated_single_glyph_crops": 5,
+    "merged_into_words": 3,
+    "uncovered": 4
+  },
+  "hypothesis": "Complete only a unique original-pixel connected component around an unreviewed one-scalar PhaseHeading/Other reading in the existing corroborated heading band. Reuse the existing band and component size limits; preserve human decisions, numeric tick roles, plot and legend context, neighboring detections and all baseline recognition tensors. Re-read completed crops in a separate batch, replacing the old fragment only after successful recognition. Never supply a character or a role from truth.",
+  "validation": {
+    "acceptance_bars": {
+      "file": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "metrics": "Paired literal OCR and geometry, marker matches/extras, complete CSV exports/values/rows, axis calibration and finite original-pixel audit rows. Existing Tier 1 95 percent bars remain unchanged; zero silently exported unvalidated calibrations.",
+    "run_budget": {
+      "current_v46_server_native_baseline": 1,
+      "current_v46_server_csv_baseline": 1,
+      "patched_v44_native": 1,
+      "patched_v44_csv": 1,
+      "patched_v46_server_native": 1,
+      "patched_v46_server_csv": 1,
+      "optimizer_steps": 0,
+      "private_reads": 0,
+      "sealed_runs": 0
+    }
+  },
+  "partial_crops": [
+    {
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "panel_sha256": "09de3849a49cfe47e8bfb01681928bcbc17768df3a08577845dd4638ed00420a",
+      "crop": {
+        "x": 0,
+        "y": 1393,
+        "width": 1200,
+        "height": 307,
+        "right": 1200,
+        "bottom": 1700,
+        "area": 368400,
+        "is_valid": true
+      },
+      "truth": {
+        "split": "validation",
+        "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+        "truth_id": "a8f04ef9d755175098bca8ccc5042a12ef27f88ea377379e07020e646911c20a",
+        "text": "A",
+        "role": "condition_label",
+        "box": [
+          108.777417,
+          1423.0,
+          120.986887,
+          1433.0
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null,
+        "panel_box": [
+          108.777417,
+          30.0,
+          120.986887,
+          40.0
+        ]
+      },
+      "components": [
+        {
+          "component_id": "c2fc6eaa-9980-2345-00c0-3e49017e265e",
+          "bounds": {
+            "x": 110,
+            "y": 30,
+            "width": 11,
+            "height": 10,
+            "left": 110,
+            "top": 30,
+            "right": 121,
+            "bottom": 40,
+            "center": {
+              "x": 115.5,
+              "y": 35,
+              "is_finite": true
+            },
+            "is_valid": true
+          },
+          "evidence": {
+            "component_count": 1,
+            "ink_density": 0.36363636363636365,
+            "text_likelihood": 0.12,
+            "structure_likelihood": 0.35,
+            "likely_graph_structure": false,
+            "reasons": [
+              "single_glyph_candidate"
+            ]
+          },
+          "truth_area_coverage": 0.8998660056497129,
+          "raw_covering_regions": [
+            {
+              "region_id": "b4b81cce-d330-0d0a-075a-001ba6d41177",
+              "bounds": {
+                "x": 112,
+                "y": 31,
+                "width": 7,
+                "height": 8,
+                "left": 112,
+                "top": 31,
+                "right": 119,
+                "bottom": 39,
+                "center": {
+                  "x": 115.5,
+                  "y": 35,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.509090909090909
+            }
+          ],
+          "final_overlaps": [
+            {
+              "region_id": "b4b81cce-d330-0d0a-075a-001ba6d41177",
+              "text": "A",
+              "role": "PhaseHeading",
+              "bounds": {
+                "x": 112,
+                "y": 31,
+                "width": 7,
+                "height": 8,
+                "left": 112,
+                "top": 31,
+                "right": 119,
+                "bottom": 39,
+                "center": {
+                  "x": 115.5,
+                  "y": 35,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.509090909090909
+            }
+          ]
+        }
+      ],
+      "original_pixels_sha256": "7bddeafc13eaeea3a5f0640046dcc3557ff62bcf2749ffa910fe71c383b37f8c"
+    },
+    {
+      "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+      "panel_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "truth": {
+        "split": "validation",
+        "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+        "truth_id": "8a2c4abf37d0280f00673b8c020c627bf6d2b6b4aa65b8c35bcf6235ee6b2118",
+        "text": "A",
+        "role": "condition_label",
+        "box": [
+          122.495656,
+          94.316815,
+          137.518298,
+          108.34107700000001
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null,
+        "panel_box": [
+          122.495656,
+          94.316815,
+          137.518298,
+          108.34107700000001
+        ]
+      },
+      "components": [
+        {
+          "component_id": "5627d644-005d-4fc5-d3ae-2537a486c691",
+          "bounds": {
+            "x": 123,
+            "y": 94,
+            "width": 15,
+            "height": 15,
+            "left": 123,
+            "top": 94,
+            "right": 138,
+            "bottom": 109,
+            "center": {
+              "x": 130.5,
+              "y": 101.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          },
+          "evidence": {
+            "component_count": 1,
+            "ink_density": 0.3377777777777778,
+            "text_likelihood": 0.12,
+            "structure_likelihood": 0.35,
+            "likely_graph_structure": false,
+            "reasons": [
+              "single_glyph_candidate"
+            ]
+          },
+          "truth_area_coverage": 0.9664277428697293,
+          "raw_covering_regions": [
+            {
+              "region_id": "window-0-0:7a174887-c98d-da04-84c8-b35d517fa875",
+              "bounds": {
+                "x": 126,
+                "y": 98,
+                "width": 10,
+                "height": 9,
+                "left": 126,
+                "top": 98,
+                "right": 136,
+                "bottom": 107,
+                "center": {
+                  "x": 131,
+                  "y": 102.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.4
+            }
+          ],
+          "final_overlaps": [
+            {
+              "region_id": "window-0-0:7a174887-c98d-da04-84c8-b35d517fa875",
+              "text": "A",
+              "role": "PhaseHeading",
+              "bounds": {
+                "x": 126,
+                "y": 98,
+                "width": 10,
+                "height": 9,
+                "left": 126,
+                "top": 98,
+                "right": 136,
+                "bottom": 107,
+                "center": {
+                  "x": 131,
+                  "y": 102.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.4
+            }
+          ]
+        }
+      ],
+      "original_pixels_sha256": "eed2a1672a1d1bcb71eabf41d180af632a606c20134670b0c017397054f29ddd"
+    },
+    {
+      "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+      "panel_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 600,
+        "height": 4484,
+        "right": 600,
+        "bottom": 4484,
+        "area": 2690400,
+        "is_valid": true
+      },
+      "truth": {
+        "split": "validation",
+        "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+        "truth_id": "b97d3223b3b30b706dffc45dada8360940a1432c50e57321ef106775c32565af",
+        "text": "A",
+        "role": "condition_label",
+        "box": [
+          58.866333,
+          911.558492,
+          73.779224,
+          925.576865
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null,
+        "panel_box": [
+          58.866333,
+          911.558492,
+          73.779224,
+          925.576865
+        ]
+      },
+      "components": [
+        {
+          "component_id": "f532dcea-0d96-b428-cdd8-6933049762da",
+          "bounds": {
+            "x": 60,
+            "y": 911,
+            "width": 14,
+            "height": 15,
+            "left": 60,
+            "top": 911,
+            "right": 74,
+            "bottom": 926,
+            "center": {
+              "x": 67,
+              "y": 918.5,
+              "is_finite": true
+            },
+            "is_valid": true
+          },
+          "evidence": {
+            "component_count": 1,
+            "ink_density": 0.35714285714285715,
+            "text_likelihood": 0.12,
+            "structure_likelihood": 0.35,
+            "likely_graph_structure": false,
+            "reasons": [
+              "single_glyph_candidate"
+            ]
+          },
+          "truth_area_coverage": 0.9239807358613429,
+          "raw_covering_regions": [
+            {
+              "region_id": "window-0-0:d80dec65-b3f7-59be-4734-1205075b1d28",
+              "bounds": {
+                "x": 62,
+                "y": 917,
+                "width": 10,
+                "height": 7,
+                "left": 62,
+                "top": 917,
+                "right": 72,
+                "bottom": 924,
+                "center": {
+                  "x": 67,
+                  "y": 920.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.3333333333333333
+            }
+          ],
+          "final_overlaps": [
+            {
+              "region_id": "window-0-0:c22aaf2e-caf3-a30a-926b-eab9210abd95",
+              "text": "Participant O1",
+              "role": "Other",
+              "bounds": {
+                "x": 28,
+                "y": 891,
+                "width": 133,
+                "height": 23,
+                "left": 28,
+                "top": 891,
+                "right": 161,
+                "bottom": 914,
+                "center": {
+                  "x": 94.5,
+                  "y": 902.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.2
+            },
+            {
+              "region_id": "window-0-0:d80dec65-b3f7-59be-4734-1205075b1d28",
+              "text": "A",
+              "role": "PhaseHeading",
+              "bounds": {
+                "x": 62,
+                "y": 917,
+                "width": 10,
+                "height": 7,
+                "left": 62,
+                "top": 917,
+                "right": 72,
+                "bottom": 924,
+                "center": {
+                  "x": 67,
+                  "y": 920.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.3333333333333333
+            }
+          ]
+        }
+      ],
+      "original_pixels_sha256": "c52e2e037e16d8786529ca8bf38433f05434d006af0d4f45c5cd061161dccfd1"
+    },
+    {
+      "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+      "panel_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "truth": {
+        "split": "validation",
+        "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+        "truth_id": "753bfdb024858ffaabc64d30b5384fcc31b3350d0033b6ce7b9c83613470e58c",
+        "text": "A",
+        "role": "condition_label",
+        "box": [
+          670.974207,
+          96.0,
+          686.384826,
+          110.0
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null,
+        "panel_box": [
+          670.974207,
+          96.0,
+          686.384826,
+          110.0
+        ]
+      },
+      "components": [
+        {
+          "component_id": "ec5a15aa-952e-9ff3-1544-44deb61d55dd",
+          "bounds": {
+            "x": 672,
+            "y": 96,
+            "width": 14,
+            "height": 14,
+            "left": 672,
+            "top": 96,
+            "right": 686,
+            "bottom": 110,
+            "center": {
+              "x": 679,
+              "y": 103,
+              "is_finite": true
+            },
+            "is_valid": true
+          },
+          "evidence": {
+            "component_count": 1,
+            "ink_density": 0.37244897959183676,
+            "text_likelihood": 0.475,
+            "structure_likelihood": 0.35,
+            "likely_graph_structure": false,
+            "reasons": [
+              "single_glyph_candidate"
+            ]
+          },
+          "truth_area_coverage": 0.9084644815370494,
+          "raw_covering_regions": [
+            {
+              "region_id": "window-0-0:77f7283a-db6b-b98c-6e3a-cb453b9eecfd",
+              "bounds": {
+                "x": 677,
+                "y": 101,
+                "width": 7,
+                "height": 7,
+                "left": 677,
+                "top": 101,
+                "right": 684,
+                "bottom": 108,
+                "center": {
+                  "x": 680.5,
+                  "y": 104.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.25
+            }
+          ],
+          "final_overlaps": [
+            {
+              "region_id": "window-0-0:77f7283a-db6b-b98c-6e3a-cb453b9eecfd",
+              "text": "A",
+              "role": "PhaseHeading",
+              "bounds": {
+                "x": 677,
+                "y": 101,
+                "width": 7,
+                "height": 7,
+                "left": 677,
+                "top": 101,
+                "right": 684,
+                "bottom": 108,
+                "center": {
+                  "x": 680.5,
+                  "y": 104.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.25
+            }
+          ]
+        }
+      ],
+      "original_pixels_sha256": "23218a1cc51a4200f982ab0279d03ae7fe637c5695611f19411f6e31676a385e"
+    },
+    {
+      "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+      "panel_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1338,
+        "height": 492,
+        "right": 1338,
+        "bottom": 492,
+        "area": 658296,
+        "is_valid": true
+      },
+      "truth": {
+        "split": "validation",
+        "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+        "truth_id": "965ecd068089509c057ef824a01e2adb87f5a4c84b5eccf2001ef2f2c35b7306",
+        "text": "B",
+        "role": "condition_label",
+        "box": [
+          916.974207,
+          96.0,
+          929.384826,
+          110.0
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null,
+        "panel_box": [
+          916.974207,
+          96.0,
+          929.384826,
+          110.0
+        ]
+      },
+      "components": [
+        {
+          "component_id": "9a993ff6-f1ba-e388-5321-e3645f27be47",
+          "bounds": {
+            "x": 917,
+            "y": 96,
+            "width": 12,
+            "height": 14,
+            "left": 917,
+            "top": 96,
+            "right": 929,
+            "bottom": 110,
+            "center": {
+              "x": 923,
+              "y": 103,
+              "is_finite": true
+            },
+            "is_valid": true
+          },
+          "evidence": {
+            "component_count": 1,
+            "ink_density": 0.5476190476190477,
+            "text_likelihood": 0.12,
+            "structure_likelihood": 0.95,
+            "likely_graph_structure": true,
+            "reasons": [
+              "single_component_marker_arrow_or_intersection_like"
+            ]
+          },
+          "truth_area_coverage": 0.9669138984928957,
+          "raw_covering_regions": [
+            {
+              "region_id": "window-138-0:f8649a0c-97dd-086f-0d73-01150156f6e6",
+              "bounds": {
+                "x": 920,
+                "y": 99,
+                "width": 9,
+                "height": 9,
+                "left": 920,
+                "top": 99,
+                "right": 929,
+                "bottom": 108,
+                "center": {
+                  "x": 924.5,
+                  "y": 103.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.48214285714285715
+            }
+          ],
+          "final_overlaps": [
+            {
+              "region_id": "window-138-0:f8649a0c-97dd-086f-0d73-01150156f6e6",
+              "text": "3",
+              "role": "Other",
+              "bounds": {
+                "x": 920,
+                "y": 99,
+                "width": 9,
+                "height": 9,
+                "left": 920,
+                "top": 99,
+                "right": 929,
+                "bottom": 108,
+                "center": {
+                  "x": 924.5,
+                  "y": 103.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "component_area_coverage": 0.48214285714285715
+            }
+          ]
+        }
+      ],
+      "original_pixels_sha256": "23218a1cc51a4200f982ab0279d03ae7fe637c5695611f19411f6e31676a385e"
+    }
+  ],
+  "evidence": [
+    {
+      "file": "artifacts/goal22-runs/header-glyph-component-trace-20260930-v2/report.json",
+      "sha256": "97dc1e3b4f408b3d9e6bc6b14b0ef19624818aff96aa5613d36766026b69fb8a"
+    },
+    {
+      "file": "artifacts/goal22-runs/header-glyph-component-trace-20260930-v2/request.json",
+      "sha256": "3309c4a3763731a7f7297984b9017af4b3471d2e334a30783cba62f554fb6858"
+    },
+    {
+      "file": "artifacts/goal22-runs/header-glyph-component-trace-20260930-v2/bindings.json",
+      "sha256": "87ae7ccd7999bc2c0a9b5d6993a1cb7e8f1d9d1928b15a63d3fd268606c3236f"
+    },
+    {
+      "file": "artifacts/goal22-runs/header-glyph-component-trace-20260930-v2/Program.cs",
+      "sha256": "b859aedde517319db1494b529dbae8bf4a41b07ba1b38b7d9072cf6bd3b7be7d"
+    },
+    {
+      "file": "artifacts/goal22-runs/header-glyph-coverage-diagnosis-20260930-v1/report.json",
+      "sha256": "8a8b9813bc013cef94ff18d29a99f3df040c7e7f141d3d224e5368ac3e102256"
+    }
+  ],
+  "limitations": [
+    "Component replay contains no new recognition.",
+    "Actual full workflow may reject candidates because current intermediate heading or neighbor context does not support completion.",
+    "Three merged and four absent labels require separate diagnosis; no whitelist or truth-based replacement is proposed."
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_inference_runs": 0
+}

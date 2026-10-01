@@ -46,38 +46,11 @@ public static class HeaderGlyphTextRegionRecovery
             throw new ArgumentException("Header recovery requires a valid plot.", nameof(plot));
         }
         cancellationToken.ThrowIfCancellationRequested();
-        var detectedById = detected.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
-        OcrRectangle[] headings = recognized.Where(region =>
-                region.Role == OcrTextRole.PhaseHeading && region.ReviewStatus != OcrReviewStatus.Rejected &&
-                detectedById.TryGetValue(region.RegionId, out OcrDetectedRegion? source) &&
-                source.Polygon.Points.SequenceEqual(region.Polygon.Points) &&
-                GraphTextRoleClassifier.GetOrientation(source.OrientationDegrees) == OcrOrientation.Horizontal)
-            .Select(static region => region.Polygon.Bounds)
-            .Where(bounds => bounds.Left >= plot.Left && bounds.Right <= plot.Right &&
-                bounds.Top >= 0 && bounds.Bottom <= plot.Top)
-            .OrderBy(static bounds => bounds.Top).ThenBy(static bounds => bounds.Left).ToArray();
-        OcrRectangle[] band = [];
-        foreach (OcrRectangle anchor in headings)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            OcrRectangle[] aligned = headings.Where(bounds => VerticalOverlap(bounds, anchor) >=
-                0.35 * Math.Min(bounds.Height, anchor.Height)).ToArray();
-            if (aligned.Length > band.Length || (aligned.Length == band.Length &&
-                    aligned.Max(static bounds => bounds.Bottom) > band.Max(static bounds => bounds.Bottom)))
-            {
-                band = aligned;
-            }
-        }
-        if (band.Length < 3 || band.Select(static bounds => bounds.Center.X).Distinct().Count() < 3)
-        {
-            return Array.Empty<OcrDetectedRegion>();
-        }
+        OcrRectangle[] band = FindCorroboratedHeadingBand(detected, recognized, plot, cancellationToken);
+        if (band.Length == 0) return Array.Empty<OcrDetectedRegion>();
         double height = Median(band.Select(static bounds => bounds.Height));
         double centerY = Median(band.Select(static bounds => bounds.Center.Y));
-        if (band.Max(static bounds => bounds.Right) - band.Min(static bounds => bounds.Left) < 4 * height)
-        {
-            return Array.Empty<OcrDetectedRegion>();
-        }
+        OcrRectangle[] headings = HeadingBounds(detected, recognized, plot);
         var selected = new List<OcrDetectedRegion>();
         foreach (OcrDetectedRegion component in components.OrderBy(static region => region.Polygon.Bounds.Top)
                      .ThenBy(static region => region.Polygon.Bounds.Left)
@@ -113,6 +86,50 @@ public static class HeaderGlyphTextRegionRecovery
         return OcrCollections.Freeze(selected);
     }
 
+    private static OcrRectangle[] HeadingBounds(
+        IReadOnlyList<OcrDetectedRegion> detected, IReadOnlyList<OcrRegion> recognized, OcrRectangle plot)
+    {
+        var detectedById = detected.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
+        return recognized.Where(region =>
+                region.Role == OcrTextRole.PhaseHeading && region.ReviewStatus != OcrReviewStatus.Rejected &&
+                detectedById.TryGetValue(region.RegionId, out OcrDetectedRegion? source) &&
+                source.Polygon.Points.SequenceEqual(region.Polygon.Points) &&
+                GraphTextRoleClassifier.GetOrientation(source.OrientationDegrees) == OcrOrientation.Horizontal)
+            .Select(static region => region.Polygon.Bounds)
+            .Where(bounds => bounds.Left >= plot.Left && bounds.Right <= plot.Right &&
+                bounds.Top >= 0 && bounds.Bottom <= plot.Top)
+            .OrderBy(static bounds => bounds.Top).ThenBy(static bounds => bounds.Left).ToArray();
+    }
+
+    internal static OcrRectangle[] FindCorroboratedHeadingBand(
+        IReadOnlyList<OcrDetectedRegion> detected, IReadOnlyList<OcrRegion> recognized,
+        OcrRectangle plot, CancellationToken cancellationToken)
+    {
+        OcrRectangle[] headings = HeadingBounds(detected, recognized, plot);
+        OcrRectangle[] band = [];
+        foreach (OcrRectangle anchor in headings)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            OcrRectangle[] aligned = headings.Where(bounds => VerticalOverlap(bounds, anchor) >=
+                0.35 * Math.Min(bounds.Height, anchor.Height)).ToArray();
+            if (aligned.Length > band.Length || (aligned.Length == band.Length &&
+                    aligned.Max(static bounds => bounds.Bottom) > band.Max(static bounds => bounds.Bottom)))
+            {
+                band = aligned;
+            }
+        }
+        if (band.Length < 3 || band.Select(static bounds => bounds.Center.X).Distinct().Count() < 3)
+        {
+            return [];
+        }
+        double height = Median(band.Select(static bounds => bounds.Height));
+        if (band.Max(static bounds => bounds.Right) - band.Min(static bounds => bounds.Left) < 4 * height)
+        {
+            return [];
+        }
+        return band;
+    }
+
     private static double VerticalOverlap(OcrRectangle a, OcrRectangle b) =>
         Math.Max(0, Math.Min(a.Bottom, b.Bottom) - Math.Max(a.Top, b.Top));
 
@@ -120,7 +137,7 @@ public static class HeaderGlyphTextRegionRecovery
         VerticalOverlap(a, b) * Math.Max(0, Math.Min(a.Right, b.Right) - Math.Max(a.Left, b.Left)) >=
         0.5 * Math.Min(a.Width * a.Height, b.Width * b.Height);
 
-    private static double Median(IEnumerable<double> values)
+    internal static double Median(IEnumerable<double> values)
     {
         double[] sorted = values.Order().ToArray();
         int middle = sorted.Length / 2;

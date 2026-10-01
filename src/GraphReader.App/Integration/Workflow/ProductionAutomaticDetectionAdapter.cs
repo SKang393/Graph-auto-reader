@@ -87,6 +87,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionMarkerTemplateRecovery.Version,
         ProductionMarkerEnclosedCenterRecovery.Version,
         ProductionMarkerStrokeGapExclusion.Version,
+        HeaderGlyphCropCompletion.CompositionVersion,
         ProductionPhaseGeometryContext.Version,
         ProductionTickLabelGeometry.Version,
         ProductionSeriesPhaseContext.Version,

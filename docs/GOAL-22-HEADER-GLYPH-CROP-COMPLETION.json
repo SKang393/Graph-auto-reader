@@ -1,0 +1,1601 @@
+{
+  "schema": "graphreader.header-glyph-crop-completion.v1",
+  "status": "runtime_repair_verified",
+  "arms": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 129.96338790000001,
+        "execution_seconds": 141.7633685,
+        "metrics": {
+          "truth": 838,
+          "predicted": 768,
+          "matched": 742,
+          "extra": 26,
+          "missing": 96,
+          "precision": 0.9661458333333334,
+          "recall": 0.8854415274463007
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 768,
+          "matched": 742,
+          "extra": 26,
+          "missing": 96,
+          "precision": 0.9661458333333334,
+          "recall": 0.8854415274463007
+        },
+        "paired_truths": {
+          "retained": 742,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 96
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 501,
+            "geometry_matched_region_count": 397,
+            "geometry_false_positive_count": 104,
+            "geometry_false_negative_count": 56,
+            "recognition_exact_count": 353,
+            "recognition_exact_accuracy": 0.7792494481236203,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 63,
+            "unmatched_truth_deletion_edit_count": 359,
+            "unmatched_prediction_insertion_edit_count": 203,
+            "character_error_count": 625,
+            "character_error_rate": 0.20161290322580644,
+            "role_correct_count": 365,
+            "role_accuracy": 0.8057395143487859,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 40,
+                "accuracy": 0.6451612903225806
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 134,
+                "accuracy": 0.788235294117647
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 501,
+            "geometry_matched_region_count": 397,
+            "geometry_false_positive_count": 104,
+            "geometry_false_negative_count": 56,
+            "recognition_exact_count": 353,
+            "recognition_exact_accuracy": 0.7792494481236203,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 63,
+            "unmatched_truth_deletion_edit_count": 359,
+            "unmatched_prediction_insertion_edit_count": 203,
+            "character_error_count": 625,
+            "character_error_rate": 0.20161290322580644,
+            "role_correct_count": 365,
+            "role_accuracy": 0.8057395143487859,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 40,
+                "accuracy": 0.6451612903225806
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 134,
+                "accuracy": 0.788235294117647
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 353,
+          "wrong_in_both": 100
+        },
+        "changed_truth_readings": [],
+        "pipeline_audit": {
+          "panels": 31,
+          "physical_pipeline_unchanged": false,
+          "pre_nms_decoded_changes": [
+            {
+              "source_sha256": "baac6e29b0436f75c798b88edfa8720b2411400608e9766a9be1d5731667d5bd",
+              "crop": [
+                0,
+                319,
+                1200,
+                266
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 478.897216796875,
+                  "y": 33.28791427612305
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 479.02783203125,
+                  "y": 33.16077423095703
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                110.84586617740788,
+                41.75935035021567,
+                958.1333032668642,
+                214.78289261569964
+              ]
+            },
+            {
+              "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 563.2517700195312,
+                  "y": 78.48792266845703
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 563.5364990234375,
+                  "y": 78.60456848144531
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                106.03488711314782,
+                94.99641268945169,
+                959.999223632709,
+                258.6005796365223
+              ]
+            },
+            {
+              "source_sha256": "a84e52c6bb0974832642fad174ba40280f69d515c3a84ba8782e59c57f71d6c3",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 675.8698120117188,
+                  "y": 107.0583267211914
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 675.633544921875,
+                  "y": 106.9301528930664
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                116.85820996787068,
+                122.99887076435397,
+                1170.075979845674,
+                374.8691454322047
+              ]
+            }
+          ],
+          "counter_changes": [],
+          "initial_nms_classification_unchanged": true,
+          "text_excluded_geometry_unchanged": true,
+          "calibration_unchanged": true,
+          "accepted_marker_properties_unchanged": true,
+          "only_completed_glyph_readings_changed": true,
+          "glyph_replacement_count": 19,
+          "literal_text_changes": [],
+          "text_exclusion_id_rebinding_count": 20
+        },
+        "ocr_changed_panel_count": 14
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 206.9283813,
+        "execution_seconds": 210.1148277,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 20,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 261,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 261,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9885057471264368,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9885057471264368,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9693486590038314,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 426,
+        "pipeline_audit": {
+          "panels": 39,
+          "physical_pipeline_unchanged": true,
+          "pre_nms_decoded_changes": [],
+          "counter_changes": [],
+          "initial_nms_classification_unchanged": true,
+          "text_excluded_geometry_unchanged": true,
+          "calibration_unchanged": true,
+          "accepted_marker_properties_unchanged": true,
+          "only_completed_glyph_readings_changed": true,
+          "glyph_replacement_count": 5,
+          "literal_text_changes": [
+            {
+              "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+              "crop": [
+                0,
+                0,
+                1200,
+                313
+              ],
+              "before_text": "\u0394",
+              "after_text": "A",
+              "before_role": "Other",
+              "after_role": "PhaseHeading",
+              "before_bounds": [
+                146,
+                73,
+                151,
+                79
+              ],
+              "after_bounds": [
+                145,
+                73,
+                153,
+                82
+              ]
+            }
+          ],
+          "text_exclusion_id_rebinding_count": 26
+        },
+        "ocr_changed_panel_count": 5
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 164.22270600000002,
+        "execution_seconds": 172.1849922,
+        "metrics": {
+          "truth": 838,
+          "predicted": 766,
+          "matched": 746,
+          "extra": 20,
+          "missing": 92,
+          "precision": 0.9738903394255874,
+          "recall": 0.8902147971360382
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 766,
+          "matched": 746,
+          "extra": 20,
+          "missing": 92,
+          "precision": 0.9738903394255874,
+          "recall": 0.8902147971360382
+        },
+        "paired_truths": {
+          "retained": 746,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 92
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 551,
+            "geometry_matched_region_count": 438,
+            "geometry_false_positive_count": 113,
+            "geometry_false_negative_count": 15,
+            "recognition_exact_count": 419,
+            "recognition_exact_accuracy": 0.9249448123620309,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 34,
+            "unmatched_truth_deletion_edit_count": 62,
+            "unmatched_prediction_insertion_edit_count": 145,
+            "character_error_count": 241,
+            "character_error_rate": 0.07774193548387097,
+            "role_correct_count": 406,
+            "role_accuracy": 0.8962472406181016,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 42,
+                "accuracy": 0.6774193548387096
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 151,
+                "accuracy": 0.888235294117647
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 551,
+            "geometry_matched_region_count": 435,
+            "geometry_false_positive_count": 116,
+            "geometry_false_negative_count": 18,
+            "recognition_exact_count": 416,
+            "recognition_exact_accuracy": 0.9183222958057395,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 34,
+            "unmatched_truth_deletion_edit_count": 65,
+            "unmatched_prediction_insertion_edit_count": 148,
+            "character_error_count": 247,
+            "character_error_rate": 0.07967741935483871,
+            "role_correct_count": 403,
+            "role_accuracy": 0.8896247240618101,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 42,
+                "accuracy": 0.6774193548387096
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 148,
+                "accuracy": 0.8705882352941177
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 416,
+          "wrong_in_both": 34,
+          "gained_exact": 3
+        },
+        "changed_truth_readings": [
+          {
+            "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+            "truth_id": "753bfdb024858ffaabc64d30b5384fcc31b3350d0033b6ce7b9c83613470e58c",
+            "truth": "A",
+            "before": {
+              "matched": false,
+              "predicted_text": null,
+              "predicted_role": null
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "A",
+              "predicted_role": "phaseheading"
+            }
+          },
+          {
+            "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+            "truth_id": "965ecd068089509c057ef824a01e2adb87f5a4c84b5eccf2001ef2f2c35b7306",
+            "truth": "B",
+            "before": {
+              "matched": false,
+              "predicted_text": null,
+              "predicted_role": null
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "B",
+              "predicted_role": "phaseheading"
+            }
+          },
+          {
+            "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+            "truth_id": "8a2c4abf37d0280f00673b8c020c627bf6d2b6b4aa65b8c35bcf6235ee6b2118",
+            "truth": "A",
+            "before": {
+              "matched": false,
+              "predicted_text": null,
+              "predicted_role": null
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "A",
+              "predicted_role": "phaseheading"
+            }
+          }
+        ],
+        "pipeline_audit": {
+          "panels": 31,
+          "physical_pipeline_unchanged": false,
+          "pre_nms_decoded_changes": [
+            {
+              "source_sha256": "baac6e29b0436f75c798b88edfa8720b2411400608e9766a9be1d5731667d5bd",
+              "crop": [
+                0,
+                319,
+                1200,
+                266
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 478.897216796875,
+                  "y": 33.28791427612305
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 479.02783203125,
+                  "y": 33.16077423095703
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                110.84586617740788,
+                41.75935035021567,
+                958.1333032668642,
+                214.78289261569964
+              ]
+            },
+            {
+              "source_sha256": "3c063367c120c0931069b09756ae85e187674c8d7961ec03762896aa216f24d3",
+              "crop": [
+                0,
+                311,
+                1200,
+                309
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 91.2540512084961,
+                  "y": 48.74570083618164
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 91.23452758789062,
+                  "y": 48.779327392578125
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                102.19815089392368,
+                53.94467756030991,
+                954.1932906395552,
+                212.83230285826477
+              ]
+            },
+            {
+              "source_sha256": "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 563.2517700195312,
+                  "y": 78.48792266845703
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 563.5364990234375,
+                  "y": 78.60456848144531
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                106.03488711314782,
+                94.99641268945169,
+                959.999223632709,
+                258.6005796365223
+              ]
+            },
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                0,
+                1200,
+                316
+              ],
+              "removed": [],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 384.9859619140625,
+                  "y": 83.2895736694336
+                },
+                {
+                  "is_finite": true,
+                  "x": 386.1269226074219,
+                  "y": 83.4920883178711
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                113.04714720131807,
+                97.99913233558414,
+                957.0034555221532,
+                263.9928559318558
+              ]
+            },
+            {
+              "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 111.72803497314453,
+                  "y": 120.75062561035156
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 111.5604476928711,
+                  "y": 120.65664672851562
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                116.44964183070246,
+                116.9946403806112,
+                1170.7734844823533,
+                374.9263508444158
+              ]
+            },
+            {
+              "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 917.658935546875,
+                  "y": 118.29756927490234
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 917.6334838867188,
+                  "y": 118.18025970458984
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                113.52267850612866,
+                123.97946681884017,
+                1173.7099128920897,
+                374.75815960583367
+              ]
+            },
+            {
+              "source_sha256": "a84e52c6bb0974832642fad174ba40280f69d515c3a84ba8782e59c57f71d6c3",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 675.7349243164062,
+                  "y": 107.03544616699219
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 675.633544921875,
+                  "y": 106.9301528930664
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                116.85820996787068,
+                122.99887076435397,
+                1170.075979845674,
+                374.8691454322047
+              ]
+            },
+            {
+              "source_sha256": "5ba2bc58eb55b8dbca25e9b7ae7511fc8b7d4c8b8f92c0918e433bacea5b4a68",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 164.416748046875,
+                  "y": 117.93546295166016
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 164.6204376220703,
+                  "y": 117.9363784790039
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                116.91861903229449,
+                123.99998755197652,
+                1170.0028979347853,
+                374.87242181628625
+              ]
+            }
+          ],
+          "counter_changes": [
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                0,
+                1200,
+                316
+              ],
+              "changes": {
+                "decoded_points_outside_plot": {
+                  "before": 3,
+                  "after": 5
+                },
+                "outputs_above_operating_threshold": {
+                  "before": 51,
+                  "after": 53
+                }
+              }
+            }
+          ],
+          "initial_nms_classification_unchanged": true,
+          "text_excluded_geometry_unchanged": true,
+          "calibration_unchanged": true,
+          "accepted_marker_properties_unchanged": true,
+          "only_completed_glyph_readings_changed": true,
+          "glyph_replacement_count": 28,
+          "literal_text_changes": [
+            {
+              "source_sha256": "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "before_text": "3",
+              "after_text": "B",
+              "before_role": "Other",
+              "after_role": "PhaseHeading",
+              "before_bounds": [
+                920,
+                99,
+                929,
+                108
+              ],
+              "after_bounds": [
+                917,
+                96,
+                929,
+                110
+              ]
+            }
+          ],
+          "text_exclusion_id_rebinding_count": 21
+        },
+        "ocr_changed_panel_count": 19
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "accepted_additions": [],
+        "accepted_removals": [],
+        "inference_seconds": 259.8212733,
+        "execution_seconds": 263.6652567,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 14,
+            "failed_cases": 6,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 18,
+            "truth_points": 500,
+            "predicted_points": 276,
+            "matched_points": 273,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 276,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 271,
+            "correct_rows": 260,
+            "missing_rows": 229,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 273,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 227,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9891304347826086,
+            "unique_point_structural_coverage": 0.546,
+            "unique_point_value_precision": 0.9891304347826086,
+            "unique_point_value_coverage": 0.546,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9420289855072463,
+            "relational_row_coverage": 0.52,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.959409594095941,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 6
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 13,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 164,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 164,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 8,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9512195121951219,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9512195121951219,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9512195121951219,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 440,
+        "pipeline_audit": {
+          "panels": 39,
+          "physical_pipeline_unchanged": false,
+          "pre_nms_decoded_changes": [
+            {
+              "source_sha256": "3b6de81614c4dad908e9a1ef5a573fdb773c09575b574c84e80b2043b0311284",
+              "crop": [
+                0,
+                1123,
+                1200,
+                270
+              ],
+              "removed": [
+                {
+                  "is_finite": true,
+                  "x": 967.7450561523438,
+                  "y": 34.776607513427734
+                }
+              ],
+              "added": [
+                {
+                  "is_finite": true,
+                  "x": 967.6726684570312,
+                  "y": 34.8544921875
+                }
+              ],
+              "all_changed_decoded_points_outside_plot_bounds": true,
+              "plot_bounds": [
+                104.94801759495104,
+                51.99969359044769,
+                1095.020315841662,
+                216.91402904771314
+              ]
+            }
+          ],
+          "counter_changes": [],
+          "initial_nms_classification_unchanged": true,
+          "text_excluded_geometry_unchanged": true,
+          "calibration_unchanged": true,
+          "accepted_marker_properties_unchanged": true,
+          "only_completed_glyph_readings_changed": true,
+          "glyph_replacement_count": 8,
+          "literal_text_changes": [],
+          "text_exclusion_id_rebinding_count": 26
+        },
+        "ocr_changed_panel_count": 6
+      }
+    }
+  },
+  "tests": {
+    "ocr": {
+      "total": 633,
+      "executed": 617,
+      "passed": 617,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    },
+    "app": {
+      "total": 542,
+      "executed": 542,
+      "passed": 542,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    }
+  },
+  "checks_seconds": 122.6026825,
+  "current_v46_baseline_seconds": 424.1071771,
+  "workflow_sequence_seconds": 789.7239053,
+  "provider_counts": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-component-diversity-v27": 140,
+    "marker-classifier-structural-context-v5": 304,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/status.json",
+      "sha256": "210756874cbe39660fc76f7684fbc715fc4a72900cc0c69fe8b129eeed907f50"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/jobs.json",
+      "sha256": "f110682729bc94a6df0538c12b4561c95b8338809dd6a917c75bbddb17de8c8e"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/source-bindings.json",
+      "sha256": "73cb844cc30471a8425b37def8ef0f4d02ef14e7a6346d974cf8ad862b0d01b9"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-checks-20260930-v3/status.json",
+      "sha256": "4fb4e1c7e06ab6e56ab343a75b4b8cbdcf8958d3d39675c371434d257a870168"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-checks-20260930-v3/source-bindings.json",
+      "sha256": "4c789df66081540d1f3078472d835f948e57ac7745de6da81ecd50589ff14669"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-checks-20260930-v3/test-results/ocr.trx",
+      "sha256": "c944c147656accb3c823209ad38fcbfd0216c8927f813129aca3d40ea3393c76"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-checks-20260930-v3/test-results/app.trx",
+      "sha256": "0f3e1f8b181809bd5be0a684dbbaaebb0d1afe7de7df34e60aa3f7a4e2198fb3"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-checks-20260930-v3/Ocr-build.log",
+      "sha256": "a5ba68b9df5b35f3bd5c597fce3b509a2f91127ea81f0dfbe720192a10a96d3c"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-checks-20260930-v3/App-build.log",
+      "sha256": "c82716ce18816c8e533c5472c48c9b9bd529f8c1852b7f46017e0509cb017351"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-checks-20260930-v3/native-build.log",
+      "sha256": "d0b0f8b87a7f832d42129b5c73ed2434a21a953335b4f0bf222d5b0d70737da0"
+    },
+    {
+      "path": "docs/GOAL-22-HEADER-GLYPH-CROP-DIAGNOSIS.json",
+      "sha256": "4545f56f5defe66a60d7e8b2a33e616afa736420d255d625c958b4e9f2293c89"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-HeaderGlyphRepair.py",
+      "sha256": "4c7c2eea6d872ee1328fd60d4165e3d43d0ab29865e5d6499ab5fe8f7ea374ea"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-HeaderGlyphEvaluationV3.py",
+      "sha256": "bbe144a70d8406e4f4a70962bb12fb575a06323b0a083861acdca6b0aa643794"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-HeaderGlyphEvaluationV3.ps1",
+      "sha256": "da10dae38ccda608151ad0952a5f714613ed3af4fa2038985ea96a1853ce161f"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/runtime-description.json",
+      "sha256": "40fd79719f2a47454dcef43d7eec0636aac36930d34515f152fab073bae72279"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-native/native-marker-score.json",
+      "sha256": "e223a251c9a8fa49c4ecb036a3456a13f88f594c6cefdd20de09b13b7dc907ee"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-native/native-ocr-score.json",
+      "sha256": "be1a1ddf6468451d87a04bdbc14cb33126020c739fb3188316c99b7d7b281e0b"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-native/native-ocr-details.json",
+      "sha256": "4196e0c0c70cf950c1eda3c5f8a51152bb7f8fca7b9e9455c23fb1413c3a7316"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-native/axis-geometry-comparison.json",
+      "sha256": "8f01d648c82ac99ab3e1601ea1cdb794bcbd5d6290fd7a30bb99403b63238c24"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-native/protocol.json",
+      "sha256": "6b106b03334bac6d07707e39909d5399a09e129f1962fc87cd48648142598963"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-native/candidate-binding.json",
+      "sha256": "fd4add71ad79913987fcb78eb04d60b7fb42eb22ebbec2a16e9ee7c4c50c63d7"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-native/input-manifest.json",
+      "sha256": "dc76f46a51e9159fe8e18464da4382a142189c786e52a83cf449f3cf29bb6f34"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-native/execution/report.json",
+      "sha256": "3b36c6afac976b2883fc896f044ffa2221c4dd586c595e9cdb9f64fc5e23bad7"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-native/status.json",
+      "sha256": "ef951977cd1270e43eed4f59d299eed1f0d22142b6f09a717d85edfb3d4f3758"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "6e9bb558232928efd5168fe3d63779e5c3248e09ec0f921d29eb32b2b62d5f30"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-csv/comparison.json",
+      "sha256": "3fa8ed7295a2893a6ef591ee7eb71471b6e271260e5d3a04df75ec26487dec3b"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-csv/protocol.json",
+      "sha256": "3df1bf0b95a058450328b8c05ded28a3f77acc04e276c210950108fb3d64cd40"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-csv/candidate-binding.json",
+      "sha256": "ceb388a99ecda847de55ffa00003e792d7ce178b4d1862ead05836a1d1c60cc7"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-csv/input-manifest.json",
+      "sha256": "43686b904ab4db799bfcb0db36130195f1432e226ea30787e2642f85dd0fb409"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-csv/execution/report.json",
+      "sha256": "afc85ff7c284a4f9b39f1168e49b13911c66a129d16d42cabc5a20de8a309463"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v44-csv/status.json",
+      "sha256": "0dd64ae714c813e681c006f78f2a63bc7437323c9eebe09bde97426bbb8eb254"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-native/native-marker-score.json",
+      "sha256": "2e1b22ae32ed6dad8f95e35554dfe83808a0285b1f28bdfd9a94fb8692ff4608"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-native/native-ocr-score.json",
+      "sha256": "18abd41c443553579777d1441e3d79afe4427c4c9b1ef787b824976d7d30b5f6"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-native/native-ocr-details.json",
+      "sha256": "8674a1388169c271bb5a1bd6e333e16582ccefd85498a764d688e33033e2f882"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-native/axis-geometry-comparison.json",
+      "sha256": "5c78266726024bab495689ea2ce5dad761ab148658ad2172fa8a4b0d60dd942e"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-native/protocol.json",
+      "sha256": "a1757c80f69d5477cc66d7f3e656a723953614cfe6f0d562878d9872b3b01129"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-native/candidate-binding.json",
+      "sha256": "98c32054f967c9ae8cac30abfef6b0abe75971e75f2aee3c6705a6b21be9419f"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-native/input-manifest.json",
+      "sha256": "27a77e7dfb8911e08db6096e7a75bbf23711b1ad06bbb38bbe5be1a1f0de185e"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-native/execution/report.json",
+      "sha256": "678e6a48c992c0635fdaa218ca25d6bc3d3265f5730d4e03c2ed7088c4a21626"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-native/status.json",
+      "sha256": "1bc84e93d764147aef8096698134ed5fef8e9082b175a8443f0da2edf3f76f66"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "26b6d4f5026c0fce662b756ca40744dc02f247a5c86447a5455419117a33f83a"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-csv/comparison.json",
+      "sha256": "58e7ea4537ca9c012d2dbb6dafd6519a98c2aead0808c615c001609b064f4060"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-csv/protocol.json",
+      "sha256": "b6e381438a8ac026eb264f14c6e428962cf8232beab39fa627fd69804daaa623"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-csv/candidate-binding.json",
+      "sha256": "927cce619605292e44eb669b272de49364e47fd1515ba9c299900944f20609e0"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-csv/input-manifest.json",
+      "sha256": "ca177d37f86b089763d674a893f7d840230f83364f2f2848ebb7abd7c02c48d9"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-csv/execution/report.json",
+      "sha256": "977f44915aad7b53561c52dc6cbbea12a6da5c3685e2f32d692267e3785b93de"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/v46-csv/status.json",
+      "sha256": "e0a5c5f5e39d17ef4ed786cfed7d0c6fc6229e87b51d8fde7cb3d773cad422e6"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/repair-summary.json",
+      "sha256": "4f05f43b81cd5a6d7092d352ab46869ece4318eb8c599c9a07b4cb86006cfea1"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/provenance-id-audit.json",
+      "sha256": "d13d6ecb62443d2885c342becd5ee5a782edff4c7bebe643dade925511343ee2"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/audit-attempt-v1.json",
+      "sha256": "8488f13a44878a7ea1abfeef1653dddfe79f6205a90298cbada32fae959b1583"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/audit-attempt-v2.json",
+      "sha256": "6946e2e8a03aaa97061857aac5293de4035444732cb9f90f1ae350165c0ac8f5"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Publish-HeaderGlyphRepair.py",
+      "sha256": "32dddd90277bf0530760f3b12587e0a395372f8e2b086c27b6e78b4da1ed1d96"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-checks-20260930-v1/status.json",
+      "sha256": "c0553564d3485a2e3e9da889f41b6e5609ac1997344f4f4ffcf5463846b559e1"
+    },
+    {
+      "path": "artifacts/goal22-runs/header-glyph-checks-20260930-v2/status.json",
+      "sha256": "b8568161cbb3a6b347c7d7e5d877bf8ed31ba95189e0be4c78557df6ab8f1df4"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "goal22_acceptance": "FAIL",
+  "hypothesis": {
+    "path": "docs/GOAL-22-HEADER-GLYPH-CROP-DIAGNOSIS.json",
+    "sha256": "4545f56f5defe66a60d7e8b2a33e616afa736420d255d625c958b4e9f2293c89"
+  },
+  "frozen_complete_result": {
+    "path": "artifacts/goal22-runs/header-glyph-evaluation-20260930-v3/repair-summary.json",
+    "sha256": "4f05f43b81cd5a6d7092d352ab46869ece4318eb8c599c9a07b4cb86006cfea1"
+  },
+  "implementation": "Complete only an unreviewed single-scalar horizontal heading/other crop contained in one measured original-pixel component within the existing corroborated heading band. Read the completed crop in a separate batch; replace the old reading only after a successful nonempty result. Preserve human decisions and numeric context, forbid inferred tick roles, and advance OCR/workflow cache identities.",
+  "candidate_selection": "Retain V44/English/V27/V5. V46/server is closed development context only; no model was selected, trained, reopened or approved.",
+  "test_repair_history": [
+    {
+      "attempt": "v1",
+      "status": "void_before_inference",
+      "reason": "CS1519 extra closing angle bracket in the new return type; corrected before tests."
+    },
+    {
+      "attempt": "v2",
+      "status": "613_passed_4_failed_before_workflow",
+      "reason": "The 4x6 synthetic fragment was inferred vertical by the existing 1.4 aspect rule, correctly preventing horizontal recovery. Corrected the fixture to a measured-style 6x6 fragment. Runtime code unchanged between v2 and passing v3."
+    }
+  ],
+  "audit_repair_history": "Two strict identity assumptions failed before publication. Changed decoded proposals and outside-plot counters are now reported explicitly. Initial/post-NMS centers, classifications, accepted marker properties, exclusion geometry and calibration are still checked exactly.",
+  "license_review": "New project code retains Apache-2.0 headers. No dependencies, weights or license terms changed. Model payloads, manifests, reviewed licenses and notices were checksum verified.",
+  "limitations": [
+    "The existing three-heading corroboration and row geometry are unchanged. Two-phase or vertically offset labels and merged words are not addressed by this repair.",
+    "Native accuracy remains below the project acceptance bars. V46/server has 419/453 exact readings, 15 missed text regions, and 113 extra regions.",
+    "CSV failures and existing wrong-phase rows remain: retained V44 has 8 failed sources and 3 wrong-phase rows; V46/server has 7 failed sources and 11 wrong-phase rows.",
+    "No private/sealed reads, optimizer steps, production activation, packaged build or public release. Build 433 remains 0.4.33."
+  ]
+}
