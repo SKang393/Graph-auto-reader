@@ -1,0 +1,1949 @@
+{
+  "schema": "graphreader.marker-suppression-recovery.v1",
+  "status": "additive_recovery_verified_synthetic_accuracy_incomplete",
+  "arms": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 194.3546933,
+        "execution_seconds": 205.1444025,
+        "metrics": {
+          "truth": 838,
+          "predicted": 774,
+          "matched": 745,
+          "extra": 29,
+          "missing": 93,
+          "precision": 0.962532299741602,
+          "recall": 0.8890214797136038
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 768,
+          "matched": 740,
+          "extra": 28,
+          "missing": 98,
+          "precision": 0.9635416666666666,
+          "recall": 0.883054892601432
+        },
+        "paired_truths": {
+          "retained": 740,
+          "recovered": 5,
+          "lost": 0,
+          "missed_by_both": 93
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 379,
+            "role_accuracy": 0.8366445916114791,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 379,
+            "role_accuracy": 0.8366445916114791,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 358,
+          "wrong_in_both": 95
+        },
+        "changed_truth_readings": [],
+        "accepted_geometry_change_counts": {
+          "added": 6,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 31,
+          "changed_panels": 3,
+          "changed_fields": {
+            "calibration": 3,
+            "accepted_markers": 3,
+            "marker_pipeline": 3
+          },
+          "panels": [
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                0,
+                1200,
+                316
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                316,
+                1200,
+                265
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            }
+          ],
+          "export_rows": null
+        },
+        "recovery_mechanism": {
+          "panels": 31,
+          "active_panels": 8,
+          "totals": {
+            "final_additions": 6,
+            "candidate_count": 35,
+            "retained_before_stroke_gap": 6,
+            "selection_milliseconds": 1.9429999999999998,
+            "classification_milliseconds": 335.8494
+          },
+          "details": [
+            {
+              "source_sha256": "ef8f24b226f68dcb823690604f4cf6cbbe0c3b9dfeb694aa4992f63d12506a41",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 0,
+              "candidate_count": 2,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.4553,
+              "classification_milliseconds": 24.5218
+            },
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                0,
+                1200,
+                316
+              ],
+              "final_additions": 1,
+              "candidate_count": 3,
+              "retained_before_stroke_gap": 1,
+              "selection_milliseconds": 0.1245,
+              "classification_milliseconds": 38.3894
+            },
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                316,
+                1200,
+                265
+              ],
+              "final_additions": 2,
+              "candidate_count": 6,
+              "retained_before_stroke_gap": 2,
+              "selection_milliseconds": 0.284,
+              "classification_milliseconds": 56.1165
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 3,
+              "candidate_count": 16,
+              "retained_before_stroke_gap": 3,
+              "selection_milliseconds": 0.4955,
+              "classification_milliseconds": 50.3198
+            },
+            {
+              "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+              "crop": [
+                0,
+                0,
+                863,
+                395
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.0775,
+              "classification_milliseconds": 26.6819
+            },
+            {
+              "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1868,
+              "classification_milliseconds": 44.2667
+            },
+            {
+              "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+              "crop": [
+                0,
+                0,
+                600,
+                4484
+              ],
+              "final_additions": 0,
+              "candidate_count": 5,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1455,
+              "classification_milliseconds": 52.6282
+            },
+            {
+              "source_sha256": "ec6bd084a69fae4600a09cc2d87af527ad959d9acceebcfd70c7555d2273c5de",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1739,
+              "classification_milliseconds": 42.9251
+            }
+          ]
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 225.6514472,
+        "execution_seconds": 229.0966434,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 20,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 261,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 261,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9885057471264368,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9885057471264368,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9693486590038314,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 426,
+        "accepted_geometry_change_counts": {
+          "added": 5,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 39,
+          "changed_panels": 4,
+          "changed_fields": {
+            "calibration": 4,
+            "accepted_markers": 4,
+            "marker_pipeline": 4
+          },
+          "panels": [
+            {
+              "source_sha256": "7124a5f3880b8ab3e31f37ef0b15ff3efae69bdf127a0fef02f1597073a199e4",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "6ef826c33fbd1aa41c913026e7def95d00bf5aabdc6af42fb7aa15b204c26f37",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            }
+          ],
+          "export_rows": {
+            "before_count": 426,
+            "after_count": 426,
+            "retained_count": 426,
+            "removed": 0,
+            "added": 0
+          }
+        },
+        "recovery_mechanism": {
+          "panels": 39,
+          "active_panels": 11,
+          "totals": {
+            "final_additions": 5,
+            "candidate_count": 87,
+            "retained_before_stroke_gap": 5,
+            "selection_milliseconds": 2.9008,
+            "classification_milliseconds": 543.16
+          },
+          "details": [
+            {
+              "source_sha256": "7124a5f3880b8ab3e31f37ef0b15ff3efae69bdf127a0fef02f1597073a199e4",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 1,
+              "candidate_count": 9,
+              "retained_before_stroke_gap": 1,
+              "selection_milliseconds": 0.8926,
+              "classification_milliseconds": 44.0304
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                0,
+                1200,
+                313
+              ],
+              "final_additions": 0,
+              "candidate_count": 10,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.3403,
+              "classification_milliseconds": 44.0441
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                583,
+                1200,
+                307
+              ],
+              "final_additions": 0,
+              "candidate_count": 6,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1353,
+              "classification_milliseconds": 43.688
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "final_additions": 1,
+              "candidate_count": 10,
+              "retained_before_stroke_gap": 1,
+              "selection_milliseconds": 0.1828,
+              "classification_milliseconds": 44.0159
+            },
+            {
+              "source_sha256": "1d54389dbdf2655fdcb24363b3fb13152728c5a799cc54a11b71be8d06bb02f6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1633,
+              "classification_milliseconds": 54.0389
+            },
+            {
+              "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 2,
+              "candidate_count": 8,
+              "retained_before_stroke_gap": 2,
+              "selection_milliseconds": 0.2356,
+              "classification_milliseconds": 55.8026
+            },
+            {
+              "source_sha256": "bd52e84c5df717093c120164aa76dac4fe4037be4c1b9e7f450aa358b03e2fff",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.2184,
+              "classification_milliseconds": 40.9621
+            },
+            {
+              "source_sha256": "6ef826c33fbd1aa41c913026e7def95d00bf5aabdc6af42fb7aa15b204c26f37",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 1,
+              "candidate_count": 37,
+              "retained_before_stroke_gap": 1,
+              "selection_milliseconds": 0.3282,
+              "classification_milliseconds": 58.9174
+            },
+            {
+              "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "final_additions": 0,
+              "candidate_count": 2,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.131,
+              "classification_milliseconds": 68.3435
+            },
+            {
+              "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 0,
+              "candidate_count": 2,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1017,
+              "classification_milliseconds": 48.4504
+            },
+            {
+              "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1716,
+              "classification_milliseconds": 40.8667
+            }
+          ]
+        }
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 237.4020695,
+        "execution_seconds": 246.3576317,
+        "metrics": {
+          "truth": 838,
+          "predicted": 772,
+          "matched": 749,
+          "extra": 23,
+          "missing": 89,
+          "precision": 0.9702072538860104,
+          "recall": 0.8937947494033412
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 766,
+          "matched": 744,
+          "extra": 22,
+          "missing": 94,
+          "precision": 0.9712793733681462,
+          "recall": 0.8878281622911695
+        },
+        "paired_truths": {
+          "retained": 744,
+          "recovered": 5,
+          "lost": 0,
+          "missed_by_both": 89
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 490,
+            "geometry_matched_region_count": 443,
+            "geometry_false_positive_count": 47,
+            "geometry_false_negative_count": 10,
+            "recognition_exact_count": 427,
+            "recognition_exact_accuracy": 0.9426048565121413,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 25,
+            "unmatched_truth_deletion_edit_count": 30,
+            "unmatched_prediction_insertion_edit_count": 65,
+            "character_error_count": 120,
+            "character_error_rate": 0.03870967741935484,
+            "role_correct_count": 423,
+            "role_accuracy": 0.9337748344370861,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 160,
+                "accuracy": 0.9411764705882353
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 490,
+            "geometry_matched_region_count": 443,
+            "geometry_false_positive_count": 47,
+            "geometry_false_negative_count": 10,
+            "recognition_exact_count": 427,
+            "recognition_exact_accuracy": 0.9426048565121413,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 25,
+            "unmatched_truth_deletion_edit_count": 30,
+            "unmatched_prediction_insertion_edit_count": 65,
+            "character_error_count": 120,
+            "character_error_rate": 0.03870967741935484,
+            "role_correct_count": 423,
+            "role_accuracy": 0.9337748344370861,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 160,
+                "accuracy": 0.9411764705882353
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 427,
+          "wrong_in_both": 26
+        },
+        "changed_truth_readings": [],
+        "accepted_geometry_change_counts": {
+          "added": 6,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 31,
+          "changed_panels": 3,
+          "changed_fields": {
+            "calibration": 3,
+            "accepted_markers": 3,
+            "marker_pipeline": 3
+          },
+          "panels": [
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                0,
+                1200,
+                316
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                316,
+                1200,
+                265
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            }
+          ],
+          "export_rows": null
+        },
+        "recovery_mechanism": {
+          "panels": 31,
+          "active_panels": 6,
+          "totals": {
+            "final_additions": 6,
+            "candidate_count": 33,
+            "retained_before_stroke_gap": 6,
+            "selection_milliseconds": 1.436,
+            "classification_milliseconds": 300.60980000000006
+          },
+          "details": [
+            {
+              "source_sha256": "ef8f24b226f68dcb823690604f4cf6cbbe0c3b9dfeb694aa4992f63d12506a41",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 0,
+              "candidate_count": 2,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.4222,
+              "classification_milliseconds": 24.3187
+            },
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                0,
+                1200,
+                316
+              ],
+              "final_additions": 1,
+              "candidate_count": 3,
+              "retained_before_stroke_gap": 1,
+              "selection_milliseconds": 0.1601,
+              "classification_milliseconds": 52.1208
+            },
+            {
+              "source_sha256": "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+              "crop": [
+                0,
+                316,
+                1200,
+                265
+              ],
+              "final_additions": 2,
+              "candidate_count": 6,
+              "retained_before_stroke_gap": 2,
+              "selection_milliseconds": 0.1583,
+              "classification_milliseconds": 58.7526
+            },
+            {
+              "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 3,
+              "candidate_count": 16,
+              "retained_before_stroke_gap": 3,
+              "selection_milliseconds": 0.4121,
+              "classification_milliseconds": 58.4747
+            },
+            {
+              "source_sha256": "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+              "crop": [
+                0,
+                0,
+                1338,
+                492
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1478,
+              "classification_milliseconds": 61.4671
+            },
+            {
+              "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+              "crop": [
+                0,
+                0,
+                600,
+                4484
+              ],
+              "final_additions": 0,
+              "candidate_count": 5,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1355,
+              "classification_milliseconds": 45.4759
+            }
+          ]
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 257.51659789999997,
+        "execution_seconds": 261.0279923,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 14,
+            "failed_cases": 6,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 18,
+            "truth_points": 500,
+            "predicted_points": 276,
+            "matched_points": 273,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 276,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 271,
+            "correct_rows": 260,
+            "missing_rows": 229,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 273,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 227,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9891304347826086,
+            "unique_point_structural_coverage": 0.546,
+            "unique_point_value_precision": 0.9891304347826086,
+            "unique_point_value_coverage": 0.546,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9420289855072463,
+            "relational_row_coverage": 0.52,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.959409594095941,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 6
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 13,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 164,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 164,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 8,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9512195121951219,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9512195121951219,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9512195121951219,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 440,
+        "accepted_geometry_change_counts": {
+          "added": 5,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 39,
+          "changed_panels": 4,
+          "changed_fields": {
+            "calibration": 4,
+            "accepted_markers": 4,
+            "marker_pipeline": 4
+          },
+          "panels": [
+            {
+              "source_sha256": "7124a5f3880b8ab3e31f37ef0b15ff3efae69bdf127a0fef02f1597073a199e4",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            },
+            {
+              "source_sha256": "6ef826c33fbd1aa41c913026e7def95d00bf5aabdc6af42fb7aa15b204c26f37",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "changed_fields": [
+                "calibration",
+                "accepted_markers",
+                "marker_pipeline"
+              ]
+            }
+          ],
+          "export_rows": {
+            "before_count": 440,
+            "after_count": 440,
+            "retained_count": 440,
+            "removed": 0,
+            "added": 0
+          }
+        },
+        "recovery_mechanism": {
+          "panels": 39,
+          "active_panels": 13,
+          "totals": {
+            "final_additions": 5,
+            "candidate_count": 94,
+            "retained_before_stroke_gap": 5,
+            "selection_milliseconds": 3.1879,
+            "classification_milliseconds": 555.2747
+          },
+          "details": [
+            {
+              "source_sha256": "7124a5f3880b8ab3e31f37ef0b15ff3efae69bdf127a0fef02f1597073a199e4",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 1,
+              "candidate_count": 9,
+              "retained_before_stroke_gap": 1,
+              "selection_milliseconds": 0.8928,
+              "classification_milliseconds": 44.9551
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                0,
+                1200,
+                313
+              ],
+              "final_additions": 0,
+              "candidate_count": 10,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.3742,
+              "classification_milliseconds": 44.1596
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                583,
+                1200,
+                307
+              ],
+              "final_additions": 0,
+              "candidate_count": 7,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1899,
+              "classification_milliseconds": 33.0729
+            },
+            {
+              "source_sha256": "bd0854308cfd2d93ac0b3500bf3ff308472c06b56cbd11e76c779efa8519e16f",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "final_additions": 1,
+              "candidate_count": 11,
+              "retained_before_stroke_gap": 1,
+              "selection_milliseconds": 0.1841,
+              "classification_milliseconds": 38.8331
+            },
+            {
+              "source_sha256": "1d54389dbdf2655fdcb24363b3fb13152728c5a799cc54a11b71be8d06bb02f6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1063,
+              "classification_milliseconds": 36.3169
+            },
+            {
+              "source_sha256": "b4a09ab74a2dd30ccd0ad64dc4ff75243861a20f4c221821de38d2141958b2b6",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 2,
+              "candidate_count": 9,
+              "retained_before_stroke_gap": 2,
+              "selection_milliseconds": 0.2393,
+              "classification_milliseconds": 36.4454
+            },
+            {
+              "source_sha256": "bd52e84c5df717093c120164aa76dac4fe4037be4c1b9e7f450aa358b03e2fff",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.0891,
+              "classification_milliseconds": 42.4098
+            },
+            {
+              "source_sha256": "6ef826c33fbd1aa41c913026e7def95d00bf5aabdc6af42fb7aa15b204c26f37",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 1,
+              "candidate_count": 37,
+              "retained_before_stroke_gap": 1,
+              "selection_milliseconds": 0.4363,
+              "classification_milliseconds": 48.9351
+            },
+            {
+              "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+              "crop": [
+                0,
+                0,
+                1200,
+                313
+              ],
+              "final_additions": 0,
+              "candidate_count": 3,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1178,
+              "classification_milliseconds": 43.8292
+            },
+            {
+              "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+              "crop": [
+                0,
+                583,
+                1200,
+                307
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1624,
+              "classification_milliseconds": 45.3872
+            },
+            {
+              "source_sha256": "0967694a51bad3e8df6955d66c270771aad01b565db0dca8e29c592a162fc2b2",
+              "crop": [
+                0,
+                313,
+                1200,
+                270
+              ],
+              "final_additions": 0,
+              "candidate_count": 2,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1071,
+              "classification_milliseconds": 44.0268
+            },
+            {
+              "source_sha256": "8a1cd6ae09aabb61bdce5a25071913c88d7829e37ef64df1db169938a96c810f",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 0,
+              "candidate_count": 2,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.0954,
+              "classification_milliseconds": 44.0525
+            },
+            {
+              "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+              "crop": [
+                0,
+                0,
+                1200,
+                350
+              ],
+              "final_additions": 0,
+              "candidate_count": 1,
+              "retained_before_stroke_gap": 0,
+              "selection_milliseconds": 0.1932,
+              "classification_milliseconds": 52.8511
+            }
+          ]
+        }
+      }
+    }
+  },
+  "tests": {
+    "app": {
+      "total": 607,
+      "executed": 607,
+      "passed": 607,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    }
+  },
+  "checks_seconds": 88.2748139,
+  "validation_note": "607 App tests pass, including 21 new suppression recovery cases and the approved workflow export test. Two clean builds verify the changed adapters and native workflow. OCR sources are unchanged; their previous 717 passing tests and 16 optional skips are not rerun.",
+  "workflow_sequence_seconds": 943.4846057,
+  "provider_counts": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-component-diversity-v27": 140,
+    "marker-classifier-structural-context-v5": 344,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/status.json",
+      "sha256": "79b638973f73942bec3fb992180376150371f94b79ee13ba5510cb1fa374d4fc"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/jobs.json",
+      "sha256": "e9dd42b298668b73e7b19fd96591215b84671a5227298e62ffbc4aab47605978"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/source-bindings.json",
+      "sha256": "4956397047a8d933b43b2eb37b46d2ed720f2b8e264289d7bec8568b866cf2c1"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v3/status.json",
+      "sha256": "688142c33efb5ec7fcc7975efe774b294e608723f0be3888528e31608e5f9f8a"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v3/source-bindings.json",
+      "sha256": "cdead30d7cf2ee6c2546c96cbd469c92af4a38094c8fc1fea9d598d1451e5fb1"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v3/input-bindings.json",
+      "sha256": "3bca0f2c3eadf8fe3dee15db3e12c88d6509c5d630c098f9dbd167f437cc3797"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v3/test-results/app.trx",
+      "sha256": "1484d08ff9e86d158f4915c487b630cb52f0f1bdbe18efddf7500f685e3fd032"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v3/App-build.log",
+      "sha256": "c8a6ada26ba8f935e94aba60c60186f2496f2460a3cfb0d030321e1c6cd5600a"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v3/native-build.log",
+      "sha256": "d00020d1af268e5fb3d0a942cd146d2ca4460269a141948c182a4b659b30a9d2"
+    },
+    {
+      "path": "docs/GOAL-22-MARKER-SUPPRESSION-RECOVERY-DIAGNOSIS.json",
+      "sha256": "f976763032e8893a01e79519e165e54a86408a86232b39b41fcfa04a26eafa16"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-MarkerSuppressionRecoveryV3.py",
+      "sha256": "492740f47e37459c3f84df590231e8ec21095263091f5a96175717124124f0c2"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-MarkerSuppressionRecoveryEvaluationV3.py",
+      "sha256": "2e2b37f62122ffc561b9bfc923d5086cf18706a1b28afc44dacd7bc05333801c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-MarkerSuppressionRecoveryEvaluationV3.ps1",
+      "sha256": "ed40fa6bb254c60906358bef721ba369d124e0d4ed3f2fdf93e4ec0ede2ab459"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-MarkerSuppressionRecoveryChecksV3.ps1",
+      "sha256": "152a1129531f3e54d62fe86885f11c057e531d3a40600920de676365313767d0"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/runtime-description.json",
+      "sha256": "02e45b342c09610763eea329e252d07a8cbed7f7ea33e21916ec52ca510e9009"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v1/status.json",
+      "sha256": "62d990d63fee5008812b35072dee1c861633c48708a430863a8ade54b1381182"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v1/failure-record.json",
+      "sha256": "292a4de1848d5f371b0fddaf1d54a89b9bf43f3553cd0c633626ae575393c24b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v1/App-build.log",
+      "sha256": "908c3298d4922607675e7426587bae451064bc624bbcbfc55cde2b0acc534b96"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v1/source-bindings.json",
+      "sha256": "68db52afe21e72d44b070ac6aaee31c150d4c021bacacd6edacb041604aaaa95"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v2/failure-record.json",
+      "sha256": "5d80ebb3049afd2d8ddf194a0a1d2978e90ccc6cb1e32eba0e355e1038510348"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v2/App-tests.log",
+      "sha256": "b2b5554158900600598d24f16054aac589ea12e86e38a35ff52c597edaa73f97"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v2/test-results/app.trx",
+      "sha256": "87cab78479aaa594d31de9e885d5f56def3a08a22d48a71204a658590e388674"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v2/source-bindings.json",
+      "sha256": "e0f54e46b749a56a5968c96563ece07387d33ec3ba65d8b9fa6fa254a43a253a"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/native-marker-score.json",
+      "sha256": "53d35f86fb5c587e81a1a863cca08e0e781753d6548615c76810676e52274538"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/native-ocr-score.json",
+      "sha256": "ec09b7eef44aaf67a7ec5a8968c1461a348517c85548cd9ed7325d0e4536d540"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/native-ocr-details.json",
+      "sha256": "5c0470fbd5d53fdb1044c7c5d3213e1b237663e08fe36d533d2438aa4d7e6a69"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/axis-geometry-comparison.json",
+      "sha256": "7b8b693c8e825c8be481fe93a5cb2f99998445f6ce82468e6e177b5e97fb1242"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/protocol.json",
+      "sha256": "a0074be7e0bc965c496075f3664b0f5c792ec0afbae7de88679a0077b22510c2"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/candidate-binding.json",
+      "sha256": "df13d5502f63040d7c21266e3eca289d7bf935f13f747d8c8e98a9dacee5e1bc"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/input-manifest.json",
+      "sha256": "409f91a0c5036706f9da848413d330b4f5ea2b452b24e4880d8e35b79a34eddc"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/execution/report.json",
+      "sha256": "7cdb31f1cc0914b9a7633fcc67eb24638ec64677f73edd59dcff4ac962fa4cf1"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-native/status.json",
+      "sha256": "69dc8012be409842974910dcdef24df250dc134a05e290c1709cf8283d852a2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "a02e764c713aa2995b382d066a3972b3035b50aa0a3baec223005a710332b6e2"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-csv/comparison.json",
+      "sha256": "992f2bb3effc862370002acc55b9c16ffccd03697adc1efa1b9f6ae4c645a3f0"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-csv/protocol.json",
+      "sha256": "ec68df12b76e509001b83191010b692740110647dddad5501f4a9f100bcb2a32"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-csv/candidate-binding.json",
+      "sha256": "bf9881111fe657230c4eca28b6f3c52d18dd38dfdb83c62a75365b4b2fa56740"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-csv/input-manifest.json",
+      "sha256": "46f7e5dc4ec5b2069d76efa4e5ea9e614dad5d7627f5b5dea900dc268607ad1d"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-csv/execution/report.json",
+      "sha256": "816d4c5d33fa35724b710879b3a247a4f94ade21dae5045bc28f70fd275ada7e"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v44-csv/status.json",
+      "sha256": "f72cb7d41807af218f66b2bf2e8a5c1184dc3783a2a67dd748a88d4b34bb258e"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/native-marker-score.json",
+      "sha256": "fa9451ab1f2401bfef2d5795aeaa2957195d7cd84fda382f92157407211711b0"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/native-ocr-score.json",
+      "sha256": "fb85edc2cb64640f2cce5821f5c523147632b3bea7f0ad6f82a669416f97d555"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/native-ocr-details.json",
+      "sha256": "db54dc6eecaff1516552f3e2ba5c3b5f37d95f634c05e69e2a0d5a3f48f9971c"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/axis-geometry-comparison.json",
+      "sha256": "973fc7113f7632a9de0b1003abaf0031c8192552623f35c0a08e1cec75845905"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/protocol.json",
+      "sha256": "a93d1f5bca4c0b19abc349f3d866b0a074a5e44741c732f0dd03fb601fcd92cd"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/candidate-binding.json",
+      "sha256": "c47922fc7d2802b10931dadfd11d1ee33533a54513dc4daaef98d6f7284b3988"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/input-manifest.json",
+      "sha256": "911beef6f5c26e3ba6020de6f4db9b7efcc84f7f8f4e0cfb7f08a0c245ea5ba0"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/execution/report.json",
+      "sha256": "65e04876be392b55ada4b8554869f84ef929f268ad11188f6994280f685ca18a"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-native/status.json",
+      "sha256": "f1cfbf23896dba2dcc03d996b96517dfad16ade9874688c63496787298694bca"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "13379d3d5f3148ca820235f0986284e2f4790e14783c534fb4eeef6aaef4eee1"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-csv/comparison.json",
+      "sha256": "6f59e5a0ce4ade0917b79c5cc04bf3ed163a5e149d784086a96c6cf313d0cb51"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-csv/protocol.json",
+      "sha256": "b57493d28f1060e81b1678112fb589ef7c4d3c572861a4db5125d4637e8211f2"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-csv/candidate-binding.json",
+      "sha256": "8e390dab345bc898ba00f2c79296ec014fd77a36970605c748c79fd66f2ed699"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-csv/input-manifest.json",
+      "sha256": "a41c0ced9d94510bafa6c4fdc2c65c597af3da81d5457f89311a1fae1ac1ab2d"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-csv/execution/report.json",
+      "sha256": "a117e88b02ad59acebede220100acf3a238484cfdb2a2543ec16f4ba1cf79818"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/v46-csv/status.json",
+      "sha256": "e278e13b88d8181bedcf08f877f57a75817c1a4b0d662087838224937054df61"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/repair-summary.json",
+      "sha256": "875f4f9e43748faf6c6c38cb4a609d53b34bf43e4aac4c73a6cb41afeeba6ff0"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-PhaseRoleVocabularyRepair.py",
+      "sha256": "448c44e8c111af87e4ce7ada3d9e31b02ad813a579d8217571790374617dfec5"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Audit-MarkerSuppressionRecoveryDeltasV3.py",
+      "sha256": "a9a717afb9a121b5bc93cf8f00ab364f4feab9e03efe677a0b2ad78d6cdfdabc"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/complete-delta-audit.json",
+      "sha256": "0e47004d425697b4576cd4f44f8b94ae22237d2588c3a349a3c82c5aceef98a3"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/mechanism-audit.json",
+      "sha256": "24565660702efa18d5f71da08789bc5068b4634f0669edaedc1b3ba4ad266443"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/audit-status.json",
+      "sha256": "04b6d61f6e3452d4c0ab14a2beab4d17800ac33418af526cee365561c6013bea"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-MarkerSuppressionRecoveryAuditV3.ps1",
+      "sha256": "c4d4e598564d9b9e52e28ff5979ed5bece912a4a47f93b4c381e1fd032c08675"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-MarkerSuppressionRecoveryMechanismV3.py",
+      "sha256": "fb65a8e789e2b99999883875094070409abd9fce88ee5655b8d330858fc8ff41"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Publish-MarkerSuppressionRecovery.py",
+      "sha256": "ed5d1a5b5de6afa439e2026d7b9e45be4a35db1e6b4dd27819e4746cd224052c"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "goal22_acceptance": "FAIL",
+  "base_commit": "e75468c9db5db99135c07c5d7df0f56ae3aa1a91",
+  "hypothesis": {
+    "path": "docs/GOAL-22-MARKER-SUPPRESSION-RECOVERY-DIAGNOSIS.json",
+    "sha256": "f976763032e8893a01e79519e165e54a86408a86232b39b41fcfa04a26eafa16"
+  },
+  "frozen_complete_result": {
+    "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/repair-summary.json",
+    "sha256": "875f4f9e43748faf6c6c38cb4a609d53b34bf43e4aac4c73a6cb41afeeba6ff0"
+  },
+  "complete_delta_audit": {
+    "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/complete-delta-audit.json",
+    "sha256": "0e47004d425697b4576cd4f44f8b94ae22237d2588c3a349a3c82c5aceef98a3"
+  },
+  "mechanism_audit": {
+    "path": "artifacts/goal22-runs/marker-suppression-recovery-evaluation-20261001-v3/mechanism-audit.json",
+    "sha256": "24565660702efa18d5f71da08789bc5068b4634f0669edaedc1b3ba4ad266443"
+  },
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "implementation": [
+    "Expose the original pre-suppression proposals and unchanged NMS distances in internal workflow evidence for approved and candidate proposal adapters. Candidate-only diagnostics remain private to candidate execution.",
+    "After template and enclosure recovery, reconsider only proposals suppressed solely by initial centers that the unchanged classifier rejected. Apply the current plot, eligible OCR-text and legend-frame exclusions before classification.",
+    "Keep all accepted markers immutable and enforce the original NMS spacing against them and between classifier-accepted additions. Preserve original-pixel crops, weights, thresholds, downstream stroke-gap exclusion, calibration and export checks.",
+    "Record proposal and addition counts with model/timing provenance, and advance the workflow cache identity."
+  ],
+  "integration_decision": "Retain the additive repair: both arms recover five previously missed native truths and lose none, at the cost of one extra native detection. Every old accepted marker property and all 866 exported audit rows are preserved. Native precision remains above the shared 95 percent bar, while recall remains below it. This is an integrated runtime improvement, not a model acceptance or Goal22 completion.",
+  "candidate_selection": "Keep V44/English/V27/V5. V46/server is the existing closed comparison, not a newly selected production model.",
+  "license_review": "Project source and tests retain Apache-2.0 notices. No dependencies, weights, fonts or license terms changed. Fixed model payloads, manifests and reviewed license inputs were checksum verified.",
+  "test_failures": [
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v1/failure-record.json",
+      "sha256": "292a4de1848d5f371b0fddaf1d54a89b9bf43f3553cd0c633626ae575393c24b"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-suppression-recovery-checks-20261001-v2/failure-record.json",
+      "sha256": "5d80ebb3049afd2d8ddf194a0a1d2978e90ccc6cb1e32eba0e355e1038510348"
+    }
+  ],
+  "limitations": [
+    "Native recall is 745/838 (88.90 percent) for V44 and 749/838 (89.38 percent) for V46. The required 95 percent recall bar remains unmet.",
+    "Each arm gains one false native detection. Precision changes from96.35 to96.25 percent for V44 and97.13 to97.02 percent for V46.",
+    "Five additional CSV candidates per arm occur on already-failed sources. Their calibration remains blocked; export counts, numeric values, confidence and all other scientific audit fields are unchanged.",
+    "Calibration and marker properties change on three native panels and four CSV panels per arm. Initial detector outputs, axis geometry and every saved OCR field remain unchanged.",
+    "The four comparisons took943.4846057seconds. Recorded recovery envelopes total about1.744seconds across the cohort; this is not a controlled performance guarantee.",
+    "The first check attempt failedCA1861 in a test assertion. The second passed606tests and failed the new fixture before marker detection because its OCR fake expected an all-black raster. Both attempts are preserved. Production source bytes are identical across all three check attempts.",
+    "OCR/marker accuracy, remaining workflow failures, sealed prerequisites, real acceptance, production activation and final distributions remain unfinished. No private/sealed reads, optimizer, package, tag or release. Build433 remains0.4.33."
+  ]
+}

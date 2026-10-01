@@ -86,6 +86,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionTextMarkerExclusion.Version,
         ProductionMarkerTemplateRecovery.Version,
         ProductionMarkerEnclosedCenterRecovery.Version,
+        ProductionMarkerSuppressionRecovery.Version,
         ProductionMarkerStrokeGapExclusion.Version,
         ProductionMarkerGlyphDisambiguation.Version,
         HeaderGlyphCropCompletion.CompositionVersion,
@@ -451,6 +452,47 @@ public sealed class ProductionAutomaticDetectionAdapter :
                             ArtifactRejectionThreshold, cancellationToken);
                         // Recovery is additive. Every new center still passes the existing classifier;
                         // calibration, session assignment and export retain their normal review guards.
+                        acceptedMarkers = [.. acceptedMarkers, .. added];
+                        plotMarkers = [.. plotMarkers, .. added];
+                        canonicalMarkers = [.. canonicalMarkers, .. added];
+                    }
+                }
+                if (centers.SuppressionEvidence is { } suppression)
+                {
+                    var suppressionTimer = System.Diagnostics.Stopwatch.StartNew();
+                    IReadOnlyList<MarkerCenter> suppressed = ProductionMarkerSuppressionRecovery.Find(
+                        suppression, centers.Markers, classification.Markers, acceptedMarkers, markerPlot,
+                        ocr.Result.Regions, recoveryTextMasks, legendInputs.OriginalPixelFrameBounds,
+                        ArtifactRejectionThreshold, cancellationToken);
+                    suppressionTimer.Stop();
+                    if (suppressed.Count > 0)
+                    {
+                        chain.Append(new WorkflowVisionEnvelope(
+                            1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                            "markers", ProductionMarkerSuppressionRecovery.Version, request.Image.Sha256, null,
+                            new WorkflowVisionTiming(suppressionTimer.Elapsed.TotalMilliseconds, 0, 0,
+                                suppressionTimer.Elapsed.TotalMilliseconds),
+                            0, [$"marker_suppression_recovery_candidates:{suppressed.Count}"], request.Transforms));
+                        ProductionMarkerClassificationEvidence recovered = await
+                            (candidateEvaluation && !markerClassificationAdapter.IsApproved
+                                ? ((IProductionCandidateMarkerClassificationAdapter)markerClassificationAdapter)
+                                    .ClassifyForCandidateEvaluationAsync(request, markerFrame, suppressed,
+                                        new Dictionary<string, MarkerRectangle>(), cancellationToken)
+                                : markerClassificationAdapter.ClassifyAsync(request, markerFrame, suppressed, cancellationToken))
+                            .ConfigureAwait(false);
+                        IReadOnlyList<ClassifiedMarker> added = ProductionMarkerSuppressionRecovery.SelectNew(
+                            suppression, acceptedMarkers,
+                            CanonicalizeMarkers(request, recovered.Markers, ProductionMarkerSuppressionRecovery.Version),
+                            ArtifactRejectionThreshold, cancellationToken);
+                        WorkflowVisionEnvelope recoveredEnvelope = recovered.Envelope;
+                        chain.Append(new WorkflowVisionEnvelope(
+                            recoveredEnvelope.ContractVersion, recoveredEnvelope.RunId, recoveredEnvelope.ProjectId,
+                            recoveredEnvelope.PanelId, recoveredEnvelope.Stage,
+                            recoveredEnvelope.StageVersion + ":" + ProductionMarkerSuppressionRecovery.Version,
+                            recoveredEnvelope.InputSha256, recoveredEnvelope.Model, recoveredEnvelope.Timing,
+                            recoveredEnvelope.Confidence,
+                            [.. recoveredEnvelope.Warnings, $"marker_suppression_recovery_added:{added.Count}"],
+                            recoveredEnvelope.Transforms));
                         acceptedMarkers = [.. acceptedMarkers, .. added];
                         plotMarkers = [.. plotMarkers, .. added];
                         canonicalMarkers = [.. canonicalMarkers, .. added];

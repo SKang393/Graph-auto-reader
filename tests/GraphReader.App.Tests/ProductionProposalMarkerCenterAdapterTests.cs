@@ -195,9 +195,14 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
 
         Assert.AreEqual(isApproved, adapter.IsApproved);
         Assert.AreEqual(!isApproved, evidence.CandidateDiagnostics is not null);
+        Assert.IsNotNull(evidence.SuppressionEvidence);
+        Assert.AreEqual(5, evidence.SuppressionEvidence.MinimumSeparation);
+        Assert.AreEqual(1.25, evidence.SuppressionEvidence.RadiusScale);
+        Assert.IsTrue(evidence.SuppressionEvidence.Candidates.Count >= evidence.Markers.Count);
         if (evidence.CandidateDiagnostics is { } diagnostic)
         {
             Assert.AreSame(evidence.Markers, diagnostic.Candidates);
+            Assert.AreSame(diagnostic.PreNmsCandidates, evidence.SuppressionEvidence.Candidates);
             Assert.AreEqual(evidence.Markers.Count, diagnostic.StageCounters.FinalCandidates);
             Assert.IsNotEmpty(diagnostic.AboveThresholdDecodedPoints);
         }

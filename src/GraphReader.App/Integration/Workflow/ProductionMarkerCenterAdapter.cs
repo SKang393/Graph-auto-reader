@@ -32,7 +32,13 @@ public sealed record ProductionMarkerCenterEvidence(
     IReadOnlyList<MarkerFrameReport> Frames)
 {
     internal ProposalMarkerCandidateDiagnosticResult? CandidateDiagnostics { get; init; }
+    internal ProposalMarkerSuppressionEvidence? SuppressionEvidence { get; init; }
 }
+
+internal sealed record ProposalMarkerSuppressionEvidence(
+    IReadOnlyList<MarkerCenter> Candidates,
+    double MinimumSeparation,
+    double RadiusScale);
 
 /// <summary>
 /// Binds a checksum-resolved marker-center manifest to the shared lazy

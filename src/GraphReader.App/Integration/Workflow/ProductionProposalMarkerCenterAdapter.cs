@@ -792,6 +792,11 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         return new ProductionMarkerCenterEvidence(envelope, diagnostic.Candidates, [report])
         {
             CandidateDiagnostics = IsApproved ? null : diagnostic,
+            // Recovery needs proposal evidence in approved production too, without
+            // exposing the candidate-only diagnostic or changing the initial NMS.
+            SuppressionEvidence = maskPreservingCandidate
+                ? new(diagnostic.PreNmsCandidates, 5.0, RadiusSuppressionScale)
+                : null,
         };
     }
 

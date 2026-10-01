@@ -29,6 +29,57 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private static readonly string[] ExpectedPhaseCodes = ["a", "b"];
 
     [TestMethod]
+    public async Task ApprovedWorkflowRecoversASuppressedCrossWithoutReplacingExistingPoints()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graphreader-suppression-recovery-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            string imagePath = Path.Combine(root, "synthetic.png");
+            WriteSyntheticPng(imagePath, 100, 100, suppressedCross: true);
+            byte[] original = await File.ReadAllBytesAsync(imagePath);
+            var store = new ProductionWorkflowPanelStore();
+            var classifier = new ClassificationAdapter(suppressionRecovery: true);
+            var adapter = new ProductionAutomaticDetectionAdapter(
+                store, new ProductionRasterFrameDecoder(), new AxisAdapter(),
+                new OcrAdapter(originalIsBlack: false, finalSessionLabel: "3"), new MaskComposer(),
+                new CenterAdapter(includeSuppressedCandidate: true), classifier,
+                new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+            StringAssert.Contains(adapter.AdapterId, ProductionMarkerSuppressionRecovery.Version);
+            bool observed = false;
+            adapter.CandidateCalibrationObserver = _ => observed = true;
+            var workflow = new WorkflowOrchestrator(new WorkflowServiceSet(
+                new ProductionWorkflowImportStage(store, new ImageImportService()),
+                new ProductionWorkflowPrepareStage(store), new ProductionWorkflowDetectionStage(store, adapter),
+                new ProductionWorkflowExportStage(store, new ExportService())));
+            WorkflowRunResult run = await workflow.RunThroughReviewAsync(
+                new WorkflowRunRequest(Guid.NewGuid(), new WorkflowImportRequest(
+                    Guid.NewGuid(), [new WorkflowSourceRequest(Guid.NewGuid(), WorkflowSourceKind.Image, imagePath)],
+                    enhancementEnabled: false)), null, CancellationToken.None);
+            WorkflowReviewPanel panel = run.Review.Panels.Single();
+            Assert.IsFalse(observed);
+            Assert.HasCount(3, panel.Points);
+            Assert.IsTrue(panel.Points.Any(point => point.OriginalPixelX == 20 && point.OriginalPixelY == 70));
+            Assert.IsTrue(panel.Points.Any(point => point.OriginalPixelX == 80 && point.OriginalPixelY == 30));
+            Assert.IsTrue(panel.Points.Any(point => point.OriginalPixelX == 50 && point.OriginalPixelY == 50));
+            Assert.AreEqual("suppressed-cross", classifier.LastInputs.Single().MarkerId);
+            ProductionPanelExportEvidence evidence = store.Get(panel.PanelId).ExportEvidence!;
+            Assert.IsTrue(evidence.Provenance.SelectMany(item => item.Warnings)
+                .Contains("marker_suppression_recovery_added:1"));
+            Assert.AreEqual(GraphReader.Domain.ReviewStatus.Rejected,
+                evidence.ProjectionEvidence!.Markers.Single(marker => marker.Center.X == 51).ReviewStatus);
+            WorkflowExportResult export = await workflow.ExportAsync(run.Review,
+                new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(root, "unused-export"))
+                { Operation = ExportOperation.Preview }, CancellationToken.None);
+            Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+            Assert.AreEqual(3, export.Artifacts.Single(artifact => artifact.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) &&
+                !artifact.FileName.Contains("audit", StringComparison.OrdinalIgnoreCase)).RowCount);
+            CollectionAssert.AreEqual(original, await File.ReadAllBytesAsync(imagePath));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [TestMethod]
     public async Task MarkerGlyphRemainsInReviewAuditWithoutDuplicatingSemanticText()
     {
         string root = Path.Combine(Path.GetTempPath(), $"graphreader-marker-glyph-{Guid.NewGuid():N}");
@@ -737,10 +788,13 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         private readonly OcrTextRole? zeroConfidenceRole;
         private readonly bool rejectZeroConfidenceTick;
         private readonly bool includeMarkerGlyph;
+        private readonly bool originalIsBlack;
+        private readonly string finalSessionLabel;
 
         public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
             bool invalidLegendBounds = false, string? warning = null,
-            OcrTextRole? zeroConfidenceRole = null, bool rejectZeroConfidenceTick = false, bool includeMarkerGlyph = false)
+            OcrTextRole? zeroConfidenceRole = null, bool rejectZeroConfidenceTick = false, bool includeMarkerGlyph = false,
+            bool originalIsBlack = true, string finalSessionLabel = "2")
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
@@ -750,6 +804,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             this.zeroConfidenceRole = zeroConfidenceRole;
             this.rejectZeroConfidenceTick = rejectZeroConfidenceTick;
             this.includeMarkerGlyph = includeMarkerGlyph;
+            this.originalIsBlack = originalIsBlack;
+            this.finalSessionLabel = finalSessionLabel;
         }
 
         public string AdapterId => "test-ocr";
@@ -782,7 +838,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             Assert.AreEqual(byte.MaxValue, detectorImage.Image.Pixels.Span[(50 * 100) + 10]);
             Assert.AreEqual(byte.MaxValue, detectorImage.Image.Pixels.Span[(50 * 100) + 50]);
             Assert.AreEqual(byte.MaxValue, detectorImage.Image.Pixels.Span[(90 * 100) + 20]);
-            if (!framedLegend) Assert.AreEqual(0, detectorImage.Image.Pixels.Span[(30 * 100) + 30]);
+            if (!framedLegend && originalIsBlack) Assert.AreEqual(0, detectorImage.Image.Pixels.Span[(30 * 100) + 30]);
             Assert.AreEqual(
                 detectorImage.PixelSha256,
                 Convert.ToHexStringLower(SHA256.HashData(detectorImage.Image.Pixels.Span)));
@@ -796,7 +852,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             Assert.AreEqual(
                 detectorImage.BgrPixelSha256,
                 Convert.ToHexStringLower(SHA256.HashData(detectorImage.Image.BgrPixels.Pixels.Span)));
-            if (!framedLegend)
+            if (!framedLegend && originalIsBlack)
             {
                 Assert.IsTrue(originalRaster.CreateOcrImage().Pixels.Span.ToArray()
                     .All(static pixel => pixel == 0));
@@ -806,7 +862,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             OcrRegion[] regions =
             [
                 Region("x1", 18, 92, "1", OcrTextRole.XTick),
-                Region("x2", 78, 92, "2", OcrTextRole.XTick),
+                Region("x2", 78, 92, finalSessionLabel, OcrTextRole.XTick),
                 Region("y0", 1, 78, "0", OcrTextRole.YTick),
                 Region("y100", 1, 18, "100", OcrTextRole.YTick),
                 Region("participant", 82, 84, participant, OcrTextRole.Participant),
@@ -920,7 +976,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     private sealed class CenterAdapter(bool includeLegendGlyph = false, bool measuredLegend = false,
-        bool offsetLegendDetection = false, bool includeFrameCorner = false, bool includeStrokeGap = false) : IProductionMarkerCenterAdapter
+        bool offsetLegendDetection = false, bool includeFrameCorner = false, bool includeStrokeGap = false,
+        bool includeSuppressedCandidate = false) : IProductionMarkerCenterAdapter
     {
         public string AdapterId => "test-centers";
 
@@ -958,14 +1015,22 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             if (includeStrokeGap)
                 markers = [.. markers, new MarkerCenter("stroke-gap", new MarkerPoint(60, 60),
                     6, 0.01, 0.98, MarkerSourceImage.Original)];
+            if (includeSuppressedCandidate)
+                markers = [.. markers, new MarkerCenter("rejected-blocker", new MarkerPoint(51, 51),
+                    3, 0.01, 0.98, MarkerSourceImage.Original)];
             return Task.FromResult(new ProductionMarkerCenterEvidence(
                 Envelope(request, "markers", "center-v1", "test-center", 'd'),
                 markers,
-                []));
+                [])
+            {
+                SuppressionEvidence = includeSuppressedCandidate
+                    ? new([.. markers, new("suppressed-cross", new(50, 50), 3, 0, 0.8, MarkerSourceImage.Original)], 5, 1.25)
+                    : null,
+            });
         }
     }
 
-    private sealed class ClassificationAdapter(bool rejectLegendSymbols = false) : IProductionMarkerClassificationAdapter
+    private sealed class ClassificationAdapter(bool rejectLegendSymbols = false, bool suppressionRecovery = false) : IProductionMarkerClassificationAdapter
     {
         public IReadOnlyList<MarkerCenter> LastInputs { get; private set; } = Array.Empty<MarkerCenter>();
         public IReadOnlyDictionary<string, MarkerRectangle> LastContentBounds { get; private set; } =
@@ -999,6 +1064,12 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             LastInputs = markers.ToArray();
+            if (suppressionRecovery)
+                return Task.FromResult(new ProductionMarkerClassificationEvidence(
+                    Envelope(request, "markers", "classifier-v1", "test-classifier", 'e'),
+                    markers.Select(marker => new ClassifiedMarker(marker, MarkerShape.Cross, MarkerFill.Filled,
+                        "+", "Cross", marker.MarkerId is "raw-1" or "raw-2" or "suppressed-cross" ? 0.01 : 0.99,
+                        0.98, 0.98, Enumerable.Repeat(0.1f, 12))).ToArray()));
             ClassifiedMarker[] classified =
             [
                 new(
@@ -1152,9 +1223,19 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         }
     }
 
-    private static void WriteSyntheticPng(string path, int width, int height, bool framedLegend = false, bool strokeGap = false)
+    private static void WriteSyntheticPng(string path, int width, int height, bool framedLegend = false, bool strokeGap = false,
+        bool suppressedCross = false)
     {
         byte[] pixels = Enumerable.Repeat((byte)255, width * height * 4).ToArray();
+        if (suppressedCross)
+        {
+            for (int n = -3; n <= 3; n++)
+            foreach (var point in new[] { (X: 50 + n, Y: 50), (X: 50, Y: 50 + n) })
+            {
+                int index = (point.Y * width + point.X) * 4;
+                pixels[index] = pixels[index + 1] = pixels[index + 2] = 0;
+            }
+        }
         if (strokeGap)
         {
             for (int x = 48; x <= 72; x++)

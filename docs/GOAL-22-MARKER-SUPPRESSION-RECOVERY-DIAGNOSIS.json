@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "status": "diagnosed_implementation_authorized_within_goal22",
+  "attempt_id": "runtime-suppression-recovery-v1",
+  "source_checkpoint": "e75468c9db5db99135c07c5d7df0f56ae3aa1a91",
+  "failure": "Every additional candidate was previously suppressed by a center the unchanged classifier later rejects. None of the original accepted initial candidates is removed by classifier-first suppression in these 140 panels.",
+  "classifier_reproduction": {
+    "outputs": 3794,
+    "maximum_absolute_error": 8.940696716308594e-07,
+    "tolerance": 1e-05
+  },
+  "stage_only_counts": {
+    "v44-native": {
+      "panels": 31,
+      "pre_nms_candidates": 1666,
+      "changed_panels": 7,
+      "added_candidates": 22,
+      "removed_candidates": 0
+    },
+    "v44-csv": {
+      "panels": 39,
+      "pre_nms_candidates": 2433,
+      "changed_panels": 12,
+      "added_candidates": 14,
+      "removed_candidates": 0
+    },
+    "v46-native": {
+      "panels": 31,
+      "pre_nms_candidates": 1639,
+      "changed_panels": 7,
+      "added_candidates": 21,
+      "removed_candidates": 0
+    },
+    "v46-csv": {
+      "panels": 39,
+      "pre_nms_candidates": 2434,
+      "changed_panels": 13,
+      "added_candidates": 16,
+      "removed_candidates": 0
+    }
+  },
+  "context_exclusions": {
+    "v44-native": {
+      "total": 22,
+      "text_excluded": 3,
+      "legend_frame_excluded": 0,
+      "legend_glyph_excluded": 0,
+      "remaining": 19,
+      "remaining_neither": 4,
+      "remaining_near_missing_truth": 7,
+      "remaining_near_existing_marker": 8
+    },
+    "v44-csv": {
+      "total": 14,
+      "text_excluded": 3,
+      "legend_frame_excluded": 6,
+      "legend_glyph_excluded": 5,
+      "remaining": 6,
+      "remaining_neither": 6,
+      "remaining_status_failed": 6
+    },
+    "v46-native": {
+      "total": 21,
+      "text_excluded": 3,
+      "legend_frame_excluded": 0,
+      "legend_glyph_excluded": 0,
+      "remaining": 18,
+      "remaining_neither": 4,
+      "remaining_near_missing_truth": 7,
+      "remaining_near_existing_marker": 7
+    },
+    "v46-csv": {
+      "total": 16,
+      "text_excluded": 3,
+      "legend_frame_excluded": 7,
+      "legend_glyph_excluded": 6,
+      "remaining": 7,
+      "remaining_neither": 5,
+      "remaining_status_failed": 5,
+      "remaining_near_existing_marker": 2,
+      "remaining_status_completed": 2
+    }
+  },
+  "interpretation": "Plot truth alone cannot label a legend symbol as a classifier artifact. Existing text and frame rules remove all additions from completed V44 CSV sources. Seven candidates per native arm remain near missed truth; duplicates and false positives also remain. These are diagnostic distances, not recovered matches.",
+  "hypothesis": "After the existing template and enclosure passes, recover only original proposals suppressed solely by initial candidates that the unchanged classifier rejected. Keep every existing accepted center immutable and enforce the same NMS distances against them and new accepted proposals.",
+  "isolated_change": "Expose minimal suppression evidence in approved and candidate proposal adapters. Apply the existing plot, eligible-text and legend-frame exclusions, classify the remaining proposals with the existing original-pixel crop, then retain classifier-accepted additions with the original NMS spacing. Apply the existing downstream stroke-gap, calibration, review and export checks.",
+  "unchanged": [
+    "weights",
+    "classifier_crop",
+    "center_cutoff",
+    "artifact_cutoff",
+    "NMS_distances",
+    "truth",
+    "acceptance_bars",
+    "production_approval"
+  ],
+  "validation": [
+    "App regression suite and clean native runner build",
+    "All four fixed native/CSV comparisons against the marker-core baseline",
+    "Measure complete OCR, axis, accepted-marker, calibration and CSV deltas without assuming retention"
+  ],
+  "metrics_and_bar": {
+    "reference": "ml/policy/acceptance-bars.json",
+    "marker_center_recall_minimum": 0.95,
+    "marker_center_precision_minimum": 0.95,
+    "full_workflow_scores_required": true
+  },
+  "split_rule": "Reuse only the explicitly bound project-owned synthetic train/dev inputs from the baseline. No new data selection and no truth-dependent runtime rule.",
+  "sealed_run_budget": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "limitations": [
+    "Saved final OCR was used for the context replay.",
+    "The proposed additive pass differs from pure classifier-first NMS and requires its own full workflow measurements.",
+    "No marker recovery or accuracy pass is claimed by this diagnosis."
+  ],
+  "evidence": [
+    {
+      "file": "artifacts/goal22-runs/pre-nms-classifier-diagnosis-20261001-v1/analysis.json",
+      "sha256": "ee93bcbd9bfd1505baed37e9141f3e496c1feee92f0c7617104f13d8c78f20a7"
+    },
+    {
+      "file": "artifacts/goal22-runs/pre-nms-context-exclusions-20261001-v1/report.json",
+      "sha256": "dddc92144984674d6d9f848bb52a15b422bf2fe70d020016d227ce8446a21b8a"
+    },
+    {
+      "file": "artifacts/goal22-runs/pre-nms-context-exclusions-20261001-v1/bindings.json",
+      "sha256": "5b763dcd950c4283375e5612203978153b7926147b28555aced28d52c72ff0fe"
+    },
+    {
+      "file": "artifacts/goal22-runs/pre-nms-context-exclusions-20261001-v1/request.json",
+      "sha256": "da09230102652525303f66f1b054332f2f51b756c8b6d32c0ad8c0d4197d186d"
+    },
+    {
+      "file": "artifacts/goal22-runs/pre-nms-context-exclusions-20261001-v1/status.json",
+      "sha256": "1fdeeb56301a990cf917ba8138a5c16fc2b228b0f57d5c12f525212144de57ae"
+    },
+    {
+      "file": "artifacts/goal22-runs/pre-nms-context-exclusions-20261001-v1/Program.cs",
+      "sha256": "4f71234db1a9f3ed989ea32a4f41921ad782fd0e20186426df255b07056bb814"
+    },
+    {
+      "file": "artifacts/goal22-runs/pre-nms-context-exclusions-20261001-v1/build.log",
+      "sha256": "b3c674c7c1ce1992765ccca9d341d28e76a5314c308d813f6588df7f08477b99"
+    },
+    {
+      "file": "artifacts/goal22-runs/pre-nms-classifier-diagnosis-20261001-v1/report.json",
+      "sha256": "647bca37a68cf8118a5276e3e0d6bc87f8034031e5eb697456ac66209b99ce0f"
+    },
+    {
+      "file": "artifacts/goal22-runs/pre-nms-classifier-diagnosis-20261001-v1/protocol.json",
+      "sha256": "22bd4112f47b6826fbaa6e26000c3dd245fdef115df58d70d7dd03b6b347b93a"
+    },
+    {
+      "file": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "file": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "file": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Prepare-MarkerSuppressionRecoveryDiagnosis.py",
+      "sha256": "f25291c60d89aa578e12b8a919fd8173052f2b8e247aa262b395520ac48d3925"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/protocol.json",
+      "sha256": "7db25bcd83cb81906274803b61b3fda360c677187337cadd893691840f5c1c9b"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/input-manifest.json",
+      "sha256": "e044d4bbe1685abd76d853e2f0b8178157b84ee429fea084a2b4d79388b60b26"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-native/candidate-binding.json",
+      "sha256": "6c70c5bd13aaee0bb6c3c82bef977c0694085cabd8e17d453bdb4913b24e688a"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/protocol.json",
+      "sha256": "a9d0a20fdcdd8041afbf2ec87729214a224c0af33af97f1785dcc53f248d2834"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/input-manifest.json",
+      "sha256": "7f1d469d6a9c293fc6b586a1a8321a69fac952714a0c89bc61dfdb7413901992"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v44-csv/candidate-binding.json",
+      "sha256": "dc7f63e499208536aeee61a70b20626aa7521597dc9af1d590c3aa7bb6a39d56"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/protocol.json",
+      "sha256": "75877570f71bcce8972effcf78828ca02046b68f984c90fd62e0930582e3b1eb"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/input-manifest.json",
+      "sha256": "13b76ecb96aa937c6673c1f6f148bbde9db0142919ec1f2a28e8a367cf231566"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-native/candidate-binding.json",
+      "sha256": "17f596bd18d9b96c56a61028c8656ab2222d12b1855212ea60d6739daeb88208"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/protocol.json",
+      "sha256": "9e3f7d1b06175eb281c525c8a60653ea1a39114b6c9e72143b1e1728145c65c4"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/input-manifest.json",
+      "sha256": "9bae7081801da7a63102f428d299b05f65736c9f28f7c87a7dbb9f2e31843bf4"
+    },
+    {
+      "file": "artifacts/goal22-runs/marker-core-intersection-evaluation-20261001-v2/v46-csv/candidate-binding.json",
+      "sha256": "b4afc9df0b0a24febe625d4ce67c4e36cfaa189877bdc002bba33ca4eb35004d"
+    },
+    {
+      "file": "src/GraphReader.App/Integration/Workflow/ProductionMarkerCenterAdapter.cs",
+      "sha256": "9b95e405de2b07ff3dcad306333bfd6fc87b5f81d085ae1f83ddea0004b410d4"
+    },
+    {
+      "file": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
+      "sha256": "6a294d6fe33383acf8bfae6eef50f8371261c22b60001c997e8ef47efbffe25d"
+    },
+    {
+      "file": "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+      "sha256": "ef203949deb2537c5fa5b14f703d6c9b8d89881145bd744b92b8ebca3d74bee5"
+    },
+    {
+      "file": "src/GraphReader.App/Integration/Workflow/ProductionMarkerTemplateRecovery.cs",
+      "sha256": "6b541527ce53ac5c2bcbbf3572308fda8785e1c6d7de1ba19c1b0ad014962124"
+    },
+    {
+      "file": "src/GraphReader.App/Integration/Workflow/ProductionLegendSymbolInputs.cs",
+      "sha256": "0a9ef76bf5cc2c86b132b40024357da7d1f7ee87e868a5de460aaaf64e3cbcff"
+    },
+    {
+      "file": "src/GraphReader.App/Integration/Workflow/ProductionTextMarkerExclusion.cs",
+      "sha256": "a673f559505b914f549001944e111ef33e41bff2fbb6d58528f67ba6870081bc"
+    }
+  ]
+}
