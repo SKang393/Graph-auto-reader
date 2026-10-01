@@ -1,0 +1,366 @@
+{
+  "schema": "graphreader.bracket-caption-glyph-diagnosis.v1",
+  "base_commit": "972c91869dc3521d134d52bf5dcdf102ca30e9b7",
+  "status": "frozen_before_implementation",
+  "failure_mode": "Detached compact condition glyphs beside upper bracket captions are outside the corroborated three-heading band. Actual original-pixel brackets and uncovered ink survive, but the current OCR path omits the glyph crop.",
+  "responsible_subsystem": "HeaderGlyphTextRegionRecovery only considers a corroborated phase-heading row.",
+  "measured_native_dev_panels": 62,
+  "measured_dev_cases": [
+    {
+      "arm": "v44",
+      "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+      "panel_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+      "original_pixels_sha256": "4c4f9b95fa619e936ce585ed145252844415d2be496c63427510d58f75c88bcf",
+      "caption": {
+        "region_id": "57c88f84-fc19-e396-2c46-99529592ea46",
+        "text": "Follow-up",
+        "role": "Annotation",
+        "bounds": {
+          "x": 767,
+          "y": 48,
+          "width": 69,
+          "height": 11,
+          "left": 767,
+          "top": 48,
+          "right": 836,
+          "bottom": 59,
+          "center": {
+            "x": 801.5,
+            "y": 53.5,
+            "is_finite": true
+          },
+          "is_valid": true
+        },
+        "candidates": [
+          {
+            "component_id": "17e3ee2f-518f-c1e5-4c09-4d0f1f5e5c11",
+            "bounds": {
+              "x": 856,
+              "y": 45,
+              "width": 9,
+              "height": 11,
+              "left": 856,
+              "top": 45,
+              "right": 865,
+              "bottom": 56,
+              "center": {
+                "x": 860.5,
+                "y": 50.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            },
+            "gap": 20,
+            "combined_caption_bounds": {
+              "x": 767,
+              "y": 45,
+              "width": 98,
+              "height": 14,
+              "left": 767,
+              "top": 45,
+              "right": 865,
+              "bottom": 59,
+              "center": {
+                "x": 816,
+                "y": 52,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "missed_dev_truth": {
+        "split": "validation",
+        "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+        "truth_id": "5b5e71e099f67596a758f85e81f8109680141d59021f70d8f9e8e377486e5dbf",
+        "text": "B",
+        "role": "condition_label",
+        "box": [
+          856.308498,
+          45.148105,
+          865.467374,
+          55.957621
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null
+      }
+    },
+    {
+      "arm": "v46",
+      "source_sha256": "b86e150ec2a8890197c5d0e3e6e56d1fd7eed21e0344aa842222075547e477c2",
+      "panel_sha256": "b86e150ec2a8890197c5d0e3e6e56d1fd7eed21e0344aa842222075547e477c2",
+      "original_pixels_sha256": "170bb8e94d40f7f0e7ecefd7a5b7dfe95c25cd7003f7c4e750f277b1459ad471",
+      "caption": {
+        "region_id": "9d33522d-961c-4087-ed92-a22e0cfe3208",
+        "text": "Follow-up",
+        "role": "Annotation",
+        "bounds": {
+          "x": 765,
+          "y": 44,
+          "width": 70,
+          "height": 15,
+          "left": 765,
+          "top": 44,
+          "right": 835,
+          "bottom": 59,
+          "center": {
+            "x": 800,
+            "y": 51.5,
+            "is_finite": true
+          },
+          "is_valid": true
+        },
+        "candidates": [
+          {
+            "component_id": "0771c7a9-ef82-eb34-d98b-0e938d49d286",
+            "bounds": {
+              "x": 855,
+              "y": 47,
+              "width": 11,
+              "height": 10,
+              "left": 855,
+              "top": 47,
+              "right": 866,
+              "bottom": 57,
+              "center": {
+                "x": 860.5,
+                "y": 52,
+                "is_finite": true
+              },
+              "is_valid": true
+            },
+            "gap": 20,
+            "combined_caption_bounds": {
+              "x": 765,
+              "y": 44,
+              "width": 101,
+              "height": 15,
+              "left": 765,
+              "top": 44,
+              "right": 866,
+              "bottom": 59,
+              "center": {
+                "x": 815.5,
+                "y": 51.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "missed_dev_truth": {
+        "split": "validation",
+        "source_sha256": "b86e150ec2a8890197c5d0e3e6e56d1fd7eed21e0344aa842222075547e477c2",
+        "truth_id": "942ccda32d4a0b5162329773ca2ae17e1b160c24c68748443e2425cb01540814",
+        "text": "A",
+        "role": "condition_label",
+        "box": [
+          854.00121,
+          46.744357,
+          866.03197,
+          56.78129
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null
+      }
+    },
+    {
+      "arm": "v46",
+      "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+      "panel_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+      "original_pixels_sha256": "4c4f9b95fa619e936ce585ed145252844415d2be496c63427510d58f75c88bcf",
+      "caption": {
+        "region_id": "c031e5ae-d7b6-b25c-f786-611e7cf7a41e",
+        "text": "Follow-up",
+        "role": "Annotation",
+        "bounds": {
+          "x": 766,
+          "y": 46,
+          "width": 70,
+          "height": 13,
+          "left": 766,
+          "top": 46,
+          "right": 836,
+          "bottom": 59,
+          "center": {
+            "x": 801,
+            "y": 52.5,
+            "is_finite": true
+          },
+          "is_valid": true
+        },
+        "candidates": [
+          {
+            "component_id": "17e3ee2f-518f-c1e5-4c09-4d0f1f5e5c11",
+            "bounds": {
+              "x": 856,
+              "y": 45,
+              "width": 9,
+              "height": 11,
+              "left": 856,
+              "top": 45,
+              "right": 865,
+              "bottom": 56,
+              "center": {
+                "x": 860.5,
+                "y": 50.5,
+                "is_finite": true
+              },
+              "is_valid": true
+            },
+            "gap": 20,
+            "combined_caption_bounds": {
+              "x": 766,
+              "y": 45,
+              "width": 99,
+              "height": 14,
+              "left": 766,
+              "top": 45,
+              "right": 865,
+              "bottom": 59,
+              "center": {
+                "x": 815.5,
+                "y": 52,
+                "is_finite": true
+              },
+              "is_valid": true
+            }
+          }
+        ]
+      },
+      "missed_dev_truth": {
+        "split": "validation",
+        "source_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+        "truth_id": "5b5e71e099f67596a758f85e81f8109680141d59021f70d8f9e8e377486e5dbf",
+        "text": "B",
+        "role": "condition_label",
+        "box": [
+          856.308498,
+          45.148105,
+          865.467374,
+          55.957621
+        ],
+        "matched": false,
+        "predicted_text": null,
+        "predicted_role": null
+      }
+    }
+  ],
+  "ambiguous_caption_groups_preserved": [
+    {
+      "arm": "v44",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "crop": {
+        "x": 0,
+        "y": 1393,
+        "width": 1200,
+        "height": 307,
+        "right": 1200,
+        "bottom": 1700,
+        "area": 368400,
+        "is_valid": true
+      },
+      "candidate_count": 2
+    },
+    {
+      "arm": "v44",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "crop": {
+        "x": 0,
+        "y": 313,
+        "width": 1200,
+        "height": 270,
+        "right": 1200,
+        "bottom": 583,
+        "area": 324000,
+        "is_valid": true
+      },
+      "candidate_count": 2
+    },
+    {
+      "arm": "v44",
+      "source_sha256": "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "crop": {
+        "x": 0,
+        "y": 853,
+        "width": 1200,
+        "height": 270,
+        "right": 1200,
+        "bottom": 1123,
+        "area": 324000,
+        "is_valid": true
+      },
+      "candidate_count": 2
+    }
+  ],
+  "hypothesis": "Recover a single uncovered compact component horizontally aligned with a bound, unreviewed, nonnumeric header caption when an actual original-pixel bracket lies below both the caption and their union. Reuse the existing bracket evidence and single-glyph size envelope. Require a separating gap greater than the smaller text height and exactly one eligible component per caption. Keep ambiguous groups and protected contexts unchanged.",
+  "isolated_change": "Add a separate recognition batch for bracket-caption glyph crops under the existing header recovery option. Read only measured original pixels. Supply no character, word, condition or role hint. Preserve every prior tensor batch, reviewed reading and numeric safeguard; ignore failed recognition alternatives and prevent recovered numeric misreads from entering calibration as ticks. Advance OCR and workflow cache identity.",
+  "metrics": [
+    "paired literal-exact native text",
+    "geometry/role/character errors",
+    "matched and extra markers",
+    "CSV completed sources, correct values and rows",
+    "unchanged or explained numeric rows and valid original-pixel calibration"
+  ],
+  "acceptance_bars": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "repair_acceptance": "Recover diagnosed missing glyphs without losing previously correct native readings or marker/CSV correctness. Existing project bars remain binding; this local repair does not approve a model or Goal 22.",
+  "splits": "Same owned native dev 21 sources/31 panels/453 texts/838 markers and CSV train/dev 23 sources/39 panels, for unchanged V44/English and closed V46/server development configurations.",
+  "sealed_run_budget": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "evidence": [
+    {
+      "path": "docs/GOAL-22-BOUND-HEADER-WORD-RECOVERY.json",
+      "sha256": "d3903b3e5138c8a4de9f430ea513b4edffe1d472e8999add72e24a7c07ff4b74"
+    },
+    {
+      "path": "artifacts/goal22-runs/bracket-caption-glyph-trace-20260930-v1/report.json",
+      "sha256": "a66f859a3fadfe66c02ebbc50332f623dcf49a82c98f2b86a3ab5b6b53b688f3"
+    },
+    {
+      "path": "artifacts/goal22-runs/bracket-caption-glyph-trace-20260930-v1/request.json",
+      "sha256": "a5719905e1c717a162f31111680db25ab35b37d6cb3fdb85e3fd44c6869d875a"
+    },
+    {
+      "path": "artifacts/goal22-runs/bracket-caption-glyph-trace-20260930-v1/bindings.json",
+      "sha256": "f30ed893d0d2953d4045e972f6ac9c4b586e102bd8e7f1232b707767d873d1e3"
+    },
+    {
+      "path": "artifacts/goal22-runs/bracket-caption-glyph-trace-20260930-v1/status.json",
+      "sha256": "12ee8fc3670416dd103c581659709c643fce1ee611aa572399ce9faaa1428864"
+    },
+    {
+      "path": "artifacts/goal22-runs/bracket-caption-glyph-trace-20260930-v1/Program.cs",
+      "sha256": "d026d1453ce965c7911169814838da2d338db8e9fd934787093201bbd9fa7355"
+    },
+    {
+      "path": "artifacts/goal22-runs/bound-header-word-evaluation-20260930-v1/v44-native/native-ocr-details.json",
+      "sha256": "a313ff20e5be0babe21b098ac3c73c0d9081d61e952e0c3d6fde5e8dc044dd7e"
+    },
+    {
+      "path": "artifacts/goal22-runs/bound-header-word-evaluation-20260930-v1/v46-native/native-ocr-details.json",
+      "sha256": "f2c0821216e4a4323bc1fedf96e68ace3d759dda68437f4e1396a91b0ee4535e"
+    },
+    {
+      "path": "src/GraphReader.Ocr/HeaderBracketEvidence.cs",
+      "sha256": "350714d56446b30d446124d1f51c39fb5103929a1542146e360c6378f5da7d63"
+    },
+    {
+      "path": "src/GraphReader.Ocr/HeaderGlyphTextRegionRecovery.cs",
+      "sha256": "62baeb45b160f84aa50964f23e895946cbe0671943fd24a43cc7a1afb7d96b7d"
+    }
+  ]
+}

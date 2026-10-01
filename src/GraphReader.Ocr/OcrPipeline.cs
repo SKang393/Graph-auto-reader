@@ -488,8 +488,13 @@ public sealed class OcrPipeline
                         .ConfigureAwait(false);
                 }
                 OcrDetectedRegion[] glyphCompletions = completedGlyphs.Select(static item => item.Region).ToArray();
+                IReadOnlyList<OcrDetectedRegion> bracketGlyphs = _options.EnableHeaderGlyphRecovery
+                    ? await BracketCaptionGlyphRecovery.FindAsync(request.OriginalImage,
+                        detectedRegions.Concat(recovered).Concat(headingSuffixes).Concat(participantWords)
+                            .Concat(glyphCompletions).ToArray(), regions, request.PlotBounds, cancellationToken).ConfigureAwait(false)
+                    : [];
                 ValidateDetectedRegions(detectedRegions.Concat(recovered).Concat(headingSuffixes).Concat(participantWords)
-                    .Concat(glyphCompletions).ToArray());
+                    .Concat(glyphCompletions).Concat(bracketGlyphs).ToArray());
                 // Batch width affects recognizer padding. Keep every existing
                 // tick/glyph tensor unchanged when adding wider heading crops.
                 recoveryBatches = OcrCropBatcher.CreateBatches(
@@ -499,8 +504,11 @@ public sealed class OcrPipeline
                     .Concat(OcrCropBatcher.CreateBatches(
                         request.OriginalImage, participantWords, cropOptions, cancellationToken))
                     .Concat(OcrCropBatcher.CreateBatches(
-                        request.OriginalImage, glyphCompletions, cropOptions, cancellationToken)).ToArray();
-                recovered = OcrCollections.Freeze(recovered.Concat(headingSuffixes).Concat(participantWords).Concat(glyphCompletions));
+                        request.OriginalImage, glyphCompletions, cropOptions, cancellationToken))
+                    .Concat(OcrCropBatcher.CreateBatches(
+                        request.OriginalImage, bracketGlyphs, cropOptions, cancellationToken)).ToArray();
+                recovered = OcrCollections.Freeze(recovered.Concat(headingSuffixes).Concat(participantWords)
+                    .Concat(glyphCompletions).Concat(bracketGlyphs));
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -546,11 +554,18 @@ public sealed class OcrPipeline
                     .Where(item => recoveryResults.Any(result => result.RegionId == item.Region.RegionId && result.Failure is not null))
                     .Select(static item => item.Region.RegionId).ToHashSet(StringComparer.Ordinal);
                 recoveredRegions = OcrCollections.Freeze(recoveredRegions.Where(region => !failedGlyphIds.Contains(region.RegionId)));
+                HashSet<string> failedBracketIds = recoveryResults.Where(static result => result.Failure is not null &&
+                        result.RegionId.StartsWith("bracket-caption-glyph:", StringComparison.Ordinal))
+                    .Select(static result => result.RegionId).ToHashSet(StringComparer.Ordinal);
+                recoveredRegions = OcrCollections.Freeze(recoveredRegions.Where(region =>
+                    !region.RegionId.StartsWith("bracket-caption-glyph:", StringComparison.Ordinal) ||
+                    (!failedBracketIds.Contains(region.RegionId) && !string.IsNullOrWhiteSpace(region.Text))));
                 // Word completion has no axis-tick evidence. A numeric misread
                 // remains visible, but must never enter calibration as a tick.
                 recoveredRegions = OcrCollections.Freeze(recoveredRegions.Select(static region =>
                     (region.RegionId.StartsWith("participant-word:", StringComparison.Ordinal) ||
-                     region.RegionId.StartsWith("header-glyph-complete:", StringComparison.Ordinal)) &&
+                     region.RegionId.StartsWith("header-glyph-complete:", StringComparison.Ordinal) ||
+                     region.RegionId.StartsWith("bracket-caption-glyph:", StringComparison.Ordinal)) &&
                     region.Role is OcrTextRole.XTick or OcrTextRole.YTick
                         ? region with { Role = OcrTextRole.Other }
                         : region));
@@ -569,6 +584,8 @@ public sealed class OcrPipeline
                         ? "original_pixel_header_word_suffix_recovery"
                         : region.RegionId.StartsWith("header-glyph-complete:", StringComparison.Ordinal)
                         ? "original_pixel_header_glyph_completion"
+                        : region.RegionId.StartsWith("bracket-caption-glyph:", StringComparison.Ordinal)
+                        ? "original_pixel_bracket_caption_glyph_recovery"
                         : region.RegionId.StartsWith("header-glyph:", StringComparison.Ordinal)
                             ? "original_pixel_header_glyph_recovery" : "original_pixel_tick_recovery")));
                 regionFailures = OcrCollections.Freeze(regionFailures.Concat(
