@@ -86,6 +86,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionTextMarkerExclusion.Version,
         ProductionMarkerTemplateRecovery.Version,
         ProductionMarkerEnclosedCenterRecovery.Version,
+        ProductionMarkerStrokeGapExclusion.Version,
         ProductionPhaseGeometryContext.Version,
         ProductionTickLabelGeometry.Version,
         ProductionSeriesPhaseContext.Version,
@@ -454,6 +455,33 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
                     "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
                     "Retain earlier marker evidence and review original-pixel symbol recovery."));
+            }
+            var strokeGapTimer = System.Diagnostics.Stopwatch.StartNew();
+            StrokeGapMarkerExclusionBatch strokeGaps;
+            try
+            {
+                strokeGaps = ProductionMarkerStrokeGapExclusion.Find(markerFrame, acceptedMarkers, cancellationToken);
+            }
+            catch (Exception exception) when (exception is not
+                (OperationCanceledException or OutOfMemoryException or ProductionWorkflowStageException))
+            {
+                throw chain.Reject(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                    "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
+                    "Retain earlier marker evidence and review original-pixel stroke support."));
+            }
+            strokeGapTimer.Stop();
+            if (strokeGaps.ExcludedMarkerIds.Count > 0)
+            {
+                excludedMarkerIds.UnionWith(strokeGaps.ExcludedMarkerIds);
+                acceptedMarkers = acceptedMarkers.Where(marker =>
+                    !strokeGaps.ExcludedMarkerIds.Contains(marker.Marker.MarkerId)).ToArray();
+                chain.Append(new WorkflowVisionEnvelope(
+                    1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                    "markers", ProductionMarkerStrokeGapExclusion.Version, request.Image.Sha256, null,
+                    new WorkflowVisionTiming(strokeGapTimer.Elapsed.TotalMilliseconds, 0, 0,
+                        strokeGapTimer.Elapsed.TotalMilliseconds),
+                    1, strokeGaps.Warnings, request.Transforms));
             }
             ClassifiedMarker[] acceptedSymbols = CanonicalizeMarkers(
                 request,

@@ -1,0 +1,303 @@
+{
+  "schema": "goal22-stroke-gap-diagnosis-v1",
+  "status": "fixed_dev_hypothesis_before_implementation",
+  "base_source_commit": "6f03de45e2efac7d6ef96ca597946cc85bca1be1",
+  "failure_mode": "Two accepted Open TriangleUp centers fall on white gaps between thin annotation and data lines, lack numeric x assignments, and block complete CSV export. They are farther than 18 original pixels from every truth marker.",
+  "responsible_subsystem": "Final original-pixel marker acceptance after recovery and before calibration/grouping.",
+  "rejected_approaches": [
+    "Rejecting any open marker without an enclosed outline would remove real crosses misclassified as diamonds.",
+    "Suppressing whole connected arrow components would erase connected data markers."
+  ],
+  "hypothesis": "An open closed-outline shape with a background center, no enclosed original-pixel support, only locally thin ink components and a component spanning its predicted diameter is a line-gap proposal. Exclude it visibly before calibration, while preserving the classified candidate and a structured warning.",
+  "fixed_predicate": {
+    "shape": [
+      "Circle",
+      "Square",
+      "Diamond",
+      "TriangleUp",
+      "TriangleDown"
+    ],
+    "fill": "Open",
+    "center_ink_protection": "Preserve ink >= 0.12 using the existing enclosed-support definition.",
+    "enclosed_original_pixels": "Preserve when the existing ProductionMarkerEnclosedSupport check succeeds.",
+    "local_window": "Inclusive floor(center-radius) through ceil(center+radius), clipped to original frame.",
+    "foreground": "Gray <= 196, the existing residual-artifact foreground definition.",
+    "connectivity": 8,
+    "nonempty_components": true,
+    "max_component_minor_variance_original_pixels_squared": 1,
+    "min_one_component_principal_span": "2 * predicted radius; span is max-min+1.",
+    "large_or_edge_windows": "Conservatively preserve candidates whose support window is clipped or whose radius exceeds the existing 12-pixel enclosed-support reach."
+  },
+  "audit": {
+    "v44-native": {
+      "panels": 31,
+      "accepted": 768,
+      "selected": 0
+    },
+    "v44-csv": {
+      "panels": 39,
+      "accepted": 756,
+      "selected": 0
+    },
+    "v46-native": {
+      "panels": 31,
+      "accepted": 766,
+      "selected": 0
+    },
+    "v46-csv": {
+      "panels": 39,
+      "accepted": 753,
+      "selected": 0
+    },
+    "v31-native": {
+      "panels": 31,
+      "accepted": 766,
+      "selected": 0
+    },
+    "v31-csv": {
+      "panels": 39,
+      "accepted": 754,
+      "selected": 2
+    }
+  },
+  "selected": [
+    {
+      "arm": "v31",
+      "scope": "csv",
+      "source_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+      "panel_sha256": "3ba2512893e97b81f194b1e52766eafaaeac097fe70f0ad0007fe2dfec3ee061",
+      "crop": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 350,
+        "right": 1200,
+        "bottom": 350,
+        "area": 420000,
+        "is_valid": true
+      },
+      "marker": {
+        "marker_id": "a20d3065-35ec-b850-99de-fa2ec43e8f99",
+        "x": 1056.53564453125,
+        "y": 111.99990844726562,
+        "radius": 7.351191520690918,
+        "shape": "TriangleUp",
+        "fill": "Open",
+        "open_closed_shape": true,
+        "local_profile": {
+          "x": 1056.53564453125,
+          "y": 111.99990844726562,
+          "radius": 7.351191520690918,
+          "gray_at_rounded_center": 255,
+          "window": {
+            "x": 1049,
+            "y": 104,
+            "width": 16,
+            "height": 17
+          },
+          "pieces": [
+            {
+              "pixel_count": 13,
+              "major_variance": 20.314433757870127,
+              "minor_variance": 0.05243014745532015,
+              "variance_ratio": 0.002580930784497397,
+              "principal_span": 15.422073732559738,
+              "perpendicular_span": 1.6044141825668703,
+              "angle_degrees": 33.93461831175423,
+              "bounds": {
+                "x": 1052,
+                "y": 104,
+                "width": 13,
+                "height": 9
+              }
+            },
+            {
+              "pixel_count": 16,
+              "major_variance": 21.25,
+              "minor_variance": 0,
+              "variance_ratio": 0,
+              "principal_span": 16,
+              "perpendicular_span": 1,
+              "angle_degrees": 0,
+              "bounds": {
+                "x": 1049,
+                "y": 120,
+                "width": 16,
+                "height": 1
+              }
+            }
+          ]
+        },
+        "has_enclosed_original_pixels": false,
+        "gray_at_rounded_center": 255
+      }
+    },
+    {
+      "arm": "v31",
+      "scope": "csv",
+      "source_sha256": "2ba468cf7993ab485e64e96c072fe3703b7006829511cf5df4c0185241b566cb",
+      "panel_sha256": "c73d069aba4cb0dbd41df3dff12c585d85801954121681519cf0e470e87f8b98",
+      "crop": {
+        "x": 0,
+        "y": 583,
+        "width": 1200,
+        "height": 307,
+        "right": 1200,
+        "bottom": 890,
+        "area": 368400,
+        "is_valid": true
+      },
+      "marker": {
+        "marker_id": "3d7d3630-89d6-ad53-a96f-510f9086d40b",
+        "x": 925.4512329101562,
+        "y": 100.6022720336914,
+        "radius": 7.784383296966553,
+        "shape": "TriangleUp",
+        "fill": "Open",
+        "open_closed_shape": true,
+        "local_profile": {
+          "x": 925.4512329101562,
+          "y": 100.6022720336914,
+          "radius": 7.784383296966553,
+          "gray_at_rounded_center": 255,
+          "window": {
+            "x": 917,
+            "y": 92,
+            "width": 18,
+            "height": 18
+          },
+          "pieces": [
+            {
+              "pixel_count": 19,
+              "major_variance": 30.686948085934617,
+              "minor_variance": 0.4875671495224463,
+              "variance_ratio": 0.015888420971583127,
+              "principal_span": 18.016145317264318,
+              "perpendicular_span": 3.98012266348087,
+              "angle_degrees": 37.976779642774645,
+              "bounds": {
+                "x": 921,
+                "y": 92,
+                "width": 14,
+                "height": 12
+              }
+            },
+            {
+              "pixel_count": 6,
+              "major_variance": 0.6666666666666666,
+              "minor_variance": 0.25,
+              "variance_ratio": 0.375,
+              "principal_span": 3,
+              "perpendicular_span": 2,
+              "angle_degrees": 90,
+              "bounds": {
+                "x": 933,
+                "y": 106,
+                "width": 2,
+                "height": 3
+              }
+            },
+            {
+              "pixel_count": 3,
+              "major_variance": 0.6666666666666666,
+              "minor_variance": 0,
+              "variance_ratio": 0,
+              "principal_span": 3,
+              "perpendicular_span": 1,
+              "angle_degrees": 0,
+              "bounds": {
+                "x": 919,
+                "y": 107,
+                "width": 3,
+                "height": 1
+              }
+            },
+            {
+              "pixel_count": 3,
+              "major_variance": 0.6666666666666666,
+              "minor_variance": 0,
+              "variance_ratio": 0,
+              "principal_span": 3,
+              "perpendicular_span": 1,
+              "angle_degrees": 0,
+              "bounds": {
+                "x": 924,
+                "y": 107,
+                "width": 3,
+                "height": 1
+              }
+            },
+            {
+              "pixel_count": 3,
+              "major_variance": 0.6666666666666666,
+              "minor_variance": 0,
+              "variance_ratio": 0,
+              "principal_span": 3,
+              "perpendicular_span": 1,
+              "angle_degrees": 0,
+              "bounds": {
+                "x": 929,
+                "y": 107,
+                "width": 3,
+                "height": 1
+              }
+            }
+          ]
+        },
+        "has_enclosed_original_pixels": false,
+        "gray_at_rounded_center": 255
+      }
+    }
+  ],
+  "validation": {
+    "splits": "Existing owned synthetic train/dev source bytes and truth only; no new source selection.",
+    "metrics": "Paired original-pixel native marker matches/extras, literal OCR, axis/calibration, complete CSV values/rows, source export status and finite pixel-traced valid-calibration rows.",
+    "bar": "Existing Tier 1 per-item 95 percent bars; zero silently exported unvalidated calibrations. This diagnosis is not a gate pass.",
+    "acceptance_bars": {
+      "file": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    "run_budget": {
+      "current_v31_native_baseline": 1,
+      "current_v31_csv_baseline": 1,
+      "patched_v44_native": 1,
+      "patched_v44_csv": 1,
+      "patched_v31_native": 1,
+      "patched_v31_csv": 1,
+      "sealed_runs": 0,
+      "private_reads": 0,
+      "optimizer_steps": 0
+    }
+  },
+  "limitations": [
+    "Saved geometry replay is not a complete workflow result.",
+    "V31 is a closed failed development candidate used solely as a fixed runtime regression context, not reopened or selected.",
+    "The shadow audit spans 210 panels from three configurations; it does not prove universal no-loss behavior."
+  ],
+  "evidence": [
+    {
+      "file": "artifacts/goal22-runs/open-outline-local-support-20260930-v1/report.json",
+      "sha256": "f2519bf7b905062815b0241a8b85fc67006d8cb202a14b02a5f269d906781a53"
+    },
+    {
+      "file": "artifacts/goal22-runs/open-outline-local-support-20260930-v1/request.json",
+      "sha256": "b7c1d1812b66f9f0d60e7532e341aad3d0663ef56a1d46040b9447e7525aea56"
+    },
+    {
+      "file": "artifacts/goal22-runs/open-outline-local-support-20260930-v1/bindings.json",
+      "sha256": "7c7eeafde08a231e913832d1487bbcea8f1b21b07301696e2f61f90dded4cbfe"
+    },
+    {
+      "file": "artifacts/goal22-runs/open-outline-local-support-20260930-v1/Program.cs",
+      "sha256": "de2d6e1975a09a9ca074e2583444f2b3ef5ecc0dcb925ceae7cc0e74a44cbec0"
+    },
+    {
+      "file": "artifacts/goal22-runs/crowded-negative-v31-export-diagnosis-20260930-v1/report.json",
+      "sha256": "ee574a76d561da47a7bd48bc235e1a7cd1897b3f40bc7a7bee599ed50938a009"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "new_model_inference_runs": 0
+}

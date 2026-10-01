@@ -29,6 +29,58 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private static readonly string[] ExpectedPhaseCodes = ["a", "b"];
 
     [TestMethod]
+    public async Task StrokeGapIsRejectedBeforeCalibrationAndRetainedInReviewEvidence()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graphreader-stroke-gap-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            string imagePath = Path.Combine(root, "synthetic.png");
+            WriteSyntheticPng(imagePath, 100, 100, framedLegend: true, strokeGap: true);
+            byte[] originalBytes = await File.ReadAllBytesAsync(imagePath);
+            var store = new ProductionWorkflowPanelStore();
+            var adapter = new ProductionAutomaticDetectionAdapter(
+                store, new ProductionRasterFrameDecoder(), new AxisAdapter(),
+                new OcrAdapter("Synthetic participant", includeLegendText: true, framedLegend: true), new MaskComposer(),
+                new CenterAdapter(includeStrokeGap: true), new ClassificationAdapter(),
+                new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter(), new EmptyConnectionBuilder());
+            StringAssert.Contains(adapter.AdapterId, ProductionMarkerStrokeGapExclusion.Version);
+            var workflow = new WorkflowOrchestrator(new WorkflowServiceSet(
+                new ProductionWorkflowImportStage(store, new ImageImportService()),
+                new ProductionWorkflowPrepareStage(store), new ProductionWorkflowDetectionStage(store, adapter),
+                new ProductionWorkflowExportStage(store, new ExportService())));
+            WorkflowRunResult run = await workflow.RunThroughReviewAsync(
+                new WorkflowRunRequest(Guid.NewGuid(), new WorkflowImportRequest(
+                    Guid.NewGuid(), [new WorkflowSourceRequest(Guid.NewGuid(), WorkflowSourceKind.Image, imagePath)],
+                    enhancementEnabled: false)), null, CancellationToken.None);
+            WorkflowReviewPanel panel = run.Review.Panels.Single();
+            Assert.HasCount(2, panel.Points);
+            ProductionPanelExportEvidence evidence = store.Get(panel.PanelId).ExportEvidence!;
+            Assert.IsNotNull(evidence.ProjectionEvidence);
+            GraphReader.Domain.MarkerRecord excluded = evidence.ProjectionEvidence.Markers.Single(static marker =>
+                marker.Center.X == 60 && marker.Center.Y == 60);
+            Assert.AreEqual(GraphReader.Domain.ReviewStatus.Rejected, excluded.ReviewStatus);
+            Assert.AreEqual(0.01, excluded.ArtifactProbability);
+            WorkflowVisionEnvelope exclusion = evidence.Provenance.Single(static item =>
+                item.StageVersion == ProductionMarkerStrokeGapExclusion.Version);
+            Assert.HasCount(1, exclusion.Warnings);
+            StringAssert.StartsWith(exclusion.Warnings.Single(), "marker_excluded_by_original_pixel_stroke_gap:");
+            WorkflowExportResult export = await workflow.ExportAsync(run.Review,
+                new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(root, "unused-export"))
+                { Operation = ExportOperation.Preview }, CancellationToken.None);
+            Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+            Assert.AreEqual(2, export.Artifacts.Single(static artifact =>
+                artifact.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) &&
+                !artifact.FileName.Contains("audit", StringComparison.OrdinalIgnoreCase)).RowCount);
+            CollectionAssert.AreEqual(originalBytes, await File.ReadAllBytesAsync(imagePath));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     [DataRow(false, false, false, false)]
     [DataRow(true, false, false, false)]
     [DataRow(false, true, false, false)]
@@ -816,7 +868,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     private sealed class CenterAdapter(bool includeLegendGlyph = false, bool measuredLegend = false,
-        bool offsetLegendDetection = false, bool includeFrameCorner = false) : IProductionMarkerCenterAdapter
+        bool offsetLegendDetection = false, bool includeFrameCorner = false, bool includeStrokeGap = false) : IProductionMarkerCenterAdapter
     {
         public string AdapterId => "test-centers";
 
@@ -851,6 +903,9 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             if (includeFrameCorner)
                 markers = [.. markers, new MarkerCenter("frame-corner", new MarkerPoint(77, 16),
                     3, 0.01, 0.98, MarkerSourceImage.Original)];
+            if (includeStrokeGap)
+                markers = [.. markers, new MarkerCenter("stroke-gap", new MarkerPoint(60, 60),
+                    6, 0.01, 0.98, MarkerSourceImage.Original)];
             return Task.FromResult(new ProductionMarkerCenterEvidence(
                 Envelope(request, "markers", "center-v1", "test-center", 'd'),
                 markers,
@@ -918,10 +973,12 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             foreach (MarkerCenter marker in markers.Skip(2))
             {
                 bool offsetCrop = marker.Center.X == 21;
+                bool strokeGap = marker.MarkerId == "stroke-gap";
                 classified = [.. classified, new ClassifiedMarker(marker,
-                    offsetCrop ? MarkerShape.Square : MarkerShape.Circle,
-                    offsetCrop ? MarkerFill.Open : MarkerFill.Filled,
-                    offsetCrop ? "□" : "●", offsetCrop ? "open square" : "filled circle",
+                    strokeGap ? MarkerShape.TriangleUp : offsetCrop ? MarkerShape.Square : MarkerShape.Circle,
+                    offsetCrop || strokeGap ? MarkerFill.Open : MarkerFill.Filled,
+                    strokeGap ? "△" : offsetCrop ? "□" : "●",
+                    strokeGap ? "open triangle" : offsetCrop ? "open square" : "filled circle",
                     rejectLegendSymbols ? 0.99 : 0.01, 0.98, 0.98,
                     Enumerable.Repeat(0.1f, 12))];
             }
@@ -1043,9 +1100,18 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         }
     }
 
-    private static void WriteSyntheticPng(string path, int width, int height, bool framedLegend = false)
+    private static void WriteSyntheticPng(string path, int width, int height, bool framedLegend = false, bool strokeGap = false)
     {
         byte[] pixels = Enumerable.Repeat((byte)255, width * height * 4).ToArray();
+        if (strokeGap)
+        {
+            for (int x = 48; x <= 72; x++)
+            foreach (int y in new[] { 57, 63 })
+            {
+                int index = (y * width + x) * 4;
+                pixels[index] = pixels[index + 1] = pixels[index + 2] = 0;
+            }
+        }
         if (framedLegend)
         {
             void Ink(int x, int y)
@@ -1062,6 +1128,13 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             for (int y = 23; y < 29; y++) { Ink(x, y); Ink(x + 1, y); }
             // Match the axis fixture's measured x=50 divider outside the legend.
             for (int y = 40; y < 90; y++) Ink(50, y);
+            // The accepted open-square fixture needs visible marker ink. Its center
+            // is still exactly on the legend frame's exclusive right boundary.
+            for (int n = -3; n <= 3; n++)
+            {
+                Ink(80 + n, 27); Ink(80 + n, 33);
+                Ink(77, 30 + n); Ink(83, 30 + n);
+            }
         }
         BitmapSource bitmap = BitmapSource.Create(
             width,
