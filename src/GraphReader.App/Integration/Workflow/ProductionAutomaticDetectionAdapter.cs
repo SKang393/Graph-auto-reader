@@ -87,6 +87,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionMarkerTemplateRecovery.Version,
         ProductionMarkerEnclosedCenterRecovery.Version,
         ProductionMarkerStrokeGapExclusion.Version,
+        ProductionMarkerGlyphDisambiguation.Version,
         HeaderGlyphCropCompletion.CompositionVersion,
         HeaderFragmentWordRecovery.CompositionVersion,
         BracketCaptionGlyphRecovery.CompositionVersion,
@@ -486,6 +487,31 @@ public sealed class ProductionAutomaticDetectionAdapter :
                         strokeGapTimer.Elapsed.TotalMilliseconds),
                     1, strokeGaps.Warnings, request.Transforms));
             }
+            var markerGlyphTimer = System.Diagnostics.Stopwatch.StartNew();
+            MarkerGlyphDisambiguationBatch markerGlyphs;
+            try
+            {
+                markerGlyphs = ProductionMarkerGlyphDisambiguation.Resolve(
+                    ocr.Result, plotBounds, acceptedMarkers, ArtifactRejectionThreshold, cancellationToken);
+            }
+            catch (ArgumentException exception)
+            {
+                throw chain.Reject(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                    "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
+                    "Retain OCR and marker evidence and review their original-pixel overlap."));
+            }
+            markerGlyphTimer.Stop();
+            if (markerGlyphs.MarkerGlyphs.Count > 0)
+            {
+                ocr = new ProductionOcrEvidence(markerGlyphs.Result, ocr.ModelEvidence, ocr.ConfiguredModels);
+                chain.Append(new WorkflowVisionEnvelope(
+                    1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                    "markers", ProductionMarkerGlyphDisambiguation.Version, request.Image.Sha256, null,
+                    new WorkflowVisionTiming(markerGlyphTimer.Elapsed.TotalMilliseconds, 0, 0,
+                        markerGlyphTimer.Elapsed.TotalMilliseconds),
+                    ocr.Result.Confidence, markerGlyphs.Warnings, request.Transforms));
+            }
             ClassifiedMarker[] acceptedSymbols = CanonicalizeMarkers(
                 request,
                 classification.Markers.Where(marker => legendInputs.SymbolCropInputIds.Contains(marker.Marker.MarkerId) &&
@@ -593,6 +619,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 request,
                 calibration,
                 ocr.Result,
+                markerGlyphs.MarkerGlyphs,
                 canonicalMarkers,
                 acceptedMarkers,
                 legendSymbols,
@@ -697,6 +724,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionWorkflowDetectionRequest request,
         SessionFirstCalibrationResult calibration,
         OcrResult ocr,
+        IReadOnlyList<OcrRegion> markerGlyphs,
         IReadOnlyList<ClassifiedMarker> allMarkers,
         IReadOnlyList<ClassifiedMarker> acceptedMarkers,
         IReadOnlyList<ClassifiedMarker> legendSymbols,
@@ -820,7 +848,10 @@ public sealed class ProductionAutomaticDetectionAdapter :
             point.MarkerModelVersion,
             DomainReviewStatus.Unreviewed,
             ModificationHistory: [])).ToArray();
-        OcrEvidence[] domainOcr = ocr.Regions.Select(region => new OcrEvidence(
+        // Keep original glyph readings and alternatives available in Review's audit,
+        // while semantic reasoning consumes the resolved text and actual markers.
+        OcrEvidence[] domainOcr = ocr.Regions.Concat(markerGlyphs.Select(static region =>
+            region with { ReviewStatus = OcrReviewStatus.Rejected })).Select(region => new OcrEvidence(
             OcrRegionId.FromGuid(StableOcrId(request, region.RegionId)),
             region.Polygon.Points.Select(point => new DomainPixelPoint(point.X, point.Y)).ToArray(),
             region.Text,

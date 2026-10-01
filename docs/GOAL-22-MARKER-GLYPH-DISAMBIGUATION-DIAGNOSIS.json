@@ -1,0 +1,764 @@
+{
+  "schema": "graphreader.marker-glyph-disambiguation-diagnosis.v1",
+  "base_commit": "06167c48354314b28fa05a20ed9d14ec25b755dc",
+  "status": "frozen_before_implementation",
+  "failure_mode": "OCR emits glyphs and symbol runs for plotted marker ink. Existing mask-review policy correctly withholds their masks, allowing real markers to survive, but retains duplicate semantic text evidence at the same locations.",
+  "responsible_subsystem": "ProductionAutomaticDetectionAdapter after marker acceptance, before calibration, semantic reasoning and Review projection.",
+  "hypothesis": "Interpret an already flagged, unmasked, unreviewed Original Annotation/Other glyph as marker evidence when an accepted non-Other marker at the unchanged classifier operating point has its center inside the actual OCR polygon and its bounding square overlaps at least half of the OCR bounding area. Preserve all reviewed, masked, tick, heading, legend, participant and axis-title readings. Preserve marker geometry, classification and existing inference batches.",
+  "isolated_change": "Filter the corroborated duplicate glyph from downstream semantic OCR, bind the derived result cache to original OCR and explicit marker associations, append a provenance warning, and retain the original reading, alternatives and geometry as rejected OCR audit evidence in the Review projection. No text replacement, invented values, new model or recognizer run.",
+  "rejected_initial_shadow": "The first min-area overlap rule admitted small false marker proposals inside misread Probe words on train images. It is rejected. Coverage now uses the OCR region area. The first CSV aggregate also included other-split predictions; the corrected shadow selects only predictions from the evaluated split. No runtime implementation or inference was run for either shadow.",
+  "measured_shadow": {
+    "v44-native": {
+      "panels": 31,
+      "eligible_glyphs": 21,
+      "touching_text_truths": 0,
+      "split_metrics": {
+        "dev": {
+          "before": {
+            "truth_region_count": 453,
+            "predicted_region_count": 477,
+            "geometry_matched_region_count": 402,
+            "geometry_false_positive_count": 75,
+            "geometry_false_negative_count": 51,
+            "recognition_exact_count": 357,
+            "recognition_exact_accuracy": 0.7880794701986755,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 67,
+            "unmatched_truth_deletion_edit_count": 287,
+            "unmatched_prediction_insertion_edit_count": 156,
+            "character_error_count": 510,
+            "character_error_rate": 0.16451612903225807,
+            "role_correct_count": 369,
+            "role_accuracy": 0.8145695364238411,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 40,
+                "accuracy": 0.6451612903225806
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 138,
+                "accuracy": 0.8117647058823529
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          },
+          "shadow_after": {
+            "truth_region_count": 453,
+            "predicted_region_count": 456,
+            "geometry_matched_region_count": 402,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 51,
+            "recognition_exact_count": 357,
+            "recognition_exact_accuracy": 0.7880794701986755,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 67,
+            "unmatched_truth_deletion_edit_count": 287,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 489,
+            "character_error_rate": 0.15774193548387097,
+            "role_correct_count": 369,
+            "role_accuracy": 0.8145695364238411,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 40,
+                "accuracy": 0.6451612903225806
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 138,
+                "accuracy": 0.8117647058823529
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        }
+      }
+    },
+    "v46-native": {
+      "panels": 31,
+      "eligible_glyphs": 52,
+      "touching_text_truths": 0,
+      "split_metrics": {
+        "dev": {
+          "before": {
+            "truth_region_count": 453,
+            "predicted_region_count": 543,
+            "geometry_matched_region_count": 442,
+            "geometry_false_positive_count": 101,
+            "geometry_false_negative_count": 11,
+            "recognition_exact_count": 423,
+            "recognition_exact_accuracy": 0.9337748344370861,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 34,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 120,
+            "character_error_count": 181,
+            "character_error_rate": 0.05838709677419355,
+            "role_correct_count": 410,
+            "role_accuracy": 0.9050772626931567,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 42,
+                "accuracy": 0.6774193548387096
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 155,
+                "accuracy": 0.9117647058823529
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          },
+          "shadow_after": {
+            "truth_region_count": 453,
+            "predicted_region_count": 491,
+            "geometry_matched_region_count": 442,
+            "geometry_false_positive_count": 49,
+            "geometry_false_negative_count": 11,
+            "recognition_exact_count": 423,
+            "recognition_exact_accuracy": 0.9337748344370861,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 34,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 68,
+            "character_error_count": 129,
+            "character_error_rate": 0.04161290322580645,
+            "role_correct_count": 410,
+            "role_accuracy": 0.9050772626931567,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 42,
+                "accuracy": 0.6774193548387096
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 155,
+                "accuracy": 0.9117647058823529
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        }
+      }
+    },
+    "v44-csv": {
+      "panels": 39,
+      "eligible_glyphs": 3,
+      "touching_text_truths": 0,
+      "split_metrics": {
+        "dev": {
+          "before": {
+            "truth_region_count": 183,
+            "predicted_region_count": 189,
+            "geometry_matched_region_count": 182,
+            "geometry_false_positive_count": 7,
+            "geometry_false_negative_count": 1,
+            "recognition_exact_count": 178,
+            "recognition_exact_accuracy": 0.9726775956284153,
+            "truth_character_count": 1019,
+            "matched_pair_edit_count": 6,
+            "unmatched_truth_deletion_edit_count": 1,
+            "unmatched_prediction_insertion_edit_count": 7,
+            "character_error_count": 14,
+            "character_error_rate": 0.013738959764474975,
+            "role_correct_count": 176,
+            "role_accuracy": 0.9617486338797814,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 18,
+                "correct_count": 14,
+                "accuracy": 0.7777777777777778
+              },
+              "axistitle": {
+                "truth_count": 12,
+                "correct_count": 12,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 11,
+                "correct_count": 11,
+                "accuracy": 1.0
+              },
+              "participant": {
+                "truth_count": 9,
+                "correct_count": 9,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 60,
+                "correct_count": 59,
+                "accuracy": 0.9833333333333333
+              },
+              "xtick": {
+                "truth_count": 48,
+                "correct_count": 46,
+                "accuracy": 0.9583333333333334
+              },
+              "ytick": {
+                "truth_count": 25,
+                "correct_count": 25,
+                "accuracy": 1.0
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          },
+          "shadow_after": {
+            "truth_region_count": 183,
+            "predicted_region_count": 187,
+            "geometry_matched_region_count": 182,
+            "geometry_false_positive_count": 5,
+            "geometry_false_negative_count": 1,
+            "recognition_exact_count": 178,
+            "recognition_exact_accuracy": 0.9726775956284153,
+            "truth_character_count": 1019,
+            "matched_pair_edit_count": 6,
+            "unmatched_truth_deletion_edit_count": 1,
+            "unmatched_prediction_insertion_edit_count": 5,
+            "character_error_count": 12,
+            "character_error_rate": 0.011776251226692836,
+            "role_correct_count": 176,
+            "role_accuracy": 0.9617486338797814,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 18,
+                "correct_count": 14,
+                "accuracy": 0.7777777777777778
+              },
+              "axistitle": {
+                "truth_count": 12,
+                "correct_count": 12,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 11,
+                "correct_count": 11,
+                "accuracy": 1.0
+              },
+              "participant": {
+                "truth_count": 9,
+                "correct_count": 9,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 60,
+                "correct_count": 59,
+                "accuracy": 0.9833333333333333
+              },
+              "xtick": {
+                "truth_count": 48,
+                "correct_count": 46,
+                "accuracy": 0.9583333333333334
+              },
+              "ytick": {
+                "truth_count": 25,
+                "correct_count": 25,
+                "accuracy": 1.0
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "train": {
+          "before": {
+            "truth_region_count": 709,
+            "predicted_region_count": 652,
+            "geometry_matched_region_count": 638,
+            "geometry_false_positive_count": 14,
+            "geometry_false_negative_count": 71,
+            "recognition_exact_count": 414,
+            "recognition_exact_accuracy": 0.5839210155148096,
+            "truth_character_count": 3415,
+            "matched_pair_edit_count": 994,
+            "unmatched_truth_deletion_edit_count": 282,
+            "unmatched_prediction_insertion_edit_count": 51,
+            "character_error_count": 1327,
+            "character_error_rate": 0.38857979502196194,
+            "role_correct_count": 466,
+            "role_accuracy": 0.6572637517630465,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 60,
+                "correct_count": 37,
+                "accuracy": 0.6166666666666667
+              },
+              "axistitle": {
+                "truth_count": 50,
+                "correct_count": 34,
+                "accuracy": 0.68
+              },
+              "legendtext": {
+                "truth_count": 30,
+                "correct_count": 30,
+                "accuracy": 1.0
+              },
+              "participant": {
+                "truth_count": 30,
+                "correct_count": 16,
+                "accuracy": 0.5333333333333333
+              },
+              "phaseheading": {
+                "truth_count": 160,
+                "correct_count": 77,
+                "accuracy": 0.48125
+              },
+              "xtick": {
+                "truth_count": 175,
+                "correct_count": 129,
+                "accuracy": 0.7371428571428571
+              },
+              "ytick": {
+                "truth_count": 204,
+                "correct_count": 143,
+                "accuracy": 0.7009803921568627
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          },
+          "shadow_after": {
+            "truth_region_count": 709,
+            "predicted_region_count": 651,
+            "geometry_matched_region_count": 638,
+            "geometry_false_positive_count": 13,
+            "geometry_false_negative_count": 71,
+            "recognition_exact_count": 414,
+            "recognition_exact_accuracy": 0.5839210155148096,
+            "truth_character_count": 3415,
+            "matched_pair_edit_count": 994,
+            "unmatched_truth_deletion_edit_count": 282,
+            "unmatched_prediction_insertion_edit_count": 50,
+            "character_error_count": 1326,
+            "character_error_rate": 0.3882869692532943,
+            "role_correct_count": 466,
+            "role_accuracy": 0.6572637517630465,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 60,
+                "correct_count": 37,
+                "accuracy": 0.6166666666666667
+              },
+              "axistitle": {
+                "truth_count": 50,
+                "correct_count": 34,
+                "accuracy": 0.68
+              },
+              "legendtext": {
+                "truth_count": 30,
+                "correct_count": 30,
+                "accuracy": 1.0
+              },
+              "participant": {
+                "truth_count": 30,
+                "correct_count": 16,
+                "accuracy": 0.5333333333333333
+              },
+              "phaseheading": {
+                "truth_count": 160,
+                "correct_count": 77,
+                "accuracy": 0.48125
+              },
+              "xtick": {
+                "truth_count": 175,
+                "correct_count": 129,
+                "accuracy": 0.7371428571428571
+              },
+              "ytick": {
+                "truth_count": 204,
+                "correct_count": 143,
+                "accuracy": 0.7009803921568627
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        }
+      }
+    },
+    "v46-csv": {
+      "panels": 39,
+      "eligible_glyphs": 4,
+      "touching_text_truths": 0,
+      "split_metrics": {
+        "dev": {
+          "before": {
+            "truth_region_count": 183,
+            "predicted_region_count": 195,
+            "geometry_matched_region_count": 177,
+            "geometry_false_positive_count": 18,
+            "geometry_false_negative_count": 6,
+            "recognition_exact_count": 167,
+            "recognition_exact_accuracy": 0.912568306010929,
+            "truth_character_count": 1019,
+            "matched_pair_edit_count": 13,
+            "unmatched_truth_deletion_edit_count": 20,
+            "unmatched_prediction_insertion_edit_count": 34,
+            "character_error_count": 67,
+            "character_error_rate": 0.06575073601570167,
+            "role_correct_count": 171,
+            "role_accuracy": 0.9344262295081968,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 18,
+                "correct_count": 14,
+                "accuracy": 0.7777777777777778
+              },
+              "axistitle": {
+                "truth_count": 12,
+                "correct_count": 12,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 11,
+                "correct_count": 10,
+                "accuracy": 0.9090909090909091
+              },
+              "participant": {
+                "truth_count": 9,
+                "correct_count": 9,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 60,
+                "correct_count": 54,
+                "accuracy": 0.9
+              },
+              "xtick": {
+                "truth_count": 48,
+                "correct_count": 47,
+                "accuracy": 0.9791666666666666
+              },
+              "ytick": {
+                "truth_count": 25,
+                "correct_count": 25,
+                "accuracy": 1.0
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          },
+          "shadow_after": {
+            "truth_region_count": 183,
+            "predicted_region_count": 193,
+            "geometry_matched_region_count": 177,
+            "geometry_false_positive_count": 16,
+            "geometry_false_negative_count": 6,
+            "recognition_exact_count": 167,
+            "recognition_exact_accuracy": 0.912568306010929,
+            "truth_character_count": 1019,
+            "matched_pair_edit_count": 13,
+            "unmatched_truth_deletion_edit_count": 20,
+            "unmatched_prediction_insertion_edit_count": 32,
+            "character_error_count": 65,
+            "character_error_rate": 0.06378802747791953,
+            "role_correct_count": 171,
+            "role_accuracy": 0.9344262295081968,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 18,
+                "correct_count": 14,
+                "accuracy": 0.7777777777777778
+              },
+              "axistitle": {
+                "truth_count": 12,
+                "correct_count": 12,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 11,
+                "correct_count": 10,
+                "accuracy": 0.9090909090909091
+              },
+              "participant": {
+                "truth_count": 9,
+                "correct_count": 9,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 60,
+                "correct_count": 54,
+                "accuracy": 0.9
+              },
+              "xtick": {
+                "truth_count": 48,
+                "correct_count": 47,
+                "accuracy": 0.9791666666666666
+              },
+              "ytick": {
+                "truth_count": 25,
+                "correct_count": 25,
+                "accuracy": 1.0
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "train": {
+          "before": {
+            "truth_region_count": 709,
+            "predicted_region_count": 643,
+            "geometry_matched_region_count": 614,
+            "geometry_false_positive_count": 29,
+            "geometry_false_negative_count": 95,
+            "recognition_exact_count": 423,
+            "recognition_exact_accuracy": 0.5966149506346967,
+            "truth_character_count": 3415,
+            "matched_pair_edit_count": 1019,
+            "unmatched_truth_deletion_edit_count": 434,
+            "unmatched_prediction_insertion_edit_count": 71,
+            "character_error_count": 1524,
+            "character_error_rate": 0.44626647144948756,
+            "role_correct_count": 477,
+            "role_accuracy": 0.6727785613540197,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 60,
+                "correct_count": 31,
+                "accuracy": 0.5166666666666667
+              },
+              "axistitle": {
+                "truth_count": 50,
+                "correct_count": 34,
+                "accuracy": 0.68
+              },
+              "legendtext": {
+                "truth_count": 30,
+                "correct_count": 26,
+                "accuracy": 0.8666666666666667
+              },
+              "participant": {
+                "truth_count": 30,
+                "correct_count": 17,
+                "accuracy": 0.5666666666666667
+              },
+              "phaseheading": {
+                "truth_count": 160,
+                "correct_count": 74,
+                "accuracy": 0.4625
+              },
+              "xtick": {
+                "truth_count": 175,
+                "correct_count": 143,
+                "accuracy": 0.8171428571428572
+              },
+              "ytick": {
+                "truth_count": 204,
+                "correct_count": 152,
+                "accuracy": 0.7450980392156863
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          },
+          "shadow_after": {
+            "truth_region_count": 709,
+            "predicted_region_count": 641,
+            "geometry_matched_region_count": 614,
+            "geometry_false_positive_count": 27,
+            "geometry_false_negative_count": 95,
+            "recognition_exact_count": 423,
+            "recognition_exact_accuracy": 0.5966149506346967,
+            "truth_character_count": 3415,
+            "matched_pair_edit_count": 1019,
+            "unmatched_truth_deletion_edit_count": 434,
+            "unmatched_prediction_insertion_edit_count": 69,
+            "character_error_count": 1522,
+            "character_error_rate": 0.44568081991215225,
+            "role_correct_count": 477,
+            "role_accuracy": 0.6727785613540197,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 60,
+                "correct_count": 31,
+                "accuracy": 0.5166666666666667
+              },
+              "axistitle": {
+                "truth_count": 50,
+                "correct_count": 34,
+                "accuracy": 0.68
+              },
+              "legendtext": {
+                "truth_count": 30,
+                "correct_count": 26,
+                "accuracy": 0.8666666666666667
+              },
+              "participant": {
+                "truth_count": 30,
+                "correct_count": 17,
+                "accuracy": 0.5666666666666667
+              },
+              "phaseheading": {
+                "truth_count": 160,
+                "correct_count": 74,
+                "accuracy": 0.4625
+              },
+              "xtick": {
+                "truth_count": 175,
+                "correct_count": 143,
+                "accuracy": 0.8171428571428572
+              },
+              "ytick": {
+                "truth_count": 204,
+                "correct_count": 152,
+                "accuracy": 0.7450980392156863
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        }
+      }
+    }
+  },
+  "metrics": [
+    "unchanged paired exact and geometry-matched text",
+    "extra text regions and character errors",
+    "marker matches/extras and all accepted marker properties",
+    "CSV values/statuses, valid original-pixel calibration",
+    "rejected OCR retained in Review audit with original content"
+  ],
+  "acceptance_bars": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "repair_acceptance": "Reduce the diagnosed extra OCR regions without losing matched or correctly read text, markers or CSV correctness. Existing project accuracy bars remain unchanged; a local repair does not approve a model or Goal 22.",
+  "splits": "Fixed owned native dev 21 sources/31 panels/453 texts/838 markers, and owned CSV train/dev 23 sources/39 panels, unchanged V44/English and closed V46/server configurations.",
+  "sealed_run_budget": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "evidence": [
+    {
+      "path": "docs/GOAL-22-BRACKET-CAPTION-GLYPH-RECOVERY.json",
+      "sha256": "6b9044ed3bdaaff27750700dc415927791e2e7c7a86af65498345270776f2d82"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-glyph-alias-diagnosis-20260930-v2/report.json",
+      "sha256": "97153525c87f5008277431966775fcaa89b01c6911f40aac8a4fb0f69697f025"
+    },
+    {
+      "path": "artifacts/goal22-tools/Diagnose-MarkerGlyphAliases.v2.py",
+      "sha256": "00103408a970b637c45a80263946f1e1b94e5b1b104d2e5d62d329eb43bffb50"
+    },
+    {
+      "path": "artifacts/goal22-runs/marker-glyph-alias-diagnosis-20260930-v1/report.json",
+      "sha256": "368ae606a83ffdec35d6d23ebc6216257e169ef136bdfba0f0f2c7f94ab2fd05"
+    },
+    {
+      "path": "artifacts/goal22-tools/Diagnose-MarkerGlyphAliases.py",
+      "sha256": "16a3eed1db996b8c44cc24891cb16c1133ff54e6c9cab2c4c19b90897a0f566f"
+    },
+    {
+      "path": "src/GraphReader.Ocr/SingleGlyphTextMaskReview.cs",
+      "sha256": "2f3fd6f1be2644bf9f1a27689fdb0fc6cadd57d085b3ce2e2eec10c24bec8b32"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionTextMarkerExclusion.cs",
+      "sha256": "a673f559505b914f549001944e111ef33e41bff2fbb6d58528f67ba6870081bc"
+    }
+  ]
+}

@@ -29,6 +29,54 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private static readonly string[] ExpectedPhaseCodes = ["a", "b"];
 
     [TestMethod]
+    public async Task MarkerGlyphRemainsInReviewAuditWithoutDuplicatingSemanticText()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graphreader-marker-glyph-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            string imagePath = Path.Combine(root, "synthetic.png");
+            WriteSyntheticPng(imagePath, 100, 100, framedLegend: true);
+            byte[] originalBytes = await File.ReadAllBytesAsync(imagePath);
+            var store = new ProductionWorkflowPanelStore();
+            var adapter = new ProductionAutomaticDetectionAdapter(
+                store, new ProductionRasterFrameDecoder(), new AxisAdapter(),
+                new OcrAdapter("Synthetic participant", framedLegend: true, includeMarkerGlyph: true),
+                new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(),
+                new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter(), new EmptyConnectionBuilder());
+            var workflow = new WorkflowOrchestrator(new WorkflowServiceSet(
+                new ProductionWorkflowImportStage(store, new ImageImportService()),
+                new ProductionWorkflowPrepareStage(store), new ProductionWorkflowDetectionStage(store, adapter),
+                new ProductionWorkflowExportStage(store, new ExportService())));
+            WorkflowRunResult run = await workflow.RunThroughReviewAsync(
+                new WorkflowRunRequest(Guid.NewGuid(), new WorkflowImportRequest(Guid.NewGuid(),
+                    [new WorkflowSourceRequest(Guid.NewGuid(), WorkflowSourceKind.Image, imagePath)],
+                    enhancementEnabled: false)), null, CancellationToken.None);
+            WorkflowReviewPanel panel = run.Review.Panels.Single();
+            Assert.HasCount(2, panel.Points);
+            ProductionPanelExportEvidence evidence = store.Get(panel.PanelId).ExportEvidence!;
+            Assert.IsNotNull(evidence.ProjectionEvidence);
+            GraphReader.Domain.OcrEvidence glyph = evidence.ProjectionEvidence.OcrRegions.Single(static r => r.Text == "O");
+            Assert.AreEqual(GraphReader.Domain.ReviewStatus.Rejected, glyph.ReviewStatus);
+            Assert.AreEqual("O", glyph.Alternatives.Single().Text);
+            Assert.AreEqual(.98, glyph.Confidence);
+            Assert.AreEqual(17d, glyph.Polygon.Min(static p => p.X));
+            WorkflowVisionEnvelope interpretation = evidence.Provenance.Single(static e => e.StageVersion == ProductionMarkerGlyphDisambiguation.Version);
+            Assert.AreEqual("markers", interpretation.Stage);
+            Assert.HasCount(1, interpretation.Warnings);
+            StringAssert.StartsWith(interpretation.Warnings.Single(), "ocr_glyph_interpreted_as_marker:marker-glyph:");
+            WorkflowExportResult export = await workflow.ExportAsync(run.Review,
+                new WorkflowExportRequest(Guid.NewGuid(), Path.Combine(root, "unused-export"))
+                { Operation = ExportOperation.Preview }, CancellationToken.None);
+            Assert.IsTrue(export.Succeeded, string.Join(" | ", export.Warnings));
+            Assert.AreEqual(2, export.Artifacts.Single(static artifact => artifact.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase) &&
+                !artifact.FileName.Contains("audit", StringComparison.OrdinalIgnoreCase)).RowCount);
+            CollectionAssert.AreEqual(originalBytes, await File.ReadAllBytesAsync(imagePath));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [TestMethod]
     public async Task StrokeGapIsRejectedBeforeCalibrationAndRetainedInReviewEvidence()
     {
         string root = Path.Combine(Path.GetTempPath(), $"graphreader-stroke-gap-{Guid.NewGuid():N}");
@@ -688,10 +736,11 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         private readonly string? warning;
         private readonly OcrTextRole? zeroConfidenceRole;
         private readonly bool rejectZeroConfidenceTick;
+        private readonly bool includeMarkerGlyph;
 
         public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
             bool invalidLegendBounds = false, string? warning = null,
-            OcrTextRole? zeroConfidenceRole = null, bool rejectZeroConfidenceTick = false)
+            OcrTextRole? zeroConfidenceRole = null, bool rejectZeroConfidenceTick = false, bool includeMarkerGlyph = false)
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
@@ -700,6 +749,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             this.warning = warning;
             this.zeroConfidenceRole = zeroConfidenceRole;
             this.rejectZeroConfidenceTick = rejectZeroConfidenceTick;
+            this.includeMarkerGlyph = includeMarkerGlyph;
         }
 
         public string AdapterId => "test-ocr";
@@ -779,6 +829,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 if (invalidLegendBounds) legend = legend with { Polygon = OcrPolygon.FromRectangle(new OcrRectangle(-2, 22, 45, 8)) };
                 regions = [.. regions, legend];
             }
+            if (includeMarkerGlyph) regions = [.. regions, Region("marker-glyph", 17, 67, "O", OcrTextRole.Annotation)];
             var result = new OcrResult(
                 OcrContract.Version,
                 request.RunId.ToString("D"),
@@ -789,13 +840,14 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 request.Image.Sha256,
                 OcrContract.CoordinateSpace,
                 regions,
-                regions.Select(region => new OcrMask(
+                regions.Where(static region => region.RegionId != "marker-glyph").Select(region => new OcrMask(
                     region.RegionId,
                     region.Polygon,
                     region.Confidence)).ToArray(),
                 new OcrTiming(1, 1, 1, 3),
                 0.95,
-                warning is null ? [] : [warning],
+                (warning is null ? Array.Empty<string>() : [warning])
+                    .Concat(includeMarkerGlyph ? ["ocr_single_glyph_annotation_needs_review:marker-glyph"] : Array.Empty<string>()).ToArray(),
                 new OcrCacheDiagnostics(false, "test", regions.Length, 1),
                 null,
                 []);
