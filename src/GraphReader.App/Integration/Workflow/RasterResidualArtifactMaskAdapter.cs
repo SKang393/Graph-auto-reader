@@ -7,19 +7,23 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using GraphReader.Ocr;
+using GraphReader.Inference;
 
 namespace GraphReader.App.Integration.Workflow;
 
 /// <summary>
-/// Local candidate boundary for the raster algorithm. This adapter cannot be
-/// approved by its caller and is not registered in Production composition.
+/// Raster algorithm boundary. The default instance is candidate-only; production
+/// registration requires the complete accepted workflow and exact executable identities.
 /// </summary>
 internal sealed class RasterResidualArtifactMaskAdapter : IProductionArtifactMaskAdapter
 {
     private readonly RasterResidualArtifactMaskProvider provider = new();
 
-    public RasterResidualArtifactMaskAdapter()
+    public RasterResidualArtifactMaskAdapter() : this(isApproved: false) { }
+
+    private RasterResidualArtifactMaskAdapter(bool isApproved)
     {
+        IsApproved = isApproved;
         string appAssemblySha = Hash(File.ReadAllBytes(typeof(RasterResidualArtifactMaskProvider).Assembly.Location));
         OcrAssemblySha256 = Hash(File.ReadAllBytes(typeof(RasterPreOcrStructuralProbabilityProvider).Assembly.Location));
         ConfigurationJson = JsonSerializer.Serialize(new
@@ -34,8 +38,20 @@ internal sealed class RasterResidualArtifactMaskAdapter : IProductionArtifactMas
             Hash(Encoding.UTF8.GetBytes(ConfigurationJson)));
     }
 
+    internal static RasterResidualArtifactMaskAdapter CreateApproved(
+        ResolvedProductionModel detectionModel,
+        ResolvedProductionModel recognitionModel,
+        string reviewedOpenCvRuntimeSha256)
+    {
+        byte[] workflow = ProductionOriginalDbOcrApprovalGate.ReadValidatedWorkflow(
+            detectionModel, recognitionModel, reviewedOpenCvRuntimeSha256);
+        var adapter = new RasterResidualArtifactMaskAdapter(isApproved: true);
+        ProductionOriginalDbWorkflowEvidence.ValidateArtifact(workflow, adapter);
+        return adapter;
+    }
+
     public string AdapterId => Identity.StageVersion;
-    public bool IsApproved => false;
+    public bool IsApproved { get; }
     public ProductionArtifactAlgorithmEvidence Identity { get; }
     public string ConfigurationJson { get; }
     public string OcrAssemblySha256 { get; }
@@ -68,9 +84,9 @@ internal sealed class RasterResidualArtifactMaskAdapter : IProductionArtifactMas
             Identity.AssemblyWarning,
             Identity.ConfigurationWarning,
             $"artifact_algorithm_ocr_dependency_sha256:{OcrAssemblySha256}",
-            "artifact_candidate_confidence_uncalibrated",
+            IsApproved ? "artifact_algorithm_confidence_uncalibrated" : "artifact_candidate_confidence_uncalibrated",
         }).Concat(Enum.GetValues<RasterResidualArtifactCategory>().Select(category =>
-            $"artifact_candidate_region_count:{category}:{result.Regions.Count(region => region.Category == category)}"))
+            $"artifact_{(IsApproved ? "algorithm" : "candidate")}_region_count:{category}:{result.Regions.Count(region => region.Category == category)}"))
             .ToArray();
         var envelope = new WorkflowVisionEnvelope(
             1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,

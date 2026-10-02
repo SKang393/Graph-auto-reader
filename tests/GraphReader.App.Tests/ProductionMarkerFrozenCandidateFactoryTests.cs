@@ -61,7 +61,7 @@ public sealed class ProductionMarkerFrozenCandidateFactoryTests
                 new NoRunInference()));
     }
 
-    private static FrozenCandidateMarkerCenterModelDescriptor WriteDescriptor(
+    internal static FrozenCandidateMarkerCenterModelDescriptor WriteDescriptor(
         string root,
         double centerThreshold = 0.25,
         string algorithm = "mask_preserving_multiradius_v24",

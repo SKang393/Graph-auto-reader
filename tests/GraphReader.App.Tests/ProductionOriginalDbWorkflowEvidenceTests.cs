@@ -60,7 +60,7 @@ public sealed class ProductionOriginalDbWorkflowEvidenceTests
         Dictionary<string, object?> candidate = Candidate();
         ((Dictionary<string, object?>)candidate["algorithms"]!)["marker_geometry_support"] = "multiradius_enclosed_v1";
         InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() => Validate(candidate));
-        StringAssert.Contains(error.Message, "no Production approval");
+        StringAssert.Contains(error.Message, "geometry, or threshold differs");
     }
 
     [TestMethod]
@@ -98,7 +98,7 @@ public sealed class ProductionOriginalDbWorkflowEvidenceTests
     private static void Validate(Dictionary<string, object?> candidate) =>
         ProductionOriginalDbWorkflowEvidence.Validate(
             JsonSerializer.SerializeToUtf8Bytes(candidate),
-            new Axis(OpenCvSha256), new MarkerCenterAdapter(), new MarkerClassifier(), artifactMask: null,
+            new Axis(OpenCvSha256), Proposal(), new MarkerClassifier(), artifactMask: null,
             new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter());
 
     private static Dictionary<string, object?> Candidate() => new()
@@ -143,6 +143,47 @@ public sealed class ProductionOriginalDbWorkflowEvidenceTests
             ["artifact_ocr_assembly_sha256"] = new string('f', 64),
         },
     };
+
+    private static ProductionProposalMarkerCenterAdapter Proposal(
+        bool plot = false, bool enclosed = false, bool balanced = false, double threshold = 0.25) =>
+        new(Marker, new NoRunInference(), multiradiusGeometry: true, maskPreservingCandidate: true,
+            isApproved: true, expectedMaskPreservingSha256: Marker.Sha256,
+            maskPreservingRevision: Marker.ModelId, maskPreservingCandidateId: Marker.Version,
+            plotDomainProposalFiltering: plot, enclosedGeometrySupport: enclosed,
+            balancedRingSupport: balanced, centerThreshold: threshold);
+
+    [TestMethod]
+    [DataRow(false, false, false, 0.25)]
+    [DataRow(true, false, false, 0.25)]
+    [DataRow(true, true, false, 0.25)]
+    [DataRow(true, true, true, 0.25)]
+    [DataRow(true, true, true, 0.1)]
+    public void MatchingProposalProfilesReachArtifactGate(bool plot, bool enclosed, bool balanced, double threshold)
+    {
+        var proposal = Proposal(plot, enclosed, balanced, threshold);
+        Dictionary<string, object?> candidate = Candidate();
+        var algorithms = (Dictionary<string, object?>)candidate["algorithms"]!;
+        algorithms["marker_proposal_domain"] = proposal.ProposalDomain;
+        algorithms["marker_geometry_support"] = proposal.GeometrySupport;
+        algorithms["marker_center_threshold"] = proposal.OperatingThreshold;
+        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionOriginalDbWorkflowEvidence.Validate(JsonSerializer.SerializeToUtf8Bytes(candidate),
+                new Axis(OpenCvSha256), proposal, new MarkerClassifier(), null,
+                new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter()));
+        StringAssert.Contains(error.Message, "raster artifact algorithm is unavailable");
+        algorithms["marker_center_threshold"] = threshold == 0.1 ? 0.25 : 0.1;
+        error = Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionOriginalDbWorkflowEvidence.Validate(JsonSerializer.SerializeToUtf8Bytes(candidate),
+                new Axis(OpenCvSha256), proposal, new MarkerClassifier(), null,
+                new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter()));
+        StringAssert.Contains(error.Message, "threshold differs");
+    }
+
+    private sealed class NoRunInference : IProposalMarkerInferenceRunner
+    {
+        public ValueTask<InferenceResponse> RunAsync(InferenceRequest request, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("Identity validation must not invoke inference.");
+    }
 
     private sealed class Axis(string runtimeSha256) : IProductionAxisGeometryAdapter
     {

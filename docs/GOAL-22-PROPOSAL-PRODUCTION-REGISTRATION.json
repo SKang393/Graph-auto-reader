@@ -1,0 +1,119 @@
+{
+  "schema": "graphreader.proposal-production-registration.v1",
+  "implementation_verified": true,
+  "base_commit": "f76b9d36a0c03015704363da331cf1ff186504ab",
+  "integration_parent": "99fa17a9f6d3f88228265df5390df79393c17639",
+  "changes": [
+    "Select approved proposal models by their checksum-bound tensor and processing contract instead of one historical model ID.",
+    "Preserve the exact proposal domain, geometry support and operating threshold through production workflow validation.",
+    "Register raster artifact analysis only through full OCR acceptance validation and exact executable/configuration identities."
+  ],
+  "verified_profiles": [
+    "legacy full-frame at 0.25",
+    "legacy plot-domain at 0.25",
+    "enclosed plot-domain at 0.25",
+    "balanced enclosed at 0.25",
+    "balanced enclosed cascade at 0.10"
+  ],
+  "validation": {
+    "app_tests_passed": 636,
+    "app_tests_failed": 0,
+    "app_tests_skipped": 0,
+    "app_build_warnings": 0,
+    "native_tool_build_warnings": 0,
+    "elapsed_seconds": 87.1193751,
+    "tested_source_bytes_unchanged_after_integration": true,
+    "prior_attempt": {
+      "tests_passed": 634,
+      "tests_failed": 1,
+      "reason": "A test still required approved enclosed geometry to throw. Updated it to check invalid geometry prerequisites for both approval states.",
+      "evidence": {
+        "path": "artifacts/goal22-runs/proposal-registration-checks-20261002-v1/test-results/app.trx",
+        "sha256": "21d5180ea78671dda33cc402530a7dc4c6fd42d5300d2b0f0a265b53c3bc577c"
+      }
+    }
+  },
+  "commands": [
+    "dotnet build tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --artifacts-path artifacts/goal22-runs/proposal-registration-checks-20261002-v2/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo",
+    "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --artifacts-path artifacts/goal22-runs/proposal-registration-checks-20261002-v2/build --no-build --no-restore --nologo --logger trx;LogFileName=app.trx --results-directory artifacts/goal22-runs/proposal-registration-checks-20261002-v2/test-results",
+    "dotnet build tools/GraphReader.RealAcceptance.Ocr/GraphReader.RealAcceptance.Ocr.csproj -c Release --artifacts-path artifacts/goal22-runs/proposal-registration-checks-20261002-v2/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo"
+  ],
+  "sources": [
+    {
+      "path": "src/GraphReader.App/Integration/ApplicationComposition.cs",
+      "sha256": "25501742089f3df5830ab791ebd3d34c6619981982a1ce0ae821a3541ccaacce"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrApprovalGate.cs",
+      "sha256": "4dc6913039d2907d355e8392b1777c4b3e1a225c179ea60d49161ee0ad88a2f9"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbWorkflowEvidence.cs",
+      "sha256": "936955a1e5d7f78113b35bd0d22bfccea8fa94b06fd94ab0953624ee1540f52e"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionProposalMarkerCenterAdapter.cs",
+      "sha256": "549bb29f2a4c4d16fd0f6b8b16e8a740d2204bf2231b79dfec74760ffbcc3dc3"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/RasterResidualArtifactMaskAdapter.cs",
+      "sha256": "8f767bf06ed487a2bc607739efe540d277a066880bd63d2b864595bde7d9246a"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionMarkerFrozenCandidateFactoryTests.cs",
+      "sha256": "ac919f9d7a3d4e5bd2ddeaf41187817b25e725b35c59a34c96662f5f151fb25f"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOriginalDbWorkflowEvidenceTests.cs",
+      "sha256": "bd0e4645911ea7dd9b93983fcf8d60e4b8cdbe04d716c1b04c6a71c4f1cd1b05"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionProposalMarkerCenterAdapterTests.cs",
+      "sha256": "b3d70745864bb8f3fe66b0007a2830622f967cbae06bb295a66d30edeba5a605"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionProposalRegistrationTests.cs",
+      "sha256": "b81c8b857e64a70fdbd6d6996589decaf63310cfc7d010c51defec9251c172e8"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/proposal-registration-checks-20261002-v2/status.json",
+      "sha256": "39520068247b090edac687a361aaa0f218086e4056ef3e838df9f4517fc037bb"
+    },
+    {
+      "path": "artifacts/goal22-runs/proposal-registration-checks-20261002-v2/source-bindings.json",
+      "sha256": "a899e4de98523ee665ff2a1dce33d2f1dbb1ac88d316c12a33071dd4ed972cc6"
+    },
+    {
+      "path": "artifacts/goal22-runs/proposal-registration-checks-20261002-v2/App-build.log",
+      "sha256": "ff7cf53205720f04e657d7791554761ed1ba22e81469b320060ecfe129f6d20d"
+    },
+    {
+      "path": "artifacts/goal22-runs/proposal-registration-checks-20261002-v2/App-tests.log",
+      "sha256": "49057472419248e333967f16cebf7440672bc5e81f2a810f3aa3ba26a54df91e"
+    },
+    {
+      "path": "artifacts/goal22-runs/proposal-registration-checks-20261002-v2/native-build.log",
+      "sha256": "a8ab96a7f7978659f0b516e8e9a37d02fbddfe734e31a250ef897f14fefe3db1"
+    },
+    {
+      "path": "artifacts/goal22-runs/proposal-registration-checks-20261002-v2/test-results/app.trx",
+      "sha256": "c6441f22cf7915aa1ea3d478e1aff032935912c4398a89d7b5234dadb416fc84"
+    }
+  ],
+  "license_review": "Only owned Apache-2.0 source and isolated synthetic test fixtures. No dependency or weights added.",
+  "limitations": [
+    "The full OCR synthetic-sealed source reader still rejects unsupported schemas. This change preserves that gate; it does not make any actual model production approved.",
+    "Positive factory tests use isolated approved test manifests and non-inferencing fixtures. They do not establish real model accuracy or a successful production raster workflow.",
+    "Model accuracy, remaining acceptance evidence, final activation and both distribution checks are outstanding."
+  ],
+  "production_approved": false,
+  "model_store_changed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false
+}

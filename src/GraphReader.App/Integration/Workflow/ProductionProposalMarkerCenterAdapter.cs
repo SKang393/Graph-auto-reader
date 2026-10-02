@@ -221,36 +221,66 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             plotDomainProposalFiltering: true);
     }
 
+    internal static bool UsesProposalContract(ResolvedProductionModel model)
+    {
+        ArgumentNullException.ThrowIfNull(model);
+        VerifyChecksum(model.ManifestPath, model.ManifestSha256, "marker-center manifest");
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(model.ManifestPath));
+        return SingleTensor(document.RootElement, "inputs").GetProperty("name").GetString() == "candidate_patches" ||
+            SingleTensor(document.RootElement, "outputs").GetProperty("name").GetString() == "candidate_predictions";
+    }
+
     public static ProductionProposalMarkerCenterAdapter Create(
         ResolvedProductionModel resolvedModel,
         ProductionInferenceRuntimeHost runtimeHost)
     {
-        ArgumentNullException.ThrowIfNull(resolvedModel);
         ArgumentNullException.ThrowIfNull(runtimeHost);
-        if (!string.Equals(resolvedModel.Task, "marker_center", StringComparison.Ordinal))
-        {
-            throw new InvalidDataException(
-                $"Resolved model task '{resolvedModel.Task}' is not marker_center.");
-        }
+        return CreateValidated(resolvedModel, () => new RuntimeProposalMarkerInferenceRunner(runtimeHost.Runtime));
+    }
 
-        if (!resolvedModel.AvailableProviders.Contains(InferenceProvider.Cpu))
-        {
-            throw new InvalidDataException(
-                "The proposal marker model lacks mandatory CPU provider approval.");
-        }
+    internal static ProductionProposalMarkerCenterAdapter Create(
+        ResolvedProductionModel resolvedModel,
+        IProposalMarkerInferenceRunner inference)
+    {
+        ArgumentNullException.ThrowIfNull(inference);
+        return CreateValidated(resolvedModel, () => inference);
+    }
 
-        VerifyMaskPreservingPayload(resolvedModel.Identity);
-        VerifyChecksum(
-            resolvedModel.ManifestPath,
-            resolvedModel.ManifestSha256,
-            "proposal marker manifest");
-        VerifyMaskPreservingManifest(resolvedModel.ManifestPath);
+    private static ProductionProposalMarkerCenterAdapter CreateValidated(
+        ResolvedProductionModel resolvedModel, Func<IProposalMarkerInferenceRunner> inferenceFactory)
+    {
+        ArgumentNullException.ThrowIfNull(resolvedModel);
+        if (resolvedModel.Task != "marker_center" ||
+            !resolvedModel.AvailableProviders.Contains(InferenceProvider.Cpu))
+            throw new InvalidDataException("Proposal markers require a CPU-approved marker_center model.");
+        VerifyChecksum(resolvedModel.ManifestPath, resolvedModel.ManifestSha256, "proposal marker manifest");
+        using JsonDocument document = JsonDocument.Parse(File.ReadAllText(resolvedModel.ManifestPath));
+        JsonElement root = document.RootElement;
+        JsonElement preprocessing = RequiredObject(root, "preprocessing", "Production proposal marker manifest");
+        JsonElement postprocessing = RequiredObject(root, "postprocessing", "Production proposal marker manifest");
+        string? algorithm = postprocessing.GetProperty("algorithm").GetString();
+        bool balanced = algorithm == BalancedPostprocessingAlgorithm;
+        bool enclosed = balanced || algorithm == EnclosedPostprocessingAlgorithm;
+        if (!enclosed && algorithm != "mask_preserving_multiradius_v24")
+            throw new InvalidDataException("The production proposal marker algorithm is unsupported.");
+        string? domain = preprocessing.TryGetProperty("proposal_domain", out JsonElement value)
+            ? value.GetString() : "full_frame_v24";
+        if (domain is not ("full_frame_v24" or "axis_polygon_or_16px_v25") ||
+            (enclosed && domain != "axis_polygon_or_16px_v25"))
+            throw new InvalidDataException("The production proposal marker domain is unsupported.");
+        double threshold = postprocessing.GetProperty("center_threshold").GetDouble();
+        if (threshold != CenterThreshold && (threshold != CascadeCenterThreshold || !balanced))
+            throw new InvalidDataException("The production proposal marker center_threshold is unsupported.");
+        var descriptor = new FrozenCandidateMarkerCenterModelDescriptor(
+            resolvedModel.Identity, resolvedModel.ManifestPath, resolvedModel.ManifestSha256);
+        ValidateFrozenCandidateDescriptor(descriptor, enclosed, balanced, threshold);
         return new ProductionProposalMarkerCenterAdapter(
-            resolvedModel.Identity,
-            new RuntimeProposalMarkerInferenceRunner(runtimeHost.Runtime),
-            multiradiusGeometry: true,
-            maskPreservingCandidate: true,
-            isApproved: true);
+            resolvedModel.Identity, inferenceFactory(), multiradiusGeometry: true, maskPreservingCandidate: true,
+            isApproved: true, expectedMaskPreservingSha256: resolvedModel.Identity.Sha256,
+            maskPreservingRevision: resolvedModel.Identity.ModelId,
+            maskPreservingCandidateId: resolvedModel.Identity.Version,
+            plotDomainProposalFiltering: domain == "axis_polygon_or_16px_v25",
+            enclosedGeometrySupport: enclosed, balancedRingSupport: balanced, centerThreshold: threshold);
     }
 
     internal static ProductionProposalMarkerCenterAdapter CreateForFrozenCandidateEnclosedGeometryEvaluation(
@@ -324,22 +354,22 @@ public sealed class ProductionProposalMarkerCenterAdapter :
         this.multiradiusGeometry = multiradiusGeometry;
         this.maskPreservingCandidate = maskPreservingCandidate;
         if (plotDomainProposalFiltering &&
-            (!maskPreservingCandidate || !multiradiusGeometry || isApproved))
+            (!maskPreservingCandidate || !multiradiusGeometry))
         {
             throw new InvalidOperationException(
-                "V25 plot-domain proposals require an explicitly unapproved mask-preserving multiradius candidate.");
+                "Plot-domain proposals require mask-preserving multiradius geometry.");
         }
 
         this.plotDomainProposalFiltering = plotDomainProposalFiltering;
-        if (enclosedGeometrySupport && (!plotDomainProposalFiltering || isApproved))
-            throw new InvalidOperationException("Enclosed geometry requires an explicitly unapproved plot-domain candidate.");
+        if (enclosedGeometrySupport && !plotDomainProposalFiltering)
+            throw new InvalidOperationException("Enclosed geometry requires plot-domain proposals.");
         this.enclosedGeometrySupport = enclosedGeometrySupport;
         if (balancedRingSupport && !enclosedGeometrySupport)
-            throw new InvalidOperationException("Balanced ring support requires the explicit unapproved enclosed-geometry candidate.");
+            throw new InvalidOperationException("Balanced ring support requires enclosed geometry.");
         this.balancedRingSupport = balancedRingSupport;
         if (centerThreshold != CenterThreshold &&
-            (centerThreshold != CascadeCenterThreshold || !balancedRingSupport || isApproved))
-            throw new InvalidOperationException("The lower proposal cutoff requires the explicit unapproved balanced cascade candidate.");
+            (centerThreshold != CascadeCenterThreshold || !balancedRingSupport))
+            throw new InvalidOperationException("The lower proposal cutoff requires balanced cascade geometry.");
         this.centerThreshold = centerThreshold;
         string expectedModelSha256 = maskPreservingCandidate
             ? expectedMaskPreservingSha256 ?? ExpectedMaskPreservingModelSha256
@@ -363,6 +393,11 @@ public sealed class ProductionProposalMarkerCenterAdapter :
             throw new ArgumentOutOfRangeException(nameof(maximumDecodedCandidates));
         }
     }
+
+    internal string ProposalDomain => plotDomainProposalFiltering ? "axis_polygon_or_16px_v25" : "full_frame_v24";
+    internal string GeometrySupport => balancedRingSupport ? BalancedGeometrySupport :
+        enclosedGeometrySupport ? EnclosedGeometrySupport : LegacyGeometrySupport;
+    internal double OperatingThreshold => centerThreshold;
 
     public string AdapterId => string.Concat(
         $"graphreader-marker-center-proposal:{Model.Sha256[..12].ToLowerInvariant()}",

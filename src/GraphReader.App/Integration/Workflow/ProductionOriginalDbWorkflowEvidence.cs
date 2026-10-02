@@ -8,8 +8,8 @@ namespace GraphReader.App.Integration.Workflow;
 
 /// <summary>
 /// Confirms that the adapters selected by normal Production composition match
-/// the complete workflow used by the real aggregate evaluation. The current
-/// model artifact provider cannot satisfy the evaluated raster-algorithm slot.
+/// the complete workflow used by the real aggregate evaluation, including
+/// proposal geometry, the operating threshold, and the raster algorithm.
 /// </summary>
 internal static class ProductionOriginalDbWorkflowEvidence
 {
@@ -38,9 +38,6 @@ internal static class ProductionOriginalDbWorkflowEvidence
             new JsonDocumentOptions { MaxDepth = 64 });
         JsonElement root = document.RootElement;
         JsonElement algorithms = Object(root, "algorithms");
-        if (algorithms.TryGetProperty("marker_geometry_support", out JsonElement geometrySupport) &&
-            Text(geometrySupport, "marker_geometry_support") != ProductionProposalMarkerCenterAdapter.LegacyGeometrySupport)
-            throw new InvalidDataException("Candidate-only marker geometry has no Production approval.");
         Require(algorithms, "axis_stage_version", ProductionAxisGeometryAdapter.StageVersion);
         string openCvSha256 = NativeShaForRole(root, "opencvsharp_extern");
         if (axis.AdapterId != $"graphreader-axis-opencv:{openCvSha256[..12].ToLowerInvariant()}")
@@ -63,25 +60,27 @@ internal static class ProductionOriginalDbWorkflowEvidence
         Require(classifier, "version", markerClassifier.Model.Version);
         RequireSha(classifier, "model_sha256", markerClassifier.Model.Sha256);
 
-        string expectedDomain = markerCenter.AdapterId.EndsWith(":plot-domain-v25", StringComparison.Ordinal)
-            ? "axis_polygon_or_16px_v25"
-            : "full_frame_v24";
-        string expectedMarkerAdapterId = string.Concat(
-            $"graphreader-marker-center-proposal:{markerCenter.Model.Sha256[..12].ToLowerInvariant()}",
-            expectedDomain == "axis_polygon_or_16px_v25" ? ":plot-domain-v25" : string.Empty);
-        if (markerCenter.AdapterId != expectedMarkerAdapterId)
-        {
+        if (markerCenter is not ProductionProposalMarkerCenterAdapter proposal)
             throw new InvalidDataException("The evaluated marker-center algorithm differs from Production.");
-        }
-
         string domain = algorithms.TryGetProperty("marker_proposal_domain", out JsonElement domainValue)
-            ? Text(domainValue, "marker_proposal_domain")
-            : "full_frame_v24";
-        if (domain != expectedDomain)
-        {
-            throw new InvalidDataException("The evaluated marker proposal domain differs from Production.");
-        }
+            ? Text(domainValue, "marker_proposal_domain") : "full_frame_v24";
+        string geometry = algorithms.TryGetProperty("marker_geometry_support", out JsonElement geometryValue)
+            ? Text(geometryValue, "marker_geometry_support") : ProductionProposalMarkerCenterAdapter.LegacyGeometrySupport;
+        double threshold = ProductionProposalMarkerCenterAdapter.CenterThreshold;
+        if (algorithms.TryGetProperty("marker_center_threshold", out JsonElement thresholdValue) &&
+            (thresholdValue.ValueKind != JsonValueKind.Number || !thresholdValue.TryGetDouble(out threshold)))
+            throw new InvalidDataException("The evaluated marker operating threshold must be numeric.");
+        if (domain != proposal.ProposalDomain || geometry != proposal.GeometrySupport ||
+            threshold != proposal.OperatingThreshold)
+            throw new InvalidDataException("The evaluated marker proposal domain, geometry, or threshold differs from Production.");
+        ValidateArtifact(candidateBytes, artifactMask);
+    }
 
+    internal static void ValidateArtifact(byte[] candidateBytes, IProductionArtifactMaskAdapter? artifactMask)
+    {
+        using JsonDocument document = JsonDocument.Parse(candidateBytes,
+            new JsonDocumentOptions { MaxDepth = 64 });
+        JsonElement algorithms = Object(document.RootElement, "algorithms");
         if (artifactMask is not RasterResidualArtifactMaskAdapter raster ||
             !raster.IsApproved ||
             !Matches(algorithms, "artifact_algorithm_id", raster.Identity.AlgorithmId) ||

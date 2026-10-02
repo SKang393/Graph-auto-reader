@@ -164,14 +164,15 @@ public static class ApplicationComposition
             rasterFrameDecoder);
         (IProductionMarkerCenterAdapter? Adapter, DomainError? Error) markerCenter =
             CreateApprovedMarkerCenterAdapter(modelAvailability, inference?.Value);
-        (ProductionMarkerArtifactMaskAdapter? Adapter, DomainError? Error) artifactMask =
-            CreateApprovedArtifactMaskAdapter(modelAvailability, inference?.Value);
-        var detectionMaskComposer = new ProductionDetectionMaskComposer(artifactMask.Adapter);
         (ProductionMarkerClassificationAdapter? Adapter, DomainError? Error) markerClassifier =
             CreateApprovedMarkerClassifierAdapter(modelAvailability, inference?.Value);
         (IProductionOcrAdapter? Adapter, DomainError? Error) ocr =
             precreatedOcr ?? (null, null);
         IProductionOcrAdapter? ocrAdapter = ocr.Adapter;
+        (IProductionArtifactMaskAdapter? Adapter, DomainError? Error) artifactMask =
+            CreateApprovedArtifactMaskAdapter(modelAvailability, inference?.Value,
+                markerCenter.Adapter, ocrAdapter, runtimeAvailability);
+        var detectionMaskComposer = new ProductionDetectionMaskComposer(artifactMask.Adapter);
         var legendAdapter = new ProductionLegendReasoningAdapter();
         var phaseAdapter = new ProductionPhaseReasoningAdapter();
         bool completeDetectionAdapterAvailable =
@@ -532,7 +533,7 @@ public static class ApplicationComposition
         }
     }
 
-    private static (IProductionMarkerCenterAdapter? Adapter, DomainError? Error)
+    internal static (IProductionMarkerCenterAdapter? Adapter, DomainError? Error)
         CreateApprovedMarkerCenterAdapter(
             ProductionModelAvailabilitySnapshot? modelAvailability,
             ProductionInferenceRuntimeHost? runtimeHost)
@@ -548,14 +549,7 @@ public static class ApplicationComposition
 
         try
         {
-            IProductionMarkerCenterAdapter adapter = string.Equals(
-                    model.Identity.ModelId,
-                    ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
-                    StringComparison.Ordinal) &&
-                string.Equals(
-                    model.Identity.Version,
-                    ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
-                    StringComparison.Ordinal)
+            IProductionMarkerCenterAdapter adapter = ProductionProposalMarkerCenterAdapter.UsesProposalContract(model)
                 ? ProductionProposalMarkerCenterAdapter.Create(model, runtimeHost)
                 : ProductionMarkerCenterAdapter.Create(model, runtimeHost);
             return (adapter, null);
@@ -574,10 +568,13 @@ public static class ApplicationComposition
         }
     }
 
-    private static (ProductionMarkerArtifactMaskAdapter? Adapter, DomainError? Error)
+    internal static (IProductionArtifactMaskAdapter? Adapter, DomainError? Error)
         CreateApprovedArtifactMaskAdapter(
             ProductionModelAvailabilitySnapshot? modelAvailability,
-            ProductionInferenceRuntimeHost? runtimeHost)
+            ProductionInferenceRuntimeHost? runtimeHost,
+            IProductionMarkerCenterAdapter? markerCenter,
+            IProductionOcrAdapter? ocr,
+            ProductionRuntimeAvailabilitySnapshot? runtimeAvailability)
     {
         if (runtimeHost is null ||
             modelAvailability is null ||
@@ -590,6 +587,16 @@ public static class ApplicationComposition
 
         try
         {
+            if (markerCenter is ProductionProposalMarkerCenterAdapter)
+            {
+                if (ocr is not ProductionOcrAdapter { UsesApprovedOriginalDbComposition: true } ||
+                    runtimeAvailability is not { AxisApproved: true, RuntimeSha256: not null } ||
+                    !modelAvailability.ApprovedCpuModels.TryGetValue("ocr_detection", out ResolvedProductionModel? detection) ||
+                    !modelAvailability.ApprovedCpuModels.TryGetValue("ocr_recognition", out ResolvedProductionModel? recognition))
+                    throw new InvalidDataException("Proposal marker masking requires the accepted original-image OCR workflow.");
+                return (RasterResidualArtifactMaskAdapter.CreateApproved(
+                    detection, recognition, runtimeAvailability.RuntimeSha256), null);
+            }
             return (ProductionMarkerArtifactMaskAdapter.Create(model, runtimeHost), null);
         }
         catch (Exception exception) when (exception is not OutOfMemoryException)

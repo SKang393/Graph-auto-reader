@@ -175,12 +175,27 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public async Task MaskPreservingWorkflowEvidenceKeepsDiagnosticsOnlyForCandidates(bool isApproved)
+    [DataRow(true, false, false, false, 0.25)]
+    [DataRow(false, false, false, false, 0.25)]
+    [DataRow(true, true, false, false, 0.25)]
+    [DataRow(false, true, false, false, 0.25)]
+    [DataRow(true, true, true, false, 0.25)]
+    [DataRow(false, true, true, false, 0.25)]
+    [DataRow(true, true, true, true, 0.25)]
+    [DataRow(false, true, true, true, 0.25)]
+    [DataRow(true, true, true, true, 0.1)]
+    [DataRow(false, true, true, true, 0.1)]
+    public async Task MaskPreservingWorkflowEvidenceKeepsDiagnosticsOnlyForCandidates(
+        bool isApproved, bool plot, bool enclosed, bool balanced, double threshold)
     {
         var runner = new FakeRunner(static count => Enumerable.Repeat(1f, count * 4).ToArray());
-        var adapter = CreateMaskPreservingAdapter(runner, isApproved: isApproved);
+        var adapter = new ProductionProposalMarkerCenterAdapter(
+            new ModelIdentity(ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
+                ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateId,
+                ProductionProposalMarkerCenterAdapter.ExpectedMaskPreservingModelSha256, "candidate.onnx"),
+            runner, multiradiusGeometry: true, maskPreservingCandidate: true, isApproved: isApproved,
+            plotDomainProposalFiltering: plot, enclosedGeometrySupport: enclosed,
+            balancedRingSupport: balanced, centerThreshold: threshold);
         ProductionWorkflowDetectionRequest request = CreateRequest();
 
         ProductionMarkerCenterEvidence evidence = isApproved ? await adapter.DetectAsync(
@@ -607,7 +622,7 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
             multiradiusGeometry: true,
             maskPreservingCandidate: true,
             isApproved: true,
-            plotDomainProposalFiltering: true));
+            balancedRingSupport: true));
     }
 
     [TestMethod]
@@ -775,19 +790,22 @@ public sealed class ProductionProposalMarkerCenterAdapterTests
     }
 
     [TestMethod]
-    public void EnclosedSupportCannotBeEnabledWithoutUnapprovedPlotDomain()
+    [DataRow(false)]
+    [DataRow(true)]
+    public void EnclosedSupportRequiresPlotDomainAndBalancedPrerequisites(bool isApproved)
     {
         var model = new ModelIdentity(ProductionProposalMarkerCenterAdapter.MaskPreservingCandidateRevision,
             "P1", ProductionProposalMarkerCenterAdapter.ExpectedMaskPreservingModelSha256, "candidate.onnx");
         var runner = new FakeRunner(count => new float[count * 4]);
         Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(model, runner,
-            multiradiusGeometry: true, maskPreservingCandidate: true, enclosedGeometrySupport: true));
+            multiradiusGeometry: true, maskPreservingCandidate: true, enclosedGeometrySupport: true,
+            isApproved: isApproved));
         Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(model, runner,
             multiradiusGeometry: true, maskPreservingCandidate: true, plotDomainProposalFiltering: true,
-            enclosedGeometrySupport: true, isApproved: true));
+            enclosedGeometrySupport: true, isApproved: isApproved, centerThreshold: 0.1));
         Assert.ThrowsExactly<InvalidOperationException>(() => new ProductionProposalMarkerCenterAdapter(model, runner,
             multiradiusGeometry: true, maskPreservingCandidate: true, plotDomainProposalFiltering: true,
-            balancedRingSupport: true));
+            balancedRingSupport: true, isApproved: isApproved));
     }
 
     [TestMethod]

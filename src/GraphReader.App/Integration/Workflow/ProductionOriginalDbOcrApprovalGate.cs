@@ -56,6 +56,12 @@ internal static class ProductionOriginalDbOcrApprovalGate
     internal static void Validate(
         ResolvedProductionModel detectionModel,
         ResolvedProductionModel recognitionModel,
+        string reviewedOpenCvRuntimeSha256) =>
+        _ = ReadValidatedWorkflow(detectionModel, recognitionModel, reviewedOpenCvRuntimeSha256);
+
+    internal static byte[] ReadValidatedWorkflow(
+        ResolvedProductionModel detectionModel,
+        ResolvedProductionModel recognitionModel,
         string reviewedOpenCvRuntimeSha256)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
@@ -142,6 +148,7 @@ internal static class ProductionOriginalDbOcrApprovalGate
             detectionModel.Identity, recognitionModel.Identity);
         ValidateEvaluatedRuntimeDependencies(realCandidate.Bytes);
         ValidateSyntheticSealedSource(sealedScore.Bytes);
+        return realCandidate.Bytes;
     }
 
     internal static void ValidateWorkflow(
