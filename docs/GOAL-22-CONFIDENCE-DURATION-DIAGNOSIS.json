@@ -1,0 +1,57 @@
+{
+  "status": "diagnosed_before_implementation",
+  "failure_mode": "V35 still fails complete development: component1889TP233FP115FN and family202TP75FP4FN at0.10. Full native comparisons have771/838 and774/838 matches, and each loses6 retained truths. CSV correct values improve by2 per arm but overall acceptance remains incomplete.",
+  "responsible_subsystem": "Confidence fitting over the existing frozen spatial representation, with separate documented support and suppression limits.",
+  "hypothesis": "The fixed eight-epoch confidence projection has not reached a training-loss plateau. Its last three epoch losses are0.07724756,0.07328434,0.07005690. A single fixed24-epoch run from the same initializer may improve discrimination without changing geometry. This tests optimization duration only; it does not assume that lower training loss will generalize.",
+  "isolated_change": "Increase epochs from8 to24, yielding51888optimizersteps. Start from the same V27 initializer and repeat the identical seeded first eight epochs as part of this longer registered run. Retain the same49281-parameter confidence projection, frozen63452 original parameters/buffers, all276618 training rows, labels, flags, unweightedBCE, AdamW0.0003,weight_decay0.0001,batch128,seed20261002,gradient_limit5 and finalepoch selection. No scheduler, extra data, threshold change or intermediate checkpoint selection.",
+  "development_evidence": {
+    "path": "ml/markers/center/confidence_spatial_v35/P1_RESULT.json",
+    "sha256": "866454722411e4c1ef4164d1924f84fca5f5545d77c5bb361a27617a97d5da00"
+  },
+  "training_fit_evidence": {
+    "path": "artifacts/goal22-runs/confidence-spatial-fit-diagnosis-20261002-v1/report.json",
+    "sha256": "44e261d2123b818481e2f08f2bcd49460680b14972a71fbd85a6a395aa52cf29"
+  },
+  "geometry_support_evidence": {
+    "path": "artifacts/goal22-runs/spatial-dev-geometry-diagnosis-20261002-v1/report.json",
+    "sha256": "466019d6946b5b14728326a51fd8b35c0b432d67e95e661f296d5655cc999f8a"
+  },
+  "feature_evidence": {
+    "path": "artifacts/goal22-runs/frozen-spatial-features-20261002-v1/report.json",
+    "sha256": "3a98504c7b31f16af8f4b127ab438cba3fe7918d51c9417021221f96bb6ad7cc"
+  },
+  "initializer": {
+    "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+    "sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+  },
+  "fixed_development": {
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+    "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+  },
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "splits": "Complete existing owned training union only. Same167component+9family development scenes,2210truths/270236proposals. Same21native sources/31panels/838truths and23CSV sources/39panels/706points/724rows under frozenV44/V46 OCR arms. No private or sealed input.",
+  "metric": "Same per-item confidence-center precision/recall at shipped0.10 cutoff and5pixel matching; unchanged shared95percentbars and prohibitedstructure0.02 maximum. Complete export parity and frozen geometry. Full application comparisons include every failed source. Threshold sensitivity is descriptive only.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "sealed_runs_authorized": 0,
+    "private_reads": 0,
+    "optimizer_steps_expected": 51888,
+    "production_approval": false,
+    "release_eligible": false
+  },
+  "execution_state": "V35 is integrated at a97e0d51e50489fb7bf7e00e8d2742c2e3fd8bb2. Model and cache implementations remain immutable. Add a duration-specific runner and tests, then require passing preflight and canonical ledger admission before optimization.",
+  "limitations": [
+    "V35 still misclassifies526 of16732 crowded training positives at0.10 and accepts11137 of165882 crowded training negatives. Its crowded ranking AUC is0.98920842; more iterations may help or may overfit.",
+    "The complete development audit finds68 misses with supported geometry below threshold,41 after suppression/matching, and10 tiny markers without pixel support. Duration cannot repair every failure mode.",
+    "All development truths and existing operating thresholds remain unchanged. No private or sealed input is used.",
+    "All24 epochs run before one complete development evaluation. No intermediate dev selection, early stopping or duration sweep."
+  ]
+}

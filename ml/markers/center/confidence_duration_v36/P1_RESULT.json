@@ -1,0 +1,2060 @@
+{
+  "schema": "graphreader.confidence-duration-outcome.v1",
+  "task": "marker-center",
+  "revision": "marker-center-confidence-duration-v36",
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "acceptance_status": "FAIL",
+  "closed_utc": "2026-10-02T21:46:17.565245+00:00",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/center-confidence-duration-v36/P1/report.json",
+    "sha256": "9157ebc7d1e6ec8218abce21593872e4af47e27ebd7680208c94cf9062e19c6e"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-confidence-duration-v36/P1/result.json",
+    "sha256": "39b71fa3e9bbabaf98bd5bc11ca2149e0b3ac978538b00eb1bc60405dad13569"
+  },
+  "onnx_sha256": "1cad121864ae1e8b7d856a875f013335f18d01e580ed125a5ac0e7d9af87d3f2",
+  "checkpoint_sha256": "9aade639da7ae57190ee6e27e5820a706dcda2aed08c5b73d831569c4bcc83e6",
+  "source_binding": {
+    "snapshot": {
+      "path": "ml/markers/training-seals/marker-center/marker-center-confidence-duration-v36/P1/source-snapshot.json",
+      "sha256": "064955a838641f138aa056edd65465c616fda53fdd489ebde5ba2e19ca915085"
+    },
+    "bundle_sha256": "b5ca30b73f04de292c26e236f64a69688dce15d268cc190bf72152a2f3a70aca",
+    "verified_before_ledger_close": true
+  },
+  "duration_comparison": {
+    "prior_report": {
+      "path": "artifacts/goal22-runs/center-confidence-spatial-v35/P1/report.json",
+      "sha256": "ec568380ac58cbc4807049ea98acabe499f08db90040e0615f4aa37174651102"
+    },
+    "first_eight_epoch_records_identical": true,
+    "prior_final_training_loss": 0.07005690156062591,
+    "current_final_training_loss": 0.04075944357552496,
+    "interpretation": "Descriptive reproducibility and training fit only; unchanged shared development metrics determine acceptance."
+  },
+  "training": {
+    "completed_epochs": 24,
+    "history": [
+      {
+        "epoch": 1,
+        "mean_loss": 0.1374775869608146,
+        "optimizer_steps": 2162
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 0.1055950916757347,
+        "optimizer_steps": 4324
+      },
+      {
+        "epoch": 3,
+        "mean_loss": 0.09446549690763616,
+        "optimizer_steps": 6486
+      },
+      {
+        "epoch": 4,
+        "mean_loss": 0.08744858173700007,
+        "optimizer_steps": 8648
+      },
+      {
+        "epoch": 5,
+        "mean_loss": 0.08176340397781624,
+        "optimizer_steps": 10810
+      },
+      {
+        "epoch": 6,
+        "mean_loss": 0.07724755686284779,
+        "optimizer_steps": 12972
+      },
+      {
+        "epoch": 7,
+        "mean_loss": 0.07328433786828165,
+        "optimizer_steps": 15134
+      },
+      {
+        "epoch": 8,
+        "mean_loss": 0.07005690156062591,
+        "optimizer_steps": 17296
+      },
+      {
+        "epoch": 9,
+        "mean_loss": 0.06720913222032038,
+        "optimizer_steps": 19458
+      },
+      {
+        "epoch": 10,
+        "mean_loss": 0.06450711209697443,
+        "optimizer_steps": 21620
+      },
+      {
+        "epoch": 11,
+        "mean_loss": 0.06204831039414127,
+        "optimizer_steps": 23782
+      },
+      {
+        "epoch": 12,
+        "mean_loss": 0.05978769008380384,
+        "optimizer_steps": 25944
+      },
+      {
+        "epoch": 13,
+        "mean_loss": 0.057571388537255457,
+        "optimizer_steps": 28106
+      },
+      {
+        "epoch": 14,
+        "mean_loss": 0.05561377519104547,
+        "optimizer_steps": 30268
+      },
+      {
+        "epoch": 15,
+        "mean_loss": 0.053822302518484466,
+        "optimizer_steps": 32430
+      },
+      {
+        "epoch": 16,
+        "mean_loss": 0.05231028426891739,
+        "optimizer_steps": 34592
+      },
+      {
+        "epoch": 17,
+        "mean_loss": 0.05045734901579364,
+        "optimizer_steps": 36754
+      },
+      {
+        "epoch": 18,
+        "mean_loss": 0.048914645991058096,
+        "optimizer_steps": 38916
+      },
+      {
+        "epoch": 19,
+        "mean_loss": 0.047406876877779065,
+        "optimizer_steps": 41078
+      },
+      {
+        "epoch": 20,
+        "mean_loss": 0.04595112388610675,
+        "optimizer_steps": 43240
+      },
+      {
+        "epoch": 21,
+        "mean_loss": 0.04468819083732955,
+        "optimizer_steps": 45402
+      },
+      {
+        "epoch": 22,
+        "mean_loss": 0.04327403762998967,
+        "optimizer_steps": 47564
+      },
+      {
+        "epoch": 23,
+        "mean_loss": 0.042026076406291295,
+        "optimizer_steps": 49726
+      },
+      {
+        "epoch": 24,
+        "mean_loss": 0.04075944357552496,
+        "optimizer_steps": 51888
+      }
+    ],
+    "optimizer_steps": 51888,
+    "optimizer_steps_this_execution": 51888,
+    "resumed_from_epoch": 0,
+    "training_source_binding": {
+      "candidate_id": "P1",
+      "expected_runner_source_bundle_sha256": "b5ca30b73f04de292c26e236f64a69688dce15d268cc190bf72152a2f3a70aca",
+      "feature_report_sha256": "3a98504c7b31f16af8f4b127ab438cba3fe7918d51c9417021221f96bb6ad7cc",
+      "recipe": {
+        "batch_size": 128,
+        "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+        "confidence_mapping": "adapted_copy_768x64_silu_projection",
+        "confidence_objective": "unweighted_binary_cross_entropy_with_logits",
+        "confidence_threshold": 0.1,
+        "epochs": 24,
+        "frozen_base_confidence": true,
+        "frozen_geometry": true,
+        "frozen_normalization_buffers": true,
+        "frozen_spatial_features": true,
+        "gradient_norm_limit": 5.0,
+        "learning_rate": 0.0003,
+        "seed": 20261002,
+        "trainable_parameters": 49281,
+        "weight_decay": 0.0001
+      },
+      "revision": "marker-center-confidence-duration-v36",
+      "source_checkpoint_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365",
+      "task": "marker-center",
+      "training_group_rows": {
+        "component": 35838,
+        "coverage": 42747,
+        "crowded": 182614,
+        "crowded_mined_negative": 6366,
+        "family": 9053
+      }
+    }
+  },
+  "training_group_rows": {
+    "component": 35838,
+    "coverage": 42747,
+    "crowded": 182614,
+    "crowded_mined_negative": 6366,
+    "family": 9053
+  },
+  "total_training_rows": 276618,
+  "trainable_parameters": 49281,
+  "frozen_other_parameters": 63452,
+  "all_retained_parameters_and_normalization_state_unchanged": true,
+  "retained_confidence_parameters_unchanged": true,
+  "geometry_maximum_absolute_change": 3.814697265625e-06,
+  "initial_confidence_maximum_absolute_error": 1.1920928955078125e-07,
+  "initial_confidence_raw_boundary_crossings": 0,
+  "development": {
+    "component": {
+      "candidate_balanced": {
+        "duplicate_count": 2,
+        "false_negatives": 137,
+        "false_positives": 194,
+        "precision": 0.905870936438622,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9316367265469062,
+        "scene_count": 167,
+        "true_positives": 1867,
+        "truth_count": 2004
+      },
+      "candidate_historical": {
+        "duplicate_count": 2,
+        "false_negatives": 135,
+        "false_positives": 198,
+        "precision": 0.9042089985486212,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9326347305389222,
+        "scene_count": 167,
+        "true_positives": 1869,
+        "truth_count": 2004
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 142,
+        "false_positives": 358,
+        "precision": 0.8387387387387387,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9291417165668663,
+        "scene_count": 167,
+        "true_positives": 1862,
+        "truth_count": 2004
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 140,
+        "false_positives": 426,
+        "precision": 0.8139737991266376,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9301397205588823,
+        "scene_count": 167,
+        "true_positives": 1864,
+        "truth_count": 2004
+      }
+    },
+    "family": {
+      "candidate_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 6,
+        "false_positives": 75,
+        "precision": 0.7272727272727273,
+        "prohibited_structure_hit_rate": 0.01818181818181818,
+        "prohibited_structure_hits": 5,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.970873786407767,
+        "scene_count": 9,
+        "true_positives": 200,
+        "truth_count": 206
+      },
+      "candidate_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 6,
+        "false_positives": 78,
+        "precision": 0.7194244604316546,
+        "prohibited_structure_hit_rate": 0.017985611510791366,
+        "prohibited_structure_hits": 5,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.970873786407767,
+        "scene_count": 9,
+        "true_positives": 200,
+        "truth_count": 206
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 5,
+        "false_positives": 75,
+        "precision": 0.7282608695652174,
+        "prohibited_structure_hit_rate": 0.021739130434782608,
+        "prohibited_structure_hits": 6,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9757281553398058,
+        "scene_count": 9,
+        "true_positives": 201,
+        "truth_count": 206
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 5,
+        "false_positives": 75,
+        "precision": 0.7282608695652174,
+        "prohibited_structure_hit_rate": 0.021739130434782608,
+        "prohibited_structure_hits": 6,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9757281553398058,
+        "scene_count": 9,
+        "true_positives": 201,
+        "truth_count": 206
+      }
+    }
+  },
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "operating_threshold": 0.1,
+  "onnx_torch_parity": {
+    "confidence_decision_changes": 0,
+    "maximum_absolute_error": 6.198883056640625e-06,
+    "rows": 270236
+  },
+  "threshold_sensitivity_is_descriptive_only": true,
+  "validation": {
+    "unique_tests_passed": 137,
+    "preflight": {
+      "path": "artifacts/goal22-runs/confidence-duration-preflight-20261002-v1/report.json",
+      "sha256": "a5bb5f5b038deb22e11eb18402fb5d883fba547c45f94ed12b3228cab4a0816d"
+    },
+    "tests_seconds": 14.491,
+    "all_training_inputs_authenticated": true
+  },
+  "development_miss_diagnosis": {
+    "report": {
+      "path": "artifacts/goal22-runs/duration-dev-geometry-diagnosis-20261002-v1/report.json",
+      "sha256": "db2d38920be2d7333ba2bc7938d02f220253b91651e758438b5ed9f470d3ce7f"
+    },
+    "counts": {
+      "component": {
+        "above_threshold_support_lost_after_nms_or_matching": 45,
+        "matched": 1867,
+        "no_supported_localized_geometry": 10,
+        "supported_geometry_below_threshold": 82
+      },
+      "family": {
+        "matched": 200,
+        "supported_geometry_below_threshold": 6
+      }
+    },
+    "limitations": [
+      "Per-truth localized support is an opportunity bound, not jointly attainable recall. Shared proposals and NMS can couple nearby truths.",
+      "Every original truth, including tiny and large markers, stays in the denominator. Diameter groups are diagnostic only.",
+      "This uses the existing complete-development decoder and saved outputs. It does not change thresholds, gates, masks or geometry."
+    ]
+  },
+  "development_error_attribution": {
+    "report": {
+      "path": "artifacts/goal22-runs/duration-dev-errors-diagnosis-20261002-v1/report.json",
+      "sha256": "acb08dadfa9265efba83afc42cebf083f5af938d1331009d9cf7dac32090a8d8"
+    },
+    "counts": {
+      "component": {
+        "distance_5_to_8": 57,
+        "distance_8_to_16": 114,
+        "distance_above_16": 21,
+        "distance_within_5": 2,
+        "near_truth_unmatched": 2,
+        "negative_anchor_accepted": 192
+      },
+      "family": {
+        "distance_5_to_8": 2,
+        "distance_8_to_16": 15,
+        "distance_above_16": 58,
+        "negative_anchor_accepted": 75
+      }
+    },
+    "limitations": [
+      "Anchor relation uses the existing nearest-truth <=3 pixel rule; this is descriptive, not new labels.",
+      "Near-truth unmatched predictions can reflect duplication or matching competition; no runtime behavior changes.",
+      "Rendered diameter is a size descriptor, not proof that a point lies inside a particular glyph.",
+      "Contact sheet selection is descriptive only. All original cases and failures remain in aggregate counts."
+    ]
+  },
+  "workflow": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 154.4025326,
+        "execution_seconds": 162.8288753,
+        "metrics": {
+          "truth": 838,
+          "predicted": 778,
+          "matched": 755,
+          "extra": 23,
+          "missing": 83,
+          "precision": 0.9704370179948586,
+          "recall": 0.9009546539379475
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 774,
+          "matched": 745,
+          "extra": 29,
+          "missing": 93,
+          "precision": 0.962532299741602,
+          "recall": 0.8890214797136038
+        },
+        "paired_truths": {
+          "retained": 725,
+          "recovered": 30,
+          "lost": 20,
+          "missed_by_both": 63
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 459,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 56,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 137,
+            "character_error_count": 487,
+            "character_error_rate": 0.1570967741935484,
+            "role_correct_count": 381,
+            "role_accuracy": 0.8410596026490066,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 23,
+                "accuracy": 0.7419354838709677
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 381,
+            "role_accuracy": 0.8410596026490066,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 23,
+                "accuracy": 0.7419354838709677
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 358,
+          "wrong_in_both": 95
+        },
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "695e90339195b6aee02e343154f6a147700d210418fb696999a5d7652ee0781d"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 70,
+          "accepted_additions": 293,
+          "accepted_removals": 289,
+          "changed_truth_readings": 0
+        },
+        "upstream_change_fields": {
+          "calibration": 31,
+          "marker_pipeline": 31,
+          "ocr": 8
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 177.1652319,
+        "execution_seconds": 180.7409085,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 262,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 262,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 6,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 4,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9847328244274809,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9847328244274809,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9656488549618321,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 13,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 164,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 164,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 8,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9512195121951219,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9512195121951219,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9512195121951219,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "validated_export_rows": 426,
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "695e90339195b6aee02e343154f6a147700d210418fb696999a5d7652ee0781d"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 81,
+          "accepted_additions": 132,
+          "accepted_removals": 140,
+          "status_changes": 2,
+          "exported_numeric_value_changes": 12
+        },
+        "upstream_change_fields": {
+          "calibration": 39,
+          "marker_pipeline": 39,
+          "ocr": 3
+        }
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 176.1225233,
+        "execution_seconds": 183.6880385,
+        "metrics": {
+          "truth": 838,
+          "predicted": 776,
+          "matched": 758,
+          "extra": 18,
+          "missing": 80,
+          "precision": 0.9768041237113402,
+          "recall": 0.9045346062052506
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 772,
+          "matched": 749,
+          "extra": 23,
+          "missing": 89,
+          "precision": 0.9702072538860104,
+          "recall": 0.8937947494033412
+        },
+        "paired_truths": {
+          "retained": 729,
+          "recovered": 29,
+          "lost": 20,
+          "missed_by_both": 60
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 495,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 49,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 67,
+            "character_error_count": 117,
+            "character_error_rate": 0.03774193548387097,
+            "role_correct_count": 432,
+            "role_accuracy": 0.9536423841059603,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 52,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 31,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 491,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 45,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 63,
+            "character_error_count": 113,
+            "character_error_rate": 0.03645161290322581,
+            "role_correct_count": 432,
+            "role_accuracy": 0.9536423841059603,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 52,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 31,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 431,
+          "wrong_in_both": 22
+        },
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "695e90339195b6aee02e343154f6a147700d210418fb696999a5d7652ee0781d"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 73,
+          "accepted_additions": 288,
+          "accepted_removals": 284,
+          "changed_truth_readings": 0
+        },
+        "upstream_change_fields": {
+          "calibration": 31,
+          "marker_pipeline": 31,
+          "ocr": 11
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 188.9288349,
+        "execution_seconds": 192.1291629,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 14,
+            "failed_cases": 6,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 22,
+            "matched_series": 18,
+            "truth_points": 500,
+            "predicted_points": 277,
+            "matched_points": 273,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 277,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 271,
+            "correct_rows": 260,
+            "missing_rows": 229,
+            "extra_rows": 6,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 273,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 227,
+            "unique_point_extra": 4,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9855595667870036,
+            "unique_point_structural_coverage": 0.546,
+            "unique_point_value_precision": 0.9855595667870036,
+            "unique_point_value_coverage": 0.546,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9386281588447654,
+            "relational_row_coverage": 0.52,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.959409594095941,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 6
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 12,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 163,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 163,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 7,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 7,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9570552147239264,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9570552147239264,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9570552147239264,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "validated_export_rows": 440,
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "695e90339195b6aee02e343154f6a147700d210418fb696999a5d7652ee0781d"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 83,
+          "accepted_additions": 132,
+          "accepted_removals": 140,
+          "status_changes": 1,
+          "exported_numeric_value_changes": 13
+        },
+        "upstream_change_fields": {
+          "calibration": 39,
+          "marker_pipeline": 39,
+          "ocr": 5
+        }
+      }
+    }
+  },
+  "training_fit": [
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 6856,
+          "quantiles": [
+            2.2547190938584883e-32,
+            1.351023027710993e-21,
+            6.86092757043108e-14,
+            1.2157421735992102e-07,
+            0.0006730750319547951
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 125,
+          "above_historical_0_25": 34,
+          "count": 32580,
+          "quantiles": [
+            9.18518256571518e-35,
+            1.5093482642976878e-18,
+            8.294943065756399e-10,
+            0.00011135112508782253,
+            0.7118766903877258
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 125,
+          "above_historical_0_25": 34,
+          "count": 25724,
+          "quantiles": [
+            9.18518256571518e-35,
+            2.2469932364137332e-17,
+            5.283175008585772e-09,
+            0.00026833470910787594,
+            0.7118766903877258
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3252,
+          "above_historical_0_25": 3245,
+          "count": 3258,
+          "quantiles": [
+            0.005044542718678713,
+            0.9419836640357971,
+            0.9997791051864624,
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9999741016211311,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 6856,
+          "quantiles": [
+            3.628482930784216e-11,
+            2.142892512324579e-07,
+            1.4472766451945063e-05,
+            0.000486342134536244,
+            0.059725165367126465
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 356,
+          "above_historical_0_25": 97,
+          "count": 32580,
+          "quantiles": [
+            3.89328001261513e-13,
+            1.3534376250845525e-07,
+            2.1307550923665985e-05,
+            0.002487917384132749,
+            0.7627601027488708
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 356,
+          "above_historical_0_25": 97,
+          "count": 25724,
+          "quantiles": [
+            3.89328001261513e-13,
+            1.2206172641526792e-07,
+            2.3744947611703537e-05,
+            0.003973698709160095,
+            0.7627601027488708
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3258,
+          "above_historical_0_25": 3258,
+          "count": 3258,
+          "quantiles": [
+            0.4200720489025116,
+            0.9172977864742279,
+            0.9855715930461884,
+            0.9984248161315918,
+            0.9999992847442627
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9999981440594263,
+      "rows": 35838,
+      "scope": "component"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 24,
+          "above_historical_0_25": 12,
+          "count": 1761,
+          "quantiles": [
+            8.658614843888252e-21,
+            7.149299902087236e-11,
+            2.1094710973557085e-05,
+            0.008489877916872501,
+            0.799987256526947
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 88,
+          "above_historical_0_25": 33,
+          "count": 8230,
+          "quantiles": [
+            2.3028761586758003e-32,
+            1.2032608257665521e-17,
+            1.1169821068079955e-08,
+            0.0015598951140418649,
+            0.8944392204284668
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 64,
+          "above_historical_0_25": 21,
+          "count": 6469,
+          "quantiles": [
+            2.3028761586758003e-32,
+            1.3387058980309483e-18,
+            6.300159283156859e-10,
+            0.000580488797277212,
+            0.8944392204284668
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 823,
+          "above_historical_0_25": 822,
+          "count": 823,
+          "quantiles": [
+            0.1898631751537323,
+            0.9381945848464965,
+            0.9989132881164551,
+            0.9999970197677612,
+            1.0
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9999579229591528,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 10,
+          "above_historical_0_25": 1,
+          "count": 1761,
+          "quantiles": [
+            1.6820721482346812e-09,
+            4.19962452724576e-06,
+            0.00043908192310482264,
+            0.00910204742103815,
+            0.282674640417099
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 232,
+          "above_historical_0_25": 89,
+          "count": 8230,
+          "quantiles": [
+            8.942631357644615e-12,
+            9.650766628510611e-07,
+            0.00012022511145914905,
+            0.01097745243459943,
+            0.7331971526145935
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 222,
+          "above_historical_0_25": 88,
+          "count": 6469,
+          "quantiles": [
+            8.942631357644615e-12,
+            6.967905051169511e-07,
+            7.628805178683251e-05,
+            0.012143138423562029,
+            0.7331971526145935
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 823,
+          "above_historical_0_25": 823,
+          "count": 823,
+          "quantiles": [
+            0.5736701488494873,
+            0.8732131600379944,
+            0.9779291749000549,
+            0.9976542234420777,
+            0.9999356269836426
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9999961613927648,
+      "rows": 9053,
+      "scope": "family"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 1837,
+          "above_historical_0_25": 832,
+          "count": 23271,
+          "quantiles": [
+            1.1000084425559801e-15,
+            5.960509383839963e-07,
+            0.00036931331851519644,
+            0.06864742189645767,
+            0.9961146116256714
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 1994,
+          "above_historical_0_25": 903,
+          "count": 38884,
+          "quantiles": [
+            1.1000084425559801e-15,
+            8.96002966044307e-08,
+            6.932062387932092e-05,
+            0.028939893282950088,
+            0.9961146116256714
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 157,
+          "above_historical_0_25": 71,
+          "count": 15613,
+          "quantiles": [
+            1.240496691912868e-14,
+            1.7095555193691325e-08,
+            7.130086487450171e-06,
+            0.001204937906004489,
+            0.9853050112724304
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3762,
+          "above_historical_0_25": 3600,
+          "count": 3863,
+          "quantiles": [
+            0.00033745268592610955,
+            0.3576819717884064,
+            0.9317148327827454,
+            0.9996597290039062,
+            1.0
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9934899060436448,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 3056,
+          "above_historical_0_25": 1701,
+          "count": 23271,
+          "quantiles": [
+            7.874346313885283e-11,
+            1.354701817035675e-05,
+            0.0018757631769403815,
+            0.1581084281206131,
+            0.9989049434661865
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 3433,
+          "above_historical_0_25": 1910,
+          "count": 38884,
+          "quantiles": [
+            2.4658157460333285e-12,
+            4.32412421105255e-06,
+            0.0006159147596918046,
+            0.07903236523270615,
+            0.9989049434661865
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 377,
+          "above_historical_0_25": 209,
+          "count": 15613,
+          "quantiles": [
+            2.4658157460333285e-12,
+            1.1964687928411878e-06,
+            0.00015007963520474732,
+            0.008966867253184336,
+            0.9890623688697815
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 2713,
+          "above_historical_0_25": 2245,
+          "count": 3863,
+          "quantiles": [
+            2.075439169857418e-06,
+            0.005696907360106709,
+            0.41042450070381165,
+            0.9694422245025635,
+            0.99973064661026
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9041763319843941,
+      "rows": 42747,
+      "scope": "coverage"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 5812,
+          "above_historical_0_25": 2529,
+          "count": 87774,
+          "quantiles": [
+            1.8501679256987006e-15,
+            1.6137678358063567e-07,
+            0.00013513623707694933,
+            0.049241526797413795,
+            0.9943378567695618
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 5886,
+          "above_historical_0_25": 2541,
+          "count": 165882,
+          "quantiles": [
+            1.0710237162547668e-15,
+            3.411072135861559e-08,
+            1.7751343875715975e-05,
+            0.012169596459716539,
+            0.9943378567695618
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 74,
+          "above_historical_0_25": 12,
+          "count": 78108,
+          "quantiles": [
+            1.0710237162547668e-15,
+            1.193739498361879e-08,
+            3.181113584105333e-06,
+            0.00039582810422871353,
+            0.6394535899162292
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 16478,
+          "above_historical_0_25": 15992,
+          "count": 16732,
+          "quantiles": [
+            0.00041903447709046304,
+            0.4505561619997025,
+            0.9390421509742737,
+            0.999669897556305,
+            1.0
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9972166295159542,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 8309,
+          "above_historical_0_25": 4521,
+          "count": 87774,
+          "quantiles": [
+            1.5849241407142611e-12,
+            6.11770751675067e-06,
+            0.0008951157215051353,
+            0.08993787243962287,
+            0.9985815286636353
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 9212,
+          "above_historical_0_25": 4947,
+          "count": 165882,
+          "quantiles": [
+            1.5849241407142611e-12,
+            2.798722653096776e-06,
+            0.00028562071383930743,
+            0.031900727376341795,
+            0.9985815286636353
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 903,
+          "above_historical_0_25": 426,
+          "count": 78108,
+          "quantiles": [
+            3.937897750938557e-12,
+            1.5849473470552767e-06,
+            0.00010458525866852142,
+            0.003930788859724999,
+            0.9852377772331238
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 7708,
+          "above_historical_0_25": 5787,
+          "count": 16732,
+          "quantiles": [
+            1.665618398760671e-08,
+            0.0005205017572734506,
+            0.07099158316850662,
+            0.8674579203128812,
+            0.999977707862854
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.8512202438081596,
+      "rows": 182614,
+      "scope": "crowded"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 127,
+          "above_historical_0_25": 42,
+          "count": 6366,
+          "quantiles": [
+            2.637339858467374e-18,
+            7.886517749966515e-08,
+            0.00023709438391961157,
+            0.01773620769381523,
+            0.9110390543937683
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 127,
+          "above_historical_0_25": 42,
+          "count": 6366,
+          "quantiles": [
+            2.637339858467374e-18,
+            7.886517749966515e-08,
+            0.00023709438391961157,
+            0.01773620769381523,
+            0.9110390543937683
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        },
+        "positive": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        }
+      },
+      "current_ranking_auc": null,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 655,
+          "above_historical_0_25": 299,
+          "count": 6366,
+          "quantiles": [
+            2.3467677454092062e-11,
+            1.3759496141574346e-05,
+            0.0032138109672814608,
+            0.10312207415699959,
+            0.9495442509651184
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 655,
+          "above_historical_0_25": 299,
+          "count": 6366,
+          "quantiles": [
+            2.3467677454092062e-11,
+            1.3759496141574346e-05,
+            0.0032138109672814608,
+            0.10312207415699959,
+            0.9495442509651184
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        },
+        "positive": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        }
+      },
+      "retained_ranking_auc": null,
+      "rows": 6366,
+      "scope": "crowded_mined_negative"
+    }
+  ],
+  "observed_cpu_model_envelopes": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-confidence-duration-v36": 140,
+    "marker-classifier-structural-context-v5": 318,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "seconds": {
+    "preflight": 38.5172286,
+    "training_and_development": 372.271788,
+    "complete_workflow": 720.6561726,
+    "post_workflow_audit_and_fit": 13.1809218,
+    "objective_diagnosis": 16.6409684
+  },
+  "cpu_budget": {
+    "cycles": 55400,
+    "maximum_completed_cycle_duty": 0.7999387895161874,
+    "rest_seconds": 93.36321169966686,
+    "scope": "Synchronous guarded work/rest average; not instantaneous per-core utilization",
+    "work_seconds": 254.90445670027293
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/center-confidence-spatial-v35/P1/report.json",
+      "sha256": "ec568380ac58cbc4807049ea98acabe499f08db90040e0615f4aa37174651102"
+    },
+    {
+      "path": "artifacts/goal22-runs/duration-dev-errors-diagnosis-20261002-v1/report.json",
+      "sha256": "acb08dadfa9265efba83afc42cebf083f5af938d1331009d9cf7dac32090a8d8"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-confidence-duration-v36/P1/report.json",
+      "sha256": "9157ebc7d1e6ec8218abce21593872e4af47e27ebd7680208c94cf9062e19c6e"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-confidence-duration-v36/P1/development.json",
+      "sha256": "587602e1ea23f29e39503917d34bca1fbcf930e5a820ea62a78b3208a9895f20"
+    },
+    {
+      "path": "ml/markers/training-seals/marker-center/marker-center-confidence-duration-v36/P1/result.json",
+      "sha256": "39b71fa3e9bbabaf98bd5bc11ca2149e0b3ac978538b00eb1bc60405dad13569"
+    },
+    {
+      "path": "ml/markers/training-seals/marker-center/marker-center-confidence-duration-v36/P1/source-snapshot.json",
+      "sha256": "064955a838641f138aa056edd65465c616fda53fdd489ebde5ba2e19ca915085"
+    },
+    {
+      "path": "ml/markers/center/confidence_duration_v36/p1.json",
+      "sha256": "9e60b6db9faa0548e7239e1b85cb37f4056ec070f684a26f2aefec39aad767ce"
+    },
+    {
+      "path": "ml/markers/center/confidence_duration_v36/protocol.json",
+      "sha256": "f3e8fadf257c1637989104277f8f9fc9ab2f8200da1706f0929fd9a52603e9b4"
+    },
+    {
+      "path": "docs/GOAL-22-CONFIDENCE-DURATION-DIAGNOSIS.json",
+      "sha256": "e62e6377f52fec0836f8c5546762225aaece49f1b411ee37e60e014d8b2d3274"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-preflight-20261002-v1/report.json",
+      "sha256": "a5bb5f5b038deb22e11eb18402fb5d883fba547c45f94ed12b3228cab4a0816d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-preflight-20261002-v1/tests.xml",
+      "sha256": "916e0fe58a0c58019a1ae80105426d0e05a04fc8aeb07fbbee597563955b3298"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-preflight-20261002-v1/admission-preparation.json",
+      "sha256": "484f9dddd00622a50826d9c3b2daf5429cd450be9c67dfd7acc55fc7849db545"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-fit-diagnosis-20261002-v1/report.json",
+      "sha256": "f798e209ebd7ab2e48dd543e227d740f3562fa1bd681fb79e3170a6a0f53fafb"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/comparison-summary.json",
+      "sha256": "695e90339195b6aee02e343154f6a147700d210418fb696999a5d7652ee0781d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-objective-diagnosis-20261002-v1/report.json",
+      "sha256": "f1f26a375836f52296e60b14bfb5aedbb8e578f4dc8b126137371ceb537e5351"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "artifacts/goal22-runs/duration-dev-geometry-diagnosis-20261002-v1/report.json",
+      "sha256": "db2d38920be2d7333ba2bc7938d02f220253b91651e758438b5ed9f470d3ce7f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Close-ConfidenceDurationV36.py",
+      "sha256": "1a25c7f291381dc94a2bdddf957c51faf0489aa7472655d6ea2edebfe0bfeb2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-preflight-20261002-v1/status.json",
+      "sha256": "b0188fa83d0c3055ddb5cc6d077782bd2e76a09a2dc99e76ddcc2b08804479de"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-confidence-duration-v36/status.json",
+      "sha256": "b0f8efaa8129ac96ded9051133ccd56daf5956e88224bf4d65ae4ca1a97a35e1"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/status.json",
+      "sha256": "82d3eb34a6f6df0d325dd35a9e037cfdd9bba28fe2607c8f6abd0b1f98319501"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-fit-diagnosis-20261002-v1/status.json",
+      "sha256": "e5e0d497267bbac114f2d7c7a17814326c89399a5c22973ed44afa80b0cc86e4"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-objective-diagnosis-20261002-v1/status.json",
+      "sha256": "5979db0917d9af7f1117c87a084d79583c63b2c85b768168884740817aa90022"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/status.json",
+      "sha256": "82d3eb34a6f6df0d325dd35a9e037cfdd9bba28fe2607c8f6abd0b1f98319501"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/jobs.json",
+      "sha256": "7d9d9747c70216a6c6b500ec34b0601e7ca106235a71b26e865559df7a7cac6d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/source-bindings.json",
+      "sha256": "d0ec40fb5269919001ceb6577da9efa0d0e457268f027c7b2ece227c59d6bcd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/status.json",
+      "sha256": "f6d772a679bdfbf2ce75884000fcd450d80a5fe63d364ae0f3bc29f078bbfaf5"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/source-bindings.json",
+      "sha256": "69a5c3e4fc30de7194da8c95bf14563a1f59ee746ee362124b4c433ba4031397"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/input-bindings.json",
+      "sha256": "d08a63b193426b4e1d0ad3cb2609eec6f40cfd966cc22882bac6da61fcf987ed"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/ocr.trx",
+      "sha256": "70c35b8143806b1d69f60fb543bca19a6969c3797f64ad3419841948e12cf92a"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/app.trx",
+      "sha256": "6124358f5c4f824007b4f91e5eecfa656a627866a8002d14ae131da012234a2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/Ocr-build.log",
+      "sha256": "b3cdcd015aecf50ca725ffc07b0fbdedfa8f6aa354509bc5c23e07ae1461c4ab"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/App-build.log",
+      "sha256": "d99522d640614be1efd505896cca7d3e35c8125c73058f38a45c3cf02902d354"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/native-build.log",
+      "sha256": "b1d2290ea8398137a37d7ab2fd16f0152a80479aaa26839545e58be605ce6745"
+    },
+    {
+      "path": "docs/GOAL-22-CONFIDENCE-DURATION-DIAGNOSIS.json",
+      "sha256": "e62e6377f52fec0836f8c5546762225aaece49f1b411ee37e60e014d8b2d3274"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-ConfidenceDurationV36.py",
+      "sha256": "994ff54c87f54f768c79c7ab2341408b4e0ade2e198514325086ea67e438752c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ConfidenceDurationV36Evaluation.py",
+      "sha256": "0c56d6898693e00b084cd81ef2cd5c88647485864c4ca2adf8edb3a6e14c3d40"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ConfidenceDurationV36Evaluation.ps1",
+      "sha256": "5fcb3eade5b4a9f5a24972cd2305b410a1b95121c986a8353d844eeba61a102f"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LeftAxisRoleChecks.ps1",
+      "sha256": "a12754014a4ab081538570da3e05709968ff51090dcdb93f0a5e33359840828e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/runtime-description.json",
+      "sha256": "c429d0ec63309318a964b0865a22c205b302c673fa7750993c0f5d5849b9f27d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/marker-center-manifest.json",
+      "sha256": "f7d0aaf2d0d535e57de780c3edb9498ec42d1de8699fc657d4b78d679d5d9702"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/MODEL_NOTICE.md",
+      "sha256": "bcd68284106ba33dcbdead625a9ee0b426a434de671b26c9d3c58a300653bd47"
+    },
+    {
+      "path": "docs/GOAL-22-FROZEN-CONFIDENCE-PARITY-DIAGNOSIS.json",
+      "sha256": "c880dffa72ceaaeb5d8abf79739a0622e76226cc78e8135b3275bfa0d8259aba"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-native/native-marker-score.json",
+      "sha256": "eabcab0125d404628c47d6e645951032e33aba45ff20279d58514624ee4d43f8"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-native/native-ocr-score.json",
+      "sha256": "c313ae60849a7db77fd5002b0396dff9957781a85094d41905435d8a1271ae39"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-native/native-ocr-details.json",
+      "sha256": "f85195ed6b4d342b57648751a3462eba95bfbf7c3a88db112d315959a3193666"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-native/axis-geometry-comparison.json",
+      "sha256": "ffd530322006317aac34131f524563a550acdc7a60e76f9896117f5e2deb29d3"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-native/protocol.json",
+      "sha256": "716c62d5da8a2081a9b12bef98cab10ac481550b26dccb95804c44ccc1af059f"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-native/candidate-binding.json",
+      "sha256": "bd85c42077a2415aa4e9545fd2af57be830e641dbf6d4cda069f130ab015b56d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-native/input-manifest.json",
+      "sha256": "f9dc018f0000f099eb94cabcd31a9bf74e3078e17034eb7ed8faba9fae993d8a"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-native/execution/report.json",
+      "sha256": "57850394d00c295fdde146aacd2c3755706bbbd98cd33dc88b0c89a4616cfe47"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-native/status.json",
+      "sha256": "638c0aae3ed08fba09115d6048b30f5396ae1d60ed491d7277b5195fbd36740c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "92568ff0742bf3ad2867b7944a5857069dab1252acffc01a1a4bcee89a3ad8c1"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-csv/comparison.json",
+      "sha256": "dfd856a791b1cb6c0b181419916113ea33f0a3d673c4b344e8075cd13735ab05"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-csv/protocol.json",
+      "sha256": "ae607d3196564b10b11dd3f8982195fe2044d40c603f2258f88feb3fd7680bca"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-csv/candidate-binding.json",
+      "sha256": "ecfd8b556228b815634b139856288afce2b6164bb5e280f62637437a376259e9"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-csv/input-manifest.json",
+      "sha256": "e720b9d2402f6bde188c08b87dd396ec6edf976b1f3d387ef4088bd1431c0dea"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-csv/execution/report.json",
+      "sha256": "ce32435dbccaa8d141f915d2ade11270fcc6d336e9f348379316fa8d261a8282"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v44-csv/status.json",
+      "sha256": "93630c3cfd3ece0e2f4a6fce7930a21c4c7767c44aceabf27e627ecab941bbb1"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-native/native-marker-score.json",
+      "sha256": "b1e99ff9f028a594432ac01719754bf63c518d000dbab51889412d4f58860e7d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-native/native-ocr-score.json",
+      "sha256": "238b4589425ea75649aeb8acadfc6849527df295755bf1c76ec2f843efe643ff"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-native/native-ocr-details.json",
+      "sha256": "1af535ad3a578e7b492e4ac4e8466b2631416e645dc452bc4bcb9da6afdbdaf2"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-native/axis-geometry-comparison.json",
+      "sha256": "41c03c468e2bbd44e3741d946a60f1e231dc2497e1596fdb3952c3205f62f785"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-native/protocol.json",
+      "sha256": "3ee9ba92021a7f0d0d0f115f481a5d94ef8c365b12047d181460a357520c84f1"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-native/candidate-binding.json",
+      "sha256": "ffe1d6c95fac398bd2c36b5cf2a0fe288739a75baa45981ae46419acdab6c8de"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-native/input-manifest.json",
+      "sha256": "49cde60a8293790ab0d559845396ffd28dd18169bc1a09b4d544069b9def13e7"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-native/execution/report.json",
+      "sha256": "4ec376d23731f39033d2c1372915b3b5c1f18fb7b49827be507f36c3e94620e4"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-native/status.json",
+      "sha256": "336bccc84b324aa19157f6f378090dd0df8b0c406fe43e3cc3d7f0dd4b4855e3"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "f83c2b8129d125c0219d38d9ff86ea635b599dc93e633b1465f9d2566b27203c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-csv/comparison.json",
+      "sha256": "2959156270caf0267e77c7cc27fd337bb5cedfed5bf444ed5bddb7ad888e593d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-csv/protocol.json",
+      "sha256": "997bc3748b03836f1eb577f1a6dc8362d64f741f508b86cd818adf59664b9092"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-csv/candidate-binding.json",
+      "sha256": "2356f6f589059ca26cbe6c916581bcfc2aee49648da353bd96e66de1882b7cc5"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-csv/input-manifest.json",
+      "sha256": "b1e396d530a1c70ed18b63b2919d522b21ceca69248ffa78059dd6b7b78697a3"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-csv/execution/report.json",
+      "sha256": "add2b701f63a747e6949595dd1305e95013765df4b170201b6f5aee08b39eefa"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-duration-v36-evaluation-20261002-v1/v46-csv/status.json",
+      "sha256": "6b4ba5b27837f6affe8ffd3adf32e818c93941b73d396f305cf3101ba13cf095"
+    }
+  ],
+  "decision": "Reject the fixed V36 duration-only confidence candidate because it fails the unchanged shared development bars. Retain V44/English/V27/V5. The full native/CSV effects are preserved in the authenticated local audit. Do not activate or repeat this unchanged candidate.",
+  "license_review": "Owned Apache-2.0 model, synthetic data and source. Existing reviewed OCR/classifier inputs remain checksum-bound. No dependency or imported weights added.",
+  "limitations": [
+    "Equal per-row binary cross-entropy on an enriched training population does not prove calibration on native proposal populations.",
+    "Confidence ordering changes NMS and selected centers even with per-patch geometry frozen.",
+    "Raw accepted-set additions/removals can include numerical movement and are not recovered/lost truth counts; use paired truth measurements.",
+    "Synthetic metrics and validated rows do not establish real acceptance or the runtime safety property by themselves.",
+    "No private/sealed input access, production activation, packaged build or release. Goal22 remains incomplete."
+  ],
+  "candidate_consumed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "release_eligible": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false
+}

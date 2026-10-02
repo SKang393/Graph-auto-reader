@@ -11106,6 +11106,52 @@
       "candidate_report_sha256": "ec568380ac58cbc4807049ea98acabe499f08db90040e0615f4aa37174651102",
       "optimizer_steps": 17296,
       "closed_utc_date": "2026-10-02"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-confidence-duration-v36",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/confidence_duration_v36/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "9e60b6db9faa0548e7239e1b85cb37f4056ec070f684a26f2aefec39aad767ce"
+      },
+      "protocol_path": "ml/markers/center/confidence_duration_v36/protocol.json",
+      "protocol_sha256": "f3e8fadf257c1637989104277f8f9fc9ab2f8200da1706f0929fd9a52603e9b4",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned train/dev-only duration trial of the unchanged spatial confidence projection under continued Goal22 authorization. No private/sealed input access, production activation or release.",
+      "isolated_change": "Increase epochs from8 to24, yielding51888optimizersteps. Start from the same V27 initializer and repeat the identical seeded first eight epochs as part of this longer registered run. Retain the same49281-parameter confidence projection, frozen63452 original parameters/buffers, all276618 training rows, labels, flags, unweightedBCE, AdamW0.0003,weight_decay0.0001,batch128,seed20261002,gradient_limit5 and finalepoch selection. No scheduler, extra data, threshold change or intermediate checkpoint selection.",
+      "optimizer_steps_expected": 51888,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "logical_processor_count": 12,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/center/confidence_duration_v36/P1_RESULT.json",
+      "outcome_sha256": "3958890ff1d4feb362349db82a53d40cd5c40e1dac487db1086dfb5850780720",
+      "candidate_report_sha256": "9157ebc7d1e6ec8218abce21593872e4af47e27ebd7680208c94cf9062e19c6e",
+      "optimizer_steps": 51888,
+      "closed_utc_date": "2026-10-02"
     }
   ]
 }

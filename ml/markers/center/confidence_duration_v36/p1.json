@@ -1,0 +1,54 @@
+{
+  "candidate_id": "P1",
+  "development_file": {
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+    "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+  },
+  "expected_runner_source_bundle_sha256": "b5ca30b73f04de292c26e236f64a69688dce15d268cc190bf72152a2f3a70aca",
+  "feature_report_path": "artifacts/goal22-runs/frozen-spatial-features-20261002-v1/report.json",
+  "feature_report_sha256": "3a98504c7b31f16af8f4b127ab438cba3fe7918d51c9417021221f96bb6ad7cc",
+  "optimizer_steps_expected": 51888,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "f3e8fadf257c1637989104277f8f9fc9ab2f8200da1706f0929fd9a52603e9b4",
+  "recipe": {
+    "batch_size": 128,
+    "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+    "confidence_mapping": "adapted_copy_768x64_silu_projection",
+    "confidence_objective": "unweighted_binary_cross_entropy_with_logits",
+    "confidence_threshold": 0.1,
+    "epochs": 24,
+    "frozen_base_confidence": true,
+    "frozen_geometry": true,
+    "frozen_normalization_buffers": true,
+    "frozen_spatial_features": true,
+    "gradient_norm_limit": 5.0,
+    "learning_rate": 0.0003,
+    "seed": 20261002,
+    "trainable_parameters": 49281,
+    "weight_decay": 0.0001
+  },
+  "resource_policy": {
+    "aggregate_backstop_percent": 80,
+    "all_processors_eligible": true,
+    "kmp_blocktime": "0",
+    "logical_processor_count": 12,
+    "omp_wait_policy": "PASSIVE",
+    "priority": "Idle",
+    "synchronous_work_rest_percent": 80
+  },
+  "revision": "marker-center-confidence-duration-v36",
+  "schema_version": 1,
+  "sealed_runs_authorized": 0,
+  "source_checkpoint_path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+  "source_checkpoint_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365",
+  "task": "marker-center",
+  "training_group_rows": {
+    "component": 35838,
+    "coverage": 42747,
+    "crowded": 182614,
+    "crowded_mined_negative": 6366,
+    "family": 9053
+  },
+  "training_rows": 276618
+}
