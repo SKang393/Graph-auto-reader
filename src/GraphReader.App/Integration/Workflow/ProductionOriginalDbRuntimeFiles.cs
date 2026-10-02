@@ -30,14 +30,26 @@ internal sealed record ProductionOriginalDbRuntimeSnapshot(
     IReadOnlyList<ProductionOriginalDbRuntimeFileIdentity> Files);
 
 /// <summary>
-/// Binds the OCR candidate's ONNX Runtime and OpenCvSharp descriptors to the
-/// files selected by the application host. Native dependencies that have not
-/// loaded yet are bound to the application deployment root.
+/// Binds the whole-workflow candidate's project assemblies, ONNX Runtime and
+/// OpenCvSharp descriptors to the files selected by the application host.
+/// Native dependencies that have not loaded yet are bound to the deployment root.
 /// </summary>
 internal static class ProductionOriginalDbRuntimeFiles
 {
     private static readonly string[] ManagedFileNames =
     [
+        "GraphReader.App.dll",
+        "GraphReader.Axis.dll",
+        "GraphReader.Domain.dll",
+        "GraphReader.Export.dll",
+        "GraphReader.Imaging.dll",
+        "GraphReader.Inference.dll",
+        "GraphReader.Legends.dll",
+        "GraphReader.Markers.dll",
+        "GraphReader.Ocr.dll",
+        "GraphReader.Pdf.dll",
+        "GraphReader.Phases.dll",
+        "GraphReader.SuperResolution.dll",
         "Microsoft.ML.OnnxRuntime.dll",
         "OpenCvSharp.dll",
     ];
@@ -73,7 +85,8 @@ internal static class ProductionOriginalDbRuntimeFiles
         ArgumentNullException.ThrowIfNull(loadedNativeModule);
 
         string runtimeRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(applicationRuntimeRoot));
-        var identities = new List<ProductionOriginalDbRuntimeFileIdentity>(4);
+        var identities = new List<ProductionOriginalDbRuntimeFileIdentity>(
+            ManagedFileNames.Length + NativeFileNames.Length);
         foreach (string fileName in ManagedFileNames)
         {
             ProductionOriginalDbRuntimeFileDescriptor descriptor =

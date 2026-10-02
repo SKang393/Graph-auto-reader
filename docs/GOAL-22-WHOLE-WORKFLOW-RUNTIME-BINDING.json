@@ -1,0 +1,93 @@
+{
+  "schema": "graphreader.whole-workflow-project-runtime-binding.v1",
+  "date": "2026-10-02",
+  "base_commit": "66e0fd9ad448684d1ea9e1a207e132425cd517fa",
+  "implementation_verified": true,
+  "goal22_acceptance": "FAIL",
+  "change": "Bind every project assembly named by whole-workflow acceptance to the bytes actually loaded from the application runtime root.",
+  "project_assemblies": 12,
+  "managed_files_bound": 14,
+  "native_files_bound": 2,
+  "validation": {
+    "app_tests": {
+      "total": 682,
+      "executed": 682,
+      "passed": 682,
+      "failed": 0,
+      "skipped": 0
+    },
+    "app_build_warnings": 0,
+    "app_build_errors": 0,
+    "native_build_warnings": 0,
+    "native_build_errors": 0,
+    "elapsed_seconds": 85.1367678,
+    "regression": "Each of twelve project modules rejects a missing descriptor, duplicate descriptor or changed hash; exact descriptors pass."
+  },
+  "sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbRuntimeFiles.cs",
+      "sha256": "312d4b6a2da80b237e218c1ee937aae7bc333ad90ae548ec6a68c4986802c5df"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrApprovalGate.cs",
+      "sha256": "3bcc3adfb386bcb16ca5209d7456067bf1550f007b06df4eac9db83d962009bd"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOriginalDbRuntimeFilesTests.cs",
+      "sha256": "abddcced6399ed4a04deecafbedffd6bcd1a7ba53184ac671a459579b4244030"
+    }
+  ],
+  "evidence_workspace": "C:\\Users\\Sungwoo\\.codex\\worktrees\\goal22-proposal-registration\\Graph-auto-reader",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/status.json",
+      "sha256": "4fa4aa55c02fd72d029a180f03415af5672043fa9f3778fe60de332f08e8b040"
+    },
+    {
+      "path": "artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/source-bindings.json",
+      "sha256": "633f29f26d1209dcaaaeaebaa2653e1dcd7e904a31a5de1ce7778a4d5c999a6d"
+    },
+    {
+      "path": "artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/App-build.log",
+      "sha256": "27b26b6ee96e8f6d1b802371fe7c7d33d933397d5ed158ae01b8cbb4225954a1"
+    },
+    {
+      "path": "artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/App-tests.log",
+      "sha256": "79a5739e4b902a2dcf46266c7069fc05ed4b4f076054b6adfd5d16f63e3cd1fa"
+    },
+    {
+      "path": "artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/native-build.log",
+      "sha256": "c2468aa1790e0468f192319c939221d4ecbe1d25e6aa1f136f652ed06da76ade"
+    },
+    {
+      "path": "artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/test-results/app.trx",
+      "sha256": "27c4c277abe76ced0ee3b0bb7c1e6543e4b5babff8f8e3660e14b8ff5a1f5ad4"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-WholeWorkflowRuntimeBindingChecks.ps1",
+      "sha256": "3f7230c5ff8e0e57e7ca5ac827847dfbd1b2b8bfd4ebec1880bd992ba8ff1f59"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-WholeWorkflowRuntimeBinding.py",
+      "sha256": "af144a79be79cf77aff4d68602c3795278b9ef1e7f9e8f207dca5a467cdc0f9c"
+    }
+  ],
+  "commands": [
+    "dotnet build tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --artifacts-path artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo",
+    "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --artifacts-path artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/build --no-build --no-restore --nologo --logger trx;LogFileName=app.trx --results-directory artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/test-results",
+    "dotnet build tools/GraphReader.RealAcceptance.Ocr/GraphReader.RealAcceptance.Ocr.csproj -c Release --artifacts-path artifacts/goal22-runs/whole-workflow-runtime-binding-checks-20261002-v1/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo"
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "model_inference_runs": 0,
+  "optimizer_steps": 0,
+  "production_approval": false,
+  "model_store_change": false,
+  "package_created": false,
+  "license_review": "Apache-2.0 project code and tests; no new dependency, model or external asset.",
+  "limitations": [
+    "Tests verify runtime identity enforcement, not model accuracy or real acceptance.",
+    "No authentic passing production bundle was exercised or activated.",
+    "Composed OCR approval compatibility, accuracy gates, real acceptance and final distributions remain outstanding."
+  ]
+}

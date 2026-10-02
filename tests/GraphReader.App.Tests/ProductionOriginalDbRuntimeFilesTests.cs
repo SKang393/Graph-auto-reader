@@ -4,6 +4,7 @@
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text.Json;
 using GraphReader.App.Integration.Workflow;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -22,8 +23,8 @@ public sealed class ProductionOriginalDbRuntimeFilesTests
             fixture.Managed,
             fixture.Native);
 
-        Assert.HasCount(4, snapshot.Files);
-        Assert.HasCount(2, snapshot.Files.Where(file =>
+        Assert.HasCount(16, snapshot.Files);
+        Assert.HasCount(14, snapshot.Files.Where(file =>
             file.BindingKind == ProductionOriginalDbRuntimeBindingKind.LoadedManagedAssembly));
         Assert.IsTrue(snapshot.Files.All(file => string.Equals(
             Path.GetDirectoryName(file.FullPath), fixture.Root, StringComparison.OrdinalIgnoreCase)));
@@ -118,6 +119,42 @@ public sealed class ProductionOriginalDbRuntimeFilesTests
         }
     }
 
+    [TestMethod]
+    [DataRow("GraphReader.App.dll")]
+    [DataRow("GraphReader.Axis.dll")]
+    [DataRow("GraphReader.Domain.dll")]
+    [DataRow("GraphReader.Export.dll")]
+    [DataRow("GraphReader.Imaging.dll")]
+    [DataRow("GraphReader.Inference.dll")]
+    [DataRow("GraphReader.Legends.dll")]
+    [DataRow("GraphReader.Markers.dll")]
+    [DataRow("GraphReader.Ocr.dll")]
+    [DataRow("GraphReader.Pdf.dll")]
+    [DataRow("GraphReader.Phases.dll")]
+    [DataRow("GraphReader.SuperResolution.dll")]
+    public void WholeWorkflowGateRejectsEachMissingDuplicatedOrChangedProjectAssembly(string fileName)
+    {
+        RuntimeFixture fixture = RuntimeFixture.Create();
+        byte[] Candidate(IEnumerable<ProductionOriginalDbRuntimeFileDescriptor> files) =>
+            JsonSerializer.SerializeToUtf8Bytes(new
+            {
+                managed_files = files.Select(file => new { file = file.FileName, sha256 = file.Sha256 }),
+                native_files = fixture.Native.Select(file => new { file = file.FileName, sha256 = file.Sha256 }),
+            });
+
+        ProductionOriginalDbOcrApprovalGate.ValidateEvaluatedRuntimeDependencies(Candidate(fixture.Managed));
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionOriginalDbOcrApprovalGate.ValidateEvaluatedRuntimeDependencies(
+                Candidate(fixture.Managed.Where(file => file.FileName != fileName))));
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionOriginalDbOcrApprovalGate.ValidateEvaluatedRuntimeDependencies(
+                Candidate(fixture.Managed.Append(fixture.Managed.Single(file => file.FileName == fileName)))));
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            ProductionOriginalDbOcrApprovalGate.ValidateEvaluatedRuntimeDependencies(
+                Candidate(fixture.Managed.Select(file => file.FileName == fileName
+                    ? file with { Sha256 = new string('0', 64) } : file))));
+    }
+
     private sealed record RuntimeFixture(
         string Root,
         IReadOnlyList<ProductionOriginalDbRuntimeFileDescriptor> Managed,
@@ -126,7 +163,14 @@ public sealed class ProductionOriginalDbRuntimeFilesTests
         internal static RuntimeFixture Create()
         {
             string root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(AppContext.BaseDirectory));
-            string[] managedNames = ["Microsoft.ML.OnnxRuntime.dll", "OpenCvSharp.dll"];
+            string[] managedNames =
+            [
+                "GraphReader.App.dll", "GraphReader.Axis.dll", "GraphReader.Domain.dll",
+                "GraphReader.Export.dll", "GraphReader.Imaging.dll", "GraphReader.Inference.dll",
+                "GraphReader.Legends.dll", "GraphReader.Markers.dll", "GraphReader.Ocr.dll",
+                "GraphReader.Pdf.dll", "GraphReader.Phases.dll", "GraphReader.SuperResolution.dll",
+                "Microsoft.ML.OnnxRuntime.dll", "OpenCvSharp.dll",
+            ];
             string[] nativeNames = ["onnxruntime.dll", "onnxruntime_providers_shared.dll"];
             foreach (string name in managedNames)
             {

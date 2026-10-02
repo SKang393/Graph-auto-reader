@@ -174,7 +174,7 @@ internal static partial class ProductionOriginalDbOcrApprovalGate
             axis, markerCenter, markerClassifier, artifactMask, legend, phase);
     }
 
-    private static void ValidateEvaluatedRuntimeDependencies(byte[] candidateBytes)
+    internal static void ValidateEvaluatedRuntimeDependencies(byte[] candidateBytes)
     {
         using JsonDocument document = Parse(candidateBytes, "evaluated OCR runtime dependencies");
         JsonElement candidate = document.RootElement;
