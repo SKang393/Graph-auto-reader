@@ -1,0 +1,292 @@
+{
+  "status": "diagnosed_before_implementation",
+  "base_commit": "5070c66e560490894189a88d940c0bf507ba9546",
+  "failure_mode": "Five canonically matched labels with existing participant or measurement cues cross the left axis, but their centers fall inside the plot. Center-only peripheral geometry gives Annotation or Other instead of the expected Participant or AxisTitle.",
+  "responsible_subsystem": "GraphTextRoleClassifier geometry for existing participant and measurement-title cues",
+  "isolated_change": "Recognize existing participant and measurement cues when a horizontal label box crosses the left axis. Permit the same participant cue in the left header when the box crosses the axis. Preserve explicit context, numeric expectations and existing center-based unknown-text fallback. Do not correct literal text or add vocabulary. Advance the classifier cache version.",
+  "cases": [
+    {
+      "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+      "recognized_text": "Participant O1",
+      "actual_role": "other",
+      "expected_role": "participant",
+      "crop": [
+        0,
+        0,
+        600,
+        4484
+      ],
+      "local_box": [
+        28,
+        891,
+        161,
+        914
+      ],
+      "local_plot": [
+        52.87101941662119,
+        943.6507911921035,
+        431.0951499284201,
+        3625.340448152162
+      ]
+    },
+    {
+      "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+      "recognized_text": "Outcome",
+      "actual_role": "annotation",
+      "expected_role": "axistitle",
+      "crop": [
+        0,
+        0,
+        600,
+        4484
+      ],
+      "local_box": [
+        25,
+        2304,
+        104,
+        2331
+      ],
+      "local_plot": [
+        52.87101941662119,
+        943.6507911921035,
+        431.0951499284201,
+        3625.340448152162
+      ]
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "recognized_text": "Participant 01",
+      "actual_role": "annotation",
+      "expected_role": "participant",
+      "crop": [
+        0,
+        0,
+        361,
+        240
+      ],
+      "local_box": [
+        36,
+        123,
+        154,
+        141
+      ],
+      "local_plot": [
+        50.76525499546396,
+        72.73280287585578,
+        288.41333218255136,
+        191.88325447278032
+      ]
+    },
+    {
+      "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "recognized_text": "Outcome",
+      "actual_role": "annotation",
+      "expected_role": "axistitle",
+      "crop": [
+        0,
+        0,
+        361,
+        240
+      ],
+      "local_box": [
+        25,
+        146,
+        102,
+        163
+      ],
+      "local_plot": [
+        50.76525499546396,
+        72.73280287585578,
+        288.41333218255136,
+        191.88325447278032
+      ]
+    },
+    {
+      "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+      "recognized_text": "Participant O1",
+      "actual_role": "other",
+      "expected_role": "participant",
+      "crop": [
+        0,
+        0,
+        863,
+        395
+      ],
+      "local_box": [
+        27,
+        57,
+        161,
+        77
+      ],
+      "local_plot": [
+        76.67141382598962,
+        104.55034123789432,
+        693.1223288358736,
+        295.73469168401857
+      ]
+    }
+  ],
+  "baseline_metrics": {
+    "truth_region_count": 453,
+    "predicted_region_count": 491,
+    "geometry_matched_region_count": 446,
+    "geometry_false_positive_count": 45,
+    "geometry_false_negative_count": 7,
+    "recognition_exact_count": 431,
+    "recognition_exact_accuracy": 0.9514348785871964,
+    "truth_character_count": 3100,
+    "matched_pair_edit_count": 23,
+    "unmatched_truth_deletion_edit_count": 27,
+    "unmatched_prediction_insertion_edit_count": 63,
+    "character_error_count": 113,
+    "character_error_rate": 0.03645161290322581,
+    "role_correct_count": 427,
+    "role_accuracy": 0.9426048565121413,
+    "by_expected_runtime_role": {
+      "annotation": {
+        "truth_count": 62,
+        "correct_count": 50,
+        "accuracy": 0.8064516129032258
+      },
+      "axistitle": {
+        "truth_count": 52,
+        "correct_count": 50,
+        "accuracy": 0.9615384615384616
+      },
+      "legendtext": {
+        "truth_count": 37,
+        "correct_count": 36,
+        "accuracy": 0.972972972972973
+      },
+      "participant": {
+        "truth_count": 31,
+        "correct_count": 28,
+        "accuracy": 0.9032258064516129
+      },
+      "phaseheading": {
+        "truth_count": 170,
+        "correct_count": 164,
+        "accuracy": 0.9647058823529412
+      },
+      "xtick": {
+        "truth_count": 2,
+        "correct_count": 2,
+        "accuracy": 1.0
+      },
+      "ytick": {
+        "truth_count": 99,
+        "correct_count": 97,
+        "accuracy": 0.9797979797979798
+      }
+    },
+    "intersection_over_union_minimum": 0.5
+  },
+  "complete_mismatch_inventory": {
+    "path": "artifacts/goal22-runs/phase-word-role-diagnosis-20261001-v2/report.json",
+    "sha256": "601337ae936973dc33b0d4c9e2e3c4808560c93465b110487e8892b20cea9fe2"
+  },
+  "failed_diagnostic_attempt": {
+    "path": "artifacts/goal22-runs/phase-word-role-diagnosis-20261001-v1/failure.json",
+    "sha256": "0230f5666d3372b483612ba5b3316d82ca79b9aa875d74c59857f684ac1f2f6b"
+  },
+  "fixed_comparisons": [
+    {
+      "arm": "v44",
+      "scope": "native",
+      "candidate_binding": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/candidate-binding.json",
+        "sha256": "93b78386275ca4bda6073413210c9e70757b7abe28affde5a1b820f6a47e0e11"
+      },
+      "input_manifest": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/input-manifest.json",
+        "sha256": "4ea7c71863976c7f5c82fcec04156faac16b5ee2a5c0303c5540efd9c4ffb755"
+      },
+      "baseline_report": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-native/execution/report.json",
+        "sha256": "24edb43cbd8b87cfe742cfbd4e189e8229c178da1b8f5fb61c88b5a36748b2b6"
+      }
+    },
+    {
+      "arm": "v44",
+      "scope": "csv",
+      "candidate_binding": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/candidate-binding.json",
+        "sha256": "3d8f41f369d37195f4710e3ba98e18700fdc7e70923044011777f9c1cfecb57b"
+      },
+      "input_manifest": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/input-manifest.json",
+        "sha256": "0c00b6a86e67488a5c336962648a8309ce004a1005473dbdbd84b6fae4d9e54d"
+      },
+      "baseline_report": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v44-csv/execution/report.json",
+        "sha256": "d83c77d88cfd55cce150cac47fcfc434e01f34fc5f9e811b85a68acfc3bdbea9"
+      }
+    },
+    {
+      "arm": "v46",
+      "scope": "native",
+      "candidate_binding": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/candidate-binding.json",
+        "sha256": "8673673d1f8ef1547dea2bca4ae468725f55e2830f79e3f133223f2842269f6b"
+      },
+      "input_manifest": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/input-manifest.json",
+        "sha256": "8e70df61861dc609d3e7644248552ff5667357c3fc9f23d3ae4388a6de8d82e7"
+      },
+      "baseline_report": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-native/execution/report.json",
+        "sha256": "bfa0c2bad800ef298f2ad3e5febf9892bdad919a017ae19cd41e486f3dda1876"
+      }
+    },
+    {
+      "arm": "v46",
+      "scope": "csv",
+      "candidate_binding": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/candidate-binding.json",
+        "sha256": "60755d82a8ff83c47dc0b573c98046f52f11c377525e8e3d7612198e9f3fbe35"
+      },
+      "input_manifest": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/input-manifest.json",
+        "sha256": "249a17624c7c546fd045f970e9958d5b6f207df3f5455343d229f48834460727"
+      },
+      "baseline_report": {
+        "path": "artifacts/goal22-runs/phase-word-spacing-evaluation-20261001-v1/v46-csv/execution/report.json",
+        "sha256": "455744aa7e567ab8ead5cb11eced42609ef6798ec66b67bdbbad7d5d748bbd7f"
+      }
+    }
+  ],
+  "acceptance_bars": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "metric": "Canonical per-item OCR geometry, exact literal text, role accuracy and character error; unchanged complete workflow export and marker scorers. Shared policy bars remain binding; no new model selection.",
+  "splits": "Existing owned synthetic native and CSV development inputs, unchanged. No training or private/sealed inputs.",
+  "budget": {
+    "native_runs_per_arm": 1,
+    "csv_runs_per_arm": 1,
+    "sealed_runs": 0,
+    "private_reads": 0,
+    "optimizer_steps": 0
+  },
+  "validation": "Full OCR and App tests, three builds, four fixed complete workflow comparisons, and inspection of all changed rows and stage evidence.",
+  "source_before": [
+    {
+      "path": "src/GraphReader.Ocr/GraphTextRoleClassifier.cs",
+      "sha256": "8778104f4d5eb90cda5065b260cb8fb9f74709f136c3a55c55317573b3e75e4c"
+    },
+    {
+      "path": "tests/GraphReader.Ocr.Tests/GraphTextRoleClassifierTests.cs",
+      "sha256": "c26d876766efbebc9388fdb4f4804bb197fa54c1e9b1123a79fb690bbc988897"
+    }
+  ],
+  "limitations": [
+    "Participant O1 remains literal O1; a role cue does not supply or normalize an identity.",
+    "Unknown crossing annotations retain their old geometry fallback. Numeric expectations and explicit context cannot be overruled by this extension.",
+    "Changed roles may alter downstream recovery or masks, so no preservation claim is made before the complete comparisons."
+  ],
+  "license_review": "Apache-2.0 project source and tests; no dependency or model payload changes."
+}

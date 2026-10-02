@@ -11,6 +11,106 @@ public sealed class GraphTextRoleClassifierTests
     private static readonly OcrRectangle Plot = new(30, 15, 110, 70);
 
     [TestMethod]
+    [DataRow("Participant 01", 1d)]
+    [DataRow("Participant O1", 1d)]
+    [DataRow("participant Morgan", 1d)]
+    [DataRow("Participant 01", 42d)]
+    [DataRow("Participant O1", 42d)]
+    [DataRow("participant Morgan", 42d)]
+    public void ParticipantBoxCanCrossLeftAxisInHeaderOrBody(string text, double y)
+    {
+        var region = OcrTestFixtures.Region("crossing-participant", 20, y, 40, 9);
+        var result = GraphTextRoleClassifier.Classify(region, text, Plot);
+        Assert.AreEqual(OcrTextRole.Participant, result.Role);
+        Assert.AreEqual(0.90, result.Confidence);
+        CollectionAssert.Contains(result.Reasons.ToArray(), y < Plot.Top
+            ? "participant_label_and_left_header_geometry" : "participant_label_and_peripheral_geometry");
+    }
+
+    [TestMethod]
+    [DataRow("Outcome")]
+    [DataRow("Response count")]
+    [DataRow("Percentage correct")]
+    [DataRow("Duration (seconds)")]
+    [DataRow("Response rate")]
+    [DataRow("FREQUENCY")]
+    public void MeasurementCueCrossingLeftAxisRemainsReviewable(string text)
+    {
+        var region = OcrTestFixtures.Region("crossing-title", 20, 42, 40, 9);
+        var result = GraphTextRoleClassifier.Classify(region, text, Plot);
+        Assert.AreEqual(OcrTextRole.AxisTitle, result.Role);
+        Assert.AreEqual(0.70, result.Confidence);
+        CollectionAssert.Contains(result.Reasons.ToArray(), "measurement_term_and_axis_margin_requires_review");
+    }
+
+    [TestMethod]
+    [DataRow("Participant")]
+    [DataRow("Partidipant 01")]
+    [DataRow("Morgan")]
+    [DataRow("Outcomesworth")]
+    [DataRow("Probe")]
+    public void UnknownCrossingLabelsKeepTheirOriginalGeometryFallback(string text)
+    {
+        Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(
+            OcrTestFixtures.Region("crossing-body", 20, 42, 40, 9), text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(
+            OcrTestFixtures.Region("crossing-header", 20, 1, 40, 9), text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(
+            OcrTestFixtures.Region("outside-body", 2, 42, 24, 9), text, Plot).Role);
+    }
+
+    [TestMethod]
+    [DataRow("Participant 01")]
+    [DataRow("Outcome")]
+    public void CrossingCuesRespectExplicitContextNumericExpectationsAndOrientation(string text)
+    {
+        var region = OcrTestFixtures.Region("crossing", 20, 42, 40, 9);
+        (OcrRegionContext Context, OcrTextRole Expected)[] contexts =
+        [
+            (new(ExplicitRoleHint: OcrTextRole.Other), OcrTextRole.Other),
+            (new(InParticipantBand: true), OcrTextRole.Participant),
+            (new(NearLegendGlyph: true), OcrTextRole.LegendText),
+            (new(NearPhaseDivider: true), OcrTextRole.PhaseHeading),
+            (new(NearAnnotationArrow: true), OcrTextRole.Annotation),
+            (new(AxisTitleExpected: true), OcrTextRole.AxisTitle),
+            (new(NumericExpected: true), OcrTextRole.Annotation),
+        ];
+        foreach (var (context, expected) in contexts)
+            Assert.AreEqual(expected, GraphTextRoleClassifier.Classify(region with { Context = context }, text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(
+            region with { Polygon = OcrPolygon.FromRectangle(new(20, 1, 40, 9)),
+                Context = new(NumericExpected: true) }, text, Plot).Role);
+        foreach (double orientation in new[] { 45d, 90d, 270d })
+            Assert.AreEqual(OcrTextRole.Annotation, GraphTextRoleClassifier.Classify(
+                region with { OrientationDegrees = orientation }, text, Plot).Role);
+    }
+
+    [TestMethod]
+    [DataRow(30d, 42d, OcrTextRole.Annotation)]
+    [DataRow(31d, 42d, OcrTextRole.Annotation)]
+    [DataRow(20d, 86d, OcrTextRole.AxisTitle)]
+    public void CrossingParticipantCueRequiresInkOutsideLeftEdgeAndHeaderOrBodyHeight(
+        double x, double y, OcrTextRole expected)
+    {
+        var region = OcrTestFixtures.Region("not-crossing", x, y, 40, 9);
+        Assert.AreEqual(expected, GraphTextRoleClassifier.Classify(region, "Participant 01", Plot).Role);
+    }
+
+    [TestMethod]
+    [DataRow("20")]
+    [DataRow("0")]
+    [DataRow("-5")]
+    public void NumericCrossingLabelsCannotBecomeParticipantOrMeasurementTitles(string text)
+    {
+        Assert.AreEqual(OcrTextRole.Other, GraphTextRoleClassifier.Classify(
+            OcrTestFixtures.Region("crossing-number", 20, 42, 40, 9), text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.YTick, GraphTextRoleClassifier.Classify(
+            OcrTestFixtures.Region("margin-number", 2, 42, 24, 9), text, Plot).Role);
+        Assert.AreEqual(OcrTextRole.XTick, GraphTextRoleClassifier.Classify(
+            OcrTestFixtures.Region("below-number", 20, 86, 40, 9), text, Plot).Role);
+    }
+
+    [TestMethod]
     [DataRow("Alternating treatments")]
     [DataRow("Alternating treatment")]
     [DataRow("Withdrawal")]
@@ -211,9 +311,11 @@ public sealed class GraphTextRoleClassifierTests
     }
 
     [TestMethod]
-    public async Task HorizontalMeasurementTitlePipelineEmitsReviewWarning()
+    [DataRow(2d)]
+    [DataRow(20d)]
+    public async Task HorizontalMeasurementTitlePipelineEmitsReviewWarning(double x)
     {
-        var region = OcrTestFixtures.Region("measurement-title", 2, 42, 24, 9);
+        var region = OcrTestFixtures.Region("measurement-title", x, 42, 24, 9);
         var recognizer = new StubTextRecognizer((crops, _) => ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(
             crops.Select(crop => new OcrRecognition(crop.RegionId, crop.SourceImage,
                 [new OcrRecognitionAlternative("Response count", 0.95, crop.SourceImage)], 0.1)).ToArray()));

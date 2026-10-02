@@ -1,0 +1,1513 @@
+{
+  "schema": "graphreader.left-axis-role.v1",
+  "status": "verified_left_axis_role_repair_accuracy_incomplete",
+  "arms": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 198.8864451,
+        "execution_seconds": 210.0816044,
+        "metrics": {
+          "truth": 838,
+          "predicted": 774,
+          "matched": 745,
+          "extra": 29,
+          "missing": 93,
+          "precision": 0.962532299741602,
+          "recall": 0.8890214797136038
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 774,
+          "matched": 745,
+          "extra": 29,
+          "missing": 93,
+          "precision": 0.962532299741602,
+          "recall": 0.8890214797136038
+        },
+        "paired_truths": {
+          "retained": 745,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 93
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 381,
+            "role_accuracy": 0.8410596026490066,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 23,
+                "accuracy": 0.7419354838709677
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 379,
+            "role_accuracy": 0.8366445916114791,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 49,
+                "accuracy": 0.9423076923076923
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 22,
+                "accuracy": 0.7096774193548387
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 358,
+          "wrong_in_both": 95
+        },
+        "changed_truth_readings": [
+          {
+            "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+            "truth_id": "c68bc02b56c977d7eb9be0f85720856e13e9169353800bf133c7752b8c22a995",
+            "truth": "Outcome",
+            "before": {
+              "matched": true,
+              "predicted_text": "Outcome",
+              "predicted_role": "annotation"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Outcome",
+              "predicted_role": "axistitle"
+            }
+          },
+          {
+            "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+            "truth_id": "e07a53a239bcc40b650a27bc0763d482c5d50f55c312ae3c7c7e25a02813be82",
+            "truth": "Participant 01",
+            "before": {
+              "matched": true,
+              "predicted_text": "Participant 01",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Participant 01",
+              "predicted_role": "participant"
+            }
+          }
+        ],
+        "accepted_geometry_change_counts": {
+          "added": 0,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 31,
+          "changed_panels": 2,
+          "changed_fields": {
+            "ocr": 2
+          },
+          "export_rows": null
+        },
+        "role_mechanism": {
+          "observed_panels": 31,
+          "fully_retained_regions_apart_identity": 455,
+          "role_or_confidence_changes": [
+            {
+              "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+              "crop": [
+                0,
+                0,
+                863,
+                395
+              ],
+              "text": "Participant 01",
+              "bounds": {
+                "x": 27,
+                "y": 59,
+                "width": 134,
+                "height": 17,
+                "left": 27,
+                "top": 59,
+                "right": 161,
+                "bottom": 76,
+                "center": {
+                  "x": 94,
+                  "y": 67.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "before_role": "Other",
+              "after_role": "Participant",
+              "before_confidence": 0.7050873062512795,
+              "after_confidence": 0.8694474140670257,
+              "literal_pixels_alternatives_and_review_unchanged": true
+            },
+            {
+              "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+              "crop": [
+                0,
+                0,
+                600,
+                4484
+              ],
+              "text": "Outcome",
+              "bounds": {
+                "x": 25,
+                "y": 2305,
+                "width": 79,
+                "height": 22,
+                "left": 25,
+                "top": 2305,
+                "right": 104,
+                "bottom": 2327,
+                "center": {
+                  "x": 64.5,
+                  "y": 2316,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "before_role": "Annotation",
+              "after_role": "AxisTitle",
+              "before_confidence": 0.7919822899783502,
+              "after_confidence": 0.815996242349123,
+              "literal_pixels_alternatives_and_review_unchanged": true
+            }
+          ],
+          "physical_text_or_alternative_changes": [],
+          "diagnosed_cases_verified": []
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 222.0693242,
+        "execution_seconds": 225.4922293,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 20,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 261,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 261,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9885057471264368,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9885057471264368,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9693486590038314,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 426,
+        "accepted_geometry_change_counts": {
+          "added": 0,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 39,
+          "changed_panels": 0,
+          "changed_fields": {},
+          "export_rows": {
+            "before_count": 426,
+            "after_count": 426,
+            "retained_count": 426,
+            "removed": 0,
+            "added": 0
+          }
+        },
+        "role_mechanism": {
+          "observed_panels": 39,
+          "fully_retained_regions_apart_identity": 841,
+          "role_or_confidence_changes": [],
+          "physical_text_or_alternative_changes": [],
+          "diagnosed_cases_verified": []
+        }
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 245.16614610000002,
+        "execution_seconds": 254.2399536,
+        "metrics": {
+          "truth": 838,
+          "predicted": 772,
+          "matched": 749,
+          "extra": 23,
+          "missing": 89,
+          "precision": 0.9702072538860104,
+          "recall": 0.8937947494033412
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 772,
+          "matched": 749,
+          "extra": 23,
+          "missing": 89,
+          "precision": 0.9702072538860104,
+          "recall": 0.8937947494033412
+        },
+        "paired_truths": {
+          "retained": 749,
+          "recovered": 0,
+          "lost": 0,
+          "missed_by_both": 89
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 491,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 45,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 63,
+            "character_error_count": 113,
+            "character_error_rate": 0.03645161290322581,
+            "role_correct_count": 432,
+            "role_accuracy": 0.9536423841059603,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 52,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 31,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 491,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 45,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 63,
+            "character_error_count": 113,
+            "character_error_rate": 0.03645161290322581,
+            "role_correct_count": 427,
+            "role_accuracy": 0.9426048565121413,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 28,
+                "accuracy": 0.9032258064516129
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 431,
+          "wrong_in_both": 22
+        },
+        "changed_truth_readings": [
+          {
+            "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+            "truth_id": "7a9d7dd76f94632f7a378fb46615bbcfcb08cf605b11929645dd49fef8e2c2f1",
+            "truth": "Participant 01",
+            "before": {
+              "matched": true,
+              "predicted_text": "Participant O1",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Participant O1",
+              "predicted_role": "participant"
+            }
+          },
+          {
+            "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+            "truth_id": "c68bc02b56c977d7eb9be0f85720856e13e9169353800bf133c7752b8c22a995",
+            "truth": "Outcome",
+            "before": {
+              "matched": true,
+              "predicted_text": "Outcome",
+              "predicted_role": "annotation"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Outcome",
+              "predicted_role": "axistitle"
+            }
+          },
+          {
+            "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+            "truth_id": "8c855946ca83edea834ab330a9e3a59b7d66b7ff23c53cde2ad94f108e73c8e7",
+            "truth": "Participant 01",
+            "before": {
+              "matched": true,
+              "predicted_text": "Participant 01",
+              "predicted_role": "annotation"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Participant 01",
+              "predicted_role": "participant"
+            }
+          },
+          {
+            "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+            "truth_id": "cf16b87b9e8077a8b3e48f93ddc0001f9512bff6aea7df034a55e970f1a43976",
+            "truth": "Outcome",
+            "before": {
+              "matched": true,
+              "predicted_text": "Outcome",
+              "predicted_role": "annotation"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Outcome",
+              "predicted_role": "axistitle"
+            }
+          },
+          {
+            "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+            "truth_id": "e07a53a239bcc40b650a27bc0763d482c5d50f55c312ae3c7c7e25a02813be82",
+            "truth": "Participant 01",
+            "before": {
+              "matched": true,
+              "predicted_text": "Participant O1",
+              "predicted_role": "other"
+            },
+            "after": {
+              "matched": true,
+              "predicted_text": "Participant O1",
+              "predicted_role": "participant"
+            }
+          }
+        ],
+        "accepted_geometry_change_counts": {
+          "added": 0,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 31,
+          "changed_panels": 3,
+          "changed_fields": {
+            "ocr": 3
+          },
+          "export_rows": null
+        },
+        "role_mechanism": {
+          "observed_panels": 31,
+          "fully_retained_regions_apart_identity": 486,
+          "role_or_confidence_changes": [
+            {
+              "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+              "crop": [
+                0,
+                0,
+                361,
+                240
+              ],
+              "text": "Participant 01",
+              "bounds": {
+                "x": 36,
+                "y": 123,
+                "width": 118,
+                "height": 18,
+                "left": 36,
+                "top": 123,
+                "right": 154,
+                "bottom": 141,
+                "center": {
+                  "x": 95,
+                  "y": 132,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "before_role": "Annotation",
+              "after_role": "Participant",
+              "before_confidence": 0.7673849105640045,
+              "after_confidence": 0.8597405951594688,
+              "literal_pixels_alternatives_and_review_unchanged": true
+            },
+            {
+              "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+              "crop": [
+                0,
+                0,
+                361,
+                240
+              ],
+              "text": "Outcome",
+              "bounds": {
+                "x": 25,
+                "y": 146,
+                "width": 77,
+                "height": 17,
+                "left": 25,
+                "top": 146,
+                "right": 102,
+                "bottom": 163,
+                "center": {
+                  "x": 63.5,
+                  "y": 154.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "before_role": "Annotation",
+              "after_role": "AxisTitle",
+              "before_confidence": 0.7425593386556961,
+              "after_confidence": 0.765074721659321,
+              "literal_pixels_alternatives_and_review_unchanged": true
+            },
+            {
+              "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+              "crop": [
+                0,
+                0,
+                863,
+                395
+              ],
+              "text": "Participant O1",
+              "bounds": {
+                "x": 27,
+                "y": 57,
+                "width": 134,
+                "height": 20,
+                "left": 27,
+                "top": 57,
+                "right": 161,
+                "bottom": 77,
+                "center": {
+                  "x": 94,
+                  "y": 67,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "before_role": "Other",
+              "after_role": "Participant",
+              "before_confidence": 0.7378567615573699,
+              "after_confidence": 0.9098556272395821,
+              "literal_pixels_alternatives_and_review_unchanged": true
+            },
+            {
+              "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+              "crop": [
+                0,
+                0,
+                600,
+                4484
+              ],
+              "text": "Participant O1",
+              "bounds": {
+                "x": 28,
+                "y": 891,
+                "width": 133,
+                "height": 23,
+                "left": 28,
+                "top": 891,
+                "right": 161,
+                "bottom": 914,
+                "center": {
+                  "x": 94.5,
+                  "y": 902.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "before_role": "Other",
+              "after_role": "Participant",
+              "before_confidence": 0.6913689636162421,
+              "after_confidence": 0.85253124294386,
+              "literal_pixels_alternatives_and_review_unchanged": true
+            },
+            {
+              "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+              "crop": [
+                0,
+                0,
+                600,
+                4484
+              ],
+              "text": "Outcome",
+              "bounds": {
+                "x": 25,
+                "y": 2304,
+                "width": 79,
+                "height": 27,
+                "left": 25,
+                "top": 2304,
+                "right": 104,
+                "bottom": 2331,
+                "center": {
+                  "x": 64.5,
+                  "y": 2317.5,
+                  "is_finite": true
+                },
+                "is_valid": true
+              },
+              "before_role": "Annotation",
+              "after_role": "AxisTitle",
+              "before_confidence": 0.7958659235534798,
+              "after_confidence": 0.8199976328398793,
+              "literal_pixels_alternatives_and_review_unchanged": true
+            }
+          ],
+          "physical_text_or_alternative_changes": [],
+          "diagnosed_cases_verified": [
+            {
+              "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+              "text": "Participant O1",
+              "role": "Participant"
+            },
+            {
+              "source_sha256": "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+              "text": "Outcome",
+              "role": "AxisTitle"
+            },
+            {
+              "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+              "text": "Participant 01",
+              "role": "Participant"
+            },
+            {
+              "source_sha256": "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+              "text": "Outcome",
+              "role": "AxisTitle"
+            },
+            {
+              "source_sha256": "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+              "text": "Participant O1",
+              "role": "Participant"
+            }
+          ]
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "models_and_thresholds_unchanged_within_arm": true,
+        "inference_seconds": 297.58529619999996,
+        "execution_seconds": 301.7624445,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 14,
+            "failed_cases": 6,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 18,
+            "truth_points": 500,
+            "predicted_points": 276,
+            "matched_points": 273,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 276,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 271,
+            "correct_rows": 260,
+            "missing_rows": 229,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 273,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 227,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9891304347826086,
+            "unique_point_structural_coverage": 0.546,
+            "unique_point_value_precision": 0.9891304347826086,
+            "unique_point_value_coverage": 0.546,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9420289855072463,
+            "relational_row_coverage": 0.52,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.959409594095941,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 6
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 13,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 164,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 164,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 8,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9512195121951219,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9512195121951219,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9512195121951219,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "status_changes": [],
+        "exported_numeric_value_changes": [],
+        "validated_export_rows": 440,
+        "accepted_geometry_change_counts": {
+          "added": 0,
+          "removed": 0
+        },
+        "pipeline_audit": {
+          "observed_panels": 39,
+          "changed_panels": 0,
+          "changed_fields": {},
+          "export_rows": {
+            "before_count": 440,
+            "after_count": 440,
+            "retained_count": 440,
+            "removed": 0,
+            "added": 0
+          }
+        },
+        "role_mechanism": {
+          "observed_panels": 39,
+          "fully_retained_regions_apart_identity": 837,
+          "role_or_confidence_changes": [],
+          "physical_text_or_alternative_changes": [],
+          "diagnosed_cases_verified": []
+        }
+      }
+    }
+  },
+  "tests": {
+    "ocr": {
+      "total": 811,
+      "executed": 795,
+      "passed": 795,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    },
+    "app": {
+      "total": 607,
+      "executed": 607,
+      "passed": 607,
+      "failed": 0,
+      "error": 0,
+      "timeout": 0,
+      "aborted": 0,
+      "inconclusive": 0,
+      "passedButRunAborted": 0,
+      "notRunnable": 0,
+      "notExecuted": 0,
+      "disconnected": 0,
+      "warning": 0,
+      "completed": 0,
+      "inProgress": 0,
+      "pending": 0
+    }
+  },
+  "checks_seconds": 112.2446334,
+  "validation_note": "795 OCR and 607 App tests pass with 16 optional OCR skips. Twenty-six new cases cover crossing participant and measurement cues, unchanged unknown-text fallback, explicit contexts, numeric expectations, boundary positions, orientation and pipeline review warnings. Three clean builds include the native workflow.",
+  "workflow_sequence_seconds": 993.5669658,
+  "provider_counts": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-component-diversity-v27": 140,
+    "marker-classifier-structural-context-v5": 344,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/status.json",
+      "sha256": "30f6a35ea0b0017521e8f3634f10f861ee45569ed5a95641550ad2b965d623bd"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/jobs.json",
+      "sha256": "6945606d6b54c88b8b3cadf066b4d71a61520957577633e349f6c7c549944ca3"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/source-bindings.json",
+      "sha256": "d0ec40fb5269919001ceb6577da9efa0d0e457268f027c7b2ece227c59d6bcd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/status.json",
+      "sha256": "f6d772a679bdfbf2ce75884000fcd450d80a5fe63d364ae0f3bc29f078bbfaf5"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/source-bindings.json",
+      "sha256": "69a5c3e4fc30de7194da8c95bf14563a1f59ee746ee362124b4c433ba4031397"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/input-bindings.json",
+      "sha256": "d08a63b193426b4e1d0ad3cb2609eec6f40cfd966cc22882bac6da61fcf987ed"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/ocr.trx",
+      "sha256": "70c35b8143806b1d69f60fb543bca19a6969c3797f64ad3419841948e12cf92a"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/app.trx",
+      "sha256": "6124358f5c4f824007b4f91e5eecfa656a627866a8002d14ae131da012234a2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/Ocr-build.log",
+      "sha256": "b3cdcd015aecf50ca725ffc07b0fbdedfa8f6aa354509bc5c23e07ae1461c4ab"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/App-build.log",
+      "sha256": "d99522d640614be1efd505896cca7d3e35c8125c73058f38a45c3cf02902d354"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/native-build.log",
+      "sha256": "b1d2290ea8398137a37d7ab2fd16f0152a80479aaa26839545e58be605ce6745"
+    },
+    {
+      "path": "docs/GOAL-22-LEFT-AXIS-ROLE-DIAGNOSIS.json",
+      "sha256": "e195951dd6e098ca7cd3f7a5a8c69ed2bff4feb6741b1e6ef36608fadecb637d"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-LeftAxisRole.py",
+      "sha256": "8ae5fcace181cc795efbf054c4dc94d96596ecb1746d5dfc05abf045c1a3746c"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-LeftAxisRoleEvaluation.py",
+      "sha256": "034577dd9332d2bc8b18eb917879867bf7acefcee522e775f0536473ea310f2d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LeftAxisRoleEvaluation.ps1",
+      "sha256": "9fd90c5d89321a53df1399b33811888018cfa4794b8e9a72e25c18a0d86b6989"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LeftAxisRoleChecks.ps1",
+      "sha256": "a12754014a4ab081538570da3e05709968ff51090dcdb93f0a5e33359840828e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/runtime-description.json",
+      "sha256": "c429d0ec63309318a964b0865a22c205b302c673fa7750993c0f5d5849b9f27d"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/native-marker-score.json",
+      "sha256": "11be601133b12e56f886bda9ba5458e40b0445122a41e69f2790da954e376d1a"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/native-ocr-score.json",
+      "sha256": "a45b8771c48b6806a1ab0ce9a1a5973b17ce632358f3af554d29acaa17ebfe38"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/native-ocr-details.json",
+      "sha256": "3200564f49dfa897404417d4f00783269bce47deddd4953f2a7b1d028788bba8"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/axis-geometry-comparison.json",
+      "sha256": "db4d5053ee275f073abcab24450aa6e0b6337f625df4363b2b4a5afbb500ab13"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/protocol.json",
+      "sha256": "5033b019ac4d5d03d762005e916217d0050ab4fb56387329bc86e311dfdd0b51"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/candidate-binding.json",
+      "sha256": "53da895d43d93ce30575da496455e5845636d30cb85bf4b7654bfe01bd4150b8"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/input-manifest.json",
+      "sha256": "96717e9f80bc2330a541adda341c6532898a944ec2971098a61ce97482aebe29"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/execution/report.json",
+      "sha256": "4e47c1e3cc4e78d4339deb72235af5c079a9fd319c92d2f82290ba397eabd99f"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/status.json",
+      "sha256": "2a92b904618a658cb3b86cd8118248be039b2a69dae91043de335c6034a634d7"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "3d1cecef333d574eb3b44ee2eb896cd765b8cc210b13c351a6ca8baad1da82a5"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/comparison.json",
+      "sha256": "5b5808c458657f7c98048460d1093fc8b8ddfee9361638168414039f9c85c348"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/protocol.json",
+      "sha256": "4379f9db175e416c7a2f9536377fd5b67dcb7e90ab43b90006a07e842823f79d"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/candidate-binding.json",
+      "sha256": "5a265def5f7c527d54dc8717f3c53f2baaea272062976f8dadabab7ed02eb50d"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/input-manifest.json",
+      "sha256": "50a97f72e56b3469b1d8ad293fd4321a9a4bb01b75ff5f6621f2bf86fd1d3b2b"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/execution/report.json",
+      "sha256": "13c6ea2d84c020a4c33e96770a4fbe4e198486601923f56ef31c281063809935"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/status.json",
+      "sha256": "23d08c1b962429f104fca9e6607e3435a74bbe3c7f31d309deafbdc8e6aab857"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/native-marker-score.json",
+      "sha256": "df0b28c5ed009fb050997398f98c3307cbd778c20959eda0e9e70fd537ff3623"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/native-ocr-score.json",
+      "sha256": "8c02377d0477dc092afc93ff512d7808fa5d517c1eb9db0ac30eaba9530dccbc"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/native-ocr-details.json",
+      "sha256": "9da5cd6beca636ce3188213d02a9ba4c115b6db32daf67a7b3a4aee126c92eba"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/axis-geometry-comparison.json",
+      "sha256": "91cee63aff8b670d5337ad34c8fe68240d30b2bd4c041373297c04e8e6fc77b1"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/protocol.json",
+      "sha256": "8a5ce0b7c2dfdb65551026a4e38e827b04c5547c0008e8f7bd074e01f215063d"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/candidate-binding.json",
+      "sha256": "2af5562533ea277494bf65b074981dbf48f9138df5393ec929f39cc30bf8e919"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/input-manifest.json",
+      "sha256": "301b589ebdf04e73cb489803ee92025026a34b1f145d82c0a92a7fbd6dae32c3"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/execution/report.json",
+      "sha256": "bb5270fd8fb4dcfe35ac2e44cfbb5ad202d69c595c612ec2243b8389365b2583"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/status.json",
+      "sha256": "312fc8653426e601cab69cadb5c3ae7f66c5d7ba7301bb3e420bac3974bb471d"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "d85787349fcddec03200144cb33272cd65b6b798730fea25024856148b0fa5e5"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/comparison.json",
+      "sha256": "12c422f66ebb0ee62806b78853f9389afbff04625012f9795920d34ce6372af4"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/protocol.json",
+      "sha256": "d4b9d45dcbaa63e53bed6c06aa40d94d9f0439a26393f8cee85fdb88f420db4e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/candidate-binding.json",
+      "sha256": "2a7b0fc56845000bc24ccae7bd5211898458bd5afaa511ee7176ef3bd3d6336e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/input-manifest.json",
+      "sha256": "0f01affced9bed4fb17d5387ff1b97d0b556a75cbc80cb4a28f3a48df7dedefd"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/execution/report.json",
+      "sha256": "7264620ef82c42fe1e35b2033a36b2358a2408268e8f62109958469e4881798b"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/status.json",
+      "sha256": "4faf11b64b214804225df83390807779cee7e83784b956dc344194ab8a907ea4"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/repair-summary.json",
+      "sha256": "15e7ed93c04bb316c755b63e90d0146dafb2ec29a165ea181ca1b33404ec1da5"
+    },
+    {
+      "path": "artifacts/goal22-tools/Audit-PhaseRoleVocabularyRepair.py",
+      "sha256": "448c44e8c111af87e4ce7ada3d9e31b02ad813a579d8217571790374617dfec5"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Audit-LeftAxisRoleDeltas.py",
+      "sha256": "2b3dbce24e992364e8c1cc476a1ddd4dcf0454d77469a9fc4f6859676ecb7ea4"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Audit-LeftAxisRoleMechanism.py",
+      "sha256": "d71cab495d3acf2c486177dc65deea4f84f95df2b6f3f905e0f9b5ede897adfa"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/complete-delta-audit.json",
+      "sha256": "862aa44789627ca63a35cef454fd7658eaaa7035e1a0eec2255c792474b87321"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/audit-status.json",
+      "sha256": "100c594c7905c26780059eca306df24d19ecf2df3f1995c55a38b453c6597a7a"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/mechanism-audit.json",
+      "sha256": "cd999253d586fa3d803eb5168feaa0f391d5bf5eba40fc022453f2a00e8185d2"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/audit-helper-bindings.json",
+      "sha256": "0d22286d25e524c5bd02d1ae8296ac5a4d81ac990bd4e88c392bb4474186b598"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LeftAxisRoleAudit.ps1",
+      "sha256": "088293558114886dbfba3e8e49fc8d457f58b23ab9d97d412cfbc43436c7b9e4"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Publish-LeftAxisRole.py",
+      "sha256": "6402d015b3cb6ba00ccac67356e70369428abbf8de5e4bc74bb06f1a76e0c622"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approved": false,
+  "packaged_build_created": false,
+  "build_number": 433,
+  "version": "0.4.33",
+  "goal22_acceptance": "FAIL",
+  "base_commit": "5070c66e560490894189a88d940c0bf507ba9546",
+  "hypothesis": {
+    "path": "docs/GOAL-22-LEFT-AXIS-ROLE-DIAGNOSIS.json",
+    "sha256": "e195951dd6e098ca7cd3f7a5a8c69ed2bff4feb6741b1e6ef36608fadecb637d"
+  },
+  "frozen_complete_result": {
+    "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/repair-summary.json",
+    "sha256": "15e7ed93c04bb316c755b63e90d0146dafb2ec29a165ea181ca1b33404ec1da5"
+  },
+  "complete_delta_audit": {
+    "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/complete-delta-audit.json",
+    "sha256": "862aa44789627ca63a35cef454fd7658eaaa7035e1a0eec2255c792474b87321"
+  },
+  "mechanism_audit": {
+    "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/mechanism-audit.json",
+    "sha256": "cd999253d586fa3d803eb5168feaa0f391d5bf5eba40fc022453f2a00e8185d2"
+  },
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "implementation": [
+    "Extend the existing participant and measurement-title cues to horizontal boxes crossing the left axis. The existing participant cue also applies above the plot when the box crosses that axis.",
+    "Preserve literal text, explicit context, numeric expectations, orientation and the center-based fallback for unknown text. Measurement-title cues retain their review warning.",
+    "Advance GraphTextRoleClassifier.Version, already included in both OCR and production cache identities."
+  ],
+  "integration_decision": "Retain the bounded role-geometry repair. Correct roles improve 379 to 381/453 with V44 and 427 to 432/453 with V46. Every literal reading, polygon, alternative and review status is unchanged. Only role/confidence and corresponding review warnings change. Every mask, marker stage, accepted marker, axis, calibration and all 866 exported audit rows remain unchanged.",
+  "candidate_selection": "Keep V44/English/V27/V5. The closed V46/server comparison is not reopened or production approved.",
+  "license_review": "Apache-2.0 project source and tests. No dependencies, weights, fonts or license terms changed; model and license inputs were checksum verified.",
+  "limitations": [
+    "V46 role accuracy reaches 432/453 (95.36 percent); exact text remains 431/453 (95.14 percent). Detection precision and marker recall still miss the shared bars.",
+    "Participant O1 remains the recognized literal O1. A role cue neither supplies nor normalizes a participant identity.",
+    "V44 retains 15/23 exported sources, 414/706 correct values and 409/724 correct rows. V46 retains 16/23, 429/706 and 416/724. Three/eleven wrong-phase rows and eight/seven failed sources remain.",
+    "No private/sealed access, optimizer, production approval, packaged build, tag or release. Build 433 stays 0.4.33. Sealed prerequisites, real acceptance, activation and final Windows distributions remain unfinished."
+  ]
+}

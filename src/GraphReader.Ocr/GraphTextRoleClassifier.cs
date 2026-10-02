@@ -10,7 +10,7 @@ public sealed record RoleClassification(
 
 public static class GraphTextRoleClassifier
 {
-    public const string Version = "graph-text-role-classifier-v10-phase-codes-and-plurals";
+    public const string Version = "graph-text-role-classifier-v11-left-axis-crossing-cues";
 
     private const string ParticipantLabelPrefix = "Participant ";
 
@@ -52,7 +52,8 @@ public static class GraphTextRoleClassifier
             return Classification(OcrTextRole.Annotation, 0.95, "annotation_context");
         }
 
-        var center = region.Polygon.Bounds.Center;
+        var bounds = region.Polygon.Bounds;
+        var center = bounds.Center;
         var numeric = GraphNumericParser.IsLiteralGraphNumber(recognizedText);
         var horizontalTolerance = Math.Max(4, plotBounds.Width * 0.05);
         var verticalTolerance = Math.Max(4, plotBounds.Height * 0.05);
@@ -80,22 +81,30 @@ public static class GraphTextRoleClassifier
         var horizontalText = GetOrientation(region.OrientationDegrees) == OcrOrientation.Horizontal;
         var alignedWithPlot = center.Y >= plotBounds.Top && center.Y <= plotBounds.Bottom;
         var plotPeripheral = (center.X < plotBounds.Left || center.X > plotBounds.Right) && alignedWithPlot;
-        var leftHeader = center.X < plotBounds.Left && region.Polygon.Bounds.Bottom <= plotBounds.Top;
-        if (!numeric && horizontalText && (plotPeripheral || leftHeader) && HasParticipantLabelCue(recognizedText))
+        // A horizontal margin label can extend across the axis. Its box, not
+        // only its center, supplies geometry for an existing literal cue.
+        var crossesLeftAxis = !context.NumericExpected &&
+            bounds.Left < plotBounds.Left && bounds.Right >= plotBounds.Left;
+        var leftHeader = (center.X < plotBounds.Left || crossesLeftAxis) && bounds.Bottom <= plotBounds.Top;
+        if (!numeric && horizontalText &&
+            (plotPeripheral || leftHeader || (crossesLeftAxis && alignedWithPlot)) && HasParticipantLabelCue(recognizedText))
         {
             return Classification(OcrTextRole.Participant, 0.90, leftHeader
                 ? "participant_label_and_left_header_geometry"
                 : "participant_label_and_peripheral_geometry");
         }
 
-        if (!numeric && horizontalText && center.X < plotBounds.Left && alignedWithPlot)
+        if (!numeric && horizontalText && alignedWithPlot)
         {
-            if (HasMeasurementTitleCue(recognizedText))
+            if ((center.X < plotBounds.Left || crossesLeftAxis) && HasMeasurementTitleCue(recognizedText))
             {
                 return Classification(OcrTextRole.AxisTitle, 0.70,
                     "measurement_term_and_axis_margin_requires_review");
             }
-            return Classification(OcrTextRole.Other, 0.48, "ambiguous_peripheral_text_requires_review");
+            if (center.X < plotBounds.Left)
+            {
+                return Classification(OcrTextRole.Other, 0.48, "ambiguous_peripheral_text_requires_review");
+            }
         }
 
         var abovePlot = region.Polygon.Bounds.Bottom <= plotBounds.Top + verticalTolerance;
