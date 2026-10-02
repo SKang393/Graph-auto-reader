@@ -1,0 +1,1934 @@
+{
+  "schema": "graphreader.spatial-confidence-outcome.v1",
+  "task": "marker-center",
+  "revision": "marker-center-spatial-confidence-v35",
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "acceptance_status": "FAIL",
+  "closed_utc": "2026-10-02T21:19:24.540309+00:00",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/center-confidence-spatial-v35/P1/report.json",
+    "sha256": "ec568380ac58cbc4807049ea98acabe499f08db90040e0615f4aa37174651102"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-spatial-confidence-v35/P1/result.json",
+    "sha256": "cbac423a9103b1afb95f05e9e41be9df6150ef7a0f3ec3c49988145bf956c515"
+  },
+  "onnx_sha256": "23c31c42edc44afc80b7b8c6934faa28c281138d0839de99d425cf79fc1c3730",
+  "checkpoint_sha256": "0c47fccab4fc2db57251e9c8bc627bf31a1bb102d87a19624a1ffe6b7fa3d861",
+  "source_binding": {
+    "snapshot": {
+      "path": "ml/markers/training-seals/marker-center/marker-center-spatial-confidence-v35/P1/source-snapshot.json",
+      "sha256": "90d71d6c1d51bce1e4b806430259d2000669a2cef76723248f25f03833abf74d"
+    },
+    "bundle_sha256": "2282712ce2e956400addccc8b505ce95510b9f54b08cd4f113afbcff14846f15",
+    "verified_before_ledger_close": true
+  },
+  "training": {
+    "completed_epochs": 8,
+    "history": [
+      {
+        "epoch": 1,
+        "mean_loss": 0.1374775869608146,
+        "optimizer_steps": 2162
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 0.1055950916757347,
+        "optimizer_steps": 4324
+      },
+      {
+        "epoch": 3,
+        "mean_loss": 0.09446549690763616,
+        "optimizer_steps": 6486
+      },
+      {
+        "epoch": 4,
+        "mean_loss": 0.08744858173700007,
+        "optimizer_steps": 8648
+      },
+      {
+        "epoch": 5,
+        "mean_loss": 0.08176340397781624,
+        "optimizer_steps": 10810
+      },
+      {
+        "epoch": 6,
+        "mean_loss": 0.07724755686284779,
+        "optimizer_steps": 12972
+      },
+      {
+        "epoch": 7,
+        "mean_loss": 0.07328433786828165,
+        "optimizer_steps": 15134
+      },
+      {
+        "epoch": 8,
+        "mean_loss": 0.07005690156062591,
+        "optimizer_steps": 17296
+      }
+    ],
+    "optimizer_steps": 17296,
+    "optimizer_steps_this_execution": 17296,
+    "resumed_from_epoch": 0,
+    "training_source_binding": {
+      "candidate_id": "P1",
+      "expected_runner_source_bundle_sha256": "2282712ce2e956400addccc8b505ce95510b9f54b08cd4f113afbcff14846f15",
+      "feature_report_sha256": "3a98504c7b31f16af8f4b127ab438cba3fe7918d51c9417021221f96bb6ad7cc",
+      "recipe": {
+        "batch_size": 128,
+        "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+        "confidence_mapping": "adapted_copy_768x64_silu_projection",
+        "confidence_objective": "unweighted_binary_cross_entropy_with_logits",
+        "confidence_threshold": 0.1,
+        "epochs": 8,
+        "frozen_base_confidence": true,
+        "frozen_geometry": true,
+        "frozen_normalization_buffers": true,
+        "frozen_spatial_features": true,
+        "gradient_norm_limit": 5.0,
+        "learning_rate": 0.0003,
+        "seed": 20261002,
+        "trainable_parameters": 49281,
+        "weight_decay": 0.0001
+      },
+      "revision": "marker-center-spatial-confidence-v35",
+      "source_checkpoint_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365",
+      "task": "marker-center",
+      "training_group_rows": {
+        "component": 35838,
+        "coverage": 42747,
+        "crowded": 182614,
+        "crowded_mined_negative": 6366,
+        "family": 9053
+      }
+    }
+  },
+  "training_group_rows": {
+    "component": 35838,
+    "coverage": 42747,
+    "crowded": 182614,
+    "crowded_mined_negative": 6366,
+    "family": 9053
+  },
+  "total_training_rows": 276618,
+  "trainable_parameters": 49281,
+  "frozen_other_parameters": 63452,
+  "all_retained_parameters_and_normalization_state_unchanged": true,
+  "retained_confidence_parameters_unchanged": true,
+  "geometry_maximum_absolute_change": 3.814697265625e-06,
+  "initial_confidence_maximum_absolute_error": 1.1920928955078125e-07,
+  "initial_confidence_raw_boundary_crossings": 0,
+  "development": {
+    "component": {
+      "candidate_balanced": {
+        "duplicate_count": 3,
+        "false_negatives": 115,
+        "false_positives": 233,
+        "precision": 0.8901979264844486,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9426147704590818,
+        "scene_count": 167,
+        "true_positives": 1889,
+        "truth_count": 2004
+      },
+      "candidate_historical": {
+        "duplicate_count": 3,
+        "false_negatives": 114,
+        "false_positives": 242,
+        "precision": 0.8864915572232646,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9431137724550899,
+        "scene_count": 167,
+        "true_positives": 1890,
+        "truth_count": 2004
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 142,
+        "false_positives": 358,
+        "precision": 0.8387387387387387,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9291417165668663,
+        "scene_count": 167,
+        "true_positives": 1862,
+        "truth_count": 2004
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 140,
+        "false_positives": 426,
+        "precision": 0.8139737991266376,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9301397205588823,
+        "scene_count": 167,
+        "true_positives": 1864,
+        "truth_count": 2004
+      }
+    },
+    "family": {
+      "candidate_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 4,
+        "false_positives": 75,
+        "precision": 0.7292418772563177,
+        "prohibited_structure_hit_rate": 0.02527075812274368,
+        "prohibited_structure_hits": 7,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9805825242718447,
+        "scene_count": 9,
+        "true_positives": 202,
+        "truth_count": 206
+      },
+      "candidate_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 4,
+        "false_positives": 77,
+        "precision": 0.7240143369175627,
+        "prohibited_structure_hit_rate": 0.025089605734767026,
+        "prohibited_structure_hits": 7,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9805825242718447,
+        "scene_count": 9,
+        "true_positives": 202,
+        "truth_count": 206
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 5,
+        "false_positives": 75,
+        "precision": 0.7282608695652174,
+        "prohibited_structure_hit_rate": 0.021739130434782608,
+        "prohibited_structure_hits": 6,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9757281553398058,
+        "scene_count": 9,
+        "true_positives": 201,
+        "truth_count": 206
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 5,
+        "false_positives": 75,
+        "precision": 0.7282608695652174,
+        "prohibited_structure_hit_rate": 0.021739130434782608,
+        "prohibited_structure_hits": 6,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9757281553398058,
+        "scene_count": 9,
+        "true_positives": 201,
+        "truth_count": 206
+      }
+    }
+  },
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "operating_threshold": 0.1,
+  "onnx_torch_parity": {
+    "confidence_decision_changes": 0,
+    "maximum_absolute_error": 6.198883056640625e-06,
+    "rows": 270236
+  },
+  "threshold_sensitivity_is_descriptive_only": true,
+  "validation": {
+    "unique_tests_passed": 127,
+    "preflight": {
+      "path": "artifacts/goal22-runs/confidence-spatial-preflight-20261002-v1/report.json",
+      "sha256": "f4234c734b7f7958dbf1259c451c7874d627466adbad4661b4fbc13430ce01b1"
+    },
+    "tests_seconds": 13.987,
+    "all_training_inputs_authenticated": true
+  },
+  "development_miss_diagnosis": {
+    "report": {
+      "path": "artifacts/goal22-runs/spatial-dev-geometry-diagnosis-20261002-v1/report.json",
+      "sha256": "466019d6946b5b14728326a51fd8b35c0b432d67e95e661f296d5655cc999f8a"
+    },
+    "counts": {
+      "component": {
+        "above_threshold_support_lost_after_nms_or_matching": 41,
+        "matched": 1889,
+        "no_supported_localized_geometry": 10,
+        "supported_geometry_below_threshold": 64
+      },
+      "family": {
+        "matched": 202,
+        "supported_geometry_below_threshold": 4
+      }
+    },
+    "limitations": [
+      "Per-truth localized support is an opportunity bound, not jointly attainable recall. Shared proposals and NMS can couple nearby truths.",
+      "Every original truth, including tiny and large markers, stays in the denominator. Diameter groups are diagnostic only.",
+      "This uses the existing complete-development decoder and saved outputs. It does not change thresholds, gates, masks or geometry."
+    ]
+  },
+  "workflow": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 181.9119659,
+        "execution_seconds": 191.3048988,
+        "metrics": {
+          "truth": 838,
+          "predicted": 792,
+          "matched": 771,
+          "extra": 21,
+          "missing": 67,
+          "precision": 0.9734848484848485,
+          "recall": 0.9200477326968973
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 774,
+          "matched": 745,
+          "extra": 29,
+          "missing": 93,
+          "precision": 0.962532299741602,
+          "recall": 0.8890214797136038
+        },
+        "paired_truths": {
+          "retained": 739,
+          "recovered": 32,
+          "lost": 6,
+          "missed_by_both": 61
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 381,
+            "role_accuracy": 0.8410596026490066,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 23,
+                "accuracy": 0.7419354838709677
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 381,
+            "role_accuracy": 0.8410596026490066,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 23,
+                "accuracy": 0.7419354838709677
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 358,
+          "wrong_in_both": 95
+        },
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "d383f4720a3535c2d486939bfae01ba7a78c284f9422406a8255208d1e505b95"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 70,
+          "accepted_additions": 278,
+          "accepted_removals": 260,
+          "changed_truth_readings": 0
+        },
+        "upstream_change_fields": {
+          "calibration": 31,
+          "marker_pipeline": 31,
+          "ocr": 8
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 196.13456090000003,
+        "execution_seconds": 199.3657588,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 32,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 416,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 414,
+          "correct_rows": 411,
+          "missing_rows": 310,
+          "extra_rows": 12,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 416,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 290,
+          "unique_point_extra": 10,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9765258215962441,
+          "unique_point_structural_coverage": 0.5892351274787535,
+          "unique_point_value_precision": 0.9765258215962441,
+          "unique_point_value_coverage": 0.5892351274787535,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9647887323943662,
+          "relational_row_coverage": 0.5676795580110497,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927536231884058,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 20,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 261,
+            "matched_points": 258,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 261,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 256,
+            "correct_rows": 253,
+            "missing_rows": 244,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 258,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 242,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9885057471264368,
+            "unique_point_structural_coverage": 0.516,
+            "unique_point_value_precision": 0.9885057471264368,
+            "unique_point_value_coverage": 0.516,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9693486590038314,
+            "relational_row_coverage": 0.506,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.98828125,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 12,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 158,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 158,
+            "correct_rows": 158,
+            "missing_rows": 66,
+            "extra_rows": 7,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 158,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 48,
+            "unique_point_extra": 7,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9575757575757575,
+            "unique_point_structural_coverage": 0.7669902912621359,
+            "unique_point_value_precision": 0.9575757575757575,
+            "unique_point_value_coverage": 0.7669902912621359,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9575757575757575,
+            "relational_row_coverage": 0.7053571428571429,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "validated_export_rows": 426,
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "d383f4720a3535c2d486939bfae01ba7a78c284f9422406a8255208d1e505b95"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 81,
+          "accepted_additions": 106,
+          "accepted_removals": 109,
+          "status_changes": 2,
+          "exported_numeric_value_changes": 11
+        },
+        "upstream_change_fields": {
+          "calibration": 39,
+          "marker_pipeline": 39,
+          "ocr": 3
+        }
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 190.9621952,
+        "execution_seconds": 198.7904149,
+        "metrics": {
+          "truth": 838,
+          "predicted": 791,
+          "matched": 774,
+          "extra": 17,
+          "missing": 64,
+          "precision": 0.9785082174462706,
+          "recall": 0.9236276849642004
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 772,
+          "matched": 749,
+          "extra": 23,
+          "missing": 89,
+          "precision": 0.9702072538860104,
+          "recall": 0.8937947494033412
+        },
+        "paired_truths": {
+          "retained": 743,
+          "recovered": 31,
+          "lost": 6,
+          "missed_by_both": 58
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 491,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 45,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 63,
+            "character_error_count": 113,
+            "character_error_rate": 0.03645161290322581,
+            "role_correct_count": 432,
+            "role_accuracy": 0.9536423841059603,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 52,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 31,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 491,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 45,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 63,
+            "character_error_count": 113,
+            "character_error_rate": 0.03645161290322581,
+            "role_correct_count": 432,
+            "role_accuracy": 0.9536423841059603,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 52,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 31,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 431,
+          "wrong_in_both": 22
+        },
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "d383f4720a3535c2d486939bfae01ba7a78c284f9422406a8255208d1e505b95"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 73,
+          "accepted_additions": 278,
+          "accepted_removals": 259,
+          "changed_truth_readings": 0
+        },
+        "upstream_change_fields": {
+          "calibration": 31,
+          "marker_pipeline": 31,
+          "ocr": 11
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 283.27209220000003,
+        "execution_seconds": 286.5940957,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 32,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 431,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 429,
+          "correct_rows": 418,
+          "missing_rows": 295,
+          "extra_rows": 11,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 431,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 275,
+          "unique_point_extra": 9,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9795454545454545,
+          "unique_point_structural_coverage": 0.6104815864022662,
+          "unique_point_value_precision": 0.9795454545454545,
+          "unique_point_value_coverage": 0.6104815864022662,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.95,
+          "relational_row_coverage": 0.5773480662983426,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9743589743589743,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 14,
+            "failed_cases": 6,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 18,
+            "truth_points": 500,
+            "predicted_points": 276,
+            "matched_points": 273,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 276,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 271,
+            "correct_rows": 260,
+            "missing_rows": 229,
+            "extra_rows": 5,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 273,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 227,
+            "unique_point_extra": 3,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9891304347826086,
+            "unique_point_structural_coverage": 0.546,
+            "unique_point_value_precision": 0.9891304347826086,
+            "unique_point_value_coverage": 0.546,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9420289855072463,
+            "relational_row_coverage": 0.52,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.959409594095941,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 6
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 11,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 164,
+            "matched_points": 158,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 164,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 158,
+            "correct_rows": 158,
+            "missing_rows": 66,
+            "extra_rows": 6,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 158,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 48,
+            "unique_point_extra": 6,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9634146341463414,
+            "unique_point_structural_coverage": 0.7669902912621359,
+            "unique_point_value_precision": 0.9634146341463414,
+            "unique_point_value_coverage": 0.7669902912621359,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9634146341463414,
+            "relational_row_coverage": 0.7053571428571429,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "validated_export_rows": 440,
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "d383f4720a3535c2d486939bfae01ba7a78c284f9422406a8255208d1e505b95"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 82,
+          "accepted_additions": 106,
+          "accepted_removals": 109,
+          "status_changes": 1,
+          "exported_numeric_value_changes": 12
+        },
+        "upstream_change_fields": {
+          "calibration": 39,
+          "marker_pipeline": 39,
+          "ocr": 4
+        }
+      }
+    }
+  },
+  "training_fit": [
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 6856,
+          "quantiles": [
+            1.25468936354674e-20,
+            8.30180311973093e-14,
+            1.4047021323904119e-09,
+            4.079788141098106e-06,
+            0.0009008478955365717
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 300,
+          "above_historical_0_25": 113,
+          "count": 32580,
+          "quantiles": [
+            2.417836744169236e-23,
+            4.240215860720765e-12,
+            6.511560570743313e-07,
+            0.0013448314624838532,
+            0.9348782300949097
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 300,
+          "above_historical_0_25": 113,
+          "count": 25724,
+          "quantiles": [
+            2.417836744169236e-23,
+            1.3729057127265252e-11,
+            1.8590515651339956e-06,
+            0.002476480253972115,
+            0.9348782300949097
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3250,
+          "above_historical_0_25": 3236,
+          "count": 3258,
+          "quantiles": [
+            7.574900519102812e-05,
+            0.8556980550289155,
+            0.9963299632072449,
+            0.9999959468841553,
+            1.0
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9998198230280584,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 6856,
+          "quantiles": [
+            3.628482930784216e-11,
+            2.142892512324579e-07,
+            1.4472766451945063e-05,
+            0.000486342134536244,
+            0.059725165367126465
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 356,
+          "above_historical_0_25": 97,
+          "count": 32580,
+          "quantiles": [
+            3.89328001261513e-13,
+            1.3534376250845525e-07,
+            2.1307550923665985e-05,
+            0.002487917384132749,
+            0.7627601027488708
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 356,
+          "above_historical_0_25": 97,
+          "count": 25724,
+          "quantiles": [
+            3.89328001261513e-13,
+            1.2206172641526792e-07,
+            2.3744947611703537e-05,
+            0.003973698709160095,
+            0.7627601027488708
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3258,
+          "above_historical_0_25": 3258,
+          "count": 3258,
+          "quantiles": [
+            0.4200720489025116,
+            0.9172977864742279,
+            0.9855715930461884,
+            0.9984248161315918,
+            0.9999992847442627
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9999981440594263,
+      "rows": 35838,
+      "scope": "component"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 49,
+          "above_historical_0_25": 22,
+          "count": 1761,
+          "quantiles": [
+            6.801374784551339e-13,
+            2.212195369111214e-07,
+            0.00022275315131992102,
+            0.025983858853578568,
+            0.8907021880149841
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 169,
+          "above_historical_0_25": 76,
+          "count": 8230,
+          "quantiles": [
+            1.4629464614824563e-20,
+            4.223179098095109e-11,
+            3.822706503342488e-06,
+            0.004842340666800742,
+            0.9529924988746643
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 120,
+          "above_historical_0_25": 54,
+          "count": 6469,
+          "quantiles": [
+            1.4629464614824563e-20,
+            2.4358205383268054e-11,
+            8.107758731057402e-07,
+            0.002392362523823972,
+            0.9529924988746643
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 823,
+          "above_historical_0_25": 822,
+          "count": 823,
+          "quantiles": [
+            0.20224444568157196,
+            0.8617169380187988,
+            0.9920918941497803,
+            0.9998348712921142,
+            0.9999998807907104
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9997752938380019,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 10,
+          "above_historical_0_25": 1,
+          "count": 1761,
+          "quantiles": [
+            1.6820721482346812e-09,
+            4.19962452724576e-06,
+            0.00043908192310482264,
+            0.00910204742103815,
+            0.282674640417099
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 232,
+          "above_historical_0_25": 89,
+          "count": 8230,
+          "quantiles": [
+            8.942631357644615e-12,
+            9.650766628510611e-07,
+            0.00012022511145914905,
+            0.01097745243459943,
+            0.7331971526145935
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 222,
+          "above_historical_0_25": 88,
+          "count": 6469,
+          "quantiles": [
+            8.942631357644615e-12,
+            6.967905051169511e-07,
+            7.628805178683251e-05,
+            0.012143138423562029,
+            0.7331971526145935
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 823,
+          "above_historical_0_25": 823,
+          "count": 823,
+          "quantiles": [
+            0.5736701488494873,
+            0.8732131600379944,
+            0.9779291749000549,
+            0.9976542234420777,
+            0.9999356269836426
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9999961613927648,
+      "rows": 9053,
+      "scope": "family"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 3356,
+          "above_historical_0_25": 1656,
+          "count": 23271,
+          "quantiles": [
+            2.024254319721308e-09,
+            5.218160731601529e-05,
+            0.0035197639372199774,
+            0.1698947250843048,
+            0.9948242902755737
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 3610,
+          "above_historical_0_25": 1784,
+          "count": 38884,
+          "quantiles": [
+            4.460253000271308e-10,
+            9.770370161277243e-06,
+            0.000705519545590505,
+            0.08756967261433608,
+            0.9948242902755737
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 254,
+          "above_historical_0_25": 128,
+          "count": 15613,
+          "quantiles": [
+            4.460253000271308e-10,
+            2.9170282687118743e-06,
+            9.316272189607844e-05,
+            0.0038543065544217924,
+            0.9920796751976013
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3699,
+          "above_historical_0_25": 3500,
+          "count": 3863,
+          "quantiles": [
+            0.0004391085240058601,
+            0.26748785376548767,
+            0.8753705024719238,
+            0.9968543767929077,
+            0.9999997615814209
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9831004378888568,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 3056,
+          "above_historical_0_25": 1701,
+          "count": 23271,
+          "quantiles": [
+            7.874346313885283e-11,
+            1.354701817035675e-05,
+            0.0018757631769403815,
+            0.1581084281206131,
+            0.9989049434661865
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 3433,
+          "above_historical_0_25": 1910,
+          "count": 38884,
+          "quantiles": [
+            2.4658157460333285e-12,
+            4.32412421105255e-06,
+            0.0006159147596918046,
+            0.07903236523270615,
+            0.9989049434661865
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 377,
+          "above_historical_0_25": 209,
+          "count": 15613,
+          "quantiles": [
+            2.4658157460333285e-12,
+            1.1964687928411878e-06,
+            0.00015007963520474732,
+            0.008966867253184336,
+            0.9890623688697815
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 2713,
+          "above_historical_0_25": 2245,
+          "count": 3863,
+          "quantiles": [
+            2.075439169857418e-06,
+            0.005696907360106709,
+            0.41042450070381165,
+            0.9694422245025635,
+            0.99973064661026
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9041763319843941,
+      "rows": 42747,
+      "scope": "coverage"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 10977,
+          "above_historical_0_25": 5605,
+          "count": 87774,
+          "quantiles": [
+            2.2166453117478113e-09,
+            2.6443467140779832e-05,
+            0.0020806670654565096,
+            0.14292224645614618,
+            0.9944390058517456
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 11137,
+          "above_historical_0_25": 5639,
+          "count": 165882,
+          "quantiles": [
+            1.193338206029182e-10,
+            4.980761877959596e-06,
+            0.0002658963203430176,
+            0.04802926518023012,
+            0.9944390058517456
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 160,
+          "above_historical_0_25": 34,
+          "count": 78108,
+          "quantiles": [
+            1.193338206029182e-10,
+            2.1014830736021397e-06,
+            5.176333070266992e-05,
+            0.0013769919751212012,
+            0.6715704798698425
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 16206,
+          "above_historical_0_25": 15202,
+          "count": 16732,
+          "quantiles": [
+            0.00039510539500042796,
+            0.2682105034589768,
+            0.8495471477508545,
+            0.9956313848495484,
+            1.0
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9892084192118306,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 8309,
+          "above_historical_0_25": 4521,
+          "count": 87774,
+          "quantiles": [
+            1.5849241407142611e-12,
+            6.11770751675067e-06,
+            0.0008951157215051353,
+            0.08993787243962287,
+            0.9985815286636353
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 9212,
+          "above_historical_0_25": 4947,
+          "count": 165882,
+          "quantiles": [
+            1.5849241407142611e-12,
+            2.798722653096776e-06,
+            0.00028562071383930743,
+            0.031900727376341795,
+            0.9985815286636353
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 903,
+          "above_historical_0_25": 426,
+          "count": 78108,
+          "quantiles": [
+            3.937897750938557e-12,
+            1.5849473470552767e-06,
+            0.00010458525866852142,
+            0.003930788859724999,
+            0.9852377772331238
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 7708,
+          "above_historical_0_25": 5787,
+          "count": 16732,
+          "quantiles": [
+            1.665618398760671e-08,
+            0.0005205017572734506,
+            0.07099158316850662,
+            0.8674579203128812,
+            0.999977707862854
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.8512202438081596,
+      "rows": 182614,
+      "scope": "crowded"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 248,
+          "above_historical_0_25": 109,
+          "count": 6366,
+          "quantiles": [
+            1.8162635284646456e-10,
+            2.3251372113008983e-05,
+            0.002343167783692479,
+            0.040462836623191833,
+            0.9611795544624329
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 248,
+          "above_historical_0_25": 109,
+          "count": 6366,
+          "quantiles": [
+            1.8162635284646456e-10,
+            2.3251372113008983e-05,
+            0.002343167783692479,
+            0.040462836623191833,
+            0.9611795544624329
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        },
+        "positive": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        }
+      },
+      "current_ranking_auc": null,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 655,
+          "above_historical_0_25": 299,
+          "count": 6366,
+          "quantiles": [
+            2.3467677454092062e-11,
+            1.3759496141574346e-05,
+            0.0032138109672814608,
+            0.10312207415699959,
+            0.9495442509651184
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 655,
+          "above_historical_0_25": 299,
+          "count": 6366,
+          "quantiles": [
+            2.3467677454092062e-11,
+            1.3759496141574346e-05,
+            0.0032138109672814608,
+            0.10312207415699959,
+            0.9495442509651184
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        },
+        "positive": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        }
+      },
+      "retained_ranking_auc": null,
+      "rows": 6366,
+      "scope": "crowded_mined_negative"
+    }
+  ],
+  "observed_cpu_model_envelopes": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-spatial-confidence-v35": 140,
+    "marker-classifier-structural-context-v5": 311,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "seconds": {
+    "preflight": 36.4014797,
+    "training_and_development": 213.4782487,
+    "complete_workflow": 877.5309829,
+    "post_workflow_audit_and_fit": 14.012457,
+    "objective_diagnosis": 16.6409684
+  },
+  "cpu_budget": {
+    "cycles": 20776,
+    "maximum_completed_cycle_duty": 0.7998871499807453,
+    "rest_seconds": 48.00668980003138,
+    "scope": "Synchronous guarded work/rest average; not instantaneous per-core utilization",
+    "work_seconds": 147.74937140000839
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/center-confidence-spatial-v35/P1/report.json",
+      "sha256": "ec568380ac58cbc4807049ea98acabe499f08db90040e0615f4aa37174651102"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-confidence-spatial-v35/P1/development.json",
+      "sha256": "31cd1384ac01900b94580749fa4da8c69b5ccd1b152b62fbb3091501d9947491"
+    },
+    {
+      "path": "ml/markers/training-seals/marker-center/marker-center-spatial-confidence-v35/P1/result.json",
+      "sha256": "cbac423a9103b1afb95f05e9e41be9df6150ef7a0f3ec3c49988145bf956c515"
+    },
+    {
+      "path": "ml/markers/training-seals/marker-center/marker-center-spatial-confidence-v35/P1/source-snapshot.json",
+      "sha256": "90d71d6c1d51bce1e4b806430259d2000669a2cef76723248f25f03833abf74d"
+    },
+    {
+      "path": "ml/markers/center/confidence_spatial_v35/p1.json",
+      "sha256": "dd9e886be3fcb93f6da9f0e59327860b62aa8f16731c99c9e97431132e622f57"
+    },
+    {
+      "path": "ml/markers/center/confidence_spatial_v35/protocol.json",
+      "sha256": "225ed7558a57e7aa17153f19bcab7cbb3125b27e0b7edbf5f42583ab30b4e2c1"
+    },
+    {
+      "path": "docs/GOAL-22-SPATIAL-CONFIDENCE-DIAGNOSIS.json",
+      "sha256": "021f42156aec9aab914602398051ef10b538d8beb267a71d5648a798c2751b1b"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-preflight-20261002-v1/report.json",
+      "sha256": "f4234c734b7f7958dbf1259c451c7874d627466adbad4661b4fbc13430ce01b1"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-preflight-20261002-v1/tests.xml",
+      "sha256": "af8774772003ffba7c9bf3a201a4de75449095efe93b112dfea4598017cc3cd8"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-preflight-20261002-v1/admission-preparation.json",
+      "sha256": "647b714019ee4715e719cfc01de50f380d8d526b28010f63996e81556fc846ab"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-fit-diagnosis-20261002-v1/report.json",
+      "sha256": "44e261d2123b818481e2f08f2bcd49460680b14972a71fbd85a6a395aa52cf29"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/comparison-summary.json",
+      "sha256": "d383f4720a3535c2d486939bfae01ba7a78c284f9422406a8255208d1e505b95"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-objective-diagnosis-20261002-v1/report.json",
+      "sha256": "f1f26a375836f52296e60b14bfb5aedbb8e578f4dc8b126137371ceb537e5351"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "artifacts/goal22-runs/spatial-dev-geometry-diagnosis-20261002-v1/report.json",
+      "sha256": "466019d6946b5b14728326a51fd8b35c0b432d67e95e661f296d5655cc999f8a"
+    },
+    {
+      "path": "artifacts/goal22-tools/Close-ConfidenceSpatialV35.py",
+      "sha256": "44b3c69b1062286c28021c25cddda4f3793279a5e372cb9cdb8cf931e6ba6160"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-preflight-20261002-v1/status.json",
+      "sha256": "cb83d110866341d9c9824ccf7c1f6907eee102bfb5dbc1ad2ee88f8b7ce368a7"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-confidence-spatial-v35/status.json",
+      "sha256": "d47eddbd71c28cb0e42054d0ceb97579058a844f74fff39a6ee445ba22082419"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/status.json",
+      "sha256": "b2517193dd48a924dab671c2ef723e6314771a9fe05c99f909a03444328c74f5"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-fit-diagnosis-20261002-v1/status.json",
+      "sha256": "ed38341f35d63b53f6d6eeb44a22ebbe3951cf1af0968169556a8ada868b79d4"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-objective-diagnosis-20261002-v1/status.json",
+      "sha256": "5979db0917d9af7f1117c87a084d79583c63b2c85b768168884740817aa90022"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/status.json",
+      "sha256": "b2517193dd48a924dab671c2ef723e6314771a9fe05c99f909a03444328c74f5"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/jobs.json",
+      "sha256": "1575a84df1362ab1d5582cbd32449d59415ff6ca7cea545fa9a397a6b7c5bb3b"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/source-bindings.json",
+      "sha256": "d0ec40fb5269919001ceb6577da9efa0d0e457268f027c7b2ece227c59d6bcd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/status.json",
+      "sha256": "f6d772a679bdfbf2ce75884000fcd450d80a5fe63d364ae0f3bc29f078bbfaf5"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/source-bindings.json",
+      "sha256": "69a5c3e4fc30de7194da8c95bf14563a1f59ee746ee362124b4c433ba4031397"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/input-bindings.json",
+      "sha256": "d08a63b193426b4e1d0ad3cb2609eec6f40cfd966cc22882bac6da61fcf987ed"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/ocr.trx",
+      "sha256": "70c35b8143806b1d69f60fb543bca19a6969c3797f64ad3419841948e12cf92a"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/app.trx",
+      "sha256": "6124358f5c4f824007b4f91e5eecfa656a627866a8002d14ae131da012234a2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/Ocr-build.log",
+      "sha256": "b3cdcd015aecf50ca725ffc07b0fbdedfa8f6aa354509bc5c23e07ae1461c4ab"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/App-build.log",
+      "sha256": "d99522d640614be1efd505896cca7d3e35c8125c73058f38a45c3cf02902d354"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/native-build.log",
+      "sha256": "b1d2290ea8398137a37d7ab2fd16f0152a80479aaa26839545e58be605ce6745"
+    },
+    {
+      "path": "docs/GOAL-22-SPATIAL-CONFIDENCE-DIAGNOSIS.json",
+      "sha256": "021f42156aec9aab914602398051ef10b538d8beb267a71d5648a798c2751b1b"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-ConfidenceSpatialV35.py",
+      "sha256": "597797117d91547c207cfa6c215d95c7993c0619f43a1ae642099b1bd331ec69"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ConfidenceSpatialV35Evaluation.py",
+      "sha256": "9134bd8ddc9f7fe2ad375d36e3d1d8bec0b2d259667b8491b3ece0d1299d8ceb"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ConfidenceSpatialV35Evaluation.ps1",
+      "sha256": "2b3fa3e3c01bd500f0233e88c486e83faa6efc9506c1b7246892fef4cd260060"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LeftAxisRoleChecks.ps1",
+      "sha256": "a12754014a4ab081538570da3e05709968ff51090dcdb93f0a5e33359840828e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/runtime-description.json",
+      "sha256": "c429d0ec63309318a964b0865a22c205b302c673fa7750993c0f5d5849b9f27d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/marker-center-manifest.json",
+      "sha256": "30cfcd9d1d434b8ee772282a1185fb7e90dcdce41bab55f8a698eeefd40bb603"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/MODEL_NOTICE.md",
+      "sha256": "5f596486388edab7780c50cd803c009ab4f8d5087d4a27332947f8f1d9fa25bd"
+    },
+    {
+      "path": "docs/GOAL-22-FROZEN-CONFIDENCE-PARITY-DIAGNOSIS.json",
+      "sha256": "c880dffa72ceaaeb5d8abf79739a0622e76226cc78e8135b3275bfa0d8259aba"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-native/native-marker-score.json",
+      "sha256": "2037e11926d1a80f417e56ddf4d120130964981a5868fa1561b6e0320f9eebd9"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-native/native-ocr-score.json",
+      "sha256": "c21c14da80034938651748eaf3b2eb6d0c3613e5d281a2428607656c498969a3"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-native/native-ocr-details.json",
+      "sha256": "f85195ed6b4d342b57648751a3462eba95bfbf7c3a88db112d315959a3193666"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-native/axis-geometry-comparison.json",
+      "sha256": "59d3dbc4b0d1774df0893f5bc06552a0036970ac9675a9bdfd2bcf9624772c13"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-native/protocol.json",
+      "sha256": "8ff7e6700ccef87d9e7032ebf668d82b83a57d809d8236644492c19a349523b4"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-native/candidate-binding.json",
+      "sha256": "01da1838929ceff888475d5125238e47782862f78ca22dcdd4ec78b81f0d3af8"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-native/input-manifest.json",
+      "sha256": "9db8e69601a106ffedd61f70881cac6af6cfc03839eb2881d8944467346c071c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-native/execution/report.json",
+      "sha256": "75f64b3b52fa2902dcf6482b73301ee6b8f97772835ffed08ef2c8aeb0695289"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-native/status.json",
+      "sha256": "811df0f48851def33721095944a0ae2520ca49f754d65d8c0683e6abb5e9bcb8"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "ec51de145b823a6d793bf61610c0e1294b0e008d1b6b33dcd0b583a6a9c850e2"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-csv/comparison.json",
+      "sha256": "60d9653a75d6bd79634769b66a082aadd0d48df76687563c4d820b62ff43b23b"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-csv/protocol.json",
+      "sha256": "f7c0a98971c8b117589a971a922d534bd5035acb7fce3d2047f535cb0a724711"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-csv/candidate-binding.json",
+      "sha256": "63c866d2326156a1bed82c6fb80ebba1e39d4b08d2820e6edbaed03c7146f83f"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-csv/input-manifest.json",
+      "sha256": "c47b7c27b9b0669dae38665d2710a40d8ec500d0d7fb0cd8956ab939446967e6"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-csv/execution/report.json",
+      "sha256": "b98d588d1ea4030936fdef7b48e5f38613540f19a1e0abaab09f173a9e388395"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v44-csv/status.json",
+      "sha256": "7a22124357bbc3a418268dafb4b7d1189898e3ede6bd30ebb5604286d6b6c609"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-native/native-marker-score.json",
+      "sha256": "6c2e112d2fde2f6f238721ed5a1c78b0e599ecd772636468a20de1901e4a2143"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-native/native-ocr-score.json",
+      "sha256": "a941f1ccaf77d7de190fa5e02f47746fa55a2be135888587d44d98ffa7fcabe0"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-native/native-ocr-details.json",
+      "sha256": "1af535ad3a578e7b492e4ac4e8466b2631416e645dc452bc4bcb9da6afdbdaf2"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-native/axis-geometry-comparison.json",
+      "sha256": "341b675b2b4e4e37d3ca1937c9deca0c0e5c457c6d6c28f08a492a6369e5cc00"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-native/protocol.json",
+      "sha256": "ba50f4946af9b2ba21502c2bbf2393c9138ead6fce4ba76e038eda1f3dd27efd"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-native/candidate-binding.json",
+      "sha256": "c37ef70ca858d90372b6326a9b366ea1193eb55c659478d44c63ada945f0caf1"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-native/input-manifest.json",
+      "sha256": "0b6f48c33c9839a0e9db299a1c48aaaece2b85d027b695611a857bfbc495b4e6"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-native/execution/report.json",
+      "sha256": "5030ce0639cef99d3127cc6d5f0379fb5df3e4c635e67f93248863894d21860c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-native/status.json",
+      "sha256": "d40286ff953c65bcef172f21f6f892b9c2eb68d42580bd8223930e247e612400"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "f8371e1045aa4605a604dec346ba94685ff01cc661268f24d08fb7497873ac98"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-csv/comparison.json",
+      "sha256": "5d3306db3821ca4b1ffd34c2b9ecbf2302a39f1893ee6217ec129e0d4ff4533b"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-csv/protocol.json",
+      "sha256": "d5577c2969811f26d8693e25c31a412f266b9123e26445f107ebbb087e364210"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-csv/candidate-binding.json",
+      "sha256": "e4497062b93087967dc48d860b76fbb6e6ecb6c5301ca0846ccda4576fcfb413"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-csv/input-manifest.json",
+      "sha256": "42047614183deaca566bf9d396ba34cadda32d478ac44ff385a4a1a5bb2dfa87"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-csv/execution/report.json",
+      "sha256": "800a6293ba9b42b69f79224f6ad8a47406760f1ddcd03fa7c9749ab0a88521e4"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-spatial-v35-evaluation-20261002-v1/v46-csv/status.json",
+      "sha256": "333ca222602cae6eb9b798c72273535d661c65edf081040161c06592be6e2fe1"
+    }
+  ],
+  "decision": "Reject the fixed V35 spatial-confidence candidate because it fails the unchanged shared development bars. Retain V44/English/V27/V5. The full native/CSV effects are preserved in the authenticated local audit. Do not activate or repeat this unchanged candidate.",
+  "license_review": "Owned Apache-2.0 model, synthetic data and source. Existing reviewed OCR/classifier inputs remain checksum-bound. No dependency or imported weights added.",
+  "limitations": [
+    "Equal per-row binary cross-entropy on an enriched training population does not prove calibration on native proposal populations.",
+    "Confidence ordering changes NMS and selected centers even with per-patch geometry frozen.",
+    "Raw accepted-set additions/removals can include numerical movement and are not recovered/lost truth counts; use paired truth measurements.",
+    "Synthetic metrics and validated rows do not establish real acceptance or the runtime safety property by themselves.",
+    "No private/sealed input access, production activation, packaged build or release. Goal22 remains incomplete."
+  ],
+  "candidate_consumed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "release_eligible": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false
+}

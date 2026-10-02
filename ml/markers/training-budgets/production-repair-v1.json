@@ -11060,6 +11060,52 @@
       "candidate_report_sha256": "5c08e29356a584a39cbaf2c736e9b6812875c8ef51473f9aa5c081ac22c87f54",
       "optimizer_steps": 17296,
       "closed_utc_date": "2026-10-02"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-spatial-confidence-v35",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/confidence_spatial_v35/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "dd9e886be3fcb93f6da9f0e59327860b62aa8f16731c99c9e97431132e622f57"
+      },
+      "protocol_path": "ml/markers/center/confidence_spatial_v35/protocol.json",
+      "protocol_sha256": "225ed7558a57e7aa17153f19bcab7cbb3125b27e0b7edbf5f42583ab30b4e2c1",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned train/dev-only spatial confidence projection under continued Goal22 authorization. No private/sealed input access, production activation or release.",
+      "isolated_change": "Train a separate768-to64 SiLU-to1 confidence path initialized from the retainedV27 projection and confidence output row:49281trainableparameters. Share the frozen convolution towers and preserve every originalV27 parameter and normalization buffer for geometry. Use all276618 unchanged owned training rows and the same unweightedBCE,AdamW0.0003,weight_decay0.0001,batch128,seed20261002,8epochs,17296steps,gradient_limit5 and finalepoch selection. No geometry, threshold, sampling, label or proposal change.",
+      "optimizer_steps_expected": 17296,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "logical_processor_count": 12,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/center/confidence_spatial_v35/P1_RESULT.json",
+      "outcome_sha256": "866454722411e4c1ef4164d1924f84fca5f5545d77c5bb361a27617a97d5da00",
+      "candidate_report_sha256": "ec568380ac58cbc4807049ea98acabe499f08db90040e0615f4aa37174651102",
+      "optimizer_steps": 17296,
+      "closed_utc_date": "2026-10-02"
     }
   ]
 }
