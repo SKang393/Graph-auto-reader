@@ -1,0 +1,1905 @@
+{
+  "schema": "graphreader.residual-confidence-outcome.v1",
+  "task": "marker-center",
+  "revision": "marker-center-residual-confidence-v34",
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "acceptance_status": "FAIL",
+  "closed_utc": "2026-10-02T20:47:38.471068+00:00",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/center-confidence-residual-v34/P1/report.json",
+    "sha256": "5c08e29356a584a39cbaf2c736e9b6812875c8ef51473f9aa5c081ac22c87f54"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-residual-confidence-v34/P1/result.json",
+    "sha256": "55c27cd5f9e40cd43df9c656f090df3fc8fbd38ccf237cc6b7b5d1fa5747d997"
+  },
+  "onnx_sha256": "7cf2be052c735a00e121ea8976212c7ff86cf7bf1f93d50a9e69d45cd7c30d76",
+  "checkpoint_sha256": "6fd29f2770f583f011058cb16d2252414a30d92d8e58f3f270a2f1ab685a72c2",
+  "source_binding": {
+    "snapshot": {
+      "path": "ml/markers/training-seals/marker-center/marker-center-residual-confidence-v34/P1/source-snapshot.json",
+      "sha256": "1595934b5cf162423e08c6cd7103a77d5d7e9e143b3f3752a849ee225f80ea1a"
+    },
+    "bundle_sha256": "8459f42e04013b4c58626a402e22cfb2a81dae09edcccc3091bab8024f2aa19a",
+    "verified_before_ledger_close": true
+  },
+  "training": {
+    "completed_epochs": 8,
+    "history": [
+      {
+        "epoch": 1,
+        "mean_loss": 0.16498188098081001,
+        "optimizer_steps": 2162
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 0.14976430047651498,
+        "optimizer_steps": 4324
+      },
+      {
+        "epoch": 3,
+        "mean_loss": 0.14686116636330115,
+        "optimizer_steps": 6486
+      },
+      {
+        "epoch": 4,
+        "mean_loss": 0.1447099644714875,
+        "optimizer_steps": 8648
+      },
+      {
+        "epoch": 5,
+        "mean_loss": 0.14277991370076554,
+        "optimizer_steps": 10810
+      },
+      {
+        "epoch": 6,
+        "mean_loss": 0.1411310925693781,
+        "optimizer_steps": 12972
+      },
+      {
+        "epoch": 7,
+        "mean_loss": 0.13983816801502294,
+        "optimizer_steps": 15134
+      },
+      {
+        "epoch": 8,
+        "mean_loss": 0.13866289531179704,
+        "optimizer_steps": 17296
+      }
+    ],
+    "optimizer_steps": 17296,
+    "optimizer_steps_this_execution": 17296,
+    "resumed_from_epoch": 0,
+    "training_source_binding": {
+      "candidate_id": "P1",
+      "expected_runner_source_bundle_sha256": "8459f42e04013b4c58626a402e22cfb2a81dae09edcccc3091bab8024f2aa19a",
+      "feature_report_sha256": "d815bf0c20a3101d3713e7cf04d2cb3afe5e0c26c3c51650773e66e35614e147",
+      "recipe": {
+        "batch_size": 128,
+        "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+        "confidence_mapping": "frozen_baseline_plus_64x64_silu_residual",
+        "confidence_objective": "unweighted_binary_cross_entropy_with_logits",
+        "confidence_threshold": 0.1,
+        "epochs": 8,
+        "frozen_base_confidence": true,
+        "frozen_features": true,
+        "frozen_geometry": true,
+        "frozen_normalization_buffers": true,
+        "gradient_norm_limit": 5.0,
+        "learning_rate": 0.0003,
+        "seed": 20261002,
+        "trainable_parameters": 4225,
+        "weight_decay": 0.0001
+      },
+      "revision": "marker-center-residual-confidence-v34",
+      "source_checkpoint_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365",
+      "task": "marker-center",
+      "training_group_rows": {
+        "component": 35838,
+        "coverage": 42747,
+        "crowded": 182614,
+        "crowded_mined_negative": 6366,
+        "family": 9053
+      }
+    }
+  },
+  "training_group_rows": {
+    "component": 35838,
+    "coverage": 42747,
+    "crowded": 182614,
+    "crowded_mined_negative": 6366,
+    "family": 9053
+  },
+  "total_training_rows": 276618,
+  "trainable_parameters": 4225,
+  "frozen_other_parameters": 63452,
+  "all_features_normalization_and_geometry_state_unchanged": true,
+  "retained_confidence_parameters_unchanged": true,
+  "geometry_maximum_absolute_change": 3.814697265625e-06,
+  "development": {
+    "component": {
+      "candidate_balanced": {
+        "duplicate_count": 2,
+        "false_negatives": 96,
+        "false_positives": 643,
+        "precision": 0.7479419835358683,
+        "prohibited_structure_hit_rate": 0.0011760094080752645,
+        "prohibited_structure_hits": 3,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9520958083832335,
+        "scene_count": 167,
+        "true_positives": 1908,
+        "truth_count": 2004
+      },
+      "candidate_historical": {
+        "duplicate_count": 2,
+        "false_negatives": 96,
+        "false_positives": 736,
+        "precision": 0.7216338880484114,
+        "prohibited_structure_hit_rate": 0.0011346444780635401,
+        "prohibited_structure_hits": 3,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9520958083832335,
+        "scene_count": 167,
+        "true_positives": 1908,
+        "truth_count": 2004
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 142,
+        "false_positives": 358,
+        "precision": 0.8387387387387387,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9291417165668663,
+        "scene_count": 167,
+        "true_positives": 1862,
+        "truth_count": 2004
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 140,
+        "false_positives": 426,
+        "precision": 0.8139737991266376,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9301397205588823,
+        "scene_count": 167,
+        "true_positives": 1864,
+        "truth_count": 2004
+      }
+    },
+    "family": {
+      "candidate_balanced": {
+        "duplicate_count": 1,
+        "false_negatives": 0,
+        "false_positives": 166,
+        "precision": 0.553763440860215,
+        "prohibited_structure_hit_rate": 0.03225806451612903,
+        "prohibited_structure_hits": 12,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 1.0,
+        "scene_count": 9,
+        "true_positives": 206,
+        "truth_count": 206
+      },
+      "candidate_historical": {
+        "duplicate_count": 1,
+        "false_negatives": 1,
+        "false_positives": 182,
+        "precision": 0.5297157622739018,
+        "prohibited_structure_hit_rate": 0.031007751937984496,
+        "prohibited_structure_hits": 12,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9951456310679612,
+        "scene_count": 9,
+        "true_positives": 205,
+        "truth_count": 206
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 5,
+        "false_positives": 75,
+        "precision": 0.7282608695652174,
+        "prohibited_structure_hit_rate": 0.021739130434782608,
+        "prohibited_structure_hits": 6,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9757281553398058,
+        "scene_count": 9,
+        "true_positives": 201,
+        "truth_count": 206
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 5,
+        "false_positives": 75,
+        "precision": 0.7282608695652174,
+        "prohibited_structure_hit_rate": 0.021739130434782608,
+        "prohibited_structure_hits": 6,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9757281553398058,
+        "scene_count": 9,
+        "true_positives": 201,
+        "truth_count": 206
+      }
+    }
+  },
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "operating_threshold": 0.1,
+  "onnx_torch_parity": {
+    "confidence_decision_changes": 0,
+    "maximum_absolute_error": 6.198883056640625e-06,
+    "rows": 270236
+  },
+  "threshold_sensitivity_is_descriptive_only": true,
+  "validation": {
+    "unique_tests_passed": 100,
+    "preflight": {
+      "path": "artifacts/goal22-runs/confidence-residual-preflight-20261002-v1/report.json",
+      "sha256": "a66d1e49ee9f1a8abdee1fd5ba6d3d0f63078779bec283f3bda78277155d4fdc"
+    },
+    "tests_seconds": 10.044,
+    "all_training_inputs_authenticated": true
+  },
+  "workflow": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 177.26914920000002,
+        "execution_seconds": 186.8944914,
+        "metrics": {
+          "truth": 838,
+          "predicted": 828,
+          "matched": 787,
+          "extra": 41,
+          "missing": 51,
+          "precision": 0.9504830917874396,
+          "recall": 0.9391408114558473
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 774,
+          "matched": 745,
+          "extra": 29,
+          "missing": 93,
+          "precision": 0.962532299741602,
+          "recall": 0.8890214797136038
+        },
+        "paired_truths": {
+          "retained": 745,
+          "recovered": 42,
+          "lost": 0,
+          "missed_by_both": 51
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 381,
+            "role_accuracy": 0.8410596026490066,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 23,
+                "accuracy": 0.7419354838709677
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 381,
+            "role_accuracy": 0.8410596026490066,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 23,
+                "accuracy": 0.7419354838709677
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 358,
+          "wrong_in_both": 95
+        },
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "63097d45aacc71b095e17de8f2b0cfd8005b33ed6a18b6abf63640ff22b41e47"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 70,
+          "accepted_additions": 254,
+          "accepted_removals": 200,
+          "changed_truth_readings": 0
+        },
+        "upstream_change_fields": {
+          "calibration": 31,
+          "marker_pipeline": 31,
+          "ocr": 8
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 205.6779113,
+        "execution_seconds": 210.0835171,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 14,
+          "failed_cases": 9,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 36,
+          "matched_series": 24,
+          "truth_points": 706,
+          "predicted_points": 403,
+          "matched_points": 384,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 403,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 382,
+          "correct_rows": 379,
+          "missing_rows": 342,
+          "extra_rows": 21,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 384,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 322,
+          "unique_point_extra": 19,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9528535980148883,
+          "unique_point_structural_coverage": 0.5439093484419264,
+          "unique_point_value_precision": 0.9528535980148883,
+          "unique_point_value_coverage": 0.5439093484419264,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9404466501240695,
+          "relational_row_coverage": 0.5234806629834254,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9921465968586387,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 9
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 12,
+            "failed_cases": 8,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 16,
+            "truth_points": 500,
+            "predicted_points": 238,
+            "matched_points": 233,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 238,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 231,
+            "correct_rows": 228,
+            "missing_rows": 269,
+            "extra_rows": 7,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 233,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 267,
+            "unique_point_extra": 5,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9789915966386554,
+            "unique_point_structural_coverage": 0.466,
+            "unique_point_value_precision": 0.9789915966386554,
+            "unique_point_value_coverage": 0.466,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.957983193277311,
+            "relational_row_coverage": 0.456,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.987012987012987,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 8
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 15,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 151,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 151,
+            "correct_rows": 151,
+            "missing_rows": 73,
+            "extra_rows": 14,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 151,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 55,
+            "unique_point_extra": 14,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9151515151515152,
+            "unique_point_structural_coverage": 0.7330097087378641,
+            "unique_point_value_precision": 0.9151515151515152,
+            "unique_point_value_coverage": 0.7330097087378641,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9151515151515152,
+            "relational_row_coverage": 0.6741071428571429,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "validated_export_rows": 403,
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "63097d45aacc71b095e17de8f2b0cfd8005b33ed6a18b6abf63640ff22b41e47"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 81,
+          "accepted_additions": 90,
+          "accepted_removals": 72,
+          "status_changes": 2,
+          "exported_numeric_value_changes": 12
+        },
+        "upstream_change_fields": {
+          "calibration": 39,
+          "marker_pipeline": 39,
+          "ocr": 3
+        }
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 208.1914013,
+        "execution_seconds": 222.2523338,
+        "metrics": {
+          "truth": 838,
+          "predicted": 825,
+          "matched": 791,
+          "extra": 34,
+          "missing": 47,
+          "precision": 0.9587878787878787,
+          "recall": 0.9439140811455847
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 772,
+          "matched": 749,
+          "extra": 23,
+          "missing": 89,
+          "precision": 0.9702072538860104,
+          "recall": 0.8937947494033412
+        },
+        "paired_truths": {
+          "retained": 749,
+          "recovered": 42,
+          "lost": 0,
+          "missed_by_both": 47
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 488,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 42,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 60,
+            "character_error_count": 110,
+            "character_error_rate": 0.035483870967741936,
+            "role_correct_count": 432,
+            "role_accuracy": 0.9536423841059603,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 52,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 31,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 491,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 45,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 63,
+            "character_error_count": 113,
+            "character_error_rate": 0.03645161290322581,
+            "role_correct_count": 432,
+            "role_accuracy": 0.9536423841059603,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 52,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 31,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 431,
+          "wrong_in_both": 22
+        },
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "63097d45aacc71b095e17de8f2b0cfd8005b33ed6a18b6abf63640ff22b41e47"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 73,
+          "accepted_additions": 251,
+          "accepted_removals": 198,
+          "changed_truth_readings": 0
+        },
+        "upstream_change_fields": {
+          "calibration": 31,
+          "marker_pipeline": 31,
+          "ocr": 11
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 219.24790839999997,
+        "execution_seconds": 223.5097745,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 37,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 418,
+          "matched_points": 399,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 418,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 397,
+          "correct_rows": 386,
+          "missing_rows": 327,
+          "extra_rows": 21,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 399,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 307,
+          "unique_point_extra": 19,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9545454545454546,
+          "unique_point_structural_coverage": 0.5651558073654391,
+          "unique_point_value_precision": 0.9545454545454546,
+          "unique_point_value_coverage": 0.5651558073654391,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9234449760765551,
+          "relational_row_coverage": 0.5331491712707183,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9722921914357683,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 22,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 253,
+            "matched_points": 248,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 253,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 246,
+            "correct_rows": 235,
+            "missing_rows": 254,
+            "extra_rows": 7,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 248,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 252,
+            "unique_point_extra": 5,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9802371541501976,
+            "unique_point_structural_coverage": 0.496,
+            "unique_point_value_precision": 0.9802371541501976,
+            "unique_point_value_coverage": 0.496,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9288537549407114,
+            "relational_row_coverage": 0.47,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.9552845528455285,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 15,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 151,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 151,
+            "correct_rows": 151,
+            "missing_rows": 73,
+            "extra_rows": 14,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 151,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 55,
+            "unique_point_extra": 14,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9151515151515152,
+            "unique_point_structural_coverage": 0.7330097087378641,
+            "unique_point_value_precision": 0.9151515151515152,
+            "unique_point_value_coverage": 0.7330097087378641,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9151515151515152,
+            "relational_row_coverage": 0.6741071428571429,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "validated_export_rows": 418,
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "63097d45aacc71b095e17de8f2b0cfd8005b33ed6a18b6abf63640ff22b41e47"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 82,
+          "accepted_additions": 92,
+          "accepted_removals": 72,
+          "status_changes": 2,
+          "exported_numeric_value_changes": 13
+        },
+        "upstream_change_fields": {
+          "calibration": 39,
+          "marker_pipeline": 39,
+          "ocr": 4
+        }
+      }
+    }
+  },
+  "training_fit": [
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 6856,
+          "quantiles": [
+            1.65148108521862e-08,
+            3.7338343190640444e-06,
+            0.000255141087109223,
+            0.009649698622524738,
+            0.07408005744218826
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 1104,
+          "above_historical_0_25": 355,
+          "count": 32580,
+          "quantiles": [
+            1.5276958587051581e-09,
+            7.43425966902578e-06,
+            0.001033402164466679,
+            0.02571617979556323,
+            0.8778873085975647
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 1104,
+          "above_historical_0_25": 355,
+          "count": 25724,
+          "quantiles": [
+            1.5276958587051581e-09,
+            9.886033603834221e-06,
+            0.0013199345557950437,
+            0.034992880001664166,
+            0.8778873085975647
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3248,
+          "above_historical_0_25": 3223,
+          "count": 3258,
+          "quantiles": [
+            0.024083212018013,
+            0.741989028453827,
+            0.9681700170040131,
+            0.9970147132873535,
+            0.999994158744812
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9995067908582962,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 6856,
+          "quantiles": [
+            3.628482930784216e-11,
+            2.142892512324579e-07,
+            1.4472766451945063e-05,
+            0.000486342134536244,
+            0.059725165367126465
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 356,
+          "above_historical_0_25": 97,
+          "count": 32580,
+          "quantiles": [
+            3.89328001261513e-13,
+            1.3534376250845525e-07,
+            2.1307550923665985e-05,
+            0.002487917384132749,
+            0.7627601027488708
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 356,
+          "above_historical_0_25": 97,
+          "count": 25724,
+          "quantiles": [
+            3.89328001261513e-13,
+            1.2206172641526792e-07,
+            2.3744947611703537e-05,
+            0.003973698709160095,
+            0.7627601027488708
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3258,
+          "above_historical_0_25": 3258,
+          "count": 3258,
+          "quantiles": [
+            0.4200720489025116,
+            0.9172977864742279,
+            0.9855715930461884,
+            0.9984248161315918,
+            0.9999992847442627
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9999981440594263,
+      "rows": 35838,
+      "scope": "component"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 245,
+          "above_historical_0_25": 95,
+          "count": 1761,
+          "quantiles": [
+            5.185716531741491e-07,
+            0.0002697650052141398,
+            0.0075431885197758675,
+            0.16359414160251617,
+            0.8007678985595703
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 668,
+          "above_historical_0_25": 240,
+          "count": 8230,
+          "quantiles": [
+            3.763278471069498e-07,
+            6.632930308114737e-05,
+            0.002657584729604423,
+            0.07259103953838353,
+            0.8842375874519348
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 423,
+          "above_historical_0_25": 145,
+          "count": 6469,
+          "quantiles": [
+            3.763278471069498e-07,
+            4.687193504651077e-05,
+            0.002097469288855791,
+            0.053201777487993186,
+            0.8842375874519348
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 823,
+          "above_historical_0_25": 820,
+          "count": 823,
+          "quantiles": [
+            0.14353373646736145,
+            0.7344955921173095,
+            0.9628840088844299,
+            0.997381067276001,
+            0.9999626874923706
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9994980282846297,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 10,
+          "above_historical_0_25": 1,
+          "count": 1761,
+          "quantiles": [
+            1.6820721482346812e-09,
+            4.19962452724576e-06,
+            0.00043908192310482264,
+            0.00910204742103815,
+            0.282674640417099
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 232,
+          "above_historical_0_25": 89,
+          "count": 8230,
+          "quantiles": [
+            8.942631357644615e-12,
+            9.650766628510611e-07,
+            0.00012022511145914905,
+            0.01097745243459943,
+            0.7331971526145935
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 222,
+          "above_historical_0_25": 88,
+          "count": 6469,
+          "quantiles": [
+            8.942631357644615e-12,
+            6.967905051169511e-07,
+            7.628805178683251e-05,
+            0.012143138423562029,
+            0.7331971526145935
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 823,
+          "above_historical_0_25": 823,
+          "count": 823,
+          "quantiles": [
+            0.5736701488494873,
+            0.8732131600379944,
+            0.9779291749000549,
+            0.9976542234420777,
+            0.9999356269836426
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9999961613927648,
+      "rows": 9053,
+      "scope": "family"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 6535,
+          "above_historical_0_25": 2923,
+          "count": 23271,
+          "quantiles": [
+            2.9229836400190834e-06,
+            0.0016261473065242171,
+            0.030746163800358772,
+            0.2974698841571808,
+            0.9930201172828674
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 7162,
+          "above_historical_0_25": 3176,
+          "count": 38884,
+          "quantiles": [
+            3.28622689949043e-07,
+            0.0001955364627065137,
+            0.008871837053447962,
+            0.20876530408859276,
+            0.9930201172828674
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 627,
+          "above_historical_0_25": 253,
+          "count": 15613,
+          "quantiles": [
+            3.28622689949043e-07,
+            6.360178085742519e-05,
+            0.0009946645004674792,
+            0.027463746443390863,
+            0.9801982045173645
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3537,
+          "above_historical_0_25": 3142,
+          "count": 3863,
+          "quantiles": [
+            0.00014432301395572722,
+            0.12280089259147647,
+            0.594211995601654,
+            0.9661097884178161,
+            0.999679446220398
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9442309880030272,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 3056,
+          "above_historical_0_25": 1701,
+          "count": 23271,
+          "quantiles": [
+            7.874346313885283e-11,
+            1.354701817035675e-05,
+            0.0018757631769403815,
+            0.1581084281206131,
+            0.9989049434661865
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 3433,
+          "above_historical_0_25": 1910,
+          "count": 38884,
+          "quantiles": [
+            2.4658157460333285e-12,
+            4.32412421105255e-06,
+            0.0006159147596918046,
+            0.07903236523270615,
+            0.9989049434661865
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 377,
+          "above_historical_0_25": 209,
+          "count": 15613,
+          "quantiles": [
+            2.4658157460333285e-12,
+            1.1964687928411878e-06,
+            0.00015007963520474732,
+            0.008966867253184336,
+            0.9890623688697815
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 2713,
+          "above_historical_0_25": 2245,
+          "count": 3863,
+          "quantiles": [
+            2.075439169857418e-06,
+            0.005696907360106709,
+            0.41042450070381165,
+            0.9694422245025635,
+            0.99973064661026
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9041763319843941,
+      "rows": 42747,
+      "scope": "coverage"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 23129,
+          "above_historical_0_25": 10089,
+          "count": 87774,
+          "quantiles": [
+            5.463936076921527e-07,
+            0.0012571705388836566,
+            0.02712642028927803,
+            0.27836875319480886,
+            0.9976683259010315
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 24465,
+          "above_historical_0_25": 10455,
+          "count": 165882,
+          "quantiles": [
+            3.4846851804104517e-07,
+            0.00012641267967410387,
+            0.004553171340376139,
+            0.163988634943962,
+            0.9976683259010315
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 1336,
+          "above_historical_0_25": 366,
+          "count": 78108,
+          "quantiles": [
+            3.4846851804104517e-07,
+            5.4480915059684784e-05,
+            0.0006722957768943161,
+            0.012925512623041868,
+            0.8919713497161865
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 14635,
+          "above_historical_0_25": 11598,
+          "count": 16732,
+          "quantiles": [
+            0.00019244116265326738,
+            0.08055194765329361,
+            0.42535194754600525,
+            0.8888404369354247,
+            0.9999101161956787
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9393061081055625,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 8309,
+          "above_historical_0_25": 4521,
+          "count": 87774,
+          "quantiles": [
+            1.5849241407142611e-12,
+            6.11770751675067e-06,
+            0.0008951157215051353,
+            0.08993787243962287,
+            0.9985815286636353
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 9212,
+          "above_historical_0_25": 4947,
+          "count": 165882,
+          "quantiles": [
+            1.5849241407142611e-12,
+            2.798722653096776e-06,
+            0.00028562071383930743,
+            0.031900727376341795,
+            0.9985815286636353
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 903,
+          "above_historical_0_25": 426,
+          "count": 78108,
+          "quantiles": [
+            3.937897750938557e-12,
+            1.5849473470552767e-06,
+            0.00010458525866852142,
+            0.003930788859724999,
+            0.9852377772331238
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 7708,
+          "above_historical_0_25": 5787,
+          "count": 16732,
+          "quantiles": [
+            1.665618398760671e-08,
+            0.0005205017572734506,
+            0.07099158316850662,
+            0.8674579203128812,
+            0.999977707862854
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.8512202438081596,
+      "rows": 182614,
+      "scope": "crowded"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 1007,
+          "above_historical_0_25": 456,
+          "count": 6366,
+          "quantiles": [
+            4.938482106808806e-06,
+            0.0004857373860431835,
+            0.00956666748970747,
+            0.18252045661211014,
+            0.8952006101608276
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 1007,
+          "above_historical_0_25": 456,
+          "count": 6366,
+          "quantiles": [
+            4.938482106808806e-06,
+            0.0004857373860431835,
+            0.00956666748970747,
+            0.18252045661211014,
+            0.8952006101608276
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        },
+        "positive": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        }
+      },
+      "current_ranking_auc": null,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 655,
+          "above_historical_0_25": 299,
+          "count": 6366,
+          "quantiles": [
+            2.3467677454092062e-11,
+            1.3759496141574346e-05,
+            0.0032138109672814608,
+            0.10312207415699959,
+            0.9495442509651184
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 655,
+          "above_historical_0_25": 299,
+          "count": 6366,
+          "quantiles": [
+            2.3467677454092062e-11,
+            1.3759496141574346e-05,
+            0.0032138109672814608,
+            0.10312207415699959,
+            0.9495442509651184
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        },
+        "positive": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        }
+      },
+      "retained_ranking_auc": null,
+      "rows": 6366,
+      "scope": "crowded_mined_negative"
+    }
+  ],
+  "observed_cpu_model_envelopes": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-residual-confidence-v34": 140,
+    "marker-classifier-structural-context-v5": 375,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "seconds": {
+    "preflight": 26.3744336,
+    "training_and_development": 190.2716582,
+    "complete_workflow": 844.1519277,
+    "post_workflow_audit_and_fit": 16.4583668,
+    "objective_diagnosis": 16.6409684
+  },
+  "cpu_budget": {
+    "cycles": 20776,
+    "maximum_completed_cycle_duty": 0.7998290175016769,
+    "rest_seconds": 43.452520900026684,
+    "scope": "Synchronous guarded work/rest average; not instantaneous per-core utilization",
+    "work_seconds": 129.73762369984524
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/center-confidence-residual-v34/P1/report.json",
+      "sha256": "5c08e29356a584a39cbaf2c736e9b6812875c8ef51473f9aa5c081ac22c87f54"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-confidence-residual-v34/P1/development.json",
+      "sha256": "ab80f9531249a6b4ae424c1414a5a5931c89de7ef3eef3977297bbb48f8fb642"
+    },
+    {
+      "path": "ml/markers/training-seals/marker-center/marker-center-residual-confidence-v34/P1/result.json",
+      "sha256": "55c27cd5f9e40cd43df9c656f090df3fc8fbd38ccf237cc6b7b5d1fa5747d997"
+    },
+    {
+      "path": "ml/markers/training-seals/marker-center/marker-center-residual-confidence-v34/P1/source-snapshot.json",
+      "sha256": "1595934b5cf162423e08c6cd7103a77d5d7e9e143b3f3752a849ee225f80ea1a"
+    },
+    {
+      "path": "ml/markers/center/confidence_residual_v34/p1.json",
+      "sha256": "f45e8def64570c5f140a3f1bfbcaabf2262d37e7681687dc4ad50184aa40b596"
+    },
+    {
+      "path": "ml/markers/center/confidence_residual_v34/protocol.json",
+      "sha256": "d3f8488857cbab64776e4de303f3d16e3b281b20cc2daf602c8e481143b9e6d7"
+    },
+    {
+      "path": "docs/GOAL-22-NONLINEAR-CONFIDENCE-DIAGNOSIS.json",
+      "sha256": "5a3dd4957f3d54c629db9e5260026f33ff47779250ba5554ee70aa26b2acf4b0"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-preflight-20261002-v1/report.json",
+      "sha256": "a66d1e49ee9f1a8abdee1fd5ba6d3d0f63078779bec283f3bda78277155d4fdc"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-preflight-20261002-v1/tests.xml",
+      "sha256": "6e80cad55ad0da36d2f0b128c6005c7ba1ec0bd6c17cd97245f84712eef9c92d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-preflight-20261002-v1/admission-preparation.json",
+      "sha256": "473f9adaf0ae1d709e7b2da136a98b520bb56cd773d1e4f7d24ee2961d9caa12"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-fit-diagnosis-20261002-v1/report.json",
+      "sha256": "e821fee67004b2f09bed69822b1da0a5ef41bf7cfe4c1aaf1e9d98570e9a2c11"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/comparison-summary.json",
+      "sha256": "63097d45aacc71b095e17de8f2b0cfd8005b33ed6a18b6abf63640ff22b41e47"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-objective-diagnosis-20261002-v1/report.json",
+      "sha256": "f1f26a375836f52296e60b14bfb5aedbb8e578f4dc8b126137371ceb537e5351"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "artifacts/goal22-tools/Close-ConfidenceResidualV34.py",
+      "sha256": "d6b5909f29737fe08f683c0d75c7b941a2c2842f6eb3d564e2f93e59022df29f"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-preflight-20261002-v1/status.json",
+      "sha256": "d1d644fa701b951294e4621943e8231ea274d1f69f31e8143c141864c6c734b1"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-confidence-residual-v34/status.json",
+      "sha256": "5b6c09efaf1d69e27d54c0c4d2c4f29dad3fe21f29d583e91b80aeae76db7a24"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/status.json",
+      "sha256": "7cbec5f79ffc99074f0f9f94b4ee4bb300cafc0dc5be52a1016420ddcb7528fb"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-fit-diagnosis-20261002-v1/status.json",
+      "sha256": "f6a037e666e62ea102348c69956830636f56b26085d2deadec62ba687ec47f48"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-objective-diagnosis-20261002-v1/status.json",
+      "sha256": "5979db0917d9af7f1117c87a084d79583c63b2c85b768168884740817aa90022"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/status.json",
+      "sha256": "7cbec5f79ffc99074f0f9f94b4ee4bb300cafc0dc5be52a1016420ddcb7528fb"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/jobs.json",
+      "sha256": "db1e3c693d97d205dbf6e86a4e293eeec1749b752a2769c447a71662c3ad9440"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/source-bindings.json",
+      "sha256": "d0ec40fb5269919001ceb6577da9efa0d0e457268f027c7b2ece227c59d6bcd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/status.json",
+      "sha256": "f6d772a679bdfbf2ce75884000fcd450d80a5fe63d364ae0f3bc29f078bbfaf5"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/source-bindings.json",
+      "sha256": "69a5c3e4fc30de7194da8c95bf14563a1f59ee746ee362124b4c433ba4031397"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/input-bindings.json",
+      "sha256": "d08a63b193426b4e1d0ad3cb2609eec6f40cfd966cc22882bac6da61fcf987ed"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/ocr.trx",
+      "sha256": "70c35b8143806b1d69f60fb543bca19a6969c3797f64ad3419841948e12cf92a"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/app.trx",
+      "sha256": "6124358f5c4f824007b4f91e5eecfa656a627866a8002d14ae131da012234a2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/Ocr-build.log",
+      "sha256": "b3cdcd015aecf50ca725ffc07b0fbdedfa8f6aa354509bc5c23e07ae1461c4ab"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/App-build.log",
+      "sha256": "d99522d640614be1efd505896cca7d3e35c8125c73058f38a45c3cf02902d354"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/native-build.log",
+      "sha256": "b1d2290ea8398137a37d7ab2fd16f0152a80479aaa26839545e58be605ce6745"
+    },
+    {
+      "path": "docs/GOAL-22-NONLINEAR-CONFIDENCE-DIAGNOSIS.json",
+      "sha256": "5a3dd4957f3d54c629db9e5260026f33ff47779250ba5554ee70aa26b2acf4b0"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-ConfidenceResidualV34.py",
+      "sha256": "24c2c635cfcdb7791e478ca2c93aec7a346dd813b115e8cc944dd000cf2290a8"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ConfidenceResidualV34Evaluation.py",
+      "sha256": "030babbffca6da1150a76f17910f215a3fa81f73bde82a8f517234a31ae25211"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ConfidenceResidualV34Evaluation.ps1",
+      "sha256": "c00bbfb1de018d9069b4080583090fcfae8876e21d1f60f9e5a8ab9f32e5f8fc"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LeftAxisRoleChecks.ps1",
+      "sha256": "a12754014a4ab081538570da3e05709968ff51090dcdb93f0a5e33359840828e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/runtime-description.json",
+      "sha256": "c429d0ec63309318a964b0865a22c205b302c673fa7750993c0f5d5849b9f27d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/marker-center-manifest.json",
+      "sha256": "5c5d15b009318c1ddf5a8f36141fa4f5752d4e68c0545e1cfa5f130cd4923df9"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/MODEL_NOTICE.md",
+      "sha256": "9836c0427330957d54d5d315b277269aed68da82d311658993bcfb954146cfc5"
+    },
+    {
+      "path": "docs/GOAL-22-FROZEN-CONFIDENCE-PARITY-DIAGNOSIS.json",
+      "sha256": "c880dffa72ceaaeb5d8abf79739a0622e76226cc78e8135b3275bfa0d8259aba"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-native/native-marker-score.json",
+      "sha256": "305df4f2e02d17d4d36e3a166c606f1156ed65b87faa7d1a8b8ebbf0f2a73c4c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-native/native-ocr-score.json",
+      "sha256": "aea8384c7bd581662a67e64d210079ce1bf8ffc39cd1affc4bbef6b4239d1ba4"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-native/native-ocr-details.json",
+      "sha256": "f85195ed6b4d342b57648751a3462eba95bfbf7c3a88db112d315959a3193666"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-native/axis-geometry-comparison.json",
+      "sha256": "5b2385c3de8724f3e825a848a4dc6dba9eaabd22bc626f98a9cab7c239f6e5ed"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-native/protocol.json",
+      "sha256": "e7cb135bd207daa5c6e49a7c93eed17118949d7400ad2250bb8f8596e9f40ecd"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-native/candidate-binding.json",
+      "sha256": "b724b03b0ff89d9ca7c948ee1fde65ea3e094c210f64d649be141851ffe85b32"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-native/input-manifest.json",
+      "sha256": "4b9cc95d11cb75d3929f4f2bed5127b536ce656d942985d2c6731cb8a3c0d164"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-native/execution/report.json",
+      "sha256": "b1bf862de958f4b561d0d43c19c09d58b37fb51736dce465d43ba4df0d96252f"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-native/status.json",
+      "sha256": "65912592f69bc201af6123e897df4f45189b9ad38cf68c9fd339545ac49de4bf"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "2d4ab80114d3e54398264fcaf75c042efba6a5507d5a429a12b18ccf27ebee91"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-csv/comparison.json",
+      "sha256": "7526fe6a25b318cbedeadb91533df51f554dee07901640409392336858d0bf4a"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-csv/protocol.json",
+      "sha256": "6e894389fec93ae1ab2b64f6a9549a02d9186017da61c1c5d325053711331463"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-csv/candidate-binding.json",
+      "sha256": "16035a34280b09d932e521cff1b1dd04cdc298387c93288d5e89aefb9b981804"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-csv/input-manifest.json",
+      "sha256": "0963bed4c8691939575f7165c0e6f4110450a6813f7caa4615c4e278cd222ead"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-csv/execution/report.json",
+      "sha256": "9d7d9052c6cad63b68c878014e5568309c8a6facb541d0f6bb62ef80b1d831a4"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v44-csv/status.json",
+      "sha256": "4ca0526fde0efe7453ea8f714dc613fee0225fde3a1a8d498c72f786d5028742"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-native/native-marker-score.json",
+      "sha256": "9a1c0656177459e75b6cf94a613e21cebbe1575873b1d36d034957a79086201e"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-native/native-ocr-score.json",
+      "sha256": "26db89e0014ff1a77e763ff386a791eb8161bf2dd3cbae5b2ccb908dee7f9bf8"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-native/native-ocr-details.json",
+      "sha256": "1af535ad3a578e7b492e4ac4e8466b2631416e645dc452bc4bcb9da6afdbdaf2"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-native/axis-geometry-comparison.json",
+      "sha256": "6238ea7c091d86942d36f5cee3d6c07a6bf84376e93414bcc1f48c3e06a99940"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-native/protocol.json",
+      "sha256": "b72b960b414600b7ae3de2c1b4ad21d2c0a2efef49bba024880ae688104acc1d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-native/candidate-binding.json",
+      "sha256": "3604c1b7be2673bd6ee834fdb86dec97c26d0d4bb98ddf46e8f7793d9fab3184"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-native/input-manifest.json",
+      "sha256": "3548bb8f8e12b754284ab99a93e6180be23c9710cc7bc02c3de58a7cedd6d52c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-native/execution/report.json",
+      "sha256": "94a33a0e8fcd22e874c4b1f1be7c98bb0c08c11173df4cafb87a3eb6272f5ed3"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-native/status.json",
+      "sha256": "fc563ae68ac16c7e9e5a5e178e76a6f3f52921a77c53838a89609f9e9f9e2505"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "d2e8fa60bb45e7ac0ee3043ad2271e3550f6cbead4dcf237cef02352a5d729fe"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-csv/comparison.json",
+      "sha256": "af0be0f3219f7cfa6f77dd4ff5341030a1ddbc3a8e4161baa68a5d9e98455b6c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-csv/protocol.json",
+      "sha256": "481880a0a0d2651aa29db95c6ace6ca04e131113317f01280b1b7657e84db7fe"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-csv/candidate-binding.json",
+      "sha256": "adefe36be37bcd4101af735d76da9f84d277d2c1455e34e8c9f7999f0b0d7d66"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-csv/input-manifest.json",
+      "sha256": "a5bf4a0431d61ac024085d1a26cf64ac4cb147dd31f4c8e67e0bd9adf0f035ca"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-csv/execution/report.json",
+      "sha256": "fd976de4a6c5ff97df1ca0d7b045e1e95324b09c1535209d9acadc29cd3c7711"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-residual-v34-evaluation-20261002-v1/v46-csv/status.json",
+      "sha256": "bd26660e84aded280e6bab81fd02dee4471bd01e2eee1ed113bac13bc7d2c4fc"
+    }
+  ],
+  "decision": "Reject the fixed V34 nonlinear-confidence candidate because it fails the unchanged shared development bars. Retain V44/English/V27/V5. The full native/CSV effects are preserved in the authenticated local audit. Do not activate or repeat this unchanged candidate.",
+  "license_review": "Owned Apache-2.0 model, synthetic data and source. Existing reviewed OCR/classifier inputs remain checksum-bound. No dependency or imported weights added.",
+  "limitations": [
+    "Equal per-row binary cross-entropy on an enriched training population does not prove calibration on native proposal populations.",
+    "Confidence ordering changes NMS and selected centers even with per-patch geometry frozen.",
+    "Raw accepted-set additions/removals can include numerical movement and are not recovered/lost truth counts; use paired truth measurements.",
+    "Synthetic metrics and validated rows do not establish real acceptance or the runtime safety property by themselves.",
+    "No private/sealed input access, production activation, packaged build or release. Goal22 remains incomplete."
+  ],
+  "candidate_consumed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "release_eligible": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false
+}

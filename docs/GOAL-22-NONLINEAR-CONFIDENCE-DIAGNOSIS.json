@@ -1,0 +1,57 @@
+{
+  "status": "diagnosed_before_implementation",
+  "failure_mode": "The fixed linear confidence head still fails complete development after replacing weighted focal loss with unweighted BCE. Component1901TP672FP103FN,precision0.7388263/recall0.9486028;family205TP146FP1FN. Training mean losses over the final three epochs are0.1598028,0.1597763,0.1596538. Native/CSV confirmation for V33 is still running; it does not select this architecture.",
+  "responsible_subsystem": "Confidence discrimination over the retained64-dimensional representation; not a demonstrated geometry-support deficit.",
+  "hypothesis": "A small nonlinear confidence residual may separate the existing feature combinations better than a single affine confidence row while preserving retained V27 geometry. Its added hidden width equals the existing64-feature width; no width sweep or architecture search is planned. This is a testable capacity hypothesis, not proof that nonlinearity will solve generalization.",
+  "isolated_change": "Replace the trainable affine confidence adaptation with a64-to64 SiLU-to1 additive confidence residual,4225trainableparameters, on the retainedV27 model. Zero-initialize the residual output layer so the untrained wrapper exactly preserves retained full-patch predictions. Freeze all63452retainedparameters and normalization buffers. Reuse all276618ownedtrainingrows,unweightedBCE,AdamW0.0003,weight_decay0.0001,batch128,seed20261002,8epochs,17296steps,gradient_limit5 andfinalepoch selection. Do not change geometry, runtime thresholds, proposal generation, sampling or labels.",
+  "development_evidence": {
+    "path": "artifacts/goal22-runs/center-confidence-bce-v33/P1/report.json",
+    "sha256": "73883c5f8291b39f678a8d34aa2407f0ae0efe4906475124a927c2ccb68e8777"
+  },
+  "linear_head_fit_evidence": {
+    "path": "artifacts/goal22-runs/frozen-confidence-fit-diagnosis-20261002-v1/report.json",
+    "sha256": "71ae9f98456491f03088699f38c1c1aa547c9bd2138c1a30adee138e79a48002"
+  },
+  "geometry_support_evidence": {
+    "path": "artifacts/goal22-runs/frozen-geometry-support-20261002-v1/report.json",
+    "sha256": "ba0e0f0e91ba98f8612d209e94d39a04928257c40eb35d179c782597aea26cfc"
+  },
+  "feature_evidence": {
+    "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/report.json",
+    "sha256": "d815bf0c20a3101d3713e7cf04d2cb3afe5e0c26c3c51650773e66e35614e147"
+  },
+  "initializer": {
+    "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+    "sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+  },
+  "fixed_development": {
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+    "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+  },
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "splits": "Complete existing owned training union only. Same167component+9family development scenes,2210truths/270236proposals. Same21native sources/31panels/838truths and23CSV sources/39panels/706points/724rows under frozenV44/V46 OCR arms. No private or sealed input.",
+  "metric": "Same per-item confidence-center precision/recall at shipped0.10 cutoff and5pixel matching; unchanged shared95percentbars and prohibitedstructure0.02 maximum. Complete export parity and frozen geometry. Full application comparisons include every failed source. Threshold sensitivity is descriptive only.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "sealed_runs_authorized": 0,
+    "private_reads": 0,
+    "optimizer_steps_expected": 17296,
+    "production_approval": false,
+    "release_eligible": false
+  },
+  "execution_state": "Model code and tests may be prepared while V33 completes. No candidate optimizer or admission is authorized by this document; canonical admission follows complete preflight and integration of the V33 outcome.",
+  "limitations": [
+    "Feature extraction remains frozen, so missing information cannot be created by the new head.",
+    "Train AUC or lower training loss does not establish dev or native generalization.",
+    "All838 native truths have a geometrically localized positive anchor ignoring confidence, but support filters,NMS,classifier and later exclusions can still reject it.",
+    "Any change in confidence ordering may alter downstream OCR,calibration and CSV outcomes."
+  ]
+}

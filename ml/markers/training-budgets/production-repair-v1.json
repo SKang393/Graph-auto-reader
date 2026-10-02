@@ -11014,6 +11014,52 @@
       "candidate_report_sha256": "73883c5f8291b39f678a8d34aa2407f0ae0efe4906475124a927c2ccb68e8777",
       "optimizer_steps": 17296,
       "closed_utc_date": "2026-10-02"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-residual-confidence-v34",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/confidence_residual_v34/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "f45e8def64570c5f140a3f1bfbcaabf2262d37e7681687dc4ad50184aa40b596"
+      },
+      "protocol_path": "ml/markers/center/confidence_residual_v34/protocol.json",
+      "protocol_sha256": "d3f8488857cbab64776e4de303f3d16e3b281b20cc2daf602c8e481143b9e6d7",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned train/dev-only nonlinear confidence residual under continued Goal22 authorization. No private/sealed input access, production activation or release.",
+      "isolated_change": "Replace the trainable affine confidence adaptation with a64-to64 SiLU-to1 additive confidence residual,4225trainableparameters, on the retainedV27 model. Zero-initialize the residual output layer so the untrained wrapper exactly preserves retained full-patch predictions. Freeze all63452retainedparameters and normalization buffers. Reuse all276618ownedtrainingrows,unweightedBCE,AdamW0.0003,weight_decay0.0001,batch128,seed20261002,8epochs,17296steps,gradient_limit5 andfinalepoch selection. Do not change geometry, runtime thresholds, proposal generation, sampling or labels.",
+      "optimizer_steps_expected": 17296,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "logical_processor_count": 12,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/center/confidence_residual_v34/P1_RESULT.json",
+      "outcome_sha256": "5628161239314593dccdfec8c7fdb0894f1f02546090a4f78649b642618abe59",
+      "candidate_report_sha256": "5c08e29356a584a39cbaf2c736e9b6812875c8ef51473f9aa5c081ac22c87f54",
+      "optimizer_steps": 17296,
+      "closed_utc_date": "2026-10-02"
     }
   ]
 }
