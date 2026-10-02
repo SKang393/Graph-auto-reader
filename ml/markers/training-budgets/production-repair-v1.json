@@ -11152,6 +11152,52 @@
       "candidate_report_sha256": "9157ebc7d1e6ec8218abce21593872e4af47e27ebd7680208c94cf9062e19c6e",
       "optimizer_steps": 51888,
       "closed_utc_date": "2026-10-02"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-confidence-reflection-v37",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/confidence_reflection_v37/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "80a76817ec8525dd54ec7bef2bb959eb9a33667f50c4584f3f9e0d0b24709626"
+      },
+      "protocol_path": "ml/markers/center/confidence_reflection_v37/protocol.json",
+      "protocol_sha256": "e145bc65f5ac03dad5dd3ce34d1e6695d3ab1b49f76737fea6f53a2115f9dbb8",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned train/dev-only fixed reflection trial of the unchanged spatial confidence projection under continued Goal22 authorization. No private/sealed input access, production activation or release.",
+      "isolated_change": "Relative to V35, retain the same eight-epoch recipe, V27 initializer, 49281-parameter confidence projection, frozen 63452 original parameters/buffers, BCE, AdamW, seed and cutoff. Add three fixed reflections to all 276618 original training rows, yielding 1106472 rows and 69160 steps at batch 128. Reflect all three planes together around pixel (16,16); preserve every confidence label and hard-negative flag because Euclidean distance to the anchor is invariant. Reuse original feature files byte-for-byte. Train the fixed final epoch only. No reflection selection, scheduler, threshold search or private/sealed input.",
+      "optimizer_steps_expected": 69160,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "logical_processor_count": 12,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/center/confidence_reflection_v37/P1_RESULT.json",
+      "outcome_sha256": "d41c6e2af815e8aa3f2f0bda7a124cecb34010e9d8b0610349e2e8472dfc087d",
+      "candidate_report_sha256": "cedef52cbae22a095e81db2797bf7d378ea702b9c6185c1088441e7417a0730d",
+      "optimizer_steps": 69160,
+      "closed_utc_date": "2026-10-02"
     }
   ]
 }

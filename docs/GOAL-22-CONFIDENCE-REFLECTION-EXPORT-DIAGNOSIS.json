@@ -1,0 +1,118 @@
+{
+  "status": "recorded_export_stop_explained",
+  "source_sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de",
+  "source_dimensions": [
+    1200,
+    350
+  ],
+  "arms": [
+    {
+      "arm": "v44",
+      "calibration_before": "Valid",
+      "calibration_after": "Valid",
+      "unknown_session_assignments": [
+        {
+          "pixel_x": 1081.260498046875,
+          "ordinal": 24,
+          "printed_x": null,
+          "estimated_x": null,
+          "evidence_kind": "Estimated",
+          "confidence": 0.04499421427791212
+        }
+      ],
+      "new_nontruth_points": [
+        {
+          "center": [
+            1081.260498046875,
+            123.69039916992188
+          ],
+          "radius": 6.04178524017334,
+          "nearest_truth_distance_pixels": 15.352630899713139
+        }
+      ],
+      "baseline_correct_values_in_stopped_graph": 24,
+      "candidate_exported_rows_in_stopped_graph": 0,
+      "whole_arm_net_correct_value_loss": 25,
+      "remaining_net_loss_outside_this_graph": 1
+    },
+    {
+      "arm": "v46",
+      "calibration_before": "Valid",
+      "calibration_after": "Valid",
+      "unknown_session_assignments": [
+        {
+          "pixel_x": 1081.260498046875,
+          "ordinal": 24,
+          "printed_x": null,
+          "estimated_x": null,
+          "evidence_kind": "Estimated",
+          "confidence": 0.04537668850589705
+        }
+      ],
+      "new_nontruth_points": [
+        {
+          "center": [
+            1081.260498046875,
+            123.69039916992188
+          ],
+          "radius": 6.04178524017334,
+          "nearest_truth_distance_pixels": 15.352630899713139
+        }
+      ],
+      "baseline_correct_values_in_stopped_graph": 24,
+      "candidate_exported_rows_in_stopped_graph": 0,
+      "whole_arm_net_correct_value_loss": 25,
+      "remaining_net_loss_outside_this_graph": 1
+    }
+  ],
+  "visual_review": "The original1200x350 owned synthetic image was viewed. The point near1081,124 lies on the Probe annotation leader. These are observations on this dev image, not a new suppression rule.",
+  "runtime_behavior": "WorkflowOrchestrator.ExportAsync rejects every non-rejected review point with missing GraphX or GraphY. This new point has a null estimated session even though the global calibration remains valid. Keep the export guard and the existing session tolerance.",
+  "limitation": "This diagnosis explains24 of25 net lost correct values per arm. The remaining net one are outside this graph and are not attributed here. No candidate selection or change to runtime, truth, thresholds or training labels.",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/confidence-reflection-v37-evaluation-20261002-v1/comparison-summary.json",
+      "sha256": "5b190a3ec3539109bd76ae518efe997daf7fa73dd69097e9ad2a924f064bb053"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-complete-workflow-condition-layout-v1/images/8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de.png",
+      "sha256": "8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Diagnose-ReflectionExportBlock.py",
+      "sha256": "d3f49fa69967627d96dbbacf7f7182a1e00180757834fcf2463de24dc7378ccf"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/WorkflowOrchestrator.cs",
+      "sha256": "ba6936e185d7ee288b81a3ffb4f0189bfe328869407f32d0f759358ef3cb7dc1"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/csv-evaluation-input-normalized-phases.json",
+      "sha256": "571df0249455fd33e4c723168c8bae9c7642cab03b2125a4afdeb1f8d413304a"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/execution/cases/8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de/Participant 01_Primary outcome.audit.json",
+      "sha256": "b48466107e9c17dc1ec116118836d69853abfcf35355104d0e228914fffd7672"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-reflection-v37-evaluation-20261002-v1/v44-csv/csv-evaluation-input-normalized-phases.json",
+      "sha256": "6c8feee195f78dad9ef7a3205d023e4345c6c5dedf415286bea2b356ea709387"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/csv-evaluation-input-normalized-phases.json",
+      "sha256": "633e858de8a27093c085c6c9e0b969b84e2b34bd2dbed3f85cd7ac3e18cfcc87"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/execution/cases/8dc6ec0ac66bcfedf8294e11d53058e5b0d2da864637b38648b87921d90dd0de/Participant 01_Primary outcome.audit.json",
+      "sha256": "673c96a562cb2fc3f89739702df7b84062f4bf907da99ee593ddd17cf23ff33d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-reflection-v37-evaluation-20261002-v1/v46-csv/csv-evaluation-input-normalized-phases.json",
+      "sha256": "b818630fa0f37d5ddbdf7eaa5b7037f8d8dd7c2d8de54c2de59a7a97edf31ef7"
+    }
+  ],
+  "optimizer_steps": 0,
+  "model_inference_runs": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "seconds": 0.10231620000013208
+}

@@ -1,0 +1,61 @@
+{
+  "status": "diagnosed_before_cache_preparation_and_candidate_training",
+  "failure_mode": "V36 improves fitting of every training group but loses development/native recall. Its component training AUC is 0.99997410 and family training AUC 0.99995792; complete development precision remains 90.59% and 72.73%. Every one of the 267 extras farther than five pixels from truth originates at an anchor labeled negative by the existing rule. Both native arms lose 20 previously correct truths. Correct exported values remain 414/706 and 429/706.",
+  "responsible_subsystem": "Confidence generalization from a fixed finite patch population over retained convolution features. This trial does not assume that geometry, typography context or complete export failures are solved by augmentation.",
+  "hypothesis": "Adding every horizontal, vertical and combined reflection of every owned training patch may reduce dependence on a particular orientation and neighboring layout. V36 showed that more passes over the same finite examples improve training fit without improving held-out acceptance. A fixed reflection group tests broader input coverage rather than additional epochs over unchanged examples.",
+  "isolated_change": "Relative to V35, retain the same eight-epoch recipe, V27 initializer, 49281-parameter confidence projection, frozen 63452 original parameters/buffers, BCE, AdamW, seed and cutoff. Add three fixed reflections to all 276618 original training rows, yielding 1106472 rows and 69160 steps at batch 128. Reflect all three planes together around pixel (16,16); preserve every confidence label and hard-negative flag because Euclidean distance to the anchor is invariant. Reuse original feature files byte-for-byte. Train the fixed final epoch only. No reflection selection, scheduler, threshold search or private/sealed input.",
+  "development_evidence": {
+    "path": "ml/markers/center/confidence_duration_v36/P1_RESULT.json",
+    "sha256": "3958890ff1d4feb362349db82a53d40cd5c40e1dac487db1086dfb5850780720"
+  },
+  "eight_epoch_reference": {
+    "path": "ml/markers/center/confidence_spatial_v35/P1_RESULT.json",
+    "sha256": "866454722411e4c1ef4164d1924f84fca5f5545d77c5bb361a27617a97d5da00"
+  },
+  "training_fit_evidence": {
+    "path": "artifacts/goal22-runs/confidence-duration-fit-diagnosis-20261002-v1/report.json",
+    "sha256": "f798e209ebd7ab2e48dd543e227d740f3562fa1bd681fb79e3170a6a0f53fafb"
+  },
+  "error_attribution": {
+    "path": "artifacts/goal22-runs/duration-dev-errors-diagnosis-20261002-v1/report.json",
+    "sha256": "acb08dadfa9265efba83afc42cebf083f5af938d1331009d9cf7dac32090a8d8"
+  },
+  "feature_evidence": {
+    "path": "artifacts/goal22-runs/frozen-spatial-features-20261002-v1/report.json",
+    "sha256": "3a98504c7b31f16af8f4b127ab438cba3fe7918d51c9417021221f96bb6ad7cc"
+  },
+  "initializer": {
+    "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+    "sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+  },
+  "fixed_development": {
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+    "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+  },
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "splits": "All five existing owned training groups, with exactly four deterministic orientations per row. Unchanged complete 167 component and nine family development scenes, 2210 truths/270236 proposals. Unchanged 21 native sources/31 panels/838 truths and 23 CSV sources/39 panels/706 unique points/724 relational rows under both OCR arms.",
+  "metric": "Unchanged per-item center precision/recall at the current 0.10 cutoff and five-pixel matching, shared 95% bars and 2% prohibited-structure maximum. Full export parity and original geometry remain checked. Complete application comparisons retain all failed sources. Threshold sensitivity stays descriptive.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "sealed_runs_authorized": 0,
+    "private_reads": 0,
+    "optimizer_steps_expected": 69160,
+    "production_approval": false,
+    "release_eligible": false
+  },
+  "execution_state": "V36 is integrated at f76b9d36a0c03015704363da331cf1ff186504ab. No V37 optimizer is admitted. Require transform/cache tests, authenticated complete feature preparation and canonical admission before training.",
+  "limitations": [
+    "Training AUC is measured on the selected training population, not every possible native proposal.",
+    "The family error illustrations include text and legend glyphs. Reflections do not add full-scene semantic context.",
+    "Mirrored typography is an augmentation, not a claim about real text orientation. The complete original population remains present.",
+    "The proposed reflections may fail to generalize. No existing failure, denominator or bar is removed."
+  ]
+}

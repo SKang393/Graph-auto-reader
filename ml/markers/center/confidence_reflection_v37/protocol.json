@@ -1,0 +1,88 @@
+{
+  "acceptance_bar": "Unchanged ml/policy/acceptance-bars.json through the shared evaluator. This train/dev trial cannot grant production approval; sealed prerequisites, real acceptance, promotion and whole-workflow gates remain required.",
+  "budget": {
+    "candidate_id": "P1",
+    "csv_runs_per_ocr_arm": 1,
+    "experiment_budget": 1,
+    "native_runs_per_ocr_arm": 1,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "sealed_runs_authorized": 0
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "Adding every horizontal, vertical and combined reflection of every owned training patch may reduce dependence on a particular orientation and neighboring layout. V36 showed that more passes over the same finite examples improve training fit without improving held-out acceptance. A fixed reflection group tests broader input coverage rather than additional epochs over unchanged examples.",
+  "isolated_change": "Relative to V35, retain the same eight-epoch recipe, V27 initializer, 49281-parameter confidence projection, frozen 63452 original parameters/buffers, BCE, AdamW, seed and cutoff. Add three fixed reflections to all 276618 original training rows, yielding 1106472 rows and 69160 steps at batch 128. Reflect all three planes together around pixel (16,16); preserve every confidence label and hard-negative flag because Euclidean distance to the anchor is invariant. Reuse original feature files byte-for-byte. Train the fixed final epoch only. No reflection selection, scheduler, threshold search or private/sealed input.",
+  "metric": "Complete167component and9family development scenes,2210truths, at current0.10 operating point with existing5pixel matching. Report shared precision,recall,proposal support and prohibited-structure metrics. Historical0.25 results and other sensitivity points are descriptive only. Reproduce historicalV27 counts and verify ONNX parity across every development proposal, including frozen geometry. Then compare all21native sources/31panels/838truths and23CSV sources/39panels/706points/724rows under both frozen OCR arms against64f57493. Preserve all failed sources and export safeguards.",
+  "split_identities": {
+    "completed_v36_outcome": {
+      "path": "ml/markers/center/confidence_duration_v36/P1_RESULT.json",
+      "sha256": "3958890ff1d4feb362349db82a53d40cd5c40e1dac487db1086dfb5850780720"
+    },
+    "completed_v36_training_fit": {
+      "path": "artifacts/goal22-runs/confidence-duration-fit-diagnosis-20261002-v1/report.json",
+      "sha256": "f798e209ebd7ab2e48dd543e227d740f3562fa1bd681fb79e3170a6a0f53fafb"
+    },
+    "development": {
+      "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+      "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+    },
+    "diagnosis": {
+      "path": "docs/GOAL-22-CONFIDENCE-REFLECTION-DIAGNOSIS.json",
+      "sha256": "d76a143535c34f4832a46286cd2e488ea93f3115978ea5d2743783a6acc21668"
+    },
+    "initializer": {
+      "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+      "sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+    },
+    "native_csv_baseline": {
+      "path": "docs/GOAL-22-LEFT-AXIS-ROLE.json",
+      "sha256": "d49dbcc9dd16e584e5fa0b4c1114466123fa0200e7a990afa15ea7536e7321ca"
+    },
+    "separation": "Only the existing owned training union is optimized. Complete development and workflow sources, truth and failures stay frozen. No private or sealed input access.",
+    "training_features": {
+      "path": "artifacts/goal22-runs/reflected-spatial-features-20261002-v1/report.json",
+      "sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500"
+    },
+    "training_group_rows": {
+      "component:both": 35838,
+      "component:horizontal": 35838,
+      "component:identity": 35838,
+      "component:vertical": 35838,
+      "coverage:both": 42747,
+      "coverage:horizontal": 42747,
+      "coverage:identity": 42747,
+      "coverage:vertical": 42747,
+      "crowded:both": 182614,
+      "crowded:horizontal": 182614,
+      "crowded:identity": 182614,
+      "crowded:vertical": 182614,
+      "crowded_mined_negative:both": 6366,
+      "crowded_mined_negative:horizontal": 6366,
+      "crowded_mined_negative:identity": 6366,
+      "crowded_mined_negative:vertical": 6366,
+      "family:both": 9053,
+      "family:horizontal": 9053,
+      "family:identity": 9053,
+      "family:vertical": 9053
+    },
+    "workflow_bindings": [
+      {
+        "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/candidate-binding.json",
+        "sha256": "53da895d43d93ce30575da496455e5845636d30cb85bf4b7654bfe01bd4150b8"
+      },
+      {
+        "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/candidate-binding.json",
+        "sha256": "5a265def5f7c527d54dc8717f3c53f2baaea272062976f8dadabab7ed02eb50d"
+      },
+      {
+        "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/candidate-binding.json",
+        "sha256": "2af5562533ea277494bf65b074981dbf48f9138df5393ec929f39cc30bf8e919"
+      },
+      {
+        "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/candidate-binding.json",
+        "sha256": "2a7b0fc56845000bc24ccae7bd5211898458bd5afaa511ee7176ef3bd3d6336e"
+      }
+    ]
+  }
+}
