@@ -1,0 +1,52 @@
+{
+  "candidate_id": "P1",
+  "development_file": {
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+    "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+  },
+  "expected_runner_source_bundle_sha256": "08a3ff918f564e1cfa9271efc5ba13e34d058ad462dc1dfd3a640ebaa4fc1eda",
+  "feature_report_path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/report.json",
+  "feature_report_sha256": "d815bf0c20a3101d3713e7cf04d2cb3afe5e0c26c3c51650773e66e35614e147",
+  "optimizer_steps_expected": 17296,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "45f42f67eaad1b6c8fd5ced77da24d29ba7fcd4d072bccc49740dfb65a8b6893",
+  "recipe": {
+    "batch_size": 128,
+    "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+    "confidence_objective": "unweighted_binary_cross_entropy_with_logits",
+    "confidence_threshold": 0.1,
+    "epochs": 8,
+    "frozen_features": true,
+    "frozen_geometry": true,
+    "frozen_normalization_buffers": true,
+    "gradient_norm_limit": 5.0,
+    "learning_rate": 0.0003,
+    "seed": 20261002,
+    "trainable_parameters": 65,
+    "weight_decay": 0.0001
+  },
+  "resource_policy": {
+    "aggregate_backstop_percent": 80,
+    "all_processors_eligible": true,
+    "kmp_blocktime": "0",
+    "logical_processor_count": 12,
+    "omp_wait_policy": "PASSIVE",
+    "priority": "Idle",
+    "synchronous_work_rest_percent": 80
+  },
+  "revision": "marker-center-unweighted-confidence-v33",
+  "schema_version": 1,
+  "sealed_runs_authorized": 0,
+  "source_checkpoint_path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+  "source_checkpoint_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365",
+  "task": "marker-center",
+  "training_group_rows": {
+    "component": 35838,
+    "coverage": 42747,
+    "crowded": 182614,
+    "crowded_mined_negative": 6366,
+    "family": 9053
+  },
+  "training_rows": 276618
+}

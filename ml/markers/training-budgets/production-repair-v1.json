@@ -10968,6 +10968,52 @@
       "optimizer_steps": 17296,
       "recovery_optimizer_steps": 0,
       "closed_utc_date": "2026-10-02"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-unweighted-confidence-v33",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/confidence_bce_v33/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "acfd27b037c7b455382fda3be78b8c2e87765ceded3f8fc1bdc6c864a4ec7864"
+      },
+      "protocol_path": "ml/markers/center/confidence_bce_v33/protocol.json",
+      "protocol_sha256": "45f42f67eaad1b6c8fd5ced77da24d29ba7fcd4d072bccc49740dfb65a8b6893",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned train/dev-only unweighted confidence adaptation under continued Goal22 authorization. No private/sealed input access, production activation or release.",
+      "isolated_change": "Only the confidence training objective changes from V32. Keep retained V27 initialization, all 276618 rows and labels, fixed64features,65trainableparameters,seed20261002,8epochs,batch128,AdamW0.0003,weight_decay0.0001,gradient_limit5 and finalepoch selection. All source geometry and normalization buffers remain frozen. All rows have equal objective weight; hard-negative flags remain admitted unchanged but do not change their weight.",
+      "optimizer_steps_expected": 17296,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "logical_processor_count": 12,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "outcome_path": "ml/markers/center/confidence_bce_v33/P1_RESULT.json",
+      "outcome_sha256": "3ba25400a43de9440c70b9d7e64137ee367224b9dc947544b03bbdb09bbb4e13",
+      "candidate_report_sha256": "73883c5f8291b39f678a8d34aa2407f0ae0efe4906475124a927c2ccb68e8777",
+      "optimizer_steps": 17296,
+      "closed_utc_date": "2026-10-02"
     }
   ]
 }

@@ -1,0 +1,94 @@
+{
+  "status": "diagnosed_before_implementation",
+  "base_commit": "21c7c83496f9fca2edbea92ce0ffb188dd722357",
+  "failure_mode": "V32 full component development has 1935 matched centers and 8787 extras at the shipped 0.10 threshold, versus retained V27 1862 and 358. Complete V44 native comparison increases extras 29 to 240 and correct CSV values fall 414 to 7. Most training negatives also exceed 0.10.",
+  "responsible_subsystem": "Fixed confidence-head training objective and resulting score distribution. Frozen feature capacity may separately limit crowded-patch discrimination.",
+  "hypothesis": "Replace the complete weighted focal classification objective with unweighted binary cross-entropy on the same retained V27 confidence head and every existing training row. At a score of 0.10, unweighted BCE has zero expected logit gradient at a positive fraction of 0.10; the old objective does so near 0.000493 for ordinary negatives or 0.002458 for hard negatives. This may reduce permissive confidence scores while preserving useful recovered markers. This is a conditional-risk calculation, not a guarantee of calibration or generalization.",
+  "isolated_change": "Only the confidence training objective changes from V32. Keep retained V27 initialization, all 276618 rows and labels, fixed64features,65trainableparameters,seed20261002,8epochs,batch128,AdamW0.0003,weight_decay0.0001,gradient_limit5 and finalepoch selection. All source geometry and normalization buffers remain frozen. All rows have equal objective weight; hard-negative flags remain admitted unchanged but do not change their weight.",
+  "objective_diagnosis": {
+    "path": "artifacts/goal22-runs/confidence-objective-diagnosis-20261002-v1/report.json",
+    "sha256": "f1f26a375836f52296e60b14bfb5aedbb8e578f4dc8b126137371ceb537e5351"
+  },
+  "training_fit_diagnosis": {
+    "path": "artifacts/goal22-runs/frozen-confidence-fit-diagnosis-20261002-v1/report.json",
+    "sha256": "71ae9f98456491f03088699f38c1c1aa547c9bd2138c1a30adee138e79a48002"
+  },
+  "previous_trial_outcome": {
+    "path": "ml/markers/center/confidence_head_v32/P1_RESULT.json",
+    "sha256": "510f61a1d6b6e568a29bc2f4e2943744b3773a13e47674784515038651bfc3e0"
+  },
+  "feature_diagnosis": {
+    "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/report.json",
+    "sha256": "d815bf0c20a3101d3713e7cf04d2cb3afe5e0c26c3c51650773e66e35614e147"
+  },
+  "frozen_development": {
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+    "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+  },
+  "current_workflow_baseline": {
+    "path": "docs/GOAL-22-LEFT-AXIS-ROLE.json",
+    "sha256": "d49dbcc9dd16e584e5fa0b4c1114466123fa0200e7a990afa15ea7536e7321ca"
+  },
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "measured_objective_gradients": {
+    "operating_threshold": 0.1,
+    "weighted_focal": [
+      {
+        "analytical_max_absolute_error": 4.336808689942018e-19,
+        "negative_logit_gradient": 0.002172366961380655,
+        "negative_weight": 1.0,
+        "positive_fraction_at_zero_expected_gradient": 0.0004925725728144579,
+        "positive_logit_gradient": -4.408075140260142
+      },
+      {
+        "analytical_max_absolute_error": 1.734723475976807e-18,
+        "negative_logit_gradient": 0.010861834806903276,
+        "negative_weight": 5.0,
+        "positive_fraction_at_zero_expected_gradient": 0.0024580198514233113,
+        "positive_logit_gradient": -4.408075140260142
+      }
+    ],
+    "unweighted_binary_cross_entropy": {
+      "negative_logit_gradient": 0.10000000000000002,
+      "positive_fraction_at_zero_expected_gradient": 0.10000000000000002,
+      "positive_logit_gradient": -0.9
+    }
+  },
+  "fixed_training_group_rows": {
+    "component": 35838,
+    "family": 9053,
+    "coverage": 42747,
+    "crowded": 182614,
+    "crowded_mined_negative": 6366
+  },
+  "fixed_development_denominators": {
+    "component_scenes": 167,
+    "component_truths": 2004,
+    "family_scenes": 9,
+    "family_truths": 206,
+    "proposals": 270236
+  },
+  "metric": "Complete per-item center precision and recall at unchanged application threshold0.10, shared5pixel matching and balanced ink support. Require unchanged shared95percentbars and prohibitedstructure0.02 maximum. Reproduce retained0.25 historicalcounts, report sensitivity descriptively, full ONNX numerical parity and frozen geometry. Full native and CSV comparisons retain all failures and original denominators.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "optimizer_steps_expected": 17296,
+    "sealed_runs_authorized": 0,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false
+  },
+  "limitations": [
+    "Train distribution intentionally contains sampled positives and mined negatives; BCE on it does not prove real-proposal probability calibration.",
+    "AUC on crowded training groups remains below original groups. An objective change may not solve feature separation.",
+    "Frozen per-patch geometry does not preserve score ordering, NMS decisions, crop-dependent OCR, axis fits or final CSV rows.",
+    "This diagnostic uses existing aggregate measurements and analytical gradients only. No new optimizer step, candidate score, threshold selection, private read or sealed read."
+  ]
+}

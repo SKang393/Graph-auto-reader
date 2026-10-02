@@ -1,0 +1,65 @@
+{
+  "acceptance_bar": "Unchanged ml/policy/acceptance-bars.json through the shared evaluator. This train/dev trial cannot grant production approval; sealed prerequisites, real acceptance, promotion and whole-workflow gates remain required.",
+  "budget": {
+    "candidate_id": "P1",
+    "csv_runs_per_ocr_arm": 1,
+    "experiment_budget": 1,
+    "native_runs_per_ocr_arm": 1,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "sealed_runs_authorized": 0
+  },
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "Replace the complete weighted focal classification objective with unweighted binary cross-entropy on the same retained V27 confidence head and every existing training row. At a score of 0.10, unweighted BCE has zero expected logit gradient at a positive fraction of 0.10; the old objective does so near 0.000493 for ordinary negatives or 0.002458 for hard negatives. This may reduce permissive confidence scores while preserving useful recovered markers. This is a conditional-risk calculation, not a guarantee of calibration or generalization.",
+  "isolated_change": "Only the confidence training objective changes from V32. Keep retained V27 initialization, all 276618 rows and labels, fixed64features,65trainableparameters,seed20261002,8epochs,batch128,AdamW0.0003,weight_decay0.0001,gradient_limit5 and finalepoch selection. All source geometry and normalization buffers remain frozen. All rows have equal objective weight; hard-negative flags remain admitted unchanged but do not change their weight.",
+  "metric": "Complete167component and9family development scenes,2210truths, at current0.10 operating point with existing5pixel matching. Report shared precision,recall,proposal support and prohibited-structure metrics. Historical0.25 results and other sensitivity points are descriptive only. Reproduce historicalV27 counts and verify ONNX parity across every development proposal, including frozen geometry. Then compare all21native sources/31panels/838truths and23CSV sources/39panels/706points/724rows under both frozen OCR arms against64f57493. Preserve all failed sources and export safeguards.",
+  "split_identities": {
+    "development": {
+      "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+      "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+    },
+    "diagnosis": {
+      "path": "docs/GOAL-22-CONFIDENCE-OBJECTIVE-DIAGNOSIS.json",
+      "sha256": "5df37a09362f1dc4d89da522a7aee76774c2bc94fd633d20181acd9360c225f0"
+    },
+    "initializer": {
+      "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+      "sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+    },
+    "native_csv_baseline": {
+      "path": "docs/GOAL-22-LEFT-AXIS-ROLE.json",
+      "sha256": "d49dbcc9dd16e584e5fa0b4c1114466123fa0200e7a990afa15ea7536e7321ca"
+    },
+    "separation": "Only the existing owned training union is optimized. Complete development and workflow sources, truth and failures stay frozen. No private or sealed input access.",
+    "training_features": {
+      "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/report.json",
+      "sha256": "d815bf0c20a3101d3713e7cf04d2cb3afe5e0c26c3c51650773e66e35614e147"
+    },
+    "training_group_rows": {
+      "component": 35838,
+      "coverage": 42747,
+      "crowded": 182614,
+      "crowded_mined_negative": 6366,
+      "family": 9053
+    },
+    "workflow_bindings": [
+      {
+        "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-native/candidate-binding.json",
+        "sha256": "53da895d43d93ce30575da496455e5845636d30cb85bf4b7654bfe01bd4150b8"
+      },
+      {
+        "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v44-csv/candidate-binding.json",
+        "sha256": "5a265def5f7c527d54dc8717f3c53f2baaea272062976f8dadabab7ed02eb50d"
+      },
+      {
+        "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-native/candidate-binding.json",
+        "sha256": "2af5562533ea277494bf65b074981dbf48f9138df5393ec929f39cc30bf8e919"
+      },
+      {
+        "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/v46-csv/candidate-binding.json",
+        "sha256": "2a7b0fc56845000bc24ccae7bd5211898458bd5afaa511ee7176ef3bd3d6336e"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1902 @@
+{
+  "schema": "graphreader.unweighted-confidence-outcome.v1",
+  "task": "marker-center",
+  "revision": "marker-center-unweighted-confidence-v33",
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "acceptance_status": "FAIL",
+  "closed_utc": "2026-10-02T20:25:17.967546+00:00",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/center-confidence-bce-v33/P1/report.json",
+    "sha256": "73883c5f8291b39f678a8d34aa2407f0ae0efe4906475124a927c2ccb68e8777"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-unweighted-confidence-v33/P1/result.json",
+    "sha256": "6b7e31231f384c326965a3d682f5c6dce39e3cba1793d2ff09291fdb3ef8b052"
+  },
+  "onnx_sha256": "3bc82039081cc4255c31b15cb0f27b71be9449f7d8cbfc355aa6aa57bc131db4",
+  "checkpoint_sha256": "d3eb6325f9c10b16a9e3d1105475813b9d0797b8df1b56ed6e5bc4c55e025ae8",
+  "source_binding": {
+    "snapshot": {
+      "path": "ml/markers/training-seals/marker-center/marker-center-unweighted-confidence-v33/P1/source-snapshot.json",
+      "sha256": "06a634a02b9cabe20add1ef04d4c6a1a67da7ac952298339e4afee69aa59735f"
+    },
+    "bundle_sha256": "08a3ff918f564e1cfa9271efc5ba13e34d058ad462dc1dfd3a640ebaa4fc1eda",
+    "verified_before_ledger_close": true
+  },
+  "training": {
+    "completed_epochs": 8,
+    "history": [
+      {
+        "epoch": 1,
+        "mean_loss": 0.1939616067615871,
+        "optimizer_steps": 2162
+      },
+      {
+        "epoch": 2,
+        "mean_loss": 0.1639936855566842,
+        "optimizer_steps": 4324
+      },
+      {
+        "epoch": 3,
+        "mean_loss": 0.16134257883929357,
+        "optimizer_steps": 6486
+      },
+      {
+        "epoch": 4,
+        "mean_loss": 0.16055545069029165,
+        "optimizer_steps": 8648
+      },
+      {
+        "epoch": 5,
+        "mean_loss": 0.16004968902042738,
+        "optimizer_steps": 10810
+      },
+      {
+        "epoch": 6,
+        "mean_loss": 0.1598027852543946,
+        "optimizer_steps": 12972
+      },
+      {
+        "epoch": 7,
+        "mean_loss": 0.1597762913025302,
+        "optimizer_steps": 15134
+      },
+      {
+        "epoch": 8,
+        "mean_loss": 0.1596538435209415,
+        "optimizer_steps": 17296
+      }
+    ],
+    "optimizer_steps": 17296,
+    "optimizer_steps_this_execution": 17296,
+    "resumed_from_epoch": 0,
+    "training_source_binding": {
+      "candidate_id": "P1",
+      "expected_runner_source_bundle_sha256": "08a3ff918f564e1cfa9271efc5ba13e34d058ad462dc1dfd3a640ebaa4fc1eda",
+      "feature_report_sha256": "d815bf0c20a3101d3713e7cf04d2cb3afe5e0c26c3c51650773e66e35614e147",
+      "recipe": {
+        "batch_size": 128,
+        "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+        "confidence_objective": "unweighted_binary_cross_entropy_with_logits",
+        "confidence_threshold": 0.1,
+        "epochs": 8,
+        "frozen_features": true,
+        "frozen_geometry": true,
+        "frozen_normalization_buffers": true,
+        "gradient_norm_limit": 5.0,
+        "learning_rate": 0.0003,
+        "seed": 20261002,
+        "trainable_parameters": 65,
+        "weight_decay": 0.0001
+      },
+      "revision": "marker-center-unweighted-confidence-v33",
+      "source_checkpoint_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365",
+      "task": "marker-center",
+      "training_group_rows": {
+        "component": 35838,
+        "coverage": 42747,
+        "crowded": 182614,
+        "crowded_mined_negative": 6366,
+        "family": 9053
+      }
+    }
+  },
+  "training_group_rows": {
+    "component": 35838,
+    "coverage": 42747,
+    "crowded": 182614,
+    "crowded_mined_negative": 6366,
+    "family": 9053
+  },
+  "total_training_rows": 276618,
+  "trainable_parameters": 65,
+  "frozen_other_parameters": 63387,
+  "all_features_normalization_and_geometry_state_unchanged": true,
+  "geometry_maximum_absolute_change": 3.814697265625e-06,
+  "development": {
+    "component": {
+      "candidate_balanced": {
+        "duplicate_count": 1,
+        "false_negatives": 103,
+        "false_positives": 672,
+        "precision": 0.7388262728332685,
+        "prohibited_structure_hit_rate": 0.000388651379712398,
+        "prohibited_structure_hits": 1,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9486027944111777,
+        "scene_count": 167,
+        "true_positives": 1901,
+        "truth_count": 2004
+      },
+      "candidate_historical": {
+        "duplicate_count": 1,
+        "false_negatives": 103,
+        "false_positives": 700,
+        "precision": 0.7308727412533641,
+        "prohibited_structure_hit_rate": 0.00038446751249519417,
+        "prohibited_structure_hits": 1,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9486027944111777,
+        "scene_count": 167,
+        "true_positives": 1901,
+        "truth_count": 2004
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 142,
+        "false_positives": 358,
+        "precision": 0.8387387387387387,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9291417165668663,
+        "scene_count": 167,
+        "true_positives": 1862,
+        "truth_count": 2004
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 140,
+        "false_positives": 426,
+        "precision": 0.8139737991266376,
+        "prohibited_structure_hit_rate": 0.0,
+        "prohibited_structure_hits": 0,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 2004,
+        "recall": 0.9301397205588823,
+        "scene_count": 167,
+        "true_positives": 1864,
+        "truth_count": 2004
+      }
+    },
+    "family": {
+      "candidate_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 1,
+        "false_positives": 146,
+        "precision": 0.584045584045584,
+        "prohibited_structure_hit_rate": 0.03133903133903134,
+        "prohibited_structure_hits": 11,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9951456310679612,
+        "scene_count": 9,
+        "true_positives": 205,
+        "truth_count": 206
+      },
+      "candidate_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 1,
+        "false_positives": 164,
+        "precision": 0.5555555555555556,
+        "prohibited_structure_hit_rate": 0.02981029810298103,
+        "prohibited_structure_hits": 11,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9951456310679612,
+        "scene_count": 9,
+        "true_positives": 205,
+        "truth_count": 206
+      },
+      "v27_balanced": {
+        "duplicate_count": 0,
+        "false_negatives": 5,
+        "false_positives": 75,
+        "precision": 0.7282608695652174,
+        "prohibited_structure_hit_rate": 0.021739130434782608,
+        "prohibited_structure_hits": 6,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9757281553398058,
+        "scene_count": 9,
+        "true_positives": 201,
+        "truth_count": 206
+      },
+      "v27_historical": {
+        "duplicate_count": 0,
+        "false_negatives": 5,
+        "false_positives": 75,
+        "precision": 0.7282608695652174,
+        "prohibited_structure_hit_rate": 0.021739130434782608,
+        "prohibited_structure_hits": 6,
+        "proposal_recall": 1.0,
+        "proposal_true_positives": 206,
+        "recall": 0.9757281553398058,
+        "scene_count": 9,
+        "true_positives": 201,
+        "truth_count": 206
+      }
+    }
+  },
+  "acceptance_bar": {
+    "precision_minimum": 0.95,
+    "prohibited_structure_hit_rate_maximum": 0.02,
+    "proposal_recall_minimum": 0.95,
+    "recall_minimum": 0.95
+  },
+  "operating_threshold": 0.1,
+  "onnx_torch_parity": {
+    "confidence_decision_changes": 0,
+    "maximum_absolute_error": 6.198883056640625e-06,
+    "rows": 270236
+  },
+  "threshold_sensitivity_is_descriptive_only": true,
+  "validation": {
+    "unique_tests_passed": 83,
+    "preflight": {
+      "path": "artifacts/goal22-runs/confidence-bce-preflight-20261002-v1/report.json",
+      "sha256": "4224c0d0faf58354e1cb81b4428e8f4ea7ed376ec29bfef1d85386518910088f"
+    },
+    "tests_seconds": 11.582,
+    "all_training_inputs_authenticated": true
+  },
+  "workflow": {
+    "v44": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 178.01503,
+        "execution_seconds": 187.3325376,
+        "metrics": {
+          "truth": 838,
+          "predicted": 871,
+          "matched": 782,
+          "extra": 89,
+          "missing": 56,
+          "precision": 0.8978185993111366,
+          "recall": 0.9331742243436754
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 774,
+          "matched": 745,
+          "extra": 29,
+          "missing": 93,
+          "precision": 0.962532299741602,
+          "recall": 0.8890214797136038
+        },
+        "paired_truths": {
+          "retained": 742,
+          "recovered": 40,
+          "lost": 3,
+          "missed_by_both": 53
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 458,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 55,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 136,
+            "character_error_count": 486,
+            "character_error_rate": 0.1567741935483871,
+            "role_correct_count": 381,
+            "role_accuracy": 0.8410596026490066,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 23,
+                "accuracy": 0.7419354838709677
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 457,
+            "geometry_matched_region_count": 403,
+            "geometry_false_positive_count": 54,
+            "geometry_false_negative_count": 50,
+            "recognition_exact_count": 358,
+            "recognition_exact_accuracy": 0.7902869757174393,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 64,
+            "unmatched_truth_deletion_edit_count": 286,
+            "unmatched_prediction_insertion_edit_count": 135,
+            "character_error_count": 485,
+            "character_error_rate": 0.15645161290322582,
+            "role_correct_count": 381,
+            "role_accuracy": 0.8410596026490066,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 46,
+                "accuracy": 0.7419354838709677
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 50,
+                "accuracy": 0.9615384615384616
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 34,
+                "accuracy": 0.918918918918919
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 23,
+                "accuracy": 0.7419354838709677
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 142,
+                "accuracy": 0.8352941176470589
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 84,
+                "accuracy": 0.8484848484848485
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 358,
+          "wrong_in_both": 95
+        },
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "5fe6d76f577e54b2270ee32b97111fc0dc7ff79f5db7faf918544a109456ef7e"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 70,
+          "accepted_additions": 288,
+          "accepted_removals": 191,
+          "changed_truth_readings": 0
+        },
+        "upstream_change_fields": {
+          "calibration": 31,
+          "marker_pipeline": 31,
+          "ocr": 8
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 178.0620058,
+        "execution_seconds": 182.2502792,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 14,
+          "failed_cases": 9,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 35,
+          "matched_series": 24,
+          "truth_points": 706,
+          "predicted_points": 402,
+          "matched_points": 388,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 402,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 385,
+          "correct_rows": 382,
+          "missing_rows": 339,
+          "extra_rows": 17,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 388,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 318,
+          "unique_point_extra": 14,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9651741293532339,
+          "unique_point_structural_coverage": 0.5495750708215298,
+          "unique_point_value_precision": 0.9651741293532339,
+          "unique_point_value_coverage": 0.5495750708215298,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9502487562189055,
+          "relational_row_coverage": 0.5276243093922652,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9922077922077922,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 9
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 426,
+          "matched_points": 414,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 426,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 412,
+          "correct_rows": 409,
+          "missing_rows": 312,
+          "extra_rows": 14,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 3,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 414,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 292,
+          "unique_point_extra": 12,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.971830985915493,
+          "unique_point_structural_coverage": 0.5864022662889519,
+          "unique_point_value_precision": 0.971830985915493,
+          "unique_point_value_coverage": 0.5864022662889519,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.960093896713615,
+          "relational_row_coverage": 0.5649171270718232,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9927184466019418,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 12,
+            "failed_cases": 8,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 21,
+            "matched_series": 16,
+            "truth_points": 500,
+            "predicted_points": 237,
+            "matched_points": 232,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 237,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 229,
+            "correct_rows": 226,
+            "missing_rows": 271,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 3,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 232,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 268,
+            "unique_point_extra": 5,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9789029535864979,
+            "unique_point_structural_coverage": 0.464,
+            "unique_point_value_precision": 0.9789029535864979,
+            "unique_point_value_coverage": 0.464,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9535864978902954,
+            "relational_row_coverage": 0.452,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.9868995633187773,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 8
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "validated_export_rows": 402,
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "5fe6d76f577e54b2270ee32b97111fc0dc7ff79f5db7faf918544a109456ef7e"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 81,
+          "accepted_additions": 103,
+          "accepted_removals": 85,
+          "status_changes": 2,
+          "exported_numeric_value_changes": 12
+        },
+        "upstream_change_fields": {
+          "calibration": 39,
+          "marker_pipeline": 39,
+          "ocr": 3
+        }
+      }
+    },
+    "v46": {
+      "native": {
+        "sources": 21,
+        "panels": 31,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 223.4126311,
+        "execution_seconds": 233.0435571,
+        "metrics": {
+          "truth": 838,
+          "predicted": 870,
+          "matched": 786,
+          "extra": 84,
+          "missing": 52,
+          "precision": 0.903448275862069,
+          "recall": 0.9379474940334129
+        },
+        "baseline_metrics": {
+          "truth": 838,
+          "predicted": 772,
+          "matched": 749,
+          "extra": 23,
+          "missing": 89,
+          "precision": 0.9702072538860104,
+          "recall": 0.8937947494033412
+        },
+        "paired_truths": {
+          "retained": 746,
+          "recovered": 40,
+          "lost": 3,
+          "missed_by_both": 49
+        },
+        "axis_corners": {
+          "before": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          },
+          "after": {
+            "axis_corners": 93,
+            "within_2px": 85,
+            "panels_all_corners_within_2px": 23
+          }
+        },
+        "ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 488,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 42,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 60,
+            "character_error_count": 110,
+            "character_error_rate": 0.035483870967741936,
+            "role_correct_count": 432,
+            "role_accuracy": 0.9536423841059603,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 52,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 31,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "baseline_ocr_metrics": {
+          "validation": {
+            "truth_region_count": 453,
+            "predicted_region_count": 491,
+            "geometry_matched_region_count": 446,
+            "geometry_false_positive_count": 45,
+            "geometry_false_negative_count": 7,
+            "recognition_exact_count": 431,
+            "recognition_exact_accuracy": 0.9514348785871964,
+            "truth_character_count": 3100,
+            "matched_pair_edit_count": 23,
+            "unmatched_truth_deletion_edit_count": 27,
+            "unmatched_prediction_insertion_edit_count": 63,
+            "character_error_count": 113,
+            "character_error_rate": 0.03645161290322581,
+            "role_correct_count": 432,
+            "role_accuracy": 0.9536423841059603,
+            "by_expected_runtime_role": {
+              "annotation": {
+                "truth_count": 62,
+                "correct_count": 50,
+                "accuracy": 0.8064516129032258
+              },
+              "axistitle": {
+                "truth_count": 52,
+                "correct_count": 52,
+                "accuracy": 1.0
+              },
+              "legendtext": {
+                "truth_count": 37,
+                "correct_count": 36,
+                "accuracy": 0.972972972972973
+              },
+              "participant": {
+                "truth_count": 31,
+                "correct_count": 31,
+                "accuracy": 1.0
+              },
+              "phaseheading": {
+                "truth_count": 170,
+                "correct_count": 164,
+                "accuracy": 0.9647058823529412
+              },
+              "xtick": {
+                "truth_count": 2,
+                "correct_count": 2,
+                "accuracy": 1.0
+              },
+              "ytick": {
+                "truth_count": 99,
+                "correct_count": 97,
+                "accuracy": 0.9797979797979798
+              }
+            },
+            "intersection_over_union_minimum": 0.5
+          }
+        },
+        "paired_literal_truths": {
+          "retained_exact": 431,
+          "wrong_in_both": 22
+        },
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "5fe6d76f577e54b2270ee32b97111fc0dc7ff79f5db7faf918544a109456ef7e"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 73,
+          "accepted_additions": 287,
+          "accepted_removals": 189,
+          "changed_truth_readings": 0
+        },
+        "upstream_change_fields": {
+          "calibration": 31,
+          "marker_pipeline": 31,
+          "ocr": 11
+        }
+      },
+      "csv": {
+        "sources": 23,
+        "panels": 39,
+        "axis_geometry_unchanged": true,
+        "only_center_weights_changed": true,
+        "thresholds_unchanged": true,
+        "inference_seconds": 254.7199492,
+        "execution_seconds": 258.2179931,
+        "metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 15,
+          "failed_cases": 8,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 36,
+          "matched_series": 25,
+          "truth_points": 706,
+          "predicted_points": 417,
+          "matched_points": 403,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 417,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 400,
+          "correct_rows": 389,
+          "missing_rows": 324,
+          "extra_rows": 17,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 403,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 303,
+          "unique_point_extra": 14,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.9664268585131894,
+          "unique_point_structural_coverage": 0.5708215297450425,
+          "unique_point_value_precision": 0.9664268585131894,
+          "unique_point_value_coverage": 0.5708215297450425,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9328537170263789,
+          "relational_row_coverage": 0.537292817679558,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9725,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 8
+          }
+        },
+        "baseline_metrics": {
+          "truth_cases": 23,
+          "output_cases": 23,
+          "completed_cases": 16,
+          "failed_cases": 7,
+          "unexpected_cases": 0,
+          "integrity_failure_cases": 0,
+          "truth_series": 41,
+          "predicted_series": 34,
+          "matched_series": 26,
+          "truth_points": 706,
+          "predicted_points": 440,
+          "matched_points": 429,
+          "unique_point_value_metrics_available": true,
+          "relational_row_metrics_available": true,
+          "relational_phase_metrics_available": true,
+          "actual_rows": 440,
+          "residual_artifact_rows_from_failed_cases": 0,
+          "expected_rows": 724,
+          "structurally_matched_rows": 427,
+          "correct_rows": 416,
+          "missing_rows": 297,
+          "extra_rows": 13,
+          "duplicate_rows": 0,
+          "wrong_scale_rows": 0,
+          "wrong_export_mode_rows": 0,
+          "wrong_phase_rows": 11,
+          "wrong_relation_rows": 0,
+          "unique_point_value_correct": 429,
+          "unique_point_value_incorrect": 0,
+          "unique_point_missing": 277,
+          "unique_point_extra": 11,
+          "unique_point_wrong_scale": 0,
+          "unique_point_wrong_export_mode": 0,
+          "unique_point_structural_precision": 0.975,
+          "unique_point_structural_coverage": 0.6076487252124646,
+          "unique_point_value_precision": 0.975,
+          "unique_point_value_coverage": 0.6076487252124646,
+          "matched_unique_point_value_accuracy": 1,
+          "relational_row_precision": 0.9454545454545454,
+          "relational_row_coverage": 0.574585635359116,
+          "matched_relational_graph_value_accuracy": 1,
+          "matched_relational_phase_accuracy": 0.9742388758782201,
+          "artifact_integrity_valid": true,
+          "failure_kinds": {
+            "workflow_failed": 7
+          }
+        },
+        "split_metrics": {
+          "train": {
+            "truth_cases": 20,
+            "output_cases": 20,
+            "completed_cases": 13,
+            "failed_cases": 7,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 30,
+            "predicted_series": 22,
+            "matched_series": 17,
+            "truth_points": 500,
+            "predicted_points": 252,
+            "matched_points": 247,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 252,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 500,
+            "structurally_matched_rows": 244,
+            "correct_rows": 233,
+            "missing_rows": 256,
+            "extra_rows": 8,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 11,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 247,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 253,
+            "unique_point_extra": 5,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9801587301587301,
+            "unique_point_structural_coverage": 0.494,
+            "unique_point_value_precision": 0.9801587301587301,
+            "unique_point_value_coverage": 0.494,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9246031746031746,
+            "relational_row_coverage": 0.466,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 0.9549180327868853,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 7
+            }
+          },
+          "dev": {
+            "truth_cases": 3,
+            "output_cases": 3,
+            "completed_cases": 2,
+            "failed_cases": 1,
+            "unexpected_cases": 0,
+            "integrity_failure_cases": 0,
+            "truth_series": 11,
+            "predicted_series": 14,
+            "matched_series": 8,
+            "truth_points": 206,
+            "predicted_points": 165,
+            "matched_points": 156,
+            "unique_point_value_metrics_available": true,
+            "relational_row_metrics_available": true,
+            "relational_phase_metrics_available": true,
+            "actual_rows": 165,
+            "residual_artifact_rows_from_failed_cases": 0,
+            "expected_rows": 224,
+            "structurally_matched_rows": 156,
+            "correct_rows": 156,
+            "missing_rows": 68,
+            "extra_rows": 9,
+            "duplicate_rows": 0,
+            "wrong_scale_rows": 0,
+            "wrong_export_mode_rows": 0,
+            "wrong_phase_rows": 0,
+            "wrong_relation_rows": 0,
+            "unique_point_value_correct": 156,
+            "unique_point_value_incorrect": 0,
+            "unique_point_missing": 50,
+            "unique_point_extra": 9,
+            "unique_point_wrong_scale": 0,
+            "unique_point_wrong_export_mode": 0,
+            "unique_point_structural_precision": 0.9454545454545454,
+            "unique_point_structural_coverage": 0.7572815533980582,
+            "unique_point_value_precision": 0.9454545454545454,
+            "unique_point_value_coverage": 0.7572815533980582,
+            "matched_unique_point_value_accuracy": 1,
+            "relational_row_precision": 0.9454545454545454,
+            "relational_row_coverage": 0.6964285714285714,
+            "matched_relational_graph_value_accuracy": 1,
+            "matched_relational_phase_accuracy": 1,
+            "artifact_integrity_valid": true,
+            "failure_kinds": {
+              "workflow_failed": 1
+            }
+          }
+        },
+        "validated_export_rows": 417,
+        "full_delta_audit": {
+          "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/comparison-summary.json",
+          "sha256": "5fe6d76f577e54b2270ee32b97111fc0dc7ff79f5db7faf918544a109456ef7e"
+        },
+        "detail_record_counts": {
+          "upstream_changes": 82,
+          "accepted_additions": 104,
+          "accepted_removals": 85,
+          "status_changes": 2,
+          "exported_numeric_value_changes": 13
+        },
+        "upstream_change_fields": {
+          "calibration": 39,
+          "marker_pipeline": 39,
+          "ocr": 4
+        }
+      }
+    }
+  },
+  "training_fit": [
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 6856,
+          "quantiles": [
+            1.0960476402033237e-06,
+            6.585855226148851e-05,
+            0.0021861179266124964,
+            0.012531842105090618,
+            0.09074972569942474
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 1718,
+          "above_historical_0_25": 538,
+          "count": 32580,
+          "quantiles": [
+            5.0516092642283184e-08,
+            0.00013208120362833144,
+            0.00299247307702899,
+            0.04347323477268222,
+            0.8075667023658752
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 1718,
+          "above_historical_0_25": 538,
+          "count": 25724,
+          "quantiles": [
+            5.0516092642283184e-08,
+            0.0001563443962368183,
+            0.00327564834151417,
+            0.059037310257554064,
+            0.8075667023658752
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3242,
+          "above_historical_0_25": 3162,
+          "count": 3258,
+          "quantiles": [
+            0.014682730659842491,
+            0.48469463586807254,
+            0.8973119854927063,
+            0.9855418562889099,
+            0.9998972415924072
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9983033217379442,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 6856,
+          "quantiles": [
+            3.628482930784216e-11,
+            2.142892512324579e-07,
+            1.4472766451945063e-05,
+            0.000486342134536244,
+            0.059725165367126465
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 356,
+          "above_historical_0_25": 97,
+          "count": 32580,
+          "quantiles": [
+            3.89328001261513e-13,
+            1.3534376250845525e-07,
+            2.1307550923665985e-05,
+            0.002487917384132749,
+            0.7627601027488708
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 356,
+          "above_historical_0_25": 97,
+          "count": 25724,
+          "quantiles": [
+            3.89328001261513e-13,
+            1.2206172641526792e-07,
+            2.3744947611703537e-05,
+            0.003973698709160095,
+            0.7627601027488708
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3258,
+          "above_historical_0_25": 3258,
+          "count": 3258,
+          "quantiles": [
+            0.4200720489025116,
+            0.9172977864742279,
+            0.9855715930461884,
+            0.9984248161315918,
+            0.9999992847442627
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9999981440594263,
+      "rows": 35838,
+      "scope": "component"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 194,
+          "above_historical_0_25": 83,
+          "count": 1761,
+          "quantiles": [
+            1.3174967534723692e-05,
+            0.0008394471369683743,
+            0.006852348800748587,
+            0.1096685603260994,
+            0.8003730177879333
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 729,
+          "above_historical_0_25": 342,
+          "count": 8230,
+          "quantiles": [
+            8.103971254058706e-07,
+            0.00017900746606756002,
+            0.0034557400504127145,
+            0.0820629745721817,
+            0.8073621392250061
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 535,
+          "above_historical_0_25": 259,
+          "count": 6469,
+          "quantiles": [
+            8.103971254058706e-07,
+            0.0001386738702422008,
+            0.0029054624028503895,
+            0.07297064363956444,
+            0.8073621392250061
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 823,
+          "above_historical_0_25": 823,
+          "count": 823,
+          "quantiles": [
+            0.2821441888809204,
+            0.6499579668045044,
+            0.8964548110961914,
+            0.976205837726593,
+            0.9973840117454529
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9989747965907262,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 10,
+          "above_historical_0_25": 1,
+          "count": 1761,
+          "quantiles": [
+            1.6820721482346812e-09,
+            4.19962452724576e-06,
+            0.00043908192310482264,
+            0.00910204742103815,
+            0.282674640417099
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 232,
+          "above_historical_0_25": 89,
+          "count": 8230,
+          "quantiles": [
+            8.942631357644615e-12,
+            9.650766628510611e-07,
+            0.00012022511145914905,
+            0.01097745243459943,
+            0.7331971526145935
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 222,
+          "above_historical_0_25": 88,
+          "count": 6469,
+          "quantiles": [
+            8.942631357644615e-12,
+            6.967905051169511e-07,
+            7.628805178683251e-05,
+            0.012143138423562029,
+            0.7331971526145935
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 823,
+          "above_historical_0_25": 823,
+          "count": 823,
+          "quantiles": [
+            0.5736701488494873,
+            0.8732131600379944,
+            0.9779291749000549,
+            0.9976542234420777,
+            0.9999356269836426
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9999961613927648,
+      "rows": 9053,
+      "scope": "family"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 7412,
+          "above_historical_0_25": 3135,
+          "count": 23271,
+          "quantiles": [
+            3.6097051633987576e-05,
+            0.0031363365706056356,
+            0.04152168706059456,
+            0.30934715270996094,
+            0.9878303408622742
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 8055,
+          "above_historical_0_25": 3366,
+          "count": 38884,
+          "quantiles": [
+            8.390078392039868e-07,
+            0.0007134830695576966,
+            0.013034536503255367,
+            0.22312763035297406,
+            0.9878303408622742
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 643,
+          "above_historical_0_25": 231,
+          "count": 15613,
+          "quantiles": [
+            8.390078392039868e-07,
+            0.0003183601482305676,
+            0.002476010238751769,
+            0.030619082227349284,
+            0.9435708522796631
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 3505,
+          "above_historical_0_25": 3010,
+          "count": 3863,
+          "quantiles": [
+            0.00018696446204558015,
+            0.10939715802669527,
+            0.533598780632019,
+            0.8986915469169617,
+            0.9923612475395203
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9306493253408726,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 3056,
+          "above_historical_0_25": 1701,
+          "count": 23271,
+          "quantiles": [
+            7.874346313885283e-11,
+            1.354701817035675e-05,
+            0.0018757631769403815,
+            0.1581084281206131,
+            0.9989049434661865
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 3433,
+          "above_historical_0_25": 1910,
+          "count": 38884,
+          "quantiles": [
+            2.4658157460333285e-12,
+            4.32412421105255e-06,
+            0.0006159147596918046,
+            0.07903236523270615,
+            0.9989049434661865
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 377,
+          "above_historical_0_25": 209,
+          "count": 15613,
+          "quantiles": [
+            2.4658157460333285e-12,
+            1.1964687928411878e-06,
+            0.00015007963520474732,
+            0.008966867253184336,
+            0.9890623688697815
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 2713,
+          "above_historical_0_25": 2245,
+          "count": 3863,
+          "quantiles": [
+            2.075439169857418e-06,
+            0.005696907360106709,
+            0.41042450070381165,
+            0.9694422245025635,
+            0.99973064661026
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.9041763319843941,
+      "rows": 42747,
+      "scope": "coverage"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 24376,
+          "above_historical_0_25": 9796,
+          "count": 87774,
+          "quantiles": [
+            1.0946941074507777e-05,
+            0.0026848695240914823,
+            0.03364976681768894,
+            0.2698200553655624,
+            0.9901250600814819
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 25998,
+          "above_historical_0_25": 10237,
+          "count": 165882,
+          "quantiles": [
+            1.7426393696950981e-06,
+            0.0005595426249783487,
+            0.007658614544197917,
+            0.16748322695493695,
+            0.9901250600814819
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 1622,
+          "above_historical_0_25": 441,
+          "count": 78108,
+          "quantiles": [
+            1.7426393696950981e-06,
+            0.0002961985126603395,
+            0.0019089063280262053,
+            0.017998825386166577,
+            0.9386358261108398
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 13514,
+          "above_historical_0_25": 9871,
+          "count": 16732,
+          "quantiles": [
+            0.00024258320627268404,
+            0.050929759442806255,
+            0.3273608237504959,
+            0.808934199810028,
+            0.9989266991615295
+          ]
+        }
+      },
+      "current_ranking_auc": 0.9135791999625943,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 8309,
+          "above_historical_0_25": 4521,
+          "count": 87774,
+          "quantiles": [
+            1.5849241407142611e-12,
+            6.11770751675067e-06,
+            0.0008951157215051353,
+            0.08993787243962287,
+            0.9985815286636353
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 9212,
+          "above_historical_0_25": 4947,
+          "count": 165882,
+          "quantiles": [
+            1.5849241407142611e-12,
+            2.798722653096776e-06,
+            0.00028562071383930743,
+            0.031900727376341795,
+            0.9985815286636353
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 903,
+          "above_historical_0_25": 426,
+          "count": 78108,
+          "quantiles": [
+            3.937897750938557e-12,
+            1.5849473470552767e-06,
+            0.00010458525866852142,
+            0.003930788859724999,
+            0.9852377772331238
+          ]
+        },
+        "positive": {
+          "above_current_0_10": 7708,
+          "above_historical_0_25": 5787,
+          "count": 16732,
+          "quantiles": [
+            1.665618398760671e-08,
+            0.0005205017572734506,
+            0.07099158316850662,
+            0.8674579203128812,
+            0.999977707862854
+          ]
+        }
+      },
+      "retained_ranking_auc": 0.8512202438081596,
+      "rows": 182614,
+      "scope": "crowded"
+    },
+    {
+      "current": {
+        "hard_negative": {
+          "above_current_0_10": 1097,
+          "above_historical_0_25": 469,
+          "count": 6366,
+          "quantiles": [
+            8.698631972947624e-06,
+            0.0013859800528734922,
+            0.015535671729594469,
+            0.1859588772058487,
+            0.9445967674255371
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 1097,
+          "above_historical_0_25": 469,
+          "count": 6366,
+          "quantiles": [
+            8.698631972947624e-06,
+            0.0013859800528734922,
+            0.015535671729594469,
+            0.1859588772058487,
+            0.9445967674255371
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        },
+        "positive": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        }
+      },
+      "current_ranking_auc": null,
+      "retained": {
+        "hard_negative": {
+          "above_current_0_10": 655,
+          "above_historical_0_25": 299,
+          "count": 6366,
+          "quantiles": [
+            2.3467677454092062e-11,
+            1.3759496141574346e-05,
+            0.0032138109672814608,
+            0.10312207415699959,
+            0.9495442509651184
+          ]
+        },
+        "negative": {
+          "above_current_0_10": 655,
+          "above_historical_0_25": 299,
+          "count": 6366,
+          "quantiles": [
+            2.3467677454092062e-11,
+            1.3759496141574346e-05,
+            0.0032138109672814608,
+            0.10312207415699959,
+            0.9495442509651184
+          ]
+        },
+        "ordinary_negative": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        },
+        "positive": {
+          "above_current_0_10": 0,
+          "above_historical_0_25": 0,
+          "count": 0,
+          "quantiles": []
+        }
+      },
+      "retained_ranking_auc": null,
+      "rows": 6366,
+      "scope": "crowded_mined_negative"
+    }
+  ],
+  "observed_cpu_model_envelopes": {
+    "OpenCvSharpExtern": 140,
+    "graph-text-extent-db-head-v44-p1": 70,
+    "en_PP-OCRv5_mobile_rec": 70,
+    "marker-center-unweighted-confidence-v33": 140,
+    "marker-classifier-structural-context-v5": 381,
+    "graph-scale-coverage-db-head-v46-p1": 70,
+    "PP-OCRv5_server_rec": 70
+  },
+  "seconds": {
+    "preflight": 30.8580538,
+    "training_and_development": 171.5118167,
+    "complete_workflow": 862.1947771,
+    "post_workflow_audit_and_fit": 12.2226475,
+    "objective_diagnosis": 16.6409684
+  },
+  "cpu_budget": {
+    "cycles": 20776,
+    "maximum_completed_cycle_duty": 0.7998985350467335,
+    "rest_seconds": 38.707071700039705,
+    "scope": "Synchronous guarded work/rest average; not instantaneous per-core utilization",
+    "work_seconds": 115.6691930000361
+  },
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/center-confidence-bce-v33/P1/report.json",
+      "sha256": "73883c5f8291b39f678a8d34aa2407f0ae0efe4906475124a927c2ccb68e8777"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-confidence-bce-v33/P1/development.json",
+      "sha256": "06da4a0326c2991ca759176fa647fd2042f01a47d7656e4ef474349a4bb9f18d"
+    },
+    {
+      "path": "ml/markers/training-seals/marker-center/marker-center-unweighted-confidence-v33/P1/result.json",
+      "sha256": "6b7e31231f384c326965a3d682f5c6dce39e3cba1793d2ff09291fdb3ef8b052"
+    },
+    {
+      "path": "ml/markers/training-seals/marker-center/marker-center-unweighted-confidence-v33/P1/source-snapshot.json",
+      "sha256": "06a634a02b9cabe20add1ef04d4c6a1a67da7ac952298339e4afee69aa59735f"
+    },
+    {
+      "path": "ml/markers/center/confidence_bce_v33/p1.json",
+      "sha256": "acfd27b037c7b455382fda3be78b8c2e87765ceded3f8fc1bdc6c864a4ec7864"
+    },
+    {
+      "path": "ml/markers/center/confidence_bce_v33/protocol.json",
+      "sha256": "45f42f67eaad1b6c8fd5ced77da24d29ba7fcd4d072bccc49740dfb65a8b6893"
+    },
+    {
+      "path": "docs/GOAL-22-CONFIDENCE-OBJECTIVE-DIAGNOSIS.json",
+      "sha256": "5df37a09362f1dc4d89da522a7aee76774c2bc94fd633d20181acd9360c225f0"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-preflight-20261002-v1/report.json",
+      "sha256": "4224c0d0faf58354e1cb81b4428e8f4ea7ed376ec29bfef1d85386518910088f"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-preflight-20261002-v1/tests.xml",
+      "sha256": "0d2410cf7f99be878facff56534e763bba3db99ef657ce9ca51df40067944794"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-preflight-20261002-v1/admission-preparation.json",
+      "sha256": "1a035e32220474002d4f3659b4d0a0751346be36507d8182227feb9a46fa8e70"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-fit-diagnosis-20261002-v1/report.json",
+      "sha256": "7dfea6a82a11a285263f144f88c358056c99586624d8bcd852eddc3e99eb0432"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/comparison-summary.json",
+      "sha256": "5fe6d76f577e54b2270ee32b97111fc0dc7ff79f5db7faf918544a109456ef7e"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-objective-diagnosis-20261002-v1/report.json",
+      "sha256": "f1f26a375836f52296e60b14bfb5aedbb8e578f4dc8b126137371ceb537e5351"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "artifacts/goal22-tools/Close-ConfidenceBceV33.py",
+      "sha256": "b8c500ac2e95c17fdbeb937609e7d8ffcb484886f9fadbc989f13e244f2b01c9"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-preflight-20261002-v1/status.json",
+      "sha256": "a79cb648b0bb8bccc7582394ec29c046b329d10eb60d4ab986d4d5e32e249958"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-confidence-bce-v33/status.json",
+      "sha256": "5bc9e0d0432b103ba3e59bbf22e8e4c547b9cc30b7d61c432931d495595ef7e6"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/status.json",
+      "sha256": "7b347c12ea969f67e20eb071076fbd85d228452ea4e90f622ecbf6b03144f1a6"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-fit-diagnosis-20261002-v1/status.json",
+      "sha256": "87442e5f2555d2b7599432cfddbfb342ecf7d1c65cf015e397c0b2788b512048"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-objective-diagnosis-20261002-v1/status.json",
+      "sha256": "5979db0917d9af7f1117c87a084d79583c63b2c85b768168884740817aa90022"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/status.json",
+      "sha256": "7b347c12ea969f67e20eb071076fbd85d228452ea4e90f622ecbf6b03144f1a6"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/jobs.json",
+      "sha256": "c16d46cda55646adb58b211a5c2685171571f230c05913f6c29a42e192ab2216"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/source-bindings.json",
+      "sha256": "d0ec40fb5269919001ceb6577da9efa0d0e457268f027c7b2ece227c59d6bcd3"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/status.json",
+      "sha256": "f6d772a679bdfbf2ce75884000fcd450d80a5fe63d364ae0f3bc29f078bbfaf5"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/source-bindings.json",
+      "sha256": "69a5c3e4fc30de7194da8c95bf14563a1f59ee746ee362124b4c433ba4031397"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/input-bindings.json",
+      "sha256": "d08a63b193426b4e1d0ad3cb2609eec6f40cfd966cc22882bac6da61fcf987ed"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/ocr.trx",
+      "sha256": "70c35b8143806b1d69f60fb543bca19a6969c3797f64ad3419841948e12cf92a"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/test-results/app.trx",
+      "sha256": "6124358f5c4f824007b4f91e5eecfa656a627866a8002d14ae131da012234a2e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/Ocr-build.log",
+      "sha256": "b3cdcd015aecf50ca725ffc07b0fbdedfa8f6aa354509bc5c23e07ae1461c4ab"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/App-build.log",
+      "sha256": "d99522d640614be1efd505896cca7d3e35c8125c73058f38a45c3cf02902d354"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-checks-20261001-v1/native-build.log",
+      "sha256": "b1d2290ea8398137a37d7ab2fd16f0152a80479aaa26839545e58be605ce6745"
+    },
+    {
+      "path": "docs/GOAL-22-CONFIDENCE-OBJECTIVE-DIAGNOSIS.json",
+      "sha256": "5df37a09362f1dc4d89da522a7aee76774c2bc94fd633d20181acd9360c225f0"
+    },
+    {
+      "path": "C:/Users/Sungwoo/Desktop/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/Record-ConfidenceBceV33.py",
+      "sha256": "e509ca28a225a7a25e4c422d043ea72ff486e93f8b172cde19b955362bd351df"
+    },
+    {
+      "path": "artifacts/goal22-tools/Prepare-ConfidenceBceV33Evaluation.py",
+      "sha256": "7b90e2cac6d13a24544a9b620b9567429d976b532d9c49ab88597ddc6a41c1db"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-ConfidenceBceV33Evaluation.ps1",
+      "sha256": "b10b3ba3d9dc4c1b713f0c1891f949463cfc94f795ac084fecd0850f02010a7d"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-LeftAxisRoleChecks.ps1",
+      "sha256": "a12754014a4ab081538570da3e05709968ff51090dcdb93f0a5e33359840828e"
+    },
+    {
+      "path": "artifacts/goal22-runs/left-axis-role-evaluation-20261001-v1/runtime-description.json",
+      "sha256": "c429d0ec63309318a964b0865a22c205b302c673fa7750993c0f5d5849b9f27d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/marker-center-manifest.json",
+      "sha256": "29d406df4ed39812f135fb274e7ac4bc6e1cb082703b702a5a344d1d72223149"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/MODEL_NOTICE.md",
+      "sha256": "2ba448ed90ac66101cf31219595e088f7d199436ea751dec7ba1d90a2dba0f19"
+    },
+    {
+      "path": "docs/GOAL-22-FROZEN-CONFIDENCE-PARITY-DIAGNOSIS.json",
+      "sha256": "c880dffa72ceaaeb5d8abf79739a0622e76226cc78e8135b3275bfa0d8259aba"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-native/native-marker-score.json",
+      "sha256": "394a8cf15ee649b7d37ece3b2a16433e3c882188b752bd9724b3470e034fee50"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-native/native-ocr-score.json",
+      "sha256": "eec5a4681eb35bc72e558766da2bf2d7017b217a8ac18df575c46fd555ae7105"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-native/native-ocr-details.json",
+      "sha256": "f85195ed6b4d342b57648751a3462eba95bfbf7c3a88db112d315959a3193666"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-native/axis-geometry-comparison.json",
+      "sha256": "b21b13710e483c3081fac6142e94ba21ca4f4bb33c98c29b77eeefa98ef0bd9a"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-native/protocol.json",
+      "sha256": "eff5c804af03d1523e53fd9d76c0f7b580f7de8745777da7fe73a2fb96f6c32c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-native/candidate-binding.json",
+      "sha256": "4d606ff3944c242724baf8c1f822900ffa38c97b6f4c8033d2b6f01b7c0b4a8b"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-native/input-manifest.json",
+      "sha256": "630350255adff3df7c0a1523b77d9db08b602c191ef8fa118def36a224a0054d"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-native/execution/report.json",
+      "sha256": "124fb468cf79dad62924c3d8a41fa6a79d5a39f1ce68338c60df7b6add1ea2d9"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-native/status.json",
+      "sha256": "99483892735a14db3737817960cb175f01b9ce8f62267b58be77fdd7b99b9091"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-csv/csv-score-normalized-phases.json",
+      "sha256": "feb57800523f79eb60825abeeaab9e950170f81e384e511da7613a33ed212a98"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-csv/comparison.json",
+      "sha256": "2d96c088ff6529913c147cd1ed08bee77746ce4a5961d22457cad4b8a25d133f"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-csv/protocol.json",
+      "sha256": "17c267cecc54cd6778061871ffeda10f5b67c6fe3355007cc0b352fb78e9e535"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-csv/candidate-binding.json",
+      "sha256": "d38e1e953dae3abb7fb8d00e219c96c4aa5b885e51e7c80c1995365d5c162aba"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-csv/input-manifest.json",
+      "sha256": "eb29a8f346decda936be156317c157db04d8c95d93ac7d3d1994d1a9a605e416"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-csv/execution/report.json",
+      "sha256": "72017b6c437c23553315d6e1633aace19c0dedb684bed86646ce32262727693a"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v44-csv/status.json",
+      "sha256": "d0a86798fc64eba336a50cda11c9b4130b825f185dfbfe4f2c48f1cf9ac65792"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-native/native-marker-score.json",
+      "sha256": "860a9b9fa6c941ffd40a4875fea462831363fd39956ade2a530970659fae876c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-native/native-ocr-score.json",
+      "sha256": "5237e6646da1481f277540b457cdefffe6794d5c45883b29dfa205de8ecf252f"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-native/native-ocr-details.json",
+      "sha256": "1af535ad3a578e7b492e4ac4e8466b2631416e645dc452bc4bcb9da6afdbdaf2"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-native/axis-geometry-comparison.json",
+      "sha256": "9b208d0c8d7fa818c62af1f05fada35500439c8b2a6b60ab42e78e0231c9addf"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-native/protocol.json",
+      "sha256": "cba29772189ef1e349f2349a6934311809f6efca534523b240d6fbe09c169c42"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-native/candidate-binding.json",
+      "sha256": "21980fd736ff912b0085c9c928dcac2ddcdd60269edf01bb654e9c46ce05f077"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-native/input-manifest.json",
+      "sha256": "a32102fb8e70ec2af285dd56aec547f593c5d72cb1df17ce518cc4bed2090f4b"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-native/execution/report.json",
+      "sha256": "e090324688b57af1791dcf83878e82ec8a34209d2fa7725a5a0d44e78e1b2866"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-native/status.json",
+      "sha256": "4654203d03f09ab8183783fedfa06fac806c2f66a6af4fcaa84087a8e8d38307"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-csv/csv-score-normalized-phases.json",
+      "sha256": "ba37d06d86c27067f778133d6834a7f2a8b811377e6281c245c22121be82a710"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-csv/comparison.json",
+      "sha256": "8b90db8e16dd98c9deea663d36178e75937c967edfbebcd9d03d8a077974d9d8"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-csv/protocol.json",
+      "sha256": "3bf1c20e39549289a94800f96c160e1d916f15c0c4eb9d134966ee1d6534669c"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-csv/candidate-binding.json",
+      "sha256": "21f0dad26d54948e87196f25873ca13c6a8ef4d2deb8d6cfd7ab3dc7c3afef85"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-csv/input-manifest.json",
+      "sha256": "93732d05f12825642a036ce5ae6c2a44bafa09885632c125694cd4145b552c98"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-csv/execution/report.json",
+      "sha256": "8e8134cfa2e971d88120b44ed605e4e938c878c177ad3e5b7f9a1c2c65bc629f"
+    },
+    {
+      "path": "artifacts/goal22-runs/confidence-bce-v33-evaluation-20261002-v1/v46-csv/status.json",
+      "sha256": "113d5f9c9798b3a0e10f370f555ff440ba1099c167c96fdcc5166d3378952aa2"
+    }
+  ],
+  "decision": "Reject the fixed V33 unweighted-confidence candidate because it fails the unchanged shared development bars. Retain V44/English/V27/V5. The full native/CSV effects are preserved in the authenticated local audit. Do not activate or repeat this unchanged candidate.",
+  "license_review": "Owned Apache-2.0 model, synthetic data and source. Existing reviewed OCR/classifier inputs remain checksum-bound. No dependency or imported weights added.",
+  "limitations": [
+    "Equal per-row binary cross-entropy on an enriched training population does not prove calibration on native proposal populations.",
+    "Confidence ordering changes NMS and selected centers even with per-patch geometry frozen.",
+    "Raw accepted-set additions/removals can include numerical movement and are not recovered/lost truth counts; use paired truth measurements.",
+    "Synthetic metrics and validated rows do not establish real acceptance or the runtime safety property by themselves.",
+    "No private/sealed input access, production activation, packaged build or release. Goal22 remains incomplete."
+  ],
+  "candidate_consumed": false,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approved": false,
+  "release_eligible": false,
+  "packaged_build_created": false,
+  "retained_build_number": 433,
+  "retained_version": "0.4.33",
+  "goal22_complete": false
+}
