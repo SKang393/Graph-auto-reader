@@ -1,0 +1,333 @@
+{
+  "status": "diagnosed_before_implementation",
+  "base_commit": "64f5749339cf56938deb59f67621b794467c04dc",
+  "failure_mode": "The retained V27 center model misses 93/89 native markers. In the reproduced native-anchor diagnostic, 71/70 misses have all positive anchors below the existing 0.10 threshold. Train-only measurement recognizes all 4081 original positive rows but falls below 0.10 on 1150/3863 shape-supplement and 9024/16732 crowded-supplement positives.",
+  "responsible_subsystem": "Retained proposal-center confidence mapping over learned features; localization outputs were rarely the primary failure in the native diagnostic.",
+  "hypothesis": "Adapt only the final 65 confidence parameters over the complete existing training union while freezing all features, normalization buffers and offset/radius parameters. This may improve coverage without changing each input patch's geometry outputs. Confidence ordering can still change NMS and final marker selection, so complete development and workflow checks remain necessary.",
+  "native_failure_evidence": {
+    "path": "artifacts/goal22-runs/native-marker-anchor-scores-20261001-v1/report.json",
+    "sha256": "563d69cafd1d3e20ead0ac687ed1eac460942f3d83d33b4272e96b6b0487d084"
+  },
+  "feature_diagnosis": {
+    "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/report.json",
+    "sha256": "d815bf0c20a3101d3713e7cf04d2cb3afe5e0c26c3c51650773e66e35614e147"
+  },
+  "failed_preflight": {
+    "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261001-v1/status.json",
+    "sha256": "6c34e025168de88ce16cdcdd8dfd2690980718bc5732edc5659191d9cc206af1"
+  },
+  "fixed_training_groups": [
+    {
+      "rows": 35838,
+      "positive": 3258,
+      "negative": 32580,
+      "weighted_classification_loss_sum": 21.05732594800954,
+      "weighted_classification_loss_mean": 0.0005875697848096864,
+      "positive_probability": {
+        "count": 3258,
+        "quantiles": [
+          0.4200720489025116,
+          0.9172977864742279,
+          0.9855715930461884,
+          0.9984248161315918,
+          0.9999992847442627
+        ],
+        "below_0_10": 0,
+        "above_or_equal_0_10": 3258,
+        "above_or_equal_0_25": 3258
+      },
+      "negative_probability": {
+        "count": 32580,
+        "quantiles": [
+          3.89328001261513e-13,
+          1.3534376250845525e-07,
+          2.1307550923665985e-05,
+          0.002487917384132749,
+          0.7627601027488708
+        ],
+        "below_0_10": 32224,
+        "above_or_equal_0_10": 356,
+        "above_or_equal_0_25": 97
+      },
+      "scope": "component",
+      "tensors": {
+        "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/train-component.pt",
+        "sha256": "166f391151ff9d49394152be0b6dfb7dea487ac2e054771011c28f00374744ad"
+      },
+      "features": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/component-features.npy",
+        "sha256": "0006d58f64a61b1cb7cdac9f3b7d789c4f598b2bb200594d4f1f70bb2c284a0a"
+      },
+      "raw": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/component-raw.npy",
+        "sha256": "e2cafb43262c3b480d69c382920ae4f24fbd093491bf0f9806b4f582c401dd41"
+      },
+      "labels": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/component-labels.npy",
+        "sha256": "e744ba10fddc380ac6edd71d4e8b94f98de8ae3e35c8c47e2e3f3228d299e536"
+      },
+      "hard_negative": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/component-hard-negative.npy",
+        "sha256": "bd0376fde047b59ade6473551a930c6b8c29ed1be4cf0116634ce3f64d4b4fa6"
+      }
+    },
+    {
+      "rows": 9053,
+      "positive": 823,
+      "negative": 8230,
+      "weighted_classification_loss_sum": 11.230958231849108,
+      "weighted_classification_loss_mean": 0.0012405786183418877,
+      "positive_probability": {
+        "count": 823,
+        "quantiles": [
+          0.5736701488494873,
+          0.8732131600379944,
+          0.9779291749000549,
+          0.9976542234420777,
+          0.9999356269836426
+        ],
+        "below_0_10": 0,
+        "above_or_equal_0_10": 823,
+        "above_or_equal_0_25": 823
+      },
+      "negative_probability": {
+        "count": 8230,
+        "quantiles": [
+          8.942631357644615e-12,
+          9.650766628510611e-07,
+          0.00012022511145914905,
+          0.01097745243459943,
+          0.7331971526145935
+        ],
+        "below_0_10": 7998,
+        "above_or_equal_0_10": 232,
+        "above_or_equal_0_25": 89
+      },
+      "scope": "family",
+      "tensors": {
+        "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/train-family.pt",
+        "sha256": "662ea1e06189360ed6db4e1824ee5c6871d0d0f14009f08293dbc9da07e7c695"
+      },
+      "features": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/family-features.npy",
+        "sha256": "a1e970782d878264a29e5f7b686fa15c291bdddc33c38da74932656592564001"
+      },
+      "raw": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/family-raw.npy",
+        "sha256": "12545cda51718a262474f65198c76e040597b7cae4968b1ae82b88affb62f60d"
+      },
+      "labels": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/family-labels.npy",
+        "sha256": "75fc6d9cf16f4064ef98330226acf52a684311d124d2516e0c335f286029bd9a"
+      },
+      "hard_negative": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/family-hard-negative.npy",
+        "sha256": "6809e7e534fb0edd370ae44429cab4794e1f5ebc288046a4c133a0edbecf78bd"
+      }
+    },
+    {
+      "rows": 42747,
+      "positive": 3863,
+      "negative": 38884,
+      "weighted_classification_loss_sum": 28120.031995106023,
+      "weighted_classification_loss_mean": 0.6578246893374043,
+      "positive_probability": {
+        "count": 3863,
+        "quantiles": [
+          2.075439169857418e-06,
+          0.005696907360106709,
+          0.41042450070381165,
+          0.9694422245025635,
+          0.99973064661026
+        ],
+        "below_0_10": 1150,
+        "above_or_equal_0_10": 2713,
+        "above_or_equal_0_25": 2245
+      },
+      "negative_probability": {
+        "count": 38884,
+        "quantiles": [
+          2.4658157460333285e-12,
+          4.32412421105255e-06,
+          0.0006159147596918046,
+          0.07903236523270615,
+          0.9989049434661865
+        ],
+        "below_0_10": 35451,
+        "above_or_equal_0_10": 3433,
+        "above_or_equal_0_25": 1910
+      },
+      "scope": "coverage",
+      "tensors": {
+        "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/train-coverage.pt",
+        "sha256": "b152c00cd07e611ce82ef26444a86622fbf5e6762520694ac6e3daa08a777841"
+      },
+      "features": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/coverage-features.npy",
+        "sha256": "c783c5f69789535e4244677a846d7669ede5e44f5c85b94871c26dad697b4b10"
+      },
+      "raw": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/coverage-raw.npy",
+        "sha256": "0e145a04cf01f5d307f6b089729bdcaade51a633b0a5cb9f25a9f82ee6683eae"
+      },
+      "labels": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/coverage-labels.npy",
+        "sha256": "e5d58400cf95f4d02ac990e309d9df154392a2862514db3e6da44542d3967d3f"
+      },
+      "hard_negative": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/coverage-hard-negative.npy",
+        "sha256": "80202dea200f3f48e8dddd165ce0ec5fa16fa5c6eff56229caf77484e777612c"
+      }
+    },
+    {
+      "rows": 182614,
+      "positive": 16732,
+      "negative": 165882,
+      "weighted_classification_loss_sum": 214900.64270668972,
+      "weighted_classification_loss_mean": 1.1768026696019458,
+      "positive_probability": {
+        "count": 16732,
+        "quantiles": [
+          1.665618398760671e-08,
+          0.0005205017572734506,
+          0.07099158316850662,
+          0.8674579203128812,
+          0.999977707862854
+        ],
+        "below_0_10": 9024,
+        "above_or_equal_0_10": 7708,
+        "above_or_equal_0_25": 5787
+      },
+      "negative_probability": {
+        "count": 165882,
+        "quantiles": [
+          1.5849241407142611e-12,
+          2.798722653096776e-06,
+          0.00028562071383930743,
+          0.031900727376341795,
+          0.9985815286636353
+        ],
+        "below_0_10": 156670,
+        "above_or_equal_0_10": 9212,
+        "above_or_equal_0_25": 4947
+      },
+      "scope": "crowded",
+      "tensors": {
+        "path": "artifacts/goal22-runs/center-crowded-coverage-cache-v1/train-crowded.pt",
+        "sha256": "a733f1e4650d85dc88abb679bdc767646d08c83ff9df1b74e139929a1ccb2e25"
+      },
+      "features": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/crowded-features.npy",
+        "sha256": "1f7d5359cb6bd8e24be03603d54db6ecb55d0cd0b63102e231600808ba39cc83"
+      },
+      "raw": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/crowded-raw.npy",
+        "sha256": "4646652a3dbfecf65abce3e096dd1957c39db7e185ba994189c52ceb70a1ce9d"
+      },
+      "labels": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/crowded-labels.npy",
+        "sha256": "b1a14fb913a8598c1f896cdce3646216fade3cd598a23013f51158b252b5363e"
+      },
+      "hard_negative": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/crowded-hard-negative.npy",
+        "sha256": "9cefa6ca4f8148c9f299487646c5155c27a5ece815e72dc70d495eb113701c1e"
+      }
+    },
+    {
+      "rows": 6366,
+      "positive": 0,
+      "negative": 6366,
+      "weighted_classification_loss_sum": 389.5846579161797,
+      "weighted_classification_loss_mean": 0.06119771566386738,
+      "positive_probability": {
+        "count": 0,
+        "quantiles": null,
+        "below_0_10": 0,
+        "above_or_equal_0_10": 0,
+        "above_or_equal_0_25": 0
+      },
+      "negative_probability": {
+        "count": 6366,
+        "quantiles": [
+          2.3467677454092062e-11,
+          1.3759496141574346e-05,
+          0.0032138109672814608,
+          0.10312207415699959,
+          0.9495442509651184
+        ],
+        "below_0_10": 5711,
+        "above_or_equal_0_10": 655,
+        "above_or_equal_0_25": 299
+      },
+      "scope": "crowded_mined_negative",
+      "tensors": {
+        "path": "artifacts/goal22-runs/center-crowded-negative-cache-20260930-v1/train-negative.pt",
+        "sha256": "1f4e4f486ed256ad3ed68f87fb81286f0240b5d93142db1c0fed68919f3753d0"
+      },
+      "features": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/crowded_mined_negative-features.npy",
+        "sha256": "eff0961d1c959823a0a826ab34f109d339980cf5242f7e56d0f93cb1ccb0101b"
+      },
+      "raw": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/crowded_mined_negative-raw.npy",
+        "sha256": "5b027ce645d1a5ee7114eacc9de5f5ba98302227b1f526f708afd29f31673ac4"
+      },
+      "labels": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/crowded_mined_negative-labels.npy",
+        "sha256": "372fae1478838681eb08d2e7f545c83a365d04279676fdeb05124a0c24d86305"
+      },
+      "hard_negative": {
+        "path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/crowded_mined_negative-hard-negative.npy",
+        "sha256": "3802d3b5dcc68a93f1a30f6c3c1c25a8e1319e32bc382a8c4d299534b7a5c417"
+      }
+    }
+  ],
+  "feature_identity": "Exact 64-dimensional penultimate V27 activations; all model parameters and buffers unchanged, extraction checks have zero difference.",
+  "proposed_recipe": {
+    "source_model": {
+      "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+      "sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+    },
+    "parameters": 65,
+    "frozen_other_parameters": 63387,
+    "epochs": 8,
+    "batch_size": 128,
+    "seed": 20261002,
+    "optimizer": "AdamW",
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "positive_loss_weight": 16,
+    "hard_negative_loss_weight": 5,
+    "focal_alpha": 0.25,
+    "focal_gamma": 2,
+    "gradient_norm_limit": 5,
+    "checkpoint_selection": "fixed_final_epoch_no_dev_selection"
+  },
+  "fixed_splits": "All 276618 previously authenticated train rows, without new sampling or labels. Preserve all 167 component/9 family dev scenes with 2210 truths and the complete native/CSV workflow inputs from the left-axis-role checkpoint.",
+  "metric": "Shared marker precision, recall, proposal support and prohibited-structure metrics at the current application threshold 0.10. Preserve the historical 0.25 comparison as descriptive evidence and reproduce its frozen V27 counts. Verify ONNX parity and unchanged geometry outputs, then compare all native and CSV cases, retaining failures.",
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "budget": {
+    "training_candidates": 1,
+    "native_runs_per_ocr_arm": 1,
+    "csv_runs_per_ocr_arm": 1,
+    "private_reads": 0,
+    "sealed_runs": 0
+  },
+  "implementation_scope": [
+    "A training-only confidence-head adapter and frozen feature admission checks.",
+    "Parameterize the shared evaluator operating threshold while preserving its historical default and reproduction check.",
+    "Focused preservation and admission tests, immutable preregistration and canonical ledger admission before any candidate optimization."
+  ],
+  "license_review": "Existing owned Apache-2.0 source, V27 checkpoint and synthetic tensors. No external data, weights or dependencies added.",
+  "optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false
+}

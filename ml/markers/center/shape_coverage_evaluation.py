@@ -30,12 +30,14 @@ def match_predictions(items, centers):
     return matching.greedy_match_pairs(tuple(SimpleNamespace(prediction=p) for p in items), centers)
 
 
-def predictions(scene, coordinates, output, domain, *, balanced: bool):
+def predictions(scene, coordinates, output, domain, *, balanced: bool, threshold: float = .25):
+    if not math.isfinite(threshold) or not 0 < threshold <= 1:
+        raise ValueError("Operating threshold must be a finite probability above zero")
     if output.shape != (len(coordinates), 4) or not np.isfinite(output).all():
         raise ValueError("Invalid proposal output")
     candidates = []
     ink = scene.tensor[0].numpy()
-    for i in np.flatnonzero(output[:, 0] >= .25):
+    for i in np.flatnonzero(output[:, 0] >= threshold):
         x = float(coordinates[i, 0] + output[i, 1]*4.)
         y = float(coordinates[i, 1] + output[i, 2]*4.)
         if domain is not None and not domain.contains(x, y):
@@ -59,14 +61,19 @@ def summarize_counts(counts: Counter) -> dict:
     return result
 
 
-def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path) -> dict:
+def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path,
+             *, operating_threshold: float = .25) -> dict:
+    if not math.isfinite(operating_threshold) or not 0 < operating_threshold <= 1:
+        raise ValueError("Operating threshold must be a finite probability above zero")
+    thresholds = tuple(sorted({operating_threshold, *THRESHOLDS}))
+    minimum_threshold = thresholds[0]
     paths, old_report, prior_report, hashes = source._authenticate(repo, historical.SOURCE_DIAGNOSTIC_SHA256)
     coordinates_cache, _ = source._load_caches(paths, old_report, prior_report)
     baseline_report, baseline_cache = historical._load_v27_cache(repo)
     totals, records = {}, []
     parity = {"rows": 0, "maximum_absolute_error": 0., "confidence_decision_changes": 0}
     for scope, items in scenes.items():
-        totals[scope] = {kind: {str(t): Counter() for t in THRESHOLDS} for kind in (
+        totals[scope] = {kind: {str(t): Counter() for t in thresholds} for kind in (
             "v27_historical", "v27_balanced", "candidate_historical", "candidate_balanced")}
         for index, bound in enumerate(items):
             scene = bound.scene if hasattr(bound, "scene") else bound
@@ -98,7 +105,7 @@ def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path) -> 
                         raise ValueError("Non-finite or malformed runtime predictions")
                     parity["rows"] += len(actual)
                     parity["maximum_absolute_error"] = max(parity["maximum_absolute_error"], float(np.abs(expected-actual).max()))
-                    parity["confidence_decision_changes"] += int(((expected[:, 0] >= .25) != (actual[:, 0] >= .25)).sum())
+                    parity["confidence_decision_changes"] += int(((expected[:, 0] >= operating_threshold) != (actual[:, 0] >= operating_threshold)).sum())
                     values.append(actual)
             if patch_hash.hexdigest() != baseline["proposal_patches_sha256"]:
                 raise ValueError("The exact historical development pixels changed")
@@ -106,15 +113,15 @@ def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path) -> 
             np.save(output/f"{scope}-{index:03d}-predictions.npy", actual, allow_pickle=False)
             with budget.work_block():
                 all_predictions = {
-                    "v27_historical": predictions(scene, coordinates, baseline_values, domain, balanced=False),
-                    "v27_balanced": predictions(scene, coordinates, baseline_values, domain, balanced=True),
-                    "candidate_historical": predictions(scene, coordinates, actual, domain, balanced=False),
-                    "candidate_balanced": predictions(scene, coordinates, actual, domain, balanced=True)}
+                    "v27_historical": predictions(scene, coordinates, baseline_values, domain, balanced=False, threshold=minimum_threshold),
+                    "v27_balanced": predictions(scene, coordinates, baseline_values, domain, balanced=True, threshold=minimum_threshold),
+                    "candidate_historical": predictions(scene, coordinates, actual, domain, balanced=False, threshold=minimum_threshold),
+                    "candidate_balanced": predictions(scene, coordinates, actual, domain, balanced=True, threshold=minimum_threshold)}
                 centers = np.asarray(scene.centers, dtype=np.float32).reshape(-1, 2)
                 supported = int((np.linalg.norm(coordinates[:, None, :]-centers[None, :, :], axis=2).min(axis=0) <= 5).sum()) if len(centers) else 0
                 per_scene = {}
                 for kind, items_at_threshold in all_predictions.items():
-                    for threshold in THRESHOLDS:
+                    for threshold in thresholds:
                         retained = tuple(p for p in items_at_threshold if p.confidence >= threshold)
                         pairs = match_predictions(retained, scene.centers)
                         metrics = bars.center_metrics(retained, scene.centers, 5.)
@@ -124,7 +131,7 @@ def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path) -> 
                             "duplicate_count": metrics.duplicate_count,
                             "prohibited_structure_hits": sum(legacy.prohibited_hits(retained, scene).values())}
                         totals[scope][kind][str(threshold)].update(values_at_threshold)
-                        if threshold == .25:
+                        if threshold == operating_threshold:
                             per_scene[kind] = values_at_threshold
                 records.append({"scope": scope, "scene_index": index, "identity": old["scene_identity"],
                                 "proposal_count": len(coordinates), "results": per_scene})
@@ -138,8 +145,8 @@ def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path) -> 
     bar = bars._shared_marker_acceptance_bar()
     results = {scope: {kind: {threshold: summarize_counts(c) for threshold, c in thresholds.items()}
                       for kind, thresholds in kinds.items()} for scope, kinds in totals.items()}
-    clears = bars._passes_required_dev_gates(results["component"]["candidate_balanced"]["0.25"],
-                                           results["family"]["candidate_balanced"]["0.25"], bar)
+    clears = bars._passes_required_dev_gates(results["component"]["candidate_balanced"][str(operating_threshold)],
+                                           results["family"]["candidate_balanced"][str(operating_threshold)], bar)
     return {"results": results, "records": records, "parity": parity, "acceptance_bar": bar,
             "clears_shared_dev_bars": clears, "threshold_sensitivity_is_descriptive_only": True,
-            "operating_threshold": .25, "geometry": "multiradius_enclosed_balanced_v2"}
+            "operating_threshold": operating_threshold, "geometry": "multiradius_enclosed_balanced_v2"}

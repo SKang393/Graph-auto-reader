@@ -1,0 +1,78 @@
+{
+  "candidate_id": "P1",
+  "completed_training_recovery": {
+    "completed_epochs": 8,
+    "optimizer_steps": 17296,
+    "original_configuration": {
+      "path": "artifacts/goal22-runs/frozen-confidence-preflight-20261002-v3/original-config.json",
+      "sha256": "73b1c21f532ed388a8be885e38b85ab8390d2c95541dad7d6838bc996240b2e0"
+    },
+    "original_runner_source_bundle_sha256": "ade3196320e6e07c5e8d4074d61ff6952150f2cd1a5f99bd765501c763b4a149",
+    "original_source_snapshot": {
+      "path": "artifacts/goal22-runs/frozen-confidence-preflight-20261002-v3/original-source-snapshot.json",
+      "sha256": "8ec3168218c1933449d5a95177f9619dfda428316d8d690f98e2422b4224c890"
+    },
+    "original_void": {
+      "path": "artifacts/goal22-runs/frozen-confidence-preflight-20261002-v3/original-void.json",
+      "sha256": "7fcb0ed7285f0a8a283601acd9867ec9960023ea2181c42b0f0d720f75d31465"
+    },
+    "path": "artifacts/goal22-runs/center-frozen-confidence-v32/P1/recovery.pt",
+    "repair_diagnosis": {
+      "path": "docs/GOAL-22-FROZEN-CONFIDENCE-PARITY-DIAGNOSIS.json",
+      "sha256": "c880dffa72ceaaeb5d8abf79739a0622e76226cc78e8135b3275bfa0d8259aba"
+    },
+    "sha256": "c6b7ebeb033dd0e9292d56e064d2480fe118d2ec2a82f2b1b6614e0555a62232"
+  },
+  "development_file": {
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+    "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+  },
+  "expected_runner_source_bundle_sha256": "275c4639993e253ccaf2ccfb20afbeb32a6172ae95950906f9fa4a26a8a66bce",
+  "feature_report_path": "artifacts/goal22-runs/frozen-center-head-diagnosis-20261002-v2/report.json",
+  "feature_report_sha256": "d815bf0c20a3101d3713e7cf04d2cb3afe5e0c26c3c51650773e66e35614e147",
+  "optimizer_steps_expected": 17296,
+  "private_reads": 0,
+  "production_approval": false,
+  "protocol_sha256": "74a40962040c1769686049ef1ca4dcea8fe89277318a102f46ecf5e9a90aeac7",
+  "recipe": {
+    "batch_size": 128,
+    "checkpoint_selection": "fixed_final_epoch_no_dev_selection",
+    "confidence_threshold": 0.1,
+    "epochs": 8,
+    "focal_alpha": 0.25,
+    "focal_gamma": 2.0,
+    "frozen_features": true,
+    "frozen_geometry": true,
+    "frozen_normalization_buffers": true,
+    "gradient_norm_limit": 5.0,
+    "hard_negative_loss_weight": 5.0,
+    "learning_rate": 0.0003,
+    "positive_loss_weight": 16.0,
+    "seed": 20261002,
+    "trainable_parameters": 65,
+    "weight_decay": 0.0001
+  },
+  "resource_policy": {
+    "aggregate_backstop_percent": 80,
+    "all_processors_eligible": true,
+    "kmp_blocktime": "0",
+    "logical_processor_count": 12,
+    "omp_wait_policy": "PASSIVE",
+    "priority": "Idle",
+    "synchronous_work_rest_percent": 80
+  },
+  "revision": "marker-center-frozen-confidence-head-v32",
+  "schema_version": 1,
+  "sealed_runs_authorized": 0,
+  "source_checkpoint_path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+  "source_checkpoint_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365",
+  "task": "marker-center",
+  "training_group_rows": {
+    "component": 35838,
+    "coverage": 42747,
+    "crowded": 182614,
+    "crowded_mined_negative": 6366,
+    "family": 9053
+  },
+  "training_rows": 276618
+}

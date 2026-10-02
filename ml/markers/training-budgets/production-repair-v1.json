@@ -10896,6 +10896,78 @@
       "candidate_report_sha256": "78043bf8c01293640e03f273b89ee8330115f2c4b7fa21d469b8bf08476ed5e7",
       "optimizer_steps": 17296,
       "closed_utc_date": "2026-09-30"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-frozen-confidence-head-v32",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/confidence_head_v32/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "8074259d1171e6c08107395d4d7d13e5fd2838cab9eff876033910b1dba74b1e"
+      },
+      "protocol_path": "ml/markers/center/confidence_head_v32/protocol.json",
+      "protocol_sha256": "74a40962040c1769686049ef1ca4dcea8fe89277318a102f46ecf5e9a90aeac7",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned train/dev-only confidence adaptation under continued Goal22 authorization. No private/sealed input access, production activation or release.",
+      "isolated_change": "Adapt only the final confidence weight row and bias of retained V27, 65 parameters, over all 276618 existing training rows. Freeze every feature parameter, normalization buffer and three geometry output rows. Retain AdamW 0.0003, weight decay 0.0001, weighted focal loss, batch128, fixed8epochs and finalcheckpoint only. Use existing application threshold0.10. No new labels, sampling, threshold selection or architecture changes. Frozen per-patch geometry does not guarantee unchanged NMS or final centers.",
+      "optimizer_steps_expected": 17296,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "synchronous_work_rest_percent": 80,
+        "logical_processor_count": 12,
+        "all_processors_eligible": true,
+        "priority": "Idle",
+        "omp_wait_policy": "PASSIVE",
+        "kmp_blocktime": "0"
+      },
+      "plumbing_repairs": [
+        {
+          "reason": "Retain numerical parity tolerance and report raw threshold sensitivity; recover completed training without optimizer steps.",
+          "original_configuration": {
+            "path": "artifacts/goal22-runs/frozen-confidence-preflight-20261002-v3/original-config.json",
+            "sha256": "73b1c21f532ed388a8be885e38b85ab8390d2c95541dad7d6838bc996240b2e0"
+          },
+          "original_void": {
+            "path": "artifacts/goal22-runs/frozen-confidence-preflight-20261002-v3/original-void.json",
+            "sha256": "7fcb0ed7285f0a8a283601acd9867ec9960023ea2181c42b0f0d720f75d31465"
+          },
+          "preflight": {
+            "path": "artifacts/goal22-runs/frozen-confidence-preflight-20261002-v3/report.json",
+            "sha256": "df017e6e9f32d649118893c06e429152e7bd23407ce409d955d07e9f72609a63"
+          },
+          "recovery": {
+            "path": "artifacts/goal22-runs/center-frozen-confidence-v32/P1/recovery.pt",
+            "sha256": "c6b7ebeb033dd0e9292d56e064d2480fe118d2ec2a82f2b1b6614e0555a62232"
+          },
+          "diagnosis": {
+            "path": "docs/GOAL-22-FROZEN-CONFIDENCE-PARITY-DIAGNOSIS.json",
+            "sha256": "c880dffa72ceaaeb5d8abf79739a0622e76226cc78e8135b3275bfa0d8259aba"
+          }
+        }
+      ],
+      "outcome_path": "ml/markers/center/confidence_head_v32/P1_RESULT.json",
+      "outcome_sha256": "510f61a1d6b6e568a29bc2f4e2943744b3773a13e47674784515038651bfc3e0",
+      "candidate_report_sha256": "5a861a6538e385bad01c19cc38f11a0b51fdfc2d75d28b16c8e7a3d93a494cd1",
+      "optimizer_steps": 17296,
+      "recovery_optimizer_steps": 0,
+      "closed_utc_date": "2026-10-02"
     }
   ]
 }

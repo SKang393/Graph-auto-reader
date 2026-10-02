@@ -1,0 +1,244 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Sungwoo Kang
+"""One fixed confidence-only adaptation with complete frozen development checks."""
+from __future__ import annotations
+
+import argparse
+import json
+import math
+from pathlib import Path
+import random
+import time
+import traceback
+
+import numpy as np
+import onnx
+import onnxruntime as ort
+import torch
+
+from ml.markers.gate_seal import sha256_file, verify_bound_source_snapshot
+from ml.markers.training_budget import acquire_training_candidate, complete_training_candidate, void_candidate
+from ml.markers.classifier.native_context_v3.runner import WorkBudget
+from ..component_diversity_v27.train_p1 import _atomic_torch_save
+from ..focal_confidence_v21.focal_loss import binary_focal_loss_with_logits
+from ..scale_classifier_v16.model import ScaleClassifierNet, ModelConfig
+from ..shape_coverage_cache import unpack_scene, write_json
+from ..shape_coverage_v28 import runner as previous
+from .. import shape_coverage_evaluation as evaluation
+from .adaptation import freeze_for_confidence_adaptation, install_confidence_head, verify_frozen_geometry
+from .cache import load_training
+
+TASK = "marker-center"
+REVISION = "marker-center-frozen-confidence-head-v32"
+CONFIG_PATH = Path("ml/markers/center/confidence_head_v32/p1.json")
+MODEL_SHA256 = "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+TRAINING_ROWS = {"component": 35838, "family": 9053, "coverage": 42747,
+                 "crowded": 182614, "crowded_mined_negative": 6366}
+RECIPE = dict(previous.RECIPE, seed=20261002, confidence_threshold=.1, trainable_parameters=65,
+              frozen_features=True, frozen_normalization_buffers=True, frozen_geometry=True, gradient_norm_limit=5.)
+RUNNER_SOURCES = tuple(dict.fromkeys((*previous.RUNNER_SOURCES, *(Path(p) for p in (
+    "ml/markers/center/confidence_head_v32/__init__.py", "ml/markers/center/confidence_head_v32/adaptation.py",
+    "ml/markers/center/confidence_head_v32/cache.py", "ml/markers/center/confidence_head_v32/runner.py",
+    "ml/markers/center/confidence_head_v32/protocol.json")))))
+
+
+def validate_config(config: dict) -> None:
+    if (config.get("task"), config.get("revision"), config.get("candidate_id")) != (TASK, REVISION, "P1"):
+        raise ValueError("Candidate identity changed")
+    if (config.get("recipe") != RECIPE or config.get("training_group_rows") != TRAINING_ROWS or
+            config.get("source_checkpoint_sha256") != MODEL_SHA256 or config.get("private_reads") != 0 or
+            config.get("sealed_runs_authorized") != 0 or config.get("production_approval") is not False):
+        raise ValueError("Frozen adaptation recipe, initializer, population or read authorization changed")
+
+
+def validate_export_parity(parity: dict) -> None:
+    error = parity["maximum_absolute_error"]
+    if not math.isfinite(error) or not 0 <= error <= 1e-5:
+        raise RuntimeError("Export failed numerical parity")
+    # Raw threshold crossings describe numerical sensitivity. Their count is
+    # reported separately from numerical tolerance and actual product metrics.
+
+
+def recovery_binding(config: dict, resume: Path | None, resume_sha256: str | None) -> dict:
+    binding = {key: config[key] for key in ("task", "revision", "candidate_id", "recipe", "feature_report_sha256",
+        "source_checkpoint_sha256", "expected_runner_source_bundle_sha256", "training_group_rows")}
+    recovery = config.get("completed_training_recovery")
+    if recovery is not None:
+        if (resume is None or resume.resolve() != Path(recovery["path"]).resolve() or
+                resume_sha256 != recovery["sha256"] or
+                recovery["completed_epochs"] != config["recipe"]["epochs"] or
+                recovery["optimizer_steps"] != config["optimizer_steps_expected"]):
+            raise ValueError("Only the registered completed training recovery may be resumed")
+        binding["expected_runner_source_bundle_sha256"] = recovery["original_runner_source_bundle_sha256"]
+    return binding
+
+
+def train_epochs(head, optimizer, training, recipe, binding, output, budget, *, resume=None, require_completed=False):
+    features, labels, hard = training
+    history, steps, resumed = [], 0, 0
+    if resume is not None:
+        state = torch.load(resume, map_location="cpu", weights_only=True)
+        if state.get("binding") != binding:
+            raise ValueError("Recovery belongs to a different frozen training recipe or population")
+        resumed, history, steps = state["completed_epochs"], state["history"], state["optimizer_steps"]
+        if (type(resumed) is not int or not 0 <= resumed <= recipe["epochs"] or len(history) != resumed or
+                steps != resumed * math.ceil(len(labels) / recipe["batch_size"])):
+            raise ValueError("Recovery epoch or step count changed")
+        head.load_state_dict(state["head_state_dict"])
+        optimizer.load_state_dict(state["optimizer_state_dict"])
+    if require_completed and resumed != recipe["epochs"]:
+        raise ValueError("Recovery must contain the completed final epoch; further optimization is forbidden")
+    for epoch in range(resumed, recipe["epochs"]):
+        with budget.work_block():
+            order = torch.randperm(len(labels), generator=torch.Generator().manual_seed(recipe["seed"] + epoch))
+        losses = []
+        for start in range(0, len(order), recipe["batch_size"]):
+            with budget.work_block():
+                index = order[start:start + recipe["batch_size"]]
+                target = labels[index]
+                weights = torch.where(target > .5, recipe["positive_loss_weight"],
+                                      torch.where(hard[index] > .5, recipe["hard_negative_loss_weight"], 1.))
+                loss = (binary_focal_loss_with_logits(head(features[index]), target,
+                    alpha=recipe["focal_alpha"], gamma=recipe["focal_gamma"]) * weights).mean()
+                if not torch.isfinite(loss):
+                    raise RuntimeError("Non-finite confidence-head training loss")
+                optimizer.zero_grad(set_to_none=True)
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(head.parameters(), recipe["gradient_norm_limit"])
+                optimizer.step()
+                steps += 1
+                losses.append(float(loss.detach()))
+        history.append({"epoch": epoch + 1, "optimizer_steps": steps, "mean_loss": float(np.mean(losses))})
+        with budget.work_block():
+            _atomic_torch_save(output / "recovery.pt", {"binding": binding, "completed_epochs": epoch + 1,
+                "optimizer_steps": steps, "history": history, "head_state_dict": head.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict()})
+        write_json(output / "progress.json", {"status": "training", "epoch": epoch + 1,
+            "epochs": recipe["epochs"], "optimizer_steps": steps})
+    return {"completed_epochs": recipe["epochs"], "optimizer_steps": steps,
+            "resumed_from_epoch": resumed, "history": history}
+
+
+def run(repo: Path, output: Path, *, resume: Path | None = None, resume_sha256: str | None = None) -> dict:
+    started = time.perf_counter()
+    config = json.loads((repo / CONFIG_PATH).read_text())
+    validate_config(config)
+    if (resume is None) != (resume_sha256 is None) or (resume is not None and sha256_file(resume) != resume_sha256):
+        raise ValueError("Recovery requires its exact recorded checksum")
+    binding = recovery_binding(config, resume, resume_sha256)
+    authorization = acquire_training_candidate(repo, task=TASK, revision=REVISION,
+        candidate_id="P1", config_path=CONFIG_PATH, runner_source_paths=RUNNER_SOURCES)
+    try:
+        output.mkdir(parents=True, exist_ok=False)
+        previous.configure_runtime()
+        torch.manual_seed(RECIPE["seed"])
+        random.seed(RECIPE["seed"])
+        np.random.seed(RECIPE["seed"])
+        if torch.get_num_threads() != 12:
+            raise RuntimeError("The registered local run requires twelve CPU threads")
+        budget = WorkBudget(output / "CANCEL")
+        training, feature_report = load_training(repo, Path(config["feature_report_path"]),
+            config["feature_report_sha256"], TRAINING_ROWS, MODEL_SHA256, budget)
+        with budget.work_block():
+            initializer = repo / config["source_checkpoint_path"]
+            if sha256_file(initializer) != MODEL_SHA256:
+                raise ValueError("Retained initializer changed")
+            model = ScaleClassifierNet(ModelConfig())
+            model.load_state_dict(torch.load(initializer, map_location="cpu", weights_only=True)["state_dict"])
+            original = {key: value.detach().clone() for key, value in model.state_dict().items()}
+            head = freeze_for_confidence_adaptation(model)
+            if sum(p.numel() for p in head.parameters()) != RECIPE["trainable_parameters"]:
+                raise ValueError("Confidence-only parameter budget changed")
+            optimizer = torch.optim.AdamW(head.parameters(), lr=RECIPE["learning_rate"], weight_decay=RECIPE["weight_decay"])
+        offset = 0
+        for group in feature_report["groups"]:
+            raw = np.load(repo / group["raw"]["path"], allow_pickle=False)
+            for start in range(0, group["rows"], 256):
+                with budget.work_block(), torch.no_grad():
+                    features = training[0][offset + start:offset + min(start + 256, group["rows"])]
+                    actual = model.head[3](features).numpy()
+                    if actual.shape != raw[start:start + 256].shape or not np.allclose(actual, raw[start:start + 256], atol=1e-5, rtol=0):
+                        raise ValueError("Cached features do not reconstruct the retained model outputs")
+            offset += group["rows"]
+        training_report = train_epochs(head, optimizer, training, RECIPE, binding, output, budget, resume=resume,
+            require_completed=config.get("completed_training_recovery") is not None)
+        training_report["optimizer_steps_this_execution"] = training_report["optimizer_steps"] - (
+            training_report["resumed_from_epoch"] * math.ceil(sum(TRAINING_ROWS.values()) / RECIPE["batch_size"]))
+        training_report["training_source_binding"] = binding
+        if training_report["optimizer_steps"] != config["optimizer_steps_expected"]:
+            raise ValueError("Training step count differs from the fixed recipe")
+        install_confidence_head(model, head)
+        verify_frozen_geometry(model, original)
+        del training, optimizer, head
+        with budget.work_block():
+            dev_ref = config["development_file"]
+            if sha256_file(repo / dev_ref["path"]) != dev_ref["sha256"]:
+                raise ValueError("Frozen development file changed")
+            packed = torch.load(repo / dev_ref["path"], map_location="cpu", weights_only=True)
+            if set(packed) != {"component", "family"}:
+                raise ValueError("Development membership changed")
+            development_scenes = {scope: tuple(unpack_scene(row, expected_split={"component": "dev", "family": "validation"}[scope])
+                for row in rows) for scope, rows in packed.items()}
+            if {scope: (len(rows), sum(len(row["metadata"]["centers"]) for row in rows)) for scope, rows in packed.items()} != {
+                    "component": (167, 2004), "family": (9, 206)}:
+                raise ValueError("Complete development denominator changed")
+            del packed
+            checkpoint, exported = output / "marker-center.pt", output / "marker-center.onnx"
+            torch.save({"state_dict": model.state_dict(), "config": model.export_contract()}, checkpoint)
+            torch.onnx.export(model, torch.zeros(1, 3, 33, 33), exported,
+                input_names=["candidate_patches"], output_names=["candidate_predictions"],
+                dynamic_axes={"candidate_patches": {0: "candidate_count"}, "candidate_predictions": {0: "candidate_count"}},
+                opset_version=18, dynamo=False)
+            onnx.checker.check_model(onnx.load(exported))
+            options = ort.SessionOptions()
+            options.intra_op_num_threads = torch.get_num_threads()
+            options.inter_op_num_threads = 1
+            options.add_session_config_entry("session.intra_op.allow_spinning", "0")
+            options.add_session_config_entry("session.inter_op.allow_spinning", "0")
+            options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_DISABLE_ALL
+            session = ort.InferenceSession(str(exported), sess_options=options, providers=["CPUExecutionProvider"])
+        write_json(output / "progress.json", {"status": "development_evaluation", **training_report})
+        development = evaluation.evaluate(repo, development_scenes, model, session, budget, output,
+                                          operating_threshold=RECIPE["confidence_threshold"])
+        write_json(output / "development.json", development)
+        validate_export_parity(development["parity"])
+        baseline_report, baseline_cache = evaluation.historical._load_v27_cache(repo)
+        geometry_difference = 0.
+        for record in development["records"]:
+            scope, index = record["scope"], record["scene_index"]
+            old = baseline_report[scope + "_dev"]["cache_manifest"][index]
+            original_output = baseline_cache[old["v27_candidate_predictions_key"]]
+            actual_output = np.load(output / f"{scope}-{index:03d}-predictions.npy", allow_pickle=False)
+            geometry_difference = max(geometry_difference, float(np.abs(original_output[:, 1:] - actual_output[:, 1:]).max()))
+        if geometry_difference > 1e-5:
+            raise RuntimeError("Frozen geometry changed on complete development proposals")
+        verify_frozen_geometry(model, original)
+        verify_bound_source_snapshot(repo, authorization.snapshot_path, authorization.binding["source_snapshot_sha256"])
+        report = {"task": TASK, "revision": REVISION, "candidate_id": "P1",
+            "status": "dev_pass" if development["clears_shared_dev_bars"] else "failed_dev_unconsumed",
+            "binding": authorization.binding, "config_sha256": sha256_file(repo / CONFIG_PATH),
+            "checkpoint_sha256": sha256_file(checkpoint), "onnx_sha256": sha256_file(exported),
+            "source_checkpoint_sha256": MODEL_SHA256, "feature_report_sha256": config["feature_report_sha256"],
+            "training": training_report, "development": development, "geometry_maximum_absolute_change": geometry_difference,
+            "all_feature_geometry_and_normalization_state_unchanged": True, "trainable_parameters": 65,
+            "cpu": budget.report(), "torch_threads": torch.get_num_threads(), "onnx_threads": options.intra_op_num_threads,
+            "seconds": time.perf_counter() - started, "private_reads": 0, "sealed_reads": 0,
+            "budget_consumed": False, "production_approval": False, "release_eligible": False}
+        write_json(output / "report.json", report)
+        complete_training_candidate(authorization, status=report["status"], report_sha256=sha256_file(output / "report.json"))
+        return report
+    except BaseException as error:
+        if output.is_dir():
+            (output / "exception.txt").write_text(traceback.format_exc(), encoding="utf-8")
+        void_candidate(authorization, error)
+        raise
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--resume-from", type=Path)
+    parser.add_argument("--resume-sha256")
+    args = parser.parse_args()
+    result = run(Path.cwd(), args.output, resume=args.resume_from, resume_sha256=args.resume_sha256)
+    print(json.dumps({"status": result["status"], "seconds": result["seconds"]}))

@@ -1,0 +1,62 @@
+{
+  "status": "diagnosed_export_check_before_plumbing_repair",
+  "candidate_revision": "marker-center-frozen-confidence-head-v32",
+  "candidate_id": "P1",
+  "failure": "The runner threw after complete development because one raw confidence decision differed, although all270236 outputs satisfy the existing absolute1e-5 numerical parity tolerance.",
+  "observed_maximum_absolute_error": 6.198883056640625e-06,
+  "maximum_confidence_absolute_error": 4.76837158203125e-07,
+  "raw_threshold_crossings": 1,
+  "crossing_probabilities": {
+    "torch": 0.10000010579824448,
+    "onnx": 0.09999993443489075
+  },
+  "crossing_proposal_disposition": "Both versions fail the existing balanced ink-support check. The scene has58accepted candidates and12matched truths under each implementation. The naive sorted-output equality diagnostic remains false and is not represented as complete downstream parity.",
+  "policy_reason": "ml/policy/evidence-policy.json allows zero only for unacceptable shipped defects and treats threshold sensitivity as evidence. A zero raw threshold-crossing count is not the declared numerical tolerance and does not establish a shipped safety property. Retain the existing numerical1e-5 check; report raw boundary sensitivity explicitly and evaluate the actual native pipeline at unchanged0.10.",
+  "repair_scope": "Save complete development evidence before validating export. Remove the additional zero raw crossing failure, while preserving finite numerical tolerance and all shared product bars. Admit only the checksum-bound completed8epoch recovery from the sameP1, fixed recipe and all276618rows; skip every optimizer step during recovery. Rebind changed plumbing source in the canonical ledger, preserving original configuration, void and source snapshot.",
+  "unchanged": [
+    "hypothesis",
+    "weights",
+    "training_recipe",
+    "training_population",
+    "development_splits",
+    "operating_threshold_0.10",
+    "numerical_parity_tolerance_1e-5",
+    "shared_acceptance_bars",
+    "sealed_budget_0",
+    "private_access_0"
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/center-frozen-confidence-v32/status.json",
+      "sha256": "90c412699a5874d7600f30dbab60d1828d4ac8bbaa108b6a56c09b185fe37bdb"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-frozen-confidence-v32/P1/exception.txt",
+      "sha256": "348340a0331c9c02d8a51352a8e7149bdc3e4bb5d0dd4f2b3754242732076127"
+    },
+    {
+      "path": "artifacts/goal22-runs/center-frozen-confidence-v32/P1/recovery.pt",
+      "sha256": "c6b7ebeb033dd0e9292d56e064d2480fe118d2ec2a82f2b1b6614e0555a62232"
+    },
+    {
+      "path": "artifacts/goal22-runs/frozen-confidence-parity-diagnosis-20261002-v1/export-structure.json",
+      "sha256": "38cafa4d41d12d83f49b40991b3986c53eaec0b2bb046737deca67b9d558cbdf"
+    },
+    {
+      "path": "artifacts/goal22-runs/frozen-confidence-parity-diagnosis-20261002-v2/report.json",
+      "sha256": "ee3a8a922186db68c7fbbf5ed3eddc4bf6e1a1b9b00052141b62dc743e843fc2"
+    },
+    {
+      "path": "artifacts/goal22-runs/frozen-confidence-parity-diagnosis-20261002-v2/decision-impact.json",
+      "sha256": "2edc657aaa6d343bf7187d13b52f455c85545b68c9b99d8d64084eb10e6db80f"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    }
+  ],
+  "new_optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false
+}
