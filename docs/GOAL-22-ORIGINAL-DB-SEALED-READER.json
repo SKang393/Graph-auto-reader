@@ -1,0 +1,152 @@
+{
+  "schema": "graphreader.original-db-sealed-production-reader.v1",
+  "date": "2026-10-02",
+  "scope": "reader implementation and fabricated aggregate fixtures",
+  "base_commit": "1b8e07223acf3b387cf1c6e14624cca74f06cc03",
+  "implementation_verified": true,
+  "goal22_acceptance": "FAIL",
+  "supported_source_schema": "graphreader.original-db-ocr-sealed-evaluation.v1",
+  "required_embedded_resources": [
+    "synthetic_sealed_score",
+    "synthetic_sealed_request",
+    "synthetic_sealed_preflight_binding"
+  ],
+  "binding_checks": [
+    "candidate and full development score",
+    "canonical bars and metric reference",
+    "coverage scope and policy reference",
+    "preflight bytes and attempt identity",
+    "request bytes, admission, set and complete source count",
+    "runtime identity consistency"
+  ],
+  "metric_checks": [
+    "raw and recognized geometry count arithmetic at IoU 0.5",
+    "recognition failures and complete denominators",
+    "exact recognition and character edit accounting",
+    "all seven role inventories and aggregate accuracy",
+    "all five unchanged shared acceptance bars"
+  ],
+  "privacy_checks": [
+    "exact known fields at every parsed level",
+    "duplicate property rejection",
+    "no failure or disclosure, aggregate-only flags",
+    "complete safe stderr hash and length"
+  ],
+  "validation": {
+    "app_tests": {
+      "total": 670,
+      "executed": 670,
+      "passed": 670,
+      "failed": 0,
+      "skipped": 0
+    },
+    "app_build_warnings": 0,
+    "native_build_warnings": 0,
+    "elapsed_seconds": 85.4798766,
+    "python_producer_transport_fixture_validation": "passed",
+    "first_validation": {
+      "passed": 670,
+      "failed": 0,
+      "seconds": 85.1052691,
+      "follow_up": "Aligned fabricated character edits with exact-match counts, regenerated fixture and reran checks. Production reader source unchanged."
+    }
+  },
+  "commands": [
+    "python -X utf8 tests/GraphReader.App.Tests/Fixtures/CreateOriginalDbSealedEvidence.py",
+    "dotnet build tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --artifacts-path artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo",
+    "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --artifacts-path artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/build --no-build --no-restore --nologo --logger trx;LogFileName=app.trx --results-directory artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/test-results",
+    "dotnet build tools/GraphReader.RealAcceptance.Ocr/GraphReader.RealAcceptance.Ocr.csproj -c Release --artifacts-path artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/build -p:RestoreSources=C:/Users/Sungwoo/.nuget/packages -p:NuGetAudit=false -p:UseSharedCompilation=false -m:1 --nologo"
+  ],
+  "sources": [
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrApprovalGate.cs",
+      "sha256": "a95a0f28befde2f8f14d50742c5042baee2a4478932bb50f7883828010fd2ce6"
+    },
+    {
+      "path": "src/GraphReader.App/Integration/Workflow/ProductionOriginalDbOcrSealedEvidence.cs",
+      "sha256": "2b7d457659ea7f9f5f4026f0c00ed12f5863924b92f05a93335f1a2b4a64cde1"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj",
+      "sha256": "720bfde4b496ca70f803e5333ccbd770f8c76f05283adbc3a1e6c5384104a4a5"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOriginalDbOcrApprovalGateTests.cs",
+      "sha256": "cc4a4a04f016cb6e218c46ab67a21b7b4b6640db036c7fbda94ed32d22b6e056"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/ProductionOriginalDbOcrSealedEvidenceTests.cs",
+      "sha256": "affb5aa1ab3b076bf4fe2d4a630da5d8cafccf518b69e2698a579f552f0a048b"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/Fixtures/CreateOriginalDbSealedEvidence.py",
+      "sha256": "c7214f19402f02a96fb92585c2929eb79a2c0b8d10566b52f7a92de8a5213cc6"
+    },
+    {
+      "path": "tests/GraphReader.App.Tests/Fixtures/original-db-sealed-evidence.json",
+      "sha256": "dccd498fb6c9ac83341631eefa6259e0dd5ed4d020ddba62068bd7e38b4c8db9"
+    }
+  ],
+  "producer_sources": {
+    "ml/markers/gate_seal.py": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725",
+    "ml/policy/ocr_sealed_evaluation.py": "d77fd60e531f90188a11d70c1da729b287fdd55263729a8a044d4088dd3205c5",
+    "ml/policy/ocr_sealed_transport.py": "83856468d5f1dfd4c07f4c944f8d578d99654ba88074884fc2d51273f4b28cdc"
+  },
+  "evidence_workspace": "C:\\Users\\Sungwoo\\.codex\\worktrees\\goal22-proposal-registration\\Graph-auto-reader",
+  "evidence": [
+    {
+      "path": "artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/status.json",
+      "sha256": "24aeb67b8d501efc54f0e640f3d2f53a57c30908f464553736ac740c73cfd7b7"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/source-bindings.json",
+      "sha256": "c96cb63c14a596276686bdef6214e60cae058310cf310799b41a17b86e818347"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/App-build.log",
+      "sha256": "60f5af1533447f5deb3db8d4f9878fe84ea4d7f8789ecee7e4977ef071059d14"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/App-tests.log",
+      "sha256": "7f6a6af2f7e3b220049765bf28f9d4137fe3667ad6ee1766bd7888472fc83101"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/native-build.log",
+      "sha256": "21f999ad5e9c4c37b2ee2908d7f2beb3d021c0d4473ab457ea9587e82f6de746"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v2/test-results/app.trx",
+      "sha256": "8a14bf4645bafd9801c871b6a61a82f488aafc2e480e4ff972c9e5192106f081"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v1/status.json",
+      "sha256": "8812453b623388fe2d2c7d77005a1ea04d5e761f75e7a15848baddece8e663f8"
+    },
+    {
+      "path": "artifacts/goal22-runs/ocr-sealed-reader-checks-20261002-v1/test-results/app.trx",
+      "sha256": "47cbee05fcbbcf9205ad6e104423efdb898ac117f1b7c7a9c487bdc3535b7c95"
+    },
+    {
+      "path": "artifacts/goal22-tools/Run-OcrSealedReaderChecksV2.ps1",
+      "sha256": "b37aacbdd8d027c13de483d79d69cd3ff531932f3b59a5c0ace12d09b87720bc"
+    },
+    {
+      "path": "artifacts/goal22-tools/Record-OcrSealedReader.py",
+      "sha256": "9dc5737b63949ab2a234fb5f337dded0a5ad9cd6f6471955f2641e196c2ade67"
+    }
+  ],
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "optimizer_steps": 0,
+  "production_approval": false,
+  "model_store_change": false,
+  "package_created": false,
+  "license_review": "Apache-2.0 project implementation and fabricated fixtures; no dependency, external asset or model payload added.",
+  "limitations": [
+    "No actual passing sealed outcome or complete production bundle was exercised. These fixtures are not acceptance metrics.",
+    "The composed OCR schema remains unsupported by this original-DB dev/sealed approval path.",
+    "Production approval still requires authentic complete development, synthetic-sealed and real-sealed evidence bound to the current executable.",
+    "First-read admission, budget closure and reserve accounting remain responsibilities of the existing acceptance executor.",
+    "Accuracy gates, real acceptance, production activation and final distributions remain outstanding."
+  ]
+}

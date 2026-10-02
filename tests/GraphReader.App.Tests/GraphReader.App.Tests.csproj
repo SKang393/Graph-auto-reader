@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Fixtures\original-db-sealed-evidence.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\GraphReader.App\GraphReader.App.csproj" />
     <ProjectReference Include="..\..\src\GraphReader.SuperResolution\GraphReader.SuperResolution.csproj" />
   </ItemGroup>

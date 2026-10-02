@@ -13,7 +13,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// composition. The gate deliberately supports only evidence schemas whose
 /// direct source semantics have been reviewed in this executable.
 /// </summary>
-internal static class ProductionOriginalDbOcrApprovalGate
+internal static partial class ProductionOriginalDbOcrApprovalGate
 {
     internal const string Schema = "graphreader.ocr-original-db-production-gate.v1";
     internal const string Profile = "ocr-original-db-production-gate-v1";
@@ -119,6 +119,8 @@ internal static class ProductionOriginalDbOcrApprovalGate
         EmbeddedResource devDetectorManifest = ReadEmbedded(resources, "synthetic_dev_detector_manifest", "application/json");
         EmbeddedResource devRecognizerManifest = ReadEmbedded(resources, "synthetic_dev_recognizer_manifest", "application/json");
         EmbeddedResource sealedScore = ReadEmbedded(resources, "synthetic_sealed_score", "application/json");
+        EmbeddedResource sealedRequest = ReadEmbedded(resources, "synthetic_sealed_request", "application/json");
+        EmbeddedResource sealedPreflight = ReadEmbedded(resources, "synthetic_sealed_preflight_binding", "application/json");
         EmbeddedResource realResult = ReadEmbedded(resources, "real_sealed_result", "application/json");
         EmbeddedResource realCandidate = ReadEmbedded(resources, "real_sealed_candidate_binding", "application/json");
         EmbeddedResource realProtocol = ReadEmbedded(resources, "real_sealed_protocol", "application/json");
@@ -147,7 +149,8 @@ internal static class ProductionOriginalDbOcrApprovalGate
             realProtocol.Bytes, realProtocol.Sha256, bars.Bytes, bars.Sha256,
             detectionModel.Identity, recognitionModel.Identity);
         ValidateEvaluatedRuntimeDependencies(realCandidate.Bytes);
-        ValidateSyntheticSealedSource(sealedScore.Bytes);
+        ValidateSyntheticSealedSource(sealedScore.Bytes, sealedRequest.Bytes, sealedPreflight.Bytes,
+            devCandidate.Sha256, devScore.Sha256, bars.Sha256, canonical);
         return realCandidate.Bytes;
     }
 
@@ -203,9 +206,6 @@ internal static class ProductionOriginalDbOcrApprovalGate
             recognitionModel,
             ReadAcceptanceBars(acceptanceBarsBytes));
     }
-
-    internal static void ValidateSyntheticSealedSourceForTest(byte[] bytes) =>
-        ValidateSyntheticSealedSource(bytes);
 
     internal static string ComputeManifestContractFingerprintForTest(string path, string task) =>
         ComputeManifestContractFingerprint(path, task);
@@ -475,14 +475,6 @@ internal static class ProductionOriginalDbOcrApprovalGate
         JsonElement recognizer = RequireObject(candidate, "recognizer", "full OCR synthetic-dev candidate");
         RequireCandidateModel(detector, detectionModel, "full OCR synthetic-dev detector");
         RequireCandidateModel(recognizer, recognitionModel, "full OCR synthetic-dev recognizer");
-    }
-
-    private static void ValidateSyntheticSealedSource(byte[] bytes)
-    {
-        using JsonDocument document = Parse(bytes, "full OCR synthetic-sealed score");
-        string schema = RequireText(document.RootElement, "schema", "full OCR synthetic-sealed score");
-        throw new InvalidDataException(
-            $"Full OCR synthetic-sealed source schema '{schema}' is not supported by this production gate.");
     }
 
     private static CanonicalBars ReadAcceptanceBars(byte[] bytes)

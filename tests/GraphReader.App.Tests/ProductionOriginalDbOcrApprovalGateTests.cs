@@ -144,21 +144,6 @@ public sealed class ProductionOriginalDbOcrApprovalGateTests
     }
 
     [TestMethod]
-    public void SyntheticSealedEvidenceRemainsUnavailableUntilItsExactSchemaIsImplemented()
-    {
-        byte[] plausible = Serialize(new Dictionary<string, object?>
-        {
-            ["schema"] = "graphreader.full-ocr-synthetic-sealed-score.v1",
-            ["status"] = "pass",
-            ["production_approval"] = true,
-        });
-
-        InvalidDataException error = Assert.ThrowsExactly<InvalidDataException>(() =>
-            ProductionOriginalDbOcrApprovalGate.ValidateSyntheticSealedSourceForTest(plausible));
-        StringAssert.Contains(error.Message, "is not supported");
-    }
-
-    [TestMethod]
     public void FullOcrDevRejectsSelfConsistentSubsetAndChangedMatchingRule()
     {
         EvidenceFixture fixture = CreateEvidence();
