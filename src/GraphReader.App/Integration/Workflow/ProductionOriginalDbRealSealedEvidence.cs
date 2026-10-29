@@ -108,7 +108,7 @@ internal static class ProductionOriginalDbRealSealedEvidence
         ValidateFileArray(root.GetProperty("native_files"), allowRole: true, "candidate native files");
         ValidateFileArray(root.GetProperty("managed_files"), allowRole: false, "candidate managed files");
         JsonElement algorithms = root.GetProperty("algorithms");
-        ValidateAlgorithms(algorithms);
+        double markerCenterThreshold = ValidateAlgorithms(algorithms);
         string executionDescriptor = ComputeExecutionDescriptorSha256(root);
         return new CandidateIdentity(
             candidateId,
@@ -120,7 +120,7 @@ internal static class ProductionOriginalDbRealSealedEvidence
             marker.PayloadSha256,
             classifierSha,
             executionDescriptor,
-            ComputeOperatingPointIdentity(executionDescriptor));
+            ComputeOperatingPointIdentity(executionDescriptor, markerCenterThreshold));
     }
 
     private static void ValidateRuntime(JsonElement value)
@@ -185,7 +185,7 @@ internal static class ProductionOriginalDbRealSealedEvidence
         }
     }
 
-    private static void ValidateAlgorithms(JsonElement value)
+    private static double ValidateAlgorithms(JsonElement value)
     {
         string[] fields =
         [
@@ -195,14 +195,31 @@ internal static class ProductionOriginalDbRealSealedEvidence
             "marker_center_revision", "marker_center_candidate_id", "marker_classifier_adapter_id",
             "legend_adapter_id", "phase_adapter_id",
         ];
+        string domain = "full_frame_v24";
         if (value.TryGetProperty("marker_proposal_domain", out _))
         {
             fields = [.. fields, "marker_proposal_domain"];
-            string domain = Text(value, "marker_proposal_domain", "real-sealed candidate algorithms");
-            if (domain is not ("full_frame_v24" or "axis_polygon_or_16px_v25"))
-            {
-                throw new InvalidDataException("Real-sealed marker proposal domain is unsupported.");
-            }
+            domain = Text(value, "marker_proposal_domain", "real-sealed candidate algorithms");
+        }
+        if (domain is not ("full_frame_v24" or "axis_polygon_or_16px_v25"))
+            throw new InvalidDataException("Real-sealed marker proposal domain is unsupported.");
+        string geometry = "multiradius_v24";
+        if (value.TryGetProperty("marker_geometry_support", out _))
+        {
+            fields = [.. fields, "marker_geometry_support"];
+            geometry = Text(value, "marker_geometry_support", "real-sealed candidate algorithms");
+        }
+        if (geometry is not ("multiradius_v24" or "multiradius_enclosed_v1" or "multiradius_enclosed_balanced_v2") ||
+            (geometry != "multiradius_v24" && domain != "axis_polygon_or_16px_v25"))
+            throw new InvalidDataException("Real-sealed marker geometry support is unsupported.");
+        double threshold = 0.25;
+        if (value.TryGetProperty("marker_center_threshold", out JsonElement cutoff))
+        {
+            fields = [.. fields, "marker_center_threshold"];
+            if (cutoff.ValueKind != JsonValueKind.Number || !cutoff.TryGetDouble(out threshold) ||
+                threshold is not (0.25 or 0.1) ||
+                (threshold == 0.1 && geometry != "multiradius_enclosed_balanced_v2"))
+                throw new InvalidDataException("Real-sealed marker operating threshold is unsupported.");
         }
         RequireProperties(value, fields, "real-sealed candidate algorithms");
         RequireString(value, "ocr_output_geometry", "model_polygon", "real-sealed candidate algorithms");
@@ -226,6 +243,7 @@ internal static class ProductionOriginalDbRealSealedEvidence
         {
             _ = Sha(value, name, "real-sealed candidate algorithms");
         }
+        return threshold;
     }
 
     private static ProtocolIdentity ValidateProtocol(
@@ -556,13 +574,13 @@ internal static class ProductionOriginalDbRealSealedEvidence
         return Hash(stream.ToArray());
     }
 
-    private static string ComputeOperatingPointIdentity(string executionDescriptorSha256)
+    private static string ComputeOperatingPointIdentity(string executionDescriptorSha256, double markerCenterThreshold)
     {
         string value = string.Join('\n',
         [
             OperatingPointDomain,
             executionDescriptorSha256,
-            "marker_center_threshold=0.25",
+            FormattableString.Invariant($"marker_center_threshold={markerCenterThreshold}"),
             "source_pixel_tolerance=5",
             "graph_x_tolerance=0.5",
             "graph_y_tolerance=5",

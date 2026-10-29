@@ -29,6 +29,56 @@ public sealed class ProductionOriginalDbRealSealedEvidenceTests
     }
 
     [TestMethod]
+    public void SupportedMarkerProfilesAndOperatingPointsAreBound()
+    {
+        foreach ((string geometry, double threshold) in new[]
+                 {
+                     ("multiradius_v24", 0.25),
+                     ("multiradius_enclosed_v1", 0.25),
+                     ("multiradius_enclosed_balanced_v2", 0.25),
+                     ("multiradius_enclosed_balanced_v2", 0.1),
+                 })
+        {
+            EvidenceFixture fixture = EvidenceFixture.Create();
+            fixture.Algorithms["marker_proposal_domain"] = "axis_polygon_or_16px_v25";
+            fixture.Algorithms["marker_geometry_support"] = geometry;
+            fixture.Algorithms["marker_center_threshold"] = threshold;
+            fixture.Rebind();
+            Validate(fixture);
+
+            if (threshold == 0.1)
+            {
+                fixture.SplitIdentities["operating_point_identity"] = OperatingPoint(
+                    fixture.SplitIdentities["execution_descriptor_sha256"]!.GetValue<string>(), 0.25);
+                fixture.RebindProtocolReferences();
+                Assert.ThrowsExactly<InvalidDataException>(() => Validate(fixture));
+            }
+        }
+    }
+
+    [TestMethod]
+    public void UnsupportedMarkerProfilesFailClosed()
+    {
+        foreach ((string? domain, string? geometry, JsonNode? threshold) in new[]
+                 {
+                     ("unknown", (string?)null, (JsonNode?)null),
+                     ((string?)null, "multiradius_enclosed_v1", (JsonNode?)null),
+                     ("axis_polygon_or_16px_v25", "unknown", (JsonNode?)null),
+                     ("axis_polygon_or_16px_v25", "multiradius_enclosed_v1", (JsonNode?)JsonValue.Create(0.1)),
+                     ("axis_polygon_or_16px_v25", "multiradius_enclosed_balanced_v2", (JsonNode?)JsonValue.Create(0.10001)),
+                     ("axis_polygon_or_16px_v25", "multiradius_enclosed_balanced_v2", (JsonNode?)JsonValue.Create("0.1")),
+                 })
+        {
+            EvidenceFixture fixture = EvidenceFixture.Create();
+            if (domain is not null) fixture.Algorithms["marker_proposal_domain"] = domain;
+            if (geometry is not null) fixture.Algorithms["marker_geometry_support"] = geometry;
+            if (threshold is not null) fixture.Algorithms["marker_center_threshold"] = threshold;
+            fixture.Rebind();
+            Assert.ThrowsExactly<InvalidDataException>(() => Validate(fixture));
+        }
+    }
+
+    [TestMethod]
     public void CandidateAndProtocolMustRemainCryptographicallyLinked()
     {
         EvidenceFixture fixture = EvidenceFixture.Create();
@@ -169,7 +219,14 @@ public sealed class ProductionOriginalDbRealSealedEvidenceTests
         {
             SplitIdentities["execution_descriptor_sha256"] = ExecutionDescriptor(Candidate);
             SplitIdentities["operating_point_identity"] = OperatingPoint(
-                SplitIdentities["execution_descriptor_sha256"]!.GetValue<string>());
+                SplitIdentities["execution_descriptor_sha256"]!.GetValue<string>(),
+                Algorithms["marker_center_threshold"] is JsonValue value && value.TryGetValue<double>(out double threshold)
+                    ? threshold : 0.25);
+            RebindProtocolReferences();
+        }
+
+        internal void RebindProtocolReferences()
+        {
             RequiredObject(Protocol, "acceptance_bar")["sha256"] = BarsSha256;
             string protocolSha = ProtocolSha256;
             RequiredObject(Candidate, "protocol")["sha256"] = protocolSha;
@@ -438,11 +495,11 @@ public sealed class ProductionOriginalDbRealSealedEvidenceTests
         return Hash(stream.ToArray());
     }
 
-    private static string OperatingPoint(string descriptorSha256) => Hash(Encoding.UTF8.GetBytes(string.Join('\n',
+    private static string OperatingPoint(string descriptorSha256, double threshold) => Hash(Encoding.UTF8.GetBytes(string.Join('\n',
     [
         "graphreader.frozen-real-workflow-operating-point.v1",
         descriptorSha256,
-        "marker_center_threshold=0.25",
+        FormattableString.Invariant($"marker_center_threshold={threshold}"),
         "source_pixel_tolerance=5",
         "graph_x_tolerance=0.5",
         "graph_y_tolerance=5",
