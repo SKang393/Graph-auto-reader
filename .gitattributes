@@ -89,3 +89,8 @@ ml/ocr/official_bakeoff/SERVER_COMPARISON_PROTOCOL.json -text whitespace=cr-at-e
 # Preserve the V9 initializer and configuration bytes recorded before training.
 ml/markers/classifier/off_center_context_v9/__init__.py -text whitespace=cr-at-eol
 ml/markers/classifier/off_center_context_v9/p1.json -text whitespace=cr-at-eol
+# Preserve V38 source and outcome bytes bound by its completed trial.
+ml/markers/center/confidence_residual_v38/p1.json -text whitespace=cr-at-eol
+ml/markers/center/confidence_residual_v38/P1_RESULT.json -text whitespace=cr-at-eol
+ml/markers/center/residual_negative_v38/__init__.py -text whitespace=cr-at-eol
+ml/markers/center/residual_negative_v38/protocol.json -text whitespace=cr-at-eol

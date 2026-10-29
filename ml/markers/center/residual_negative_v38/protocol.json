@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "cache_id": "marker-center-residual-negative-v38-train",
+  "split": "train",
+  "scope": "residual_negative",
+  "source_report_sha256": "37353ebf64d12e25f183cdf78306ceda1298452a96b5bc8b9354d3db6b252d44",
+  "full_v37_match_report_sha256": "1fef4eaed51bdf9835cfb9c0884493529a5fa919ec53bcbfd5858229e1f9ac6f",
+  "expected_rows": 90,
+  "source_scope_counts": {
+    "component": 50,
+    "family": 40
+  },
+  "operating_point": 0.1,
+  "miner_confidence_cutoff_applied": false,
+  "eligibility_rules": {
+    "proposal_anchor_distance_pixels": "> 8.0",
+    "decoded_center_nearest_truth_distance_pixels": "> 5.0",
+    "distance_dtype": "NumPy float32",
+    "decoded_center": "coordinates + outputs[:, 1:3] * 4.0"
+  },
+  "patch_contract": {
+    "dtype": "float32",
+    "shape": [3, 33, 33],
+    "zero_padding_pixels": 16,
+    "extraction": "V24 full-frame component and V27 plot-domain family proposal extraction"
+  },
+  "payload": {
+    "filename": "train-residual-negative.pt",
+    "keys": ["patches", "labels", "offsets", "radii", "hard_negative"],
+    "dtypes": {
+      "patches": "float32",
+      "labels": "float32",
+      "offsets": "float32",
+      "radii": "float32",
+      "hard_negative": "float32"
+    },
+    "values": {
+      "labels": 0,
+      "offsets": 0,
+      "radii": 0,
+      "hard_negative": 1
+    }
+  },
+  "ordering": [
+    "component before family",
+    "ascending scene index within scope",
+    "ascending proposal index within scene",
+    "exact patch byte duplicates removed globally, first retained"
+  ],
+  "deduplication": "SHA-256 index with exact contiguous bytes and torch.equal confirmation"
+}

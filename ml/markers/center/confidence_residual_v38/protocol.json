@@ -1,0 +1,30 @@
+{
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "hypothesis": "Adding the distinct, geometrically unambiguous train-only V37 residual negatives may reduce false marker centers while retaining held-out marker recall.",
+  "isolated_change": "Retain the V37 eight-epoch BCE recipe, V27 initializer, frozen geometry, model, seed, threshold, and all original training rows and reflection views. Add the four fixed reflections of 90 authenticated train-only residual-negative patches. No other model or operating-point change is permitted.",
+  "split_identities": {
+    "eligibility_report": {
+      "path": "artifacts/goal22-runs/reflection-train-negative-eligibility-20261029-v1/report.json",
+      "sha256": "37353ebf64d12e25f183cdf78306ceda1298452a96b5bc8b9354d3db6b252d44"
+    },
+    "retained_training_features": {
+      "path": "artifacts/goal22-runs/reflected-spatial-features-20261002-v1/report.json",
+      "sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500"
+    },
+    "development": {
+      "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+      "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41"
+    },
+    "separation": "Optimize owned training data only; keep the existing development inventory and all private and sealed inputs separate."
+  },
+  "metric": "Evaluate all 167 component and 9 family development scenes at the existing 0.10 operating point and 5-pixel matching rule. Report marker precision, recall, prohibited-structure metrics, exported-model parity and frozen-geometry equality. If the candidate is otherwise eligible, compare the complete native and CSV workflows against the retained baseline.",
+  "acceptance_bar": "Use the existing ml/policy/acceptance-bars.json and shared evaluator without tightening or weakening the bars.",
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "private_reads": 0,
+    "sealed_runs_authorized": 0,
+    "production_approval": false,
+    "release_eligible": false
+  }
+}

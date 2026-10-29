@@ -1,0 +1,78 @@
+{
+  "schema": "graphreader.confidence-residual-outcome.v1",
+  "task": "marker-center",
+  "revision": "marker-center-confidence-residual-v38",
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "acceptance_status": "FAIL",
+  "closed_utc": "2026-10-29T15:15:20.181948+00:00",
+  "candidate_report": {
+    "path": "artifacts/goal22-runs/center-confidence-residual-v38/P1/report.json",
+    "sha256": "33429cbbf6904a6223f763cfe6d5e99c815cd08ecb87dada4dc1d82ca7548464"
+  },
+  "canonical_result": {
+    "path": "ml/markers/training-seals/marker-center/marker-center-confidence-residual-v38/P1/result.json",
+    "sha256": "7058848046a38ae3498e1add0614b2f64ba3d76b2247b425af1e4d72da555e1f"
+  },
+  "config_sha256": "2889139498900cb2883f136f10ed523584782d6d1d70dec42ffc53d6e9929adc",
+  "source_snapshot_sha256": "dc5cc0c4dd214c22f20c239efa0381de0f9af262a11a77248b6d3c98ae9c6e59",
+  "runner_source_bundle_sha256": "bde121eec05880c814025cdd310eea3c2ff9548479037558ef199f39b3dffa98",
+  "eligibility_report_sha256": "37353ebf64d12e25f183cdf78306ceda1298452a96b5bc8b9354d3db6b252d44",
+  "residual_manifest_sha256": "0e88aeedb98b6850772174ce6757f3670a042d9cdfb92f92606ab35864175a27",
+  "checkpoint_sha256": "510b30c315ff3fab9f30aaa842d5cfa5e6ffc3a99fa9f09e8cb0e22651388c5a",
+  "onnx_sha256": "2b5467c8e6fbf23b40634272ab6488829a8be6b4b53798aadd18cabd9d6f49d1",
+  "training": {
+    "rows": 1106832,
+    "residual_original_rows": 90,
+    "epochs": 8,
+    "optimizer_steps": 69184
+  },
+  "development": {
+    "component": {
+      "duplicate_count": 0,
+      "false_negatives": 63,
+      "false_positives": 164,
+      "precision": 0.9220902612826604,
+      "prohibited_structure_hit_rate": 0.0,
+      "prohibited_structure_hits": 0,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 2004,
+      "recall": 0.968562874251497,
+      "scene_count": 167,
+      "true_positives": 1941,
+      "truth_count": 2004
+    },
+    "family": {
+      "duplicate_count": 0,
+      "false_negatives": 4,
+      "false_positives": 50,
+      "precision": 0.8015873015873016,
+      "prohibited_structure_hit_rate": 0.007936507936507936,
+      "prohibited_structure_hits": 2,
+      "proposal_recall": 1.0,
+      "proposal_true_positives": 206,
+      "recall": 0.9805825242718447,
+      "scene_count": 9,
+      "true_positives": 202,
+      "truth_count": 206
+    }
+  },
+  "parity": {
+    "confidence_decision_changes": 0,
+    "maximum_absolute_error": 6.198883056640625e-06,
+    "rows": 270236
+  },
+  "geometry_maximum_absolute_change": 3.814697265625e-06,
+  "seconds": 497.7495717999991,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "budget_consumed": false,
+  "production_approval": false,
+  "release_eligible": false,
+  "workflow_evaluation": "not run; development precision failed the existing acceptance bar",
+  "limitations": [
+    "Exact train-patch identity is not approximate coverage or a causal explanation.",
+    "Held-out synthetic accuracy does not establish real-data accuracy or production approval.",
+    "The complete application and Windows installer/portable validation were not run."
+  ]
+}

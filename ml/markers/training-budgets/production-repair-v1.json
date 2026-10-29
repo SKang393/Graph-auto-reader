@@ -11198,6 +11198,52 @@
       "candidate_report_sha256": "cedef52cbae22a095e81db2797bf7d378ea702b9c6185c1088441e7417a0730d",
       "optimizer_steps": 69160,
       "closed_utc_date": "2026-10-02"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-confidence-residual-v38",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/confidence_residual_v38/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "2889139498900cb2883f136f10ed523584782d6d1d70dec42ffc53d6e9929adc"
+      },
+      "protocol_path": "ml/markers/center/confidence_residual_v38/protocol.json",
+      "protocol_sha256": "4ba9df8ba223f56fe792ea662d904192b05c248790dda11b487db16a844be1df",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One owned synthetic train/dev-only residual-negative trial. No private or sealed input, production activation or release.",
+      "isolated_change": "Retain the V37 eight-epoch BCE recipe, V27 initializer, frozen geometry, model, seed, threshold, and all original training rows and reflection views. Add the four fixed reflections of 90 authenticated train-only residual-negative patches. No other model or operating-point change is permitted.",
+      "optimizer_steps_expected": 69184,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "resource_policy": {
+        "aggregate_backstop_percent": 80,
+        "all_processors_eligible": true,
+        "kmp_blocktime": "0",
+        "logical_processor_count": 12,
+        "omp_wait_policy": "PASSIVE",
+        "priority": "Idle",
+        "synchronous_work_rest_percent": 80
+      },
+      "outcome_path": "ml/markers/center/confidence_residual_v38/P1_RESULT.json",
+      "outcome_sha256": "2c5bb08b03d9dd5d505a36504ec9495504eaa71422e84e7ccffe5900c10265f8",
+      "candidate_report_sha256": "33429cbbf6904a6223f763cfe6d5e99c815cd08ecb87dada4dc1d82ca7548464",
+      "optimizer_steps": 69184,
+      "closed_utc_date": "2026-10-29"
     }
   ]
 }
