@@ -85,6 +85,23 @@ def test_handshake_and_positive_receipt_still_precede_acceptance(tmp_path):
     assert len(events) == 2
 
 
+def test_composed_worker_failure_after_positive_read_has_no_result_or_child_detail(tmp_path):
+    events, ack, receipt = legacy.callbacks()
+    value = envelope()
+    with pytest.raises(OcrSealedTransportError) as caught:
+        run_ocr_sealed_worker(
+            legacy.command("known_failure_post_positive", json.dumps(value)),
+            tmp_path, identity(), ack, receipt, timeout_seconds=2,
+        )
+
+    assert str(caught.value) == "OCR_SEALED_TRANSPORT_CHILD_FAILED"
+    assert "ORIGINAL_DB_SEALED_WORKER_FAILED" not in repr(caught.value)
+    assert events == [
+        ("ack", identity().attempt_id, legacy.NONCE),
+        ("positive", identity().attempt_id, identity().candidate_sha256, legacy.NONCE),
+    ]
+
+
 @pytest.mark.parametrize("scenario", ["missing_receipt", "bad_receipt", "duplicate_request", "wrong_first_identity"])
 def test_composed_transport_does_not_relax_read_authorization(tmp_path, scenario):
     _, ack, receipt = legacy.callbacks()

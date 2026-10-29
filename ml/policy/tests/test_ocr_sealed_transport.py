@@ -63,6 +63,12 @@ if scenario == "unsafe_output":
 if scenario != "missing_receipt":
     receipt_nonce = ("0" * 64) if scenario == "bad_receipt" else nonce
     print(f"G22_POSITIVE_READ/1 {attempt} {candidate} {receipt_nonce}", flush=True)
+if scenario == "known_failure_post_positive":
+    # Mirror the native worker's sanitized failure channel after the read has
+    # been durably confirmed. The child has no aggregate to return.
+    sys.stderr.write("ORIGINAL_DB_SEALED_WORKER_FAILED\n")
+    sys.stderr.flush()
+    raise SystemExit(9)
 if scenario in {"malformed_json", "oversized_json", "unterminated_output"}:
     payload = {"malformed_json": '{"unknown":"private-fragment"',
                "oversized_json": '{"unknown":"' + ('x' * (300 * 1024)) + '"}',
@@ -209,6 +215,22 @@ def test_valid_exchange_has_only_aggregate_output(tmp_path: Path) -> None:
     result, events = run(tmp_path)
     assert result.envelope == envelope()
     assert result.stderr_byte_count == 0
+    assert events == [
+        ("ack", identity().attempt_id, NONCE),
+        ("positive", identity().attempt_id, HASH, NONCE),
+    ]
+
+
+def test_known_worker_failure_after_positive_read_is_sanitized(tmp_path: Path) -> None:
+    events, send_ack, confirm_positive_read = callbacks()
+    with pytest.raises(OcrSealedTransportError) as caught:
+        run_ocr_sealed_worker(
+            command("known_failure_post_positive"), tmp_path, identity(),
+            send_ack, confirm_positive_read, timeout_seconds=2,
+        )
+
+    assert str(caught.value) == "OCR_SEALED_TRANSPORT_CHILD_FAILED"
+    assert "ORIGINAL_DB_SEALED_WORKER_FAILED" not in repr(caught.value)
     assert events == [
         ("ack", identity().attempt_id, NONCE),
         ("positive", identity().attempt_id, HASH, NONCE),

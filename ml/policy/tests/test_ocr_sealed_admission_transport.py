@@ -78,13 +78,14 @@ def test_real_coordinator_and_transport_share_one_confirmed_read(tmp_path: Path)
             write_and_flush=lambda _frame: pytest.fail("completed admission must not send another ACK"))
 
 
-@pytest.mark.parametrize(("scenario", "status", "read_status", "uses"), [
-    ("wrong_first_identity", "void", "none", 0),
-    ("missing_receipt", "possible_read", "possible", 0),
-    ("duplicate_result", "failed", "confirmed", 1),
+@pytest.mark.parametrize(("scenario", "status", "read_status", "uses", "failure_code"), [
+    ("wrong_first_identity", "void", "none", 0, "OCR_SEALED_TRANSPORT_PROTOCOL_INVALID"),
+    ("missing_receipt", "possible_read", "possible", 0, "OCR_SEALED_TRANSPORT_POSITIVE_READ_MISSING"),
+    ("duplicate_result", "failed", "confirmed", 1, "OCR_SEALED_TRANSPORT_PROTOCOL_INVALID"),
+    ("known_failure_post_positive", "failed", "confirmed", 1, "OCR_SEALED_TRANSPORT_CHILD_FAILED"),
 ])
 def test_transport_failure_recovers_only_proven_accounting(
-    tmp_path: Path, scenario: str, status: str, read_status: str, uses: int,
+    tmp_path: Path, scenario: str, status: str, read_status: str, uses: int, failure_code: str,
 ) -> None:
     admission, authorization, gate, registry_path = admission_fixture._prepare(tmp_path)
     metadata = bound_reserve_metadata(admission)
@@ -101,18 +102,30 @@ def test_transport_failure_recovers_only_proven_accounting(
     envelope["aggregate"]["source_count"] = expected.source_count
     envelope["aggregate"]["panel_count"] = expected.source_count
     encoded = base64.b64encode(json.dumps(envelope).encode()).decode("ascii")
+    observed = []
+
+    def acknowledge(attempt, nonce, writer):
+        send_ack(admission, attempt_id=attempt, request_nonce=nonce, write_and_flush=writer)
+        observed.append("ack")
+
+    def confirm(attempt, candidate, nonce):
+        record_positive_read_receipt(admission, attempt_id=attempt,
+            candidate_sha256=candidate, request_nonce=nonce)
+        observed.append("positive")
 
     with pytest.raises(OcrSealedTransportError) as failure:
         run_ocr_sealed_worker(
             [sys.executable, "-u", "-c", wire_fixture.FAKE_CHILD, scenario,
                 expected.attempt_id, expected.candidate_sha256, wire_fixture.NONCE, encoded],
             tmp_path, expected,
-            lambda attempt, nonce, writer: send_ack(admission, attempt_id=attempt,
-                request_nonce=nonce, write_and_flush=writer),
-            lambda attempt, candidate, nonce: record_positive_read_receipt(admission,
-                attempt_id=attempt, candidate_sha256=candidate, request_nonce=nonce),
+            acknowledge,
+            confirm,
             timeout_seconds=5,
         )
+    assert str(failure.value) == failure_code
+    assert "ORIGINAL_DB_SEALED_WORKER_FAILED" not in repr(failure.value)
+    assert observed == (["ack", "positive"] if read_status == "confirmed" else
+                        (["ack"] if read_status == "possible" else []))
     if read_status == "confirmed":
         fail_admission(admission, failure.value)
     recovered = recover_admission(registry_path, tmp_path,
