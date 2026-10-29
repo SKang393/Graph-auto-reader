@@ -9,6 +9,7 @@ using GraphReader.App.Integration.Workflow;
 using GraphReader.Axis;
 using GraphReader.Imaging;
 using GraphReader.Pdf;
+using GraphReader.RealAcceptance.Ocr;
 
 namespace GraphReader.SyntheticRuntimeEvidence;
 
@@ -16,6 +17,8 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 internal static class OpenOcrArchiveFixtureCheck
 {
     internal const string Command = "--check-open-ocr-archive-fixture";
+    internal const string ComposedRuntimeCommand = "--diagnose-open-ocr-archive-composed-runtime";
+    private static readonly JsonSerializerOptions Options = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
 
     internal static object Run(string root, string requestPath, string expectedRequestSha256)
     {
@@ -28,6 +31,63 @@ internal static class OpenOcrArchiveFixtureCheck
             model_inference = false, production_approved = false,
         };
     }
+
+    internal static async Task<int> RunComposedRuntimeAsync(string[] args, string root)
+    {
+        using var cancellation = new CancellationTokenSource();
+        ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; cancellation.Cancel(); };
+        Console.CancelKeyPress += cancel;
+        string stage = "setup";
+        try
+        {
+            ValidateComposedRuntimeCommandArguments(args);
+            stage = "archive-validation";
+            IReadOnlyList<OriginalDbOcrSealedSourcePayload> sources =
+                ReadFixture(root, args[1], args[2], cancellation.Token);
+            cancellation.Token.ThrowIfCancellationRequested();
+            stage = "candidate-runtime";
+            ComposedOcrCorpusAggregate aggregate = await OriginalDbOcrMemoryRuntime.RunComposedAsync(
+                root, args[3], args[4], (ocr, observations, axis, token) => EvaluateComposedSourcesAsync(
+                    sources, (image, hash, sourceToken) => ComposedOcrInMemorySourceEvaluator.EvaluateAsync(
+                        image, hash, ocr, observations, axis, sourceToken), token), cancellation.Token)
+                .ConfigureAwait(false);
+            cancellation.Token.ThrowIfCancellationRequested();
+            Console.WriteLine(JsonSerializer.Serialize(CreateComposedRuntimeEvidence(aggregate), Options));
+            return 0;
+        }
+        catch (OperationCanceledException)
+        {
+            Console.Error.WriteLine("OPEN_OCR_ARCHIVE_COMPOSED_RUNTIME_CANCELLED");
+            return 130;
+        }
+        catch (Exception error) when (error is not OutOfMemoryException)
+        {
+            Console.Error.WriteLine("OPEN_OCR_ARCHIVE_COMPOSED_RUNTIME_FAILED:" +
+                ComposedOcrMemoryDevCheck.SafeFailureStage(error, stage));
+            return 1;
+        }
+        finally { Console.CancelKeyPress -= cancel; }
+    }
+
+    internal static Task<ComposedOcrCorpusAggregate> EvaluateComposedSourcesAsync(
+        IReadOnlyList<OriginalDbOcrSealedSourcePayload> sources,
+        Func<byte[], string, CancellationToken, Task<ComposedOcrSourcePredictions>> infer,
+        CancellationToken cancellationToken) =>
+        ComposedOcrInMemoryCorpusEvaluator.EvaluateAsync(sources, infer, cancellationToken);
+
+    internal static void ValidateComposedRuntimeCommandArguments(IReadOnlyList<string> args)
+    {
+        if (args.Count != 5 || args[0] != ComposedRuntimeCommand)
+            throw new InvalidDataException("OPEN_OCR_FIXTURE_ARGUMENT_INVALID");
+    }
+
+    internal sealed record OpenComposedRuntimeEvidence(string Schema, string Status, int SourceCount,
+        int PanelCount, object Metrics, bool OpenDevelopmentFixture, bool RegisteredReserve, int PrivateReads,
+        int SealedReads, bool ModelInference, bool StageAdmissionGranted, bool ProductionApproved);
+
+    internal static OpenComposedRuntimeEvidence CreateComposedRuntimeEvidence(ComposedOcrCorpusAggregate aggregate) =>
+        new("graphreader.open-ocr-archive-composed-runtime-result.v1", "completed", aggregate.SourceCount,
+            aggregate.PanelCount, aggregate.Metrics, true, false, 0, 0, true, false, false);
 
     internal static async Task<object> RunImportAsync(string root, string requestPath, string expectedRequestSha256)
     {
@@ -135,41 +195,35 @@ internal static class OpenOcrArchiveFixtureCheck
     }
 
     private static IReadOnlyList<OriginalDbOcrSealedSourcePayload> ReadFixture(
-        string root, string requestPath, string expectedRequestSha256)
+        string root, string requestPath, string expectedRequestSha256, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string path = Path.GetFullPath(requestPath, root);
         string boundary = Path.Combine(root, "artifacts", "goal22-runs") + Path.DirectorySeparatorChar;
         if (!path.StartsWith(boundary, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("OPEN_OCR_FIXTURE_PATH_INVALID");
         string directory = Path.GetDirectoryName(path)!;
-        using JsonDocument requestDocument = JsonDocument.Parse(Read(path, expectedRequestSha256, 1024 * 1024));
+        using JsonDocument requestDocument = JsonDocument.Parse(Read(path, expectedRequestSha256, 1024 * 1024, cancellationToken));
         JsonElement request = requestDocument.RootElement;
-        if (request.GetProperty("schema").GetString() != "graphreader.open-ocr-archive-fixture.v1" ||
-            !request.GetProperty("open_development_fixture").GetBoolean() ||
-            request.GetProperty("registered_reserve").GetBoolean())
-            throw new InvalidDataException("OPEN_OCR_FIXTURE_SCOPE_INVALID");
+        ValidateOpenArchiveRequestScope(request);
         JsonElement generatorReference = request.GetProperty("generator");
         string generatorPath = LocalFile(generatorReference.GetProperty("path").GetString()!);
         using JsonDocument generatorDocument = JsonDocument.Parse(Read(generatorPath,
-            generatorReference.GetProperty("sha256").GetString()!, 4 * 1024 * 1024));
+            generatorReference.GetProperty("sha256").GetString()!, 4 * 1024 * 1024, cancellationToken));
         JsonElement generator = generatorDocument.RootElement;
-        int count = generator.GetProperty("source_count").GetInt32();
-        if (generator.GetProperty("schema").GetString() != "graphreader.owned-open-ocr-coverage-fixture.v1" ||
-            generator.GetProperty("scope").GetString() != "owned-synthetic-development" ||
-            generator.GetProperty("private_reads").GetInt32() != 0 ||
-            generator.GetProperty("sealed_reads").GetInt32() != 0 ||
-            generator.GetProperty("production_approved").GetBoolean() || count is <= 0 or > 128)
-            throw new InvalidDataException("OPEN_OCR_FIXTURE_SCOPE_INVALID");
+        int count = ValidateOpenFixtureScope(request, generator);
         var expected = new HashSet<(string Image, string Annotation)>();
         foreach (JsonElement source in generator.GetProperty("sources").EnumerateArray())
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (source.GetProperty("split").GetString() != "dev")
                 throw new InvalidDataException("OPEN_OCR_FIXTURE_SPLIT_INVALID");
             string Bind(string name)
             {
                 JsonElement reference = source.GetProperty(name);
                 string digest = reference.GetProperty("sha256").GetString()!;
-                _ = Read(LocalFile(reference.GetProperty("path").GetString()!), digest, 64 * 1024 * 1024);
+                _ = Read(LocalFile(reference.GetProperty("path").GetString()!), digest, 64 * 1024 * 1024,
+                    cancellationToken);
                 return digest;
             }
             if (!expected.Add((Bind("image"), Bind("annotation"))))
@@ -178,11 +232,12 @@ internal static class OpenOcrArchiveFixtureCheck
         if (expected.Count != count) throw new InvalidDataException("OPEN_OCR_FIXTURE_COUNT_INVALID");
         JsonElement archive = request.GetProperty("archive");
         byte[] archiveBytes = Read(LocalFile(archive.GetProperty("path").GetString()!),
-            archive.GetProperty("sha256").GetString()!, 256 * 1024 * 1024);
+            archive.GetProperty("sha256").GetString()!, 256 * 1024 * 1024, cancellationToken);
         using var stream = new MemoryStream(archiveBytes, writable: false);
         IReadOnlyList<OriginalDbOcrSealedSourcePayload> sources = OriginalDbOcrSealedArchive.Read(stream,
             archive.GetProperty("sha256").GetString()!, request.GetProperty("manifest_sha256").GetString()!,
-            count, OriginalDbOcrSealedArchive.CoverageProtocolSha256, static _ => { }, CancellationToken.None);
+            count, OriginalDbOcrSealedArchive.CoverageProtocolSha256, static _ => { }, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         if (!expected.SetEquals(sources.Select(static source => (source.ImageSha256, source.AnnotationSha256))))
             throw new InvalidDataException("OPEN_OCR_FIXTURE_PAYLOAD_MISMATCH");
         return sources;
@@ -196,13 +251,46 @@ internal static class OpenOcrArchiveFixtureCheck
         }
     }
 
-    private static byte[] Read(string path, string expected, int maximum)
+    internal static int ValidateOpenFixtureScope(JsonElement request, JsonElement generator)
     {
+        ValidateOpenArchiveRequestScope(request);
+        if (generator.GetProperty("schema").GetString() != "graphreader.owned-open-ocr-coverage-fixture.v1" ||
+            generator.GetProperty("scope").GetString() != "owned-synthetic-development" ||
+            generator.GetProperty("private_reads").GetInt32() != 0 ||
+            generator.GetProperty("sealed_reads").GetInt32() != 0 ||
+            generator.GetProperty("production_approved").GetBoolean() ||
+            (generator.TryGetProperty("registered_reserve", out JsonElement reserve) && reserve.GetBoolean()) ||
+            generator.GetProperty("source_count").GetInt32() is <= 0 or > 128)
+            throw new InvalidDataException("OPEN_OCR_FIXTURE_SCOPE_INVALID");
+        int sourceCount = generator.GetProperty("source_count").GetInt32();
+        if (request.TryGetProperty("source_count", out JsonElement requestSourceCount) &&
+            requestSourceCount.GetInt32() != sourceCount)
+            throw new InvalidDataException("OPEN_OCR_FIXTURE_COUNT_INVALID");
+        foreach (JsonElement source in generator.GetProperty("sources").EnumerateArray())
+            if (source.GetProperty("split").GetString() != "dev")
+                throw new InvalidDataException("OPEN_OCR_FIXTURE_SPLIT_INVALID");
+        return sourceCount;
+    }
+
+    private static void ValidateOpenArchiveRequestScope(JsonElement request)
+    {
+        if (request.GetProperty("schema").GetString() != "graphreader.open-ocr-archive-fixture.v1" ||
+            !request.GetProperty("open_development_fixture").GetBoolean() ||
+            request.GetProperty("registered_reserve").GetBoolean() ||
+            (request.TryGetProperty("private_reads", out JsonElement privateReads) && privateReads.GetInt32() != 0) ||
+            (request.TryGetProperty("sealed_reads", out JsonElement sealedReads) && sealedReads.GetInt32() != 0))
+            throw new InvalidDataException("OPEN_OCR_FIXTURE_SCOPE_INVALID");
+    }
+
+    private static byte[] Read(string path, string expected, int maximum, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         if (stream.Length <= 0 || stream.Length > maximum)
             throw new InvalidDataException("OPEN_OCR_FIXTURE_SIZE_INVALID");
         byte[] bytes = new byte[checked((int)stream.Length)];
         stream.ReadExactly(bytes);
+        cancellationToken.ThrowIfCancellationRequested();
         if (Convert.ToHexStringLower(SHA256.HashData(bytes)) != expected)
             throw new InvalidDataException("OPEN_OCR_FIXTURE_IDENTITY_INVALID");
         return bytes;

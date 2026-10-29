@@ -50,6 +50,11 @@ internal static class Program
                 RepositoryRoot(), args[1], args[2]), JsonOptions));
             return 0;
         }
+        if (args.Length > 0 && args[0] == OpenOcrArchiveFixtureCheck.ComposedRuntimeCommand)
+        {
+            return await OpenOcrArchiveFixtureCheck.RunComposedRuntimeAsync(
+                args, RepositoryRoot()).ConfigureAwait(false);
+        }
         if (args.Length == 1 && args[0] == "--self-test-composed-ocr-worker")
         {
             Console.WriteLine(JsonSerializer.Serialize(OriginalDbOcrSealedWorkerSelfTest.Run(composed: true), JsonOptions));

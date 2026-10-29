@@ -15,6 +15,10 @@ namespace GraphReader.SyntheticRuntimeEvidence;
 internal static class ComposedOcrMemorySelfTest
 {
     private static readonly int[] FixtureBox = [1, 2, 10, 5];
+    private static readonly JsonSerializerOptions SnakeCaseOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+    };
     internal static async Task<object> RunAsync()
     {
         int checks = 0;
@@ -73,6 +77,8 @@ internal static class ComposedOcrMemorySelfTest
         {
             token.ThrowIfCancellationRequested();
             Require(image.Length == 1 && image[0] == calls && Hash(image) == hash, "inference receives image and hash only");
+            Require(!sources.Any(source => ReferenceEquals(source.AnnotationBytes, image) ||
+                source.AnnotationBytes.AsSpan().SequenceEqual(image)), "annotation truth bytes never enter inference");
             var box = new OriginalDbOcrAggregateBox(1, 2, 11, 7);
             IReadOnlyList<OriginalDbOcrAggregatePrediction> raw = calls++ == 0 ? [new(box, null, null)] : [];
             var prediction = new OriginalDbOcrAggregatePrediction(box, "private-label", OcrRole.PhaseHeading);
@@ -82,7 +88,7 @@ internal static class ComposedOcrMemorySelfTest
                 Warnings = ["private-warning"],
             });
         }
-        ComposedOcrCorpusAggregate aggregate = await ComposedOcrInMemoryCorpusEvaluator.EvaluateAsync(
+        ComposedOcrCorpusAggregate aggregate = await OpenOcrArchiveFixtureCheck.EvaluateComposedSourcesAsync(
             sources, Infer, CancellationToken.None).ConfigureAwait(false);
         Require(calls == 2 && aggregate.SourceCount == 2 && aggregate.PanelCount == 4 &&
             aggregate.Metrics.RawDetectorGeometry.TruePositives == 1 &&
@@ -103,7 +109,7 @@ internal static class ComposedOcrMemorySelfTest
         checks++;
         calls = 0;
         var openCases = new List<ComposedOcrMemoryDevCheck.OpenDiagnosticCase>();
-        ComposedOcrCorpusAggregate observed = await ComposedOcrInMemoryCorpusEvaluator.EvaluateAsync(sources,
+        ComposedOcrCorpusAggregate observed = await OpenOcrArchiveFixtureCheck.EvaluateComposedSourcesAsync(sources,
             async (image, hash, token) =>
             {
                 ComposedOcrSourcePredictions prediction = await Infer(image, hash, token).ConfigureAwait(false);
@@ -112,6 +118,16 @@ internal static class ComposedOcrMemorySelfTest
             }, CancellationToken.None).ConfigureAwait(false);
         Require(calls == 2 && openCases.Count == 2 && JsonSerializer.Serialize(observed) == serialized,
             "open observation neither reruns inference nor changes aggregate scoring");
+        OpenOcrArchiveFixtureCheck.OpenComposedRuntimeEvidence evidence =
+            OpenOcrArchiveFixtureCheck.CreateComposedRuntimeEvidence(observed);
+        string evidenceJson = JsonSerializer.Serialize(evidence, SnakeCaseOptions);
+        Require(evidence.SourceCount == 2 && evidence.PanelCount == 4 && evidence.PrivateReads == 0 &&
+            evidence.SealedReads == 0 && !evidence.RegisteredReserve && !evidence.StageAdmissionGranted &&
+            !evidence.ProductionApproved && !evidenceJson.Contains("private-label", StringComparison.Ordinal) &&
+            !evidenceJson.Contains("\"cases\"", StringComparison.Ordinal) &&
+            evidenceJson.Contains("\"private_reads\":0", StringComparison.Ordinal) &&
+            evidenceJson.Contains("\"sealed_reads\":0", StringComparison.Ordinal),
+            "open runtime output preserves aggregate only and declares zero reads");
         Require(JsonSerializer.Serialize(openCases).Contains("private-label", StringComparison.Ordinal) &&
             openCases[0].AssembledRegions[0].Role == "phaseheading" &&
             openCases[0].SourceSha256 == sources[0].ImageSha256 && openCases[1].RawDetectorRegions.Count == 0,
@@ -123,6 +139,7 @@ internal static class ComposedOcrMemorySelfTest
             "only explicit open projection includes unchanged recognition alternatives and warnings");
         checks++;
         checks += OpenDiagnosticScopeChecks();
+        checks += OpenArchiveFixtureScopeChecks();
         foreach (OriginalDbOcrSealedSourcePayload[] invalid in new[]
         {
             Array.Empty<OriginalDbOcrSealedSourcePayload>(),
@@ -225,6 +242,78 @@ internal static class ComposedOcrMemorySelfTest
             try { Validate(request, manifest); }
             catch (Exception error) when (error is InvalidDataException or KeyNotFoundException) { rejected = true; }
             Require(rejected, "open diagnostics reject non-open or implicit scope before source access");
+            checks++;
+        }
+        return checks;
+    }
+
+    private static int OpenArchiveFixtureScopeChecks()
+    {
+        const string requestText = """
+            {"schema":"graphreader.open-ocr-archive-fixture.v1","open_development_fixture":true,
+             "registered_reserve":false}
+            """;
+        const string generatorText = """
+            {"schema":"graphreader.owned-open-ocr-coverage-fixture.v1","scope":"owned-synthetic-development",
+             "production_approved":false,"registered_reserve":false,"private_reads":0,"sealed_reads":0,
+             "source_count":1,"sources":[{"split":"dev"}]}
+            """;
+        void Validate(JsonNode request, JsonNode generator)
+        {
+            using JsonDocument requestDocument = JsonDocument.Parse(request.ToJsonString());
+            using JsonDocument generatorDocument = JsonDocument.Parse(generator.ToJsonString());
+            OpenOcrArchiveFixtureCheck.ValidateOpenFixtureScope(
+                requestDocument.RootElement, generatorDocument.RootElement);
+        }
+
+        int checks = 0;
+        OpenOcrArchiveFixtureCheck.ValidateComposedRuntimeCommandArguments(
+            [OpenOcrArchiveFixtureCheck.ComposedRuntimeCommand, "request.json", new string('a', 64),
+                "candidate.json", new string('b', 64)]);
+        checks++;
+        foreach (IReadOnlyList<string> invalidCommand in new IReadOnlyList<string>[]
+        {
+            ["--evaluate-composed-ocr-sealed", "request.json", new string('a', 64), "candidate.json", new string('b', 64)],
+            [OpenOcrArchiveFixtureCheck.ComposedRuntimeCommand, "request.json", new string('a', 64)],
+        })
+        {
+            bool rejected = false;
+            try { OpenOcrArchiveFixtureCheck.ValidateComposedRuntimeCommandArguments(invalidCommand); }
+            catch (InvalidDataException) { rejected = true; }
+            Require(rejected, "open command rejects sealed command name and malformed arguments");
+            checks++;
+        }
+        Validate(JsonNode.Parse(requestText)!, JsonNode.Parse(generatorText)!);
+        checks++;
+        JsonNode countedRequest = JsonNode.Parse(requestText)!;
+        countedRequest["source_count"] = 1;
+        Validate(countedRequest, JsonNode.Parse(generatorText)!);
+        checks++;
+        Action<JsonNode, JsonNode>[] invalidScopes =
+        [
+            (request, _) => request["schema"] = "graphreader.sealed-archive-request.v1",
+            (request, _) => request["open_development_fixture"] = false,
+            (request, _) => request["registered_reserve"] = true,
+            (request, _) => request["private_reads"] = 1,
+            (request, _) => request["sealed_reads"] = 1,
+            (request, _) => request["source_count"] = 2,
+            (_, generator) => generator["schema"] = "graphreader.sealed-reserve.v1",
+            (_, generator) => generator["scope"] = "sealed",
+            (_, generator) => generator["production_approved"] = true,
+            (_, generator) => generator["registered_reserve"] = true,
+            (_, generator) => generator["private_reads"] = 1,
+            (_, generator) => generator["sealed_reads"] = 1,
+            (_, generator) => generator["source_count"] = 129,
+            (_, generator) => generator["sources"]![0]!["split"] = "sealed",
+        ];
+        foreach (Action<JsonNode, JsonNode> mutate in invalidScopes)
+        {
+            JsonNode request = JsonNode.Parse(requestText)!, generator = JsonNode.Parse(generatorText)!;
+            mutate(request, generator);
+            bool rejected = false;
+            try { Validate(request, generator); }
+            catch (InvalidDataException) { rejected = true; }
+            Require(rejected, "open archive command rejects non-open or registered scope");
             checks++;
         }
         return checks;
