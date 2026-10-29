@@ -23,6 +23,18 @@ assembled-region precision was 80.63% and recall 73.51%. All 453 truth
 regions remain in the denominator. These open-development results fail the
 existing OCR bars and do not establish real-data accuracy or stage approval.
 
+An additional paired open-fixture run changed only the supported composition
+from tick lanes to source-scale windows, using the same executable, archive,
+weights and runtime assemblies. It matched 355 regions, read 303 exactly and
+assigned 314 correct roles, versus 333, 284 and 299 respectively in the
+tick-lane run. It also increased false detections from 80 to 124. Participant
+roles improved from 5 to 6 out of 31 and y-tick roles from 57 to 61 out of 99.
+Both configurations remain below the OCR acceptance bars; this tradeoff is
+diagnostic evidence, not a candidate selection or approval. The comparison's
+input and output receipts are in
+`artifacts/goal22-runs/open-archive-source-scale-comparison-20261029-v1` in
+the resume worktree.
+
 The Release module build had zero warnings or errors; composed-memory and
 archive self-tests passed 69 and 13 checks. The child result and input/source
 identities were checked before and after execution. Local evidence is under
