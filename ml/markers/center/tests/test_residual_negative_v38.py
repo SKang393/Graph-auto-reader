@@ -88,3 +88,29 @@ def test_protocol_contract_rejects_threshold_or_payload_drift():
     protocol["eligibility_rules"]["proposal_anchor_distance_pixels"] = ">= 8.0"
     with pytest.raises(ValueError, match="protocol drifted"):
         builder.validate_protocol(protocol)
+
+
+def test_v37_and_v38_protocol_hashes_keep_distinct_path_bindings():
+    v37_hash = "1" * 64
+    v38_hash = "2" * 64
+    bindings = builder.protocol_hash_bindings(v37_hash, v38_hash)
+
+    assert bindings == {
+        "protocol.json": v37_hash,
+        "ml/markers/center/residual_negative_v38/protocol.json": v38_hash,
+    }
+
+
+def test_v38_protocol_drift_fails_before_evidence_write(tmp_path):
+    from pathlib import Path
+    import hashlib
+
+    protocol_path = tmp_path / builder.PROTOCOL_PATH_V38
+    protocol_path.parent.mkdir(parents=True)
+    protocol_path.write_bytes(b"original protocol")
+    original_hash = hashlib.sha256(protocol_path.read_bytes()).hexdigest()
+    builder.verify_v38_protocol_unchanged(tmp_path, original_hash)
+
+    protocol_path.write_bytes(b"changed protocol")
+    with pytest.raises(ValueError, match="V38 cache protocol changed"):
+        builder.verify_v38_protocol_unchanged(tmp_path, original_hash)

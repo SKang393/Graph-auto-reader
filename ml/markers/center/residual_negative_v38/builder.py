@@ -199,6 +199,20 @@ def stream_hash(path: Path) -> tuple[str, int]:
     return digest.hexdigest(), total
 
 
+def protocol_hash_bindings(v37_protocol_sha256: str, v38_protocol_sha256: str) -> dict[str, str]:
+    """Keep the legacy V37 key and bind the cache protocol under its exact path."""
+    return {
+        "protocol.json": v37_protocol_sha256,
+        PROTOCOL_PATH_V38.as_posix(): v38_protocol_sha256,
+    }
+
+
+def verify_v38_protocol_unchanged(repo_root: Path, expected_sha256: str) -> None:
+    actual_sha256, _ = stream_hash(repo_root / PROTOCOL_PATH_V38)
+    if actual_sha256 != expected_sha256:
+        raise ValueError("V38 cache protocol changed before evidence write")
+
+
 def resolve_recorded_path(raw: str) -> Path:
     recorded = Path(raw)
     if not recorded.is_absolute():
@@ -380,8 +394,10 @@ def prepare_cache(repo: Path, output: Path) -> dict:
         with budget.work_block():
             return stream_hash(path)
 
-    protocol = load_json(ROOT / PROTOCOL_PATH_V38)
-    protocol_hash, _ = guarded_hash(ROOT / PROTOCOL_PATH_V38)
+    with budget.work_block():
+        protocol_bytes = (ROOT / PROTOCOL_PATH_V38).read_bytes()
+    protocol_v38_hash = hashlib.sha256(protocol_bytes).hexdigest()
+    protocol = json.loads(protocol_bytes.decode("utf-8-sig"))
     validate_protocol(protocol)
     eligibility_hash, eligibility_size = guarded_hash(ROOT / ELIGIBILITY_REPORT)
     eligibility = load_json(ROOT / ELIGIBILITY_REPORT)
@@ -476,9 +492,9 @@ def prepare_cache(repo: Path, output: Path) -> dict:
     config = load_json(ROOT / CONFIG_PATH)
     v37.validate_config(config)
     config_hash, _ = guarded_hash(ROOT / CONFIG_PATH)
-    protocol_hash, _ = guarded_hash(ROOT / PROTOCOL_PATH)
+    protocol_v37_hash, _ = guarded_hash(ROOT / PROTOCOL_PATH)
     feature_hash, feature_size = guarded_hash(ROOT / FEATURE_REPORT_PATH)
-    if protocol_hash != config["protocol_sha256"] or feature_hash != config["feature_report_sha256"]:
+    if protocol_v37_hash != config["protocol_sha256"] or feature_hash != config["feature_report_sha256"]:
         raise ValueError("V37 protocol or feature-report hash differs from p1.json")
     with budget.work_block():
         source_bundle = source_bundle_sha256(ROOT, v37.RUNNER_SOURCES)
@@ -812,9 +828,11 @@ def prepare_cache(repo: Path, output: Path) -> dict:
     stable_v37_inputs = verify_input_stats_stable()
     stable_prior_inputs = verify_input_stats_stable(prior_stat_snapshot)
 
+    verify_v38_protocol_unchanged(ROOT, protocol_v38_hash)
+    protocol_bindings = protocol_hash_bindings(protocol_v37_hash, protocol_v38_hash)
     source_hashes = {
         "builder.py": stream_hash(Path(__file__))[0],
-        "protocol.json": protocol_hash,
+        **protocol_bindings,
         "negative_miner_source": miner_hash,
         "eligibility_diagnostic": eligibility_script_hash,
         "eligibility_launcher": eligibility_launcher_hash,
@@ -852,7 +870,8 @@ def prepare_cache(repo: Path, output: Path) -> dict:
             "fixed_v37_run_report": {"path": V37_RUN_REPORT.as_posix(), "sha256": v37_run_hash},
             "fixed_v37_checkpoint": {"path": audit["model_checkpoint"]["path"], "sha256": model_hash},
             "v37_config": {"path": CONFIG_PATH.as_posix(), "sha256": config_hash},
-            "v37_protocol": {"path": PROTOCOL_PATH.as_posix(), "sha256": protocol_hash},
+            "v37_protocol": {"path": PROTOCOL_PATH.as_posix(), "sha256": protocol_v37_hash},
+            "v38_cache_protocol": {"path": PROTOCOL_PATH_V38.as_posix(), "sha256": protocol_v38_hash},
             "v37_feature_report": {"path": FEATURE_REPORT_PATH.as_posix(), "sha256": feature_hash},
             "negative_miner_source": {"path": NEGATIVE_MINER_SOURCE.as_posix(), "sha256": miner_hash},
         },
@@ -878,6 +897,7 @@ def prepare_cache(repo: Path, output: Path) -> dict:
         "cpu_guard": budget.report(),
     }
     manifest_path = OUT / "manifest.json"
+    verify_v38_protocol_unchanged(ROOT, protocol_v38_hash)
     manifest_path.write_bytes(canonical_json_bytes(manifest))
     manifest_hash = stream_hash(manifest_path)[0]
     report = {
@@ -921,7 +941,8 @@ def prepare_cache(repo: Path, output: Path) -> dict:
             "prior_v3_input_hashes": direct_prior_hashes,
             "prior_inputs_stable_after_hashing": prior_stable_inputs,
             "v37_config_sha256": config_hash,
-            "v37_protocol_sha256": protocol_hash,
+            "v37_protocol_sha256": protocol_v37_hash,
+            "v38_cache_protocol_sha256": protocol_v38_hash,
             "v37_feature_report_sha256": feature_hash,
             "v37_feature_report_size_bytes": feature_size,
             "v37_runner_source_bundle_sha256": source_bundle,
@@ -985,7 +1006,7 @@ def prepare_cache(repo: Path, output: Path) -> dict:
     report["manifest_sha256"] = manifest_hash
     report["output_sha256"] = {
         "builder.py": source_hashes["builder.py"],
-        "protocol.json": protocol_hash,
+        **protocol_bindings,
         "manifest.json": manifest_hash,
         "train-residual-negative.pt": cache_hash,
     }
@@ -993,6 +1014,7 @@ def prepare_cache(repo: Path, output: Path) -> dict:
         "guarded_python": r".\tools\Run-TrainingCpuBudget.ps1 -Program Python313/python.exe -ProgramArguments @('-X','utf8','-m','ml.markers.center.residual_negative_v38.builder','--output','artifacts/goal22-runs/residual-negative-v38-cache-20261029-v1')",
     }
     report["execution"]["runtime_seconds"] = time.perf_counter() - STARTED
+    verify_v38_protocol_unchanged(ROOT, protocol_v38_hash)
     (OUT / "report.json").write_bytes(canonical_json_bytes(report))
     return {"status": report["status"], "counts": counts, "cache_sha256": cache_hash,
             "manifest_sha256": manifest_hash, "runtime_seconds": report["execution"]["runtime_seconds"]}

@@ -16,6 +16,13 @@ negative-mining distance rules. The resulting population was 1,106,832 views
 and 69,184 optimizer steps. Exact patch identity does not establish visual
 coverage or causality.
 
+The historical cache manifest's `source_sha256.protocol.json` entry refers to
+the V37 training protocol. The builder overwrote the residual-cache protocol
+hash before writing that manifest, so the manifest does not independently bind
+the cache protocol bytes used for this run. The retained cache tensor and
+eligibility report remain checksum-bound; this protocol provenance limitation
+is not repaired retroactively by later builder changes.
+
 | Development split | Matched | Extras | Precision | Recall |
 | --- | ---: | ---: | ---: | ---: |
 | Component | 1,941 / 2,004 | 164 | 92.21% | 96.86% |
