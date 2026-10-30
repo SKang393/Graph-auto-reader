@@ -1,0 +1,179 @@
+{
+  "schema": "graphreader.goal22.tick-lane-diagnostics-outcome.v1",
+  "status": "synthetic_diagnostic_only",
+  "source_commit": "4c7690f52bc18d7a3d66e04b2be93e6c6d73e854",
+  "source_tree_oid": "8e7199f04457f3a169f74b2bb62261411fde2a78",
+  "source_root": "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\v46-tick-diagnostics-4c7690f5-v1",
+  "runtime_source_count": 291,
+  "runtime_source_inventory_sha256": "689a504e793171799a2414c72ae973db84f87de7c81e8208f3a4e4b7b3485471",
+  "source_bindings_file_sha256": "f2c410fa48f18f001a2a82fd3a4a6d6a066208b42a5684839e4f107f90394080",
+  "test_source_count": 366,
+  "test_source_inventory_sha256": "51d61bf1dd1c49cf7b69e57a2890f75f555b7bf9515d7b5f6082fc92bd566fc9",
+  "test_source_bindings_file_sha256": "c0d1b86099cdee4a2abfddd8bdc615ec9b1ce9737ec3cbb27c76171a53ec2b85",
+  "runner": {
+    "path": "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\goal22-tools\\v46-probe-current-main-replay-prep-20261030-v11\\build\\GraphReader.RealAcceptance.Ocr.dll",
+    "sha256": "8ecce5033abc82211467c61c1076aaffdfd6e8d49ac7c3a7772be9a1dbd7015d",
+    "build_log_sha256": "93f6893a25573c5d3547d36157197965ba8226e1d41dac67b0c21c133a0ce8be",
+    "runtime_description_sha256": "78bc0bc1d891374e6592e0983fbe36da27513c237521aa0ee2b6967b352f9f15",
+    "execution_provider": "cpu",
+    "graph_optimization": "disabled",
+    "intra_operation_threads": 10,
+    "inter_operation_threads": 1,
+    "queue_capacity": 1,
+    "worker_count": 1,
+    "command": [
+      "dotnet",
+      "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\goal22-tools\\v46-probe-current-main-replay-prep-20261030-v11\\build\\GraphReader.RealAcceptance.Ocr.dll",
+      "--run-frozen-candidate-synthetic",
+      "--candidate-binding",
+      "artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v13/candidate-binding.json",
+      "--candidate-binding-sha256",
+      "58c7ace046f5abc94bd8dc7624dfbe7464137e4e7025862f5d990f228eaa25c5",
+      "--input-manifest",
+      "artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v13/input-manifest.json",
+      "--input-manifest-sha256",
+      "4d113841b0905fede9fe558aca7f1642cd2585d29bb8046f6720137ee1caa9b2",
+      "--output",
+      "artifacts/goal22-runs/v46-probe-current-main-replay-20261030-v13"
+    ],
+    "working_directory": "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908"
+  },
+  "candidate": {
+    "candidate_id": "synthetic-phase-role-vocabulary-v46-native",
+    "revision": "v46-source-scale-tick-diagnostics-4c7690f5-v13",
+    "binding_sha256": "58c7ace046f5abc94bd8dc7624dfbe7464137e4e7025862f5d990f228eaa25c5",
+    "protocol_sha256": "55448a8db5bde6fb59e9d876bcc624438120c4ffe6611b5f0273cce1c62d147e",
+    "configuration": {
+      "artifact_algorithm_id": "raster-residual-artifacts",
+      "artifact_algorithm_version": "1",
+      "artifact_app_assembly_sha256": "480d5930b7806dbffeb7c4da103d9fff3bf1d485e1aae8b44d8901a97ea87dea",
+      "artifact_configuration_sha256": "32d93a2d4cc6bf860b6d26428d1bf1cc7bc40fbb04530ec1c7d1a2995e2160e3",
+      "artifact_ocr_assembly_sha256": "3eee7359880ee7c7b00a0fe6df2b08d19d0cbd6e2612ea9297daee8964b055ee",
+      "axis_stage_version": "axis-opencv-v8-ink-endpoint-tolerance",
+      "legend_adapter_id": "graphreader-legends:0.1.2",
+      "marker_center_candidate_id": "0.0.1",
+      "marker_center_revision": "marker-center-component-diversity-v27",
+      "marker_center_threshold": 0.1,
+      "marker_classifier_adapter_id": "graphreader-marker-classifier:7f15c0ed0d87",
+      "marker_geometry_support": "multiradius_enclosed_balanced_v2",
+      "marker_proposal_domain": "axis_polygon_or_16px_v25",
+      "ocr_composition_version": "original-db-head-source-scale-windows-v1",
+      "ocr_output_geometry": "original_pixel_context_regions",
+      "phase_adapter_id": "graphreader-phases:0.1.3"
+    },
+    "models": {
+      "ocr_detection": {
+        "model_id": "graph-scale-coverage-db-head-v46-p1",
+        "version": "0.0.1",
+        "payload_sha256": "497a3527820ce0359496084e5afb1e0d3241aca79e192187f7ab737b27818b7f",
+        "manifest_sha256": "a690a324d43873b6b7833a6e8466c673477994d05be41f0ea8cc5e9dcdb3e75d"
+      },
+      "ocr_recognition": {
+        "model_id": "PP-OCRv5_server_rec",
+        "version": "5.0.0",
+        "payload_sha256": "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418",
+        "manifest_sha256": "0da38be8c09e12cd8db243b327805a04950eb9502b48ada4f896ac98aaad3e95"
+      },
+      "marker_center": {
+        "model_id": "marker-center-component-diversity-v27",
+        "version": "0.0.1",
+        "payload_sha256": "4979777a404be48c6c75b490218d1de31d2edb2550f5bc71c7aa6894c1bcca04",
+        "manifest_sha256": "38c663ec2d08b84feaaffd9f6a7b221a2c2892c689191d9c99f1ed91d035e1fc"
+      }
+    },
+    "marker_classifier": {
+      "model_id": "marker-classifier-structural-context-v5",
+      "payload_sha256": "7f15c0ed0d8740bf4cc1d220764e670d999ca4f4a1dbfe5c631b01db5faaebba",
+      "manifest_sha256": "9a01a417c892540fe313b9a0a112a4cb2ecc4208b69c55b73c883c67ee78787a"
+    }
+  },
+  "input": {
+    "split": "synthetic",
+    "source_count": 21,
+    "input_manifest_sha256": "4d113841b0905fede9fe558aca7f1642cd2585d29bb8046f6720137ee1caa9b2",
+    "train_manifest_sha256": "f5bbd1dde87ac03b99dd3364d5b0791719aa0b3fc994fb1fd2004d13efdd7509",
+    "dev_manifest_sha256": "a65eaf9688a5bd2c758326593ad74bc335ee0f1adbf7ca2d1e88310672e7b2fb",
+    "expected_panels": 31,
+    "ordered_input_image_sha256s": [
+      "269ed38a5788ef8ad6c128278a0b34813691c2b4607585b2ddc9e51b3f6230b5",
+      "b86e150ec2a8890197c5d0e3e6e56d1fd7eed21e0344aa842222075547e477c2",
+      "ef8f24b226f68dcb823690604f4cf6cbbe0c3b9dfeb694aa4992f63d12506a41",
+      "baac6e29b0436f75c798b88edfa8720b2411400608e9766a9be1d5731667d5bd",
+      "3c063367c120c0931069b09756ae85e187674c8d7961ec03762896aa216f24d3",
+      "df1e48d8609aa4d766abb319ff41674f41a544c1831133512f4c4a2bd51bf066",
+      "06a2a6c079e05e82022cf0664e8a2b9f3c0aff9ea175b7b9bd31fc89d6d6268b",
+      "d84fe95baf0e38ae37eac37f01a7d7d2714a840c5af2fcd807cbed44fdab3595",
+      "03581b619cb303db5f738f8c94fa8ef780758cf0bf0405f6c05a8338560b60fb",
+      "6cee2c2a708481055e403898585f8b65ce0d98ee890189b7ce48ccaa284ee847",
+      "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+      "37dcd86f55ef3b96ae4afbe6f28496059d4a07435b15c0dab5ce0b6aba98f968",
+      "f369534562426a2c7161a58fa5ecac9fbb2d9a8e880b434165682ca058497322",
+      "dbc3b4730b8b2adc078ab8c78c22b6ef9d05eaa4df6b2402b6d6b3f11957a873",
+      "759eadf9a90a5e8523c5902676d6f1ef781b3cef78aca03cd2de58af12e4a7f9",
+      "1c11f9ea509883711c508ae2180b1711dd10d3f1f533240e77e666bb8528ff4c",
+      "ec6bd084a69fae4600a09cc2d87af527ad959d9acceebcfd70c7555d2273c5de",
+      "9d02052e57e02372004e2986d6c778ffa297052f32325829493696264061f67e",
+      "a84e52c6bb0974832642fad174ba40280f69d515c3a84ba8782e59c57f71d6c3",
+      "c4760964a8a182261f8eb38777565b8820f8390c7dce1439c53182348601d40f",
+      "5ba2bc58eb55b8dbca25e9b7ae7511fc8b7d4c8b8f92c0918e433bacea5b4a68"
+    ]
+  },
+  "evidence": {
+    "report_path": "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\goal22-runs\\v46-probe-current-main-replay-20261030-v13\\report.json",
+    "report_sha256": "43949aca7a1dcefa07407f501d29b4a83974ce314d631db1682d15c907ef5781",
+    "tick_lane_index_path": "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\goal22-runs\\v46-probe-current-main-replay-20261030-v13\\stage-evidence\\tick-lane-diagnostics-index.json",
+    "tick_lane_index_sha256": "690eef7f79f6e17f3ccc851a8caf1a332dd21e0f4fce6438ca0ae1f2f01a4607",
+    "tick_lane_record_count": 31,
+    "calibration_observation_count": 31,
+    "raw_ocr_observation_count": 31,
+    "raw_ocr_observation_enabled": true,
+    "preflight_receipt_sha256": "b4a7e343ff738a77b8f3f71539e67b9ffed97af2b599476b4780e3cc56546c98"
+  },
+  "result": {
+    "sources": 21,
+    "completed": 1,
+    "failed": 20,
+    "elapsed_milliseconds": 261706.3082,
+    "panels": 31,
+    "panels_with_usable_x_strokes": 14,
+    "usable_x_strokes_total": 21,
+    "zero_anchor_components_examined": 280,
+    "components_rejected_outside_seed_bounds": 280,
+    "candidate_seed_crops_proposed": 0,
+    "failure_categories_aggregate": {
+      "no absolute session-1 origin; final printed session unavailable; ordinal x only": 15,
+      "no absolute session-1 origin; YTick numeric alternative also requires review": 2,
+      "no absolute session-1 origin; first observed column mapped to session 29": 1,
+      "no absolute session-1 origin; first observed column mapped to session 8": 1,
+      "no absolute session-1 origin; first observed column mapped to session 2": 1
+    },
+    "failing_clause_diagnosis": "Unresolved. The 280 connected components were rejected by the combined seed-bounds predicate before stroke-association or OCR recognition; this does not establish whether the geometric bounds or upstream component selection should change."
+  },
+  "comparison": {
+    "v10_report_sha256": "43603f4d153ae38b627fae534436844a795005c5e372210c288e2e0af5f22de2",
+    "v10_result": "1/21 complete",
+    "v12_report_sha256": "18a975643776cdc19e91552ed39358bf2a75e20d1dfc35f587696355b07faa6a",
+    "v12_binding_sha256": "9f8fb876d5c11d79c86ce47639f073abc96e4255a92626775117a0685eac5b4b",
+    "v12_result": "0/21 complete",
+    "v12_comparable": false,
+    "v12_reason": "V12 mistakenly bound graph-structure-consensus-v1/model_polygon rather than the V10/V13 source-scale composition/output geometry. Treat its 0/21 as non-comparable; do not infer a regression."
+  },
+  "policy": {
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "private_corpus_access": false,
+    "sealed_corpus_access": false,
+    "training": false,
+    "optimizer_steps": 0,
+    "model_selection_performed": false,
+    "truth_consumed_by_inference": false,
+    "production_approved": false,
+    "release_eligible": false,
+    "retention": "Run output is temporary and remains only while active review consumes it. After this record is pushed and consumers finish, retire generated run artifacts per docs/ARTIFACT-RETENTION.md. This record does not promise scratch outputs remain available."
+  },
+  "limitations": [
+    "Synthetic V3 validation only; the run is diagnostic and not production approval.",
+    "No candidate seed crop was proposed, so the run does not identify a successful OCR input for those 280 components.",
+    "V12 is not a valid paired comparator because its OCR composition and output geometry changed."
+  ]
+}
