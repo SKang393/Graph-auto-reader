@@ -118,3 +118,39 @@ consumers or reparse points were present. The old standalone folder and smoke
 cache were confirmed absent, and the relocated GPU interpreter remained present.
 The 3.64 GiB installed runtime was relocated, not deleted or duplicated.
 The launcher recreates its temporary `.state` directories only when needed.
+
+## Additional duplicate-folder cleanup, October 29, 2026
+
+The maintainer also requested removal of the separate GPU restore folder and
+the obsolete Desktop checkout. These were different paths from the original
+probe folder removed above.
+
+| Reviewed folder | Files | Logical bytes | Disposition |
+| --- | ---: | ---: | --- |
+| `E:\GraphReader-GPU-Restore-20261029-v1` | 34,048 | 5,078,651,959 | Redundant ROCm installation, download cache and completed install/probe scratch |
+| `C:\Users\Sungwoo\Desktop\Graph-auto-reader` | 5,281 | 766,508,010 | Old pytest/runtime scratch and recovered upstream clone |
+
+The restore environment has the same 25 package versions as the retained
+environment. All seven GPU package archive SHA-256 values and the three core
+runtime file hashes listed above match. The retained interpreter independently
+confirmed ROCm/HIP availability and the RX 6600 XT. No current launcher points
+to the restore folder; its remaining project reference is a completed probe's
+historical command record. That record remains in the main project.
+
+The recovered C: clone is based on
+`a92f017c37567b63c03de127ea183f5208e94a40`; all 906 reachable/reflog commits
+already exist in the retained repository, and its HEAD is an ancestor of main.
+There are no untracked/ignored files or external linked worktrees. Two dirty
+source/test files are preserved as `docs/retired-c-recovery-20261029.patch`
+before deleting the clone: 7,158 bytes, SHA-256
+`701b779a011167d5bec33ac15ec11182245c435d0c86d6c71bb717e12554b862`.
+`git apply --reverse --check` verified the patch against those recovered edits.
+The patch is historical source, not a change to the current application; remove
+its working-tree copy after pushing it and retain its Git-history reference.
+
+No active process or reparse point was found under either cleanup root. Push
+this review and the recovered patch before removing the two exact folders.
+Restore/update the GPU environment in this project's `tools/gpu-training/venv`;
+do not create another standalone E: restore environment or recreate the old
+Desktop checkout. Completed recovery downloads and scratch follow the same
+retention policy as other completed runs.
