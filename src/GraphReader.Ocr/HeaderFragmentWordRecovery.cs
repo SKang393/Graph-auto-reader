@@ -11,7 +11,7 @@ public sealed record RecoveredHeaderWord(IReadOnlyList<string> SourceRegionIds, 
 /// <summary>Reads adjacent recovered header fragments together from their measured original ink.</summary>
 public static class HeaderFragmentWordRecovery
 {
-    public const string CompositionVersion = "original-pixel-header-fragment-word-separate-batch-v2-bound-words";
+    public const string CompositionVersion = "original-pixel-header-fragment-word-separate-batch-v3-preserve-other-words";
 
     public static async ValueTask<IReadOnlyList<RecoveredHeaderWord>> FindAsync(
         OcrImage image, IReadOnlyList<OcrDetectedRegion> detected, IReadOnlyList<OcrRegion> recognized,
@@ -116,7 +116,8 @@ public static class HeaderFragmentWordRecovery
 
     private static bool CanReplace(OcrRegion region, OcrRectangle word, Dictionary<string, OcrDetectedRegion> detected) =>
         region.ReviewStatus == OcrReviewStatus.Unreviewed && region.CoordinateSpace == OcrContract.CoordinateSpace &&
-        region.Role is OcrTextRole.PhaseHeading or OcrTextRole.Other &&
+        (region.Role == OcrTextRole.PhaseHeading ||
+            region.Role == OcrTextRole.Other && IsRecoveredFragment(region.RegionId)) &&
         Contains(word, region.Polygon.Bounds) && detected.TryGetValue(region.RegionId, out OcrDetectedRegion? source) &&
         source.CoordinateSpace == OcrContract.CoordinateSpace && source.Polygon.Points.SequenceEqual(region.Polygon.Points) &&
         GraphTextRoleClassifier.GetOrientation(source.OrientationDegrees) == OcrOrientation.Horizontal &&

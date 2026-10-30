@@ -67,6 +67,22 @@ public sealed class HeaderFragmentWordRecoveryTests
     }
 
     [TestMethod]
+    public void DoesNotAbsorbFullyContainedStandaloneOtherWord()
+    {
+        var (detected, recognized, components) = Fixture();
+        var probe = OcrTestFixtures.Region("probe", 132, 20, 8, 12);
+        var probeReading = new OcrRegion(probe.RegionId, probe.Polygon, "Probe", [], OcrTextRole.Other, .9,
+            OcrSourceImage.Original, OcrReviewStatus.Unreviewed);
+
+        IReadOnlyList<RecoveredHeaderWord> candidates = HeaderFragmentWordRecovery.SelectCandidates(
+            [.. components, probe], [.. detected, probe], [.. recognized, probeReading], Plot, []);
+
+        Assert.IsEmpty(candidates);
+        Assert.AreEqual("Probe", probeReading.Text);
+        Assert.AreEqual(OcrTextRole.Other, probeReading.Role);
+    }
+
+    [TestMethod]
     public void RequiresMultipleRecoveredFragmentsAndCorroboratedWordGeometry()
     {
         var (detected, recognized, components) = Fixture();
