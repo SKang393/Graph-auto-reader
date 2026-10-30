@@ -1,0 +1,26 @@
+{
+  "schema": "graphreader.marker-real-positive-context-protocol.v1",
+  "task": "marker-center",
+  "revision": "marker-center-real-positive-context-v1",
+  "candidate_id": "P1",
+  "purpose": "Exploratory fixed confidence residual trained from user-authorized Engauge development positives and authenticated synthetic family training proposals.",
+  "training_inputs": {
+    "real": "Study-partitioned train groups only, exact-image grouped, production pre-marker masks and proposal preprocessing. Labeled centers within three pixels provide positive supervision only; unmarked real pixels are not negative labels.",
+    "real_positive_proposals": 2171,
+    "labeled_centers": 1743,
+    "unmatched_labeled_centers": 481,
+    "synthetic": "9053 family train rows with four fixed reflections; binary labels and raster patches are bound to the retained V37 family training evidence.",
+    "synthetic_rows_with_reflections": 36212,
+    "synthetic_runtime_artifact_masks_fully_validated": false,
+    "component_development_source_disjointness_verified": false,
+    "synthetic_development_identity_reads": 1,
+    "manual_label_quality_approved": false,
+    "sealed_source_overlap_verified": false
+  },
+  "architecture": "Freeze the verified V37 local marker model and geometry; add a zero-initialized confidence residual on its spatial features.",
+  "training_device": "AMD Radeon RX 6600 XT gfx1032 via HIP cuda:0; CPU optimizer steps forbidden",
+  "recipe": "Eight fixed epochs, synthetic batch 128, real-positive batch 16, positive-only real weight 0.25, AdamW learning rate 0.0003, weight decay 0.0001, seed 20261002, fixed threshold 0.1; 2264 optimizer steps.",
+  "evaluation": "Evaluate the single final checkpoint against the fixed synthetic family and component development gates and record the limitations of their source overlap and mask provenance. Evaluate user-authorized held-out development studies separately. No threshold search, checkpoint selection, private sealed evaluation, production activation or release is authorized by this trial.",
+  "release_eligible": false,
+  "sealed_runs_authorized": 0
+}

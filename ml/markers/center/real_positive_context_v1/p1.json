@@ -1,0 +1,53 @@
+{
+  "task": "marker-center",
+  "revision": "marker-center-real-positive-context-v1",
+  "candidate_id": "P1",
+  "production_approval": false,
+  "sealed_runs_authorized": 0,
+  "optimizer_steps_expected": 2264,
+  "source_checkpoint_sha256": "2daeedb92fdfb6c425cca6035040ca0e857c6d6bb1ba548281729fee71c24cd4",
+  "source_checkpoint_path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/center-confidence-reflection-v37/P1/marker-center.pt",
+  "candidate_checkpoint_path": "artifacts/goal22-runs/real-positive-context-v1/P1/marker-center.pt",
+  "synthetic_feature_report_sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500",
+  "real_positive_binding_sha256": "186edcc278f5f8c5b0f5386ec2e28954af45c7cd52fa08b372e6f6ab5234267f",
+  "archive_key_path": "artifacts/engauge-positive-source-20261030/private/archive.key",
+  "expected_runner_source_bundle_sha256": "3ba6887678559d023a317535a0f076489a8ec9aeedf396c9f918faaf4f591339",
+  "recipe": {
+    "seed": 20261002,
+    "synthetic_batch_size": 128,
+    "real_positive_batch_size": 16,
+    "real_positive_weight": 0.25,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "epochs": 8,
+    "threshold": 0.1
+  },
+  "schedule": {
+    "algorithm": "torch-cpu-randperm-per-epoch-v1",
+    "torch_version": "2.13.0+rocm10.1.0",
+    "synthetic_population_sha256": "293c3de5b0bf75a8472b9ee9abd567f57a5dad92467ee1d1570a5193f7f1cfc1",
+    "real_positive_population_sha256": "955194baaf9e3f7cee3cb04a775482eb3fef5d3affda0118fc79e89d89d2dddb",
+    "synthetic_population_count": 36212,
+    "real_positive_population_count": 2171,
+    "synthetic_source_binding_sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500",
+    "real_source_binding_sha256": "186edcc278f5f8c5b0f5386ec2e28954af45c7cd52fa08b372e6f6ab5234267f"
+  },
+  "real_positive_archive": {
+    "receipt_path": "artifacts/engauge-positive-source-20261030/private/receipt.json",
+    "receipt_sha256": "77344e46d02dd39bb1d6b938b55cc020a6dc3598d945225450cb2579037c3abb",
+    "archive_path": "artifacts/engauge-positive-source-20261030/private/positive-proposals.bin",
+    "file_sha256": "086cabd11163b43022354f81e5d1787155b22dd271c35c1df9b9d2e24bbadd37",
+    "run_id": "a835856a01690f909a3daccd8ab9cbeb",
+    "key_sha256": "c490a11e56b377212284847c21d2365c75b1a65686d1fd05944efa7f69f0118d",
+    "provenance_sha256": [
+      "186edcc278f5f8c5b0f5386ec2e28954af45c7cd52fa08b372e6f6ab5234267f",
+      "3185a8108a57fd866a8afdd2aab76394dba0a99f9e52a75e8d26a8c0e6c7552c",
+      "decdac87c0c6d8ee8350b4e26bee2256c551ce20c518732f62fb6d990ea5850a",
+      "03b36370813337087eb9970ff9a9b7a0431f67dfb59be1e47062034b2d81b81d",
+      "497a3527820ce0359496084e5afb1e0d3241aca79e192187f7ab737b27818b7f",
+      "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418",
+      "4979777a404be48c6c75b490218d1de31d2edb2550f5bc71c7aa6894c1bcca04",
+      "26f9304f1689053a0b94aa896a1e239f6ade1e5c1920736a3535c1b32f803b8a"
+    ]
+  }
+}

@@ -11281,6 +11281,34 @@
       "candidate_report_sha256": "f0c783914a37bed645171f53d7262f495c019d40a6ac9f299017d44d9e011edf",
       "optimizer_steps": 2264,
       "closed_utc_date": "2026-10-30"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-real-positive-context-v1",
+      "status": "candidate_1_preregistered",
+      "execution_authorized": true,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": ["P1"],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {"P1": "ml/markers/center/real_positive_context_v1/p1.json"},
+      "candidate_config_sha256": {"P1": "f91ca6eb59bcf14d3aff6b6f7509e21e0475f6a1d731bc50bafceb7812f3bff9"},
+      "protocol_path": "ml/markers/center/real_positive_context_v1/protocol.json",
+      "protocol_sha256": "147283d45170c622c0fa01db5810edcb47e1404c74f7c9d6cb70d0faf8a5469e",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One exploratory user-authorized real-development positive and synthetic-family training trial. No sealed reads, production activation, promotion or release.",
+      "isolated_change": "Freeze V37 geometry and model, fit a zero-initialized confidence residual to the 36212 reflected synthetic family rows and 2171 user-authorized real positive proposals; no unmarked real pixel is a negative. Existing artifact masks, real-label quality and component source disjointness remain unapproved.",
+      "optimizer_steps_expected": 2264,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "training_device": "RX 6600 XT gfx1032 cuda:0",
+      "release_eligible": false
     }
   ]
 }
