@@ -83,8 +83,9 @@ internal sealed class EngaugeDigWholeWorkflowTruth
 }
 
 /// <summary>
-/// Reads evaluator-only truth from an Engauge project. No curve role, relation,
-/// or phase is inferred from names. Those metrics remain explicitly unavailable.
+/// Reads local digitizer data from an Engauge project. Callers must enforce the
+/// applicable source authorization and split. No curve role, relation, or phase
+/// is inferred from names; those metrics remain explicitly unavailable.
 /// </summary>
 internal static class EngaugeDigWholeWorkflowTruthAdapter
 {
@@ -204,8 +205,34 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
         XElement[] allPointElements = root.DescendantsAndSelf()
             .Where(static element => PointElementNames.Contains(LocalName(element)))
             .ToArray();
+        var axisPoints = new HashSet<XElement>();
+        foreach (XElement point in allPointElements)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            bool? isAxisPoint = OptionalAxisPointFlag(point);
+            if (!pointOwners.ContainsKey(point))
+            {
+                if (isAxisPoint == false)
+                {
+                    throw new EngaugeDigTruthException("DIG_UNOWNED_CURVE_POINT");
+                }
+                axisPoints.Add(point);
+            }
+            else if (isAxisPoint == true)
+            {
+                axisPoints.Add(point);
+            }
+        }
+
+        foreach ((_, _, XElement[] points) in curveElements)
+        {
+            if (points.Any(axisPoints.Contains) && points.Any(point => !axisPoints.Contains(point)))
+            {
+                throw new EngaugeDigTruthException("DIG_MIXED_AXIS_AND_CURVE_POINTS");
+            }
+        }
         var anchors = new List<EngaugeDigAxisAnchor>(3);
-        foreach (XElement point in allPointElements.Where(point => !pointOwners.ContainsKey(point)))
+        foreach (XElement point in allPointElements.Where(axisPoints.Contains))
         {
             cancellationToken.ThrowIfCancellationRequested();
             (double X, double Y) screen = RequiredUniquePair(point, "PositionScreen", "DIG_AXIS_SCREEN_POSITION");
@@ -228,6 +255,12 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
         int curveIndex = 0;
         foreach ((string curveKey, _, XElement[] pointElements) in curveElements)
         {
+            // Engauge stores its explicitly flagged calibration points in a
+            // curve container. They are anchors, not a data series.
+            if (axisPoints.Contains(pointElements[0]))
+            {
+                continue;
+            }
             var points = new List<EngaugeDigCurvePoint>(pointElements.Length);
             for (var pointIndex = 0; pointIndex < pointElements.Length; pointIndex++)
             {
@@ -259,6 +292,10 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
             truthCurves.Add(new EngaugeDigCurve(curveKey, Array.AsReadOnly(points.ToArray())));
             truthSeries.Add(new WholeWorkflowTruthSeries(curveKey));
             curveIndex++;
+        }
+        if (truthCurves.Count == 0)
+        {
+            throw new EngaugeDigTruthException("DIG_CURVES_MISSING");
         }
         if (anchors.Count + truthPoints.Count != allPointElements.Length)
         {
@@ -305,7 +342,8 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
     private static string CurveIdentity(XElement curve)
     {
         XAttribute[] names = curve.Attributes()
-            .Where(static attribute => LocalName(attribute).Equals("Name", StringComparison.OrdinalIgnoreCase))
+            .Where(static attribute => LocalName(attribute).Equals("Name", StringComparison.OrdinalIgnoreCase) ||
+                LocalName(attribute).Equals("CurveName", StringComparison.OrdinalIgnoreCase))
             .ToArray();
         if (names.Length != 1 || string.IsNullOrWhiteSpace(names[0].Value) ||
             !string.Equals(names[0].Value, names[0].Value.Trim(), StringComparison.Ordinal))
@@ -313,6 +351,22 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
             throw new EngaugeDigTruthException("DIG_CURVE_IDENTITY_INVALID");
         }
         return names[0].Value;
+    }
+
+    private static bool? OptionalAxisPointFlag(XElement point)
+    {
+        XAttribute[] flags = point.Attributes()
+            .Where(static attribute => LocalName(attribute).Equals("IsAxisPoint", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        if (flags.Length == 0)
+        {
+            return null;
+        }
+        if (flags.Length != 1 || !bool.TryParse(flags[0].Value, out bool value))
+        {
+            throw new EngaugeDigTruthException("DIG_AXIS_POINT_FLAG_INVALID");
+        }
+        return value;
     }
 
     private static (double X, double Y) RequiredUniquePair(

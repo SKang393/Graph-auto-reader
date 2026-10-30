@@ -31,6 +31,27 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "--describe-frozen-dev-training-selection")
+        {
+            try
+            {
+                if (args.Length != 2) { throw new ArgumentException("FROZEN_DEV_TRAINING_ARGUMENTS_INVALID"); }
+                FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(args[1], CancellationToken.None);
+                _ = selector.EnumerateSelectedProjects(CancellationToken.None);
+                Console.WriteLine(JsonSerializer.Serialize(selector.Describe(), JsonOptions));
+                return 0;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                Console.Error.WriteLine(JsonSerializer.Serialize(new
+                {
+                    status = "failed",
+                    error = "FROZEN_DEV_TRAINING_SELECTION_FAILED",
+                    error_type = exception.GetType().Name,
+                }, JsonOptions));
+                return 1;
+            }
+        }
         if (args.Length == 8 && args[0] == "--write-composed-ocr-dev-prerequisite")
         {
             return FrozenRealWorkflowAdmission.RunComposedOcrDevPrerequisiteWriter(args);
@@ -87,6 +108,10 @@ internal static class Program
         if (args.Length == 1 && args[0] == "--self-test-frozen-real-corpus-inventory")
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(FrozenRealCorpusInventorySelfTest.Run()));
+        }
+        if (args.Length == 1 && args[0] == "--self-test-frozen-dev-training-selector")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(FrozenDevTrainingSelectorSelfTest.Run()));
         }
         if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-executor")
         {

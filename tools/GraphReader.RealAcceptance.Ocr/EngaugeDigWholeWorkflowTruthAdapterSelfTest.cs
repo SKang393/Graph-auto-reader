@@ -180,6 +180,53 @@ internal static class EngaugeDigWholeWorkflowTruthAdapterSelfTest
                     .SequenceEqual(["No points removed", "A & B"], StringComparer.Ordinal),
                 "exact XML-decoded identities");
             checks.Add("every_nonempty_curve_identity_preserved_exactly");
+
+            byte[] engaugeImage = [0, 0, 0, 1, .. png];
+            string axisCurve = "<Curve CurveName=\"Axes\"><CurvePoints>" +
+                Anchors((10, 20, 1, 0), (10, 80, 1, 100), (110, 20, 11, 0))
+                    .Replace("<Point>", "<Point IsAxisPoint=\"True\">", StringComparison.Ordinal) +
+                "</CurvePoints></Curve>";
+            const string dataCurve = "<Curve CurveName=\"Curve1\"><CurvePoints>" +
+                "<Point IsAxisPoint=\"False\"><PositionScreen X=\"30\" Y=\"50\"/></Point>" +
+                "</CurvePoints></Curve>";
+            string engaugeXml = "<Document><Image Width=\"128\" Height=\"96\"><![CDATA[" +
+                Convert.ToBase64String(engaugeImage) + "]]></Image>" + axisCurve + dataCurve + "</Document>";
+            EngaugeDigWholeWorkflowTruth engauge = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                Write(directory, "engauge-axis-curve.dig", engaugeXml),
+                "anonymous-engauge-fixture", CancellationToken.None);
+            Require(engauge.Anchors.Count == 3 && engauge.Curves.Count == 1 &&
+                engauge.Curves[0].CurveKey == "Curve1" && engauge.TruthCase.Series.Count == 1 &&
+                engauge.TruthCase.Points.Count == 1 &&
+                Close(engauge.TruthCase.Points[0].GraphX, 3) &&
+                Close(engauge.TruthCase.Points[0].GraphY, 50) &&
+                engauge.CopyImageBytes().SequenceEqual(png),
+                "Engauge flagged axis curve and prefixed embedded PNG");
+            checks.Add("engauge_axis_curve_flagged_separately_from_data");
+
+            ExpectFailure(directory, "engauge-ambiguous-curve-identity.dig",
+                engaugeXml.Replace("CurveName=\"Curve1\"", "CurveName=\"Curve1\" Name=\"Other\"", StringComparison.Ordinal),
+                "DIG_CURVE_IDENTITY_INVALID");
+            ExpectFailure(directory, "engauge-invalid-axis-flag.dig",
+                engaugeXml.Replace("IsAxisPoint=\"False\"", "IsAxisPoint=\"unknown\"", StringComparison.Ordinal),
+                "DIG_AXIS_POINT_FLAG_INVALID");
+            ExpectFailure(directory, "engauge-duplicate-axis-flags.dig",
+                engaugeXml.Replace("IsAxisPoint=\"False\"",
+                    "IsAxisPoint=\"False\" xmlns:extra=\"urn:synthetic\" extra:IsAxisPoint=\"True\"",
+                    StringComparison.Ordinal),
+                "DIG_AXIS_POINT_FLAG_INVALID");
+            ExpectFailure(directory, "engauge-mixed-points.dig",
+                engaugeXml.Replace("IsAxisPoint=\"False\"", "IsAxisPoint=\"True\"", StringComparison.Ordinal)
+                    .Replace("<Curve CurveName=\"Curve1\"><CurvePoints>", "<Curve CurveName=\"Curve1\"><CurvePoints>" +
+                        "<Point IsAxisPoint=\"False\"><PositionScreen X=\"40\" Y=\"50\"/></Point>", StringComparison.Ordinal),
+                "DIG_MIXED_AXIS_AND_CURVE_POINTS");
+            ExpectFailure(directory, "engauge-unowned-data-point.dig",
+                Document(png,
+                    Anchors((10, 20, 1, 0), (10, 80, 1, 100), (110, 20, 11, 0)) +
+                    "<Point IsAxisPoint=\"False\"><PositionScreen X=\"30\" Y=\"50\"/></Point>",
+                    Curve("A", (30, 50))),
+                "DIG_UNOWNED_CURVE_POINT");
+            checks.Add("engauge_ambiguous_identity_and_axis_flags_rejected");
+
             ExpectFailure(directory, "empty-curve.dig",
                 Document(png, Anchors((10, 20, 1, 0), (10, 80, 1, 100), (110, 20, 11, 0)),
                     Curve("Empty")),
