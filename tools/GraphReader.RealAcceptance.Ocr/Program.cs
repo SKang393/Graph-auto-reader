@@ -191,6 +191,10 @@ internal static class Program
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeDevPositiveProposalSelfTest.Run()));
         }
+        if (args.Length == 1 && args[0] == "--self-test-engauge-dev-proposal-preparation")
+        {
+            return await RunEngaugeSelfTestAsync(EngaugeDevProposalPreparationSelfTest.RunAsync);
+        }
         if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-executor")
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeGroupedWorkflowExecutorSelfTest.Run()));
