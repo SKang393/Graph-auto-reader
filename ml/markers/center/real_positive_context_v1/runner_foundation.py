@@ -24,12 +24,12 @@ from torch import Tensor
 
 from ml.markers.gate_seal import source_bundle_sha256, verify_bound_source_snapshot
 from ml.markers.training_budget import CANONICAL_LEDGER_PATH, TrainingAuthorization, complete_training_candidate
-from .model import OPERATING_THRESHOLD, RealPositiveCenterNet
+from .model import OPERATING_THRESHOLD, V37_CHECKPOINT_SHA256, RealPositiveCenterNet
 from .objective import SyntheticLabels, _require_training_gpu, mixed_confidence_loss
+from .checkpoint_writer import write_candidate_checkpoint
 
 V37_FEATURE_REPORT = Path("artifacts/goal22-runs/reflected-spatial-features-20261002-v1/report.json")
 V37_FEATURE_REPORT_SHA256 = "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500"
-V37_CHECKPOINT_SHA256 = "2daeedb92fdfb6c425cca6035040ca0e857c6d6bb1ba548281729fee71c24cd4"
 V37_ORIGINAL_MODEL_SHA256 = "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
 V37_TRANSFORMS = ("identity", "horizontal", "vertical", "both")
 V37_BASE_ROWS = {"component": 35838, "family": 9053, "coverage": 42747,
@@ -396,18 +396,17 @@ def _train_one_verified_batch(model: RealPositiveCenterNet, optimizer: torch.opt
                               journal: _RunJournal) -> float:
     """Train one admitted batch from a separately reviewed bound adapter.
 
-    No implementation of that real-data adapter exists here. Its source must be
-    in the admitted snapshot and it must provide ``next_batch`` and
-    ``verify_batch``. The latter revalidates provenance and positive-center
-    membership; no real negative target is accepted by this API.
+    The admitted source must provide a schedule-bound GPU batch and verify its
+    actual values before forward and again before the optimizer step.
     """
     config = _require_bound_source(authorization, source)
     _require_reviewed_schedule(config, source)
     if not isinstance(journal, _RunJournal):
         raise RuntimeError("Optimizer steps require an active single-use run journal")
     step = journal.begin_step(authorization, config["optimizer_steps_expected"])
-    if (not callable(getattr(source, "next_batch", None)) or
+    if (not callable(getattr(source, "next_gpu", None)) or
             not callable(getattr(source, "verify_batch", None)) or
+            not callable(getattr(source, "commit", None)) or
             not callable(getattr(source, "verify_model", None)) or
             not callable(getattr(source, "verify_input_binding", None))):
         raise RuntimeError("The admitted source lacks the verified crop adapter")
@@ -415,11 +414,11 @@ def _train_one_verified_batch(model: RealPositiveCenterNet, optimizer: torch.opt
         raise RuntimeError("The candidate synthetic and real inputs are not bound to its fixed configuration")
     if source.verify_model(model, V37_CHECKPOINT_SHA256) is not True:
         raise RuntimeError("The retained V37 checkpoint is unverified")
-    batches = source.next_batch()
-    if not isinstance(batches, tuple) or len(batches) != 3:
-        raise ValueError("The source must return synthetic patches, labels, and real positive patches")
-    synthetic, labels, real_positives = batches
-    if not isinstance(labels, SyntheticLabels) or source.verify_batch(batches) is not True:
+    batch = source.next_gpu()
+    if getattr(getattr(batch, "plan", None), "step", None) != step:
+        raise RuntimeError("The scheduled batch does not match the journal step")
+    synthetic, labels, real_positives = batch.synthetic, batch.labels, batch.real_positive
+    if not isinstance(labels, SyntheticLabels) or source.verify_batch(batch) is not True:
         raise RuntimeError("Synthetic labels or real positive-center provenance are unverified")
     require_gpu_model(model, synthetic, real_positives)
     if (not 0 < len(synthetic) <= DRAFT_RECIPE.synthetic_batch_size or
@@ -437,7 +436,7 @@ def _train_one_verified_batch(model: RealPositiveCenterNet, optimizer: torch.opt
         raise RuntimeError("The GPU training loss is invalid")
     loss.backward()
     _require_bound_source(authorization, source)
-    if (source.verify_batch(batches) is not True or source.verify_model(model, V37_CHECKPOINT_SHA256) is not True or
+    if (source.verify_batch(batch) is not True or source.verify_model(model, V37_CHECKPOINT_SHA256) is not True or
             source.verify_input_binding(config["real_positive_binding_sha256"], V37_FEATURE_REPORT_SHA256) is not True):
         raise RuntimeError("Verified source data changed before the optimizer step")
     _require_bound_source(authorization, source)
@@ -447,6 +446,7 @@ def _train_one_verified_batch(model: RealPositiveCenterNet, optimizer: torch.opt
     torch.cuda.synchronize(torch.device("cuda:0"))
     _require_optimizer(model, optimizer)
     journal.commit_step(step)
+    source.commit(batch.plan)
     return float(loss.detach().cpu())
 
 
@@ -488,6 +488,14 @@ def run_training(model: RealPositiveCenterNet | None = None, optimizer: torch.op
             total_loss += _train_one_verified_batch(model, optimizer, source, authorization, journal)  # type: ignore[arg-type]
         if journal.completed != steps or journal.pending is not None:
             raise RuntimeError("The completed optimizer step count differs from the admitted schedule")
+        source_path = config.get("source_checkpoint_path")
+        destination_path = config.get("candidate_checkpoint_path")
+        if (not isinstance(source_path, str) or not isinstance(destination_path, str) or
+                Path(source_path).is_absolute() or Path(destination_path).is_absolute()):
+            raise RuntimeError("Admitted source and destination checkpoint paths are required")
+        receipt = write_candidate_checkpoint(
+            model, base_path=PROJECT_ROOT / source_path, destination=PROJECT_ROOT / destination_path,
+            revision=authorization.binding["revision"], candidate_id=authorization.binding["candidate_id"])
     except BaseException as error:
         journal.close()
         failure = {"schema": "graphreader.optimizer-run-outcome.v1", "status": "failed_training_incomplete",
@@ -505,7 +513,8 @@ def run_training(model: RealPositiveCenterNet | None = None, optimizer: torch.op
     journal.close()
     result = {"schema": "graphreader.optimizer-run-outcome.v1", "status": "training_complete_unapproved",
               "expected_steps": steps, "completed_steps": journal.completed, "resume_authorized": False,
-              "mean_loss": total_loss / steps, "production_approval": False, "release_eligible": False}
+              "mean_loss": total_loss / steps, "checkpoint_path": receipt.relative_path,
+              "checkpoint_sha256": receipt.sha256, "production_approval": False, "release_eligible": False}
     encoded = _write_new_durable(authorization.directory / "optimizer-run-outcome.json", result)  # type: ignore[union-attr]
     complete_training_candidate(authorization, status=result["status"], report_sha256=sha256(encoded).hexdigest())  # type: ignore[arg-type]
     return result

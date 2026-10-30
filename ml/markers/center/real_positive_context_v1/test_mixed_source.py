@@ -99,6 +99,14 @@ class MixedSourceTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "current completed"):
             adapter.commit(batch.plan)
 
+    def test_changed_source_and_batch_still_fail_pinned_identity(self):
+        _, family, _, adapter = _setup()
+        batch = adapter._prepare_cpu()
+        self.assertTrue(adapter.verify_batch(batch))
+        family._patches.add_(0.01)
+        batch.synthetic.add_(0.01)
+        self.assertFalse(adapter.verify_batch(batch))
+
 
 if __name__ == "__main__":
     unittest.main()

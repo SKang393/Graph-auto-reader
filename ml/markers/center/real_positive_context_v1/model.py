@@ -10,6 +10,7 @@ from ..confidence_spatial_v35.model import SpatialCenterNet, frozen_spatial_feat
 
 
 OPERATING_THRESHOLD = 0.1
+V37_CHECKPOINT_SHA256 = "2daeedb92fdfb6c425cca6035040ca0e857c6d6bb1ba548281729fee71c24cd4"
 
 
 class RealPositiveCenterNet(nn.Module):

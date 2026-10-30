@@ -169,6 +169,31 @@ class MixedSourceBatchAdapter:
         _require_training_gpu(synthetic, positive)
         return PreparedBatch(batch.plan, synthetic, batch.labels, positive)
 
+    def verify_batch(self, batch: PreparedBatch) -> bool:
+        """Recheck actual staged values against the authenticated source rows."""
+        if not isinstance(batch, PreparedBatch) or batch.plan is not self._pending:
+            return False
+        synthetic = batch.synthetic.detach().to(device="cpu")
+        positives = batch.real_positive.detach().to(device="cpu")
+        if (synthetic.dtype != torch.float32 or positives.dtype != torch.float32 or
+                tuple(synthetic.shape) != (len(batch.plan.synthetic_indices), 3, 33, 33) or
+                tuple(positives.shape) != (len(batch.plan.real_positive_indices), 3, 33, 33)):
+            return False
+        labels = bytearray()
+        for slot, index in enumerate(batch.plan.synthetic_indices):
+            expected, label, identity = self._family._row(index)
+            if (identity != self._family.row_identities[index * 32:(index + 1) * 32] or
+                    not torch.equal(synthetic[slot], expected)):
+                return False
+            labels.append(label)
+        if bytes(labels) != batch.labels.values:
+            return False
+        for slot, index in enumerate(batch.plan.real_positive_indices):
+            expected = self._archive.read_patch(index)
+            if positives[slot].contiguous().numpy().astype("<f4", copy=False).tobytes() != expected:
+                return False
+        return True
+
     def commit(self, plan: StepPlan) -> None:
         if self._pending is None or plan is not self._pending:
             raise RuntimeError("Only the current completed batch can be committed")

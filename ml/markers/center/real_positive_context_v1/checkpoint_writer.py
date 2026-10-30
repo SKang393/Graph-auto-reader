@@ -21,7 +21,7 @@ import torch
 
 from .model import RealPositiveCenterNet
 from .positive_archive import _open_read_only_no_writers
-from .runner_foundation import V37_CHECKPOINT_SHA256
+from .model import V37_CHECKPOINT_SHA256
 
 _ROOT = Path(__file__).resolve().parents[4]
 _BASE_RELATIVE = Path("artifacts/goal22-runs/center-confidence-reflection-v37/P1/marker-center.pt")

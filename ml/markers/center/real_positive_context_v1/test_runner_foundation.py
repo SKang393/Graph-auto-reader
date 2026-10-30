@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from hashlib import sha256
+from types import SimpleNamespace
 from io import BytesIO
 import json
 from pathlib import Path
@@ -126,7 +127,9 @@ class OptimizerSeamTests(unittest.TestCase):
         raw = b"\x00\x01"
         labels = SyntheticLabels(raw, sha256(raw).hexdigest())
         source = MagicMock()
-        source.next_batch.return_value = (synthetic, labels, controls)
+        source.next_gpu.side_effect = lambda: SimpleNamespace(
+            plan=SimpleNamespace(step=source.next_gpu.call_count), synthetic=synthetic,
+            labels=labels, real_positive=controls)
         source.verify_batch.return_value = True
         source.verify_model.return_value = True
         source.verify_input_binding.return_value = True
@@ -175,7 +178,9 @@ class OptimizerSeamTests(unittest.TestCase):
 
     def test_cpu_batch_is_rejected_before_mocked_optimizer(self):
         model, optimizer, source, synthetic, labels, controls = self._fixture()
-        source.next_batch.return_value = (synthetic.cpu(), labels, controls)
+        source.next_gpu.side_effect = None
+        source.next_gpu.return_value = SimpleNamespace(
+            plan=SimpleNamespace(step=1), synthetic=synthetic.cpu(), labels=labels, real_positive=controls)
         config = {"real_positive_binding_sha256": "1" * 64, "optimizer_steps_expected": 1}
         journal = runner._RunJournal.claim(self.authorization, 1)
         with patch.object(runner, "_require_bound_source", return_value=config), \
@@ -226,9 +231,14 @@ class OptimizerSeamTests(unittest.TestCase):
     def test_complete_run_is_single_use_and_finalizes_without_promotion(self):
         model, optimizer, source, _, _, _ = self._fixture()
         source.begin_fixed_run.return_value = True
-        config = {"real_positive_binding_sha256": "1" * 64, "optimizer_steps_expected": 2}
+        self.authorization.binding.update({"revision": "synthetic-v1", "candidate_id": "P1"})
+        config = {"real_positive_binding_sha256": "1" * 64, "optimizer_steps_expected": 2,
+                  "source_checkpoint_path": "artifacts/test-temp/base.pt",
+                  "candidate_checkpoint_path": "artifacts/test-temp/candidate.pt"}
         with patch.object(runner, "_require_bound_source", return_value=config), \
              patch.object(runner, "_require_reviewed_schedule"), \
+             patch.object(runner, "write_candidate_checkpoint", return_value=SimpleNamespace(
+                 relative_path="artifacts/test-temp/candidate.pt", sha256="2" * 64)), \
              patch.object(runner, "complete_training_candidate") as complete, \
              patch.object(optimizer, "step") as step:
             result = runner.run_training(model, optimizer, source, self.authorization)
