@@ -1,0 +1,257 @@
+{
+  "schema": "graphreader.goal22.v44-server-layout-context-outcome.v1",
+  "record_status": "paired_development_diagnostic_only_unapproved",
+  "as_of_date": "2026-10-29",
+  "scope": {
+    "classification": "project-owned synthetic development diagnostic",
+    "synthetic_only": true,
+    "private_data": false,
+    "sealed_data": false,
+    "truth_used_by_runtime": false,
+    "optimizer_steps": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "goal22_complete": false,
+    "candidate_selected": false,
+    "v44_dev_previously_used": true,
+    "v44_dev_independent_holdout": false,
+    "note": "The V44 dev cohort had prior development use. This comparison is diagnostic, not an independent holdout or promotion result."
+  },
+  "cohort": {
+    "source_count": 23,
+    "panel_count": 37,
+    "train": {
+      "source_count": 20,
+      "panel_count": 28,
+      "truth_regions": 709
+    },
+    "dev": {
+      "source_count": 3,
+      "panel_count": 9,
+      "truth_regions": 183
+    },
+    "source_disjoint_train_dev": true,
+    "completed_panels": 37,
+    "failed_panels": 0
+  },
+  "identity": {
+    "candidate_composition_version": "original-db-head-legend-context-v1",
+    "only_candidate_composition_version_changed": true,
+    "raw_detector_regions_identical_by_id_and_geometry": true,
+    "same_37_panel_source_and_crop_inventory": true,
+    "same_native_runtime_and_execution_assemblies": true,
+    "same_original_server_recognizer_and_manifest": true,
+    "same_production_detector_postprocess": true,
+    "detector": {
+      "model_id": "graph-text-extent-db-head-v44-p1",
+      "sha256": "615495cc882b6ae8633081d89c3ab08c0d4a80a04aa36bbde4157fc7828f5923"
+    },
+    "recognizer": {
+      "model_id": "PP-OCRv5_server_rec",
+      "sha256": "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418"
+    }
+  },
+  "composition_confounds": {
+    "isolates_legend_context": false,
+    "combined_behaviors": [
+      "participant-lane assembly",
+      "inside-plot assembly",
+      "pixel-bounds refinement",
+      "header-layout resolution",
+      "framed-legend context and recovery"
+    ],
+    "interpretation": "The score does not identify the causal contribution of any one enabled behavior. Identical raw detector regions do not imply identical post-composition predicted regions."
+  },
+  "metrics": {
+    "train": {
+      "truth_regions": 709,
+      "character_count": 3268,
+      "baseline": {
+        "exact_text_correct": 423,
+        "exact_text_denominator": 709,
+        "exact_text_accuracy": 0.5966149506346967,
+        "character_errors": 1346,
+        "character_error_rate": 0.4118727050183599,
+        "role_correct": 439,
+        "role_denominator": 709,
+        "role_accuracy": 0.6191819464033851,
+        "geometry_matched_regions": 624,
+        "geometry_predictions": 643,
+        "geometry_truth_regions": 709,
+        "geometry_false_positives": 19,
+        "geometry_false_negatives": 85,
+        "geometry_precision": 0.9704510108864697,
+        "geometry_recall": 0.8801128349790127
+      },
+      "layout_context": {
+        "exact_text_correct": 412,
+        "exact_text_denominator": 709,
+        "exact_text_accuracy": 0.5811001410437235,
+        "character_errors": 1341,
+        "character_error_rate": 0.41034271725826194,
+        "role_correct": 447,
+        "role_denominator": 709,
+        "role_accuracy": 0.6304654442877292,
+        "geometry_matched_regions": 618,
+        "geometry_predictions": 627,
+        "geometry_truth_regions": 709,
+        "geometry_false_positives": 9,
+        "geometry_false_negatives": 91,
+        "geometry_precision": 0.9856459330143541,
+        "geometry_recall": 0.8716502115655853
+      },
+      "delta_correct_or_errors": {
+        "exact_text_correct": -11,
+        "character_errors": -5,
+        "role_correct": 8,
+        "geometry_matched_regions": -6,
+        "geometry_predictions": -16,
+        "geometry_false_positives": -10,
+        "geometry_false_negatives": 6
+      }
+    },
+    "dev": {
+      "truth_regions": 183,
+      "character_count": 1019,
+      "baseline": {
+        "exact_text_correct": 124,
+        "exact_text_denominator": 183,
+        "exact_text_accuracy": 0.6775956284153005,
+        "character_errors": 626,
+        "character_error_rate": 0.6143277723258096,
+        "role_correct": 116,
+        "role_denominator": 183,
+        "role_accuracy": 0.6338797814207651,
+        "geometry_matched_regions": 139,
+        "geometry_predictions": 187,
+        "geometry_truth_regions": 183,
+        "geometry_false_positives": 48,
+        "geometry_false_negatives": 44,
+        "geometry_precision": 0.7433155080213903,
+        "geometry_recall": 0.7595628415300546
+      },
+      "layout_context": {
+        "exact_text_correct": 136,
+        "exact_text_denominator": 183,
+        "exact_text_accuracy": 0.7431693989071039,
+        "character_errors": 339,
+        "character_error_rate": 0.3326790971540726,
+        "role_correct": 144,
+        "role_denominator": 183,
+        "role_accuracy": 0.7868852459016393,
+        "geometry_matched_regions": 154,
+        "geometry_predictions": 174,
+        "geometry_truth_regions": 183,
+        "geometry_false_positives": 20,
+        "geometry_false_negatives": 29,
+        "geometry_precision": 0.8850574712643678,
+        "geometry_recall": 0.8415300546448088
+      },
+      "delta_correct_or_errors": {
+        "exact_text_correct": 12,
+        "character_errors": -287,
+        "role_correct": 28,
+        "geometry_matched_regions": 15,
+        "geometry_predictions": -13,
+        "geometry_false_positives": -28,
+        "geometry_false_negatives": -15
+      }
+    }
+  },
+  "acceptance": {
+    "accepted": false,
+    "candidate_dev_bars_all_fail": true,
+    "policy": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+      "recognition_exact_minimum": 0.95,
+      "character_error_rate_maximum": 0.05,
+      "role_accuracy_minimum": 0.95,
+      "text_detection_precision_minimum": 0.95,
+      "text_detection_recall_minimum": 0.95
+    },
+    "candidate_dev_values": {
+      "recognition_exact": 0.7431693989071039,
+      "character_error_rate": 0.3326790971540726,
+      "role_accuracy": 0.7868852459016393,
+      "text_detection_precision": 0.8850574712643678,
+      "text_detection_recall": 0.8415300546448088
+    }
+  },
+  "evaluation": {
+    "status": "panels_completed",
+    "development_only": true,
+    "synthetic_only": true,
+    "private_data": false,
+    "sealed_data": false,
+    "truth_used_by_runtime": false,
+    "optimizer_steps": 0,
+    "production_approved": false,
+    "training_input_ready": false,
+    "end_to_end_acceptance": false,
+    "panel_count": 37,
+    "completed_panel_count": 37,
+    "failed_panel_count": 0
+  },
+  "evidence_root": "E:/Graph-auto-reader",
+  "evidence": {
+    "paired_score": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-legend-context-pair-20261029-v1/paired-score.json",
+      "sha256": "01f5c45cec287b713e4933534b8992f33cbd54c3f3ecb7de1e060c91e580207b"
+    },
+    "legend_context_candidate": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-legend-context-pair-20261029-v1/legend-context-candidate.json",
+      "sha256": "c520182db8affd6c1b7d0ecce13fcaf3232530daf69e443c1240014513769bbb"
+    },
+    "legend_context_evaluation": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-legend-context-eval-20261029-v1/report.json",
+      "sha256": "1584b2dc3eabd63d724183005fe730ea5885bb0eb60d480b974fa690e2f83c45"
+    },
+    "paired_score_inputs": {
+      "baseline_candidate": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-pair-20261029-v1/baseline-candidate.json",
+        "sha256": "34ee2cd6b9d0e7ab280a48307c75e85cdc7aab28cb75f5a534b19f706c92fa08"
+      },
+      "baseline_evaluation": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-baseline-eval-20261029-v1/report.json",
+        "sha256": "855f68692cad9c51bcb4d79ca97354ef16af8d19a5ffd7b87eb307854221c500"
+      },
+      "baseline_score": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-full-ocr-score-20261029-v1/baseline-score.json",
+        "sha256": "c3a13a4ab3a26ed2de7a78e5c195e532359c2cf09a0ef92e2ddc406189f86ba2"
+      },
+      "binding": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/marker-v25-plot-domain/visible-content-v3-binding/binding-v3.json",
+        "sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a"
+      },
+      "capture_report": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-production-head-inputs/capture-run3/report.json",
+        "sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482"
+      },
+      "capture_request": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-production-head-inputs/preflight-v3/capture-request.json",
+        "sha256": "1586f7fd28ffbc6024e07fb0b12b2fb79f0d4dc2dc790aba2d963813b0686675"
+      },
+      "legend_context_candidate_spec": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-legend-context-pair-20261029-v1/legend-context-candidate.json",
+        "sha256": "c520182db8affd6c1b7d0ecce13fcaf3232530daf69e443c1240014513769bbb"
+      },
+      "legend_context_evaluation_report": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-legend-context-eval-20261029-v1/report.json",
+        "sha256": "1584b2dc3eabd63d724183005fe730ea5885bb0eb60d480b974fa690e2f83c45"
+      },
+      "scoring_helper": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate_v4.py",
+        "sha256": "0f13238db1f70c5c04394e6b0d2b0da381b606588a424b8fa6df8daca7a1435d"
+      }
+    }
+  },
+  "decision": {
+    "candidate_selected": false,
+    "production_approval": false,
+    "release_eligible": false,
+    "goal22_complete": false,
+    "reason": "The paired synthetic dev scores improve over the baseline but fail every documented dev bar. The V44 dev cohort had prior use, and the candidate composition changes multiple behaviors, so this diagnostic does not establish independent acceptance or isolate a component effect."
+  },
+  "related_outcome": "docs/GOAL-22-SERVER-RECOGNITION-HEAD-OUTCOME.md"
+}
