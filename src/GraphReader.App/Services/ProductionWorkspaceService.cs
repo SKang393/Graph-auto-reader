@@ -322,7 +322,10 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                 status.State == AutomaticStageState.Approved);
             var request = new WorkflowRunRequest(
                 Guid.NewGuid(),
-                CreateProductionWorkflowImportRequest(enhancementEnabled));
+                CreateProductionWorkflowImportRequest(enhancementEnabled))
+            {
+                ManualCalibrations = CreateConfirmedManualCalibrationBindings(),
+            };
             WorkflowRunResult? accumulated = LastAutomaticRun;
             var completedPanelIds = new HashSet<Guid>();
             result = await _workflowOrchestrator!.RunThroughReviewAsync(

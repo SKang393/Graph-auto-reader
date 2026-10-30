@@ -1533,6 +1533,91 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         return new WorkflowImportRequest(CurrentProject.ProjectId.Value, sources, enhancementEnabled);
     }
 
+    internal IReadOnlyList<WorkflowManualCalibrationBinding> CreateConfirmedManualCalibrationBindings()
+    {
+        var bindings = new List<WorkflowManualCalibrationBinding>();
+        foreach (PanelRecord panel in CurrentProject.Panels)
+        {
+            WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(candidate =>
+                string.Equals(candidate.PanelId, panel.PanelId.Value.ToString("D"), StringComparison.OrdinalIgnoreCase));
+            if (tab is null || tab.Calibration is null ||
+                !Guid.TryParse(tab.SourceId, out Guid tabSourceId) || tabSourceId != panel.SourceId.Value ||
+                !Guid.TryParse(tab.PanelId, out Guid tabPanelId) || tabPanelId != panel.PanelId.Value ||
+                !IsConfirmedManualThreeAnchorCalibration(panel.Calibration) ||
+                !IsSha256(tab.SourceSha256) ||
+                FromDomainCalibration(MapCalibrationSourceToPanel(panel, panel.Calibration)) is not { } panelCalibration ||
+                !CalibrationMatches(tab.Calibration, panelCalibration) ||
+                !ManualAnchorsInsidePanel(panelCalibration, tab.PixelWidth, tab.PixelHeight) ||
+                tab.Calibration.Confidence != panelCalibration.Confidence ||
+                tab.Calibration.XTransform != panelCalibration.XTransform ||
+                tab.Calibration.YTransform != panelCalibration.YTransform)
+            {
+                continue;
+            }
+
+            bindings.Add(new WorkflowManualCalibrationBinding(
+                CurrentProject.ProjectId.Value,
+                panel.SourceId.Value,
+                panel.PanelId.Value,
+                tab.SourceSha256!,
+                MapCalibrationSourceToPanel(panel, panel.Calibration)!));
+        }
+
+        return Array.AsReadOnly(bindings.ToArray());
+    }
+
+    private static bool IsConfirmedManualThreeAnchorCalibration(CalibrationRecord? calibration)
+    {
+        if (calibration is not
+            {
+                Status: DomainCalibrationStatus.Valid,
+                UserConfirmed: true,
+                SessionLattice.Source: "manual_three_anchor",
+                Anchors.Count: 3,
+            } ||
+            !double.IsFinite(calibration.Confidence) || calibration.Confidence is <= 0 or > 1)
+        {
+            return false;
+        }
+
+        if (calibration.Anchors.Select(static anchor => anchor.Kind).Distinct().Count() != calibration.Anchors.Count)
+        {
+            return false;
+        }
+
+        Dictionary<DomainCalibrationAnchorKind, DomainCalibrationAnchor> anchors = calibration.Anchors
+            .ToDictionary(static anchor => anchor.Kind);
+        if (anchors.Count != 3 || anchors.Values.Any(static anchor => anchor.EvidenceRegionId is not null) ||
+            !anchors.TryGetValue(DomainCalibrationAnchorKind.Session1Y0, out DomainCalibrationAnchor? y0) ||
+            !anchors.TryGetValue(DomainCalibrationAnchorKind.Session1Ymax, out DomainCalibrationAnchor? yMax) ||
+            !anchors.TryGetValue(DomainCalibrationAnchorKind.SessionmaxY0, out DomainCalibrationAnchor? xMax))
+        {
+            return false;
+        }
+
+        SessionLatticeRecord lattice = calibration.SessionLattice!;
+        double expectedPitch = (xMax.Screen.X - y0.Screen.X) / (xMax.Graph.X - 1);
+        return double.IsFinite(y0.Screen.X) && double.IsFinite(y0.Screen.Y) &&
+            double.IsFinite(yMax.Screen.X) && double.IsFinite(yMax.Screen.Y) &&
+            double.IsFinite(xMax.Screen.X) && double.IsFinite(xMax.Screen.Y) &&
+            Math.Abs(y0.Screen.X - yMax.Screen.X) <= 2 &&
+            Math.Abs(y0.Screen.Y - xMax.Screen.Y) <= 2 &&
+            double.IsFinite(lattice.Session1PixelX) &&
+            Math.Abs(lattice.Session1PixelX - y0.Screen.X) <= 1e-9 &&
+            double.IsFinite(lattice.PitchPixels) && Math.Abs(lattice.PitchPixels - expectedPitch) <= 1e-9 &&
+            lattice.Confidence == calibration.Confidence &&
+            y0.Graph == new DomainGraphPoint(1, 0) &&
+            yMax.Graph.X == 1 && double.IsFinite(yMax.Graph.Y) && yMax.Graph.Y > 0 &&
+            xMax.Graph.Y == 0 && double.IsFinite(xMax.Graph.X) && xMax.Graph.X > 1;
+    }
+
+    private static bool IsSha256(string? value) =>
+        value is { Length: 64 } && value.All(Uri.IsHexDigit);
+
+    private static bool ManualAnchorsInsidePanel(ManualCalibrationState calibration, int width, int height) =>
+        new[] { calibration.Session1Y0, calibration.Session1YMaximum, calibration.SessionMaximumY0 }
+            .All(point => point.X >= 0 && point.X <= width && point.Y >= 0 && point.Y <= height);
+
     private sealed record ProductionProjectionPlan(
         WorkflowReviewPanel ReviewPanel,
         WorkspaceTabViewModel Tab,

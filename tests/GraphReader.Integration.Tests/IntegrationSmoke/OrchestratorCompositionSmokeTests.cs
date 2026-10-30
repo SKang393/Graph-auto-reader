@@ -103,6 +103,90 @@ public sealed class OrchestratorCompositionSmokeTests
     }
 
     [TestMethod]
+    public async Task ConfirmedManualCalibrationIsPassedOnlyToItsBoundPanel()
+    {
+        RecordedWorkflowData data = CreateRecordedData();
+        var recorded = new TracingStages(data);
+        WorkflowOrchestrator orchestrator = WorkflowComposition.Create(
+            WorkflowRuntimeEnvironment.RecordedFake,
+            new ThrowingStages().ServiceSet,
+            recorded.ServiceSet);
+        var calibration = new GraphReader.Domain.CalibrationRecord(
+            GraphReader.Domain.CalibrationId.New(),
+            GraphReader.Domain.CalibrationStatus.Valid,
+            [
+                new(GraphReader.Domain.CalibrationAnchorKind.Session1Y0, new(10, 190), new(1, 0), 1, null),
+                new(GraphReader.Domain.CalibrationAnchorKind.Session1Ymax, new(10, 10), new(1, 100), 1, null),
+                new(GraphReader.Domain.CalibrationAnchorKind.SessionmaxY0, new(110, 190), new(7, 0), 1, null),
+            ],
+            new GraphReader.Domain.SessionLatticeRecord(10, 100d / 6, null, null, 1, "manual_three_anchor"),
+            UserConfirmed: true,
+            Confidence: 1,
+            Reasons: []);
+        var binding = new WorkflowManualCalibrationBinding(
+            IntegrationSmokeIds.Project.Value,
+            IntegrationSmokeIds.Source.Value,
+            ImagePanelId,
+            new string('a', 64),
+            calibration);
+        WorkflowRunRequest request = RunRequest(enhancementEnabled: false) with
+        {
+            ManualCalibrations = [binding],
+        };
+
+        _ = await orchestrator.RunThroughReviewAsync(request, previousReview: null, CancellationToken.None);
+
+        Assert.IsTrue(recorded.SeenManualCalibrationBindings
+            .Where(static item => item.PanelId == ImagePanelId)
+            .All(item => ReferenceEquals(item.Binding, binding)));
+        Assert.IsTrue(recorded.SeenManualCalibrationBindings
+            .Where(static item => item.PanelId == PdfPanelId)
+            .All(static item => item.Binding is null));
+    }
+
+    [TestMethod]
+    public async Task ManualCalibrationWithChangedOriginalImageFailsBeforeDetection()
+    {
+        RecordedWorkflowData data = CreateRecordedData();
+        var recorded = new TracingStages(data);
+        WorkflowOrchestrator orchestrator = WorkflowComposition.Create(
+            WorkflowRuntimeEnvironment.RecordedFake,
+            new ThrowingStages().ServiceSet,
+            recorded.ServiceSet);
+        var calibration = new GraphReader.Domain.CalibrationRecord(
+            GraphReader.Domain.CalibrationId.New(),
+            GraphReader.Domain.CalibrationStatus.Valid,
+            [
+                new(GraphReader.Domain.CalibrationAnchorKind.Session1Y0, new(10, 190), new(1, 0), 1, null),
+                new(GraphReader.Domain.CalibrationAnchorKind.Session1Ymax, new(10, 10), new(1, 100), 1, null),
+                new(GraphReader.Domain.CalibrationAnchorKind.SessionmaxY0, new(110, 190), new(7, 0), 1, null),
+            ],
+            new GraphReader.Domain.SessionLatticeRecord(10, 100d / 6, null, null, 1, "manual_three_anchor"),
+            UserConfirmed: true,
+            Confidence: 1,
+            Reasons: []);
+        WorkflowRunRequest request = RunRequest(enhancementEnabled: false) with
+        {
+            ManualCalibrations =
+            [
+                new WorkflowManualCalibrationBinding(
+                    IntegrationSmokeIds.Project.Value,
+                    IntegrationSmokeIds.Source.Value,
+                    ImagePanelId,
+                    new string('f', 64),
+                    calibration),
+            ],
+        };
+
+        InvalidOperationException error = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() =>
+            orchestrator.RunThroughReviewAsync(request, previousReview: null, CancellationToken.None));
+
+        StringAssert.Contains(error.Message, "project, source, panel, or original image");
+        Assert.AreEqual(0, recorded.PrepareCalls);
+        Assert.AreEqual(0, recorded.DetectionCalls);
+    }
+
+    [TestMethod]
     public async Task DisabledEnhancementSkipsDerivedDetectionForEveryPanel()
     {
         RecordedWorkflowData data = CreateRecordedData();
@@ -333,6 +417,8 @@ public sealed class OrchestratorCompositionSmokeTests
 
         public List<WorkflowImageVariant> DetectedVariants { get; } = [];
 
+        public List<(Guid PanelId, WorkflowManualCalibrationBinding? Binding)> SeenManualCalibrationBindings { get; } = [];
+
         public List<string> RequestedRemoteResources { get; } = [];
 
         public int NetworkAccessAttemptCount => RequestedRemoteResources.Count;
@@ -363,6 +449,7 @@ public sealed class OrchestratorCompositionSmokeTests
         {
             DetectionCalls++;
             DetectedVariants.Add(imageVariant);
+            SeenManualCalibrationBindings.Add((panel.ImportedPanel.PanelId, panel.ManualCalibrationBinding));
             if (_cancelBeforePanelId == panel.ImportedPanel.PanelId &&
                 imageVariant == WorkflowImageVariant.Original)
             {

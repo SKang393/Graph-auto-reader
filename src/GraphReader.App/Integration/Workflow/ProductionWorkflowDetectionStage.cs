@@ -49,6 +49,8 @@ public sealed class ProductionWorkflowDetectionRequest
 
     public IReadOnlyList<WorkflowTransformProvenance> Transforms { get; }
 
+    internal WorkflowManualCalibrationBinding? ManualCalibrationBinding => Panel.ManualCalibrationBinding;
+
     internal bool DeferExportEvidenceCommit { get; init; }
 
     public byte[] CopyImageBytes() => (byte[])imageBytes.Clone();

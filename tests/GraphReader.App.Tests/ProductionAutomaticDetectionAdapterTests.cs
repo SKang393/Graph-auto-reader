@@ -34,10 +34,17 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         byte[] bytes = [1, 9, 2, 1];
         string sha256 = Convert.ToHexStringLower(SHA256.HashData(bytes));
         Guid panelId = Guid.NewGuid();
+        Guid sourceId = Guid.NewGuid();
+        Guid projectId = Guid.NewGuid();
         var image = new WorkflowImageEvidence("memory:tick-seed.png", sha256, 100, 100, WorkflowImageVariant.Original);
-        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "tick-seed.png", image);
-        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
-            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+        var imported = new WorkflowImportedPanel(panelId, sourceId, "tick-seed.png", image);
+        var request = new ProductionWorkflowDetectionRequest(
+            new WorkflowPreparedPanel(imported, image, null),
+            image,
+            WorkflowImageVariant.Original,
+            Guid.NewGuid(),
+            projectId,
+            bytes);
         var store = new ProductionWorkflowPanelStore();
         store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
         var recognizer = new TickSeedRecognizer();
@@ -84,6 +91,217 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         Assert.AreEqual(ExportMode.PrintedSession, evidence.Mode);
         Assert.IsTrue(evidence.Calibration.HasPrintedSessionCalibration);
     }
+
+    [TestMethod]
+    public async Task ConfirmedManualAnchorsCalibrateMissingPrintedSessionLabels()
+    {
+        byte[] bytes = [3, 1, 4, 1, 5];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid projectId = Guid.NewGuid();
+        Guid sourceId = Guid.NewGuid();
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:manual-session-anchors.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, sourceId, "manual-session-anchors.png", image);
+        GraphReader.Domain.CalibrationRecord calibration = CreateManualCalibration();
+        var binding = new WorkflowManualCalibrationBinding(projectId, sourceId, panelId, hash, calibration);
+        var prepared = new WorkflowPreparedPanel(imported, image, null)
+        {
+            ManualCalibrationBinding = binding,
+        };
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(
+            store,
+            new RasterDecoder(),
+            new AxisAdapter(),
+            new OcrAdapter(omitXTicks: true),
+            new MaskComposer(),
+            new CenterAdapter(),
+            new ClassificationAdapter(),
+            new LegendAdapter(),
+            new PhaseAdapter(),
+            new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(
+            prepared, image, WorkflowImageVariant.Original, Guid.NewGuid(), projectId, bytes);
+
+        WorkflowDetectionBatch batch = await adapter.DetectAsync(request, CancellationToken.None);
+
+        WorkflowDetectionCandidate[] points = batch.Candidates.OrderBy(static point => point.OriginalPixelX).ToArray();
+        Assert.HasCount(2, points);
+        Assert.AreEqual(2d, points[0].GraphX!.Value, 1e-9);
+        Assert.AreEqual(8d, points[1].GraphX!.Value, 1e-9);
+        Assert.AreEqual(25d, points[0].GraphY!.Value, 1e-9);
+        Assert.AreEqual(75d, points[1].GraphY!.Value, 1e-9);
+        ProductionPanelExportEvidence exportEvidence = store.Get(panelId).ExportEvidence ??
+            throw new AssertFailedException("The manual calibration did not produce review/export evidence.");
+        GraphReader.Domain.CalibrationRecord projectedCalibration = exportEvidence.ProjectionEvidence!.Calibration;
+        Assert.AreEqual(GraphReader.Domain.CalibrationStatus.Valid, projectedCalibration.Status);
+        Assert.IsTrue(projectedCalibration.UserConfirmed);
+        Assert.AreEqual("manual_three_anchor", projectedCalibration.SessionLattice?.Source);
+        Assert.IsTrue(exportEvidence.ProjectionEvidence.Points.All(static point =>
+            point.PrintedXValue is null && point.EstimatedXValue.HasValue));
+    }
+
+    [TestMethod]
+    [DataRow(true, false, false)]
+    [DataRow(false, true, false)]
+    [DataRow(false, false, true)]
+    public async Task UnconfirmedStaleOrMisalignedManualCalibrationCannotBeUsed(
+        bool unconfirmed,
+        bool staleImage,
+        bool misaligned)
+    {
+        byte[] bytes = [2, 7, 1, 8];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid projectId = Guid.NewGuid();
+        Guid sourceId = Guid.NewGuid();
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:stale-manual-calibration.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, sourceId, "stale-manual-calibration.png", image);
+        GraphReader.Domain.CalibrationRecord calibration = CreateManualCalibration();
+        if (unconfirmed)
+        {
+            calibration = calibration with { UserConfirmed = false };
+        }
+        if (misaligned)
+        {
+            calibration = calibration with
+            {
+                Anchors = calibration.Anchors.Select(anchor => anchor.Kind switch
+                {
+                    GraphReader.Domain.CalibrationAnchorKind.Session1Ymax =>
+                        anchor with { Screen = new GraphReader.Domain.PixelPoint(20, 10) },
+                    GraphReader.Domain.CalibrationAnchorKind.SessionmaxY0 =>
+                        anchor with { Screen = new GraphReader.Domain.PixelPoint(90, 30) },
+                    _ => anchor,
+                }).ToArray(),
+            };
+        }
+        var binding = new WorkflowManualCalibrationBinding(
+            projectId,
+            sourceId,
+            panelId,
+            staleImage ? new string('f', 64) : hash,
+            calibration);
+        var prepared = new WorkflowPreparedPanel(imported, image, null)
+        {
+            ManualCalibrationBinding = binding,
+        };
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(
+            store,
+            new RasterDecoder(),
+            new AxisAdapter(),
+            new OcrAdapter(omitXTicks: true),
+            new MaskComposer(),
+            new CenterAdapter(),
+            new ClassificationAdapter(),
+            new LegendAdapter(),
+            new PhaseAdapter(),
+            new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(
+            prepared, image, WorkflowImageVariant.Original, Guid.NewGuid(), projectId, bytes);
+
+        ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+            () => adapter.DetectAsync(request, CancellationToken.None));
+
+        Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, failure.Failure.Code);
+        Assert.IsNull(store.Get(panelId).ExportEvidence);
+    }
+
+    [TestMethod]
+    public async Task MissingPrintedSessionLabelsRemainBlockedWithoutManualCalibration()
+    {
+        byte[] bytes = [1, 6, 1, 8];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:unbound-session-labels.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "unbound-session-labels.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(
+            store,
+            new RasterDecoder(),
+            new AxisAdapter(),
+            new OcrAdapter(omitXTicks: true),
+            new MaskComposer(),
+            new CenterAdapter(),
+            new ClassificationAdapter(),
+            new LegendAdapter(),
+            new PhaseAdapter(),
+            new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(
+            new WorkflowPreparedPanel(imported, image, null),
+            image,
+            WorkflowImageVariant.Original,
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            bytes);
+
+        ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+            () => adapter.DetectAsync(request, CancellationToken.None));
+
+        Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, failure.Failure.Code);
+        Assert.IsNull(store.Get(panelId).ExportEvidence);
+    }
+
+    [TestMethod]
+    public async Task ConfirmedManualCalibrationTakesPrecedenceOverCompleteAutomaticTicks()
+    {
+        byte[] bytes = [4, 2, 4, 2];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid projectId = Guid.NewGuid();
+        Guid sourceId = Guid.NewGuid();
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:manual-over-auto.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, sourceId, "manual-over-auto.png", image);
+        var prepared = new WorkflowPreparedPanel(imported, image, null)
+        {
+            ManualCalibrationBinding = new WorkflowManualCalibrationBinding(
+                projectId, sourceId, panelId, hash, CreateManualCalibration()),
+        };
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(
+            store,
+            new RasterDecoder(),
+            new AxisAdapter(),
+            new OcrAdapter(),
+            new MaskComposer(),
+            new CenterAdapter(),
+            new ClassificationAdapter(),
+            new LegendAdapter(),
+            new PhaseAdapter(),
+            new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(
+            prepared, image, WorkflowImageVariant.Original, Guid.NewGuid(), projectId, bytes);
+
+        WorkflowDetectionBatch batch = await adapter.DetectAsync(request, CancellationToken.None);
+
+        WorkflowDetectionCandidate[] points = batch.Candidates.OrderBy(static point => point.OriginalPixelX).ToArray();
+        Assert.HasCount(2, points);
+        Assert.AreEqual(2d, points[0].GraphX!.Value, 1e-9);
+        Assert.AreEqual(8d, points[1].GraphX!.Value, 1e-9);
+        ProductionPanelExportEvidence evidence = store.Get(panelId).ExportEvidence ??
+            throw new AssertFailedException("The manual calibration did not produce review/export evidence.");
+        Assert.AreEqual("manual_three_anchor", evidence.ProjectionEvidence!.Calibration.SessionLattice?.Source);
+        Assert.IsTrue(evidence.ProjectionEvidence.OcrRegions.Any(static region => region.Text == "1"));
+        Assert.IsTrue(evidence.ProjectionEvidence.OcrRegions.Any(static region => region.Text == "2"));
+    }
+
+    private static GraphReader.Domain.CalibrationRecord CreateManualCalibration() => new(
+        GraphReader.Domain.CalibrationId.New(),
+        GraphReader.Domain.CalibrationStatus.Valid,
+        [
+            new(GraphReader.Domain.CalibrationAnchorKind.Session1Y0, new(10, 90), new(1, 0), 1, null),
+            new(GraphReader.Domain.CalibrationAnchorKind.Session1Ymax, new(10, 10), new(1, 100), 1, null),
+            new(GraphReader.Domain.CalibrationAnchorKind.SessionmaxY0, new(90, 90), new(9, 0), 1, null),
+        ],
+        new GraphReader.Domain.SessionLatticeRecord(10, 10, null, null, 1, "manual_three_anchor"),
+        UserConfirmed: true,
+        Confidence: 1,
+        Reasons: []);
 
     private sealed class TickSeedRasterDecoder : IProductionRasterFrameDecoder
     {
@@ -904,11 +1122,12 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         private readonly bool includeMarkerGlyph;
         private readonly bool originalIsBlack;
         private readonly string finalSessionLabel;
+        private readonly bool omitXTicks;
 
         public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
             bool invalidLegendBounds = false, string? warning = null,
             OcrTextRole? zeroConfidenceRole = null, bool rejectZeroConfidenceTick = false, bool includeMarkerGlyph = false,
-            bool originalIsBlack = true, string finalSessionLabel = "2")
+            bool originalIsBlack = true, string finalSessionLabel = "2", bool omitXTicks = false)
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
@@ -920,6 +1139,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             this.includeMarkerGlyph = includeMarkerGlyph;
             this.originalIsBlack = originalIsBlack;
             this.finalSessionLabel = finalSessionLabel;
+            this.omitXTicks = omitXTicks;
         }
 
         public string AdapterId => "test-ocr";
@@ -973,14 +1193,21 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 Assert.IsTrue(originalRaster.CreateOcrImage().BgrPixels!.Pixels.Span.ToArray()
                     .All(static pixel => pixel == 0));
             }
-            OcrRegion[] regions =
-            [
-                Region("x1", 18, 92, "1", OcrTextRole.XTick),
-                Region("x2", 78, 92, finalSessionLabel, OcrTextRole.XTick),
-                Region("y0", 1, 78, "0", OcrTextRole.YTick),
-                Region("y100", 1, 18, "100", OcrTextRole.YTick),
-                Region("participant", 82, 84, participant, OcrTextRole.Participant),
-            ];
+            OcrRegion[] regions = omitXTicks
+                ?
+                [
+                    Region("y0", 1, 78, "0", OcrTextRole.YTick),
+                    Region("y100", 1, 18, "100", OcrTextRole.YTick),
+                    Region("participant", 82, 84, participant, OcrTextRole.Participant),
+                ]
+                :
+                [
+                    Region("x1", 18, 92, "1", OcrTextRole.XTick),
+                    Region("x2", 78, 92, finalSessionLabel, OcrTextRole.XTick),
+                    Region("y0", 1, 78, "0", OcrTextRole.YTick),
+                    Region("y100", 1, 18, "100", OcrTextRole.YTick),
+                    Region("participant", 82, 84, participant, OcrTextRole.Participant),
+                ];
             if (zeroConfidenceRole is { } tickRole)
             {
                 OcrRegion extra = tickRole == OcrTextRole.XTick

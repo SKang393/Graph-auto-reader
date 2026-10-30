@@ -375,6 +375,16 @@ public sealed class ProductionWorkflowStagesTests
                 new Axis.PixelPoint(20, 10),
                 YMaximum: 100,
                 XMaximum: 7));
+        WorkflowManualCalibrationBinding calibrationBinding =
+            workspace.CreateConfirmedManualCalibrationBindings().Single();
+        Assert.AreEqual(Guid.Parse(tab.PanelId!), calibrationBinding.PanelId);
+        Assert.AreEqual(Guid.Parse(tab.SourceId!), calibrationBinding.SourceId);
+        Assert.AreEqual(tab.SourceSha256, calibrationBinding.OriginalImageSha256);
+        Assert.AreEqual(tab.Calibration!.Session1Y0, new Axis.PixelPoint(
+            calibrationBinding.Calibration.Anchors.Single(anchor =>
+                anchor.Kind == CalibrationAnchorKind.Session1Y0).Screen.X,
+            calibrationBinding.Calibration.Anchors.Single(anchor =>
+                anchor.Kind == CalibrationAnchorKind.Session1Y0).Screen.Y));
         SeriesCardViewModel series = workspace.AddSeries(
             tab.TabId,
             new ManualSeriesDefinition("Manual series", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
@@ -2091,6 +2101,60 @@ public sealed class ProductionWorkflowStagesTests
                 Assert.IsTrue(previewRecovered.Succeeded);
             }
         }
+    }
+
+    [TestMethod]
+    public async Task AutomaticRunBindingRejectsMisalignedPersistedManualAnchors()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = Path.Combine(directory.Path, "source.png");
+        await File.WriteAllBytesAsync(imagePath, CreateSolidGrayPng(100, 100, 255));
+        var workspace = new ProductionWorkspaceService();
+        WorkspaceTabViewModel tab = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        workspace.Calibrate(
+            tab.TabId,
+            new ManualCalibrationRequest(
+                new Axis.PixelPoint(5, 90),
+                new Axis.PixelPoint(5, 10),
+                new Axis.PixelPoint(90, 90),
+                YMaximum: 100,
+                XMaximum: 9));
+        string validPath = Path.Combine(directory.Path, "aligned-manual-calibration.garproj");
+        DomainResult<ProjectSaveReceipt> validSave = await workspace.SaveProjectAsync(validPath, CancellationToken.None);
+        Assert.IsTrue(validSave.IsSuccess, string.Join(" | ", validSave.Errors.Select(static error => error.TechnicalMessage)));
+
+        var fileStore = new ProjectFileStore();
+        DomainResult<ProjectDocument> loaded = await fileStore.LoadAsync(validPath, CancellationToken.None);
+        Assert.IsTrue(loaded.IsSuccess, string.Join(" | ", loaded.Errors.Select(static error => error.TechnicalMessage)));
+        ProjectDocument tampered = loaded.Value! with
+        {
+            Panels = loaded.Value.Panels.Select(panel => panel with
+            {
+                Calibration = panel.Calibration! with
+                {
+                    Anchors = panel.Calibration.Anchors.Select(anchor => anchor.Kind switch
+                    {
+                        CalibrationAnchorKind.Session1Ymax => anchor with
+                        {
+                            Screen = anchor.Screen with { X = anchor.Screen.X + 10 },
+                        },
+                        CalibrationAnchorKind.SessionmaxY0 => anchor with
+                        {
+                            Screen = anchor.Screen with { Y = anchor.Screen.Y - 10 },
+                        },
+                        _ => anchor,
+                    }).ToArray(),
+                },
+            }).ToArray(),
+        };
+        string tamperedPath = Path.Combine(directory.Path, "misaligned-manual-calibration.garproj");
+        DomainResult<ProjectSaveReceipt> tamperedSave = await fileStore.SaveAsync(tampered, tamperedPath, CancellationToken.None);
+        Assert.IsTrue(tamperedSave.IsSuccess, string.Join(" | ", tamperedSave.Errors.Select(static error => error.TechnicalMessage)));
+
+        var reopened = new ProductionWorkspaceService();
+        _ = await reopened.OpenProjectAsync(tamperedPath, CancellationToken.None);
+
+        Assert.IsEmpty(reopened.CreateConfirmedManualCalibrationBindings());
     }
 
     [TestMethod]

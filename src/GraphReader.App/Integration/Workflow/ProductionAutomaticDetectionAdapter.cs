@@ -622,12 +622,15 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 classification.Markers.Where(marker => legendInputs.SymbolCropInputIds.Contains(marker.Marker.MarkerId) &&
                     marker.ArtifactProbability < ArtifactRejectionThreshold),
                 ProductionLegendSymbolInputs.Version);
-            SessionFirstCalibrationResult calibration = FitCalibration(
+            SessionFirstCalibrationResult automaticCalibration = FitCalibration(
                 axis.Geometry,
                 ocr.Result,
                 tickGeometry,
                 acceptedMarkers,
                 cancellationToken);
+            SessionFirstCalibrationResult calibration = request.ManualCalibrationBinding is { } manualCalibration
+                ? FitManualCalibration(request, manualCalibration, automaticCalibration, acceptedMarkers, chain, cancellationToken)
+                : automaticCalibration;
             if (candidateEvaluation && CandidateCalibrationObserver is { } observe)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -1147,6 +1150,173 @@ public sealed class ProductionAutomaticDetectionAdapter :
         };
     }
 
+    private static SessionFirstCalibrationResult FitManualCalibration(
+        ProductionWorkflowDetectionRequest request,
+        WorkflowManualCalibrationBinding binding,
+        SessionFirstCalibrationResult automaticCalibration,
+        IReadOnlyList<ClassifiedMarker> markers,
+        ProductionDetectionEvidenceChain chain,
+        CancellationToken cancellationToken)
+    {
+        CalibrationRecord calibration = binding.Calibration;
+        bool bindingMatches = binding.ProjectId == request.ProjectId &&
+            binding.SourceId == request.Panel.ImportedPanel.SourceId &&
+            binding.PanelId == request.Panel.ImportedPanel.PanelId &&
+            string.Equals(binding.OriginalImageSha256, request.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(binding.OriginalImageSha256, request.Image.Sha256, StringComparison.OrdinalIgnoreCase) &&
+            request.ImageVariant == WorkflowImageVariant.Original;
+        if (!bindingMatches || !IsConfirmedManualThreeAnchorCalibration(calibration))
+        {
+            throw chain.Reject(new ProductionWorkflowFailure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.CalibrationInvalid",
+                "The confirmed manual calibration no longer matches this project, source, panel, or original image.",
+                Recoverable: true,
+                "Reopen the correct panel and confirm its three manual calibration anchors."));
+        }
+
+        Dictionary<DomainCalibrationAnchorKind, DomainCalibrationAnchor> anchors = calibration.Anchors
+            .ToDictionary(static anchor => anchor.Kind);
+        DomainCalibrationAnchor y0 = anchors[DomainCalibrationAnchorKind.Session1Y0];
+        DomainCalibrationAnchor yMax = anchors[DomainCalibrationAnchorKind.Session1Ymax];
+        DomainCalibrationAnchor xMax = anchors[DomainCalibrationAnchorKind.SessionmaxY0];
+        SessionLatticeRecord manualLattice = calibration.SessionLattice!;
+        double expectedPitch = (xMax.Screen.X - y0.Screen.X) / (xMax.Graph.X - 1);
+        if (!IsAnchorInsideImage(y0, request.Image) || !IsAnchorInsideImage(yMax, request.Image) ||
+            !IsAnchorInsideImage(xMax, request.Image) || yMax.Screen.Y >= y0.Screen.Y ||
+            xMax.Screen.X <= y0.Screen.X ||
+            !double.IsFinite(manualLattice.Session1PixelX) ||
+            Math.Abs(manualLattice.Session1PixelX - y0.Screen.X) > 1e-9 ||
+            !double.IsFinite(manualLattice.PitchPixels) ||
+            Math.Abs(manualLattice.PitchPixels - expectedPitch) > 1e-9 ||
+            manualLattice.Confidence != calibration.Confidence)
+        {
+            throw chain.Reject(new ProductionWorkflowFailure(
+                ProductionWorkflowFailureCodes.RecalibrationRequired,
+                "Errors.CalibrationInvalid",
+                "The confirmed manual anchors are outside the current panel or do not define increasing axes.",
+                Recoverable: true,
+                "Recalibrate this panel using three anchors inside its original image."));
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        string calibrationId = calibration.CalibrationId.Value.ToString("D");
+        LinearTransformFitResult yFit = RobustCalibration.FitY(
+        [
+            new NumericTickEvidence($"{calibrationId}:manual-y0", y0.Screen.Y, y0.Graph.Y, calibration.Confidence),
+            new NumericTickEvidence($"{calibrationId}:manual-ymax", yMax.Screen.Y, yMax.Graph.Y, calibration.Confidence),
+        ],
+            cancellationToken: cancellationToken);
+        LinearTransformFitResult xFit = RobustCalibration.FitX(
+        [
+            new PrintedXTickEvidence($"{calibrationId}:manual-x1", y0.Screen.X, y0.Graph.X, calibration.Confidence),
+            new PrintedXTickEvidence($"{calibrationId}:manual-xmax", xMax.Screen.X, xMax.Graph.X, calibration.Confidence),
+        ],
+            cancellationToken: cancellationToken);
+        if (!yFit.IsValid || !xFit.IsValid || yFit.Transform is null || xFit.Transform is null)
+        {
+            throw chain.Reject(new ProductionWorkflowFailure(
+                ProductionWorkflowFailureCodes.RecalibrationRequired,
+                "Errors.CalibrationInvalid",
+                "The confirmed manual anchors do not define valid monotonic axis transforms.",
+                Recoverable: true,
+                "Recalibrate this panel using a lower-left origin, an upper Y anchor, and a right-side session anchor."));
+        }
+
+        double pitchPixels = 1d / xFit.Transform.Slope;
+        if (!double.IsFinite(pitchPixels) || pitchPixels <= 0)
+        {
+            throw chain.Reject(new ProductionWorkflowFailure(
+                ProductionWorkflowFailureCodes.RecalibrationRequired,
+                "Errors.CalibrationInvalid",
+                "The confirmed manual session anchors do not define a positive session scale.",
+                Recoverable: true,
+                "Recalibrate this panel with the maximum session anchor to the right of session 1."));
+        }
+
+        SessionXEvidence[] assignments = markers
+            .OrderBy(static marker => marker.Marker.Center.X)
+            .ThenBy(static marker => marker.Marker.MarkerId, StringComparer.Ordinal)
+            .Select((marker, index) => new SessionXEvidence(
+                marker.Marker.Center.X,
+                index + 1,
+                PrintedX: null,
+                EstimatedX: xFit.Transform.PixelToGraph(marker.Marker.Center.X),
+                SessionXEvidenceKind.Manual,
+                calibration.Confidence))
+            .ToArray();
+        SessionLatticeResult lattice = new(
+            y0.Screen.X,
+            pitchPixels,
+            calibration.Confidence,
+            SessionLatticeSource.Manual,
+            CalibrationValidity.Valid,
+            [],
+            HasAbsoluteSessionOrigin: true,
+            IsOrdinalOnly: false,
+            Array.AsReadOnly(assignments),
+            new SessionLatticeUncertainty(0, 0, 0, 1, HarmonicAmbiguity: false),
+            new SessionLatticeDiagnostics(0, assignments.Length, 0, 0, 0, [], TimeSpan.Zero),
+            UsedManualOriginOverride: false,
+            [SessionLatticeSource.Manual],
+            ManualOriginOverride: null);
+        GraphReader.Axis.CalibrationAnchor[] resultAnchors =
+        [
+            new(GraphReader.Axis.CalibrationAnchorKind.Session1Y0, new GraphReader.Axis.PixelPoint(y0.Screen.X, y0.Screen.Y), y0.Graph.X, y0.Graph.Y, y0.Confidence, IsExact: true),
+            new(GraphReader.Axis.CalibrationAnchorKind.Session1YMaximum, new GraphReader.Axis.PixelPoint(yMax.Screen.X, yMax.Screen.Y), yMax.Graph.X, yMax.Graph.Y, yMax.Confidence, IsExact: true),
+            new(GraphReader.Axis.CalibrationAnchorKind.SessionMaximumY0, new GraphReader.Axis.PixelPoint(xMax.Screen.X, xMax.Screen.Y), xMax.Graph.X, xMax.Graph.Y, xMax.Confidence, IsExact: true),
+        ];
+        string[] reasons = ["user_confirmed_manual_three_anchor_override"];
+        reasons = reasons.Concat(automaticCalibration.Reasons).Concat(calibration.Reasons)
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+
+        return new SessionFirstCalibrationResult(
+            yFit with { Confidence = Math.Min(yFit.Confidence, calibration.Confidence) },
+            xFit with { Confidence = Math.Min(xFit.Confidence, calibration.Confidence) },
+            lattice,
+            Array.AsReadOnly(resultAnchors),
+            CalibrationValidity.Valid,
+            Array.AsReadOnly(reasons),
+            Math.Min(calibration.Confidence, Math.Min(yFit.Confidence, xFit.Confidence)),
+            TimeSpan.Zero);
+    }
+
+    private static bool IsConfirmedManualThreeAnchorCalibration(CalibrationRecord calibration)
+    {
+        if (calibration.Status != DomainCalibrationStatus.Valid || !calibration.UserConfirmed ||
+            calibration.SessionLattice?.Source != "manual_three_anchor" ||
+            calibration.Anchors.Count != 3 || !double.IsFinite(calibration.Confidence) ||
+            calibration.Confidence is <= 0 or > 1 ||
+            calibration.Anchors.Any(static anchor => anchor.EvidenceRegionId is not null) ||
+            calibration.Anchors.Select(static anchor => anchor.Kind).Distinct().Count() != 3)
+        {
+            return false;
+        }
+
+        Dictionary<DomainCalibrationAnchorKind, DomainCalibrationAnchor> anchors = calibration.Anchors
+            .ToDictionary(static anchor => anchor.Kind);
+        if (!anchors.TryGetValue(DomainCalibrationAnchorKind.Session1Y0, out DomainCalibrationAnchor? y0) ||
+            !anchors.TryGetValue(DomainCalibrationAnchorKind.Session1Ymax, out DomainCalibrationAnchor? yMax) ||
+            !anchors.TryGetValue(DomainCalibrationAnchorKind.SessionmaxY0, out DomainCalibrationAnchor? xMax))
+        {
+            return false;
+        }
+
+        return double.IsFinite(y0.Screen.X) && double.IsFinite(y0.Screen.Y) &&
+            double.IsFinite(yMax.Screen.X) && double.IsFinite(yMax.Screen.Y) &&
+            double.IsFinite(xMax.Screen.X) && double.IsFinite(xMax.Screen.Y) &&
+            Math.Abs(y0.Screen.X - yMax.Screen.X) <= 2 &&
+            Math.Abs(y0.Screen.Y - xMax.Screen.Y) <= 2 &&
+            y0.Graph == new GraphReader.Domain.GraphPoint(1, 0) &&
+            yMax.Graph.X == 1 && double.IsFinite(yMax.Graph.Y) && yMax.Graph.Y > 0 &&
+            xMax.Graph.Y == 0 && double.IsFinite(xMax.Graph.X) && xMax.Graph.X > 1;
+    }
+
+    private static bool IsAnchorInsideImage(DomainCalibrationAnchor anchor, WorkflowImageEvidence image) =>
+        anchor.Screen.X >= 0 && anchor.Screen.X <= image.Width &&
+        anchor.Screen.Y >= 0 && anchor.Screen.Y <= image.Height;
+
     private static IEnumerable<ParsedTick> ParseTicks(
         OcrResult ocr, OcrTextRole role, List<string> confidenceWarnings)
     {
@@ -1355,6 +1525,12 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionWorkflowDetectionRequest request,
         SessionFirstCalibrationResult calibration)
     {
+        if (request.ManualCalibrationBinding is { } manualBinding &&
+            calibration.Lattice.Source == SessionLatticeSource.Manual)
+        {
+            return manualBinding.Calibration with { Reasons = calibration.Reasons };
+        }
+
         DomainCalibrationAnchor[] anchors = calibration.Anchors.Select(anchor =>
             new DomainCalibrationAnchor(
                 anchor.Kind switch

@@ -39,7 +39,7 @@ public sealed class WorkflowOrchestrator
             .ImportAsync(request.Import, cancellationToken)
             .ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        ValidateImportSnapshot(request.Import, imported);
+        ValidateImportSnapshot(request.Import, imported, request.ManualCalibrations);
         steps.Add(new WorkflowStepRecord(WorkflowStep.Import, timer.Elapsed, imported.Panels.Count));
 
         timer.Restart();
@@ -52,6 +52,19 @@ public sealed class WorkflowOrchestrator
                 .ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             ValidatePreparedPanel(panel, prepared, request.Import.EnhancementEnabled);
+            WorkflowManualCalibrationBinding? manualCalibration = request.ManualCalibrations
+                .SingleOrDefault(binding => binding.PanelId == panel.PanelId);
+            if (manualCalibration is not null)
+            {
+                prepared = new WorkflowPreparedPanel(
+                    prepared.ImportedPanel,
+                    prepared.Original,
+                    prepared.Enhanced,
+                    prepared.Warnings)
+                {
+                    ManualCalibrationBinding = manualCalibration,
+                };
+            }
             preparedPanels.Add(prepared);
         }
 
@@ -242,7 +255,8 @@ public sealed class WorkflowOrchestrator
 
     private static void ValidateImportSnapshot(
         WorkflowImportRequest request,
-        WorkflowImportSnapshot imported)
+        WorkflowImportSnapshot imported,
+        IReadOnlyList<WorkflowManualCalibrationBinding> manualCalibrations)
     {
         if (imported is null)
         {
@@ -274,6 +288,24 @@ public sealed class WorkflowOrchestrator
             string missingIds = string.Join(", ", missingSourceIds.Select(static sourceId => sourceId.ToString("D")));
             throw new InvalidOperationException(
                 $"The import stage returned no panels for requested source ID(s): {missingIds}.");
+        }
+
+        if (manualCalibrations.Select(static binding => binding.PanelId).Distinct().Count() !=
+            manualCalibrations.Count)
+        {
+            throw new InvalidOperationException("Manual calibration bindings must identify unique panels.");
+        }
+
+        foreach (WorkflowManualCalibrationBinding binding in manualCalibrations)
+        {
+            WorkflowImportedPanel? panel = imported.Panels.SingleOrDefault(candidate => candidate.PanelId == binding.PanelId);
+            if (binding.ProjectId != request.ProjectId || panel is null ||
+                panel.SourceId != binding.SourceId ||
+                !string.Equals(panel.Original.Sha256, binding.OriginalImageSha256, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "A confirmed manual calibration no longer matches its project, source, panel, or original image.");
+            }
         }
     }
 

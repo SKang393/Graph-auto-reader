@@ -4,6 +4,7 @@
 using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using System.Text;
+using GraphReader.Domain;
 using GraphReader.Export;
 
 namespace GraphReader.App.Integration.Workflow;
@@ -128,7 +129,19 @@ public sealed class WorkflowImportRequest
 public sealed record WorkflowRunRequest(
     Guid RunId,
     WorkflowImportRequest Import,
-    WorkflowConsensusOptions? ConsensusOptions = null);
+    WorkflowConsensusOptions? ConsensusOptions = null)
+{
+    // In-process, panel-bound user calibration input. This is deliberately not
+    // serialized into either frozen workflow or project-file contracts.
+    internal IReadOnlyList<WorkflowManualCalibrationBinding> ManualCalibrations { get; init; } = [];
+}
+
+internal sealed record WorkflowManualCalibrationBinding(
+    Guid ProjectId,
+    Guid SourceId,
+    Guid PanelId,
+    string OriginalImageSha256,
+    CalibrationRecord Calibration);
 
 public sealed class WorkflowImageEvidence
 {
@@ -276,6 +289,8 @@ public sealed class WorkflowPreparedPanel
     public WorkflowImageEvidence? Enhanced { get; }
 
     public IReadOnlyList<string> Warnings { get; }
+
+    internal WorkflowManualCalibrationBinding? ManualCalibrationBinding { get; init; }
 }
 
 public sealed class WorkflowDetectionCandidate
