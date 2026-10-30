@@ -35,6 +35,9 @@ V37_TRANSFORMS = ("identity", "horizontal", "vertical", "both")
 V37_BASE_ROWS = {"component": 35838, "family": 9053, "coverage": 42747,
                  "crowded": 182614, "crowded_mined_negative": 6366}
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
+# The registered source and its fixed schedule are checked by
+# _require_reviewed_schedule before any optimizer operation.
+REGISTERED_SOURCE_SCHEDULE_GATE_READY = True
 
 
 @dataclass(frozen=True)
