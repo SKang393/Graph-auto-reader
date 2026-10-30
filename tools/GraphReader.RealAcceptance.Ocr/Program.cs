@@ -31,6 +31,27 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "--audit-engauge-dev-labels")
+        {
+            try
+            {
+                if (args.Length != 2) { throw new ArgumentException("ENGAUGE_DEV_LABEL_AUDIT_ARGUMENTS_INVALID"); }
+                FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(args[1], CancellationToken.None);
+                EngaugeDevLabelAuditResult audit = EngaugeDevLabelAudit.Run(selector, CancellationToken.None);
+                Console.WriteLine(JsonSerializer.Serialize(audit, JsonOptions));
+                return audit.FailedProjects == 0 ? 0 : 1;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                Console.Error.WriteLine(JsonSerializer.Serialize(new
+                {
+                    status = "failed",
+                    error = "ENGAUGE_DEV_LABEL_AUDIT_FAILED",
+                    error_type = exception.GetType().Name,
+                }, JsonOptions));
+                return 1;
+            }
+        }
         if (args.Length > 0 && args[0] == "--describe-frozen-dev-training-selection")
         {
             try
@@ -112,6 +133,10 @@ internal static class Program
         if (args.Length == 1 && args[0] == "--self-test-frozen-dev-training-selector")
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(FrozenDevTrainingSelectorSelfTest.Run()));
+        }
+        if (args.Length == 1 && args[0] == "--self-test-engauge-dev-label-audit")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeDevLabelAuditSelfTest.Run()));
         }
         if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-executor")
         {

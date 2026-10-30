@@ -12,4 +12,8 @@ Do not train on the existing sealed projects or any study assigned to the sealed
 
 Inventory-derived counts, without quality approval: 171 parsable digitizer projects in 40 study folders, 3,055 non-axis points, and 513 axis points. Loose CSV and spreadsheet exports have not been reconciled to these points. Counts alone do not establish correspondence, labeling accuracy, source licensing for redistribution, or release eligibility.
 
+The maintainer says the participant graph images, digitizer projects, and spreadsheet or CSV exports correspond by name and target. Treat that as source context to verify, not proof that every exported row matches a particular project or that text boxes and transcriptions are labeled.
+
 The metadata-only training selector was run on the identified folder after this disclosure. It selected 120 development projects and validated the frozen assignment SHA-256 `decdac87c0c6d8ee8350b4e26bee2256c551ce20c518732f62fb6d990ea5850a`. It did not open project payloads, run inference, or start training. Source-image overlap with the sealed studies remains unverified.
+
+A subsequent aggregate-only audit opened those 120 selected development projects using the Engauge adapter. All 120 returned `DIG_XML_INVALID`; no anchors or points were admitted. A file-format inspection identified an Engauge doctype that the adapter currently rejects. Correcting that incompatibility does not establish that all other files will parse. The audit did not run a model or optimizer. Its metadata selector does not freeze payload bytes against concurrent replacement; a future training loader must bind and verify its actual source contents.
