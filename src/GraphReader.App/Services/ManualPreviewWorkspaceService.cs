@@ -4691,12 +4691,30 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     {
         if (!request.Session1Y0.IsFinite || !request.Session1YMaximum.IsFinite ||
             !request.SessionMaximumY0.IsFinite ||
+            !double.IsFinite(request.YMaximum) || !double.IsFinite(request.XMaximum) ||
             request.YMaximum <= 0 || request.XMaximum <= 1 ||
+            request.Session1Y0.X == request.SessionMaximumY0.X ||
+            request.Session1Y0.Y == request.Session1YMaximum.Y ||
             Math.Abs(request.Session1Y0.X - request.Session1YMaximum.X) > 2 ||
-            Math.Abs(request.Session1Y0.Y - request.SessionMaximumY0.Y) > 2)
+            Math.Abs(request.Session1Y0.Y - request.SessionMaximumY0.Y) > 2 ||
+            !HasFiniteInvertibleTransform(
+                request.Session1Y0.X, 1, request.SessionMaximumY0.X, request.XMaximum) ||
+            !HasFiniteInvertibleTransform(
+                request.Session1Y0.Y, 0, request.Session1YMaximum.Y, request.YMaximum))
         {
-            throw new ArgumentException("Manual calibration requires aligned (1,0), (1,yMax), and (xMax,0) anchors with positive maxima.", nameof(request));
+            throw new ArgumentException(
+                "Manual calibration requires finite positive maxima, aligned anchors, and distinct pixel spans for both axes.",
+                nameof(request));
         }
+    }
+
+    private static bool HasFiniteInvertibleTransform(double pixel1, double graph1, double pixel2, double graph2)
+    {
+        double slope = (graph2 - graph1) / (pixel2 - pixel1);
+        double intercept = graph1 - (slope * pixel1);
+        return double.IsFinite(slope) &&
+            double.IsFinite(intercept) &&
+            Math.Abs(slope) > 1e-12;
     }
 
     private static void EnsureFinitePoint(double x, double y)

@@ -24,3 +24,10 @@ Validation on October 30, 2026:
 
 The original unhandled exception also triggered Windows Error Reporting. Its
 system-managed crash report was written outside the project by Windows.
+
+The same review found that manual calibration accepted non-finite maxima and
+coincident anchors. Calibration now rejects those inputs and non-finite or
+non-invertible transforms before changing the workspace. Reversed axes remain
+supported. The focused regression verifies rejected requests preserve the
+previous calibration and audit, and the manual-preview, production-workflow,
+and multi-panel integration selection passed 42 tests in Release configuration.

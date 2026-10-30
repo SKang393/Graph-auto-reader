@@ -20,6 +20,71 @@ public sealed class ManualPreviewWorkflowSmokeTests
     private static readonly string[] ExpectedSemanticProbeCodes = ["g", "m"];
 
     [TestMethod]
+    public async Task ManualCalibrationRejectsNonFiniteAndDegenerateInputsWithoutMutatingAcceptedState()
+    {
+        using var environment = new IntegrationSmokeTestEnvironment();
+        string imagePath = environment.PathFor("calibration-validation.png");
+        WriteImage(imagePath, 100, 100);
+        var workspace = new ManualPreviewWorkspaceService();
+        GraphReader.App.ViewModels.WorkspaceTabViewModel tab =
+            (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        Calibrate(workspace, tab.TabId);
+
+        GraphReader.App.Models.ManualCalibrationState accepted = tab.Calibration!;
+        PanelRecord acceptedPanel = workspace.CurrentProject.Panels.Single();
+        int acceptedAuditCount = workspace.CurrentProject.Audit.Events.Count;
+        ManualCalibrationRequest valid = new(
+            new GraphReader.Axis.PixelPoint(10, 90),
+            new GraphReader.Axis.PixelPoint(10, 10),
+            new GraphReader.Axis.PixelPoint(90, 90),
+            YMaximum: 100,
+            XMaximum: 9);
+        ManualCalibrationRequest[] invalid =
+        [
+            valid with { YMaximum = double.NaN },
+            valid with { YMaximum = double.PositiveInfinity },
+            valid with { XMaximum = double.NaN },
+            valid with { XMaximum = double.NegativeInfinity },
+            valid with { Session1YMaximum = valid.Session1Y0 },
+            valid with { SessionMaximumY0 = valid.Session1Y0 },
+            valid with
+            {
+                SessionMaximumY0 = new GraphReader.Axis.PixelPoint(10.5, 90),
+                XMaximum = double.MaxValue,
+            },
+            valid with
+            {
+                Session1Y0 = new GraphReader.Axis.PixelPoint(10, 0),
+                Session1YMaximum = new GraphReader.Axis.PixelPoint(10, double.Epsilon),
+                SessionMaximumY0 = new GraphReader.Axis.PixelPoint(90, 0),
+                YMaximum = double.MaxValue,
+            },
+            valid with
+            {
+                SessionMaximumY0 = new GraphReader.Axis.PixelPoint(1e15, 90),
+            },
+        ];
+
+        foreach (ManualCalibrationRequest request in invalid)
+        {
+            Assert.ThrowsExactly<ArgumentException>(() => workspace.Calibrate(tab.TabId, request));
+            Assert.AreSame(accepted, tab.Calibration);
+            Assert.AreSame(acceptedPanel, workspace.CurrentProject.Panels.Single());
+            Assert.AreEqual(acceptedAuditCount, workspace.CurrentProject.Audit.Events.Count);
+        }
+
+        GraphReader.App.Models.ManualCalibrationState reversed = workspace.Calibrate(
+            tab.TabId,
+            valid with
+            {
+                Session1YMaximum = new GraphReader.Axis.PixelPoint(10, 95),
+                SessionMaximumY0 = new GraphReader.Axis.PixelPoint(5, 90),
+            });
+        Assert.IsTrue(double.IsFinite(reversed.XTransform.Slope));
+        Assert.IsTrue(double.IsFinite(reversed.YTransform.Slope));
+    }
+
+    [TestMethod]
     public void ViewModelAuthorsValidatedExportRelationships()
     {
         Exception? failure = null;
