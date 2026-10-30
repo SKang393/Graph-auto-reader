@@ -1,0 +1,31 @@
+{
+  "status": "candidate_1_preregistered_exploratory",
+  "task": "marker-center",
+  "revision": "marker-center-dual-scale-context-v1",
+  "candidate_id": "P1",
+  "hypothesis": "Wider original raster context can improve confidence when a local 33-pixel crop omits nearby marker strokes. Crowded context may also harm accuracy.",
+  "input": "Three independently authenticated diagnostic runtime channels: original Gray8 ink, OCR mask and composed artifact mask. The v3 binding states training_input_ready=true and complete_artifact_mask=false, while its underlying diagnostic reports state training_input_ready=false and complete_artifact_mask=false. This is an exploratory experiment, not an approved or representative product training input. Fixed 65-pixel padded crop centered on each existing proposal. The central 33 pixels feed frozen V37. Annotation supplies labels only, never feature channels.",
+  "train_only_binding": {
+    "runtime_binding_sha256": "bcf821a2aaadc5ee8e18bd97dbe0488d120d2ac974a249c00d76b6cfccf0d98a",
+    "train_scene_archive_sha256": "7dd135db142003b9f40a9b99ecd5f834a67bb3c2c7f103b816622ea3c138b8a2",
+    "selected_proposals_sha256": "d31a25f48170a375fae22f196344d1c8fc85d2297ddc3394c8303d08d34a246b",
+    "family_selected_cache_sha256": "662ea1e06189360ed6db4e1824ee5c6871d0d0f14009f08293dbc9da07e7c695",
+    "train_sources": 20,
+    "train_panels": 28,
+    "selected_rows": 9053,
+    "development_source_identity_only": "Compare 20 training image hashes with 3 family development image hashes and require no intersection; no development pixels or labels are used for fitting. No source-identity disjointness proof has been established for the historical component benchmark.",
+    "synthetic_component_masks": "excluded from optimization"
+  },
+  "augmentation": "Exactly identity, horizontal reflection, vertical reflection and both reflections of all 9053 context crops. All planes reflect together; labels remain unchanged. Shuffle with a fixed CPU RNG, train model and optimizer exclusively on GPU.",
+  "model": "Freeze the complete V37 local model and its normalization state. Add a 6449-parameter zero-output-initialized 65px convolutional residual to the local confidence logit. Freeze geometry, NMS, thresholds, and final-epoch selection.",
+  "evaluation": "Replay complete unchanged component and family development populations at fixed operating threshold 0.1, with existing crop identity, coordinates, postprocessing, acceptance bars, ONNX parity, and historical V27 reproduction. Compare frozen V37 and candidate on identical inputs. Synthetic component masks occur only in the unchanged benchmark, never in optimization; family benchmark uses runtime planes. No development selection, private or sealed read, release or product activation.",
+  "limitations": [
+    "The optimization set uses only 20 family source images instead of the V37 union of 276618 training rows. This confounds architecture with population and cannot establish a context-only improvement.",
+    "The diagnostic runtime reports explicitly mark artifact masks incomplete and training_input_ready false. This candidate cannot establish performance with validated representative production masks.",
+    "Random seeds fix the data order and initialization, but deterministic ROCm algorithms are not enforced. Hardware, runtime, and driver versions must be recorded; bitwise reproducibility is not guaranteed.",
+    "The unchanged component evaluation includes historical masks whose generation used marker coordinates; it is a regression benchmark, not evidence of representative runtime masks.",
+    "Only family-versus-family source disjointness has been established; component development is a historical regression benchmark, not a verified independent holdout for this experiment.",
+    "The runtime product adapter currently accepts 33-pixel input; a successful 65-pixel model needs separate product adapter implementation and validation."
+  ],
+  "preregistration": "One exploratory candidate is preregistered in the canonical ledger. The lead must commit and verify all source, configuration, data and ledger bindings before any optimizer step. This authorization excludes private or sealed reads, product activation, promotion, and release. The candidate checks for cancellation between optimizer batches and voids an incomplete attempt."
+}

@@ -1,0 +1,27 @@
+{
+  "status": "preregistered_reference_not_canonical",
+  "execution_condition": "Lead must commit and verify the complete source and canonical ledger bindings before any optimizer step.",
+  "candidate": {
+    "task": "marker-center",
+    "revision": "marker-center-dual-scale-context-v1",
+    "authorized_candidate_id": "P1",
+    "preregistered_candidate_ids": ["P1"],
+    "consumed_candidate_ids": [],
+    "experiment_budget": 1,
+    "candidate_config_paths": {"P1": "ml/markers/center/dual_scale_context_v1/p1.json"},
+    "candidate_config_sha256": {"P1": "646588a2c1c6c4bc1b31a061bda90403347756745090a1b55fddd328dec7504b"},
+    "protocol_path": "ml/markers/center/dual_scale_context_v1/protocol.json",
+    "protocol_sha256": "ee6422e17a4823bfee70d9f9e27971cb253dccbb683c56a5da00fe298ab16352",
+    "runner_source_bundle_sha256": "32a5be1eccaa13fca814784d737c18f90a2145815a5cfac14e03d78748e64b7c",
+    "optimizer_steps_expected": 2264,
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "budget_consumption_event": "first_sealed_split_read",
+    "sealed_runs_authorized": 0,
+    "execution_authorized": true
+  },
+  "admission_requirements": [
+    "Independent review covered implementation, train-only data bindings, GPU-only optimizer enforcement, development evaluation, and the population confound.",
+    "The canonical ledger is authoritative. Lead verification of committed source and ledger bindings is required before execution.",
+    "No private or sealed reads, deployment, product activation, promotion, or release are authorized."
+  ]
+}

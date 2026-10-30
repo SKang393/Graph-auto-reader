@@ -11244,6 +11244,38 @@
       "candidate_report_sha256": "33429cbbf6904a6223f763cfe6d5e99c815cd08ecb87dada4dc1d82ca7548464",
       "optimizer_steps": 69184,
       "closed_utc_date": "2026-10-29"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-dual-scale-context-v1",
+      "status": "candidate_1_preregistered",
+      "execution_authorized": true,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": ["P1"],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/markers/center/dual_scale_context_v1/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "646588a2c1c6c4bc1b31a061bda90403347756745090a1b55fddd328dec7504b"
+      },
+      "protocol_path": "ml/markers/center/dual_scale_context_v1/protocol.json",
+      "protocol_sha256": "ee6422e17a4823bfee70d9f9e27971cb253dccbb683c56a5da00fe298ab16352",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One exploratory synthetic family-only train/development trial. No private or sealed reads, product activation, promotion, or release. The diagnostic artifact masks are incomplete and not validated as representative product inputs.",
+      "isolated_change": "Freeze the V37 local model and geometry, add one zero-initialized 65px context confidence branch, and train it on four fixed reflections of 9053 selected rows from 28 runtime-bound family training panels across 20 sources. This differs from the V37 training population and does not isolate architecture effects. The three family validation sources are disjoint; component development is a historical regression benchmark with no proven source disjointness.",
+      "optimizer_steps_expected": 2264,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "training_device": "RX 6600 XT gfx1032 cuda:0",
+      "release_eligible": false
     }
   ]
 }
