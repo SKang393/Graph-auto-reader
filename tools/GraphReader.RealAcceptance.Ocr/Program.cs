@@ -74,9 +74,11 @@ internal static class Program
                     "ENGAUGE_PROPOSAL_PREPARATION_GROUP_FAILED" => exception.Message,
                     _ => "ENGAUGE_PROPOSAL_AUDIT_FAILED",
                 };
+                string? modelError = (exception.InnerException as ProductionModelValidationException)?.Code;
                 Console.Error.WriteLine(JsonSerializer.Serialize(
                     new { status = "failed", error = code,
-                        cause_type = exception.InnerException?.GetType().Name ?? exception.GetType().Name }, JsonOptions));
+                        cause_type = exception.InnerException?.GetType().Name ?? exception.GetType().Name,
+                        model_error = modelError }, JsonOptions));
                 return 1;
             }
         }
@@ -227,6 +229,10 @@ internal static class Program
         if (args.Length == 1 && args[0] == "--self-test-engauge-dev-proposal-preparation")
         {
             return await RunEngaugeSelfTestAsync(EngaugeDevProposalPreparationSelfTest.RunAsync);
+        }
+        if (args.Length == 1 && args[0] == "--self-test-engauge-dev-proposal-archive")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeDevProposalArchiveSelfTest.Run()));
         }
         if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-executor")
         {
