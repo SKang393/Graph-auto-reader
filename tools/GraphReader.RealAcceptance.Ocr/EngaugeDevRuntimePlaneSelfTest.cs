@@ -43,6 +43,25 @@ internal static partial class EngaugeDevRuntimePlaneBridge
         gray[0] = 0; ocr[1] = 0; artifact[2] = 0;
         Require(result.Gray.Span[0] == 0.5f && result.Ocr.Span[1] == 1 && result.Artifact.Span[2] == 0.75f,
             "copied_planes");
+        float[] seedArtifact = new float[width * height];
+        float[] residualArtifact = new float[width * height];
+        seedArtifact[2] = 0.5f;
+        residualArtifact[2] = 0.75f;
+        Task<ProductionCandidateMarkerFrameBundle> BundleFake(ProductionWorkflowDetectionRequest request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            return Task.FromResult(new ProductionCandidateMarkerFrameBundle(
+                new MarkerImageFrame(width, height, 1, Enumerable.Repeat(0.5f, width * height).ToArray(),
+                    MarkerSourceImage.Original, MarkerAffineTransform.Identity,
+                    new MarkerMask(width, height, new float[width * height]),
+                    new MarkerMask(width, height, residualArtifact)),
+                new MarkerMask(width, height, seedArtifact), new MarkerMask(width, height, residualArtifact)));
+        }
+        EngaugeDevRuntimePlanes provenance = await PrepareBundleCoreAsync(
+            valid, new ProductionWorkflowPanelStore(), BundleFake, CancellationToken.None);
+        Require(provenance.HasArtifactProvenance && provenance.ArtifactSeed.Span[2] == 0.5f &&
+            provenance.ResidualArtifact.Span[2] == 0.75f && provenance.Artifact.Span[2] == 0.75f,
+            "artifact_provenance_preserved");
         await ExpectFailure(Group(EngaugeDevStudyPartition.Development, hash, width, height, new EngaugePositiveCenter(1, 1)), Fake,
             "ENGAUGE_RUNTIME_TRAIN_PARTITION_REQUIRED");
         await ExpectFailure(Group(EngaugeDevStudyPartition.Train, new string('0', 64), width, height, new EngaugePositiveCenter(1, 1)), Fake,

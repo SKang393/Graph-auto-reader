@@ -227,6 +227,8 @@ public sealed class ProductionDetectionMaskEvidence
 {
     private readonly float[] ocrMask;
     private readonly float[] artifactMask;
+    private readonly float[]? artifactSeedMask;
+    private readonly float[]? residualArtifactMask;
 
     internal ProductionDetectionMaskEvidence(
         int width,
@@ -237,7 +239,9 @@ public sealed class ProductionDetectionMaskEvidence
         WorkflowVisionEnvelope artifactEnvelope,
         float[] ocrMask,
         float[] artifactMask,
-        IEnumerable<string> warnings)
+        IEnumerable<string> warnings,
+        float[]? artifactSeedMask = null,
+        float[]? residualArtifactMask = null)
     {
         Width = width;
         Height = height;
@@ -247,6 +251,19 @@ public sealed class ProductionDetectionMaskEvidence
         ArtifactEnvelope = artifactEnvelope ?? throw new ArgumentNullException(nameof(artifactEnvelope));
         this.ocrMask = ocrMask;
         this.artifactMask = artifactMask;
+        if ((artifactSeedMask is null) != (residualArtifactMask is null))
+        {
+            throw new ArgumentException("Artifact provenance requires both seed and residual planes.");
+        }
+        this.artifactSeedMask = artifactSeedMask is null ? null : (float[])artifactSeedMask.Clone();
+        this.residualArtifactMask = residualArtifactMask is null ? null : (float[])residualArtifactMask.Clone();
+        if (this.artifactSeedMask is not null &&
+            (this.artifactSeedMask.Length != artifactMask.Length || this.residualArtifactMask!.Length != artifactMask.Length ||
+             this.artifactSeedMask.AsSpan().ContainsAnyExceptInRange(0f, 1f) ||
+             this.residualArtifactMask.AsSpan().ContainsAnyExceptInRange(0f, 1f)))
+        {
+            throw new ArgumentException("Artifact provenance planes must be normalized and match mask dimensions.");
+        }
         Warnings = Array.AsReadOnly(warnings.ToArray());
         OcrMaskedPixelCount = this.ocrMask.Count(static value => value >= 1);
         ArtifactMaskedPixelCount = this.artifactMask.Count(static value => value >= 1);
@@ -275,6 +292,19 @@ public sealed class ProductionDetectionMaskEvidence
 
     public MarkerMask CopyArtifactMask() =>
         new(Width, Height, (float[])artifactMask.Clone());
+
+    internal bool HasArtifactProvenance => artifactSeedMask is not null;
+
+    // Candidate-only diagnostics can retain these immutable copies in memory.
+    // A normal production composition has no provenance planes and must not
+    // fabricate attribution from its merged mask.
+    internal MarkerMask CopyArtifactSeedMask() =>
+        new(Width, Height, (float[])(artifactSeedMask ?? throw new InvalidOperationException(
+            "Artifact seed provenance is unavailable for this composition.")).Clone());
+
+    internal MarkerMask CopyResidualArtifactMask() =>
+        new(Width, Height, (float[])(residualArtifactMask ?? throw new InvalidOperationException(
+            "Residual artifact provenance is unavailable for this composition.")).Clone());
 
     public MarkerImageFrame CreateMarkerFrame(ProductionDecodedRaster raster)
     {
@@ -466,6 +496,7 @@ public sealed class ProductionDetectionMaskComposer :
         float[] ocrMask = seed.OcrMaskValues.ToArray();
         ReadOnlySpan<float> seededArtifactMask = seed.ArtifactMaskValues.Span;
         float[] artifactMask = artifactEvidence.MaskValues.ToArray();
+        float[]? residualArtifactMask = localCandidate ? (float[])artifactMask.Clone() : null;
         for (int index = 0; index < artifactMask.Length; index++)
         {
             if ((index & 0x3fff) == 0)
@@ -493,7 +524,9 @@ public sealed class ProductionDetectionMaskComposer :
                 localCandidate
                     ? "artifact_mask_scope:unapproved_candidate_plus_axis_ticks_dividers_ambiguous"
                     : "artifact_mask_scope:approved_provider_plus_axis_ticks_dividers_ambiguous",
-            ]));
+            ]),
+            localCandidate ? seed.ArtifactMaskValues.ToArray() : null,
+            residualArtifactMask);
     }
 
     private static ProductionDetectionMaskSeed BuildSeedMasks(

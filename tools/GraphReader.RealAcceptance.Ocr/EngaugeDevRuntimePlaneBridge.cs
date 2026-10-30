@@ -15,6 +15,10 @@ internal sealed class EngaugeDevRuntimePlanes
 {
     internal EngaugeDevRuntimePlanes(string imageSha256, int width, int height, float[] gray, float[] ocr, float[] artifact,
         IReadOnlyList<EngaugePositiveCenter> positiveCenters)
+        : this(imageSha256, width, height, gray, ocr, artifact, positiveCenters, null, null) { }
+
+    internal EngaugeDevRuntimePlanes(string imageSha256, int width, int height, float[] gray, float[] ocr, float[] artifact,
+        IReadOnlyList<EngaugePositiveCenter> positiveCenters, float[]? artifactSeed, float[]? residualArtifact)
     {
         ImageSha256 = imageSha256;
         Width = width;
@@ -22,6 +26,9 @@ internal sealed class EngaugeDevRuntimePlanes
         Gray = gray;
         Ocr = ocr;
         Artifact = artifact;
+        ArtifactSeed = artifactSeed is null ? ReadOnlyMemory<float>.Empty : artifactSeed;
+        ResidualArtifact = residualArtifact is null ? ReadOnlyMemory<float>.Empty : residualArtifact;
+        HasArtifactProvenance = artifactSeed is not null && residualArtifact is not null;
         PositiveCenters = Array.AsReadOnly(positiveCenters.ToArray());
         LabelsQualityApproved = false;
         SealedSourceOverlapVerified = false;
@@ -34,6 +41,9 @@ internal sealed class EngaugeDevRuntimePlanes
     internal ReadOnlyMemory<float> Gray { get; }
     internal ReadOnlyMemory<float> Ocr { get; }
     internal ReadOnlyMemory<float> Artifact { get; }
+    internal ReadOnlyMemory<float> ArtifactSeed { get; }
+    internal ReadOnlyMemory<float> ResidualArtifact { get; }
+    internal bool HasArtifactProvenance { get; }
     internal IReadOnlyList<EngaugePositiveCenter> PositiveCenters { get; }
     internal bool LabelsQualityApproved { get; }
     internal bool SealedSourceOverlapVerified { get; }
@@ -47,8 +57,8 @@ internal static partial class EngaugeDevRuntimePlaneBridge
         EngaugeDevImageGroup group, FrozenCandidateWorkflowRuntime runtime, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(runtime);
-        return PrepareCoreAsync(group, runtime.PanelStore,
-            runtime.Adapter.PrepareMarkerFrameForCandidateEvaluationAsync, token);
+        return PrepareBundleCoreAsync(group, runtime.PanelStore,
+            runtime.Adapter.PrepareMarkerFrameBundleForCandidateEvaluationAsync, token);
     }
 
     private static async Task<EngaugeDevRuntimePlanes> PrepareCoreAsync(
@@ -70,12 +80,45 @@ internal static partial class EngaugeDevRuntimePlaneBridge
         var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(panel, image, null), image,
             WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
         MarkerImageFrame frame = await prepare(request, token).ConfigureAwait(false);
+        return Complete(group, store, request, bytes, frame, null, null, token);
+    }
+
+    private static async Task<EngaugeDevRuntimePlanes> PrepareBundleCoreAsync(
+        EngaugeDevImageGroup group, ProductionWorkflowPanelStore store,
+        Func<ProductionWorkflowDetectionRequest, CancellationToken, Task<ProductionCandidateMarkerFrameBundle>> prepare,
+        CancellationToken token)
+    {
+        ArgumentNullException.ThrowIfNull(group);
+        ArgumentNullException.ThrowIfNull(prepare);
+        token.ThrowIfCancellationRequested();
+        if (group.Partition != EngaugeDevStudyPartition.Train)
+            throw new InvalidDataException("ENGAUGE_RUNTIME_TRAIN_PARTITION_REQUIRED");
+        byte[] bytes = group.CopyImageBytes();
+        ValidateSource(group, bytes);
+        var image = new WorkflowImageEvidence("memory:engauge.png", group.ImageSha256,
+            group.Width, group.Height, WorkflowImageVariant.Original);
+        var panel = new WorkflowImportedPanel(Guid.NewGuid(), Guid.NewGuid(), "engauge.png", image);
+        store.Register(new ProductionPanelEvidence(panel, WorkflowSourceKind.Image, bytes));
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(panel, image, null), image,
+            WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+        ProductionCandidateMarkerFrameBundle bundle = await prepare(request, token).ConfigureAwait(false);
+        if (bundle is null)
+            throw new InvalidDataException("ENGAUGE_RUNTIME_FRAME_MISMATCH");
+        return Complete(group, store, request, bytes, bundle.Frame, bundle.ArtifactSeedMask.Values.ToArray(),
+            bundle.ResidualArtifactMask.Values.ToArray(), token);
+    }
+
+    private static EngaugeDevRuntimePlanes Complete(
+        EngaugeDevImageGroup group, ProductionWorkflowPanelStore store, ProductionWorkflowDetectionRequest request,
+        byte[] bytes, MarkerImageFrame frame, float[]? artifactSeed, float[]? residualArtifact, CancellationToken token)
+    {
         token.ThrowIfCancellationRequested();
         ValidateSource(group, group.CopyImageBytes());
         if (!request.CopyImageBytes().AsSpan().SequenceEqual(bytes) ||
-            !store.Get(panel.PanelId).CopyOriginalBytes().AsSpan().SequenceEqual(bytes) ||
-            request.ImageVariant != WorkflowImageVariant.Original || request.Image != image ||
-            request.Panel.ImportedPanel != panel)
+            !store.Get(request.Panel.ImportedPanel.PanelId).CopyOriginalBytes().AsSpan().SequenceEqual(bytes) ||
+            request.ImageVariant != WorkflowImageVariant.Original ||
+            request.Panel.Original != request.Image ||
+            !string.Equals(request.Image.Sha256, group.ImageSha256, StringComparison.Ordinal))
             throw new InvalidDataException("ENGAUGE_RUNTIME_REQUEST_CHANGED");
         if (frame is null || frame.Width != group.Width || frame.Height != group.Height ||
             frame.ChannelCount != 1 || frame.SourceImage != MarkerSourceImage.Original ||
@@ -88,7 +131,20 @@ internal static partial class EngaugeDevRuntimePlaneBridge
         float[] gray = ValidatePlane(frame.ChannelsFirstPixels, length);
         float[] ocr = ValidatePlane(frame.OcrMask.Values, length);
         float[] artifact = ValidatePlane(frame.ArtifactMask.Values, length);
-        return new EngaugeDevRuntimePlanes(group.ImageSha256, group.Width, group.Height, gray, ocr, artifact, group.PositiveCenters);
+        if ((artifactSeed is null) != (residualArtifact is null))
+            throw new InvalidDataException("ENGAUGE_RUNTIME_ARTIFACT_PROVENANCE_MISMATCH");
+        if (artifactSeed is not null && residualArtifact is not null)
+        {
+            artifactSeed = ValidatePlane(artifactSeed, length);
+            residualArtifact = ValidatePlane(residualArtifact, length);
+            for (int index = 0; index < length; index++)
+            {
+                if (artifact[index] != Math.Max(artifactSeed[index], residualArtifact[index]))
+                    throw new InvalidDataException("ENGAUGE_RUNTIME_ARTIFACT_PROVENANCE_MISMATCH");
+            }
+        }
+        return new EngaugeDevRuntimePlanes(group.ImageSha256, group.Width, group.Height, gray, ocr, artifact,
+            group.PositiveCenters, artifactSeed, residualArtifact);
     }
 
     private static void ValidateSource(EngaugeDevImageGroup group, byte[] bytes)

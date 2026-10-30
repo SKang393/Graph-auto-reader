@@ -26,8 +26,11 @@ internal static class EngaugeDevProposalPreparationSelfTest
                 prepared++;
                 Require(group.Partition == EngaugeDevStudyPartition.Train, "development_group_was_prepared");
                 int length = checked(group.Width * group.Height);
+                var artifactSeed = new float[length];
+                var residualArtifact = new float[length];
                 return Task.FromResult(new EngaugeDevRuntimePlanes(group.ImageSha256, group.Width, group.Height,
-                    Enumerable.Repeat(0.5f, length).ToArray(), new float[length], new float[length], group.PositiveCenters));
+                    Enumerable.Repeat(0.5f, length).ToArray(), new float[length], new float[length],
+                    group.PositiveCenters, artifactSeed, residualArtifact));
             }, (batch, token) =>
             {
                 consumed++;

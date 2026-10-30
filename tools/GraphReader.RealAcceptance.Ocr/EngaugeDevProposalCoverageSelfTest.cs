@@ -12,21 +12,25 @@ internal static class EngaugeDevProposalCoverageSelfTest
     {
         var audit = new EngaugeDevProposalCoverageAccumulator();
         static void Add(EngaugeDevProposalCoverageAccumulator target, byte id, int width, int height,
-            EngaugePositiveCenter center, float luminance, float[]? text = null, float[]? artifact = null)
+            EngaugePositiveCenter center, float luminance, float[]? text = null, float[]? artifactSeed = null,
+            float[]? residualArtifact = null)
         {
             byte[] image = [id];
             string hash = Convert.ToHexStringLower(SHA256.HashData(image));
             EngaugePositiveCenter[] labels = [center];
             var group = new EngaugeDevImageGroup(EngaugeDevStudyPartition.Train, hash, width, height, image, labels, []);
+            artifactSeed ??= new float[width * height];
+            residualArtifact ??= new float[width * height];
+            float[] artifact = artifactSeed.Zip(residualArtifact, Math.Max).ToArray();
             var planes = new EngaugeDevRuntimePlanes(hash, width, height,
-                Enumerable.Repeat(luminance, width * height).ToArray(),
-                text ?? new float[width * height], artifact ?? new float[width * height], labels);
+                Enumerable.Repeat(luminance, width * height).ToArray(), text ?? new float[width * height], artifact,
+                labels, artifactSeed, residualArtifact);
             target.Add(planes, group, CancellationToken.None);
         }
         Add(audit, 1, 4, 4, new(0, 0), 0);
         Add(audit, 2, 4, 4, new(3.9, 3.9), 0);
         Add(audit, 3, 4, 4, new(0, 0), 0, text: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-        Add(audit, 4, 4, 4, new(0, 0), 0, artifact: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        Add(audit, 4, 4, 4, new(0, 0), 0, artifactSeed: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
         Add(audit, 5, 4, 4, new(0, 0), 1);
         float[] splitText = new float[32], splitArtifact = new float[32];
         splitText[0] = 1; splitArtifact[4] = 1;
@@ -37,6 +41,11 @@ internal static class EngaugeDevProposalCoverageSelfTest
         float[] aboveThreshold = new float[16];
         aboveThreshold[0] = MathF.BitIncrement(0.35f);
         Add(audit, 8, 4, 4, new(0, 0), 0, aboveThreshold);
+        Add(audit, 9, 4, 4, new(0, 0), 0,
+            residualArtifact: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+        Add(audit, 10, 4, 4, new(0, 0), 0,
+            artifactSeed: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            residualArtifact: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
         try { Add(audit, 8, 4, 4, new(0, 0), 0, aboveThreshold); }
         catch (InvalidDataException error) when (error.Message == "ENGAUGE_COVERAGE_DUPLICATE_IMAGE") { goto duplicateRejected; }
         throw new InvalidOperationException("ENGAUGE_COVERAGE_TEST_DUPLICATE_NOT_REJECTED");
@@ -56,8 +65,10 @@ internal static class EngaugeDevProposalCoverageSelfTest
         if (canceledAudit.Finish().CenterCount != 0)
             throw new InvalidOperationException("ENGAUGE_COVERAGE_TEST_PARTIAL_COMMIT");
         EngaugeDevProposalCoverageCounts result = audit.Finish();
-        if (result.CenterCount != 8 || result.Matched != 2 || result.NoNearbyGrid != 1 || result.TextOnly != 2 ||
-            result.ArtifactOnly != 1 || result.MissingInkOnly != 1 || result.Mixed != 1 || result.Unmatched != 6)
+        if (result.CenterCount != 10 || result.Matched != 2 || result.NoNearbyGrid != 1 || result.TextOnly != 2 ||
+            result.ArtifactOnly != 3 || result.MissingInkOnly != 1 || result.Mixed != 1 || result.Unmatched != 8 ||
+            result.GeometrySeedArtifactOnly != 1 || result.ResidualArtifactOnly != 1 || result.BothArtifactOnly != 1 ||
+            result.ArtifactOnlyProvenanceTotal != result.ArtifactOnly)
             throw new InvalidOperationException("ENGAUGE_COVERAGE_TEST_COUNTS");
         return new { status = "pass", scope = "synthetic-in-memory-only", private_payload_reads = 0,
             sealed_payload_reads = 0, model_runs = 0, optimizer_steps = 0 };

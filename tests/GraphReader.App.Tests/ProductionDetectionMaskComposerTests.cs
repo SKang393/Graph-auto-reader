@@ -48,6 +48,39 @@ public sealed class ProductionDetectionMaskComposerTests
     }
 
     [TestMethod]
+    public async Task CandidateDiagnosticsPreserveExactSeedResidualAndMergedArtifactPlanes()
+    {
+        TestInputs inputs = CreateInputs();
+        ProductionOcrEvidence candidateOcr = WithScope(inputs.OcrEvidence, approved: false);
+        ProductionDetectionMaskSeed seed = ProductionDetectionMaskComposer.BuildSeedForLocalSyntheticCandidateEvaluation(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, candidateOcr, CancellationToken.None);
+        var composer = new ProductionDetectionMaskComposer(new DeterministicArtifactFixture(inputs, "unapproved"));
+
+        ProductionDetectionMaskEvidence result = await composer.ComposeForLocalSyntheticCandidateEvaluationAsync(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, candidateOcr, CancellationToken.None);
+        float[] expectedSeed = seed.CopyArtifactMask().Values.ToArray();
+        float[] residual = result.CopyResidualArtifactMask().Values.ToArray();
+        float[] merged = result.CopyArtifactMask().Values.ToArray();
+        CollectionAssert.AreEqual(expectedSeed, result.CopyArtifactSeedMask().Values.ToArray());
+        Assert.AreEqual(1f, residual[20 * inputs.Raster.Width + 20]);
+        for (int index = 0; index < merged.Length; index++)
+            Assert.AreEqual(Math.Max(expectedSeed[index], residual[index]), merged[index]);
+    }
+
+    [TestMethod]
+    public async Task NormalCompositionDoesNotFabricateArtifactProvenance()
+    {
+        TestInputs inputs = CreateInputs();
+        var composer = new ProductionDetectionMaskComposer(new DeterministicArtifactFixture(inputs, "valid"));
+        ProductionDetectionMaskEvidence result = await composer.ComposeAsync(
+            inputs.Request, inputs.Raster, inputs.AxisEvidence, inputs.OcrEvidence, CancellationToken.None);
+
+        Assert.IsFalse(result.HasArtifactProvenance);
+        Assert.ThrowsExactly<InvalidOperationException>(() => result.CopyArtifactSeedMask());
+        Assert.ThrowsExactly<InvalidOperationException>(() => result.CopyResidualArtifactMask());
+    }
+
+    [TestMethod]
     public void LocalSyntheticSeedRejectsChangedRasterIdentity()
     {
         TestInputs inputs = CreateInputs();
@@ -602,7 +635,7 @@ public sealed class ProductionDetectionMaskComposerTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             Assert.AreSame(inputs.AxisEvidence, axisEvidence);
-            Assert.AreSame(inputs.OcrEvidence.ModelEvidence, ocrModelEvidence);
+            CollectionAssert.AreEqual(inputs.OcrEvidence.ModelEvidence.ToArray(), ocrModelEvidence.ToArray());
             Assert.AreSame(inputs.OcrEvidence.Result, ocrResult);
             WasInvoked = true;
             var algorithm = new ProductionArtifactAlgorithmEvidence(

@@ -29,6 +29,30 @@ using PhaseNormalizedType = GraphReader.Phases.PhaseNormalizedType;
 
 namespace GraphReader.App.Integration.Workflow;
 
+// Internal candidate-only result. It intentionally has no case identity,
+// persistence surface, or production approval meaning.
+internal sealed class ProductionCandidateMarkerFrameBundle
+{
+    internal ProductionCandidateMarkerFrameBundle(
+        MarkerImageFrame frame,
+        MarkerMask artifactSeedMask,
+        MarkerMask residualArtifactMask)
+    {
+        Frame = frame ?? throw new ArgumentNullException(nameof(frame));
+        ArtifactSeedMask = artifactSeedMask ?? throw new ArgumentNullException(nameof(artifactSeedMask));
+        ResidualArtifactMask = residualArtifactMask ?? throw new ArgumentNullException(nameof(residualArtifactMask));
+        if (ArtifactSeedMask.Width != Frame.Width || ArtifactSeedMask.Height != Frame.Height ||
+            ResidualArtifactMask.Width != Frame.Width || ResidualArtifactMask.Height != Frame.Height)
+        {
+            throw new ArgumentException("Artifact provenance masks must match the candidate frame dimensions.");
+        }
+    }
+
+    internal MarkerImageFrame Frame { get; }
+    internal MarkerMask ArtifactSeedMask { get; }
+    internal MarkerMask ResidualArtifactMask { get; }
+}
+
 /// <summary>
 /// Executes the approved original-image production chain and materializes the
 /// exact review and export projection consumed by the WPF workspace. The
@@ -196,6 +220,30 @@ public sealed class ProductionAutomaticDetectionAdapter :
             var prepared = await PrepareMarkerInputsAsync(request, candidateEvaluation: true, chain, cancellationToken)
                 .ConfigureAwait(false);
             return prepared.Masks.CreateMarkerFrame(prepared.Raster);
+        }
+        catch (ProductionWorkflowStageException exception)
+        {
+            throw RetainEvidence(chain, exception);
+        }
+    }
+
+    // Candidate-only pre-marker diagnostics. The bundle exposes the two planes
+    // already composed into the frame's artifact mask, without changing the
+    // production path or allowing marker-center execution.
+    internal async Task<ProductionCandidateMarkerFrameBundle> PrepareMarkerFrameBundleForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request, CancellationToken cancellationToken)
+    {
+        ValidateCandidateRequest(request, cancellationToken);
+        ValidateOriginalImage(request);
+        var chain = new ProductionDetectionEvidenceChain(request);
+        try
+        {
+            var prepared = await PrepareMarkerInputsAsync(request, candidateEvaluation: true, chain, cancellationToken)
+                .ConfigureAwait(false);
+            return new ProductionCandidateMarkerFrameBundle(
+                prepared.Masks.CreateMarkerFrame(prepared.Raster),
+                prepared.Masks.CopyArtifactSeedMask(),
+                prepared.Masks.CopyResidualArtifactMask());
         }
         catch (ProductionWorkflowStageException exception)
         {
