@@ -11248,8 +11248,8 @@
     {
       "task": "marker-center",
       "revision": "marker-center-dual-scale-context-v1",
-      "status": "candidate_1_preregistered",
-      "execution_authorized": true,
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
       "authorized_candidate_id": "P1",
       "preregistered_candidate_ids": ["P1"],
       "consumed_candidate_ids": [],
@@ -11275,7 +11275,12 @@
       "budget_consumption_event": "first_sealed_split_read",
       "sealed_runs_authorized": 0,
       "training_device": "RX 6600 XT gfx1032 cuda:0",
-      "release_eligible": false
+      "release_eligible": false,
+      "outcome_path": "ml/markers/center/dual_scale_context_v1/P1_RESULT.json",
+      "outcome_sha256": "e44523eb82ea90e582e4bd340c0f1bae26748cff35d140aeaa40228562c4f712",
+      "candidate_report_sha256": "f0c783914a37bed645171f53d7262f495c019d40a6ac9f299017d44d9e011edf",
+      "optimizer_steps": 2264,
+      "closed_utc_date": "2026-10-30"
     }
   ]
 }

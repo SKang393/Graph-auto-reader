@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "candidate_id": "P1",
+  "status": "failed_dev_unconsumed",
+  "report_path": "ml/markers/center/dual_scale_context_v1/P1-run-20261030/report.json",
+  "report_sha256": "f0c783914a37bed645171f53d7262f495c019d40a6ac9f299017d44d9e011edf",
+  "seal_result_sha256": "25665b437f323b47598453fcbba3c6fa6964911e883323453ba177f538aafbf9",
+  "source_snapshot_sha256": "f9a5246b9870522c013329a560616f31d30ebddcc4f84fde6deca73305cbf6b5",
+  "source_commit": "e7e35dde8688a97661762a1a2cdeea266c3f7b3b",
+  "device": "AMD Radeon RX 6600 XT gfx1032 cuda:0",
+  "optimizer_steps": 2264,
+  "cpu_optimizer_steps": 0,
+  "private_reads": 0,
+  "sealed_reads": 0,
+  "production_approval": false,
+  "release_eligible": false
+}
