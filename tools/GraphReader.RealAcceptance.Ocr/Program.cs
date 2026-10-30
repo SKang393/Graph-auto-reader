@@ -47,6 +47,25 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "--archive-engauge-dev-proposals")
+        {
+            if (!AuthorizePrivateCorpus(args)) { return 2; }
+            try
+            {
+                object receipt = await EngaugeDevProposalArchiveCommand.RunAsync(args, CancellationToken.None);
+                Console.WriteLine(JsonSerializer.Serialize(receipt, JsonOptions));
+                return 0;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                Console.Error.WriteLine(JsonSerializer.Serialize(new
+                {
+                    status = "failed", error = "ENGAUGE_PROPOSAL_ARCHIVE_FAILED",
+                    cause_type = exception.InnerException?.GetType().Name ?? exception.GetType().Name,
+                }, JsonOptions));
+                return 1;
+            }
+        }
         if (args.Length > 0 && args[0] == "--audit-engauge-dev-proposals")
         {
             if (!AuthorizePrivateCorpus(args)) { return 2; }

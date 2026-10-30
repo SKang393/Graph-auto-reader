@@ -21,6 +21,10 @@ internal static class EngaugeDevProposalArchiveSelfTest
         var batch = Batch(image, Enumerable.Repeat(0.5f, n).ToArray(), [new MarkerPoint(2, 4)]);
         try
         {
+            Fail(() => EngaugeDevProposalArchiveCommand.RunAsync(
+                ["--archive-engauge-dev-proposals", "unused", "unused", "unused", "unused", "unused",
+                    Path.Combine(root, "outside-artifacts-key"), "--explicit-opt-in"], CancellationToken.None)
+                .GetAwaiter().GetResult(), "external_key_path");
             EngaugeDevProposalArchiveReceipt receipt;
             using (var archive = new EngaugeDevProposalArchive(root, path, key))
             {
