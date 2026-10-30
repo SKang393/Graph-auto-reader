@@ -108,9 +108,13 @@ Relocation checks passed on October 29, 2026:
 | `Lib/site-packages/torch/_C.cp313-win_amd64.pyd` | `a5ad9a5477f0d85dd272211dc2fff4bc63e38c4abf758c76ecf6ccd453d2c444` |
 | `Lib/site-packages/torch/lib/torch_hip.dll` | `6e240c46a71e679e94d72be908e21146ddd29e3b498f5b4e500f1a15509c53cf` |
 
-Reviewed retirement set: 44 completed probe/cache files, 2,310,750 logical
-bytes, remaining in the old standalone folder after the environment move.
-Remove that exact folder after this record and source are pushed; the installed
-environment is excluded from the retirement set. No reparse points or active
-consumers were found in the source folder. Retire the smoke check's disposable
-`.state` cache after its process exits, without touching the installed runtime.
+Cleanup completed after source and this record were confirmed on `origin/main`
+at `9c84016f8616a70f87c2d6f5ba0001c080d35e3c`. Removed the 44 completed
+probe/cache files (2,310,750 logical bytes) in the old standalone folder and
+six disposable smoke-cache files (127,571 logical bytes) from `.state`.
+Total: 50 files, 2,438,321 logical bytes, followed by 42 empty directories.
+Deletion used exact reviewed file paths and empty-directory removal; no active
+consumers or reparse points were present. The old standalone folder and smoke
+cache were confirmed absent, and the relocated GPU interpreter remained present.
+The 3.64 GiB installed runtime was relocated, not deleted or duplicated.
+The launcher recreates its temporary `.state` directories only when needed.
