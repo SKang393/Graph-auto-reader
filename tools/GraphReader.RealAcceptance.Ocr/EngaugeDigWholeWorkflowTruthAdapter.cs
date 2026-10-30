@@ -5,6 +5,7 @@ using System.Buffers.Binary;
 using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using GraphReader.Export;
@@ -86,12 +87,15 @@ internal sealed class EngaugeDigWholeWorkflowTruth
 /// Reads local digitizer data from an Engauge project. Callers must enforce the
 /// applicable source authorization and split. No curve role, relation, or phase
 /// is inferred from names; those metrics remain explicitly unavailable.
+/// An empty Engauge DOCTYPE is supported in UTF-8 or BOM-marked UTF-16; other
+/// encodings on that path, external declarations, and internal subsets fail closed.
 /// </summary>
 internal static class EngaugeDigWholeWorkflowTruthAdapter
 {
     internal const long MaximumProjectBytes = 64L * 1024 * 1024;
     internal const int MaximumEmbeddedImageBytes = 64 * 1024 * 1024;
     private const long MaximumSourcePixels = 40_000_000;
+    private const int MaximumPrologBytes = 1024 * 1024;
     private const int MaximumPngChunkBytes = 64 * 1024 * 1024;
     private const int MaximumPngChunkCount = 100_000;
 
@@ -134,21 +138,13 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
 
         string projectSha256 = Hash(stream, beforeFirstPayloadRead, cancellationToken);
         stream.Position = 0;
-        var settings = new XmlReaderSettings
-        {
-            DtdProcessing = DtdProcessing.Prohibit,
-            XmlResolver = null,
-            IgnoreComments = false,
-            IgnoreProcessingInstructions = false,
-            IgnoreWhitespace = false,
-            MaxCharactersFromEntities = 0,
-            MaxCharactersInDocument = MaximumProjectBytes,
-            CloseInput = false,
-        };
         XDocument document;
         try
         {
-            using XmlReader reader = XmlReader.Create(stream, settings);
+            bool hasEmptyEngaugeDoctype = HasEmptyEngaugeDoctype(stream, cancellationToken);
+            stream.Position = 0;
+            using XmlReader reader = XmlReader.Create(stream, ReaderSettings(
+                hasEmptyEngaugeDoctype ? DtdProcessing.Parse : DtdProcessing.Prohibit));
             document = XDocument.Load(reader, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
         }
         catch (XmlException exception)
@@ -319,6 +315,160 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
             Array.AsReadOnly(anchors.ToArray()),
             Array.AsReadOnly(truthCurves.ToArray()),
             truthCase);
+    }
+
+    private static XmlReaderSettings ReaderSettings(DtdProcessing processing) => new()
+    {
+        DtdProcessing = processing,
+        XmlResolver = null,
+        IgnoreComments = false,
+        IgnoreProcessingInstructions = false,
+        IgnoreWhitespace = false,
+        MaxCharactersFromEntities = 1024,
+        MaxCharactersInDocument = MaximumProjectBytes,
+        CloseInput = false,
+    };
+
+    private static bool HasEmptyEngaugeDoctype(Stream stream, CancellationToken cancellationToken)
+    {
+        int line = 0;
+        int position = 0;
+        string? declaredEncoding = null;
+        using (var boundedStream = new PrologBoundedStream(stream, cancellationToken))
+        using (XmlReader probe = XmlReader.Create(boundedStream, ReaderSettings(DtdProcessing.Parse)))
+        {
+            while (probe.Read())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (probe.NodeType == XmlNodeType.XmlDeclaration)
+                {
+                    declaredEncoding = probe.GetAttribute("encoding");
+                }
+                if (probe.NodeType == XmlNodeType.DocumentType)
+                {
+                    if (!string.Equals(probe.Name, "engauge", StringComparison.Ordinal) ||
+                        probe.AttributeCount != 0 || !string.IsNullOrEmpty(probe.Value) ||
+                        probe is not IXmlLineInfo info || !info.HasLineInfo())
+                    {
+                        throw new EngaugeDigTruthException("DIG_XML_INVALID");
+                    }
+                    line = info.LineNumber;
+                    position = info.LinePosition;
+                    break;
+                }
+                if (probe.NodeType == XmlNodeType.Element)
+                {
+                    return false;
+                }
+            }
+        }
+        if (line == 0)
+        {
+            return false;
+        }
+
+        stream.Position = 0;
+        Span<byte> prefix = stackalloc byte[4];
+        int prefixLength = stream.Read(prefix);
+        stream.Position = 0;
+        bool utf16Little = prefixLength >= 2 && prefix[0] == 0xff && prefix[1] == 0xfe &&
+            (prefixLength < 4 || prefix[2] != 0 || prefix[3] != 0);
+        bool utf16Big = prefixLength >= 2 && prefix[0] == 0xfe && prefix[1] == 0xff;
+        bool unsupportedPrefix = prefixLength >= 4 &&
+            ((prefix[0] == 0xff && prefix[1] == 0xfe && prefix[2] == 0 && prefix[3] == 0) ||
+             (prefix[0] == 0 && prefix[1] == 0 && prefix[2] == 0xfe && prefix[3] == 0xff) ||
+             (prefix[0] == 0 && prefix[1] == 0x3c) ||
+             (prefix[0] == 0x3c && prefix[1] == 0));
+        bool supportedDeclaration = string.IsNullOrEmpty(declaredEncoding) ||
+            (utf16Little && (declaredEncoding.Equals("utf-16", StringComparison.OrdinalIgnoreCase) ||
+                             declaredEncoding.Equals("utf-16le", StringComparison.OrdinalIgnoreCase))) ||
+            (utf16Big && (declaredEncoding.Equals("utf-16", StringComparison.OrdinalIgnoreCase) ||
+                          declaredEncoding.Equals("utf-16be", StringComparison.OrdinalIgnoreCase))) ||
+            (!utf16Little && !utf16Big && declaredEncoding.Equals("utf-8", StringComparison.OrdinalIgnoreCase));
+        if (unsupportedPrefix || !supportedDeclaration)
+        {
+            throw new EngaugeDigTruthException("DIG_XML_ENCODING_UNSUPPORTED");
+        }
+
+        // XmlReader reports the same empty Value for no subset and an empty
+        // [] subset. Scan at its reported location without allocating lines.
+        using var text = new StreamReader(stream, new UTF8Encoding(false, true),
+            detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: true);
+        int inspected = 0;
+        int ReadCharacter()
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (++inspected > MaximumPrologBytes)
+            {
+                throw new EngaugeDigTruthException("DIG_XML_PROLOG_LIMIT");
+            }
+            int value = text.Read();
+            if (value < 0)
+            {
+                throw new EngaugeDigTruthException("DIG_XML_INVALID");
+            }
+            return value;
+        }
+        try
+        {
+            int actualLine = 1;
+            int actualPosition = 1;
+            while (actualLine < line || (actualLine == line && actualPosition < position))
+            {
+                int value = ReadCharacter();
+                if (value == '\r')
+                {
+                    if (text.Peek() == '\n') { _ = ReadCharacter(); }
+                    actualLine++;
+                    actualPosition = 1;
+                }
+                else if (value == '\n')
+                {
+                    actualLine++;
+                    actualPosition = 1;
+                }
+                else { actualPosition++; }
+            }
+            int next = ReadCharacter();
+            while (next is ' ' or '\t' or '\r' or '\n') { next = ReadCharacter(); }
+            foreach (char expected in "engauge")
+            {
+                if (next != expected) { throw new EngaugeDigTruthException("DIG_XML_INVALID"); }
+                next = ReadCharacter();
+            }
+            while (next is ' ' or '\t' or '\r' or '\n') { next = ReadCharacter(); }
+            if (next != '>') { throw new EngaugeDigTruthException("DIG_XML_INVALID"); }
+            return true;
+        }
+        catch (DecoderFallbackException exception)
+        {
+            throw new EngaugeDigTruthException("DIG_XML_ENCODING_UNSUPPORTED", exception);
+        }
+    }
+
+    private sealed class PrologBoundedStream(Stream inner, CancellationToken cancellationToken) : Stream
+    {
+        private int bytesRead;
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (count == 0) { return 0; }
+            int remaining = MaximumPrologBytes - bytesRead;
+            if (remaining <= 0) { throw new EngaugeDigTruthException("DIG_XML_PROLOG_LIMIT"); }
+            int read = inner.Read(buffer, offset, Math.Min(count, remaining));
+            bytesRead += read;
+            return read;
+        }
+        public override void Flush() => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 
     private static string Hash(

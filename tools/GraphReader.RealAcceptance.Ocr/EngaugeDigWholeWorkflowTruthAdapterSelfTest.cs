@@ -227,6 +227,71 @@ internal static class EngaugeDigWholeWorkflowTruthAdapterSelfTest
                 "DIG_UNOWNED_CURVE_POINT");
             checks.Add("engauge_ambiguous_identity_and_axis_flags_rejected");
 
+            string doctypeDocument = "<?xml version=\"1.0\"?>\n<!DOCTYPE engauge>\n" + engaugeXml;
+            EngaugeDigWholeWorkflowTruth doctypeParsed = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                Write(directory, "engauge-empty-doctype.dig", doctypeDocument),
+                "anonymous-doctype-fixture", CancellationToken.None);
+            Require(doctypeParsed.Anchors.Count == 3 && doctypeParsed.TruthCase.Points.Count == 1 &&
+                doctypeParsed.CopyImageBytes().SequenceEqual(png), "empty Engauge doctype accepted");
+            EngaugeDigWholeWorkflowTruth whitespaceDoctype = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                Write(directory, "engauge-whitespace-doctype.dig",
+                    "<!-- synthetic prolog -->\n<!DOCTYPE\nengauge \n>" + engaugeXml),
+                "anonymous-whitespace-doctype", CancellationToken.None);
+            Require(whitespaceDoctype.TruthCase.Points.Count == 1, "empty Engauge doctype allows XML whitespace");
+            string utf16Path = Path.Combine(directory, "engauge-utf16-doctype.dig");
+            File.WriteAllText(utf16Path,
+                "<?xml version=\"1.0\" encoding=\"utf-16\"?>\n<!DOCTYPE engauge>\n" + engaugeXml,
+                new UnicodeEncoding(bigEndian: false, byteOrderMark: true));
+            int acceptedDoctypeCallbacks = 0;
+            EngaugeDigWholeWorkflowTruth utf16Doctype = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                utf16Path, "anonymous-utf16-doctype", () => acceptedDoctypeCallbacks++, CancellationToken.None);
+            Require(utf16Doctype.TruthCase.Points.Count == 1 && acceptedDoctypeCallbacks == 1,
+                "UTF-16 LE BOM doctype and first-read callback");
+            string utf16BigEndianPath = Path.Combine(directory, "engauge-utf16be-doctype.dig");
+            File.WriteAllText(utf16BigEndianPath,
+                "<?xml version=\"1.0\" encoding=\"utf-16\"?>\n<!DOCTYPE engauge>\n" + engaugeXml,
+                new UnicodeEncoding(bigEndian: true, byteOrderMark: true));
+            EngaugeDigWholeWorkflowTruth utf16BigEndian = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                utf16BigEndianPath, "anonymous-utf16be-doctype", CancellationToken.None);
+            Require(utf16BigEndian.TruthCase.Points.Count == 1 && utf16BigEndian.CopyImageBytes().SequenceEqual(png),
+                "UTF-16 BE BOM doctype accepted");
+            string utf16NoBomPath = Path.Combine(directory, "engauge-utf16-no-bom.dig");
+            File.WriteAllText(utf16NoBomPath,
+                "<?xml version=\"1.0\" encoding=\"utf-16\"?>\n<!DOCTYPE engauge>\n" + engaugeXml,
+                new UnicodeEncoding(bigEndian: false, byteOrderMark: false));
+            ExpectFailure(utf16NoBomPath, "DIG_XML_ENCODING_UNSUPPORTED");
+            ExpectFailure(directory, "engauge-unsupported-encoding.dig",
+                "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?><!DOCTYPE engauge>" + engaugeXml,
+                "DIG_XML_ENCODING_UNSUPPORTED");
+            int rejectedDoctypeCallbacks = 0;
+            string rejectedDoctype = Write(directory, "engauge-rejected-callback.dig",
+                "<!DOCTYPE engauge []>" + engaugeXml);
+            try
+            {
+                _ = EngaugeDigWholeWorkflowTruthAdapter.Read(rejectedDoctype,
+                    "anonymous-rejected-doctype", () => rejectedDoctypeCallbacks++, CancellationToken.None);
+                throw new InvalidOperationException("Expected rejected doctype.");
+            }
+            catch (EngaugeDigTruthException exception) when (exception.Code == "DIG_XML_INVALID") { }
+            Require(rejectedDoctypeCallbacks == 1, "rejected doctype first-read callback");
+            ExpectFailure(directory, "engauge-oversized-prolog.dig",
+                "<!--" + new string('a', (1024 * 1024) + 1) + "--><!DOCTYPE engauge>" + engaugeXml,
+                "DIG_XML_PROLOG_LIMIT");
+            ExpectFailure(directory, "engauge-oversized-declaration.dig",
+                "<!DOCTYPE engauge " + new string(' ', (1024 * 1024) + 1) + ">" + engaugeXml,
+                "DIG_XML_PROLOG_LIMIT");
+            ExpectFailure(directory, "engauge-external-doctype.dig",
+                "<!DOCTYPE engauge SYSTEM \"file:///not-accessible.dtd\">" + engaugeXml, "DIG_XML_INVALID");
+            ExpectFailure(directory, "engauge-other-doctype.dig",
+                "<!DOCTYPE other>" + engaugeXml, "DIG_XML_INVALID");
+            ExpectFailure(directory, "engauge-empty-subset.dig",
+                "<!DOCTYPE engauge []>" + engaugeXml, "DIG_XML_INVALID");
+            ExpectFailure(directory, "engauge-comment-lookalike.dig",
+                "<!-- <!DOCTYPE engauge> --><!DOCTYPE engauge []>" + engaugeXml, "DIG_XML_INVALID");
+            ExpectFailure(directory, "engauge-entity-subset.dig",
+                "<!DOCTYPE engauge [<!ENTITY x \"unsafe\">]>" + engaugeXml, "DIG_XML_INVALID");
+            checks.Add("only_empty_engauge_doctype_accepted");
+
             ExpectFailure(directory, "empty-curve.dig",
                 Document(png, Anchors((10, 20, 1, 0), (10, 80, 1, 100), (110, 20, 11, 0)),
                     Curve("Empty")),
