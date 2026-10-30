@@ -261,6 +261,20 @@ public sealed class WorkflowOrchestrator
         {
             throw new InvalidOperationException("The import stage returned a panel for an unrequested source.");
         }
+
+        HashSet<Guid> importedSourceIds = imported.Panels
+            .Select(static panel => panel.SourceId)
+            .ToHashSet();
+        Guid[] missingSourceIds = request.Sources
+            .Select(static source => source.SourceId)
+            .Where(sourceId => !importedSourceIds.Contains(sourceId))
+            .ToArray();
+        if (missingSourceIds.Length > 0)
+        {
+            string missingIds = string.Join(", ", missingSourceIds.Select(static sourceId => sourceId.ToString("D")));
+            throw new InvalidOperationException(
+                $"The import stage returned no panels for requested source ID(s): {missingIds}.");
+        }
     }
 
     private static void ValidatePreparedPanel(

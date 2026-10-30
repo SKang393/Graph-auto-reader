@@ -124,6 +124,37 @@ public sealed class OrchestratorCompositionSmokeTests
     }
 
     [TestMethod]
+    public async Task ImportRejectsRequestedSourceWithoutPanelsBeforePrepareOrDetect()
+    {
+        RecordedWorkflowData data = CreateRecordedData();
+        var incompleteImport = new WorkflowImportSnapshot(
+            data.Import.ProjectId,
+            [data.Import.Panels.Single(panel => panel.SourceId == IntegrationSmokeIds.Source.Value)]);
+        var incompleteData = new RecordedWorkflowData(
+            incompleteImport,
+            data.PreparedPanels,
+            data.Detections,
+            data.Export);
+        var recorded = new TracingStages(incompleteData);
+        WorkflowOrchestrator orchestrator = WorkflowComposition.Create(
+            WorkflowRuntimeEnvironment.RecordedFake,
+            new ThrowingStages().ServiceSet,
+            recorded.ServiceSet);
+
+        InvalidOperationException exception = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() =>
+            orchestrator.RunThroughReviewAsync(
+                RunRequest(enhancementEnabled: false),
+                previousReview: null,
+                CancellationToken.None));
+
+        StringAssert.Contains(exception.Message, PdfSourceId.ToString("D"));
+        Assert.IsFalse(exception.Message.Contains("synthetic.pdf", StringComparison.OrdinalIgnoreCase));
+        Assert.AreEqual(1, recorded.ImportCalls);
+        Assert.AreEqual(0, recorded.PrepareCalls);
+        Assert.AreEqual(0, recorded.DetectionCalls);
+    }
+
+    [TestMethod]
     public async Task CancellationPublishesOnlyFullyReviewedPanelCheckpoints()
     {
         RecordedWorkflowData data = CreateRecordedData();
