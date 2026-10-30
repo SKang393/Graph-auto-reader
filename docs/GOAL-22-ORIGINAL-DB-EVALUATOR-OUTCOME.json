@@ -1,5 +1,6 @@
 {
   "schema": "graphreader.goal22-original-db-evaluator-outcome.v1",
+  "historical_snapshot_note": "This record describes the earlier model-free evaluator work. Later synthetic candidate inference and scoring are recorded in GOAL-22-SERVER-RECOGNITION-HEAD-OUTCOME.json; those results do not grant production approval.",
   "scope": "Unapproved original-BGR candidate evaluation on the fixed project-owned synthetic corpus",
   "sources": [
     {

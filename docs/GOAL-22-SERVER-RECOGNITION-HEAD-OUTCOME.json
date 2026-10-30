@@ -1,0 +1,556 @@
+{
+  "schema": "graphreader.goal22.server-recognition-head-outcome.v1",
+  "record_status": "mobile_pair_and_v44_pair_scored_diagnostic_no_promotion",
+  "as_of_date": "2026-10-29",
+  "scope": {
+    "classification": "unapproved synthetic development experiment",
+    "synthetic_only": true,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "historical_aggregate_exposure": "Earlier historical aggregate sealed metrics surfaced during review; no private or sealed case inputs were read and those aggregates were not used for this experiment.",
+    "production_approval": false,
+    "release_eligible": false,
+    "goal22_complete": false,
+    "candidate_selected": false,
+    "v44_dev_previously_used": true,
+    "v44_dev_independent_holdout": false,
+    "v44_dev_note": "The V44 development cohort had prior development use. The current paired run is diagnostic and is not a fresh independent validation set."
+  },
+  "cohort": {
+    "source_count": 23,
+    "panel_count": 37,
+    "train_panels": 28,
+    "dev_panels": 9,
+    "train_truth_regions": 709,
+    "dev_truth_regions": 183,
+    "all_split_truth_regions": 892,
+    "source_disjoint_train_dev": true
+  },
+  "training": {
+    "status": "completed_train_only_fixed_budget",
+    "protocol_id": "server-crop-head-ctc-v2",
+    "protocol_path": "ml/ocr/server-crop-head_train_v1/protocol.json",
+    "protocol_sha256": "2ac60ed0593387aeb3e4e358efbb6a5ee730c4e4e49db8220dc4a611e7bffca5",
+    "trainer_path": "ml/ocr/server-crop-head_train_v1/train_head.py",
+    "trainer_sha256": "65c09e22ec2724eb47d210743c9a4b52873a88146e0de3510cd88a5db2356874",
+    "receipt_path": "artifacts/goal22-worktrees/server-crop-head-20261029/artifacts/goal22-runs/server-crop-head-gpu-train-20261029-v2/report.json",
+    "receipt_sha256": "7b3dac521934bac7a14dbb5e4be8daf1974cf661f60a5e23c6dd1128dfc3d81a",
+    "seed": 2201,
+    "optimizer": "AdamW",
+    "optimizer_steps": 500,
+    "training_examples": 616,
+    "training_split_only": true,
+    "dev_case_records_read_by_training_process": false,
+    "device": {
+      "name": "AMD Radeon RX 6600 XT",
+      "index": 0,
+      "api": "torch.cuda",
+      "hip_version": "7.16.26385",
+      "cpu_fallback": false
+    },
+    "source_model": {
+      "model_id": "PP-OCRv5_server_rec",
+      "model_payload_sha256": "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418",
+      "manifest_sha256": "0da38be8c09e12cd8db243b327805a04950eb9502b48ada4f896ac98aaad3e95",
+      "license_notice_sha256": "ced966a17ac31dca6d58303f27a6e55f65896ffd1f16cf941956f6f4c17c9785"
+    },
+    "model_output": {
+      "path": "artifacts/goal22-worktrees/server-crop-head-20261029/artifacts/goal22-runs/server-crop-head-gpu-train-20261029-v2/recognizer-final-head.onnx",
+      "sha256": "564334524eb3a913a3cc20c22972f3959ecb9beca1b15e41757ffd69afd91afd",
+      "frozen_trunk_sha256": "4e67db7c65152aeb7cbef1404cd3479e0b07c513f1a2f766f3ccbd657f41d6e9",
+      "patched_constants": [
+        "linear_9.w_0",
+        "linear_9.b_0"
+      ],
+      "all_other_graph_content_unchanged": true
+    },
+    "reproducibility": {
+      "seed_and_row_order_fixed": true,
+      "bitwise_repeatability_guaranteed": false,
+      "reason": "ROCm ctc_loss_backward_gpu has no deterministic implementation."
+    },
+    "superseded_void_attempt": {
+      "attempt_id": "server-crop-head-ctc-v1",
+      "status": "void_failed_before_optimizer_step",
+      "optimizer_steps_completed": 0,
+      "reusable_for_evaluation_or_promotion": false
+    }
+  },
+  "frozen_trunk_feature_extraction": {
+    "status": "completed_train_feature_extraction_only",
+    "split": "train",
+    "runtime": "Microsoft.ML.OnnxRuntime.DirectML 1.24.4",
+    "execution_provider": "DmlExecutionProvider",
+    "cpu_fallback_allowed": false,
+    "dxgi_adapter": {
+      "name": "AMD Radeon RX 6600 XT",
+      "vendor_id": "0x1002",
+      "device_id": "0x73FF",
+      "luid": "00000000:00014267"
+    },
+    "extractor_binary_sha256": "8192a778e93b4a1faffa16f4f442fb4a67502730e116c5cdbe8431147ef6b0b4",
+    "extractor_source_sha256": "f35f6d1500fb278817dca16a411e44a5a5cf6aebc2d1ed86e32e53aec705d8df",
+    "feature_manifest_sha256": "d398bc145771653cc23852a26b6fcbb618f719115f1ee2bb6892a25637f11d80",
+    "capture_report_sha256": "a3ef534ec7c4252bdb0ef37de8332f1cf86b8c19ae394329b24a2b7a90d10c6c",
+    "capture_tensor_set_sha256": "be18cdf05806dc99fbb006481a8de9a2189e5849d8b7ce1c2f589f1a24e76fd5",
+    "feature_tensor_set_sha256": "6c9900f2055cad38f417ccc9f8c78dc3d38f1c8ee0e13498af8353f88a977190",
+    "profile_evidence": {
+      "profile_count": 17,
+      "profile_set_sha256": "af847d90688c85fd4cfbb1e7de50ba443ad5f485d41eab886dabb57b1628ff3e",
+      "model_run_events_total": 616,
+      "model_node_events_total": 616,
+      "cpu_node_events_total": 0,
+      "provider_for_all_model_node_events": "DmlExecutionProvider",
+      "width_model_run_counts": [
+        {
+          "width": 320,
+          "runs": 456
+        },
+        {
+          "width": 326,
+          "runs": 6
+        },
+        {
+          "width": 330,
+          "runs": 16
+        },
+        {
+          "width": 338,
+          "runs": 4
+        },
+        {
+          "width": 339,
+          "runs": 12
+        },
+        {
+          "width": 342,
+          "runs": 17
+        },
+        {
+          "width": 343,
+          "runs": 11
+        },
+        {
+          "width": 357,
+          "runs": 6
+        },
+        {
+          "width": 365,
+          "runs": 7
+        },
+        {
+          "width": 369,
+          "runs": 18
+        },
+        {
+          "width": 404,
+          "runs": 12
+        },
+        {
+          "width": 406,
+          "runs": 8
+        },
+        {
+          "width": 409,
+          "runs": 6
+        },
+        {
+          "width": 412,
+          "runs": 9
+        },
+        {
+          "width": 424,
+          "runs": 10
+        },
+        {
+          "width": 435,
+          "runs": 10
+        },
+        {
+          "width": 461,
+          "runs": 8
+        }
+      ]
+    }
+  },
+  "mobile_detector_pair": {
+    "status": "scored_diagnostic_only_unapproved",
+    "baseline_candidate_sha256": "1469c19f407bb3cf89085c11af8990269a19d2df8d1e37a6c5ec48da12b49846",
+    "trained_candidate_sha256": "8af0c14f9c93f0b35e521334d7d63e60d076f534413f2e0a4be4e009d987e43c",
+    "detector": {
+      "model_id": "PP-OCRv5_mobile_det",
+      "sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb"
+    },
+    "baseline_recognizer_sha256": "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418",
+    "trained_recognizer_sha256": "564334524eb3a913a3cc20c22972f3959ecb9beca1b15e41757ffd69afd91afd",
+    "score_files": [
+      {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-full-ocr-score-20261029-v1/baseline-full-ocr-score.json",
+        "sha256": "235aea18222bbd07bc171a21067cb3d2856defc8d22e37c440ba1d11ebed5b12"
+      },
+      {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-full-ocr-score-20261029-v1/trained-full-ocr-score.json",
+        "sha256": "096e57a6369222602100582bc51353b2ee8212a7559095a15775f9d3ff20e9ab"
+      }
+    ],
+    "evaluation_reports": [
+      {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-baseline-eval-20261029-v2/report.json",
+        "sha256": "3530afb6c6c9683bfe8e4fddb9862c2cafe6f76557b932c58cc7b08016fcdc44",
+        "completed_panels": 37,
+        "failed_panels": 0
+      },
+      {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-trained-eval-20261029-v1/report.json",
+        "sha256": "0e3fe03e7f5fbb7338f6ffdb0994eea247428f125bc2f0c4759e128e9ddb4023",
+        "completed_panels": 37,
+        "failed_panels": 0
+      }
+    ],
+    "dev_metrics": {
+      "raw_detection_geometry": {
+        "baseline": {
+          "true_positives": 71,
+          "predictions": 208,
+          "truth_regions": 183,
+          "precision": 0.34134615384615385,
+          "recall": 0.3879781420765027
+        },
+        "trained": {
+          "true_positives": 71,
+          "predictions": 208,
+          "truth_regions": 183,
+          "precision": 0.34134615384615385,
+          "recall": 0.3879781420765027
+        },
+        "identical_between_arms": true
+      },
+      "recognition_exact": {
+        "baseline": {
+          "correct": 66,
+          "denominator": 183,
+          "accuracy": 0.36065573770491804
+        },
+        "trained": {
+          "correct": 56,
+          "denominator": 183,
+          "accuracy": 0.30601092896174864
+        }
+      },
+      "character_error_rate": {
+        "baseline": {
+          "errors": 1007,
+          "characters": 1019,
+          "rate": 0.9882237487733072
+        },
+        "trained": {
+          "errors": 1013,
+          "characters": 1019,
+          "rate": 0.9941118743866536
+        }
+      },
+      "role_accuracy": {
+        "baseline": {
+          "correct": 58,
+          "denominator": 183,
+          "accuracy": 0.31693989071038253
+        },
+        "trained": {
+          "correct": 49,
+          "denominator": 183,
+          "accuracy": 0.2677595628415301
+        }
+      },
+      "acceptance_policy": {
+        "path": "ml/policy/acceptance-bars.json",
+        "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+        "recognition_exact_minimum": 0.95,
+        "character_error_rate_maximum": 0.05,
+        "role_accuracy_minimum": 0.95,
+        "text_detection_precision_minimum": 0.95,
+        "text_detection_recall_minimum": 0.95,
+        "both_arms_meet_acceptance": false
+      }
+    },
+    "interpretation": "On the mobile-detector route, raw detector geometry is identical, while the trained recognizer is lower on all reported validation text/role metrics. This is a diagnostic comparison and does not select or approve a candidate.",
+    "acceptance_policy": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+      "recognition_exact_minimum": 0.95,
+      "character_error_rate_maximum": 0.05,
+      "role_accuracy_minimum": 0.95,
+      "text_detection_precision_minimum": 0.95,
+      "text_detection_recall_minimum": 0.95
+    },
+    "runtime_device_note": "The aggregate OCR evaluation reports do not include an execution-provider field. This record asserts the RX 6600 XT optimizer and DirectML frozen-trunk extraction from the training receipt only."
+  },
+  "v44_detector_pair": {
+    "status": "paired_scored_diagnostic_only",
+    "dev_previously_used": true,
+    "source_count": 23,
+    "panel_count_per_arm": 37,
+    "completed_panels_per_arm": 37,
+    "failed_panels_per_arm": 0,
+    "detector": {
+      "model_id": "graph-text-extent-db-head-v44-p1",
+      "sha256": "615495cc882b6ae8633081d89c3ab08c0d4a80a04aa36bbde4157fc7828f5923",
+      "manifest_sha256": "ac27a81c610bebd3f7cbd3e3daf6dada9d74462f52e2808cbbd92f1eeaa100c3"
+    },
+    "baseline_candidate": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-pair-20261029-v1/baseline-candidate.json",
+      "sha256": "34ee2cd6b9d0e7ab280a48307c75e85cdc7aab28cb75f5a534b19f706c92fa08",
+      "recognizer_sha256": "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418"
+    },
+    "trained_candidate": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-pair-20261029-v1/trained-head-candidate.json",
+      "sha256": "f487a0312f0b345e29d1743e3c3342829090b1dac9e15e3e40a42df6f05b5ad0",
+      "recognizer_sha256": "564334524eb3a913a3cc20c22972f3959ecb9beca1b15e41757ffd69afd91afd"
+    },
+    "evaluation_reports": [
+      {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-baseline-eval-20261029-v1/report.json",
+        "sha256": "855f68692cad9c51bcb4d79ca97354ef16af8d19a5ffd7b87eb307854221c500",
+        "completed_panels": 37,
+        "failed_panels": 0,
+        "private_data": false,
+        "sealed_data": false
+      },
+      {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-trained-eval-20261029-v1/report.json",
+        "sha256": "d2d07f4e13b71bbdac2ce71148e3a4f384e05a8ab941066f8e513a34751adadb",
+        "completed_panels": 37,
+        "failed_panels": 0,
+        "private_data": false,
+        "sealed_data": false
+      }
+    ],
+    "score_outputs": {
+      "baseline": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-full-ocr-score-20261029-v1/baseline-score.json",
+        "sha256": "c3a13a4ab3a26ed2de7a78e5c195e532359c2cf09a0ef92e2ddc406189f86ba2"
+      },
+      "trained_head": {
+        "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-full-ocr-score-20261029-v1/trained-score.json",
+        "sha256": "73b2bf820cd4d7a039a11a6deb0b3ca5f5be91bc76101b7c66ef82db3f9d1fc6"
+      },
+      "paired_receipt_sha256": "d3969808c6808114a42eea4e873e515bd28a24af2ddcf9ac07b1ad59e46f1a49"
+    },
+    "note": "The paired score is complete. On previously used V44 dev, the trained head is lower by 2 exact regions, higher by 1 character error, and lower by 1 correct role; geometry is identical. Both arms fail all documented policy bars. There is no promotion.",
+    "baseline_acceptance_status": "fails_documented_dev_metrics",
+    "trained_candidate_score_status": "scored",
+    "baseline_score": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-full-ocr-score-20261029-v1/baseline-score.json",
+      "sha256": "c3a13a4ab3a26ed2de7a78e5c195e532359c2cf09a0ef92e2ddc406189f86ba2",
+      "status": "diagnostic_only_unapproved",
+      "dev_metrics": {
+        "raw_detection_geometry": {
+          "true_positives": 139,
+          "false_positives": 48,
+          "false_negatives": 44,
+          "precision": 0.7433155080213903,
+          "recall": 0.7595628415300546
+        },
+        "recognition_exact": {
+          "correct": 124,
+          "denominator": 183,
+          "accuracy": 0.6775956284153005
+        },
+        "character_error_rate": {
+          "errors": 626,
+          "characters": 1019,
+          "rate": 0.6143277723258096
+        },
+        "role_accuracy": {
+          "correct": 116,
+          "denominator": 183,
+          "accuracy": 0.6338797814207651
+        }
+      },
+      "train_metrics": {
+        "recognition_exact": {
+          "correct": 423,
+          "denominator": 709,
+          "accuracy": 0.5966149506346967
+        },
+        "character_error_rate": {
+          "errors": 1346,
+          "characters": 3268,
+          "rate": 0.4118727050183599
+        },
+        "role_accuracy": {
+          "correct": 439,
+          "denominator": 709,
+          "accuracy": 0.6191819464033851
+        }
+      }
+    },
+    "candidate_score": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-full-ocr-score-20261029-v1/trained-score.json",
+      "sha256": "73b2bf820cd4d7a039a11a6deb0b3ca5f5be91bc76101b7c66ef82db3f9d1fc6",
+      "status": "diagnostic_only_unapproved",
+      "dev_metrics": {
+        "raw_detection_geometry": {
+          "true_positives": 139,
+          "false_positives": 48,
+          "false_negatives": 44,
+          "precision": 0.7433155080213903,
+          "recall": 0.7595628415300546
+        },
+        "recognition_exact": {
+          "correct": 122,
+          "denominator": 183,
+          "accuracy": 0.6666666666666666
+        },
+        "character_error_rate": {
+          "errors": 627,
+          "characters": 1019,
+          "rate": 0.6153091265947007
+        },
+        "role_accuracy": {
+          "correct": 115,
+          "denominator": 183,
+          "accuracy": 0.6284153005464481
+        }
+      },
+      "train_metrics": {
+        "recognition_exact": {
+          "correct": 465,
+          "denominator": 709,
+          "accuracy": 0.6558533145275035
+        },
+        "character_error_rate": {
+          "errors": 1217,
+          "characters": 3268,
+          "rate": 0.37239902080783355
+        },
+        "role_accuracy": {
+          "correct": 479,
+          "denominator": 709,
+          "accuracy": 0.6755994358251057
+        }
+      }
+    },
+    "paired_score_receipt": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-v44-full-ocr-score-20261029-v1/paired-score-receipt.json",
+      "sha256": "d3969808c6808114a42eea4e873e515bd28a24af2ddcf9ac07b1ad59e46f1a49",
+      "schema": "graphreader.v44-matched-server-recognition-score-receipt.v1",
+      "status": "diagnostic_only_unapproved",
+      "scorer_path": "tools/GraphReader.SyntheticRuntimeEvidence/score_full_ocr_candidate_v4.py",
+      "scorer_sha256": "0f13238db1f70c5c04394e6b0d2b0da381b606588a424b8fa6df8daca7a1435d",
+      "outputs_verified": true,
+      "source_hashes_unchanged": true
+    },
+    "source_split": {
+      "source_count": 23,
+      "train_sources": 20,
+      "validation_sources": 3,
+      "train_panels": 28,
+      "validation_panels": 9,
+      "train_truth_regions": 709,
+      "validation_truth_regions": 183,
+      "total_truth_regions": 892
+    },
+    "direct_deltas_trained_minus_baseline": {
+      "validation": {
+        "recognition_exact_correct": -2,
+        "character_error_count": 1,
+        "role_correct": -1,
+        "geometry_true_positives": 0,
+        "geometry_false_positives": 0,
+        "geometry_false_negatives": 0
+      },
+      "train": {
+        "recognition_exact_correct": 42,
+        "character_error_count": -129,
+        "role_correct": 40
+      }
+    },
+    "acceptance": {
+      "policy_path": "artifacts/goal22-worktrees/resume-20260908/ml/policy/acceptance-bars.json",
+      "policy_sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+      "baseline_dev": "fails_all_bars",
+      "trained_dev": "fails_all_bars",
+      "candidate_promoted": false
+    },
+    "historical_limit": {
+      "previous_v44_score_path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-v44-text-extent/full-score-run1.json",
+      "previous_v44_score_sha256": "05a8e882a20e4b844f13702654cbb16166da5d6558384b7b11d83059b4186f17",
+      "same_v3_validation_previously_used": true,
+      "interpretation": "This paired score is diagnostic and not an independent confirmation. Train metrics improve, while V3 validation is slightly worse and geometry is unchanged."
+    },
+    "scoring_attempts": {
+      "initial_trained_score_attempt": {
+        "exit_code": 1,
+        "error": "V3 binding must be a lowercase SHA-256",
+        "output_written": false
+      },
+      "corrected_baseline_exit_code": 0,
+      "corrected_trained_head_exit_code": 0,
+      "output_overwritten": false
+    }
+  },
+  "panel_restoration": {
+    "status": "complete_authenticated_synthetic_panels_only",
+    "report_path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/restore-v3-runtime-panels-20261029-v1/report.json",
+    "report_sha256": "2d85d4733382c18504ef2085e36af31b0583a0b51b4a8ac3d9be733c9988510e",
+    "request_path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/ocr-production-head-inputs/preflight-v3/capture-request.json",
+    "request_sha256": "1586f7fd28ffbc6024e07fb0b12b2fb79f0d4dc2dc790aba2d963813b0686675",
+    "panels_created": 37,
+    "preexisting_exact_match_panels": 0,
+    "train_panels": 28,
+    "dev_panels": 9,
+    "inference_run": false,
+    "optimizer_run": false,
+    "private_data": false,
+    "sealed_data": false
+  },
+  "user_authorized_cache_cleanup": {
+    "status": "completed",
+    "review_manifest_path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/cache-cleanup-review-20261029-v1/manifest.json",
+    "review_manifest_sha256": "bcd30d8601f291c6b9a4f32bb02880cb6e3e57a772b7d6abdc1486d178f0483d",
+    "cleanup_result_path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/cache-cleanup-review-20261029-v1/result.json",
+    "cleanup_result_sha256": "b68a54861a4522ea3d9fd50b2c5d008515b828a42d2883c8aca62288517d6524",
+    "scope": [
+      "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-baseline-eval-20261029-v2/inference-cache",
+      "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-rec-head-trained-eval-20261029-v1/inference-cache"
+    ],
+    "files_reviewed": 219,
+    "logical_bytes_reviewed": 5103930886,
+    "files_removed": 219,
+    "disk_free_bytes_before": 205017088,
+    "disk_free_bytes_after": 5108359168,
+    "preserved_reports_unchanged": true,
+    "preserved_report_sha256": [
+      "3530afb6c6c9683bfe8e4fddb9862c2cafe6f76557b932c58cc7b08016fcdc44",
+      "0e3fe03e7f5fbb7338f6ffdb0994eea247428f125bc2f0c4759e128e9ddb4023"
+    ],
+    "review_conclusion": "The two completed evaluation inference-cache directories were cleared under the user-authorized cleanup review. The score reports remained byte-identical. V44 evaluation reports were not part of this cleanup and remain pending scoring.",
+    "pre_delete_review": {
+      "files_were_regular_nonreparse_bin": true,
+      "reports_or_scorers_referenced_cache_payloads": false,
+      "review_basis": "User-authorized read-only cleanup review and path/reference audit."
+    }
+  },
+  "decision": {
+    "candidate_selected": false,
+    "production_approval": false,
+    "model_activation": false,
+    "release_eligible": false,
+    "goal22_complete": false,
+    "reason": "No promotion. Both V44 arms fail all documented dev acceptance bars, and the trained head is slightly worse than baseline on dev exact text, character error count, and role accuracy with unchanged geometry. The dev binding was previously used for V44 scoring. Mobile-detector paired results also fail bars and regress. No private or sealed evaluation was performed."
+  },
+  "retention": {
+    "generated_outputs_retired_by_this_record": [
+      "The two completed mobile-pair inference-cache directories listed in user_authorized_cache_cleanup.scope."
+    ],
+    "close_condition": "After committing and pushing this final paired outcome, audit active consumers, record actual cleanup totals, then retire disposable model/run outputs. The completed V44 score outputs are no longer pending scoring.",
+    "retained_until_outcome_commit": [
+      "V44 score reports and their required inputs until the outcome commit is pushed and active consumers close.",
+      "Trained ONNX, training receipt, and feature/profile evidence until the outcome commit is pushed and cleanup is confirmed."
+    ]
+  },
+  "path_roots": {
+    "source_worktree": "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\server-crop-head-20261029",
+    "run_artifacts": "E:\\Graph-auto-reader"
+  }
+}
