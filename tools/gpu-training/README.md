@@ -125,12 +125,12 @@ The maintainer also requested removal of the separate GPU restore folder and
 the obsolete Desktop checkout. These were different paths from the original
 probe folder removed above.
 
-| Reviewed folder | Files | Logical bytes | Disposition |
+| Reviewed folder | Readable files | Logical bytes | Disposition |
 | --- | ---: | ---: | --- |
 | `E:\GraphReader-GPU-Restore-20261029-v1` | 34,048 | 5,078,651,959 | Redundant ROCm installation, download cache and completed install/probe scratch |
 | `C:\Users\Sungwoo\Desktop\Graph-auto-reader` | 5,281 | 766,508,010 | Old pytest/runtime scratch and recovered upstream clone |
 
-The restore environment has the same 25 package versions as the retained
+The restore environment had the same 25 package versions as the retained
 environment. All seven GPU package archive SHA-256 values and the three core
 runtime file hashes listed above match. The retained interpreter independently
 confirmed ROCm/HIP availability and the RX 6600 XT. No current launcher points
@@ -140,17 +140,42 @@ historical command record. That record remains in the main project.
 The recovered C: clone is based on
 `a92f017c37567b63c03de127ea183f5208e94a40`; all 906 reachable/reflog commits
 already exist in the retained repository, and its HEAD is an ancestor of main.
-There are no untracked/ignored files or external linked worktrees. Two dirty
-source/test files are preserved as `docs/retired-c-recovery-20261029.patch`
-before deleting the clone: 7,158 bytes, SHA-256
+At review, the recovered clone had no untracked/ignored files or external linked worktrees.
+Two dirty source/test files are preserved as
+[`docs/retired-c-recovery-20261029.patch` in Git history](https://github.com/SKang393/Graph-auto-reader/blob/cd4a0ec2d4e6aa66eda2b5aa05e6f64a0afb5ab7/docs/retired-c-recovery-20261029.patch):
+7,158 bytes, SHA-256
 `701b779a011167d5bec33ac15ec11182245c435d0c86d6c71bb717e12554b862`.
 `git apply --reverse --check` verified the patch against those recovered edits.
-The patch is historical source, not a change to the current application; remove
-its working-tree copy after pushing it and retain its Git-history reference.
+All 16,687 objects in the recovered Git archive were also verified present in
+the retained repository using `git verify-pack` and `git cat-file --batch-check`.
+The historical patch's working-tree copy is removed after preservation in Git;
+the current application source is unchanged by this cleanup.
 
-No active process or reparse point was found under either cleanup root. Push
-this review and the recovered patch before removing the two exact folders.
+The review and recovered patch were pushed in commit
+`cd4a0ec2d4e6aa66eda2b5aa05e6f64a0afb5ab7` before C: file cleanup.
+No active process or reparse point was encountered in the readable trees.
 Restore/update the GPU environment in this project's `tools/gpu-training/venv`;
 do not create another standalone E: restore environment or recreate the old
 Desktop checkout. Completed recovery downloads and scratch follow the same
 retention policy as other completed runs.
+
+### Final status: C: cleanup remains blocked
+
+- The GPU restore folder disappeared during inspection; the final check confirms
+  it absent. Its removal was not executed by this cleanup. The retained GPU
+  environment is still present and identified the RX 6600 XT successfully.
+- Removed 5,279 reviewed C: files, totaling 752,067,249 logical bytes, using
+  explicit file batches. Two obsolete Git archive files remain under the
+  recovered clone's `.git/objects/pack`: `pack-0ce2d46d48296a18dcf64a918ab903af6aa1f4bc.idx`
+  and `pack-0ce2d46d48296a18dcf64a918ab903af6aa1f4bc.pack`, totaling
+  14,440,761 bytes. Automatic approval review rejected their exact deletion and
+  empty-directory cleanup with `blocked by policy`, without a more specific reason.
+- Final `Get-ChildItem -Recurse -Force` inspection also reported Windows access
+  denied for five directories under
+  `artifacts/goal22-worktrees/resume-20260908/artifacts/test-temp`:
+  `db-geometry-scorer`, `db-geometry-scorer-final`, `db-geometry-scorer-final2`,
+  `db-geometry-scorer-final3`, and `scoring-v2-tests`. Their contents are unknown.
+  The initial counts above cover readable files only; two visible files are not
+  a complete remaining-content inventory. There are 3,138 visible directories.
+- The old C: root still exists. Its complete removal is not verified and must
+  not be reported as done. No new application package was produced.
