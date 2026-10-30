@@ -1,0 +1,245 @@
+{
+  "schema": "graphreader.goal22-probe-replay-outcome.v1",
+  "status": "synthetic-dev-diagnostic-incomplete",
+  "source": {
+    "repository": "E:\\Graph-auto-reader",
+    "commit": "d174c3d5fd367b0dc090637df3974c4c06a6993b",
+    "git_tree_oid": "0ee505ddf0af405778b55e01ddbebed7f9104e91",
+    "source_file_inventory_sha256": "7e93653ea10bc4ba9e3d92dc162215a0d9b40a691e1b3f777b2a8575a2cf60b2"
+  },
+  "evidence": {
+    "report": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/v46-probe-current-main-replay-20261030-v8/report.json",
+      "sha256": "2b48ae87a82759dc0e2a21f310ef653a2fd74ccc4acad42ea1319ae33a31a439"
+    },
+    "candidate_binding": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v8/candidate-binding.json",
+      "sha256": "d8f233f3c536dec5357800d1469c11efd1c160ddff55fed7d6074d0791c1d5ca"
+    },
+    "input_manifest": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v8/input-manifest.json",
+      "sha256": "b313055ad43129d7988fff3487d739de0dea088a6b4dae1092e652bb90c2d637"
+    },
+    "protocol": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v8/protocol.json",
+      "sha256": "8acd8ba0f21c67b2b73cb02264d956383a2f820256edaa73e214a2a45d0f431c"
+    },
+    "runner_command": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v8/runner-command.json",
+      "sha256": "435dc365e177ccdb35cbd31c095cef324e0f205812b4a6c2ea0e0d9c460f3f8f"
+    },
+    "runner_dll": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v4/build/GraphReader.RealAcceptance.Ocr.dll",
+      "sha256": "585ddf4e469937fd45b9246b323b86bded3164953bc3192b9b31b0c74f8014fd"
+    },
+    "runner_build_log": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v4/build.log",
+      "sha256": "1d7a7bc990b653f3a8dd608597fb3dd310f4e6e5035640a8abe4fe5b83f99875"
+    },
+    "probe_calibration_stage": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/v46-probe-current-main-replay-20261030-v8/stage-evidence/70743889-afdc-9e54-b170-77aff3bc2552.json",
+      "sha256": "e0e1518d4db169b767c8cf633368175339b9f71710c770c9689ab487ca7f3792"
+    },
+    "probe_raw_ocr": {
+      "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/v46-probe-current-main-replay-20261030-v8/raw-ocr-evidence/70743889-afdc-9e54-b170-77aff3bc2552.json",
+      "sha256": "3f515bc650ec0bcc1ce3640190a4c5a0996e29aef89c21327c374707a066056a"
+    },
+    "historical_v46_incident": {
+      "path": "docs/GOAL-22-PHASE-ROLE-VOCABULARY-REPAIR.json",
+      "sha256": "f33d8a2cca802ee06a9e528e1421dce18699b5d6c664eeb8ec0f5fa7e7debb1c"
+    },
+    "acceptance_bars": {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+      "changed": false
+    }
+  },
+  "invocation": {
+    "cwd": "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908",
+    "command": [
+      "dotnet",
+      "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\goal22-tools\\v46-probe-current-main-replay-prep-20261030-v4\\build\\GraphReader.RealAcceptance.Ocr.dll",
+      "--run-frozen-candidate-synthetic",
+      "--candidate-binding",
+      "artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v8/candidate-binding.json",
+      "--candidate-binding-sha256",
+      "d8f233f3c536dec5357800d1469c11efd1c160ddff55fed7d6074d0791c1d5ca",
+      "--input-manifest",
+      "artifacts/goal22-tools/v46-probe-current-main-replay-prep-20261030-v8/input-manifest.json",
+      "--input-manifest-sha256",
+      "b313055ad43129d7988fff3487d739de0dea088a6b4dae1092e652bb90c2d637",
+      "--output",
+      "artifacts/goal22-runs/v46-probe-current-main-replay-20261030-v8"
+    ],
+    "runtime": {
+      "execution_provider": "cpu",
+      "graph_optimization": "disabled",
+      "intra_operation_threads": 10,
+      "inter_operation_threads": 1,
+      "queue_capacity": 1,
+      "worker_count": 1
+    },
+    "thread_adjustment": {
+      "previous_intra_operation_threads": 12,
+      "current_intra_operation_threads": 10,
+      "reason": "V6 stopped before inference because the runtime processor-count cap was 10.",
+      "models_algorithms_split_thresholds_acceptance_bars_changed": false
+    },
+    "launcher_environment": "Not bound by the report. The protocol notes Run-TrainingCpuBudget.ps1 applies an 80 percent aggregate CPU job-rate and generic OMP/MKL/OpenBLAS limits if used; it does not change the serialized ONNX intra_operation_threads value."
+  },
+  "result": {
+    "schema": "graphreader.real-acceptance-frozen-synthetic-report.v1",
+    "scope": "local-synthetic-frozen-candidate-diagnostic",
+    "candidate_id": "synthetic-phase-role-vocabulary-v46-native",
+    "revision": "v46-current-main-probe-replay-20261030-v8",
+    "source_count": 21,
+    "completed_count": 1,
+    "failed_count": 20,
+    "elapsed_milliseconds": 237976.1708,
+    "failure_type": "ProductionWorkflowStageException",
+    "failure_stage": "automatic calibration",
+    "failure_summary": {
+      "all_failures_missing_absolute_session_origin_and_final_printed_session": 20,
+      "ordinal_only_x_calibration": 20,
+      "also_ambiguous_y_tick_alternative": 2,
+      "first_observed_column_not_session_1": {
+        "session_29": 1,
+        "session_8": 1,
+        "session_2": 1
+      }
+    },
+    "csv": {
+      "protocol_csv_run_budget": 0,
+      "observed_completed_non_probe_case_csv_count": 1,
+      "completed_non_probe_case_csv_rows": 2,
+      "completed_csv_sha256": "cece26144bb817e99fbb4a85632f06ca0cf1187c12abd21c2c749243538e89b3",
+      "completed_audit_csv_sha256": "6d61b005cb1ae321a2c7c5307708f02ded1acda6782bc0e1eb54ee7c8de0379a",
+      "complete_21_source_csv_acceptance": false,
+      "probe_case_csv_emitted": false
+    },
+    "production_approved": false,
+    "private_corpus_access": false,
+    "sealed_corpus_access": false,
+    "model_selection_performed": false,
+    "truth_consumed_by_inference": false,
+    "optimizer_steps": 0
+  },
+  "probe_case": {
+    "source_id": "619bb4d1-8c7d-485b-8f88-c29cd84f3608",
+    "panel_id": "70743889-afdc-9e54-b170-77aff3bc2552",
+    "image_sha256": "dfa5093f9a18e1e2a22dd77d61e8ff4be8f8f48dbc427c96c1b8ddfe9dd60f53",
+    "dimensions": [
+      1200,
+      350
+    ],
+    "status": "failed",
+    "failure": "Automatic calibration incomplete: absolute session-1 origin and final printed session are unavailable; X remains ordinal-only and printed/estimated X are null.",
+    "raw_detector_region_count": 23,
+    "ocr_stage_region_count": 25,
+    "ocr_regions": [
+      {
+        "text": "sgbe",
+        "role": "Other",
+        "bounds_ltrb": [
+          917,
+          67,
+          950,
+          79
+        ]
+      },
+      {
+        "text": "Interventions con",
+        "role": "Other",
+        "bounds_ltrb": [
+          771,
+          72,
+          888,
+          85
+        ]
+      },
+      {
+        "text": "nt",
+        "role": "Other",
+        "bounds_ltrb": [
+          884,
+          73,
+          899,
+          84
+        ]
+      },
+      {
+        "text": "n",
+        "role": "Other",
+        "bounds_ltrb": [
+          903,
+          77,
+          912,
+          84
+        ]
+      },
+      {
+        "text": "Interventions",
+        "role": "PhaseHeading",
+        "bounds_ltrb": [
+          575,
+          71,
+          666,
+          84
+        ]
+      }
+    ],
+    "header_fragment_word_regions": 0,
+    "ocr_header_fragment_replaced_warnings": 0,
+    "probe_truth_from_historical_incident": "Probe",
+    "correct_probe_recognition": false,
+    "csv_emitted": false
+  },
+  "historical_comparison": {
+    "historical_v46_case_was_incomplete": true,
+    "historical_v46_full_baseline_claim": false,
+    "historical_v46_recovery_composite": "Interventions continleabe",
+    "historical_probe_match_after_merge": false,
+    "current_replay_recreated_merge": false
+  },
+  "preflight_and_build_history": [
+    {
+      "attempt": "prep-v1",
+      "outcome": "Stopped because an expected 21-of-21 historical pass was actually only 1 completed and 20 failed; denominator check corrected."
+    },
+    {
+      "attempt": "prep-v2",
+      "outcome": "Stopped before build because source-bindings.json was resolved before it was written."
+    },
+    {
+      "attempt": "build-v3",
+      "outcome": "Failed NETSDK1005 because a literal MSBuildProjectName intermediate path caused projects to reuse an invalid assets file."
+    },
+    {
+      "attempt": "build-v4",
+      "outcome": "Succeeded with 0 warnings and 0 errors using isolated worktree default obj output."
+    },
+    {
+      "attempt": "replay-v5",
+      "outcome": "Stopped before inference because strict native candidate bindings lacked role; v6 restored archived roles."
+    },
+    {
+      "attempt": "replay-v6",
+      "outcome": "Stopped before inference because 12 intra-operation threads exceeded the environment cap of 10; v8 used 10."
+    },
+    {
+      "attempt": "prep-v7",
+      "outcome": "Stopped before inference due to a receipt-key mismatch; v8 used a fresh descriptor path."
+    }
+  ],
+  "limitations": [
+    "Only one of 21 sources completed the workflow; it is not a passing full-source baseline.",
+    "The Probe OCR remains wrong (sgbe), and Probe fails at calibration before export.",
+    "One non-Probe prototype CSV exists despite the protocol budget of zero CSV runs; it is not a successful full-run CSV result.",
+    "The result verifies stage output for the historical merge case, not final product accuracy, release readiness, or production approval."
+  ],
+  "retention": {
+    "outputs_are_temporary": true,
+    "post_push_disposition": "After this outcome record is committed and pushed and active review consumers finish, retire the replay reports/raw-stage dumps and v1-v8 preparatory/build outputs under the repository retention policy. Preserve shared models, licenses, synthetic inputs, and unrelated active work.",
+    "committed_or_pushed_by_this_task": false
+  }
+}
