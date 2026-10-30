@@ -54,6 +54,25 @@ metadata and this aggregate report contain no private research data and may be
 committed. The prior test's ONNX exports were disposable probe outputs, not
 production-approved models.
 
+On October 30, the existing synthetic project dependency `jsonschema==4.26.0`
+and its transitive dependencies were installed into this project-local venv.
+`pip check` passed. The lock file records their installed versions. The
+following separately downloaded wheels document available package artifacts;
+they are not a byte-for-byte receipt of the earlier install:
+
+| Wheel | SHA-256 |
+| --- | --- |
+| attrs-26.1.0-py3-none-any.whl | c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309 |
+| jsonschema-4.26.0-py3-none-any.whl | d489f15263b8d200f8387e64b4c3a75f06629559fb73deb8fdfb525f2dab50ce |
+| jsonschema_specifications-2025.9.1-py3-none-any.whl | 98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe |
+| referencing-0.37.0-py3-none-any.whl | 381329a9f99628c9069361716891d34ad94af76e461dcb0335825aecc7692231 |
+| rpds_py-2026.9.1-cp313-cp313-win_amd64.whl | 3e93b2cd69a9830be33e03945cd7cda940a0a8bfcfbff41d6144f0cb0d3d8bd9 |
+
+The `jsonschema` wheel hash matches the existing synthetic requirements lock.
+These dependencies were installed for candidate preparation; no optimizer was
+run. A proposed residual-negative GPU recipe was not admitted because it
+duplicates the already failed V38 experiment.
+
 ## Completed probe record, October 29, 2026
 
 The original bounded CompactCenterNet test used only the project's procedural
