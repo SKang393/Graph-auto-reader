@@ -90,6 +90,9 @@ class RegisteredSourceTests(unittest.TestCase):
     def test_bound_archive_model_and_single_use_begin(self):
         with registered.RegisteredMixedSource.open_admitted(self.authorization, archive_key=_KEY) as source:
             self.assertEqual(source.schedule.total_steps, 8)
+            registered.runner._require_reviewed_schedule(self.config, source)
+            with self.assertRaisesRegex(RuntimeError, "schedule"):
+                registered.runner._require_reviewed_schedule({**self.config, "optimizer_steps_expected": 9}, source)
             self.assertEqual(source.family_provenance, self.provenance)
             self.assertTrue(source.verify_input_binding(self.config["real_positive_binding_sha256"], "a" * 64))
             self.assertTrue(source.verify_model(self.model, self.base_sha))

@@ -306,13 +306,14 @@ def _require_fresh_state(model: RealPositiveCenterNet, optimizer: torch.optim.Op
 
 
 def _require_reviewed_schedule(config: dict, source: object) -> None:
-    """Block until a real producer and independently validated schedule exist.
-
-    A source's own `begin_fixed_run` assertion does not prove population or
-    epoch coverage.  The later adapter must introduce a reviewed, config-bound
-    schedule manifest and an independent validator. No data format is guessed.
-    """
-    raise RuntimeError("BLOCKED: authenticated source and independently validated per-epoch schedule are not implemented")
+    """Require the admitted source's independently constructed fixed schedule."""
+    from .registered_source import RegisteredMixedSource
+    from .schedule import FixedSchedule
+    if (type(source) is not RegisteredMixedSource or source._closed or source._config != config or
+            type(source.schedule) is not FixedSchedule or
+            source.schedule.total_steps != config.get("optimizer_steps_expected") or
+            not 0 <= source.schedule.completed_steps <= source.schedule.total_steps):
+        raise RuntimeError("BLOCKED: authenticated source and independently validated per-epoch schedule are required")
 
 
 def _write_new_durable(path: Path, payload: dict) -> bytes:
