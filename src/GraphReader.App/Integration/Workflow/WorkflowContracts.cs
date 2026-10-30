@@ -141,7 +141,8 @@ internal sealed record WorkflowManualCalibrationBinding(
     Guid SourceId,
     Guid PanelId,
     string OriginalImageSha256,
-    CalibrationRecord Calibration);
+    CalibrationRecord Calibration,
+    GraphReader.Export.ExportSessionOriginPolicy? ManualOriginPolicy = null);
 
 public sealed class WorkflowImageEvidence
 {

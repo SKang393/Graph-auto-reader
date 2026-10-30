@@ -79,7 +79,9 @@ public static class LocalizationKeys
     public const string ManualInstruction = "Manual.Instruction";
     public const string ManualCalibration = "Manual.Calibration";
     public const string ManualYMaximum = "Manual.YMaximum";
+    public const string ManualFirstVisibleSession = "Manual.FirstVisibleSession";
     public const string ManualXMaximum = "Manual.XMaximum";
+    public const string ManualSessionRangeHelp = "Manual.SessionRangeHelp";
     public const string ManualSeriesName = "Manual.SeriesName";
     public const string ManualSeriesShape = "Manual.SeriesShape";
     public const string ManualSeriesFill = "Manual.SeriesFill";
@@ -342,7 +344,9 @@ public static class LocalizationKeys
         ManualInstruction,
         ManualCalibration,
         ManualYMaximum,
+        ManualFirstVisibleSession,
         ManualXMaximum,
+        ManualSessionRangeHelp,
         ManualSeriesName,
         ManualSeriesShape,
         ManualSeriesFill,

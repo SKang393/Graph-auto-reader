@@ -78,6 +78,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private string? _selectedSharedBaselineSeriesId;
     private double _manualYMaximum = 100;
     private double _manualXMaximum = 20;
+    private int _manualFirstVisibleSession = 1;
     private readonly Dictionary<string, TabEditHistory> _editHistories = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reviewReadyTabIds = new(StringComparer.Ordinal);
     private WorkspaceSurfaceState _surfaceState;
@@ -596,13 +597,37 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public double ManualYMaximum
     {
         get => _manualYMaximum;
-        set => SetProperty(ref _manualYMaximum, value);
+        set
+        {
+            if (SetProperty(ref _manualYMaximum, value))
+            {
+                UpdateCalibrationPromptIfActive();
+            }
+        }
+    }
+
+    public int ManualFirstVisibleSession
+    {
+        get => _manualFirstVisibleSession;
+        set
+        {
+            if (SetProperty(ref _manualFirstVisibleSession, value))
+            {
+                UpdateCalibrationPromptIfActive();
+            }
+        }
     }
 
     public double ManualXMaximum
     {
         get => _manualXMaximum;
-        set => SetProperty(ref _manualXMaximum, value);
+        set
+        {
+            if (SetProperty(ref _manualXMaximum, value))
+            {
+                UpdateCalibrationPromptIfActive();
+            }
+        }
     }
 
     public string NewSeriesName
@@ -984,9 +1009,13 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                             new GraphReader.Axis.PixelPoint(_calibrationAnchors[1].X, _calibrationAnchors[1].Y),
                             new GraphReader.Axis.PixelPoint(_calibrationAnchors[2].X, _calibrationAnchors[2].Y),
                             ManualYMaximum,
-                            ManualXMaximum));
+                            ManualXMaximum,
+                            ManualFirstVisibleSession));
                     EditorMode = ManualEditorMode.Select;
-                    SetStatus(GetLocalizedString(LocalizationKeys.ManualCalibrationSaved));
+                    SetStatus(FormatLocalizedString(
+                        LocalizationKeys.ManualCalibrationSaved,
+                        ManualFirstVisibleSession,
+                        ManualXMaximum));
                     RecordManualEdit(tab, LocalizationKeys.EditCalibrate, before!);
                     await TryAutosaveAsync(SnapshotTrigger.CalibrationChanged, tab.TabId, null, cancellationToken);
                 }
@@ -1408,7 +1437,19 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         _calibrationAnchors.Clear();
         EditorMode = ManualEditorMode.Calibration;
-        SetStatus(GetLocalizedString(LocalizationKeys.ManualCalibrationPrompt));
+        UpdateCalibrationPromptIfActive();
+    }
+
+    private void UpdateCalibrationPromptIfActive()
+    {
+        if (EditorMode == ManualEditorMode.Calibration)
+        {
+            SetStatus(FormatLocalizedString(
+                LocalizationKeys.ManualCalibrationPrompt,
+                ManualFirstVisibleSession,
+                ManualXMaximum,
+                ManualYMaximum));
+        }
     }
 
     private void CreateSeries()

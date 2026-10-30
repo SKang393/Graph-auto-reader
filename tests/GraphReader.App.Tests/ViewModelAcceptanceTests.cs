@@ -34,6 +34,18 @@ public sealed class ViewModelAcceptanceTests
     }
 
     [TestMethod]
+    public void ManualCalibrationUsesExplicitFirstVisibleSession()
+    {
+        var viewModel = CreateWorkspace();
+
+        Assert.AreEqual(1, viewModel.ManualFirstVisibleSession);
+
+        viewModel.ManualFirstVisibleSession = 7;
+
+        Assert.AreEqual(7, viewModel.ManualFirstVisibleSession);
+    }
+
+    [TestMethod]
     public void AddAndDeleteUpdateSeriesCountImmediately()
     {
         var viewModel = CreateWorkspace();

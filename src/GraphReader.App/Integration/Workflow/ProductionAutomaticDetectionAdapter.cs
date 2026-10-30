@@ -1046,7 +1046,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 ? ExportMode.PrintedSession
                 : ExportMode.ObservationOrder,
             ExportAuditMode.ExtendedCsvAndJson,
-            ExportSessionOriginPolicy.Default,
+            request.ManualCalibrationBinding?.ManualOriginPolicy ?? ExportSessionOriginPolicy.Default,
             projection);
         WorkflowDetectionCandidate[] candidates = pointRows.Select(point =>
         {
@@ -1177,19 +1177,24 @@ public sealed class ProductionAutomaticDetectionAdapter :
 
         Dictionary<DomainCalibrationAnchorKind, DomainCalibrationAnchor> anchors = calibration.Anchors
             .ToDictionary(static anchor => anchor.Kind);
-        DomainCalibrationAnchor y0 = anchors[DomainCalibrationAnchorKind.Session1Y0];
-        DomainCalibrationAnchor yMax = anchors[DomainCalibrationAnchorKind.Session1Ymax];
+        bool firstVisible = anchors.ContainsKey(DomainCalibrationAnchorKind.FirstVisibleSessionY0);
+        DomainCalibrationAnchor y0 = anchors[firstVisible ? DomainCalibrationAnchorKind.FirstVisibleSessionY0 : DomainCalibrationAnchorKind.Session1Y0];
+        DomainCalibrationAnchor yMax = anchors[firstVisible ? DomainCalibrationAnchorKind.FirstVisibleSessionYmax : DomainCalibrationAnchorKind.Session1Ymax];
         DomainCalibrationAnchor xMax = anchors[DomainCalibrationAnchorKind.SessionmaxY0];
         SessionLatticeRecord manualLattice = calibration.SessionLattice!;
-        double expectedPitch = (xMax.Screen.X - y0.Screen.X) / (xMax.Graph.X - 1);
+        double firstSession = y0.Graph.X;
+        double expectedPitch = (xMax.Screen.X - y0.Screen.X) / (xMax.Graph.X - firstSession);
+        double expectedOrigin = y0.Screen.X + (1 - firstSession) * expectedPitch;
         if (!IsAnchorInsideImage(y0, request.Image) || !IsAnchorInsideImage(yMax, request.Image) ||
             !IsAnchorInsideImage(xMax, request.Image) || yMax.Screen.Y >= y0.Screen.Y ||
             xMax.Screen.X <= y0.Screen.X ||
+            !double.IsFinite(expectedPitch) || !double.IsFinite(expectedOrigin) ||
             !double.IsFinite(manualLattice.Session1PixelX) ||
-            Math.Abs(manualLattice.Session1PixelX - y0.Screen.X) > 1e-9 ||
+            Math.Abs(manualLattice.Session1PixelX - expectedOrigin) > 1e-9 ||
             !double.IsFinite(manualLattice.PitchPixels) ||
             Math.Abs(manualLattice.PitchPixels - expectedPitch) > 1e-9 ||
-            manualLattice.Confidence != calibration.Confidence)
+            manualLattice.Confidence != calibration.Confidence ||
+            (firstSession > 1 && (binding.ManualOriginPolicy is not { RequireFirstObservedSessionOne: true, HasExplicitOverride: true })))
         {
             throw chain.Reject(new ProductionWorkflowFailure(
                 ProductionWorkflowFailureCodes.RecalibrationRequired,
@@ -1246,7 +1251,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 calibration.Confidence))
             .ToArray();
         SessionLatticeResult lattice = new(
-            y0.Screen.X,
+            expectedOrigin,
             pitchPixels,
             calibration.Confidence,
             SessionLatticeSource.Manual,
@@ -1257,13 +1262,18 @@ public sealed class ProductionAutomaticDetectionAdapter :
             Array.AsReadOnly(assignments),
             new SessionLatticeUncertainty(0, 0, 0, 1, HarmonicAmbiguity: false),
             new SessionLatticeDiagnostics(0, assignments.Length, 0, 0, 0, [], TimeSpan.Zero),
-            UsedManualOriginOverride: false,
+            UsedManualOriginOverride: firstSession > 1,
             [SessionLatticeSource.Manual],
-            ManualOriginOverride: null);
+            ManualOriginOverride: firstSession > 1
+                ? new SessionOriginOverride(y0.Screen.X, firstSession, calibration.Confidence,
+                    ProvenanceId: calibrationId,
+                    Reason: binding.ManualOriginPolicy!.OverrideReason,
+                    ConfirmedAtUtc: binding.ManualOriginPolicy.OverrideConfirmedAtUtc)
+                : null);
         GraphReader.Axis.CalibrationAnchor[] resultAnchors =
         [
-            new(GraphReader.Axis.CalibrationAnchorKind.Session1Y0, new GraphReader.Axis.PixelPoint(y0.Screen.X, y0.Screen.Y), y0.Graph.X, y0.Graph.Y, y0.Confidence, IsExact: true),
-            new(GraphReader.Axis.CalibrationAnchorKind.Session1YMaximum, new GraphReader.Axis.PixelPoint(yMax.Screen.X, yMax.Screen.Y), yMax.Graph.X, yMax.Graph.Y, yMax.Confidence, IsExact: true),
+            new(firstVisible ? GraphReader.Axis.CalibrationAnchorKind.FirstVisibleSessionY0 : GraphReader.Axis.CalibrationAnchorKind.Session1Y0, new GraphReader.Axis.PixelPoint(y0.Screen.X, y0.Screen.Y), y0.Graph.X, y0.Graph.Y, y0.Confidence, IsExact: true),
+            new(firstVisible ? GraphReader.Axis.CalibrationAnchorKind.FirstVisibleSessionYMaximum : GraphReader.Axis.CalibrationAnchorKind.Session1YMaximum, new GraphReader.Axis.PixelPoint(yMax.Screen.X, yMax.Screen.Y), yMax.Graph.X, yMax.Graph.Y, yMax.Confidence, IsExact: true),
             new(GraphReader.Axis.CalibrationAnchorKind.SessionMaximumY0, new GraphReader.Axis.PixelPoint(xMax.Screen.X, xMax.Screen.Y), xMax.Graph.X, xMax.Graph.Y, xMax.Confidence, IsExact: true),
         ];
         string[] reasons = ["user_confirmed_manual_three_anchor_override"];
@@ -1296,8 +1306,9 @@ public sealed class ProductionAutomaticDetectionAdapter :
 
         Dictionary<DomainCalibrationAnchorKind, DomainCalibrationAnchor> anchors = calibration.Anchors
             .ToDictionary(static anchor => anchor.Kind);
-        if (!anchors.TryGetValue(DomainCalibrationAnchorKind.Session1Y0, out DomainCalibrationAnchor? y0) ||
-            !anchors.TryGetValue(DomainCalibrationAnchorKind.Session1Ymax, out DomainCalibrationAnchor? yMax) ||
+        bool firstVisible = anchors.ContainsKey(DomainCalibrationAnchorKind.FirstVisibleSessionY0);
+        if (!anchors.TryGetValue(firstVisible ? DomainCalibrationAnchorKind.FirstVisibleSessionY0 : DomainCalibrationAnchorKind.Session1Y0, out DomainCalibrationAnchor? y0) ||
+            !anchors.TryGetValue(firstVisible ? DomainCalibrationAnchorKind.FirstVisibleSessionYmax : DomainCalibrationAnchorKind.Session1Ymax, out DomainCalibrationAnchor? yMax) ||
             !anchors.TryGetValue(DomainCalibrationAnchorKind.SessionmaxY0, out DomainCalibrationAnchor? xMax))
         {
             return false;
@@ -1308,9 +1319,10 @@ public sealed class ProductionAutomaticDetectionAdapter :
             double.IsFinite(xMax.Screen.X) && double.IsFinite(xMax.Screen.Y) &&
             Math.Abs(y0.Screen.X - yMax.Screen.X) <= 2 &&
             Math.Abs(y0.Screen.Y - xMax.Screen.Y) <= 2 &&
-            y0.Graph == new GraphReader.Domain.GraphPoint(1, 0) &&
-            yMax.Graph.X == 1 && double.IsFinite(yMax.Graph.Y) && yMax.Graph.Y > 0 &&
-            xMax.Graph.Y == 0 && double.IsFinite(xMax.Graph.X) && xMax.Graph.X > 1;
+            double.IsFinite(y0.Graph.X) && y0.Graph.X >= 1 && y0.Graph.X == Math.Truncate(y0.Graph.X) && y0.Graph.Y == 0 &&
+            (firstVisible ? y0.Graph.X > 1 : y0.Graph.X == 1) &&
+            yMax.Graph.X == y0.Graph.X && double.IsFinite(yMax.Graph.Y) && yMax.Graph.Y > 0 &&
+            xMax.Graph.Y == 0 && double.IsFinite(xMax.Graph.X) && xMax.Graph.X > y0.Graph.X;
     }
 
     private static bool IsAnchorInsideImage(DomainCalibrationAnchor anchor, WorkflowImageEvidence image) =>
@@ -1541,6 +1553,10 @@ public sealed class ProductionAutomaticDetectionAdapter :
                         DomainCalibrationAnchorKind.Session1Ymax,
                     GraphReader.Axis.CalibrationAnchorKind.SessionMaximumY0 =>
                         DomainCalibrationAnchorKind.SessionmaxY0,
+                    GraphReader.Axis.CalibrationAnchorKind.FirstVisibleSessionY0 =>
+                        DomainCalibrationAnchorKind.FirstVisibleSessionY0,
+                    GraphReader.Axis.CalibrationAnchorKind.FirstVisibleSessionYMaximum =>
+                        DomainCalibrationAnchorKind.FirstVisibleSessionYmax,
                     _ => throw new ArgumentOutOfRangeException(nameof(anchor)),
                 },
                 new DomainPixelPoint(anchor.Screen.X, anchor.Screen.Y),

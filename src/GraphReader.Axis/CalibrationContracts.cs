@@ -43,6 +43,8 @@ public enum CalibrationAnchorKind
     Session1Y0,
     Session1YMaximum,
     SessionMaximumY0,
+    FirstVisibleSessionY0,
+    FirstVisibleSessionYMaximum,
 }
 
 public sealed record NumericTickEvidence(

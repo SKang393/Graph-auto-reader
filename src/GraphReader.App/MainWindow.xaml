@@ -980,6 +980,7 @@
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
               <StackPanel Grid.Column="0" Margin="0,0,4,0">
                 <TextBlock Text="{DynamicResource Manual.YMaximum}" />
@@ -987,13 +988,25 @@
                          automation:AutomationProperties.AutomationId="Manual.YMaximum"
                          automation:AutomationProperties.Name="{DynamicResource Manual.YMaximum}" />
               </StackPanel>
-              <StackPanel Grid.Column="1" Margin="4,0,0,0">
+              <StackPanel Grid.Column="1" Margin="4,0,4,0">
+                <TextBlock Text="{DynamicResource Manual.FirstVisibleSession}" />
+                <TextBox Text="{Binding ManualFirstVisibleSession, UpdateSourceTrigger=PropertyChanged}"
+                         automation:AutomationProperties.AutomationId="Manual.FirstVisibleSession"
+                         automation:AutomationProperties.Name="{DynamicResource Manual.FirstVisibleSession}"
+                         automation:AutomationProperties.HelpText="{DynamicResource Manual.SessionRangeHelp}" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Margin="4,0,0,0">
                 <TextBlock Text="{DynamicResource Manual.XMaximum}" />
                 <TextBox Text="{Binding ManualXMaximum, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.XMaximum"
-                         automation:AutomationProperties.Name="{DynamicResource Manual.XMaximum}" />
+                         automation:AutomationProperties.Name="{DynamicResource Manual.XMaximum}"
+                         automation:AutomationProperties.HelpText="{DynamicResource Manual.SessionRangeHelp}" />
               </StackPanel>
             </Grid>
+            <TextBlock Margin="0,0,0,8"
+                       Foreground="{DynamicResource App.Brush.TextMuted}"
+                       Text="{DynamicResource Manual.SessionRangeHelp}"
+                       TextWrapping="Wrap" />
             <Grid Margin="0,0,0,6">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="80" />

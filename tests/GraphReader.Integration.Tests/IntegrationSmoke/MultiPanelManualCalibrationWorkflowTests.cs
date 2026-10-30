@@ -32,7 +32,9 @@ namespace GraphReader.Integration.Tests.IntegrationSmoke;
 public sealed class MultiPanelManualCalibrationWorkflowTests
 {
     [TestMethod]
-    public async Task UserAnchorsCalibrateEveryLabelFreeRasterPanelThroughProductionWorkflow()
+    [DataRow(1, 20)]
+    [DataRow(29, 35)]
+    public async Task UserAnchorsCalibrateEveryLabelFreeRasterPanelThroughProductionWorkflow(int firstSession, int finalSession)
     {
         using var directory = new TemporaryDirectory();
         string imagePath = Path.Combine(directory.Path, "synthetic-stacked-graphs.png");
@@ -84,7 +86,8 @@ public sealed class MultiPanelManualCalibrationWorkflowTests
                     geometry.Session1YMaximum,
                     geometry.SessionMaximumY0,
                     YMaximum: 100,
-                    XMaximum: 20));
+                    XMaximum: finalSession,
+                    FirstVisibleSession: firstSession));
         }
 
         IReadOnlyList<WorkflowManualCalibrationBinding> bindings =
@@ -121,12 +124,17 @@ public sealed class MultiPanelManualCalibrationWorkflowTests
             Assert.AreEqual("manual_three_anchor", calibration.SessionLattice?.Source);
             Assert.IsTrue(calibration.UserConfirmed);
             Assert.AreEqual(3, calibration.Anchors.Count);
+            if (firstSession > 1)
+            {
+                Assert.IsTrue(export.SessionOriginPolicy.HasExplicitOverride);
+                Assert.IsTrue(export.SessionOriginPolicy.RequireFirstObservedSessionOne);
+            }
 
             SyntheticPanelGeometry geometry = axisCases[reviewPanel.PanelId];
             DomainCalibrationAnchor persistedY0 = persistedCalibration.Anchors.Single(anchor =>
-                anchor.Kind == DomainCalibrationAnchorKind.Session1Y0);
+                anchor.Kind == (firstSession > 1 ? DomainCalibrationAnchorKind.FirstVisibleSessionY0 : DomainCalibrationAnchorKind.Session1Y0));
             DomainCalibrationAnchor persistedYMaximum = persistedCalibration.Anchors.Single(anchor =>
-                anchor.Kind == DomainCalibrationAnchorKind.Session1Ymax);
+                anchor.Kind == (firstSession > 1 ? DomainCalibrationAnchorKind.FirstVisibleSessionYmax : DomainCalibrationAnchorKind.Session1Ymax));
             DomainCalibrationAnchor persistedXMaximum = persistedCalibration.Anchors.Single(anchor =>
                 anchor.Kind == DomainCalibrationAnchorKind.SessionmaxY0);
             Assert.AreEqual(geometry.X0 + persistedPanel.Crop.X, persistedY0.Screen.X, 0);
@@ -141,12 +149,46 @@ public sealed class MultiPanelManualCalibrationWorkflowTests
             for (int index = 0; index < points.Length; index++)
             {
                 SyntheticMarker marker = geometry.Markers.OrderBy(static item => item.PixelX).ElementAt(index);
-                Assert.AreEqual(marker.ExpectedGraphX, points[index].GraphX!.Value, 1e-8);
+                double expectedX = firstSession + (marker.ExpectedGraphX - 1) * (finalSession - firstSession) / 19d;
+                Assert.AreEqual(expectedX, points[index].GraphX!.Value, 1e-8);
                 Assert.AreEqual(marker.ExpectedGraphY, points[index].GraphY!.Value, 1e-8);
             }
 
             Assert.IsTrue(projection.Points.All(static point =>
                 point.PrintedXValue is null && point.EstimatedXValue.HasValue));
+        }
+
+        if (firstSession > 1)
+        {
+            foreach (WorkspaceTabViewModel tab in tabs)
+            {
+                SeriesCardViewModel series = tab.SeriesCards.First();
+                workspace.UpdateSeries(tab.TabId, series.SeriesId,
+                    new ManualSeriesDefinition(series.Label, series.Symbol, series.Shape, series.Fill, SemanticRole.Intervention));
+            }
+            string savePath = Path.Combine(directory.Path, "production-manual-origin.garproj");
+            var saved = await workspace.SaveProjectAsync(savePath, CancellationToken.None);
+            Assert.IsTrue(saved.IsSuccess, string.Join(" | ", saved.Errors.Select(static error => error.TechnicalMessage)));
+            var capture = new CapturingExportService();
+            var reopened = new ProductionWorkspaceService(exportService: capture);
+            WorkspaceTabViewModel[] reopenedTabs = (await reopened.OpenProjectAsync(savePath, CancellationToken.None)).ToArray();
+            foreach (WorkspaceTabViewModel reopenedTab in reopenedTabs)
+            {
+                Assert.AreEqual(firstSession, reopenedTab.Calibration!.FirstVisibleSession);
+                ExportResult exported = await reopened.ExportAsync(reopenedTab.TabId,
+                    Path.Combine(directory.Path, "export-" + reopenedTab.PanelId), CancellationToken.None);
+                Assert.IsFalse(exported.Preview.FinalExportBlocked,
+                    string.Join(" | ", exported.Failures.Select(static error => error.TechnicalMessage)));
+                Assert.IsTrue(exported.AuditArtifacts.SelectMany(static artifact => artifact.Rows).All(static row =>
+                    row.XSource == ExportXValueSource.Estimated && row.SessionOriginOverrideApplied));
+                var firstPoint = reopenedTab.Points.OrderBy(static point => point.PixelX).First();
+                reopened.DeletePoint(reopenedTab.TabId, firstPoint.PointId);
+                double expectedFirst = reopenedTab.Points.OrderBy(static point => point.PixelX).First().GraphX;
+                ExportResult afterEdit = await reopened.ExportAsync(reopenedTab.TabId,
+                    Path.Combine(directory.Path, "export-after-edit-" + reopenedTab.PanelId), CancellationToken.None);
+                Assert.IsFalse(afterEdit.Preview.FinalExportBlocked);
+                Assert.AreEqual(expectedFirst, capture.LastRequest!.Calibration.FirstObservedSession!.Value, 1e-8);
+            }
         }
     }
 
@@ -537,6 +579,17 @@ public sealed class MultiPanelManualCalibrationWorkflowTests
             WorkflowExportRequest request,
             CancellationToken cancellationToken) => throw new AssertFailedException(
                 "Detection workflow tests must not start an export.");
+    }
+
+    private sealed class CapturingExportService : IExportService
+    {
+        private readonly ExportService _inner = new();
+        public ExportRequest? LastRequest { get; private set; }
+        public Task<ExportResult> ExportAsync(ExportRequest request, CancellationToken cancellationToken)
+        {
+            LastRequest = request;
+            return _inner.ExportAsync(request, cancellationToken);
+        }
     }
 
     private sealed class TemporaryDirectory : IDisposable

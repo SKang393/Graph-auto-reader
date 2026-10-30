@@ -2,6 +2,8 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.App.Localization;
@@ -18,6 +20,91 @@ public sealed class ManualPreviewWorkflowSmokeTests
 {
     private static readonly string[] ExpectedProbePhaseCodes = ["b", "b", "g", "m"];
     private static readonly string[] ExpectedSemanticProbeCodes = ["g", "m"];
+    private static readonly double[] ExpectedManualOriginSessions = [29, 31, 35];
+    private static readonly double[] ManualOriginPointXs = [300, 320, 360];
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task FirstVisibleSessionRoundTripsAndExportsEstimatedGapsWithAudit(bool production)
+    {
+        using var environment = new IntegrationSmokeTestEnvironment();
+        string imagePath = environment.PathFor("manual-origin.png");
+        WriteImage(imagePath, 400, 100);
+        var capture = new CapturingExportService();
+        ManualPreviewWorkspaceService NewWorkspace() => production
+            ? new ProductionWorkspaceService(exportService: capture)
+            : new ManualPreviewWorkspaceService(exportService: capture);
+        ManualPreviewWorkspaceService workspace = NewWorkspace();
+        var tab = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        workspace.Calibrate(tab.TabId, new ManualCalibrationRequest(
+            new GraphReader.Axis.PixelPoint(300, 90), new GraphReader.Axis.PixelPoint(300, 10),
+            new GraphReader.Axis.PixelPoint(360, 90), 100, 35, FirstVisibleSession: 29));
+        var series = workspace.AddSeries(tab.TabId,
+            new ManualSeriesDefinition("Intervention", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
+        foreach (double x in ManualOriginPointXs) workspace.AddPoint(tab.TabId, series.SeriesId, x, 50);
+        var unrelated = workspace.AddSeries(tab.TabId,
+            new ManualSeriesDefinition("Unlinked baseline", "○", MarkerShape.Circle, MarkerFill.Open, SemanticRole.Baseline));
+        workspace.AddPoint(tab.TabId, unrelated.SeriesId, 20, 50); // Unselected series resolves to session 1.
+        string projectPath = environment.PathFor("manual-origin.garproj");
+        DomainResult<ProjectSaveReceipt> saved = await workspace.SaveProjectAsync(projectPath, CancellationToken.None);
+        Assert.IsTrue(saved.IsSuccess, Format(saved.Errors));
+        ManualPreviewWorkspaceService reopened = NewWorkspace();
+        var reopenedTab = (await reopened.OpenProjectAsync(projectPath, CancellationToken.None)).Single();
+        Assert.AreEqual(29d, reopenedTab.Calibration!.FirstVisibleSession);
+        CalibrationRecord reopenedCalibration = reopened.CurrentProject.Panels.Single().Calibration!;
+        Assert.IsTrue(reopenedCalibration.Anchors.Any(static anchor =>
+            anchor.Kind == GraphReader.Domain.CalibrationAnchorKind.FirstVisibleSessionY0 && anchor.Graph.X == 29));
+        Assert.IsFalse(reopenedCalibration.Anchors.Any(static anchor => anchor.Kind == GraphReader.Domain.CalibrationAnchorKind.Session1Y0));
+        ExportResult result = await reopened.ExportAsync(reopenedTab.TabId, environment.PathFor("manual-origin-output"), CancellationToken.None);
+        Assert.IsFalse(result.Preview.FinalExportBlocked);
+        CollectionAssert.AreEqual(ExpectedManualOriginSessions, result.MinimalArtifacts.Single().Rows.Select(row => row.XValue).ToArray());
+        Assert.IsTrue(result.AuditArtifacts.SelectMany(a => a.Rows).All(row =>
+            row.XSource == ExportXValueSource.Estimated && row.SessionOriginOverrideApplied &&
+            !string.IsNullOrWhiteSpace(row.SessionOriginOverrideReason) && row.SessionOriginOverrideConfirmedAtUtc.HasValue));
+        string firstPointId = reopenedTab.Points.Where(point => point.SeriesId == series.SeriesId).OrderBy(static point => point.PixelX).First().PointId;
+        reopened.DeletePoint(reopenedTab.TabId, firstPointId);
+        await reopened.ExportAsync(reopenedTab.TabId, environment.PathFor("later-first-point"), CancellationToken.None);
+        Assert.AreEqual(31d, capture.LastRequest!.Calibration.FirstObservedSession);
+
+        var fileStore = new ProjectFileStore();
+        var loaded = await fileStore.LoadAsync(projectPath, CancellationToken.None);
+        Assert.IsTrue(loaded.IsSuccess, Format(loaded.Errors));
+        PanelRecord panel = loaded.Value!.Panels.Single();
+        JsonObject validation = JsonNode.Parse(panel.Validation!.Value.GetRawText())!.AsObject();
+        validation["graphreader_manual_origin_confirmation"]!["reason"] = "altered";
+        string tamperedPath = environment.PathFor("tampered-origin.garproj");
+        var tampered = await fileStore.SaveAsync(loaded.Value with
+        {
+            Panels = [panel with { Validation = JsonSerializer.SerializeToElement(validation) }],
+        }, tamperedPath, CancellationToken.None);
+        Assert.IsTrue(tampered.IsSuccess, Format(tampered.Errors));
+        ManualPreviewWorkspaceService rejected = NewWorkspace();
+        var rejectedTab = (await rejected.OpenProjectAsync(tamperedPath, CancellationToken.None)).Single();
+        string rejectedOutput = environment.PathFor("rejected-output");
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() =>
+            rejected.ExportAsync(rejectedTab.TabId, rejectedOutput, CancellationToken.None));
+        Assert.IsFalse(Directory.Exists(rejectedOutput));
+
+        CalibrationRecord mixedCalibration = panel.Calibration! with
+        {
+            Anchors = panel.Calibration!.Anchors.Select(anchor =>
+                anchor.Kind == GraphReader.Domain.CalibrationAnchorKind.FirstVisibleSessionYmax
+                    ? anchor with { Kind = GraphReader.Domain.CalibrationAnchorKind.Session1Ymax }
+                    : anchor).ToArray(),
+        };
+        string mixedPath = environment.PathFor("mixed-origin.garproj");
+        var mixed = await fileStore.SaveAsync(loaded.Value with
+        {
+            Panels = [panel with { Calibration = mixedCalibration }],
+        }, mixedPath, CancellationToken.None);
+        Assert.IsTrue(mixed.IsSuccess, Format(mixed.Errors));
+        ManualPreviewWorkspaceService mixedWorkspace = NewWorkspace();
+        var mixedTab = (await mixedWorkspace.OpenProjectAsync(mixedPath, CancellationToken.None)).Single();
+        Assert.IsNull(mixedTab.Calibration, "Mixed anchor families must not reconstruct an editable calibration.");
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() =>
+            mixedWorkspace.ExportAsync(mixedTab.TabId, environment.PathFor("mixed-output"), CancellationToken.None));
+    }
 
     [TestMethod]
     public async Task ManualCalibrationRejectsNonFiniteAndDegenerateInputsWithoutMutatingAcceptedState()

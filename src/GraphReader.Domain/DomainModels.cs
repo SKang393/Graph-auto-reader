@@ -129,7 +129,9 @@ public enum CalibrationAnchorKind
     Session1Ymax,
     SessionmaxY0,
     OcrTick,
-    Manual
+    Manual,
+    FirstVisibleSessionY0,
+    FirstVisibleSessionYmax
 }
 
 public enum OcrRole

@@ -103,6 +103,26 @@ public sealed class ShellContractTests
     }
 
     [TestMethod]
+    public void ManualCalibrationExposesFirstVisibleSessionAsLocalizedInput()
+    {
+        var document = LoadMainWindow();
+        XNamespace automation = AutomationNamespace;
+        XElement input = document.Descendants(XName.Get("TextBox", PresentationNamespace))
+            .Single(element => element.Attribute(automation + "AutomationProperties.AutomationId")?.Value
+                == "Manual.FirstVisibleSession");
+
+        Assert.AreEqual(
+            "{Binding ManualFirstVisibleSession, UpdateSourceTrigger=PropertyChanged}",
+            input.Attribute("Text")?.Value);
+        Assert.AreEqual(
+            "{DynamicResource Manual.FirstVisibleSession}",
+            input.Attribute(automation + "AutomationProperties.Name")?.Value);
+        Assert.AreEqual(
+            "{DynamicResource Manual.SessionRangeHelp}",
+            input.Attribute(automation + "AutomationProperties.HelpText")?.Value);
+    }
+
+    [TestMethod]
     public void EveryShellAutomationIdHasAnExplicitLocalizedOrBoundName()
     {
         var document = LoadMainWindow();
@@ -112,7 +132,7 @@ public sealed class ShellContractTests
                 element.Attribute(automation + "AutomationProperties.AutomationId")?.Value))
             .ToArray();
 
-        Assert.HasCount(60, identified);
+        Assert.HasCount(61, identified);
         string[] unnamed = identified
             .Where(element => string.IsNullOrWhiteSpace(
                 element.Attribute(automation + "AutomationProperties.Name")?.Value))

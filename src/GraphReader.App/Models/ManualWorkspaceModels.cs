@@ -40,7 +40,8 @@ public sealed record ManualCalibrationState(
     double XMaximum,
     LinearAxisTransform XTransform,
     LinearAxisTransform YTransform,
-    double Confidence);
+    double Confidence,
+    double FirstVisibleSession = 1);
 
 public sealed class EditablePhaseDivider : ObservableObject
 {

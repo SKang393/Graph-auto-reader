@@ -159,15 +159,22 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             retained.Panel.SourceId == panel.SourceId.Value &&
             retained.ExportEvidence is { } exportEvidence)
         {
+            if (tab.Calibration is { FirstVisibleSession: > 1 })
+            {
+                ExportSessionOriginPolicy expectedPolicy = RequireManualOriginPolicy(panel, tab);
+                if (exportEvidence.SessionOriginPolicy != expectedPolicy)
+                    throw new InvalidOperationException("Production export origin confirmation no longer matches this calibration.");
+            }
             ValidateCurrentProductionExportEvidence(CurrentProject, panel, retained, exportEvidence);
+            ProductionPanelExportEvidence currentEvidence = AlignExportEvidenceToProject(exportEvidence, panel);
             return await ExportPreparedPanelAsync(
                 tab,
                 panel,
                 outputDirectory,
-                exportEvidence.Mode,
-                exportEvidence.AuditMode,
-                exportEvidence.Calibration,
-                exportEvidence.SessionOriginPolicy,
+                currentEvidence.Mode,
+                currentEvidence.AuditMode,
+                currentEvidence.Calibration,
+                currentEvidence.SessionOriginPolicy,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -190,22 +197,24 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                 "Production manual export requires a valid, explicitly confirmed three-anchor calibration. Recalibrate before exporting.");
         }
 
+        bool sessionOverride = tab.Calibration.FirstVisibleSession > 1;
+        ExportSessionOriginPolicy manualOriginPolicy = sessionOverride
+            ? RequireManualOriginPolicy(panel, tab)
+            : new ExportSessionOriginPolicy(false, InvalidSessionOriginBehavior.Block);
         return await ExportPreparedPanelAsync(
             tab,
             panel,
             outputDirectory,
-            ExportMode.ObservationOrder,
+            sessionOverride ? ExportMode.PrintedSession : ExportMode.ObservationOrder,
             ExportAuditMode.ExtendedCsvAndJson,
             new ExportCalibration(
                 ExportCalibrationStatus.Valid,
                 hasYCalibration: true,
-                hasPrintedSessionCalibration: false,
+                hasPrintedSessionCalibration: sessionOverride,
                 hasAbsoluteSessionOrigin: true,
-                firstObservedSession: null,
+                firstObservedSession: sessionOverride ? FirstObservedSession(panel) : null,
                 panel.Calibration.Confidence),
-            new ExportSessionOriginPolicy(
-                RequireFirstObservedSessionOne: false,
-                InvalidSessionOriginBehavior.Block),
+            manualOriginPolicy,
             cancellationToken).ConfigureAwait(false);
     }
 

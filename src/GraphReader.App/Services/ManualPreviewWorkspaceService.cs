@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.App.Integration.Workflow;
@@ -49,6 +50,9 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     private const string RasterCropTransformSchema = "graphreader.raster_source_crop.v1";
     private const string ProductionExportReceiptKey = "graphreader_production_export_evidence";
     private const string ProductionExportReceiptSchema = "graphreader.production_export_evidence.v1";
+    private const string ManualOriginReceiptKey = "graphreader_manual_origin_confirmation";
+    private const string ManualOriginReceiptSchema = "graphreader.manual_origin_confirmation.v1";
+    private const string ManualOriginReason = "User confirmed the first visible session and manual calibration anchors.";
     private static readonly JsonSerializerOptions ProductionEvidenceJsonOptions = CreateProductionEvidenceJsonOptions();
 
     private sealed record DeletedPointTombstone(
@@ -768,7 +772,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         ValidateCalibrationRequest(request);
         LinearAxisTransform xTransform = FitTransform(
             request.Session1Y0.X,
-            1,
+            request.FirstVisibleSession,
             request.SessionMaximumY0.X,
             request.XMaximum);
         LinearAxisTransform yTransform = FitTransform(
@@ -785,7 +789,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             request.XMaximum,
             xTransform,
             yTransform,
-            Confidence: 1);
+            Confidence: 1,
+            FirstVisibleSession: request.FirstVisibleSession);
         tab.Calibration = state;
         foreach (AppGraphPoint point in tab.Points)
         {
@@ -1348,22 +1353,24 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 "Manual export requires a valid, explicitly confirmed three-anchor calibration. Recalibrate before exporting.");
         }
 
+        bool sessionOverride = tab.Calibration.FirstVisibleSession > 1;
+        ExportSessionOriginPolicy manualOriginPolicy = sessionOverride
+            ? RequireManualOriginPolicy(panel, tab)
+            : new ExportSessionOriginPolicy(false, InvalidSessionOriginBehavior.Block);
         return await ExportPreparedPanelAsync(
             tab,
             panel,
             outputDirectory,
-            ExportMode.ObservationOrder,
+            sessionOverride ? ExportMode.PrintedSession : ExportMode.ObservationOrder,
             ExportAuditMode.ExtendedCsvAndJson,
             new ExportCalibration(
                 ExportCalibrationStatus.Valid,
                 hasYCalibration: true,
-                hasPrintedSessionCalibration: false,
+                hasPrintedSessionCalibration: sessionOverride,
                 hasAbsoluteSessionOrigin: true,
-                firstObservedSession: null,
+                firstObservedSession: sessionOverride ? FirstObservedSession(panel) : null,
                 panel.Calibration.Confidence),
-            new ExportSessionOriginPolicy(
-                RequireFirstObservedSessionOne: false,
-                InvalidSessionOriginBehavior.Block),
+            manualOriginPolicy,
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -1836,6 +1843,24 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         return await _exportService.ExportAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
+    protected static double? FirstObservedSession(PanelRecord panel)
+    {
+        SeriesRecord[] interventions = panel.Series.Where(static series =>
+            series.SemanticRole == SemanticRole.Intervention).ToArray();
+        HashSet<SeriesId> includedSeries = interventions.Select(static series => series.SeriesId).ToHashSet();
+        foreach (SeriesRecord intervention in interventions)
+        {
+            if (intervention.SharedBaselineSeriesId is { } baseline) includedSeries.Add(baseline);
+            includedSeries.UnionWith(intervention.ApplicableProbeSeriesIds);
+        }
+        HashSet<PointId> includedPoints = panel.Series.Where(series => includedSeries.Contains(series.SeriesId))
+            .SelectMany(static series => series.PointIds).ToHashSet();
+        return panel.Points.Where(point => includedPoints.Contains(point.PointId))
+            .OrderBy(static point => point.OriginalPixel.X)
+            .Select(static point => point.PrintedXValue ?? point.EstimatedXValue)
+            .FirstOrDefault(static value => value.HasValue);
+    }
+
     public virtual Task RunStageAsync(WorkflowStage stage, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -1927,6 +1952,9 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         {
             WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(candidate =>
                 string.Equals(candidate.PanelId, panel.PanelId.Value.ToString("D"), StringComparison.OrdinalIgnoreCase));
+            if (tab?.Calibration is { FirstVisibleSession: > 1 } &&
+                !IsConfirmedManualThreeAnchorCalibration(panel.Calibration))
+                throw new InvalidOperationException("Manual session-origin calibration is missing or invalid. Recalibrate this panel.");
             if (tab is null || tab.Calibration is null ||
                 !Guid.TryParse(tab.SourceId, out Guid tabSourceId) || tabSourceId != panel.SourceId.Value ||
                 !Guid.TryParse(tab.PanelId, out Guid tabPanelId) || tabPanelId != panel.PanelId.Value ||
@@ -1947,7 +1975,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 panel.SourceId.Value,
                 panel.PanelId.Value,
                 tab.SourceSha256!,
-                MapCalibrationSourceToPanel(panel, panel.Calibration)!));
+                MapCalibrationSourceToPanel(panel, panel.Calibration)!,
+                tab.Calibration.FirstVisibleSession > 1 ? RequireManualOriginPolicy(panel, tab) : null));
         }
 
         return Array.AsReadOnly(bindings.ToArray());
@@ -1974,28 +2003,34 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
         Dictionary<DomainCalibrationAnchorKind, DomainCalibrationAnchor> anchors = calibration.Anchors
             .ToDictionary(static anchor => anchor.Kind);
+        bool firstVisible = anchors.ContainsKey(DomainCalibrationAnchorKind.FirstVisibleSessionY0);
         if (anchors.Count != 3 || anchors.Values.Any(static anchor => anchor.EvidenceRegionId is not null) ||
-            !anchors.TryGetValue(DomainCalibrationAnchorKind.Session1Y0, out DomainCalibrationAnchor? y0) ||
-            !anchors.TryGetValue(DomainCalibrationAnchorKind.Session1Ymax, out DomainCalibrationAnchor? yMax) ||
+            !anchors.TryGetValue(firstVisible ? DomainCalibrationAnchorKind.FirstVisibleSessionY0 : DomainCalibrationAnchorKind.Session1Y0, out DomainCalibrationAnchor? y0) ||
+            !anchors.TryGetValue(firstVisible ? DomainCalibrationAnchorKind.FirstVisibleSessionYmax : DomainCalibrationAnchorKind.Session1Ymax, out DomainCalibrationAnchor? yMax) ||
             !anchors.TryGetValue(DomainCalibrationAnchorKind.SessionmaxY0, out DomainCalibrationAnchor? xMax))
         {
             return false;
         }
 
         SessionLatticeRecord lattice = calibration.SessionLattice!;
-        double expectedPitch = (xMax.Screen.X - y0.Screen.X) / (xMax.Graph.X - 1);
+        double firstSession = y0.Graph.X;
+        double expectedPitch = (xMax.Screen.X - y0.Screen.X) / (xMax.Graph.X - firstSession);
+        double expectedOrigin = y0.Screen.X + (1 - firstSession) * expectedPitch;
         return double.IsFinite(y0.Screen.X) && double.IsFinite(y0.Screen.Y) &&
             double.IsFinite(yMax.Screen.X) && double.IsFinite(yMax.Screen.Y) &&
             double.IsFinite(xMax.Screen.X) && double.IsFinite(xMax.Screen.Y) &&
             Math.Abs(y0.Screen.X - yMax.Screen.X) <= 2 &&
             Math.Abs(y0.Screen.Y - xMax.Screen.Y) <= 2 &&
+            double.IsFinite(expectedPitch) && double.IsFinite(expectedOrigin) &&
             double.IsFinite(lattice.Session1PixelX) &&
-            Math.Abs(lattice.Session1PixelX - y0.Screen.X) <= 1e-9 &&
+            Math.Abs(lattice.Session1PixelX - expectedOrigin) <= 1e-9 &&
             double.IsFinite(lattice.PitchPixels) && Math.Abs(lattice.PitchPixels - expectedPitch) <= 1e-9 &&
             lattice.Confidence == calibration.Confidence &&
-            y0.Graph == new DomainGraphPoint(1, 0) &&
-            yMax.Graph.X == 1 && double.IsFinite(yMax.Graph.Y) && yMax.Graph.Y > 0 &&
-            xMax.Graph.Y == 0 && double.IsFinite(xMax.Graph.X) && xMax.Graph.X > 1;
+            double.IsFinite(firstSession) && firstSession >= 1 && firstSession == Math.Truncate(firstSession) &&
+            (firstVisible ? firstSession > 1 : firstSession == 1) &&
+            y0.Graph.Y == 0 &&
+            yMax.Graph.X == firstSession && double.IsFinite(yMax.Graph.Y) && yMax.Graph.Y > 0 &&
+            xMax.Graph.Y == 0 && double.IsFinite(xMax.Graph.X) && xMax.Graph.X > firstSession;
     }
 
     private static bool IsSha256(string? value) =>
@@ -2726,8 +2761,19 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             workspacePanel.OcrRegions,
             workspacePanel.Markers,
             workspacePanel.Participant);
+        ExportCalibration sourceCalibration = source.Calibration;
+        ExportCalibration currentCalibration = source.SessionOriginPolicy.HasExplicitOverride
+            ? new ExportCalibration(
+                sourceCalibration.Status,
+                sourceCalibration.HasYCalibration,
+                sourceCalibration.HasPrintedSessionCalibration,
+                sourceCalibration.HasAbsoluteSessionOrigin,
+                FirstObservedSession(workspacePanel),
+                sourceCalibration.Confidence,
+                sourceCalibration.Reasons)
+            : sourceCalibration;
         return new ProductionPanelExportEvidence(
-            source.Calibration,
+            currentCalibration,
             workspacePanel.Phases.Select(ToExportPhase),
             workspacePanel.Series.Select(ToExportSeries),
             workspacePanel.Series.Select(series => new ExportSeriesRelation(
@@ -3194,7 +3240,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         current.Session1YMaximum == exact.Session1YMaximum &&
         current.SessionMaximumY0 == exact.SessionMaximumY0 &&
         current.YMaximum == exact.YMaximum &&
-        current.XMaximum == exact.XMaximum;
+        current.XMaximum == exact.XMaximum &&
+        current.FirstVisibleSession == exact.FirstVisibleSession;
 
     private static bool PhaseDividersMatch(
         IEnumerable<EditablePhaseDivider> current,
@@ -3719,20 +3766,27 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             return null;
         }
 
-        DomainCalibrationAnchor? y0 = calibration.Anchors.FirstOrDefault(
-            static anchor => anchor.Kind == DomainCalibrationAnchorKind.Session1Y0);
-        DomainCalibrationAnchor? yMax = calibration.Anchors.FirstOrDefault(
-            static anchor => anchor.Kind == DomainCalibrationAnchorKind.Session1Ymax);
-        DomainCalibrationAnchor? xMax = calibration.Anchors.FirstOrDefault(
-            static anchor => anchor.Kind == DomainCalibrationAnchorKind.SessionmaxY0);
-        if (y0 is null || yMax is null || xMax is null)
+        DomainCalibrationAnchor[] y0Anchors = calibration.Anchors.Where(
+            static anchor => anchor.Kind is DomainCalibrationAnchorKind.Session1Y0 or DomainCalibrationAnchorKind.FirstVisibleSessionY0).ToArray();
+        DomainCalibrationAnchor[] yMaxAnchors = calibration.Anchors.Where(
+            static anchor => anchor.Kind is DomainCalibrationAnchorKind.Session1Ymax or DomainCalibrationAnchorKind.FirstVisibleSessionYmax).ToArray();
+        DomainCalibrationAnchor[] xMaxAnchors = calibration.Anchors.Where(
+            static anchor => anchor.Kind == DomainCalibrationAnchorKind.SessionmaxY0).ToArray();
+        if (y0Anchors.Length != 1 || yMaxAnchors.Length != 1 || xMaxAnchors.Length != 1)
         {
             return null;
         }
+        DomainCalibrationAnchor y0 = y0Anchors[0];
+        DomainCalibrationAnchor yMax = yMaxAnchors[0];
+        DomainCalibrationAnchor xMax = xMaxAnchors[0];
+        bool visibleFamily = y0.Kind == DomainCalibrationAnchorKind.FirstVisibleSessionY0;
+        if (yMax.Kind != (visibleFamily ? DomainCalibrationAnchorKind.FirstVisibleSessionYmax : DomainCalibrationAnchorKind.Session1Ymax) ||
+            y0.Graph.X != yMax.Graph.X || (visibleFamily ? y0.Graph.X <= 1 : y0.Graph.X != 1))
+            return null;
 
         double xMaximum = xMax.Graph.X;
         double yMaximum = yMax.Graph.Y;
-        var xTransform = FitTransform(y0.Screen.X, 1, xMax.Screen.X, xMaximum);
+        var xTransform = FitTransform(y0.Screen.X, y0.Graph.X, xMax.Screen.X, xMaximum);
         var yTransform = FitTransform(y0.Screen.Y, 0, yMax.Screen.Y, yMaximum);
         return new ManualCalibrationState(
             new AxisPixelPoint(y0.Screen.X, y0.Screen.Y),
@@ -3742,7 +3796,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             xMaximum,
             xTransform,
             yTransform,
-            calibration.Confidence);
+            calibration.Confidence,
+            y0.Graph.X);
     }
 
     private void SynchronizeProject(
@@ -3941,7 +3996,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 expectedBinding,
                 allowAdd: existingPanel is null);
         }
-        return new PanelRecord(
+        var result = new PanelRecord(
             panelId,
             sourceId,
             tab.PageNumber,
@@ -3965,6 +4020,135 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                     .Select(static item => item.SeriesId)
                     .ToArray()),
             validation);
+        if (_verifiedManualCalibrationPendingByTab.Contains(tab.TabId))
+        {
+            result = result with
+            {
+                Validation = SetManualOriginReceipt(result, tab, tab.Calibration?.FirstVisibleSession > 1),
+            };
+        }
+        return result;
+    }
+
+    private JsonElement? SetManualOriginReceipt(PanelRecord panel, WorkspaceTabViewModel tab, bool enabled)
+    {
+        if (panel.Validation is { ValueKind: not JsonValueKind.Object })
+            throw new InvalidOperationException("The panel validation extension is invalid.");
+        JsonObject validation = panel.Validation is { } existing
+            ? JsonNode.Parse(existing.GetRawText())!.AsObject()
+            : new JsonObject();
+        validation.Remove(ManualOriginReceiptKey);
+        if (enabled)
+        {
+            DateTimeOffset confirmedAt = DateTimeOffset.UtcNow;
+            string hash = ManualOriginReceiptHash(panel, tab, confirmedAt);
+            CalibrationRecord calibration = panel.Calibration!;
+            DomainCalibrationAnchor first = calibration.Anchors.Single(anchor => anchor.Kind == DomainCalibrationAnchorKind.FirstVisibleSessionY0);
+            DomainCalibrationAnchor final = calibration.Anchors.Single(anchor => anchor.Kind == DomainCalibrationAnchorKind.SessionmaxY0);
+            validation[ManualOriginReceiptKey] = JsonSerializer.SerializeToNode(new
+            {
+                schema = ManualOriginReceiptSchema,
+                project_id = CurrentProject.ProjectId.Value,
+                source_id = panel.SourceId.Value,
+                panel_id = panel.PanelId.Value,
+                calibration_id = calibration.CalibrationId.Value,
+                first_visible_session = first.Graph.X,
+                final_session = final.Graph.X,
+                first_anchor_original_pixel_x = first.Screen.X,
+                confirmed_at_utc = confirmedAt,
+                reason = ManualOriginReason,
+                binding_sha256 = hash,
+            });
+        }
+        return JsonSerializer.SerializeToElement(validation);
+    }
+
+    private string ManualOriginReceiptHash(PanelRecord panel, WorkspaceTabViewModel tab, DateTimeOffset confirmedAt)
+    {
+        SourceReference source = CurrentProject.Sources.Single(item => item.SourceId == panel.SourceId);
+        CalibrationRecord calibration = panel.Calibration ??
+            throw new InvalidOperationException("Manual calibration is missing.");
+        if (!IsSha256(source.Sha256) || !IsSha256(tab.SourceSha256))
+            throw new InvalidOperationException("Manual calibration requires the original image identity.");
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            schema = ManualOriginReceiptSchema,
+            project_id = CurrentProject.ProjectId.Value,
+            source_id = panel.SourceId.Value,
+            panel_id = panel.PanelId.Value,
+            source_sha256 = source.Sha256.ToLowerInvariant(),
+            panel_sha256 = tab.SourceSha256!.ToLowerInvariant(),
+            panel_width = tab.PixelWidth,
+            panel_height = tab.PixelHeight,
+            page_number = panel.PageNumber,
+            panel.Crop,
+            crop_transforms = panel.Transforms.Where(IsRasterCropTransform).ToArray(),
+            calibration = calibration with { Reasons = [] },
+            confirmed_at_utc = confirmedAt,
+            reason = ManualOriginReason,
+        }, ProductionEvidenceJsonOptions);
+        using JsonDocument document = JsonDocument.Parse(bytes);
+        using var canonical = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(canonical)) WriteCanonicalJson(writer, document.RootElement);
+        return Convert.ToHexStringLower(SHA256.HashData(canonical.ToArray()));
+    }
+
+    private static void WriteCanonicalJson(Utf8JsonWriter writer, JsonElement value)
+    {
+        switch (value.ValueKind)
+        {
+            case JsonValueKind.Object:
+                writer.WriteStartObject();
+                foreach (JsonProperty property in value.EnumerateObject().OrderBy(static item => item.Name, StringComparer.Ordinal))
+                {
+                    writer.WritePropertyName(property.Name);
+                    WriteCanonicalJson(writer, property.Value);
+                }
+                writer.WriteEndObject();
+                break;
+            case JsonValueKind.Array:
+                writer.WriteStartArray();
+                foreach (JsonElement item in value.EnumerateArray()) WriteCanonicalJson(writer, item);
+                writer.WriteEndArray();
+                break;
+            default:
+                value.WriteTo(writer);
+                break;
+        }
+    }
+
+    protected ExportSessionOriginPolicy RequireManualOriginPolicy(PanelRecord panel, WorkspaceTabViewModel tab)
+    {
+        try
+        {
+            if (!IsConfirmedManualThreeAnchorCalibration(panel.Calibration))
+                throw new InvalidOperationException("The manual session-origin calibration is invalid.");
+            CalibrationRecord calibration = panel.Calibration!;
+            DomainCalibrationAnchor first = calibration.Anchors.Single(anchor => anchor.Kind == DomainCalibrationAnchorKind.FirstVisibleSessionY0);
+            DomainCalibrationAnchor final = calibration.Anchors.Single(anchor => anchor.Kind == DomainCalibrationAnchorKind.SessionmaxY0);
+            if (panel.Validation is not { ValueKind: JsonValueKind.Object } validation ||
+                !validation.TryGetProperty(ManualOriginReceiptKey, out JsonElement receipt) ||
+                receipt.ValueKind != JsonValueKind.Object ||
+                !receipt.TryGetProperty("schema", out JsonElement schema) || schema.GetString() != ManualOriginReceiptSchema ||
+                !receipt.TryGetProperty("project_id", out JsonElement projectId) || !projectId.TryGetGuid(out Guid receiptProjectId) || receiptProjectId != CurrentProject.ProjectId.Value ||
+                !receipt.TryGetProperty("source_id", out JsonElement sourceId) || !sourceId.TryGetGuid(out Guid receiptSourceId) || receiptSourceId != panel.SourceId.Value ||
+                !receipt.TryGetProperty("panel_id", out JsonElement panelId) || !panelId.TryGetGuid(out Guid receiptPanelId) || receiptPanelId != panel.PanelId.Value ||
+                !receipt.TryGetProperty("calibration_id", out JsonElement calibrationId) || !calibrationId.TryGetGuid(out Guid receiptCalibrationId) || receiptCalibrationId != calibration.CalibrationId.Value ||
+                !receipt.TryGetProperty("first_visible_session", out JsonElement firstValue) || !firstValue.TryGetDouble(out double receiptFirst) || receiptFirst != first.Graph.X ||
+                !receipt.TryGetProperty("final_session", out JsonElement finalValue) || !finalValue.TryGetDouble(out double receiptFinal) || receiptFinal != final.Graph.X ||
+                !receipt.TryGetProperty("first_anchor_original_pixel_x", out JsonElement firstPixel) || !firstPixel.TryGetDouble(out double receiptPixel) || receiptPixel != first.Screen.X ||
+                !receipt.TryGetProperty("reason", out JsonElement reason) || reason.GetString() != ManualOriginReason ||
+                !receipt.TryGetProperty("confirmed_at_utc", out JsonElement date) || !date.TryGetDateTimeOffset(out DateTimeOffset confirmedAt) ||
+                confirmedAt == default || confirmedAt.Offset != TimeSpan.Zero ||
+                !receipt.TryGetProperty("binding_sha256", out JsonElement hash) ||
+                !string.Equals(hash.GetString(), ManualOriginReceiptHash(panel, tab, confirmedAt), StringComparison.Ordinal))
+                throw new InvalidOperationException("The manual session-origin confirmation is missing or stale. Recalibrate before exporting.");
+            return new ExportSessionOriginPolicy(true, InvalidSessionOriginBehavior.AllowWithExplicitOverride, ManualOriginReason, confirmedAt);
+        }
+        catch (Exception error) when (error is ArgumentException or JsonException or InvalidOperationException or KeyNotFoundException)
+        {
+            throw new InvalidOperationException("The manual session-origin confirmation is missing or stale. Recalibrate before exporting.", error);
+        }
     }
 
     private static bool PhaseLayoutMatches(
@@ -4008,15 +4192,15 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             DomainCalibrationStatus.Valid,
             [
                 new DomainCalibrationAnchor(
-                    DomainCalibrationAnchorKind.Session1Y0,
+                    calibration.FirstVisibleSession > 1 ? DomainCalibrationAnchorKind.FirstVisibleSessionY0 : DomainCalibrationAnchorKind.Session1Y0,
                     new DomainPixelPoint(calibration.Session1Y0.X, calibration.Session1Y0.Y),
-                    new DomainGraphPoint(1, 0),
+                    new DomainGraphPoint(calibration.FirstVisibleSession, 0),
                     calibration.Confidence,
                     EvidenceRegionId: null),
                 new DomainCalibrationAnchor(
-                    DomainCalibrationAnchorKind.Session1Ymax,
+                    calibration.FirstVisibleSession > 1 ? DomainCalibrationAnchorKind.FirstVisibleSessionYmax : DomainCalibrationAnchorKind.Session1Ymax,
                     new DomainPixelPoint(calibration.Session1YMaximum.X, calibration.Session1YMaximum.Y),
-                    new DomainGraphPoint(1, calibration.YMaximum),
+                    new DomainGraphPoint(calibration.FirstVisibleSession, calibration.YMaximum),
                     calibration.Confidence,
                     EvidenceRegionId: null),
                 new DomainCalibrationAnchor(
@@ -4027,8 +4211,9 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                     EvidenceRegionId: null),
             ],
             new SessionLatticeRecord(
-                calibration.Session1Y0.X,
-                (calibration.SessionMaximumY0.X - calibration.Session1Y0.X) / (calibration.XMaximum - 1),
+                calibration.Session1Y0.X + (1 - calibration.FirstVisibleSession) *
+                    (calibration.SessionMaximumY0.X - calibration.Session1Y0.X) / (calibration.XMaximum - calibration.FirstVisibleSession),
+                (calibration.SessionMaximumY0.X - calibration.Session1Y0.X) / (calibration.XMaximum - calibration.FirstVisibleSession),
                 PrintedMin: null,
                 PrintedMax: null,
                 calibration.Confidence,
@@ -4692,13 +4877,17 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         if (!request.Session1Y0.IsFinite || !request.Session1YMaximum.IsFinite ||
             !request.SessionMaximumY0.IsFinite ||
             !double.IsFinite(request.YMaximum) || !double.IsFinite(request.XMaximum) ||
-            request.YMaximum <= 0 || request.XMaximum <= 1 ||
+            !double.IsFinite(request.FirstVisibleSession) || request.FirstVisibleSession < 1 ||
+            request.FirstVisibleSession != Math.Truncate(request.FirstVisibleSession) ||
+            request.YMaximum <= 0 || request.XMaximum <= request.FirstVisibleSession ||
             request.Session1Y0.X == request.SessionMaximumY0.X ||
             request.Session1Y0.Y == request.Session1YMaximum.Y ||
             Math.Abs(request.Session1Y0.X - request.Session1YMaximum.X) > 2 ||
             Math.Abs(request.Session1Y0.Y - request.SessionMaximumY0.Y) > 2 ||
             !HasFiniteInvertibleTransform(
-                request.Session1Y0.X, 1, request.SessionMaximumY0.X, request.XMaximum) ||
+                request.Session1Y0.X, request.FirstVisibleSession, request.SessionMaximumY0.X, request.XMaximum) ||
+            !double.IsFinite(request.Session1Y0.X + (1 - request.FirstVisibleSession) *
+                ((request.SessionMaximumY0.X - request.Session1Y0.X) / (request.XMaximum - request.FirstVisibleSession))) ||
             !HasFiniteInvertibleTransform(
                 request.Session1Y0.Y, 0, request.Session1YMaximum.Y, request.YMaximum))
         {

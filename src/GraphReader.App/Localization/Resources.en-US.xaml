@@ -80,7 +80,9 @@
   <sys:String x:Key="Manual.Instruction">Current action</sys:String>
   <sys:String x:Key="Manual.Calibration">Start three-anchor calibration</sys:String>
   <sys:String x:Key="Manual.YMaximum">Y maximum</sys:String>
+  <sys:String x:Key="Manual.FirstVisibleSession">First visible session</sys:String>
   <sys:String x:Key="Manual.XMaximum">Final session</sys:String>
+  <sys:String x:Key="Manual.SessionRangeHelp">Enter the session values shown at the left and right graph anchors. The final session must be greater than the first visible session.</sys:String>
   <sys:String x:Key="Manual.SeriesName">Series name</sys:String>
   <sys:String x:Key="Manual.SharedBaseline">Shared baseline for selected intervention</sys:String>
   <sys:String x:Key="Manual.ApplicableProbes">Maintenance and generalization rows to include</sys:String>
@@ -110,8 +112,8 @@
   <sys:String x:Key="Manual.Instruction.AddDivider">Click the graph, or move the keyboard cursor and press Enter, to add a phase divider</sys:String>
   <sys:String x:Key="Manual.Instruction.MoveDivider">Click the new phase-divider location, or move the keyboard cursor and press Enter</sys:String>
   <sys:String x:Key="Manual.Instruction.Select">Click a point or divider, or move the keyboard cursor and press Enter, to select it</sys:String>
-  <sys:String x:Key="Manual.Status.CalibrationPrompt">Choose (1,0), then (1,yMax), then (xMax,0) with a click or the keyboard cursor and Enter.</sys:String>
-  <sys:String x:Key="Manual.Status.CalibrationSaved">Manual three-anchor calibration saved.</sys:String>
+  <sys:String x:Key="Manual.Status.CalibrationPrompt">Enter the first visible session as {0}, final session as {1}, and Y maximum as {2}. Then choose ({0},0), ({0},{2}), and ({1},0) with a click or the keyboard cursor and Enter. These are manually entered calibration values.</sys:String>
+  <sys:String x:Key="Manual.Status.CalibrationSaved">Manual calibration saved for sessions {0} through {1}.</sys:String>
   <sys:String x:Key="Manual.Status.SelectSeriesFirst">Create or select a series before adding points.</sys:String>
   <sys:String x:Key="Manual.Status.PointAdded">Manual point added.</sys:String>
   <sys:String x:Key="Manual.Status.PointMoved">Manual point moved.</sys:String>
