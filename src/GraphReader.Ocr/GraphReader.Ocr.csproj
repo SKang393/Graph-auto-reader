@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="GraphReader.App" />
+    <InternalsVisibleTo Include="GraphReader.App.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="OpenCvSharp4" />
     <PackageReference Include="OpenCvSharp4.runtime.win.slim" />
   </ItemGroup>

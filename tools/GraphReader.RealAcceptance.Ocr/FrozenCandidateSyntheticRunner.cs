@@ -135,6 +135,7 @@ internal static class FrozenCandidateSyntheticRunner
                     ocrDetectionObserver: captureRawOcr ? CaptureDetection : null)
                 .ConfigureAwait(false);
         var diagnosticFiles = new List<object>();
+        var tickLaneDiagnosticFiles = new List<object>();
         var observedPanelIds = new HashSet<Guid>();
         var postFailureDiagnostics = new List<object>();
         candidate.Adapter.CandidateCalibrationObserver = observation =>
@@ -156,6 +157,30 @@ internal static class FrozenCandidateSyntheticRunner
             WriteNew(path, bytes);
             observedPanelIds.Add(observation.PanelId);
             diagnosticFiles.Add(new
+            {
+                source_id = observation.SourceId,
+                panel_id = observation.PanelId,
+                path = Path.GetRelativePath(outputRoot, path).Replace('\\', '/'),
+                sha256 = FrozenCandidateBinding.Hash(bytes),
+            });
+        };
+        candidate.Adapter.CandidateTickLaneObserver = observation =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string path = Path.Combine(outputRoot, "stage-evidence", $"tick-lane-{observation.PanelId:D}.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(new
+            {
+                schema = "graphreader.synthetic-workflow-tick-lane-observation.v1",
+                candidate_binding_sha256 = binding.Sha256,
+                input_manifest_sha256 = input.Sha256,
+                synthetic_only = true,
+                private_corpus_access = false,
+                sealed_corpus_access = false,
+                observation,
+            }, DiagnosticJsonOptions);
+            WriteNew(path, bytes);
+            tickLaneDiagnosticFiles.Add(new
             {
                 source_id = observation.SourceId,
                 panel_id = observation.PanelId,
@@ -297,6 +322,21 @@ internal static class FrozenCandidateSyntheticRunner
         }
         stopwatch.Stop();
 
+        byte[] tickLaneManifestBytes = JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            schema = "graphreader.synthetic-workflow-tick-lane-diagnostics-index.v1",
+            candidate_binding_sha256 = binding.Sha256,
+            input_manifest_sha256 = input.Sha256,
+            synthetic_only = true,
+            private_corpus_access = false,
+            sealed_corpus_access = false,
+            count = tickLaneDiagnosticFiles.Count,
+            files = tickLaneDiagnosticFiles,
+        }, ReportJsonOptions);
+        string tickLaneManifestPath = Path.Combine(outputRoot, "stage-evidence", "tick-lane-diagnostics-index.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(tickLaneManifestPath)!);
+        WriteNew(tickLaneManifestPath, tickLaneManifestBytes);
+
         object report = new
         {
             schema = ReportSchema,
@@ -319,6 +359,12 @@ internal static class FrozenCandidateSyntheticRunner
             model_selection_performed = false,
             truth_consumed_by_inference = false,
             calibration_diagnostic_files = diagnosticFiles,
+            tick_lane_diagnostics = new
+            {
+                path = Path.GetRelativePath(outputRoot, tickLaneManifestPath).Replace('\\', '/'),
+                sha256 = FrozenCandidateBinding.Hash(tickLaneManifestBytes),
+                count = tickLaneDiagnosticFiles.Count,
+            },
             raw_ocr_diagnostic_files = rawOcrFiles,
             raw_ocr_observation_enabled = captureRawOcr,
             post_failure_panel_diagnostics = postFailureDiagnostics,

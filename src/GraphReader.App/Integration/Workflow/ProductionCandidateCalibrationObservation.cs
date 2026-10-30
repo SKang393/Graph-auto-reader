@@ -28,3 +28,20 @@ internal sealed record ProductionCandidateMarkerPipelineObservation(
     ProposalMarkerStageCounters? CenterCounters,
     IReadOnlyList<MarkerPoint> AboveThresholdDecodedPoints,
     IReadOnlyList<MarkerCenter> PreNmsCenters);
+
+internal sealed record ProductionCandidateTickLaneObservation(
+    Guid RunId,
+    Guid SourceId,
+    Guid PanelId,
+    string PanelSha256,
+    int AxisTickCount,
+    int SuppliedUsableStrokeCount,
+    OcrTickLaneDiagnostic Ocr,
+    IReadOnlyList<ProductionCandidateTickLaneAssociation> Associations);
+
+internal sealed record ProductionCandidateTickLaneAssociation(
+    string RegionId,
+    string Text,
+    string Role,
+    double? MeasuredX,
+    bool AssociatedToUniqueAxisTick);

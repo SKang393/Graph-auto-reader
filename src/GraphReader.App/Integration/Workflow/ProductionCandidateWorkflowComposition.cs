@@ -51,6 +51,20 @@ internal interface IProductionCandidateOcrAdapter : IProductionOcrAdapter
             request, originalRaster, plotBounds, detectorImage, phaseDividerXs, cancellationToken);
 }
 
+internal interface IProductionTickLaneDiagnosticOcrAdapter
+{
+    Task<ProductionOcrEvidence> RecognizeWithTickLaneDiagnosticsAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        Ocr.OcrRectangle plotBounds,
+        Ocr.OcrDetectorImage detectorImage,
+        IReadOnlyList<double> phaseDividerXs,
+        IReadOnlyList<Ocr.OcrXAxisTickStroke> xAxisTickStrokes,
+        Action<Ocr.OcrTickLaneDiagnostic> observer,
+        bool candidateEvaluation,
+        CancellationToken cancellationToken);
+}
+
 internal interface IProductionCandidateDetectionMaskComposer : IProductionDetectionMaskComposer
 {
     Task<ProductionDetectionMaskEvidence> ComposeForCandidateEvaluationAsync(

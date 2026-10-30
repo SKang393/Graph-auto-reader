@@ -30,6 +30,12 @@ internal static class FrozenWorkflowCsvScoringSelfTest
             private_corpus_access = false,
             sealed_corpus_access = false,
             truth_consumed_by_inference = false,
+            tick_lane_diagnostics = new
+            {
+                path = "stage-evidence/tick-lane-diagnostics-index.json",
+                sha256 = new string('a', 64),
+                count = 0,
+            },
             source_count = 7,
             completed_count = 0,
             failed_count = 7,

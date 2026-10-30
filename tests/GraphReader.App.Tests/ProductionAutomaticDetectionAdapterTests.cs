@@ -50,6 +50,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         var adapter = new ProductionAutomaticDetectionAdapter(store, new TickSeedRasterDecoder(), new AxisAdapter(), ocr,
             new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(), new LegendAdapter(), new PhaseAdapter(),
             new EmptyConnectionBuilder());
+        ProductionCandidateTickLaneObservation? tickObservation = null;
+        adapter.CandidateTickLaneObserver = observation => tickObservation = observation;
 
         WorkflowDetectionBatch batch = await adapter.DetectAsync(request, CancellationToken.None);
 
@@ -57,6 +59,27 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         Assert.IsTrue(batch.Candidates.All(static point => point.GraphX.HasValue && point.GraphY.HasValue));
         Assert.IsTrue(recognizer.Seen.Any(static id => id.StartsWith("tick-lane-axis-seed:x-1:", StringComparison.Ordinal)));
         Assert.IsTrue(recognizer.Seen.Any(static id => id.StartsWith("tick-lane-axis-seed:x-2:", StringComparison.Ordinal)));
+        ProductionCandidateTickLaneObservation observation = tickObservation ??
+            throw new AssertFailedException("Tick-lane observer was not invoked.");
+        Assert.AreEqual(2, observation.AxisTickCount);
+        Assert.AreEqual(2, observation.SuppliedUsableStrokeCount);
+        OcrTickLaneRecoveryDiagnostic recovery = observation.Ocr.Recovery ??
+            throw new AssertFailedException("Tick-lane recovery diagnostics were not captured.");
+        Assert.IsTrue(recovery.ZeroAnchorSeedAttempted);
+        OcrTickLaneSelectionDiagnostic selection = recovery.ZeroAnchorSelection ??
+            throw new AssertFailedException("Zero-anchor selection diagnostics were not captured.");
+        Assert.AreEqual(2, selection.ProposedCrops.Count);
+        Assert.IsTrue(observation.Ocr.Recognitions.Any(static item => item.LiteralAlternatives.Contains("1", StringComparer.Ordinal)));
+        Assert.IsTrue(observation.Ocr.Recognitions.Any(static item => item.LiteralAlternatives.Contains("2", StringComparer.Ordinal)));
+        Assert.AreEqual(2, observation.Ocr.FinalSeedXTickRegionIds.Count);
+        Assert.AreEqual(2, observation.Associations.Count);
+        Assert.IsTrue(observation.Associations.All(static item => item.AssociatedToUniqueAxisTick));
+        _ = await adapter.DetectAsync(request, CancellationToken.None);
+        ProductionCandidateTickLaneObservation cacheObservation = tickObservation ??
+            throw new AssertFailedException("Warm-cache tick-lane observer was not invoked.");
+        Assert.IsTrue(cacheObservation.Ocr.CacheHit);
+        Assert.IsFalse(cacheObservation.Ocr.RecoveryAnalysisPerformed);
+        Assert.IsNull(cacheObservation.Ocr.Recovery);
         ProductionPanelExportEvidence evidence = store.Get(panelId).ExportEvidence!;
         Assert.AreEqual(ExportMode.PrintedSession, evidence.Mode);
         Assert.IsTrue(evidence.Calibration.HasPrintedSessionCalibration);

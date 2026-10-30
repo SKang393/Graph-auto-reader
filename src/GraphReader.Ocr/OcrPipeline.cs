@@ -118,9 +118,42 @@ public sealed class OcrPipeline
         }
     }
 
-    public async ValueTask<OcrResult> RecognizeAsync(
+    public ValueTask<OcrResult> RecognizeAsync(
         OcrRequest request,
+        CancellationToken cancellationToken = default) =>
+        RecognizeCoreAsync(request, diagnosticCollector: null, cancellationToken);
+
+    internal async ValueTask<OcrResult> RecognizeWithTickLaneDiagnosticsAsync(
+        OcrRequest request,
+        Action<OcrTickLaneDiagnostic> tickLaneDiagnosticObserver,
         CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(tickLaneDiagnosticObserver);
+
+        var diagnosticCollector = new OcrTickLaneDiagnosticCollector(request);
+        try
+        {
+            return await RecognizeCoreAsync(request, diagnosticCollector, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        finally
+        {
+            try
+            {
+                tickLaneDiagnosticObserver(diagnosticCollector.Build());
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                // Optional diagnostics must not change OCR output or failure behavior.
+            }
+        }
+    }
+
+    private async ValueTask<OcrResult> RecognizeCoreAsync(
+        OcrRequest request,
+        OcrTickLaneDiagnosticCollector? diagnosticCollector,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         var totalStopwatch = Stopwatch.StartNew();
@@ -152,6 +185,7 @@ public sealed class OcrPipeline
             if (requestCached is not null &&
                 (requestCached.RegionFailures is null || requestCached.RegionFailures.Count == 0))
             {
+                diagnosticCollector?.SetCacheHit();
                 preprocessStopwatch.Stop();
                 totalStopwatch.Stop();
                 var elapsed = Math.Max(
@@ -246,6 +280,7 @@ public sealed class OcrPipeline
                 detectedRegions = assembled;
             }
             detectedRegions = EnrichGeometry(detectedRegions, request.PlotBounds, _options);
+            diagnosticCollector?.SetDetectedRegionCount(detectedRegions.Count);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -465,7 +500,9 @@ public sealed class OcrPipeline
                 recovered = _options.EnableTickLaneRecovery
                     ? await TickLaneTextRegionRecovery.FindAsync(
                         request.OriginalImage, detectedRegions, regions, request.PlotBounds,
-                        request.XAxisTickStrokes, cancellationToken)
+                        request.XAxisTickStrokes,
+                        diagnosticCollector is null ? null : diagnosticCollector.SetRecovery,
+                        cancellationToken)
                         .ConfigureAwait(false)
                     : Array.Empty<OcrDetectedRegion>();
                 recoveredTickIds.UnionWith(recovered.Select(static region => region.RegionId));
@@ -563,6 +600,7 @@ public sealed class OcrPipeline
                             Error("OCR_RECOGNITION_FAILED", exception.Message, "retry"))));
                     }
                 }
+                diagnosticCollector?.SetRecognitions(recoveryResults);
                 postprocessStopwatch.Start();
                 // Preserve baseline readings except successfully completed glyph
                 // fragments. Every replacement comes from its original-pixel crop.
@@ -720,6 +758,7 @@ public sealed class OcrPipeline
         }
 
         var (canonicalWidth, canonicalHeight) = CanonicalOriginalBounds(request.OriginalImage);
+        diagnosticCollector?.SetFinalRegions(regions);
         var masks = OcrMaskBuilder.Build(
             detectedRegions.Where(region => maskRegionIds.Contains(region.RegionId)).ToArray(),
             canonicalWidth,
@@ -1543,4 +1582,67 @@ public sealed class OcrPipeline
         TickResolutionResult Resolution,
         double Score,
         string Key);
+
+    private sealed class OcrTickLaneDiagnosticCollector
+    {
+        private const string SeedPrefix = "tick-lane-axis-seed:";
+        private readonly OcrRequest request;
+        private int detectedTextRegionCount;
+        private bool cacheHit;
+        private bool recoveryAnalysisPerformed;
+        private OcrTickLaneRecoveryDiagnostic? recovery;
+        private IReadOnlyList<OcrTickLaneRecognitionDiagnostic> recognitions = [];
+        private IReadOnlyList<string> finalSeedRegionIds = [];
+        private IReadOnlyList<string> finalSeedXTickRegionIds = [];
+
+        public OcrTickLaneDiagnosticCollector(OcrRequest request) => this.request = request;
+
+        public void SetDetectedRegionCount(int count) => detectedTextRegionCount = count;
+
+        public void SetCacheHit() => cacheHit = true;
+
+        public void SetRecovery(OcrTickLaneRecoveryDiagnostic value)
+        {
+            recoveryAnalysisPerformed = true;
+            recovery = value;
+        }
+
+        public void SetRecognitions(IReadOnlyList<OcrRecognition> results) =>
+            recognitions = OcrCollections.Freeze(results
+                .Where(result => result.RegionId.StartsWith(SeedPrefix, StringComparison.Ordinal))
+                .Select(result => new OcrTickLaneRecognitionDiagnostic(
+                    result.RegionId,
+                    Array.AsReadOnly(result.Alternatives.Select(static alternative => alternative.Text).ToArray()),
+                    result.Failure?.Code))
+                .ToArray());
+
+        public void SetFinalRegions(IReadOnlyList<OcrRegion> regions)
+        {
+            OcrRegion[] seeded = regions.Where(region =>
+                    region.RegionId.StartsWith(SeedPrefix, StringComparison.Ordinal))
+                .OrderBy(static region => region.RegionId, StringComparer.Ordinal)
+                .ToArray();
+            finalSeedRegionIds = Array.AsReadOnly(seeded.Select(static region => region.RegionId).ToArray());
+            finalSeedXTickRegionIds = Array.AsReadOnly(seeded
+                .Where(static region => region.Role == OcrTextRole.XTick)
+                .Select(static region => region.RegionId)
+                .ToArray());
+        }
+
+        public OcrTickLaneDiagnostic Build() => new(
+            request.ProjectId,
+            request.PanelId,
+            request.InputSha256,
+            cacheHit,
+            recoveryAnalysisPerformed,
+            request.XAxisTickStrokes?.Count ?? 0,
+            TickLaneTextRegionRecovery.CountUsableXAxisTickStrokeSeeds(
+                request.XAxisTickStrokes,
+                request.PlotBounds),
+            detectedTextRegionCount,
+            recovery,
+            recognitions,
+            finalSeedRegionIds,
+            finalSeedXTickRegionIds);
+    }
 }

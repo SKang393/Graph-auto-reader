@@ -57,6 +57,8 @@ def fixture(root):
                                        "production_approved", "model_selection_performed")},
               "candidate_binding_sha256": binding["sha256"], "input_manifest_sha256": inputs["sha256"],
               "protocol_sha256": protocol["sha256"], "source_count": 1,
+              "tick_lane_diagnostics": {"path": "stage-evidence/tick-lane-diagnostics-index.json",
+                                         "sha256": "a" * 64, "count": 0},
               "cases": [{"image_sha256": source_hash, "status": "failed"}]}
 
     def save():

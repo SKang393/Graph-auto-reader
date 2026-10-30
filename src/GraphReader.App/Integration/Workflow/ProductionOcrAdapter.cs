@@ -165,7 +165,8 @@ internal sealed record FrozenCandidateOcrModelDescriptor(
 /// </summary>
 public sealed partial class ProductionOcrAdapter :
     IProductionOcrAdapter,
-    IProductionCandidateOcrAdapter
+    IProductionCandidateOcrAdapter,
+    IProductionTickLaneDiagnosticOcrAdapter
 {
     public const string ApprovalBenchmarkProfile =
         "graphreader-ocr-structure-consensus-public-gate-v1";
@@ -746,6 +747,47 @@ public sealed partial class ProductionOcrAdapter :
             xAxisTickStrokes);
     }
 
+    Task<ProductionOcrEvidence> IProductionTickLaneDiagnosticOcrAdapter
+        .RecognizeWithTickLaneDiagnosticsAsync(
+            ProductionWorkflowDetectionRequest request,
+            ProductionDecodedRaster originalRaster,
+            OcrRectangle plotBounds,
+            OcrDetectorImage detectorImage,
+            IReadOnlyList<double> phaseDividerXs,
+            IReadOnlyList<OcrXAxisTickStroke> xAxisTickStrokes,
+            Action<OcrTickLaneDiagnostic> observer,
+            bool candidateEvaluation,
+            CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(observer);
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(originalRaster);
+        ArgumentNullException.ThrowIfNull(detectorImage);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (candidateEvaluation == IsApproved)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                candidateEvaluation
+                    ? "Local candidate evaluation requires an explicitly unapproved OCR adapter."
+                    : $"OCR adapter '{AdapterId}' does not have two independently approved production payloads.",
+                candidateEvaluation
+                    ? "Use normal production execution for an approved adapter."
+                    : "Install checksum-verified approved OCR detection and recognition models or continue in manual mode.");
+        }
+
+        return RecognizeCoreAsync(
+            request,
+            originalRaster,
+            plotBounds,
+            detectorImage,
+            cancellationToken,
+            phaseDividerXs,
+            xAxisTickStrokes,
+            observer);
+    }
+
     internal static IReadOnlyList<string> DetectorInputWarnings(
         GraphStructureModelInput modelInput,
         OcrImage originalImage,
@@ -802,7 +844,8 @@ public sealed partial class ProductionOcrAdapter :
         OcrDetectorImage detectorImage,
         CancellationToken cancellationToken,
         IReadOnlyList<double>? phaseDividerXs = null,
-        IReadOnlyList<OcrXAxisTickStroke>? xAxisTickStrokes = null)
+        IReadOnlyList<OcrXAxisTickStroke>? xAxisTickStrokes = null,
+        Action<OcrTickLaneDiagnostic>? tickLaneDiagnosticObserver = null)
     {
         ValidateInput(request, originalRaster, plotBounds);
         var ocrRequest = new OcrRequest(
@@ -821,9 +864,10 @@ public sealed partial class ProductionOcrAdapter :
             XAxisTickStrokes = xAxisTickStrokes is null ? null : Array.AsReadOnly(xAxisTickStrokes.ToArray()),
         };
 
-        OcrResult result = await pipeline.Value
-            .RecognizeAsync(ocrRequest, cancellationToken)
-            .ConfigureAwait(false);
+        OcrResult result = tickLaneDiagnosticObserver is null
+            ? await pipeline.Value.RecognizeAsync(ocrRequest, cancellationToken).ConfigureAwait(false)
+            : await pipeline.Value.RecognizeWithTickLaneDiagnosticsAsync(
+                ocrRequest, tickLaneDiagnosticObserver, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         ValidateOutput(request, originalRaster, result);
 
