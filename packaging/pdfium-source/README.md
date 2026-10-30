@@ -41,6 +41,14 @@ under ignored `artifacts/pdfium-source/` paths. Collection deliberately emits
 `REVIEW STATUS: INCOMPLETE` and `reviewed-approval.candidate.json` with all
 approval flags false. It does not approve a binary.
 
+Source initialization places depot_tools' home, temporary files, Python and
+Git caches under `artifacts/pdfium-source/host-state`. Its project-local
+`git.bat` shim invokes the installed Git executable because the pinned
+depot_tools requires that name on Windows. Initialization refuses to replace
+an unexpected existing shim. Run the script in a separate PowerShell process:
+it sets environment variables in the process that invokes it. Pass
+`-HostStateOnly` to check this setup without starting a source download.
+
 Two isolated `-EvidenceRoot` builds must pass `Compare-PdfiumBuilds.ps1` before
 review. The comparison requires byte-identical runner binaries and identical
 source lock, GN arguments, native overlay, target dependency graph, and PE

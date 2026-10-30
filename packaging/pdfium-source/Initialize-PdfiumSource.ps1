@@ -2,7 +2,7 @@
 # Copyright 2026 Sungwoo Kang
 
 [CmdletBinding()]
-param([string]$SourceRoot)
+param([string]$SourceRoot, [switch]$HostStateOnly)
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -15,6 +15,43 @@ $SourceRoot = [IO.Path]::GetFullPath($SourceRoot)
 $lock = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'source-lock.json') -Raw | ConvertFrom-Json
 $depotTools = Join-Path $SourceRoot 'depot_tools'
 $pdfiumRoot = Join-Path $SourceRoot 'pdfium'
+
+# Keep depot_tools' runtimes, Git cache, and temporary state inside the project.
+# Recent pinned depot_tools also invokes git.bat even when Git supplies only
+# git.exe. Provide its expected shim without changing the pinned checkout.
+$git = Get-Command git.exe -CommandType Application | Select-Object -First 1
+if ($null -eq $git -or $git.Source -match '[^\x20-\x7e]|["%!]') {
+    throw 'A Git executable with an ASCII path without quotes, percent signs, or exclamation marks is required.'
+}
+$hostState = Join-Path $projectRoot 'artifacts\pdfium-source\host-state'
+foreach ($name in @('home', 'local', 'roaming', 'tmp', 'cache', 'vpython', 'cipd', 'git-cache', 'bin')) {
+    New-Item -ItemType Directory -Path (Join-Path $hostState $name) -Force | Out-Null
+}
+$shim = Join-Path $hostState 'bin\git.bat'
+$shimLines = @('@echo off', ('"' + $git.Source + '" %*'))
+if (Test-Path -LiteralPath $shim) {
+    $existing = @(Get-Content -LiteralPath $shim)
+    if ($existing.Count -ne 2 -or $existing[0] -ne $shimLines[0] -or $existing[1] -ne $shimLines[1]) {
+        throw "Unexpected Git shim content; refusing to overwrite: $shim"
+    }
+} else {
+    [IO.File]::WriteAllText($shim, (($shimLines -join "`r`n") + "`r`n"), [Text.Encoding]::ASCII)
+}
+$env:USERPROFILE = Join-Path $hostState 'home'
+$env:HOME = $env:USERPROFILE
+$env:LOCALAPPDATA = Join-Path $hostState 'local'
+$env:APPDATA = Join-Path $hostState 'roaming'
+$env:TEMP = Join-Path $hostState 'tmp'
+$env:TMP = $env:TEMP
+$env:XDG_CACHE_HOME = Join-Path $hostState 'cache'
+$env:VPYTHON_VIRTUALENV_ROOT = Join-Path $hostState 'vpython'
+$env:CIPD_CACHE_DIR = Join-Path $hostState 'cipd'
+$env:GIT_CACHE_PATH = Join-Path $hostState 'git-cache'
+$env:PATH = "$(Join-Path $hostState 'bin');$env:PATH"
+if ($HostStateOnly) {
+    Write-Host "Project-local PDFium host state ready: $hostState"
+    return
+}
 
 function Invoke-BatchTool {
     param(
