@@ -42,6 +42,8 @@ public static class LocalizationKeys
     public const string ApplicationDataNotWritable = "Errors.ApplicationDataNotWritable";
     public const string PortableDataNotWritable = "Errors.PortableDataNotWritable";
     public const string ProductionWorkflowUnavailable = "Errors.ProductionWorkflowUnavailable";
+    public const string DetectionCalibrationRequired = "Errors.DetectionCalibrationRequired";
+    public const string DetectionCalibrationPanelUnknown = "Errors.DetectionCalibrationPanelUnknown";
     public const string OperationFailed = "Errors.OperationFailed";
     public const string ManualEditRejected = "Errors.ManualEditRejected";
     public const string EnhancementConfigurationInvalid = "Errors.EnhancementConfigurationInvalid";
@@ -307,6 +309,8 @@ public static class LocalizationKeys
         ApplicationDataNotWritable,
         PortableDataNotWritable,
         ProductionWorkflowUnavailable,
+        DetectionCalibrationRequired,
+        DetectionCalibrationPanelUnknown,
         OperationFailed,
         ManualEditRejected,
         EnhancementConfigurationInvalid,

@@ -123,6 +123,11 @@ public sealed class OcrPipeline
         CancellationToken cancellationToken = default) =>
         RecognizeCoreAsync(request, diagnosticCollector: null, cancellationToken);
 
+    internal ValueTask<OcrResult> RecognizeSnapshotAsync(
+        OcrRequestImageSnapshot snapshot,
+        CancellationToken cancellationToken) =>
+        RecognizeCoreAsync(snapshot.Request, diagnosticCollector: null, cancellationToken, snapshot);
+
     internal async ValueTask<OcrResult> RecognizeWithTickLaneDiagnosticsAsync(
         OcrRequest request,
         Action<OcrTickLaneDiagnostic> tickLaneDiagnosticObserver,
@@ -153,10 +158,34 @@ public sealed class OcrPipeline
     private async ValueTask<OcrResult> RecognizeCoreAsync(
         OcrRequest request,
         OcrTickLaneDiagnosticCollector? diagnosticCollector,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        OcrRequestImageSnapshot? imageSnapshot = null)
     {
         ArgumentNullException.ThrowIfNull(request);
         var totalStopwatch = Stopwatch.StartNew();
+        try
+        {
+            request = (imageSnapshot ?? OcrRequestImageSnapshot.Create(request, cancellationToken)).Request;
+            diagnosticCollector?.SetRequest(request);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OutOfMemoryException)
+        {
+            return FailureResult(
+                request,
+                Error("OCR_INPUT_INVALID", "Insufficient memory to snapshot OCR image planes.", "retry"),
+                totalStopwatch.Elapsed.TotalMilliseconds);
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            return FailureResult(
+                request,
+                Error("OCR_INPUT_INVALID", "Could not snapshot OCR input: " + exception.Message, "retry"),
+                totalStopwatch.Elapsed.TotalMilliseconds);
+        }
         var inputFailure = ValidateRequest(request);
         if (inputFailure is null && _options.EnableInsidePlotAssembly)
         {
@@ -168,6 +197,27 @@ public sealed class OcrPipeline
         }
 
         cancellationToken.ThrowIfCancellationRequested();
+        // The request alias is checked before the detector path. Validate
+        // supplied regions so a warm cache hit cannot bypass the pixel contract.
+        if (request.DetectedRegions is not null)
+        {
+            try
+            {
+                ValidateDetectedRegions(request.DetectedRegions);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                return FailureResult(
+                    request,
+                    Error("OCR_REGION_DETECTION_FAILED", exception.Message, "retry"),
+                    totalStopwatch.Elapsed.TotalMilliseconds);
+            }
+        }
+
         var warnings = new List<string>();
         var preprocessStopwatch = Stopwatch.StartNew();
         var requestCacheKey = OcrCacheKeyDeriver.CreateRequestAlias(
@@ -1443,7 +1493,7 @@ public sealed class OcrPipeline
         }
 
         if (string.IsNullOrWhiteSpace(request.ProjectId) || string.IsNullOrWhiteSpace(request.PanelId) ||
-            request.InputSha256.Length != 64 || !request.InputSha256.All(Uri.IsHexDigit) ||
+            request.InputSha256 is null || request.InputSha256.Length != 64 || !request.InputSha256.All(Uri.IsHexDigit) ||
             !request.PlotBounds.IsValid)
         {
             return Error("OCR_INPUT_INVALID", "OCR request identifiers, SHA-256, or plot bounds are invalid.", "retry");
@@ -1457,6 +1507,19 @@ public sealed class OcrPipeline
         if (request.EnhancedImage is { SourceImage: not OcrSourceImage.Enhanced })
         {
             return Error("OCR_INPUT_INVALID", "EnhancedImage must identify an enhanced derivative.", "retry");
+        }
+
+        if (!string.Equals(request.OriginalImage.CoordinateSpace, OcrContract.CoordinateSpace, StringComparison.Ordinal) ||
+            (request.EnhancedImage is not null &&
+             !string.Equals(request.EnhancedImage.CoordinateSpace, OcrContract.CoordinateSpace, StringComparison.Ordinal)))
+        {
+            return Error("OCR_INPUT_INVALID", "OCR images must use original-pixel coordinates.", "retry");
+        }
+
+        if (!request.OriginalImage.OriginalToImage.IsInvertible ||
+            (request.EnhancedImage is not null && !request.EnhancedImage.OriginalToImage.IsInvertible))
+        {
+            return Error("OCR_INPUT_INVALID", "OCR image transforms must be finite and invertible.", "retry");
         }
 
         if (!HasValidCanonicalDimensions(request.OriginalImage) ||
@@ -1548,8 +1611,11 @@ public sealed class OcrPipeline
     {
         ArgumentNullException.ThrowIfNull(regions);
         if (regions.Any(static region =>
-                string.IsNullOrWhiteSpace(region.RegionId) ||
+                region is null || region.Polygon is null || string.IsNullOrWhiteSpace(region.RegionId) ||
                 region.CoordinateSpace != OcrContract.CoordinateSpace ||
+                !double.IsFinite(region.OrientationDegrees) ||
+                !region.Polygon.Bounds.IsValid ||
+                !double.IsFinite(region.Polygon.Bounds.Width) || !double.IsFinite(region.Polygon.Bounds.Height) ||
                 !double.IsFinite(region.DetectionConfidence) ||
                 region.DetectionConfidence is < 0 or > 1))
         {
@@ -1586,7 +1652,7 @@ public sealed class OcrPipeline
     private sealed class OcrTickLaneDiagnosticCollector
     {
         private const string SeedPrefix = "tick-lane-axis-seed:";
-        private readonly OcrRequest request;
+        private OcrRequest request;
         private int detectedTextRegionCount;
         private bool cacheHit;
         private bool recoveryAnalysisPerformed;
@@ -1596,6 +1662,8 @@ public sealed class OcrPipeline
         private IReadOnlyList<string> finalSeedXTickRegionIds = [];
 
         public OcrTickLaneDiagnosticCollector(OcrRequest request) => this.request = request;
+
+        public void SetRequest(OcrRequest value) => request = value;
 
         public void SetDetectedRegionCount(int count) => detectedTextRegionCount = count;
 

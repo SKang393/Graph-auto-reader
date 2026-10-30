@@ -43,6 +43,8 @@
   <sys:String x:Key="Errors.ApplicationDataNotWritable">Application data is not writable. Check your Local AppData permissions.</sys:String>
   <sys:String x:Key="Errors.PortableDataNotWritable">This portable folder is read-only. Move it to a writable folder and try again.</sys:String>
   <sys:String x:Key="Errors.ProductionWorkflowUnavailable">Production digitization is unavailable in this internal build because approved workflow adapters and models are missing.</sys:String>
+  <sys:String x:Key="Errors.DetectionCalibrationRequired">Automatic calibration needs review. Calibrate the selected graph, then run Analyze again.</sys:String>
+  <sys:String x:Key="Errors.DetectionCalibrationPanelUnknown">Automatic calibration needs review, but the affected graph could not be identified. Review the graph tabs before running Analyze again.</sys:String>
   <sys:String x:Key="Errors.OperationFailed">The operation could not be completed. Review the current inputs and try again.</sys:String>
   <sys:String x:Key="Errors.ManualEditRejected">The edit could not be applied. Review the selected values and try again.</sys:String>
   <sys:String x:Key="Errors.EnhancementConfigurationInvalid">The Real-ESRGAN configuration is invalid. Continue with the unchanged original image.</sys:String>

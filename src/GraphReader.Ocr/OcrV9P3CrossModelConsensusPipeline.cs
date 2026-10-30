@@ -59,7 +59,29 @@ public sealed class OcrV9P3CrossModelConsensusPipeline
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        OcrResult result = await inner.RecognizeAsync(request, cancellationToken).ConfigureAwait(false);
+        OcrRequestImageSnapshot snapshot;
+        try
+        {
+            snapshot = OcrRequestImageSnapshot.Create(request, cancellationToken);
+            request = snapshot.Request;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception error)
+        {
+            string message = error is OutOfMemoryException
+                ? "Insufficient memory to snapshot OCR image planes."
+                : "Could not snapshot OCR input: " + error.Message;
+            return new OcrResult(
+                request.ContractVersion, Guid.NewGuid().ToString(), request.ProjectId, request.PanelId,
+                OcrContract.Stage, StageVersion, request.InputSha256, OcrContract.CoordinateSpace,
+                Array.Empty<OcrRegion>(), Array.Empty<OcrMask>(), new OcrTiming(0, 0, 0, 0), 0,
+                Array.Empty<string>(), new OcrCacheDiagnostics(false, string.Empty, 0, 0),
+                new OcrFailure("OCR_INPUT_INVALID", "error", "Errors.OCR_INPUT_INVALID", message, true, "retry"));
+        }
+        OcrResult result = await inner.RecognizeSnapshotAsync(snapshot, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         var warnings = result.Warnings.ToList();
         warnings.Add("ocr_v9_p3_cross_model_consensus_candidate");

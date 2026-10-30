@@ -90,6 +90,97 @@ public sealed class CalmPrecisionStateTests
     }
 
     [TestMethod]
+    public async Task CalibrationFailureSelectsOnlyTheMatchingPanelAndShowsRecoveryAction()
+    {
+        Guid panelId = Guid.NewGuid();
+        Guid runId = Guid.NewGuid();
+        Guid projectId = Guid.NewGuid();
+        string hash = new('a', 64);
+        var target = new WorkspaceTabViewModel(
+            "second", "Second graph", new ObservableCollection<GraphPoint>(),
+            new ObservableCollection<SeriesCardViewModel>(), null, null, null,
+            panelId: panelId.ToString("D"), sourceSha256: hash, pixelWidth: 640, pixelHeight: 480);
+        var evidence = new WorkflowVisionEnvelope(1, runId, projectId, panelId, "axis", "1", hash,
+            null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+        var failure = new ProductionWorkflowFailure(
+            ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid",
+            "private technical details", true, "calibrate");
+        using var viewModel = new MainWindowViewModel(new ControlledWorkspaceService(
+            CreateEmptyTab(), (_, _) => throw new ProductionWorkflowStageException(failure, [evidence])));
+        viewModel.Tabs.Add(target);
+
+        viewModel.AutoDetectCommand.Execute(null);
+        await WaitUntilAsync(() => !viewModel.IsBusy);
+
+        Assert.AreSame(target, viewModel.SelectedTab);
+        Assert.AreEqual("Errors.DetectionCalibrationRequired", viewModel.StatusMessageKey);
+        Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, viewModel.LastOperationStatus?.Code);
+        Assert.DoesNotContain("private technical details", viewModel.StatusMessage);
+    }
+
+    [TestMethod]
+    [DataRow("mixed")]
+    [DataRow("empty")]
+    [DataRow("different_image")]
+    public async Task CalibrationFailureDoesNotNavigateOnMixedOrMismatchedEvidence(string scenario)
+    {
+        Guid panelId = Guid.NewGuid();
+        Guid runId = Guid.NewGuid();
+        Guid projectId = Guid.NewGuid();
+        string hash = new('a', 64);
+        var original = CreateEmptyTab();
+        var target = new WorkspaceTabViewModel(
+            "second", "Second graph", new ObservableCollection<GraphPoint>(),
+            new ObservableCollection<SeriesCardViewModel>(), null, null, null,
+            panelId: panelId.ToString("D"), sourceSha256: hash, pixelWidth: 640, pixelHeight: 480);
+        var first = new WorkflowVisionEnvelope(1, runId, projectId, panelId, "axis", "1", hash,
+            null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+        var mixed = new WorkflowVisionEnvelope(1, runId, projectId, Guid.NewGuid(), "ocr", "1", hash,
+            null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+        var differentImage = new WorkflowVisionEnvelope(1, runId, projectId, panelId, "axis", "1", new string('b', 64),
+            null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+        WorkflowVisionEnvelope[] evidence = scenario switch
+        {
+            "mixed" => [first, mixed],
+            "empty" => [],
+            "different_image" => [differentImage],
+            _ => throw new ArgumentOutOfRangeException(nameof(scenario)),
+        };
+        var failure = new ProductionWorkflowFailure(
+            ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid", "invalid", true, "calibrate");
+        using var viewModel = new MainWindowViewModel(new ControlledWorkspaceService(
+            original, (_, _) => throw new ProductionWorkflowStageException(failure, evidence)));
+        viewModel.Tabs.Add(target);
+
+        viewModel.AutoDetectCommand.Execute(null);
+        await WaitUntilAsync(() => !viewModel.IsBusy);
+
+        Assert.AreSame(original, viewModel.SelectedTab);
+        Assert.AreEqual("Errors.DetectionCalibrationPanelUnknown", viewModel.StatusMessageKey);
+    }
+
+    [TestMethod]
+    public void CalibrationFailureDoesNotSelectAFormerProjectPanel()
+    {
+        var service = new ManualPreviewWorkspaceService();
+        using var viewModel = new MainWindowViewModel(service);
+        Guid panelId = Guid.NewGuid();
+        string hash = new('a', 64);
+        var target = new WorkspaceTabViewModel(
+            "second", "Second graph", new ObservableCollection<GraphPoint>(),
+            new ObservableCollection<SeriesCardViewModel>(), null, null, null,
+            panelId: panelId.ToString("D"), sourceSha256: hash, pixelWidth: 640, pixelHeight: 480);
+        viewModel.Tabs.Add(target);
+        var foreignEvidence = new WorkflowVisionEnvelope(1, Guid.NewGuid(), Guid.NewGuid(), panelId,
+            "axis", "1", hash, null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+        var failure = new ProductionWorkflowFailure(
+            ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid", "invalid", true, "calibrate");
+
+        Assert.IsFalse(viewModel.SelectCalibrationFailurePanel(new ProductionWorkflowStageException(failure, [foreignEvidence])));
+        Assert.AreNotSame(target, viewModel.SelectedTab);
+    }
+
+    [TestMethod]
     public void ReviewProjectionAndTableSelectionStaySynchronized()
     {
         using var viewModel = new MainWindowViewModel(new FakeWorkspaceService());

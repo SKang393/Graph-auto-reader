@@ -2169,6 +2169,19 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 LocalizationKeys.ProductionWorkflowUnavailable,
                 "WORKSPACE_STAGE_FAILED",
                 "retry");
+            if (stage == WorkflowStage.Detect &&
+                exception is ProductionWorkflowStageException productionFailure &&
+                productionFailure.Failure.Code == ProductionWorkflowFailureCodes.RecalibrationRequired)
+            {
+                string messageKey = SelectCalibrationFailurePanel(productionFailure)
+                    ? LocalizationKeys.DetectionCalibrationRequired
+                    : LocalizationKeys.DetectionCalibrationPanelUnknown;
+                LastOperationStatus = LastOperationStatus! with
+                {
+                    UserMessageKey = messageKey,
+                };
+                StatusMessageKey = messageKey;
+            }
             SurfaceState = _surfaceBeforeOperation;
             RefreshWorkspaceProjection();
         }
@@ -2176,6 +2189,33 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         {
             IsBusy = false;
         }
+    }
+
+    internal bool SelectCalibrationFailurePanel(ProductionWorkflowStageException failure)
+    {
+        // The evidence chain is panel-bound. Never navigate based on empty,
+        // mixed, or image-mismatched evidence from a failed run.
+        WorkflowVisionEnvelope[] evidence = failure.CompletedEvidence.ToArray();
+        if (evidence.Length == 0 ||
+            (_manualWorkspaceService is not null &&
+                _manualWorkspaceService.CurrentProject.ProjectId.Value != evidence[0].ProjectId) ||
+            evidence.Any(item => item.PanelId != evidence[0].PanelId ||
+                item.RunId != evidence[0].RunId || item.ProjectId != evidence[0].ProjectId ||
+                !string.Equals(item.InputSha256, evidence[0].InputSha256, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        WorkspaceTabViewModel[] matches = Tabs.Where(tab =>
+            Guid.TryParse(tab.PanelId, out Guid panelId) && panelId == evidence[0].PanelId &&
+            string.Equals(tab.SourceSha256, evidence[0].InputSha256, StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (matches.Length == 1)
+        {
+            SelectedTab = matches[0];
+            return true;
+        }
+
+        return false;
     }
 
     private void CancelActiveOperation() => _activeOperation?.Cancel();

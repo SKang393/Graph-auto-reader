@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections;
 using System.Security.Cryptography;
 
 namespace GraphReader.Ocr.Tests;
@@ -295,6 +296,149 @@ public sealed class OcrCacheRegressionTests
     }
 
     [TestMethod]
+    public async Task WarmResultCacheCannotAcceptSuppliedRegionsInWrongCoordinateSpace()
+    {
+        var widths = new List<int>();
+        var recognizer = WidthRecorder(widths);
+        var cache = new InMemoryOcrResultCache();
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), recognizer, cache);
+        OcrDetectedRegion validRegion = OcrTestFixtures.Region("tick", 20, 40, 12, 8);
+        OcrRequest validRequest = OcrTestFixtures.Request([validRegion]);
+
+        OcrResult initial = await pipeline.RecognizeAsync(validRequest);
+        OcrResult cached = await pipeline.RecognizeAsync(validRequest);
+        OcrRequest invalidRequest = validRequest with
+        {
+            DetectedRegions = [validRegion with { CoordinateSpace = "enhanced_pixels" }],
+        };
+        int readsBeforeInvalidRequest = cache.ReadCount;
+        OcrResult invalid = await pipeline.RecognizeAsync(invalidRequest);
+
+        Assert.IsTrue(initial.Succeeded, initial.Failure?.TechnicalMessage);
+        Assert.IsTrue(cached.Cache.CacheHit);
+        Assert.IsFalse(invalid.Succeeded);
+        Assert.AreEqual("OCR_REGION_DETECTION_FAILED", invalid.Failure?.Code);
+        Assert.IsFalse(invalid.Cache.CacheHit);
+        Assert.AreEqual(readsBeforeInvalidRequest, cache.ReadCount);
+        Assert.HasCount(1, widths);
+    }
+
+    [TestMethod]
+    public async Task InvalidSuppliedRegionsAreRejectedBeforeCacheLookup()
+    {
+        var cache = new InMemoryOcrResultCache();
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), WidthRecorder([]), cache);
+        OcrDetectedRegion region = OcrTestFixtures.Region("tick", 20, 40, 12, 8);
+        OcrRequest[] invalidRequests =
+        [
+            OcrTestFixtures.Request([null!]),
+            OcrTestFixtures.Request([region with { Polygon = null! }]),
+            OcrTestFixtures.Request([region, region]),
+            OcrTestFixtures.Request([region with { DetectionConfidence = double.NaN }]),
+            OcrTestFixtures.Request([region with { OrientationDegrees = double.PositiveInfinity }]),
+            OcrTestFixtures.Request([region with { Polygon = new OcrPolygon([new(1, 1), new(1, 2), new(1, 3)]) }]),
+            OcrTestFixtures.Request([region with { Polygon = new OcrPolygon([
+                new(-double.MaxValue, 1), new(double.MaxValue, 1), new(double.MaxValue, 2)]) }]),
+        ];
+
+        foreach (OcrRequest request in invalidRequests)
+        {
+            OcrResult result = await pipeline.RecognizeAsync(request);
+            Assert.IsFalse(result.Succeeded);
+            Assert.AreEqual("OCR_REGION_DETECTION_FAILED", result.Failure?.Code);
+        }
+        Assert.AreEqual(0, cache.ReadCount);
+    }
+
+    [TestMethod]
+    public async Task CancellationDuringGeometrySnapshotPropagates()
+    {
+        using var cancellation = new CancellationTokenSource();
+        OcrRequest request = OcrTestFixtures.Request(new CancellingRegions(cancellation));
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), WidthRecorder([]), new InMemoryOcrResultCache());
+
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () =>
+            await pipeline.RecognizeAsync(request, cancellation.Token));
+    }
+
+    [TestMethod]
+    public async Task CallerMutationDuringCacheLookupCannotChangeTheRecognizedRegions()
+    {
+        OcrDetectedRegion original = OcrTestFixtures.Region("tick", 20, 40, 12, 8);
+        OcrDetectedRegion moved = OcrTestFixtures.Region("tick", 80, 40, 12, 8);
+        var supplied = new List<OcrDetectedRegion> { original };
+        OcrRequest request = OcrTestFixtures.Request(supplied);
+        var cache = new BlockingResultCache();
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), WidthRecorder([]), cache);
+
+        Task<OcrResult> firstTask = pipeline.RecognizeAsync(request).AsTask();
+        await cache.LookupStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        supplied[0] = moved;
+        cache.ReleaseLookup.TrySetResult();
+        OcrResult first = await firstTask;
+        OcrResult cached = await pipeline.RecognizeAsync(OcrTestFixtures.Request([original]));
+
+        Assert.IsTrue(first.Succeeded, first.Failure?.TechnicalMessage);
+        Assert.AreEqual(original.Polygon.Bounds, first.Regions.Single().Polygon.Bounds);
+        Assert.IsTrue(cached.Cache.CacheHit);
+        Assert.AreEqual(original.Polygon.Bounds, cached.Regions.Single().Polygon.Bounds);
+    }
+
+    [TestMethod]
+    public async Task CallerMutationDuringCacheLookupCannotChangeDividerAssembly()
+    {
+        var dividers = new List<double> { 73 };
+        OcrRequest request = OcrTestFixtures.Request([
+            OcrTestFixtures.Region("left", 60, 30, 12, 10),
+            OcrTestFixtures.Region("right", 74, 30, 6, 10),
+        ]) with { PhaseDividerXs = dividers };
+        var cache = new BlockingResultCache();
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), WidthRecorder([]), cache,
+            new OcrPipelineOptions { EnableInsidePlotAssembly = true });
+
+        Task<OcrResult> firstTask = pipeline.RecognizeAsync(request).AsTask();
+        await cache.LookupStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        dividers[0] = 100;
+        cache.ReleaseLookup.TrySetResult();
+        OcrResult first = await firstTask;
+        OcrResult cached = await pipeline.RecognizeAsync(request with { PhaseDividerXs = [73] });
+
+        Assert.IsTrue(first.Succeeded, first.Failure?.TechnicalMessage);
+        Assert.HasCount(2, first.Regions);
+        Assert.IsTrue(cached.Cache.CacheHit);
+        Assert.HasCount(2, cached.Regions);
+    }
+
+    [TestMethod]
+    public async Task CallerMutationDuringCacheLookupCannotChangeTickStrokeEvidence()
+    {
+        var supporting = new List<string> { "measured-tick" };
+        var strokes = new List<OcrXAxisTickStroke>
+        {
+            new("tick-1", new(45, 85), new(45, 84), new(45, 90), 0.9, supporting),
+        };
+        OcrRequest request = OcrTestFixtures.Request([]) with { XAxisTickStrokes = strokes };
+        var cache = new BlockingResultCache();
+        var pipeline = new OcrPipeline(new StubTextRegionDetector([]), WidthRecorder([]), cache,
+            new OcrPipelineOptions { EnableTickLaneRecovery = true });
+        OcrTickLaneDiagnostic? observation = null;
+
+        Task<OcrResult> firstTask = pipeline.RecognizeWithTickLaneDiagnosticsAsync(
+            request, diagnostic => observation = diagnostic).AsTask();
+        await cache.LookupStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        supporting.Clear();
+        strokes.Clear();
+        cache.ReleaseLookup.TrySetResult();
+        OcrResult first = await firstTask;
+
+        Assert.IsTrue(first.Succeeded, first.Failure?.TechnicalMessage);
+        Assert.IsNotNull(observation);
+        Assert.AreEqual(1, observation.SuppliedStrokeCount);
+        Assert.AreEqual(1, observation.UsableStrokeCount);
+        Assert.IsTrue(observation.RecoveryAnalysisPerformed);
+    }
+
+    [TestMethod]
     public async Task ChangingWidthModeDoesNotReuseEarlierFixedWidthResult()
     {
         var widths = new List<int>();
@@ -346,6 +490,41 @@ public sealed class OcrCacheRegressionTests
         return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(static crop => new OcrRecognition(
             crop.RegionId, crop.SourceImage, [new("Sessions", 0.95, crop.SourceImage)], 0.1)).ToArray());
     });
+
+    private sealed class BlockingResultCache : IOcrResultCache
+    {
+        private readonly MemoryOcrResultCache inner = new();
+        private int blockFirst = 1;
+        internal TaskCompletionSource LookupStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource ReleaseLookup { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public async ValueTask<OcrCachedPayload?> TryGetAsync(string key, CancellationToken cancellationToken)
+        {
+            if (Interlocked.Exchange(ref blockFirst, 0) == 1)
+            {
+                LookupStarted.TrySetResult();
+                await ReleaseLookup.Task.WaitAsync(cancellationToken);
+            }
+            return await inner.TryGetAsync(key, cancellationToken);
+        }
+
+        public ValueTask PutAsync(string key, OcrCachedPayload payload, CancellationToken cancellationToken) =>
+            inner.PutAsync(key, payload, cancellationToken);
+    }
+
+    private sealed class CancellingRegions(CancellationTokenSource cancellation) : IReadOnlyList<OcrDetectedRegion>
+    {
+        public int Count => 1;
+        public OcrDetectedRegion this[int index] => throw new NotSupportedException();
+
+        public IEnumerator<OcrDetectedRegion> GetEnumerator()
+        {
+            cancellation.Cancel();
+            throw new OperationCanceledException(cancellation.Token);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
 
     private static OcrDetectorImage DetectorImage(OcrImage image) => new(
         image,

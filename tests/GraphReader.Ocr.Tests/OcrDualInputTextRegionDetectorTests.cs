@@ -58,8 +58,16 @@ public sealed class OcrDualInputTextRegionDetectorTests
         OcrResult result = await pipeline.RecognizeAsync(request, CancellationToken.None);
 
         Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
-        Assert.AreSame(original, model.LastImage);
-        Assert.AreSame(masked, structure.LastImage);
+        Assert.AreNotSame(original, model.LastImage);
+        Assert.AreNotSame(masked, structure.LastImage);
+        Assert.AreEqual(original.Width, model.LastImage!.Width);
+        Assert.AreEqual(original.Height, model.LastImage.Height);
+        Assert.AreEqual(masked.Width, structure.LastImage!.Width);
+        Assert.AreEqual(masked.Height, structure.LastImage.Height);
+        CollectionAssert.AreEqual(expectedOriginalGray, model.LastImage.Pixels.ToArray());
+        CollectionAssert.AreEqual(expectedOriginalBgr, model.LastImage.BgrPixels!.Pixels.ToArray());
+        CollectionAssert.AreEqual(expectedMaskedGray, structure.LastImage.Pixels.ToArray());
+        CollectionAssert.AreEqual(expectedMaskedBgr, structure.LastImage.BgrPixels!.Pixels.ToArray());
         CollectionAssert.AreEqual(expectedOriginalGray, originalGray);
         CollectionAssert.AreEqual(expectedOriginalBgr, originalBgr);
         CollectionAssert.AreEqual(expectedMaskedGray, maskedGray);

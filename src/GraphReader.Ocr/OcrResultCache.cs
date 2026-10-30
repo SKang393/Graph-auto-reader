@@ -188,6 +188,7 @@ public static class OcrCacheKeyDeriver
         foreach (var region in request.DetectedRegions.OrderBy(static region => region.RegionId, StringComparer.Ordinal))
         {
             yield return region.RegionId;
+            yield return region.CoordinateSpace;
             yield return FormattableString.Invariant($"{region.OrientationDegrees:R},{region.DetectionConfidence:R}");
             foreach (var point in region.Polygon.Points)
             {
@@ -210,7 +211,7 @@ public static class OcrCacheKeyDeriver
             : $"bgr24,{image.BgrPixels.Stride}:{Convert.ToHexString(SHA256.HashData(image.BgrPixels.Pixels.Span)).ToLowerInvariant()}";
         return string.Create(
             CultureInfo.InvariantCulture,
-            $"{image.SourceImage}:{image.Width},{image.Height},{image.Stride}:{image.OriginalToImage.ScaleX:R},{image.OriginalToImage.ScaleY:R},{image.OriginalToImage.OffsetX:R},{image.OriginalToImage.OffsetY:R}:{image.CanonicalOriginalWidth?.ToString(CultureInfo.InvariantCulture) ?? "unspecified"},{image.CanonicalOriginalHeight?.ToString(CultureInfo.InvariantCulture) ?? "unspecified"}:{pixelHash}:{bgrMaterial}");
+            $"{image.SourceImage}:{image.CoordinateSpace?.Length ?? -1}:{image.CoordinateSpace}:{image.Width},{image.Height},{image.Stride}:{image.OriginalToImage.ScaleX:R},{image.OriginalToImage.ScaleY:R},{image.OriginalToImage.OffsetX:R},{image.OriginalToImage.OffsetY:R}:{image.CanonicalOriginalWidth?.ToString(CultureInfo.InvariantCulture) ?? "unspecified"},{image.CanonicalOriginalHeight?.ToString(CultureInfo.InvariantCulture) ?? "unspecified"}:{pixelHash}:{bgrMaterial}");
     }
 
     private static string RectangleMaterial(OcrRectangle rectangle) =>

@@ -89,12 +89,40 @@ public sealed class OcrV8ProductionCompositionPipeline
 
     public string ConfigurationFingerprint => HashStrings(FingerprintComponents());
 
-    public async ValueTask<OcrResult> RecognizeAsync(
+    public ValueTask<OcrResult> RecognizeAsync(
         OcrRequest request,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        RecognizeCoreAsync(request, null, cancellationToken);
+
+    internal ValueTask<OcrResult> RecognizeSnapshotAsync(
+        OcrRequestImageSnapshot snapshot,
+        CancellationToken cancellationToken) =>
+        RecognizeCoreAsync(snapshot.Request, snapshot, cancellationToken);
+
+    private async ValueTask<OcrResult> RecognizeCoreAsync(
+        OcrRequest request,
+        OcrRequestImageSnapshot? imageSnapshot,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         var total = Stopwatch.StartNew();
+        try
+        {
+            imageSnapshot ??= OcrRequestImageSnapshot.Create(request, cancellationToken);
+            request = imageSnapshot.Request;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OutOfMemoryException)
+        {
+            return FailureResult(request, Error("OCR_INPUT_INVALID", "Insufficient memory to snapshot OCR image planes.", "retry"), total.Elapsed.TotalMilliseconds);
+        }
+        catch (Exception error)
+        {
+            return FailureResult(request, Error("OCR_INPUT_INVALID", "Could not snapshot OCR input: " + error.Message, "retry"), total.Elapsed.TotalMilliseconds);
+        }
         OcrFailure? inputFailure = OcrPipeline.ValidateRequest(request);
         if (inputFailure is not null)
         {
@@ -103,6 +131,7 @@ public sealed class OcrV8ProductionCompositionPipeline
 
         cancellationToken.ThrowIfCancellationRequested();
         IReadOnlyList<OcrDetectedRegion> proposals;
+        OcrRequestImageSnapshot recognitionSnapshot;
         var detection = Stopwatch.StartNew();
         try
         {
@@ -118,6 +147,7 @@ public sealed class OcrV8ProductionCompositionPipeline
                 throw new InvalidDataException(
                     "The V8 proposal detector returned a region below the reviewed 0.82 proposal floor.");
             }
+            recognitionSnapshot = imageSnapshot.WithDetectedRegions(proposals, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -135,12 +165,11 @@ public sealed class OcrV8ProductionCompositionPipeline
             detection.Stop();
         }
 
-        OcrRequest recognitionRequest = request with { DetectedRegions = proposals };
         OcrResult official = await officialPipeline
-            .RecognizeAsync(recognitionRequest, cancellationToken)
+            .RecognizeSnapshotAsync(recognitionSnapshot, cancellationToken)
             .ConfigureAwait(false);
         OcrResult numeric = await numericPipeline
-            .RecognizeAsync(recognitionRequest, cancellationToken)
+            .RecognizeSnapshotAsync(recognitionSnapshot, cancellationToken)
             .ConfigureAwait(false);
         string warningPrefix = WarningPrefix(options.CompositionId);
         var warnings = new List<string> { warningPrefix + "_composition" };
