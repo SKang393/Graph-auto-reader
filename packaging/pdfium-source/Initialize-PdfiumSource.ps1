@@ -135,4 +135,26 @@ $actual = (& git -C $pdfiumRoot rev-parse HEAD | Out-String).Trim()
 if (-not [string]::Equals($actual, [string]$lock.sources.pdfium.revision, [StringComparison]::OrdinalIgnoreCase)) {
     throw "PDFium resolved to $actual, expected $($lock.sources.pdfium.revision)."
 }
+# The pinned gclient launcher does not install depot_tools' hermetic Python.
+# Install the pinned bootstrap manifest directly, without invoking the wrapper
+# generator that rewrites files in the depot_tools checkout.
+$pythonMarker = Join-Path $depotTools 'python3_bin_reldir.txt'
+$manifestName = if (Test-Path -LiteralPath (Join-Path $depotTools '.bleeding_edge')) { 'manifest_bleeding_edge.txt' } else { 'manifest.txt' }
+$manifest = Join-Path $depotTools "bootstrap\$manifestName"
+$pythonLines = @(Get-Content -LiteralPath $manifest | Where-Object { $_ -match '^infra/3pp/tools/cpython3/\S+\s+version:(\S+)\s*$' })
+if ($pythonLines.Count -ne 1 -or $pythonLines[0] -notmatch '^infra/3pp/tools/cpython3/\S+\s+version:(\S+)\s*$') {
+    throw 'The pinned depot_tools bootstrap manifest must identify exactly one Python package.'
+}
+$bootstrapName = "bootstrap-$($Matches[1].Replace('.', '_'))_bin"
+$bootstrapRoot = Join-Path $depotTools $bootstrapName
+& (Join-Path $depotTools 'cipd.bat') ensure -log-level warning -ensure-file $manifest -root $bootstrapRoot
+if ($LASTEXITCODE -ne 0) { throw "depot_tools Python bootstrap failed with exit code $LASTEXITCODE." }
+$relativePython = "$bootstrapName\python3\bin"
+if (-not (Test-Path -LiteralPath (Join-Path $depotTools "$relativePython\python3.exe") -PathType Leaf)) {
+    throw 'depot_tools Python bootstrap did not install python3.exe.'
+}
+[IO.File]::WriteAllText($pythonMarker, $relativePython, [Text.Encoding]::ASCII)
+if ((& git -C $depotTools status --porcelain --untracked-files=all | Out-String).Trim()) {
+    throw "depot_tools contains changes after Python bootstrap: $depotTools"
+}
 Write-Host "Pinned PDFium source ready: $actual"

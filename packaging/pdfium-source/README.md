@@ -48,6 +48,9 @@ depot_tools requires that name on Windows. Initialization refuses to replace
 an unexpected existing shim. Run the script in a separate PowerShell process:
 it sets environment variables in the process that invokes it. Pass
 `-HostStateOnly` to check this setup without starting a source download.
+After source synchronization, initialization also bootstraps the pinned
+depot_tools Python. The native build requires that Python inside the pinned
+checkout, so GN cannot silently select a Windows Store launcher.
 
 Two isolated `-EvidenceRoot` builds must pass `Compare-PdfiumBuilds.ps1` before
 review. The comparison requires byte-identical runner binaries and identical

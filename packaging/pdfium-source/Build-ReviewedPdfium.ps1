@@ -28,7 +28,41 @@ $outRoot = Join-Path $EvidenceRoot 'out'
 $binRoot = Join-Path $EvidenceRoot 'bin'
 $env:DEPOT_TOOLS_UPDATE = '0'
 $env:DEPOT_TOOLS_WIN_TOOLCHAIN = '0'
-$env:PATH = "$depotTools;$env:PATH"
+$pythonMarker = Join-Path $depotTools 'python3_bin_reldir.txt'
+if (-not (Test-Path -LiteralPath $pythonMarker -PathType Leaf)) {
+    throw 'Pinned depot_tools Python is missing. Run Initialize-PdfiumSource.ps1 first.'
+}
+$relativePython = (Get-Content -LiteralPath $pythonMarker -Raw).Trim()
+if ([string]::IsNullOrWhiteSpace($relativePython) -or [IO.Path]::IsPathRooted($relativePython)) {
+    throw 'The depot_tools Python location must be a relative path.'
+}
+$manifestName = if (Test-Path -LiteralPath (Join-Path $depotTools '.bleeding_edge')) { 'manifest_bleeding_edge.txt' } else { 'manifest.txt' }
+$bootstrapManifest = Join-Path $depotTools "bootstrap\$manifestName"
+$pythonLines = @(Get-Content -LiteralPath $bootstrapManifest | Where-Object { $_ -match '^infra/3pp/tools/cpython3/\S+\s+version:(\S+)\s*$' })
+if ($pythonLines.Count -ne 1 -or $pythonLines[0] -notmatch '^infra/3pp/tools/cpython3/\S+\s+version:(\S+)\s*$') {
+    throw 'The pinned depot_tools bootstrap manifest must identify exactly one Python package.'
+}
+$expectedRelativePython = "bootstrap-$($Matches[1].Replace('.', '_'))_bin\python3\bin"
+if (-not [string]::Equals($relativePython, $expectedRelativePython, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'The depot_tools Python marker does not match the pinned bootstrap manifest. Run Initialize-PdfiumSource.ps1 again.'
+}
+$pythonBin = [IO.Path]::GetFullPath((Join-Path $depotTools $relativePython))
+$depotPrefix = [IO.Path]::GetFullPath($depotTools).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+if (-not $pythonBin.StartsWith($depotPrefix, [StringComparison]::OrdinalIgnoreCase) -or
+    -not (Test-Path -LiteralPath (Join-Path $pythonBin 'python3.exe') -PathType Leaf)) {
+    throw 'The depot_tools Python location must name an installed Python inside the pinned checkout.'
+}
+$cursor = Join-Path $pythonBin 'python3.exe'
+while ($cursor) {
+    $item = Get-Item -LiteralPath $cursor -Force
+    if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+        throw "The pinned Python path contains a reparse point: $cursor"
+    }
+    $parent = Split-Path -Path $cursor -Parent
+    if (-not $parent -or $parent -eq $cursor) { break }
+    $cursor = $parent
+}
+$env:PATH = "$pythonBin;$depotTools;$env:PATH"
 
 function Write-Json($Value, [string]$Path) {
     $json = $Value | ConvertTo-Json -Depth 20
@@ -215,6 +249,9 @@ function Assert-Preflight {
     }
     $pdfiumRevision = (& git -C $pdfiumRoot rev-parse HEAD | Out-String).Trim()
     $depotRevision = (& git -C $depotTools rev-parse HEAD | Out-String).Trim()
+    if ((& git -C $depotTools status --porcelain --untracked-files=all | Out-String).Trim()) {
+        throw "Pinned depot_tools checkout contains changes: $depotTools"
+    }
     if (-not [string]::Equals($pdfiumRevision, [string]$lock.sources.pdfium.revision, [StringComparison]::OrdinalIgnoreCase)) {
         throw "PDFium revision is $pdfiumRevision, expected $($lock.sources.pdfium.revision)."
     }
