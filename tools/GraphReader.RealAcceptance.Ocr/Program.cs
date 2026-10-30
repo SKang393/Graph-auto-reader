@@ -138,6 +138,10 @@ internal static class Program
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeDevLabelAuditSelfTest.Run()));
         }
+        if (args.Length == 1 && args[0] == "--self-test-engauge-dev-source-materializer")
+        {
+            return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeDevSourceMaterializerSelfTest.Run()));
+        }
         if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-executor")
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeGroupedWorkflowExecutorSelfTest.Run()));

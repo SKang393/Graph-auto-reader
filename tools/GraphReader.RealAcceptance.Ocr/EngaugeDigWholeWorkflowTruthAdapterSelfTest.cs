@@ -94,6 +94,133 @@ internal static class EngaugeDigWholeWorkflowTruthAdapterSelfTest
                 "first payload callback runs once after open without changing output");
             checks.Add("first_payload_callback_runs_once_after_open_without_changing_output");
 
+            using (var callerStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                callerStream.Position = callerStream.Length / 2;
+                int callerCallbacks = 0;
+                EngaugeDigWholeWorkflowTruth streamParsed = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                    callerStream,
+                    "anonymous-case-001",
+                    () =>
+                    {
+                        callerCallbacks++;
+                        callerStream.Position = callerStream.Length - 1;
+                    },
+                    CancellationToken.None);
+                Require(callerCallbacks == 1 && callerStream.CanRead && callerStream.CanSeek &&
+                    streamParsed.ProjectSha256 == parsed.ProjectSha256 &&
+                    streamParsed.SourceImageSha256 == parsed.SourceImageSha256 &&
+                    streamParsed.CopyImageBytes().SequenceEqual(parsed.CopyImageBytes()) &&
+                    streamParsed.TruthCase.Points.SequenceEqual(parsed.TruthCase.Points) &&
+                    streamParsed.Anchors.SequenceEqual(parsed.Anchors),
+                    "caller-owned stream matches path even when callback repositions it");
+                callerStream.Position = 0;
+                Require(callerStream.ReadByte() >= 0, "caller handle remains open on success");
+            }
+            checks.Add("caller_owned_stream_matches_path_and_remains_open");
+
+            string mutablePath = Write(directory, "caller-mutable.dig", valid);
+            string replacement = valid.Replace(
+                "<PositionScreen X=\"30\" Y=\"50\"/>",
+                "<PositionScreen X=\"31\" Y=\"50\"/>", StringComparison.Ordinal);
+            Require(replacement != valid, "mutation fixture changes a synthetic point");
+            using (var mutableStream = new MutatesAfterReadStream(mutablePath, replacement))
+            {
+                int callbacks = 0;
+                EngaugeDigWholeWorkflowTruth stable = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                    mutableStream, "anonymous-mutable-stream", () => callbacks++, CancellationToken.None);
+                Require(mutableStream.Mutated && callbacks == 1 && mutableStream.CanRead &&
+                    File.ReadAllText(mutablePath) == replacement &&
+                    stable.ProjectSha256 == parsed.ProjectSha256 &&
+                    stable.TruthCase.Points.SequenceEqual(parsed.TruthCase.Points),
+                    "parsed result and hash use captured bytes despite later file mutation");
+            }
+            checks.Add("caller_stream_snapshot_survives_concurrent_mutation");
+
+            using (var growingStream = new GrowingReadStream(path))
+            {
+                int callbacks = 0;
+                try
+                {
+                    _ = EngaugeDigWholeWorkflowTruthAdapter.Read(
+                        growingStream, "anonymous-growing-stream", () => callbacks++, CancellationToken.None);
+                    throw new InvalidOperationException("Expected growing stream size rejection.");
+                }
+                catch (EngaugeDigTruthException exception) when (exception.Code == "DIG_PROJECT_SIZE_UNSUPPORTED") { }
+                Require(callbacks == 1 && growingStream.CanRead,
+                    "growing stream rejected at byte limit without closing caller handle");
+            }
+            checks.Add("caller_stream_growth_is_bounded_after_initial_length_check");
+
+            using (var callerStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                int callbacks = 0;
+                var failure = new InvalidOperationException("fixture-stream-callback-failure");
+                try
+                {
+                    _ = EngaugeDigWholeWorkflowTruthAdapter.Read(callerStream, "anonymous-stream-callback-failure",
+                        () => { callbacks++; throw failure; }, CancellationToken.None);
+                    throw new InvalidOperationException("Expected caller callback failure.");
+                }
+                catch (InvalidOperationException exception) when (ReferenceEquals(exception, failure)) { }
+                Require(callbacks == 1 && callerStream.CanRead && callerStream.Position == 0,
+                    "callback failure leaves caller handle open without reading");
+
+                using var canceledStream = new CancellationTokenSource();
+                canceledStream.Cancel();
+                try
+                {
+                    _ = EngaugeDigWholeWorkflowTruthAdapter.Read(callerStream, "anonymous-stream-canceled",
+                        () => callbacks++, canceledStream.Token);
+                    throw new InvalidOperationException("Expected caller stream cancellation.");
+                }
+                catch (OperationCanceledException) { }
+                Require(callbacks == 1 && callerStream.CanRead,
+                    "canceled caller stream does not run callback or close handle");
+            }
+            checks.Add("caller_stream_callback_and_cancellation_preserve_handle");
+
+            string malformedStreamPath = Write(directory, "caller-malformed.dig", "<Document>");
+            using (var callerStream = new FileStream(malformedStreamPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                int callbacks = 0;
+                try
+                {
+                    _ = EngaugeDigWholeWorkflowTruthAdapter.Read(callerStream, "anonymous-malformed-stream",
+                        () => callbacks++, CancellationToken.None);
+                    throw new InvalidOperationException("Expected caller stream parse failure.");
+                }
+                catch (EngaugeDigTruthException exception) when (exception.Code == "DIG_XML_INVALID") { }
+                Require(callbacks == 1 && callerStream.CanRead && callerStream.CanSeek,
+                    "parse failure leaves caller handle open after one callback");
+            }
+            checks.Add("caller_stream_parse_failure_preserves_handle");
+
+            int unsupportedStreamCallbacks = 0;
+            using (var writeOnly = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
+            {
+                try
+                {
+                    _ = EngaugeDigWholeWorkflowTruthAdapter.Read(writeOnly, "anonymous-write-only",
+                        () => unsupportedStreamCallbacks++, CancellationToken.None);
+                    throw new InvalidOperationException("Expected unsupported caller stream.");
+                }
+                catch (EngaugeDigTruthException exception) when (exception.Code == "DIG_STREAM_UNSUPPORTED") { }
+                Require(writeOnly.CanWrite && unsupportedStreamCallbacks == 0,
+                    "write-only caller handle rejected before callback and remains open");
+            }
+            var closedStream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            closedStream.Dispose();
+            try
+            {
+                _ = EngaugeDigWholeWorkflowTruthAdapter.Read(closedStream, "anonymous-closed",
+                    () => unsupportedStreamCallbacks++, CancellationToken.None);
+                throw new InvalidOperationException("Expected closed caller stream rejection.");
+            }
+            catch (EngaugeDigTruthException exception) when (exception.Code == "DIG_STREAM_UNSUPPORTED") { }
+            Require(unsupportedStreamCallbacks == 0, "closed caller handle rejected before callback");
+            checks.Add("caller_stream_unsupported_handles_rejected_before_callback");
+
             int throwingCallbacks = 0;
             var callbackFailure = new InvalidOperationException("fixture-ledger-failure");
             try
@@ -529,6 +656,46 @@ internal static class EngaugeDigWholeWorkflowTruthAdapterSelfTest
         destination[1] = (byte)(value >> 16);
         destination[2] = (byte)(value >> 8);
         destination[3] = (byte)value;
+    }
+
+    private sealed class MutatesAfterReadStream : FileStream
+    {
+        private readonly string targetPath;
+        private readonly string replacement;
+
+        internal MutatesAfterReadStream(string path, string replacement)
+            : base(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
+        {
+            targetPath = path;
+            this.replacement = replacement;
+        }
+
+        internal bool Mutated { get; private set; }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            int read = base.Read(buffer, offset, count);
+            if (read == 0 && !Mutated)
+            {
+                File.WriteAllText(targetPath, replacement, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                Mutated = true;
+            }
+            return read;
+        }
+    }
+
+    private sealed class GrowingReadStream(string path)
+        : FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)
+    {
+        private long emitted;
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            long remaining = EngaugeDigWholeWorkflowTruthAdapter.MaximumProjectBytes + 1 - emitted;
+            int read = (int)Math.Min(count, remaining);
+            emitted += read;
+            return read;
+        }
     }
 
     private static bool Close(double left, double right) => Math.Abs(left - right) <= 1e-9;

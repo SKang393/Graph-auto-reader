@@ -120,6 +120,23 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
         return ReadCore(path, caseKey, beforeFirstPayloadRead, cancellationToken);
     }
 
+    /// <summary>
+    /// Reads the complete project from a caller-owned handle. The handle must be
+    /// readable and seekable; it remains open on success and failure. A bounded
+    /// snapshot binds the parsed document to the bytes hashed. The callback runs
+    /// once immediately before the first payload read.
+    /// </summary>
+    internal static EngaugeDigWholeWorkflowTruth Read(
+        FileStream stream,
+        string caseKey,
+        Action beforeFirstPayloadRead,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(stream);
+        ArgumentNullException.ThrowIfNull(beforeFirstPayloadRead);
+        return ReadStreamCore(stream, caseKey, beforeFirstPayloadRead, snapshotInput: true, cancellationToken);
+    }
+
     private static EngaugeDigWholeWorkflowTruth ReadCore(
         string path,
         string caseKey,
@@ -131,19 +148,38 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
         cancellationToken.ThrowIfCancellationRequested();
         string fullPath = Path.GetFullPath(path);
         using var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        return ReadStreamCore(stream, caseKey, beforeFirstPayloadRead, snapshotInput: false, cancellationToken);
+    }
+
+    private static EngaugeDigWholeWorkflowTruth ReadStreamCore(
+        FileStream stream,
+        string caseKey,
+        Action? beforeFirstPayloadRead,
+        bool snapshotInput,
+        CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(caseKey);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!stream.CanRead || !stream.CanSeek)
+        {
+            throw new EngaugeDigTruthException("DIG_STREAM_UNSUPPORTED");
+        }
         if (stream.Length is <= 0 or > MaximumProjectBytes)
         {
             throw new EngaugeDigTruthException("DIG_PROJECT_SIZE_UNSUPPORTED");
         }
 
-        string projectSha256 = Hash(stream, beforeFirstPayloadRead, cancellationToken);
         stream.Position = 0;
+        using var snapshot = snapshotInput ? new MemoryStream() : null;
+        string projectSha256 = Hash(stream, beforeFirstPayloadRead, snapshot, cancellationToken);
+        Stream input = snapshot ?? (Stream)stream;
+        input.Position = 0;
         XDocument document;
         try
         {
-            bool hasEmptyEngaugeDoctype = HasEmptyEngaugeDoctype(stream, cancellationToken);
-            stream.Position = 0;
-            using XmlReader reader = XmlReader.Create(stream, ReaderSettings(
+            bool hasEmptyEngaugeDoctype = HasEmptyEngaugeDoctype(input, cancellationToken);
+            input.Position = 0;
+            using XmlReader reader = XmlReader.Create(input, ReaderSettings(
                 hasEmptyEngaugeDoctype ? DtdProcessing.Parse : DtdProcessing.Prohibit));
             document = XDocument.Load(reader, LoadOptions.PreserveWhitespace | LoadOptions.SetLineInfo);
         }
@@ -474,16 +510,27 @@ internal static class EngaugeDigWholeWorkflowTruthAdapter
     private static string Hash(
         Stream stream,
         Action? beforeFirstPayloadRead,
+        Stream? snapshot,
         CancellationToken cancellationToken)
     {
         using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
         var buffer = new byte[64 * 1024];
         cancellationToken.ThrowIfCancellationRequested();
         beforeFirstPayloadRead?.Invoke();
+        // A caller-owned handle may have been repositioned by its callback.
+        // Hash and parse the entire locked project regardless of that position.
+        stream.Position = 0;
         int read;
+        long total = 0;
         while ((read = stream.Read(buffer, 0, buffer.Length)) != 0)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            total += read;
+            if (total > MaximumProjectBytes)
+            {
+                throw new EngaugeDigTruthException("DIG_PROJECT_SIZE_UNSUPPORTED");
+            }
+            snapshot?.Write(buffer, 0, read);
             hash.AppendData(buffer, 0, read);
         }
         return Convert.ToHexStringLower(hash.GetHashAndReset());
