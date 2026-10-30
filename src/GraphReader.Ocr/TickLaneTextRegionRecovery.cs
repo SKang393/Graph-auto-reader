@@ -9,14 +9,24 @@ namespace GraphReader.Ocr;
 /// </summary>
 public static class TickLaneTextRegionRecovery
 {
-    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v3";
+    public const string CompositionVersion = "original-pixel-tick-lane-recovery-v5-axis-stroke-seed-binding";
+    private const double AxisStrokeAgreementPixels = 3d;
+
+    public static ValueTask<IReadOnlyList<OcrDetectedRegion>> FindAsync(
+        OcrImage image,
+        IReadOnlyList<OcrDetectedRegion> detected,
+        IReadOnlyList<OcrRegion> recognized,
+        OcrRectangle plot,
+        CancellationToken cancellationToken = default) =>
+        FindAsync(image, detected, recognized, plot, xAxisTickStrokes: null, cancellationToken);
 
     public static async ValueTask<IReadOnlyList<OcrDetectedRegion>> FindAsync(
         OcrImage image,
         IReadOnlyList<OcrDetectedRegion> detected,
         IReadOnlyList<OcrRegion> recognized,
         OcrRectangle plot,
-        CancellationToken cancellationToken = default)
+        IReadOnlyList<OcrXAxisTickStroke>? xAxisTickStrokes,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(image);
         if (image.SourceImage != OcrSourceImage.Original ||
@@ -37,6 +47,11 @@ public static class TickLaneTextRegionRecovery
             GraphNumericParser.IsLiteralGraphNumber(region.Text) &&
             byId.TryGetValue(region.RegionId, out OcrDetectedRegion? source) &&
             source.Polygon.Points.SequenceEqual(region.Polygon.Points)).ToArray();
+        if (xAxisTickStrokes is { Count: > 0 } && !anchors.Any(static region => region.Role == OcrTextRole.XTick))
+        {
+            result.AddRange(SelectZeroAnchorXTickCandidates(
+                image, components, detected, result, plot, xAxisTickStrokes, cancellationToken));
+        }
         foreach (OcrTextRole role in new[] { OcrTextRole.XTick, OcrTextRole.YTick })
         {
             OcrRegion[] sameAxis = anchors.Where(region => region.Role == role).ToArray();
@@ -71,6 +86,81 @@ public static class TickLaneTextRegionRecovery
             .ThenBy(static region => region.Polygon.Bounds.Left)
             .ThenBy(static region => region.RegionId, StringComparer.Ordinal));
     }
+
+    /// <summary>
+    /// Seeds only crop geometry, never a role or numeric reading. Every proposed
+    /// component must independently connect to one measured x-axis tick stroke.
+    /// </summary>
+    internal static IReadOnlyList<OcrDetectedRegion> SelectZeroAnchorXTickCandidates(
+        OcrImage image,
+        IReadOnlyList<OcrDetectedRegion> components,
+        IReadOnlyList<OcrDetectedRegion> detected,
+        IReadOnlyList<OcrDetectedRegion> alreadyRecovered,
+        OcrRectangle plot,
+        IReadOnlyList<OcrXAxisTickStroke> xAxisTickStrokes,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(image);
+        ArgumentNullException.ThrowIfNull(components);
+        ArgumentNullException.ThrowIfNull(detected);
+        ArgumentNullException.ThrowIfNull(alreadyRecovered);
+        ArgumentNullException.ThrowIfNull(xAxisTickStrokes);
+        if (!plot.IsValid || xAxisTickStrokes.Count == 0) return [];
+
+        OcrXAxisTickStroke[] strokes = xAxisTickStrokes
+            .Where(stroke => stroke is not null && IsUsableXAxisTickStroke(stroke, plot))
+            .OrderBy(static stroke => stroke.TickId, StringComparer.Ordinal)
+            .ToArray();
+        if (strokes.Length == 0) return [];
+
+        var result = new List<OcrDetectedRegion>();
+        foreach (OcrDetectedRegion component in components.OrderBy(static region => region.Polygon.Bounds.Top)
+                     .ThenBy(static region => region.Polygon.Bounds.Left).ThenBy(static region => region.RegionId, StringComparer.Ordinal))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            OcrRectangle bounds = component.Polygon.Bounds;
+            if (!IsSeedTextCandidate(bounds, plot) || detected.Any(region => Covered(bounds, region.Polygon.Bounds)) ||
+                alreadyRecovered.Any(region => Covered(bounds, region.Polygon.Bounds)) ||
+                result.Any(region => Covered(bounds, region.Polygon.Bounds)))
+            {
+                continue;
+            }
+
+            double? measuredTick = UniqueOutwardTick(image, bounds, plot, OcrTextRole.XTick, cancellationToken);
+            if (measuredTick is null) continue;
+            OcrXAxisTickStroke[] matching = strokes.Where(stroke =>
+                    Math.Abs(stroke.Center.X - measuredTick.Value) <= AxisStrokeAgreementPixels)
+                .ToArray();
+            if (matching.Length != 1) continue;
+
+            // The identifier preserves the measured-stroke provenance for later
+            // association checks; it has no semantic or numeric content.
+            result.Add(component with
+            {
+                RegionId = "tick-lane-axis-seed:" + Uri.EscapeDataString(matching[0].TickId) + ":" + component.RegionId,
+                OrientationDegrees = 0,
+                Context = null,
+            });
+        }
+
+        return OcrCollections.Freeze(result);
+
+    }
+
+    internal static bool HasUsableXAxisTickStrokeSeeds(
+        IReadOnlyList<OcrXAxisTickStroke>? strokes,
+        OcrRectangle plot) =>
+        strokes is { Count: > 0 } && strokes.Any(stroke =>
+            stroke is not null && IsUsableXAxisTickStroke(stroke, plot));
+
+    private static bool IsUsableXAxisTickStroke(OcrXAxisTickStroke stroke, OcrRectangle plot) =>
+        !string.IsNullOrWhiteSpace(stroke.TickId) && stroke.Center.IsFinite &&
+        stroke.LineStart.IsFinite && stroke.LineEnd.IsFinite &&
+        double.IsFinite(stroke.Confidence) && stroke.Confidence is > 0d and <= 1d &&
+        stroke.SupportingCandidateIds is { Count: > 0 } &&
+        stroke.SupportingCandidateIds.All(static id => !string.IsNullOrWhiteSpace(id)) &&
+        Math.Abs(stroke.Center.Y - plot.Bottom) <= Math.Max(4d, plot.Height * 0.05d) &&
+        Math.Abs(stroke.LineEnd.X - stroke.LineStart.X) <= Math.Abs(stroke.LineEnd.Y - stroke.LineStart.Y);
 
     public static IReadOnlyList<OcrDetectedRegion> SelectCandidates(
         IReadOnlyList<OcrDetectedRegion> components,
@@ -234,6 +324,15 @@ public static class TickLaneTextRegionRecovery
             bounds.Center.Y <= plot.Bottom + verticalTolerance &&
             (lane.Cross is { } trailing && Math.Abs(bounds.Right - trailing) <= lane.Height / 2 ||
              lane.LeadingEdge is { } leading && Math.Abs(bounds.Left - leading) <= lane.Height / 2);
+    }
+
+    private static bool IsSeedTextCandidate(OcrRectangle bounds, OcrRectangle plot)
+    {
+        double tolerance = Math.Max(4d, plot.Width * 0.05d);
+        return bounds.IsValid && bounds.Top > plot.Bottom && bounds.Center.X >= plot.Left - tolerance &&
+            bounds.Center.X <= plot.Right + tolerance && bounds.Height >= 3d &&
+            bounds.Width >= 2d && bounds.Width <= Math.Max(32d, bounds.Height * 4d) &&
+            bounds.Top - plot.Bottom <= Math.Max(32d, plot.Height * 0.35d);
     }
 
     private static bool Covered(OcrRectangle a, OcrRectangle b)

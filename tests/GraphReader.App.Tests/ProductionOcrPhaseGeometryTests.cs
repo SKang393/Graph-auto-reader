@@ -51,7 +51,49 @@ public sealed class ProductionOcrPhaseGeometryTests
             ProductionAutomaticDetectionAdapter.CreateOcrPhaseDividerXs("original_pixels", [badY], Plot));
     }
 
+    [TestMethod]
+    public void OptionalUnusableAxisTicksAreOmittedInsteadOfInvalidatingOcr()
+    {
+        AxisTickGeometry usable = Tick("usable", 30, 0.9, ["axis-candidate"]);
+        AxisTickGeometry unsupported = Tick("unsupported", 50, 0.9, []);
+        AxisTickGeometry lowConfidence = Tick("low-confidence", 70, 0, ["axis-candidate"]);
+
+        IReadOnlyList<OcrXAxisTickStroke> result = ProductionAutomaticDetectionAdapter.CreateOcrXAxisTickStrokes(
+            Geometry(usable, unsupported, lowConfidence));
+
+        Assert.HasCount(1, result);
+        Assert.AreEqual("usable", result[0].TickId);
+        Assert.AreEqual(30d, result[0].Center.X);
+    }
+
+    [TestMethod]
+    public void SeededLabelMustReassociateWithItsEncodedUniqueOriginalTick()
+    {
+        AxisGeometryResult axis = Geometry(Tick("seed", 30, 0.9, ["candidate"]),
+            Tick("other", 70, 0.9, ["candidate"]));
+        const string regionId = "tick-lane-axis-seed:seed:crop";
+
+        Assert.IsTrue(ProductionAutomaticDetectionAdapter.IsSeededXTickAssociated(axis, regionId,
+            new Dictionary<string, double> { [regionId] = 30 }));
+        Assert.IsFalse(ProductionAutomaticDetectionAdapter.IsSeededXTickAssociated(axis, regionId,
+            new Dictionary<string, double> { [regionId] = 70 }));
+        Assert.IsFalse(ProductionAutomaticDetectionAdapter.IsSeededXTickAssociated(
+            Geometry(Tick("seed", 30, 0.9, ["candidate"]), Tick("seed", 30, 0.9, ["candidate-2"])),
+            regionId, new Dictionary<string, double> { [regionId] = 30 }));
+    }
+
     private static PhaseDividerGeometry Divider(double x) =>
         new("measured", new GeometryLineSegment(new PixelPoint(x, 10), new PixelPoint(x, 90)),
             DividerStyle.Solid, 0.9, 1, 1, []);
+
+    private static AxisTickGeometry Tick(string id, double x, double confidence, IReadOnlyList<string> support) =>
+        new(id, TickAxis.XAxis, new PixelPoint(x, 90),
+            new GeometryLineSegment(new PixelPoint(x, 89), new PixelPoint(x, 94)), confidence, support);
+
+    private static AxisGeometryResult Geometry(params AxisTickGeometry[] ticks) => new(
+        AxisGeometryCoordinateSpaces.OriginalPixels,
+        new(new PixelPoint(10, 10), new PixelPoint(90, 10), new PixelPoint(90, 90), new PixelPoint(10, 90)),
+        new(new(new PixelPoint(10, 90), new PixelPoint(90, 90)), 0.9, 0, 1, ["axis-x"]),
+        new(new(new PixelPoint(10, 10), new PixelPoint(10, 90)), 0.9, 0, 1, ["axis-y"]),
+        ticks, [], [], 0.9, new(0, 0, 1, false, []), new(2, 2, 0, 1, 1, 0, 0, 0, TimeSpan.Zero, []));
 }

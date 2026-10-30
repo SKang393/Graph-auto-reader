@@ -38,6 +38,17 @@ internal interface IProductionCandidateOcrAdapter : IProductionOcrAdapter
         Ocr.OcrDetectorImage detectorImage,
         IReadOnlyList<double> phaseDividerXs,
         CancellationToken cancellationToken);
+
+    Task<ProductionOcrEvidence> RecognizeForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        Ocr.OcrRectangle plotBounds,
+        Ocr.OcrDetectorImage detectorImage,
+        IReadOnlyList<double> phaseDividerXs,
+        IReadOnlyList<Ocr.OcrXAxisTickStroke> xAxisTickStrokes,
+        CancellationToken cancellationToken) =>
+        RecognizeForCandidateEvaluationAsync(
+            request, originalRaster, plotBounds, detectorImage, phaseDividerXs, cancellationToken);
 }
 
 internal interface IProductionCandidateDetectionMaskComposer : IProductionDetectionMaskComposer

@@ -10,6 +10,60 @@ namespace GraphReader.Ocr.Tests;
 public sealed class OcrTickLaneRecoveryPipelineTests
 {
     [TestMethod]
+    public async Task ZeroAnchorMeasuredAxisStrokesRecoverWhenDetectorFindsNoText()
+    {
+        const int width = 260, height = 160;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        foreach (OcrRectangle label in new[] { new OcrRectangle(70, 126, 5, 8), new OcrRectangle(192, 126, 5, 8) })
+            for (int y = (int)label.Top; y < label.Bottom; y++)
+                for (int x = (int)label.Left; x < label.Right; x++) pixels[(y * width) + x] = 0;
+        for (int x = 40; x <= 220; x++) pixels[(120 * width) + x] = 0;
+        foreach (int tickX in new[] { 72, 194 })
+            for (int y = 119; y <= 124; y++) pixels[(y * width) + tickX] = 0;
+        OcrRequest request = OcrTestFixtures.Request([]) with
+        {
+            OriginalImage = new OcrImage(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity),
+            PlotBounds = new OcrRectangle(40, 30, 180, 90),
+            XAxisTickStrokes =
+            [
+                new("x-1", new(72, 120), new(72, 119), new(72, 124), .9, ["axis-x-1"]),
+                new("x-2", new(194, 120), new(194, 119), new(194, 124), .9, ["axis-x-2"]),
+            ],
+        };
+        var recognizer = new StubTextRecognizer((crops, _) => ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(
+            crops.Select(crop => new OcrRecognition(crop.RegionId, crop.SourceImage,
+                [new(crop.RegionId.Contains("x-1", StringComparison.Ordinal) ? "1" : "2", .95, crop.SourceImage)], .1)).ToArray()));
+
+        OcrResult result = await Pipeline(recognizer, new InMemoryOcrResultCache(), true).RecognizeAsync(request);
+
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        OcrRegion[] recovered = result.Regions.Where(static region =>
+            region.RegionId.StartsWith("tick-lane-axis-seed:", StringComparison.Ordinal)).ToArray();
+        Assert.HasCount(2, recovered);
+        CollectionAssert.AreEquivalent(new List<string> { "1", "2" }, recovered.Select(static tick => tick.Text).ToArray());
+    }
+
+    [TestMethod]
+    public async Task UnusableOptionalAxisStrokePreservesEmptyDetectorResult()
+    {
+        OcrRequest request = OcrTestFixtures.Request([]) with
+        {
+            XAxisTickStrokes =
+            [
+                new("unsupported", new(50, 50), new(50, 49), new(50, 51), .9, []),
+            ],
+        };
+        var recognizer = new StubTextRecognizer((_, _) => throw new AssertFailedException("No crop should be recognized."));
+
+        OcrResult result = await Pipeline(recognizer, new InMemoryOcrResultCache(), true).RecognizeAsync(request);
+
+        Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
+        Assert.IsEmpty(result.Regions);
+        Assert.Contains("no_text_regions_detected", result.Warnings);
+        Assert.AreEqual(0, recognizer.CallCount);
+    }
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task RecoveredPrimaryTickCanResolveEarlierInsufficientEvidenceWithoutChangingAnyReading(bool vertical)

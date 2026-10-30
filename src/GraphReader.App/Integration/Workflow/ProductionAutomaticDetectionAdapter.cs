@@ -207,6 +207,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             OcrRectangle plotBounds = ToOcrBounds(axis.Geometry.PlotPolygon);
             IReadOnlyList<double> phaseDividerXs = CreateOcrPhaseDividerXs(
                 axis.Geometry.CoordinateSpace, axis.Geometry.PhaseDividers, plotBounds);
+            IReadOnlyList<OcrXAxisTickStroke> xAxisTickStrokes = CreateOcrXAxisTickStrokes(axis.Geometry);
             OcrDetectorImage detectorImage = raster.CreateOcrDetectorImage(
                 axis.Geometry,
                 cancellationToken);
@@ -218,6 +219,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                             plotBounds,
                             detectorImage,
                             phaseDividerXs,
+                            xAxisTickStrokes,
                             cancellationToken)
                     : ocrAdapter.RecognizeAsync(
                         request,
@@ -225,6 +227,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                         plotBounds,
                         detectorImage,
                         phaseDividerXs,
+                        xAxisTickStrokes,
                         cancellationToken))
                 .ConfigureAwait(false);
             foreach (ProductionOcrModelEvidence evidence in ocr.ModelEvidence
@@ -1032,7 +1035,16 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 item.Value,
                 item.Confidence))
             .ToArray();
-        PrintedXTickEvidence[] xTicks = ParseTicks(ocr, OcrTextRole.XTick, confidenceWarnings)
+        ParsedTick[] parsedXTicks = ParseTicks(ocr, OcrTextRole.XTick, confidenceWarnings).ToArray();
+        foreach (ParsedTick seeded in parsedXTicks.Where(item =>
+                     IsSeededXTick(item.Region.RegionId) &&
+                     !IsSeededXTickAssociated(axis, item.Region.RegionId, tickGeometry.Positions)))
+        {
+            confidenceWarnings.Add($"ocr_tick_sequence_needs_review:XTick:seeded_label_unassociated:{seeded.Region.RegionId}");
+        }
+        PrintedXTickEvidence[] xTicks = parsedXTicks.Where(item =>
+                !IsSeededXTick(item.Region.RegionId) ||
+                IsSeededXTickAssociated(axis, item.Region.RegionId, tickGeometry.Positions))
             .Select(item => new PrintedXTickEvidence(
                 item.Region.RegionId,
                 tickGeometry.Positions.GetValueOrDefault(item.Region.RegionId, item.Region.Polygon.Bounds.Center.X),
@@ -1598,6 +1610,87 @@ public sealed class ProductionAutomaticDetectionAdapter :
         }
         return Array.AsReadOnly(dividers.Select(static divider => divider.Line.Midpoint.X)
             .Distinct().Order().ToArray());
+    }
+
+    internal static IReadOnlyList<OcrXAxisTickStroke> CreateOcrXAxisTickStrokes(AxisGeometryResult geometry)
+    {
+        ArgumentNullException.ThrowIfNull(geometry);
+        if (geometry.CoordinateSpace != OcrContract.CoordinateSpace)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                "OCR tick seed geometry must be measured in original panel pixels.",
+                "Retain axis evidence and review the detected x-axis ticks.");
+        }
+
+        return Array.AsReadOnly(geometry.Ticks
+            .Where(static tick => tick.Axis == TickAxis.XAxis && IsUsableOcrTickSeed(tick))
+            .Select(tick => new OcrXAxisTickStroke(
+                tick.TickId,
+                new OcrPoint(tick.Center.X, tick.Center.Y),
+                new OcrPoint(tick.Line.Start.X, tick.Line.Start.Y),
+                new OcrPoint(tick.Line.End.X, tick.Line.End.Y),
+                tick.Confidence,
+                Array.AsReadOnly(tick.SupportingCandidateIds.ToArray())))
+            .OrderBy(static tick => tick.TickId, StringComparer.Ordinal)
+            .ToArray());
+    }
+
+    private static bool IsUsableOcrTickSeed(AxisTickGeometry tick) =>
+        !string.IsNullOrWhiteSpace(tick.TickId) &&
+        double.IsFinite(tick.Center.X) && double.IsFinite(tick.Center.Y) &&
+        double.IsFinite(tick.Line.Start.X) && double.IsFinite(tick.Line.Start.Y) &&
+        double.IsFinite(tick.Line.End.X) && double.IsFinite(tick.Line.End.Y) &&
+        (tick.Line.Start.X != tick.Line.End.X || tick.Line.Start.Y != tick.Line.End.Y) &&
+        double.IsFinite(tick.Confidence) && tick.Confidence is > 0d and <= 1d &&
+        tick.SupportingCandidateIds is { Count: > 0 } &&
+        tick.SupportingCandidateIds.All(static id => !string.IsNullOrWhiteSpace(id));
+
+    internal static bool IsSeededXTickAssociated(
+        AxisGeometryResult axis,
+        string regionId,
+        IReadOnlyDictionary<string, double> measuredPositions)
+    {
+        ArgumentNullException.ThrowIfNull(axis);
+        ArgumentNullException.ThrowIfNull(regionId);
+        ArgumentNullException.ThrowIfNull(measuredPositions);
+        if (!TryGetSeedTickId(regionId, out string? seedTickId) ||
+            !measuredPositions.TryGetValue(regionId, out double measuredPosition) ||
+            !double.IsFinite(measuredPosition))
+        {
+            return false;
+        }
+
+        AxisTickGeometry[] matching = axis.Ticks
+            .Where(tick => tick.Axis == TickAxis.XAxis &&
+                string.Equals(tick.TickId, seedTickId, StringComparison.Ordinal))
+            .ToArray();
+        return matching.Length == 1 && double.IsFinite(matching[0].Center.X) &&
+            Math.Abs(matching[0].Center.X - measuredPosition) <= 3d;
+    }
+
+    private static bool IsSeededXTick(string regionId) =>
+        regionId.StartsWith("tick-lane-axis-seed:", StringComparison.Ordinal);
+
+    private static bool TryGetSeedTickId(string regionId, out string? tickId)
+    {
+        const string prefix = "tick-lane-axis-seed:";
+        tickId = null;
+        if (!regionId.StartsWith(prefix, StringComparison.Ordinal)) return false;
+        int separator = regionId.IndexOf(':', prefix.Length);
+        if (separator == prefix.Length) return false;
+        if (separator < 0) return false;
+        try
+        {
+            tickId = Uri.UnescapeDataString(regionId[prefix.Length..separator]);
+            return !string.IsNullOrWhiteSpace(tickId);
+        }
+        catch (UriFormatException)
+        {
+            tickId = null;
+            return false;
+        }
     }
 
     private static OcrRectangle ToOcrBounds(PlotPolygon polygon)

@@ -30,6 +30,16 @@ public interface IProductionOcrAdapter
         IReadOnlyList<double>? phaseDividerXs,
         CancellationToken cancellationToken) =>
         RecognizeAsync(request, originalRaster, plotBounds, detectorImage, cancellationToken);
+
+    Task<ProductionOcrEvidence> RecognizeAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        OcrRectangle plotBounds,
+        OcrDetectorImage detectorImage,
+        IReadOnlyList<double>? phaseDividerXs,
+        IReadOnlyList<OcrXAxisTickStroke>? xAxisTickStrokes,
+        CancellationToken cancellationToken) =>
+        RecognizeAsync(request, originalRaster, plotBounds, detectorImage, phaseDividerXs, cancellationToken);
 }
 
 internal enum ProductionOcrConfigurationScope
@@ -608,12 +618,23 @@ public sealed partial class ProductionOcrAdapter :
         CancellationToken cancellationToken) =>
         RecognizeAsync(request, originalRaster, plotBounds, detectorImage, phaseDividerXs: null, cancellationToken);
 
+    public Task<ProductionOcrEvidence> RecognizeAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        OcrRectangle plotBounds,
+        OcrDetectorImage detectorImage,
+        IReadOnlyList<double>? phaseDividerXs,
+        CancellationToken cancellationToken) =>
+        RecognizeAsync(request, originalRaster, plotBounds, detectorImage, phaseDividerXs, xAxisTickStrokes: null,
+            cancellationToken);
+
     public async Task<ProductionOcrEvidence> RecognizeAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster originalRaster,
         OcrRectangle plotBounds,
         OcrDetectorImage detectorImage,
         IReadOnlyList<double>? phaseDividerXs,
+        IReadOnlyList<OcrXAxisTickStroke>? xAxisTickStrokes,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -635,7 +656,8 @@ public sealed partial class ProductionOcrAdapter :
                 plotBounds,
                 detectorImage,
                 cancellationToken,
-                phaseDividerXs)
+                phaseDividerXs,
+                xAxisTickStrokes)
             .ConfigureAwait(false);
     }
 
@@ -676,13 +698,31 @@ public sealed partial class ProductionOcrAdapter :
             cancellationToken,
             phaseDividerXs);
 
+    Task<ProductionOcrEvidence> IProductionCandidateOcrAdapter.RecognizeForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request,
+        ProductionDecodedRaster originalRaster,
+        OcrRectangle plotBounds,
+        OcrDetectorImage detectorImage,
+        IReadOnlyList<double> phaseDividerXs,
+        IReadOnlyList<OcrXAxisTickStroke> xAxisTickStrokes,
+        CancellationToken cancellationToken) =>
+        RecognizeForCandidateEvaluationAsync(
+            request,
+            originalRaster,
+            plotBounds,
+            detectorImage,
+            cancellationToken,
+            phaseDividerXs,
+            xAxisTickStrokes);
+
     internal Task<ProductionOcrEvidence> RecognizeForCandidateEvaluationAsync(
         ProductionWorkflowDetectionRequest request,
         ProductionDecodedRaster originalRaster,
         OcrRectangle plotBounds,
         OcrDetectorImage detectorImage,
         CancellationToken cancellationToken,
-        IReadOnlyList<double>? phaseDividerXs = null)
+        IReadOnlyList<double>? phaseDividerXs = null,
+        IReadOnlyList<OcrXAxisTickStroke>? xAxisTickStrokes = null)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(originalRaster);
@@ -702,7 +742,8 @@ public sealed partial class ProductionOcrAdapter :
             plotBounds,
             detectorImage,
             cancellationToken,
-            phaseDividerXs);
+            phaseDividerXs,
+            xAxisTickStrokes);
     }
 
     internal static IReadOnlyList<string> DetectorInputWarnings(
@@ -760,7 +801,8 @@ public sealed partial class ProductionOcrAdapter :
         OcrRectangle plotBounds,
         OcrDetectorImage detectorImage,
         CancellationToken cancellationToken,
-        IReadOnlyList<double>? phaseDividerXs = null)
+        IReadOnlyList<double>? phaseDividerXs = null,
+        IReadOnlyList<OcrXAxisTickStroke>? xAxisTickStrokes = null)
     {
         ValidateInput(request, originalRaster, plotBounds);
         var ocrRequest = new OcrRequest(
@@ -776,6 +818,7 @@ public sealed partial class ProductionOcrAdapter :
             DetectorImage: detectorImage)
         {
             PhaseDividerXs = phaseDividerXs is null ? null : Array.AsReadOnly(phaseDividerXs.ToArray()),
+            XAxisTickStrokes = xAxisTickStrokes is null ? null : Array.AsReadOnly(xAxisTickStrokes.ToArray()),
         };
 
         OcrResult result = await pipeline.Value

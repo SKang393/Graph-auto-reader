@@ -29,6 +29,97 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     private static readonly string[] ExpectedPhaseCodes = ["a", "b"];
 
     [TestMethod]
+    public async Task MeasuredTicksFlowThroughRealOcrPipelineIntoProductionCalibration()
+    {
+        byte[] bytes = [1, 9, 2, 1];
+        string sha256 = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:tick-seed.png", sha256, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "tick-seed.png", image);
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var recognizer = new TickSeedRecognizer();
+        var pipeline = new OcrPipeline(new YTickDetector(), recognizer, new MemoryOcrResultCache(),
+            new OcrPipelineOptions { EnableTickLaneRecovery = true, InferVerticalOrientationForTallRegions = false });
+        var ocr = ProductionOcrAdapter.CreateFromValidatedApprovedPipeline(pipeline,
+            new ModelIdentity("tick-test-detector", "1", new string('b', 64), "detector.onnx"), InferenceProvider.Cpu,
+            new ModelIdentity("tick-test-recognizer", "1", new string('c', 64), "recognizer.onnx"), InferenceProvider.Cpu,
+            new string('d', 64));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new TickSeedRasterDecoder(), new AxisAdapter(), ocr,
+            new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(), new LegendAdapter(), new PhaseAdapter(),
+            new EmptyConnectionBuilder());
+
+        WorkflowDetectionBatch batch = await adapter.DetectAsync(request, CancellationToken.None);
+
+        Assert.HasCount(2, batch.Candidates);
+        Assert.IsTrue(batch.Candidates.All(static point => point.GraphX.HasValue && point.GraphY.HasValue));
+        Assert.IsTrue(recognizer.Seen.Any(static id => id.StartsWith("tick-lane-axis-seed:x-1:", StringComparison.Ordinal)));
+        Assert.IsTrue(recognizer.Seen.Any(static id => id.StartsWith("tick-lane-axis-seed:x-2:", StringComparison.Ordinal)));
+        ProductionPanelExportEvidence evidence = store.Get(panelId).ExportEvidence!;
+        Assert.AreEqual(ExportMode.PrintedSession, evidence.Mode);
+        Assert.IsTrue(evidence.Calibration.HasPrintedSessionCalibration);
+    }
+
+    private sealed class TickSeedRasterDecoder : IProductionRasterFrameDecoder
+    {
+        public ProductionDecodedRaster Decode(ProductionWorkflowDetectionRequest request, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            byte[] pixels = Enumerable.Repeat((byte)255, 10_000).ToArray();
+            for (int x = 10; x <= 90; x++) pixels[(90 * 100) + x] = 0;
+            for (int y = 10; y <= 90; y++) pixels[(y * 100) + 10] = 0;
+            foreach (int y in new[] { 22, 82 })
+                for (int x = 6; x <= 10; x++) pixels[(y * 100) + x] = 0;
+            foreach (int top in new[] { 18, 78 })
+                for (int y = top; y < top + 8; y++)
+                    for (int x = 1; x < 6; x++) pixels[(y * 100) + x] = 0;
+            foreach (int x in new[] { 20, 80 })
+            {
+                for (int y = 89; y <= 94; y++) pixels[(y * 100) + x] = 0;
+                for (int y = 96; y < 100; y++)
+                    for (int i = x - 1; i <= x + 1; i++) pixels[(y * 100) + i] = 0;
+            }
+            return new ProductionDecodedRaster(100, 100, request.Image.Sha256, request.ImageVariant,
+                MarkerAffineTransform.Identity, OcrFrameTransform.Identity, 100, 100, pixels,
+                pixels.Select(static value => value / 255f).ToArray());
+        }
+    }
+
+    private sealed class YTickDetector : ITextRegionDetector
+    {
+        public ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(OcrImage image, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return ValueTask.FromResult<IReadOnlyList<OcrDetectedRegion>>(
+            [
+                new("y0", OcrPolygon.FromRectangle(new OcrRectangle(1, 78, 5, 8)), 0, .98),
+                new("y100", OcrPolygon.FromRectangle(new OcrRectangle(1, 18, 5, 8)), 0, .98),
+            ]);
+        }
+    }
+
+    private sealed class TickSeedRecognizer : ITextRecognizer
+    {
+        public string ModelId => "tick-test-recognizer";
+        public string ModelVersion => "1";
+        public string ModelSha256 => new('c', 64);
+        public List<string> Seen { get; } = [];
+
+        public ValueTask<IReadOnlyList<OcrRecognition>> RecognizeBatchAsync(
+            IReadOnlyList<OcrCrop> crops, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Seen.AddRange(crops.Select(static crop => crop.RegionId));
+            Assert.IsTrue(crops.All(static crop => crop.Pixels.ToArray().Any(static value => value < .1f)));
+            return ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop => new OcrRecognition(
+                crop.RegionId, crop.SourceImage,
+                [new(crop.RegionId switch { "y0" => "0", "y100" => "100", var id when id.Contains("x-1", StringComparison.Ordinal) => "1", _ => "2" }, .99, crop.SourceImage)], .1)).ToArray());
+        }
+    }
+
+    [TestMethod]
     public async Task ApprovedWorkflowRecoversASuppressedCrossWithoutReplacingExistingPoints()
     {
         string root = Path.Combine(Path.GetTempPath(), $"graphreader-suppression-recovery-{Guid.NewGuid():N}");

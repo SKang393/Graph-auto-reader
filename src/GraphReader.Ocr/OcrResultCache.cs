@@ -111,6 +111,7 @@ public static class OcrCacheKeyDeriver
         if (options.EnableTickLaneRecovery)
         {
             yield return TickLaneTextRegionRecovery.CompositionVersion;
+            yield return XAxisTickStrokeMaterial(request.XAxisTickStrokes);
         }
         if (options.EnableHeaderGlyphRecovery)
         {
@@ -214,6 +215,23 @@ public static class OcrCacheKeyDeriver
 
     private static string RectangleMaterial(OcrRectangle rectangle) =>
         FormattableString.Invariant($"{rectangle.X:R},{rectangle.Y:R},{rectangle.Width:R},{rectangle.Height:R}");
+
+    private static string XAxisTickStrokeMaterial(IReadOnlyList<OcrXAxisTickStroke>? strokes)
+    {
+        if (strokes is null) return "x_axis_tick_strokes_unavailable";
+        if (strokes.Count == 0) return "x_axis_tick_strokes_measured_none";
+        return "x_axis_tick_strokes:" + string.Join(";", strokes
+            .Select(stroke => stroke is null
+                ? "invalid_null_stroke"
+                : string.Join(",",
+                    stroke.TickId,
+                    FormattableString.Invariant($"{stroke.Center.X:R}:{stroke.Center.Y:R}"),
+                    FormattableString.Invariant($"{stroke.LineStart.X:R}:{stroke.LineStart.Y:R}"),
+                    FormattableString.Invariant($"{stroke.LineEnd.X:R}:{stroke.LineEnd.Y:R}"),
+                    stroke.Confidence.ToString("R", CultureInfo.InvariantCulture),
+                    string.Join("|", (stroke.SupportingCandidateIds ?? []).Order(StringComparer.Ordinal))))
+            .Order(StringComparer.Ordinal));
+    }
 
     private static void Append(IncrementalHash hash, string? value)
     {

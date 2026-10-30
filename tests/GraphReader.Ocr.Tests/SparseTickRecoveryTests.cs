@@ -9,6 +9,16 @@ namespace GraphReader.Ocr.Tests;
 public sealed class SparseTickRecoveryTests
 {
     private static readonly OcrRectangle Plot = new(40, 30, 180, 90);
+    private static readonly OcrRectangle[] ZeroAnchorLabels =
+    [
+        new(70, 126, 5, 8),
+        new(192, 126, 5, 8),
+    ];
+    private static readonly OcrXAxisTickStroke[] ZeroAnchorStrokes =
+    [
+        Stroke("x-1", 72),
+        Stroke("x-2", 194),
+    ];
 
     [TestMethod]
     [DataRow(false)]
@@ -50,6 +60,76 @@ public sealed class SparseTickRecoveryTests
             Assert.IsEmpty(await TickLaneTextRegionRecovery.FindAsync(valid.Image, [valid.Anchor], [reading], Plot));
         }
     }
+
+    [TestMethod]
+    public async Task ZeroAnchorXRecoveryUsesOnlyOneMeasuredOriginalPixelAxisStrokePerCrop()
+    {
+        var fixture = ZeroAnchorFixture();
+        byte[] original = fixture.Image.Pixels.ToArray();
+
+        IReadOnlyList<OcrDetectedRegion> recovered = await TickLaneTextRegionRecovery.FindAsync(
+            fixture.Image, [], [], Plot, fixture.Strokes, CancellationToken.None);
+
+        Assert.HasCount(2, recovered);
+        Assert.IsTrue(recovered.Any(static region => region.RegionId.StartsWith(
+            "tick-lane-axis-seed:x-1:", StringComparison.Ordinal)));
+        Assert.IsTrue(recovered.Any(static region => region.RegionId.StartsWith(
+            "tick-lane-axis-seed:x-2:", StringComparison.Ordinal)));
+        Assert.IsTrue(recovered.All(static region => region.Context is null && region.OrientationDegrees == 0d));
+        CollectionAssert.AreEqual(original, fixture.Image.Pixels.ToArray());
+
+        IReadOnlyList<OcrDetectedRegion> ambiguous = await TickLaneTextRegionRecovery.FindAsync(
+            fixture.Image, [], [], Plot, fixture.Strokes.Append(fixture.Strokes[0] with { TickId = "ambiguous" }).ToArray(), CancellationToken.None);
+        Assert.HasCount(1, ambiguous);
+        Assert.IsTrue(ambiguous.Single().RegionId.StartsWith("tick-lane-axis-seed:x-2:", StringComparison.Ordinal));
+
+        var detached = ZeroAnchorFixture(includeAxis: false);
+        Assert.IsEmpty(await TickLaneTextRegionRecovery.FindAsync(
+            detached.Image, [], [], Plot, detached.Strokes, CancellationToken.None));
+    }
+
+    [TestMethod]
+    public async Task ExistingFiveArgumentCancellationOverloadRemainsAvailable()
+    {
+        var fixture = ZeroAnchorFixture();
+        IReadOnlyList<OcrDetectedRegion> recovered = await TickLaneTextRegionRecovery.FindAsync(
+            fixture.Image, [], [], Plot, default);
+        Assert.IsEmpty(recovered);
+    }
+
+    [TestMethod]
+    public async Task NullOptionalStrokeIsIgnoredWithoutPreventingValidatedSeedRecovery()
+    {
+        var fixture = ZeroAnchorFixture();
+        IReadOnlyList<OcrXAxisTickStroke> strokes = [null!, .. fixture.Strokes];
+        IReadOnlyList<OcrDetectedRegion> recovered = await TickLaneTextRegionRecovery.FindAsync(
+            fixture.Image, [], [], Plot, strokes, CancellationToken.None);
+        Assert.HasCount(2, recovered);
+    }
+
+    private static (OcrImage Image, IReadOnlyList<OcrXAxisTickStroke> Strokes) ZeroAnchorFixture(bool includeAxis = true)
+    {
+        const int width = 260;
+        const int height = 160;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height).ToArray();
+        foreach (OcrRectangle box in ZeroAnchorLabels)
+            for (int y = (int)box.Top; y < box.Bottom; y++)
+                for (int x = (int)box.Left; x < box.Right; x++) pixels[y * width + x] = 0;
+        if (includeAxis)
+        {
+            for (int x = 40; x <= 220; x++) pixels[120 * width + x] = 0;
+            for (int y = 119; y <= 124; y++)
+            {
+                pixels[(y * width) + 72] = 0;
+                pixels[(y * width) + 194] = 0;
+            }
+        }
+
+        return (new OcrImage(width, height, width, pixels, OcrSourceImage.Original, OcrFrameTransform.Identity), ZeroAnchorStrokes);
+    }
+
+    private static OcrXAxisTickStroke Stroke(string id, double x) => new(
+        id, new OcrPoint(x, 120), new OcrPoint(x, 119), new OcrPoint(x, 124), 0.9, [id]);
 
     private static (OcrImage Image, OcrDetectedRegion Anchor, OcrRegion Reading, OcrRectangle Missing)
         Fixture(bool vertical, string? invalid = null)

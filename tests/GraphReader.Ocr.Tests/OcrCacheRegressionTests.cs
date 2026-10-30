@@ -269,6 +269,32 @@ public sealed class OcrCacheRegressionTests
     }
 
     [TestMethod]
+    public void TickRecoveryAxisStrokeEvidenceSeparatesRequestAliasesWithoutOrderSensitivity()
+    {
+        var recognizer = new StubTextRecognizer(
+            new Dictionary<(string RegionId, OcrSourceImage Source), IReadOnlyList<OcrRecognitionAlternative>>());
+        var options = new OcrPipelineOptions { EnableTickLaneRecovery = true };
+        OcrRequest unavailable = OcrTestFixtures.Request();
+        OcrXAxisTickStroke first = Stroke("x-1", 30);
+        OcrXAxisTickStroke second = Stroke("x-2", 60);
+        OcrRequest seeded = unavailable with { XAxisTickStrokes = [first, second] };
+        OcrRequest reordered = unavailable with { XAxisTickStrokes = [second, first] };
+        OcrRequest moved = unavailable with { XAxisTickStrokes = [first with { Center = new OcrPoint(31, 40) }, second] };
+
+        string unavailableKey = OcrCacheKeyDeriver.CreateRequestAlias(unavailable, recognizer, options, "detector-v1");
+        string seededKey = OcrCacheKeyDeriver.CreateRequestAlias(seeded, recognizer, options, "detector-v1");
+        string reorderedKey = OcrCacheKeyDeriver.CreateRequestAlias(reordered, recognizer, options, "detector-v1");
+        string movedKey = OcrCacheKeyDeriver.CreateRequestAlias(moved, recognizer, options, "detector-v1");
+
+        Assert.AreNotEqual(unavailableKey, seededKey);
+        Assert.AreEqual(seededKey, reorderedKey);
+        Assert.AreNotEqual(seededKey, movedKey);
+
+        static OcrXAxisTickStroke Stroke(string id, double x) => new(
+            id, new OcrPoint(x, 40), new OcrPoint(x, 39), new OcrPoint(x, 44), 0.9, [id]);
+    }
+
+    [TestMethod]
     public async Task ChangingWidthModeDoesNotReuseEarlierFixedWidthResult()
     {
         var widths = new List<int>();

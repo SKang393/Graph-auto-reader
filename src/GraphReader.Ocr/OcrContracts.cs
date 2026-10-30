@@ -268,6 +268,19 @@ public sealed record OcrDetectorImage(
     string PixelSha256,
     string? BgrPixelSha256 = null);
 
+/// <summary>
+/// Geometry-only evidence for a short stroke measured on the x axis in the
+/// immutable original image. It identifies a possible label location but never
+/// contains, implies, or supplies a printed session value.
+/// </summary>
+public sealed record OcrXAxisTickStroke(
+    string TickId,
+    OcrPoint Center,
+    OcrPoint LineStart,
+    OcrPoint LineEnd,
+    double Confidence,
+    IReadOnlyList<string> SupportingCandidateIds);
+
 public sealed record OcrRequest(
     string ProjectId,
     string PanelId,
@@ -286,6 +299,13 @@ public sealed record OcrRequest(
     /// means the phase detector measured no dividers.
     /// </summary>
     public IReadOnlyList<double>? PhaseDividerXs { get; init; }
+
+    /// <summary>
+    /// Optional same-run, original-pixel x-axis stroke evidence. OCR uses this
+    /// only to propose bounded crops when ordinary text detection found no x
+    /// tick labels; recognition and calibration still require literal text.
+    /// </summary>
+    public IReadOnlyList<OcrXAxisTickStroke>? XAxisTickStrokes { get; init; }
 }
 
 public sealed record OcrResult(

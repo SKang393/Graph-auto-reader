@@ -313,7 +313,9 @@ public sealed class OcrPipeline
             _options,
             _detector.ConfigurationFingerprint);
         preprocessStopwatch.Stop();
-        if (detectedRegions.Count == 0)
+        bool mayRecoverFromMeasuredXAxisTicks = _options.EnableTickLaneRecovery &&
+            TickLaneTextRegionRecovery.HasUsableXAxisTickStrokeSeeds(request.XAxisTickStrokes, request.PlotBounds);
+        if (detectedRegions.Count == 0 && !mayRecoverFromMeasuredXAxisTicks)
         {
             warnings.Add("no_text_regions_detected");
             return await CacheAndReturnAsync(
@@ -462,7 +464,8 @@ public sealed class OcrPipeline
                 IReadOnlyList<OcrDetectedRegion> participantWords = Array.Empty<OcrDetectedRegion>();
                 recovered = _options.EnableTickLaneRecovery
                     ? await TickLaneTextRegionRecovery.FindAsync(
-                        request.OriginalImage, detectedRegions, regions, request.PlotBounds, cancellationToken)
+                        request.OriginalImage, detectedRegions, regions, request.PlotBounds,
+                        request.XAxisTickStrokes, cancellationToken)
                         .ConfigureAwait(false)
                     : Array.Empty<OcrDetectedRegion>();
                 recoveredTickIds.UnionWith(recovered.Select(static region => region.RegionId));
