@@ -1,0 +1,149 @@
+{
+  "schema": "goal22_db_topology_gpu_outcome_v1",
+  "status": "rejected_experimental_candidate",
+  "production_approved": false,
+  "release_eligible": false,
+  "goal22_complete": false,
+  "comparison": {
+    "baseline": "V46 experimental initialization, not production baseline",
+    "candidate": "DB topology GPU trained head",
+    "only_candidate_change": "detector model and detector manifest",
+    "same_runtime_recognizer_request_split_scorer": true,
+    "dev_status": "reused diagnostic split; prior V44 diagnostic use; not untouched holdout",
+    "baseline_model_sha256": "497a3527820ce0359496084e5afb1e0d3241aca79e192187f7ab737b27818b7f",
+    "fixed_source_split": {
+      "source_count": 23,
+      "panel_count": 37,
+      "train_sources": 20,
+      "train_panels": 28,
+      "dev_sources": 3,
+      "dev_panels": 9
+    }
+  },
+  "hypothesis": "Fitting the frozen DB detector trunk topology head on 64 synthetic train scenes might improve detector geometry under the V46 runtime contract. The result does not establish a causal failure mechanism.",
+  "training": {
+    "scope": "synthetic train only",
+    "scene_count": 64,
+    "truth_count": 96,
+    "seed_base": 20261029,
+    "device": "PyTorch/HIP reports AMD Radeon RX 6600 XT",
+    "device_id": null,
+    "runtime": "ROCm/HIP",
+    "optimizer": "AdamW",
+    "steps": 256,
+    "epochs": 4,
+    "batch_size": 1,
+    "learning_rate": 3E-05,
+    "weight_decay": 0.0001,
+    "loss": "masked_db_dice_loss",
+    "checkpoint_selection": "final epoch 4",
+    "elapsed_seconds": 64.7210889,
+    "final_epoch_mean_loss": 0.1412623068317771,
+    "protocol_sha256": "eb42855688f5a275d77f7a5600244ec1c615a4a94fb18c0e6c82f11d03def4c3",
+    "preregistration_sha256": "61b30c063756c39362cde86cdfece66a77b200f18f917aceb4a0517d1783c30b",
+    "original_argv_persisted": false,
+    "equivalent_launcher_invocation": "Set-Location 'E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\server-crop-head-20261029'; & 'E:\\Graph-auto-reader\\tools\\gpu-training\\Run-GpuPython.ps1' -PythonArguments @('ml/ocr/db_head_topology_train_v1/gpu_train.py','--run','--expected-protocol-sha256','eb42855688f5a275d77f7a5600244ec1c615a4a94fb18c0e6c82f11d03def4c3','--output','artifacts/goal22-runs/db-head-topology-gpu-train-20261029-v1')",
+    "separately_observed_dxgi_device": "PCI 1002:73FF named AMD Radeon RX 6600 XT",
+    "cross_api_identity": "inferred_not_proven; PyTorch did not expose a matching PCI ID"
+  },
+  "metrics": {
+    "matching_iou_minimum": 0.5,
+    "train": {
+      "truth_count": 709,
+      "baseline": {
+        "exact_count": 398,
+        "exact_rate": 0.561354,
+        "cer_edits": 1425,
+        "truth_characters": 3268,
+        "cer": 0.436047,
+        "role_correct": 403,
+        "geometry_false_positives": 37,
+        "geometry_false_negatives": 131
+      },
+      "topology": {
+        "exact_count": 268,
+        "exact_rate": 0.377997,
+        "cer_edits": 2553,
+        "truth_characters": 3268,
+        "cer": 0.781212,
+        "role_correct": 292,
+        "geometry_false_positives": 326,
+        "geometry_false_negatives": 298
+      }
+    },
+    "reused_dev": {
+      "truth_count": 183,
+      "baseline": {
+        "exact_count": 115,
+        "exact_rate": 0.628415,
+        "cer_edits": 587,
+        "truth_characters": 1019,
+        "cer": 0.576055,
+        "role_correct": 107,
+        "geometry_false_positives": 37,
+        "geometry_false_negatives": 54
+      },
+      "topology": {
+        "exact_count": 90,
+        "exact_rate": 0.491803,
+        "cer_edits": 997,
+        "truth_characters": 1019,
+        "cer": 0.97841,
+        "role_correct": 80,
+        "geometry_false_positives": 116,
+        "geometry_false_negatives": 91
+      }
+    }
+  },
+  "evidence": {
+    "training_report": {
+      "path": "artifacts/goal22-runs/db-head-topology-gpu-train-20261029-v1/report.json",
+      "sha256": "4cca49a973966835914efc8fc4bdda97e3cf2dfcf59cadaca9f227379442b7a7"
+    },
+    "final_checkpoint": {
+      "path": "artifacts/goal22-runs/db-head-topology-gpu-train-20261029-v1/final-head.pt",
+      "sha256": "5b6a79a6de546362426ee1008631fafed58a3644cab554b8eb02806d39eea102"
+    },
+    "scene_manifest_sha256": "eebac3158d3765e49bf518d59780b0b0b1e04869840abc296b7c8e57eaeefc62",
+    "preprocessing_bridge_sha256": "1806bcc9ac4dbcc09fae5efe5f731710a07fb54fd4df00f8612641ce5d061229",
+    "target_manifest_sha256": "4b8981e795776109f76018378bae4ba1da399321e777a8d9d2e500b9f060dac5",
+    "feature_manifest_sha256": "2304dda87a4731f7c7fdf208c60b577a74671375a952a0d5f0a3508728595d5e",
+    "export_onnx_sha256": "1f04117220cda66343d3bd18023615f27d11825277998910f77ad5cf1e3e100c",
+    "export_detector_manifest_sha256": "79e0bdeaef3c594987e63e481d7bbd5b430a3e1f41cbeaa42356d0ef6f8fe4bc",
+    "export_candidate_provenance_sha256": "e6b9ab578982114aa1ef3d001cf556924d815756c5b2e41328ec8bf2a631edb6",
+    "paired_preparation_receipt": {
+      "path": "artifacts/goal22-runs/server-rec-head-v46-topology-pair-20261030-v1/pair-preparation-receipt.json",
+      "sha256": "48318cc4fb62156c8d7f2ee17136594f1879f8b471125da1615785e75aae539f"
+    },
+    "baseline_score": {
+      "path": "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\goal22-runs\\server-rec-head-v46-baseline-score-20261030-v1\\score.json",
+      "sha256": "15a9d9709baa24f6c70ae395168533cf6d2d4a6923ce66d8601f5e93fc3eb991"
+    },
+    "topology_score": {
+      "path": "E:\\Graph-auto-reader\\artifacts\\goal22-worktrees\\resume-20260908\\artifacts\\goal22-runs\\server-rec-head-v46-topology-score-20261030-v1\\score.json",
+      "sha256": "832fa7b4848a0cf9ed1dedbf8a52174b3be5197c1541c413ea43f949501be599"
+    }
+  },
+  "limitations": [
+    "DEV was reused diagnostic data and is not an untouched holdout.",
+    "Pair compares V46 experimental initialization to topology candidate, not production baseline.",
+    "Aggregate metrics do not prove the cause of regression.",
+    "No private or sealed inputs were used; no production approval or release is supported."
+  ],
+  "retention": {
+    "policy": "After outcome documentation is pushed and no active consumer remains, retire generated completed outputs per docs/ARTIFACT-RETENTION.md. No executable reproducibility is promised after generated sources or inputs are removed.",
+    "scripts": "Experimental worktree sources remain pending maintainer disposition.",
+    "paths_promised_to_persist": false,
+    "deletions_performed": false,
+    "generated_outputs_to_retire": [
+      "artifacts/goal22-runs/db-head-topology-gpu-train-20261029-v1: raw logs, caches, generated train data, final-head.pt rejected weights, temporary report",
+      "artifacts/goal22-runs/db-head-topology-experimental-export-20261030-v2: rejected ONNX, detector manifest, export provenance and temporary outputs",
+      "artifacts/goal22-runs/server-rec-head-v46-topology-pair-20261030-v1: paired preparation receipt/configs and generated outputs when no consumer remains",
+      "resume worktree server-rec-head-v46-baseline-score-20261030-v1 and server-rec-head-v46-topology-score-20261030-v1: temporary score reports after documentation push",
+      "Associated generated tensor/feature/target caches, prediction dumps, temporary evaluation reports, screenshots, intermediate checkpoints and duplicate weights"
+    ],
+    "deletion_performed": false,
+    "executable_reproducibility_after_input_retirement": "not_promised"
+  },
+  "source_commit": "764fd63dbe88a56b8f29d997adc26f3fc9a96454"
+}
