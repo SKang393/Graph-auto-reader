@@ -58,6 +58,8 @@ class EntrypointTests(unittest.TestCase):
         self.entry = {"task": "marker-center", "revision": "fixture-v1", "candidate_id": "P1",
             "execution_authorized": True, "authorized_candidate_id": "P1", "status": "candidate_1_preregistered",
             "preregistered_candidate_ids": ["P1"], "consumed_candidate_ids": [], "sealed_runs_authorized": 0,
+            "protocol_path": (entrypoint._LOCAL / "protocol.json").as_posix(),
+            "protocol_sha256": sha256((entrypoint._ROOT / entrypoint._LOCAL / "protocol.json").read_bytes()).hexdigest(),
             "optimizer_steps_expected": 8, "candidate_config_paths": {"P1": self.config_path.relative_to(entrypoint._ROOT).as_posix()},
             "candidate_config_sha256": {"P1": ""}}
         self._write()
@@ -103,6 +105,14 @@ class EntrypointTests(unittest.TestCase):
         self.ledger_path.write_text(json.dumps({"revisions": [self.entry, self.entry]}))
         with self.assertRaisesRegex(RuntimeError, "uniquely register"):
             entrypoint._preflight("fixture-v1", "P1")
+
+    def test_changed_protocol_is_rejected_before_key_access(self):
+        self.entry["protocol_sha256"] = "0" * 64
+        self._write()
+        with patch.object(entrypoint, "_load_key") as key:
+            with self.assertRaisesRegex(ValueError, "protocol"):
+                entrypoint._preflight("fixture-v1", "P1")
+            key.assert_not_called()
 
     def test_bad_schedule_or_existing_output_rejected_before_acquisition(self):
         self.config["schedule"]["real_positive_population_count"] = 17

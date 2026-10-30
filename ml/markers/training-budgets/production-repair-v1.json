@@ -11292,7 +11292,7 @@
       "consumed_candidate_ids": [],
       "experiment_budget": 1,
       "candidate_config_paths": {"P1": "ml/markers/center/real_positive_context_v1/p1.json"},
-      "candidate_config_sha256": {"P1": "f91ca6eb59bcf14d3aff6b6f7509e21e0475f6a1d731bc50bafceb7812f3bff9"},
+      "candidate_config_sha256": {"P1": "ed711311115f30417a3b10135279644ed900e03224edda12cec90a07d8f66433"},
       "protocol_path": "ml/markers/center/real_positive_context_v1/protocol.json",
       "protocol_sha256": "147283d45170c622c0fa01db5810edcb47e1404c74f7c9d6cb70d0faf8a5469e",
       "evidence_policy": {

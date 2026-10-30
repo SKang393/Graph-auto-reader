@@ -39,7 +39,7 @@ from .schedule import ALGORITHM, FixedSchedule
 _LOCAL = Path("ml/markers/center/real_positive_context_v1")
 RUNNER_SOURCES = tuple(dict.fromkeys((*FAMILY_SOURCES, *(_LOCAL / name for name in (
     "__init__.py", "entrypoint.py", "registered_source.py", "mixed_source.py", "schedule.py",
-    "positive_archive.py", "checkpoint_writer.py", "runner_foundation.py", "model.py", "objective.py")))))
+    "positive_archive.py", "checkpoint_writer.py", "runner_foundation.py", "model.py", "objective.py", "protocol.json")))))
 _ROOT = runner.PROJECT_ROOT
 
 
@@ -154,6 +154,12 @@ def _preflight(revision: str, candidate_id: str) -> tuple[dict, Path, bytes]:
             entry.get("preregistered_candidate_ids") != [candidate_id] or
             candidate_id in entry.get("consumed_candidate_ids", []) or entry.get("sealed_runs_authorized") != 0):
         raise RuntimeError("Canonical ledger does not authorize an unused train-only candidate")
+    protocol = _LOCAL / "protocol.json"
+    if (entry.get("protocol_path") != protocol.as_posix() or
+            not _digest(entry.get("protocol_sha256")) or
+            sha256(_locked_bytes(runner._inside_project(_ROOT, _ROOT / protocol), 4 * 1024 * 1024)).hexdigest()
+            != entry["protocol_sha256"]):
+        raise ValueError("Canonical training protocol is missing or changed")
     paths, hashes = entry.get("candidate_config_paths"), entry.get("candidate_config_sha256")
     if not isinstance(paths, dict) or not isinstance(hashes, dict):
         raise ValueError("Canonical candidate configuration binding is missing")

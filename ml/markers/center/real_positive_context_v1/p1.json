@@ -11,7 +11,7 @@
   "synthetic_feature_report_sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500",
   "real_positive_binding_sha256": "186edcc278f5f8c5b0f5386ec2e28954af45c7cd52fa08b372e6f6ab5234267f",
   "archive_key_path": "artifacts/engauge-positive-source-20261030/private/archive.key",
-  "expected_runner_source_bundle_sha256": "3ba6887678559d023a317535a0f076489a8ec9aeedf396c9f918faaf4f591339",
+  "expected_runner_source_bundle_sha256": "7a3a32e197c1bb40d69becaf19e44c8eceb1a4907eba1afb098747749a60f8b4",
   "recipe": {
     "seed": 20261002,
     "synthetic_batch_size": 128,
