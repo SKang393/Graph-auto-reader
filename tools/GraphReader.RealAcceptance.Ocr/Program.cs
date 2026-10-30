@@ -29,13 +29,49 @@ internal static class Program
     private const double MorphologyPositiveLabelDistancePx = 5.0;
     private static readonly string[] CiNames = ["CI", "TF_BUILD", "GITHUB_ACTIONS", "GITLAB_CI", "BUILD_BUILDID", "JENKINS_URL", "TEAMCITY_VERSION"];
 
+    private static bool AuthorizePrivateCorpus(string[] args)
+    {
+        if (!args.Contains("--explicit-opt-in", StringComparer.Ordinal))
+        {
+            Console.Error.WriteLine("PRIVATE_CORPUS_EXPLICIT_OPT_IN_REQUIRED");
+            return false;
+        }
+        if (CiNames.Any(name => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(name)) &&
+            !new[] { "0", "false", "no", "off" }.Contains(Environment.GetEnvironmentVariable(name)!.Trim(), StringComparer.OrdinalIgnoreCase)))
+        {
+            Console.Error.WriteLine("PRIVATE_CORPUS_DISABLED_IN_CI");
+            return false;
+        }
+        return true;
+    }
+
     public static async Task<int> Main(string[] args)
     {
-        if (args.Length > 0 && args[0] == "--audit-engauge-dev-labels")
+        if (args.Length > 0 && args[0] == "--audit-engauge-dev-source-snapshot")
         {
+            if (!AuthorizePrivateCorpus(args)) { return 2; }
             try
             {
-                if (args.Length != 2) { throw new ArgumentException("ENGAUGE_DEV_LABEL_AUDIT_ARGUMENTS_INVALID"); }
+                if (args.Length != 3 || args[2] != "--explicit-opt-in") { throw new ArgumentException("ENGAUGE_DEV_SOURCE_ARGUMENTS_INVALID"); }
+                var selector = FrozenDevTrainingSelector.Load(args[1], CancellationToken.None);
+                EngaugeDevSourceSnapshot snapshot = EngaugeDevSourceMaterializer.Read(selector, CancellationToken.None);
+                Console.WriteLine(JsonSerializer.Serialize(EngaugeDevSourceAudit.Describe(snapshot), JsonOptions));
+                return 0;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                string code = exception is InvalidDataException && exception.Message == "ENGAUGE_DEV_SOURCE_IMAGE_SPLIT_OVERLAP"
+                    ? "ENGAUGE_DEV_SOURCE_IMAGE_SPLIT_OVERLAP" : "ENGAUGE_DEV_SOURCE_AUDIT_FAILED";
+                Console.Error.WriteLine(JsonSerializer.Serialize(new { status = "failed", error = code }, JsonOptions));
+                return 1;
+            }
+        }
+        if (args.Length > 0 && args[0] == "--audit-engauge-dev-labels")
+        {
+            if (!AuthorizePrivateCorpus(args)) { return 2; }
+            try
+            {
+                if (args.Length != 3 || args[2] != "--explicit-opt-in") { throw new ArgumentException("ENGAUGE_DEV_LABEL_AUDIT_ARGUMENTS_INVALID"); }
                 FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(args[1], CancellationToken.None);
                 EngaugeDevLabelAuditResult audit = EngaugeDevLabelAudit.Run(selector, CancellationToken.None);
                 Console.WriteLine(JsonSerializer.Serialize(audit, JsonOptions));
@@ -54,9 +90,10 @@ internal static class Program
         }
         if (args.Length > 0 && args[0] == "--describe-frozen-dev-training-selection")
         {
+            if (!AuthorizePrivateCorpus(args)) { return 2; }
             try
             {
-                if (args.Length != 2) { throw new ArgumentException("FROZEN_DEV_TRAINING_ARGUMENTS_INVALID"); }
+                if (args.Length != 3 || args[2] != "--explicit-opt-in") { throw new ArgumentException("FROZEN_DEV_TRAINING_ARGUMENTS_INVALID"); }
                 FrozenDevTrainingSelector selector = FrozenDevTrainingSelector.Load(args[1], CancellationToken.None);
                 _ = selector.EnumerateSelectedProjects(CancellationToken.None);
                 Console.WriteLine(JsonSerializer.Serialize(selector.Describe(), JsonOptions));
@@ -227,17 +264,7 @@ internal static class Program
                 return 2;
             }
         }
-        if (!args.Contains("--explicit-opt-in", StringComparer.Ordinal))
-        {
-            Console.Error.WriteLine("PRIVATE_CORPUS_EXPLICIT_OPT_IN_REQUIRED");
-            return 2;
-        }
-        if (CiNames.Any(name => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(name)) &&
-            !new[] { "0", "false", "no", "off" }.Contains(Environment.GetEnvironmentVariable(name)!.Trim(), StringComparer.OrdinalIgnoreCase)))
-        {
-            Console.Error.WriteLine("PRIVATE_CORPUS_DISABLED_IN_CI");
-            return 2;
-        }
+        if (!AuthorizePrivateCorpus(args)) { return 2; }
         string? syntheticArg = GetOption(args, "--synthetic-real-range");
         string? officialArg = GetOption(args, "--synthetic-official-db");
         string? tiledArg = GetOption(args, "--synthetic-tiled-proposals");

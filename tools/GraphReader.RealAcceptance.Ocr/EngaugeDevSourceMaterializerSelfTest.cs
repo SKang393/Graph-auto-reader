@@ -5,6 +5,7 @@ using System.IO;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace GraphReader.RealAcceptance.Ocr;
 
@@ -29,6 +30,26 @@ internal static class EngaugeDevSourceMaterializerSelfTest
         }
 
         EngaugeDevSourceSnapshot result = EngaugeDevSourceMaterializer.ReadForTest(selector, Reader, CancellationToken.None);
+        string aggregate = JsonSerializer.Serialize(EngaugeDevSourceAudit.Describe(result));
+        Require(!aggregate.Contains(root, StringComparison.OrdinalIgnoreCase) &&
+            !aggregate.Contains(projects[0].AnonymizedCaseId, StringComparison.Ordinal) &&
+            !aggregate.Contains(projects[0].AnonymizedStudyId, StringComparison.Ordinal) &&
+            !aggregate.Contains("PositiveCenters", StringComparison.Ordinal), "aggregate_does_not_disclose_sources");
+        foreach (EngaugeDevSourceSample sample in result.Samples)
+        {
+            Require(!aggregate.Contains(sample.CaseId, StringComparison.Ordinal) &&
+                !aggregate.Contains(sample.StudyId, StringComparison.Ordinal) &&
+                !aggregate.Contains(sample.ProjectSha256, StringComparison.Ordinal) &&
+                !aggregate.Contains(sample.ImageSha256, StringComparison.Ordinal) &&
+                !aggregate.Contains(Convert.ToBase64String(sample.CopyImageBytes()), StringComparison.Ordinal),
+                "aggregate_does_not_disclose_any_sample");
+        }
+        using (JsonDocument auditDocument = JsonDocument.Parse(aggregate))
+        {
+            Require(auditDocument.RootElement.EnumerateObject().All(static field =>
+                field.Value.ValueKind is not (JsonValueKind.Array or JsonValueKind.Object)),
+                "aggregate_contains_only_scalar_fields");
+        }
         Require(reads == 3 && result.Samples.Count == 3 &&
             result.Samples.Take(2).All(sample => sample.Partition == EngaugeDevStudyPartition.Train) &&
             result.Samples[2].Partition == EngaugeDevStudyPartition.Development &&
@@ -172,7 +193,7 @@ internal static class EngaugeDevSourceMaterializerSelfTest
     {
         byte[] image = [value, 7, 9];
         return new EngaugeDevSourceSample(project.AnonymizedCaseId, project.AnonymizedStudyId, partition,
-            new string('1', 64), Convert.ToHexStringLower(SHA256.HashData(image)), 10, 10,
+            new string('5', 64), Convert.ToHexStringLower(SHA256.HashData(image)), 10, 10,
             image, [new EngaugePositiveCenter(3.0, 4.0)]);
     }
 
