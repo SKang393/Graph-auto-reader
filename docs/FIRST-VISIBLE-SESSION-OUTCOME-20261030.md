@@ -14,7 +14,7 @@ that value after point edits.
 
 Release checks on October 30, 2026:
 
-- App suite: 696 passed. Domain suite: 23 passed.
+- App suite: 696 passed. Domain suite: 23 passed. Axis suite: 96 passed.
 - Manual-preview, production-workflow, and multi-panel integration selection:
   45 passed. Coverage includes 29-to-35 anchors, preserved gaps, save/reopen,
   a changed receipt, an unrelated series, and export after deleting the first
