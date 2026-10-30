@@ -52,6 +52,69 @@ public sealed class ProductionCandidateWorkflowTests
     ];
 
     [TestMethod]
+    public async Task CandidateMarkerPreparationMatchesTheFrameConsumedByCandidateDetection()
+    {
+        var store = new ProductionWorkflowPanelStore();
+        ProductionWorkflowDetectionRequest request = CreateMemoryDetectionRequest(store);
+        MarkerImageFrame? detectedFrame = null;
+        int markerCalls = 0;
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(
+            store, useNonzeroMasks: true, onCenter: frame =>
+            {
+                markerCalls++;
+                detectedFrame = frame;
+            });
+
+        MarkerImageFrame prepared = await candidate.PrepareMarkerFrameForCandidateEvaluationAsync(
+            request, CancellationToken.None);
+
+        Assert.AreEqual(0, markerCalls, "Preparing planes must stop before marker inference.");
+        Assert.AreEqual(80, prepared.Width);
+        Assert.AreEqual(60, prepared.Height);
+        Assert.AreEqual(1, prepared.ChannelCount);
+        Assert.AreEqual(MarkerSourceImage.Original, prepared.SourceImage);
+        Assert.AreEqual(1f, prepared.OcrMask.Values.Span[2 * prepared.Width + 1]);
+        Assert.AreEqual(1f, prepared.ArtifactMask.Values.Span[4 * prepared.Width + 3]);
+        Assert.AreEqual(0f, prepared.OcrMask.Values.Span[4 * prepared.Width + 3]);
+        Assert.AreEqual(0f, prepared.ArtifactMask.Values.Span[2 * prepared.Width + 1]);
+        Assert.AreEqual(0f, prepared.ChannelsFirstPixels.Span[10 * prepared.Width + 40]);
+        Assert.AreEqual(1f, prepared.ChannelsFirstPixels.Span[0]);
+
+        await candidate.DetectForCandidateEvaluationAsync(request, CancellationToken.None);
+
+        Assert.AreEqual(1, markerCalls);
+        Assert.IsNotNull(detectedFrame);
+        CollectionAssert.AreEqual(prepared.ChannelsFirstPixels.ToArray(), detectedFrame.ChannelsFirstPixels.ToArray());
+        CollectionAssert.AreEqual(prepared.OcrMask.Values.ToArray(), detectedFrame.OcrMask.Values.ToArray());
+        CollectionAssert.AreEqual(prepared.ArtifactMask.Values.ToArray(), detectedFrame.ArtifactMask.Values.ToArray());
+        Assert.IsNull(store.Get(request.Panel.ImportedPanel.PanelId).ExportEvidence);
+    }
+
+    [TestMethod]
+    public async Task CandidateMarkerPreparationRejectsEnhancedAndCanceledRequests()
+    {
+        var store = new ProductionWorkflowPanelStore();
+        ProductionWorkflowDetectionRequest original = CreateMemoryDetectionRequest(store);
+        int markerCalls = 0;
+        ProductionAutomaticDetectionAdapter candidate = CreateCandidate(
+            store, useNonzeroMasks: true, onCenter: _ => markerCalls++);
+        var enhanced = new ProductionWorkflowDetectionRequest(
+            original.Panel, original.Image, WorkflowImageVariant.Enhanced, original.RunId,
+            original.ProjectId, original.CopyImageBytes());
+
+        ProductionWorkflowStageException error = await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(
+            () => candidate.PrepareMarkerFrameForCandidateEvaluationAsync(enhanced, CancellationToken.None));
+        Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, error.Failure.Code);
+
+        using var canceled = new CancellationTokenSource();
+        canceled.Cancel();
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(
+            () => candidate.PrepareMarkerFrameForCandidateEvaluationAsync(original, canceled.Token));
+        Assert.AreEqual(0, markerCalls);
+        Assert.IsNull(store.Get(original.Panel.ImportedPanel.PanelId).ExportEvidence);
+    }
+
+    [TestMethod]
     public async Task UnapprovedCandidateRunsUntouchedReviewAndWritesSourceMappedCsv()
     {
         using var directory = new TemporaryDirectory();
@@ -609,18 +672,45 @@ public sealed class ProductionCandidateWorkflowTests
         bool includeUncertainMarkerText = false,
         bool candidateClassifier = false,
         bool includeOffLatticeMarker = false,
-        string? ocrWarning = null) =>
+        string? ocrWarning = null,
+        bool useNonzeroMasks = false,
+        Action<MarkerImageFrame>? onCenter = null) =>
         new(
             store,
             new ProductionRasterFrameDecoder(),
             new CandidateAxisAdapter(ambiguousPhaseLayout),
             new CandidateOcrAdapter(omitYTicks, includeTextDecoy, includeIntermediateSession, ambiguousPhaseLayout, shiftedNumericLabels, includeNumericOutliers, includeUncertainMarkerText, ocrWarning),
-            new CandidateMaskComposer(),
-            new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession, includeOffLatticeMarker),
+            new CandidateMaskComposer(useNonzeroMasks),
+            new CandidateCenterAdapter(includeTextDecoy, includeIntermediateSession, includeOffLatticeMarker, onCenter),
             new ClassificationAdapter(isApproved: !candidateClassifier),
             new LegendAdapter(),
             ambiguousPhaseLayout ? new ProductionPhaseReasoningAdapter() : new PhaseAdapter(cancelAfterPhase),
             new EmptyConnectionBuilder());
+
+    private static ProductionWorkflowDetectionRequest CreateMemoryDetectionRequest(ProductionWorkflowPanelStore store)
+    {
+        const int width = 80;
+        const int height = 60;
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height * 4).ToArray();
+        for (int y = 10; y <= 50; y++)
+        for (int channel = 0; channel < 3; channel++)
+            pixels[(y * width + 40) * 4 + channel] = 0;
+        BitmapSource bitmap = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using var stream = new MemoryStream();
+        encoder.Save(stream);
+        byte[] bytes = stream.ToArray();
+        var image = new WorkflowImageEvidence("memory:synthetic.png", Convert.ToHexStringLower(SHA256.HashData(bytes)),
+            width, height, WorkflowImageVariant.Original);
+        var panel = new WorkflowImportedPanel(Guid.NewGuid(), Guid.NewGuid(), "synthetic.png", image);
+        store.Register(new ProductionPanelEvidence(panel, WorkflowSourceKind.Image, bytes));
+        return new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(panel, image, null), image,
+            WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes)
+        {
+            DeferExportEvidenceCommit = true,
+        };
+    }
 
     private static WorkflowRunRequest Request(string imagePath) =>
         new(
@@ -809,7 +899,7 @@ public sealed class ProductionCandidateWorkflowTests
                 OcrReviewStatus.Unreviewed);
     }
 
-    private sealed class CandidateMaskComposer : IProductionCandidateDetectionMaskComposer
+    private sealed class CandidateMaskComposer(bool nonzeroMasks = false) : IProductionCandidateDetectionMaskComposer
     {
         public string AdapterId => "candidate-mask";
         public bool IsApproved => false;
@@ -830,6 +920,13 @@ public sealed class ProductionCandidateWorkflowTests
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var ocrMask = new float[checked(raster.Width * raster.Height)];
+            var artifactMask = new float[checked(raster.Width * raster.Height)];
+            if (nonzeroMasks)
+            {
+                ocrMask[2 * raster.Width + 1] = 1;
+                artifactMask[4 * raster.Width + 3] = 1;
+            }
             return Task.FromResult(new ProductionDetectionMaskEvidence(
                 raster.Width,
                 raster.Height,
@@ -837,14 +934,14 @@ public sealed class ProductionCandidateWorkflowTests
                 request.ImageVariant,
                 new[] { axisEvidence.Envelope }.Concat(ocrEvidence.ModelEvidence.Select(static item => item.Envelope)),
                 Envelope(request, "markers", "candidate-mask-v1", "candidate-mask", 'd'),
-                new float[checked(raster.Width * raster.Height)],
-                new float[checked(raster.Width * raster.Height)],
+                ocrMask,
+                artifactMask,
                 []));
         }
     }
 
     private sealed class CandidateCenterAdapter(bool includeTextDecoy = false, bool includeIntermediateSession = false,
-        bool includeOffLatticeMarker = false) : IProductionCandidateMarkerCenterAdapter
+        bool includeOffLatticeMarker = false, Action<MarkerImageFrame>? onCenter = null) : IProductionCandidateMarkerCenterAdapter
     {
         public string AdapterId => "candidate-center";
         public bool IsApproved => false;
@@ -867,6 +964,7 @@ public sealed class ProductionCandidateWorkflowTests
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            onCenter?.Invoke(originalImage);
             MarkerCenter[] markers =
             [
                 new("candidate-1", new MarkerPoint(20, 35), 3, 0.01, 0.98, MarkerSourceImage.Original),

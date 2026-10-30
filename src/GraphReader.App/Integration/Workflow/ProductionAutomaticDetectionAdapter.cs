@@ -147,6 +147,13 @@ public sealed class ProductionAutomaticDetectionAdapter :
         ProductionWorkflowDetectionRequest request,
         CancellationToken cancellationToken)
     {
+        ValidateCandidateRequest(request, cancellationToken);
+        return DetectCoreAsync(request, candidateEvaluation: true, cancellationToken);
+    }
+
+    private void ValidateCandidateRequest(
+        ProductionWorkflowDetectionRequest request, CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
         if (IsApproved)
@@ -176,8 +183,24 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 "Candidate composition must contain explicit unapproved axis, OCR, mask, and marker-center adapters, an approved or explicit candidate classifier, and approved fixed downstream reasoners.",
                 "Recreate the candidate composition from its frozen model and runtime binding.");
         }
+    }
 
-        return DetectCoreAsync(request, candidateEvaluation: true, cancellationToken);
+    internal async Task<MarkerImageFrame> PrepareMarkerFrameForCandidateEvaluationAsync(
+        ProductionWorkflowDetectionRequest request, CancellationToken cancellationToken)
+    {
+        ValidateCandidateRequest(request, cancellationToken);
+        ValidateOriginalImage(request);
+        var chain = new ProductionDetectionEvidenceChain(request);
+        try
+        {
+            var prepared = await PrepareMarkerInputsAsync(request, candidateEvaluation: true, chain, cancellationToken)
+                .ConfigureAwait(false);
+            return prepared.Masks.CreateMarkerFrame(prepared.Raster);
+        }
+        catch (ProductionWorkflowStageException exception)
+        {
+            throw RetainEvidence(chain, exception);
+        }
     }
 
     private async Task<WorkflowDetectionBatch> DetectCoreAsync(
@@ -185,150 +208,14 @@ public sealed class ProductionAutomaticDetectionAdapter :
         bool candidateEvaluation,
         CancellationToken cancellationToken)
     {
-        if (request.ImageVariant != WorkflowImageVariant.Original)
-        {
-            throw Failure(
-                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
-                "Errors.DetectionEvidenceRejected",
-                "The production chain starts from the immutable original image. Enhanced consensus is a separately approved optional path.",
-                "Run the approved CPU workflow with enhancement disabled.");
-        }
+        ValidateOriginalImage(request);
 
         var chain = new ProductionDetectionEvidenceChain(request);
         try
         {
-            ProductionDecodedRaster raster = rasterDecoder.Decode(request, cancellationToken);
-            ProductionAxisGeometryEvidence axis = await (candidateEvaluation
-                    ? ((IProductionCandidateAxisGeometryAdapter)axisAdapter)
-                        .DetectForCandidateEvaluationAsync(request, cancellationToken)
-                    : axisAdapter.DetectAsync(request, cancellationToken))
-                .ConfigureAwait(false);
-            chain.Append(axis.Envelope);
-
-            OcrRectangle plotBounds = ToOcrBounds(axis.Geometry.PlotPolygon);
-            IReadOnlyList<double> phaseDividerXs = CreateOcrPhaseDividerXs(
-                axis.Geometry.CoordinateSpace, axis.Geometry.PhaseDividers, plotBounds);
-            IReadOnlyList<OcrXAxisTickStroke> xAxisTickStrokes = CreateOcrXAxisTickStrokes(axis.Geometry);
-            OcrDetectorImage detectorImage = raster.CreateOcrDetectorImage(
-                axis.Geometry,
-                cancellationToken);
-            OcrTickLaneDiagnostic? tickLaneOcrDiagnostic = null;
-            ProductionOcrEvidence ocr;
-            if (CandidateTickLaneObserver is not null &&
-                ocrAdapter is IProductionTickLaneDiagnosticOcrAdapter diagnosticOcrAdapter)
-            {
-                ocr = await diagnosticOcrAdapter.RecognizeWithTickLaneDiagnosticsAsync(
-                        request,
-                        raster,
-                        plotBounds,
-                        detectorImage,
-                        phaseDividerXs,
-                        xAxisTickStrokes,
-                        diagnostic => tickLaneOcrDiagnostic = diagnostic,
-                        candidateEvaluation,
-                        cancellationToken)
+            var (raster, axis, ocr, tickGeometry, plotBounds, masks) =
+                await PrepareMarkerInputsAsync(request, candidateEvaluation, chain, cancellationToken)
                     .ConfigureAwait(false);
-            }
-            else if (candidateEvaluation)
-            {
-                ocr = await ((IProductionCandidateOcrAdapter)ocrAdapter)
-                    .RecognizeForCandidateEvaluationAsync(
-                        request,
-                        raster,
-                        plotBounds,
-                        detectorImage,
-                        phaseDividerXs,
-                        xAxisTickStrokes,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                ocr = await ocrAdapter.RecognizeAsync(
-                        request,
-                        raster,
-                        plotBounds,
-                        detectorImage,
-                        phaseDividerXs,
-                        xAxisTickStrokes,
-                        cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            foreach (ProductionOcrModelEvidence evidence in ocr.ModelEvidence
-                .OrderBy(static evidence => evidence.Task, StringComparer.Ordinal))
-            {
-                chain.Append(evidence.Envelope);
-            }
-
-            var tickGeometryTimer = System.Diagnostics.Stopwatch.StartNew();
-            TickLabelGeometryResult tickGeometry;
-            try
-            {
-                tickGeometry = ProductionTickLabelGeometry.Resolve(
-                    axis.Geometry, raster.CreateOcrImage(), ocr.Result.Regions, cancellationToken);
-            }
-            catch (Exception exception) when (exception is ArgumentException or OverflowException)
-            {
-                throw chain.Reject(new ProductionWorkflowFailure(
-                    ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
-                    "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
-                    "Retain OCR evidence and review the original-pixel tick geometry."));
-            }
-            tickGeometryTimer.Stop();
-            if (CandidateTickLaneObserver is { } observeTickLane && tickLaneOcrDiagnostic is { } ocrTickDiagnostic)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                string[] seededRegionIds = ocr.Result.Regions
-                    .Where(static region => IsSeededXTick(region.RegionId))
-                    .Select(static region => region.RegionId)
-                    .Distinct(StringComparer.Ordinal)
-                    .Order(StringComparer.Ordinal)
-                    .ToArray();
-                var associations = seededRegionIds.Select(regionId =>
-                {
-                    OcrRegion region = ocr.Result.Regions.First(item =>
-                        string.Equals(item.RegionId, regionId, StringComparison.Ordinal));
-                    bool hasMeasuredPosition = tickGeometry.Positions.TryGetValue(regionId, out double measuredX);
-                    return new ProductionCandidateTickLaneAssociation(
-                        regionId,
-                        region.Text,
-                        region.Role.ToString(),
-                        hasMeasuredPosition ? measuredX : null,
-                        hasMeasuredPosition && IsSeededXTickAssociated(axis.Geometry, regionId, tickGeometry.Positions));
-                }).ToArray();
-                observeTickLane(new ProductionCandidateTickLaneObservation(
-                    request.RunId,
-                    request.Panel.ImportedPanel.SourceId,
-                    request.Panel.ImportedPanel.PanelId,
-                    request.Image.Sha256,
-                    axis.Geometry.Ticks.Count(static tick => tick.Axis == TickAxis.XAxis),
-                    xAxisTickStrokes.Count,
-                    ocrTickDiagnostic,
-                    Array.AsReadOnly(associations)));
-            }
-            if (tickGeometry.Warnings.Count > 0)
-                chain.Append(new WorkflowVisionEnvelope(
-                    1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
-                    "ocr", ProductionTickLabelGeometry.Version, request.Image.Sha256, null,
-                    new WorkflowVisionTiming(tickGeometryTimer.Elapsed.TotalMilliseconds, 0, 0, tickGeometryTimer.Elapsed.TotalMilliseconds),
-                    Math.Min(axis.Geometry.Confidence, ocr.Result.Confidence), tickGeometry.Warnings, request.Transforms));
-
-            ProductionDetectionMaskEvidence masks = await (candidateEvaluation
-                    ? ((IProductionCandidateDetectionMaskComposer)maskComposer)
-                        .ComposeForCandidateEvaluationAsync(
-                            request,
-                            raster,
-                            axis,
-                            ocr,
-                            cancellationToken)
-                    : maskComposer.ComposeAsync(
-                        request,
-                        raster,
-                        axis,
-                        ocr,
-                        cancellationToken))
-                .ConfigureAwait(false);
-            chain.Append(masks.ArtifactEnvelope);
             MarkerImageFrame markerFrame = masks.CreateMarkerFrame(raster);
             MarkerPolygon markerPlot = ToMarkerPolygon(axis.Geometry.PlotPolygon);
             ProductionMarkerCenterEvidence centers = await (candidateEvaluation
@@ -768,6 +655,160 @@ public sealed class ProductionAutomaticDetectionAdapter :
         {
             throw RetainEvidence(chain, exception);
         }
+    }
+
+    private static void ValidateOriginalImage(ProductionWorkflowDetectionRequest request)
+    {
+        if (request.ImageVariant != WorkflowImageVariant.Original)
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                "The production chain starts from the immutable original image. Enhanced consensus is a separately approved optional path.",
+                "Run the approved CPU workflow with enhancement disabled.");
+        }
+
+    }
+
+    private async Task<(ProductionDecodedRaster Raster, ProductionAxisGeometryEvidence Axis,
+        ProductionOcrEvidence Ocr, TickLabelGeometryResult TickGeometry, OcrRectangle PlotBounds,
+        ProductionDetectionMaskEvidence Masks)> PrepareMarkerInputsAsync(
+        ProductionWorkflowDetectionRequest request, bool candidateEvaluation,
+        ProductionDetectionEvidenceChain chain, CancellationToken cancellationToken)
+    {
+        ProductionDecodedRaster raster = rasterDecoder.Decode(request, cancellationToken);
+        ProductionAxisGeometryEvidence axis = await (candidateEvaluation
+                ? ((IProductionCandidateAxisGeometryAdapter)axisAdapter)
+                    .DetectForCandidateEvaluationAsync(request, cancellationToken)
+                : axisAdapter.DetectAsync(request, cancellationToken))
+            .ConfigureAwait(false);
+        chain.Append(axis.Envelope);
+
+        OcrRectangle plotBounds = ToOcrBounds(axis.Geometry.PlotPolygon);
+        IReadOnlyList<double> phaseDividerXs = CreateOcrPhaseDividerXs(
+            axis.Geometry.CoordinateSpace, axis.Geometry.PhaseDividers, plotBounds);
+        IReadOnlyList<OcrXAxisTickStroke> xAxisTickStrokes = CreateOcrXAxisTickStrokes(axis.Geometry);
+        OcrDetectorImage detectorImage = raster.CreateOcrDetectorImage(
+            axis.Geometry,
+            cancellationToken);
+        OcrTickLaneDiagnostic? tickLaneOcrDiagnostic = null;
+        ProductionOcrEvidence ocr;
+        if (CandidateTickLaneObserver is not null &&
+            ocrAdapter is IProductionTickLaneDiagnosticOcrAdapter diagnosticOcrAdapter)
+        {
+            ocr = await diagnosticOcrAdapter.RecognizeWithTickLaneDiagnosticsAsync(
+                    request,
+                    raster,
+                    plotBounds,
+                    detectorImage,
+                    phaseDividerXs,
+                    xAxisTickStrokes,
+                    diagnostic => tickLaneOcrDiagnostic = diagnostic,
+                    candidateEvaluation,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else if (candidateEvaluation)
+        {
+            ocr = await ((IProductionCandidateOcrAdapter)ocrAdapter)
+                .RecognizeForCandidateEvaluationAsync(
+                    request,
+                    raster,
+                    plotBounds,
+                    detectorImage,
+                    phaseDividerXs,
+                    xAxisTickStrokes,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            ocr = await ocrAdapter.RecognizeAsync(
+                    request,
+                    raster,
+                    plotBounds,
+                    detectorImage,
+                    phaseDividerXs,
+                    xAxisTickStrokes,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+        foreach (ProductionOcrModelEvidence evidence in ocr.ModelEvidence
+            .OrderBy(static evidence => evidence.Task, StringComparer.Ordinal))
+        {
+            chain.Append(evidence.Envelope);
+        }
+
+        var tickGeometryTimer = System.Diagnostics.Stopwatch.StartNew();
+        TickLabelGeometryResult tickGeometry;
+        try
+        {
+            tickGeometry = ProductionTickLabelGeometry.Resolve(
+                axis.Geometry, raster.CreateOcrImage(), ocr.Result.Regions, cancellationToken);
+        }
+        catch (Exception exception) when (exception is ArgumentException or OverflowException)
+        {
+            throw chain.Reject(new ProductionWorkflowFailure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
+                "Retain OCR evidence and review the original-pixel tick geometry."));
+        }
+        tickGeometryTimer.Stop();
+        if (CandidateTickLaneObserver is { } observeTickLane && tickLaneOcrDiagnostic is { } ocrTickDiagnostic)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string[] seededRegionIds = ocr.Result.Regions
+                .Where(static region => IsSeededXTick(region.RegionId))
+                .Select(static region => region.RegionId)
+                .Distinct(StringComparer.Ordinal)
+                .Order(StringComparer.Ordinal)
+                .ToArray();
+            var associations = seededRegionIds.Select(regionId =>
+            {
+                OcrRegion region = ocr.Result.Regions.First(item =>
+                    string.Equals(item.RegionId, regionId, StringComparison.Ordinal));
+                bool hasMeasuredPosition = tickGeometry.Positions.TryGetValue(regionId, out double measuredX);
+                return new ProductionCandidateTickLaneAssociation(
+                    regionId,
+                    region.Text,
+                    region.Role.ToString(),
+                    hasMeasuredPosition ? measuredX : null,
+                    hasMeasuredPosition && IsSeededXTickAssociated(axis.Geometry, regionId, tickGeometry.Positions));
+            }).ToArray();
+            observeTickLane(new ProductionCandidateTickLaneObservation(
+                request.RunId,
+                request.Panel.ImportedPanel.SourceId,
+                request.Panel.ImportedPanel.PanelId,
+                request.Image.Sha256,
+                axis.Geometry.Ticks.Count(static tick => tick.Axis == TickAxis.XAxis),
+                xAxisTickStrokes.Count,
+                ocrTickDiagnostic,
+                Array.AsReadOnly(associations)));
+        }
+        if (tickGeometry.Warnings.Count > 0)
+            chain.Append(new WorkflowVisionEnvelope(
+                1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
+                "ocr", ProductionTickLabelGeometry.Version, request.Image.Sha256, null,
+                new WorkflowVisionTiming(tickGeometryTimer.Elapsed.TotalMilliseconds, 0, 0, tickGeometryTimer.Elapsed.TotalMilliseconds),
+                Math.Min(axis.Geometry.Confidence, ocr.Result.Confidence), tickGeometry.Warnings, request.Transforms));
+
+        ProductionDetectionMaskEvidence masks = await (candidateEvaluation
+                ? ((IProductionCandidateDetectionMaskComposer)maskComposer)
+                    .ComposeForCandidateEvaluationAsync(
+                        request,
+                        raster,
+                        axis,
+                        ocr,
+                        cancellationToken)
+                : maskComposer.ComposeAsync(
+                    request,
+                    raster,
+                    axis,
+                    ocr,
+                    cancellationToken))
+            .ConfigureAwait(false);
+        chain.Append(masks.ArtifactEnvelope);
+        return (raster, axis, ocr, tickGeometry, plotBounds, masks);
     }
 
     private async Task<MarkerGroupingState> GroupMarkersAsync(
