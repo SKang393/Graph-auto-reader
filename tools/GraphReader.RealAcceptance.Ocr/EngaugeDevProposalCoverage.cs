@@ -128,7 +128,7 @@ internal sealed class EngaugeDevProposalCoverageAccumulator
                 else if (residualBlocked) nextArtifactResidual++;
                 else throw new InvalidDataException("ENGAUGE_COVERAGE_ARTIFACT_PROVENANCE_MISMATCH");
             }
-            else if (missingInk || textBlocked || artifactBlocked) 
+            else if (missingInk || textBlocked || artifactBlocked)
             {
                 if (missingInk && !textBlocked && !artifactBlocked) nextInk++;
                 else if (!missingInk && textBlocked && !artifactBlocked) nextText++;
