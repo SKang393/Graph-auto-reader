@@ -1,0 +1,129 @@
+{
+  "schema": "graphreader.goal22-x-tick-seed-outcome.v1",
+  "status": "synthetic_validation_replay_complete_no_production_approval",
+  "scope": "fixed 21-source synthetic validation only",
+  "comparison": {
+    "v8_before_tick_seed_recovery": {
+      "report_path": "artifacts/goal22-runs/v46-probe-current-main-replay-20261030-v8/report.json",
+      "report_sha256": "2b48ae87a82759dc0e2a21f310ef653a2fd74ccc4acad42ea1319ae33a31a439",
+      "source_commit": "d174c3d5fd367b0dc090637df3974c4c06a6993b",
+      "git_tree_oid": "0ee505ddf0af405778b55e01ddbebed7f9104e91",
+      "source_count": 21,
+      "completed": 1,
+      "failed": 20,
+      "elapsed_milliseconds": 237976.1708,
+      "candidate_binding_sha256": "d8f233f3c536dec5357800d1469c11efd1c160ddff55fed7d6074d0791c1d5ca",
+      "input_manifest_sha256": "b313055ad43129d7988fff3487d739de0dea088a6b4dae1092e652bb90c2d637",
+      "protocol_sha256": "8acd8ba0f21c67b2b73cb02264d956383a2f820256edaa73e214a2a45d0f431c"
+    },
+    "v10_after_tick_seed_recovery": {
+      "report_path": "artifacts/goal22-runs/v46-probe-current-main-replay-20261030-v10/report.json",
+      "report_sha256": "43603f4d153ae38b627fae534436844a795005c5e372210c288e2e0af5f22de2",
+      "report_revision": "v46-current-main-probe-replay-20261030-v9-tick-seed-4211afa1",
+      "source_commit": "4211afa1a53346684bedd5feaa04414d89fe4ca8",
+      "git_tree_oid": "4e6da4dfbda09c4bb0ac442b85c1a5f9243bea7a",
+      "source_count": 21,
+      "completed": 1,
+      "failed": 20,
+      "elapsed_milliseconds": 285389.5312,
+      "candidate_binding_sha256": "e1ec3549f261ff906329be123524b8d7cf40f8e82dc763e2c7d3328865ab06ca",
+      "input_manifest_sha256": "bc663209616040543e26726cabed2c3cbbdbbb64fb56ebe20f37c52d2c6af51e",
+      "protocol_sha256": "d0e0b17d46f60a52f57c23f2b6447cdc4e60cf0161e90035c0a42dd98e862a91",
+      "source_bindings_sha256": "1dd980f42cdc5e03106b56e9688b23614a744758cbc088b65bedf7c04ce22a47",
+      "preparation_receipt_sha256": "130fb75104fc0d606d853fc40c6da7835fdab78f0d741606243256454d65a426",
+      "runner_dll_sha256": "aa8324f4e69e7c670ac31b0bdf7c51c8be7fc8a01ee722e094a618714dc130d8"
+    }
+  },
+  "interpretation": {
+    "same_fixed_source_order_as_v8": true,
+    "seed_identifiers_present_in_saved_reports": false,
+    "measurable_aggregate_change": "none; completion remains 1/21",
+    "cause_established": false,
+    "supports_claim_tick_seed_recovery_had_no_effect": false,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "truth_consumed_by_inference": false,
+    "model_selection_performed": false,
+    "production_approved": false,
+    "release_eligible": false
+  },
+  "runtime": {
+    "provider": "cpu",
+    "graph_optimization": "disabled",
+    "intra_operation_threads": 10,
+    "inter_operation_threads": 1,
+    "worker_count": 1
+  },
+  "v10_binding_correction": {
+    "v9_failure": "exit 2 before inference: two native executable entries omitted required role field",
+    "corrected_in_v10": true,
+    "native_schema": "exact properties role,file,sha256",
+    "candidate_file_references_hash_verified": 51
+  },
+  "csv_budget": {
+    "v8_declared_maximum": 0,
+    "v10_declared_maximum": 21,
+    "unit": "one successful source export set, minimal and audit CSV pair",
+    "meaning": "upper bound for the fixed 21-source invocation, not a claim of 21 completed exports"
+  },
+  "build": {
+    "configuration": "Release",
+    "warnings": 0,
+    "errors": 0,
+    "automated_tests_run_for_docs": false
+  },
+  "retention": {
+    "disposition": "retire completed V8/V10 reports and V10 prep/build outputs after this record is pushed and active consumers finish",
+    "runtime_dependency": false,
+    "local_path_availability_promised": false
+  },
+  "limitations": [
+    "Both runs completed only 1 of 21 sources.",
+    "The reports do not include seed identifiers, so this summary cannot attribute source outcomes to particular tick seeds or establish failure cause.",
+    "The synthetic validation set was reused; this is a diagnostic, not production or release acceptance.",
+    "V10 report revision text retains a v9 label; the bound V10 protocol, candidate, input hashes, and source commit identify the replay."
+  ],
+  "provenance": {
+    "runner_command_sha256": "f7443bf82e1dae2a3b3e7a35c0792d24c7940f23eeb6621f9bb01b17025c9e9b",
+    "source_file_inventory_sha256": "3867ecf99a94111564c1bac9eacf09ef9956eec32c3e105c0ce70b4765ed4452",
+    "acceptance_bars_sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "models": {
+      "detector": {
+        "model_id": "graph-scale-coverage-db-head-v46-p1",
+        "payload_sha256": "497a3527820ce0359496084e5afb1e0d3241aca79e192187f7ab737b27818b7f",
+        "manifest_sha256": "a690a324d43873b6b7833a6e8466c673477994d05be41f0ea8cc5e9dcdb3e75d"
+      },
+      "recognizer": {
+        "model_id": "PP-OCRv5_server_rec",
+        "payload_sha256": "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418"
+      },
+      "marker_center": {
+        "model_id": "marker-center-component-diversity-v27",
+        "payload_sha256": "4979777a404be48c6c75b490218d1de31d2edb2550f5bc71c7aa6894c1bcca04"
+      },
+      "marker_classifier": {
+        "model_id": "marker-classifier-structural-context-v5",
+        "payload_sha256": "7f15c0ed0d8740bf4cc1d220764e670d999ca4f4a1dbfe5c631b01db5faaebba"
+      }
+    }
+  },
+  "stage_evidence_tick_audit": {
+    "report_path": "artifacts/goal22-runs/v46-probe-current-main-replay-20261030-v10/report.json",
+    "report_sha256": "43603f4d153ae38b627fae534436844a795005c5e372210c288e2e0af5f22de2",
+    "field": "observation.axis.ticks",
+    "count_definition": "For each report-listed panel stage-evidence file, count tick entries with axis == XAxis.",
+    "panel_observation_count": 31,
+    "x_axis_tick_count_distribution": {
+      "0": 17,
+      "1": 10,
+      "2": 2,
+      "3": 1,
+      "4": 1
+    },
+    "panels_with_fewer_than_two_x_axis_ticks": 27,
+    "panel_stage_evidence_hashes_verified": 31,
+    "scope": "stage-evidence counts only; not source count",
+    "causal_interpretation": "none; this coverage statistic does not establish why any panel failed or whether tick-seed recovery caused a change"
+  }
+}
