@@ -1,0 +1,16 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>GraphReader.ArchiveFixture</AssemblyName>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="cross_language_fixture.cs" />
+    <Compile Include="../../../../tools/GraphReader.RealAcceptance.Ocr/EngaugeDevProposalArchive.cs" Link="EngaugeDevProposalArchive.cs" />
+  </ItemGroup>
+</Project>
