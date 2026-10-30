@@ -52,9 +52,11 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         string PointId,
         string? DetectionKey);
 
-    private sealed record PdfWorkspacePanel(
+    internal sealed record PdfWorkspacePanel(
         WorkflowImportedPanel Panel,
-        ImmutableImageBytes OriginalBytes);
+        ImmutableImageBytes OriginalBytes,
+        PdfPanelSourceProvenance SourceProvenance,
+        int PanelOrder);
 
     private sealed record PdfWorkspaceImport(
         string DocumentSha256,
@@ -87,6 +89,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     private readonly Dictionary<string, JsonElement> _enhancementByTab = new(StringComparer.Ordinal);
     private readonly Dictionary<string, EnhancementEnvelope> _enhancementEnvelopes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ImmutableImageBytes> _originalPanelBytesByTab = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, PdfWorkspacePanel> _pdfPanelsByTab = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _verifiedManualCalibrationPendingByTab = new(StringComparer.Ordinal);
     private IReadOnlyList<ImageImportError> _lastImportErrors = [];
 
     public ManualPreviewWorkspaceService(
@@ -246,7 +250,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 foreach (PdfWorkspacePanel panel in imported.Panels)
                 {
                     WorkspaceTabViewModel tab = CreateEmptyPdfTab(source, panel);
-                    RegisterImportedTab(tab, panel.OriginalBytes, addedTabs);
+                    RegisterImportedTab(tab, panel.OriginalBytes, addedTabs, panel);
                 }
 
                 CommitImportedSource(source);
@@ -398,6 +402,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         var stagedTombstones = new Dictionary<string, Dictionary<string, DeletedPointTombstone>>(StringComparer.Ordinal);
         var stagedEnhancement = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var stagedOriginalBytes = new Dictionary<string, ImmutableImageBytes>(StringComparer.Ordinal);
+        var stagedPdfPanels = new Dictionary<string, PdfWorkspacePanel>(StringComparer.Ordinal);
         foreach (PanelRecord panel in project.Panels)
         {
             SourceReference source = project.Sources.Single(item => item.SourceId == panel.SourceId);
@@ -446,6 +451,12 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                         $"Saved PDF panel '{panel.PanelId.Value:D}' was not reproduced by the current source bytes.");
                 }
 
+                PdfPanelSourceBinding.ValidateSavedPanel(
+                    project,
+                    source,
+                    panel,
+                    pdfPanel);
+
                 originalBytes = pdfPanel.OriginalBytes;
                 tab = CreateTabFromProject(
                     panel,
@@ -459,6 +470,10 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             ReindexAllSeries(tab);
             stagedTabs.Add(tab);
             stagedOriginalBytes[tab.TabId] = originalBytes;
+            if (source.Kind == SourceKind.Pdf)
+            {
+                stagedPdfPanels[tab.TabId] = importedPdfPanelsById[panel.PanelId];
+            }
             stagedPhaseOverrides[tab.TabId] = CreatePhaseOverrides(tab);
             stagedDetectionKeys[tab.TabId] = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
             stagedTombstones[tab.TabId] = new Dictionary<string, DeletedPointTombstone>(StringComparer.OrdinalIgnoreCase);
@@ -492,6 +507,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         ReplaceContents(_enhancementByTab, stagedEnhancement);
         _enhancementEnvelopes.Clear();
         ReplaceContents(_originalPanelBytesByTab, stagedOriginalBytes);
+        ReplaceContents(_pdfPanelsByTab, stagedPdfPanels);
         CurrentProject = project;
         CurrentProjectPath = Path.GetFullPath(path);
         _lastImportErrors = [];
@@ -618,6 +634,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         _enhancementByTab.Remove(tab.TabId);
         _enhancementEnvelopes.Remove(tab.TabId);
         _originalPanelBytesByTab.Remove(tab.TabId);
+        _pdfPanelsByTab.Remove(tab.TabId);
+        _verifiedManualCalibrationPendingByTab.Remove(tab.TabId);
         foreach (AppGraphPoint point in tab.Points)
         {
             _pointXStates.Remove(point.PointId);
@@ -686,11 +704,19 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             MarkPointXAsManualEstimate(tab, point);
         }
 
-        SynchronizeProject(
-            DomainEventKind.CalibrationChanged,
-            Guid.Parse(tab.PanelId!),
-            entityId: null,
-            "Manual three-anchor calibration");
+        _verifiedManualCalibrationPendingByTab.Add(tab.TabId);
+        try
+        {
+            SynchronizeProject(
+                DomainEventKind.CalibrationChanged,
+                Guid.Parse(tab.PanelId!),
+                entityId: null,
+                "Manual three-anchor calibration");
+        }
+        finally
+        {
+            _verifiedManualCalibrationPendingByTab.Remove(tab.TabId);
+        }
         return state;
     }
 
@@ -1200,7 +1226,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ExportResult> ExportAsync(
+    public virtual async Task<ExportResult> ExportAsync(
         string tabId,
         string outputDirectory,
         CancellationToken cancellationToken)
@@ -1211,8 +1237,188 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             throw new InvalidOperationException("Manual three-anchor calibration is required before export.");
         }
 
-        SynchronizeProject(DomainEventKind.ExportSettingsChanged, Guid.Parse(tab.PanelId!), entityId: null, "Manual CSV export");
-        PanelRecord panel = CurrentProject.Panels.Single(item => item.PanelId.Value == Guid.Parse(tab.PanelId!));
+        PanelRecord panel = SynchronizePanelForExport(tab);
+        if (panel.Calibration is null)
+        {
+            throw new InvalidOperationException("Manual three-anchor calibration is required before export.");
+        }
+
+        if (panel.Calibration.Status != CalibrationStatus.Valid || !panel.Calibration.UserConfirmed)
+        {
+            throw new InvalidOperationException(
+                "Manual export requires a valid, explicitly confirmed three-anchor calibration. Recalibrate before exporting.");
+        }
+
+        return await ExportPreparedPanelAsync(
+            tab,
+            panel,
+            outputDirectory,
+            ExportMode.ObservationOrder,
+            ExportAuditMode.ExtendedCsvAndJson,
+            new ExportCalibration(
+                ExportCalibrationStatus.Valid,
+                hasYCalibration: true,
+                hasPrintedSessionCalibration: false,
+                hasAbsoluteSessionOrigin: true,
+                firstObservedSession: null,
+                panel.Calibration.Confidence),
+            new ExportSessionOriginPolicy(
+                RequireFirstObservedSessionOne: false,
+                InvalidSessionOriginBehavior.Block),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Synchronizes edits from the visible tab before a workspace-specific exporter
+    /// inspects persisted evidence. The returned panel is the exact snapshot that
+    /// should be used to construct the export request.
+    /// </summary>
+    protected (WorkspaceTabViewModel Tab, PanelRecord Panel) PreparePanelForExport(string tabId)
+    {
+        WorkspaceTabViewModel tab = RequireTab(tabId);
+        return (tab, SynchronizePanelForExport(tab));
+    }
+
+    private PanelRecord SynchronizePanelForExport(WorkspaceTabViewModel tab)
+    {
+        if (!Guid.TryParse(tab.PanelId, out Guid panelId))
+        {
+            throw new InvalidOperationException("The selected workspace tab has no persisted panel identity.");
+        }
+
+        SynchronizeProject(
+            DomainEventKind.ExportSettingsChanged,
+            panelId,
+            entityId: null,
+            "Workspace export prepared from current reviewed state");
+        return CurrentProject.Panels.Single(item => item.PanelId.Value == panelId);
+    }
+
+    protected static bool ProductionProjectionMatchesCurrentPanel(
+        PanelRecord currentPanel,
+        ProductionPanelProjectionEvidence projection)
+    {
+        ArgumentNullException.ThrowIfNull(currentPanel);
+        ArgumentNullException.ThrowIfNull(projection);
+        PanelRecord panelLocal = MapPanelRecordSourceToPanel(currentPanel);
+        return CalibrationRecordsEquivalent(panelLocal.Calibration, projection.Calibration) &&
+            TransformRecordsEquivalent(panelLocal.Transforms, projection.Transforms);
+    }
+
+    private static bool CalibrationRecordsEquivalent(
+        CalibrationRecord? left,
+        CalibrationRecord? right)
+    {
+        if (left is null || right is null)
+        {
+            return left is null && right is null;
+        }
+
+        if (left.CalibrationId != right.CalibrationId ||
+            left.Status != right.Status ||
+            left.UserConfirmed != right.UserConfirmed ||
+            !NearlyEqual(left.Confidence, right.Confidence) ||
+            !left.Reasons.SequenceEqual(right.Reasons, StringComparer.Ordinal) ||
+            left.Anchors.Count != right.Anchors.Count ||
+            (left.SessionLattice is null) != (right.SessionLattice is null))
+        {
+            return false;
+        }
+
+        for (int index = 0; index < left.Anchors.Count; index++)
+        {
+            GraphReader.Domain.CalibrationAnchor first = left.Anchors[index];
+            GraphReader.Domain.CalibrationAnchor second = right.Anchors[index];
+            if (first.Kind != second.Kind ||
+                first.EvidenceRegionId != second.EvidenceRegionId ||
+                !NearlyEqual(first.Screen.X, second.Screen.X) ||
+                !NearlyEqual(first.Screen.Y, second.Screen.Y) ||
+                !NearlyEqual(first.Graph.X, second.Graph.X) ||
+                !NearlyEqual(first.Graph.Y, second.Graph.Y) ||
+                !NearlyEqual(first.Confidence, second.Confidence))
+            {
+                return false;
+            }
+        }
+
+        if (left.SessionLattice is { } leftLattice && right.SessionLattice is { } rightLattice &&
+            (!NearlyEqual(leftLattice.Session1PixelX, rightLattice.Session1PixelX) ||
+             !NearlyEqual(leftLattice.PitchPixels, rightLattice.PitchPixels) ||
+             !NullableNearlyEqual(leftLattice.PrintedMin, rightLattice.PrintedMin) ||
+             !NullableNearlyEqual(leftLattice.PrintedMax, rightLattice.PrintedMax) ||
+             !NearlyEqual(leftLattice.Confidence, rightLattice.Confidence) ||
+             !string.Equals(leftLattice.Source, rightLattice.Source, StringComparison.Ordinal)))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool TransformRecordsEquivalent(
+        IReadOnlyList<TransformRecord> left,
+        IReadOnlyList<TransformRecord> right)
+    {
+        if (left.Count != right.Count)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < left.Count; index++)
+        {
+            TransformRecord first = left[index];
+            TransformRecord second = right[index];
+            if (first.TransformId != second.TransformId ||
+                first.Kind != second.Kind ||
+                first.SourceSpace != second.SourceSpace ||
+                first.TargetSpace != second.TargetSpace ||
+                first.Lossy != second.Lossy ||
+                !first.Matrix3x3.SequenceEqual(second.Matrix3x3) ||
+                !NullableSequenceEqual(first.InverseMatrix3x3, second.InverseMatrix3x3) ||
+                !JsonElement.DeepEquals(first.Parameters, second.Parameters))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool NullableSequenceEqual(
+        IReadOnlyList<double>? left,
+        IReadOnlyList<double>? right) =>
+        left is null || right is null
+            ? left is null && right is null
+            : left.SequenceEqual(right);
+
+    private static bool NullableNearlyEqual(double? left, double? right) =>
+        left is null || right is null
+            ? left is null && right is null
+            : NearlyEqual(left.Value, right.Value);
+
+    private static bool NearlyEqual(double left, double right) =>
+        double.IsFinite(left) && double.IsFinite(right) &&
+        Math.Abs(left - right) <= 1e-9 * Math.Max(1d, Math.Max(Math.Abs(left), Math.Abs(right)));
+
+    /// <summary>
+    /// Exports one already-synchronized persisted panel using the explicitly
+    /// supplied mode and calibration evidence. Point values and source coordinates
+    /// always come from the current project snapshot.
+    /// </summary>
+    protected async Task<ExportResult> ExportPreparedPanelAsync(
+        WorkspaceTabViewModel tab,
+        PanelRecord panel,
+        string outputDirectory,
+        ExportMode mode,
+        ExportAuditMode auditMode,
+        ExportCalibration calibration,
+        ExportSessionOriginPolicy sessionOriginPolicy,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(tab);
+        ArgumentNullException.ThrowIfNull(panel);
+        ArgumentNullException.ThrowIfNull(calibration);
+        ArgumentNullException.ThrowIfNull(sessionOriginPolicy);
         SeriesRecord[] interventions = panel.Series
             .Where(static series => series.SemanticRole == SemanticRole.Intervention)
             .ToArray();
@@ -1227,19 +1433,11 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             panel.PanelId.Value,
             outputDirectory,
             panel.Participant ?? Path.GetFileNameWithoutExtension(tab.DisplayName),
-            ExportMode.ObservationOrder,
-            ExportAuditMode.ExtendedCsvAndJson,
+            mode,
+            auditMode,
             ExportOperation.WriteFiles,
-            new ExportCalibration(
-                ExportCalibrationStatus.Valid,
-                hasYCalibration: true,
-                hasPrintedSessionCalibration: false,
-                hasAbsoluteSessionOrigin: true,
-                firstObservedSession: null,
-                panel.Calibration!.Confidence),
-            new ExportSessionOriginPolicy(
-                RequireFirstObservedSessionOne: false,
-                InvalidSessionOriginBehavior.Block),
+            calibration,
+            sessionOriginPolicy,
             panel.Phases.Select(ToExportPhase),
             panel.Series.Select(ToExportSeries),
             panel.Points.Select(ToExportPoint),
@@ -2615,9 +2813,12 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
         var panels = new List<PdfWorkspacePanel>(snapshot.Panels.Count);
         var documentChecksums = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (WorkflowImportedPanel panel in snapshot.Panels)
+        for (int panelOrder = 0; panelOrder < snapshot.Panels.Count; panelOrder++)
         {
+            WorkflowImportedPanel panel = snapshot.Panels[panelOrder];
             ProductionPanelEvidence evidence = panelStore.Get(panel.PanelId);
+            PdfPanelSourceProvenance provenance = evidence.PdfPanelSource ??
+                throw PdfFailure($"PDF panel '{panel.PanelId:D}' has no retained source provenance.");
             if (evidence.SourceKind != WorkflowSourceKind.Pdf ||
                 string.IsNullOrWhiteSpace(evidence.SourceDocumentSha256))
             {
@@ -2647,7 +2848,9 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
             panels.Add(new PdfWorkspacePanel(
                 panel,
-                originalBytes));
+                originalBytes,
+                provenance,
+                panelOrder));
         }
 
         if (panels.Count == 0 || documentChecksums.Count != 1)
@@ -2662,11 +2865,16 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     private void RegisterImportedTab(
         WorkspaceTabViewModel tab,
         ImmutableImageBytes originalBytes,
-        List<WorkspaceTabViewModel> addedTabs)
+        List<WorkspaceTabViewModel> addedTabs,
+        PdfWorkspacePanel? pdfPanel = null)
     {
         _tabs.Add(tab);
         addedTabs.Add(tab);
         _originalPanelBytesByTab[tab.TabId] = originalBytes;
+        if (pdfPanel is not null)
+        {
+            _pdfPanelsByTab[tab.TabId] = pdfPanel;
+        }
         _phaseOverrides[tab.TabId] = new PhaseManualOverrides();
         _productionDetectionKeysByTab[tab.TabId] =
             new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
@@ -3147,11 +3355,32 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             existingPanel,
             ToDomainCalibration(tab.Calibration));
         CalibrationRecord? calibration = existingPanel?.Calibration is { } retainedCalibration &&
+            !_verifiedManualCalibrationPendingByTab.Contains(tab.TabId) &&
             tab.Calibration is { } tabCalibration &&
             FromDomainCalibration(MapCalibrationSourceToPanel(existingPanel, retainedCalibration)) is { } retainedTabCalibration &&
             CalibrationMatches(tabCalibration, retainedTabCalibration)
                 ? retainedCalibration
                 : generatedCalibration;
+        JsonElement? validation = existingPanel?.Validation?.Clone();
+        if (_pdfPanelsByTab.TryGetValue(tab.TabId, out PdfWorkspacePanel? pdfPanel))
+        {
+            SourceReference source = CurrentProject.Sources.Single(item => item.SourceId == sourceId);
+            JsonElement expectedBinding = PdfPanelSourceBinding.Create(
+                CurrentProject.ProjectId.Value,
+                source,
+                panelId,
+                tab.PageNumber,
+                existingPanel?.Crop ?? new CropRectangle(0, 0, tab.PixelWidth, tab.PixelHeight),
+                pdfPanel.Panel.Original.Sha256,
+                pdfPanel.Panel.Original.Width,
+                pdfPanel.Panel.Original.Height,
+                pdfPanel.SourceProvenance,
+                pdfPanel.PanelOrder);
+            validation = PdfPanelSourceBinding.PreserveOrAdd(
+                validation,
+                expectedBinding,
+                allowAdd: existingPanel is null);
+        }
         return new PanelRecord(
             panelId,
             sourceId,
@@ -3175,7 +3404,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 series.Where(static item => item.SemanticRole == SemanticRole.Intervention)
                     .Select(static item => item.SeriesId)
                     .ToArray()),
-            existingPanel?.Validation?.Clone());
+            validation);
     }
 
     private static bool PhaseLayoutMatches(
@@ -3999,4 +4228,298 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         PointXSource Source,
         double Confidence,
         bool HasGraphX);
+}
+
+internal static class PdfPanelSourceBinding
+{
+    private const string PropertyName = "pdf_panel_source_binding";
+    private const string Schema = "graphreader.pdf-panel-source-binding.v1";
+
+    public static JsonElement Create(
+        Guid projectId,
+        SourceReference source,
+        PanelId panelId,
+        int? pageNumber,
+        CropRectangle crop,
+        string panelImageSha256,
+        int panelWidth,
+        int panelHeight,
+        PdfPanelSourceProvenance provenance,
+        int panelOrder) =>
+        JsonSerializer.SerializeToElement(new
+        {
+            schema = Schema,
+            project_id = projectId.ToString("D"),
+            source_id = source.SourceId.Value.ToString("D"),
+            panel_id = panelId.Value.ToString("D"),
+            source_sha256 = source.Sha256.ToLowerInvariant(),
+            panel_order = panelOrder,
+            page_number = pageNumber,
+            panel_crop = new { x = crop.X, y = crop.Y, width = crop.Width, height = crop.Height },
+            panel_image = new
+            {
+                sha256 = panelImageSha256.ToLowerInvariant(),
+                width = panelWidth,
+                height = panelHeight,
+            },
+            pdf_panel_source = new
+            {
+                document_sha256 = provenance.DocumentSha256,
+                pdf_panel_id = provenance.PdfPanelId.ToString("D"),
+                figure_id = provenance.FigureId.ToString("D"),
+                page_number = provenance.PageNumber,
+                figure_source_kind = provenance.FigureSourceKind.ToString(),
+                requested_crop_source_pixels = new[]
+                {
+                    provenance.RequestedCropInSourcePixels.X,
+                    provenance.RequestedCropInSourcePixels.Y,
+                    provenance.RequestedCropInSourcePixels.Width,
+                    provenance.RequestedCropInSourcePixels.Height,
+                },
+                encoded_crop_source_pixels = new[]
+                {
+                    provenance.EncodedCropInSourcePixels.X,
+                    provenance.EncodedCropInSourcePixels.Y,
+                    provenance.EncodedCropInSourcePixels.Width,
+                    provenance.EncodedCropInSourcePixels.Height,
+                },
+                source_pixels_to_page_points = new[]
+                {
+                    provenance.SourcePixelsToPagePoints.A,
+                    provenance.SourcePixelsToPagePoints.B,
+                    provenance.SourcePixelsToPagePoints.C,
+                    provenance.SourcePixelsToPagePoints.D,
+                    provenance.SourcePixelsToPagePoints.E,
+                    provenance.SourcePixelsToPagePoints.F,
+                },
+            },
+        });
+
+    public static JsonElement? PreserveOrAdd(
+        JsonElement? validation,
+        JsonElement expectedBinding,
+        bool allowAdd)
+    {
+        if (TryGetBinding(validation, out JsonElement currentBinding))
+        {
+            if (!JsonElementsEqual(currentBinding, expectedBinding))
+            {
+                throw new InvalidOperationException(
+                    "Saved PDF panel source binding no longer matches the reimported PDF evidence.");
+            }
+
+            return validation!.Value.Clone();
+        }
+
+        if (!allowAdd)
+        {
+            return validation?.Clone();
+        }
+
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream))
+        {
+            writer.WriteStartObject();
+            if (validation is JsonElement existing)
+            {
+                if (existing.ValueKind != JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException(
+                        "Cannot add PDF source provenance to a non-object panel validation value without replacing existing data.");
+                }
+
+                foreach (JsonProperty property in existing.EnumerateObject())
+                {
+                    writer.WritePropertyName(property.Name);
+                    property.Value.WriteTo(writer);
+                }
+            }
+
+            writer.WritePropertyName(PropertyName);
+            expectedBinding.WriteTo(writer);
+            writer.WriteEndObject();
+        }
+
+        using JsonDocument document = JsonDocument.Parse(stream.ToArray());
+        return document.RootElement.Clone();
+    }
+
+    public static void ValidateSavedPanel(
+        ProjectDocument project,
+        SourceReference source,
+        PanelRecord panel,
+        ManualPreviewWorkspaceService.PdfWorkspacePanel panelEvidence)
+    {
+        PdfPanelSourceProvenance provenance = panelEvidence.SourceProvenance;
+        if (source.Kind != SourceKind.Pdf ||
+            panel.SourceId != source.SourceId ||
+            !string.Equals(source.Sha256, provenance.DocumentSha256, StringComparison.OrdinalIgnoreCase) ||
+            panel.PageNumber != provenance.PageNumber ||
+            panel.Crop.X != 0 || panel.Crop.Y != 0 ||
+            panel.Crop.Width != panelEvidence.Panel.Original.Width ||
+            panel.Crop.Height != panelEvidence.Panel.Original.Height)
+        {
+            throw new InvalidOperationException(
+                $"Saved PDF panel '{panel.PanelId.Value:D}' page, crop, or source identity no longer matches its reimported PDF evidence.");
+        }
+
+        int panelOrder = GetPanelOrder(project, panel);
+        if (panelOrder != panelEvidence.PanelOrder)
+        {
+            throw new InvalidOperationException(
+                $"Saved PDF panel '{panel.PanelId.Value:D}' order no longer matches its reimported PDF evidence.");
+        }
+
+        if (TryGetBinding(panel.Validation, out JsonElement currentBinding))
+        {
+            JsonElement expected = Create(
+                project.ProjectId.Value,
+                source,
+                panel.PanelId,
+                panel.PageNumber,
+                panel.Crop,
+                panelEvidence.Panel.Original.Sha256,
+                panelEvidence.Panel.Original.Width,
+                panelEvidence.Panel.Original.Height,
+                provenance,
+                panelOrder);
+            if (!JsonElementsEqual(currentBinding, expected))
+            {
+                throw new InvalidOperationException(
+                    $"Saved PDF panel '{panel.PanelId.Value:D}' source binding no longer matches the reimported PDF figure, crop, or transform.");
+            }
+        }
+    }
+
+    public static bool MatchesProductionPanel(
+        ProjectDocument project,
+        SourceReference source,
+        PanelRecord panel,
+        ProductionPanelEvidence retained,
+        PdfPanelSourceProvenance provenance)
+    {
+        WorkflowImportedPanel imported = retained.Panel;
+        string retainedPanelSha256 = Convert.ToHexStringLower(SHA256.HashData(retained.CopyOriginalBytes()));
+        if (source.Kind != SourceKind.Pdf ||
+            retained.SourceKind != WorkflowSourceKind.Pdf ||
+            imported.PanelId != panel.PanelId.Value ||
+            imported.SourceId != panel.SourceId.Value ||
+            source.SourceId != panel.SourceId ||
+            !string.Equals(source.Sha256, provenance.DocumentSha256, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(retained.SourceDocumentSha256, provenance.DocumentSha256, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(imported.Original.Sha256, retainedPanelSha256, StringComparison.OrdinalIgnoreCase) ||
+            panel.PageNumber != provenance.PageNumber ||
+            panel.Crop.X != 0 || panel.Crop.Y != 0 ||
+            panel.Crop.Width != imported.Original.Width ||
+            panel.Crop.Height != imported.Original.Height)
+        {
+            return false;
+        }
+
+        int panelOrder;
+        try
+        {
+            panelOrder = GetPanelOrder(project, panel);
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+
+        JsonElement expected = Create(
+            project.ProjectId.Value,
+            source,
+            panel.PanelId,
+            panel.PageNumber,
+            panel.Crop,
+            imported.Original.Sha256,
+            imported.Original.Width,
+            imported.Original.Height,
+            provenance,
+            panelOrder);
+        return TryGetBinding(panel.Validation, out JsonElement currentBinding) &&
+            JsonElementsEqual(currentBinding, expected);
+    }
+
+    private static int GetPanelOrder(ProjectDocument project, PanelRecord panel)
+    {
+        PanelRecord[] sourcePanels = project.Panels
+            .Where(candidate => candidate.SourceId == panel.SourceId)
+            .ToArray();
+        int order = Array.FindIndex(sourcePanels, candidate => candidate.PanelId == panel.PanelId);
+        return order >= 0
+            ? order
+            : throw new InvalidOperationException("The PDF panel is missing from its persisted source panel order.");
+    }
+
+    private static bool TryGetBinding(JsonElement? validation, out JsonElement binding)
+    {
+        if (validation is JsonElement value &&
+            value.ValueKind == JsonValueKind.Object &&
+            value.TryGetProperty(PropertyName, out binding))
+        {
+            return true;
+        }
+
+        binding = default;
+        return false;
+    }
+
+    private static bool JsonElementsEqual(JsonElement left, JsonElement right)
+    {
+        if (left.ValueKind != right.ValueKind)
+        {
+            return false;
+        }
+
+        switch (left.ValueKind)
+        {
+            case JsonValueKind.Object:
+                JsonProperty[] leftProperties = left.EnumerateObject().ToArray();
+                JsonProperty[] rightProperties = right.EnumerateObject().ToArray();
+                if (leftProperties.Length != rightProperties.Length)
+                {
+                    return false;
+                }
+
+                foreach (JsonProperty property in leftProperties)
+                {
+                    if (!right.TryGetProperty(property.Name, out JsonElement rightValue) ||
+                        !JsonElementsEqual(property.Value, rightValue))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            case JsonValueKind.Array:
+                JsonElement[] leftItems = left.EnumerateArray().ToArray();
+                JsonElement[] rightItems = right.EnumerateArray().ToArray();
+                if (leftItems.Length != rightItems.Length)
+                {
+                    return false;
+                }
+
+                for (int index = 0; index < leftItems.Length; index++)
+                {
+                    if (!JsonElementsEqual(leftItems[index], rightItems[index]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            case JsonValueKind.String:
+                return string.Equals(left.GetString(), right.GetString(), StringComparison.Ordinal);
+            case JsonValueKind.Number:
+                return left.GetDouble().Equals(right.GetDouble());
+            case JsonValueKind.True:
+            case JsonValueKind.False:
+                return left.GetBoolean() == right.GetBoolean();
+            case JsonValueKind.Null:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

@@ -25,6 +25,10 @@ namespace GraphReader.Integration.Tests.IntegrationSmoke;
 public sealed class ProductionWorkflowStagesTests
 {
     private static readonly byte[] ExpectedDecodedBgr = [10, 20, 30];
+    private static readonly double[] ExpectedPrintedSessionXValues = [1, 3, 7];
+    private static readonly double[] ExpectedPrintedSessionWithManualXValues = [1, 3, 5, 7];
+    private static readonly double[] ExpectedObservationOrderXValues = [1, 2, 3];
+    private static readonly double[] ExpectedObservationOrderWithManualXValues = [1, 2, 3, 4];
 
     private const string OnePixelPng =
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
@@ -196,6 +200,204 @@ public sealed class ProductionWorkflowStagesTests
         Assert.AreEqual(150d, pagePoint.X, 1e-9);
         Assert.AreEqual(460d, pagePoint.Y, 1e-9);
         StringAssert.Contains(imported.Original.Reference, "crop=5,4,21,11");
+    }
+
+    [TestMethod]
+    public async Task PdfPanelSourceBindingSurvivesReopenAndRejectsStalePageMetadata()
+    {
+        using var directory = new TemporaryDirectory();
+        string pdfPath = Path.Combine(directory.Path, "bound-panel.pdf");
+        await File.WriteAllBytesAsync(pdfPath, "%PDF-1.7\n% binding fixture\n%%EOF"u8.ToArray());
+        var importService = new PdfWithCroppedDetectorPanel();
+        var retainedStore = new ProductionWorkflowPanelStore();
+        WorkflowRunResult? nextResult = null;
+        var workspace = new ProductionWorkspaceService(
+            automaticStages: ApprovedAutomaticStages(),
+            automaticWorkflow: (_, cancellationToken) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return Task.FromResult(nextResult ?? throw new AssertFailedException("PDF workflow result was not assigned."));
+            },
+            panelStore: retainedStore,
+            pdfImportService: importService);
+        WorkspaceTabViewModel tab = (await workspace.ImportImagesAsync([pdfPath], CancellationToken.None)).Single();
+        SeedManualReviewState(workspace, tab);
+        Guid runId = Guid.NewGuid();
+        WorkflowReviewPanel reviewPanel = await CreateExactReviewPanelAsync(
+            workspace,
+            tab,
+            pdfPath,
+            retainedStore,
+            retainProjection: true,
+            runId,
+            includeProvenance: true,
+            pdfImportService: importService);
+        nextResult = new WorkflowRunResult(
+            runId,
+            new WorkflowReviewState(workspace.CurrentProject.ProjectId.Value, [reviewPanel]),
+            []);
+        await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+
+        PanelRecord importedPanel = workspace.CurrentProject.Panels.Single();
+        Assert.IsNotNull(importedPanel.Validation);
+        Assert.IsTrue(importedPanel.Validation!.Value.TryGetProperty(
+            "pdf_panel_source_binding",
+            out JsonElement savedBinding));
+        Assert.AreEqual("graphreader.pdf-panel-source-binding.v1", savedBinding.GetProperty("schema").GetString());
+        Assert.AreEqual(1, savedBinding.GetProperty("page_number").GetInt32());
+        CollectionAssert.AreEqual(
+            new[] { 10d, 0d, 0d, -10d, 100d, 500d },
+            savedBinding.GetProperty("pdf_panel_source").GetProperty("source_pixels_to_page_points")
+                .EnumerateArray().Select(static value => value.GetDouble()).ToArray());
+
+        ProductionPanelEvidence retained = retainedStore.Get(importedPanel.PanelId.Value);
+        SourceReference source = workspace.CurrentProject.Sources.Single();
+        PdfPanelSourceProvenance retainedPdfSource = retained.PdfPanelSource ??
+            throw new AssertFailedException("PDF import did not retain source provenance.");
+        Assert.IsTrue(PdfPanelSourceBinding.MatchesProductionPanel(
+            workspace.CurrentProject,
+            source,
+            importedPanel,
+            retained,
+            retainedPdfSource));
+        Assert.IsFalse(PdfPanelSourceBinding.MatchesProductionPanel(
+            workspace.CurrentProject,
+            source,
+            importedPanel with { PageNumber = 2 },
+            retained,
+            retainedPdfSource));
+        Assert.IsFalse(PdfPanelSourceBinding.MatchesProductionPanel(
+            workspace.CurrentProject,
+            source,
+            importedPanel with { Crop = importedPanel.Crop with { X = 1 } },
+            retained,
+            retainedPdfSource));
+        Assert.IsFalse(PdfPanelSourceBinding.MatchesProductionPanel(
+            workspace.CurrentProject,
+            source,
+            importedPanel with { Validation = null },
+            retained,
+            retainedPdfSource));
+        ExportResult validPdfExport = await ExportThroughManualWorkspaceInterfaceAsync(
+            workspace,
+            tab.TabId,
+            Path.Combine(directory.Path, "bound-pdf-production-export"),
+            CancellationToken.None);
+        Assert.IsTrue(validPdfExport.Succeeded);
+
+        string savedPath = Path.Combine(directory.Path, "bound-panel.garproj");
+        DomainResult<ProjectSaveReceipt> saved = await workspace.SaveProjectAsync(savedPath, CancellationToken.None);
+        Assert.IsTrue(saved.IsSuccess, string.Join(" | ", saved.Errors.Select(static error => error.TechnicalMessage)));
+        var reopened = new ProductionWorkspaceService(pdfImportService: importService);
+        _ = await reopened.OpenProjectAsync(savedPath, CancellationToken.None);
+        JsonElement reopenedBinding = reopened.CurrentProject.Panels.Single().Validation!.Value
+            .GetProperty("pdf_panel_source_binding");
+        Assert.AreEqual(savedBinding.GetProperty("pdf_panel_source").GetProperty("figure_id").GetString(),
+            reopenedBinding.GetProperty("pdf_panel_source").GetProperty("figure_id").GetString());
+        CollectionAssert.AreEqual(
+            new[] { 10d, 0d, 0d, -10d, 100d, 500d },
+            reopenedBinding.GetProperty("pdf_panel_source").GetProperty("source_pixels_to_page_points")
+                .EnumerateArray().Select(static value => value.GetDouble()).ToArray());
+
+        var fileStore = new ProjectFileStore();
+        DomainResult<ProjectDocument> loaded = await fileStore.LoadAsync(savedPath, CancellationToken.None);
+        Assert.IsTrue(loaded.IsSuccess, string.Join(" | ", loaded.Errors.Select(static error => error.TechnicalMessage)));
+        ProjectDocument tampered = loaded.Value! with
+        {
+            Panels = loaded.Value.Panels.Select(panel => panel with { PageNumber = 2 }).ToArray(),
+        };
+        string tamperedPath = Path.Combine(directory.Path, "tampered-page.garproj");
+        DomainResult<ProjectSaveReceipt> tamperedSaved = await fileStore.SaveAsync(
+            tampered,
+            tamperedPath,
+            CancellationToken.None);
+        Assert.IsTrue(tamperedSaved.IsSuccess, string.Join(" | ", tamperedSaved.Errors.Select(static error => error.TechnicalMessage)));
+
+        string existingImage = await WriteSourceAsync(directory.Path);
+        var rejectingWorkspace = new ProductionWorkspaceService(pdfImportService: importService);
+        WorkspaceTabViewModel existingTab = (await rejectingWorkspace.ImportImagesAsync(
+            [existingImage],
+            CancellationToken.None)).Single();
+        Guid existingProjectId = rejectingWorkspace.CurrentProject.ProjectId.Value;
+        InvalidOperationException rejected = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => rejectingWorkspace.OpenProjectAsync(tamperedPath, CancellationToken.None));
+        StringAssert.Contains(rejected.Message, "page, crop, or source identity");
+        Assert.AreEqual(existingProjectId, rejectingWorkspace.CurrentProject.ProjectId.Value);
+        Assert.AreEqual(existingTab.PanelId, rejectingWorkspace.CurrentProject.Panels.Single().PanelId.Value.ToString("D"));
+    }
+
+    [TestMethod]
+    public async Task LegacyUnboundPdfRemainsManualOnlyAndPreservesValidationExtensions()
+    {
+        using var directory = new TemporaryDirectory();
+        string pdfPath = Path.Combine(directory.Path, "legacy-manual.pdf");
+        await File.WriteAllBytesAsync(pdfPath, "%PDF-1.7\n% legacy fixture\n%%EOF"u8.ToArray());
+        var importService = new PdfWithCroppedDetectorPanel();
+        var imported = new ProductionWorkspaceService(pdfImportService: importService);
+        _ = await imported.ImportImagesAsync([pdfPath], CancellationToken.None);
+        string initialPath = Path.Combine(directory.Path, "legacy-source.garproj");
+        DomainResult<ProjectSaveReceipt> initialSaved = await imported.SaveProjectAsync(
+            initialPath,
+            CancellationToken.None);
+        Assert.IsTrue(initialSaved.IsSuccess);
+
+        var fileStore = new ProjectFileStore();
+        DomainResult<ProjectDocument> loaded = await fileStore.LoadAsync(initialPath, CancellationToken.None);
+        Assert.IsTrue(loaded.IsSuccess);
+        ProjectDocument legacy = loaded.Value! with
+        {
+            Panels = loaded.Value.Panels.Select(panel => panel with
+            {
+                Validation = JsonSerializer.SerializeToElement(new { legacy_note = "keep this extension" }),
+            }).ToArray(),
+        };
+        string legacyPath = Path.Combine(directory.Path, "legacy-unbound.garproj");
+        DomainResult<ProjectSaveReceipt> legacySaved = await fileStore.SaveAsync(
+            legacy,
+            legacyPath,
+            CancellationToken.None);
+        Assert.IsTrue(legacySaved.IsSuccess);
+
+        var workspace = new ProductionWorkspaceService(pdfImportService: importService);
+        WorkspaceTabViewModel tab = (await workspace.OpenProjectAsync(legacyPath, CancellationToken.None)).Single();
+        Assert.AreEqual(
+            "keep this extension",
+            workspace.CurrentProject.Panels.Single().Validation!.Value.GetProperty("legacy_note").GetString());
+        Assert.IsFalse(workspace.CurrentProject.Panels.Single().Validation!.Value.TryGetProperty(
+            "pdf_panel_source_binding",
+            out _));
+
+        workspace.Calibrate(
+            tab.TabId,
+            new ManualCalibrationRequest(
+                new Axis.PixelPoint(1, 10),
+                new Axis.PixelPoint(1, 1),
+                new Axis.PixelPoint(20, 10),
+                YMaximum: 100,
+                XMaximum: 7));
+        SeriesCardViewModel series = workspace.AddSeries(
+            tab.TabId,
+            new ManualSeriesDefinition("Manual series", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
+        _ = workspace.AddPoint(tab.TabId, series.SeriesId, 0.5, 0.5);
+        ExportResult export = await ExportThroughManualWorkspaceInterfaceAsync(
+            workspace,
+            tab.TabId,
+            Path.Combine(directory.Path, "legacy-manual-export"),
+            CancellationToken.None);
+        Assert.IsTrue(export.Succeeded);
+        Assert.AreEqual(ExportMode.ObservationOrder, export.Mode);
+
+        string resavedPath = Path.Combine(directory.Path, "legacy-unbound-resaved.garproj");
+        DomainResult<ProjectSaveReceipt> resaved = await workspace.SaveProjectAsync(resavedPath, CancellationToken.None);
+        Assert.IsTrue(resaved.IsSuccess, string.Join(" | ", resaved.Errors.Select(static error => error.TechnicalMessage)));
+        var secondReopen = new ProductionWorkspaceService(pdfImportService: importService);
+        _ = await secondReopen.OpenProjectAsync(resavedPath, CancellationToken.None);
+        Assert.AreEqual(
+            "keep this extension",
+            secondReopen.CurrentProject.Panels.Single().Validation!.Value.GetProperty("legacy_note").GetString());
+        Assert.IsFalse(secondReopen.CurrentProject.Panels.Single().Validation!.Value.TryGetProperty(
+            "pdf_panel_source_binding",
+            out _));
     }
 
     [TestMethod]
@@ -1517,6 +1719,381 @@ public sealed class ProductionWorkflowStagesTests
     }
 
     [TestMethod]
+    public async Task ProductionWorkspaceInterfaceExportUsesCurrentSessionValuesAndRejectsStaleEvidence()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = await WriteSourceAsync(directory.Path);
+        var store = new ProductionWorkflowPanelStore();
+        WorkflowRunResult? nextResult = null;
+        var workspace = new ProductionWorkspaceService(
+            automaticStages: ApprovedAutomaticStages(),
+            automaticWorkflow: (_, cancellationToken) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return Task.FromResult(nextResult ?? throw new AssertFailedException("The test workflow result was not assigned."));
+            },
+            panelStore: store);
+        WorkspaceTabViewModel tab =
+            (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        workspace.Calibrate(
+            tab.TabId,
+            new ManualCalibrationRequest(
+                new Axis.PixelPoint(0, 1),
+                new Axis.PixelPoint(0, 0),
+                new Axis.PixelPoint(1, 1),
+                YMaximum: 100,
+                XMaximum: 7));
+        SeriesCardViewModel series = workspace.AddSeries(
+            tab.TabId,
+            new ManualSeriesDefinition(
+                "Manual intervention",
+                "●",
+                MarkerShape.Circle,
+                MarkerFill.Filled,
+                SemanticRole.Intervention));
+        workspace.AddPhaseDivider(tab.TabId, 0.5, "b", "Intervention");
+        _ = workspace.AddPoint(tab.TabId, series.SeriesId, 0, 0.5);
+        _ = workspace.AddPoint(tab.TabId, series.SeriesId, 1d / 3d, 0.5);
+        _ = workspace.AddPoint(tab.TabId, series.SeriesId, 1, 0.5);
+
+        Guid productionRunId = Guid.NewGuid();
+        WorkflowReviewPanel exactPanel = await CreateExactReviewPanelAsync(
+            workspace,
+            tab,
+            imagePath,
+            store,
+            retainProjection: true,
+            runId: productionRunId,
+            includeProvenance: true);
+        nextResult = new WorkflowRunResult(
+            productionRunId,
+            new WorkflowReviewState(workspace.CurrentProject.ProjectId.Value, [exactPanel]),
+            []);
+        await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+
+        string printedRoot = Path.Combine(directory.Path, "production-printed-export");
+        ExportResult printed = await ExportThroughManualWorkspaceInterfaceAsync(
+            workspace,
+            tab.TabId,
+            printedRoot,
+            CancellationToken.None);
+
+        Assert.IsTrue(printed.Succeeded, string.Join(" | ", printed.Failures.Select(static failure => failure.TechnicalMessage)));
+        Assert.AreEqual(ExportMode.PrintedSession, printed.Mode);
+        CollectionAssert.AreEqual(
+            ExpectedPrintedSessionXValues,
+            printed.MinimalArtifacts.Single().Rows.Select(static row => row.XValue).ToArray());
+
+        var postDetectionManualPoint = workspace.AddPoint(
+            tab.TabId,
+            series.SeriesId,
+            2d / 3d,
+            0.55);
+        ExportResult withManualAddition = await ExportThroughManualWorkspaceInterfaceAsync(
+            workspace,
+            tab.TabId,
+            Path.Combine(directory.Path, "production-printed-with-manual-addition"),
+            CancellationToken.None);
+        Assert.IsTrue(withManualAddition.Succeeded);
+        CollectionAssert.AreEqual(
+            ExpectedPrintedSessionWithManualXValues,
+            withManualAddition.MinimalArtifacts.Single().Rows.Select(static row => row.XValue).ToArray());
+        ExtendedAuditRow manualAdditionAudit = withManualAddition.AuditArtifacts
+            .SelectMany(static artifact => artifact.Rows)
+            .Single(row => row.PointId == Guid.Parse(postDetectionManualPoint.PointId));
+        Assert.AreEqual(5d, manualAdditionAudit.XValue, 1e-12);
+        Assert.AreEqual(ExportXValueSource.Estimated, manualAdditionAudit.XSource);
+        Assert.AreEqual("manual", manualAdditionAudit.SourceStage);
+
+        ProductionPanelExportEvidence currentEvidence = store.Get(Guid.Parse(tab.PanelId!)).ExportEvidence!;
+        store.SetExportEvidence(
+            Guid.Parse(tab.PanelId!),
+            new ProductionPanelExportEvidence(
+                new ExportCalibration(ExportCalibrationStatus.Valid, true, false, true, null, 1),
+                currentEvidence.Phases,
+                currentEvidence.Series,
+                currentEvidence.Relations,
+                currentEvidence.Points,
+                currentEvidence.Provenance,
+                currentEvidence.Participant,
+                ExportMode.ObservationOrder,
+                currentEvidence.AuditMode,
+                new ExportSessionOriginPolicy(false, InvalidSessionOriginBehavior.Block),
+                currentEvidence.ProjectionEvidence));
+        ExportResult observationOrder = await ExportThroughManualWorkspaceInterfaceAsync(
+            workspace,
+            tab.TabId,
+            Path.Combine(directory.Path, "production-observation-export"),
+            CancellationToken.None);
+        Assert.IsTrue(observationOrder.Succeeded);
+        Assert.AreEqual(ExportMode.ObservationOrder, observationOrder.Mode);
+        CollectionAssert.AreEqual(
+            ExpectedObservationOrderWithManualXValues,
+            observationOrder.MinimalArtifacts.Single().Rows.Select(static row => row.XValue).ToArray());
+
+        ProductionPanelExportEvidence observationEvidence = store.Get(Guid.Parse(tab.PanelId!)).ExportEvidence!;
+        ProductionPanelProjectionEvidence currentProjection = observationEvidence.ProjectionEvidence!;
+        CalibrationRecord sameIdChangedCalibration = currentProjection.Calibration with
+        {
+            Anchors = currentProjection.Calibration.Anchors.Select((anchor, index) => index == 0
+                ? anchor with { Graph = anchor.Graph with { X = anchor.Graph.X + 0.25 } }
+                : anchor).ToArray(),
+            SessionLattice = currentProjection.Calibration.SessionLattice! with
+            {
+                PitchPixels = currentProjection.Calibration.SessionLattice.PitchPixels + 0.25,
+            },
+        };
+        var sameIdChangedProjection = new ProductionPanelProjectionEvidence(
+            sameIdChangedCalibration,
+            currentProjection.Phases,
+            currentProjection.Series,
+            currentProjection.Points,
+            currentProjection.Transforms,
+            currentProjection.OcrRegions,
+            currentProjection.Markers,
+            currentProjection.Participant);
+        store.SetExportEvidence(
+            Guid.Parse(tab.PanelId!),
+            new ProductionPanelExportEvidence(
+                observationEvidence.Calibration,
+                observationEvidence.Phases,
+                observationEvidence.Series,
+                observationEvidence.Relations,
+                observationEvidence.Points,
+                observationEvidence.Provenance,
+                observationEvidence.Participant,
+                observationEvidence.Mode,
+                observationEvidence.AuditMode,
+                observationEvidence.SessionOriginPolicy,
+                sameIdChangedProjection));
+        string sameIdStaleOutput = Path.Combine(directory.Path, "same-id-stale-calibration-export");
+        InvalidOperationException sameIdStale = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => ExportThroughManualWorkspaceInterfaceAsync(
+                workspace,
+                tab.TabId,
+                sameIdStaleOutput,
+                CancellationToken.None));
+        StringAssert.Contains(sameIdStale.Message, "stale relative to the current calibration or panel transforms");
+        Assert.IsFalse(Directory.Exists(sameIdStaleOutput));
+        store.SetExportEvidence(Guid.Parse(tab.PanelId!), observationEvidence);
+
+        workspace.Calibrate(
+            tab.TabId,
+            new ManualCalibrationRequest(
+                new Axis.PixelPoint(0, 1),
+                new Axis.PixelPoint(0, 0),
+                new Axis.PixelPoint(1, 1),
+                YMaximum: 100,
+                XMaximum: 8));
+        string staleOutput = Path.Combine(directory.Path, "stale-production-export");
+        InvalidOperationException stale = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => ExportThroughManualWorkspaceInterfaceAsync(
+                workspace,
+                tab.TabId,
+                staleOutput,
+                CancellationToken.None));
+        StringAssert.Contains(stale.Message, "stale relative to the current calibration");
+        Assert.IsFalse(Directory.Exists(staleOutput), "Stale calibration evidence must be rejected before writing files.");
+    }
+
+    [TestMethod]
+    public async Task ProductionWorkspaceKeepsManualOnlyObservationOrderAndRejectsMissingAcceptedEvidence()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = await WriteSourceAsync(directory.Path);
+        var manualWorkspace = new ProductionWorkspaceService();
+        WorkspaceTabViewModel manualTab =
+            (await manualWorkspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        manualWorkspace.Calibrate(
+            manualTab.TabId,
+            new ManualCalibrationRequest(
+                new Axis.PixelPoint(0, 1),
+                new Axis.PixelPoint(0, 0),
+                new Axis.PixelPoint(1, 1),
+                YMaximum: 100,
+                XMaximum: 7));
+        SeriesCardViewModel manualSeries = manualWorkspace.AddSeries(
+            manualTab.TabId,
+            new ManualSeriesDefinition(
+                "Manual intervention",
+                "●",
+                MarkerShape.Circle,
+                MarkerFill.Filled,
+                SemanticRole.Intervention));
+        manualWorkspace.AddPhaseDivider(manualTab.TabId, 0.5, "b", "Intervention");
+        _ = manualWorkspace.AddPoint(manualTab.TabId, manualSeries.SeriesId, 1d / 3d, 0.5);
+
+        ExportResult manualExport = await ExportThroughManualWorkspaceInterfaceAsync(
+            manualWorkspace,
+            manualTab.TabId,
+            Path.Combine(directory.Path, "manual-production-workspace-export"),
+            CancellationToken.None);
+        Assert.IsTrue(manualExport.Succeeded);
+        Assert.AreEqual(ExportMode.ObservationOrder, manualExport.Mode);
+        Assert.AreEqual(1d, manualExport.MinimalArtifacts.Single().Rows.Single().XValue, 0);
+
+        // An accepted production projection is persisted in the project audit.
+        // Reopening without its in-memory evidence must not silently become a
+        // manual observation-order export.
+        string acceptedSourceDirectory = Path.Combine(directory.Path, "accepted-source");
+        Directory.CreateDirectory(acceptedSourceDirectory);
+        string productionPath = await WriteSourceAsync(acceptedSourceDirectory);
+        var acceptedStore = new ProductionWorkflowPanelStore();
+        WorkflowRunResult? result = null;
+        var acceptedWorkspace = new ProductionWorkspaceService(
+            automaticStages: ApprovedAutomaticStages(),
+            automaticWorkflow: (_, cancellationToken) =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return Task.FromResult(result ?? throw new AssertFailedException("The test workflow result was not assigned."));
+            },
+            panelStore: acceptedStore);
+        WorkspaceTabViewModel acceptedTab =
+            (await acceptedWorkspace.ImportImagesAsync([productionPath], CancellationToken.None)).Single();
+        SeedManualReviewState(acceptedWorkspace, acceptedTab);
+        Guid acceptedRunId = Guid.NewGuid();
+        WorkflowReviewPanel acceptedPanel = await CreateExactReviewPanelAsync(
+            acceptedWorkspace,
+            acceptedTab,
+            productionPath,
+            acceptedStore,
+            retainProjection: true,
+            runId: acceptedRunId,
+            includeProvenance: true);
+        result = new WorkflowRunResult(
+            acceptedRunId,
+            new WorkflowReviewState(acceptedWorkspace.CurrentProject.ProjectId.Value, [acceptedPanel]),
+            []);
+        await acceptedWorkspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        string savedProjectPath = Path.Combine(directory.Path, "accepted-production-project.garproj");
+        DomainResult<ProjectSaveReceipt> saved = await acceptedWorkspace.SaveProjectAsync(
+            savedProjectPath,
+            CancellationToken.None);
+        Assert.IsTrue(saved.IsSuccess, string.Join(" | ", saved.Errors.Select(static error => error.TechnicalMessage)));
+
+        var reopenedWithoutEvidence = new ProductionWorkspaceService(panelStore: new ProductionWorkflowPanelStore());
+        WorkspaceTabViewModel reopenedTab = (await reopenedWithoutEvidence.OpenProjectAsync(
+            savedProjectPath,
+            CancellationToken.None)).Single();
+        string missingOutput = Path.Combine(directory.Path, "missing-production-evidence-export");
+        InvalidOperationException missing = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => ExportThroughManualWorkspaceInterfaceAsync(
+                reopenedWithoutEvidence,
+                reopenedTab.TabId,
+                missingOutput,
+                CancellationToken.None));
+        StringAssert.Contains(missing.Message, "Production export evidence is missing or stale");
+        Assert.IsFalse(Directory.Exists(missingOutput));
+    }
+
+    [TestMethod]
+    public async Task ProductionManualExportRejectsInvalidOrUnconfirmedSavedCalibration()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = await WriteSourceAsync(directory.Path);
+        var calibrationRequest = new ManualCalibrationRequest(
+            new Axis.PixelPoint(0, 1),
+            new Axis.PixelPoint(0, 0),
+            new Axis.PixelPoint(1, 1),
+            YMaximum: 100,
+            XMaximum: 7);
+        var workspace = new ProductionWorkspaceService();
+        WorkspaceTabViewModel tab = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        workspace.Calibrate(tab.TabId, calibrationRequest);
+        SeriesCardViewModel manualSeries = workspace.AddSeries(
+            tab.TabId,
+            new ManualSeriesDefinition("Manual intervention", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
+        workspace.AddPhaseDivider(tab.TabId, 0.5, "b", "Intervention");
+        _ = workspace.AddPoint(tab.TabId, manualSeries.SeriesId, 1d / 3d, 0.5);
+        string validPath = Path.Combine(directory.Path, "confirmed-manual.garproj");
+        DomainResult<ProjectSaveReceipt> validSave = await workspace.SaveProjectAsync(validPath, CancellationToken.None);
+        Assert.IsTrue(validSave.IsSuccess, string.Join(" | ", validSave.Errors.Select(static error => error.TechnicalMessage)));
+
+        var fileStore = new ProjectFileStore();
+        DomainResult<ProjectDocument> loaded = await fileStore.LoadAsync(validPath, CancellationToken.None);
+        Assert.IsTrue(loaded.IsSuccess, string.Join(" | ", loaded.Errors.Select(static error => error.TechnicalMessage)));
+        PanelRecord savedPanel = loaded.Value!.Panels.Single();
+        Assert.AreEqual(CalibrationStatus.Valid, savedPanel.Calibration!.Status);
+        Assert.IsTrue(savedPanel.Calibration.UserConfirmed);
+
+        (string Name, CalibrationStatus Status, bool UserConfirmed)[] invalidCases =
+        [
+            ("invalid-session-origin", CalibrationStatus.InvalidSessionOrigin, true),
+            ("unconfirmed", CalibrationStatus.Valid, false),
+        ];
+        foreach ((string name, CalibrationStatus status, bool userConfirmed) in invalidCases)
+        {
+            ProjectDocument invalidProject = loaded.Value with
+            {
+                Panels = loaded.Value.Panels.Select(panel => panel with
+                {
+                    Calibration = panel.Calibration! with
+                    {
+                        Status = status,
+                        UserConfirmed = userConfirmed,
+                    },
+                }).ToArray(),
+            };
+            string invalidPath = Path.Combine(directory.Path, $"{name}.garproj");
+            DomainResult<ProjectSaveReceipt> invalidSave = await fileStore.SaveAsync(
+                invalidProject,
+                invalidPath,
+                CancellationToken.None);
+            Assert.IsTrue(invalidSave.IsSuccess, string.Join(" | ", invalidSave.Errors.Select(static error => error.TechnicalMessage)));
+
+            var reopened = new ProductionWorkspaceService();
+            WorkspaceTabViewModel reopenedTab = (await reopened.OpenProjectAsync(
+                invalidPath,
+                CancellationToken.None)).Single();
+            string output = Path.Combine(directory.Path, $"{name}-export");
+            InvalidOperationException rejected = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => ExportThroughManualWorkspaceInterfaceAsync(
+                    reopened,
+                    reopenedTab.TabId,
+                    output,
+                    CancellationToken.None));
+            StringAssert.Contains(rejected.Message, "valid, explicitly confirmed");
+            Assert.IsFalse(Directory.Exists(output), "Invalid saved calibration must be rejected before writing export files.");
+
+            var reopenedPreview = new ManualPreviewWorkspaceService();
+            WorkspaceTabViewModel previewTab = (await reopenedPreview.OpenProjectAsync(
+                invalidPath,
+                CancellationToken.None)).Single();
+            string previewOutput = Path.Combine(directory.Path, $"{name}-preview-export");
+            InvalidOperationException previewRejected = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => ((IManualWorkspaceService)reopenedPreview).ExportAsync(
+                    previewTab.TabId,
+                    previewOutput,
+                    CancellationToken.None));
+            StringAssert.Contains(previewRejected.Message, "valid, explicitly confirmed");
+            Assert.IsFalse(Directory.Exists(previewOutput), "Invalid manual-preview calibration must be rejected before writing export files.");
+
+            if (status == CalibrationStatus.InvalidSessionOrigin)
+            {
+                // Recalibrating with the same anchors in this session is an explicit
+                // confirmation and must replace the stale invalid record.
+                reopened.Calibrate(reopenedTab.TabId, calibrationRequest);
+                CalibrationRecord recalibrated = reopened.CurrentProject.Panels.Single().Calibration!;
+                Assert.AreEqual(CalibrationStatus.Valid, recalibrated.Status);
+                Assert.IsTrue(recalibrated.UserConfirmed);
+                ExportResult recovered = await ExportThroughManualWorkspaceInterfaceAsync(
+                    reopened,
+                    reopenedTab.TabId,
+                    Path.Combine(directory.Path, "recalibrated-export"),
+                    CancellationToken.None);
+                Assert.IsTrue(recovered.Succeeded);
+
+                reopenedPreview.Calibrate(previewTab.TabId, calibrationRequest);
+                ExportResult previewRecovered = await ((IManualWorkspaceService)reopenedPreview).ExportAsync(
+                    previewTab.TabId,
+                    Path.Combine(directory.Path, "recalibrated-preview-export"),
+                    CancellationToken.None);
+                Assert.IsTrue(previewRecovered.Succeeded);
+            }
+        }
+    }
+
+    [TestMethod]
     public async Task ApprovedAutomaticMultiPanelPartialMatchRejectsBeforeAnyPanelMutation()
     {
         using var directory = new TemporaryDirectory();
@@ -1979,6 +2556,13 @@ public sealed class ProductionWorkflowStagesTests
             "An explicitly retained empty relation set must be delegated to the real export service.");
     }
 
+    private static Task<ExportResult> ExportThroughManualWorkspaceInterfaceAsync(
+        ProductionWorkspaceService workspace,
+        string tabId,
+        string outputDirectory,
+        CancellationToken cancellationToken) =>
+        ((IManualWorkspaceService)workspace).ExportAsync(tabId, outputDirectory, cancellationToken);
+
     private static AutomaticStageStatus[] ApprovedAutomaticStages() =>
     [
         new("axis", AutomaticStageState.Approved, "Injected approved test adapter."),
@@ -2018,15 +2602,38 @@ public sealed class ProductionWorkflowStagesTests
         WorkspaceTabViewModel tab,
         string imagePath,
         ProductionWorkflowPanelStore store,
-        bool retainProjection)
+        bool retainProjection,
+        Guid? runId = null,
+        bool includeProvenance = false,
+        IPdfImportService? pdfImportService = null)
     {
         PanelRecord panel = workspace.CurrentProject.Panels.Single(candidate =>
             string.Equals(candidate.PanelId.Value.ToString("D"), tab.PanelId, StringComparison.OrdinalIgnoreCase));
-        WorkflowImportedPanel imported = await ImportOneAsync(
-            store,
-            workspace.CurrentProject.ProjectId.Value,
-            panel.SourceId.Value,
-            imagePath);
+        WorkflowImportedPanel imported;
+        if (pdfImportService is null)
+        {
+            imported = await ImportOneAsync(
+                store,
+                workspace.CurrentProject.ProjectId.Value,
+                panel.SourceId.Value,
+                imagePath);
+        }
+        else
+        {
+            var importStage = new ProductionWorkflowImportStage(
+                store,
+                new ImageImportService(),
+                pdfImportService);
+            WorkflowImportSnapshot snapshot = await importStage.ImportAsync(
+                new WorkflowImportRequest(
+                    workspace.CurrentProject.ProjectId.Value,
+                    [new WorkflowSourceRequest(
+                        panel.SourceId.Value,
+                        WorkflowSourceKind.Pdf,
+                        imagePath)]),
+                CancellationToken.None);
+            imported = snapshot.Panels.Single();
+        }
         var prepared = new WorkflowPreparedPanel(imported, imported.Original, enhanced: null);
         Dictionary<SeriesId, SeriesRecord> seriesById = panel.Series.ToDictionary(static series => series.SeriesId);
         WorkflowPoint[] points = panel.Points.Select(point =>
@@ -2051,6 +2658,20 @@ public sealed class ProductionWorkflowStagesTests
                 point.ModelVersion ?? "project-owned-test",
                 isManual: false);
         }).ToArray();
+
+        WorkflowVisionEnvelope[] provenance = includeProvenance
+            ? [new WorkflowVisionEnvelope(
+                contractVersion: 1,
+                runId: runId is { } suppliedRunId && suppliedRunId != Guid.Empty ? suppliedRunId : Guid.NewGuid(),
+                projectId: workspace.CurrentProject.ProjectId.Value,
+                panelId: imported.PanelId,
+                stage: "markers",
+                stageVersion: "1",
+                inputSha256: imported.Original.Sha256,
+                model: new WorkflowVisionModel("synthetic-marker-fixture", "1", new string('c', 64), "cpu"),
+                timing: new WorkflowVisionTiming(0, 0, 0, 0),
+                confidence: 1)]
+            : [];
 
         if (retainProjection)
         {
@@ -2088,7 +2709,7 @@ public sealed class ProductionWorkflowStagesTests
                         ToExportXSource(point.XSource),
                         point.XConfidence,
                         point.YConfidence)),
-                    provenance: [],
+                    provenance,
                     participant: panel.Participant,
                     projectionEvidence: new ProductionPanelProjectionEvidence(
                         panel.Calibration!,
@@ -2101,7 +2722,7 @@ public sealed class ProductionWorkflowStagesTests
                         panel.Participant)));
         }
 
-        return new WorkflowReviewPanel(prepared, points);
+        return new WorkflowReviewPanel(prepared, points, provenance);
     }
 
     private static ExportPhaseType ToExportPhaseType(PhaseNormalizedType value) => value switch
