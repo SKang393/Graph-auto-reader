@@ -47,6 +47,36 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
+        if (args.Length > 0 && args[0] == "--audit-engauge-dev-proposals")
+        {
+            if (!AuthorizePrivateCorpus(args)) { return 2; }
+            try
+            {
+                if (args.Length != 6 || args[5] != "--explicit-opt-in")
+                    throw new ArgumentException("ENGAUGE_PROPOSAL_AUDIT_ARGUMENTS_INVALID");
+                var request = new EngaugeDevProposalPreparationRequest(
+                    Directory.GetCurrentDirectory(), args[1], args[2], args[3], args[4]);
+                EngaugeDevProposalPreparationResult result = await EngaugeDevProposalPreparation.RunAsync(
+                    request, static (_, _) => ValueTask.CompletedTask, CancellationToken.None);
+                Console.WriteLine(JsonSerializer.Serialize(result, JsonOptions));
+                return 0;
+            }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                string code = exception.Message switch
+                {
+                    "ENGAUGE_PROPOSAL_AUDIT_ARGUMENTS_INVALID" => exception.Message,
+                    "ENGAUGE_PROPOSAL_PREPARATION_WORK_ROOT_OUTSIDE_PROJECT" => exception.Message,
+                    "ENGAUGE_PROPOSAL_PREPARATION_SOURCE_SCOPE_INVALID" => exception.Message,
+                    "ENGAUGE_PROPOSAL_PREPARATION_GROUPING_FAILED" => exception.Message,
+                    "ENGAUGE_PROPOSAL_PREPARATION_GROUP_FAILED" => exception.Message,
+                    _ => "ENGAUGE_PROPOSAL_AUDIT_FAILED",
+                };
+                Console.Error.WriteLine(JsonSerializer.Serialize(
+                    new { status = "failed", error = code }, JsonOptions));
+                return 1;
+            }
+        }
         if (args.Length > 0 && args[0] == "--audit-engauge-dev-source-snapshot")
         {
             if (!AuthorizePrivateCorpus(args)) { return 2; }
