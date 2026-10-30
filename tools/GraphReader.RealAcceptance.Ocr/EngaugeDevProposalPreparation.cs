@@ -28,7 +28,10 @@ internal sealed record EngaugeDevProposalPreparationResult(
     bool InferenceCacheOutput,
     bool ProductionApproved,
     int OptimizerSteps,
-    int SealedReads);
+    int SealedReads)
+{
+    public EngaugeDevProposalCoverageCounts? Coverage { get; init; }
+}
 
 internal sealed record EngaugeDevProposalPreparationRequest(
     string RepositoryRoot,
@@ -146,6 +149,7 @@ internal static class EngaugeDevProposalPreparation
             throw new InvalidDataException("ENGAUGE_PROPOSAL_PREPARATION_GROUP_SCOPE_INVALID");
 
         int trainGroups = 0, developmentGroups = 0, processed = 0;
+        var coverage = new EngaugeDevProposalCoverageAccumulator();
         long proposals = 0, unmatched = 0;
         foreach (EngaugeDevImageGroup group in grouped.Groups)
         {
@@ -155,7 +159,7 @@ internal static class EngaugeDevProposalPreparation
                 throw new InvalidDataException("ENGAUGE_PROPOSAL_PREPARATION_PARTITION_INVALID");
             trainGroups++;
             GroupTotals totals;
-            try { totals = await ProcessTrainGroupAsync(group, prepare, consume, token).ConfigureAwait(false); }
+            try { totals = await ProcessTrainGroupAsync(group, prepare, consume, coverage, token).ConfigureAwait(false); }
             catch (Exception exception) when (exception is not OperationCanceledException and not OutOfMemoryException)
             {
                 // Do not disclose group-specific details or emit partial results.
@@ -166,22 +170,27 @@ internal static class EngaugeDevProposalPreparation
         if (trainGroups == 0 || processed != trainGroups)
             throw new InvalidDataException("ENGAUGE_PROPOSAL_PREPARATION_TRAIN_GROUPS_INVALID");
 
+        EngaugeDevProposalCoverageCounts coverageCounts = coverage.Finish();
+        if (coverageCounts.Unmatched != unmatched)
+            throw new InvalidDataException("ENGAUGE_PROPOSAL_PREPARATION_COVERAGE_MISMATCH");
         return new EngaugeDevProposalPreparationResult(
             identity.BindingSha256, identity.ProtocolSha256, source.AssignmentSha256, source.SelectedInventorySha256,
             identity.OcrDetectionSha256, identity.OcrRecognitionSha256, identity.MarkerCenterSha256,
             identity.MarkerClassifierSha256, source.Samples.Count, trainGroups, developmentGroups, processed,
-            proposals, unmatched, true, false, false, false, false, 0, 0);
+            proposals, unmatched, true, false, false, false, false, 0, 0) { Coverage = coverageCounts };
     }
 
     private static async Task<GroupTotals> ProcessTrainGroupAsync(
         EngaugeDevImageGroup group,
         Func<EngaugeDevImageGroup, CancellationToken, Task<EngaugeDevRuntimePlanes>> prepare,
         Func<EngaugeDevPositiveProposalBatch, CancellationToken, ValueTask> consume,
+        EngaugeDevProposalCoverageAccumulator coverage,
         CancellationToken token)
     {
         // Planes and tensor are live only while this group is being consumed.
         EngaugeDevRuntimePlanes planes = await prepare(group, token).ConfigureAwait(false);
         EngaugeDevPositiveProposals positive = EngaugeDevPositiveProposalSelector.Select(planes, group, token);
+        coverage.Add(planes, group, token);
         await consume(new EngaugeDevPositiveProposalBatch(positive), token).ConfigureAwait(false);
         return new GroupTotals(positive.Coordinates.Count, positive.UnmatchedCenterCount);
     }
