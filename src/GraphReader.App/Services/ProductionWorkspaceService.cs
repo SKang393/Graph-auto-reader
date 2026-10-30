@@ -2,6 +2,10 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Security.Cryptography;
+using System.IO;
+using System.Text.Json.Serialization;
 
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.ViewModels;
@@ -20,6 +24,9 @@ namespace GraphReader.App.Services;
 /// </summary>
 public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, IAutomaticWorkspaceService
 {
+    private const string ProductionExportReceiptKey = "graphreader_production_export_evidence";
+    private const string ProductionExportReceiptSchema = "graphreader.production_export_evidence.v1";
+    private static readonly JsonSerializerOptions ProductionEvidenceJsonOptions = CreateProductionEvidenceJsonOptions();
     private static readonly string[] RequiredDetectionStages =
     [
         "axis",
@@ -32,6 +39,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
     private readonly Func<WorkflowReviewState?, CancellationToken, Task<WorkflowRunResult>>? _automaticWorkflow;
     private readonly WorkflowOrchestrator? _workflowOrchestrator;
     private readonly ProductionWorkflowPanelStore _panelStore;
+    private readonly HashSet<Guid> _failedRestorePanelIds = [];
 
     public ProductionWorkspaceService(
         IApplicationPaths? applicationPaths = null,
@@ -63,6 +71,79 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
 
     public WorkflowRunResult? LastAutomaticRun { get; private set; }
 
+    public override async Task<IReadOnlyList<WorkspaceTabViewModel>> OpenProjectAsync(
+        string path,
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyList<WorkspaceTabViewModel> tabs = await base.OpenProjectAsync(path, cancellationToken)
+            .ConfigureAwait(false);
+        _failedRestorePanelIds.Clear();
+        foreach (WorkspaceTabViewModel tab in tabs)
+        {
+            if (Guid.TryParse(tab.PanelId, out Guid panelId))
+            {
+                _failedRestorePanelIds.Add(panelId);
+            }
+        }
+        RestoreProductionExportEvidence(tabs);
+        return tabs;
+    }
+
+    protected override void PrepareProjectForSave()
+    {
+        PanelRecord[] panels = CurrentProject.Panels.ToArray();
+        PanelRecord[] refreshed = new PanelRecord[panels.Length];
+        for (int index = 0; index < panels.Length; index++)
+        {
+            PanelRecord panel = panels[index];
+            if (_failedRestorePanelIds.Contains(panel.PanelId.Value))
+            {
+                refreshed[index] = HasProductionProjectionAudit(panel.PanelId.Value)
+                    ? InvalidateProductionExportReceipt(panel, "The reopened production receipt did not validate. Rerun production detection before exporting.")
+                    : panel;
+                continue;
+            }
+
+            if (!_panelStore.TryGet(panel.PanelId.Value, out ProductionPanelEvidence? retained) ||
+                retained?.ExportEvidence is not { ProjectionEvidence: { } priorProjection } priorEvidence ||
+                !ProductionProjectionMatchesCurrentPanel(panel, priorProjection))
+            {
+                refreshed[index] = HasProductionProjectionAudit(panel.PanelId.Value)
+                    ? InvalidateProductionExportReceipt(panel, "Reviewed production evidence no longer matches the saved panel. Rerun production detection before exporting.")
+                    : panel;
+                continue;
+            }
+
+            try
+            {
+                ProductionPanelExportEvidence updatedEvidence = AlignExportEvidenceToProject(priorEvidence, panel);
+                ValidateCurrentProductionExportEvidence(CurrentProject, panel, retained, updatedEvidence);
+                SourceReference source = CurrentProject.Sources.Single(item => item.SourceId == panel.SourceId);
+                refreshed[index] = panel with
+                {
+                    Validation = PreserveProductionExportReceipt(
+                        panel.Validation,
+                        CurrentProject.ProjectId.Value,
+                        source,
+                        panel,
+                        updatedEvidence,
+                        retained.Panel.Original.Sha256,
+                        retained.Panel.Original.Width,
+                        retained.Panel.Original.Height),
+                };
+                _panelStore.SetExportEvidence(panel.PanelId.Value, updatedEvidence);
+            }
+            catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
+            {
+                refreshed[index] = InvalidateProductionExportReceipt(
+                    panel,
+                    "Production export evidence could not be refreshed for the current reviewed state. Rerun production detection before exporting.");
+            }
+        }
+
+        CurrentProject = CurrentProject with { Panels = refreshed };
+    }
+
     public override async Task<ExportResult> ExportAsync(
         string tabId,
         string outputDirectory,
@@ -71,7 +152,8 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
         cancellationToken.ThrowIfCancellationRequested();
         (WorkspaceTabViewModel tab, PanelRecord panel) = PreparePanelForExport(tabId);
 
-        if (_panelStore.TryGet(panel.PanelId.Value, out ProductionPanelEvidence? retained) &&
+        if (!_failedRestorePanelIds.Contains(panel.PanelId.Value) &&
+            _panelStore.TryGet(panel.PanelId.Value, out ProductionPanelEvidence? retained) &&
             retained is not null &&
             retained.Panel.PanelId == panel.PanelId.Value &&
             retained.Panel.SourceId == panel.SourceId.Value &&
@@ -125,6 +207,312 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                 RequireFirstObservedSessionOne: false,
                 InvalidSessionOriginBehavior.Block),
             cancellationToken).ConfigureAwait(false);
+    }
+
+    private void RestoreProductionExportEvidence(IReadOnlyList<WorkspaceTabViewModel> tabs)
+    {
+        foreach (WorkspaceTabViewModel tab in tabs)
+        {
+            if (tab.PanelId is null)
+            {
+                continue;
+            }
+
+            PanelRecord? panel = CurrentProject.Panels.SingleOrDefault(candidate =>
+                string.Equals(candidate.PanelId.Value.ToString("D"), tab.PanelId, StringComparison.OrdinalIgnoreCase));
+            if (panel?.Validation is not { ValueKind: JsonValueKind.Object } validation ||
+                !validation.TryGetProperty(ProductionExportReceiptKey, out JsonElement receipt) ||
+                receipt.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            try
+            {
+                if (!TryReadProductionExportEvidence(receipt, panel, out ProductionPanelExportEvidence? exportEvidence))
+                {
+                    continue;
+                }
+                if (exportEvidence?.ProjectionEvidence is not { } projection)
+                {
+                    continue;
+                }
+                if (!TryCreateReopenedProductionPanelEvidence(tab.TabId, exportEvidence, out ProductionPanelEvidence? retained) || retained is null)
+                {
+                    continue;
+                }
+                if (!ReceiptMatchesImportedPanel(receipt, retained.Panel.Original))
+                {
+                    continue;
+                }
+                if (!ProductionProjectionEntitiesMatchCurrentPanel(panel, projection))
+                {
+                    continue;
+                }
+
+                ValidateCurrentProductionExportEvidence(CurrentProject, panel, retained, exportEvidence);
+                _panelStore.Register(retained);
+                _panelStore.SetExportEvidence(panel.PanelId.Value, exportEvidence);
+                _failedRestorePanelIds.Remove(panel.PanelId.Value);
+            }
+            catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or
+                                               JsonException or KeyNotFoundException or InvalidDataException or
+                                               NullReferenceException or FormatException or OverflowException or NotSupportedException)
+            {
+                // A malformed or stale receipt leaves the production audit intact.
+            }
+        }
+    }
+
+    private static PanelRecord InvalidateProductionExportReceipt(PanelRecord panel, string reason)
+    {
+        JsonObject validation = panel.Validation is { ValueKind: JsonValueKind.Object } existing
+            ? JsonNode.Parse(existing.GetRawText()) as JsonObject ?? new JsonObject()
+            : new JsonObject();
+        validation[ProductionExportReceiptKey] = new JsonObject
+        {
+            ["schema"] = ProductionExportReceiptSchema,
+            ["status"] = "invalidated",
+            ["reason"] = reason,
+            ["required_action"] = "rerun_production_detection",
+        };
+        return panel with { Validation = JsonSerializer.SerializeToElement(validation, ProductionEvidenceJsonOptions) };
+    }
+
+    private bool TryReadProductionExportEvidence(
+        JsonElement receipt,
+        PanelRecord panel,
+        out ProductionPanelExportEvidence? evidence)
+    {
+        evidence = null;
+        if (!HasString(receipt, "schema", ProductionExportReceiptSchema)) return Reject("schema");
+        if (!receipt.TryGetProperty("project_id", out JsonElement projectId) || !Guid.TryParse(projectId.GetString(), out Guid parsedProjectId)) return Reject("project_id");
+        if (!receipt.TryGetProperty("panel_id", out JsonElement panelId) || !Guid.TryParse(panelId.GetString(), out Guid parsedPanelId) || parsedPanelId != panel.PanelId.Value) return Reject("panel_id");
+        if (!receipt.TryGetProperty("source_id", out JsonElement sourceId) || !Guid.TryParse(sourceId.GetString(), out Guid parsedSourceId) || parsedSourceId != panel.SourceId.Value) return Reject("source_id");
+        if (!receipt.TryGetProperty("source_sha256", out JsonElement sourceSha) || sourceSha.GetString() is not { Length: 64 } sourceHash) return Reject("source_sha256");
+        if (!receipt.TryGetProperty("panel_sha256", out JsonElement panelSha) || panelSha.GetString() is not { Length: 64 } panelHash) return Reject("panel_sha256");
+        if (!receipt.TryGetProperty("panel_width", out JsonElement width) || !width.TryGetInt32(out int panelWidth) || panelWidth <= 0) return Reject("panel_width");
+        if (!receipt.TryGetProperty("panel_height", out JsonElement height) || !height.TryGetInt32(out int panelHeight) || panelHeight <= 0) return Reject("panel_height");
+        if (!receipt.TryGetProperty("page_number", out JsonElement pageNumber) || !NullableIntEquals(pageNumber, panel.PageNumber)) return Reject("page_number");
+        if (!receipt.TryGetProperty("crop", out JsonElement crop) || !CropMatches(crop, panel.Crop)) return Reject("crop");
+        if (!receipt.TryGetProperty("transforms", out JsonElement savedTransforms) ||
+            !JsonElement.DeepEquals(
+                savedTransforms,
+                JsonSerializer.SerializeToElement(panel.Transforms, ProductionEvidenceJsonOptions))) return Reject("transforms");
+        if (!receipt.TryGetProperty("calibration_id", out JsonElement calibrationId) ||
+            !GuidNullableEquals(calibrationId, panel.Calibration is { } currentCalibration ? currentCalibration.CalibrationId.Value : null)) return Reject("calibration_id");
+        if (!receipt.TryGetProperty("export_evidence", out JsonElement rawEvidence) || rawEvidence.ValueKind != JsonValueKind.Object) return Reject("export_evidence");
+        if (!receipt.TryGetProperty("export_evidence_sha256", out JsonElement evidenceSha) || evidenceSha.GetString() is not { Length: 64 } expectedEvidenceHash) return Reject("export_evidence_sha256");
+
+        SourceReference? source = CurrentSourceFor(panel);
+        if (source is null || parsedProjectId != CurrentProject.ProjectId.Value ||
+            !string.Equals(source.Sha256, sourceHash, StringComparison.OrdinalIgnoreCase))
+        {
+            return Reject("project or source identity");
+        }
+
+        try
+        {
+            evidence = DeserializeProductionPanelExportEvidence(rawEvidence);
+        }
+        catch (JsonException)
+        {
+            return Reject("evidence deserialization");
+        }
+
+        if (evidence is null)
+        {
+            return Reject("evidence null");
+        }
+
+        byte[] evidenceBytes = JsonSerializer.SerializeToUtf8Bytes(evidence, ProductionEvidenceJsonOptions);
+        return string.Equals(
+            Convert.ToHexStringLower(SHA256.HashData(evidenceBytes)),
+            expectedEvidenceHash,
+            StringComparison.OrdinalIgnoreCase) || Reject("evidence hash");
+
+        SourceReference? CurrentSourceFor(PanelRecord currentPanel) =>
+            CurrentProject.Sources.SingleOrDefault(item => item.SourceId == currentPanel.SourceId);
+
+        static bool HasString(JsonElement element, string name, string expected) =>
+            element.TryGetProperty(name, out JsonElement value) &&
+            string.Equals(value.GetString(), expected, StringComparison.Ordinal);
+
+        static bool NullableIntEquals(JsonElement element, int? expected) =>
+            expected is null
+                ? element.ValueKind == JsonValueKind.Null
+                : element.TryGetInt32(out int actual) && actual == expected.Value;
+
+        static bool GuidNullableEquals(JsonElement element, Guid? expected) =>
+            expected is null
+                ? element.ValueKind == JsonValueKind.Null
+                : Guid.TryParse(element.GetString(), out Guid actual) && actual == expected.Value;
+
+        static bool CropMatches(JsonElement element, CropRectangle expected) =>
+            element.ValueKind == JsonValueKind.Object &&
+            element.TryGetProperty("x", out JsonElement x) && x.TryGetDouble(out double actualX) && actualX == expected.X &&
+            element.TryGetProperty("y", out JsonElement y) && y.TryGetDouble(out double actualY) && actualY == expected.Y &&
+            element.TryGetProperty("width", out JsonElement cropWidth) && cropWidth.TryGetDouble(out double actualWidth) && actualWidth == expected.Width &&
+            element.TryGetProperty("height", out JsonElement cropHeight) && cropHeight.TryGetDouble(out double actualHeight) && actualHeight == expected.Height;
+
+        bool Reject(string field) => throw new InvalidOperationException($"Receipt parser rejected field '{field}'.");
+    }
+
+    private static bool ReceiptMatchesImportedPanel(JsonElement receipt, WorkflowImageEvidence image) =>
+        receipt.TryGetProperty("panel_sha256", out JsonElement sha) &&
+        string.Equals(sha.GetString(), image.Sha256, StringComparison.OrdinalIgnoreCase) &&
+        receipt.TryGetProperty("panel_width", out JsonElement width) && width.TryGetInt32(out int actualWidth) &&
+        actualWidth == image.Width &&
+        receipt.TryGetProperty("panel_height", out JsonElement height) && height.TryGetInt32(out int actualHeight) &&
+        actualHeight == image.Height;
+
+    internal static ProductionPanelExportEvidence DeserializeProductionPanelExportEvidence(JsonElement value)
+    {
+        JsonElement calibrationJson = RequiredObject(value, "calibration");
+        ExportCalibration calibration = new(
+            Required<ExportCalibrationStatus>(calibrationJson, "status"),
+            Required<bool>(calibrationJson, "has_y_calibration"),
+            Required<bool>(calibrationJson, "has_printed_session_calibration"),
+            Required<bool>(calibrationJson, "has_absolute_session_origin"),
+            RequiredNullableDouble(calibrationJson, "first_observed_session"),
+            Required<double>(calibrationJson, "confidence"),
+            RequiredArray<string>(calibrationJson, "reasons"));
+
+        JsonElement projectionJson = RequiredObject(value, "projection_evidence");
+        var projection = new ProductionPanelProjectionEvidence(
+            Required<CalibrationRecord>(projectionJson, "calibration"),
+            RequiredArray<PhaseRecord>(projectionJson, "phases"),
+            RequiredArray<SeriesRecord>(projectionJson, "series"),
+            RequiredArray<PointRecord>(projectionJson, "points"),
+            RequiredArray<TransformRecord>(projectionJson, "transforms"),
+            RequiredArray<OcrEvidence>(projectionJson, "ocr_regions"),
+            RequiredArray<MarkerRecord>(projectionJson, "markers"),
+            RequiredNullableString(projectionJson, "participant"));
+        if (!ProductionProjectionEvidenceHasValidStructure(projection))
+        {
+            throw new JsonException("Production export receipt projection contains null or incomplete nested values.");
+        }
+
+        return new ProductionPanelExportEvidence(
+            calibration,
+            RequiredArray<ExportPhase>(value, "phases"),
+            RequiredExportSeriesArray(value),
+            RequiredExportRelationArray(value),
+            RequiredArray<ProductionPointExportEvidence>(value, "points"),
+            RequiredVisionArray(value),
+            RequiredNullableString(value, "participant"),
+            Required<ExportMode>(value, "mode"),
+            Required<ExportAuditMode>(value, "audit_mode"),
+            Required<ExportSessionOriginPolicy>(value, "session_origin_policy"),
+            projection);
+
+        static JsonElement RequiredObject(JsonElement parent, string name) =>
+            parent.TryGetProperty(name, out JsonElement result) && result.ValueKind == JsonValueKind.Object
+                ? result
+                : throw new JsonException($"Production export receipt field '{name}' is missing or invalid.");
+
+        static T Required<T>(JsonElement parent, string name) =>
+            parent.TryGetProperty(name, out JsonElement result)
+                ? result.Deserialize<T>(ProductionEvidenceJsonOptions) ?? throw new JsonException($"Field '{name}' is null.")
+                : throw new JsonException($"Production export receipt field '{name}' is missing.");
+
+        static T[] RequiredArray<T>(JsonElement parent, string name)
+        {
+            if (!parent.TryGetProperty(name, out JsonElement result) || result.ValueKind != JsonValueKind.Array)
+            {
+                throw new JsonException($"Production export receipt field '{name}' is missing or invalid.");
+            }
+
+            T[] items = result.Deserialize<T[]>(ProductionEvidenceJsonOptions) ??
+                throw new JsonException($"Production export receipt field '{name}' is null.");
+            if (items.Any(static item => item is null))
+            {
+                throw new JsonException($"Production export receipt field '{name}' contains a null item.");
+            }
+
+            return items;
+        }
+
+        static T[]? RequiredNullableArray<T>(JsonElement parent, string name) =>
+            parent.TryGetProperty(name, out JsonElement result) && result.ValueKind == JsonValueKind.Array
+                ? result.Deserialize<T[]>(ProductionEvidenceJsonOptions)
+                : null;
+
+        static T? RequiredNullableValue<T>(JsonElement parent, string name) where T : class =>
+            parent.TryGetProperty(name, out JsonElement result) && result.ValueKind != JsonValueKind.Null
+                ? result.Deserialize<T>(ProductionEvidenceJsonOptions)
+                : null;
+
+        static ExportSeries[] RequiredExportSeriesArray(JsonElement parent) =>
+            parent.TryGetProperty("series", out JsonElement values) && values.ValueKind == JsonValueKind.Array
+                ? values.EnumerateArray().Select(item => new ExportSeries(
+                    Required<Guid>(item, "series_id"),
+                    Required<string>(item, "symbol"),
+                    Required<string>(item, "display_name"),
+                    Required<ExportSeriesRole>(item, "semantic_role"),
+                    RequiredArray<Guid>(item, "point_ids"),
+                    Required<double>(item, "confidence"),
+                    RequiredNullableString(item, "legend_text"))).ToArray()
+                : throw new JsonException("Production export receipt series are missing or invalid.");
+
+        static ExportSeriesRelation[] RequiredExportRelationArray(JsonElement parent) =>
+            parent.TryGetProperty("relations", out JsonElement values) && values.ValueKind == JsonValueKind.Array
+                ? values.EnumerateArray().Select(item => new ExportSeriesRelation(
+                    Required<Guid>(item, "intervention_series_id"),
+                    RequiredNullableGuid(item, "shared_baseline_series_id"),
+                    RequiredArray<Guid>(item, "applicable_probe_series_ids"))).ToArray()
+                : throw new JsonException("Production export receipt relations are missing or invalid.");
+
+        static WorkflowVisionEnvelope[] RequiredVisionArray(JsonElement parent) =>
+            parent.TryGetProperty("provenance", out JsonElement values) && values.ValueKind == JsonValueKind.Array
+                ? values.EnumerateArray().Select(item => new WorkflowVisionEnvelope(
+                    Required<int>(item, "contract_version"),
+                    Required<Guid>(item, "run_id"),
+                    Required<Guid>(item, "project_id"),
+                    Required<Guid>(item, "panel_id"),
+                    Required<string>(item, "stage"),
+                    Required<string>(item, "stage_version"),
+                    Required<string>(item, "input_sha256"),
+                    RequiredNullableValue<WorkflowVisionModel>(item, "model"),
+                    Required<WorkflowVisionTiming>(item, "timing"),
+                    Required<double>(item, "confidence"),
+                    RequiredArray<string>(item, "warnings"),
+                    ReadVisionTransforms(item),
+                    Required<string>(item, "coordinate_space"))).ToArray()
+                : throw new JsonException("Production export receipt provenance is missing or invalid.");
+
+        static WorkflowTransformProvenance[] ReadVisionTransforms(JsonElement parent) =>
+            parent.TryGetProperty("transforms", out JsonElement values) && values.ValueKind == JsonValueKind.Array
+                ? values.EnumerateArray().Select(item => new WorkflowTransformProvenance(
+                    Required<string>(item, "transform_id"),
+                    Required<string>(item, "input_coordinate_space"),
+                    Required<string>(item, "output_coordinate_space"),
+                    RequiredArray<double>(item, "input_to_output_matrix"),
+                    RequiredNullableArray<double>(item, "output_to_input_matrix"),
+                    Required<bool>(item, "lossy"))).ToArray()
+                : throw new JsonException("Vision provenance transforms are missing or invalid.");
+
+        static double? RequiredNullableDouble(JsonElement parent, string name) =>
+            parent.TryGetProperty(name, out JsonElement result) && result.ValueKind != JsonValueKind.Null
+                ? result.GetDouble()
+                : null;
+
+        static string? RequiredNullableString(JsonElement parent, string name) =>
+            parent.TryGetProperty(name, out JsonElement result) && result.ValueKind != JsonValueKind.Null
+                ? result.GetString()
+                : null;
+
+        static Guid? RequiredNullableGuid(JsonElement parent, string name) =>
+            parent.TryGetProperty(name, out JsonElement result) && result.ValueKind != JsonValueKind.Null
+                ? result.GetGuid()
+                : null;
+    }
+
+    private static JsonSerializerOptions CreateProductionEvidenceJsonOptions()
+    {
+        var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
+        options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false));
+        return options;
     }
 
     private static void ValidateCurrentProductionExportEvidence(
@@ -349,6 +737,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                     WorkflowRunResult projectedCheckpoint = checkpointProjection.ProjectedRun ??
                         throw new InvalidOperationException(
                             "A successful production batch checkpoint returned no projected run.");
+                    MarkCurrentProductionPanels(projectedCheckpoint.Review.Panels);
                     accumulated = MergeCheckpoint(accumulated, projectedCheckpoint);
                     LastAutomaticRun = accumulated;
                     completedPanelIds.Add(projectedCheckpoint.Review.Panels.Single().PanelId);
@@ -404,7 +793,16 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
 
         LastAutomaticRun = projection.ProjectedRun ?? throw new InvalidOperationException(
             "A successful production review projection returned no corrected workflow run.");
+        MarkCurrentProductionPanels(LastAutomaticRun.Review.Panels);
         return LastAutomaticRun;
+    }
+
+    private void MarkCurrentProductionPanels(IEnumerable<WorkflowReviewPanel> panels)
+    {
+        foreach (WorkflowReviewPanel panel in panels)
+        {
+            _failedRestorePanelIds.Remove(panel.PanelId);
+        }
     }
 
     private static WorkflowRunResult MergeCheckpoint(

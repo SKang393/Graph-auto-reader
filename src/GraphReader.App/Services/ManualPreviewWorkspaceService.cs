@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.App.Integration.Workflow;
@@ -46,6 +47,9 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     private const string ProductionReassignAuditKind = "production_point_reassigned";
     private const string ProductionPhaseAuditKind = "production_phase_corrected";
     private const string RasterCropTransformSchema = "graphreader.raster_source_crop.v1";
+    private const string ProductionExportReceiptKey = "graphreader_production_export_evidence";
+    private const string ProductionExportReceiptSchema = "graphreader.production_export_evidence.v1";
+    private static readonly JsonSerializerOptions ProductionEvidenceJsonOptions = CreateProductionEvidenceJsonOptions();
 
     private sealed record DeletedPointTombstone(
         string CorrectionId,
@@ -90,6 +94,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     private readonly Dictionary<string, EnhancementEnvelope> _enhancementEnvelopes = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ImmutableImageBytes> _originalPanelBytesByTab = new(StringComparer.Ordinal);
     private readonly Dictionary<string, PdfWorkspacePanel> _pdfPanelsByTab = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, RasterWorkspacePanel> _rasterPanelsByTab = new(StringComparer.Ordinal);
     private readonly HashSet<string> _verifiedManualCalibrationPendingByTab = new(StringComparer.Ordinal);
     private IReadOnlyList<ImageImportError> _lastImportErrors = [];
 
@@ -139,13 +144,88 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
     public bool UsesFakeGraphData => false;
 
-    public ProjectDocument CurrentProject { get; private set; }
+    public ProjectDocument CurrentProject { get; protected set; }
 
     public string? CurrentProjectPath { get; private set; }
 
     public IReadOnlyList<ImageImportError> LastImportErrors => _lastImportErrors;
 
     public IReadOnlyList<WorkspaceTabViewModel> CreateWorkspace() => _tabs.ToArray();
+
+    protected bool TryCreateReopenedProductionPanelEvidence(
+        string tabId,
+        ProductionPanelExportEvidence exportEvidence,
+        out ProductionPanelEvidence? evidence)
+    {
+        ArgumentNullException.ThrowIfNull(exportEvidence);
+        WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(candidate => candidate.TabId == tabId);
+        if (tab?.PanelId is null ||
+            !_originalPanelBytesByTab.TryGetValue(tabId, out ImmutableImageBytes? originalBytes))
+        {
+            evidence = null;
+            return false;
+        }
+
+        Guid panelGuid = Guid.Parse(tab.PanelId);
+        PanelRecord? panel = CurrentProject.Panels.SingleOrDefault(item => item.PanelId.Value == panelGuid);
+        if (panel is null)
+        {
+            evidence = null;
+            return false;
+        }
+
+        if (_pdfPanelsByTab.TryGetValue(tabId, out PdfWorkspacePanel? pdfPanel))
+        {
+            evidence = new ProductionPanelEvidence(
+                pdfPanel.Panel,
+                WorkflowSourceKind.Pdf,
+                originalBytes.Copy(),
+                pdfPanel.SourceProvenance.DocumentSha256,
+                exportEvidence: exportEvidence,
+                pdfPanelSource: pdfPanel.SourceProvenance);
+            return true;
+        }
+
+        if (_rasterPanelsByTab.TryGetValue(tabId, out RasterWorkspacePanel? rasterPanel))
+        {
+            evidence = new ProductionPanelEvidence(
+                rasterPanel.Panel,
+                WorkflowSourceKind.Image,
+                originalBytes.Copy(),
+                rasterPanel.SourceProvenance.Source.Image.Sha256,
+                exportEvidence: exportEvidence,
+                rasterPanelSource: rasterPanel.SourceProvenance);
+            return true;
+        }
+
+        SourceReference? source = CurrentProject.Sources.SingleOrDefault(item => item.SourceId == panel.SourceId);
+        if (source is null || source.Kind != SourceKind.Image || panel.PageNumber is not null ||
+            panel.Crop.X != 0 || panel.Crop.Y != 0 ||
+            panel.Crop.Width != tab.PixelWidth || panel.Crop.Height != tab.PixelHeight ||
+            !string.Equals(source.Sha256, tab.SourceSha256, StringComparison.OrdinalIgnoreCase))
+        {
+            evidence = null;
+            return false;
+        }
+
+        var imported = new WorkflowImportedPanel(
+            panelGuid,
+            panel.SourceId.Value,
+            panel.DisplayName,
+            new WorkflowImageEvidence(
+                source.LocalPath ?? panel.DisplayName,
+                source.Sha256,
+                tab.PixelWidth,
+                tab.PixelHeight,
+                WorkflowImageVariant.Original));
+        evidence = new ProductionPanelEvidence(
+            imported,
+            WorkflowSourceKind.Image,
+            originalBytes.Copy(),
+            tab.SourceSha256,
+            exportEvidence: exportEvidence);
+        return true;
+    }
 
     public void SynchronizeRestoredTab(string tabId)
     {
@@ -286,7 +366,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             "Real image or PDF panel import");
     }
 
-    public async Task<IReadOnlyList<WorkspaceTabViewModel>> OpenProjectAsync(
+    public virtual async Task<IReadOnlyList<WorkspaceTabViewModel>> OpenProjectAsync(
         string path,
         CancellationToken cancellationToken)
     {
@@ -403,6 +483,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         var stagedEnhancement = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
         var stagedOriginalBytes = new Dictionary<string, ImmutableImageBytes>(StringComparer.Ordinal);
         var stagedPdfPanels = new Dictionary<string, PdfWorkspacePanel>(StringComparer.Ordinal);
+        var stagedRasterPanels = new Dictionary<string, RasterWorkspacePanel>(StringComparer.Ordinal);
         foreach (PanelRecord panel in project.Panels)
         {
             SourceReference source = project.Sources.Single(item => item.SourceId == panel.SourceId);
@@ -421,6 +502,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                         rasterPanel.Panel.Original.Width,
                         rasterPanel.Panel.Original.Height,
                         rasterPanel.Panel.Original.Sha256);
+                    stagedRasterPanels[tab.TabId] = rasterPanel;
                 }
                 else if (importedLegacyRasterSources.TryGetValue(panel.SourceId, out ImportedImage? rasterSource) &&
                          IsLegacyFullImagePanel(
@@ -508,6 +590,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         _enhancementEnvelopes.Clear();
         ReplaceContents(_originalPanelBytesByTab, stagedOriginalBytes);
         ReplaceContents(_pdfPanelsByTab, stagedPdfPanels);
+        ReplaceContents(_rasterPanelsByTab, stagedRasterPanels);
         CurrentProject = project;
         CurrentProjectPath = Path.GetFullPath(path);
         _lastImportErrors = [];
@@ -635,6 +718,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         _enhancementEnvelopes.Remove(tab.TabId);
         _originalPanelBytesByTab.Remove(tab.TabId);
         _pdfPanelsByTab.Remove(tab.TabId);
+        _rasterPanelsByTab.Remove(tab.TabId);
         _verifiedManualCalibrationPendingByTab.Remove(tab.TabId);
         foreach (AppGraphPoint point in tab.Points)
         {
@@ -645,7 +729,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         return true;
     }
 
-    public async Task<DomainResult<ProjectSaveReceipt>> SaveProjectAsync(
+    public virtual async Task<DomainResult<ProjectSaveReceipt>> SaveProjectAsync(
         string? path,
         CancellationToken cancellationToken)
     {
@@ -662,6 +746,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         }
 
         SynchronizeProject(DomainEventKind.ExportSettingsChanged, panelId: null, entityId: null, "Manual project save");
+        PrepareProjectForSave();
         DomainResult<ProjectSaveReceipt> saved = await _projectFileStore
             .SaveAsync(CurrentProject, selectedPath, cancellationToken)
             .ConfigureAwait(false);
@@ -671,6 +756,10 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         }
 
         return saved;
+    }
+
+    protected virtual void PrepareProjectForSave()
+    {
     }
 
     public ManualCalibrationState Calibrate(string tabId, ManualCalibrationRequest request)
@@ -1112,6 +1201,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         }
 
         SynchronizeProject(DomainEventKind.PointEdited, panelId: null, entityId, "Manual workspace autosave");
+        PrepareProjectForSave();
         var snapshots = new ProjectSnapshotService(_applicationPaths.AutosaveRoot, _projectFileStore);
         PanelId? panelId = tabId is null ? null : PanelId.FromGuid(Guid.Parse(RequireTab(tabId).PanelId!));
         DomainResult<ProjectSnapshotReceipt> result = await snapshots.SaveEventSnapshotAsync(
@@ -1146,6 +1236,10 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
         var scheduler = new FiveMinuteAutosaveScheduler();
         AutosaveSchedule schedule = scheduler.CreateSchedule(CurrentProject, CurrentProject.ModifiedUtc);
+        if (scheduler.IsDue(schedule, occurredUtc))
+        {
+            PrepareProjectForSave();
+        }
         var snapshots = new ProjectSnapshotService(_applicationPaths.AutosaveRoot, _projectFileStore, scheduler);
         DomainResult<ProjectSnapshotReceipt> result = await snapshots.SaveTimerSnapshotAsync(
             CurrentProject,
@@ -1243,7 +1337,12 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             throw new InvalidOperationException("Manual three-anchor calibration is required before export.");
         }
 
-        if (panel.Calibration.Status != CalibrationStatus.Valid || !panel.Calibration.UserConfirmed)
+        bool hasConfirmedManualCalibration = panel.Calibration.Status == CalibrationStatus.Valid &&
+            panel.Calibration.UserConfirmed;
+        bool hasAcceptedAutomaticCalibration = panel.Calibration.Status == CalibrationStatus.Valid &&
+            !panel.Calibration.UserConfirmed &&
+            HasValidatedProductionCalibrationReceipt(tab, panel);
+        if (!hasConfirmedManualCalibration && !hasAcceptedAutomaticCalibration)
         {
             throw new InvalidOperationException(
                 "Manual export requires a valid, explicitly confirmed three-anchor calibration. Recalibrate before exporting.");
@@ -1266,6 +1365,263 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 RequireFirstObservedSessionOne: false,
                 InvalidSessionOriginBehavior.Block),
             cancellationToken).ConfigureAwait(false);
+    }
+
+    private bool HasValidatedProductionCalibrationReceipt(WorkspaceTabViewModel tab, PanelRecord panel)
+    {
+        try
+        {
+            if (panel.Validation is not { ValueKind: JsonValueKind.Object } validation ||
+                !validation.TryGetProperty(ProductionExportReceiptKey, out JsonElement receipt) ||
+                receipt.ValueKind != JsonValueKind.Object ||
+                !TryReceiptGuid(receipt, "project_id", out Guid receiptProjectId) ||
+                receiptProjectId != CurrentProject.ProjectId.Value ||
+                !TryReceiptGuid(receipt, "panel_id", out Guid receiptPanelId) ||
+                receiptPanelId != panel.PanelId.Value ||
+                !TryReceiptGuid(receipt, "source_id", out Guid receiptSourceId) ||
+                receiptSourceId != panel.SourceId.Value ||
+                !TryReceiptString(receipt, "schema", out string? schema) ||
+                !string.Equals(schema, ProductionExportReceiptSchema, StringComparison.Ordinal) ||
+                (receipt.TryGetProperty("status", out JsonElement status) &&
+                 !string.Equals(status.GetString(), "valid", StringComparison.Ordinal)))
+            {
+                return false;
+            }
+            SourceReference? source = CurrentProject.Sources.SingleOrDefault(item => item.SourceId == panel.SourceId);
+            if (source is null ||
+                !TryReceiptString(receipt, "source_sha256", out string? sourceSha256) ||
+                !string.Equals(source.Sha256, sourceSha256, StringComparison.OrdinalIgnoreCase) ||
+                !TryReceiptString(receipt, "panel_sha256", out string? panelSha256) ||
+                !TryReceiptInt(receipt, "panel_width", out int panelWidth) || panelWidth != tab.PixelWidth ||
+                !TryReceiptInt(receipt, "panel_height", out int panelHeight) || panelHeight != tab.PixelHeight ||
+                !ReceiptNullableIntEquals(receipt, "page_number", panel.PageNumber) ||
+                !ReceiptCropMatches(receipt, panel.Crop) ||
+                !_originalPanelBytesByTab.TryGetValue(tab.TabId, out ImmutableImageBytes? bytes) ||
+                !string.Equals(
+                    Convert.ToHexStringLower(SHA256.HashData(bytes.Copy())),
+                    panelSha256,
+                    StringComparison.OrdinalIgnoreCase) ||
+                !receipt.TryGetProperty("transforms", out JsonElement savedTransforms) ||
+                !JsonElement.DeepEquals(
+                    savedTransforms,
+                    JsonSerializer.SerializeToElement(panel.Transforms, ProductionEvidenceJsonOptions)) ||
+                !receipt.TryGetProperty("calibration_id", out JsonElement calibrationId) ||
+                calibrationId.GetString() != panel.Calibration!.CalibrationId.Value.ToString("D") ||
+                !receipt.TryGetProperty("export_evidence", out JsonElement exportEvidence) ||
+                exportEvidence.ValueKind != JsonValueKind.Object ||
+                !TryReceiptString(receipt, "export_evidence_sha256", out string? expectedEvidenceHash) ||
+                !TryDeserializeProductionExportEvidence(exportEvidence, out ProductionPanelExportEvidence? typedExportEvidence) ||
+                typedExportEvidence is null ||
+                !string.Equals(
+                    Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(
+                        typedExportEvidence,
+                        ProductionEvidenceJsonOptions))),
+                    expectedEvidenceHash,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+            if (!exportEvidence.TryGetProperty("calibration", out JsonElement exportCalibration) ||
+                !exportCalibration.TryGetProperty("status", out JsonElement exportCalibrationStatus) ||
+                !string.Equals(exportCalibrationStatus.GetString(), "valid", StringComparison.Ordinal) ||
+                !exportCalibration.TryGetProperty("has_y_calibration", out JsonElement hasYCalibration) ||
+                hasYCalibration.ValueKind != JsonValueKind.True ||
+                !exportCalibration.TryGetProperty("has_absolute_session_origin", out JsonElement hasAbsoluteOrigin) ||
+                hasAbsoluteOrigin.ValueKind != JsonValueKind.True)
+            {
+                return false;
+            }
+            if (!exportEvidence.TryGetProperty("projection_evidence", out JsonElement projectionJson) ||
+                !TryDeserializeProjectionEvidence(projectionJson, out ProductionPanelProjectionEvidence? projection) ||
+                projection is null)
+            {
+                return false;
+            }
+            if (projection.Calibration.Status != CalibrationStatus.Valid ||
+                projection.Calibration.UserConfirmed ||
+                !ProductionProjectionEvidenceHasValidStructure(projection) ||
+                !ProductionProjectionMatchesCurrentPanel(panel, projection) ||
+                !ProductionProjectionEntitiesMatchCurrentPanel(panel, projection))
+            {
+                return false;
+            }
+
+            return CurrentProject.Audit.Events.Any(auditEvent =>
+                auditEvent.Details is { ValueKind: JsonValueKind.Object } details &&
+                details.TryGetProperty("kind", out JsonElement kind) &&
+                string.Equals(kind.GetString(), ProductionProjectionAuditKind, StringComparison.Ordinal) &&
+                AuditProjectionReferencesPanel(details, panel.PanelId.Value));
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or NullReferenceException or
+                                           JsonException or FormatException or OverflowException or
+                                           NotSupportedException)
+        {
+            return false;
+        }
+
+        static bool TryDeserializeProjectionEvidence(
+            JsonElement value,
+            out ProductionPanelProjectionEvidence? projection)
+        {
+            projection = null;
+            if (value.ValueKind != JsonValueKind.Object ||
+                !value.TryGetProperty("calibration", out JsonElement calibrationElement) ||
+                calibrationElement.Deserialize<CalibrationRecord>(ProductionEvidenceJsonOptions) is not { } calibration ||
+                !TryArray<PhaseRecord>(value, "phases", out PhaseRecord[] phases) ||
+                !TryArray<SeriesRecord>(value, "series", out SeriesRecord[] series) ||
+                !TryArray<PointRecord>(value, "points", out PointRecord[] points) ||
+                !TryArray<TransformRecord>(value, "transforms", out TransformRecord[] transforms) ||
+                !TryArray<OcrEvidence>(value, "ocr_regions", out OcrEvidence[] ocrRegions) ||
+                !TryArray<MarkerRecord>(value, "markers", out MarkerRecord[] markers) ||
+                (value.TryGetProperty("participant", out JsonElement suppliedParticipant) &&
+                 suppliedParticipant.ValueKind is not (JsonValueKind.String or JsonValueKind.Null)))
+            {
+                return false;
+            }
+
+            string? participant = value.TryGetProperty("participant", out JsonElement participantElement) &&
+                participantElement.ValueKind == JsonValueKind.String
+                    ? participantElement.GetString()
+                    : null;
+            projection = new ProductionPanelProjectionEvidence(
+                calibration,
+                phases,
+                series,
+                points,
+                transforms,
+                ocrRegions,
+                markers,
+                participant);
+            return true;
+
+            static bool TryArray<T>(JsonElement parent, string propertyName, out T[] items)
+            {
+                items = [];
+                if (!parent.TryGetProperty(propertyName, out JsonElement element) ||
+                    element.ValueKind != JsonValueKind.Array)
+                {
+                    return false;
+                }
+
+                T[]? parsed = element.Deserialize<T[]>(ProductionEvidenceJsonOptions);
+                if (parsed is null)
+                {
+                    return false;
+                }
+                if (parsed.Any(static item => item is null))
+                {
+                    return false;
+                }
+
+                items = parsed;
+                return true;
+            }
+        }
+
+        static bool TryDeserializeProductionExportEvidence(
+            JsonElement value,
+            out ProductionPanelExportEvidence? evidence)
+        {
+            evidence = null;
+            try
+            {
+                evidence = ProductionWorkspaceService.DeserializeProductionPanelExportEvidence(value);
+                return evidence is not null;
+            }
+            catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or
+                                               JsonException or FormatException or OverflowException or
+                                               NotSupportedException)
+            {
+                return false;
+            }
+        }
+
+        static bool TryReceiptString(JsonElement parent, string name, out string? value)
+        {
+            value = null;
+            if (!parent.TryGetProperty(name, out JsonElement element) || element.ValueKind != JsonValueKind.String)
+            {
+                return false;
+            }
+
+            value = element.GetString();
+            return value is not null;
+        }
+
+        static bool TryReceiptGuid(JsonElement parent, string name, out Guid value)
+        {
+            value = Guid.Empty;
+            return TryReceiptString(parent, name, out string? text) && Guid.TryParse(text, out value);
+        }
+
+        static bool TryReceiptInt(JsonElement parent, string name, out int value)
+        {
+            value = default;
+            return parent.TryGetProperty(name, out JsonElement element) && element.TryGetInt32(out value);
+        }
+
+        static bool ReceiptNullableIntEquals(JsonElement parent, string name, int? expected) =>
+            parent.TryGetProperty(name, out JsonElement element) &&
+            (expected is null
+                ? element.ValueKind == JsonValueKind.Null
+                : element.TryGetInt32(out int actual) && actual == expected.Value);
+
+        static bool ReceiptCropMatches(JsonElement parent, CropRectangle expected) =>
+            parent.TryGetProperty("crop", out JsonElement crop) &&
+            crop.ValueKind == JsonValueKind.Object &&
+            crop.TryGetProperty("x", out JsonElement x) && x.TryGetDouble(out double actualX) && actualX == expected.X &&
+            crop.TryGetProperty("y", out JsonElement y) && y.TryGetDouble(out double actualY) && actualY == expected.Y &&
+            crop.TryGetProperty("width", out JsonElement width) && width.TryGetDouble(out double actualWidth) && actualWidth == expected.Width &&
+            crop.TryGetProperty("height", out JsonElement height) && height.TryGetDouble(out double actualHeight) && actualHeight == expected.Height;
+
+        static bool AuditProjectionReferencesPanel(JsonElement details, Guid panelId)
+        {
+            string panelIdText = panelId.ToString("D");
+            return References(details, "point_identities") || References(details, "vision_provenance");
+
+            bool References(JsonElement parent, string name) =>
+                parent.TryGetProperty(name, out JsonElement entries) &&
+                entries.ValueKind == JsonValueKind.Array &&
+                entries.EnumerateArray().Any(entry =>
+                    entry.ValueKind == JsonValueKind.Object &&
+                    entry.TryGetProperty("panel_id", out JsonElement id) &&
+                    string.Equals(id.GetString(), panelIdText, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    protected static bool ProductionProjectionEvidenceHasValidStructure(
+        ProductionPanelProjectionEvidence projection)
+    {
+        ArgumentNullException.ThrowIfNull(projection);
+        CalibrationRecord calibration = projection.Calibration;
+        if (calibration is null ||
+            !Enum.IsDefined(calibration.Status) ||
+            calibration.Anchors is null ||
+            calibration.Reasons is null ||
+            calibration.Anchors.Any(static anchor => anchor is null || anchor.Screen is null || anchor.Graph is null) ||
+            calibration.Reasons.Any(static reason => reason is null) ||
+            (calibration.SessionLattice is { Source: null }))
+        {
+            return false;
+        }
+
+        return projection.Phases is not null &&
+            projection.Phases.All(static phase => phase is not null && phase.Code is not null) &&
+            projection.Series is not null && projection.Series.All(static series =>
+                series is not null && series.Symbol is not null && series.DisplayName is not null &&
+                series.PointIds is not null && series.ApplicableProbeSeriesIds is not null) &&
+            projection.Points is not null && projection.Points.All(static point =>
+                point is not null && point.OriginalPixel is not null && point.SourceStage is not null &&
+                point.ModificationHistory is not null && point.ModificationHistory.All(static modification => modification is not null)) &&
+            projection.Transforms is not null && projection.Transforms.All(static transform =>
+                transform is not null && transform.Matrix3x3 is { Count: 9 } &&
+                (transform.InverseMatrix3x3 is null || transform.InverseMatrix3x3.Count == 9)) &&
+            projection.OcrRegions is not null && projection.OcrRegions.All(static ocr =>
+                ocr is not null && ocr.Polygon is not null && ocr.Polygon.All(static point => point is not null) &&
+                ocr.Text is not null && ocr.Alternatives is not null &&
+                ocr.Alternatives.All(static alternative => alternative is not null && alternative.Text is not null)) &&
+            projection.Markers is not null && projection.Markers.All(static marker =>
+                marker is not null && marker.Center is not null && marker.Symbol is not null);
     }
 
     /// <summary>
@@ -1303,6 +1659,37 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         PanelRecord panelLocal = MapPanelRecordSourceToPanel(currentPanel);
         return CalibrationRecordsEquivalent(panelLocal.Calibration, projection.Calibration) &&
             TransformRecordsEquivalent(panelLocal.Transforms, projection.Transforms);
+    }
+
+    protected static bool ProductionProjectionEntitiesMatchCurrentPanel(
+        PanelRecord currentPanel,
+        ProductionPanelProjectionEvidence projection)
+    {
+        ArgumentNullException.ThrowIfNull(currentPanel);
+        ArgumentNullException.ThrowIfNull(projection);
+        ProductionPanelProjectionEvidence expected = MapProjectionPanelToSource(currentPanel, projection);
+        return JsonElement.DeepEquals(
+                JsonSerializer.SerializeToElement(currentPanel.Calibration, ProductionEvidenceJsonOptions),
+                JsonSerializer.SerializeToElement(expected.Calibration, ProductionEvidenceJsonOptions)) &&
+            JsonElement.DeepEquals(
+                JsonSerializer.SerializeToElement(currentPanel.Phases, ProductionEvidenceJsonOptions),
+                JsonSerializer.SerializeToElement(expected.Phases, ProductionEvidenceJsonOptions)) &&
+            JsonElement.DeepEquals(
+                JsonSerializer.SerializeToElement(currentPanel.Series, ProductionEvidenceJsonOptions),
+                JsonSerializer.SerializeToElement(expected.Series, ProductionEvidenceJsonOptions)) &&
+            JsonElement.DeepEquals(
+                JsonSerializer.SerializeToElement(currentPanel.Points, ProductionEvidenceJsonOptions),
+                JsonSerializer.SerializeToElement(expected.Points, ProductionEvidenceJsonOptions)) &&
+            JsonElement.DeepEquals(
+                JsonSerializer.SerializeToElement(currentPanel.Transforms, ProductionEvidenceJsonOptions),
+                JsonSerializer.SerializeToElement(expected.Transforms, ProductionEvidenceJsonOptions)) &&
+            JsonElement.DeepEquals(
+                JsonSerializer.SerializeToElement(currentPanel.OcrRegions, ProductionEvidenceJsonOptions),
+                JsonSerializer.SerializeToElement(expected.OcrRegions, ProductionEvidenceJsonOptions)) &&
+            JsonElement.DeepEquals(
+                JsonSerializer.SerializeToElement(currentPanel.Markers, ProductionEvidenceJsonOptions),
+                JsonSerializer.SerializeToElement(expected.Markers, ProductionEvidenceJsonOptions)) &&
+            string.Equals(currentPanel.Participant, expected.Participant, StringComparison.Ordinal);
     }
 
     private static bool CalibrationRecordsEquivalent(
@@ -1929,7 +2316,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
         var exactProjectionByTab = plans.ToDictionary(
             static plan => plan.Tab.TabId,
-            static plan => (Evidence: plan.Projection, WasBlank: plan.WasBlank),
+            static plan => plan,
             StringComparer.Ordinal);
         SynchronizeProject(
             DomainEventKind.DetectionAccepted,
@@ -1942,14 +2329,12 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             Panels = CurrentProject.Panels.Select(panel =>
             {
                 string tabId = panel.PanelId.Value.ToString("D");
-                if (!exactProjectionByTab.TryGetValue(
-                        tabId,
-                        out (ProductionPanelProjectionEvidence Evidence, bool WasBlank) state))
+                if (!exactProjectionByTab.TryGetValue(tabId, out ProductionProjectionPlan? plan))
                 {
                     return panel;
                 }
 
-                ProductionPanelProjectionEvidence exact = state.Evidence;
+                ProductionPanelProjectionEvidence exact = plan.Projection;
                 ProductionPanelProjectionEvidence persisted = MapProjectionPanelToSource(panel, exact);
                 PanelRecord updated = panel with
                 {
@@ -1960,9 +2345,27 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                     Markers = persisted.Markers,
                     Points = MergeProjectedPoints(panel.Points, persisted.Points),
                 };
-                return state.WasBlank
-                    ? updated with { Phases = persisted.Phases, Series = persisted.Series }
-                    : updated;
+                if (plan.WasBlank)
+                {
+                    updated = updated with { Phases = persisted.Phases, Series = persisted.Series };
+                }
+
+                ProductionPanelExportEvidence alignedEvidence = AlignExportEvidenceToProject(
+                    plan.ExportEvidence,
+                    updated);
+                SourceReference source = CurrentProject.Sources.Single(item => item.SourceId == updated.SourceId);
+                return updated with
+                {
+                    Validation = PreserveProductionExportReceipt(
+                        updated.Validation,
+                        CurrentProject.ProjectId.Value,
+                        source,
+                        updated,
+                        alignedEvidence,
+                        plan.ReviewPanel.PreparedPanel.ImportedPanel.Original.Sha256,
+                        plan.ReviewPanel.PreparedPanel.ImportedPanel.Original.Width,
+                        plan.ReviewPanel.PreparedPanel.ImportedPanel.Original.Height),
+                };
             }).ToArray(),
         };
 
@@ -2237,7 +2640,79 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         return new WorkflowReviewPanel(corrected.PreparedPanel, aligned, corrected.DetectionProvenance);
     }
 
-    private static ProductionPanelExportEvidence AlignExportEvidenceToProject(
+    private static JsonSerializerOptions CreateProductionEvidenceJsonOptions()
+    {
+        var options = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            DictionaryKeyPolicy = null,
+        };
+        options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false));
+        return options;
+    }
+
+    protected static JsonElement? PreserveProductionExportReceipt(
+        JsonElement? validation,
+        Guid projectId,
+        SourceReference source,
+        PanelRecord panel,
+        ProductionPanelExportEvidence evidence,
+        string panelImageSha256,
+        int panelWidth,
+        int panelHeight)
+    {
+        if (validation is { ValueKind: not JsonValueKind.Object })
+        {
+            throw new InvalidOperationException(
+                "The panel validation extension is not an object, so production export evidence cannot be saved safely.");
+        }
+
+        byte[] evidenceBytes = JsonSerializer.SerializeToUtf8Bytes(evidence, ProductionEvidenceJsonOptions);
+        JsonElement transforms = JsonSerializer.SerializeToElement(panel.Transforms, ProductionEvidenceJsonOptions);
+        JsonElement receipt = JsonSerializer.SerializeToElement(new
+        {
+            schema = ProductionExportReceiptSchema,
+            project_id = projectId.ToString("D"),
+            panel_id = panel.PanelId.Value.ToString("D"),
+            source_id = panel.SourceId.Value.ToString("D"),
+            source_sha256 = source.Sha256.ToLowerInvariant(),
+            panel_sha256 = panelImageSha256.ToLowerInvariant(),
+            panel_width = panelWidth,
+            panel_height = panelHeight,
+            page_number = panel.PageNumber,
+            crop = new { x = panel.Crop.X, y = panel.Crop.Y, width = panel.Crop.Width, height = panel.Crop.Height },
+            transforms,
+            calibration_id = panel.Calibration is { } currentCalibration
+                ? currentCalibration.CalibrationId.Value.ToString("D")
+                : null,
+            export_evidence_sha256 = Convert.ToHexStringLower(SHA256.HashData(evidenceBytes)),
+            export_evidence = evidence,
+        }, ProductionEvidenceJsonOptions);
+
+        using var stream = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(stream))
+        {
+            writer.WriteStartObject();
+            if (validation is { } existing)
+            {
+                foreach (JsonProperty property in existing.EnumerateObject())
+                {
+                    if (!string.Equals(property.Name, ProductionExportReceiptKey, StringComparison.Ordinal))
+                    {
+                        property.WriteTo(writer);
+                    }
+                }
+            }
+            writer.WritePropertyName(ProductionExportReceiptKey);
+            receipt.WriteTo(writer);
+            writer.WriteEndObject();
+        }
+
+        using JsonDocument document = JsonDocument.Parse(stream.ToArray());
+        return document.RootElement.Clone();
+    }
+
+    protected static ProductionPanelExportEvidence AlignExportEvidenceToProject(
         ProductionPanelExportEvidence source,
         PanelRecord panel)
     {
