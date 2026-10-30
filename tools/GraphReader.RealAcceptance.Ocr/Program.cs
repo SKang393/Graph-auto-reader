@@ -183,6 +183,10 @@ internal static class Program
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeDevExactImageGroupingSelfTest.Run()));
         }
+        if (args.Length == 1 && args[0] == "--self-test-engauge-dev-runtime-planes")
+        {
+            return await RunEngaugeSelfTestAsync(EngaugeDevRuntimePlaneSelfTest.RunAsync);
+        }
         if (args.Length == 1 && args[0] == "--self-test-engauge-workflow-executor")
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(EngaugeGroupedWorkflowExecutorSelfTest.Run()));
