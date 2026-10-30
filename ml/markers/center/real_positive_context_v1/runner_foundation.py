@@ -13,15 +13,17 @@ from hashlib import sha256
 from io import BytesIO
 import inspect
 import json
+import os
 from pathlib import Path
 import random
+from threading import Lock
 
 import numpy as np
 import torch
 from torch import Tensor
 
 from ml.markers.gate_seal import source_bundle_sha256, verify_bound_source_snapshot
-from ml.markers.training_budget import CANONICAL_LEDGER_PATH, TrainingAuthorization
+from ml.markers.training_budget import CANONICAL_LEDGER_PATH, TrainingAuthorization, complete_training_candidate
 from .model import OPERATING_THRESHOLD, RealPositiveCenterNet
 from .objective import SyntheticLabels, _require_training_gpu, mixed_confidence_loss
 
@@ -294,8 +296,104 @@ def _require_optimizer(model: RealPositiveCenterNet, optimizer: torch.optim.Opti
         raise RuntimeError("Optimizer state tensors must remain on the RX 6600 XT")
 
 
-def train_one_verified_batch(model: RealPositiveCenterNet, optimizer: torch.optim.Optimizer,
-                             source: object, authorization: TrainingAuthorization) -> float:
+def _require_fresh_state(model: RealPositiveCenterNet, optimizer: torch.optim.Optimizer) -> None:
+    """A candidate is a fresh run, not a silent checkpoint continuation."""
+    _require_optimizer(model, optimizer)
+    if optimizer.state or any(parameter.grad is not None for parameter in model.parameters()):
+        raise RuntimeError("Fresh training requires empty optimizer state and no existing gradients")
+    if any(torch.count_nonzero(parameter).item() != 0 for parameter in model.residual.parameters()):
+        raise RuntimeError("Fresh training requires the zero-initialized confidence residual")
+
+
+def _require_reviewed_schedule(config: dict, source: object) -> None:
+    """Block until a real producer and independently validated schedule exist.
+
+    A source's own `begin_fixed_run` assertion does not prove population or
+    epoch coverage.  The later adapter must introduce a reviewed, config-bound
+    schedule manifest and an independent validator. No data format is guessed.
+    """
+    raise RuntimeError("BLOCKED: authenticated source and independently validated per-epoch schedule are not implemented")
+
+
+def _write_new_durable(path: Path, payload: dict) -> bytes:
+    encoded = (json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+    with path.open("xb") as stream:
+        stream.write(encoded)
+        stream.flush()
+        os.fsync(stream.fileno())
+    return encoded
+
+
+class _RunJournal:
+    """One single-use optimizer run with crash-ambiguous steps blocked.
+
+    The durable run intent is exclusive and remains after completion or a
+    failure, including canonical void/reopen operations. A crash after an
+    intent can never trigger silent replay because a new claim is refused.
+    """
+
+    def __init__(self, authorization: TrainingAuthorization, expected: int) -> None:
+        self.authorization = authorization
+        self.expected = expected
+        self.completed = 0
+        self.pending: int | None = None
+        self.closed = False
+        self._lock = Lock()
+        self._journal = authorization.directory / "optimizer-journal.jsonl"
+        self._intent = authorization.directory / "optimizer-run-intent.json"
+        self._intent_sha256: str | None = None
+
+    @classmethod
+    def claim(cls, authorization: TrainingAuthorization, expected: int) -> "_RunJournal":
+        if type(expected) is not int or not 0 < expected <= 1_000_000:
+            raise ValueError("A finite preregistered optimizer step count is required")
+        journal = cls(authorization, expected)
+        intent = _write_new_durable(journal._intent, {
+            "schema": "graphreader.optimizer-run-intent.v1", "expected_steps": expected,
+            "binding_sha256": sha256(json.dumps(authorization.binding, sort_keys=True,
+                                                separators=(",", ":")).encode("utf-8")).hexdigest(),
+            "resume_authorized": False,
+        })
+        _write_new_durable(journal._journal, {"event": "run_opened", "expected_steps": expected})
+        journal._intent_sha256 = sha256(intent).hexdigest()
+        return journal
+
+    def _append(self, payload: dict) -> None:
+        encoded = (json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n").encode("utf-8")
+        descriptor = os.open(self._journal, os.O_WRONLY | os.O_APPEND)
+        with os.fdopen(descriptor, "ab") as stream:
+            stream.write(encoded)
+            stream.flush()
+            os.fsync(stream.fileno())
+
+    def begin_step(self, authorization: TrainingAuthorization, expected: int) -> int:
+        with self._lock:
+            if (self.closed or authorization is not self.authorization or expected != self.expected or
+                    self.pending is not None or self.completed >= self.expected):
+                raise RuntimeError("Optimizer step is outside the single-use admitted run")
+            if (self._intent_sha256 is None or not self._intent.is_file() or not self._journal.is_file() or
+                    sha256(self._intent.read_bytes()).hexdigest() != self._intent_sha256):
+                raise RuntimeError("The durable optimizer run intent is missing or changed")
+            self.pending = self.completed + 1
+            self._append({"event": "step_intent", "step": self.pending})
+            return self.pending
+
+    def commit_step(self, step: int) -> None:
+        with self._lock:
+            if self.closed or self.pending != step or step != self.completed + 1:
+                raise RuntimeError("Optimizer step accounting is inconsistent")
+            self._append({"event": "step_completed", "step": step})
+            self.completed = step
+            self.pending = None
+
+    def close(self) -> None:
+        with self._lock:
+            self.closed = True
+
+
+def _train_one_verified_batch(model: RealPositiveCenterNet, optimizer: torch.optim.Optimizer,
+                              source: object, authorization: TrainingAuthorization,
+                              journal: _RunJournal) -> float:
     """Train one admitted batch from a separately reviewed bound adapter.
 
     No implementation of that real-data adapter exists here. Its source must be
@@ -304,6 +402,10 @@ def train_one_verified_batch(model: RealPositiveCenterNet, optimizer: torch.opti
     membership; no real negative target is accepted by this API.
     """
     config = _require_bound_source(authorization, source)
+    _require_reviewed_schedule(config, source)
+    if not isinstance(journal, _RunJournal):
+        raise RuntimeError("Optimizer steps require an active single-use run journal")
+    step = journal.begin_step(authorization, config["optimizer_steps_expected"])
     if (not callable(getattr(source, "next_batch", None)) or
             not callable(getattr(source, "verify_batch", None)) or
             not callable(getattr(source, "verify_model", None)) or
@@ -342,6 +444,9 @@ def train_one_verified_batch(model: RealPositiveCenterNet, optimizer: torch.opti
     require_gpu_model(model, synthetic, real_positives, gradients=True)
     _require_optimizer(model, optimizer)
     optimizer.step()
+    torch.cuda.synchronize(torch.device("cuda:0"))
+    _require_optimizer(model, optimizer)
+    journal.commit_step(step)
     return float(loss.detach().cpu())
 
 
@@ -365,17 +470,42 @@ def run_training(model: RealPositiveCenterNet | None = None, optimizer: torch.op
     if (not callable(getattr(source, "verify_model", None)) or
             source.verify_model(model, V37_CHECKPOINT_SHA256) is not True):
         raise RuntimeError("The retained V37 checkpoint is unverified")
+    _require_fresh_state(model, optimizer)
+    _require_reviewed_schedule(config, source)
     if not callable(getattr(source, "begin_fixed_run", None)):
         raise RuntimeError("The admitted source cannot initialize deterministic ordering")
     random.seed(DRAFT_RECIPE.seed)
     np.random.seed(DRAFT_RECIPE.seed)
     torch.manual_seed(DRAFT_RECIPE.seed)
     torch.use_deterministic_algorithms(True)
-    if source.begin_fixed_run(DRAFT_RECIPE, authorization) is not True:
-        raise RuntimeError("The source did not confirm its fixed training split and ordering")
     steps = config["optimizer_steps_expected"]
+    journal = _RunJournal.claim(authorization, steps)  # type: ignore[arg-type]
     total_loss = 0.0
-    for _ in range(steps):
-        total_loss += train_one_verified_batch(model, optimizer, source, authorization)  # type: ignore[arg-type]
-    return {"optimizer_steps": steps, "mean_loss": total_loss / steps,
-            "production_approval": False, "release_eligible": False}
+    try:
+        if source.begin_fixed_run(DRAFT_RECIPE, authorization) is not True:
+            raise RuntimeError("The source did not confirm its fixed training split and ordering")
+        for _ in range(steps):
+            total_loss += _train_one_verified_batch(model, optimizer, source, authorization, journal)  # type: ignore[arg-type]
+        if journal.completed != steps or journal.pending is not None:
+            raise RuntimeError("The completed optimizer step count differs from the admitted schedule")
+    except BaseException as error:
+        journal.close()
+        failure = {"schema": "graphreader.optimizer-run-outcome.v1", "status": "failed_training_incomplete",
+                   "expected_steps": steps, "completed_steps": journal.completed,
+                   "pending_step": journal.pending, "resume_authorized": False,
+                   "exception_type": type(error).__name__,
+                   "exception_sha256": sha256(str(error).encode("utf-8")).hexdigest(),
+                   "production_approval": False, "release_eligible": False}
+        try:
+            encoded = _write_new_durable(authorization.directory / "optimizer-run-outcome.json", failure)  # type: ignore[union-attr]
+            complete_training_candidate(authorization, status=failure["status"], report_sha256=sha256(encoded).hexdigest())  # type: ignore[arg-type]
+        except Exception as finalization_error:
+            error.add_note(f"Candidate failure finalization also failed: {type(finalization_error).__name__}")
+        raise
+    journal.close()
+    result = {"schema": "graphreader.optimizer-run-outcome.v1", "status": "training_complete_unapproved",
+              "expected_steps": steps, "completed_steps": journal.completed, "resume_authorized": False,
+              "mean_loss": total_loss / steps, "production_approval": False, "release_eligible": False}
+    encoded = _write_new_durable(authorization.directory / "optimizer-run-outcome.json", result)  # type: ignore[union-attr]
+    complete_training_candidate(authorization, status=result["status"], report_sha256=sha256(encoded).hexdigest())  # type: ignore[arg-type]
+    return result
