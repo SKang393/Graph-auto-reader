@@ -68,12 +68,15 @@ internal static class Program
                     "ENGAUGE_PROPOSAL_AUDIT_ARGUMENTS_INVALID" => exception.Message,
                     "ENGAUGE_PROPOSAL_PREPARATION_WORK_ROOT_OUTSIDE_PROJECT" => exception.Message,
                     "ENGAUGE_PROPOSAL_PREPARATION_SOURCE_SCOPE_INVALID" => exception.Message,
+                    "ENGAUGE_PROPOSAL_PREPARATION_RUNTIME_FAILED" => exception.Message,
+                    "ENGAUGE_PROPOSAL_PREPARATION_SOURCE_FAILED" => exception.Message,
                     "ENGAUGE_PROPOSAL_PREPARATION_GROUPING_FAILED" => exception.Message,
                     "ENGAUGE_PROPOSAL_PREPARATION_GROUP_FAILED" => exception.Message,
                     _ => "ENGAUGE_PROPOSAL_AUDIT_FAILED",
                 };
                 Console.Error.WriteLine(JsonSerializer.Serialize(
-                    new { status = "failed", error = code }, JsonOptions));
+                    new { status = "failed", error = code,
+                        cause_type = exception.InnerException?.GetType().Name ?? exception.GetType().Name }, JsonOptions));
                 return 1;
             }
         }

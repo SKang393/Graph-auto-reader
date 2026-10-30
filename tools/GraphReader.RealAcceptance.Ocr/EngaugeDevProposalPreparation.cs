@@ -91,12 +91,26 @@ internal static class EngaugeDevProposalPreparation
 
         // aggregateOnly installs NoPersistenceStageCache. This method invokes
         // only the pre-marker preparation seam, never marker or classifier.
-        await using FrozenCandidateWorkflowRuntime runtime = await FrozenCandidateWorkflowFactory.CreateAsync(
-            repositoryRoot, runRoot, binding, token, aggregateOnly: true).ConfigureAwait(false);
-        EngaugeDevSourceSnapshot source = EngaugeDevSourceMaterializer.Read(selector, token);
-        return await RunCoreAsync(Identity(binding), source,
-            (group, cancellation) => EngaugeDevRuntimePlaneBridge.PrepareAsync(group, runtime, cancellation),
-            consume, token).ConfigureAwait(false);
+        FrozenCandidateWorkflowRuntime runtime;
+        try
+        {
+            runtime = await FrozenCandidateWorkflowFactory.CreateAsync(
+                repositoryRoot, runRoot, binding, token, aggregateOnly: true).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException and not OutOfMemoryException)
+        {
+            throw new InvalidDataException("ENGAUGE_PROPOSAL_PREPARATION_RUNTIME_FAILED", exception);
+        }
+        await using (runtime)
+        {
+            EngaugeDevSourceSnapshot source;
+            try { source = EngaugeDevSourceMaterializer.Read(selector, token); }
+            catch (Exception exception) when (exception is not OperationCanceledException and not OutOfMemoryException)
+            { throw new InvalidDataException("ENGAUGE_PROPOSAL_PREPARATION_SOURCE_FAILED", exception); }
+            return await RunCoreAsync(Identity(binding), source,
+                (group, cancellation) => EngaugeDevRuntimePlaneBridge.PrepareAsync(group, runtime, cancellation),
+                consume, token).ConfigureAwait(false);
+        }
     }
 
     // Synthetic seam only. It accepts in-memory source data and no model path.
@@ -145,7 +159,7 @@ internal static class EngaugeDevProposalPreparation
             catch (Exception exception) when (exception is not OperationCanceledException and not OutOfMemoryException)
             {
                 // Do not disclose group-specific details or emit partial results.
-                throw new InvalidDataException("ENGAUGE_PROPOSAL_PREPARATION_GROUP_FAILED");
+                throw new InvalidDataException("ENGAUGE_PROPOSAL_PREPARATION_GROUP_FAILED", exception);
             }
             checked { processed++; proposals += totals.PositiveProposalCount; unmatched += totals.UnmatchedCenterCount; }
         }
