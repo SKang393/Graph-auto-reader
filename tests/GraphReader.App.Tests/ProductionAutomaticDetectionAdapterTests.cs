@@ -3,6 +3,8 @@
 
 using System.IO;
 using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GraphReader.App.Integration.Workflow;
@@ -23,6 +25,13 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class ProductionAutomaticDetectionAdapterTests
 {
+    private static readonly JsonSerializerOptions DiagnosticJsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+        Converters = { new JsonStringEnumConverter() },
+    };
     private static readonly double[] ExpectedOcrDividerXs = [50];
     private static readonly string[] ExpectedStages =
         ["axis", "ocr", "ocr", "markers", "markers", "markers", "legends", "phases"];
@@ -76,6 +85,25 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         OcrTickLaneSelectionDiagnostic selection = recovery.ZeroAnchorSelection ??
             throw new AssertFailedException("Zero-anchor selection diagnostics were not captured.");
         Assert.AreEqual(2, selection.ProposedCrops.Count);
+        OcrTickLaneSeedBoundsRejections bounds = selection.BoundsRejections ??
+            throw new AssertFailedException("Bounds classification diagnostics were not captured.");
+        using JsonDocument sidecar = JsonDocument.Parse(JsonSerializer.Serialize(new
+        {
+            schema = "graphreader.synthetic-workflow-tick-lane-observation.v1",
+            observation,
+        }, DiagnosticJsonOptions));
+        Assert.AreEqual("graphreader.synthetic-workflow-tick-lane-observation.v1", sidecar.RootElement.GetProperty("schema").GetString());
+        JsonElement serializedBounds = sidecar.RootElement.GetProperty("observation").GetProperty("ocr")
+            .GetProperty("recovery").GetProperty("zero_anchor_selection").GetProperty("bounds_rejections");
+        Assert.AreEqual(bounds.InvalidBounds, serializedBounds.GetProperty("invalid_bounds").GetInt32());
+        Assert.AreEqual(bounds.NotBelowPlot, serializedBounds.GetProperty("not_below_plot").GetInt32());
+        Assert.AreEqual(bounds.LeftOfLane, serializedBounds.GetProperty("left_of_lane").GetInt32());
+        Assert.AreEqual(bounds.RightOfLane, serializedBounds.GetProperty("right_of_lane").GetInt32());
+        Assert.AreEqual(bounds.TooShort, serializedBounds.GetProperty("too_short").GetInt32());
+        Assert.AreEqual(bounds.TooNarrow, serializedBounds.GetProperty("too_narrow").GetInt32());
+        Assert.AreEqual(bounds.TooWide, serializedBounds.GetProperty("too_wide").GetInt32());
+        Assert.AreEqual(bounds.TooFarBelowPlot, serializedBounds.GetProperty("too_far_below_plot").GetInt32());
+        Assert.AreEqual(8, serializedBounds.EnumerateObject().Count());
         Assert.IsTrue(observation.Ocr.Recognitions.Any(static item => item.LiteralAlternatives.Contains("1", StringComparer.Ordinal)));
         Assert.IsTrue(observation.Ocr.Recognitions.Any(static item => item.LiteralAlternatives.Contains("2", StringComparer.Ordinal)));
         Assert.AreEqual(2, observation.Ocr.FinalSeedXTickRegionIds.Count);

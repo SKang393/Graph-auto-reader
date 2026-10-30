@@ -66,7 +66,7 @@ public static class TickLaneTextRegionRecovery
         {
             result.AddRange(SelectZeroAnchorXTickCandidates(
                 image, components, detected, result, plot, xAxisTickStrokes!,
-                selection => zeroAnchorSelection = selection, cancellationToken));
+                diagnosticObserver is null ? null : selection => zeroAnchorSelection = selection, cancellationToken));
         }
         diagnosticObserver?.Invoke(new OcrTickLaneRecoveryDiagnostic(
             zeroAnchorSeedAttempted,
@@ -154,6 +154,14 @@ public static class TickLaneTextRegionRecovery
         int rejectedWithoutUniqueTick = 0;
         int rejectedWithoutMatchingStroke = 0;
         int rejectedWithAmbiguousStroke = 0;
+        int invalidBounds = 0;
+        int notBelowPlot = 0;
+        int leftOfLane = 0;
+        int rightOfLane = 0;
+        int tooShort = 0;
+        int tooNarrow = 0;
+        int tooWide = 0;
+        int tooFarBelowPlot = 0;
         foreach (OcrDetectedRegion component in components.OrderBy(static region => region.Polygon.Bounds.Top)
                      .ThenBy(static region => region.Polygon.Bounds.Left).ThenBy(static region => region.RegionId, StringComparer.Ordinal))
         {
@@ -162,6 +170,18 @@ public static class TickLaneTextRegionRecovery
             if (!IsSeedTextCandidate(bounds, plot))
             {
                 rejectedOutsideSeedBounds++;
+                if (diagnosticObserver is not null)
+                {
+                    double tolerance = Math.Max(4d, plot.Width * 0.05d);
+                    if (!bounds.IsValid) invalidBounds++;
+                    if (!(bounds.Top > plot.Bottom)) notBelowPlot++;
+                    if (!(bounds.Center.X >= plot.Left - tolerance)) leftOfLane++;
+                    if (!(bounds.Center.X <= plot.Right + tolerance)) rightOfLane++;
+                    if (!(bounds.Height >= 3d)) tooShort++;
+                    if (!(bounds.Width >= 2d)) tooNarrow++;
+                    if (!(bounds.Width <= Math.Max(32d, bounds.Height * 4d))) tooWide++;
+                    if (!(bounds.Top - plot.Bottom <= Math.Max(32d, plot.Height * 0.35d))) tooFarBelowPlot++;
+                }
                 continue;
             }
 
@@ -228,7 +248,10 @@ public static class TickLaneTextRegionRecovery
             rejectedWithoutUniqueTick,
             rejectedWithoutMatchingStroke,
             rejectedWithAmbiguousStroke,
-            OcrCollections.Freeze(proposedCrops)));
+            OcrCollections.Freeze(proposedCrops),
+            new OcrTickLaneSeedBoundsRejections(
+                invalidBounds, notBelowPlot, leftOfLane, rightOfLane,
+                tooShort, tooNarrow, tooWide, tooFarBelowPlot)));
 
         return OcrCollections.Freeze(result);
 

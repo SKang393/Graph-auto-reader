@@ -17,6 +17,10 @@ public sealed class OcrTickLaneRecoveryPipelineTests
         foreach (OcrRectangle label in new[] { new OcrRectangle(70, 126, 5, 8), new OcrRectangle(192, 126, 5, 8) })
             for (int y = (int)label.Top; y < label.Bottom; y++)
                 for (int x = (int)label.Left; x < label.Right; x++) pixels[(y * width) + x] = 0;
+        // This disconnected component is inside the plot, so zero-anchor
+        // diagnostics must classify it as not below the X axis.
+        for (int y = 45; y < 51; y++)
+            for (int x = 120; x < 124; x++) pixels[(y * width) + x] = 0;
         for (int x = 40; x <= 220; x++) pixels[(120 * width) + x] = 0;
         foreach (int tickX in new[] { 72, 194 })
             for (int y = 119; y <= 124; y++) pixels[(y * width) + tickX] = 0;
@@ -34,13 +38,17 @@ public sealed class OcrTickLaneRecoveryPipelineTests
             crops.Select(crop => new OcrRecognition(crop.RegionId, crop.SourceImage,
                 [new(crop.RegionId.Contains("x-1", StringComparison.Ordinal) ? "1" : "2", .95, crop.SourceImage)], .1)).ToArray()));
 
-        OcrResult result = await Pipeline(recognizer, new InMemoryOcrResultCache(), true).RecognizeAsync(request);
+        OcrTickLaneDiagnostic? diagnostic = null;
+        OcrResult result = await Pipeline(recognizer, new InMemoryOcrResultCache(), true)
+            .RecognizeWithTickLaneDiagnosticsAsync(request, value => diagnostic = value);
 
         Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
         OcrRegion[] recovered = result.Regions.Where(static region =>
             region.RegionId.StartsWith("tick-lane-axis-seed:", StringComparison.Ordinal)).ToArray();
         Assert.HasCount(2, recovered);
         CollectionAssert.AreEquivalent(new List<string> { "1", "2" }, recovered.Select(static tick => tick.Text).ToArray());
+        Assert.IsNotNull(diagnostic?.Recovery?.ZeroAnchorSelection?.BoundsRejections);
+        Assert.IsTrue(diagnostic.Recovery.ZeroAnchorSelection.BoundsRejections.NotBelowPlot >= 1);
     }
 
     [TestMethod]

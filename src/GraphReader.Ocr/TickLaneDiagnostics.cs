@@ -12,6 +12,27 @@ internal sealed record OcrTickLaneCropDiagnostic(
     OcrRectangle Bounds,
     string TickId);
 
+/// <summary>
+/// Independent failed bounds checks. One rejected component can increment
+/// several counters; their sum is not a count of distinct components.
+/// </summary>
+internal sealed record OcrTickLaneSeedBoundsRejections(
+    int InvalidBounds,
+    int NotBelowPlot,
+    int LeftOfLane,
+    int RightOfLane,
+    int TooShort,
+    int TooNarrow,
+    int TooWide,
+    int TooFarBelowPlot);
+
+/// <summary>
+/// BoundsRejections is null when no component bounds were classified because
+/// the plot was invalid or no usable tick strokes were available. When present,
+/// each value is an independently counted condition and values may overlap.
+/// The synthetic diagnostic sidecar adds this optional field to schema v1;
+/// earlier v1 sidecars do not contain it.
+/// </summary>
 internal sealed record OcrTickLaneSelectionDiagnostic(
     int ComponentCount,
     int UsableStrokeCount,
@@ -22,7 +43,8 @@ internal sealed record OcrTickLaneSelectionDiagnostic(
     int RejectedWithoutUniqueTick,
     int RejectedWithoutMatchingStroke,
     int RejectedWithAmbiguousStroke,
-    IReadOnlyList<OcrTickLaneCropDiagnostic> ProposedCrops);
+    IReadOnlyList<OcrTickLaneCropDiagnostic> ProposedCrops,
+    OcrTickLaneSeedBoundsRejections? BoundsRejections = null);
 
 internal sealed record OcrTickLaneRecoveryDiagnostic(
     bool ZeroAnchorSeedAttempted,

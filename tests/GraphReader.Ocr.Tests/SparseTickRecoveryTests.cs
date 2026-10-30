@@ -107,6 +107,77 @@ public sealed class SparseTickRecoveryTests
         Assert.HasCount(2, recovered);
     }
 
+    [TestMethod]
+    [DataRow("invalid-plot")]
+    [DataRow("no-strokes")]
+    [DataRow("unusable-strokes")]
+    public void ZeroAnchorDiagnosticsIdentifyWhenBoundsWereNotClassified(string reason)
+    {
+        var fixture = ZeroAnchorFixture();
+        OcrDetectedRegion[] candidates = [OcrTestFixtures.Region("candidate", 70, 126, 5, 8)];
+        OcrRectangle plot = reason == "invalid-plot" ? new(0, 0, 0, 0) : Plot;
+        IReadOnlyList<OcrXAxisTickStroke> strokes = reason switch
+        {
+            "no-strokes" => [],
+            "unusable-strokes" => [new("off-axis", new(72, 80), new(72, 79), new(72, 84), .9, ["off-axis"])],
+            _ => fixture.Strokes,
+        };
+        OcrTickLaneSelectionDiagnostic? observation = null;
+
+        IReadOnlyList<OcrDetectedRegion> result = TickLaneTextRegionRecovery.SelectZeroAnchorXTickCandidates(
+            fixture.Image, candidates, [], [], plot, strokes, value => observation = value);
+
+        Assert.IsEmpty(result);
+        Assert.IsNotNull(observation);
+        Assert.AreEqual(1, observation.ComponentCount);
+        Assert.AreEqual(0, observation.UsableStrokeCount);
+        Assert.AreEqual(0, observation.RejectedOutsideSeedBounds);
+        Assert.IsNull(observation.BoundsRejections, "Null denotes that classification did not run, not zero failures.");
+    }
+
+    [TestMethod]
+    public void ZeroAnchorDiagnosticsCountEachIndependentBoundsRejectionWithoutChangingSelection()
+    {
+        var fixture = ZeroAnchorFixture();
+        OcrDetectedRegion[] candidates =
+        [
+            OcrTestFixtures.Region("above", 70, 119, 5, 8),
+            OcrTestFixtures.Region("left", 20, 126, 5, 8),
+            OcrTestFixtures.Region("right", 240, 126, 5, 8),
+            OcrTestFixtures.Region("short", 90, 126, 5, 2),
+            OcrTestFixtures.Region("narrow", 100, 126, 1, 8),
+            OcrTestFixtures.Region("wide", 110, 126, 45, 8),
+            OcrTestFixtures.Region("far", 160, 153, 5, 8),
+            new OcrDetectedRegion("invalid", new OcrPolygon([new(70, 126), new(70, 130), new(70, 134)]), 0, .9),
+            OcrTestFixtures.Region("multiple", 20, 119, 1, 2),
+            OcrTestFixtures.Region("valid-1", 70, 126, 5, 8),
+            OcrTestFixtures.Region("valid-2", 192, 126, 5, 8),
+        ];
+        OcrTickLaneSelectionDiagnostic? observation = null;
+
+        IReadOnlyList<OcrDetectedRegion> withDiagnostics = TickLaneTextRegionRecovery.SelectZeroAnchorXTickCandidates(
+            fixture.Image, candidates, [], [], Plot, fixture.Strokes, value => observation = value);
+        IReadOnlyList<OcrDetectedRegion> withoutDiagnostics = TickLaneTextRegionRecovery.SelectZeroAnchorXTickCandidates(
+            fixture.Image, candidates, [], [], Plot, fixture.Strokes, diagnosticObserver: null);
+
+        Assert.IsNotNull(observation);
+        Assert.AreEqual(candidates.Length, observation.ComponentCount);
+        Assert.AreEqual(9, observation.RejectedOutsideSeedBounds);
+        Assert.AreEqual(new OcrTickLaneSeedBoundsRejections(
+            InvalidBounds: 1,
+            NotBelowPlot: 2,
+            LeftOfLane: 2,
+            RightOfLane: 1,
+            TooShort: 2,
+            TooNarrow: 3,
+            TooWide: 1,
+            TooFarBelowPlot: 1), observation.BoundsRejections);
+        Assert.HasCount(2, withDiagnostics);
+        CollectionAssert.AreEqual(withoutDiagnostics.ToArray(), withDiagnostics.ToArray());
+        CollectionAssert.AreEquivalent(withDiagnostics.Select(static region => region.RegionId).ToArray(),
+            observation.ProposedCrops.Select(static crop => crop.RegionId).ToArray());
+    }
+
     private static (OcrImage Image, IReadOnlyList<OcrXAxisTickStroke> Strokes) ZeroAnchorFixture(bool includeAxis = true)
     {
         const int width = 260;
