@@ -24,16 +24,17 @@ import torch
 
 from ml.markers.gate_seal import source_bundle_sha256
 from ml.markers.training_budget import CANONICAL_LEDGER_PATH, acquire_training_candidate, void_candidate
-from ..dual_scale_context_v1.runner import SOURCES as FAMILY_SOURCES
+from ..dual_scale_context_v1.runner import SOURCES as FAMILY_SOURCES, configure_project_git
 from ..confidence_spatial_v35.model import SpatialCenterNet
 from ..scale_classifier_v16.model import ModelConfig, ScaleClassifierNet
 from . import runner_foundation as runner
-from .checkpoint_writer import _ALLOWED_BASES, _project_file
+from .checkpoint_writer import _ALLOWED_BASES, _cpu_state, _project_file
 from .model import RealPositiveCenterNet
 from .objective import _require_training_gpu
-from .positive_archive import _open_read_only_no_writers
-from .registered_source import RegisteredMixedSource, _ARCHIVE_KEYS, _artifact_path, _digest, _json, _locked_bytes, _receipt
-from .schedule import ALGORITHM
+from .mixed_source import load_bound_family
+from .positive_archive import PositiveArchive, _open_read_only_no_writers
+from .registered_source import RegisteredMixedSource, _ARCHIVE_KEYS, _artifact_path, _batch_count, _digest, _json, _locked_bytes, _receipt
+from .schedule import ALGORITHM, FixedSchedule
 
 _LOCAL = Path("ml/markers/center/real_positive_context_v1")
 RUNNER_SOURCES = tuple(dict.fromkeys((*FAMILY_SOURCES, *(_LOCAL / name for name in (
@@ -206,52 +207,105 @@ def _preflight(revision: str, candidate_id: str) -> tuple[dict, Path, bytes]:
     return config, config_path, key
 
 
+def _prepare_inputs(config: dict, config_path: Path, key: bytes, stack: contextlib.ExitStack):
+    """Authenticate all data and GPU state before reserving a candidate.
+
+    The supplied stack owns read locks across candidate acquisition. The
+    registered source must open its own archive and base locks before release.
+    """
+    ledger_handle = stack.enter_context(_open_read_only_no_writers(_ROOT / CANONICAL_LEDGER_PATH))
+    config_handle = stack.enter_context(_open_read_only_no_writers(_ROOT / config_path))
+    receipt_handle = stack.enter_context(_open_read_only_no_writers(_artifact_path(config["real_positive_archive"]["receipt_path"])))
+    config_raw = config_handle.read(4 * 1024 * 1024 + 1)
+    if len(config_raw) > 4 * 1024 * 1024 or _json(config_raw) != config:
+        raise ValueError("Candidate configuration changed before acquisition")
+    locked_ledger = _json(ledger_handle.read(8 * 1024 * 1024 + 1))
+    entries = [item for item in locked_ledger.get("revisions", []) if isinstance(item, dict) and
+               item.get("task") == config["task"] and item.get("revision") == config["revision"]]
+    if (len(entries) != 1 or entries[0].get("candidate_config_sha256", {}).get(config["candidate_id"]) !=
+            sha256(config_raw).hexdigest()):
+        raise ValueError("Locked ledger and configuration do not match")
+    # Recheck the complete ledger/config/source bundle while both are locked.
+    second_config, second_path, second_key = _preflight(config["revision"], config["candidate_id"])
+    if second_config != config or second_path != config_path or second_key != key:
+        raise ValueError("Candidate admission changed before acquisition")
+    spec = config["real_positive_archive"]
+    receipt_raw = receipt_handle.read(4 * 1024 * 1024 + 1)
+    if len(receipt_raw) > 4 * 1024 * 1024:
+        raise ValueError("Producer receipt exceeds its size limit")
+    receipt = _receipt(receipt_raw, spec, config, key)
+    archive = stack.enter_context(PositiveArchive(_artifact_path(spec["archive_path"]), key=key,
+        file_sha256=bytes.fromhex(spec["file_sha256"]), run_id=bytes.fromhex(spec["run_id"]),
+        provenance=tuple(bytes.fromhex(value) for value in spec["provenance_sha256"])))
+    if archive.count != receipt["positive_count"] or _batch_count(archive) != receipt["batch_count"]:
+        raise ValueError("Producer receipt does not match the authenticated archive")
+    base_handle = stack.enter_context(_open_read_only_no_writers(_artifact_path(config["source_checkpoint_path"])))
+    base_raw = base_handle.read(512 * 1024 * 1024 + 1)
+    if len(base_raw) > 512 * 1024 * 1024 or sha256(base_raw).hexdigest() != runner.V37_CHECKPOINT_SHA256:
+        raise ValueError("Retained V37 checkpoint does not match admission")
+    base = torch.load(BytesIO(base_raw), map_location="cpu", weights_only=True)
+    if not isinstance(base, dict) or not isinstance(base.get("state_dict"), dict):
+        raise ValueError("Retained V37 checkpoint state is invalid")
+    local = SpatialCenterNet(ScaleClassifierNet(ModelConfig()))
+    local.load_state_dict(base["state_dict"], strict=True)
+    model = RealPositiveCenterNet(local).to(torch.device("cuda:0"))
+    _require_training_gpu(*model.parameters())
+    _cpu_state(model, base["state_dict"])
+    optimizer = torch.optim.AdamW(model.residual.parameters(), lr=runner.DRAFT_RECIPE.learning_rate,
+        weight_decay=runner.DRAFT_RECIPE.weight_decay, capturable=True)
+    runner._require_fresh_state(model, optimizer)
+    family, _provenance = load_bound_family()
+    schedule = FixedSchedule.from_bound_config(config_raw, sha256(config_raw).hexdigest(),
+        synthetic_ids=family.row_identities, real_positive_ids=archive.row_identities)
+    if schedule.total_steps != config["optimizer_steps_expected"]:
+        raise ValueError("Authenticated schedule steps do not match admission")
+    return model, optimizer
+
+
 def run_candidate(revision: str, candidate_id: str) -> dict:
     config, config_path, key = _preflight(revision, candidate_id)
     # Require the registered-source schedule gate before acquiring a candidate.
     if getattr(runner, "REGISTERED_SOURCE_SCHEDULE_GATE_READY", False) is not True:
         raise RuntimeError("The registered-source schedule gate is not reviewed")
     _require_training_gpu()
+    # Snapshot creation invokes Git. Validate this checkout with a process-local
+    # safe-directory entry before writing the irreversible single-use intent.
+    configure_project_git()
     directory = _ROOT / "ml/markers/training-seals/marker-center" / revision / candidate_id
-    directory.mkdir(parents=True, exist_ok=True)
     forbidden = ("entrypoint-intent.json", "opened.json", "source-snapshot.json", "void.json", "result.json",
                  "consumed.json", "optimizer-run-intent.json", "optimizer-journal.jsonl", "optimizer-run-outcome.json")
     if any((directory / name).exists() for name in forbidden):
         raise RuntimeError("Candidate has an existing single-use attempt")
-    runner._write_new_durable(directory / "entrypoint-intent.json", {
-        "schema": "graphreader.registered-entrypoint-intent.v1", "task": "marker-center",
-        "revision": revision, "candidate_id": candidate_id,
-        "config_sha256": sha256((_ROOT / config_path).read_bytes()).hexdigest(), "resume_authorized": False})
-    authorization = acquire_training_candidate(_ROOT, task="marker-center", revision=revision,
-        candidate_id=candidate_id, config_path=config_path, runner_source_paths=RUNNER_SOURCES)
-    try:
-        with RegisteredMixedSource.open_admitted(authorization, archive_key=key) as source:
-            source_path = _artifact_path(config["source_checkpoint_path"])
-            base_raw = _locked_bytes(source_path, 512 * 1024 * 1024)
-            if sha256(base_raw).hexdigest() != runner.V37_CHECKPOINT_SHA256:
-                raise ValueError("Retained V37 checkpoint does not match admission")
-            base = torch.load(BytesIO(base_raw), map_location="cpu", weights_only=True)
-            local = SpatialCenterNet(ScaleClassifierNet(ModelConfig()))
-            local.load_state_dict(base["state_dict"], strict=True)
-            model = RealPositiveCenterNet(local).to(torch.device("cuda:0"))
-            if not source.verify_model(model, runner.V37_CHECKPOINT_SHA256):
-                raise RuntimeError("Retained model does not match the V37 checkpoint")
-            _require_training_gpu(*model.parameters())
-            optimizer = torch.optim.AdamW(model.residual.parameters(), lr=runner.DRAFT_RECIPE.learning_rate,
-                weight_decay=runner.DRAFT_RECIPE.weight_decay, capturable=True)
-            result = runner.run_training(model, optimizer, source, authorization)
-        if result.get("status") != "training_complete_unapproved" or not _digest(result.get("checkpoint_sha256")):
-            raise RuntimeError("Candidate did not produce a verified checkpoint")
-        return {"status": result["status"], "checkpoint_sha256": result["checkpoint_sha256"]}
-    except BaseException:
-        # A pre-optimizer failure gets a sanitized void, but the permanent
-        # entrypoint intent still prevents a retry or misleading open seal.
-        if not (directory / "optimizer-run-intent.json").exists() and not (directory / "result.json").exists():
-            try:
-                void_candidate(authorization, RuntimeError("entrypoint_pre_optimizer_failure"))
-            except Exception:
-                pass
-        raise
+    with contextlib.ExitStack() as input_locks:
+        model, optimizer = _prepare_inputs(config, config_path, key, input_locks)
+        directory.mkdir(parents=True, exist_ok=True)
+        if any((directory / name).exists() for name in forbidden):
+            raise RuntimeError("Candidate has an existing single-use attempt")
+        runner._write_new_durable(directory / "entrypoint-intent.json", {
+            "schema": "graphreader.registered-entrypoint-intent.v1", "task": "marker-center",
+            "revision": revision, "candidate_id": candidate_id,
+            "config_sha256": sha256((_ROOT / config_path).read_bytes()).hexdigest(), "resume_authorized": False})
+        authorization = acquire_training_candidate(_ROOT, task="marker-center", revision=revision,
+            candidate_id=candidate_id, config_path=config_path, runner_source_paths=RUNNER_SOURCES)
+        try:
+            with RegisteredMixedSource.open_admitted(authorization, archive_key=key) as source:
+                # The source now owns its own no-writer handles to both files.
+                input_locks.close()
+                if not source.verify_model(model, runner.V37_CHECKPOINT_SHA256):
+                    raise RuntimeError("Retained model does not match the V37 checkpoint")
+                result = runner.run_training(model, optimizer, source, authorization)
+            if result.get("status") != "training_complete_unapproved" or not _digest(result.get("checkpoint_sha256")):
+                raise RuntimeError("Candidate did not produce a verified checkpoint")
+            return {"status": result["status"], "checkpoint_sha256": result["checkpoint_sha256"]}
+        except BaseException:
+            # A pre-optimizer failure gets a sanitized void, but the permanent
+            # entrypoint intent still prevents a retry or misleading open seal.
+            if not (directory / "optimizer-run-intent.json").exists() and not (directory / "result.json").exists():
+                try:
+                    void_candidate(authorization, RuntimeError("entrypoint_pre_optimizer_failure"))
+                except Exception:
+                    pass
+            raise
 
 
 class _Discard:

@@ -13,6 +13,10 @@ from unittest.mock import MagicMock, patch
 from . import entrypoint
 from . import registered_source as registered
 from .test_positive_archive import _build, _KEY, _RUN, _PROVENANCE
+from .test_mixed_source import _inputs
+from .mixed_source import FamilyRows
+from .positive_archive import PositiveArchive
+from .schedule import population_sha256
 
 
 class EntrypointTests(unittest.TestCase):
@@ -63,6 +67,7 @@ class EntrypointTests(unittest.TestCase):
         self.stack.enter_context(patch.object(entrypoint, "source_bundle_sha256", return_value="d" * 64))
         self.stack.enter_context(patch.object(entrypoint, "_load_key", return_value=_KEY))
         self.stack.enter_context(patch.object(entrypoint, "_ALLOWED_BASES", (self.base_path,)))
+        self.stack.enter_context(patch.object(entrypoint, "configure_project_git"))
 
     def _write(self):
         receipt = json.dumps(self.receipt, sort_keys=True).encode()
@@ -116,6 +121,7 @@ class EntrypointTests(unittest.TestCase):
         test_root = self.directory
         with patch.object(entrypoint, "_ROOT", test_root), \
              patch.object(entrypoint, "_preflight", return_value=({}, Path("candidate.json"), _KEY)), \
+             patch.object(entrypoint, "_prepare_inputs", return_value=(MagicMock(), MagicMock())), \
              patch.object(entrypoint.runner, "REGISTERED_SOURCE_SCHEDULE_GATE_READY", True, create=True), \
              patch.object(entrypoint, "_require_training_gpu", side_effect=lambda: events.append("gpu")), \
              patch.object(entrypoint, "acquire_training_candidate", side_effect=RuntimeError("synthetic failure")) as acquire:
@@ -145,12 +151,79 @@ class EntrypointTests(unittest.TestCase):
                 entrypoint.run_candidate("fixture-v1", "P1")
             acquire.assert_not_called()
 
+    def test_failed_input_validation_creates_no_candidate_attempt(self):
+        test_root = self.directory
+        with patch.object(entrypoint, "_ROOT", test_root), \
+             patch.object(entrypoint, "_preflight", return_value=({}, Path("candidate.json"), _KEY)), \
+             patch.object(entrypoint.runner, "REGISTERED_SOURCE_SCHEDULE_GATE_READY", True, create=True), \
+             patch.object(entrypoint, "_require_training_gpu"), \
+             patch.object(entrypoint, "_prepare_inputs", side_effect=ValueError("synthetic bad input")), \
+             patch.object(entrypoint, "acquire_training_candidate") as acquire:
+            with self.assertRaisesRegex(ValueError, "synthetic bad input"):
+                entrypoint.run_candidate("fixture-v1", "P1")
+            acquire.assert_not_called()
+            self.assertFalse((test_root / "ml/markers/training-seals/marker-center/fixture-v1/P1").exists())
+
+    def test_actual_synthetic_archive_and_schedule_are_preflighted_under_locks(self):
+        contexts, labels, bound = _inputs()
+        family = FamilyRows(contexts, labels, bound)
+        with PositiveArchive(self.archive_path, key=_KEY, file_sha256=sha256(self.archive).digest(),
+                             run_id=_RUN, provenance=_PROVENANCE) as archive:
+            self.config["schedule"]["real_positive_population_sha256"] = population_sha256("real-positive", archive.row_identities)
+        self.config["schedule"]["synthetic_population_sha256"] = population_sha256("synthetic", family.row_identities)
+        base_hash = sha256(self.base_path.read_bytes()).hexdigest()
+        self.config["source_checkpoint_sha256"] = base_hash
+        self._write()
+        model = MagicMock()
+        model.to.return_value = model
+        model.parameters.return_value = []
+        model.residual.parameters.return_value = []
+        with patch.object(entrypoint.runner, "V37_CHECKPOINT_SHA256", base_hash), \
+             patch.object(entrypoint, "_require_training_gpu"), \
+             patch.object(entrypoint, "_cpu_state"), \
+             patch.object(entrypoint.runner, "_require_fresh_state"), \
+             patch.object(entrypoint, "load_bound_family", return_value=(family, {})), \
+             patch.object(entrypoint.torch, "load", return_value={"state_dict": {}}), \
+             patch.object(entrypoint, "SpatialCenterNet"), \
+             patch.object(entrypoint, "ScaleClassifierNet"), \
+             patch.object(entrypoint, "RealPositiveCenterNet", return_value=model), \
+             patch.object(entrypoint.torch.optim, "AdamW") as optimizer:
+            config, path, key = entrypoint._preflight("fixture-v1", "P1")
+            with ExitStack() as locks:
+                actual_model, _ = entrypoint._prepare_inputs(config, path, key, locks)
+                self.assertIs(actual_model, model)
+                self.assertTrue(optimizer.call_args.kwargs["capturable"])
+                for value in (self.archive_path, self.base_path):
+                    with self.assertRaises((PermissionError, OSError)):
+                        with open(value, "r+b"):
+                            pass
+            for value in (self.archive_path, self.base_path):
+                with open(value, "r+b"):
+                    pass
+            self.config["schedule"]["synthetic_population_sha256"] = "0" * 64
+            self._write()
+            config, path, key = entrypoint._preflight("fixture-v1", "P1")
+            with ExitStack() as locks, self.assertRaisesRegex(ValueError, "digest"):
+                entrypoint._prepare_inputs(config, path, key, locks)
+            self.config["schedule"]["synthetic_population_sha256"] = population_sha256("synthetic", family.row_identities)
+            self._write()
+            config, path, key = entrypoint._preflight("fixture-v1", "P1")
+            self.base_path.write_bytes(b"changed base")
+            with ExitStack() as locks, self.assertRaisesRegex(ValueError, "V37 checkpoint"):
+                entrypoint._prepare_inputs(config, path, key, locks)
+            self.base_path.write_bytes(b"synthetic base")
+            damaged = bytearray(self.archive)
+            damaged[100] ^= 1
+            self.archive_path.write_bytes(damaged)
+            with ExitStack() as locks, self.assertRaises(ValueError):
+                entrypoint._prepare_inputs(config, path, key, locks)
     def test_pre_optimizer_failure_voids_with_sanitized_error(self):
         test_root = self.directory
         (test_root / "candidate.json").write_bytes(b"fixture")
         authorization = MagicMock()
         with patch.object(entrypoint, "_ROOT", test_root), \
              patch.object(entrypoint, "_preflight", return_value=({}, Path("candidate.json"), _KEY)), \
+             patch.object(entrypoint, "_prepare_inputs", return_value=(MagicMock(), MagicMock())), \
              patch.object(entrypoint.runner, "REGISTERED_SOURCE_SCHEDULE_GATE_READY", True, create=True), \
              patch.object(entrypoint, "_require_training_gpu"), \
              patch.object(entrypoint, "acquire_training_candidate", return_value=authorization), \
@@ -173,11 +246,18 @@ class EntrypointTests(unittest.TestCase):
         model.residual.parameters.return_value = []
         authorization = MagicMock()
         order = []
+        def assert_locked():
+            for path in (self.archive_path, self.base_path):
+                with self.assertRaises((OSError, PermissionError)):
+                    with open(path, "r+b"):
+                        pass
         def acquire(*_args, **_kwargs):
             self.assertTrue((test_root / "ml/markers/training-seals/marker-center/fixture-v1/P1/entrypoint-intent.json").is_file())
+            assert_locked()
             order.append("acquire")
             return authorization
         def open_source(*_args, **_kwargs):
+            assert_locked()
             order.append("registered_source")
             return context
         def run(*_args):
@@ -185,8 +265,14 @@ class EntrypointTests(unittest.TestCase):
             return {"status": "training_complete_unapproved", "checkpoint_sha256": "b" * 64,
                     "ignored_private_metadata": "never output"}
         raw = b"synthetic checkpoint"
+        def prepare(_config, _path, _key, stack):
+            stack.enter_context(entrypoint._open_read_only_no_writers(self.archive_path))
+            stack.enter_context(entrypoint._open_read_only_no_writers(self.base_path))
+            order.append("inputs_ready")
+            return model, MagicMock()
         with patch.object(entrypoint, "_ROOT", test_root), \
              patch.object(entrypoint, "_preflight", return_value=({"source_checkpoint_path": "synthetic.pt"}, Path("candidate.json"), _KEY)), \
+             patch.object(entrypoint, "_prepare_inputs", side_effect=prepare), \
              patch.object(entrypoint.runner, "REGISTERED_SOURCE_SCHEDULE_GATE_READY", True, create=True), \
              patch.object(entrypoint.runner, "V37_CHECKPOINT_SHA256", sha256(raw).hexdigest()), \
              patch.object(entrypoint, "_require_training_gpu", side_effect=lambda *_: order.append("gpu_check")), \
@@ -198,12 +284,10 @@ class EntrypointTests(unittest.TestCase):
              patch.object(entrypoint, "SpatialCenterNet"), \
              patch.object(entrypoint, "ScaleClassifierNet"), \
              patch.object(entrypoint, "RealPositiveCenterNet", return_value=model), \
-             patch.object(entrypoint.torch.optim, "AdamW") as optimizer, \
              patch.object(entrypoint.runner, "run_training", side_effect=run):
             result = entrypoint.run_candidate("fixture-v1", "P1")
-        self.assertEqual(order, ["gpu_check", "acquire", "registered_source", "gpu_check", "runner"])
+        self.assertEqual(order, ["gpu_check", "inputs_ready", "acquire", "registered_source", "runner"])
         self.assertEqual(result, {"status": "training_complete_unapproved", "checkpoint_sha256": "b" * 64})
-        self.assertTrue(optimizer.call_args.kwargs["capturable"])
 
     def test_windows_key_acl_accepts_only_protected_authorized_principals(self):
         key_path = self.directory / "synthetic-key.bin"
