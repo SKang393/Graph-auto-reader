@@ -4,6 +4,7 @@
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -139,6 +140,62 @@ public sealed class ResourcesAndLocalizationTests
             dictionaryKeys.Order(StringComparer.Ordinal).ToArray(),
             registeredKeys.Order(StringComparer.Ordinal).ToArray(),
             "Every localized string must be registered and every registered key must be translated.");
+    }
+
+    [TestMethod]
+    public void ManualEditHistoryLabelsResolveAndAreNeverPassedAsUnregisteredLiterals()
+    {
+        string viewModelPath = Path.Combine(
+            RepositoryTestPaths.Root,
+            "src",
+            "GraphReader.App",
+            "ViewModels",
+            "MainWindowViewModel.cs");
+        string viewModelSource = File.ReadAllText(viewModelPath);
+        Assert.IsFalse(
+            Regex.IsMatch(viewModelSource, @"RecordManualEdit\(\s*[^,]+,\s*""Edit\."),
+            "History descriptions must use registered localization constants.");
+
+        string[] historyKeys =
+        [
+            LocalizationKeys.EditAddPoint,
+            LocalizationKeys.EditDeletePoint,
+            LocalizationKeys.EditMovePoint,
+            LocalizationKeys.EditMergeSeries,
+            LocalizationKeys.EditSplitSeries,
+            LocalizationKeys.EditReassignPoint,
+            LocalizationKeys.EditCalibrate,
+            LocalizationKeys.EditAddPhaseDivider,
+            LocalizationKeys.EditMovePhaseDivider,
+            LocalizationKeys.EditCreateSeries,
+            LocalizationKeys.EditEditSeries,
+            LocalizationKeys.EditDeletePhaseDivider,
+            LocalizationKeys.EditLabelPhaseDivider,
+        ];
+
+        string localizationPath = Path.Combine(
+            RepositoryTestPaths.Root,
+            "src",
+            "GraphReader.App",
+            "Localization",
+            "Resources.en-US.xaml");
+        XNamespace xaml = "http://schemas.microsoft.com/winfx/2006/xaml";
+        Dictionary<string, string> translations = XDocument.Load(localizationPath)
+            .Descendants()
+            .Select(element => new
+            {
+                Key = element.Attribute(xaml + "Key")?.Value,
+                Value = element.Value,
+            })
+            .Where(entry => !string.IsNullOrWhiteSpace(entry.Key))
+            .ToDictionary(entry => entry.Key!, entry => entry.Value, StringComparer.Ordinal);
+
+        foreach (string key in historyKeys)
+        {
+            Assert.IsTrue(translations.TryGetValue(key, out string? value), key);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(value), key);
+            Assert.AreNotEqual(key, value, key);
+        }
     }
 
     [TestMethod]

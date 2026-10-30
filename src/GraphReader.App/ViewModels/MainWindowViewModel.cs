@@ -764,7 +764,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 Magnifier.PixelPosition.Y);
             SelectedPointId = added.PointId;
             SelectedSeriesId = seriesId;
-            RecordManualEdit(manualTab, "Edit.AddPoint", before);
+            RecordManualEdit(manualTab, LocalizationKeys.EditAddPoint, before);
             QueueAutosave(SnapshotTrigger.PointEdited, manualTab.TabId, added.PointId);
             return;
         }
@@ -782,7 +782,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         tab.Points.Add(point);
         SelectedPointId = point.PointId;
         series.NotifyCountChanged();
-        RecordManualEdit(tab, "Edit.AddPoint", before);
+        RecordManualEdit(tab, LocalizationKeys.EditAddPoint, before);
         RefreshWorkspaceProjection();
     }
 
@@ -800,7 +800,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             }
 
             FindSeries(manualPoint.SeriesId)?.NotifyCountChanged();
-            RecordManualEdit(manualTab, "Edit.DeletePoint", before);
+            RecordManualEdit(manualTab, LocalizationKeys.EditDeletePoint, before);
             QueueAutosave(SnapshotTrigger.PointEdited, manualTab.TabId, pointId);
             return;
         }
@@ -815,7 +815,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
 
         FindSeries(seriesId)?.NotifyCountChanged();
-        RecordManualEdit(tab, "Edit.DeletePoint", before);
+        RecordManualEdit(tab, LocalizationKeys.EditDeletePoint, before);
         RefreshWorkspaceProjection();
     }
 
@@ -832,7 +832,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         {
             _manualWorkspaceService.MovePoint(manualTab.TabId, pointId, pixelX, pixelY);
             SelectedPointId = pointId;
-            RecordManualEdit(manualTab, "Edit.MovePoint", before);
+            RecordManualEdit(manualTab, LocalizationKeys.EditMovePoint, before);
             QueueAutosave(SnapshotTrigger.PointEdited, manualTab.TabId, pointId);
             return;
         }
@@ -842,7 +842,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         point.PixelY = pixelY;
         SelectedPointId = point.PointId;
         FindSeries(point.SeriesId)?.NotifyCountChanged();
-        RecordManualEdit(historyTab, "Edit.MovePoint", before);
+        RecordManualEdit(historyTab, LocalizationKeys.EditMovePoint, before);
         RefreshWorkspaceProjection();
     }
 
@@ -865,7 +865,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         source.NotifyCountChanged();
         target.NotifyCountChanged();
         tab.SeriesCards.Remove(source);
-        RecordManualEdit(tab, "Edit.MergeSeries", before);
+        RecordManualEdit(tab, LocalizationKeys.EditMergeSeries, before);
         RefreshWorkspaceProjection();
     }
 
@@ -906,7 +906,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         source.NotifyCountChanged();
         created.NotifyCountChanged();
         ConfigureSeriesSelection(created);
-        RecordManualEdit(tab, "Edit.SplitSeries", before);
+        RecordManualEdit(tab, LocalizationKeys.EditSplitSeries, before);
         RefreshWorkspaceProjection();
     }
 
@@ -934,7 +934,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             _manualWorkspaceService.ReassignPoint(manualTab.TabId, pointId, targetSeriesId);
             SelectedPointId = pointId;
             SelectedSeriesId = targetSeriesId;
-            RecordManualEdit(manualTab, "Edit.ReassignPoint", before);
+            RecordManualEdit(manualTab, LocalizationKeys.EditReassignPoint, before);
             QueueAutosave(SnapshotTrigger.PointEdited, manualTab.TabId, pointId);
             return;
         }
@@ -952,7 +952,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         point.SeriesId = targetSeriesId;
         FindSeries(sourceSeriesId)?.NotifyCountChanged();
         target.NotifyCountChanged();
-        RecordManualEdit(historyTab, "Edit.ReassignPoint", before);
+        RecordManualEdit(historyTab, LocalizationKeys.EditReassignPoint, before);
         RefreshWorkspaceProjection();
     }
 
@@ -987,7 +987,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                             ManualXMaximum));
                     EditorMode = ManualEditorMode.Select;
                     SetStatus(GetLocalizedString(LocalizationKeys.ManualCalibrationSaved));
-                    RecordManualEdit(tab, "Edit.Calibrate", before!);
+                    RecordManualEdit(tab, LocalizationKeys.EditCalibrate, before!);
                     await TryAutosaveAsync(SnapshotTrigger.CalibrationChanged, tab.TabId, null, cancellationToken);
                 }
                     break;
@@ -1006,7 +1006,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 SelectedPointId = added.PointId;
                 EditorMode = ManualEditorMode.Select;
                 SetStatus(GetLocalizedString(LocalizationKeys.ManualPointAdded));
-                RecordManualEdit(tab, "Edit.AddPoint", before!);
+                RecordManualEdit(tab, LocalizationKeys.EditAddPoint, before!);
                 await TryAutosaveAsync(SnapshotTrigger.PointEdited, tab.TabId, added.PointId, cancellationToken);
                     break;
                 case ManualEditorMode.MovePoint:
@@ -1015,7 +1015,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                     _manualWorkspaceService.MovePoint(tab.TabId, SelectedPointId, point.X, point.Y);
                     EditorMode = ManualEditorMode.Select;
                     SetStatus(GetLocalizedString(LocalizationKeys.ManualPointMoved));
-                    RecordManualEdit(tab, "Edit.MovePoint", before!);
+                    RecordManualEdit(tab, LocalizationKeys.EditMovePoint, before!);
                     await TryAutosaveAsync(SnapshotTrigger.PointEdited, tab.TabId, SelectedPointId, cancellationToken);
                 }
                     break;
@@ -1028,7 +1028,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 SelectedDividerId = divider.DividerId;
                 EditorMode = ManualEditorMode.Select;
                 SetStatus(GetLocalizedString(LocalizationKeys.ManualDividerAdded));
-                RecordManualEdit(tab, "Edit.AddPhaseDivider", before!);
+                RecordManualEdit(tab, LocalizationKeys.EditAddPhaseDivider, before!);
                 await TryAutosaveAsync(SnapshotTrigger.PhaseEdited, tab.TabId, divider.DividerId, cancellationToken);
                     break;
                 case ManualEditorMode.MovePhaseDivider:
@@ -1037,7 +1037,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                     _manualWorkspaceService.MovePhaseDivider(tab.TabId, SelectedDividerId, point.X);
                     EditorMode = ManualEditorMode.Select;
                     SetStatus(GetLocalizedString(LocalizationKeys.ManualDividerMoved));
-                    RecordManualEdit(tab, "Edit.MovePhaseDivider", before!);
+                    RecordManualEdit(tab, LocalizationKeys.EditMovePhaseDivider, before!);
                     await TryAutosaveAsync(SnapshotTrigger.PhaseEdited, tab.TabId, SelectedDividerId, cancellationToken);
                 }
                     break;
@@ -1433,7 +1433,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 new ManualSeriesDefinition(NewSeriesName, symbol, NewSeriesShape, NewSeriesFill, NewSeriesRole));
             ConfigureSeriesSelection(series);
             SelectedSeriesId = series.SeriesId;
-            RecordManualEdit(tab, "Edit.CreateSeries", before);
+            RecordManualEdit(tab, LocalizationKeys.EditCreateSeries, before);
             SetStatus(FormatLocalizedString(LocalizationKeys.ManualSeriesCreatedFormat, series.Label));
             QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, series.SeriesId);
         }
@@ -1474,7 +1474,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                     NewSeriesShape,
                     NewSeriesFill,
                     NewSeriesRole));
-            RecordManualEdit(tab, "Edit.EditSeries", before);
+            RecordManualEdit(tab, LocalizationKeys.EditEditSeries, before);
             SetStatus(FormatLocalizedString(LocalizationKeys.ManualSeriesSelectedFormat, NewSeriesName));
             QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, seriesId);
             RefreshSeriesRelationChoices();
@@ -1650,7 +1650,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         WorkspaceTabSnapshot before = CaptureTabSnapshot(tab);
         _manualWorkspaceService.DeletePhaseDivider(tab.TabId, dividerId);
         SelectedDividerId = tab.PhaseDividers.FirstOrDefault()?.DividerId;
-        RecordManualEdit(tab, "Edit.DeletePhaseDivider", before);
+        RecordManualEdit(tab, LocalizationKeys.EditDeletePhaseDivider, before);
         SetStatus(GetLocalizedString(LocalizationKeys.ManualDividerDeleted));
         QueueAutosave(SnapshotTrigger.PhaseEdited, tab.TabId, dividerId);
     }
@@ -1672,7 +1672,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         {
             WorkspaceTabSnapshot before = CaptureTabSnapshot(tab);
             _manualWorkspaceService.LabelPhaseDivider(tab.TabId, dividerId, PhaseCode, PhaseLabel);
-            RecordManualEdit(tab, "Edit.LabelPhaseDivider", before);
+            RecordManualEdit(tab, LocalizationKeys.EditLabelPhaseDivider, before);
             SetStatus(GetLocalizedString(LocalizationKeys.ManualDividerLabeled));
             QueueAutosave(SnapshotTrigger.PhaseEdited, tab.TabId, dividerId);
         }
