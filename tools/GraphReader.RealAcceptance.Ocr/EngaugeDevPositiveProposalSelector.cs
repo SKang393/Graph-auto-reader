@@ -46,7 +46,26 @@ internal static class EngaugeDevPositiveProposalSelector
         var frame = new MarkerImageFrame(planes.Width, planes.Height, 1, planes.Gray, MarkerSourceImage.Original,
             MarkerAffineTransform.Identity, new MarkerMask(planes.Width, planes.Height, planes.Ocr),
             new MarkerMask(planes.Width, planes.Height, planes.Artifact));
-        NormalizedMarkerProposalBatch proposals = NormalizedMarkerProposalPreprocessor.Prepare(frame, token);
+        const int stride = NormalizedMarkerProposalContract.ProposalStride;
+        var requested = new HashSet<MarkerPoint>();
+        foreach (EngaugePositiveCenter center in group.PositiveCenters)
+        {
+            token.ThrowIfCancellationRequested();
+            int firstX = Math.Max(0, (int)Math.Ceiling((center.X - PositiveDistancePixels) / stride));
+            int lastX = Math.Min((planes.Width - 1) / stride, (int)Math.Floor((center.X + PositiveDistancePixels) / stride));
+            int firstY = Math.Max(0, (int)Math.Ceiling((center.Y - PositiveDistancePixels) / stride));
+            int lastY = Math.Min((planes.Height - 1) / stride, (int)Math.Floor((center.Y + PositiveDistancePixels) / stride));
+            for (int gy = firstY; gy <= lastY; gy++)
+            for (int gx = firstX; gx <= lastX; gx++)
+            {
+                int x = gx * stride, y = gy * stride;
+                double dx = x - center.X, dy = y - center.Y;
+                if (dx * dx + dy * dy <= PositiveDistancePixels * PositiveDistancePixels)
+                    requested.Add(new MarkerPoint(x, y));
+            }
+        }
+        NormalizedMarkerProposalBatch proposals =
+            NormalizedMarkerProposalPreprocessor.PrepareSelected(frame, requested, token);
         int patchValues = checked(NormalizedMarkerProposalContract.ChannelCount *
             NormalizedMarkerProposalContract.PatchSize * NormalizedMarkerProposalContract.PatchSize);
         var selected = new List<int>();

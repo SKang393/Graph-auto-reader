@@ -101,6 +101,25 @@ public static class NormalizedMarkerProposalPreprocessor
 {
     public static NormalizedMarkerProposalBatch Prepare(
         MarkerImageFrame frame,
+        CancellationToken cancellationToken) =>
+        PrepareFrame(frame, null, cancellationToken);
+
+    /// <summary>
+    /// Prepare only requested eligible grid locations using the identical runtime
+    /// preprocessing contract. Useful when only a small subset is needed.
+    /// </summary>
+    public static NormalizedMarkerProposalBatch PrepareSelected(
+        MarkerImageFrame frame,
+        IReadOnlySet<MarkerPoint> requested,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(requested);
+        return PrepareFrame(frame, new HashSet<MarkerPoint>(requested), cancellationToken);
+    }
+
+    private static NormalizedMarkerProposalBatch PrepareFrame(
+        MarkerImageFrame frame,
+        IReadOnlySet<MarkerPoint>? requested,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(frame);
@@ -126,12 +145,13 @@ public static class NormalizedMarkerProposalPreprocessor
             }
         }
 
-        return Prepare(
+        return PrepareCore(
             frame.Width,
             frame.Height,
             inkProbability,
             frame.OcrMask,
             frame.ArtifactMask,
+            requested,
             cancellationToken);
     }
 
@@ -141,6 +161,16 @@ public static class NormalizedMarkerProposalPreprocessor
         ReadOnlyMemory<float> inkProbability,
         MarkerMask textMask,
         MarkerMask artifactMask,
+        CancellationToken cancellationToken) =>
+        PrepareCore(width, height, inkProbability, textMask, artifactMask, null, cancellationToken);
+
+    private static NormalizedMarkerProposalBatch PrepareCore(
+        int width,
+        int height,
+        ReadOnlyMemory<float> inkProbability,
+        MarkerMask textMask,
+        MarkerMask artifactMask,
+        IReadOnlySet<MarkerPoint>? requested,
         CancellationToken cancellationToken)
     {
         ValidatePlane(inkProbability, width, height, 1, nameof(inkProbability));
@@ -176,6 +206,10 @@ public static class NormalizedMarkerProposalPreprocessor
             cancellationToken.ThrowIfCancellationRequested();
             for (var x = 0; x < width; x += NormalizedMarkerProposalContract.ProposalStride)
             {
+                if (requested is not null && !requested.Contains(new MarkerPoint(x, y)))
+                {
+                    continue;
+                }
                 if (!HasThresholdHit(
                         inkSupport,
                         width,

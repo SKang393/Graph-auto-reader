@@ -10,6 +10,54 @@ namespace GraphReader.Markers.Tests.Detection;
 public sealed class NormalizedMarkerProposalPreprocessorTests
 {
     [TestMethod]
+    public void SelectedProposalsMatchFullProductionPatchesAndEligibility()
+    {
+        const int size = 33;
+        float[] luminance = Enumerable.Repeat(1f, size * size).ToArray();
+        luminance[0] = 0f;
+        luminance[16 * size + 16] = 0f;
+        float[] text = new float[size * size];
+        text[4] = 0.35f;
+        text[8 * size + 8] = 1f;
+        float[] artifact = new float[size * size];
+        artifact[20 * size + 20] = 0.75f;
+        var frame = new MarkerImageFrame(size, size, 1, luminance, MarkerSourceImage.Original,
+            MarkerAffineTransform.Identity, new MarkerMask(size, size, text), new MarkerMask(size, size, artifact));
+        var requested = new HashSet<MarkerPoint>
+        {
+            new(0, 0), new(0, 0), new(4, 0), new(8, 8), new(12, 16),
+            new(16, 16), new(20, 20), new(32, 32),
+        };
+
+        NormalizedMarkerProposalBatch full = NormalizedMarkerProposalPreprocessor.Prepare(frame, CancellationToken.None);
+        NormalizedMarkerProposalBatch selected = NormalizedMarkerProposalPreprocessor.PrepareSelected(
+            frame, requested, CancellationToken.None);
+        MarkerPoint[] expected = full.Coordinates.Where(requested.Contains).ToArray();
+        CollectionAssert.AreEqual(expected, selected.Coordinates.ToArray());
+        CollectionAssert.Contains(expected, new MarkerPoint(0, 0));
+        CollectionAssert.Contains(expected, new MarkerPoint(4, 0));
+        CollectionAssert.DoesNotContain(expected, new MarkerPoint(8, 8));
+        CollectionAssert.DoesNotContain(expected, new MarkerPoint(20, 20));
+        Assert.IsGreaterThan(selected.Count, full.Count);
+        int patchValues = 3 * NormalizedMarkerProposalContract.PatchSize * NormalizedMarkerProposalContract.PatchSize;
+        for (int i = 0; i < expected.Length; i++)
+        {
+            int source = Array.IndexOf(full.Coordinates.ToArray(), expected[i]);
+            CollectionAssert.AreEqual(full.Tensor.Slice(source * patchValues, patchValues).ToArray(),
+                selected.Tensor.Slice(i * patchValues, patchValues).ToArray());
+        }
+        Assert.AreEqual(0f, selected.Tensor.Span[0], "Out-of-image ink remains zero padded.");
+        Assert.AreEqual(1f, selected.Tensor.Span[16 * size + 16], "Edge anchor retains its ink pixel.");
+
+        NormalizedMarkerProposalBatch empty = NormalizedMarkerProposalPreprocessor.PrepareSelected(
+            frame, new HashSet<MarkerPoint>(), CancellationToken.None);
+        Assert.AreEqual(0, empty.Count);
+        Assert.AreEqual(0, empty.Tensor.Length);
+        Assert.ThrowsExactly<OperationCanceledException>(() =>
+            NormalizedMarkerProposalPreprocessor.PrepareSelected(frame, requested, new CancellationToken(canceled: true)));
+    }
+
+    [TestMethod]
     public void FrozenPythonFixtureProducesExactCoordinatesAndTensorBytes()
     {
         const int size = 33;

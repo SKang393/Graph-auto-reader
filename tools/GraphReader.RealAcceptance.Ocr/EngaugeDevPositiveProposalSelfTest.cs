@@ -34,6 +34,17 @@ internal static class EngaugeDevPositiveProposalSelfTest
         Require(result.Tensor.Span[second + area + 12 * 33 + 16] == 1 &&
             result.Tensor.Span[second + 2 * area + 12 * 33 + 24] == 1,
             "runtime_text_and_artifact_channels");
+        var frame = new MarkerImageFrame(width, height, 1, gray, MarkerSourceImage.Original,
+            MarkerAffineTransform.Identity, new MarkerMask(width, height, text), new MarkerMask(width, height, artifact));
+        NormalizedMarkerProposalBatch full = NormalizedMarkerProposalPreprocessor.Prepare(frame, CancellationToken.None);
+        int valuesPerPatch = 3 * area;
+        for (int i = 0; i < result.Coordinates.Count; i++)
+        {
+            int sourceIndex = Array.IndexOf(full.Coordinates.ToArray(), result.Coordinates[i]);
+            Require(sourceIndex >= 0 && result.Tensor.Span.Slice(i * valuesPerPatch, valuesPerPatch)
+                .SequenceEqual(full.Tensor.Span.Slice(sourceIndex * valuesPerPatch, valuesPerPatch)),
+                "exact_full_production_patch_parity");
+        }
 
         var wrongIdentity = new EngaugeDevRuntimePlanes(new string('0', 64), width, height, gray, text, artifact, labels);
         ExpectMismatch(wrongIdentity, group);
