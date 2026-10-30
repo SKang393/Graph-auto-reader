@@ -3,6 +3,17 @@
 Graph Auto Reader uses a custom numeric `x.y.z` sequence. Each component ranges
 from 0 through 99. This is not Semantic Versioning.
 
+## Storage and build frequency, effective 2026-10-29
+
+[Artifact retention](ARTIFACT-RETENTION.md) governs all run outputs and local
+builds. Keep one latest verified packaged build identity across every purpose;
+its matching installer/portable pair is one set. Package only meaningful
+integrated changes, not each edit or push. Upload actual packages to repository
+artifact storage and push their source/ledger records before replacing the
+current build. Completed test/training/validation outputs are temporary: push a
+concise outcome record, finish active consumers, then clean them. Remove unused
+legacy files from the current tree; use pushed Git history for reference.
+
 ## Build checkpoints
 
 Every packaged application build, including a rebuild, advances the central
@@ -72,10 +83,14 @@ the central version. The build script refuses a dirty tree, the retired
 `-AllowDirty` mode, and a central version that is not the ledger successor.
 
 Portable previews, training snapshots, generated weights, caches, `bin`, and
-`obj` are not committed and are not GitHub Releases. Every portable build is
-recorded in `docs/BUILD_LEDGER.json`; the ledger commit is pushed before the
-previous build directory is deleted. Exactly one portable build directory is
-kept locally. A failed commit or push retains both the previous and new build.
+`obj` are not committed as ordinary Git blobs. Internal packages are uploaded
+to repository artifact storage, not published as public GitHub Releases. Every
+packaged build is recorded in `docs/BUILD_LEDGER.json`; confirm its package upload
+and ledger push before replacing the latest pointer and deleting the previous
+build. Keep one current build identity across all purposes, with at most one
+temporary staging candidate during replacement. Failed staging outputs are
+cleaned after recording the failure; a failed push must not remove the current
+usable build. Do not create additional packages to work around a failed push.
 
 ## Arithmetic cadence and publication hold
 
@@ -112,7 +127,8 @@ or missing release artifacts.
 The 2026-09-08 maintainer decision authorizes the complete 2.0.0 installer and
 portable ZIP release only after all required gates pass. It explicitly withholds
 intermediate public releases, even at cadence-eligible checkpoints. Phase commits
-still go to `origin/main`. Keep existing local portable build history intact.
+still go to `origin/main`. Keep historical build ledger entries intact; retire
+superseded local binaries under the October 29 artifact-retention policy.
 The current repository's GitHub release list was empty on that date; no earlier
 1.x release identity has been verified here, and none may be fabricated.
 

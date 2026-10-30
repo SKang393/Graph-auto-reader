@@ -1,0 +1,65 @@
+{
+  "recorded_at": "2026-10-29",
+  "source": "Original ROCm pip installation report from the user-named probe folder",
+  "purpose": "Existing local GPU training toolchain relocation; no new dependency installation",
+  "privacy": "No research data or model weights included",
+  "git_eligible": "Metadata only; installed environment remains ignored",
+  "packages": [
+    {
+      "name": "torch",
+      "version": "2.13.0+rocm10.1.0",
+      "source_url": "https://stable.repo.amd.com/rocm/pytorch/whl-next/torch/torch-2.13.0%2Brocm10.1.0-cp313-cp313-win_amd64.whl",
+      "archive_sha256": "434fcff23c564984cb3edff4b2b2a9c5b1cf2610432adcd03844c35bc00b15f4",
+      "license_expression": "Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND MIT",
+      "notices": "Retained in the ignored installed distribution; not approved for application bundling."
+    },
+    {
+      "name": "amd-torch-device-gfx1032",
+      "version": "2.13.0+rocm10.1.0",
+      "source_url": "https://stable.repo.amd.com/rocm/pytorch/whl-next/amd-torch-device-gfx1032/amd_torch_device_gfx1032-2.13.0%2Brocm10.1.0-cp313-cp313-win_amd64.whl",
+      "archive_sha256": "bdb1b60928825807a668ad3f599123609099be66aa39cb4c1799e0bfbe9ac211",
+      "license_expression": null,
+      "notices": "Retained in the ignored installed distribution; not approved for application bundling."
+    },
+    {
+      "name": "rocm",
+      "version": "10.1.0",
+      "source_url": "https://stable.repo.amd.com/rocm/core/whl-next/rocm/rocm-10.1.0.tar.gz",
+      "archive_sha256": "e6616e62ebd1324031681e6e59349d46ee4f143a8d8f4f901a91c35c993041fc",
+      "license_expression": null,
+      "notices": "Retained in the ignored installed distribution; not approved for application bundling."
+    },
+    {
+      "name": "rocm-sdk-core",
+      "version": "10.1.0",
+      "source_url": "https://stable.repo.amd.com/rocm/core/whl-next/rocm-sdk-core/rocm_sdk_core-10.1.0-py3-none-win_amd64.whl",
+      "archive_sha256": "b12f1c4cde14ed1cd8864006d17586c6b1e6a4e4695b9597cfe04ed7715e952f",
+      "license_expression": null,
+      "notices": "Retained in the ignored installed distribution; not approved for application bundling."
+    },
+    {
+      "name": "rocm-sdk-device-gfx1032",
+      "version": "10.1.0",
+      "source_url": "https://stable.repo.amd.com/rocm/core/whl-next/rocm-sdk-device-gfx1032/rocm_sdk_device_gfx1032-10.1.0-py3-none-win_amd64.whl",
+      "archive_sha256": "9dc3058daec37c7ad7ac9b003c0f34a81fbe12059758213a4cc0726355ccb275",
+      "license_expression": null,
+      "notices": "Retained in the ignored installed distribution; not approved for application bundling."
+    },
+    {
+      "name": "rocm-sdk-libraries",
+      "version": "10.1.0",
+      "source_url": "https://stable.repo.amd.com/rocm/core/whl-next/rocm-sdk-libraries/rocm_sdk_libraries-10.1.0-py3-none-win_amd64.whl",
+      "archive_sha256": "0c34bafbb4aa626cc710d8b130bb314f591194c3d79eeb5892b755ea0be06159",
+      "license_expression": null,
+      "notices": "Retained in the ignored installed distribution; not approved for application bundling."
+    },
+    {
+      "name": "rocm-bootstrap",
+      "version": "0.3.0",
+      "source_url": "https://stable.repo.amd.com/rocm/core/whl-next/rocm-bootstrap/rocm_bootstrap-0.3.0-py3-none-any.whl",
+      "archive_sha256": "62d0160ecdd86f7132dbab9aec257cb2c96327df2592b0633aa6bb56399cc095",
+      "license_expression": "MIT",
+      "notices": "Retained in the ignored installed distribution; not approved for application bundling."
+    }
+  ]
+}
