@@ -11285,8 +11285,8 @@
     {
       "task": "marker-center",
       "revision": "marker-center-real-positive-context-v1",
-      "status": "candidate_1_preregistered",
-      "execution_authorized": true,
+      "status": "training_complete_unapproved",
+      "execution_authorized": false,
       "authorized_candidate_id": "P1",
       "preregistered_candidate_ids": ["P1"],
       "consumed_candidate_ids": [],
@@ -11308,7 +11308,10 @@
       "budget_consumption_event": "first_sealed_split_read",
       "sealed_runs_authorized": 0,
       "training_device": "RX 6600 XT gfx1032 cuda:0",
-      "release_eligible": false
+      "release_eligible": false,
+      "optimizer_steps": 2264,
+      "checkpoint_sha256": "9d7abce386d6f0e61104a23a856ee49549e2840f7a715dbd5f77c09cd50bef20",
+      "training_outcome_sha256": "91c2ff0a6c1dee60f88c5f7d7b8d241225ad2a6772fb537a329f4b4259925739"
     }
   ]
 }
