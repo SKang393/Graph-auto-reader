@@ -11353,8 +11353,8 @@
     {
       "task": "marker-center",
       "revision": "marker-center-preservation-bidirectional-v1",
-      "status": "candidate_1_preregistered",
-      "execution_authorized": true,
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
       "authorized_candidate_id": "P1",
       "preregistered_candidate_ids": ["P1"],
       "consumed_candidate_ids": [],
@@ -11376,7 +11376,13 @@
       "budget_consumption_event": "first_sealed_split_read",
       "sealed_runs_authorized": 0,
       "training_device": "RX 6600 XT gfx1032 cuda:0",
-      "release_eligible": false
+      "release_eligible": false,
+      "optimizer_steps": 2264,
+      "checkpoint_sha256": "8aa11e55fae8e642788e8a73f34a6a4badf17da2222b1dbb89f89ecb662791c0",
+      "training_outcome_sha256": "52b1d1eb6072211140804adf19a55ac52a70b34a2cbfa670c418f1f469d70d11",
+      "development_report_sha256": "42d5b7150934eb995a4606d889cfe25b9e1fdae0bc88669a5ba6a6175d9dbf95",
+      "onnx_sha256": "15266a41c2858945f79e91b6fcbf006efd18e89c28376c40c90d33575f22b473",
+      "closed_utc_date": "2026-10-31"
     }
   ]
 }
