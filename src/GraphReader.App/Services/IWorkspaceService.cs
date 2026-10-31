@@ -165,8 +165,6 @@ public interface IWorkspaceEditStateSink
 /// </summary>
 public interface IAutomaticWorkspaceService : IManualWorkspaceService
 {
-    bool HasActivePromotedMarkerPoints { get; }
-
     WorkflowRunResult? LastAutomaticRun { get; }
 
     Task<WorkflowRunResult> RunAutomaticDetectionAsync(CancellationToken cancellationToken);

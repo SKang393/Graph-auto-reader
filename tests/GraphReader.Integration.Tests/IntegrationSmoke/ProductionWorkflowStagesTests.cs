@@ -1798,9 +1798,6 @@ public sealed class ProductionWorkflowStagesTests
             provenanceProjectPath, CancellationToken.None)).Single();
         GraphReader.App.Models.GraphPoint promoted = productionForPromotion.PromoteFilteredMarker(
             productionPromotionTab.TabId, filteredMarkerId.Value.ToString("D"), seriesId.Value.ToString("D"));
-        ProductionWorkflowStageException blockedPromotion = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
-            () => productionForPromotion.RunAutomaticDetectionAsync(CancellationToken.None));
-        Assert.AreEqual("Errors.PromotedMarkerAnalysisBlocked", blockedPromotion.Failure.UserMessageKey);
         string promotedOutput = Path.Combine(directory.Path, "promoted-marker-export");
         ExportResult promotedExport = await productionForPromotion.ExportAsync(
             productionPromotionTab.TabId, promotedOutput, CancellationToken.None);
@@ -1825,8 +1822,35 @@ public sealed class ProductionWorkflowStagesTests
             string.Join(" | ", reopenedPromotedExport.Failures.Select(static failure => failure.TechnicalMessage)));
         Assert.IsTrue(reopenedPromotedExport.AuditArtifacts.SelectMany(static artifact => artifact.Rows)
             .Any(row => row.PointId.ToString("D") == promoted.PointId && row.XSource == ExportXValueSource.Estimated));
-        await Assert.ThrowsAsync<ProductionWorkflowStageException>(
-            () => reopenedProductionPromotion.RunAutomaticDetectionAsync(CancellationToken.None));
+        var conflictStore = new ProductionWorkflowPanelStore();
+        ProductionPanelProjectionEvidence originalProjection = exportEvidence.ProjectionEvidence!;
+        var changedProjection = new ProductionPanelProjectionEvidence(originalProjection.Calibration,
+            originalProjection.Phases, originalProjection.Series, originalProjection.Points,
+            originalProjection.Transforms, originalProjection.OcrRegions,
+            originalProjection.Markers.Where(item => item.MarkerId != filteredMarkerId), originalProjection.Participant);
+        var changedEvidence = new ProductionPanelExportEvidence(exportEvidence.Calibration, exportEvidence.Phases,
+            exportEvidence.Series, exportEvidence.Relations, exportEvidence.Points, exportEvidence.Provenance,
+            exportEvidence.Participant, exportEvidence.Mode, exportEvidence.AuditMode, exportEvidence.SessionOriginPolicy,
+            changedProjection);
+        var conflictWorkspace = new ProductionWorkspaceService(automaticStages: ApprovedAutomaticStages(),
+            automaticWorkflow: (_, _) =>
+            {
+                conflictStore.SetExportEvidence(imported.PanelId, changedEvidence);
+                return Task.FromResult(result);
+            }, panelStore: conflictStore);
+        WorkspaceTabViewModel conflictTab = (await conflictWorkspace.OpenProjectAsync(
+            savedPromotionPath, CancellationToken.None)).Single();
+        ProductionPanelExportEvidence retainedBeforeConflict = conflictStore.Get(imported.PanelId).ExportEvidence!;
+        ProductionWorkflowStageException conflict = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+            () => conflictWorkspace.RunAutomaticDetectionAsync(CancellationToken.None));
+        Assert.AreEqual("Errors.PromotedMarkerAnalysisBlocked", conflict.Failure.UserMessageKey);
+        Assert.AreSame(retainedBeforeConflict, conflictStore.Get(imported.PanelId).ExportEvidence);
+        ExportResult preservedExport = await conflictWorkspace.ExportAsync(conflictTab.TabId,
+            Path.Combine(directory.Path, "conflict-preserved-export"), CancellationToken.None);
+        Assert.IsTrue(preservedExport.Succeeded,
+            string.Join(" | ", preservedExport.Failures.Select(static failure => failure.TechnicalMessage)));
+        Assert.IsTrue(preservedExport.AuditArtifacts.SelectMany(static artifact => artifact.Rows)
+            .Any(row => row.PointId.ToString("D") == promoted.PointId));
     }
 
     [TestMethod]
@@ -2806,6 +2830,92 @@ public sealed class ProductionWorkflowStagesTests
             new[] { WorkflowStep.Import, WorkflowStep.Prepare, WorkflowStep.Detect, WorkflowStep.Review },
             completed.Steps.Select(static step => step.Step).ToArray());
         Assert.AreSame(completed, workspace.LastAutomaticRun);
+    }
+
+    [TestMethod]
+    public async Task PromotedMarkerConflictKeepsEarlierCheckpointAndRestoresFailedPanelEvidence()
+    {
+        using var directory = new TemporaryDirectory();
+        string firstDirectory = Path.Combine(directory.Path, "partial-first");
+        string secondDirectory = Path.Combine(directory.Path, "partial-second");
+        Directory.CreateDirectory(firstDirectory);
+        Directory.CreateDirectory(secondDirectory);
+        string firstPath = await WriteSourceAsync(firstDirectory);
+        string secondPath = await WriteSourceAsync(secondDirectory);
+        var store = new ProductionWorkflowPanelStore();
+        var expectedPanels = new Dictionary<Guid, WorkflowReviewPanel>();
+        using var cancellation = new CancellationTokenSource();
+        var detector = new CheckpointDetectionStage(expectedPanels, cancellation);
+        var orchestrator = new WorkflowOrchestrator(new WorkflowServiceSet(
+            new ProductionWorkflowImportStage(store, new ImageImportService()),
+            new ProductionWorkflowPrepareStage(store), detector, new UnusedWorkflowExportStage()));
+        var workspace = new ProductionWorkspaceService(automaticStages: ApprovedAutomaticStages(),
+            workflowOrchestrator: orchestrator, panelStore: store);
+        WorkspaceTabViewModel[] tabs = (await workspace.ImportImagesAsync([firstPath, secondPath], CancellationToken.None)).ToArray();
+        Assert.HasCount(2, tabs);
+        SeedManualReviewState(workspace, tabs[0]);
+        SeedManualReviewState(workspace, tabs[1]);
+        WorkflowReviewPanel firstPanel = await CreateExactReviewPanelAsync(workspace, tabs[0], firstPath, store, true, includeProvenance: true);
+        WorkflowReviewPanel secondPanel = await CreateExactReviewPanelAsync(workspace, tabs[1], secondPath, store, true, includeProvenance: true);
+        expectedPanels.Add(firstPanel.PanelId, firstPanel);
+        expectedPanels.Add(secondPanel.PanelId, secondPanel);
+        MarkerId promotedMarkerId = MarkerId.New();
+        var filteredMarker = new MarkerRecord(promotedMarkerId, new GraphReader.Domain.PixelPoint(0.95, 0.95),
+            0.05, MarkerShape.Circle, MarkerFill.Filled, "●", 0.8, 0.9, 0.9, 0.9, null, null,
+            SourceImageKind.Original, ReviewStatus.Rejected);
+        ProductionPanelExportEvidence secondInitial = store.Get(secondPanel.PanelId).ExportEvidence!;
+        ProductionPanelProjectionEvidence initialProjection = secondInitial.ProjectionEvidence!;
+        var withMarker = new ProductionPanelProjectionEvidence(initialProjection.Calibration, initialProjection.Phases,
+            initialProjection.Series, initialProjection.Points, initialProjection.Transforms, initialProjection.OcrRegions,
+            initialProjection.Markers.Append(filteredMarker), initialProjection.Participant);
+        store.SetExportEvidence(secondPanel.PanelId, new ProductionPanelExportEvidence(secondInitial.Calibration,
+            secondInitial.Phases, secondInitial.Series, secondInitial.Relations, secondInitial.Points, secondInitial.Provenance,
+            secondInitial.Participant, secondInitial.Mode, secondInitial.AuditMode, secondInitial.SessionOriginPolicy, withMarker));
+        WorkflowRunResult priorRun = await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        GraphReader.App.Models.GraphPoint promoted = workspace.PromoteFilteredMarker(tabs[1].TabId,
+            promotedMarkerId.Value.ToString("D"), tabs[1].SeriesCards.Single().SeriesId);
+        PanelRecord previousSecond = workspace.CurrentProject.Panels.Single(item => item.PanelId.Value == secondPanel.PanelId);
+        int auditCountBeforeConflict = workspace.CurrentProject.Audit.Events.Count;
+        ProductionPanelEvidence firstBefore = store.Get(firstPanel.PanelId);
+        ProductionPanelEvidence secondBefore = store.Get(secondPanel.PanelId);
+        detector.BeforeDetection = panelId =>
+        {
+            if (panelId != secondPanel.PanelId) return;
+            ProductionPanelExportEvidence retained = store.Get(panelId).ExportEvidence!;
+            ProductionPanelProjectionEvidence original = retained.ProjectionEvidence!;
+            var missingMarker = new ProductionPanelProjectionEvidence(original.Calibration, original.Phases, original.Series,
+                original.Points, original.Transforms, original.OcrRegions,
+                original.Markers.Where(item => item.MarkerId != promotedMarkerId), original.Participant);
+            store.SetExportEvidence(panelId, new ProductionPanelExportEvidence(retained.Calibration, retained.Phases,
+                retained.Series, retained.Relations, retained.Points, retained.Provenance, retained.Participant,
+                retained.Mode, retained.AuditMode, retained.SessionOriginPolicy, missingMarker));
+        };
+        ProductionWorkflowStageException conflict = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+            () => workspace.RunAutomaticDetectionAsync(CancellationToken.None));
+        Assert.AreEqual("Errors.PromotedMarkerPartialAnalysis", conflict.Failure.UserMessageKey);
+        Assert.AreNotSame(firstBefore, store.Get(firstPanel.PanelId));
+        Assert.AreSame(secondBefore, store.Get(secondPanel.PanelId));
+        Assert.IsNotNull(workspace.LastAutomaticRun);
+        Assert.AreNotSame(priorRun, workspace.LastAutomaticRun);
+        Assert.IsGreaterThan(auditCountBeforeConflict, workspace.CurrentProject.Audit.Events.Count);
+        Assert.AreNotSame(priorRun.Review.Panels.Single(item => item.PanelId == firstPanel.PanelId),
+            workspace.LastAutomaticRun.Review.Panels.Single(item => item.PanelId == firstPanel.PanelId));
+        CollectionAssert.AreEquivalent(
+            workspace.CurrentProject.Panels.Single(item => item.PanelId.Value == firstPanel.PanelId)
+                .Points.Select(item => item.PointId.Value.ToString("D")).ToArray(),
+            workspace.LastAutomaticRun.Review.Panels.Single(item => item.PanelId == firstPanel.PanelId)
+                .Points.Select(item => item.PointId).ToArray());
+        Assert.AreSame(priorRun.Review.Panels.Single(item => item.PanelId == secondPanel.PanelId),
+            workspace.LastAutomaticRun.Review.Panels.Single(item => item.PanelId == secondPanel.PanelId));
+        PanelRecord currentSecond = workspace.CurrentProject.Panels.Single(item => item.PanelId.Value == secondPanel.PanelId);
+        Assert.IsTrue(JsonElement.DeepEquals(JsonSerializer.SerializeToElement(previousSecond), JsonSerializer.SerializeToElement(currentSecond)));
+        Assert.IsTrue(currentSecond.Points.Any(item => item.PointId.Value.ToString("D") == promoted.PointId));
+        ExportResult firstExport = await workspace.ExportAsync(tabs[0].TabId, Path.Combine(directory.Path, "first-export"), CancellationToken.None);
+        ExportResult secondExport = await workspace.ExportAsync(tabs[1].TabId, Path.Combine(directory.Path, "second-export"), CancellationToken.None);
+        Assert.IsTrue(firstExport.Succeeded, string.Join(" | ", firstExport.Failures.Select(static item => item.TechnicalMessage)));
+        Assert.IsTrue(secondExport.Succeeded, string.Join(" | ", secondExport.Failures.Select(static item => item.TechnicalMessage)));
+        Assert.IsTrue(secondExport.AuditArtifacts.SelectMany(static artifact => artifact.Rows)
+            .Any(row => row.PointId.ToString("D") == promoted.PointId));
     }
 
     [TestMethod]
@@ -4106,6 +4216,8 @@ public sealed class ProductionWorkflowStagesTests
     {
         public Guid CancelBeforePanelId { get; set; }
 
+        public Action<Guid>? BeforeDetection { get; set; }
+
         public int CallCount { get; private set; }
 
         public Task<WorkflowDetectionBatch> DetectAsync(
@@ -4116,6 +4228,7 @@ public sealed class ProductionWorkflowStagesTests
             CancellationToken cancellationToken)
         {
             CallCount++;
+            BeforeDetection?.Invoke(panel.ImportedPanel.PanelId);
             if (panel.ImportedPanel.PanelId == CancelBeforePanelId)
             {
                 cancellation.Cancel();

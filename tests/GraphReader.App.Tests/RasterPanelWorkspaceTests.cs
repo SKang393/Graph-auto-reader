@@ -400,12 +400,11 @@ public sealed class RasterPanelWorkspaceTests
             viewModel.SelectedFilteredMarker = viewModel.FilteredMarkers.Single();
             viewModel.SelectedSeriesId = seriesId.ToString("D");
             viewModel.PromoteFilteredMarkerCommand.Execute(null);
-            Assert.IsFalse(viewModel.AutoDetectCommand.CanExecute(null));
-            StringAssert.Contains(viewModel.AutoDetectionAvailabilityText, "Automatic analysis is unavailable");
+            Assert.IsTrue(viewModel.AutoDetectCommand.CanExecute(null));
             viewModel.UndoCommand.Execute(null);
             Assert.IsTrue(viewModel.AutoDetectCommand.CanExecute(null));
             viewModel.RedoCommand.Execute(null);
-            Assert.IsFalse(viewModel.AutoDetectCommand.CanExecute(null));
+            Assert.IsTrue(viewModel.AutoDetectCommand.CanExecute(null));
         });
 
         string promotedPointId = string.Empty;
@@ -428,23 +427,20 @@ public sealed class RasterPanelWorkspaceTests
             Assert.AreEqual(PointXSource.Estimated, promoted.XSource);
             Assert.IsEmpty(viewModel.FilteredMarkers);
             Assert.IsFalse(viewModel.PromoteFilteredMarkerCommand.CanExecute(null));
-            Assert.IsTrue(workspace.PromotionBlocksAnalysis());
 
             viewModel.UndoCommand.Execute(null);
             Assert.HasCount(1, workspace.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId).Points);
             Assert.HasCount(1, viewModel.FilteredMarkers);
-            Assert.IsFalse(workspace.PromotionBlocksAnalysis());
             viewModel.RedoCommand.Execute(null);
             PointRecord restored = workspace.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId)
                 .Points.Single(item => item.PointId.Value.ToString("D") == promotedPointId);
             Assert.AreEqual(MarkerId.FromGuid(filteredMarkerId), restored.MarkerId);
             Assert.AreEqual(ReviewStatus.Corrected, restored.ReviewStatus);
             Assert.IsEmpty(viewModel.FilteredMarkers);
-            Assert.IsTrue(workspace.PromotionBlocksAnalysis());
         });
-        ProductionReviewProjectionResult blocked = workspace.Project(run, store);
-        Assert.IsFalse(blocked.Succeeded);
-        Assert.AreEqual(LocalizationKeys.PromotedMarkerAnalysisBlocked, blocked.Failure!.UserMessageKey);
+        store.SetExportEvidence(workflowPanel.PanelId, exportEvidence);
+        ProductionReviewProjectionResult replayed = workspace.Project(run, store);
+        Assert.IsTrue(replayed.Succeeded, replayed.Failure?.TechnicalMessage);
         Assert.HasCount(2, workspace.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId).Points);
         string promotedProjectPath = Path.Combine(directory.Path, "projection-promoted.garproj");
         DomainResult<ProjectSaveReceipt> promotedSave = await workspace.SaveProjectAsync(promotedProjectPath, CancellationToken.None);
@@ -460,7 +456,82 @@ public sealed class RasterPanelWorkspaceTests
             details.TryGetProperty("point_id", out JsonElement auditPoint) && auditPoint.GetString() == promotedPointId &&
             details.TryGetProperty("promoted_marker_id", out JsonElement auditMarker) &&
             auditMarker.GetString() == filteredMarkerId.ToString("D")));
-        Assert.IsFalse(promotedReopen.Project(run, store).Succeeded);
+        store.SetExportEvidence(workflowPanel.PanelId, exportEvidence);
+        ProductionReviewProjectionResult reopenedReplay = promotedReopen.Project(run, store);
+        Assert.IsTrue(reopenedReplay.Succeeded, reopenedReplay.Failure?.TechnicalMessage);
+        Assert.HasCount(2, promotedReopen.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId).Points);
+
+        Guid automaticPointId = Guid.NewGuid();
+        PointRecord automaticPoint = point with
+        {
+            PointId = PointId.FromGuid(automaticPointId), MarkerId = MarkerId.FromGuid(filteredMarkerId),
+            OriginalPixel = filteredMarker.Center, ObservationIndex = 2, ModificationHistory = [],
+        };
+        SeriesRecord detectedSeries = series with { PointIds = [PointId.FromGuid(pointId), PointId.FromGuid(automaticPointId)] };
+        WorkflowPoint automaticWorkflowPoint = workflowPoint with
+        {
+            PointId = automaticPointId.ToString("D"), DetectionKey = "fixture:promoted-marker",
+            OriginalPixelX = 65, OriginalPixelY = 75,
+        };
+        var exactProjection = new ProductionPanelProjectionEvidence(calibration, phases, [detectedSeries],
+            [point, automaticPoint], [preparation], [ocr], [marker, filteredMarker], "P1");
+        var exactExport = new ProductionPanelExportEvidence(exportEvidence.Calibration, exportEvidence.Phases,
+            [new ExportSeries(seriesId, "●", "Series", ExportSeriesRole.Intervention, [pointId, automaticPointId], 0.95, "Series")],
+            [], [exportEvidence.Points.Single(), new ProductionPointExportEvidence(automaticPointId, filteredMarkerId,
+                2, 2, 2, ExportXValueSource.Printed, 0.94, 0.93)], [], "P1", projectionEvidence: exactProjection);
+        var exactPanel = new WorkflowReviewPanel(reviewPanel.PreparedPanel, [workflowPoint, automaticWorkflowPoint]);
+        var exactRun = new WorkflowRunResult(Guid.NewGuid(),
+            new WorkflowReviewState(workspace.CurrentProject.ProjectId.Value, [exactPanel]), []);
+        store.SetExportEvidence(workflowPanel.PanelId, exactExport);
+        ProductionReviewProjectionResult exactReplay = promotedReopen.Project(exactRun, store);
+        Assert.IsTrue(exactReplay.Succeeded, exactReplay.Failure?.TechnicalMessage);
+        PointRecord[] finalPoints = promotedReopen.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId).Points.ToArray();
+        Assert.HasCount(2, finalPoints);
+        Assert.IsFalse(finalPoints.Any(item => item.PointId.Value == automaticPointId));
+        Assert.IsTrue(finalPoints.Any(item => item.PointId.Value.ToString("D") == promotedPointId &&
+            item.MarkerId == MarkerId.FromGuid(filteredMarkerId) && item.SourceStage == "manual"));
+
+        var missingProjection = new ProductionPanelProjectionEvidence(calibration, phases, [series], [point],
+            [preparation], [ocr], [marker], "P1");
+        var missingExport = new ProductionPanelExportEvidence(exportEvidence.Calibration, exportEvidence.Phases,
+            exportEvidence.Series, exportEvidence.Relations, exportEvidence.Points, exportEvidence.Provenance,
+            "P1", projectionEvidence: missingProjection);
+        store.SetExportEvidence(workflowPanel.PanelId, missingExport);
+        ProjectDocument beforeConflict = promotedReopen.CurrentProject;
+        ProductionReviewProjectionResult missingReplay = promotedReopen.Project(run, store);
+        Assert.IsFalse(missingReplay.Succeeded);
+        Assert.AreEqual(LocalizationKeys.PromotedMarkerAnalysisBlocked, missingReplay.Failure!.UserMessageKey);
+        Assert.AreSame(beforeConflict, promotedReopen.CurrentProject);
+
+        MarkerRecord overlappingMarker = filteredMarker with
+        {
+            MarkerId = MarkerId.New(), Center = new GraphReader.Domain.PixelPoint(65.5, 75),
+        };
+        PointRecord overlappingPoint = automaticPoint with
+        {
+            MarkerId = overlappingMarker.MarkerId, OriginalPixel = overlappingMarker.Center,
+        };
+        var overlapProjection = new ProductionPanelProjectionEvidence(calibration, phases, [detectedSeries],
+            [point, overlappingPoint], [preparation], [ocr], [marker, filteredMarker, overlappingMarker], "P1");
+        var overlapExport = new ProductionPanelExportEvidence(exactExport.Calibration, exactExport.Phases,
+            exactExport.Series, exactExport.Relations, exactExport.Points, exactExport.Provenance,
+            "P1", projectionEvidence: overlapProjection);
+        store.SetExportEvidence(workflowPanel.PanelId, overlapExport);
+        ProductionReviewProjectionResult overlapReplay = promotedReopen.Project(exactRun, store);
+        Assert.IsFalse(overlapReplay.Succeeded);
+        Assert.AreEqual(LocalizationKeys.PromotedMarkerAnalysisBlocked, overlapReplay.Failure!.UserMessageKey);
+        Assert.AreSame(beforeConflict, promotedReopen.CurrentProject);
+
+        var duplicateProjection = new ProductionPanelProjectionEvidence(calibration, phases, [series], [point],
+            [preparation], [ocr], [marker, filteredMarker, filteredMarker], "P1");
+        var duplicateExport = new ProductionPanelExportEvidence(exportEvidence.Calibration, exportEvidence.Phases,
+            exportEvidence.Series, exportEvidence.Relations, exportEvidence.Points, exportEvidence.Provenance,
+            "P1", projectionEvidence: duplicateProjection);
+        store.SetExportEvidence(workflowPanel.PanelId, duplicateExport);
+        ProductionReviewProjectionResult duplicateReplay = promotedReopen.Project(run, store);
+        Assert.IsFalse(duplicateReplay.Succeeded);
+        Assert.AreEqual(LocalizationKeys.PromotedMarkerAnalysisBlocked, duplicateReplay.Failure!.UserMessageKey);
+        Assert.AreSame(beforeConflict, promotedReopen.CurrentProject);
     }
 
     [TestMethod]
@@ -796,8 +867,6 @@ public sealed class RasterPanelWorkspaceTests
 
     private sealed class ProjectionWorkspace : ManualPreviewWorkspaceService
     {
-        public bool PromotionBlocksAnalysis() => GetActivePromotionFailure() is not null;
-
         public WorkflowImportRequest CreateImportRequest() =>
             CreateProductionWorkflowImportRequest(enhancementEnabled: false);
 

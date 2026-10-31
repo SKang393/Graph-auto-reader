@@ -420,6 +420,14 @@ public sealed class ProductionWorkflowPanelStore
                     $"Panel '{evidence.Panel.PanelId}' conflicts with retained immutable source evidence."));
     }
 
+    internal void RestoreSnapshot(ProductionPanelEvidence evidence)
+    {
+        ArgumentNullException.ThrowIfNull(evidence);
+        panels.AddOrUpdate(evidence.Panel.PanelId, evidence, (_, current) =>
+            HasSameImmutableIdentity(current, evidence) ? evidence : throw new InvalidOperationException(
+                "Cannot restore production evidence over a different source identity."));
+    }
+
     public void SetPreparation(
         Guid panelId,
         WorkflowImageEvidence? enhanced,

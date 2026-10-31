@@ -2154,8 +2154,6 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(panelStore);
-        if (GetActivePromotionFailure() is { } activePromotion)
-            return ProductionReviewProjectionResult.Rejected(activePromotion);
         if (result.Review.ProjectId != CurrentProject.ProjectId.Value)
         {
             return RejectProductionProjection(
@@ -2220,6 +2218,12 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 reviewPanel,
                 retainedExportEvidence,
                 retainedProjection);
+            if (!TryReconcilePromotedPoints(tab, replay, out replay, out string? promotionConflict))
+                return ProductionReviewProjectionResult.Rejected(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.ReviewProjectionRejected,
+                    LocalizationKeys.PromotedMarkerAnalysisBlocked,
+                    promotionConflict!, Recoverable: true,
+                    "Keep or export the existing review. Inspect the conflicting detection, or create a separate project from the original image."));
             reviewPanel = replay.ReviewPanel;
             ProductionPanelExportEvidence exportEvidence = replay.ExportEvidence;
             ProductionPanelProjectionEvidence projection = replay.Projection;
@@ -2907,6 +2911,94 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             projection);
     }
 
+    private bool TryReconcilePromotedPoints(
+        WorkspaceTabViewModel tab,
+        ProductionCorrectionReplay input,
+        out ProductionCorrectionReplay reconciled,
+        out string? conflict)
+    {
+        reconciled = input;
+        conflict = null;
+        PanelRecord panel = CurrentProject.Panels.Single(item => item.PanelId.Value == Guid.Parse(tab.PanelId!));
+        PointRecord[] promoted = panel.Points.Where(point => point.MarkerId.HasValue &&
+            string.Equals(point.SourceStage, "manual", StringComparison.Ordinal)).ToArray();
+        if (promoted.Length == 0) return true;
+        if (promoted.Select(point => point.MarkerId!.Value).Distinct().Count() != promoted.Length)
+        {
+            conflict = "Multiple manual points refer to the same promoted marker.";
+            return false;
+        }
+
+        var suppressedIds = new HashSet<Guid>();
+        foreach (PointRecord point in promoted)
+        {
+            MarkerId markerId = point.MarkerId!.Value;
+            MarkerRecord[] oldMatches = panel.Markers.Where(item => item.MarkerId == markerId).Take(2).ToArray();
+            MarkerRecord[] newMatches = input.Projection.Markers.Where(item => item.MarkerId == markerId).Take(2).ToArray();
+            MarkerRecord? oldMarker = oldMatches.Length == 1 ? oldMatches[0] : null;
+            MarkerRecord? newMarker = newMatches.Length == 1 ? newMatches[0] : null;
+            bool hasPromotionAudit = CurrentProject.Audit.Events.Any(entry => entry.PanelId == panel.PanelId &&
+                entry.Details is JsonElement details &&
+                TryReadString(details, "kind", out string? kind) && kind == ProductionAddAuditKind &&
+                TryReadString(details, "correction_id", out _) &&
+                TryReadString(details, "point_id", out string? pointId) &&
+                string.Equals(pointId, point.PointId.Value.ToString("D"), StringComparison.OrdinalIgnoreCase) &&
+                TryReadString(details, "promoted_marker_id", out string? recordedMarker) &&
+                string.Equals(recordedMarker, markerId.Value.ToString("D"), StringComparison.OrdinalIgnoreCase));
+            if (!hasPromotionAudit || oldMarker is null || newMarker is null ||
+                !double.IsFinite(oldMarker.Radius) || oldMarker.Radius <= 0 ||
+                oldMarker.Radius != newMarker.Radius || oldMarker.SourceImage != newMarker.SourceImage ||
+                MapPointSourceToPanel(panel, oldMarker.Center) != newMarker.Center)
+            {
+                conflict = "A promoted marker is missing its exact source-bound identity or correction evidence in the new detection.";
+                return false;
+            }
+
+            PointRecord[] matching = input.Projection.Points.Where(candidate => candidate.MarkerId == markerId).ToArray();
+            if (matching.Length > 1)
+            {
+                conflict = "More than one automatic point refers to a promoted marker.";
+                return false;
+            }
+            if (matching.Length == 1) suppressedIds.Add(matching[0].PointId.Value);
+            DomainPixelPoint localPoint = MapPointSourceToPanel(panel, point.OriginalPixel);
+            DomainPixelPoint localMarker = newMarker.Center;
+            double tolerance = Math.Clamp(oldMarker.Radius * 0.25, 0.5, 2.0);
+            bool ambiguous = input.Projection.Points.Any(candidate =>
+                candidate.MarkerId != markerId &&
+                (DistanceSquared(candidate.OriginalPixel, localPoint) <= tolerance * tolerance ||
+                 DistanceSquared(candidate.OriginalPixel, localMarker) <= tolerance * tolerance));
+            if (ambiguous)
+            {
+                conflict = "A separate automatic detection overlaps a promoted marker and requires review.";
+                return false;
+            }
+        }
+
+        if (suppressedIds.Count == 0) return true;
+        HashSet<Guid> retained = input.Projection.Points.Select(point => point.PointId.Value)
+            .Where(id => !suppressedIds.Contains(id)).ToHashSet();
+        WorkflowReviewPanel review = new(input.ReviewPanel.PreparedPanel,
+            input.ReviewPanel.Points.Where(point => Guid.TryParse(point.PointId, out Guid id) && retained.Contains(id)),
+            input.ReviewPanel.DetectionProvenance);
+        ProductionPanelProjectionEvidence projection = input.Projection;
+        var filteredProjection = new ProductionPanelProjectionEvidence(projection.Calibration, projection.Phases,
+            projection.Series.Select(series => series with { PointIds = series.PointIds.Where(id => retained.Contains(id.Value)).ToArray() }),
+            projection.Points.Where(point => retained.Contains(point.PointId.Value)), projection.Transforms,
+            projection.OcrRegions, projection.Markers, projection.Participant);
+        ProductionPanelExportEvidence export = input.ExportEvidence;
+        var filteredExport = new ProductionPanelExportEvidence(export.Calibration, export.Phases,
+            export.Series.Select(series => new ExportSeries(series.SeriesId, series.Symbol, series.DisplayName,
+                series.SemanticRole, series.PointIds.Where(retained.Contains), series.Confidence, series.LegendText)),
+            export.Relations, export.Points.Where(point => retained.Contains(point.PointId)), export.Provenance,
+            export.Participant, export.Mode, export.AuditMode, export.SessionOriginPolicy, filteredProjection);
+        reconciled = new ProductionCorrectionReplay(review, filteredExport, filteredProjection);
+        return true;
+    }
+
+    private static double DistanceSquared(DomainPixelPoint first, DomainPixelPoint second) =>
+        Math.Pow(first.X - second.X, 2) + Math.Pow(first.Y - second.Y, 2);
+
     private ProductionCorrectionReplay ApplyDeletedPointTombstones(
         WorkspaceTabViewModel tab,
         WorkflowReviewPanel reviewPanel,
@@ -3228,20 +3320,6 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             technicalMessage,
             Recoverable: true,
             "Keep the current manual review and rerun after every panel has exact approved projection evidence."));
-
-    protected ProductionWorkflowFailure? GetActivePromotionFailure()
-    {
-        // Conservatively block any manual marker-linked point, including older projects
-        // without this version's promotion audit, so missing provenance cannot permit duplicates.
-        if (!CurrentProject.Panels.Any(panel => panel.Points.Any(point => point.MarkerId.HasValue &&
-                string.Equals(point.SourceStage, "manual", StringComparison.Ordinal))))
-            return null;
-        return new ProductionWorkflowFailure(ProductionWorkflowFailureCodes.ReviewProjectionRejected,
-            LocalizationKeys.PromotedMarkerAnalysisBlocked,
-            "Automatic analysis is blocked while a promoted filtered marker is present, to prevent duplicate points.",
-            Recoverable: true,
-            "Save or export this project. Create a separate project from the original image for a new automatic run.");
-    }
 
     private static bool TryValidateProjection(
         WorkflowReviewPanel reviewPanel,

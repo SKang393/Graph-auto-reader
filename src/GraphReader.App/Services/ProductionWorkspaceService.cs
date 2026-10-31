@@ -8,6 +8,7 @@ using System.IO;
 using System.Text.Json.Serialization;
 
 using GraphReader.App.Integration.Workflow;
+using GraphReader.App.Localization;
 using GraphReader.App.ViewModels;
 using GraphReader.Domain;
 using GraphReader.Export;
@@ -70,8 +71,6 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
     }
 
     public WorkflowRunResult? LastAutomaticRun { get; private set; }
-
-    public bool HasActivePromotedMarkerPoints => GetActivePromotionFailure() is not null;
 
     public override async Task<IReadOnlyList<WorkspaceTabViewModel>> OpenProjectAsync(
         string path,
@@ -691,8 +690,8 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
     public async Task<WorkflowRunResult> RunAutomaticDetectionAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (GetActivePromotionFailure() is { } activePromotion)
-            throw new ProductionWorkflowStageException(activePromotion);
+        Dictionary<Guid, ProductionPanelEvidence> priorEvidence = _panelStore.PanelIds
+            .ToDictionary(static id => id, id => _panelStore.Get(id));
         AutomaticStageStatus? blocked = RequiredDetectionStages
             .Select(required => AutomaticStages.SingleOrDefault(status =>
                 string.Equals(status.Stage, required, StringComparison.Ordinal)))
@@ -729,6 +728,8 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             };
             WorkflowRunResult? accumulated = LastAutomaticRun;
             var completedPanelIds = new HashSet<Guid>();
+            try
+            {
             result = await _workflowOrchestrator!.RunThroughReviewAsync(
                 request,
                 LastAutomaticRun?.Review,
@@ -757,6 +758,22 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                     return Task.CompletedTask;
                 },
                 cancellationToken).ConfigureAwait(false);
+            }
+            catch (ProductionWorkflowStageException exception) when (
+                exception.Failure.UserMessageKey == LocalizationKeys.PromotedMarkerAnalysisBlocked)
+            {
+                RestorePriorEvidence(priorEvidence, completedPanelIds);
+                if (completedPanelIds.Count > 0)
+                {
+                    throw new ProductionWorkflowStageException(exception.Failure with
+                    {
+                        UserMessageKey = LocalizationKeys.PromotedMarkerPartialAnalysis,
+                        TechnicalMessage = $"{completedPanelIds.Count} panel(s) completed and were retained. {exception.Failure.TechnicalMessage}",
+                        SuggestedAction = "Keep or export the retained panels and prior review. Inspect the conflicting panel, or create a separate project from the original image.",
+                    }, exception.CompletedEvidence);
+                }
+                throw;
+            }
 
             Guid[] resultPanelIds = result.Review.Panels.Select(static panel => panel.PanelId).ToArray();
             if (resultPanelIds.Length == 0 ||
@@ -796,6 +813,8 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
         ProductionReviewProjectionResult projection = ProjectProductionReview(result, _panelStore);
         if (!projection.Succeeded)
         {
+            if (projection.Failure?.UserMessageKey == LocalizationKeys.PromotedMarkerAnalysisBlocked)
+                RestorePriorEvidence(priorEvidence, new HashSet<Guid>());
             throw new ProductionWorkflowStageException(projection.Failure ?? new ProductionWorkflowFailure(
                 ProductionWorkflowFailureCodes.ReviewProjectionRejected,
                 "Errors.ProductionReviewProjectionRejected",
@@ -808,6 +827,12 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             "A successful production review projection returned no corrected workflow run.");
         MarkCurrentProductionPanels(LastAutomaticRun.Review.Panels);
         return LastAutomaticRun;
+    }
+
+    private void RestorePriorEvidence(IReadOnlyDictionary<Guid, ProductionPanelEvidence> prior, HashSet<Guid> completed)
+    {
+        foreach ((Guid id, ProductionPanelEvidence evidence) in prior)
+            if (!completed.Contains(id)) _panelStore.RestoreSnapshot(evidence);
     }
 
     private void MarkCurrentProductionPanels(IEnumerable<WorkflowReviewPanel> panels)

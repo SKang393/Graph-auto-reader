@@ -506,9 +506,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     public string EnhancementAvailabilityText { get; }
 
     public string AutoDetectionAvailabilityText =>
-        _workspaceService is IAutomaticWorkspaceService { HasActivePromotedMarkerPoints: true }
-            ? GetLocalizedString(LocalizationKeys.PromotedMarkerAnalysisBlocked)
-            : CanRunAutomaticStage(WorkflowStage.Detect)
+        CanRunAutomaticStage(WorkflowStage.Detect)
                 ? string.Empty
                 : GetLocalizedString(LocalizationKeys.WorkflowAutoDetectUnavailable);
 
@@ -2241,9 +2239,6 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private bool CanRunAutomaticStage(WorkflowStage stage)
     {
-        if (stage == WorkflowStage.Detect &&
-            _workspaceService is IAutomaticWorkspaceService { HasActivePromotedMarkerPoints: true })
-            return false;
         if (stage == WorkflowStage.Detect && SelectedTab is null)
         {
             return false;
