@@ -1,0 +1,41 @@
+{
+  "schema": "graphreader.marker-context-bound-input-smoke-capture-protocol.v1",
+  "scope": "two-source-nonsealed-train-smoke-no-marker-classifier",
+  "project_root": "E:/Graph-auto-reader",
+  "base_binding_path": "artifacts/goal22-runs/marker-context-bound-input-binding-v1.json",
+  "base_binding_sha256": "704f5448f7dead44b898d2f9eb709e1a0040c86ad085cde7003fec0a3b15bc8d",
+  "runtime_binding_path": "artifacts/goal22-runs/marker-context-bound-input-smoke-preflight-v4/runtime-binding.json",
+  "runtime_directory": "artifacts/goal22-runs/marker-context-bound-input-smoke-runtime-v4",
+  "assembly_path": "artifacts/goal22-runs/marker-context-bound-input-smoke-runtime-v4/GraphReader.RealAcceptance.Ocr.dll",
+  "complete_path": "artifacts/goal22-runs/marker-context-train-corpus-v3-smoke/COMPLETE.json",
+  "complete_sha256": "d3ec47441f2bd19504c6390a16ed2a94725751c84d5d7c43f6855328e7207dc6",
+  "identity_path": "artifacts/goal22-runs/marker-context-train-corpus-v3-smoke/identity-metadata.json",
+  "identity_sha256": "e0ea1b6894d119e4f3063dce4fd373af90585c91626ce4d84621dde15d125150",
+  "raster_manifest_path": "artifacts/goal22-runs/marker-context-train-corpus-v3-smoke/raster-only/manifest.json",
+  "raster_manifest_sha256": "72975d61930bdafe9817f9c221d1699192c0f82e85c3c4c686edd5db0d7a99f3",
+  "source_count": 2,
+  "sources": [
+    {
+      "source_id": "93b89c7d-a10c-f159-9ac2-b0c16c63a6c4",
+      "path": "artifacts/goal22-runs/marker-context-train-corpus-v3-smoke/raster-only/68469eda2de09632c5f7b0933c71e0c28cf86fdbcece2980b4c6f1d2168bc691.png",
+      "scene_id": "81ce54a6-783a-53b8-9743-c4de1ea78eba",
+      "scene_sha256": "ee7023484d37621b2ef7b2edfa87e4473b4246fc8ffc7451b885f71188bca7a2",
+      "image_sha256": "68469eda2de09632c5f7b0933c71e0c28cf86fdbcece2980b4c6f1d2168bc691",
+      "width": 1200,
+      "height": 350
+    },
+    {
+      "source_id": "45d0a832-1b20-df51-b156-33bc36d50242",
+      "path": "artifacts/goal22-runs/marker-context-train-corpus-v3-smoke/raster-only/c56e6906ff1aa9bdd7f2855f429d2a49f649fbc67f83dd360b5f81aff2ae74b4.png",
+      "scene_id": "0647d547-5284-5439-85e6-9435382767b3",
+      "scene_sha256": "816a839600a49c3a76ab5b770d002e23e20203a16e5de44b580453f6a8cc3f1b",
+      "image_sha256": "c56e6906ff1aa9bdd7f2855f429d2a49f649fbc67f83dd360b5f81aff2ae74b4",
+      "width": 1200,
+      "height": 350
+    }
+  ],
+  "training_approved": false,
+  "marker_classifier_model_included": false,
+  "inference_before_review": false,
+  "capture_output_path": "artifacts/goal22-runs/marker-context-bound-input-smoke-capture-v4"
+}
