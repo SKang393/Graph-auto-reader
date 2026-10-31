@@ -199,6 +199,13 @@ scan is not suitable for production. On the same panels, the default detector
 matched 25 ticks with 12 unmatched detections. Diagnostic report SHA-256:
 `95ce064ca9006d1fd1ed5521a0a309b4a3a0b3e18ade084adb191d98a8941455`.
 
+Filtering those ink proposals with the frozen P2 label detector at score 0.5
+retained 72 matched visible ticks and 271 unmatched proposals. The unfiltered
+scan had 73 matches and 292 unmatched proposals. The combined candidate
+therefore remains unsuitable for integration. It used the RX 6600 XT for
+inference only; 4 focused tests passed. Report SHA-256:
+`3a81674fa9655e96c298f4094105b8c6d41d5f0991428f26e6bdd4ded3b7a5ef`.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
