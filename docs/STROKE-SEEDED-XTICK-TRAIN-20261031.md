@@ -54,3 +54,22 @@ limited to correlated training crops and are not production acceptance.
 - P2 report SHA-256: `cc013b5eda70af9681dbd87cc3e496a668cc29d0dcfba8d0841250782bdcb615`
 - P2 checkpoint SHA-256: `9b0e52ab0ebde0faef51326441d6c01e38f1d94c0a017a5530c75a5902c10351`
 - P1/P2 admission and loss tests: 6 passed.
+
+## Source-disjoint procedural probe
+
+Frozen P2 inference used 323 admitted crops from 16 new source groups.
+Source IDs, identities, full-panel pixels and retained crop-image hashes did
+not overlap the V6 train corpus. At score, NMS IoU and match IoU 0.5, recall
+was 0.9273, precision 0.2898 and false detections averaged 1.161 per image.
+The highest-scoring box reached IoU 0.5 for 133 of 165 positive rows.
+
+The probe also excludes four unsupported perspective-warp recipes, 36 crops
+with text confusers and 63 background crops whose image hashes matched train
+images. The 323 scored rows include 88 within-probe image repeats. These
+choices can bias the background error rate; the result is a synthetic
+development diagnostic, not formal product acceptance or a real-graph test.
+
+- Probe manifest SHA-256: `127b276ee9837f48ccd2123930969d70717b0f833b05da28d9351b047ecfa1ba`
+- Frozen P2 checkpoint SHA-256: `9b0e52ab0ebde0faef51326441d6c01e38f1d94c0a017a5530c75a5902c10351`
+- Corrected evaluation SHA-256: `97932d6f2b12debdd009014d2cbcfd5ff63db8754ccc664079df2551d7242340`
+- Probe tests: 3 passed; inference used the RX 6600 XT with no optimizer steps.

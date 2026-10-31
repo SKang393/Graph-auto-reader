@@ -135,3 +135,67 @@ P2 config/trainer/report/checkpoint hashes are respectively
 `dfa9fc50455c9102198084062a4a0f391a4a2b674697a26a87abeb2bb30ab9d6`,
 `cc013b5eda70af9681dbd87cc3e496a668cc29d0dcfba8d0841250782bdcb615`, and
 `9b0e52ab0ebde0faef51326441d6c01e38f1d94c0a017a5530c75a5902c10351`.
+
+## P2 source-disjoint synthetic diagnostic
+
+The frozen P2 checkpoint was evaluated without training on a newly rendered
+corpus from the same project-local procedural renderer and crop/alpha-mask
+labeler. Twenty candidate recipes used seeds 27104100 through 27104119 and
+fresh source IDs. Four hand-drawn candidates were excluded before writing
+because their camera transforms were non-affine. The accepted 16 source groups
+cover 24 panels and renderer families in a 4/4/4/4 mixture; V6 train had a
+different 6/6/9/3 style mix. Probe session counts range from 7 to 26, compared
+with V6 train's 7 to 18; font sizes span 8 to 28 px versus 10 to 24 px. The
+generator records each recipe, source-group identity, full-panel pixel hash,
+label bounds, crop affine maps and exclusion reasons.
+
+The materializer detected 63 background crops whose exact image bytes matched
+V6 training images and omitted them from the probe corpus, recording case,
+source and class without retaining the overlapping hash. Final separation
+checks found zero overlap in source IDs, source identity hashes, full-panel
+pixel hashes or stored crop image hashes. The manifest contains 359 crops:
+165 positives, 158 backgrounds and 36 explicit non-XTick-text exclusions.
+Four additional source recipes were excluded for non-affine transforms.
+
+For image metrics, all 323 admitted crops were scored, including 88
+byte-identical duplicates within the probe (37 positive and 51 background
+rows). These represent 235 unique admitted crop images, 128 positive and 107
+background. The evaluator verifies that duplicate bytes have identical class,
+label and target box before scoring every row. The 63 training-image collision
+exclusions remove only backgrounds, which can make the measured background
+false-positive rate optimistic. Repeated rows also weight those images more
+than once.
+
+On the 323 row-weighted crops, with NMS and match IoU both 0.5 and maximum 100
+detections per image:
+
+| Score threshold | Precision | Recall | False positives | FP/image | FP/background image | Top-box recall |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.25 | 0.2290 | 0.9273 | 515 | 1.594 | 0.000 | 0.8061 |
+| 0.50 | 0.2898 | 0.9273 | 375 | 1.161 | 0.000 | 0.8061 |
+
+Top-confidence mean IoU on the 165 positive rows was 0.6483; 133/165 reached
+IoU >= 0.5. The train-fit P2 score-0.5 metrics were 0.3687 precision, 0.9915
+recall and 0.620 false positives per image, so this new source mix shows
+weaker positive recall/localization and lower precision. No P1 checkpoint was
+run on this probe, so the result does not isolate P2's change on this source
+distribution. This is a consumed exploratory synthetic diagnostic, not formal
+acceptance or production evidence.
+
+Probe commands:
+
+```powershell
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('ml/ocr/stroke_seeded_xtick_v1/probe_materialize.py')
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('-m','unittest','ml.ocr.stroke_seeded_xtick_v1.test_probe','-v')
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('ml/ocr/stroke_seeded_xtick_v1/probe_evaluate_gpu.py')
+```
+
+The probe manifest hash is
+`127b276ee9837f48ccd2123930969d70717b0f833b05da28d9351b047ecfa1ba`.
+Its generator and crop materializer hashes are
+`c0a6d0559bdd384a84785926fa4dbf0230814f0663b55eff978f5ee32ff6a7a6` and
+`98b7630e4b6b2df3dc7a1a99c33b27da63fde61f2f75adfe86a1ed351c66bf9d`.
+The final evaluation report, evaluator, config, and test hashes are recorded
+in the v2 run artifacts and source files; the v1 evaluation output is retained
+as a superseded receipt because its duplicate-row field name incorrectly said
+those rows were skipped, though all 323 crops were scored.
