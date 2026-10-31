@@ -1,0 +1,35 @@
+{
+  "schema": "graphreader.marker-context-full-train-association-protocol.v1",
+  "scope": "public-synthetic-v5-full-train-only-postcapture-diagnostic",
+  "capture_binding_path": "artifacts/goal22-runs/marker-context-bound-input-full-preflight-v4/capture-binding.json",
+  "capture_binding_sha256": "792d6ec1bc59f16f92cb03adae1b59d2ca0d35ba85218f6eb9a9218d2594327b",
+  "capture_protocol_path": "tools/GraphReader.MarkerContextFullCapture/full-capture-protocol.json",
+  "capture_protocol_sha256": "aa131bfa849d8332917ce7ad4c001bf00daea1e9a6f27861a20a0b0d06b5c4d4",
+  "capture_runtime_binding_sha256": "b3ac4efb2186779e6e34e8a2ac051cc1faa5b646a054091a84d436e987df3d9a",
+  "capture_output_path": "artifacts/goal22-runs/marker-context-bound-input-full-capture-v4",
+  "corpus_binding_path": "artifacts/goal22-runs/marker-context-train-corpus-binding-v5.json",
+  "corpus_binding_sha256": "f095bac6f76a9a2d444869ba4d75538e76237c399d3b98997c97292b4cebebd4",
+  "complete_path": "artifacts/goal22-runs/marker-context-train-corpus-v5-full/COMPLETE.json",
+  "complete_sha256": "957e2bec1d45b49665e05c6442e90fa4285d27e02140b8458f2f5066de001019",
+  "identity_path": "artifacts/goal22-runs/marker-context-train-corpus-v5-full/identity-metadata.json",
+  "identity_sha256": "2ca7fce16eee67d7f040e62f6979ebc76c83bcec6bafad03e67e381ce83d2055",
+  "raster_manifest_path": "artifacts/goal22-runs/marker-context-train-corpus-v5-full/raster-only/manifest.json",
+  "raster_manifest_sha256": "be0d63fb22796fd07ba83e5ad714888f136875b180883c1b36d0481cbf5433f2",
+  "truth_path": "artifacts/goal22-runs/marker-context-train-corpus-v5-full/post-capture-truth/truth.json",
+  "truth_sha256": "6b768cc45f0b1d97b3b21ceff41c86766a081b3d22d4dd03c26e34ae0b384951",
+  "truth_labeler_path": "ml/synthetic/marker_context_catalog_v1/labels.py",
+  "truth_labeler_sha256": "27a36dc116e0424c0c932683c5f16d4650c0334b4362743cfd14741da48699e1",
+  "source_count": 64,
+  "match_tolerance_px": 2.0,
+  "match_metric": "euclidean_original_source_pixels_inclusive",
+  "candidate_input": "sampled_local_and_experimental_wide_views.marker",
+  "candidate_identity": ["source_id", "panel_id", "marker_id"],
+  "coordinate_transform": "authenticated panel_to_source_matrix, row-major affine 3x3",
+  "candidate_review_only_statuses": ["review_connected_diagnostic", "review_isolated", "review_overlay", "review_duplicate", "review_ambiguous", "review_unmatched"],
+  "truth_review_only_statuses": ["matched_connected_review_only", "matched_isolated_review_only", "review_ambiguous", "review_overlay_conflict", "unmatched_review_only", "not_observed_capture_incomplete"],
+  "training_approved": false,
+  "optimizer_steps": 0
+}
+
+
+

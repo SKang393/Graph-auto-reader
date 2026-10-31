@@ -1,4 +1,9 @@
 * text=auto eol=lf
+# Preserve exact bytes of source and protocol files bound to the completed
+# marker-context capture and association receipts.
+tools/GraphReader.MarkerContextFullCapture/full-capture-protocol.json -text whitespace=cr-at-eol
+tools/GraphReader.ManualTrainOnlyCapture/protocol.json -text whitespace=cr-at-eol
+tools/MarkerContextFullAssociationV1/* -text whitespace=cr-at-eol,-blank-at-eof
 # The consumed structure-consensus evidence binds this source's CRLF bytes.
 src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs text eol=crlf
 
