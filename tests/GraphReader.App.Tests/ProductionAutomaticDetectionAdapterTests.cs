@@ -121,7 +121,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
-    public async Task ConfirmedManualAnchorsCalibrateMissingPrintedSessionLabels()
+    public async Task ConfirmedManualAnchorsRecoverMissingLabelsWhenAxisGeometryNeedsReview()
     {
         byte[] bytes = [3, 1, 4, 1, 5];
         string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
@@ -141,7 +141,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         var adapter = new ProductionAutomaticDetectionAdapter(
             store,
             new RasterDecoder(),
-            new AxisAdapter(),
+            new AxisAdapter(needsReview: true),
             new OcrAdapter(omitXTicks: true),
             new MaskComposer(),
             new CenterAdapter(),
@@ -166,8 +166,51 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         Assert.AreEqual(GraphReader.Domain.CalibrationStatus.Valid, projectedCalibration.Status);
         Assert.IsTrue(projectedCalibration.UserConfirmed);
         Assert.AreEqual("manual_three_anchor", projectedCalibration.SessionLattice?.Source);
+        Assert.IsTrue(projectedCalibration.Reasons.Contains(
+            "axis_geometry_needs_review:axis_pair_ambiguous", StringComparer.Ordinal));
         Assert.IsTrue(exportEvidence.ProjectionEvidence.Points.All(static point =>
             point.PrintedXValue is null && point.EstimatedXValue.HasValue));
+    }
+
+    [TestMethod]
+    [DataRow(true, "axis_geometry_needs_review:axis_pair_ambiguous")]
+    [DataRow(false, "axis_geometry_needs_review")]
+    public async Task AmbiguousAxisGeometryCannotCompleteAutomaticCalibration(
+        bool includeReviewReason,
+        string expectedReason)
+    {
+        byte[] bytes = [5, 8, 9, 7];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:ambiguous-axis.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "ambiguous-axis.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(
+            store,
+            new RasterDecoder(),
+            new AxisAdapter(needsReview: true, includeReviewReason: includeReviewReason),
+            new OcrAdapter(),
+            new MaskComposer(),
+            new CenterAdapter(),
+            new ClassificationAdapter(),
+            new LegendAdapter(),
+            new PhaseAdapter(),
+            new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(
+            new WorkflowPreparedPanel(imported, image, null),
+            image,
+            WorkflowImageVariant.Original,
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            bytes);
+
+        ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+            () => adapter.DetectAsync(request, CancellationToken.None));
+
+        Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, failure.Failure.Code);
+        StringAssert.Contains(failure.Failure.TechnicalMessage, expectedReason);
+        Assert.IsNull(store.Get(panelId).ExportEvidence);
     }
 
     [TestMethod]
@@ -1074,7 +1117,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         }
     }
 
-    private sealed class AxisAdapter(double dividerDrift = 0) : IProductionAxisGeometryAdapter
+    private sealed class AxisAdapter(double dividerDrift = 0, bool needsReview = false, bool includeReviewReason = true) : IProductionAxisGeometryAdapter
     {
         public string AdapterId => "test-axis";
 
@@ -1122,7 +1165,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 ],
                 [],
                 0.98,
-                new AxisGeometryUncertainty(0, 0, 1, false, []),
+                new AxisGeometryUncertainty(0, 0, 1, needsReview,
+                    needsReview && includeReviewReason ? ["axis_pair_ambiguous"] : []),
                 new AxisGeometryDiagnostics(5, 5, 0, 1, 4, 2, 1, 0, TimeSpan.Zero, []));
             return Task.FromResult(new ProductionAxisGeometryEvidence(
                 Envelope(request, "axis", "axis-v1", "axis-runtime", 'a'),

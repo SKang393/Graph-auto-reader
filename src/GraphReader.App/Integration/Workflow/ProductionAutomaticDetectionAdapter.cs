@@ -1233,14 +1233,21 @@ public sealed class ProductionAutomaticDetectionAdapter :
         string[] unresolvedTicks = ocr.Warnings.Where(static warning =>
             warning.StartsWith("ocr_tick_sequence_needs_review:", StringComparison.Ordinal))
             .Concat(confidenceWarnings).Distinct(StringComparer.Ordinal).ToArray();
-        if (unresolvedTicks.Length == 0) return calibration;
-        // A regular fit cannot erase an unresolved recognition conflict.
+        string[] unresolvedAxisGeometry = axis.Uncertainty.NeedsReview
+            ? axis.Uncertainty.Reasons.Count > 0
+                ? axis.Uncertainty.Reasons.Select(static reason => $"axis_geometry_needs_review:{reason}").ToArray()
+                : ["axis_geometry_needs_review"]
+            : [];
+        string[] unresolvedEvidence = unresolvedTicks.Concat(unresolvedAxisGeometry)
+            .Distinct(StringComparer.Ordinal).ToArray();
+        if (unresolvedEvidence.Length == 0) return calibration;
+        // A regular fit cannot erase an unresolved recognition or geometry conflict.
         // Preserve the fit for Review while preventing an automatic export.
         return calibration with
         {
             Validity = calibration.Validity == CalibrationValidity.Valid
                 ? CalibrationValidity.NeedsReview : calibration.Validity,
-            Reasons = Array.AsReadOnly(calibration.Reasons.Concat(unresolvedTicks)
+            Reasons = Array.AsReadOnly(calibration.Reasons.Concat(unresolvedEvidence)
                 .Distinct(StringComparer.Ordinal).ToArray()),
         };
     }
