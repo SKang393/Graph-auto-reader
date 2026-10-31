@@ -78,6 +78,26 @@ public sealed class RasterResidualArtifactMaskProviderTests
     }
 
     [TestMethod]
+    [DataRow(101, true)]
+    [DataRow(109, false)]
+    public async Task LegendGlyphNearPlotEdgeShowsBoundaryRuleTradeoff(int glyphCenterX, bool insidePlot)
+    {
+        TestInputs inputs = CreateCompositeInputs(legendGlyphCenterX: glyphCenterX);
+        RasterResidualArtifactMaskResult result = await new RasterResidualArtifactMaskProvider().AnalyzeAsync(
+            inputs.Raster, inputs.Axis, inputs.Ocr, inputs.Seed, CancellationToken.None,
+            includeCategoryBits: true);
+
+        // At x=101, identical local pixels could represent a plot marker or a
+        // straddling legend glyph. The current rule masks both interpretations;
+        // the proposed outside-center condition would leave both reviewable.
+        Assert.AreEqual(insidePlot, glyphCenterX < 105);
+        int index = Index(inputs.Raster.Width, glyphCenterX, 23);
+        Assert.IsGreaterThan(0.5f, result.Mask.Span[index]);
+        Assert.AreEqual((byte)RasterResidualArtifactCategoryBits.LegendStructure,
+            result.CopyCategoryBits()[index]);
+    }
+
+    [TestMethod]
     [DataRow(5, false, false)]
     [DataRow(6, false, false)]
     [DataRow(5, true, false)]
@@ -177,7 +197,7 @@ public sealed class RasterResidualArtifactMaskProviderTests
 
     private static TestInputs CreateCompositeInputs(
         int crossArmLength = 0, bool connectedCross = false, int quarterTurns = 0, string annotationLayout = "aligned",
-        int centerBlobRadius = 0, int centerBlobOffset = 0)
+        int centerBlobRadius = 0, int centerBlobOffset = 0, int legendGlyphCenterX = 118)
     {
         int width = 160;
         int height = 110;
@@ -185,7 +205,7 @@ public sealed class RasterResidualArtifactMaskProviderTests
 
         DrawArrow(gray, width);
         DrawBracket(gray, width);
-        DrawFilledRectangle(gray, width, 115, 20, 121, 26);
+        DrawFilledRectangle(gray, width, legendGlyphCenterX - 3, 20, legendGlyphCenterX + 3, 26);
         DrawLine(gray, width, 45, 52, 65, 52);
         DrawLine(gray, width, 55, 42, 55, 62);
         DrawTriangle(gray, width, 32, 32, 38, 38);
