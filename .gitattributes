@@ -11,6 +11,8 @@ tools/MarkerCandidateTensorBridgeV1/* -text whitespace=cr-at-eol,-blank-at-eof
 tools/MarkerCandidateTensorBridgeFastV1/* -text whitespace=cr-at-eol,-blank-at-eof
 ml/markers/candidate_label_curation_v1/* -text whitespace=cr-at-eol,-blank-at-eof
 ml/ocr/fragmented_xtick_detector_v1/* -text whitespace=cr-at-eol,-blank-at-eof
+# Keep the V2 materializer and GPU runner bytes bound to their run receipts.
+ml/ocr/fragmented_xtick_detector_v2/** -text whitespace=cr-at-eol,-blank-at-eof
 # The consumed structure-consensus evidence binds this source's CRLF bytes.
 src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs text eol=crlf
 

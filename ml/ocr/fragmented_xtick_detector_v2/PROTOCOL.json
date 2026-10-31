@@ -1,0 +1,20 @@
+{
+  "schema": "graphreader.ocr-fragmented-xtick-v2-preparation.v1",
+  "revision": "graph-text-fragmented-xtick-detector-v2",
+  "task": "ocr-detection",
+  "state": "train-only-materializer-preparation",
+  "scope": "fresh train-only synthetic localization experiment",
+  "data_scope": "No V1 image, annotation, manifest, candidate, weight, tensor, development corpus, sealed corpus, private/article image, external dataset, or prior consumed candidate input is read or reused.",
+  "positive_count": 64,
+  "negative_count": 32,
+  "canvas": [256, 96],
+  "positive_position_contract": "At least eight distinct horizontal and four distinct vertical target-center bins across the 64 positive cases.",
+  "negative_contract": "Background-only cases contain axis/tick and marker-like confusers but no numeric X-tick glyph target.",
+  "font_path": "src/GraphReader.App/Assets/Fonts/NotoSans-Regular.ttf",
+  "font_sha256": "478c558ea716033cd60c03438f628dfa75694dcf6b5f6d505a2f05fd2b4f3823",
+  "train_materialization_authorized": true,
+  "development_or_sealed_rendering_authorized": false,
+  "optimizer_execution_authorized": false,
+  "production_approval": false,
+  "release_eligible": false
+}
