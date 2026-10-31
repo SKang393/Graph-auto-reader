@@ -112,6 +112,40 @@ or release packaging.
 
 ## Release common-publish staging
 
+The clean-machine validator needs the reviewed files beside a Production-mode
+application before the clean-machine gate can pass. To prepare that isolated
+test candidate without changing the gate, first obtain a separately built,
+fully populated Production-mode application directory under this project's
+`artifacts` directory. Record its executable and application assembly hashes.
+Then use:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File packaging/pdfium-source/Stage-CleanMachineCandidate.ps1 `
+  -CandidateRoot <existing-project-local-candidate> `
+  -EvidenceRoot <reviewed-project-local-evidence> `
+  -ExpectedExecutableSha256 <sha256> `
+  -ExpectedApplicationDllSha256 <sha256>
+```
+
+This copies the reviewed approval and four checksum-bound resources into a new
+`pdfium` directory and writes a diagnostic-only candidate receipt. It verifies
+the fixed reviewed approval SHA-256 and current reviewed PDFium audit component.
+It rejects a `portable.mode` sentinel; the absence of that sentinel does not
+prove Production mode. It does not validate the app's source commit or version,
+execute the application, create a VM report, modify
+release gates, or authorize release or redistribution. Run the canonical
+clean-machine validator on the complete exact-hash candidate to verify its
+Production mode and review the independent result. A failed staging attempt may
+leave partial files for review.
+
+The source and synthetic-only staging checks are exercised with:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File packaging/pdfium-source/tests/Test-StageCleanMachineCandidate.Tests.ps1
+```
+
 `Install-ReleaseRenderer.ps1` is the separate release-only boundary. It refuses
 to stage anything unless `reviewed-approval.json` validates, the exact runner
 matches a reviewed `pdfium-native` public-audit component, and the
