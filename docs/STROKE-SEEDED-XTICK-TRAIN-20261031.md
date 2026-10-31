@@ -184,6 +184,14 @@ are the correct missing stroke. Report SHA-256:
 `fd17c37c4f7eb78bed6cb2924f91030ad868aa2fb9be27e8aa1d31b781f3aa17`.
 The diagnostic built and 4 geometry-gate tests passed.
 
+A follow-up changed both Hough vote threshold and minimum line length to 5,
+leaving other settings fixed. Against 181 visible ticks it matched 36 with 8
+unmatched detections, versus 25 and 12 under defaults; all 24 candidate panels
+still required review. The candidate generated 19,855 line candidates versus
+10,850 by default and remains insufficient for production. The diagnostic
+reproduced default results on every panel. Report SHA-256:
+`c50ba592ea2334dd412335a0c04dec397b9566ce5ac44aa642436516653c1a46`.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
