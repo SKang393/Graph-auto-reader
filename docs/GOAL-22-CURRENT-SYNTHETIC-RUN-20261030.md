@@ -30,8 +30,16 @@ recorded panel-image hashes rather than recomputing crop bytes. It also requires
 an OCR panel for every source, so it would stop instead of scoring a source
 that failed before OCR. This run remains diagnostic-only.
 
+An aggregate diagnostic classified the 47 unmatched assembled detections by
+their final roles: 26 annotation, 15 other, five legend text, and one phase
+heading. Forty-three retained the same source/panel/region identifier as a raw
+detection; four did not. Identifier equality is not proof of processing
+lineage, and these roles can also contain legitimate graph text, so this result
+does not justify suppressing them.
+
 - Runtime binding SHA-256: `2a2abb3313f5dfcbb724552cd7c16dbac03b4fb04a65bef2b196c524c9dabc10`
 - Run report SHA-256: `a1f085a017569e93569bab9cf96c156e4aa47008005e7861bd4f12b2d58199c4`
 - Offline OCR audit SHA-256: `79fa6ee12a34684b3644cea2b390f261aee4b2a0f90adf192d234a312052a5c8`
 - Source-global diagnostic SHA-256: `174fa2857f5ddec3d0ed86ac1c03f4c5ed1da53c90e93024e0b33532f72fcbad`
+- False-positive attribution SHA-256: `d6a2999e4fbd31a20bde52c392d0696e499302e29301498d9447a2172c1c146f`
 - Evidence folder: `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/current-main-7ec80465-synthetic-20261030`
