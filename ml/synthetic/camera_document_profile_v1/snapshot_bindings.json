@@ -1,30 +1,37 @@
 {
   "schema_version": 1,
   "snapshot_policy": "isolated-source-copy",
+  "checkout_line_endings": "LF",
+  "source_hash_semantics": "source_sha256 preserves the original captured worktree-byte binding; source_git_blob_sha256 records the Git object bytes after configured LF normalization; local_copy_sha256 and profile_files bind current isolated-package bytes",
   "upstream_paths": {
     "templates.py": {
       "source_path": "ml/synthetic/templates.py",
       "source_sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c",
+      "source_git_blob_sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c",
       "local_copy_sha256": "353bb2747ae9340d0243d8364f5b321c5229f1187d5f6a5d759705e55a364dea"
     },
     "renderer.py": {
       "source_path": "ml/synthetic/renderer.py",
       "source_sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283",
+      "source_git_blob_sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283",
       "local_copy_sha256": "2a4149b246f1fc52a69e4cddeda990014dd8d7c970f4a070d15ed7cf53650c33"
     },
     "fonts.py": {
       "source_path": "ml/synthetic/fonts.py",
       "source_sha256": "c4ec7a2333e0410d4c49cc41c154d3b80a2898c5682a135c25e1162a806d58fc",
-      "local_copy_sha256": "60e775be474c723632d39a124d0ec0b9508ee64e631fea2b0bccdf88776151e3"
+      "source_git_blob_sha256": "ca44e2f105648a17f2d1f4c977d8fca64c6f16a37fb67133beadb711a37a8b0d",
+      "local_copy_sha256": "9e8a1d6c8ad22dddcdd8261de6b5026a6dfb7b4a847dc4f9785212c58dc8cbef"
     },
     "schema.py": {
       "source_path": "ml/synthetic/schema.py",
       "source_sha256": "237d9296f2f72a11bb7020c2abac022026f72a56e4e0eac2d322f23a3e6c8acb",
-      "local_copy_sha256": "237d9296f2f72a11bb7020c2abac022026f72a56e4e0eac2d322f23a3e6c8acb"
+      "source_git_blob_sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+      "local_copy_sha256": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98"
     },
     "scene.schema.json": {
       "source_path": "ml/synthetic/scene.schema.json",
       "source_sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+      "source_git_blob_sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
       "local_copy_sha256": "7f584b562d0204ccebd77a5e9fcfad3572732d2ad87d77ca76752b7273f6deb4"
     }
   },

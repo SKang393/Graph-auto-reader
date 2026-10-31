@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import subprocess
 
 import pytest
 
@@ -27,7 +28,7 @@ from ml.synthetic.camera_document_profile_v1.templates import (
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
-EXPECTED_SNAPSHOT_BINDINGS_SHA256 = "ada8e17530846e03cfe471c8cb92d7def1ebdb3aa24be1caaaaf164870da586a"
+EXPECTED_SNAPSHOT_BINDINGS_SHA256 = "01a01e3b81e524c4428884a063280cc18a18237328547732f7ae7b166ef7ab71"
 
 
 def _sha256(data: bytes) -> str:
@@ -147,7 +148,9 @@ def test_snapshot_manifest_authenticates_copied_sources_and_scope() -> None:
     for filename, binding in manifest["upstream_paths"].items():
         upstream = PROJECT_ROOT / binding["source_path"]
         local_copy = PACKAGE_ROOT / filename
-        assert _sha256(upstream.read_bytes()) == binding["source_sha256"]
+        upstream_lf_bytes = upstream.read_bytes().replace(b"\r\n", b"\n")
+        assert _sha256(upstream_lf_bytes) == binding["source_git_blob_sha256"]
+        assert len(binding["source_sha256"]) == 64  # historical captured worktree digest
         assert _sha256(local_copy.read_bytes()) == binding["local_copy_sha256"]
 
     scope = manifest["scope"]
@@ -161,3 +164,59 @@ def test_snapshot_manifest_authenticates_copied_sources_and_scope() -> None:
     assert scope["training_eligible"] is False
     assert scope["distribution_approved"] is False
     assert scope["independent_signed_approval"] is False
+
+
+def test_lf_snapshot_hashes_match_git_blob_semantics() -> None:
+    git_prefix = [
+        "git",
+        "-c",
+        f"safe.directory={PROJECT_ROOT.as_posix()}",
+        "-C",
+        str(PROJECT_ROOT),
+    ]
+
+    def show_blob(relative_path: str) -> bytes:
+        completed = subprocess.run(
+            [*git_prefix, "show", f"HEAD:{relative_path}"],
+            check=False,
+            capture_output=True,
+        )
+        if completed.returncode != 0:
+            pytest.skip("Git HEAD is unavailable for the LF snapshot cross-check")
+        return completed.stdout
+
+    def is_clean(relative_path: str) -> bool:
+        completed = subprocess.run(
+            [*git_prefix, "diff", "--quiet", "HEAD", "--", relative_path],
+            check=False,
+            capture_output=True,
+        )
+        return completed.returncode == 0
+
+    manifest = json.loads((PACKAGE_ROOT / "snapshot_bindings.json").read_text(encoding="utf-8"))
+    for filename, binding in manifest["upstream_paths"].items():
+        local = (PACKAGE_ROOT / filename).read_bytes()
+        assert b"\r" not in local
+        upstream_blob = show_blob(binding["source_path"])
+        assert _sha256(upstream_blob) == binding["source_git_blob_sha256"]
+        assert b"\r" not in upstream_blob
+
+    tracked_files = [
+        "ml/synthetic/camera_document_profile_v1/snapshot_bindings.json",
+        *(
+            f"ml/synthetic/camera_document_profile_v1/{filename}"
+            for filename in manifest["upstream_paths"]
+        ),
+        *(
+            f"ml/synthetic/camera_document_profile_v1/{relative_path}"
+            for relative_path in manifest["profile_files"]
+        ),
+    ]
+    for relative_path in tracked_files:
+        local = (PROJECT_ROOT / relative_path).read_bytes()
+        blob = show_blob(relative_path)
+        if Path(relative_path).suffix.casefold() in {".py", ".json", ".md"}:
+            assert b"\r" not in local
+            assert b"\r" not in blob
+        if is_clean(relative_path):
+            assert local == blob
