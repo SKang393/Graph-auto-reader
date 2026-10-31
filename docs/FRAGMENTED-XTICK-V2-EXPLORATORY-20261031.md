@@ -103,3 +103,22 @@ for any measured box. This is train fit, not independent validation.
 - P4 checkpoint SHA-256: `01def8956cbed8f6c676eaa8b847078ca55ab144b168771286e8101b33c3f1fc`
 - Image evaluation SHA-256: `2653ecdc8685003c06e4ea44dc0378f876574478ce482ca192ae9f64524577a2`
 - Training and evaluation tests: 18 passed. This candidate is not approved.
+
+## Fresh procedural probe
+
+A separate 96-image probe used disjoint label strings, Medium and SemiBold
+font files, additional font sizes, varied placement, lines, ticks, and hollow
+markers. It shares the Noto Sans family, canvas and task with training, with
+some overlapping placement ranges. It is a nonformal synthetic generalization
+probe, not a production acceptance set. Labels were checked against glyph-mask
+bounds.
+
+The frozen P4 checkpoint achieved positive image recall 0.453 and 0.438 false
+positives per background-only image at score, NMS IoU and match IoU 0.5. Mean
+highest-scoring box IoU was 0.398. This falls short of a useful product model.
+The corrected report fixes pixel-dimension labels in an earlier probe report.
+
+- Probe manifest SHA-256: `2297319727e11b14dc4b011b78de5acc3f59c233227efa9e672b1b048e3d3c25`
+- Probe generator SHA-256: `a8add3fb7aa8f723bcf46b7ed8872743b02235d041da4f0f602291eb68959f75`
+- Corrected evaluation SHA-256: `ed52e0d841e1e619f114062bf7cc8cc25a76abcf5982e41df4b98e56c0dc6b82`
+- Probe and existing training/evaluation tests: 21 passed. Inference used the RX 6600 XT.
