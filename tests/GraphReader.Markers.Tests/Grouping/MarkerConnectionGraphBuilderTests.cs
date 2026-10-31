@@ -13,6 +13,34 @@ public sealed class MarkerConnectionGraphBuilderTests
     private static readonly string[] ExpectedConnectedMarkerIds = ["left", "right"];
 
     [TestMethod]
+    public async Task ImageBoundaryPaddingDoesNotCreateInkConnections()
+    {
+        MarkerGroupingEvidence left = MarkerGroupingTestSupport.Evidence("left", 1, x: 12, y: 0);
+        MarkerGroupingEvidence right = MarkerGroupingTestSupport.Evidence("right", 2, x: 48, y: 0);
+
+        IReadOnlyList<MarkerConnection> connections = await new MarkerConnectionGraphBuilder().BuildAsync(
+            Request(MarkerGroupingTestSupport.Frame(), [left, right]),
+            CancellationToken.None);
+
+        Assert.IsEmpty(connections, "A blank image must not gain a connection from out-of-frame samples.");
+    }
+
+    [TestMethod]
+    public async Task RealStrokeAtImageBoundaryStillCreatesConnection()
+    {
+        MarkerGroupingEvidence left = MarkerGroupingTestSupport.Evidence("left", 1, x: 12, y: 0);
+        MarkerGroupingEvidence right = MarkerGroupingTestSupport.Evidence("right", 2, x: 48, y: 0);
+        MarkerPoint[] stroke = MarkerGroupingTestSupport.Line(
+            left.Marker.Marker.Center, right.Marker.Marker.Center).ToArray();
+
+        IReadOnlyList<MarkerConnection> connections = await new MarkerConnectionGraphBuilder().BuildAsync(
+            Request(MarkerGroupingTestSupport.Frame(stroke), [left, right]),
+            CancellationToken.None);
+
+        Assert.HasCount(1, connections, "Visible ink at the image boundary remains valid connection evidence.");
+    }
+
+    [TestMethod]
     public async Task SolidConnectingStrokeCreatesOneCanonicalConnectionEdge()
     {
         MarkerGroupingEvidence left = MarkerGroupingTestSupport.Evidence("left", 1, x: 12, y: 20);

@@ -259,6 +259,13 @@ public sealed class MarkerConnectionGraphBuilder : IMarkerConnectionGraphBuilder
 
     private static float SampleInk(MarkerImageFrame image, double x, double y)
     {
+        // Pixels outside the image contain no evidence of a connecting stroke.
+        // SamplePlane pads masks with zero, but zero image brightness is black.
+        if (x < 0 || y < 0 || x > image.Width - 1d || y > image.Height - 1d)
+        {
+            return 0;
+        }
+
         var pixelsPerChannel = checked(image.Width * image.Height);
         var brightness = 0d;
         for (var channel = 0; channel < image.ChannelCount; channel++)
