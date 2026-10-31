@@ -22,6 +22,7 @@ from ml.ocr.fragmented_xtick_detector_v3 import gpu_train as helpers
 
 
 CONFIG = ROOT / "training" / "p1.json"
+P1_COMMITTED_RUNNER_SHA256 = "34ea86ba936af7e2f2d80acf656270acfcc524a2cb126680715adf91358b275c"
 MANIFEST_RELATIVE = "artifacts/stroke-seeded-xtick-v1-train-verified-v6/manifest.json"
 _RUN = {"phase": "starting", "steps": 0}
 
@@ -38,13 +39,33 @@ def canonical_json(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=True, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
-def load_config() -> tuple[dict[str, Any], bytes]:
-    bound = helpers._bound_read(REPO_ROOT, "ml/ocr/stroke_seeded_xtick_v1/training/p1.json",
+def balanced_objectness_loss(logits: Any, target: Any, per_cell: Any, top_k: int) -> tuple[Any, Any, Any, Any]:
+    positive_mask = target.bool()
+    positive_loss = per_cell[positive_mask].mean()
+    if top_k:
+        from ml.ocr.fragmented_xtick_detector_v4.train import hard_negative_mask
+        negative_mask = hard_negative_mask(logits.detach(), target, top_k)
+        if bool((negative_mask & positive_mask).any()) or not bool(negative_mask.any()):
+            raise StrokeSeededTrainingError("hard-negative selection included positives or selected nothing")
+        selected_per_image = negative_mask.flatten(1).sum(dim=1)
+        if not bool((selected_per_image == top_k).all()):
+            raise StrokeSeededTrainingError("hard-negative selection did not choose top-k cells per image")
+    else:
+        negative_mask = ~positive_mask
+    negative_loss = per_cell[negative_mask].mean()
+    return 0.5 * (positive_loss + negative_loss), positive_loss, negative_loss, negative_mask
+
+
+def load_config(config_path: Path = CONFIG) -> tuple[dict[str, Any], bytes]:
+    try:
+        config_relative = config_path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError as error:
+        raise StrokeSeededTrainingError("training config must remain project-local") from error
+    bound = helpers._bound_read(REPO_ROOT, config_relative,
                                 "stroke-seeded GPU config", 65_536)
     config = helpers._parse_json(bound, "stroke-seeded GPU config")
     expected = {
         "schema": "graphreader.stroke-seeded-xtick-v1-gpu-config.v1",
-        "recipe_id": "stroke-seeded-xtick-v1-single-box-fit-p1",
         "train_manifest_path": MANIFEST_RELATIVE,
         "train_manifest_sha256": "12565af18cd69b680b978454058ab0f4448336931e5db7b3c128b861af9e0f1a",
         "train_manifest_record_count": 681,
@@ -70,15 +91,25 @@ def load_config() -> tuple[dict[str, Any], bytes]:
         "private_input_allowed": False,
         "probe_input_allowed": False,
         "cpu_fallback_allowed": False,
-        "planned_output_root": "artifacts/stroke-seeded-xtick-v1-p1-rx6600xt-fit-v1",
         "production_approval": False,
         "release_eligible": False,
     }
     for key, value in expected.items():
         if config.get(key) != value:
             raise StrokeSeededTrainingError(f"training config mismatch: {key}")
-    if config.get("expected_runner_sha256") != digest(Path(__file__).read_bytes()):
-        raise StrokeSeededTrainingError("stroke-seeded GPU trainer source hash changed")
+    if config.get("recipe_id") == "stroke-seeded-xtick-v1-single-box-fit-p1":
+        if (config.get("expected_runner_sha256") != P1_COMMITTED_RUNNER_SHA256
+                or config.get("planned_output_root") != "artifacts/stroke-seeded-xtick-v1-p1-rx6600xt-fit-v1"
+                or config.get("hard_negative_top_k_per_image", 0) != 0):
+            raise StrokeSeededTrainingError("committed P1 recipe identity changed")
+    elif config.get("recipe_id") == "stroke-seeded-xtick-v1-hard-negative-fit-p2":
+        if (config.get("expected_runner_sha256") != digest(Path(__file__).read_bytes())
+                or config.get("planned_output_root") != "artifacts/stroke-seeded-xtick-v1-p2-hard-negative-fit-v1"
+                or config.get("hard_negative_top_k_per_image") != 32
+                or config.get("model_identity") != "stroke-seeded-xtick-spatial-locator-rf31-logwh-hard-negative-p2"):
+            raise StrokeSeededTrainingError("P2 hard-negative recipe identity/source binding changed")
+    else:
+        raise StrokeSeededTrainingError("unrecognized stroke-seeded recipe identity")
     return config, bound.value
 
 
@@ -406,9 +437,8 @@ def _run_training(config: Mapping[str, Any], config_bytes: bytes, output: Path) 
             optimizer.zero_grad(set_to_none=True)
             logits, prediction = model(x)
             per_cell = nn.functional.binary_cross_entropy_with_logits(logits, obj, reduction="none")
-            pos_loss = per_cell[obj.bool()].mean()
-            neg_loss = per_cell[(~obj.bool())].mean()
-            objectness_loss = 0.5 * (pos_loss + neg_loss)
+            objectness_loss, pos_loss, neg_loss, _ = balanced_objectness_loss(
+                logits, obj, per_cell, int(config.get("hard_negative_top_k_per_image", 0)))
             expanded = mask.expand(-1, 4, -1, -1)
             box_loss = nn.functional.smooth_l1_loss(prediction[expanded], target[expanded])
             loss = objectness_loss + box_loss
@@ -452,7 +482,9 @@ def _run_training(config: Mapping[str, Any], config_bytes: bytes, output: Path) 
         "model_seed": int(config["model_seed"]), "shuffle_seed": int(config["shuffle_seed"]),
         "initialization": config["initialization"], "checkpoint_loaded": False,
         "runtime": runtime, "output_grid": [12, 32], "receptive_field_pixels": receptive_field,
-        "class_balanced_objectness_loss": config["balanced_objectness_loss"], "box_loss": config["box_loss"],
+        "class_balanced_objectness_loss": config["balanced_objectness_loss"],
+        "hard_negative_top_k_per_image": int(config.get("hard_negative_top_k_per_image", 0)),
+        "box_loss": config["box_loss"],
         "loss_first": losses[0], "loss_last": losses[-1],
         "positive_cell_bce_first": positive_losses[0], "positive_cell_bce_last": positive_losses[-1],
         "background_cell_bce_first": background_losses[0], "background_cell_bce_last": background_losses[-1],
@@ -474,9 +506,9 @@ def _run_training(config: Mapping[str, Any], config_bytes: bytes, output: Path) 
     return report
 
 
-def run_training() -> dict[str, Any]:
+def run_training(config_path: Path = CONFIG) -> dict[str, Any]:
     _RUN.update(phase="starting", steps=0)
-    config, config_bytes = load_config()
+    config, config_bytes = load_config(config_path)
     output = REPO_ROOT / str(config["planned_output_root"])
     if output.parent != (REPO_ROOT / "artifacts") or output.exists() or output.is_symlink():
         raise StrokeSeededTrainingError("planned output is unsafe or already exists")

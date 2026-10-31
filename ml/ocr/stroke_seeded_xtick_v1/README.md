@@ -91,3 +91,47 @@ this result says nothing about held-out generalization.
 The run writes an exploratory checkpoint and aggregate report under
 `artifacts/stroke-seeded-xtick-v1-p1-rx6600xt-fit-v1`. It is diagnostic model
 fit only, not production activation or OCR acceptance.
+
+## P2 top-32 hard-negative train-fit comparison
+
+P2 keeps the V6 manifest, 644 admitted crops, V3 model, fresh initialization,
+model seed, shuffle seed, AdamW settings, 30 epochs, 92 batches per epoch, box
+loss, thresholds and image metrics unchanged. Its single training change is
+the existing V4 per-image top-32 highest-logit background-cell mask for the
+negative BCE term. Each selected batch image contributes exactly 32 negative
+cells; positives are excluded. The shared P1 loop and the V4 selector are
+reused. P2 does not initialize from the P1 checkpoint. Before-training cell
+and image metrics matched P1 exactly, confirming the same seeded initialization
+and admitted input order.
+
+Run command:
+
+```powershell
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('ml/ocr/stroke_seeded_xtick_v1/train_gpu_p2.py')
+```
+
+The RX 6600 XT run completed 2,760 optimizer steps in 115.3 seconds. For 644
+train-fit crops (235 positive, 409 background), NMS IoU and match IoU both 0.5,
+and max 100 detections per image:
+
+| Score threshold | Recipe | Precision | Recall | False positives | FP/image | Top-box recall |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: |
+| 0.25 | P1 all negatives | 0.1132 | 0.9957 | 1,834 | 2.848 | 0.6596 |
+| 0.25 | P2 top-32 | 0.3019 | 0.9957 | 541 | 0.840 | 0.8723 |
+| 0.50 | P1 all negatives | 0.1302 | 0.9957 | 1,563 | 2.427 | 0.6596 |
+| 0.50 | P2 top-32 | 0.3687 | 0.9915 | 399 | 0.620 | 0.8723 |
+
+Top-confidence positive-box mean IoU rose from 0.5753 (155/235 at IoU >= 0.5)
+to 0.7187 (205/235). This is a strong train-fit false-positive reduction;
+P2 still averages 0.62 false detections per image at score 0.5, and its recall
+is one positive lower than P1. These correlated crops from 24 synthetic source
+graphs are not held-out evidence or production acceptance.
+
+P1 report/checkpoint SHA-256 values are respectively
+`68ae7bfdf505609b3b6a92d6c2db85dd8c43da579202081d6e99baffb1ba7d77` and
+`82df31aa572a3920de34b6bd80f0bd9f354880175f76bb0b9916250297fb2cec`.
+P2 config/trainer/report/checkpoint hashes are respectively
+`1ae28371439c7106631337c12db8f1661f7152778532628db8b3163c6b4cd5e5`,
+`dfa9fc50455c9102198084062a4a0f391a4a2b674697a26a87abeb2bb30ab9d6`,
+`cc013b5eda70af9681dbd87cc3e496a668cc29d0dcfba8d0841250782bdcb615`, and
+`9b0e52ab0ebde0faef51326441d6c01e38f1d94c0a017a5530c75a5902c10351`.
