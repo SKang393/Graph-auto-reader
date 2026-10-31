@@ -3,7 +3,6 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Collections.ObjectModel;
 using GraphReader.Inference;
 
@@ -570,7 +569,7 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
         }
 
         string result = text.ToString();
-        return NumericGrammar().IsMatch(result)
+        return GraphNumericParser.IsLiteralGraphNumber(result)
             ? [new OcrRecognitionAlternative(result, confidenceTotal / encoded.Count, sourceImage)]
             : [];
     }
@@ -649,9 +648,6 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
 
         return Convert.ToHexStringLower(hash.GetHashAndReset());
     }
-
-    [GeneratedRegex("^-?\\d+(?:\\.\\d+)?%?$", RegexOptions.CultureInvariant)]
-    private static partial Regex NumericGrammar();
 
     private sealed record EncodedGlyph(float[] Values, float HeightRatio);
 

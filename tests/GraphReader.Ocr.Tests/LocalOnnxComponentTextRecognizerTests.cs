@@ -68,6 +68,45 @@ public sealed class LocalOnnxComponentTextRecognizerTests
     }
 
     [TestMethod]
+    public async Task ComponentRecognizerKeepsLeadingDecimalAcceptedBySharedNumericParser()
+    {
+        string directory = CreateDirectory();
+        try
+        {
+            ModelIdentity identity = await CreateModelAsync(directory);
+            const string alphabet = "0123456789.-%";
+            var factory = new ComponentLogitSessionFactory([
+                alphabet.IndexOf('.'),
+                alphabet.IndexOf('5'),
+            ]);
+            await using InferenceRuntime runtime = CreateRuntime(directory, factory);
+            var recognizer = new LocalOnnxComponentTextRecognizer(
+                runtime,
+                new LocalOnnxComponentTextRecognizerOptions(identity, alphabet)
+                {
+                    AllowedProviders = [InferenceProvider.Cpu],
+                });
+
+            float[] pixels = Enumerable.Repeat(1f, 128 * 32).ToArray();
+            Fill(pixels, 128, 20, 13, 3, 3, 0f);
+            Fill(pixels, 128, 38, 8, 6, 16, 0f);
+
+            IReadOnlyList<OcrRecognition> results = await recognizer.RecognizeBatchAsync(
+                [Crop("leading-decimal", pixels)],
+                CancellationToken.None);
+
+            Assert.HasCount(1, results);
+            Assert.IsNull(results[0].Failure);
+            Assert.AreEqual(".5", results[0].Alternatives.Single().Text);
+            Assert.IsTrue(GraphNumericParser.IsLiteralGraphNumber(results[0].Alternatives.Single().Text));
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task ComponentEncodingMatchesFrozenPillowV5TensorBytes()
     {
         string directory = CreateDirectory();
