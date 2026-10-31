@@ -10,6 +10,14 @@ failed during automatic calibration. Their diagnostics lacked confirmed
 session-1 origin and final printed session. This is a bounded development
 result, not production or release acceptance.
 
+A source-level annotation audit retained all 21 sources and 31 annotation
+panels. It reports no numeric X-tick labels for the 20 failed sources and two
+for the one completed source. Workflow status and annotation observability are
+recorded independently; generator anchors remain truth-only metadata. The audit
+does not exhaustively inspect raster pixels for undisclosed text or map runtime
+panels to annotation panels, so it cannot prove that failed images contain no
+usable X evidence.
+
 The exploratory offline scorer counts whole-source annotations for every
 scored panel. Multi-panel sources can therefore repeat truth annotations, and
 panel coordinates were compared with source coordinates without applying the
@@ -50,4 +58,5 @@ not establish a safe confidence, shape, or duplicate-suppression rule.
 - Source-global diagnostic SHA-256: `174fa2857f5ddec3d0ed86ac1c03f4c5ed1da53c90e93024e0b33532f72fcbad`
 - False-positive attribution SHA-256: `d6a2999e4fbd31a20bde52c392d0696e499302e29301498d9447a2172c1c146f`
 - Bound geometry diagnostic SHA-256: `ac97213828625081a99ab9ea9a6541fda3f5fe6a8bd1798c355430420ae38b79`
+- Source-level annotation audit SHA-256: `a4e6c3cd6dcca5b8980de00eb562442cb1be60f64f6b69cd0c47609da545e38c`
 - Evidence folder: `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/current-main-7ec80465-synthetic-20261030`
