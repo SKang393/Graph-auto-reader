@@ -1,0 +1,56 @@
+{
+  "fonts": [
+    {
+      "family": "Noto Sans",
+      "file": "assets/NotoSans-Regular.ttf",
+      "id": "sans",
+      "license_file": "assets/LICENSE",
+      "license_id": "OFL-1.1",
+      "raw_url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+      "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "source_path": "hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+      "source_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+      "style": "Regular",
+      "upstream_git_blob_sha1": "d55220958aa51eeeb85048d746eabe43d2cd9f14"
+    },
+    {
+      "family": "Noto Serif",
+      "file": "assets/NotoSerif-Regular.ttf",
+      "id": "serif",
+      "license_file": "assets/LICENSE",
+      "license_id": "OFL-1.1",
+      "raw_url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSerif/NotoSerif-Regular.ttf",
+      "sha256": "c8f669ceb2c9c60ccf55198b305e08a997ffca79a38cc7eeb551e643cbe66505",
+      "source_path": "hinted/ttf/NotoSerif/NotoSerif-Regular.ttf",
+      "source_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSerif/NotoSerif-Regular.ttf",
+      "style": "Regular",
+      "upstream_git_blob_sha1": "8ef59c11cbdad66a73a9b4ea381ec3e5dcf45faf"
+    },
+    {
+      "family": "Noto Sans Mono",
+      "file": "assets/NotoSansMono-Regular.ttf",
+      "id": "mono",
+      "license_file": "assets/LICENSE",
+      "license_id": "OFL-1.1",
+      "raw_url": "https://raw.githubusercontent.com/notofonts/noto-fonts/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansMono/NotoSansMono-Regular.ttf",
+      "sha256": "d9e2b23d19f8230be7146f409a52b1d23117e635e28f2e2892cf91b7382f325b",
+      "source_path": "hinted/ttf/NotoSansMono/NotoSansMono-Regular.ttf",
+      "source_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSansMono/NotoSansMono-Regular.ttf",
+      "style": "Regular",
+      "upstream_git_blob_sha1": "541efd808dfb0b88972ab8390cb1328e4bbd9a06"
+    }
+  ],
+  "historical_benchmark_independence": "unproven",
+  "legal_approval_claimed": false,
+  "license": {
+    "file": "assets/LICENSE",
+    "id": "OFL-1.1",
+    "sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+    "source_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/LICENSE",
+    "upstream_git_blob_sha1": "c82d72e422e2d08c5ab439b6bac7c2177ea0c565"
+  },
+  "repository": "https://github.com/notofonts/noto-fonts",
+  "schema": "graphreader.public-synthetic-fonts.v1",
+  "source_commit": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+  "training_approved": false
+}
