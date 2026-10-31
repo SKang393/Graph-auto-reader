@@ -84,6 +84,7 @@ public static class LocalizationKeys
     public const string ManualFirstVisibleSession = "Manual.FirstVisibleSession";
     public const string ManualXMaximum = "Manual.XMaximum";
     public const string ManualSessionRangeHelp = "Manual.SessionRangeHelp";
+    public const string ManualFirstVisibleSessionInvalid = "Manual.FirstVisibleSession.Invalid";
     public const string ManualSeriesName = "Manual.SeriesName";
     public const string ManualSeriesShape = "Manual.SeriesShape";
     public const string ManualSeriesFill = "Manual.SeriesFill";
@@ -351,6 +352,7 @@ public static class LocalizationKeys
         ManualFirstVisibleSession,
         ManualXMaximum,
         ManualSessionRangeHelp,
+        ManualFirstVisibleSessionInvalid,
         ManualSeriesName,
         ManualSeriesShape,
         ManualSeriesFill,

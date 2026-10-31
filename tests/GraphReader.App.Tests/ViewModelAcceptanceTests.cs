@@ -2,6 +2,9 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.ComponentModel;
+using System.IO;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using GraphReader.App.Appearance;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
@@ -39,10 +42,118 @@ public sealed class ViewModelAcceptanceTests
         var viewModel = CreateWorkspace();
 
         Assert.AreEqual(1, viewModel.ManualFirstVisibleSession);
+        Assert.AreEqual("1", viewModel.ManualFirstVisibleSessionText);
+        Assert.IsTrue(viewModel.IsManualFirstVisibleSessionInputValid);
 
         viewModel.ManualFirstVisibleSession = 7;
 
         Assert.AreEqual(7, viewModel.ManualFirstVisibleSession);
+        Assert.AreEqual("7", viewModel.ManualFirstVisibleSessionText);
+    }
+
+    [TestMethod]
+    public void InvalidFirstVisibleSessionCannotReuseStaleValueForCalibration()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graph-reader-session-input-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        string imagePath = Path.Combine(root, "synthetic.png");
+
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                WriteImage(imagePath, 160, 120);
+                var workspace = new ManualPreviewWorkspaceService();
+                _ = workspace.ImportImagesAsync([imagePath], CancellationToken.None).GetAwaiter().GetResult();
+                using var viewModel = new MainWindowViewModel(workspace);
+                viewModel.ManualXMaximum = 35;
+                viewModel.ManualFirstVisibleSessionText = "29";
+
+                Assert.AreEqual(29, viewModel.ManualFirstVisibleSession);
+                Assert.IsTrue(viewModel.IsManualFirstVisibleSessionInputValid);
+                Assert.IsTrue(viewModel.StartCalibrationCommand.CanExecute(null));
+
+                viewModel.ManualFirstVisibleSessionText = "29x";
+
+                Assert.AreEqual(29, viewModel.ManualFirstVisibleSession);
+                Assert.IsFalse(viewModel.IsManualFirstVisibleSessionInputValid);
+                Assert.IsFalse(viewModel.StartCalibrationCommand.CanExecute(null));
+
+                viewModel.ManualFirstVisibleSessionText = "2147483648";
+                Assert.IsFalse(viewModel.IsManualFirstVisibleSessionInputValid);
+                Assert.IsFalse(viewModel.StartCalibrationCommand.CanExecute(null));
+
+                viewModel.ManualFirstVisibleSessionText = "0";
+                Assert.AreEqual(0, viewModel.ManualFirstVisibleSession);
+                Assert.IsFalse(viewModel.IsManualFirstVisibleSessionInputValid);
+                Assert.IsFalse(viewModel.StartCalibrationCommand.CanExecute(null));
+
+                viewModel.ManualFirstVisibleSessionText = "35";
+                Assert.IsFalse(viewModel.IsManualFirstVisibleSessionInputValid);
+                Assert.IsFalse(viewModel.StartCalibrationCommand.CanExecute(null));
+
+                viewModel.ManualXMaximum = 36;
+                Assert.IsTrue(viewModel.IsManualFirstVisibleSessionInputValid);
+                Assert.IsTrue(viewModel.StartCalibrationCommand.CanExecute(null));
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void CalibrationInputChangesClearAnchorsAndInvalidTextCannotCompleteCalibration()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graph-reader-session-anchor-reset-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        string imagePath = Path.Combine(root, "synthetic.png");
+
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                WriteImage(imagePath, 160, 120);
+                var workspace = new ManualPreviewWorkspaceService();
+                _ = workspace.ImportImagesAsync([imagePath], CancellationToken.None).GetAwaiter().GetResult();
+                using var viewModel = new MainWindowViewModel(workspace);
+                viewModel.ManualXMaximum = 35;
+                viewModel.ManualFirstVisibleSessionText = "29";
+                viewModel.StartCalibrationCommand.Execute(null);
+
+                Assert.AreEqual(ManualEditorMode.Calibration, viewModel.EditorMode);
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 100)).GetAwaiter().GetResult();
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 10)).GetAwaiter().GetResult();
+
+                viewModel.ManualFirstVisibleSessionText = "31";
+                Assert.AreEqual(31, viewModel.ManualFirstVisibleSession);
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 100)).GetAwaiter().GetResult();
+                Assert.IsNull(workspace.CurrentProject.Panels.Single().Calibration);
+                Assert.AreEqual(ManualEditorMode.Calibration, viewModel.EditorMode);
+
+                viewModel.ManualXMaximum = 36;
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 10)).GetAwaiter().GetResult();
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(150, 100)).GetAwaiter().GetResult();
+                Assert.IsNull(workspace.CurrentProject.Panels.Single().Calibration);
+                Assert.AreEqual(ManualEditorMode.Calibration, viewModel.EditorMode);
+
+                viewModel.ManualFirstVisibleSessionText = "31x";
+                Assert.AreEqual(31, viewModel.ManualFirstVisibleSession);
+                Assert.IsFalse(viewModel.IsManualFirstVisibleSessionInputValid);
+                for (int index = 0; index < 3; index++)
+                {
+                    viewModel.HandleCanvasPointAsync(new System.Windows.Point(20 + index, 90 - index)).GetAwaiter().GetResult();
+                }
+
+                Assert.AreEqual(ManualEditorMode.Calibration, viewModel.EditorMode);
+                Assert.IsNull(workspace.CurrentProject.Panels.Single().Calibration);
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
     }
 
     [TestMethod]
@@ -238,6 +349,24 @@ public sealed class ViewModelAcceptanceTests
         Assert.IsGreaterThanOrEqualTo(2, viewModel.SeriesCards.Count);
         Assert.IsGreaterThanOrEqualTo(2, viewModel.SelectedTab.Points.Count);
         return viewModel;
+    }
+
+    private static void WriteImage(string path, int width, int height)
+    {
+        byte[] pixels = Enumerable.Repeat((byte)255, width * height * 4).ToArray();
+        BitmapSource bitmap = BitmapSource.Create(
+            width,
+            height,
+            96,
+            96,
+            PixelFormats.Bgra32,
+            palette: null,
+            pixels,
+            width * 4);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using FileStream stream = File.Create(path);
+        encoder.Save(stream);
     }
 
     private static Func<int> WatchCount(SeriesCardViewModel series)

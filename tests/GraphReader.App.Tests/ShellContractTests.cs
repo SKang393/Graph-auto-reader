@@ -112,7 +112,7 @@ public sealed class ShellContractTests
                 == "Manual.FirstVisibleSession");
 
         Assert.AreEqual(
-            "{Binding ManualFirstVisibleSession, UpdateSourceTrigger=PropertyChanged}",
+            "{Binding ManualFirstVisibleSessionText, UpdateSourceTrigger=PropertyChanged}",
             input.Attribute("Text")?.Value);
         Assert.AreEqual(
             "{DynamicResource Manual.FirstVisibleSession}",
@@ -120,6 +120,18 @@ public sealed class ShellContractTests
         Assert.AreEqual(
             "{DynamicResource Manual.SessionRangeHelp}",
             input.Attribute(automation + "AutomationProperties.HelpText")?.Value);
+
+        XElement validation = document.Descendants(XName.Get("TextBlock", PresentationNamespace))
+            .Single(element => element.Attribute(automation + "AutomationProperties.AutomationId")?.Value
+                == "Manual.FirstVisibleSession.Validation");
+        Assert.AreEqual(
+            "{DynamicResource Manual.FirstVisibleSession.Invalid}",
+            validation.Attribute("Text")?.Value);
+        Assert.IsTrue(validation.Descendants(XName.Get("DataTrigger", PresentationNamespace)).Any(trigger =>
+            trigger.Attribute("Value")?.Value == "False" &&
+            trigger.Elements(XName.Get("Setter", PresentationNamespace)).Any(setter =>
+                setter.Attribute("Property")?.Value == "Visibility" &&
+                setter.Attribute("Value")?.Value == "Visible")));
     }
 
     [TestMethod]

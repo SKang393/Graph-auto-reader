@@ -990,10 +990,27 @@
               </StackPanel>
               <StackPanel Grid.Column="1" Margin="4,0,4,0">
                 <TextBlock Text="{DynamicResource Manual.FirstVisibleSession}" />
-                <TextBox Text="{Binding ManualFirstVisibleSession, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding ManualFirstVisibleSessionText, UpdateSourceTrigger=PropertyChanged}"
                          automation:AutomationProperties.AutomationId="Manual.FirstVisibleSession"
                          automation:AutomationProperties.Name="{DynamicResource Manual.FirstVisibleSession}"
                          automation:AutomationProperties.HelpText="{DynamicResource Manual.SessionRangeHelp}" />
+                <TextBlock Margin="0,3,0,0"
+                           Foreground="{DynamicResource App.Brush.Danger}"
+                           Text="{DynamicResource Manual.FirstVisibleSession.Invalid}"
+                           TextWrapping="Wrap"
+                           automation:AutomationProperties.AutomationId="Manual.FirstVisibleSession.Validation"
+                           automation:AutomationProperties.Name="{DynamicResource Manual.FirstVisibleSession.Invalid}">
+                  <TextBlock.Style>
+                    <Style TargetType="{x:Type TextBlock}">
+                      <Setter Property="Visibility" Value="Collapsed" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsManualFirstVisibleSessionInputValid}" Value="False">
+                          <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
               </StackPanel>
               <StackPanel Grid.Column="2" Margin="4,0,0,0">
                 <TextBlock Text="{DynamicResource Manual.XMaximum}" />

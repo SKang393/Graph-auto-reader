@@ -85,6 +85,7 @@
   <sys:String x:Key="Manual.FirstVisibleSession">First visible session</sys:String>
   <sys:String x:Key="Manual.XMaximum">Final session</sys:String>
   <sys:String x:Key="Manual.SessionRangeHelp">Enter the session values shown at the left and right graph anchors. The final session must be greater than the first visible session.</sys:String>
+  <sys:String x:Key="Manual.FirstVisibleSession.Invalid">Enter a positive whole-number first session that is less than the final session.</sys:String>
   <sys:String x:Key="Manual.SeriesName">Series name</sys:String>
   <sys:String x:Key="Manual.SharedBaseline">Shared baseline for selected intervention</sys:String>
   <sys:String x:Key="Manual.ApplicableProbes">Maintenance and generalization rows to include</sys:String>

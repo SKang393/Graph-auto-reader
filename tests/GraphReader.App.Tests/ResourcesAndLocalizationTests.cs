@@ -140,6 +140,9 @@ public sealed class ResourcesAndLocalizationTests
             dictionaryKeys.Order(StringComparer.Ordinal).ToArray(),
             registeredKeys.Order(StringComparer.Ordinal).ToArray(),
             "Every localized string must be registered and every registered key must be translated.");
+        Assert.IsTrue(
+            LocalizationKeys.All.Contains(LocalizationKeys.ManualFirstVisibleSessionInvalid, StringComparer.Ordinal),
+            "The first-session validation message must be registered for safe status-message lookup.");
     }
 
     [TestMethod]

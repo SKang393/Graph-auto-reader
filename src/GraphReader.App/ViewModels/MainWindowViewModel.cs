@@ -79,6 +79,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private double _manualYMaximum = 100;
     private double _manualXMaximum = 20;
     private int _manualFirstVisibleSession = 1;
+    private string _manualFirstVisibleSessionText = "1";
     private readonly Dictionary<string, TabEditHistory> _editHistories = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reviewReadyTabIds = new(StringComparer.Ordinal);
     private WorkspaceSurfaceState _surfaceState;
@@ -260,7 +261,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         CloseTabCommand = new RelayCommand(
             parameter => CloseTab(parameter as WorkspaceTabViewModel ?? SelectedTab),
             parameter => parameter is WorkspaceTabViewModel || SelectedTab is not null);
-        StartCalibrationCommand = new RelayCommand(_ => BeginCalibration(), _ => SelectedTab is not null && _manualWorkspaceService is not null);
+        StartCalibrationCommand = new RelayCommand(_ => BeginCalibration(), _ => CanStartCalibration());
         SelectEditorModeCommand = new RelayCommand(
             _ => EditorMode = ManualEditorMode.Select,
             _ => SelectedTab is not null);
@@ -611,12 +612,50 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         get => _manualFirstVisibleSession;
         set
         {
-            if (SetProperty(ref _manualFirstVisibleSession, value))
+            bool valueChanged = SetProperty(ref _manualFirstVisibleSession, value);
+            bool textChanged = SetProperty(
+                ref _manualFirstVisibleSessionText,
+                value.ToString(CultureInfo.InvariantCulture),
+                nameof(ManualFirstVisibleSessionText));
+            if (valueChanged || textChanged)
             {
+                OnPropertyChanged(nameof(IsManualFirstVisibleSessionInputValid));
                 UpdateCalibrationPromptIfActive();
+                RelayCommand.RaiseCanExecuteChanged();
             }
         }
     }
+
+    public string ManualFirstVisibleSessionText
+    {
+        get => _manualFirstVisibleSessionText;
+        set
+        {
+            string text = value ?? string.Empty;
+            if (!SetProperty(ref _manualFirstVisibleSessionText, text))
+            {
+                return;
+            }
+
+            if (int.TryParse(
+                text.Trim(),
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out int parsed))
+            {
+                SetProperty(ref _manualFirstVisibleSession, parsed, nameof(ManualFirstVisibleSession));
+            }
+
+            OnPropertyChanged(nameof(IsManualFirstVisibleSessionInputValid));
+            UpdateCalibrationPromptIfActive();
+            RelayCommand.RaiseCanExecuteChanged();
+        }
+    }
+
+    public bool IsManualFirstVisibleSessionInputValid =>
+        TryParsePositiveFirstVisibleSession(out int firstVisibleSession) &&
+        double.IsFinite(ManualXMaximum) &&
+        ManualXMaximum > firstVisibleSession;
 
     public double ManualXMaximum
     {
@@ -625,7 +664,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (SetProperty(ref _manualXMaximum, value))
             {
+                OnPropertyChanged(nameof(IsManualFirstVisibleSessionInputValid));
                 UpdateCalibrationPromptIfActive();
+                RelayCommand.RaiseCanExecuteChanged();
             }
         }
     }
@@ -985,6 +1026,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (SelectedTab is not { } tab || _manualWorkspaceService is null)
         {
+            return;
+        }
+
+        if (EditorMode == ManualEditorMode.Calibration && !IsManualFirstVisibleSessionInputValid)
+        {
+            SetStatus(GetLocalizedString(LocalizationKeys.ManualFirstVisibleSessionInvalid));
             return;
         }
 
@@ -1435,6 +1482,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void BeginCalibration()
     {
+        if (!CanStartCalibration())
+        {
+            return;
+        }
+
         _calibrationAnchors.Clear();
         EditorMode = ManualEditorMode.Calibration;
         UpdateCalibrationPromptIfActive();
@@ -1444,6 +1496,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (EditorMode == ManualEditorMode.Calibration)
         {
+            if (_calibrationAnchors.Count > 0)
+            {
+                _calibrationAnchors.Clear();
+                OnPropertyChanged(nameof(EditorInstruction));
+            }
+
+            if (!IsManualFirstVisibleSessionInputValid)
+            {
+                SetStatus(GetLocalizedString(LocalizationKeys.ManualFirstVisibleSessionInvalid));
+                return;
+            }
+
             SetStatus(FormatLocalizedString(
                 LocalizationKeys.ManualCalibrationPrompt,
                 ManualFirstVisibleSession,
@@ -1822,6 +1886,19 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private bool CanEditPoint() =>
         _manualWorkspaceService is not null && SelectedTab is not null && SelectedSeriesId is not null;
+
+    private bool CanStartCalibration() =>
+        SelectedTab is not null &&
+        _manualWorkspaceService is not null &&
+        IsManualFirstVisibleSessionInputValid;
+
+    private bool TryParsePositiveFirstVisibleSession(out int value) =>
+        int.TryParse(
+            ManualFirstVisibleSessionText.Trim(),
+            NumberStyles.None,
+            CultureInfo.InvariantCulture,
+            out value) &&
+        value > 0;
 
     private bool CanMoveSelectedPoint() =>
         _manualWorkspaceService is not null && SelectedTab is not null && SelectedPointId is not null;
