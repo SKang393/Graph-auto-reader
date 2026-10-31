@@ -107,6 +107,59 @@ public sealed class LocalOnnxComponentTextRecognizerTests
     }
 
     [TestMethod]
+    public async Task BaselineSingletonWithholdsPossibleDecimalAndSamePositionDustForReview()
+    {
+        string directory = CreateDirectory();
+        try
+        {
+            ModelIdentity identity = await CreateModelAsync(directory);
+            var factory = new ComponentLogitSessionFactory([1, 2]);
+            await using InferenceRuntime runtime = CreateRuntime(directory, factory);
+            var recognizer = new LocalOnnxComponentTextRecognizer(
+                runtime,
+                new LocalOnnxComponentTextRecognizerOptions(identity, "0123456789.-%")
+                {
+                    AllowedProviders = [InferenceProvider.Cpu],
+                });
+
+            // The two crops have identical pixels. One may be intended as a
+            // decimal point and the other as dust, so neither interpretation
+            // is justified by the image evidence alone.
+            float[] ambiguousPixels = CreateTwoGlyphCrop();
+            ambiguousPixels[(23 * 128) + 33] = 0f;
+            IReadOnlyList<OcrRecognition> ambiguous = await recognizer.RecognizeBatchAsync(
+                [
+                    Crop("possible-decimal", ambiguousPixels),
+                    Crop("same-position-dust", ambiguousPixels.ToArray()),
+                ],
+                CancellationToken.None);
+
+            Assert.HasCount(2, ambiguous);
+            foreach (OcrRecognition result in ambiguous)
+            {
+                Assert.AreEqual("OCR_COMPONENT_BASELINE_SINGLETON_AMBIGUOUS", result.Failure?.Code);
+                Assert.AreEqual("review_ocr_crop", result.Failure?.SuggestedAction);
+                Assert.IsEmpty(result.Alternatives);
+            }
+            Assert.AreEqual(0, factory.CreatedCount, "Ambiguous crops must not reach model inference.");
+
+            float[] benignSpeckPixels = CreateTwoGlyphCrop();
+            benignSpeckPixels[(5 * 128) + 90] = 0f;
+            IReadOnlyList<OcrRecognition> ordinary = await recognizer.RecognizeBatchAsync(
+                [Crop("distant-speck", benignSpeckPixels)],
+                CancellationToken.None);
+
+            Assert.IsNull(ordinary.Single().Failure);
+            Assert.AreEqual("12", ordinary.Single().Alternatives.Single().Text);
+            Assert.AreEqual(1, factory.Session.RunCount);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public async Task ComponentEncodingMatchesFrozenPillowV5TensorBytes()
     {
         string directory = CreateDirectory();
@@ -334,6 +387,14 @@ public sealed class LocalOnnxComponentTextRecognizerTests
                 pixels[(y * stride) + x] = value;
             }
         }
+    }
+
+    private static float[] CreateTwoGlyphCrop()
+    {
+        float[] pixels = Enumerable.Repeat(1f, 128 * 32).ToArray();
+        Fill(pixels, 128, 20, 8, 6, 16, 0f);
+        Fill(pixels, 128, 40, 8, 5, 16, 0f);
+        return pixels;
     }
 
     private static OcrCrop Crop(

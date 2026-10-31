@@ -608,6 +608,53 @@ public sealed class OcrPipelineAcceptanceTests
     }
 
     [TestMethod]
+    public async Task BaselineSingletonFailurePropagatesTickReviewWarningWithoutInventingText()
+    {
+        OcrDetectedRegion successRegion = OcrTestFixtures.Region("clear-tick", 42, 88, 10, 6);
+        OcrDetectedRegion ambiguousRegion = OcrTestFixtures.Region("ambiguous-tick", 62, 88, 10, 6);
+        OcrDetectedRegion ambiguousHeader = OcrTestFixtures.Region(
+            "ambiguous-header", 62, 4, 30, 8,
+            context: new OcrRegionContext(ExplicitRoleHint: OcrTextRole.PhaseHeading));
+        var ambiguousFailure = new OcrFailure(
+            "OCR_COMPONENT_BASELINE_SINGLETON_AMBIGUOUS",
+            "warning",
+            "Errors.OCR_RECOGNITION_FAILED",
+            "A baseline singleton requires crop review.",
+            true,
+            "review_ocr_crop");
+        var recognizer = new StubTextRecognizer((crops, _) =>
+            ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop =>
+                crop.RegionId == "clear-tick"
+                    ? new OcrRecognition(crop.RegionId, crop.SourceImage,
+                        [new OcrRecognitionAlternative("10", 0.95, crop.SourceImage)], 0.1)
+                    : new OcrRecognition(crop.RegionId, crop.SourceImage, [], 0, ambiguousFailure)).ToArray()));
+        var pipeline = new OcrPipeline(
+            new StubTextRegionDetector([]),
+            recognizer,
+            new InMemoryOcrResultCache(),
+            batchSize: 4);
+
+        OcrResult result = await pipeline.RecognizeAsync(
+            OcrTestFixtures.Request([successRegion, ambiguousRegion, ambiguousHeader]),
+            CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.AreEqual("10", result.Regions.Single().Text);
+        Assert.AreEqual("clear-tick", result.Regions.Single().RegionId);
+        Assert.HasCount(2, result.RegionFailures!);
+        OcrRegionFailure regionFailure = result.RegionFailures!.Single(failure =>
+            failure.RegionId == "ambiguous-tick");
+        Assert.AreEqual("ambiguous-tick", regionFailure.RegionId);
+        Assert.AreEqual("OCR_COMPONENT_BASELINE_SINGLETON_AMBIGUOUS",
+            regionFailure.Failure.Code);
+        CollectionAssert.Contains(
+            result.Warnings.ToArray(),
+            "ocr_tick_sequence_needs_review:baseline_singleton_ambiguous:ambiguous-tick");
+        Assert.IsFalse(result.Warnings.Any(static warning =>
+            warning.Contains("baseline_singleton_ambiguous:ambiguous-header", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public async Task MinorEditOutsideOcrCropReusesUnchangedCropRecognition()
     {
         OcrDetectedRegion region = OcrTestFixtures.Region("stable-crop", 20, 30, 12, 8);

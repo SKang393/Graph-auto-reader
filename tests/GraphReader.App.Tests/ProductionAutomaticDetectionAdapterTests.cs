@@ -727,6 +727,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
 
     [TestMethod]
     [DataRow("ocr_tick_sequence_needs_review:XTick:ambiguous_or_irregular_spacing", true)]
+    [DataRow("ocr_tick_sequence_needs_review:baseline_singleton_ambiguous:uncertain-region", true)]
     [DataRow("ocr_tick_sequence_needs_review:YTick:insufficient_unchanged_tick_anchors", true)]
     [DataRow("ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected", true)]
     [DataRow("ocr_tick_alternative_resolved_by_monotonic_spacing:YTick", false)]

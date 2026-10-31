@@ -82,6 +82,7 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
             this.options.InputName,
             this.options.OutputName,
             this.options.StageVersion,
+            "baseline-singleton-review-v1",
             ProviderFingerprint(this.options.AllowedProviders),
         ]);
     }
@@ -126,7 +127,7 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
 
         if (totalGlyphs == 0)
         {
-            return FreezeEmpty(crops);
+            return FreezeEmpty(crops, encodedByCrop);
         }
 
         var encodedWidth = checked(options.GlyphWidth + options.GeometryFeatureCount);
@@ -206,6 +207,13 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
         {
             cancellationToken.ThrowIfCancellationRequested();
             EncodedGlyphs encoded = encodedByCrop[cropIndex];
+            if (encoded.HasAmbiguousBaselineSingleton)
+            {
+                results[cropIndex] = AmbiguousBaselineSingletonFailure(crops[cropIndex],
+                    response.Execution.Timing.InferenceMilliseconds / Math.Max(1, crops.Count));
+                continue;
+            }
+
             OcrRecognitionAlternative[] alternatives = Decode(
                 output.AsSpan(glyphOffset * classCount, encoded.Count * classCount),
                 encoded,
@@ -260,7 +268,8 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
                 byte.MaxValue);
         }
 
-        bool[] foreground = FilterForeground(raster, options.CanvasWidth, options.CanvasHeight);
+        ForegroundFilterResult foregroundResult = FilterForeground(raster, options.CanvasWidth, options.CanvasHeight);
+        bool[] foreground = foregroundResult.Pixels;
         var intervals = ActiveIntervals(foreground, options.CanvasWidth, options.CanvasHeight);
         var glyphs = new List<float[]>();
         var structuralReject = false;
@@ -276,9 +285,16 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
             glyphs.Add(component.Values);
         }
 
+        if (foregroundResult.HasAmbiguousBaselineSingleton)
+        {
+            return new EncodedGlyphs([], 0, Rejected: false, HasAmbiguousBaselineSingleton: true);
+        }
+
         if (glyphs.Count == 0 || glyphs.Count > options.MaximumGlyphs || structuralReject)
         {
-            return new EncodedGlyphs([], 0, Rejected: structuralReject || glyphs.Count > options.MaximumGlyphs);
+            return new EncodedGlyphs([], 0,
+                Rejected: structuralReject || glyphs.Count > options.MaximumGlyphs,
+                HasAmbiguousBaselineSingleton: false);
         }
 
         var values = new float[glyphs.Sum(static glyph => glyph.Length)];
@@ -289,10 +305,10 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
             offset += glyph.Length;
         }
 
-        return new EncodedGlyphs(values, glyphs.Count, Rejected: false);
+        return new EncodedGlyphs(values, glyphs.Count, Rejected: false, HasAmbiguousBaselineSingleton: false);
     }
 
-    private static bool[] FilterForeground(byte[] raster, int width, int height)
+    private static ForegroundFilterResult FilterForeground(byte[] raster, int width, int height)
     {
         byte low = raster.Min();
         byte[] sorted = (byte[])raster.Clone();
@@ -309,6 +325,8 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
 
         var visited = new bool[raw.Length];
         var filtered = new bool[raw.Length];
+        var retainedComponents = new List<ComponentBounds>();
+        var singletonComponents = new List<int>();
         var stack = new Stack<int>();
         var points = new List<int>();
         for (var y = 0; y < height; y++)
@@ -351,15 +369,72 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
 
                 if (points.Count >= 2)
                 {
+                    retainedComponents.Add(ComponentBounds.FromPoints(points, width));
                     foreach (int point in points)
                     {
                         filtered[point] = true;
                     }
                 }
+                else
+                {
+                    singletonComponents.Add(points[0]);
+                }
             }
         }
 
-        return filtered;
+        return new ForegroundFilterResult(
+            filtered,
+            HasAmbiguousBaselineSingleton(singletonComponents, retainedComponents, width));
+    }
+
+    private static bool HasAmbiguousBaselineSingleton(
+        IReadOnlyList<int> singletonPixels,
+        IReadOnlyList<ComponentBounds> retainedComponents,
+        int width)
+    {
+        if (retainedComponents.Count < 2)
+        {
+            return false;
+        }
+
+        foreach (int pixel in singletonPixels)
+        {
+            int x = pixel % width;
+            int y = pixel / width;
+            ComponentBounds? left = null;
+            ComponentBounds? right = null;
+            foreach (ComponentBounds component in retainedComponents)
+            {
+                if (component.Right < x &&
+                    (left is null || component.Right > left.Value.Right))
+                {
+                    left = component;
+                }
+
+                if (component.Left > x &&
+                    (right is null || component.Left < right.Value.Left))
+                {
+                    right = component;
+                }
+            }
+
+            if (left is not { } leftBounds || right is not { } rightBounds)
+            {
+                continue;
+            }
+
+            // A singleton at the shared lower edge of two distinct glyph
+            // components could be a decimal point or isolated scan noise.
+            // Keep filtering it from the model tensor, but require review.
+            if (Math.Abs(leftBounds.Bottom - rightBounds.Bottom) <= 2 &&
+                y >= Math.Min(leftBounds.Bottom, rightBounds.Bottom) - 1 &&
+                y <= Math.Max(leftBounds.Bottom, rightBounds.Bottom) + 2)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static List<(int Left, int Right)> ActiveIntervals(
@@ -574,12 +649,28 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
             : [];
     }
 
-    private static ReadOnlyCollection<OcrRecognition> FreezeEmpty(IReadOnlyList<OcrCrop> crops) =>
-        Array.AsReadOnly(crops.Select(crop => new OcrRecognition(
+    private static ReadOnlyCollection<OcrRecognition> FreezeEmpty(
+        IReadOnlyList<OcrCrop> crops,
+        IReadOnlyList<EncodedGlyphs> encoded) =>
+        Array.AsReadOnly(crops.Select((crop, index) => encoded[index].HasAmbiguousBaselineSingleton
+            ? AmbiguousBaselineSingletonFailure(crop, 0)
+            : new OcrRecognition(crop.RegionId, crop.SourceImage,
+                Array.Empty<OcrRecognitionAlternative>(), 0)).ToArray());
+
+    private static OcrRecognition AmbiguousBaselineSingletonFailure(OcrCrop crop, double inferenceMilliseconds) =>
+        new(
             crop.RegionId,
             crop.SourceImage,
             Array.Empty<OcrRecognitionAlternative>(),
-            0)).ToArray());
+            inferenceMilliseconds,
+            new OcrFailure(
+                "OCR_COMPONENT_BASELINE_SINGLETON_AMBIGUOUS",
+                "warning",
+                "Errors.OCR_RECOGNITION_FAILED",
+                "A one-pixel mark between lower-aligned glyphs could be a decimal point or scan noise; " +
+                "the crop was withheld for review.",
+                true,
+                "review_ocr_crop"));
 
     private static ReadOnlyCollection<OcrRecognition> FreezeFailure(
         IReadOnlyList<OcrCrop> crops,
@@ -651,5 +742,31 @@ public sealed partial class LocalOnnxComponentTextRecognizer : ITextRecognizer
 
     private sealed record EncodedGlyph(float[] Values, float HeightRatio);
 
-    private sealed record EncodedGlyphs(float[] Values, int Count, bool Rejected);
+    private sealed record EncodedGlyphs(
+        float[] Values,
+        int Count,
+        bool Rejected,
+        bool HasAmbiguousBaselineSingleton);
+
+    private sealed record ForegroundFilterResult(bool[] Pixels, bool HasAmbiguousBaselineSingleton);
+
+    private readonly record struct ComponentBounds(int Left, int Right, int Bottom)
+    {
+        public static ComponentBounds FromPoints(IReadOnlyList<int> points, int width)
+        {
+            int left = int.MaxValue;
+            int right = int.MinValue;
+            int bottom = int.MinValue;
+            foreach (int point in points)
+            {
+                int x = point % width;
+                int y = point / width;
+                left = Math.Min(left, x);
+                right = Math.Max(right, x);
+                bottom = Math.Max(bottom, y);
+            }
+
+            return new ComponentBounds(left, right, bottom);
+        }
+    }
 }

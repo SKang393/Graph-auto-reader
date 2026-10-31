@@ -515,7 +515,8 @@ public sealed class OcrPipeline
         }
 
         var postprocessStopwatch = Stopwatch.StartNew();
-        var regionFailures = ExtractRegionFailures(recognitionResults, warnings);
+        var regionFailures = ExtractRegionFailures(
+            recognitionResults, warnings, detectedRegions, request.PlotBounds);
         var regions = MergeResults(detectedRegions, recognitionResults, request.PlotBounds, warnings);
         if (_options.EnableHeaderLayoutRoleResolution)
         {
@@ -712,7 +713,7 @@ public sealed class OcrPipeline
                         : region.RegionId.StartsWith("header-glyph:", StringComparison.Ordinal)
                             ? "original_pixel_header_glyph_recovery" : "original_pixel_tick_recovery")));
                 regionFailures = OcrCollections.Freeze(regionFailures.Concat(
-                    ExtractRegionFailures(recoveryResults, warnings)));
+                    ExtractRegionFailures(recoveryResults, warnings, recovered, request.PlotBounds)));
                 recognitionResults.AddRange(recoveryResults);
                 detectedRegions = OcrCollections.Freeze(detectedRegions.Concat(recovered));
                 batches = batches.Concat(recoveryBatches).ToArray();
@@ -769,7 +770,8 @@ public sealed class OcrPipeline
                     warnings.AddRange(replacedWords.SelectMany(word => word.SourceRegionIds.Select(id =>
                         $"ocr_header_fragment_replaced:{id}:{word.Region.RegionId}")));
                     warnings.AddRange(wordRegions.Select(static r => $"ocr_role_needs_review:{r.RegionId}:original_pixel_header_fragment_word_recovery"));
-                    regionFailures = OcrCollections.Freeze(regionFailures.Concat(ExtractRegionFailures(wordResults, warnings)));
+                    regionFailures = OcrCollections.Freeze(regionFailures.Concat(ExtractRegionFailures(
+                        wordResults, warnings, words.Select(static word => word.Region).ToArray(), request.PlotBounds)));
                     recognitionResults.AddRange(wordResults);
                     detectedRegions = OcrCollections.Freeze(detectedRegions.Concat(words.Select(static word => word.Region)));
                     batches = batches.Concat(wordBatches).ToArray();
@@ -1097,7 +1099,9 @@ public sealed class OcrPipeline
 
     private static IReadOnlyList<OcrRegionFailure> ExtractRegionFailures(
         IReadOnlyList<OcrRecognition> recognitions,
-        List<string> warnings)
+        List<string> warnings,
+        IReadOnlyList<OcrDetectedRegion> detectedRegions,
+        OcrRectangle plotBounds)
     {
         var failures = recognitions
             .Where(static recognition => recognition.Failure is not null)
@@ -1116,9 +1120,61 @@ public sealed class OcrPipeline
         foreach (var failure in failures)
         {
             warnings.Add($"ocr_region_failure:{failure.RegionId}:{failure.SourceImage}:{failure.Failure.Code}");
+            if (string.Equals(
+                    failure.Failure.Code,
+                    "OCR_COMPONENT_BASELINE_SINGLETON_AMBIGUOUS",
+                    StringComparison.Ordinal) &&
+                IsPotentialTickRegion(failure.RegionId, detectedRegions, plotBounds))
+            {
+                warnings.Add($"ocr_tick_sequence_needs_review:baseline_singleton_ambiguous:{failure.RegionId}");
+            }
         }
 
         return OcrCollections.Freeze(failures);
+    }
+
+    private static bool IsPotentialTickRegion(
+        string regionId,
+        IReadOnlyList<OcrDetectedRegion> detectedRegions,
+        OcrRectangle plotBounds)
+    {
+        OcrDetectedRegion? detected = detectedRegions.FirstOrDefault(region =>
+            string.Equals(region.RegionId, regionId, StringComparison.Ordinal));
+        if (detected is null)
+        {
+            return false;
+        }
+
+        OcrRegionContext context = detected.Context ?? new OcrRegionContext();
+        if (context.ExplicitRoleHint is { } explicitRole)
+        {
+            return explicitRole is OcrTextRole.XTick or OcrTextRole.YTick;
+        }
+
+        if (context.InParticipantBand || context.NearLegendGlyph || context.NearPhaseDivider ||
+            context.NearAnnotationArrow)
+        {
+            return false;
+        }
+
+        if (context.NumericExpected)
+        {
+            return true;
+        }
+
+        OcrRectangle bounds = detected.Polygon.Bounds;
+        OcrPoint center = bounds.Center;
+        double horizontalTolerance = Math.Max(4, plotBounds.Width * 0.05);
+        double verticalTolerance = Math.Max(4, plotBounds.Height * 0.05);
+        bool withinPlotX = center.X >= plotBounds.Left - horizontalTolerance &&
+            center.X <= plotBounds.Right + horizontalTolerance;
+        bool withinPlotY = center.Y >= plotBounds.Top - verticalTolerance &&
+            center.Y <= plotBounds.Bottom + verticalTolerance;
+
+        // Failed text cannot be classified by characters. Use only tick-lane
+        // geometry, conservatively including nearby axis-title placements.
+        return (center.Y > plotBounds.Bottom && withinPlotX) ||
+            (center.X < plotBounds.Left && withinPlotY);
     }
 
     private static bool IsCredibleTextMask(
