@@ -2,6 +2,7 @@
 # Copyright 2026 Sungwoo Kang
 """Synthetic schedule and mocked runner tests; no optimizer or data access."""
 from hashlib import sha256
+import json
 from types import SimpleNamespace
 import unittest
 from unittest.mock import MagicMock, patch
@@ -52,6 +53,17 @@ class ComponentScheduleTests(unittest.TestCase):
     def test_new_protocol_is_required_in_source_bundle(self):
         protocol = (runner.LOCAL / "protocol.json").as_posix()
         self.assertIn(protocol, {path.as_posix() for path in runner.REQUIRED_SOURCES})
+        config = {"revision": runner.REVISION, "candidate_id": "P1",
+                  "component_retention": runner.expected_component_config(),
+                  "optimizer_steps_expected": runner.TOTAL_STEPS}
+        authorization = SimpleNamespace(binding={"runner_source_paths": [p.as_posix() for p in runner.REQUIRED_SOURCES]})
+        entry = {"task": "marker-center", "revision": runner.REVISION,
+                 "protocol_path": "ml/markers/center/real_positive_context_v1/protocol.json"}
+        fake_file = MagicMock()
+        fake_file.read_bytes.return_value = json.dumps({"revisions": [entry]}).encode()
+        with patch.object(runner.prior, "_inside_project", return_value=fake_file):
+            with self.assertRaisesRegex(RuntimeError, "protocol is not snapshot-bound"):
+                runner._validate_admission(config, authorization)
 
 
 class MockedStepTests(unittest.TestCase):
