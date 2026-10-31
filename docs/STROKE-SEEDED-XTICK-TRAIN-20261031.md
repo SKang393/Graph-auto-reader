@@ -73,3 +73,17 @@ development diagnostic, not formal product acceptance or a real-graph test.
 - Frozen P2 checkpoint SHA-256: `9b0e52ab0ebde0faef51326441d6c01e38f1d94c0a017a5530c75a5902c10351`
 - Corrected evaluation SHA-256: `97932d6f2b12debdd009014d2cbcfd5ff63db8754ccc664079df2551d7242340`
 - Probe tests: 3 passed; inference used the RX 6600 XT with no optimizer steps.
+
+## One-box-per-seed analysis
+
+An RX 6600 XT inference-only analysis compared the frozen P2 model's full NMS
+output with retaining the top-scoring box per unambiguous seed. At score and
+match IoU 0.5, probe precision rose from 0.2898 to 0.8160, while recall fell
+from 0.9273 to 0.8061. The count of false positives fell from 375 to 30, but
+20 previously matched positive rows were lost. Excluded crops stayed out of
+scoring. The consumed probe's repetition and background exclusions above
+still limit interpretation; this does not establish production readiness.
+
+- Analyzer SHA-256: `732650575a1878e380387c4a066b6e3c5b80755d61293e5f1aafd711bed8254d`
+- Analysis report SHA-256: `66ba6032cdd9ef66fb14ac8b810bbb3de5e79422dbf9eaca04b096e8cacab970`
+- Top-one scoring tests: 4 passed; no optimizer steps ran.

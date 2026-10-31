@@ -199,3 +199,41 @@ The final evaluation report, evaluator, config, and test hashes are recorded
 in the v2 run artifacts and source files; the v1 evaluation output is retained
 as a superseded receipt because its duplicate-row field name incorrectly said
 those rows were skipped, though all 323 crops were scored.
+
+## P2 one-detection-per-seed analysis
+
+The frozen P2 checkpoint was evaluated again on the same 644 V6 train-fit rows
+and the same consumed 323-row source-disjoint probe. Baseline NMS aggregates
+were recomputed and matched the saved P2 train report and probe-v2 report.
+Then each unambiguous stroke-seeded crop retained only its highest-confidence
+valid decoded box when that score met threshold. The match IoU was 0.5; NMS
+comparison used IoU 0.5 and at most 100 detections per crop. Crops with
+multiple/ambiguous targets or non-XTick text remain excluded/needs-review, not
+background negatives. The 37 V6 and 36 probe label exclusions were all
+`non_xtick_text_intersects_crop`; the probe also records 63 omitted training
+image-hash collisions and four non-affine candidate source recipes.
+
+| Dataset | Threshold | Method | Precision | Recall | FP | FN |
+| --- | ---: | --- | ---: | ---: | ---: | ---: |
+| V6 train-fit, 235 positive | 0.25 | NMS | 0.3019 | 0.9957 | 541 | 1 |
+| V6 train-fit, 235 positive | 0.25 | top one | 0.8613 | 0.8723 | 33 | 30 |
+| V6 train-fit, 235 positive | 0.50 | NMS | 0.3687 | 0.9915 | 399 | 2 |
+| V6 train-fit, 235 positive | 0.50 | top one | 0.8613 | 0.8723 | 33 | 30 |
+| Consumed probe, 165 positive | 0.25 | NMS | 0.2290 | 0.9273 | 515 | 12 |
+| Consumed probe, 165 positive | 0.25 | top one | 0.8061 | 0.8061 | 32 | 32 |
+| Consumed probe, 165 positive | 0.50 | NMS | 0.2898 | 0.9273 | 375 | 12 |
+| Consumed probe, 165 positive | 0.50 | top one | 0.8160 | 0.8061 | 30 | 32 |
+
+Top-one reduced redundant false detections on positive crops, while losing 28
+train-fit positives and 20 consumed-probe positives relative to NMS at score
+0.5. On V6 train-fit, top-one retained three background false positives; on
+the consumed probe all top-one false positives were on positive crops, while
+background-only FP remained zero. Probe background rows include repeated
+images and omit 63 train-hash collisions. The consumed probe is no longer
+untouched; this analysis is exploratory, not product acceptance. No model
+training occurred.
+
+```powershell
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('-m','unittest','ml.ocr.stroke_seeded_xtick_v1.test_top_one_seed_analysis','-v')
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('ml/ocr/stroke_seeded_xtick_v1/top_one_seed_analysis.py')
+```
