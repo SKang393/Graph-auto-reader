@@ -87,3 +87,24 @@ still limit interpretation; this does not establish production readiness.
 - Analyzer SHA-256: `732650575a1878e380387c4a066b6e3c5b80755d61293e5f1aafd711bed8254d`
 - Analysis report SHA-256: `66ba6032cdd9ef66fb14ac8b810bbb3de5e79422dbf9eaca04b096e8cacab970`
 - Top-one scoring tests: 4 passed; no optimizer steps ran.
+
+## Detector plus numeric recognizer diagnostic
+
+Frozen P2 top-one boxes were mapped through the application `OcrCropBatcher`
+into the project-trained V5 numeric component recognizer. On the consumed
+probe, 133 of 165 positive crops had a detected box with IoU at least 0.5.
+For those 133 matches, the recognizer returned 21 exact strings, 29 incorrect
+strings and 83 empty alternatives; the latter are not runtime errors. At
+score 0.5 there were also 30 false detections and 32 positive misses. This is
+an exploratory synthetic diagnostic, not a full graph workflow or approval.
+
+The detector export used the RX 6600 XT without optimizer steps. A separate
+DirectML recognizer attempt crashed natively with `0xC0000005`; the completed
+recognizer diagnostic used CPU inference. V5 remains unapproved and is not in
+the production model store. The probe's previously noted exclusions and
+duplicate-image weighting apply.
+
+- Detector checkpoint SHA-256: `9b0e52ab0ebde0faef51326441d6c01e38f1d94c0a017a5530c75a5902c10351`
+- V5 recognizer SHA-256: `9db95c41ce396e8b2dff3b525556615528a00ca87f4cc531274374b961417c84`
+- Corrected report SHA-256: `438a3b4c1628e3810d51f5c8a3ab41ee2ea6ab2c3b42ba567b0ef4469b4b941b`
+- Diagnostic build succeeded and 3 report checks passed.
