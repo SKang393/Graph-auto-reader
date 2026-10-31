@@ -54,7 +54,7 @@ The default materialization generates 24 deterministic training-only source
 cases, at most 72 panels and at most 900 crops. Rendering and layout resolve
 only the project's NotoSans Regular, Medium and SemiBold font assets; the
 manifest records resolved font provenance per source. No external image or
-font inputs are read. This directory does not train a model.
+font inputs are read.
 
 ```powershell
 & .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('-m', 'unittest', 'ml.ocr.stroke_seeded_xtick_v1.test_materialize', '-v')
@@ -64,3 +64,30 @@ font inputs are read. This directory does not train a model.
 Run output is project-local under `artifacts/stroke-seeded-xtick-v1-train-verified-v6` by
 default. The result is synthetic train input only, not a held-out probe,
 acceptance corpus, or production model.
+
+## P1 GPU train-fit experiment
+
+`train_gpu.py` pins the exact V6 manifest SHA-256 and validates every listed
+image and annotation. It admits only the 235 `trainable_single_box` positives
+and 409 `trainable_single_box` backgrounds; it verifies but skips the 37
+excluded records. The V3 spatial locator architecture and target/loss helpers
+are reused with fresh random initialization, 30 epochs, 7 crops per batch and
+92 batches per epoch (2,760 optimizer steps). Every epoch consumes all 644
+admitted crops once and mixes both classes. Execution rejects CPU fallback and
+requires the project RX 6600 XT launcher.
+
+The report includes cell-fit scores plus decoded image-level IoU and NMS metrics
+before and after training. Score thresholds are 0.25 and 0.5; NMS IoU and match
+IoU are 0.5; evaluation caps post-threshold candidates at 100 per image. All
+metrics are train-fit only. The 644 crops come from 24 source graphs with 8 to
+48 trainable crops per source, so crops within each source are correlated and
+this result says nothing about held-out generalization.
+
+```powershell
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('-m', 'unittest', 'ml.ocr.stroke_seeded_xtick_v1.test_training', '-v')
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('ml/ocr/stroke_seeded_xtick_v1/train_gpu.py')
+```
+
+The run writes an exploratory checkpoint and aggregate report under
+`artifacts/stroke-seeded-xtick-v1-p1-rx6600xt-fit-v1`. It is diagnostic model
+fit only, not production activation or OCR acceptance.
