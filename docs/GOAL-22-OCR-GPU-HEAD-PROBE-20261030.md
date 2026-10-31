@@ -25,3 +25,16 @@ checks passed, including altered image, model, protocol, and split bindings.
 The reported probe-script hash is descriptive, not a preregistered guard. This
 check does not establish full GPU-trunk parity, full-size memory requirements,
 training viability, or model accuracy.
+
+A separate CPU-inference preflight extracted candidate-only trunk features and
+targets for four authenticated synthetic training scenes. It included 110
+visible text boxes and ignored 36 marker-artifact candidates without treating
+them as OCR negatives. Its inverse-target construction recorded four contacts
+and 12 minimum-extent clamps. Six focused checks passed, including held-out
+raster/annotation read guards and source/output containment failures.
+
+The preflight used OpenCV 4.10 with a 512/128 diagnostic resize recipe; its
+tensors have not been compared with the production OpenCvSharp 4.13 path. The
+caches are not approved training inputs. No optimizer steps or private/sealed
+reads occurred. Report SHA-256:
+`e3cf0880968123fb61164c068607298b90e119388363de6c60320b672d5927f3`.
