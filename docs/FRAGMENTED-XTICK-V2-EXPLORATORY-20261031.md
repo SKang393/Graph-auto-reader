@@ -86,3 +86,20 @@ field alone. This is not independent validation or a production candidate.
 - P3 checkpoint SHA-256: `359c42174f2b946c29a7768b9105f065fceb20bf716014eac0bbe121fd4255f6`
 - Image evaluation SHA-256: `bdceab1751f561f1d35bd1a07fa89fe132e44c980bf56101b01a32e52aced56e`
 - Training and evaluation tests: 16 passed.
+
+## Log-size regression follow-up
+
+At the assigned target cell, P3 predicted mean box dimensions of 0.000448 by
+approximately `6.04e-10` pixels, versus target means of 22.5 by 13 pixels.
+P4 kept the P3 architecture and initialization sequence but regressed box
+width and height in log space. After 360 RX 6600 XT steps, assigned-cell mean
+IoU was 0.613 on the same training set. With score, NMS IoU and match IoU all
+0.5, image recall was 0.797, with 1.328 false positives per positive image and
+0.125 per background-only image. The decoder's one-pixel minimum was not used
+for any measured box. This is train fit, not independent validation.
+
+- P4 trainer SHA-256: `985180618c262164bc16168e71bc9ba239b890a8f4d62ce8823d19c8dc6777c5`
+- P4 report SHA-256: `0ece463f214e68dbeecaf9729e4129fdfed27052c88aaba44474633e473ff9c1`
+- P4 checkpoint SHA-256: `01def8956cbed8f6c676eaa8b847078ca55ab144b168771286e8101b33c3f1fc`
+- Image evaluation SHA-256: `2653ecdc8685003c06e4ea44dc0378f876574478ce482ca192ae9f64524577a2`
+- Training and evaluation tests: 18 passed. This candidate is not approved.

@@ -52,8 +52,9 @@ class FragmentedXTickV3GpuTests(unittest.TestCase):
         config = _config()
         self.assertTrue(config["optimizer_execution_authorized"])
         self.assertEqual((30, 360), (config["epochs"], config["expected_optimizer_steps"]))
-        self.assertEqual("artifacts/fragmented-xtick-detector-v3-p3-rf31-stratified-30epoch-v1", config["planned_output_root"])
-        self.assertEqual("fragmented-xtick-spatial-locator-v3-cell-relative-rf31", config["model"])
+        self.assertEqual("artifacts/fragmented-xtick-detector-v3-p4-rf31-logwh-stratified-30epoch-v1", config["planned_output_root"])
+        self.assertEqual("fragmented-xtick-spatial-locator-v3-cell-relative-rf31-logwh", config["model"])
+        self.assertIn("log normalized width-height", config["box_parameterization"])
         self.assertFalse(config["production_approval"])
         self.assertFalse(config["release_eligible"])
 
@@ -79,8 +80,16 @@ class FragmentedXTickV3GpuTests(unittest.TestCase):
     def test_cell_relative_encoding_decodes_known_box_exactly(self) -> None:
         box = (0.405, 0.318, 0.477, 0.461)
         encoded = encode_cell_relative(box, 4, 14)
-        self.assertTrue(all(0.0 <= value <= 1.0 for value in encoded))
+        self.assertTrue(all(0.0 <= value <= 1.0 for value in encoded[:2]))
+        self.assertTrue(all(value < 0.0 for value in encoded[2:]))
         self.assertEqual(box, decode_cell_relative(encoded, 4, 14))
+
+    def test_log_size_decode_enforces_one_pixel_positive_box_extent(self) -> None:
+        decoded = decode_cell_relative((0.5, 0.5, -1000.0, -1000.0), 4, 14)
+        self.assertAlmostEqual(1 / 256, decoded[2] - decoded[0])
+        self.assertAlmostEqual(1 / 96, decoded[3] - decoded[1])
+        self.assertGreater(decoded[2] - decoded[0], 0.0)
+        self.assertGreater(decoded[3] - decoded[1], 0.0)
 
     def test_all_negative_batch_uses_a_gpu_zero_box_loss_branch(self) -> None:
         source = Path(REPO_ROOT / "ml/ocr/fragmented_xtick_detector_v2/gpu_train.py").read_text(encoding="utf-8")

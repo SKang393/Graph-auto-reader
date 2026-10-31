@@ -5,13 +5,14 @@
 from __future__ import annotations
 
 import unittest
+import math
 
 from ml.ocr.fragmented_xtick_detector_v3.evaluate_p2 import box_iou, decode_prediction_box, summarize_image_metrics
 
 
 class P2ImageEvaluationTests(unittest.TestCase):
     def test_cell_relative_box_decodes_to_expected_image_coordinates(self) -> None:
-        box = decode_prediction_box((0.25, 0.75, 0.2, 0.4), row=2, column=3)
+        box = decode_prediction_box((0.25, 0.75, math.log(0.2), math.log(0.4)), row=2, column=3)
         self.assertAlmostEqual(3.25 / 32 - 0.1, box[0])
         self.assertAlmostEqual(2.75 / 12 - 0.2, box[1])
         self.assertAlmostEqual(3.25 / 32 + 0.1, box[2])
@@ -49,6 +50,18 @@ class P2ImageEvaluationTests(unittest.TestCase):
         ]
         metrics = summarize_image_metrics(images, thresholds=(0.5,))
         self.assertEqual(0.5, metrics["highest_confidence_iou"]["median"])
+
+    def test_metrics_report_minimum_extent_clamp_separately(self) -> None:
+        target = (0.1, 0.1, 0.2, 0.2)
+        min_box = decode_prediction_box((0.5, 0.5, -100.0, -100.0), 4, 14)
+        images = [
+            {"target": target, "target_cell": {"score": 0.5, "box": min_box, "values": (0.5, 0.5, -100.0, -100.0)}, "candidates": [(0.5, min_box)]},
+            {"target": None, "target_cell": None, "candidates": []},
+        ]
+        metrics = summarize_image_metrics(images, thresholds=(0.5,))
+        geometry = metrics["ground_truth_assigned_cell"]
+        self.assertEqual(1.0, geometry["predicted_width_pixels_one_pixel_clamp_fraction"])
+        self.assertEqual(1.0, geometry["predicted_height_pixels_one_pixel_clamp_fraction"])
 
 
 if __name__ == "__main__":

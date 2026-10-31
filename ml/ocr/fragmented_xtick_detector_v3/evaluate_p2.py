@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from io import BytesIO
 import json
+import math
 from pathlib import Path
 from statistics import median
 import sys
@@ -84,6 +85,32 @@ def summarize_image_metrics(
         raise ValueError("evaluation requires positive and background-only images")
     top_ious = [box_iou(max(image["candidates"], key=lambda item: item[0])[1], image["target"]) for image in positives]
     target_cell_ious = [box_iou(image["target_cell"]["box"], image["target"]) for image in positives]
+    target_cell_geometry: dict[str, float] = {}
+    for name, index_scale, target_index in (("predicted_width_pixels", 256.0, 2), ("predicted_height_pixels", 96.0, 3)):
+        edge = 2 if target_index == 2 else 3
+        predicted = []
+        for image in positives:
+            cell = image["target_cell"]
+            if "values" in cell:
+                log_minimum = math.log(1.0 / index_scale)
+                predicted.append(math.exp(min(0.0, max(log_minimum, cell["values"][target_index]))) * index_scale)
+            else:
+                predicted.append((cell["box"][edge] - cell["box"][edge - 2]) * index_scale)
+        truth = [(image["target"][2] - image["target"][0]) * 256.0 if target_index == 2 else (image["target"][3] - image["target"][1]) * 96.0 for image in positives]
+        target_cell_geometry[name + "_mean"] = sum(predicted) / len(predicted)
+        target_cell_geometry[name.replace("predicted", "target") + "_mean"] = sum(truth) / len(truth)
+        target_cell_geometry[name + "_one_pixel_clamp_fraction"] = sum(
+            "values" in image["target_cell"] and image["target_cell"]["values"][target_index] <= math.log(1.0 / index_scale)
+            for image in positives
+        ) / len(positives)
+    target_center_errors = []
+    for image in positives:
+        predicted_box = image["target_cell"]["box"]
+        target_box = image["target"]
+        predicted_center = ((predicted_box[0] + predicted_box[2]) / 2.0, (predicted_box[1] + predicted_box[3]) / 2.0)
+        target_center = ((target_box[0] + target_box[2]) / 2.0, (target_box[1] + target_box[3]) / 2.0)
+        target_center_errors.append((((predicted_center[0] - target_center[0]) * 256.0) ** 2 + ((predicted_center[1] - target_center[1]) * 96.0) ** 2) ** 0.5)
+    target_cell_geometry["center_error_pixels_mean"] = sum(target_center_errors) / len(target_center_errors)
     result: dict[str, Any] = {
         "image_count": len(images),
         "positive_image_count": len(positives),
@@ -98,6 +125,7 @@ def summarize_image_metrics(
             "mean_box_iou": sum(target_cell_ious) / len(target_cell_ious),
             "fraction_at_or_above_0_5": sum(iou >= 0.5 for iou in target_cell_ious) / len(target_cell_ious),
             "mean_objectness": sum(image["target_cell"]["score"] for image in positives) / len(positives),
+            **target_cell_geometry,
         },
         "thresholds": {},
     }
@@ -180,6 +208,11 @@ def evaluate(artifact_root: Path = ARTIFACT_ROOT) -> dict[str, Any]:
     payload = torch.load(BytesIO(checkpoint.value), map_location=device, weights_only=True)
     if payload.get("input_manifest_sha256") != input_receipt["manifest_sha256"]:
         raise RuntimeError("P2 checkpoint does not bind the evaluated train manifest")
+    if (payload.get("model_id") != config["model"] or payload.get("architecture") != config["architecture"]
+            or payload.get("box_parameterization") != config["box_parameterization"]):
+        raise RuntimeError("checkpoint model or box parameterization differs from the active P4 config")
+    if payload.get("receptive_field_pixels") != config["expected_receptive_field_pixels"]:
+        raise RuntimeError("checkpoint receptive field differs from the active P4 config")
     model.load_state_dict(payload["state_dict"])
     model.eval()
     if any(parameter.device != device for parameter in model.parameters()):
@@ -203,7 +236,8 @@ def evaluate(artifact_root: Path = ARTIFACT_ROOT) -> dict[str, Any]:
         target_cell = None
         if assignment is not None:
             row, column, _ = assignment
-            target_cell = {"score": float(scores[index][row * 32 + column]), "box": decode_prediction_box(boxes[index][row][column], row, column)}
+            values = tuple(float(value) for value in boxes[index][row][column])
+            target_cell = {"score": float(scores[index][row * 32 + column]), "box": decode_prediction_box(values, row, column), "values": values}
         rows.append({"target": target, "candidates": candidates, "target_cell": target_cell})
     metrics = summarize_image_metrics(rows)
     return {
@@ -214,6 +248,9 @@ def evaluate(artifact_root: Path = ARTIFACT_ROOT) -> dict[str, Any]:
         "train_manifest_sha256": input_receipt["manifest_sha256"],
         "runtime": runtime,
         "inference_device": str(device),
+        "model": config["model"],
+        "box_parameterization": config["box_parameterization"],
+        "geometry_convention": "decode clamp to at least one pixel prevents zero-area boxes; clamp rates are reported and do not count as localization success",
         "cpu_fallback": False,
         "input_scope": {"train": True, "dev": False, "sealed": False, "private": False},
         "evaluation": metrics,

@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from io import BytesIO
 import json
+import math
 import random
 from pathlib import Path
 import stat
@@ -29,7 +30,7 @@ from ml.ocr.fragmented_xtick_detector_v2.materialize import _png_bytes, cases, r
 
 ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[2]
-CONFIG_PATH = ROOT / "training" / "p3.json"
+CONFIG_PATH = ROOT / "training" / "p4.json"
 GPU_PYTHON = REPO_ROOT / "tools" / "gpu-training" / "venv" / "Scripts" / "python.exe"
 MAX_MANIFEST_BYTES = 1_000_000
 MAX_ANNOTATION_BYTES = 65_536
@@ -122,23 +123,24 @@ def _parse_json(bound: BoundBytes, label: str) -> dict[str, Any]:
 
 
 def _config() -> dict[str, Any]:
-    bound = _bound_read(ROOT, "training/p3.json", "V3 31-pixel receptive-field GPU config")
-    config = _parse_json(bound, "V3 31-pixel receptive-field GPU config")
+    bound = _bound_read(ROOT, "training/p4.json", "V3 log-box regression GPU config")
+    config = _parse_json(bound, "V3 log-box regression GPU config")
     expected = {
         "schema": "graphreader.ocr-fragmented-xtick-v3-gpu-exploratory.v1",
-        "revision": "graph-text-fragmented-xtick-detector-v3-stratified-30-epochs-rf31",
-        "candidate_id": "P3-stratified-30-epochs-rf31-unregistered",
+        "revision": "graph-text-fragmented-xtick-detector-v3-stratified-30-epochs-rf31-logwh",
+        "candidate_id": "P4-stratified-30-epochs-rf31-logwh-unregistered",
         "state": "prepared-gpu-authorized-unregistered",
         "task": "ocr-detection",
-        "scope": "train-only synthetic spatial localization, 31-pixel receptive-field diagnostic",
+        "scope": "train-only synthetic spatial localization, log width-height regression diagnostic",
         "positive_count": 64,
         "background_negative_count": 32,
-        "model": "fragmented-xtick-spatial-locator-v3-cell-relative-rf31",
+        "model": "fragmented-xtick-spatial-locator-v3-cell-relative-rf31-logwh",
         "architecture": "three 3x3 stride-2 convs plus one 3x3 stride-1 context conv; 31px receptive field; no global pooling",
         "expected_receptive_field_pixels": 31,
+        "box_parameterization": "sigmoid cell-relative center offsets; log normalized width-height regression; exponentiated decode with one-pixel minimum",
         "input": "single-channel 256x96 train-only synthetic raster",
-        "target": "12x32 objectness map plus cell-relative center offsets and normalized width-height",
-        "loss": "balanced_positive_negative_bce_plus_positive_cell_smooth_l1_center_offset_width_height",
+        "target": "12x32 objectness map plus sigmoid cell-relative center offsets and log normalized width-height",
+        "loss": "balanced_positive_negative_bce_plus_positive_cell_smooth_l1_center_offset_log_width_height",
         "epochs": 30,
         "batch_size": 8,
         "learning_rate": 0.001,
@@ -155,15 +157,15 @@ def _config() -> dict[str, Any]:
         "optimizer_execution_authorized": True,
         "batching": "deterministic stratified full-epoch batches, every batch has positives and negatives",
         "training_duration": "30 epochs, 12 optimizer steps per epoch",
-        "planned_output_root": "artifacts/fragmented-xtick-detector-v3-p3-rf31-stratified-30epoch-v1",
+        "planned_output_root": "artifacts/fragmented-xtick-detector-v3-p4-rf31-logwh-stratified-30epoch-v1",
         "production_approval": False,
         "release_eligible": False,
     }
     for key, value in expected.items():
         if config.get(key) != value:
-            raise TrainingAdmissionError(f"V3 RF31 GPU config mismatch: {key}")
+            raise TrainingAdmissionError(f"V3 log-box GPU config mismatch: {key}")
     if config.get("expected_runner_sha256") != runner_sha256():
-        raise TrainingAdmissionError("V3 RF31 runner source hash changed")
+        raise TrainingAdmissionError("V3 P4 runner source hash changed")
     return config
 
 
@@ -314,7 +316,8 @@ def build_spatial_locator(torch: Any) -> Any:
 
         def forward(self, value: Any) -> tuple[Any, Any]:
             features = self.features(value)
-            return self.objectness(features), self.box(features).sigmoid()
+            raw_box = self.box(features)
+            return self.objectness(features), torch.cat((raw_box[:, :2].sigmoid(), raw_box[:, 2:]), dim=1)
     return SpatialTickLocator()
 
 
@@ -331,13 +334,18 @@ def feature_receptive_field(features: Any, torch: Any) -> int:
 
 def encode_cell_relative(box: tuple[float, float, float, float], row: int, column: int) -> tuple[float, float, float, float]:
     left, top, right, bottom = box
+    if not 0 <= left < right <= 1 or not 0 <= top < bottom <= 1:
+        raise ValueError("box must have positive width and height within the image")
     center_x, center_y = (left + right) / 2.0, (top + bottom) / 2.0
-    return center_x * 32.0 - column, center_y * 12.0 - row, right - left, bottom - top
+    return center_x * 32.0 - column, center_y * 12.0 - row, math.log(right - left), math.log(bottom - top)
 
 
 def decode_cell_relative(value: tuple[float, float, float, float], row: int, column: int) -> tuple[float, float, float, float]:
-    offset_x, offset_y, width, height = value
+    offset_x, offset_y, log_width, log_height = value
     center_x, center_y = (column + offset_x) / 32.0, (row + offset_y) / 12.0
+    log_min_width, log_min_height = math.log(1 / 256), math.log(1 / 96)
+    width = math.exp(min(0.0, max(log_min_width, log_width)))
+    height = math.exp(min(0.0, max(log_min_height, log_height)))
     return center_x - width / 2.0, center_y - height / 2.0, center_x + width / 2.0, center_y + height / 2.0
 
 
@@ -403,7 +411,7 @@ def evaluate_train_fit(model: Any, features: Any, objectness: Any, targets: Any,
         "positive_cell_recall_at_0_5": float(recall.item()),
         "positive_cell_mean_objectness": float(mean_objectness.item()),
         "background_false_positive_cells_per_image_at_0_5": float(false_positive_cells.item()),
-        "positive_cell_box_mae_normalized": float(box_mae.item()),
+        "positive_cell_box_mae_log_parameter_space": float(box_mae.item()),
     }
 
 
@@ -522,8 +530,8 @@ def run_training(output_root: Path) -> dict[str, object]:
             epoch_train_fit.append(evaluate_train_fit(model, features, objectness, targets, mask, device, torch))
         if steps != int(config["expected_optimizer_steps"]): raise TrainingAdmissionError("V2 optimizer step count differs from config")
         train_fit_after = evaluate_train_fit(model, features, objectness, targets, mask, device, torch)
-        checkpoint = output / "checkpoint.pt"; torch.save({"state_dict": model.state_dict(), "input_manifest_sha256": input_receipt["manifest_sha256"], "runtime": runtime, "optimizer_steps": steps}, checkpoint)
-        report = {"schema": "graphreader.ocr-fragmented-xtick-v3-gpu-result.v1", "status": "completed-unregistered-exploratory", "input": input_receipt, "runtime": runtime, "model": config["model"], "architecture": config["architecture"], "feature_map_shape": list(model(features[:1].to(device))[0].shape[-2:]), "spatial_receptive_field_pixels": feature_receptive_field(model.features, torch), "optimizer_steps": steps, "loss_first": losses[0], "loss_last": losses[-1], "positive_cell_bce_first": positive_losses[0], "positive_cell_bce_last": positive_losses[-1], "background_cell_bce_first": background_losses[0], "background_cell_bce_last": background_losses[-1], "objectness_loss": "mean(positive_bce,background_bce), both classes present in each batch", "batch_class_counts_first_epoch": [list(pair) for pair in step_batch_class_counts[:len(batches)]], "box_target": "cell-relative center offsets plus normalized width-height", "train_fit_before": train_fit_before, "epoch_train_fit": epoch_train_fit, "train_fit_after": train_fit_after, "train_fit_is_held_out_validation": False, "checkpoint_path": checkpoint.relative_to(REPO_ROOT).as_posix(), "checkpoint_sha256": _sha256_bytes(checkpoint.read_bytes()), "dev_input_read": False, "sealed_input_read": False, "private_input_read": False, "production_approval": False, "release_eligible": False}
+        checkpoint = output / "checkpoint.pt"; torch.save({"state_dict": model.state_dict(), "model_id": config["model"], "architecture": config["architecture"], "box_parameterization": config["box_parameterization"], "receptive_field_pixels": feature_receptive_field(model.features, torch), "input_manifest_sha256": input_receipt["manifest_sha256"], "runtime": runtime, "optimizer_steps": steps}, checkpoint)
+        report = {"schema": "graphreader.ocr-fragmented-xtick-v3-gpu-result.v1", "status": "completed-unregistered-exploratory", "input": input_receipt, "runtime": runtime, "model": config["model"], "architecture": config["architecture"], "box_parameterization": config["box_parameterization"], "feature_map_shape": list(model(features[:1].to(device))[0].shape[-2:]), "spatial_receptive_field_pixels": feature_receptive_field(model.features, torch), "optimizer_steps": steps, "loss_first": losses[0], "loss_last": losses[-1], "positive_cell_bce_first": positive_losses[0], "positive_cell_bce_last": positive_losses[-1], "background_cell_bce_first": background_losses[0], "background_cell_bce_last": background_losses[-1], "objectness_loss": "mean(positive_bce,background_bce), both classes present in each batch", "batch_class_counts_first_epoch": [list(pair) for pair in step_batch_class_counts[:len(batches)]], "box_target": "cell-relative center offsets plus log normalized width-height", "train_fit_before": train_fit_before, "epoch_train_fit": epoch_train_fit, "train_fit_after": train_fit_after, "train_fit_is_held_out_validation": False, "checkpoint_path": checkpoint.relative_to(REPO_ROOT).as_posix(), "checkpoint_sha256": _sha256_bytes(checkpoint.read_bytes()), "dev_input_read": False, "sealed_input_read": False, "private_input_read": False, "production_approval": False, "release_eligible": False}
         report_sha256 = _write_receipt(output / "report.json", report)
         return {"output_root": output.relative_to(REPO_ROOT).as_posix(), "report_sha256": report_sha256, "optimizer_steps": steps, "production_approval": False, "release_eligible": False}
     except BaseException as error:
