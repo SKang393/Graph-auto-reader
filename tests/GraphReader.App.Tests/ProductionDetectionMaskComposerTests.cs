@@ -661,9 +661,16 @@ public sealed class ProductionDetectionMaskComposerTests
                 request.Transforms);
             var mask = new float[raster.Width * raster.Height];
             mask[20 * raster.Width + 20] = 1f;
+            byte[]? categories = null;
+            if (mode == "unapproved")
+            {
+                categories = new byte[mask.Length];
+                categories[20 * raster.Width + 20] = (byte)RasterResidualArtifactCategoryBits.AnnotationArrow;
+            }
             return Task.FromResult(new ProductionArtifactMaskEvidence(
                 raster.Width, raster.Height, raster.InputSha256, raster.Variant,
-                envelope, mask, algorithm: mode == "missing-algorithm" ? null : algorithm));
+                envelope, mask, algorithm: mode == "missing-algorithm" ? null : algorithm,
+                residualCategoryBits: categories));
         }
     }
 
