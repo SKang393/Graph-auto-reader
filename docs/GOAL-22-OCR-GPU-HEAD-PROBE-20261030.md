@@ -68,3 +68,13 @@ potential bias prevents treating it as a training policy without more evidence.
 
 - Target audit SHA-256: `2ec1e0813300845114a385b09d4ac26d6a7f30d54e0dc3d7317a4ee46ff0f8a0`
 - Loss-mask counterfactual SHA-256: `d82ff850eb6d0f426b827e7d92cb9f35c0a38c9f52175353bcdcc8c3a779ccdf`
+
+A separate unapproved counterfactual masked only shared target pixels and a
+two-pixel tensor-space margin. It retained 16,444 of 16,750 unique supervised
+positive pixels, all 47 X-tick instances, 22 of 23 Y-tick instances, and all
+four participant instances with some positive support. On these four images,
+none of the original contact pairs remained adjacent in the retained mask.
+Touch-only cases and two outgrown-clamp instances remain outside the policy;
+this result does not establish model-output separation or training suitability.
+
+- Conflict-pixel counterfactual SHA-256: `ce95ddda8e00e0045b62579b8e73fb6888d09d5126317674273b46d3d89b6961`
