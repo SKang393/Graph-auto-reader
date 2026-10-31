@@ -11285,7 +11285,7 @@
     {
       "task": "marker-center",
       "revision": "marker-center-real-positive-context-v1",
-      "status": "training_complete_unapproved",
+      "status": "failed_dev_unconsumed",
       "execution_authorized": false,
       "authorized_candidate_id": "P1",
       "preregistered_candidate_ids": ["P1"],
@@ -11311,7 +11311,10 @@
       "release_eligible": false,
       "optimizer_steps": 2264,
       "checkpoint_sha256": "9d7abce386d6f0e61104a23a856ee49549e2840f7a715dbd5f77c09cd50bef20",
-      "training_outcome_sha256": "91c2ff0a6c1dee60f88c5f7d7b8d241225ad2a6772fb537a329f4b4259925739"
+      "training_outcome_sha256": "91c2ff0a6c1dee60f88c5f7d7b8d241225ad2a6772fb537a329f4b4259925739",
+      "development_report_sha256": "5137ee6b49ae2aa60b8938ed318e5fe2ac1ca223cb98adc4543ea8501a33f002",
+      "onnx_sha256": "293c0f506f3da062b07829f9db21cb5387a100a342642dc3e0e1c32c1225fce5",
+      "closed_utc_date": "2026-10-30"
     }
   ]
 }
