@@ -31,3 +31,17 @@ integration and does not measure generalization.
 No development, sealed, or private image payloads were used in these runs.
 Further work must improve localization and test against genuinely independent
 data before any production decision.
+
+## Stratified batching follow-up
+
+V3 retained the V2 model, loss, 36 steps, and images, but guaranteed a mix
+of positive and background images in every batch. Each epoch visited all 96
+images once in 12 batches. Positive-cell recall at 0.5 still fell from 1.0 to
+0.0 and background false positives from 384 to 0 per image. The training-only
+result does not support promotion, and rules out an all-background minibatch
+as a sufficient explanation for this particular collapse.
+
+- Runner SHA-256: `1f52140c542308e5cd07e5ed3abae2048d9f38230ca866b4fcc02f8059efaf83`
+- Report SHA-256: `6f26f5b69166b84a1b60a1c7192afe79f76680f7137229ed66da3d93a9f9df10`
+- Checkpoint SHA-256: `ed205368ab644dbd1f3d5514437551f6febb54f7114d0208f6bbe99615693c5a`
+- Focused tests: 11 passed; all optimizer steps ran on the RX 6600 XT.
