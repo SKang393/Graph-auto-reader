@@ -6,14 +6,10 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from hashlib import sha256
-from io import BytesIO
 import json
 from pathlib import Path
 import sys
 from typing import Any
-
-import numpy as np
-from PIL import Image
 
 ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[2]
@@ -23,9 +19,10 @@ from ml.ocr.fragmented_xtick_detector_v3.gpu_train import (
     require_rx_6600_xt, stratified_batches, target_assignments,
 )
 from ml.ocr.fragmented_xtick_detector_v4.materialize import canonical_json
+from ml.ocr.fragmented_xtick_detector_v4.admission import load_train_inputs as admitted_load_train_inputs
 
 CONFIG = ROOT / "training" / "p1.json"
-MAX_MANIFEST_BYTES, MAX_FILE_BYTES = 1_000_000, 1_000_000
+_RUN_PROGRESS: dict[str, Any] = {"phase": "starting", "steps": 0}
 
 
 class V4TrainingError(RuntimeError):
@@ -36,80 +33,50 @@ def digest(data: bytes) -> str:
     return sha256(data).hexdigest()
 
 
-def _read_under(root: Path, relative: str, limit: int) -> bytes:
-    path = Path(relative)
-    if path.is_absolute() or ".." in path.parts:
-        raise V4TrainingError("V4 input path escapes its bound train root")
-    candidate = root / path
-    if candidate.is_symlink() or not candidate.is_file():
-        raise V4TrainingError("V4 input is missing or uses a symbolic link")
-    try:
-        candidate.resolve(strict=True).relative_to(root.resolve(strict=True))
-    except (ValueError, OSError) as error:
-        raise V4TrainingError("V4 input escapes project-local train root") from error
-    data = candidate.read_bytes()
-    if len(data) > limit:
-        raise V4TrainingError("V4 input exceeds size bound")
-    return data
-
-
 def load_train_inputs(torch: Any, manifest_path: Path) -> tuple[dict[str, Any], list[Any], list[tuple[float, float, float, float] | None]]:
-    if manifest_path.resolve() != (REPO_ROOT / "artifacts/fragmented-xtick-v4-diverse-train-v1/manifest.json").resolve():
-        raise V4TrainingError("V4 trainer only accepts its generated train manifest")
-    manifest_bytes = _read_under(REPO_ROOT, manifest_path.relative_to(REPO_ROOT).as_posix(), MAX_MANIFEST_BYTES)
-    manifest = json.loads(manifest_bytes)
-    if (manifest.get("schema") != "graphreader.ocr-fragmented-xtick-v4-train.v1" or manifest.get("split") != "train"
-            or manifest.get("family") != "fragmented-xtick-v4-diverse-train"
-            or manifest.get("labels") != ["6", "9", "13", "18", "45", "90", "250", "2.75", "-8", "0.125", "35.5", "750"]
-            or manifest.get("canvas") != [256, 96]
-            or manifest.get("probe_inputs_read") is not False or manifest.get("dev_sealed_private_inputs_read") is not False):
-        raise V4TrainingError("V4 manifest is not an admitted train-only dataset")
-    root = manifest_path.parent
-    values, boxes, case_ids = [], [], set()
-    if len(manifest.get("records", [])) != manifest.get("record_count"):
-        raise V4TrainingError("V4 manifest record count mismatch")
-    for row in manifest["records"]:
-        if (row.get("split") != "train" or row.get("case_id") in case_ids
-                or not str(row.get("case_id", "")).startswith("fragmented-xtick-v4-diverse-train-train-")):
-            raise V4TrainingError("V4 train records contain a duplicate or non-train identity")
-        case_ids.add(row["case_id"])
-        image_data = _read_under(root, row["image_path"], MAX_FILE_BYTES)
-        annotation_data = _read_under(root, row["annotation_path"], MAX_FILE_BYTES)
-        annotation = json.loads(annotation_data)
-        if (digest(image_data) != row.get("image_sha256") or digest(annotation_data) != row.get("annotation_sha256")
-                or annotation.get("image_sha256") != row.get("image_sha256") or annotation.get("case_id") != row["case_id"]
-                or annotation.get("case_identity_sha256") != row.get("case_identity_sha256")
-                or annotation.get("split") != "train" or annotation.get("materialized") is not True):
-            raise V4TrainingError("V4 train sample is not bound to its manifest identity")
-        values.append(torch.from_numpy(np.asarray(Image.open(BytesIO(image_data)).convert("L"), dtype=np.float32) / 255.0))
-        boxes.append(_annotation_target(annotation, positive=row["kind"] == "positive"))
-    if (sum(box is not None for box in boxes), sum(box is None for box in boxes)) != (192, 96):
-        raise V4TrainingError("V4 class counts differ from config")
+    relative = manifest_path.relative_to(REPO_ROOT).as_posix()
+    manifest, values, boxes, _ = admitted_load_train_inputs(torch, relative)
     return manifest, values, boxes
 
 
-def run_training() -> dict[str, Any]:
+def hard_negative_mask(logits: Any, objectness_target: Any, top_k: int) -> Any:
+    """Select each image's highest-scoring non-objectness cells, excluding positives."""
+    if top_k < 1 or logits.shape != objectness_target.shape or logits.ndim != 4:
+        raise ValueError("hard-negative mining expects matching NCHW logits and positive mask")
+    torch = __import__("torch")
+    negatives = ~objectness_target.bool()
+    selected = torch.zeros_like(negatives)
+    for batch_index in range(logits.shape[0]):
+        eligible = torch.nonzero(negatives[batch_index].reshape(-1), as_tuple=False).flatten()
+        count = min(int(top_k), int(eligible.numel()))
+        if count:
+            scores = logits[batch_index].reshape(-1)[eligible]
+            chosen = eligible[torch.topk(scores, k=count, largest=True, sorted=False).indices]
+            selected[batch_index].view(-1)[chosen] = True
+    return selected
+
+
+def _run_training(config_path: Path, output: Path, config_bytes: bytes, config: dict[str, Any]) -> dict[str, Any]:
     if Path(sys.executable).resolve() != GPU_PYTHON.resolve():
         raise V4TrainingError("V4 optimizer must run via the project GPU launcher")
     import torch
     from torch import nn
 
-    config_bytes = CONFIG.read_bytes()
-    config = json.loads(config_bytes)
     if config.get("optimizer_execution_authorized") is not True or config.get("probe_inputs_read_during_training") is not False:
         raise V4TrainingError("V4 train-only execution is not authorized")
     if (config.get("allowed_input_roots") != ["artifacts/fragmented-xtick-v4-diverse-train-v1"]
             or config.get("dataset_family") != "fragmented-xtick-v4-diverse-train"
             or config.get("train_manifest_path") != "artifacts/fragmented-xtick-v4-diverse-train-v1/manifest.json"):
         raise V4TrainingError("V4 config input root/family is outside its train-only boundary")
-    output = REPO_ROOT / config["planned_output_root"]
-    if output.exists() or output.is_symlink() or output.parent != (REPO_ROOT / "artifacts"):
-        raise V4TrainingError("V4 run output must be a fresh project artifacts directory")
+    if config.get("hard_negative_top_k_per_image", 0) < 0:
+        raise V4TrainingError("V4 hard-negative count cannot be negative")
+    _RUN_PROGRESS.update(phase="rx6600xt-binding")
     runtime = require_rx_6600_xt(torch)
     device = torch.device(runtime["device"])
     torch.manual_seed(int(config["model_seed"]))
-    output.mkdir(parents=True, exist_ok=False)
-    manifest, values, boxes = load_train_inputs(torch, REPO_ROOT / config["train_manifest_path"])
+    _RUN_PROGRESS.update(phase="train-input-admission")
+    manifest, values, boxes, manifest_sha = admitted_load_train_inputs(
+        torch, config["train_manifest_path"], config.get("train_manifest_sha256"))
     features = torch.stack(values).unsqueeze(1)
     assignments = target_assignments(tuple(boxes))
     objectness = torch.zeros((len(boxes), 1, 12, 32), dtype=torch.float32)
@@ -128,6 +95,7 @@ def run_training() -> dict[str, Any]:
     if output_shape != [12, 32]:
         raise V4TrainingError("V4 model spatial output shape changed")
     optimizer = torch.optim.AdamW(model.parameters(), lr=float(config["learning_rate"]))
+    _RUN_PROGRESS.update(phase="optimizer-training")
     before = evaluate_train_fit(model, features, objectness, targets, mask, device, torch)
     positive = tuple(i for i, box in enumerate(boxes) if box is not None)
     negative = tuple(i for i, box in enumerate(boxes) if box is None)
@@ -149,7 +117,14 @@ def run_training() -> dict[str, Any]:
             if logits.shape != obj.shape or prediction.shape != target.shape:
                 raise V4TrainingError("V4 model output/target shape mismatch")
             per_cell = nn.functional.binary_cross_entropy_with_logits(logits, obj, reduction="none")
-            pos_mean, bg_mean = per_cell[obj.bool()].mean(), per_cell[~obj.bool()].mean()
+            pos_mean = per_cell[obj.bool()].mean()
+            top_k = int(config.get("hard_negative_top_k_per_image", 0))
+            if top_k:
+                mined_mask = hard_negative_mask(logits.detach(), obj, top_k)
+                bg_mean = per_cell[mined_mask].mean()
+            else:
+                mined_mask = ~obj.bool()
+                bg_mean = per_cell[mined_mask].mean()
             obj_loss = 0.5 * (pos_mean + bg_mean)
             expanded = positive_mask.expand(-1, 4, -1, -1)
             box_loss = nn.functional.smooth_l1_loss(prediction[expanded], target[expanded])
@@ -157,6 +132,7 @@ def run_training() -> dict[str, Any]:
             if not torch.isfinite(loss):
                 raise V4TrainingError("V4 loss became non-finite")
             loss.backward(); optimizer.step()
+            _RUN_PROGRESS["steps"] += 1
             losses.append(float(loss.detach().cpu())); positive_bce.append(float(pos_mean.detach().cpu())); background_bce.append(float(bg_mean.detach().cpu()))
         epoch_metrics.append(evaluate_train_fit(model, features, objectness, targets, mask, device, torch))
     expected_steps = int(config["epochs"]) * (len(boxes) // int(config["batch_size"]))
@@ -166,18 +142,22 @@ def run_training() -> dict[str, Any]:
     checkpoint = output / "checkpoint.pt"
     torch.save({"state_dict": model.state_dict(), "model_id": config["model_identity"], "architecture": config["architecture"],
         "box_parameterization": config["box_parameterization"], "receptive_field_pixels": 31,
-        "input_manifest_sha256": digest((REPO_ROOT / config["train_manifest_path"]).read_bytes()), "runtime": runtime,
+        "input_manifest_sha256": manifest_sha, "runtime": runtime,
         "optimizer_steps": expected_steps, "recipe_id": config["recipe_id"]}, checkpoint)
+    entrypoint = Path(sys.argv[0]).resolve()
     report = {"schema": "graphreader.ocr-fragmented-xtick-v4-training-report.v1", "status": "completed-unregistered-exploratory",
         "recipe_id": config["recipe_id"], "model_identity": config["model_identity"], "config_sha256": digest(config_bytes),
+        "training_entrypoint_path": entrypoint.relative_to(REPO_ROOT).as_posix(), "training_entrypoint_sha256": digest(entrypoint.read_bytes()),
         "trainer_sha256": digest(Path(__file__).read_bytes()), "materializer_sha256": digest((ROOT / "materialize.py").read_bytes()),
-        "train_manifest_sha256": digest((REPO_ROOT / config["train_manifest_path"]).read_bytes()),
+        "train_manifest_sha256": manifest_sha,
         "input_case_count": len(boxes), "positive_count": len(positive), "background_only_count": len(negative),
         "epochs": int(config["epochs"]), "batch_size": int(config["batch_size"]), "optimizer_steps": expected_steps,
         "batch_class_counts_first_epoch": batch_classes[:len(batches)], "runtime": runtime, "feature_map_shape": output_shape,
         "spatial_receptive_field_pixels": 31, "loss_first": losses[0], "loss_last": losses[-1],
         "positive_cell_bce_first": positive_bce[0], "positive_cell_bce_last": positive_bce[-1],
         "background_cell_bce_first": background_bce[0], "background_cell_bce_last": background_bce[-1],
+        "hard_negative_top_k_per_image": int(config.get("hard_negative_top_k_per_image", 0)),
+        "objectness_loss": "mean positive-cell BCE plus mean selected-negative-cell BCE, equally weighted",
         "train_fit_before": before, "epoch_train_fit": epoch_metrics, "train_fit_after": after,
         "train_fit_is_held_out_validation": False, "probe_inputs_read_during_training": False,
         "dev_sealed_private_inputs_read": False, "checkpoint_sha256": digest(checkpoint.read_bytes()),
@@ -185,6 +165,28 @@ def run_training() -> dict[str, Any]:
         "production_approval": False, "release_eligible": False}
     (output / "report.json").write_bytes(canonical_json(report))
     return report
+
+
+def run_training(config_path: Path = CONFIG) -> dict[str, Any]:
+    _RUN_PROGRESS.update(phase="starting", steps=0)
+    config_bytes = config_path.read_bytes()
+    config = json.loads(config_bytes)
+    output = REPO_ROOT / config["planned_output_root"]
+    if output.exists() or output.is_symlink() or output.parent != (REPO_ROOT / "artifacts"):
+        raise V4TrainingError("V4 run output must be a fresh project artifacts directory")
+    output.mkdir(parents=True, exist_ok=False)
+    (output / "started.json").write_bytes(canonical_json({"status": "started", "recipe_id": config.get("recipe_id"),
+        "config_sha256": digest(config_bytes), "started_utc": datetime.now(timezone.utc).isoformat()}))
+    try:
+        return _run_training(config_path, output, config_bytes, config)
+    except Exception as error:
+        receipt = {"schema": "graphreader.ocr-fragmented-xtick-v4-failure-receipt.v1", "status": "failed",
+            "recipe_id": config.get("recipe_id"), "config_sha256": digest(config_bytes),
+            "trainer_sha256": digest(Path(__file__).read_bytes()), "failure_type": type(error).__name__,
+            "failure_message": str(error), "failure_phase": _RUN_PROGRESS["phase"],
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(), "optimizer_steps_completed": _RUN_PROGRESS["steps"]}
+        (output / "failure.json").write_bytes(canonical_json(receipt))
+        raise
 
 
 if __name__ == "__main__":

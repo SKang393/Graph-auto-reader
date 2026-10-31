@@ -31,18 +31,18 @@ def digest(data: bytes) -> str:
     return sha256(data).hexdigest()
 
 
-def evaluate() -> dict[str, Any]:
+def evaluate(run_relative: str = RUN_RELATIVE, expected_model_identity: str = "fragmented-xtick-spatial-locator-v4-cell-relative-rf31-logwh-diverse") -> dict[str, Any]:
     if Path(sys.executable).resolve() != GPU_PYTHON.resolve():
         raise RuntimeError("V4 probe inference requires the project GPU launcher")
     import torch
 
     runtime = require_rx_6600_xt(torch)
     device = torch.device(runtime["device"])
-    run_root = REPO_ROOT / RUN_RELATIVE
+    run_root = REPO_ROOT / run_relative
     report_bytes, checkpoint_bytes = (run_root / "report.json").read_bytes(), (run_root / "checkpoint.pt").read_bytes()
     report = json.loads(report_bytes)
     checkpoint_sha = digest(checkpoint_bytes)
-    if report.get("checkpoint_sha256") != checkpoint_sha or report.get("model_identity") != "fragmented-xtick-spatial-locator-v4-cell-relative-rf31-logwh-diverse":
+    if report.get("checkpoint_sha256") != checkpoint_sha or report.get("model_identity") != expected_model_identity:
         raise RuntimeError("V4 checkpoint does not match its own report/model identity")
     model = build_spatial_locator(torch).to(device)
     payload = torch.load(BytesIO(checkpoint_bytes), map_location=device, weights_only=True)

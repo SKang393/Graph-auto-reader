@@ -142,3 +142,22 @@ The model is not approved for product use.
 - V4 checkpoint SHA-256: `44a54f0dd35551fe9813f98adfa353f7477b90f901b46b9dabaac789d4ef583f`
 - Probe evaluation SHA-256: `bbd7d33e58772ab9fbc719c7e1df3c735d7a0a57d1943e8ec559976d92360818`
 - V4 data, batching and GPU tests: 3 passed.
+
+## Hard-negative follow-up
+
+V4 P2 used the same generated train set, architecture, seeds and schedule as
+P1, but trained the background loss on the 32 highest-scoring negative cells
+per image. It completed 1,080 steps on the RX 6600 XT. Input admission now
+uses bounded reads, rejects reparse ancestors, and carries the hash of the
+actual parsed manifest bytes into the checkpoint and report.
+
+On the consumed procedural probe, score/NMS/match thresholds 0.5 yielded
+positive recall 0.625, 1.828 false positives per positive image and 0.125 per
+background-only image. P1's corresponding figures were 0.734, 4.328 and
+0.531. Top-box mean IoU rose from 0.425 to 0.484. This is a recall/false-positive
+tradeoff, not acceptance or evidence of performance on real graphs.
+
+- P2 checkpoint SHA-256: `d46d888289d9d71325fb27156e5d49578db0181da569c9caa06ad3b2ced66a68`
+- P2 train report SHA-256: `031669c37d78bf19cbaf96f9f950897f5c0c0beadf507ab42921e1d8af4f8515`
+- P2 probe evaluation SHA-256: `ed82840191607b0a5a50cb836a54846b8be1f0749203a17541f4132e0eaede79`
+- Focused V4 tests: 9 passed; all optimization used the RX 6600 XT.

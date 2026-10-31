@@ -11,6 +11,10 @@ The training loop imports P4's spatial model, log-width-height parameterization,
 & .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('-m', 'unittest', 'ml.ocr.fragmented_xtick_detector_v4.test_v4', '-v')
 & .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('ml/ocr/fragmented_xtick_detector_v4/train.py')
 & .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('ml/ocr/fragmented_xtick_detector_v4/evaluate_probe.py')
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('ml/ocr/fragmented_xtick_detector_v4/train_p2.py')
+& .\tools\gpu-training\Run-GpuPython.ps1 -PythonArguments @('ml/ocr/fragmented_xtick_detector_v4/evaluate_p2_probe.py')
 ```
 
 The existing 96-case probe has already served as a P4 development diagnostic. Training does not read it; the separate post-training evaluator reads it unchanged. The V4 result on it is a consumed development diagnostic, not untouched acceptance. Shared canvas, grayscale rendering, NotoSans family, and graph primitives leave distribution overlap. Procedural glyphs and simple confusers do not establish performance on real or private graphs. No acceptance, production approval, or release claim follows from this experiment.
+
+V4 P2 is a controlled follow-up to P1: it holds the P1 manifest, architecture, initialization seed, shuffle seed, optimizer, learning rate, batch size and 30-epoch schedule fixed. Its only objective change selects the 32 highest-logit non-positive cells from each image for background BCE. Positive cells use the unchanged BCE, and positive/background objectness terms retain equal weight. P2 has a distinct recipe identity/output. Admission caps reads at `limit+1`, rejects reparse/symlink ancestors, pins the manifest hash in config, and passes the exact parsed manifest-byte hash to the checkpoint and report. Failures after run reservation write a `failure.json` receipt.
