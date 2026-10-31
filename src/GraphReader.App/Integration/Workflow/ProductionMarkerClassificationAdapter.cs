@@ -136,14 +136,26 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionCandidate
             if (!string.Equals(RequiredString(root, name), expected, StringComparison.Ordinal))
                 throw new InvalidDataException($"Candidate classifier {name} differs from its binding.");
         }
-        if (root.TryGetProperty("benchmarks", out JsonElement benchmarks) &&
-            (benchmarks.ValueKind != JsonValueKind.Array || benchmarks.EnumerateArray().Any(item =>
-                item.ValueKind != JsonValueKind.Object ||
-                (item.TryGetProperty("production_approved", out JsonElement approved) && approved.ValueKind == JsonValueKind.True))))
+        JsonProperty[] benchmarkFields = root.EnumerateObject()
+            .Where(static property => property.NameEquals("benchmarks")).ToArray();
+        if (benchmarkFields.Length > 1 || benchmarkFields.Any(static field =>
+                field.Value.ValueKind != JsonValueKind.Array || field.Value.EnumerateArray().Any(HasInvalidCandidateApproval)))
             throw new InvalidDataException("Candidate classifier cannot claim production approval.");
         return new ProductionMarkerClassificationAdapter(descriptor.Identity,
             ReadOptions(descriptor.ManifestPath, descriptor.Identity.Version), false, () => service,
             candidateEvaluationEnabled: true);
+    }
+
+    private static bool HasInvalidCandidateApproval(JsonElement item)
+    {
+        if (item.ValueKind != JsonValueKind.Object) return true;
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (JsonProperty property in item.EnumerateObject())
+        {
+            if (property.Name is not ("production_approved" or "production_approval")) continue;
+            if (!seen.Add(property.Name) || property.Value.ValueKind != JsonValueKind.False) return true;
+        }
+        return false;
     }
 
     public static ProductionMarkerClassificationAdapter Create(

@@ -11,8 +11,38 @@ internal static class FrozenCandidateBindingSelfTest
 {
     private static readonly string[] CpuProviders = ["cpu"];
 
+    internal static void RunApprovalClaimSelfTest()
+    {
+        foreach (string allowed in new[] { "[{}]", "[{\"production_approval\":false}]", "[{\"production_approved\":false}]", "[{\"production_approval\":false,\"production_approved\":false}]" })
+        {
+            using JsonDocument document = JsonDocument.Parse(allowed);
+            FrozenCandidateBinding.ValidateCandidateApprovalClaims(document.RootElement, "fixture");
+        }
+        var denied = new List<string>();
+        foreach (string name in new[] { "production_approval", "production_approved" })
+        foreach (string value in new[] { "true", "\"false\"", "0", "null", "{}", "[]" })
+            denied.Add($"[{{\"{name}\":{value}}}]");
+        denied.Add("[{\"production_approval\":false,\"production_approved\":true}]");
+        denied.Add("[{\"production_approval\":true,\"production_approved\":false}]");
+        denied.Add("[{\"production_approval\":true,\"production_approved\":true}]");
+        denied.Add("[{\"production_approval\":false,\"production_approved\":null}]");
+        denied.Add("[{\"production_approval\":[],\"production_approved\":false}]");
+        denied.Add("[{\"production_approval\":{},\"production_approved\":\"false\"}]");
+        denied.Add("[{\"production_approval\":true,\"production_approval\":false}]");
+        denied.Add("[{\"production_approved\":false,\"production_approved\":false}]");
+        foreach (string invalid in denied)
+        {
+            using JsonDocument document = JsonDocument.Parse(invalid);
+            bool rejected = false;
+            try { FrozenCandidateBinding.ValidateCandidateApprovalClaims(document.RootElement, "fixture"); }
+            catch (InvalidDataException) { rejected = true; }
+            Require(rejected, "FROZEN_CANDIDATE_APPROVAL_CLAIM_ACCEPTED");
+        }
+    }
+
     internal static void Run(string repositoryRoot)
     {
+        RunApprovalClaimSelfTest();
         repositoryRoot = Path.GetFullPath(repositoryRoot);
         string artifactsRoot = Path.Combine(repositoryRoot, "artifacts");
         Directory.CreateDirectory(artifactsRoot);

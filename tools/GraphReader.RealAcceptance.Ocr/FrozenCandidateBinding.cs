@@ -354,13 +354,7 @@ internal sealed class FrozenCandidateBinding
         }
         if (manifest.TryGetProperty("benchmarks", out JsonElement benchmarks))
         {
-            if (benchmarks.ValueKind != JsonValueKind.Array || benchmarks.EnumerateArray().Any(item =>
-                    item.ValueKind != JsonValueKind.Object ||
-                    (item.TryGetProperty("production_approved", out JsonElement approved) &&
-                     approved.ValueKind == JsonValueKind.True)))
-            {
-                throw new InvalidDataException($"{label} contains invalid or production-approved benchmark evidence.");
-            }
+            ValidateCandidateApprovalClaims(benchmarks, label);
         }
         JsonElement files = RequiredArray(manifest, "files");
         string payloadName = Path.GetFileName(payload.RelativePath);
@@ -370,6 +364,24 @@ internal sealed class FrozenCandidateBinding
         {
             throw new InvalidDataException($"{label} files do not identify the checksum-bound payload.");
         }
+    }
+
+    internal static void ValidateCandidateApprovalClaims(JsonElement benchmarks, string label)
+    {
+        if (benchmarks.ValueKind != JsonValueKind.Array || benchmarks.EnumerateArray().Any(HasInvalidCandidateApproval))
+            throw new InvalidDataException($"{label} contains invalid or production-approved benchmark evidence.");
+    }
+
+    private static bool HasInvalidCandidateApproval(JsonElement item)
+    {
+        if (item.ValueKind != JsonValueKind.Object) return true;
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (JsonProperty property in item.EnumerateObject())
+        {
+            if (property.Name is not ("production_approved" or "production_approval")) continue;
+            if (!seen.Add(property.Name) || property.Value.ValueKind != JsonValueKind.False) return true;
+        }
+        return false;
     }
 
     private static FrozenCandidateClassifier ReadClassifier(

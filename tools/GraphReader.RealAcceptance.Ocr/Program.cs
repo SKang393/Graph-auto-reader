@@ -209,6 +209,14 @@ internal static class Program
                 });
             });
         }
+        if (args.Length == 1 && args[0] == "--self-test-frozen-candidate-approval")
+        {
+            return await RunEngaugeSelfTestAsync(() =>
+            {
+                FrozenCandidateBindingSelfTest.RunApprovalClaimSelfTest();
+                return Task.FromResult<object>(new { status = "pass", scope = "synthetic-approval-claims-only" });
+            });
+        }
         if (args.Length == 1 && args[0] == "--self-test-real-workflow-runner")
         {
             return await RunEngaugeSelfTestAsync(FrozenRealWorkflowRunnerSelfTest.RunAsync);

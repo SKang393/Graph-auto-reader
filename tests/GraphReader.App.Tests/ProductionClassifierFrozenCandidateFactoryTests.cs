@@ -58,6 +58,95 @@ public sealed class ProductionClassifierFrozenCandidateFactoryTests
     }
 
     [TestMethod]
+    [DataRow(true, false, true)]
+    [DataRow(false, true, true)]
+    [DataRow(false, false, false)]
+    public void CandidateApprovalSpellingsCannotClaimProduction(bool approved, bool approval, bool rejected)
+    {
+        using var directory = new TemporaryDirectory();
+        FrozenCandidateMarkerClassifierDescriptor descriptor = WriteDescriptor(directory.Path,
+            productionApproved: approved, productionApproval: approval);
+        if (rejected)
+            Assert.ThrowsExactly<InvalidDataException>(() => ProductionMarkerClassificationAdapter.CreateForFrozenCandidateEvaluation(
+                descriptor, new RecordingService()));
+        else
+            Assert.IsFalse(ProductionMarkerClassificationAdapter.CreateForFrozenCandidateEvaluation(
+                descriptor, new RecordingService()).IsApproved);
+    }
+
+    [TestMethod]
+    public void CandidateApprovalClaimsMayBeAbsent()
+    {
+        using var directory = new TemporaryDirectory();
+        FrozenCandidateMarkerClassifierDescriptor descriptor = WriteDescriptor(directory.Path,
+            productionApproved: null, productionApproval: null);
+        Assert.IsFalse(ProductionMarkerClassificationAdapter.CreateForFrozenCandidateEvaluation(
+            descriptor, new RecordingService()).IsApproved);
+    }
+
+    [TestMethod]
+    public void CandidateApprovalClaimsRejectMalformedValuesAndMixedClaims()
+    {
+        using var directory = new TemporaryDirectory();
+        foreach (string name in new[] { "production_approval", "production_approved" })
+        foreach (string value in new[] { "\"false\"", "0", "null", "{}", "[]", "true" })
+        {
+            FrozenCandidateMarkerClassifierDescriptor descriptor = WithBenchmarks(directory.Path, $"[{{\"{name}\":{value}}}]");
+            Assert.ThrowsExactly<InvalidDataException>(() => ProductionMarkerClassificationAdapter.CreateForFrozenCandidateEvaluation(
+                descriptor, new RecordingService()), $"{name}: {value}");
+        }
+        foreach (string json in new[]
+                 {
+                     "[{\"production_approval\":false,\"production_approved\":true}]",
+                     "[{\"production_approval\":true,\"production_approved\":false}]",
+                     "[{\"production_approval\":true,\"production_approved\":true}]",
+                     "[{\"production_approval\":false,\"production_approved\":null}]",
+                     "[{\"production_approval\":[],\"production_approved\":false}]",
+                     "[{\"production_approval\":{},\"production_approved\":\"false\"}]",
+                     "[{\"production_approval\":true,\"production_approval\":false}]",
+                     "[{\"production_approved\":false,\"production_approved\":false}]",
+                 })
+            Assert.ThrowsExactly<InvalidDataException>(() => ProductionMarkerClassificationAdapter.CreateForFrozenCandidateEvaluation(
+                WithBenchmarks(directory.Path, json), new RecordingService()), json);
+        Assert.IsFalse(ProductionMarkerClassificationAdapter.CreateForFrozenCandidateEvaluation(
+            WithBenchmarks(directory.Path, "[{\"production_approval\":false,\"production_approved\":false}]"),
+            new RecordingService()).IsApproved);
+        Assert.ThrowsExactly<InvalidDataException>(() => ProductionMarkerClassificationAdapter.CreateForFrozenCandidateEvaluation(
+            WithBenchmarks(directory.Path, "[{\"production_approval\":true}]", duplicateBenchmarks: true),
+            new RecordingService()));
+    }
+
+    private static FrozenCandidateMarkerClassifierDescriptor WithBenchmarks(string directory, string benchmarks, bool duplicateBenchmarks = false)
+    {
+        FrozenCandidateMarkerClassifierDescriptor descriptor = WriteDescriptor(directory);
+        using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(descriptor.ManifestPath));
+        using JsonDocument replacement = JsonDocument.Parse(benchmarks);
+        using var bytes = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(bytes))
+        {
+            writer.WriteStartObject();
+            foreach (JsonProperty property in manifest.RootElement.EnumerateObject())
+            {
+                if (property.NameEquals("benchmarks"))
+                {
+                    writer.WritePropertyName("benchmarks");
+                    replacement.RootElement.WriteTo(writer);
+                    if (duplicateBenchmarks)
+                    {
+                        writer.WritePropertyName("benchmarks");
+                        writer.WriteStartArray();
+                        writer.WriteEndArray();
+                    }
+                }
+                else property.WriteTo(writer);
+            }
+            writer.WriteEndObject();
+        }
+        File.WriteAllBytes(descriptor.ManifestPath, bytes.ToArray());
+        return descriptor with { ManifestSha256 = Hash(descriptor.ManifestPath) };
+    }
+
+    [TestMethod]
     public void CandidateRejectsWrongShapeAndWrongIdentity()
     {
         using var directory = new TemporaryDirectory();
@@ -71,12 +160,15 @@ public sealed class ProductionClassifierFrozenCandidateFactoryTests
     }
 
     private static FrozenCandidateMarkerClassifierDescriptor WriteDescriptor(string directory,
-        bool productionApproved = false, int inputWidth = 32)
+        bool? productionApproved = false, int inputWidth = 32, bool? productionApproval = null)
     {
         string payload = Path.Combine(directory, "candidate.onnx");
         File.WriteAllText(payload, "owned fake classifier payload");
         string payloadSha = Hash(payload);
         string manifest = Path.Combine(directory, "manifest.json");
+        var benchmark = new Dictionary<string, bool>();
+        if (productionApproved.HasValue) benchmark["production_approved"] = productionApproved.Value;
+        if (productionApproval.HasValue) benchmark["production_approval"] = productionApproval.Value;
         File.WriteAllText(manifest, JsonSerializer.Serialize(new
         {
             task = "marker_classifier", model_id = "candidate", model_version = "0.0.1", sha256 = payloadSha,
@@ -86,7 +178,7 @@ public sealed class ProductionClassifierFrozenCandidateFactoryTests
             preprocessing = new { normalization_mean = 0, normalization_scale = 1 },
             postprocessing = new { shape_and_fill_separate = true,
                 shape_order = ShapeOrder, fill_order = FillOrder },
-            benchmarks = new[] { new { production_approved = productionApproved } },
+            benchmarks = new[] { benchmark },
         }));
         return new(new ModelIdentity("candidate", "0.0.1", payloadSha, payload), manifest, Hash(manifest));
     }
