@@ -57,6 +57,36 @@ internal sealed record OcrTickLaneRecognitionDiagnostic(
     IReadOnlyList<string> LiteralAlternatives,
     string? FailureCode);
 
+/// <summary>
+/// Independent failed predicates for one supplied stroke. Nonfinite numeric
+/// values are represented as null so optional JSON diagnostics remain valid.
+/// Multiple rejection flags can be true for the same stroke.
+/// </summary>
+internal sealed record OcrTickLaneStrokeDiagnostic(
+    int SuppliedIndex,
+    string? TickId,
+    double? CenterX,
+    double? CenterY,
+    double? LineStartX,
+    double? LineStartY,
+    double? LineEndX,
+    double? LineEndY,
+    double? Confidence,
+    IReadOnlyList<string>? SupportingCandidateIds,
+    double? PlotBottom,
+    double? AllowedAxisDistance,
+    bool MissingStroke,
+    bool InvalidTickId,
+    bool NonfiniteCenter,
+    bool NonfiniteLineStart,
+    bool NonfiniteLineEnd,
+    bool InvalidConfidence,
+    bool MissingSupportingCandidates,
+    bool InvalidSupportingCandidateId,
+    bool OutsideAxisDistance,
+    bool NotNearVertical,
+    bool Usable);
+
 internal sealed record OcrTickLaneDiagnostic(
     string ProjectId,
     string PanelId,
@@ -69,4 +99,5 @@ internal sealed record OcrTickLaneDiagnostic(
     OcrTickLaneRecoveryDiagnostic? Recovery,
     IReadOnlyList<OcrTickLaneRecognitionDiagnostic> Recognitions,
     IReadOnlyList<string> FinalSeedRegionIds,
-    IReadOnlyList<string> FinalSeedXTickRegionIds);
+    IReadOnlyList<string> FinalSeedXTickRegionIds,
+    IReadOnlyList<OcrTickLaneStrokeDiagnostic>? XAxisStrokeDiagnostics = null);

@@ -268,6 +268,46 @@ public static class TickLaneTextRegionRecovery
         OcrRectangle plot) =>
         strokes?.Count(stroke => stroke is not null && IsUsableXAxisTickStroke(stroke, plot)) ?? 0;
 
+    internal static IReadOnlyList<OcrTickLaneStrokeDiagnostic> DescribeXAxisTickStrokes(
+        IReadOnlyList<OcrXAxisTickStroke>? strokes,
+        OcrRectangle plot)
+    {
+        if (strokes is null) return [];
+        double maximumDistance = Math.Max(4d, plot.Height * 0.05d);
+        var observations = new List<OcrTickLaneStrokeDiagnostic>(strokes.Count);
+        for (int index = 0; index < strokes.Count; index++)
+        {
+            OcrXAxisTickStroke? stroke = strokes[index];
+            if (stroke is null)
+            {
+                observations.Add(new OcrTickLaneStrokeDiagnostic(index, null, null, null, null, null,
+                    null, null, null, null, Finite(plot.Bottom), Finite(maximumDistance),
+                    true, false, false, false, false, false, false, false, false, false, false));
+                continue;
+            }
+
+            bool missingSupport = stroke.SupportingCandidateIds is not { Count: > 0 };
+            observations.Add(new OcrTickLaneStrokeDiagnostic(
+                index, stroke.TickId,
+                Finite(stroke.Center.X), Finite(stroke.Center.Y),
+                Finite(stroke.LineStart.X), Finite(stroke.LineStart.Y),
+                Finite(stroke.LineEnd.X), Finite(stroke.LineEnd.Y), Finite(stroke.Confidence),
+                stroke.SupportingCandidateIds is null ? null : Array.AsReadOnly(stroke.SupportingCandidateIds.ToArray()),
+                Finite(plot.Bottom), Finite(maximumDistance),
+                false, string.IsNullOrWhiteSpace(stroke.TickId), !stroke.Center.IsFinite,
+                !stroke.LineStart.IsFinite, !stroke.LineEnd.IsFinite,
+                !double.IsFinite(stroke.Confidence) || stroke.Confidence is <= 0d or > 1d,
+                missingSupport,
+                stroke.SupportingCandidateIds is { Count: > 0 } ids && ids.Any(static id => string.IsNullOrWhiteSpace(id)),
+                !(Math.Abs(stroke.Center.Y - plot.Bottom) <= maximumDistance),
+                !(Math.Abs(stroke.LineEnd.X - stroke.LineStart.X) <= Math.Abs(stroke.LineEnd.Y - stroke.LineStart.Y)),
+                IsUsableXAxisTickStroke(stroke, plot)));
+        }
+        return OcrCollections.Freeze(observations);
+
+        static double? Finite(double value) => double.IsFinite(value) ? value : null;
+    }
+
     private static bool IsUsableXAxisTickStroke(OcrXAxisTickStroke stroke, OcrRectangle plot) =>
         !string.IsNullOrWhiteSpace(stroke.TickId) && stroke.Center.IsFinite &&
         stroke.LineStart.IsFinite && stroke.LineEnd.IsFinite &&

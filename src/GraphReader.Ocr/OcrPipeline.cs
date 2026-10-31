@@ -1711,6 +1711,9 @@ public sealed class OcrPipeline
             recovery,
             recognitions,
             finalSeedRegionIds,
-            finalSeedXTickRegionIds);
+            finalSeedXTickRegionIds,
+            TickLaneTextRegionRecovery.DescribeXAxisTickStrokes(
+                request.XAxisTickStrokes,
+                request.PlotBounds));
     }
 }

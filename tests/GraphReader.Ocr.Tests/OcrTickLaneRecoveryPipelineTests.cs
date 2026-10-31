@@ -63,12 +63,24 @@ public sealed class OcrTickLaneRecoveryPipelineTests
         };
         var recognizer = new StubTextRecognizer((_, _) => throw new AssertFailedException("No crop should be recognized."));
 
-        OcrResult result = await Pipeline(recognizer, new InMemoryOcrResultCache(), true).RecognizeAsync(request);
+        OcrResult baseline = await Pipeline(recognizer, new InMemoryOcrResultCache(), true).RecognizeAsync(request);
+        OcrTickLaneDiagnostic? diagnostic = null;
+        OcrResult result = await Pipeline(recognizer, new InMemoryOcrResultCache(), true)
+            .RecognizeWithTickLaneDiagnosticsAsync(request, value => diagnostic = value);
 
         Assert.IsTrue(result.Succeeded, result.Failure?.TechnicalMessage);
         Assert.IsEmpty(result.Regions);
         Assert.Contains("no_text_regions_detected", result.Warnings);
         Assert.AreEqual(0, recognizer.CallCount);
+        Assert.AreEqual(baseline.Succeeded, result.Succeeded);
+        Assert.AreEqual(JsonSerializer.Serialize(baseline.Regions), JsonSerializer.Serialize(result.Regions));
+        CollectionAssert.AreEqual(baseline.Warnings.ToArray(), result.Warnings.ToArray());
+        Assert.IsNotNull(diagnostic);
+        Assert.IsFalse(diagnostic.RecoveryAnalysisPerformed);
+        Assert.IsNotNull(diagnostic.XAxisStrokeDiagnostics);
+        Assert.HasCount(1, diagnostic.XAxisStrokeDiagnostics);
+        Assert.IsTrue(diagnostic.XAxisStrokeDiagnostics[0].MissingSupportingCandidates);
+        Assert.IsFalse(diagnostic.XAxisStrokeDiagnostics[0].Usable);
     }
 
     [TestMethod]
