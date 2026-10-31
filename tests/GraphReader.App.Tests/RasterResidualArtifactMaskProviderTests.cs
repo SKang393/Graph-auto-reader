@@ -147,6 +147,23 @@ public sealed class RasterResidualArtifactMaskProviderTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task LongCrossingCanMaskTheCenterOfAnOutlinedMarker(bool outlinedMarker)
+    {
+        TestInputs inputs = CreateCompositeInputs(
+            crossArmLength: 12, crossingOutline: outlinedMarker);
+        RasterResidualArtifactMaskResult result = await new RasterResidualArtifactMaskProvider().AnalyzeAsync(
+            inputs.Raster, inputs.Axis, inputs.Ocr, inputs.Seed, CancellationToken.None,
+            includeCategoryBits: true);
+
+        int center = Index(inputs.Raster.Width, 80, 32);
+        Assert.IsGreaterThan(0.5f, result.Mask.Span[center]);
+        Assert.AreEqual((byte)RasterResidualArtifactCategoryBits.ConnectingLineIntersection,
+            result.CopyCategoryBits()[center]);
+    }
+
+    [TestMethod]
     [DataRow(0, "aligned", true)]
     [DataRow(1, "aligned", true)]
     [DataRow(2, "aligned", true)]
@@ -197,7 +214,8 @@ public sealed class RasterResidualArtifactMaskProviderTests
 
     private static TestInputs CreateCompositeInputs(
         int crossArmLength = 0, bool connectedCross = false, int quarterTurns = 0, string annotationLayout = "aligned",
-        int centerBlobRadius = 0, int centerBlobOffset = 0, int legendGlyphCenterX = 118)
+        int centerBlobRadius = 0, int centerBlobOffset = 0, int legendGlyphCenterX = 118,
+        bool crossingOutline = false)
     {
         int width = 160;
         int height = 110;
@@ -223,6 +241,8 @@ public sealed class RasterResidualArtifactMaskProviderTests
                 DrawFilledRectangle(gray, width,
                     80 + centerBlobOffset - centerBlobRadius, 32 - centerBlobRadius,
                     80 + centerBlobOffset + centerBlobRadius, 32 + centerBlobRadius);
+            if (crossingOutline)
+                DrawRing(gray, width, 74, 26, 86, 38);
         }
 
         PixelPoint Rotate(double x, double y)
