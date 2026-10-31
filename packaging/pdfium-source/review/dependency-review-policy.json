@@ -5,16 +5,16 @@
   "evidenceRootName": "evidence",
   "sourceRevision": "2870fa9244b0f0f69fb743fab1e08deefcb07b2b",
   "evidenceBinding": {
-    "binarySha256": "efd13a38cf3cd8e04d8284a42fff42923267293170424153b1a2a96dbf6fe8ea",
+    "binarySha256": "e61fa4e46ada9ae3e9040865674c35c3abdb5722031d5c9447a54155e483a468",
     "sourceLockSha256": "026c87468d315f42642e8507b50aaf810dc26461a837454ede20ff9f2335d800",
-    "buildManifestSha256": "b3744c369982dca6a37377ce1e69daa9d8f269b9052d8a8d5f5a84c1ed120e13",
+    "buildManifestSha256": "0237031492c77c4ad978a0d5e674410232c740799f083cc9e7ef375ab82dceb0",
     "targetDependenciesSha256": "96b6d3d4b3f0421896cd5d036f52369b58bdf59f003fd03b376af5b40c94cc8b",
     "peImportsSha256": "4cb9c8e65ddfb8ed33bed4940e63705aef71d752b9bd2a629e0a3be6c6033d90"
   },
   "noticeBundle": {
     "path": "third-party-notices.dependency-mapped.txt",
     "reviewStatus": "dependency-mapped-not-approved",
-    "sha256": "586d3e93f1eaaa412654e008aa3ca03c003c903270555de761650acb92c457d9"
+    "sha256": "367ddbda70935f2f6c48cce5fe896384a9af483cfc899da70472622a2e3715d2"
   },
   "reviewInventory": {
     "targetDependenciesPath": "target-dependencies.reviewed.txt",

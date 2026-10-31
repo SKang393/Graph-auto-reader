@@ -12,7 +12,7 @@ $projectRoot = [IO.Path]::GetFullPath((Join-Path $reviewRoot '..\..\..'))
 $validator = Join-Path $reviewRoot 'Test-PdfiumDependencyReviewPolicy.ps1'
 $sourcePolicy = Join-Path $reviewRoot 'dependency-review-policy.json'
 $sourceNotice = Join-Path $reviewRoot 'third-party-notices.dependency-mapped.txt'
-$sourceEvidence = Join-Path $projectRoot 'artifacts\pdfium-source\evidence'
+$sourceEvidence = Join-Path $projectRoot 'artifacts\pdfium-source\evidence-first'
 $sourceCheckout = Join-Path $projectRoot 'artifacts\pdfium-source\sources\pdfium'
 $temporaryParent = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
 $temporaryRoot = Join-Path $temporaryParent ('GraphReader-PdfiumReviewTests-' + [Guid]::NewGuid().ToString('N'))
@@ -86,6 +86,18 @@ function Assert-Case {
 }
 
 try {
+    Assert-Case 'Rebound renderer requires new exact clean-machine evidence' {
+        $audit = Get-Content -LiteralPath (Join-Path $projectRoot 'packaging\common\release-audit.json') -Raw | ConvertFrom-Json
+        $renderer = @($audit.components | Where-Object { $_.id -eq 'pdfium-native' })
+        $gate = @($audit.mandatoryEvidenceGates | Where-Object { $_.id -eq 'pdfium-clean-machine-load' })
+        if ($renderer.Count -ne 1 -or $gate.Count -ne 1 -or
+            $renderer[0].artifactSha256 -cne 'e61fa4e46ada9ae3e9040865674c35c3abdb5722031d5c9447a54155e483a468' -or
+            $renderer[0].reviewStatus -cne 'reviewed' -or $gate[0].status -cne 'blocked' -or
+            @($gate[0].evidence).Count -ne 0) {
+            throw 'The E61 renderer identity or its blocked clean-machine gate differs.'
+        }
+    }
+
     Assert-Case 'Exact retained dependency evidence passes without approval' {
         $result = Invoke-Validator -EvidenceRoot $sourceEvidence -PolicyPath $sourcePolicy -NoticePath $sourceNotice
         if ($result.ExitCode -ne 0 -or $result.Output -notmatch 'approval remains false') {

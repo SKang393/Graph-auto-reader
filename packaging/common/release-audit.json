@@ -66,14 +66,9 @@
     {
       "id": "pdfium-clean-machine-load",
       "description": "The exact minimal PDFium renderer and its complete runtime payload load and render on a clean Windows machine.",
-      "status": "pass",
-      "evidence": [
-        {
-          "path": "packaging/evidence/pdfium-clean-machine.json",
-          "sha256": "1489a38086a516b9a0f6913a046f28cd374b29470f41ea32647d3bf4c2435768"
-        }
-      ],
-      "notes": "The exact reviewed minimal PDFium renderer rendered a controlled PDF and the packaged application fallback exited 0 in the same fresh offline Windows 11 Enterprise Evaluation VM."
+      "status": "blocked",
+      "evidence": [],
+      "notes": "The retained historical clean-machine report covers renderer efd13a38cf3cd8e04d8284a42fff42923267293170424153b1a2a96dbf6fe8ea, not the current reviewed e61fa4e46ada9ae3e9040865674c35c3abdb5722031d5c9447a54155e483a468. Fresh exact-binary clean-machine evidence is required."
     },
     {
       "id": "optional-enhancement-off-on",
@@ -383,15 +378,15 @@
       "sourceRevision": "PDFium 2870fa9244b0f0f69fb743fab1e08deefcb07b2b with the 15-component closure pinned by packaging/pdfium-source/review/dependency-review-policy.json",
       "license": "BSD-3-Clause AND BSD-2-Clause AND MIT AND Apache-2.0 AND Zlib AND Unicode-3.0 AND LicenseRef-AGG-2.3-permissive AND LicenseRef-FreeType AND LicenseRef-IJG AND Apache-2.0 WITH LLVM-exception",
       "bundledOrDownloaded": "bundled",
-      "artifactSha256": "efd13a38cf3cd8e04d8284a42fff42923267293170424153b1a2a96dbf6fe8ea",
+      "artifactSha256": "e61fa4e46ada9ae3e9040865674c35c3abdb5722031d5c9447a54155e483a468",
       "checksumPolicy": "exact-binary",
       "noticePaths": ["LICENSES/PDFium-Minimal-Renderer-ThirdPartyNotices.txt"],
       "commercialUse": true,
       "redistribution": true,
       "reviewStatus": "reviewed",
-      "reviewer": "Goal 19 maintainer-directed dependency review",
-      "reviewDate": "2026-08-05",
-      "notes": "Two source builds are byte-identical. All 240 target labels map once to 15 dispositions, 16 exact notice sources are retained, and PE imports are limited to four Windows system APIs. Ignored local approval and backend execution pass. Release staging separately requires the blocked checksum-bound clean-machine gate."
+      "reviewer": "Independent technical dependency review and exact-binary local approval",
+      "reviewDate": "2026-10-30",
+      "notes": "Two E61 source builds are byte-identical. All 240 target labels map once to 15 dispositions, 16 exact notice sources are retained, and PE imports are limited to four Windows system APIs. Exact-binary local approval and local backend execution pass. The historical EFD clean-machine report does not apply; release staging requires fresh E61 clean-machine evidence."
     }
   ],
   "binaryCoverage": {
