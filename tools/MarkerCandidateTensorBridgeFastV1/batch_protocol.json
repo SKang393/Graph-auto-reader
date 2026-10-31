@@ -1,0 +1,41 @@
+{
+  "schema": "graphreader.marker-candidate-tensor-fast-batch-runner.v1",
+  "scope": "synthetic_train_split_review_only_no_training",
+  "fast_verifier_protocol_sha256": "186a702b9f49bcdc0791ef35512702f2035e8e65e9b8b87574b7b87eb5126fe4",
+  "v1_runner_protocol_sha256": "b511b49b37490f5c21c7929d2da52818cd8c1e459baabaf0dbdd6d02c0ff7119",
+  "adapted_v1_runner_sha256": "47bff95556f7e5da69776e0ab6314f92a2554dfbbf5c7fae486d38a2a4ceb9e4",
+  "batch_execution": {
+    "source_count": 64,
+    "validation_passes": 1,
+    "per_source_tensor_retention": "one_source_at_a_time"
+  },
+  "runner_transformations": {
+    "relative_import": "inject_the_hash_pinned_fast_bridge_clone",
+    "sampler_input_format": "full_capture_panel_shared_plane_fast_v1"
+  },
+  "source_bindings": {
+    "batch_runner.py": "4df2d2c069835f90d576bcce6c02e0b4a7e713a677aa11599bee542c8e0d5d5d",
+    "fast_verifier.py": "de8b26b221913760b896fd193e8b165025d6d12c6a71059ba5949abba9455c86",
+    "__init__.py": "f921307f0ae51c73b91424d01700714ce72e7c8538bd7eba8a2fe072dc6e1d68",
+    "v1_runner.py": "6be8df3aaad1e2305f9e77c38713ba8feb2061d3f0f0e927f984407e4daf87ec",
+    "v1_runner_protocol.json": "b511b49b37490f5c21c7929d2da52818cd8c1e459baabaf0dbdd6d02c0ff7119",
+    "v1_bridge.py": "819cf481a601637278c472bba60aa81c1040131d40bed853f2ab6e8ad40b2530",
+    "v1_package_init.py": "0800091eb5df0e3d9af780d5e085cf07e1ec40018eee92a3cc9e8bf134cea62b"
+  },
+  "guarantees": {
+    "candidate_order_and_v1_label_semantics": "delegated_to_hash_pinned_v1_batch_core",
+    "source_failure_accounting": "preserve_v1_per_source_statuses",
+    "atomic_publication": "publish_final_directory_only_after_fast_receipt_and_ready_marker",
+    "training_approved": false,
+    "optimizer_steps": 0,
+    "dev_input_supplied": false,
+    "private_input_supplied": false,
+    "sealed_input_supplied": false
+  },
+  "limitations": [
+    "Evidence-envelope hashes differ from V1; tensor payload and review-row semantics are preserved.",
+    "Classifier normalization and production model-store factory/runtime parity are not verified.",
+    "Failed runs may leave an explicitly named .fast-batch-stage-* directory as evidence; no final output is published.",
+    "No actual full batch is launched by tests or this module during import."
+  ]
+}

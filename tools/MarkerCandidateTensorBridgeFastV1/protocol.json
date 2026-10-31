@@ -1,0 +1,21 @@
+{
+  "schema": "graphreader.marker-candidate-tensor-fast-verifier.v1",
+  "scope": "synthetic_train_review_only_no_training",
+  "v1_bridge_sha256": "819cf481a601637278c472bba60aa81c1040131d40bed853f2ab6e8ad40b2530",
+  "source_bindings": {
+    "fast_verifier.py": "de8b26b221913760b896fd193e8b165025d6d12c6a71059ba5949abba9455c86",
+    "__init__.py": "f921307f0ae51c73b91424d01700714ce72e7c8538bd7eba8a2fe072dc6e1d68",
+    "bridge.py": "819cf481a601637278c472bba60aa81c1040131d40bed853f2ab6e8ad40b2530"
+  },
+  "guarantees": {
+    "shared_plane_hashes_per_source": 1,
+    "candidate_order_and_tensor_bytes": "unchanged_v1_core_contract",
+    "label_matching": "unchanged_pinned_v1_core",
+    "training_approved": false,
+    "optimizer_steps": 0
+  },
+  "limitations": [
+    "Fast evidence envelope hashes differ from V1 serialized envelope hashes.",
+    "Batch execution is delegated to a separately pinned wrapper around the V1 batch runner."
+  ]
+}

@@ -478,6 +478,24 @@ class CandidateTensorBridgeTests(unittest.TestCase):
         self.assertEqual("artifact_candidate_review_only", rows["candidate-artifact"]["review_label"])
         self.assertEqual(0, result["trainable_rows"])
 
+    def test_batch_inventory_derivation_returns_all_sources_in_one_pass(self):
+        bundle = bound_inventory_fixture()
+        def fixture_classifier(annotation, *, expected_split):
+            self.assertEqual("train", expected_split)
+            markers = annotation.get("panels", [{}])[0].get("markers", []) if annotation.get("panels") else []
+            return {"records": [{"id": marker["point_id"], "center": marker["center"],
+                                  "bin": "connected_positive"} for marker in markers]}
+        with patch.multiple(bridge_module, **bundle["expected_constants"]):
+            derived, rows = bridge_module._derive_bound_inventories(
+                source=None, complete_receipt_bytes=bundle["complete"],
+                identity_metadata_bytes=bundle["identity"], capture_report_bytes=bundle["capture"],
+                truth_sidecar_bytes=bundle["truth"], artifact_report_bytes=bundle["artifact"],
+                classify_annotations=fixture_classifier)
+        self.assertEqual(64, len(derived))
+        self.assertEqual(64, len(rows))
+        self.assertEqual(sorted(derived), [row["source_id"] for row in rows])
+        self.assertEqual(1, len(derived[bundle["source"]["source_id"]]["positive_truths"]))
+
     def test_bound_inventory_rejects_omitted_truth_or_artifact_record(self):
         bundle = bound_inventory_fixture()
         truth_doc = json.loads(bundle["truth"])
@@ -641,6 +659,204 @@ class CandidateTensorBridgeTests(unittest.TestCase):
                             runner_module.run_one_source(descriptor_bytes=descriptor,
                                 project_root=root, output_relative="artifacts/goal22-runs/fixture-run",
                                 expected_runner_protocol_sha256=digest(protocol_bytes))
+
+    def test_full_train_batch_derives_inventory_once_and_accounts_source_failure(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "artifacts" / "goal22-runs").mkdir(parents=True)
+            input_dir = root / "fixture-inputs"
+            input_dir.mkdir()
+            input_payloads = {
+                "complete_receipt": b"complete", "identity_metadata": b"identity",
+                "capture_report": b"capture", "truth_sidecar": b"truth",
+                "artifact_report": b"artifact",
+            }
+            input_paths = {}
+            for key, raw in input_payloads.items():
+                path = input_dir / f"{key}.json"
+                path.write_bytes(raw)
+                input_paths[key] = path.relative_to(root).as_posix()
+            image = tiny_png(2, 2)
+            image_sha = digest(image)
+            raster_root = root / "raster-only"
+            raster_root.mkdir()
+            (raster_root / f"{image_sha}.png").write_bytes(image)
+            panel_root = root / "panels"
+            panel_root.mkdir()
+            source_ids = ["source-a", "source-b"]
+            identity_rows, capture_rows, events = [], [], []
+            panel_bytes_by_source = {}
+            for index, source_id in enumerate(source_ids):
+                panel_id = f"panel-{index}"
+                panel = {"source_id": source_id, "panel_id": panel_id,
+                    "panel_sha256": image_sha,
+                    "provenance": {"source_sha256": image_sha, "panel_image_sha256": image_sha,
+                        "source_width": 2, "source_height": 2},
+                    "frame": {"width": 2, "height": 2, "channel_count": 1,
+                        "channels_first_pixels": [0.0, 0.1, 0.2, 0.3]}}
+                panel_bytes = _canonical(panel)
+                filename = f"panel-{index:04d}.json"
+                (panel_root / filename).write_bytes(panel_bytes)
+                panel_bytes_by_source[source_id] = panel_bytes
+                identity_rows.append({"source_id": source_id, "scene_id": f"scene-{index}",
+                    "scene_sha256": "a" * 64, "image_sha256": image_sha, "case_id": f"case-{index}"})
+                capture_rows.append({"source_index": index, "source_id": source_id,
+                    "status": "completed", "failure": None, "panel_count": 1,
+                    "panels": [{"panel_id": panel_id, "status": "completed", "marker_count": 2}]})
+                events.append({"source_id": source_id, "panel_id": panel_id,
+                    "file": filename, "sha256": digest(panel_bytes)})
+            identity_bytes = _canonical({"sources": identity_rows})
+            capture_bytes = _canonical({"sources": capture_rows, "events": events})
+            input_payloads["identity_metadata"] = identity_bytes
+            input_payloads["capture_report"] = capture_bytes
+            for key, raw in input_payloads.items():
+                (input_dir / f"{key}.json").write_bytes(raw)
+
+            derived = {source_id: {"annotation_sha256": "b" * 64,
+                "positive_truths": [], "visible_glyphs": [], "generic_overlays": []}
+                for source_id in source_ids}
+            inventory_rows = [{"source_id": source_id} for source_id in source_ids]
+            label_source = "ml/synthetic/marker_context_catalog_v1/labels.py"
+            label_bytes = b"fixture-label-source"
+            label_path = root.joinpath(*label_source.split("/"))
+            label_path.parent.mkdir(parents=True)
+            label_path.write_bytes(label_bytes)
+            source_pins = {label_source: digest(label_bytes)}
+            closure_sha = digest(_canonical(source_pins))
+            tool_dir = root / "tools" / "MarkerCandidateTensorBridgeV1"
+            tool_dir.mkdir(parents=True)
+            runner_path, bridge_path = tool_dir / "runner.py", tool_dir / "bridge.py"
+            package_init = tool_dir / "__init__.py"
+            runner_path.write_bytes(Path(runner_module.__file__).read_bytes())
+            bridge_path.write_bytes(Path(bridge_module.__file__).read_bytes())
+            package_init.write_bytes(Path(bridge_module.__file__).with_name("__init__.py").read_bytes())
+            source_bindings = {"runner.py": digest(runner_path.read_bytes()),
+                "bridge.py": digest(bridge_path.read_bytes()),
+                "__init__.py": digest(package_init.read_bytes())}
+            expected_constants = {
+                "FULL_CAPTURE_COMPLETE_SHA256": digest(input_payloads["complete_receipt"]),
+                "IDENTITY_METADATA_SHA256": digest(identity_bytes),
+                "FULL_CAPTURE_REPORT_SHA256": digest(capture_bytes),
+                "ARTIFACT_REPORT_SHA256": digest(input_payloads["artifact_report"]),
+                "FULL_CAPTURE_BINDING_SHA256": "c" * 64,
+                "CORPUS_BUILDER_BINDING_SHA256": "d" * 64,
+                "ASSOCIATION_REPORT_SHA256": "e" * 64,
+            }
+            protocol = {"schema": "graphreader.marker-candidate-tensor-bridge-runner.v1",
+                "source_bindings": source_bindings, "source_closure_sha256": closure_sha,
+                "batch_execution": {"source_count": 2, "validation_passes": 1,
+                    "per_source_tensor_retention": "one_source_at_a_time"},
+                "expected_inputs": {
+                    "full_capture_report_sha256": expected_constants["FULL_CAPTURE_REPORT_SHA256"],
+                    "identity_metadata_sha256": expected_constants["IDENTITY_METADATA_SHA256"],
+                    "full_capture_complete_sha256": expected_constants["FULL_CAPTURE_COMPLETE_SHA256"],
+                    "full_capture_binding_sha256": expected_constants["FULL_CAPTURE_BINDING_SHA256"],
+                    "corpus_builder_binding_sha256": expected_constants["CORPUS_BUILDER_BINDING_SHA256"],
+                    "artifact_report_sha256": expected_constants["ARTIFACT_REPORT_SHA256"],
+                    "association_report_sha256": expected_constants["ASSOCIATION_REPORT_SHA256"]}}
+            protocol_bytes = _canonical(protocol)
+            protocol_path = root / "runner_protocol.json"
+            protocol_path.write_bytes(protocol_bytes)
+            derive = lambda **_kwargs: (derived, inventory_rows)
+            calls = []
+
+            def fake_core(**kwargs):
+                source_id = kwargs["source"]["source_id"]
+                calls.append(source_id)
+                if source_id == "source-b":
+                    raise ValueError("synthetic per-source failure")
+                local, wide = b"local-tensor", b"wide-tensor"
+                candidate_id = f"{source_id}:candidate-0"
+                return {"status": "completed_review_only", "source_id": source_id,
+                    "source_group_id": source_id, "split": "train",
+                    "candidate_count": 1,
+                    "rows": [{"candidate_id": candidate_id, "training_admitted": False}],
+                    "tensor_bytes_by_candidate": {candidate_id: {
+                        "local_bytes": local, "local_sha256": digest(local),
+                        "wide_bytes": wide, "wide_sha256": digest(wide)}},
+                    "matched_positive_review_rows": 1,
+                    "visible_legend_review_rows": 0, "unknown_or_excluded_rows": 0,
+                    "trainable_rows": 0, "negative_training_rows": 0,
+                    "training_approved": False, "optimizer_steps": 0,
+                    "limitations": []}
+
+            batch_paths = {key: input_paths[key] for key in input_paths}
+            with patch.multiple(bridge_module, CANONICAL_PROJECT_ROOT=root,
+                                SOURCE_BINDINGS=source_pins, **expected_constants):
+                with patch.multiple(runner_module, RUNNER_PROTOCOL=protocol_path,
+                    BATCH_SOURCE_COUNT=2, BATCH_INPUT_PATHS=batch_paths,
+                    BATCH_CAPTURE_PANEL_ROOT="panels", BATCH_RASTER_ROOT="raster-only",
+                    __file__=runner_path):
+                    with patch.object(bridge_module, "__file__", bridge_path):
+                        with patch.object(bridge_module, "verify_source_bindings",
+                                          return_value=source_pins):
+                            with patch.object(bridge_module, "_load_bound_classifier", return_value=object()):
+                                with patch.object(bridge_module, "_derive_bound_inventories", side_effect=derive) as derive_mock:
+                                    with patch.object(bridge_module, "_full_capture_candidate_evidence",
+                                                      return_value={}):
+                                        with patch.object(bridge_module, "_materialize_source_core",
+                                                          side_effect=fake_core):
+                                            receipt = runner_module.run_train_batch(
+                                                descriptor_bytes=_canonical({"schema": "graphreader.marker-candidate-tensor-bridge-batch.v1",
+                                                    "source_ids": source_ids}), project_root=root,
+                                                output_relative="artifacts/goal22-runs/batch-fixture",
+                                                expected_runner_protocol_sha256=digest(protocol_bytes))
+                                    derive_mock.assert_called_once()
+            self.assertEqual(["source-a", "source-b"], calls)
+            self.assertEqual("completed_with_source_failures_review_only", receipt["status"])
+            self.assertEqual({"completed": 1, "failed": 1}, receipt["source_status_counts"])
+            self.assertEqual(0, receipt["trainable_rows"])
+            self.assertEqual(0, receipt["negative_training_rows"])
+            output = root / "artifacts" / "goal22-runs" / "batch-fixture"
+            report = json.loads((output / "batch-report.json").read_bytes())
+            self.assertEqual(2, report["source_count"])
+            self.assertEqual(["completed_review_only", "failed"],
+                             [row["status"] for row in report["sources"]])
+            self.assertEqual("ValueError", report["sources"][1]["failure_code"])
+            self.assertEqual(1, report["candidate_count"])
+            self.assertEqual(4, report["captured_candidate_count"])
+            self.assertEqual(2, report["tensor_file_count"])
+            good_dir = output / report["sources"][0]["source_output"]
+            self.assertEqual(2, len(list((good_dir / "tensors").glob("*.f32le"))))
+            self.assertFalse((output / "sources" / "source-001").exists())
+            saved_source_report = json.loads((good_dir / "review-rows.json").read_bytes())
+            self.assertEqual(["source-a:candidate-0"],
+                             [row["candidate_id"] for row in saved_source_report["rows"]])
+            for references in saved_source_report["tensor_files"].values():
+                for reference in references.values():
+                    payload = (good_dir / reference["path"]).read_bytes()
+                    self.assertEqual(reference["bytes"], len(payload))
+                    self.assertEqual(reference["sha256"], digest(payload))
+            self.assertFalse(report["private_input_supplied"])
+            self.assertFalse(report["sealed_input_supplied"])
+            self.assertFalse(report["dev_input_supplied"])
+            self.assertTrue(any("classifier normalization is not applied or verified" in item
+                                for item in report["limitations"]))
+            self.assertTrue(any("production model-store factory/runtime parity are not verified" in item
+                                for item in receipt["limitations"]))
+            with self.assertRaises(FileExistsError):
+                with patch.multiple(bridge_module, CANONICAL_PROJECT_ROOT=root,
+                                    SOURCE_BINDINGS=source_pins, **expected_constants):
+                    with patch.multiple(runner_module, RUNNER_PROTOCOL=protocol_path,
+                        BATCH_SOURCE_COUNT=2, BATCH_INPUT_PATHS=batch_paths,
+                        BATCH_CAPTURE_PANEL_ROOT="panels", BATCH_RASTER_ROOT="raster-only",
+                        __file__=runner_path):
+                        with patch.object(bridge_module, "__file__", bridge_path):
+                            with patch.object(bridge_module, "verify_source_bindings", return_value=source_pins):
+                                with patch.object(bridge_module, "_load_bound_classifier", return_value=object()):
+                                    with patch.object(bridge_module, "_derive_bound_inventories", return_value=(derived, inventory_rows)):
+                                        runner_module.run_train_batch(
+                                            descriptor_bytes=_canonical({"schema": "graphreader.marker-candidate-tensor-bridge-batch.v1",
+                                                "source_ids": source_ids}), project_root=root,
+                                            output_relative="artifacts/goal22-runs/batch-fixture",
+                                            expected_runner_protocol_sha256=digest(protocol_bytes))
+
+    def test_batch_descriptor_rejects_duplicate_or_unsorted_inventory(self):
+        for source_ids in (["source-a"] * 2, ["source-b", "source-a"]):
+            descriptor = {"schema": "graphreader.marker-candidate-tensor-bridge-batch.v1",
+                          "source_ids": source_ids}
+            with self.assertRaisesRegex(ValueError, "batch descriptor source inventory differs"):
+                runner_module._parse_batch_descriptor(_canonical(descriptor), 2)
 
     def test_checked_in_runner_protocol_pins_its_executable_bundle_and_inputs(self):
         protocol_bytes = runner_module.RUNNER_PROTOCOL.read_bytes()

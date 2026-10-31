@@ -2,8 +2,8 @@
   "schema": "graphreader.marker-candidate-tensor-bridge-runner.v1",
   "status": "synthetic_train_review_only",
   "source_bindings": {
-    "runner.py": "64ded50dc88878c7142b96b905057f791eae153760bc54f26236b89a858af91a",
-    "bridge.py": "523bdc6be748007a10b3ec588243976c6472d4782ace4f5f607e6a7ca2511c83",
+    "runner.py": "6be8df3aaad1e2305f9e77c38713ba8feb2061d3f0f0e927f984407e4daf87ec",
+    "bridge.py": "819cf481a601637278c472bba60aa81c1040131d40bed853f2ab6e8ad40b2530",
     "__init__.py": "0800091eb5df0e3d9af780d5e085cf07e1ec40018eee92a3cc9e8bf134cea62b"
   },
   "source_closure_sha256": "28a5578aa1e676875c52bca252446442a8bb8f17cade69bfe514cc06e5d4e5ef",
@@ -24,6 +24,14 @@
     "negative_training_rows": 0,
     "training_approved": false,
     "optimizer_steps": 0,
-    "grouping_basis": "source_id_only; participant/study independence is unverified"
+    "grouping_basis": "source_id_only; participant/study independence is unverified",
+    "batch_source_count": 64,
+    "batch_validation_passes": 1,
+    "batch_per_source_tensor_retention": "one_source_at_a_time"
+  },
+  "batch_execution": {
+    "source_count": 64,
+    "validation_passes": 1,
+    "per_source_tensor_retention": "one_source_at_a_time"
   }
 }

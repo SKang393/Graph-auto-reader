@@ -497,11 +497,11 @@ def _load_bound_classifier(project_root: Path, verified_sources: dict[str, str])
     return classify
 
 
-def _derive_bound_inventories(*, source: dict[str, Any], complete_receipt_bytes: bytes,
+def _derive_bound_inventories(*, source: dict[str, Any] | None, complete_receipt_bytes: bytes,
                               identity_metadata_bytes: bytes, capture_report_bytes: bytes,
                               truth_sidecar_bytes: bytes, artifact_report_bytes: bytes,
                               classify_annotations
-                              ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
+                              ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]] | tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
     """Derive exhaustive labels only from the pinned full-corpus evidence bundle."""
     for raw, expected, name in (
             (complete_receipt_bytes, FULL_CAPTURE_COMPLETE_SHA256, "corpus COMPLETE receipt"),
@@ -691,7 +691,7 @@ def _derive_bound_inventories(*, source: dict[str, Any], complete_receipt_bytes:
                 artifact.get("panel_id") != panel.get("panel_id") or
                 artifact.get("panel_result_sha256") != event["sha256"]):
             raise ValueError("artifact report source/panel identity join differs")
-        if source_id == source.get("source_id"):
+        if source is not None and source_id == source.get("source_id"):
             if any(source.get(key) != identity.get(identity_key) for key, identity_key in (
                     ("scene_id", "scene_id"), ("scene_sha256", "scene_sha256"),
                     ("source_raster_sha256", "image_sha256"))):
@@ -700,6 +700,10 @@ def _derive_bound_inventories(*, source: dict[str, Any], complete_receipt_bytes:
                     source.get("panel_result_sha256") != event["sha256"] or
                     source.get("candidate_count") != panel.get("marker_count")):
                 raise ValueError("selected panel differs from its capture report identity")
+
+    if source is None:
+        inventory_rows.sort(key=lambda row: row["source_id"])
+        return derived_by_source, inventory_rows
 
     selected_id = source.get("source_id")
     identity = identities.get(selected_id)

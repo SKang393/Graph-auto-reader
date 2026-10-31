@@ -9,12 +9,13 @@ approval to zero/false.
 
 ## Intended input contract
 
-The public caller supplies the canonical E project root and one bound train
-source at a time. Before importing the label classifier, the entrypoint checks
-the pinned source closure and rejects reparse points. It verifies complete
-receipt, identity metadata, capture report, truth sidecar, artifact report,
-panel JSON, and image bytes. It derives labels from the complete sidecars; it
-does not accept caller-supplied positive, glyph, or overlay inventories.
+The public caller supplies the canonical E project root and either one bound
+train source or the fixed 64-source batch descriptor. Before importing the
+label classifier, the entrypoint checks the pinned source closure and rejects
+reparse points. It verifies complete receipt, identity metadata, capture
+report, truth sidecar, artifact report, panel JSON, and image bytes. It derives
+labels from the complete sidecars; it does not accept caller-supplied positive,
+glyph, or overlay inventories.
 
 The full 64-source metadata/truth/artifact inventories must bijectively join.
 Every source annotation is classified and its legend glyph inventory, visibility
@@ -49,14 +50,13 @@ not claimed as verified by these captures.
 
 ## Execution boundary
 
-No generated train-source truth scan has been run by this package. The unit
-tests use small synthetic bytes and never open the 64-source corpus or truth.
-Only metadata for the explicitly named 64-source capture report and identity
-file, plus one saved panel schema, were inspected. No truth sidecar was read and
-no materialization was run on real captures. This package does not claim that
-the 30 review-only glyph matches form a sufficient training set. No dev,
-private, sealed, or test data is accepted, and no training/admission is
-implemented.
+A reviewed single-source run for seed 20820000 completed earlier and remains
+separate evidence. The new batch path below has not been run against the real
+64-source truth/capture set. Its tests use a two-source synthetic fixture with
+the inventory derivation mocked, and assert the derivation is called exactly
+once. No dev, private, sealed, or test data is accepted, and no
+training/admission is implemented. The 30 review-only glyph matches are not
+claimed as a sufficient training set.
 
 Run only the focused synthetic tests with:
 
@@ -103,17 +103,48 @@ The current pinned synthetic inputs are located at:
 - source PNGs under `artifacts/goal22-runs/marker-context-train-corpus-v5-full/raster-only/`
 - inline panel JSON files under `artifacts/goal22-runs/marker-context-bound-input-full-capture-v4/panels/`
 
-One descriptor for synthetic train seed 20820000 has been prepared and
-hash-bound, but this runner has **not** been executed on those real files. Its
-path-only preflight checks the eight input paths by metadata/stat without
-opening the annotation sidecar or executing the bridge. The reviewed runner
-protocol SHA-256 is
-`65991c1338110f03a47dd5ee0cd9f5c8a27020b8d7a885442aa44867f348688e`. The
-not-yet-run invocation is:
+One descriptor for synthetic train seed 20820000 was prepared and used in a
+completed review-only run. Its historical runner protocol SHA-256 was
+`65991c1338110f03a47dd5ee0cd9f5c8a27020b8d7a885442aa44867f348688e`.
+The historical invocation was:
 
 ```powershell
 python -m tools.MarkerCandidateTensorBridgeV1.runner `
   --descriptor artifacts/goal22-runs/marker-candidate-tensor-bridge-one-source-prep-v1/source-descriptor.json `
   --output artifacts/goal22-runs/marker-candidate-tensor-bridge-seed-20820000-v1 `
   --expected-runner-protocol-sha256 65991c1338110f03a47dd5ee0cd9f5c8a27020b8d7a885442aa44867f348688e
+```
+
+## Bounded 64-source batch runner
+
+`--mode train-batch` uses fixed project-relative corpus, identity, capture,
+truth, and artifact paths from `runner.py`. The caller cannot substitute those
+inputs. Its descriptor has only the exact sorted source IDs:
+
+```json
+{
+  "schema": "graphreader.marker-candidate-tensor-bridge-batch.v1",
+  "source_ids": ["the 64 exact sorted source IDs"]
+}
+```
+
+The runner verifies the complete inventories once, checks the descriptor IDs
+against that derivation, then handles one panel and its candidate tensors at a
+time. Each source receives a separate output folder or a failure record;
+captured candidate totals remain distinct from successfully materialized
+candidate totals. A failed source does not remove its denominator. Per-source
+tensors are written to a temporary subfolder before that folder is renamed into
+place. Review rows are not training data, and the receipt fixes training and
+negative-row counts to zero.
+
+The original batch was stopped after a separately verified fast batch completed;
+its partial output is retained. The original batch command shape, using a fresh
+output directory and a separately reviewed descriptor, is:
+
+```powershell
+python -m tools.MarkerCandidateTensorBridgeV1.runner `
+  --mode train-batch `
+  --descriptor artifacts/goal22-runs/marker-candidate-tensor-bridge-batch-descriptor-v1.json `
+  --output artifacts/goal22-runs/<new-output-directory> `
+  --expected-runner-protocol-sha256 b511b49b37490f5c21c7929d2da52818cd8c1e459baabaf0dbdd6d02c0ff7119
 ```
