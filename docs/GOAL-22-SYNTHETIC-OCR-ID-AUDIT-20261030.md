@@ -10,12 +10,12 @@ panels and completed 1 of 21 workflows; the other 20 stopped during automatic
 calibration. These results do not establish current-build accuracy or release
 readiness.
 
-The offline scorer uses the existing maximum-cardinality matching rule and
-an intersection-over-union cutoff of 0.5. Among 494 predictions against 1,135
-synthetic truth regions, it matched 300 and left 194 unmatched. Their surviving
-region-ID classifications were 174 retained raw-detector IDs, 12 completed
-header-glyph IDs, and 8 unrecognized IDs. These classifications do not prove
-the earliest runtime origin of an assembled or modified region.
+The exploratory scorer uses maximum-cardinality matching and an IoU cutoff of
+0.5, but it counts whole-source annotations for each scored panel. Multi-panel
+sources can repeat truth annotations, and panel coordinates were compared
+with source coordinates without the recorded transform. Its counts do not establish OCR accuracy or identify
+validated false positives. Surviving region-ID classifications also do not
+prove the earliest runtime origin of an assembled or modified region.
 
 No private or sealed inputs were used in the replay or offline scorer. The
 result cannot be compared directly with the earlier 446-of-491 aggregate.
