@@ -1,0 +1,79 @@
+{
+  "schema": "graphreader.marker-label-curation-protocol.v1",
+  "scope": "synthetic_train_only_no_training",
+  "source_split": "train",
+  "expected_source_count": 64,
+  "matching": {
+    "method": "mutual_unique_euclidean_center",
+    "tolerance_px": 2.0,
+    "classes": ["plot_marker", "visible_legend_symbol"]
+  },
+  "scene_identity_digest": "SHA-256 of UTF-8 JSON with sorted keys, compact separators, allow_nan=false, and the train-corpus-v5 default ensure_ascii=true encoding",
+  "annotation_foreign_keys": "marker candidates join the classifier typed id marker:<marker_uuid>; classifier source_id is only the raw UUID",
+  "overlay_panel_identity": "overlay panel id is checked against matching native scene and annotation panel ids, not the independently imported production panel id",
+  "candidate_statuses": [
+    "review_positive_connected", "review_positive_isolated", "review_visible_legend_glyph",
+    "excluded_symbol_input", "excluded_generic_overlay", "unknown_capture_incomplete",
+    "unknown_duplicate_candidate_center", "unknown_ambiguous_collision",
+    "unknown_unmatched_visible_glyph", "unknown_unmatched"
+  ],
+  "positive_requirements": [
+    "candidate center has exactly one marker match and that marker has exactly one candidate match",
+    "marker id and connected or isolated subtype agree with the train annotation classifier",
+    "candidate has no 2px match to any annotated legend glyph",
+    "wide context crop does not intersect the synthetic overlay glyph or cue box"
+  ],
+  "legend_symbol_requirements": [
+    "candidate and annotation glyph are mutual unique within 2px",
+    "artifact report marks glyph matched_artifact_review_only",
+    "rendered and ablated RGB hashes differ and visible_changed_pixels is positive",
+    "candidate glyph id and visibility proof hash equal the artifact report"
+  ],
+  "exclusions": [
+    "unknown_unmatched is never a negative",
+    "excluded_generic_overlay is never a negative",
+    "unmatched or ambiguous candidates remain unlabeled",
+    "generic overlay and cue context contamination blocks labels",
+    "an exact duplicated local and wide tensor pair blocks every labeled row that uses that pair; shared local views with different wide views remain distinct"
+  ],
+  "overlay_contract": {
+    "cue_visible": "required JSON boolean",
+    "visible_cue": "cue_box and cue_text=note required; box must be within source raster",
+    "invisible_cue": "cue_box and cue_text must both be null",
+    "crop_contamination": "expand wide crop bounds by one source pixel for bilinear sampler neighbor support"
+  },
+  "family_split": {
+    "unit": "scene ID grouped within declared family signature",
+    "recipe_cells_are_families": false,
+    "required_class_coverage": "both classes in both assigned partitions",
+    "if_not_satisfied": "training_eligible_rows=0 and status=blocked",
+    "if_signature_partition_succeeds": "status=assigned_signature_partition_review_only; assign train and validation for review only; keep all training_eligible=false",
+    "independence_verified": false,
+    "training_eligible_rows": 0,
+    "proposed_next_data_target": {
+      "distinct_families": 10,
+      "family_split": "8 train families and 2 held-out validation families",
+      "class_coverage": "both proposed labels in every family",
+      "qualification": "measurable experiment target only, not product gate; family independence must be established from distinct rendering sources and asset/renderer fingerprints, not recipe-cell changes"
+    }
+  },
+  "tensor_contract": {
+    "views": ["local", "wide"],
+    "shape": [1, 32, 32],
+    "encoding": "raw_float32_le",
+    "local": {"radius_scale": 2.25, "minimum_half_extent_px": 4},
+    "wide": {"radius_scale": 6.75, "minimum_half_extent_px": 12}
+  },
+  "limitations": [
+    "This is a review-only label curation proposal, not dataset registration or training approval.",
+    "Current evidence has one generator family signature across 64 train scenes, so family-disjoint validation is blocked.",
+    "The glyph visibility audit is hash-bound but not rerendered here.",
+    "Raw sampler tensor parity with the production classifier factory and normalization is not established.",
+    "Scene-level grouping does not establish participant-level or study-level independence."
+  ],
+  "training_approved": false,
+  "optimizer_steps": 0,
+  "dev_input_supplied": false,
+  "private_input_supplied": false,
+  "sealed_input_supplied": false
+}

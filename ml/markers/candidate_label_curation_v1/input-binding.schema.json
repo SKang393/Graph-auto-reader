@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Marker label curation input binding v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "scope", "inputs", "source_bindings", "training_approved", "optimizer_steps", "dev_input_supplied", "private_input_supplied", "sealed_input_supplied"],
+  "properties": {
+    "schema": {"const": "graphreader.marker-label-curation-input-binding.v1"},
+    "scope": {"const": "synthetic_train_only_no_training"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["batch_report", "batch_receipt", "complete_receipt", "identity_metadata", "raster_manifest", "producer_binding", "capture_report", "truth_sidecar", "artifact_report", "artifact_receipt"],
+      "properties": {
+        "batch_report": {"$ref": "#/$defs/boundFile"},
+        "batch_receipt": {"$ref": "#/$defs/boundFile"},
+        "complete_receipt": {"$ref": "#/$defs/boundFile"},
+        "identity_metadata": {"$ref": "#/$defs/boundFile"},
+        "raster_manifest": {"$ref": "#/$defs/boundFile"},
+        "producer_binding": {"$ref": "#/$defs/boundFile"},
+        "capture_report": {"$ref": "#/$defs/boundFile"},
+        "truth_sidecar": {"$ref": "#/$defs/boundFile"},
+        "artifact_report": {"$ref": "#/$defs/boundFile"},
+        "artifact_receipt": {"$ref": "#/$defs/boundFile"}
+      }
+    },
+    "source_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["curator", "package_init", "curation_protocol", "binding_schema", "annotation_label_classifier", "train_corpus_plan", "train_corpus_builder", "catalog", "overlay_renderer", "fast_batch_runner", "fast_verifier", "fast_batch_protocol", "fast_protocol", "candidate_bridge_runner", "candidate_bridge", "candidate_bridge_protocol", "artifact_association", "artifact_batch_capture", "artifact_batch_producer", "artifact_association_runner"],
+      "properties": {
+        "curator": {"$ref": "#/$defs/boundFile"},
+        "package_init": {"$ref": "#/$defs/boundFile"},
+        "curation_protocol": {"$ref": "#/$defs/boundFile"},
+        "binding_schema": {"$ref": "#/$defs/boundFile"},
+        "annotation_label_classifier": {"$ref": "#/$defs/boundFile"},
+        "train_corpus_plan": {"$ref": "#/$defs/boundFile"},
+        "train_corpus_builder": {"$ref": "#/$defs/boundFile"},
+        "catalog": {"$ref": "#/$defs/boundFile"},
+        "overlay_renderer": {"$ref": "#/$defs/boundFile"},
+        "fast_batch_runner": {"$ref": "#/$defs/boundFile"},
+        "fast_verifier": {"$ref": "#/$defs/boundFile"},
+        "fast_batch_protocol": {"$ref": "#/$defs/boundFile"},
+        "fast_protocol": {"$ref": "#/$defs/boundFile"},
+        "candidate_bridge_runner": {"$ref": "#/$defs/boundFile"},
+        "candidate_bridge": {"$ref": "#/$defs/boundFile"},
+        "candidate_bridge_protocol": {"$ref": "#/$defs/boundFile"},
+        "artifact_association": {"$ref": "#/$defs/boundFile"},
+        "artifact_batch_capture": {"$ref": "#/$defs/boundFile"},
+        "artifact_batch_producer": {"$ref": "#/$defs/boundFile"},
+        "artifact_association_runner": {"$ref": "#/$defs/boundFile"}
+      }
+    },
+    "training_approved": {"const": false},
+    "optimizer_steps": {"const": 0},
+    "dev_input_supplied": {"const": false},
+    "private_input_supplied": {"const": false},
+    "sealed_input_supplied": {"const": false}
+  },
+  "$defs": {
+    "boundFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    }
+  }
+}

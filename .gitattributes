@@ -9,6 +9,7 @@ tools/GraphReader.AxisScoringVariants/Analyze*FeatureProbe.ps1 -text whitespace=
 tools/MarkerContextFullAssociationV1/* -text whitespace=cr-at-eol,-blank-at-eof
 tools/MarkerCandidateTensorBridgeV1/* -text whitespace=cr-at-eol,-blank-at-eof
 tools/MarkerCandidateTensorBridgeFastV1/* -text whitespace=cr-at-eol,-blank-at-eof
+ml/markers/candidate_label_curation_v1/* -text whitespace=cr-at-eol,-blank-at-eof
 # The consumed structure-consensus evidence binds this source's CRLF bytes.
 src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs text eol=crlf
 
