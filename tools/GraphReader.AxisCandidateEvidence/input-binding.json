@@ -1,0 +1,53 @@
+{
+  "schema": "graphreader.axis-candidate-evidence.input.v1",
+  "scope": "public_synthetic_development",
+  "sourceManifestPath": "artifacts/synthetic-tick-corpus-v3-20261031-v1/manifest.json",
+  "sourceManifestSha256": "7bb461f712307b17987242ec358ecca043bdca963871dee306a7285268c1f2e7",
+  "sourceSplit": "validation",
+  "sourceId": "0f60c616-3953-5c19-8c13-45f6896af21c",
+  "panelId": "294b0195-9d92-5c89-812f-0597fed85bce",
+  "sourceImagePath": "artifacts/synthetic-tick-corpus-v3-20261031-v1/sources/20261040/0f60c616-3953-5c19-8c13-45f6896af21c.png",
+  "sourceImageSha256": "bb147c430e5b9d7cd162b69d48c94b0e5c16f62230dab408f1456e0340e3ccae",
+  "sourceImageByteLength": 4840388,
+  "panelSha256": "bb147c430e5b9d7cd162b69d48c94b0e5c16f62230dab408f1456e0340e3ccae",
+  "coordinateSpace": "original_pixels",
+  "openCvOptions": {
+    "useLineSegmentDetector": true,
+    "useProbabilisticHough": true,
+    "cannyLowThreshold": 40.0,
+    "cannyHighThreshold": 120.0,
+    "houghThreshold": 24,
+    "houghMinimumLineLengthPixels": 12.0,
+    "houghMaximumLineGapPixels": 4.0,
+    "lsdRefinement": "RefineStd"
+  },
+  "geometryOptions": {
+    "maximumAxisDeviationDegrees": 15.0,
+    "mergeAngleToleranceDegrees": 4.0,
+    "mergeDistancePixels": 3.0,
+    "minimumCandidateLengthPixels": 1.0,
+    "minimumAxisSpanFraction": 0.25,
+    "tickMaximumLengthFraction": 0.08,
+    "tickAxisDistancePixels": 4.0,
+    "dividerMinimumSpanFraction": 0.45,
+    "dividerMinimumCoverageFraction": 0.06,
+    "dottedDividerMinimumSegments": 3,
+    "dottedDividerMaximumSegmentFraction": 0.18,
+    "plotEdgeExclusionFraction": 0.025,
+    "gridSpacingCoefficientOfVariation": 0.12,
+    "gridMinimumAlignedLines": 3,
+    "needsReviewConfidenceThreshold": 0.55
+  },
+  "sourceBindings": {
+    "src/GraphReader.Axis/AxisGeometryContracts.cs": "45a84dcdb52b12926a05cffe8d3283dd7ef41752fcad05ad42e5017f80cb740f",
+    "src/GraphReader.Axis/AxisGeometryDetector.cs": "9e9ebd0d9d9859fe38b2f7fae8e564c68bbc127b19a9acf99e99d69713d8df74",
+    "src/GraphReader.Axis/OpenCvLineCandidateProvider.cs": "72a1341bbbdf11b8ce195a93422131bde5bdcf814027d06b1fbe97798428dd88",
+    "src/GraphReader.Axis/GraphReader.Axis.csproj": "cccd7170856589f5ff37c1ae6b3ecbf1900062397419f20f04f61a2ff45867f5",
+    "Directory.Packages.props": "08d7476c82014698470650758506ffc625916f590ac08a66181be825ae6ecac2"
+  },
+  "claims": [
+    "The exporter reads only the pinned public image and hashes the bound manifest without parsing its annotations.",
+    "The source image is used as the complete original-pixel panel; source and panel byte hashes are equal.",
+    "The one-image comparison checks C# snapshot input compatibility with the Python feature contract only; it is not global runtime parity or an accuracy result."
+  ]
+}
