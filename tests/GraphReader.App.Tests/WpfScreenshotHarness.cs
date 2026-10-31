@@ -63,6 +63,18 @@ internal static class WpfScreenshotHarness
                         renderFrame.Continue = false;
                     };
                     host.Show();
+                    // An off-screen WPF window can defer composition until its content has
+                    // received an explicit layout pass. Do that before treating
+                    // ContentRendered as the render-completion signal.
+                    host.Measure(new Size(logicalWidth, logicalHeight));
+                    host.Arrange(new Rect(0, 0, logicalWidth, logicalHeight));
+                    host.UpdateLayout();
+                    element.Measure(new Size(logicalWidth, logicalHeight));
+                    element.Arrange(new Rect(0, 0, logicalWidth, logicalHeight));
+                    element.UpdateLayout();
+                    element.Dispatcher.Invoke(
+                        static () => { },
+                        DispatcherPriority.Render);
                     timeout.Start();
                     if (!contentRendered)
                     {
@@ -73,13 +85,6 @@ internal static class WpfScreenshotHarness
                     {
                         throw new InvalidOperationException("The off-screen WPF screenshot host did not render content.");
                     }
-                    host.UpdateLayout();
-                    element.Dispatcher.Invoke(
-                        static () => { },
-                        DispatcherPriority.ApplicationIdle);
-                    element.Measure(new Size(logicalWidth, logicalHeight));
-                    element.Arrange(new Rect(0, 0, logicalWidth, logicalHeight));
-                    element.UpdateLayout();
 
                     RenderTargetBitmap bitmap = CaptureWindow(
                         host,
