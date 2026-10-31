@@ -40,7 +40,7 @@ public static class Program
                 throw new InvalidOperationException("Runtime assembly changed during evaluation.");
             var report = new
             {
-                schema = "graphreader.axis-scoring-synthetic-variants.v1",
+                schema = "graphreader.axis-scoring-synthetic-variants.v2",
                 scope = "generated_line_candidates_only",
                 production_approved = false,
                 corpus_reads = 0,

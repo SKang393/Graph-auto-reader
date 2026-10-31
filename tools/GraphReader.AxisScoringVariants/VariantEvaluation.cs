@@ -6,7 +6,9 @@ using GraphReader.Axis;
 namespace GraphReader.AxisScoringVariants;
 
 public sealed record SyntheticVariant(string Name, AxisGeometryRequest Request, PlotPolygon Expected);
-public sealed record CandidateMeasurement(int Rank, double Score, double MaximumCornerErrorPixels, double MeanCornerErrorPixels);
+public sealed record CandidateMeasurement(int Rank, double Score, double MaximumCornerErrorPixels, double MeanCornerErrorPixels,
+    double IntersectionX, double IntersectionY, double XSpan, double YSpan, double XCoverage, double YCoverage,
+    double XRmsPixels, double YRmsPixels, int XSupportCount, int YSupportCount);
 public sealed record VariantResult(string Name, string Status, string? ErrorCode, bool NeedsReview,
     IReadOnlyList<string> ReviewReasons, double? MaximumCornerErrorPixels, double? MeanCornerErrorPixels,
     bool ObserverMatchesSelection, IReadOnlyList<CandidateMeasurement> Candidates);
@@ -18,7 +20,7 @@ public static class VariantEvaluation
         var variants = new List<SyntheticVariant>();
         foreach (int offset in new[] { 0, 10, 20 })
         {
-            foreach (string kind in new[] { "clean", "short", "frame", "divider", "scatter", "disconnected", "fragmented", "competing-short", "competing-long" })
+            foreach (string kind in new[] { "clean", "short", "frame", "divider", "scatter", "disconnected", "fragmented", "competing-short", "competing-long", "mirror-short", "mirror-long" })
                 variants.Add(Create(kind, offset));
         }
         return variants.AsReadOnly();
@@ -40,7 +42,11 @@ public static class VariantEvaluation
                 {
                     (double max, double average) = Errors(new PlotPolygon(candidate.Intersection,
                         candidate.BottomRight, candidate.TopRight, candidate.TopLeft), variant.Expected);
-                    return new CandidateMeasurement(candidate.Rank, candidate.Score, max, average);
+                    return new CandidateMeasurement(candidate.Rank, candidate.Score, max, average,
+                        candidate.Intersection.X, candidate.Intersection.Y, candidate.XSpan, candidate.YSpan,
+                        candidate.XCoverageFraction, candidate.YCoverageFraction,
+                        candidate.XRootMeanSquareError, candidate.YRootMeanSquareError,
+                        candidate.XSupportingCandidateIds.Count, candidate.YSupportingCandidateIds.Count);
                 }).ToArray();
                 bool parity = observer.Candidates.Count > 0 &&
                     Errors(output.PlotPolygon, new PlotPolygon(observer.Candidates[0].Intersection,
@@ -59,8 +65,8 @@ public static class VariantEvaluation
 
     private static SyntheticVariant Create(string kind, int offset)
     {
-        double left = 100 + offset, bottom = 320, top = kind is "short" or "competing-long" ? 150 : 60;
-        double right = kind is "short" or "competing-long" ? 520 + offset : 700 + offset;
+        double left = 100 + offset, bottom = 320, top = kind is "short" or "competing-long" or "mirror-long" ? 150 : 60;
+        double right = kind is "short" or "competing-long" or "mirror-long" ? 520 + offset : 700 + offset;
         var lines = new List<GeometryLineCandidate>();
         void Line(string id, double x1, double y1, double x2, double y2, double strength = 1, LinePatternHint pattern = LinePatternHint.Solid) =>
             lines.Add(new GeometryLineCandidate(id, new GeometryLineSegment(new PixelPoint(x1, y1), new PixelPoint(x2, y2)),
@@ -75,13 +81,18 @@ public static class VariantEvaluation
         }
         else
         {
-            Line("x-axis", left, bottom, right, bottom, kind.StartsWith("competing-", StringComparison.Ordinal) ? 0.65 : 1);
+            Line("x-axis", left, bottom, right, bottom,
+                kind.StartsWith("competing-", StringComparison.Ordinal) || kind.StartsWith("mirror-", StringComparison.Ordinal) ? 0.65 : 1);
             Line("y-axis", left, kind.StartsWith("competing-", StringComparison.Ordinal) ? bottom + 6 : bottom, left, top);
         }
         if (kind == "competing-short")
             Line("parallel-shorter-competitor", left, bottom + 6, right - 55, bottom + 6, 1);
         if (kind == "competing-long")
             Line("parallel-longer-competitor", left, bottom + 6, 700 + offset, bottom + 6, 1);
+        if (kind == "mirror-short")
+            Line("parallel-shorter-competitor", left, bottom - 6, right - 55, bottom - 6, 1);
+        if (kind == "mirror-long")
+            Line("parallel-longer-competitor", left, bottom - 6, 700 + offset, bottom - 6, 1);
         for (int index = 1; index <= 5; index++)
         {
             double x = left + ((right - left) * index / 6);

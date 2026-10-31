@@ -7,7 +7,7 @@ namespace GraphReader.AxisScoringVariants;
 
 public sealed class SourceBindingLease : IDisposable
 {
-    private const string ManifestPath = "tools/GraphReader.AxisScoringVariants/source-bindings.json";
+    private const string ManifestPath = "tools/GraphReader.AxisScoringVariants/source-bindings-v5.json";
     private static readonly string[] RequiredSources =
     [
         "Directory.Build.props", "Directory.Packages.props", "global.json",

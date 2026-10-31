@@ -1,0 +1,19 @@
+{
+  "schema": "graphreader.axis-scoring-source-binding.v1",
+  "source_files": {
+    "Directory.Build.props": "d7a0d2ca5c26745e5d7e0b8737c6d928f65d64feadd5934cb039be4d4d29030f",
+    "Directory.Packages.props": "08d7476c82014698470650758506ffc625916f590ac08a66181be825ae6ecac2",
+    "global.json": "e19ae6304f93e71dc33b4de89a3f2978ee723dee2b1c52dc043afe77e402a046",
+    "src/GraphReader.Axis/GraphReader.Axis.csproj": "cccd7170856589f5ff37c1ae6b3ecbf1900062397419f20f04f61a2ff45867f5",
+    "src/GraphReader.Axis/AxisGeometryContracts.cs": "45a84dcdb52b12926a05cffe8d3283dd7ef41752fcad05ad42e5017f80cb740f",
+    "src/GraphReader.Axis/AxisGeometryDetector.cs": "9e9ebd0d9d9859fe38b2f7fae8e564c68bbc127b19a9acf99e99d69713d8df74",
+    "src/GraphReader.Axis/CalibrationContracts.cs": "01af05a07eefb8ee77b7637128263c51f770b090114d28e288842381c5c20efa",
+    "src/GraphReader.Axis/OpenCvLineCandidateProvider.cs": "72a1341bbbdf11b8ce195a93422131bde5bdcf814027d06b1fbe97798428dd88",
+    "src/GraphReader.Axis/RobustCalibration.cs": "e2cdb60bce2d4ae3a655f2da341af53e958e6db072a8ff71b43f01d889e22088",
+    "src/GraphReader.Axis/SessionLattice.cs": "a089c247df37b33fc73bca5783733fe9ce4f70b6ad3c8b72cc913e53cf26b898",
+    "tools/GraphReader.AxisScoringVariants/GraphReader.AxisScoringVariants.csproj": "0af615dd588e4c955014515ecb36ea9784929e46f112456570d5b8e0e11f72d2",
+    "tools/GraphReader.AxisScoringVariants/Program.cs": "1834d89b88a9e768278b5e8d258f35342776c624ee2dd22e95c867d6f686ad4a",
+    "tools/GraphReader.AxisScoringVariants/SourceBindingLease.cs": "ceea54456488f517b3829f75f975397f977c7d673915883ad3029acb0639bf18",
+    "tools/GraphReader.AxisScoringVariants/VariantEvaluation.cs": "d26430a193083c7854bb1e9609240e2ee500827cc4ea8286d59eef34167c4ead"
+  }
+}
