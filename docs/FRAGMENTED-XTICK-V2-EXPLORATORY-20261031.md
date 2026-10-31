@@ -122,3 +122,23 @@ The corrected report fixes pixel-dimension labels in an earlier probe report.
 - Probe generator SHA-256: `a8add3fb7aa8f723bcf46b7ed8872743b02235d041da4f0f602291eb68959f75`
 - Corrected evaluation SHA-256: `ed52e0d841e1e619f114062bf7cc8cc25a76abcf5982e41df4b98e56c0dc6b82`
 - Probe and existing training/evaluation tests: 21 passed. Inference used the RX 6600 XT.
+
+## Diverse training follow-up
+
+V4 used 288 newly generated training images with additional font weights,
+sizes, labels, positions and graph confusers. It completed 1,080 optimizer
+steps on the RX 6600 XT. The already-consumed probe shares zero case IDs,
+image hashes or label strings with V4's training manifest, but the rendering
+family and task overlap. It remains a development diagnostic, not acceptance.
+
+At score, NMS IoU and match IoU 0.5, probe image recall increased from 0.453
+for P4 to 0.734 for V4. False detections per positive image increased from
+2.75 to 4.328; per background-only image they increased from 0.438 to 0.531.
+The highest-confidence predicted box reached IoU 0.5 on 34.4% of positives.
+The model is not approved for product use.
+
+- V4 train manifest SHA-256: `d41f68938e2bc5792b69846390fe8dfaeabe6b8df6fa8b064d67c35b5c84fd67`
+- V4 training report SHA-256: `f73d676d934659f89a6740adffedc4a49c26bf5686a7d58f57cefb294c9259c9`
+- V4 checkpoint SHA-256: `44a54f0dd35551fe9813f98adfa353f7477b90f901b46b9dabaac789d4ef583f`
+- Probe evaluation SHA-256: `bbd7d33e58772ab9fbc719c7e1df3c735d7a0a57d1943e8ec559976d92360818`
+- V4 data, batching and GPU tests: 3 passed.
