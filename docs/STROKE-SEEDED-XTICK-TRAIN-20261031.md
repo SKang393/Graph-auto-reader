@@ -148,6 +148,23 @@ production-detected strokes. Report SHA-256:
 `7c6d095a59490be6fdb749faf36900c710df6a8b1e77d8548065ab8097ef3e15`.
 The diagnostic build and 3 report checks passed.
 
+## Production axis stroke alignment
+
+The production raster decoder and OpenCV axis detector processed all 24
+panels reconstructed from 16 hash-verified consumed synthetic sources. Of
+422 annotated tick geometries, 181 were visible. The detector emitted 37
+usable X strokes; 25 matched visible ticks, 156 visible ticks were unmatched,
+and 12 detections were unmatched. Matching tolerance was the larger of 3
+pixels and half the annotated stroke length. Earlier reports that counted
+invisible ticks in the recall denominator are superseded.
+
+Among 23 matched positive cases with verified glyph masks, two detected
+centerlines touched glyph pixels, three pixels in total. This consumed
+synthetic diagnostic does not establish real-graph performance or a safe
+production erasure rule. Report SHA-256:
+`7a9aa9b5dc6b73de11eac01f856984b55ed537d4614250836022c73973c77de2`.
+The diagnostic build, 4 alignment tests and 3 report checks passed.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
