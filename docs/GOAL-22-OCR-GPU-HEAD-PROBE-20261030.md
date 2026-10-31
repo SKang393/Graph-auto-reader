@@ -16,3 +16,12 @@ checkpoint weights, establish trunk integration or ONNX parity, predict
 full-size memory use, or demonstrate training or recognition accuracy. No
 private or sealed inputs were read. Existing MIOpen tuning-file warnings were
 non-fatal in this probe.
+
+A separate check reconstructed the hash-bound historical V46 head and compared
+its Radeon output against CPU ONNX Runtime on one authenticated 32-by-32
+synthetic training crop. Maximum absolute difference was `6.7221e-08` against
+the existing `1e-4` tolerance, with no decision changes at 0.3. Five focused
+checks passed, including altered image, model, protocol, and split bindings.
+The reported probe-script hash is descriptive, not a preregistered guard. This
+check does not establish full GPU-trunk parity, full-size memory requirements,
+training viability, or model accuracy.
