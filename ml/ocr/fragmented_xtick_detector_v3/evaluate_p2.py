@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Sungwoo Kang
-"""GPU-only image-level evaluation of the registered local P2 train-fit checkpoint."""
+"""GPU-only image-level evaluation of a local fragmented X-tick checkpoint."""
 
 from __future__ import annotations
 
@@ -29,12 +29,12 @@ from ml.ocr.fragmented_xtick_detector_v3.gpu_train import (
     build_spatial_locator,
     decode_cell_relative,
     require_rx_6600_xt,
+    target_assignments,
     validate_train_input,
 )
 
 
 ARTIFACT_ROOT = REPO_ROOT / "artifacts" / "fragmented-xtick-detector-v3-p2-stratified-30epoch-trainfit-v1"
-CHECKPOINT_RELATIVE = "artifacts/fragmented-xtick-detector-v3-p2-stratified-30epoch-trainfit-v1/checkpoint.pt"
 TRAIN_THRESHOLDS = (0.5, 0.75, 0.9)
 NMS_IOU_THRESHOLD = 0.5
 MATCH_IOU_THRESHOLD = 0.5
@@ -83,6 +83,7 @@ def summarize_image_metrics(
     if not positives or not backgrounds:
         raise ValueError("evaluation requires positive and background-only images")
     top_ious = [box_iou(max(image["candidates"], key=lambda item: item[0])[1], image["target"]) for image in positives]
+    target_cell_ious = [box_iou(image["target_cell"]["box"], image["target"]) for image in positives]
     result: dict[str, Any] = {
         "image_count": len(images),
         "positive_image_count": len(positives),
@@ -92,6 +93,11 @@ def summarize_image_metrics(
             "median": median(top_ious),
             "fraction_at_or_above_0_5": sum(iou >= 0.5 for iou in top_ious) / len(top_ious),
             "fraction_at_or_above_0_75": sum(iou >= 0.75 for iou in top_ious) / len(top_ious),
+        },
+        "ground_truth_assigned_cell": {
+            "mean_box_iou": sum(target_cell_ious) / len(target_cell_ious),
+            "fraction_at_or_above_0_5": sum(iou >= 0.5 for iou in target_cell_ious) / len(target_cell_ious),
+            "mean_objectness": sum(image["target_cell"]["score"] for image in positives) / len(positives),
         },
         "thresholds": {},
     }
@@ -147,7 +153,7 @@ def _load_train_data(config: dict[str, Any], torch: Any) -> tuple[list[Any], lis
     return tensors, targets
 
 
-def evaluate() -> dict[str, Any]:
+def evaluate(artifact_root: Path = ARTIFACT_ROOT) -> dict[str, Any]:
     if Path(sys.executable).resolve() != GPU_PYTHON.resolve():
         raise RuntimeError("P2 evaluation must use the project GPU launcher; CPU inference is forbidden")
     import torch
@@ -156,13 +162,20 @@ def evaluate() -> dict[str, Any]:
     input_receipt = validate_train_input()
     runtime = require_rx_6600_xt(torch)
     device = torch.device(str(runtime["device"]))
-    p2_report_path = ARTIFACT_ROOT / "report.json"
-    p2_report = json.loads(p2_report_path.read_text(encoding="utf-8"))
-    if p2_report.get("input", {}).get("manifest_sha256") != input_receipt["manifest_sha256"]:
-        raise RuntimeError("P2 checkpoint report is not bound to the evaluated train manifest")
-    checkpoint = _bound_read(REPO_ROOT, CHECKPOINT_RELATIVE, "P2 checkpoint", 10_000_000)
-    if checkpoint.sha256 != p2_report.get("checkpoint_sha256"):
-        raise RuntimeError("P2 checkpoint hash differs from its training report")
+    run_root = artifact_root if artifact_root.is_absolute() else REPO_ROOT / artifact_root
+    run_root = run_root.absolute()
+    try:
+        run_relative = run_root.relative_to(REPO_ROOT)
+        run_root.relative_to(REPO_ROOT / "artifacts")
+    except ValueError as error:
+        raise RuntimeError("checkpoint run directory must remain under project artifacts") from error
+    training_report = json.loads((run_root / "report.json").read_text(encoding="utf-8"))
+    if training_report.get("input", {}).get("manifest_sha256") != input_receipt["manifest_sha256"]:
+        raise RuntimeError("checkpoint report is not bound to the evaluated train manifest")
+    checkpoint_relative = (run_relative / "checkpoint.pt").as_posix()
+    checkpoint = _bound_read(REPO_ROOT, checkpoint_relative, "checkpoint", 10_000_000)
+    if checkpoint.sha256 != training_report.get("checkpoint_sha256"):
+        raise RuntimeError("checkpoint hash differs from its training report")
     model = build_spatial_locator(torch).to(device)
     payload = torch.load(BytesIO(checkpoint.value), map_location=device, weights_only=True)
     if payload.get("input_manifest_sha256") != input_receipt["manifest_sha256"]:
@@ -180,12 +193,18 @@ def evaluate() -> dict[str, Any]:
         scores = logits.sigmoid().squeeze(1).reshape(len(tensors), -1).detach().cpu().tolist()
         boxes = box_values.detach().cpu().permute(0, 2, 3, 1).tolist()
     rows: list[dict[str, Any]] = []
+    assignments = target_assignments(tuple(targets))
     for index, target in enumerate(targets):
         candidates = []
         for cell, score in enumerate(scores[index]):
             row, column = divmod(cell, 32)
             candidates.append((float(score), decode_prediction_box(boxes[index][row][column], row, column)))
-        rows.append({"target": target, "candidates": candidates})
+        assignment = assignments[index]
+        target_cell = None
+        if assignment is not None:
+            row, column, _ = assignment
+            target_cell = {"score": float(scores[index][row * 32 + column]), "box": decode_prediction_box(boxes[index][row][column], row, column)}
+        rows.append({"target": target, "candidates": candidates, "target_cell": target_cell})
     metrics = summarize_image_metrics(rows)
     return {
         "schema": "graphreader.ocr-fragmented-xtick-v3-image-evaluation.v1",
@@ -205,10 +224,13 @@ def evaluate() -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=ARTIFACT_ROOT / "image-evaluation-v2.json")
+    parser.add_argument("--artifact-root", type=Path, default=ARTIFACT_ROOT)
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    result = evaluate()
-    output = args.output if args.output.is_absolute() else REPO_ROOT / args.output
+    result = evaluate(args.artifact_root)
+    default_output = args.artifact_root / "image-evaluation-v2.json"
+    chosen_output = args.output if args.output is not None else default_output
+    output = chosen_output if chosen_output.is_absolute() else REPO_ROOT / chosen_output
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("x", encoding="utf-8") as stream:
         json.dump(result, stream, ensure_ascii=True, sort_keys=True, separators=(",", ":"))

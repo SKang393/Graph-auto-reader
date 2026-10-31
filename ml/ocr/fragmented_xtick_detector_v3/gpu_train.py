@@ -29,7 +29,7 @@ from ml.ocr.fragmented_xtick_detector_v2.materialize import _png_bytes, cases, r
 
 ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[2]
-CONFIG_PATH = ROOT / "training" / "p2.json"
+CONFIG_PATH = ROOT / "training" / "p3.json"
 GPU_PYTHON = REPO_ROOT / "tools" / "gpu-training" / "venv" / "Scripts" / "python.exe"
 MAX_MANIFEST_BYTES = 1_000_000
 MAX_ANNOTATION_BYTES = 65_536
@@ -122,18 +122,20 @@ def _parse_json(bound: BoundBytes, label: str) -> dict[str, Any]:
 
 
 def _config() -> dict[str, Any]:
-    bound = _bound_read(ROOT, "training/p2.json", "V3 30-epoch GPU config")
-    config = _parse_json(bound, "V3 30-epoch GPU config")
+    bound = _bound_read(ROOT, "training/p3.json", "V3 31-pixel receptive-field GPU config")
+    config = _parse_json(bound, "V3 31-pixel receptive-field GPU config")
     expected = {
         "schema": "graphreader.ocr-fragmented-xtick-v3-gpu-exploratory.v1",
-        "revision": "graph-text-fragmented-xtick-detector-v3-stratified-batches-30-epochs",
-        "candidate_id": "P2-stratified-30-epochs-unregistered",
+        "revision": "graph-text-fragmented-xtick-detector-v3-stratified-30-epochs-rf31",
+        "candidate_id": "P3-stratified-30-epochs-rf31-unregistered",
         "state": "prepared-gpu-authorized-unregistered",
         "task": "ocr-detection",
-        "scope": "train-only synthetic spatial localization, 30-epoch duration diagnostic",
+        "scope": "train-only synthetic spatial localization, 31-pixel receptive-field diagnostic",
         "positive_count": 64,
         "background_negative_count": 32,
-        "model": "fragmented-xtick-spatial-locator-v3-cell-relative",
+        "model": "fragmented-xtick-spatial-locator-v3-cell-relative-rf31",
+        "architecture": "three 3x3 stride-2 convs plus one 3x3 stride-1 context conv; 31px receptive field; no global pooling",
+        "expected_receptive_field_pixels": 31,
         "input": "single-channel 256x96 train-only synthetic raster",
         "target": "12x32 objectness map plus cell-relative center offsets and normalized width-height",
         "loss": "balanced_positive_negative_bce_plus_positive_cell_smooth_l1_center_offset_width_height",
@@ -153,15 +155,15 @@ def _config() -> dict[str, Any]:
         "optimizer_execution_authorized": True,
         "batching": "deterministic stratified full-epoch batches, every batch has positives and negatives",
         "training_duration": "30 epochs, 12 optimizer steps per epoch",
-        "planned_output_root": "artifacts/fragmented-xtick-detector-v3-p2-stratified-30epoch-trainfit-v1",
+        "planned_output_root": "artifacts/fragmented-xtick-detector-v3-p3-rf31-stratified-30epoch-v1",
         "production_approval": False,
         "release_eligible": False,
     }
     for key, value in expected.items():
         if config.get(key) != value:
-            raise TrainingAdmissionError(f"V3 30-epoch GPU config mismatch: {key}")
+            raise TrainingAdmissionError(f"V3 RF31 GPU config mismatch: {key}")
     if config.get("expected_runner_sha256") != runner_sha256():
-        raise TrainingAdmissionError("V3 runner source hash changed")
+        raise TrainingAdmissionError("V3 RF31 runner source hash changed")
     return config
 
 
@@ -305,6 +307,7 @@ def build_spatial_locator(torch: Any) -> Any:
                 nn.Conv2d(1, 8, kernel_size=3, stride=2, padding=1), nn.ReLU(),
                 nn.Conv2d(8, 16, kernel_size=3, stride=2, padding=1), nn.ReLU(),
                 nn.Conv2d(16, 24, kernel_size=3, stride=2, padding=1), nn.ReLU(),
+                nn.Conv2d(24, 24, kernel_size=3, stride=1, padding=1), nn.ReLU(),
             )
             self.objectness = nn.Conv2d(24, 1, kernel_size=1)
             self.box = nn.Conv2d(24, 4, kernel_size=1)
@@ -313,6 +316,17 @@ def build_spatial_locator(torch: Any) -> Any:
             features = self.features(value)
             return self.objectness(features), self.box(features).sigmoid()
     return SpatialTickLocator()
+
+
+def feature_receptive_field(features: Any, torch: Any) -> int:
+    receptive_field = jump = 1
+    for layer in features:
+        if isinstance(layer, torch.nn.Conv2d):
+            kernel = layer.kernel_size[0]
+            dilation = layer.dilation[0]
+            receptive_field += (kernel - 1) * dilation * jump
+            jump *= layer.stride[0]
+    return receptive_field
 
 
 def encode_cell_relative(box: tuple[float, float, float, float], row: int, column: int) -> tuple[float, float, float, float]:
@@ -467,6 +481,8 @@ def run_training(output_root: Path) -> dict[str, object]:
             if item is not None:
                 row, column, box = item; objectness[index, 0, row, column] = 1.0; targets[index, :, row, column] = torch.tensor(box); mask[index, 0, row, column] = True
         model = build_spatial_locator(torch).to(device)
+        if feature_receptive_field(model.features, torch) != int(config["expected_receptive_field_pixels"]):
+            raise TrainingAdmissionError("V3 model receptive field differs from the P3 config")
         if any(parameter.device != device for parameter in model.parameters()): raise TrainingAdmissionError("V2 model is not resident on RX 6600 XT")
         optimizer = torch.optim.AdamW(model.parameters(), lr=float(config["learning_rate"]))
         train_fit_before = evaluate_train_fit(model, features, objectness, targets, mask, device, torch)
@@ -507,7 +523,7 @@ def run_training(output_root: Path) -> dict[str, object]:
         if steps != int(config["expected_optimizer_steps"]): raise TrainingAdmissionError("V2 optimizer step count differs from config")
         train_fit_after = evaluate_train_fit(model, features, objectness, targets, mask, device, torch)
         checkpoint = output / "checkpoint.pt"; torch.save({"state_dict": model.state_dict(), "input_manifest_sha256": input_receipt["manifest_sha256"], "runtime": runtime, "optimizer_steps": steps}, checkpoint)
-        report = {"schema": "graphreader.ocr-fragmented-xtick-v3-gpu-result.v1", "status": "completed-unregistered-exploratory", "input": input_receipt, "runtime": runtime, "optimizer_steps": steps, "loss_first": losses[0], "loss_last": losses[-1], "positive_cell_bce_first": positive_losses[0], "positive_cell_bce_last": positive_losses[-1], "background_cell_bce_first": background_losses[0], "background_cell_bce_last": background_losses[-1], "objectness_loss": "mean(positive_bce,background_bce), both classes present in each batch", "batch_class_counts_first_epoch": [list(pair) for pair in step_batch_class_counts[:len(batches)]], "box_target": "cell-relative center offsets plus normalized width-height", "train_fit_before": train_fit_before, "epoch_train_fit": epoch_train_fit, "train_fit_after": train_fit_after, "train_fit_is_held_out_validation": False, "checkpoint_path": checkpoint.relative_to(REPO_ROOT).as_posix(), "checkpoint_sha256": _sha256_bytes(checkpoint.read_bytes()), "dev_input_read": False, "sealed_input_read": False, "private_input_read": False, "production_approval": False, "release_eligible": False}
+        report = {"schema": "graphreader.ocr-fragmented-xtick-v3-gpu-result.v1", "status": "completed-unregistered-exploratory", "input": input_receipt, "runtime": runtime, "model": config["model"], "architecture": config["architecture"], "feature_map_shape": list(model(features[:1].to(device))[0].shape[-2:]), "spatial_receptive_field_pixels": feature_receptive_field(model.features, torch), "optimizer_steps": steps, "loss_first": losses[0], "loss_last": losses[-1], "positive_cell_bce_first": positive_losses[0], "positive_cell_bce_last": positive_losses[-1], "background_cell_bce_first": background_losses[0], "background_cell_bce_last": background_losses[-1], "objectness_loss": "mean(positive_bce,background_bce), both classes present in each batch", "batch_class_counts_first_epoch": [list(pair) for pair in step_batch_class_counts[:len(batches)]], "box_target": "cell-relative center offsets plus normalized width-height", "train_fit_before": train_fit_before, "epoch_train_fit": epoch_train_fit, "train_fit_after": train_fit_after, "train_fit_is_held_out_validation": False, "checkpoint_path": checkpoint.relative_to(REPO_ROOT).as_posix(), "checkpoint_sha256": _sha256_bytes(checkpoint.read_bytes()), "dev_input_read": False, "sealed_input_read": False, "private_input_read": False, "production_approval": False, "release_eligible": False}
         report_sha256 = _write_receipt(output / "report.json", report)
         return {"output_root": output.relative_to(REPO_ROOT).as_posix(), "report_sha256": report_sha256, "optimizer_steps": steps, "production_approval": False, "release_eligible": False}
     except BaseException as error:

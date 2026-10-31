@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import unittest
 from pathlib import Path
 
-from ml.ocr.fragmented_xtick_detector_v3.gpu_train import REPO_ROOT, TrainingAdmissionError, _bound_read, _config, decode_cell_relative, encode_cell_relative, require_rx_6600_xt, stratified_batches, target_assignments, validate_train_input
+from ml.ocr.fragmented_xtick_detector_v3.gpu_train import REPO_ROOT, TrainingAdmissionError, _bound_read, _config, build_spatial_locator, decode_cell_relative, encode_cell_relative, feature_receptive_field, require_rx_6600_xt, stratified_batches, target_assignments, validate_train_input
 
 
 class _Device:
@@ -52,7 +52,8 @@ class FragmentedXTickV3GpuTests(unittest.TestCase):
         config = _config()
         self.assertTrue(config["optimizer_execution_authorized"])
         self.assertEqual((30, 360), (config["epochs"], config["expected_optimizer_steps"]))
-        self.assertEqual("artifacts/fragmented-xtick-detector-v3-p2-stratified-30epoch-trainfit-v1", config["planned_output_root"])
+        self.assertEqual("artifacts/fragmented-xtick-detector-v3-p3-rf31-stratified-30epoch-v1", config["planned_output_root"])
+        self.assertEqual("fragmented-xtick-spatial-locator-v3-cell-relative-rf31", config["model"])
         self.assertFalse(config["production_approval"])
         self.assertFalse(config["release_eligible"])
 
@@ -107,6 +108,19 @@ class FragmentedXTickV3GpuTests(unittest.TestCase):
     def test_stratified_batches_reject_unmixable_class_counts(self) -> None:
         with self.assertRaises(ValueError):
             stratified_batches(tuple(range(7)), tuple(range(7, 9)), 3, 1)
+
+    def test_context_convolution_expands_receptive_field_and_keeps_spatial_heads(self) -> None:
+        import torch
+        runtime = require_rx_6600_xt(torch)
+        device = torch.device(runtime["device"])
+        model = build_spatial_locator(torch).to(device).eval()
+        self.assertEqual(31, feature_receptive_field(model.features, torch))
+        with torch.inference_mode():
+            objectness, boxes = model(torch.zeros((1, 1, 96, 256), device=device))
+        self.assertEqual((1, 1, 12, 32), tuple(objectness.shape))
+        self.assertEqual((1, 4, 12, 32), tuple(boxes.shape))
+        self.assertEqual(device, objectness.device)
+        self.assertEqual(device, boxes.device)
 
 
 if __name__ == "__main__":

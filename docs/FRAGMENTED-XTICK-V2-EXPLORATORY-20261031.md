@@ -70,3 +70,19 @@ image recall was 0.281 and the 32 background-only training images averaged
 - Evaluation script SHA-256: `916a68eebcf22fa169886428b5abc7952b5324d9e43b2d909e12116666a51112`
 - Corrected evaluation report SHA-256: `d99ef9b76fb4be445c903d867715b3770b334dc04c61b720e5bf8ac233d5dc16`
 - Evaluation tests: 4 passed; inference used the RX 6600 XT.
+
+## Wider-context follow-up
+
+The P3 network added a stride-one convolution to increase receptive field from
+15 to 31 pixels, while retaining the train images and 30-epoch schedule. It
+completed 360 steps on the RX 6600 XT. Mean box IoU at the target-assigned
+cell was approximately `1.51e-15`, and no positive training image achieved
+IoU 0.5 after detection. The output boxes therefore failed even at the assigned
+cell. Encoding/decoding round-trip checks passed. Adding the layer also changed
+the randomly initialized heads, so the comparison does not isolate receptive
+field alone. This is not independent validation or a production candidate.
+
+- P3 report SHA-256: `ca30bebdff8aa98040e1b58d784e0dba500ab68543fbe6c6dcc54a2f93970fe6`
+- P3 checkpoint SHA-256: `359c42174f2b946c29a7768b9105f065fceb20bf716014eac0bbe121fd4255f6`
+- Image evaluation SHA-256: `bdceab1751f561f1d35bd1a07fa89fe132e44c980bf56101b01a32e52aced56e`
+- Training and evaluation tests: 16 passed.
