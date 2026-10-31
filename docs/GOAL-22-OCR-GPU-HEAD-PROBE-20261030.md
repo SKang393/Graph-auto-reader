@@ -33,8 +33,23 @@ them as OCR negatives. Its inverse-target construction recorded four contacts
 and 12 minimum-extent clamps. Six focused checks passed, including held-out
 raster/annotation read guards and source/output containment failures.
 
-The preflight used OpenCV 4.10 with a 512/128 diagnostic resize recipe; its
-tensors have not been compared with the production OpenCvSharp 4.13 path. The
+The preflight used OpenCV 4.10 with a 512/128 diagnostic resize recipe. Its
 caches are not approved training inputs. No optimizer steps or private/sealed
 reads occurred. Report SHA-256:
 `e3cf0880968123fb61164c068607298b90e119388363de6c60320b672d5927f3`.
+
+Subsequent isolated comparisons passed the same four synthetic train images
+through the production C# raster decoder and detector tensor methods. At both
+the experimental 512/128 setting and the production 960/128 setting, the
+Python and C# tensors matched byte-for-byte. The comparison was bound to a
+locally pinned capture/source/app-local assembly identity before capture; eleven focused
+checks passed. The 960 tensors were compared separately and do not change the
+existing 512 feature caches. This validates these four preprocessing examples,
+not target correctness, the complete workflow, or training approval. The 512
+comparison separately checks decoded BGR bytes; the 960 comparison verifies
+tensor bytes but does not itself assert BGR equality. The local identity excludes
+the shared .NET framework, operating system, and hardware.
+
+- Local comparison identity SHA-256: `81c3ea76acec8ce59f749387e603e98de99bbaad8c0326b1f105ef42af0c6bd0`
+- Experimental 512 comparison SHA-256: `a586ab30b2a9b6050582c0a641dfb876246640b8316ae0c8af169cea23543eef`
+- Production-size 960 comparison SHA-256: `97d5712832b6ca3e07c9d4ad086dc4525cec37873e6daec61ff59eb4ab59e982`
