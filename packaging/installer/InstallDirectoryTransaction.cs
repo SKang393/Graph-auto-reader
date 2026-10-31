@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
+using System.Security.Cryptography;
+using System.Text.Json;
+
 namespace GraphReader.Installer;
 
 /// <summary>Stages an installation beside its destination and restores its predecessor on failure.</summary>
 internal static class InstallDirectoryTransaction
 {
+    private const long MaximumOwnershipInventoryBytes = 64L * 1024 * 1024;
+
     internal static void PreserveForUninstall(string root, string destination)
     {
         string fullRoot = Path.GetFullPath(root);
@@ -68,7 +73,8 @@ internal static class InstallDirectoryTransaction
             populate(staging);
             if (Directory.Exists(root))
             {
-                CopyUnclaimedFiles(root, staging);
+                Dictionary<string, string> ownedFiles = ReadOwnedPayloadFiles(root);
+                CopyUnclaimedFiles(root, staging, root, ownedFiles);
                 Directory.Move(root, backup);
                 priorMoved = true;
             }
@@ -116,7 +122,77 @@ internal static class InstallDirectoryTransaction
         return priorMoved ? backup : null;
     }
 
-    private static void CopyUnclaimedFiles(string source, string destination)
+    private static Dictionary<string, string> ReadOwnedPayloadFiles(string installRoot)
+    {
+        string inventoryPath = Path.Combine(installRoot, ".graphreader-owned-files.json");
+        if (!File.Exists(inventoryPath) || (File.GetAttributes(inventoryPath) & FileAttributes.ReparsePoint) != 0)
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        try
+        {
+            var inventoryFile = new FileInfo(inventoryPath);
+            if (inventoryFile.Length <= 0 || inventoryFile.Length > MaximumOwnershipInventoryBytes)
+                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            using JsonDocument document = JsonDocument.Parse(File.ReadAllBytes(inventoryPath));
+            JsonElement root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("schema", out JsonElement schema) ||
+                schema.ValueKind != JsonValueKind.String ||
+                schema.GetString() != "graphreader.installed-payload-inventory.v1" ||
+                !root.TryGetProperty("files", out JsonElement files) ||
+                files.ValueKind != JsonValueKind.Array)
+            {
+                return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            var owned = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (JsonElement entry in files.EnumerateArray())
+            {
+                if (entry.ValueKind != JsonValueKind.Object ||
+                    !entry.TryGetProperty("path", out JsonElement pathElement) ||
+                    pathElement.ValueKind != JsonValueKind.String ||
+                    !entry.TryGetProperty("sha256", out JsonElement hashElement) ||
+                    hashElement.ValueKind != JsonValueKind.String)
+                {
+                    return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                }
+
+                string path = pathElement.GetString()!;
+                string hash = hashElement.GetString()!;
+                string[] segments = path.Split('/');
+                if (path.Length == 0 || path.Contains('\\') || Path.IsPathRooted(path) ||
+                    segments.Any(segment => segment.Length == 0 || segment is "." or "..") ||
+                    hash.Length != 64 || !hash.All(Uri.IsHexDigit) || owned.ContainsKey(path))
+                {
+                    return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                }
+
+                owned.Add(path, hash.ToLowerInvariant());
+            }
+
+            return owned;
+        }
+        catch (JsonException)
+        {
+            // An absent or invalid inventory is treated like a legacy install. Preserve its files.
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+        catch (IOException)
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private static void CopyUnclaimedFiles(
+        string source,
+        string destination,
+        string installRoot,
+        IReadOnlyDictionary<string, string> ownedFiles)
     {
         if ((File.GetAttributes(source) & FileAttributes.ReparsePoint) != 0)
         {
@@ -134,12 +210,25 @@ internal static class InstallDirectoryTransaction
             {
                 if (File.Exists(target)) continue;
                 Directory.CreateDirectory(target);
-                CopyUnclaimedFiles(path, target);
+                CopyUnclaimedFiles(path, target, installRoot, ownedFiles);
             }
             else if (!File.Exists(target) && !Directory.Exists(target))
             {
+                string relativePath = Path.GetRelativePath(installRoot, path).Replace('\\', '/');
+                if (ownedFiles.TryGetValue(relativePath, out string? recordedHash) &&
+                    string.Equals(HashFile(path), recordedHash, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
                 File.Copy(path, target, false);
             }
         }
+    }
+
+    private static string HashFile(string path)
+    {
+        using Stream stream = File.OpenRead(path);
+        return Convert.ToHexStringLower(SHA256.HashData(stream));
     }
 }

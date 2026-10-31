@@ -3,6 +3,7 @@
 
 using GraphReader.Installer;
 using Microsoft.Win32;
+using System.Security.Cryptography;
 using System.Diagnostics;
 using System.Text.Json;
 
@@ -26,6 +27,9 @@ string testRoot = Path.GetFullPath(args[0]);
 Directory.CreateDirectory(testRoot);
 string root = Path.Combine(testRoot, "GraphAutoReader");
 Directory.CreateDirectory(root);
+
+static string HashText(string value) => Convert.ToHexStringLower(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value)));
+
 File.WriteAllText(Path.Combine(root, "app.txt"), "old");
 File.WriteAllText(Path.Combine(root, "user-file.txt"), "keep");
 Directory.CreateDirectory(Path.Combine(root, "notes"));
@@ -102,6 +106,49 @@ string[] backups = Directory.GetDirectories(testRoot, "GraphAutoReader.backup-*"
 if (backups.Length != 1 || File.ReadAllText(Path.Combine(backups[0], "user-file.txt")) != "keep")
 {
     throw new InvalidOperationException("Previous user files were not retained.");
+}
+
+string ownedRoot = Path.Combine(testRoot, "owned-upgrade", "GraphAutoReader");
+Directory.CreateDirectory(ownedRoot);
+File.WriteAllText(Path.Combine(ownedRoot, "obsolete.dll"), "unchanged setup payload");
+File.WriteAllText(Path.Combine(ownedRoot, "customized.dll"), "user-modified setup payload");
+File.WriteAllText(Path.Combine(ownedRoot, "user-notes.txt"), "user-owned file");
+File.WriteAllText(Path.Combine(ownedRoot, ".graphreader-owned-files.json"), JsonSerializer.Serialize(new
+{
+    schema = "graphreader.installed-payload-inventory.v1",
+    files = new[]
+    {
+        new { path = "obsolete.dll", sha256 = HashText("unchanged setup payload") },
+        new { path = "customized.dll", sha256 = HashText("original setup payload") },
+    },
+}));
+InstallDirectoryTransaction.Execute(ownedRoot, stage =>
+{
+    File.WriteAllText(Path.Combine(stage, "new-app.txt"), "new payload");
+    File.WriteAllText(Path.Combine(stage, ".graphreader-owned-files.json"), "new inventory");
+}, () => { }, () => { });
+if (File.Exists(Path.Combine(ownedRoot, "obsolete.dll")) ||
+    File.ReadAllText(Path.Combine(ownedRoot, "customized.dll")) != "user-modified setup payload" ||
+    File.ReadAllText(Path.Combine(ownedRoot, "user-notes.txt")) != "user-owned file")
+{
+    throw new InvalidOperationException("Upgrade did not omit unchanged obsolete payload while retaining user files.");
+}
+string ownedBackup = Directory.GetDirectories(Path.Combine(testRoot, "owned-upgrade"), "GraphAutoReader.backup-*").Single();
+if (File.ReadAllText(Path.Combine(ownedBackup, "obsolete.dll")) != "unchanged setup payload" ||
+    File.ReadAllText(Path.Combine(ownedBackup, "customized.dll")) != "user-modified setup payload")
+{
+    throw new InvalidOperationException("Upgrade did not preserve prior payload in the backup.");
+}
+
+string invalidInventoryRoot = Path.Combine(testRoot, "invalid-inventory-upgrade", "GraphAutoReader");
+Directory.CreateDirectory(invalidInventoryRoot);
+File.WriteAllText(Path.Combine(invalidInventoryRoot, "old-extra.dll"), "preserve on invalid inventory");
+File.WriteAllText(Path.Combine(invalidInventoryRoot, ".graphreader-owned-files.json"), "not json");
+InstallDirectoryTransaction.Execute(invalidInventoryRoot,
+    stage => File.WriteAllText(Path.Combine(stage, "new-app.txt"), "new payload"), () => { }, () => { });
+if (File.ReadAllText(Path.Combine(invalidInventoryRoot, "old-extra.dll")) != "preserve on invalid inventory")
+{
+    throw new InvalidOperationException("Invalid ownership inventory caused prior files to be omitted.");
 }
 
 string spacedRoot = Path.Combine(testRoot, "Install Space 한글", "GraphAutoReader");
@@ -199,6 +246,7 @@ DeferredUninstallResult statusWriteFailure = DeferredUninstallExecution.Run(
 if (!statusWriteFailure.Completed || statusWriteFailure.StatusError is not IOException || failureRecorded)
     throw new InvalidOperationException("Completed uninstall was incorrectly reported as failed.");
 Console.WriteLine("PASS: failures restore files and metadata; upgrade and repeated uninstall preserve user files");
+Console.WriteLine("PASS: verified unchanged obsolete payload stays in backup; modified and untracked files remain active");
 Console.WriteLine("PASS: concurrent reinstall invalidates deferred identity; quiet validation and status-write failures classified");
 
 internal sealed class FakeRegistry : IInstallerRegistryStore

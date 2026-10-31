@@ -19,9 +19,13 @@ Repair and upgrade stage a complete replacement beside the installation before
 switching directories. If the switch or setup configuration fails, setup tries
 to restore the prior directory, Start Menu shortcut and uninstall registry
 values. Files absent from the new payload are copied from the old installation
-without overwriting new payload files; setup rejects reparse points. Because
-older installers do not record file ownership, this can also retain obsolete
-prior-version files. Prior installations are retained as sibling
+without overwriting new payload files; setup rejects reparse points. For an
+installation with a valid `.graphreader-owned-files.json` inventory, unchanged
+setup-owned files absent from the new payload are left in the retained backup
+instead of being copied into the active installation. Modified setup-owned
+files and files not listed in the inventory remain copied to the active
+installation. An absent or invalid inventory uses legacy preservation behavior.
+Prior installations are retained as sibling
 `GraphAutoReader.backup-*` directories because they may contain files setup did
 not create. Setup reports the retained path in its completion message and on
 standard output when available, and attempts to append it to
