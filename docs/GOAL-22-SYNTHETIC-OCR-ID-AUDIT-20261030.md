@@ -22,4 +22,4 @@ result cannot be compared directly with the earlier 446-of-491 aggregate.
 
 - Scorer: `tools/Audit-SyntheticOcrFalsePositives.py`
 - Aggregate: `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/v46-probe-current-main-replay-20261030-v9-attribution/false-positive-attribution.json`
-- Aggregate SHA-256: `f9830bdf507924a70d2dfc61ed2ec4710c0a242aaeb24b8d7554844ac8b6d1f3`
+- Aggregate SHA-256: `fe90d35629f0fe8598740ff5ccb374bf90a87fa4713b6883463bf947c2429621`

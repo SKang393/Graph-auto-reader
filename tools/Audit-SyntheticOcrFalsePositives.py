@@ -71,7 +71,21 @@ def self_test():
     actual = {region_id: classify_surviving_region_id(region_id, raw) for region_id in cases}
     if actual != cases:
         raise AssertionError({"expected": cases, "actual": actual})
-    print(json.dumps({"status": "pass", "checks": len(cases)}))
+    generic = generic_metadata()
+    forbidden = {"private_corpus_access", "sealed_corpus_access", "production_approved"}
+    if forbidden.intersection(generic) or any("Twenty of 21" in item for item in generic["limitations"]):
+        raise AssertionError(generic)
+    print(json.dumps({"status": "pass", "checks": len(cases) + 2}))
+
+def generic_metadata():
+    return {
+        "limitations": [
+            "This classifies surviving region IDs only; it does not prove complete runtime lineage.",
+            "This scores only the supplied run directory; it does not establish workflow, release, or production acceptance.",
+            "Truth is used only by this offline scorer, never runtime inference.",
+        ],
+        "model_inference_runs_by_this_tool": 0,
+    }
 
 def annotations(fixture):
     result = {}
@@ -122,7 +136,7 @@ def main():
                 matched_count += 1; continue
             category = classify_surviving_region_id(region["region_id"], raw_ids); classifications[category] += 1; panel_counts[observation["panel_id"]] += 1
             details.append({"panel_id": observation["panel_id"], "source_image_sha256": source_sha, "panel_input_sha256": ocr["input_sha256"], "region_id": region["region_id"], "surviving_region_id_classification": category, "bounds_xywh": region_box(region), "text": region["text"], "role": region["role"], "confidence": region["confidence"], "annotation": annotation_path})
-    output = {"schema": "graphreader.synthetic-ocr-false-positive-surviving-id-classification.v2", "scope": "offline synthetic diagnostic only", "run_report": str((run_dir / "report.json").resolve()), "run_report_sha256": digest(run_dir / "report.json"), "candidate_binding_sha256": report.get("candidate_binding_sha256"), "input_manifest_sha256": report.get("input_manifest_sha256"), "matching": {"algorithm": "maximum_bipartite_iou", "iou_minimum": IOU_MINIMUM}, "counts": {"stage_evidence_files": len(list((run_dir / "stage-evidence").glob("*.json"))), "annotated_panels_scored": scored_panels, "truth_regions": truth_count, "predicted_regions": predicted_count, "geometry_matched_regions": matched_count, "geometry_false_positive_regions": predicted_count - matched_count, "geometry_false_negative_regions": truth_count - matched_count, "false_positives_by_surviving_region_id_classification": dict(sorted(classifications.items()))}, "false_positive_panels": dict(sorted(panel_counts.items())), "false_positive_details": details, "limitations": ["This classifies surviving region IDs only; it does not prove complete runtime lineage.", "This scores only this pinned replay, not the historical 446/491 baseline.", "Twenty of 21 sources failed later automatic calibration, so this is not workflow or release acceptance.", "Truth is used only by this offline scorer, never runtime inference."], "private_corpus_access": False, "sealed_corpus_access": False, "model_inference_runs_by_this_tool": 0, "production_approved": False}
+    output = {"schema": "graphreader.synthetic-ocr-false-positive-surviving-id-classification.v2", "scope": "offline synthetic diagnostic only", "run_report": str((run_dir / "report.json").resolve()), "run_report_sha256": digest(run_dir / "report.json"), "candidate_binding_sha256": report.get("candidate_binding_sha256"), "input_manifest_sha256": report.get("input_manifest_sha256"), "matching": {"algorithm": "maximum_bipartite_iou", "iou_minimum": IOU_MINIMUM}, "counts": {"stage_evidence_files": len(list((run_dir / "stage-evidence").glob("*.json"))), "annotated_panels_scored": scored_panels, "truth_regions": truth_count, "predicted_regions": predicted_count, "geometry_matched_regions": matched_count, "geometry_false_positive_regions": predicted_count - matched_count, "geometry_false_negative_regions": truth_count - matched_count, "false_positives_by_surviving_region_id_classification": dict(sorted(classifications.items()))}, "false_positive_panels": dict(sorted(panel_counts.items())), "false_positive_details": details, **generic_metadata()}
     args.output.parent.mkdir(parents=True, exist_ok=True); args.output.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(output["counts"], indent=2))
 
