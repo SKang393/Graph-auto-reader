@@ -1,0 +1,33 @@
+{
+  "schema": "graphreader.marker-real-positive-preservation-protocol.v1",
+  "task": "marker-center",
+  "revision": "marker-center-real-positive-preservation-v1",
+  "candidate_id": "P1",
+  "purpose": "Exploratory fixed confidence residual with explicit preservation on authenticated synthetic component-train negatives.",
+  "motivation": "The previous real-positive trial raised component-train negative acceptance from 1.72% to 15.06% at the fixed 0.1 threshold while improving labeled real-positive acceptance. The diagnosis is aggregate and does not prove causation.",
+  "training_inputs": "Reuse the prior 36,212 reflected synthetic family rows and 2,171 user-authorized real positive proposals; additionally use 32,580 component-train negatives in each of four authenticated reflected views. Unmarked real pixels are never assigned negative labels.",
+  "component_retention": {
+    "algorithm": "component-negative-view-cycle-randperm-v1",
+    "seed": 20261002,
+    "batch_size": 512,
+    "rows_per_view": 32580,
+    "batches_per_epoch": 283,
+    "epochs": 8,
+    "weight": 1.0,
+    "feature_report_sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500",
+    "feature_backbone_sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365",
+    "label_sha256": "e744ba10fddc380ac6edd71d4e8b94f98de8ae3e35c8c47e2e3f3228d299e536",
+    "feature_sha256_by_view": {
+      "identity": "b400b41aea707210c1d2b790b816492bd7d367457a0acbec03b26d1429b74257",
+      "horizontal": "c55bb3ec591dc59f959cc76e5e4034fa265bc4cd4a7b14a53fd3e62d7fbde749",
+      "vertical": "51d54f52346488908b4633cad93c2363e88bfa263af96bcd32f0fbeb55086b50",
+      "both": "00929e0badf4a9d051082bde8552b2be5d575626cd77fa8926c3a8ad7c5e8309"
+    }
+  },
+  "architecture": "Freeze the authenticated V37 local model and geometry; train a zero-initialized residual confidence head. Add the mean squared positive logit shift on component-train negative features with fixed weight 1.0.",
+  "training_device": "AMD Radeon RX 6600 XT gfx1032 via HIP cuda:0; CPU optimizer steps forbidden",
+  "evaluation": "Evaluate the single final checkpoint on fixed synthetic component and family development gates at threshold 0.1. No threshold search, checkpoint selection, sealed evaluation, production activation or release is authorized by this experiment.",
+  "limitations": "The manual labels are imperfect, 481 labeled train centers were filtered before proposal selection, synthetic artifact-mask readiness is incomplete, and component-development and sealed-source overlap are unverified.",
+  "production_approval": false,
+  "sealed_runs_authorized": 0
+}

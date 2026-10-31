@@ -11315,6 +11315,34 @@
       "development_report_sha256": "5137ee6b49ae2aa60b8938ed318e5fe2ac1ca223cb98adc4543ea8501a33f002",
       "onnx_sha256": "293c0f506f3da062b07829f9db21cb5387a100a342642dc3e0e1c32c1225fce5",
       "closed_utc_date": "2026-10-30"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-real-positive-preservation-v1",
+      "status": "candidate_1_preregistered",
+      "execution_authorized": true,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": ["P1"],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {"P1": "ml/markers/center/real_positive_preservation_v1/p1.json"},
+      "candidate_config_sha256": {"P1": "18a02fd9ecb881795c3af5b48e805d7ebe695bb7327b9d14677b60713d14e745"},
+      "protocol_path": "ml/markers/center/real_positive_preservation_v1/protocol.json",
+      "protocol_sha256": "6a119da291c09f754dbedc4465b62e2db5fa069cafd0c5eadfd5e11f72551cee",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One exploratory user-authorized real-positive and synthetic train-only preservation trial. No sealed reads, production activation, promotion or release.",
+      "isolated_change": "Retain the fixed real-positive confidence recipe and V37 base; add a fixed squared upward-logit penalty on all four authenticated component-train negative views. Real unlabeled pixels are not negative labels.",
+      "optimizer_steps_expected": 2264,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "training_device": "RX 6600 XT gfx1032 cuda:0",
+      "release_eligible": false
     }
   ]
 }
