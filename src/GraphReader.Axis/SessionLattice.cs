@@ -7,7 +7,7 @@ namespace GraphReader.Axis;
 
 public static class SessionLattice
 {
-    public const string CompositionVersion = "measured-session-run-pitch-v1";
+    public const string CompositionVersion = "measured-session-run-pitch-v2";
 
     private const double MinimumPitchPixels = 0.25d;
     private const int MaximumCandidatePitches = 50_000;
@@ -154,6 +154,12 @@ public static class SessionLattice
         {
             validity = CalibrationValidity.NeedsReview;
             reasons.Add("Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance.");
+        }
+        else if (crossSourcePitchConflict == PitchConflictKind.InsufficientMarkerSupport)
+        {
+            validity = CalibrationValidity.NeedsReview;
+            reasons.Add("Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance.");
+            reasons.Add("Adjacent marker gaps do not establish a coherent competing pitch, and fewer than a majority agree with printed pitch; off-grid x values remain unknown.");
         }
         else if (crossSourcePitchConflict == PitchConflictKind.HarmonicAlias)
         {
@@ -434,10 +440,11 @@ public static class SessionLattice
         }
 
         // Isolated detections can split a real gap in two. Require a strict
-        // consensus; per-point assignment and residual checks still apply.
+        // majority of neighboring gaps; keep insufficient support distinct
+        // from a coherent competing marker pitch.
         return compatibleGaps > (observedColumns.Count - 1) / 2
             ? PitchConflictKind.None
-            : PitchConflictKind.Disagreement;
+            : PitchConflictKind.InsufficientMarkerSupport;
     }
 
     private static bool HasRegularDenseRun(
@@ -1058,6 +1065,7 @@ public static class SessionLattice
     {
         None,
         Disagreement,
+        InsufficientMarkerSupport,
         HarmonicAlias,
     }
 }

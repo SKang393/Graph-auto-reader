@@ -50,6 +50,35 @@ public sealed class SessionLatticeRobustnessTests
     }
 
     [TestMethod]
+    public void InsufficientMarkerGapSupportDoesNotClaimACompetingPitchOrAssignOffGridValues()
+    {
+        SessionLatticeRequest request = new()
+        {
+            PrintedTicks =
+            [
+                new PrintedXTickEvidence("first", 100, 1),
+                new PrintedXTickEvidence("middle", 300, 11),
+                new PrintedXTickEvidence("last", 500, 21),
+            ],
+            MarkerColumns = new double[] { 100, 160, 173, 213, 240, 300, 313, 348, 380, 400, 452, 472, 500 }
+                .Select(static pixel => new MarkerColumnEvidence(pixel)).ToArray(),
+        };
+
+        SessionLatticeResult result = SessionLattice.Fit(request);
+
+        Assert.AreEqual(CalibrationValidity.NeedsReview, result.Validity);
+        Assert.IsTrue(result.Reasons.Any(static reason =>
+            reason == "Printed-tick and marker-column pitch evidence disagree beyond the configured tolerance."));
+        Assert.IsTrue(result.Reasons.Any(static reason =>
+            reason == "Adjacent marker gaps do not establish a coherent competing pitch, and fewer than a majority agree with printed pitch; off-grid x values remain unknown."));
+        SessionXEvidence aligned = result.Assignments.Single(static item => item.PixelX == 160);
+        Assert.AreEqual(4d, aligned.EstimatedX);
+        SessionXEvidence offGrid = result.Assignments.Single(static item => item.PixelX == 173);
+        Assert.IsNull(offGrid.EstimatedX);
+        Assert.IsNull(offGrid.PrintedX);
+    }
+
+    [TestMethod]
     [DataRow(false, false, 0.5)]
     [DataRow(false, true, 1.0)]
     [DataRow(false, false, 2.0)]
