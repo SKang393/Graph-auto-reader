@@ -155,3 +155,18 @@ likewise fell from 32 to 14 and 6. The 0.25 results reproduced the baseline;
 all 158 forced low-score background crops returned empty. Report SHA-256:
 `59b98d96c3717b444f822f4f45e2549048f70c9ec33fcfc7e723c9a8494377ff`.
 The diagnostic build and 3 report checks passed.
+
+## Geometry-only stroke-removal diagnostic
+
+On a copy of each consumed synthetic probe image, a diagnostic erased only
+the annotated one-pixel tick centerline before applying the existing cropper
+and V5 recognizer. Exact readings on predicted boxes rose from 23 to 37 of 165;
+on annotated boxes they rose from 32 to 67. The 165 reconstructed glyph masks
+matched their recorded hashes and none of 4,117 erased pixels overlapped
+their 90,889 nonzero glyph pixels. Forced backgrounds stayed empty. These
+are known synthetic stroke coordinates, not detected real-world geometry;
+stroke width, antialiasing and independent acceptance remain untested.
+
+- Diagnostic runner SHA-256: `7b56f3eb2e5ba7b239f3c59dde12aaa8e976267db03ac192253c6129e5e2f288`
+- Corrected report SHA-256: `330df878f43020e10dd7332a6545b92fb36590f124d00efc23a2ba4155262df4`
+- Diagnostic build and 3 report checks passed; inference used CPU.
