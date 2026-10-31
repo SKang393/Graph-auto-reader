@@ -26,7 +26,7 @@ DEVICE = torch.device("cuda:0")
 # registered in source control. Caller-supplied paths and hashes are never an
 # authority to open corpus bytes.
 REGISTERED_CORPORA: dict[str, str] = {}
-RECIPE_SHA256 = "4cabd3176772bce57f095773e2e6f4f6930385338769b9a82bfcb32db0c6e501"
+RECIPE_SHA256 = "16e7915504f9780087c7c7fd9b911094acd07a82f715eda4fa74a77edf17db5b"
 
 
 class TrainingAdmissionBlocked(ValueError):
@@ -109,6 +109,14 @@ def _validate_recipe(path: Path) -> dict[str, Any]:
     gpu = recipe.get("required_gpu")
     if gpu != {"name": "AMD Radeon RX 6600 XT", "architecture": "gfx1032", "hip_required": True}:
         raise TrainingAdmissionBlocked("recipe GPU binding differs")
+    v5 = recipe.get("v5_contract")
+    if v5 != {
+        "glyph_shape": [1, 24, 26], "class_count": 14, "reject_class_index": 13,
+        "model": "ComponentEnsembleGlyphNet",
+        "model_source_sha256": "9374791d53ba6524818955310036eff8d2feebdc7103e807b3f1029d5e2fda36",
+        "protocol_source_sha256": "ae5d140f0bb3cc0fb822de574a49d2c1e944f1efe4ae1475d9c5e503a0c0b6ac",
+    }:
+        raise TrainingAdmissionBlocked("V5 component contract binding differs")
     return recipe
 
 
@@ -205,6 +213,10 @@ def preflight(corpus_root: Path, manifest_sha256: str, recipe_path: Path) -> dic
     """Validate immutable inputs then fail closed before any optimizer could exist."""
     require_rx6600xt_gpu()
     recipe = _validate_recipe(Path(recipe_path))
+    # Local import avoids a module-load cycle while verifying source bytes before
+    # any corpus metadata or crop bytes are opened.
+    from .execution import verify_recipe_v5_contract
+    verify_recipe_v5_contract(recipe)
     manifest = validate_corpus_manifest(corpus_root, manifest_sha256)
     return {
         "status": "blocked_pending_training_admission",

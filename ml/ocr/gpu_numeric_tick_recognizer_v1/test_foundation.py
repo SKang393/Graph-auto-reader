@@ -12,6 +12,8 @@ import pytest
 import torch
 
 from ml.ocr.gpu_numeric_tick_recognizer_v1 import foundation
+from ml.ocr.gpu_numeric_tick_recognizer_v1 import execution
+from ml.ocr.component_ensemble_v5.model import ComponentEnsembleGlyphNet
 
 
 def _write(root: Path, name: str, contents: bytes) -> str:
@@ -162,3 +164,69 @@ def test_committed_synthetic_v2_metadata_always_fails_closed():
                 "private_reads": 0, "sealed_reads": 0, "source_cases": [], "samples": []}
     with pytest.raises(foundation.TrainingAdmissionBlocked, match="lacks v3 source text/glyph/crop provenance"):
         foundation.validate_manifest_metadata(manifest)
+
+
+def test_v5_execution_contract_is_pinned_and_cpu_state_is_rejected_without_optimizer():
+    contract = execution.v5_contract()
+    assert contract["glyph_shape"] == (1, 24, 26)
+    assert contract["class_count"] == 14 and contract["reject_class_index"] == 13
+    model = ComponentEnsembleGlyphNet()
+    glyphs = torch.zeros((1, 1, 24, 26))
+    loss = torch.zeros(())
+    with pytest.raises(foundation.TrainingAdmissionBlocked, match="CPU fallback"):
+        execution.require_v5_cuda_state(model, glyphs, loss, {})
+
+
+def test_execution_preflight_remains_blocked_before_model_or_optimizer_creation():
+    missing = foundation.ROOT / "artifacts/not-a-registered-corpus"
+    recipe = foundation.ROOT / "ml/ocr/gpu_numeric_tick_recognizer_v1/recipe.json"
+    with mock.patch.object(foundation, "require_rx6600xt_gpu"), mock.patch.object(ComponentEnsembleGlyphNet, "__init__", side_effect=AssertionError("model must not be built")), mock.patch.object(torch.optim, "AdamW") as optimizer:
+        with pytest.raises(foundation.TrainingAdmissionBlocked, match="corpus is not independently registered"):
+            execution.preflight_execution(missing, "a" * 64, recipe)
+    optimizer.assert_not_called()
+
+
+def test_nested_optimizer_state_tensors_are_collected_and_percent_policy_is_explicit():
+    nested = {"outer": [{"moment": torch.zeros(1)}, ("ignored", torch.ones(1))]}
+    tensors = execution._state_tensors(nested)
+    assert len(tensors) == 2 and all(t.device.type == "cpu" for t in tensors)
+    policy = execution.numeric_tick_class_policy()
+    assert policy["percent_class_index"] == 12 and policy["reject_class_index"] == 13
+    assert "forbidden" in policy["percent_policy"] and "not admitted" in policy["negative_supervision"]
+
+
+def test_preflight_verifies_live_v5_source_contract_before_corpus_access():
+    missing = foundation.ROOT / "artifacts/not-a-registered-corpus"
+    recipe = foundation.ROOT / "ml/ocr/gpu_numeric_tick_recognizer_v1/recipe.json"
+    with mock.patch.object(foundation, "require_rx6600xt_gpu"), mock.patch.object(execution, "v5_contract", return_value={"glyph_shape": (1, 24, 26), "model": "changed", "class_count": 14, "reject_class_index": 13, "model_source_sha256": "x", "protocol_source_sha256": "y"}):
+        with pytest.raises(foundation.TrainingAdmissionBlocked, match="V5 source contract"):
+            foundation.preflight(missing, "a" * 64, recipe)
+
+
+def test_real_execution_guard_forwards_nested_cpu_optimizer_tensor_to_gpu_rejection():
+    """The real outer guard must expose a deeply nested state tensor to its GPU gate."""
+    model = ComponentEnsembleGlyphNet()
+    nested_cpu = torch.ones(1)
+    seen = []
+    def gpu_gate(*tensors):
+        seen.extend(tensors)
+        if any(tensor is nested_cpu for tensor in tensors):
+            raise foundation.TrainingAdmissionBlocked("nested CPU optimizer state rejected")
+        raise AssertionError("nested state was not forwarded")
+    with mock.patch.object(foundation, "require_rx6600xt_gpu", side_effect=gpu_gate):
+        with pytest.raises(foundation.TrainingAdmissionBlocked, match="nested CPU optimizer state"):
+            execution.require_v5_cuda_state(model, torch.zeros((1, 1, 24, 26)), torch.zeros(()), {"state": [{"exp_avg": nested_cpu}]})
+    assert any(tensor is nested_cpu for tensor in seen)
+
+
+def test_real_source_file_byte_mutation_rejects_before_unregistered_corpus_read():
+    temp_root = foundation.ROOT / "artifacts" / "test-temp"
+    temp_root.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(dir=temp_root) as temp:
+        copied = Path(temp) / "model.py"
+        copied.write_bytes(execution.MODEL_SOURCE.read_bytes() + b"\n# mutation\n")
+        missing = foundation.ROOT / "artifacts/not-a-registered-corpus"
+        recipe = foundation.ROOT / "ml/ocr/gpu_numeric_tick_recognizer_v1/recipe.json"
+        with mock.patch.object(foundation, "require_rx6600xt_gpu"), mock.patch.object(execution, "MODEL_SOURCE", copied):
+            with pytest.raises(foundation.TrainingAdmissionBlocked, match="V5 source contract"):
+                foundation.preflight(missing, "a" * 64, recipe)
