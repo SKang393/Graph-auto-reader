@@ -59,3 +59,14 @@ a usable detector or justify a production decision.
 - Report SHA-256: `835e8a4d7845e7654e1888075fa66d6579af1d54996523ea1999698c6fd01f9f`
 - Checkpoint SHA-256: `ec2276cc85dacf89a064bfbbdf1aed5ca98b8bab40c429c4d2d84ccc1ca4dd15`
 - Focused tests: 11 passed; no CPU optimizer execution.
+
+An image-level check of that same checkpoint revealed that cell recall was a
+poor proxy for localization. On the same 64 positive training images, the
+highest-scoring predicted box had mean IoU 0.356 and reached IoU 0.5 on
+21.875% of images. With score threshold 0.5 and both NMS and match IoU 0.5,
+image recall was 0.281 and the 32 background-only training images averaged
+20.06 false detections each. These metrics do not use independent data.
+
+- Evaluation script SHA-256: `916a68eebcf22fa169886428b5abc7952b5324d9e43b2d909e12116666a51112`
+- Corrected evaluation report SHA-256: `d99ef9b76fb4be445c903d867715b3770b334dc04c61b720e5bf8ac233d5dc16`
+- Evaluation tests: 4 passed; inference used the RX 6600 XT.
