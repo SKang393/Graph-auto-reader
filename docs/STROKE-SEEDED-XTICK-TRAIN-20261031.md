@@ -165,6 +165,15 @@ production erasure rule. Report SHA-256:
 `7a9aa9b5dc6b73de11eac01f856984b55ed537d4614250836022c73973c77de2`.
 The diagnostic build, 4 alignment tests and 3 report checks passed.
 
+All 181 visible synthetic strokes measured approximately 8 pixels, below the
+default Hough minimum line length of 12 pixels. An isolated comparison that
+lowered only this minimum to 5 produced 23 matches and 9 unmatched detections,
+versus 25 and 12 under the default. Its sole emitted Hough tick was unmatched,
+and axis uncertainty remained common. The result does not justify changing the
+production default. Diagnostic report SHA-256:
+`acc2c0bf20153647b5f1470c812c6de7e567c7a35869970b276dde17bd83640e`.
+The runner built and its metric test passed.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
