@@ -148,7 +148,14 @@ public static partial class GraphNumericParser
 
     private static string NormalizeSeparators(string text)
     {
-        if (text.Contains('.') || !text.Contains(','))
+        bool containsDecimalPoint = text.Contains('.');
+        bool containsComma = text.Contains(',');
+        if (containsDecimalPoint && containsComma)
+        {
+            return NormalizeMixedSeparators(text);
+        }
+
+        if (containsDecimalPoint || !containsComma)
         {
             return text.Replace(",", string.Empty, StringComparison.Ordinal);
         }
@@ -158,6 +165,45 @@ public static partial class GraphNumericParser
         return suffixLength == 3 && commaIndex > 0
             ? text.Replace(",", string.Empty, StringComparison.Ordinal)
             : text.Replace(',', '.');
+    }
+
+    private static string NormalizeMixedSeparators(string text)
+    {
+        bool isPercent = text.EndsWith('%');
+        string number = isPercent ? text[..^1] : text;
+        int signLength = number.Length > 0 && number[0] is '+' or '-' ? 1 : 0;
+        string unsigned = number[signLength..];
+        int lastPoint = unsigned.LastIndexOf('.');
+        int lastComma = unsigned.LastIndexOf(',');
+        char decimalSeparator = lastPoint > lastComma ? '.' : ',';
+        int decimalIndex = Math.Max(lastPoint, lastComma);
+        string integerPart = unsigned[..decimalIndex];
+        string fractionalPart = unsigned[(decimalIndex + 1)..];
+        char groupSeparator = decimalSeparator == '.' ? ',' : '.';
+
+        if (integerPart.Length == 0 || !fractionalPart.All(char.IsAsciiDigit))
+        {
+            return text;
+        }
+
+        string[] groups = integerPart.Split(groupSeparator);
+        if (groups.Length == 1)
+        {
+            if (!groups[0].All(char.IsAsciiDigit))
+            {
+                return text;
+            }
+        }
+        else if (groups[0].Length is < 1 or > 3 ||
+                 !groups[0].All(char.IsAsciiDigit) ||
+                 groups.Skip(1).Any(group => group.Length != 3 || !group.All(char.IsAsciiDigit)))
+        {
+            return text;
+        }
+
+        string normalizedInteger = string.Concat(groups);
+        string sign = signLength == 0 ? string.Empty : number[..signLength];
+        return string.Concat(sign, normalizedInteger, ".", fractionalPart, isPercent ? "%" : string.Empty);
     }
 
     private static string RemoveSpacing(string value)

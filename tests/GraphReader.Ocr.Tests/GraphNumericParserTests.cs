@@ -65,6 +65,30 @@ public sealed class GraphNumericParserTests
     }
 
     [TestMethod]
+    [DataRow("1,234.5", 1234.5d)]
+    [DataRow("1.234,5", 1234.5d)]
+    [DataRow("-12.345,6%", -12345.6d)]
+    public void MixedLocaleSeparatorsPreserveMagnitude(string text, double expected)
+    {
+        NumericParseResult result = GraphNumericParser.Parse(text);
+
+        Assert.IsTrue(result.IsSuccess);
+        Assert.IsNotNull(result.Value);
+        Assert.AreEqual(expected, result.Value.Value, 1e-9);
+    }
+
+    [TestMethod]
+    [DataRow("12,34.5")]
+    [DataRow("1.23,456.7")]
+    public void MalformedMixedThousandsGroupingIsRejected(string text)
+    {
+        NumericParseResult result = GraphNumericParser.Parse(text);
+
+        Assert.IsFalse(result.IsSuccess);
+        Assert.IsNull(result.Value);
+    }
+
+    [TestMethod]
     [DataRow("")]
     [DataRow("Generalization")]
     [DataRow("Chandler")]
