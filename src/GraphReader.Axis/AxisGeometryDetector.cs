@@ -263,7 +263,7 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             stopwatch.Elapsed,
             warnings.AsReadOnly());
 
-        return new AxisGeometryResult(
+        var result = new AxisGeometryResult(
             AxisGeometryCoordinateSpaces.OriginalPixels,
             plot,
             CreateAxisFit(
@@ -280,6 +280,62 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             confidence,
             uncertainty,
             diagnostics);
+
+        NotifyCandidateObserver(request.CandidateObserver, pairCandidates, cancellationToken);
+        return result;
+    }
+
+    private static void NotifyCandidateObserver(
+        IAxisGeometryCandidateObserver? observer,
+        IReadOnlyList<AxisPair> rankedPairs,
+        CancellationToken cancellationToken)
+    {
+        if (observer is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var snapshots = new AxisGeometryCandidateSnapshot[rankedPairs.Count];
+            for (var rank = 0; rank < rankedPairs.Count; rank++)
+            {
+                var pair = rankedPairs[rank];
+                var plot = CreatePlotPolygon(pair);
+                snapshots[rank] = new AxisGeometryCandidateSnapshot(
+                    rank,
+                    pair.Score,
+                    pair.Intersection,
+                    pair.Horizontal.Line,
+                    pair.Vertical.Line,
+                    plot.BottomRight,
+                    plot.TopRight,
+                    plot.TopLeft,
+                    pair.Horizontal.Span,
+                    pair.Vertical.Span,
+                    pair.Horizontal.CoverageFraction,
+                    pair.Vertical.CoverageFraction,
+                    pair.Horizontal.RootMeanSquareError,
+                    pair.Vertical.RootMeanSquareError,
+                    pair.Horizontal.Members.Select(member => member.Candidate.CandidateId),
+                    pair.Vertical.Members.Select(member => member.Candidate.CandidateId));
+            }
+
+            observer.OnCandidatesRanked(Array.AsReadOnly(snapshots));
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // A diagnostic observer's cancellation is isolated unless it canceled
+            // the detector's request token.
+        }
+        catch (Exception exception) when (
+            exception is not OperationCanceledException and
+            not OutOfMemoryException and
+            not StackOverflowException and
+            not AccessViolationException)
+        {
+            // Optional diagnostics must not change a completed geometry result.
+        }
     }
 
     private static void ValidateFrame(GrayscaleLineCandidateFrame frame)

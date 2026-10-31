@@ -117,7 +117,98 @@ public sealed record AxisGeometryRequest(
     int ImageHeight,
     IReadOnlyList<GeometryLineCandidate> LineCandidates,
     AxisGeometryOptions? Options = null,
-    string CoordinateSpace = AxisGeometryCoordinateSpaces.OriginalPixels);
+    string CoordinateSpace = AxisGeometryCoordinateSpaces.OriginalPixels)
+{
+    /// <summary>
+    /// Optional observer for the detector's already-ranked axis-pair candidates.
+    /// Observer failures are isolated and do not affect geometry results.
+    /// </summary>
+    public IAxisGeometryCandidateObserver? CandidateObserver { get; init; }
+}
+
+/// <summary>
+/// Receives a best-first snapshot of the axis-pair candidates considered by the
+/// detector. This diagnostic hook does not participate in ranking or selection.
+/// </summary>
+public interface IAxisGeometryCandidateObserver
+{
+    void OnCandidatesRanked(IReadOnlyList<AxisGeometryCandidateSnapshot> candidates);
+}
+
+/// <summary>
+/// Immutable geometry and feature values for one already-ranked axis-pair candidate.
+/// Rank is zero-based and preserves the detector's existing score sort order.
+/// </summary>
+public sealed record AxisGeometryCandidateSnapshot
+{
+    internal AxisGeometryCandidateSnapshot(
+        int rank,
+        double score,
+        PixelPoint intersection,
+        GeometryLineSegment xAxisLine,
+        GeometryLineSegment yAxisLine,
+        PixelPoint bottomRight,
+        PixelPoint topRight,
+        PixelPoint topLeft,
+        double xSpan,
+        double ySpan,
+        double xCoverageFraction,
+        double yCoverageFraction,
+        double xRootMeanSquareError,
+        double yRootMeanSquareError,
+        IEnumerable<string> xSupportingCandidateIds,
+        IEnumerable<string> ySupportingCandidateIds)
+    {
+        Rank = rank;
+        Score = score;
+        Intersection = intersection;
+        XAxisLine = xAxisLine;
+        YAxisLine = yAxisLine;
+        BottomRight = bottomRight;
+        TopRight = topRight;
+        TopLeft = topLeft;
+        XSpan = xSpan;
+        YSpan = ySpan;
+        XCoverageFraction = xCoverageFraction;
+        YCoverageFraction = yCoverageFraction;
+        XRootMeanSquareError = xRootMeanSquareError;
+        YRootMeanSquareError = yRootMeanSquareError;
+        XSupportingCandidateIds = Array.AsReadOnly(xSupportingCandidateIds.Order(StringComparer.Ordinal).ToArray());
+        YSupportingCandidateIds = Array.AsReadOnly(ySupportingCandidateIds.Order(StringComparer.Ordinal).ToArray());
+    }
+
+    public int Rank { get; }
+
+    public double Score { get; }
+
+    public PixelPoint Intersection { get; }
+
+    public GeometryLineSegment XAxisLine { get; }
+
+    public GeometryLineSegment YAxisLine { get; }
+
+    public PixelPoint BottomRight { get; }
+
+    public PixelPoint TopRight { get; }
+
+    public PixelPoint TopLeft { get; }
+
+    public double XSpan { get; }
+
+    public double YSpan { get; }
+
+    public double XCoverageFraction { get; }
+
+    public double YCoverageFraction { get; }
+
+    public double XRootMeanSquareError { get; }
+
+    public double YRootMeanSquareError { get; }
+
+    public IReadOnlyList<string> XSupportingCandidateIds { get; }
+
+    public IReadOnlyList<string> YSupportingCandidateIds { get; }
+}
 
 public sealed record AxisLineFit(
     GeometryLineSegment Line,
