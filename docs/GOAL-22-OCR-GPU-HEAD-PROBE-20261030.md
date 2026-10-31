@@ -53,3 +53,18 @@ the shared .NET framework, operating system, and hardware.
 - Local comparison identity SHA-256: `81c3ea76acec8ce59f749387e603e98de99bbaad8c0326b1f105ef42af0c6bd0`
 - Experimental 512 comparison SHA-256: `a586ab30b2a9b6050582c0a641dfb876246640b8316ae0c8af169cea23543eef`
 - Production-size 960 comparison SHA-256: `97d5712832b6ca3e07c9d4ad086dc4525cec37873e6daec61ff59eb4ab59e982`
+
+A train-only target audit found four connected target components that each
+merge two distinct annotated text instances. All four contacts remain in a
+no-minimum-extent counterfactual. The audit also found 12 width clamps, two
+whose clamped widths exceeded the mapped source-text box. No model effect was
+measured.
+
+An unapproved loss-mask counterfactual omitted ambiguous components and
+outgrown clamped targets, with a two-pixel margin in 512-aligned tensor
+coordinates and transitive overlap closure. It retained 96 of 110 text
+instances and 45 of 47 X-ticks, but only one of four participant labels. This
+potential bias prevents treating it as a training policy without more evidence.
+
+- Target audit SHA-256: `2ec1e0813300845114a385b09d4ac26d6a7f30d54e0dc3d7317a4ee46ff0f8a0`
+- Loss-mask counterfactual SHA-256: `d82ff850eb6d0f426b827e7d92cb9f35c0a38c9f52175353bcdcc8c3a779ccdf`
