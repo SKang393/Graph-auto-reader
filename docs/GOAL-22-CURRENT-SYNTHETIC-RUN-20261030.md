@@ -37,9 +37,17 @@ detection; four did not. Identifier equality is not proof of processing
 lineage, and these roles can also contain legitimate graph text, so this result
 does not justify suppressing them.
 
+The fixed-output geometry diagnostic compared those 47 unmatched detections
+with 447 geometry-matched controls. Thirty-six unmatched detections had zero
+IoU with the nearest annotated truth, and only one had at least 0.5 IoU with
+another same-source detection. Controls are matched on geometry only, not text
+or role. Confidence and shape distributions overlap the controls; this does
+not establish a safe confidence, shape, or duplicate-suppression rule.
+
 - Runtime binding SHA-256: `2a2abb3313f5dfcbb724552cd7c16dbac03b4fb04a65bef2b196c524c9dabc10`
 - Run report SHA-256: `a1f085a017569e93569bab9cf96c156e4aa47008005e7861bd4f12b2d58199c4`
 - Offline OCR audit SHA-256: `79fa6ee12a34684b3644cea2b390f261aee4b2a0f90adf192d234a312052a5c8`
 - Source-global diagnostic SHA-256: `174fa2857f5ddec3d0ed86ac1c03f4c5ed1da53c90e93024e0b33532f72fcbad`
 - False-positive attribution SHA-256: `d6a2999e4fbd31a20bde52c392d0696e499302e29301498d9447a2172c1c146f`
+- Bound geometry diagnostic SHA-256: `ac97213828625081a99ab9ea9a6541fda3f5fe6a8bd1798c355430420ae38b79`
 - Evidence folder: `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/current-main-7ec80465-synthetic-20261030`
