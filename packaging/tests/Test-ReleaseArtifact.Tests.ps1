@@ -1436,6 +1436,15 @@ function Assert-ExitCode {
 }
 
 try {
+    Assert-Case 'Installer directory transaction preserves existing installations' {
+        $installerTransactionProject = Join-Path $PSScriptRoot 'installer-transaction\InstallerTransactionTests.csproj'
+        $installerTransactionRoot = Join-Path $testRoot 'installer-transaction'
+        & dotnet run --project $installerTransactionProject --configuration Release -- $installerTransactionRoot
+        if ($LASTEXITCODE -ne 0) {
+            throw "Installer transaction tests failed with exit code $LASTEXITCODE."
+        }
+    }
+
     Assert-Case 'Repository Noto metadata is validated while definition-only artifact proof is explicit' {
         $fixture = New-PackagingFixture -Name 'noto-definition-proof' -Version '0.0.21'
         Copy-Item `

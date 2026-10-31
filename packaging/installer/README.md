@@ -15,6 +15,41 @@ normal current-user uninstall entry, and leaves mutable data beneath
 repairs files, newer versions upgrade, and downgrade is blocked unless the
 operator explicitly passes `--allow-downgrade`.
 
+Repair and upgrade stage a complete replacement beside the installation before
+switching directories. If the switch or setup configuration fails, setup tries
+to restore the prior directory, Start Menu shortcut and uninstall registry
+values. Files absent from the new payload are copied from the old installation
+without overwriting new payload files; setup rejects reparse points. Because
+older installers do not record file ownership, this can also retain obsolete
+prior-version files. Prior installations are retained as sibling
+`GraphAutoReader.backup-*` directories because they may contain files setup did
+not create. Setup reports the retained path in its completion message and on
+standard output when available, and attempts to append it to
+`%LOCALAPPDATA%\GraphAutoReader\installer-retained.log`. An interrupted or failed operation may also leave a sibling
+`GraphAutoReader.staging-*` or `GraphAutoReader.failed-*` directory for review.
+Uninstall unregisters the app and preserves the entire installation as a
+`GraphAutoReader.uninstalled-*` sibling rather than deleting potentially
+unowned files. The move completes before registration is removed; a failed move
+leaves the old installation and registration in place. Setup reports the
+intended path; it does not claim disk-space cleanup. When uninstall runs from
+the installation itself, a copied helper in the user-data directory waits for
+the installer to exit and performs the move and unregistration. Setup operations
+use a shared mutex and unique installation identity; the helper refuses to act
+if a later setup replaced the scheduled installation. Deferred uninstall returns
+exit code 10 for pending, including in quiet mode. The machine-readable
+`%LOCALAPPDATA%\GraphAutoReader\uninstall-latest.json` points to a status record
+whose `state` is `pending`, `succeeded`, or `failed`. Non-quiet failures also
+display an error. Pending is not a completed uninstall. A copied helper may
+remain in the user-data directory for review.
+If uninstall completes but its status record cannot be updated, setup records
+that distinction in `installer-uninstall.log` when possible; the status record
+may remain pending and should not be interpreted as a failed uninstall.
+If the deferred move fails, setup attempts to record the original and intended
+paths in `%LOCALAPPDATA%\GraphAutoReader\installer-uninstall.log`. New installs
+include `.graphreader-owned-files.json`, which records the staged payload paths
+and SHA-256 hashes before retained files are copied in. Legacy installs lack
+that ownership record, so no automatic deletion is based on it.
+
 Clean-machine install, launch, repair, upgrade, uninstall, and user-data
 preservation remain mandatory evidence before publication. The tracked
 definition remains `implementation-complete-runtime-unverified` until that

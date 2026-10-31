@@ -46,22 +46,63 @@ internal static class Program
             return VerifyPayload(args);
         }
 
-        bool quiet = args.Contains("--quiet", StringComparer.OrdinalIgnoreCase);
+        bool quiet = DeferredUninstallExecution.IsQuiet(args);
         try
         {
+            if (args.Length > 0 && string.Equals(args[0], "--finalize-uninstall", StringComparison.Ordinal))
+            {
+                string? status = null;
+                string preserved = args.Length > 2 ? args[2] : string.Empty;
+                DeferredUninstallResult result = DeferredUninstallExecution.Run(() =>
+                {
+                    if (args.Length != 6 || !int.TryParse(args[1], out int parentId) || parentId <= 0 || parentId == Environment.ProcessId ||
+                        args[5] is not ("quiet" or "interactive"))
+                        throw new ArgumentException("Invalid uninstall finalizer arguments.");
+                    status = ValidateUninstallStatusPath(args[4]);
+                    try { using Process parent = Process.GetProcessById(parentId); if (!parent.WaitForExit(120_000)) throw new TimeoutException("The previous setup process did not exit."); }
+                    catch (ArgumentException) { /* Parent already exited. */ }
+                    using (InstallCoordination.Acquire(InstallRoot))
+                    {
+                        InstallCoordination.RequireIdentity(InstallRoot, args[3]);
+                        FinalizeUninstall(args[2]);
+                    }
+                }, () => UninstallStatus.Write(status!, "succeeded", InstallRoot, preserved),
+                error => { if (status is not null) UninstallStatus.Write(status, "failed", InstallRoot, preserved, error.Message); });
+                if (!result.Completed || result.StatusError is not null)
+                {
+                    string description = result.Completed ? "Uninstall completed, but its status could not be updated." : "Uninstall did not complete.";
+                    string log = Path.Combine(DataRoot, "installer-uninstall.log");
+                    try { Directory.CreateDirectory(DataRoot); File.AppendAllText(Path.Combine(DataRoot, "installer-uninstall.log"),
+                        $"{DateTime.UtcNow:O} {description} Original path: {InstallRoot}; intended path: {preserved}; operation error: {result.OperationError}; status error: {result.StatusError}{Environment.NewLine}", new UTF8Encoding(false)); }
+                    catch (Exception logError) when (logError is IOException or UnauthorizedAccessException)
+                    { Console.Error.WriteLine($"Could not write uninstall log: {logError.Message}"); }
+                    ShowMessage($"{description} Check the uninstall log:{Environment.NewLine}{log}", quiet, true);
+                }
+                return result.Completed ? 0 : 1;
+            }
+            using IDisposable operation = InstallCoordination.Acquire(InstallRoot);
             if (args.Contains("--uninstall", StringComparer.OrdinalIgnoreCase))
             {
-                Uninstall();
+                UninstallResult result = Uninstall(quiet);
                 ShowMessage(
-                    "Graph Auto Reader will finish uninstalling after this message closes. User data will be preserved.",
+                    result.StatusPath is not null ?
+                    $"Uninstall is pending. Check its status at:{Environment.NewLine}{result.StatusPath}{Environment.NewLine}Files will be preserved at:{Environment.NewLine}{result.Preserved}" :
+                    result.Preserved is null ? "Graph Auto Reader was removed. User data was preserved." :
+                    $"Graph Auto Reader was removed. Installation files were preserved at:{Environment.NewLine}{result.Preserved}",
                     quiet,
                     false);
-                return 0;
+                return result.StatusPath is null ? 0 : UninstallStatus.PendingExitCode;
             }
 
             bool allowDowngrade = args.Contains("--allow-downgrade", StringComparer.OrdinalIgnoreCase);
-            Install(allowDowngrade);
-            ShowMessage("Graph Auto Reader was installed for the current user.", quiet, false);
+            string? backup = Install(allowDowngrade);
+            string message = "Graph Auto Reader was installed for the current user.";
+            if (backup is not null)
+            {
+                message += $"{Environment.NewLine}Previous installation retained at:{Environment.NewLine}{backup}";
+                Console.Out.WriteLine($"Previous installation retained at: {backup}");
+            }
+            ShowMessage(message, quiet, false);
             return 0;
         }
         catch (Exception exception)
@@ -109,7 +150,7 @@ internal static class Program
         }
     }
 
-    private static void Install(bool allowDowngrade)
+    private static string? Install(bool allowDowngrade)
     {
         ValidateInstallRoot();
         string stagingRoot = Path.Combine(Path.GetTempPath(), "GraphAutoReader-Install-" + Guid.NewGuid().ToString("N"));
@@ -146,18 +187,36 @@ internal static class Program
                     "Repair and upgrade must be run from the downloaded setup executable, not Uninstall.exe.");
             }
 
-            if (Directory.Exists(InstallRoot))
+            InstallerMetadataSnapshot metadata = InstallerMetadataSnapshot.Capture(UninstallRegistryPath, StartMenuShortcut);
+            string? retained = InstallDirectoryTransaction.Execute(
+                InstallRoot,
+                replacement =>
+                {
+                    CopyDirectory(stagingRoot, replacement);
+                    File.Copy(runningInstaller, Path.Combine(replacement, "Uninstall.exe"), true);
+                    InstallCoordination.CreateFreshIdentity(replacement);
+                    WriteOwnershipInventory(replacement);
+                },
+                () =>
+                {
+                    CreateStartMenuShortcut(Path.Combine(InstallRoot, "GraphReader.App.exe"));
+                    RegisterUninstaller(payloadVersion);
+                }, metadata.Restore);
+            if (retained is not null)
             {
-                Directory.Delete(InstallRoot, true);
+                try
+                {
+                    Directory.CreateDirectory(DataRoot);
+                    File.AppendAllText(Path.Combine(DataRoot, "installer-retained.log"),
+                        $"{DateTime.UtcNow:O} Previous installation retained at: {retained}{Environment.NewLine}",
+                        new UTF8Encoding(false));
+                }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+                {
+                    Console.Error.WriteLine($"Could not write retained-installation log: {error.Message}");
+                }
             }
-
-            Directory.CreateDirectory(InstallRoot);
-            CopyDirectory(stagingRoot, InstallRoot);
-
-            File.Copy(runningInstaller, Path.Combine(InstallRoot, "Uninstall.exe"), true);
-
-            CreateStartMenuShortcut(Path.Combine(InstallRoot, "GraphReader.App.exe"));
-            RegisterUninstaller(payloadVersion);
+            return retained;
         }
         finally
         {
@@ -168,28 +227,64 @@ internal static class Program
         }
     }
 
-    private static void Uninstall()
+    private static UninstallResult Uninstall(bool quiet)
     {
         ValidateInstallRoot();
-        if (File.Exists(StartMenuShortcut))
-        {
-            File.Delete(StartMenuShortcut);
-        }
-
-        Registry.CurrentUser.DeleteSubKeyTree(UninstallRegistryPath, false);
         if (!Directory.Exists(InstallRoot))
         {
-            return;
+            InstallerMetadataSnapshot stale = InstallerMetadataSnapshot.Capture(UninstallRegistryPath, StartMenuShortcut);
+            try { stale.RemoveRegistration(); }
+            catch { stale.Restore(); throw; }
+            return new UninstallResult(null, null);
         }
 
+        string preserved = InstallRoot + ".uninstalled-" + Guid.NewGuid().ToString("N");
+        if (Directory.Exists(preserved) || File.Exists(preserved))
+            throw new IOException("The uninstall preservation path is unavailable.");
+        Console.Out.WriteLine($"Installation files will be retained at: {preserved}");
         string currentProcessPath = Environment.ProcessPath ?? string.Empty;
         if (!currentProcessPath.StartsWith(InstallRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
         {
-            Directory.Delete(InstallRoot, true);
-            return;
+            FinalizeUninstall(preserved);
+            return new UninstallResult(preserved, null);
         }
 
-        StartDeferredInstallDirectoryRemoval();
+        string identity = InstallCoordination.ReadOrCreateLegacyIdentity(InstallRoot);
+        string statusPath = StartDeferredUninstall(preserved, currentProcessPath, identity, quiet);
+        Console.Out.WriteLine($"Uninstall pending; status: {statusPath}");
+        return new UninstallResult(preserved, statusPath);
+    }
+
+    private static void FinalizeUninstall(string preserved)
+    {
+        ValidateInstallRoot();
+        InstallerMetadataSnapshot metadata = InstallerMetadataSnapshot.Capture(UninstallRegistryPath, StartMenuShortcut);
+        InstallDirectoryTransaction.Uninstall(InstallRoot, preserved, metadata.RemoveRegistration, metadata.Restore);
+    }
+
+    private static void WriteOwnershipInventory(string replacement)
+    {
+        string inventoryPath = Path.Combine(replacement, ".graphreader-owned-files.json");
+        if (File.Exists(inventoryPath) || Directory.Exists(inventoryPath))
+            throw new InvalidDataException("The payload uses the reserved ownership inventory path.");
+        var entries = Directory.EnumerateFiles(replacement, "*", SearchOption.AllDirectories)
+            .Select(path => new
+            {
+                path = Path.GetRelativePath(replacement, path).Replace('\\', '/'),
+                sha256 = HashFile(path),
+            })
+            .OrderBy(entry => entry.path, StringComparer.Ordinal)
+            .ToArray();
+        File.WriteAllText(inventoryPath, JsonSerializer.Serialize(new
+        {
+            schema = "graphreader.installed-payload-inventory.v1", files = entries,
+        }), new UTF8Encoding(false));
+    }
+
+    private static string HashFile(string path)
+    {
+        using Stream stream = File.OpenRead(path);
+        return Convert.ToHexStringLower(SHA256.HashData(stream));
     }
 
     private static void ExtractPayload(string destination)
@@ -380,7 +475,7 @@ internal static class Program
         RunPowerShell(script, true);
     }
 
-    private static void StartDeferredInstallDirectoryRemoval()
+    private static string StartDeferredUninstall(string preserved, string currentProcessPath, string identity, bool quiet)
     {
         string expectedRoot = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -391,10 +486,44 @@ internal static class Program
             throw new InvalidOperationException("Refusing to remove an unexpected installation directory.");
         }
 
-        string script =
-            $"Wait-Process -Id {Environment.ProcessId} -ErrorAction SilentlyContinue; " +
-            $"Remove-Item -LiteralPath '{EscapePowerShellLiteral(InstallRoot)}' -Recurse -Force";
-        RunPowerShell(script, false);
+        string expectedPrefix = Path.GetFullPath(InstallRoot) + ".uninstalled-";
+        if (!Path.GetFullPath(preserved).StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(Path.GetDirectoryName(preserved), Path.GetDirectoryName(InstallRoot), StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Refusing an unexpected uninstall preservation path.");
+
+        Directory.CreateDirectory(DataRoot);
+        string status = Path.Combine(DataRoot, "uninstall-status-" + Guid.NewGuid().ToString("N") + ".json");
+        UninstallStatus.Write(status, "pending", InstallRoot, preserved);
+        string helper = Path.Combine(DataRoot, "Uninstall-helper-" + Guid.NewGuid().ToString("N") + ".exe");
+        DeferredUninstallExecution.Schedule(
+            () => File.WriteAllText(Path.Combine(DataRoot, "uninstall-latest.json"),
+                JsonSerializer.Serialize(new { schema = "graphreader.uninstall-latest.v1", status_path = status }), new UTF8Encoding(false)),
+            () =>
+            {
+            File.Copy(currentProcessPath, helper, false);
+            var start = new ProcessStartInfo { FileName = helper, WorkingDirectory = DataRoot,
+                UseShellExecute = false, CreateNoWindow = true };
+            start.ArgumentList.Add("--finalize-uninstall");
+            start.ArgumentList.Add(Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            start.ArgumentList.Add(preserved);
+            start.ArgumentList.Add(identity);
+            start.ArgumentList.Add(status);
+            start.ArgumentList.Add(quiet ? "quiet" : "interactive");
+            using Process process = Process.Start(start)
+                ?? throw new InvalidOperationException("The uninstall finalizer could not be started.");
+            }, error => UninstallStatus.Write(status, "failed", InstallRoot, preserved, error.Message));
+        return status;
+    }
+
+    private static string ValidateUninstallStatusPath(string value)
+    {
+        string path = Path.GetFullPath(value);
+        string filename = Path.GetFileName(path);
+        if (!string.Equals(Path.GetDirectoryName(path), Path.GetFullPath(DataRoot), StringComparison.OrdinalIgnoreCase) ||
+            !filename.StartsWith("uninstall-status-", StringComparison.Ordinal) || !filename.EndsWith(".json", StringComparison.Ordinal) ||
+            !File.Exists(path) || (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+            throw new ArgumentException("Invalid uninstall status path.");
+        return path;
     }
 
     private static void RunPowerShell(string script, bool waitForExit)
@@ -448,6 +577,8 @@ internal static class Program
         {
             throw new InvalidOperationException("Application binaries and mutable user data must remain isolated.");
         }
+        if (Directory.Exists(InstallRoot) && (File.GetAttributes(InstallRoot) & FileAttributes.ReparsePoint) != 0)
+            throw new InvalidOperationException("The installation root cannot be a reparse point.");
     }
 
     private static void ShowMessage(string message, bool quiet, bool error)
@@ -465,4 +596,5 @@ internal static class Program
     private static extern int MessageBox(IntPtr window, string text, string caption, uint type);
 
     private sealed record PayloadFileRecord(string Path, string Sha256);
+    private sealed record UninstallResult(string? Preserved, string? StatusPath);
 }
