@@ -1,0 +1,24 @@
+{
+  "schema": "graphreader.gpu-numeric-v5-train.registration.v1",
+  "state": "blocked_pending_independent_corpus_and_recipe_review",
+  "training_authorized": false,
+  "positive_corpus": null,
+  "positive_source_bundle": null,
+  "positive_v5_component_corpus": null,
+  "reject_corpus": null,
+  "review_receipt_path": null,
+  "review_receipt_sha256": null,
+  "positive_v5_adapter_path": null,
+  "positive_v5_adapter_sha256": null,
+  "positive_v5_production_source_bindings": null,
+  "positive_v5_crop_transform": null,
+  "v5_component_source_sha256": null,
+  "reject_source_bindings": null,
+  "run_output_path": null,
+  "engine_source_bundle_sha256": null,
+  "limitations": [
+    "The public v3 positive corpus stores variable-size RGB region crops and does not bind a production-compatible V5 128x32 component raster transform.",
+    "The separate v1 reject corpus is not yet independently admitted by the numeric foundation.",
+    "This package is not an experiment preregistration and defines no acceptance metric or promotion rule."
+  ]
+}

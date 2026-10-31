@@ -1,0 +1,50 @@
+{
+  "schema": "graphreader.gpu-numeric-v5-train.recipe.v1",
+  "scope": "public_synthetic_train_validation_only",
+  "task": "v5_numeric_and_reject_component_classification",
+  "status": "implementation_only_blocked_pending_registered_corpora_and_experiment_review",
+  "required_gpu": {
+    "device": "cuda:0",
+    "name": "AMD Radeon RX 6600 XT",
+    "architecture": "gfx1032",
+    "hip_required": true,
+    "cpu_fallback": false
+  },
+  "model": {
+    "class": "ComponentEnsembleGlyphNet",
+    "source_sha256": "9374791d53ba6524818955310036eff8d2feebdc7103e807b3f1029d5e2fda36",
+    "class_count": 14,
+    "glyph_shape": [1, 24, 26],
+    "reject_class_index": 13
+  },
+  "inputs": {
+    "positive_schema": "graphreader.synthetic-tick-corpus.v3",
+    "positive_adapter_schema": "graphreader.v5-component-crop-adapter.v1",
+    "reject_schema": "graphreader.synthetic-reject-glyph.v1",
+    "splits": ["train", "validation"],
+    "test_split_allowed": false,
+    "positive_crop_contract": "requires separately authenticated production-compatible 128x32 grayscale V5 component raster; raw v3 RGB bbox crops are insufficient",
+    "reject_components": "must be recomputed by the exact V5 component extractor and match saved tensor hashes"
+  },
+  "bounded_recipe": {
+    "seed": 20261031,
+    "model_initialization_seed": 20260820,
+    "batch_size": 128,
+    "maximum_optimizer_steps": 256,
+    "optimizer": "AdamW",
+    "learning_rate": 0.0015,
+    "weight_decay": 0.0001,
+    "deterministic_algorithms_required": true,
+    "drop_last": false
+  },
+  "admission": {
+    "registration_required": true,
+    "optimizer_allowed_without_registered_pair": false,
+    "checkpoint_allowed_without_registered_pair": false,
+    "training_approved": false,
+    "production_approved": false,
+    "sealed_or_private_inputs_allowed": false,
+    "test_data_allowed": false,
+    "acceptance_policy": "unregistered; no metric gate, candidate promotion, or production approval is authorized"
+  }
+}
