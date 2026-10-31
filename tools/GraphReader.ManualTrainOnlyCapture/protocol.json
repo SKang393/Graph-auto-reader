@@ -1,0 +1,48 @@
+{
+  "schema": "graphreader.manual-train-only-source-capture-protocol.v1",
+  "status": "source_capture_only_unapproved",
+  "source_files": {
+    "Directory.Build.props": "d7a0d2ca5c26745e5d7e0b8737c6d928f65d64feadd5934cb039be4d4d29030f",
+    "Directory.Packages.props": "08d7476c82014698470650758506ffc625916f590ac08a66181be825ae6ecac2",
+    "global.json": "e19ae6304f93e71dc33b4de89a3f2978ee723dee2b1c52dc043afe77e402a046",
+    "src/GraphReader.Export/ExportContracts.cs": "f6231677ec6c1055b1358a5622aa652cedde3ce6744f0014e6520e01863a661f",
+    "src/GraphReader.Export/GraphReader.Export.csproj": "db3508b49d72d8230acd3afc4162912a196942a1b67ad66b5788fed89d0ecaae",
+    "tools/GraphReader.ManualTrainOnlyCapture/GraphReader.ManualTrainOnlyCapture.csproj": "fbac6f9c6c5f92a4f2c0f4c332830c73ec59888ec7ae1a862960f7214be5ef42",
+    "tools/GraphReader.ManualTrainOnlyCapture/Program.cs": "02169870f6d171d25cef7f5285bffd364e407c63c32ed4a341198d177f075099",
+    "tools/GraphReader.ManualTrainOnlyCapture/TrainOnlySourceCapture.cs": "1e123ad33efecbc4b5c2dc6acf6715503a755f6fe29a9d0c973bffbf836dbbb7",
+    "tools/GraphReader.ManualTrainOnlyCapture/TrainOnlySourceCaptureSelfTest.cs": "e993204f65b9d0c678668a781c9912c56fcce3d4c9ebbfbb80e31261d746b029",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDevSourceMaterializer.cs": "1b898bf35a799f297a2a0f2321679ff62408ddb30de6a1ff3277a540cc6f3159",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapter.cs": "569241baac82321ff659c30fa0352ca44122d3a2f481a5c6c22b8a055892e45f",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenDevTrainingSelector.cs": "2c14934db53f3072dafabce1a0a337b404179d56b0abaec758875012bfaad3d5",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenRealCorpusInventory.cs": "1eafaa5f7906de3343bd5bc2a64f8665380ae9723f2d80f6ccaa999646c8b6ec",
+    "tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs": "aa31af34c670d0dce05650ae6bc5bc0db9163195b5667ccba71fbf2619378f97"
+  },
+  "split": {
+    "inventory": "real-dev",
+    "partition_rule": "sha256:graphreader-engauge-real-dev-study-v1:first-byte-lt-204",
+    "expected_inventory_projects": 120,
+    "expected_train_projects": 104,
+    "expected_development_projects": 16,
+    "development_payload_reads": 0,
+    "sealed_payload_reads": 0
+  },
+  "labels": {
+    "source": "Engauge curve-point screen coordinates",
+    "positive_label": "curve-point center only",
+    "marker_glyph_correspondence": "unverified",
+    "negative_labels": 0,
+    "duplicate_image_grouping_required": true
+  },
+  "scope": {
+    "inference_runs": 0,
+    "optimizer_steps": 0,
+    "development_payload_reads": 0,
+    "sealed_payload_reads": 0,
+    "training_admitted": false,
+    "candidate_authorized": false
+  },
+  "runtime_assemblies": {
+    "GraphReader.Export": "037daf57c4c49a7cd7d5097f5eac95d09dd200f5fa84604bebf8d1d72502a91b",
+    "GraphReader.ManualTrainOnlyCapture": "882cd78c3a4a94ef64bab3e6da4aa0ddf917a023f6f5453980428a9ba201ccca"
+  }
+}
