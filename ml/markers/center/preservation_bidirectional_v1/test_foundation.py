@@ -93,6 +93,9 @@ class DirectionalPreservationTests(unittest.TestCase):
         checkpoint = torch.load(BytesIO(source._load_bytes(source.DATA / source.V37, source.V37_CHECKPOINT_SHA256)),
                                 map_location="cpu", weights_only=True)
         self.model.local.load_state_dict(checkpoint["state_dict"], strict=True)
+        self.model.train()
+        self.assertFalse(self.model.local.training)
+        self.assertTrue(self.model.residual.training)
         result = directional_penalties(self.model, component, (0,), family, (0,),
                                        component_weight=1, family_weight=1)
         self.assertTrue(torch.isfinite(result.weighted_total).item())
