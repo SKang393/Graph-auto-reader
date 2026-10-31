@@ -20,4 +20,28 @@ public sealed class OcrV8ProductionCompositionFactoryTests
 
         StringAssert.Contains(exception.Message, "unreviewed identity");
     }
+
+    [TestMethod]
+    public void V5NumericRecognizerUsesCpuWhenCallerAllowsDirectMlAndCpu()
+    {
+        IReadOnlyList<InferenceProvider> providers =
+            OcrV8ProductionCompositionFactory.V5NumericRecognizerProviderPolicy(
+                [InferenceProvider.DirectMl, InferenceProvider.Cpu]);
+
+        CollectionAssert.AreEqual(new[] { InferenceProvider.Cpu }, providers.ToArray());
+        CollectionAssert.AreEqual(
+            new[] { InferenceProvider.DirectMl, InferenceProvider.Cpu },
+            OcrV8ProductionCompositionFactory.ValidateProviderPolicy(
+                [InferenceProvider.DirectMl, InferenceProvider.Cpu]).ToArray());
+    }
+
+    [TestMethod]
+    public void V5NumericRecognizerRejectsCallerPolicyWithoutCpu()
+    {
+        ArgumentException exception = Assert.ThrowsExactly<ArgumentException>(() =>
+            OcrV8ProductionCompositionFactory.V5NumericRecognizerProviderPolicy(
+                [InferenceProvider.DirectMl]));
+
+        StringAssert.Contains(exception.Message, "retain CPU fallback");
+    }
 }

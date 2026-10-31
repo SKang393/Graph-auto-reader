@@ -113,7 +113,7 @@ public static class OcrV8ProductionCompositionFactory
                 "0123456789.-%")
             {
                 StageVersion = "0.0.21-p1",
-                AllowedProviders = providers,
+                AllowedProviders = V5NumericRecognizerProviderPolicy(providers),
                 BypassCache = bypassCache,
             });
 
@@ -227,5 +227,12 @@ public static class OcrV8ProductionCompositionFactory
         }
 
         return Array.AsReadOnly(providers);
+    }
+
+    internal static IReadOnlyList<InferenceProvider> V5NumericRecognizerProviderPolicy(
+        IReadOnlyList<InferenceProvider> allowedProviders)
+    {
+        _ = ValidateProviderPolicy(allowedProviders);
+        return Array.AsReadOnly(new[] { InferenceProvider.Cpu });
     }
 }
