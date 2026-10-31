@@ -1,0 +1,2429 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://graph-auto-reader.local/ml/synthetic/scene.schema.json",
+  "$comment": "SPDX-License-Identifier: Apache-2.0; Copyright 2026 Sungwoo Kang",
+  "title": "Graph Auto Reader Synthetic Scene",
+  "description": "A deterministic procedural SCD graph scene in original pixel coordinates; provenance distinguishes code, output assessment, and referenced assets.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scene_id",
+    "seed",
+    "design",
+    "coordinate_space",
+    "canvas",
+    "families",
+    "font",
+    "style_catalog",
+    "style",
+    "layout",
+    "presentation",
+    "panels",
+    "annotations",
+    "degradations",
+    "hard_negatives",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "scene_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9223372036854775807
+    },
+    "design": {
+      "type": "string",
+      "enum": [
+        "ab",
+        "aba",
+        "abab",
+        "multiple_baseline",
+        "multiple_probe",
+        "alternating_treatments",
+        "changing_criterion",
+        "maintenance",
+        "generalization",
+        "staggered_starts",
+        "shared_baseline"
+      ]
+    },
+    "coordinate_space": {
+      "const": "original_pixels"
+    },
+    "canvas": {
+      "$ref": "#/$defs/canvas"
+    },
+    "families": {
+      "$ref": "#/$defs/families"
+    },
+    "font": {
+      "$ref": "#/$defs/font"
+    },
+    "style_catalog": {
+      "type": "array",
+      "minItems": 27,
+      "maxItems": 27,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/markerStyle"
+      }
+    },
+    "style": {
+      "$ref": "#/$defs/style"
+    },
+    "layout": {
+      "$ref": "#/$defs/layout"
+    },
+    "presentation": {
+      "$ref": "#/$defs/presentation"
+    },
+    "panels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "$ref": "#/$defs/panel"
+      }
+    },
+    "annotations": {
+      "$ref": "#/$defs/annotations"
+    },
+    "degradations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": {
+        "$ref": "#/$defs/degradation"
+      }
+    },
+    "hard_negatives": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/hardNegative"
+      }
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "point2d": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "line": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "box": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      ],
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "markerShape": {
+      "type": "string",
+      "enum": [
+        "circle",
+        "square",
+        "triangle_up",
+        "triangle_down",
+        "diamond",
+        "star",
+        "asterisk",
+        "cross",
+        "other"
+      ]
+    },
+    "fillState": {
+      "type": "string",
+      "enum": [
+        "open",
+        "filled",
+        "degraded"
+      ]
+    },
+    "lineStyle": {
+      "type": "string",
+      "enum": [
+        "solid",
+        "dashed",
+        "dotted",
+        "missing",
+        "partially_occluded"
+      ]
+    },
+    "canvas": {
+      "type": "object",
+      "required": [
+        "width",
+        "height",
+        "background"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 320,
+          "maximum": 10000
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 240,
+          "maximum": 10000
+        },
+        "background": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "familyRef": {
+      "type": "object",
+      "required": [
+        "key",
+        "split"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "split": {
+          "type": "string",
+          "enum": [
+            "train",
+            "validation",
+            "test"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "families": {
+      "type": "object",
+      "required": [
+        "renderer",
+        "font",
+        "degradation",
+        "template",
+        "marker"
+      ],
+      "properties": {
+        "renderer": {
+          "$ref": "#/$defs/familyRef"
+        },
+        "font": {
+          "$ref": "#/$defs/familyRef"
+        },
+        "degradation": {
+          "$ref": "#/$defs/familyRef"
+        },
+        "template": {
+          "$ref": "#/$defs/familyRef"
+        },
+        "marker": {
+          "$ref": "#/$defs/familyRef"
+        }
+      },
+      "additionalProperties": false
+    },
+    "font": {
+      "type": "object",
+      "required": [
+        "family_key",
+        "generic_family",
+        "source",
+        "packaged"
+      ],
+      "properties": {
+        "family_key": {
+          "type": "string"
+        },
+        "asset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generic_family": {
+          "type": "string",
+          "enum": [
+            "sans",
+            "serif",
+            "mono",
+            "handwritten"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "system",
+            "user_supplied",
+            "package_asset"
+          ]
+        },
+        "packaged": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        },
+        "official_source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{40}$"
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "license_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "license_evidence_url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "license_evidence_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "license_evidence_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "user_supplied"
+              }
+            },
+            "required": [
+              "source"
+            ]
+          },
+          "then": {
+            "required": [
+              "path",
+              "sha256"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "package_asset"
+              }
+            },
+            "required": [
+              "source"
+            ]
+          },
+          "then": {
+            "required": [
+              "asset_id",
+              "path",
+              "sha256",
+              "packaged"
+            ],
+            "properties": {
+              "packaged": {
+                "const": true
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "packaged": {
+                "const": true
+              }
+            },
+            "required": [
+              "packaged"
+            ]
+          },
+          "then": {
+            "required": [
+              "asset_id",
+              "path",
+              "sha256"
+            ]
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "markerStyle": {
+      "type": "object",
+      "required": [
+        "style_id",
+        "shape",
+        "fill",
+        "symbol"
+      ],
+      "properties": {
+        "style_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "shape": {
+          "$ref": "#/$defs/markerShape"
+        },
+        "fill": {
+          "$ref": "#/$defs/fillState"
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "style": {
+      "type": "object",
+      "required": [
+        "variation_seed",
+        "y_axis",
+        "stroke_width",
+        "marker_radius",
+        "session_spacing"
+      ],
+      "properties": {
+        "variation_seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        },
+        "y_axis": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/yAxisProfile10"
+            },
+            {
+              "$ref": "#/$defs/yAxisProfile20"
+            },
+            {
+              "$ref": "#/$defs/yAxisProfile50"
+            },
+            {
+              "$ref": "#/$defs/yAxisProfile100"
+            },
+            {
+              "$ref": "#/$defs/yAxisProfile200"
+            }
+          ]
+        },
+        "stroke_width": {
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3
+          ]
+        },
+        "marker_radius": {
+          "type": "number",
+          "enum": [
+            3.0,
+            3.5,
+            4.0,
+            4.4,
+            4.5,
+            5.0,
+            5.5,
+            6.0,
+            6.2,
+            12.0
+          ]
+        },
+        "session_spacing": {
+          "type": "object",
+          "required": [
+            "mode",
+            "edge_padding_fraction",
+            "jitter_fraction",
+            "nominal_pitch_fraction"
+          ],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "uniform",
+                "irregular"
+              ]
+            },
+            "edge_padding_fraction": {
+              "type": "number",
+              "enum": [
+                0.0,
+                0.02,
+                0.04
+              ]
+            },
+            "jitter_fraction": {
+              "type": "number",
+              "enum": [
+                0.0,
+                0.15,
+                0.25,
+                0.35
+              ]
+            },
+            "nominal_pitch_fraction": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "yAxisProfile10": {
+      "$ref": "#/$defs/yAxisProfileBase",
+      "properties": {
+        "minimum": {
+          "const": 0.0
+        },
+        "maximum": {
+          "const": 10.0
+        },
+        "tick_interval": {
+          "const": 2.0
+        }
+      }
+    },
+    "yAxisProfile20": {
+      "$ref": "#/$defs/yAxisProfileBase",
+      "properties": {
+        "minimum": {
+          "const": 0.0
+        },
+        "maximum": {
+          "const": 20.0
+        },
+        "tick_interval": {
+          "const": 5.0
+        }
+      }
+    },
+    "yAxisProfile50": {
+      "$ref": "#/$defs/yAxisProfileBase",
+      "properties": {
+        "minimum": {
+          "const": 0.0
+        },
+        "maximum": {
+          "const": 50.0
+        },
+        "tick_interval": {
+          "const": 10.0
+        }
+      }
+    },
+    "yAxisProfile100": {
+      "$ref": "#/$defs/yAxisProfileBase",
+      "properties": {
+        "minimum": {
+          "const": 0.0
+        },
+        "maximum": {
+          "const": 100.0
+        },
+        "tick_interval": {
+          "const": 20.0
+        }
+      }
+    },
+    "yAxisProfile200": {
+      "$ref": "#/$defs/yAxisProfileBase",
+      "properties": {
+        "minimum": {
+          "const": 0.0
+        },
+        "maximum": {
+          "const": 200.0
+        },
+        "tick_interval": {
+          "const": 25.0
+        }
+      }
+    },
+    "yAxisProfileBase": {
+      "type": "object",
+      "required": [
+        "minimum",
+        "maximum",
+        "tick_interval"
+      ],
+      "properties": {
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "tick_interval": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "layout": {
+      "type": "object",
+      "required": [
+        "panel_count",
+        "session_count",
+        "shared_axes",
+        "session_x_positions",
+        "features"
+      ],
+      "properties": {
+        "panel_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "session_count": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 100
+        },
+        "shared_axes": {
+          "type": "boolean"
+        },
+        "session_x_positions": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 100,
+          "items": {
+            "type": "number"
+          }
+        },
+        "features": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "missing_sessions",
+              "sparse_probes",
+              "blank_phase_gaps",
+              "irregular_spacing"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "presentation": {
+      "type": "object",
+      "required": [
+        "x_label_visibility",
+        "y_label_visibility",
+        "hide_zero_label",
+        "phase_divider_style",
+        "connecting_line_style",
+        "legend_position",
+        "grayscale",
+        "monochrome",
+        "show_participant_names",
+        "show_arrows",
+        "show_brackets",
+        "show_top_condition_bars",
+        "features"
+      ],
+      "properties": {
+        "x_label_visibility": {
+          "type": "string",
+          "enum": [
+            "visible",
+            "partial",
+            "hidden"
+          ]
+        },
+        "y_label_visibility": {
+          "type": "string",
+          "enum": [
+            "visible",
+            "partial",
+            "hidden"
+          ]
+        },
+        "hide_zero_label": {
+          "type": "boolean"
+        },
+        "phase_divider_style": {
+          "type": "string",
+          "enum": [
+            "solid",
+            "dashed",
+            "dotted"
+          ]
+        },
+        "connecting_line_style": {
+          "$ref": "#/$defs/lineStyle"
+        },
+        "legend_position": {
+          "type": "string",
+          "enum": [
+            "inside",
+            "outside",
+            "none"
+          ]
+        },
+        "grayscale": {
+          "type": "boolean"
+        },
+        "dense_tick_labels": {
+          "type": "boolean"
+        },
+        "font_size_px": {
+          "type": "integer",
+          "minimum": 6,
+          "maximum": 64
+        },
+        "monochrome": {
+          "type": "boolean"
+        },
+        "show_participant_names": {
+          "type": "boolean"
+        },
+        "show_arrows": {
+          "type": "boolean"
+        },
+        "show_brackets": {
+          "type": "boolean"
+        },
+        "show_top_condition_bars": {
+          "type": "boolean"
+        },
+        "features": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "missing_sessions",
+              "sparse_probes",
+              "blank_phase_gaps",
+              "irregular_spacing"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "axis": {
+      "type": "object",
+      "required": [
+        "line",
+        "shared",
+        "role"
+      ],
+      "properties": {
+        "line": {
+          "$ref": "#/$defs/line"
+        },
+        "shared": {
+          "type": "boolean"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "x_axis",
+            "y_axis"
+          ]
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "tick_interval": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "session_count": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "role": {
+                "const": "y_axis"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          },
+          "then": {
+            "required": [
+              "min",
+              "max",
+              "tick_interval"
+            ]
+          }
+        }
+      ]
+    },
+    "anchor": {
+      "type": "object",
+      "required": [
+        "kind",
+        "screen",
+        "graph",
+        "confidence"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "session1_y0",
+            "session1_ymax",
+            "sessionmax_y0"
+          ]
+        },
+        "screen": {
+          "$ref": "#/$defs/point2d"
+        },
+        "graph": {
+          "$ref": "#/$defs/point2d"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "tick": {
+      "type": "object",
+      "required": [
+        "tick_id",
+        "axis",
+        "center",
+        "line",
+        "value",
+        "label",
+        "hidden",
+        "role"
+      ],
+      "properties": {
+        "tick_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "axis": {
+          "type": "string",
+          "enum": [
+            "x",
+            "y"
+          ]
+        },
+        "center": {
+          "$ref": "#/$defs/point2d"
+        },
+        "line": {
+          "$ref": "#/$defs/line"
+        },
+        "value": {
+          "type": "number"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "x_tick",
+            "y_tick"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "phase": {
+      "type": "object",
+      "required": [
+        "phase_id",
+        "order",
+        "code",
+        "normalized_type",
+        "label_text",
+        "session_start",
+        "session_end",
+        "screen_x_min",
+        "screen_x_max",
+        "blank"
+      ],
+      "properties": {
+        "phase_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalized_type": {
+          "type": "string",
+          "enum": [
+            "baseline",
+            "intervention",
+            "maintenance",
+            "generalization",
+            "unknown"
+          ]
+        },
+        "label_text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "session_start": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "session_end": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "screen_x_min": {
+          "type": "number"
+        },
+        "screen_x_max": {
+          "type": "number"
+        },
+        "blank": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "divider": {
+      "type": "object",
+      "required": [
+        "divider_id",
+        "between_sessions",
+        "line",
+        "style",
+        "role"
+      ],
+      "properties": {
+        "divider_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "between_sessions": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "line": {
+          "$ref": "#/$defs/line"
+        },
+        "style": {
+          "type": "string",
+          "enum": [
+            "solid",
+            "dashed",
+            "dotted"
+          ]
+        },
+        "role": {
+          "const": "phase_divider"
+        }
+      },
+      "additionalProperties": false
+    },
+    "series": {
+      "type": "object",
+      "required": [
+        "series_id",
+        "display_name",
+        "semantic_role",
+        "shape",
+        "fill",
+        "symbol",
+        "line_style",
+        "stroke",
+        "stroke_width",
+        "point_ids",
+        "legend_text",
+        "shared_baseline_series_id",
+        "applicable_probe_series_ids"
+      ],
+      "properties": {
+        "series_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "semantic_role": {
+          "type": "string",
+          "enum": [
+            "baseline",
+            "intervention",
+            "maintenance",
+            "generalization",
+            "unknown"
+          ]
+        },
+        "shape": {
+          "$ref": "#/$defs/markerShape"
+        },
+        "fill": {
+          "$ref": "#/$defs/fillState"
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line_style": {
+          "$ref": "#/$defs/lineStyle"
+        },
+        "stroke": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$"
+        },
+        "stroke_width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "point_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/uuid"
+          }
+        },
+        "legend_text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "shared_baseline_series_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "applicable_probe_series_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/uuid"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "point": {
+      "type": "object",
+      "required": [
+        "point_id",
+        "series_id",
+        "phase_id",
+        "observation_index",
+        "printed_x_value",
+        "estimated_x_value",
+        "x_confidence",
+        "graph",
+        "center",
+        "coordinate_space",
+        "radius",
+        "shape",
+        "fill",
+        "mask"
+      ],
+      "properties": {
+        "point_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "series_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "phase_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "observation_index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "printed_x_value": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 100
+        },
+        "estimated_x_value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "x_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "graph": {
+          "$ref": "#/$defs/point2d"
+        },
+        "center": {
+          "$ref": "#/$defs/point2d"
+        },
+        "coordinate_space": {
+          "const": "original_pixels"
+        },
+        "radius": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 50
+        },
+        "shape": {
+          "$ref": "#/$defs/markerShape"
+        },
+        "fill": {
+          "$ref": "#/$defs/fillState"
+        },
+        "mask": {
+          "oneOf": [
+            {
+              "type": "array",
+              "minItems": 3,
+              "items": {
+                "$ref": "#/$defs/point2d"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "legendEntry": {
+      "type": "object",
+      "required": [
+        "series_id",
+        "glyph_box",
+        "text_box",
+        "text"
+      ],
+      "properties": {
+        "series_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "glyph_box": {
+          "$ref": "#/$defs/box"
+        },
+        "text_box": {
+          "$ref": "#/$defs/box"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "legend": {
+      "type": "object",
+      "required": [
+        "visible",
+        "position",
+        "box",
+        "entries"
+      ],
+      "properties": {
+        "visible": {
+          "type": "boolean"
+        },
+        "position": {
+          "type": "string",
+          "enum": [
+            "inside",
+            "outside",
+            "none"
+          ]
+        },
+        "box": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/box"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/legendEntry"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "arrow": {
+      "type": "object",
+      "required": [
+        "arrow_id",
+        "start",
+        "tip",
+        "label",
+        "role"
+      ],
+      "properties": {
+        "arrow_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "start": {
+          "$ref": "#/$defs/point2d"
+        },
+        "tip": {
+          "$ref": "#/$defs/point2d"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "role": {
+          "const": "annotation_arrow"
+        }
+      },
+      "additionalProperties": false
+    },
+    "bracket": {
+      "type": "object",
+      "required": [
+        "bracket_id",
+        "points",
+        "label",
+        "role"
+      ],
+      "properties": {
+        "bracket_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "points": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "#/$defs/point2d"
+          }
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "role": {
+          "const": "bracket"
+        }
+      },
+      "additionalProperties": false
+    },
+    "conditionBar": {
+      "type": "object",
+      "required": [
+        "bar_id",
+        "line",
+        "label",
+        "role"
+      ],
+      "properties": {
+        "bar_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "line": {
+          "$ref": "#/$defs/line"
+        },
+        "label": {
+          "type": "string"
+        },
+        "role": {
+          "const": "condition_bar"
+        }
+      },
+      "additionalProperties": false
+    },
+    "panel": {
+      "type": "object",
+      "required": [
+        "panel_id",
+        "index",
+        "participant",
+        "box",
+        "plot_box",
+        "axes",
+        "calibration_anchors",
+        "ticks",
+        "phases",
+        "dividers",
+        "series",
+        "points",
+        "connections",
+        "missing_sessions",
+        "legend",
+        "arrows",
+        "brackets",
+        "condition_bars"
+      ],
+      "properties": {
+        "panel_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "participant": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        },
+        "plot_box": {
+          "$ref": "#/$defs/box"
+        },
+        "axes": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ],
+          "properties": {
+            "x": {
+              "$ref": "#/$defs/axis"
+            },
+            "y": {
+              "$ref": "#/$defs/axis"
+            }
+          },
+          "additionalProperties": false
+        },
+        "calibration_anchors": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/anchor"
+          }
+        },
+        "ticks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tick"
+          }
+        },
+        "phases": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/phase"
+          }
+        },
+        "dividers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/divider"
+          }
+        },
+        "series": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/series"
+          }
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/point"
+          }
+        },
+        "connections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/connection"
+          }
+        },
+        "missing_sessions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "legend": {
+          "$ref": "#/$defs/legend"
+        },
+        "arrows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/arrow"
+          }
+        },
+        "brackets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bracket"
+          }
+        },
+        "condition_bars": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/conditionBar"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "connection": {
+      "type": "object",
+      "required": [
+        "edge_id",
+        "series_id",
+        "from_point_id",
+        "to_point_id",
+        "style",
+        "visible"
+      ],
+      "properties": {
+        "edge_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "series_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "from_point_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "to_point_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "style": {
+          "$ref": "#/$defs/lineStyle"
+        },
+        "visible": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "textRegion": {
+      "type": "object",
+      "required": [
+        "region_id",
+        "panel_id",
+        "box",
+        "text",
+        "role",
+        "visible"
+      ],
+      "properties": {
+        "region_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "panel_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        },
+        "text": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "y_tick",
+            "x_tick",
+            "axis_title",
+            "phase_heading",
+            "legend_text",
+            "participant",
+            "annotation",
+            "condition_label",
+            "other"
+          ]
+        },
+        "visible": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "required": [
+        "artifact_id",
+        "panel_id",
+        "kind",
+        "role",
+        "geometry"
+      ],
+      "properties": {
+        "artifact_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "panel_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "text",
+            "arrowhead",
+            "axis",
+            "tick",
+            "divider",
+            "legend",
+            "bracket",
+            "condition_bar",
+            "line_intersection",
+            "other"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "geometry": {
+          "$ref": "#/$defs/geometry"
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "type": "object",
+      "required": [
+        "text_regions",
+        "artifacts"
+      ],
+      "properties": {
+        "text_regions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/textRegion"
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/artifact"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "degradation": {
+      "type": "object",
+      "required": [
+        "stage",
+        "family_key",
+        "kind",
+        "parameters",
+        "deterministic"
+      ],
+      "properties": {
+        "stage": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        },
+        "family_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "none",
+            "downsample",
+            "isotropic_blur",
+            "anisotropic_blur",
+            "gaussian_noise",
+            "poisson_noise",
+            "impulse_noise",
+            "jpeg",
+            "ringing",
+            "overshoot",
+            "grayscale",
+            "threshold",
+            "halftone",
+            "paper_texture",
+            "faded_ink",
+            "erosion",
+            "dilation",
+            "stroke_dropout",
+            "ink_bleed",
+            "skew",
+            "perspective",
+            "scan_shadow",
+            "clipping",
+            "hand_drawn_jitter",
+            "inconsistent_marker_outlines",
+            "line_marker_contact",
+            "camera_document"
+          ]
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "deterministic": {
+          "const": true
+        }
+      },
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "$ref": "#/$defs/degradationEmpty"
+        },
+        {
+          "$ref": "#/$defs/degradationDownsample"
+        },
+        {
+          "$ref": "#/$defs/degradationBlur"
+        },
+        {
+          "$ref": "#/$defs/degradationGaussian"
+        },
+        {
+          "$ref": "#/$defs/degradationPoisson"
+        },
+        {
+          "$ref": "#/$defs/degradationImpulse"
+        },
+        {
+          "$ref": "#/$defs/degradationJpeg"
+        },
+        {
+          "$ref": "#/$defs/degradationSharpen"
+        },
+        {
+          "$ref": "#/$defs/degradationThreshold"
+        },
+        {
+          "$ref": "#/$defs/degradationHalftone"
+        },
+        {
+          "$ref": "#/$defs/degradationPaper"
+        },
+        {
+          "$ref": "#/$defs/degradationFaded"
+        },
+        {
+          "$ref": "#/$defs/degradationMorphology"
+        },
+        {
+          "$ref": "#/$defs/degradationDropout"
+        },
+        {
+          "$ref": "#/$defs/degradationShadow"
+        },
+        {
+          "$ref": "#/$defs/degradationClipping"
+        },
+        {
+          "$ref": "#/$defs/degradationDirectionalGeometry"
+        },
+        {
+          "$ref": "#/$defs/degradationNonDirectionalGeometry"
+        },
+        {
+          "$ref": "#/$defs/degradationCameraDocument"
+        }
+      ]
+    },
+    "emptyParameters": {
+      "type": "object",
+      "maxProperties": 0,
+      "additionalProperties": false
+    },
+    "degradationEmpty": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "none",
+            "grayscale"
+          ]
+        },
+        "parameters": {
+          "$ref": "#/$defs/emptyParameters"
+        }
+      }
+    },
+    "degradationDownsample": {
+      "properties": {
+        "kind": {
+          "const": "downsample"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "scale",
+            "resampler"
+          ],
+          "properties": {
+            "scale": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1.0
+            },
+            "resampler": {
+              "type": "string",
+              "enum": [
+                "nearest",
+                "bilinear",
+                "bicubic",
+                "lanczos"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationBlur": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "isotropic_blur",
+            "anisotropic_blur"
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "radius"
+          ],
+          "properties": {
+            "radius": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 50.0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationGaussian": {
+      "properties": {
+        "kind": {
+          "const": "gaussian_noise"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "sigma"
+          ],
+          "properties": {
+            "sigma": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 100.0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationPoisson": {
+      "properties": {
+        "kind": {
+          "const": "poisson_noise"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "scale"
+          ],
+          "properties": {
+            "scale": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 10.0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationImpulse": {
+      "properties": {
+        "kind": {
+          "const": "impulse_noise"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "probability"
+          ],
+          "properties": {
+            "probability": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationJpeg": {
+      "properties": {
+        "kind": {
+          "const": "jpeg"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "quality"
+          ],
+          "properties": {
+            "quality": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 95
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationSharpen": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "ringing",
+            "overshoot"
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "factor"
+          ],
+          "properties": {
+            "factor": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 10.0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationThreshold": {
+      "properties": {
+        "kind": {
+          "const": "threshold"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "cutoff"
+          ],
+          "properties": {
+            "cutoff": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 255
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationHalftone": {
+      "properties": {
+        "kind": {
+          "const": "halftone"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "cell_size"
+          ],
+          "properties": {
+            "cell_size": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 100
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationPaper": {
+      "properties": {
+        "kind": {
+          "const": "paper_texture"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "sigma"
+          ],
+          "properties": {
+            "sigma": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 100.0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationFaded": {
+      "properties": {
+        "kind": {
+          "const": "faded_ink"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "opacity"
+          ],
+          "properties": {
+            "opacity": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationMorphology": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "erosion",
+            "dilation",
+            "ink_bleed"
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "size"
+          ],
+          "properties": {
+            "size": {
+              "type": "integer",
+              "minimum": 3,
+              "maximum": 99
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationDropout": {
+      "properties": {
+        "kind": {
+          "const": "stroke_dropout"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "count",
+            "length",
+            "width"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "length": {
+              "type": "integer",
+              "minimum": 2
+            },
+            "width": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationShadow": {
+      "properties": {
+        "kind": {
+          "const": "scan_shadow"
+        },
+        "parameters": {
+          "$ref": "#/$defs/shadowParameters"
+        }
+      }
+    },
+    "degradationClipping": {
+      "properties": {
+        "kind": {
+          "const": "clipping"
+        },
+        "parameters": {
+          "type": "object",
+          "required": [
+            "amount_px",
+            "side"
+          ],
+          "properties": {
+            "amount_px": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "side": {
+              "$ref": "#/$defs/edgeSide"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "degradationDirectionalGeometry": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "skew",
+            "hand_drawn_jitter"
+          ]
+        },
+        "parameters": {
+          "$ref": "#/$defs/shadowParameters"
+        }
+      }
+    },
+    "degradationNonDirectionalGeometry": {
+      "properties": {
+        "kind": {
+          "enum": [
+            "perspective",
+            "inconsistent_marker_outlines",
+            "line_marker_contact"
+          ]
+        },
+        "parameters": {
+          "$ref": "#/$defs/strengthParameters"
+        }
+      }
+    },
+    "degradationCameraDocument": {
+      "properties": {
+        "kind": {
+          "const": "camera_document"
+        },
+        "parameters": {
+          "$ref": "#/$defs/strengthParameters"
+        }
+      }
+    },
+    "strengthParameters": {
+      "type": "object",
+      "required": [
+        "strength"
+      ],
+      "properties": {
+        "strength": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 0.9
+        }
+      },
+      "additionalProperties": false
+    },
+    "shadowParameters": {
+      "type": "object",
+      "required": [
+        "strength",
+        "side"
+      ],
+      "properties": {
+        "strength": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 0.9
+        },
+        "side": {
+          "$ref": "#/$defs/edgeSide"
+        }
+      },
+      "additionalProperties": false
+    },
+    "edgeSide": {
+      "type": "string",
+      "enum": [
+        "left",
+        "right",
+        "top",
+        "bottom"
+      ]
+    },
+    "geometry": {
+      "type": "object",
+      "required": [
+        "kind",
+        "coordinates"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "point",
+            "line",
+            "box",
+            "polyline"
+          ]
+        },
+        "coordinates": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "number"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "hardNegative": {
+      "type": "object",
+      "required": [
+        "request_id",
+        "panel_id",
+        "kind",
+        "geometry",
+        "marker_like_shape",
+        "role"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "panel_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "marker_like_letter",
+            "arrowhead",
+            "phase_line_intersection",
+            "tick_mark",
+            "dotted_divider_segment",
+            "legend_symbol",
+            "bracket",
+            "isolated_punctuation",
+            "line_endpoint"
+          ]
+        },
+        "geometry": {
+          "$ref": "#/$defs/geometry"
+        },
+        "marker_like_shape": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/markerShape"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "role": {
+          "const": "hard_negative"
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "source",
+        "license",
+        "private_data",
+        "external_assets",
+        "bundled_fonts"
+      ],
+      "properties": {
+        "source": {
+          "const": "procedural"
+        },
+        "license": {
+          "type": "string",
+          "enum": [
+            "Apache-2.0",
+            "not_assessed"
+          ]
+        },
+        "code_license": {
+          "const": "Apache-2.0"
+        },
+        "output_license_assessment": {
+          "const": "not_assessed"
+        },
+        "renderer_environment": {
+          "type": "object",
+          "required": [
+            "pillow_version",
+            "cross_host_bitwise_reproducibility"
+          ],
+          "properties": {
+            "pillow_version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "cross_host_bitwise_reproducibility": {
+              "const": "not_verified"
+            }
+          },
+          "additionalProperties": false
+        },
+        "private_data": {
+          "const": false
+        },
+        "external_assets": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "font_assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "asset_id",
+              "asset_type",
+              "path",
+              "package_path",
+              "sha256",
+              "repository",
+              "source_url",
+              "source_commit",
+              "asset_license_id",
+              "license_evidence_url",
+              "license_evidence_path",
+              "license_evidence_sha256",
+              "packaged"
+            ],
+            "properties": {
+              "asset_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "asset_type": {
+                "const": "font"
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "package_path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{64}$"
+              },
+              "repository": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_url": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_commit": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{40}$"
+              },
+              "asset_license_id": {
+                "const": "OFL-1.1"
+              },
+              "license_evidence_url": {
+                "type": "string",
+                "minLength": 1
+              },
+              "license_evidence_path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "license_evidence_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{64}$"
+              },
+              "packaged": {
+                "const": true
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "bundled_fonts": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "license": {
+                "const": "not_assessed"
+              }
+            },
+            "required": [
+              "license"
+            ]
+          },
+          "then": {
+            "required": [
+              "code_license",
+              "output_license_assessment",
+              "renderer_environment",
+              "font_assets"
+            ],
+            "properties": {
+              "external_assets": {
+                "maxItems": 0
+              },
+              "bundled_fonts": {
+                "const": true
+              },
+              "font_assets": {
+                "minItems": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "external_assets": {
+                "maxItems": 0
+              },
+              "bundled_fonts": {
+                "const": false
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  }
+}

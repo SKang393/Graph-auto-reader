@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "snapshot_policy": "isolated-source-copy",
+  "upstream_paths": {
+    "templates.py": {
+      "source_path": "ml/synthetic/templates.py",
+      "source_sha256": "f59733c5f0589bd1b9143d3c9ae83015b4c53ab593de229d56e46d9f11ec2f1c",
+      "local_copy_sha256": "353bb2747ae9340d0243d8364f5b321c5229f1187d5f6a5d759705e55a364dea"
+    },
+    "renderer.py": {
+      "source_path": "ml/synthetic/renderer.py",
+      "source_sha256": "c49c070afc505f92bfff7ff55b22e669c3ec2b76b56ff807b72a026ca0535283",
+      "local_copy_sha256": "2a4149b246f1fc52a69e4cddeda990014dd8d7c970f4a070d15ed7cf53650c33"
+    },
+    "fonts.py": {
+      "source_path": "ml/synthetic/fonts.py",
+      "source_sha256": "c4ec7a2333e0410d4c49cc41c154d3b80a2898c5682a135c25e1162a806d58fc",
+      "local_copy_sha256": "60e775be474c723632d39a124d0ec0b9508ee64e631fea2b0bccdf88776151e3"
+    },
+    "schema.py": {
+      "source_path": "ml/synthetic/schema.py",
+      "source_sha256": "237d9296f2f72a11bb7020c2abac022026f72a56e4e0eac2d322f23a3e6c8acb",
+      "local_copy_sha256": "237d9296f2f72a11bb7020c2abac022026f72a56e4e0eac2d322f23a3e6c8acb"
+    },
+    "scene.schema.json": {
+      "source_path": "ml/synthetic/scene.schema.json",
+      "source_sha256": "fc72d6ce4e37dd2893e5fe56d087b0496008a904f11ebc4a5c525a4a27843e0f",
+      "local_copy_sha256": "7f584b562d0204ccebd77a5e9fcfad3572732d2ad87d77ca76752b7273f6deb4"
+    }
+  },
+  "profile_files": {
+    "__init__.py": "02fa477f103496a69299b5361b81f74d2a798d98af0a84a9bd429a26b3fe406e",
+    "README.md": "889f652640de181323b12555d780f2221cc7b085c285f0e5825756c46fb3f027",
+    "assets/LICENSE": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+    "assets/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+  },
+  "font_asset": {
+    "path": "ml/synthetic/camera_document_profile_v1/assets/NotoSans-Regular.ttf",
+    "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+    "repository": "https://github.com/notofonts/noto-fonts",
+    "source_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+    "official_source_commit": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+    "license_evidence_path": "ml/synthetic/camera_document_profile_v1/assets/LICENSE",
+    "license_evidence_sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+    "license_evidence_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/LICENSE",
+    "asset_license_id": "OFL-1.1"
+  },
+  "scope": {
+    "renderer_family_id": "camera_document_dev",
+    "family_dimensions": {
+      "renderer": "camera_document_dev",
+      "font": "camera_document_noto_dev",
+      "degradation": "camera_document_dev",
+      "template": "camera_document_dev",
+      "marker": "camera_document_dev"
+    },
+    "development_only": true,
+    "internal_split_independence_claimed": false,
+    "sealed": false,
+    "historical_independence_proven": false,
+    "training_eligible": false,
+    "distribution_approved": false,
+    "independent_signed_approval": false,
+    "code_license": "Apache-2.0",
+    "rendered_output_license_assessment": "not_assessed",
+    "cross_host_bitwise_reproducibility": "not_verified",
+    "determinism_check_scope": "same-process-only"
+  }
+}
