@@ -1277,7 +1277,8 @@ Console.WriteLine($"{model.Identity.ModelId}|{model.Identity.Version}|{model.Ide
 '@ | Set-Content -LiteralPath (Join-Path $probeRoot 'Program.cs') -Encoding utf8
 
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot '..\installer\GraphReader.Installer.csproj') -Destination (Join-Path $fixture.Root 'packaging/installer/GraphReader.Installer.csproj')
-    Copy-Item -LiteralPath (Join-Path $PSScriptRoot '..\installer\Program.cs') -Destination (Join-Path $fixture.Root 'packaging/installer/Program.cs')
+    Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot '..\installer') -Filter '*.cs' -File |
+        Copy-Item -Destination (Join-Path $fixture.Root 'packaging/installer')
     Copy-Item -LiteralPath $testScript -Destination (Join-Path $fixture.Root 'packaging/Test-ReleaseArtifact.ps1')
     Copy-Item -LiteralPath $versionPolicyScript -Destination (Join-Path $fixture.Root 'packaging/VersionPolicy.ps1')
     'Release {{VERSION}} from {{GIT_COMMIT}} at {{BUILD_UTC}}' | Set-Content -LiteralPath (Join-Path $fixture.Root 'packaging/common/RELEASE_NOTES.template.md') -Encoding utf8
