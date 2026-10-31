@@ -15,6 +15,16 @@ public enum RasterResidualArtifactCategory
     ConnectingLineIntersection,
 }
 
+[Flags]
+internal enum RasterResidualArtifactCategoryBits : byte
+{
+    None = 0,
+    AnnotationArrow = 1 << 0,
+    Bracket = 1 << 1,
+    LegendStructure = 1 << 2,
+    ConnectingLineIntersection = 1 << 3,
+}
+
 public readonly record struct RasterResidualBounds(int X, int Y, int Width, int Height)
 {
     public int Right => X + Width - 1;
@@ -35,6 +45,7 @@ public sealed record RasterResidualArtifactRegion(
 public sealed class RasterResidualArtifactMaskResult
 {
     private readonly float[] mask;
+    private readonly byte[]? categoryBits;
 
     internal RasterResidualArtifactMaskResult(
         int width,
@@ -42,7 +53,8 @@ public sealed class RasterResidualArtifactMaskResult
         string configurationFingerprint,
         float[] mask,
         IEnumerable<RasterResidualArtifactRegion> regions,
-        IEnumerable<string> warnings)
+        IEnumerable<string> warnings,
+        byte[]? categoryBits = null)
     {
         ArgumentNullException.ThrowIfNull(mask);
         if (width <= 0 || height <= 0 || mask.Length != checked(width * height) ||
@@ -55,6 +67,9 @@ public sealed class RasterResidualArtifactMaskResult
         Height = height;
         ConfigurationFingerprint = configurationFingerprint;
         this.mask = (float[])mask.Clone();
+        if (categoryBits is not null && categoryBits.Length != mask.Length)
+            throw new ArgumentException("Residual artifact category bits must match mask dimensions.", nameof(categoryBits));
+        this.categoryBits = categoryBits is null ? null : (byte[])categoryBits.Clone();
         Regions = Array.AsReadOnly(regions.ToArray());
         Warnings = Array.AsReadOnly(warnings.ToArray());
     }
@@ -70,6 +85,9 @@ public sealed class RasterResidualArtifactMaskResult
     public IReadOnlyList<RasterResidualArtifactRegion> Regions { get; }
 
     public IReadOnlyList<string> Warnings { get; }
+    internal bool HasCategoryBits => categoryBits is not null;
+    internal byte[] CopyCategoryBits() => (byte[])(categoryBits ?? throw new InvalidOperationException(
+        "Residual artifact category diagnostics were not requested.")).Clone();
 }
 
 /// <summary>
@@ -115,7 +133,8 @@ public sealed class RasterResidualArtifactMaskProvider
         ProductionAxisGeometryEvidence axis,
         OcrResult ocr,
         ProductionDetectionMaskSeed seed,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool includeCategoryBits = false)
     {
         ArgumentNullException.ThrowIfNull(raster);
         ArgumentNullException.ThrowIfNull(axis);
@@ -160,6 +179,7 @@ public sealed class RasterResidualArtifactMaskProvider
                 ocr.Regions,
                 structure.MarkerLikeProbabilities.ToArray(),
                 structure.ThinConnectorProbabilities.ToArray(),
+                includeCategoryBits,
                 cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
@@ -174,12 +194,14 @@ public sealed class RasterResidualArtifactMaskProvider
         IReadOnlyList<OcrRegion> ocrRegions,
         float[] markerProbabilities,
         float[] connectorProbabilities,
+        bool includeCategoryBits,
         CancellationToken cancellationToken)
     {
         int pixelCount = checked(width * height);
         var foreground = new bool[pixelCount];
         var visited = new bool[pixelCount];
         var mask = new float[pixelCount];
+        byte[]? categoryBits = includeCategoryBits ? new byte[pixelCount] : null;
         var regions = new List<RasterResidualArtifactRegion>();
         OcrRectangle[] annotations = ocrRegions
             .Where(static region => region.Role == OcrTextRole.Annotation)
@@ -223,7 +245,7 @@ public sealed class RasterResidualArtifactMaskProvider
             Classification? classification = ClassifyComponent(component, plot, annotations, legends);
             if (classification is not null)
             {
-                WriteComponentMask(mask, component, classification.Confidence);
+                WriteComponentMask(mask, categoryBits, component, classification.Confidence, classification.Category);
                 regions.Add(new RasterResidualArtifactRegion(
                     classification.Category,
                     component.Bounds,
@@ -246,6 +268,7 @@ public sealed class RasterResidualArtifactMaskProvider
             markerProbabilities,
             connectorProbabilities,
             regions,
+            categoryBits,
             cancellationToken);
 
         var warnings = new List<string>
@@ -267,7 +290,8 @@ public sealed class RasterResidualArtifactMaskProvider
             ConfigurationFingerprint,
             mask,
             regions,
-            warnings);
+            warnings,
+            categoryBits);
     }
 
     private static Classification? ClassifyComponent(
@@ -429,6 +453,7 @@ public sealed class RasterResidualArtifactMaskProvider
         float[] markerProbabilities,
         float[] connectorProbabilities,
         List<RasterResidualArtifactRegion> regions,
+        byte[]? categoryBits,
         CancellationToken cancellationToken)
     {
         var candidates = new List<IntersectionCandidate>();
@@ -506,6 +531,8 @@ public sealed class RasterResidualArtifactMaskProvider
                 {
                     int index = (y * width) + x;
                     mask[index] = Math.Max(mask[index], confidence);
+                    if (categoryBits is not null)
+                        categoryBits[index] |= (byte)RasterResidualArtifactCategoryBits.ConnectingLineIntersection;
                     if (foreground[index])
                     {
                         inkPixels++;
@@ -644,11 +671,21 @@ public sealed class RasterResidualArtifactMaskProvider
             (float)(connectorSum / pixels.Count));
     }
 
-    private static void WriteComponentMask(float[] mask, Component component, float confidence)
+    private static void WriteComponentMask(float[] mask, byte[]? categoryBits, Component component, float confidence,
+        RasterResidualArtifactCategory category)
     {
         foreach (int index in component.Pixels)
         {
             mask[index] = Math.Max(mask[index], confidence);
+            if (categoryBits is not null)
+                categoryBits[index] |= category switch
+                {
+                    RasterResidualArtifactCategory.AnnotationArrow => (byte)RasterResidualArtifactCategoryBits.AnnotationArrow,
+                    RasterResidualArtifactCategory.Bracket => (byte)RasterResidualArtifactCategoryBits.Bracket,
+                    RasterResidualArtifactCategory.LegendStructure => (byte)RasterResidualArtifactCategoryBits.LegendStructure,
+                    RasterResidualArtifactCategory.ConnectingLineIntersection => (byte)RasterResidualArtifactCategoryBits.ConnectingLineIntersection,
+                    _ => throw new InvalidOperationException("Unknown residual artifact category."),
+                };
         }
     }
 

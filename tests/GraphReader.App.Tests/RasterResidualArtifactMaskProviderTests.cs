@@ -24,15 +24,25 @@ public sealed class RasterResidualArtifactMaskProviderTests
             inputs.Axis,
             inputs.Ocr,
             inputs.Seed,
-            CancellationToken.None);
+            CancellationToken.None,
+            includeCategoryBits: true);
 
         float[] mask = result.Mask.ToArray();
+        byte[] categories = result.CopyCategoryBits();
         Assert.AreEqual(inputs.Raster.Width, result.Width);
         Assert.AreEqual(inputs.Raster.Height, result.Height);
         Assert.IsGreaterThan(0.5f, mask[Index(inputs.Raster.Width, 80, 79)], "Arrowhead should be residual artifact evidence.");
         Assert.IsGreaterThan(0.5f, mask[Index(inputs.Raster.Width, 116, 52)], "Bracket spine should be residual artifact evidence.");
         Assert.IsGreaterThan(0.5f, mask[Index(inputs.Raster.Width, 118, 23)], "Legend glyph should be residual artifact evidence.");
         Assert.IsGreaterThan(0.5f, mask[Index(inputs.Raster.Width, 55, 52)], "Connecting-line intersection should be residual artifact evidence.");
+        Assert.AreEqual((byte)RasterResidualArtifactCategoryBits.AnnotationArrow,
+            categories[Index(inputs.Raster.Width, 80, 79)]);
+        Assert.AreEqual((byte)RasterResidualArtifactCategoryBits.Bracket,
+            categories[Index(inputs.Raster.Width, 116, 52)]);
+        Assert.AreEqual((byte)RasterResidualArtifactCategoryBits.LegendStructure,
+            categories[Index(inputs.Raster.Width, 118, 23)]);
+        Assert.AreEqual((byte)RasterResidualArtifactCategoryBits.ConnectingLineIntersection,
+            categories[Index(inputs.Raster.Width, 55, 52)]);
 
         CollectionAssert.AreEquivalent(
             new[]

@@ -36,21 +36,26 @@ internal sealed class ProductionCandidateMarkerFrameBundle
     internal ProductionCandidateMarkerFrameBundle(
         MarkerImageFrame frame,
         MarkerMask artifactSeedMask,
-        MarkerMask residualArtifactMask)
+        MarkerMask residualArtifactMask,
+        byte[] residualCategoryBits)
     {
         Frame = frame ?? throw new ArgumentNullException(nameof(frame));
         ArtifactSeedMask = artifactSeedMask ?? throw new ArgumentNullException(nameof(artifactSeedMask));
         ResidualArtifactMask = residualArtifactMask ?? throw new ArgumentNullException(nameof(residualArtifactMask));
+        ResidualCategoryBits = residualCategoryBits ?? throw new ArgumentNullException(nameof(residualCategoryBits));
         if (ArtifactSeedMask.Width != Frame.Width || ArtifactSeedMask.Height != Frame.Height ||
             ResidualArtifactMask.Width != Frame.Width || ResidualArtifactMask.Height != Frame.Height)
         {
             throw new ArgumentException("Artifact provenance masks must match the candidate frame dimensions.");
         }
+        if (ResidualCategoryBits.Length != checked(Frame.Width * Frame.Height))
+            throw new ArgumentException("Residual category bits must match candidate frame dimensions.");
     }
 
     internal MarkerImageFrame Frame { get; }
     internal MarkerMask ArtifactSeedMask { get; }
     internal MarkerMask ResidualArtifactMask { get; }
+    internal byte[] ResidualCategoryBits { get; }
 }
 
 /// <summary>
@@ -243,7 +248,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
             return new ProductionCandidateMarkerFrameBundle(
                 prepared.Masks.CreateMarkerFrame(prepared.Raster),
                 prepared.Masks.CopyArtifactSeedMask(),
-                prepared.Masks.CopyResidualArtifactMask());
+                prepared.Masks.CopyResidualArtifactMask(),
+                prepared.Masks.CopyResidualCategoryBits());
         }
         catch (ProductionWorkflowStageException exception)
         {

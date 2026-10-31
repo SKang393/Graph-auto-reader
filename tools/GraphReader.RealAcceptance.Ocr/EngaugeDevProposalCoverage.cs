@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Security.Cryptography;
+using GraphReader.App.Integration.Workflow;
 using GraphReader.Markers.Detection;
 
 namespace GraphReader.RealAcceptance.Ocr;
@@ -12,15 +13,20 @@ namespace GraphReader.RealAcceptance.Ocr;
 internal sealed record EngaugeDevProposalCoverageCounts(
     long CenterCount, long Matched, long NoNearbyGrid, long TextOnly,
     long ArtifactOnly, long MissingInkOnly, long Mixed,
-    long GeometrySeedArtifactOnly, long ResidualArtifactOnly, long BothArtifactOnly)
+    long GeometrySeedArtifactOnly, long ResidualArtifactOnly, long BothArtifactOnly,
+    long ResidualArrowOnly, long ResidualBracketOnly, long ResidualLegendOnly,
+    long ResidualIntersectionOnly, long ResidualMultiple)
 {
     internal long Unmatched => NoNearbyGrid + TextOnly + ArtifactOnly + MissingInkOnly + Mixed;
     internal long ArtifactOnlyProvenanceTotal => GeometrySeedArtifactOnly + ResidualArtifactOnly + BothArtifactOnly;
+    internal long ResidualOnlyCategoryTotal => ResidualArrowOnly + ResidualBracketOnly + ResidualLegendOnly +
+        ResidualIntersectionOnly + ResidualMultiple;
 }
 
 internal sealed class EngaugeDevProposalCoverageAccumulator
 {
-    private long centers, matched, noGrid, text, artifact, ink, mixed, artifactSeed, artifactResidual, artifactBoth;
+    private long centers, matched, noGrid, text, artifact, ink, mixed, artifactSeed, artifactResidual, artifactBoth,
+        residualArrow, residualBracket, residualLegend, residualIntersection, residualMultiple;
     private bool finished;
     private readonly HashSet<string> seenImages = new(StringComparer.Ordinal);
 
@@ -101,14 +107,22 @@ internal sealed class EngaugeDevProposalCoverageAccumulator
                     NormalizedMarkerProposalContract.MaskRejectionThreshold, invert: false);
                 if (!seedBlocked && !residualBlocked)
                     throw new InvalidDataException("ENGAUGE_COVERAGE_ARTIFACT_PROVENANCE_MISMATCH");
+                if (residualBlocked && !planes.HasResidualCategoryBits)
+                    throw new InvalidDataException("ENGAUGE_COVERAGE_RESIDUAL_CATEGORY_MISSING");
             }
-            var failure = new AnchorFailure(missingInk, textBlocked, artifactBlocked, seedBlocked, residualBlocked);
+            byte residualCategories = residualBlocked
+                ? CategoryHits(planes.ResidualArtifact, planes.ResidualCategoryBits, planes.Width, planes.Height, x, y)
+                : (byte)0;
+            if (residualBlocked && residualCategories == 0)
+                throw new InvalidDataException("ENGAUGE_COVERAGE_RESIDUAL_CATEGORY_MISMATCH");
+            var failure = new AnchorFailure(missingInk, textBlocked, artifactBlocked, seedBlocked, residualBlocked, residualCategories);
             if (!failure.Blocked != eligible.Contains(anchor))
                 throw new InvalidDataException("ENGAUGE_COVERAGE_RUNTIME_PARITY_FAILURE");
             failures.Add(anchor, failure);
         }
         long nextCenters = 0, nextMatched = 0, nextNoGrid = 0, nextText = 0, nextArtifact = 0, nextInk = 0, nextMixed = 0,
-            nextArtifactSeed = 0, nextArtifactResidual = 0, nextArtifactBoth = 0;
+            nextArtifactSeed = 0, nextArtifactResidual = 0, nextArtifactBoth = 0, nextResidualArrow = 0,
+            nextResidualBracket = 0, nextResidualLegend = 0, nextResidualIntersection = 0, nextResidualMultiple = 0;
         foreach (MarkerPoint[] nearby in perCenter)
         {
             token.ThrowIfCancellationRequested();
@@ -120,12 +134,25 @@ internal sealed class EngaugeDevProposalCoverageAccumulator
             bool artifactBlocked = nearby.Any(point => failures[point].ArtifactBlocked);
             bool seedBlocked = nearby.Any(point => failures[point].SeedBlocked);
             bool residualBlocked = nearby.Any(point => failures[point].ResidualBlocked);
+            byte residualCategories = nearby.Aggregate((byte)0, (current, point) =>
+                (byte)(current | failures[point].ResidualCategories));
             if (!missingInk && !textBlocked && artifactBlocked)
             {
                 nextArtifact++;
                 if (seedBlocked && residualBlocked) nextArtifactBoth++;
                 else if (seedBlocked) nextArtifactSeed++;
-                else if (residualBlocked) nextArtifactResidual++;
+                else if (residualBlocked)
+                {
+                    nextArtifactResidual++;
+                    switch ((RasterResidualArtifactCategoryBits)residualCategories)
+                    {
+                        case RasterResidualArtifactCategoryBits.AnnotationArrow: nextResidualArrow++; break;
+                        case RasterResidualArtifactCategoryBits.Bracket: nextResidualBracket++; break;
+                        case RasterResidualArtifactCategoryBits.LegendStructure: nextResidualLegend++; break;
+                        case RasterResidualArtifactCategoryBits.ConnectingLineIntersection: nextResidualIntersection++; break;
+                        default: nextResidualMultiple++; break;
+                    }
+                }
                 else throw new InvalidDataException("ENGAUGE_COVERAGE_ARTIFACT_PROVENANCE_MISMATCH");
             }
             else if (missingInk || textBlocked || artifactBlocked)
@@ -141,6 +168,9 @@ internal sealed class EngaugeDevProposalCoverageAccumulator
             centers += nextCenters; matched += nextMatched; noGrid += nextNoGrid;
             text += nextText; artifact += nextArtifact; ink += nextInk; mixed += nextMixed;
             artifactSeed += nextArtifactSeed; artifactResidual += nextArtifactResidual; artifactBoth += nextArtifactBoth;
+            residualArrow += nextResidualArrow; residualBracket += nextResidualBracket;
+            residualLegend += nextResidualLegend; residualIntersection += nextResidualIntersection;
+            residualMultiple += nextResidualMultiple;
         }
         seenImages.Add(group.ImageSha256);
     }
@@ -151,8 +181,27 @@ internal sealed class EngaugeDevProposalCoverageAccumulator
         finished = true;
         if (artifact != artifactSeed + artifactResidual + artifactBoth)
             throw new InvalidDataException("ENGAUGE_COVERAGE_ARTIFACT_CONSERVATION_FAILED");
+        if (artifactResidual != residualArrow + residualBracket + residualLegend + residualIntersection + residualMultiple)
+            throw new InvalidDataException("ENGAUGE_COVERAGE_RESIDUAL_CATEGORY_CONSERVATION_FAILED");
         return new(centers, matched, noGrid, text, artifact, ink, mixed,
-            artifactSeed, artifactResidual, artifactBoth);
+            artifactSeed, artifactResidual, artifactBoth, residualArrow, residualBracket, residualLegend,
+            residualIntersection, residualMultiple);
+    }
+
+    private static byte CategoryHits(ReadOnlyMemory<float> residual, ReadOnlyMemory<byte> categories, int width, int height,
+        int centerX, int centerY)
+    {
+        byte result = 0;
+        for (int y = Math.Max(0, centerY - NormalizedMarkerProposalContract.MaskRejectionRadius);
+            y < Math.Min(height, centerY + NormalizedMarkerProposalContract.MaskRejectionRadius + 1); y++)
+        for (int x = Math.Max(0, centerX - NormalizedMarkerProposalContract.MaskRejectionRadius);
+            x < Math.Min(width, centerX + NormalizedMarkerProposalContract.MaskRejectionRadius + 1); x++)
+        {
+            int index = (y * width) + x;
+            if (residual.Span[index] >= NormalizedMarkerProposalContract.MaskRejectionThreshold)
+                result |= categories.Span[index];
+        }
+        return result;
     }
 
     private static bool HasHit(ReadOnlyMemory<float> input, int width, int height, int centerX, int centerY,
@@ -169,7 +218,8 @@ internal sealed class EngaugeDevProposalCoverageAccumulator
     }
 
     private readonly record struct AnchorFailure(
-        bool MissingInk, bool TextBlocked, bool ArtifactBlocked, bool SeedBlocked, bool ResidualBlocked)
+        bool MissingInk, bool TextBlocked, bool ArtifactBlocked, bool SeedBlocked, bool ResidualBlocked,
+        byte ResidualCategories)
     {
         internal bool Blocked => MissingInk || TextBlocked || ArtifactBlocked;
     }

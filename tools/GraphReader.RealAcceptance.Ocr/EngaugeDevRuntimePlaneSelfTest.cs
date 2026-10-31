@@ -55,7 +55,8 @@ internal static partial class EngaugeDevRuntimePlaneBridge
                     MarkerSourceImage.Original, MarkerAffineTransform.Identity,
                     new MarkerMask(width, height, new float[width * height]),
                     new MarkerMask(width, height, residualArtifact)),
-                new MarkerMask(width, height, seedArtifact), new MarkerMask(width, height, residualArtifact)));
+                new MarkerMask(width, height, seedArtifact), new MarkerMask(width, height, residualArtifact),
+                new byte[width * height]));
         }
         EngaugeDevRuntimePlanes provenance = await PrepareBundleCoreAsync(
             valid, new ProductionWorkflowPanelStore(), BundleFake, CancellationToken.None);

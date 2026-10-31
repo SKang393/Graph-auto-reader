@@ -77,7 +77,8 @@ internal sealed class RasterResidualArtifactMaskAdapter : IProductionArtifactMas
         cancellationToken.ThrowIfCancellationRequested();
         var timer = Stopwatch.StartNew();
         RasterResidualArtifactMaskResult result = await provider.AnalyzeAsync(
-            raster, axisEvidence, ocrResult, seed, cancellationToken).ConfigureAwait(false);
+            raster, axisEvidence, ocrResult, seed, cancellationToken,
+            includeCategoryBits: !IsApproved).ConfigureAwait(false);
         timer.Stop();
         string[] warnings = result.Warnings.Concat(new[]
         {
@@ -95,7 +96,8 @@ internal sealed class RasterResidualArtifactMaskAdapter : IProductionArtifactMas
             confidence: 0, warnings, request.Transforms);
         return new ProductionArtifactMaskEvidence(
             result.Width, result.Height, raster.InputSha256, raster.Variant,
-            envelope, result.Mask.ToArray(), warnings, Identity);
+            envelope, result.Mask.ToArray(), warnings, Identity,
+            result.HasCategoryBits ? result.CopyCategoryBits() : null);
     }
 
     private static string Hash(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
