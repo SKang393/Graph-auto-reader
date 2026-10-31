@@ -138,6 +138,16 @@ consumed synthetic probe results, not product acceptance.
 - Report SHA-256: `1d23fd6c3f84f0a12d4eda8b630bd41ca620f406198e8540cb81d40b48eb8e75`
 - Diagnostic build and 3 report checks passed; inference used CPU.
 
+A subsequent sensitivity check shifted that one-pixel centerline by signed
+perpendicular offsets of 1 and 2 pixels on the same consumed synthetic probe.
+No shifted mask overlapped the reconstructed target glyph pixels, but some
+shifts produced new wrong readings. Predicted-box exact counts were 23 at
+baseline, 37 at exact geometry, and 27, 44, 23 and 32 at offsets -1, +1, -2
+and +2 respectively. This is a synthetic perturbation, not evidence from
+production-detected strokes. Report SHA-256:
+`7c6d095a59490be6fdb749faf36900c710df6a8b1e77d8548065ab8097ef3e15`.
+The diagnostic build and 3 report checks passed.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
