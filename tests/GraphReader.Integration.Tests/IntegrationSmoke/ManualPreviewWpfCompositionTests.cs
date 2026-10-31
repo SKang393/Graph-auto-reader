@@ -396,7 +396,11 @@ public sealed class ManualPreviewWpfCompositionTests
         Assert.IsTrue(audit.Any(static entry => entry.Note == "Manual point reassigned"));
         Assert.IsTrue(audit.Any(static entry => entry.Note == "Manual phase divider deleted"));
         Assert.IsTrue(audit.Any(static entry => entry.Note == "Manual intervention series relations changed"));
-        Assert.IsTrue(audit.Any(static entry => entry.Note == "Manual CSV export"));
+        PanelId exportedPanelId = workspace.CurrentProject.Panels.Single().PanelId;
+        Assert.IsTrue(audit.Any(entry =>
+            entry.Kind == DomainEventKind.ExportSettingsChanged &&
+            entry.PanelId == exportedPanelId &&
+            entry.Note == "Workspace export prepared from current reviewed state"));
         Assert.IsFalse(workspace.UsesFakeGraphData);
 
         using var cancellationObserver = new BlockingSecondImageObserver(secondImage);
