@@ -192,6 +192,13 @@ still required review. The candidate generated 19,855 line candidates versus
 reproduced default results on every panel. Report SHA-256:
 `c50ba592ea2334dd412335a0c04dec397b9566ce5ac44aa642436516653c1a46`.
 
+An isolated raster-ink scan using the selected axis recovered 73 of the 181
+visible ticks but produced 292 unmatched proposals. Fixtures confirmed false
+proposals from a thick border, a grid crossing and a nearby text stroke. The
+scan is not suitable for production. On the same panels, the default detector
+matched 25 ticks with 12 unmatched detections. Diagnostic report SHA-256:
+`95ce064ca9006d1fd1ed5521a0a309b4a3a0b3e18ade084adb191d98a8941455`.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
