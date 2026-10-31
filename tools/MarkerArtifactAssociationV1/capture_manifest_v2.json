@@ -1,0 +1,51 @@
+{
+  "captures": {
+    "train_v5_overlay_seed_20820000": {
+      "annotation_sha256": "706b120bbeb1487dde6bf5f16dfa74b98ecc944468793a4624bff760735913c9",
+      "capture_report_sha256": "c46e2a909df60d8665a7121c0a60a2bf0f6a64e60ce36b36dad19d40b8ff8de3",
+      "font_sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+      "glyphs": {
+        "a1c936f4-a6da-5459-b00c-f66050aff5d2": {
+          "center": [948.5, 118.5],
+          "expected_binding": {
+            "annotation_sha256": "706b120bbeb1487dde6bf5f16dfa74b98ecc944468793a4624bff760735913c9",
+            "center": [948.5, 118.5],
+            "glyph_box": [941.0, 111.0, 15.0, 15.0],
+            "glyph_id": "a1c936f4-a6da-5459-b00c-f66050aff5d2",
+            "height": 350,
+            "matching_draw_ids": ["renderer_call:20"],
+            "rendered_rgb_sha256": "4273ab5f8ff1daeda841a047cd49fb0a4b8fbffe16f1c1e855d99c93da352689",
+            "renderer_bundle_sha256": "986fe15726c97d4385d2d2d489158dce1f868959fad6391a31d7ef0538f174ed",
+            "scene_sha256": "ee7023484d37621b2ef7b2edfa87e4473b4246fc8ffc7451b885f71188bca7a2",
+            "source_raster_sha256": "68469eda2de09632c5f7b0933c71e0c28cf86fdbcece2980b4c6f1d2168bc691",
+            "source_reference": "1da52e73-44b8-517a-bbbe-d60823a31f99-legend-1:0",
+            "target_draw_id": "renderer_call:20",
+            "width": 1200
+          },
+          "glyph_box": [941.0, 111.0, 15.0, 15.0],
+          "glyph_id": "a1c936f4-a6da-5459-b00c-f66050aff5d2",
+          "kind": "legend_symbol",
+          "source_reference": "1da52e73-44b8-517a-bbbe-d60823a31f99-legend-1:0"
+        }
+      },
+      "height": 350,
+      "overlay": {
+        "center": [125, 116],
+        "cue_box": [133, 112, 155, 120],
+        "cue": true,
+        "status": "review_only",
+        "optimization_allowed": false
+      },
+      "producer_source_sha256": "5591497f1c67a5762a5cc5f809e0a64dc53d8bdd7339c44289652c39bfad5cc8",
+      "renderer_bundle_sha256": "986fe15726c97d4385d2d2d489158dce1f868959fad6391a31d7ef0538f174ed",
+      "scene_id": "81ce54a6-783a-53b8-9743-c4de1ea78eba",
+      "scene_sha256": "ee7023484d37621b2ef7b2edfa87e4473b4246fc8ffc7451b885f71188bca7a2",
+      "seed": 20820000,
+      "source_id": "f9b0902a-1f41-7b53-bbef-6c3ff54bc94b",
+      "source_raster_sha256": "68469eda2de09632c5f7b0933c71e0c28cf86fdbcece2980b4c6f1d2168bc691",
+      "split": "train",
+      "width": 1200
+    }
+  },
+  "schema": "graphreader.legend-capture-manifest.v2"
+}

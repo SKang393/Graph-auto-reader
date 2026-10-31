@@ -17,6 +17,7 @@ import zlib
 TOLERANCE_PX = 2.0
 HEX = set("0123456789abcdef")
 CAPTURE_MANIFEST_SHA256 = "e674cd5ccf74843e6ae09ee9ed1f2c96f9d938cc5e9b45dce7455721919c22a0"
+CAPTURE_MANIFEST_V2_SHA256 = "07ecbc472aff07153dddfe9f136430bd5a21126e6a225f816c3460a6c0ef88aa"
 
 
 def _canonical(value):
@@ -36,19 +37,23 @@ def _strict_object(pairs):
     return result
 
 
-def _read_capture_manifest():
-    path = Path(__file__).absolute().with_name("capture_manifest.json")
+def _read_capture_manifest(capture_manifest_key):
+    is_v2 = capture_manifest_key == "train_v5_overlay_seed_20820000"
+    manifest_name = "capture_manifest_v2.json" if is_v2 else "capture_manifest.json"
+    expected_sha = CAPTURE_MANIFEST_V2_SHA256 if is_v2 else CAPTURE_MANIFEST_SHA256
+    expected_schema = "graphreader.legend-capture-manifest.v2" if is_v2 else "graphreader.legend-capture-manifest.v1"
+    path = Path(__file__).absolute().with_name(manifest_name)
     for item in reversed((path, *path.parents)):
         info = item.lstat()
         if item.is_symlink() or getattr(info, "st_file_attributes", 0) & 0x400:
             raise ValueError("capture manifest path contains a link or reparse point")
     raw = path.read_bytes()
-    if _digest(raw) != CAPTURE_MANIFEST_SHA256:
+    if _digest(raw) != expected_sha:
         raise ValueError("immutable capture manifest SHA-256 differs")
     manifest = json.loads(raw, object_pairs_hook=_strict_object)
     if (not isinstance(manifest, dict) or
             set(manifest) != {"schema", "captures"} or
-            manifest["schema"] != "graphreader.legend-capture-manifest.v1" or
+            manifest["schema"] != expected_schema or
             not isinstance(manifest["captures"], dict)):
         raise ValueError("immutable capture manifest schema differs")
     return manifest
@@ -56,14 +61,18 @@ def _read_capture_manifest():
 
 def _verify_capture_entry(*, capture_manifest_key, source_id, source_width, source_height,
                           source_raster_bytes, artifact_truths):
-    manifest = _read_capture_manifest()
+    is_v2 = capture_manifest_key == "train_v5_overlay_seed_20820000"
+    manifest = _read_capture_manifest(capture_manifest_key)
     entry = manifest["captures"].get(capture_manifest_key)
     if not isinstance(entry, dict):
         raise ValueError("capture key is absent from the immutable manifest")
-    if set(entry) != {
+    expected_fields = {
             "split", "source_id", "seed", "scene_sha256", "annotation_sha256",
             "source_raster_sha256", "renderer_bundle_sha256", "producer_source_sha256",
-            "font_sha256", "width", "height", "glyphs"}:
+            "font_sha256", "width", "height", "glyphs"}
+    if is_v2:
+        expected_fields |= {"capture_report_sha256", "scene_id", "overlay"}
+    if set(entry) != expected_fields:
         raise ValueError("capture manifest entry fields differ")
     if (entry["split"] != "train" or entry["source_id"] != source_id or
             entry["width"] != source_width or entry["height"] != source_height or
@@ -72,17 +81,32 @@ def _verify_capture_entry(*, capture_manifest_key, source_id, source_width, sour
     for field in ("scene_sha256", "annotation_sha256", "source_raster_sha256",
                   "renderer_bundle_sha256", "producer_source_sha256", "font_sha256"):
         _sha(entry[field], f"capture manifest {field}")
-    from .producer import verify_renderer_bundle
-    producer_path = Path(__file__).absolute().with_name("producer.py")
+    if is_v2:
+        _sha(entry["capture_report_sha256"], "capture manifest capture_report_sha256")
+        if (entry["scene_id"] != "81ce54a6-783a-53b8-9743-c4de1ea78eba" or
+                entry["overlay"] != {"center": [125, 116], "cue_box": [133, 112, 155, 120], "cue": True,
+                                     "status": "review_only", "optimization_allowed": False}):
+            raise ValueError("V5 overlay provenance differs from the immutable capture manifest")
+        from .full_capture_producer import verify_train_capture_bundle
+        producer_name = "full_capture_producer.py"
+        verify_bundle = verify_train_capture_bundle
+    else:
+        from .producer import verify_renderer_bundle
+        producer_name = "producer.py"
+        verify_bundle = verify_renderer_bundle
+    producer_path = Path(__file__).absolute().with_name(producer_name)
     producer_info = producer_path.lstat()
     if producer_path.is_symlink() or getattr(producer_info, "st_file_attributes", 0) & 0x400:
         raise ValueError("capture producer path contains a link or reparse point")
     if _digest(producer_path.read_bytes()) != entry["producer_source_sha256"]:
         raise ValueError("producer source differs from the immutable capture manifest")
-    current_bundle = verify_renderer_bundle()
+    current_bundle = verify_bundle()
     if current_bundle["sha256"] != entry["renderer_bundle_sha256"]:
         raise ValueError("producer renderer bundle differs from the immutable capture manifest")
-    if current_bundle["sources"].get("ml/synthetic/public_fonts_v1/assets/NotoSans-Regular.ttf") != entry["font_sha256"]:
+    if is_v2:
+        if current_bundle.get("font_sha256") != entry["font_sha256"]:
+            raise ValueError("V5 font asset differs from the immutable capture manifest")
+    elif current_bundle["sources"].get("ml/synthetic/public_fonts_v1/assets/NotoSans-Regular.ttf") != entry["font_sha256"]:
         raise ValueError("font asset differs from the immutable capture manifest")
     if any(glyph.get("expected_binding", {}).get("scene_sha256") != entry["scene_sha256"] or
            glyph.get("expected_binding", {}).get("annotation_sha256") != entry["annotation_sha256"]
