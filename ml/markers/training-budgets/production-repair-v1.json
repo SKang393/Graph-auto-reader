@@ -11326,7 +11326,7 @@
       "consumed_candidate_ids": [],
       "experiment_budget": 1,
       "candidate_config_paths": {"P1": "ml/markers/center/real_positive_preservation_v1/p1.json"},
-      "candidate_config_sha256": {"P1": "18a02fd9ecb881795c3af5b48e805d7ebe695bb7327b9d14677b60713d14e745"},
+      "candidate_config_sha256": {"P1": "831b66eb7fc8f373971ef08c075080450103f8bc91b6cebd9e24166d0342a632"},
       "protocol_path": "ml/markers/center/real_positive_preservation_v1/protocol.json",
       "protocol_sha256": "6a119da291c09f754dbedc4465b62e2db5fa069cafd0c5eadfd5e11f72551cee",
       "evidence_policy": {
