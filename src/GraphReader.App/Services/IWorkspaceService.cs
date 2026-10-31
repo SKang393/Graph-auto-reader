@@ -116,6 +116,8 @@ public interface IManualWorkspaceService : IRuntimeWorkspaceService
 
     void DeletePoint(string tabId, string pointId);
 
+    void SetPointReviewStatus(string tabId, string pointId, ReviewStatus status);
+
     void ReassignPoint(string tabId, string pointId, string targetSeriesId);
 
     EditablePhaseDivider AddPhaseDivider(string tabId, double originalX, string code, string label);
@@ -151,7 +153,7 @@ public interface IManualWorkspaceService : IRuntimeWorkspaceService
 
 public interface IWorkspaceEditStateSink
 {
-    void SynchronizeRestoredTab(string tabId);
+    void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null);
 }
 
 /// <summary>

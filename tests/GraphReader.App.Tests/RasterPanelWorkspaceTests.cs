@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using GraphReader.App.Integration.Workflow;
+using GraphReader.App.Models;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
 using GraphReader.Axis;
@@ -290,12 +291,41 @@ public sealed class RasterPanelWorkspaceTests
         Assert.AreEqual(20, localEvidence.Points.Single().OriginalPixel.X, 0);
         Assert.AreEqual(30, localEvidence.Points.Single().OriginalPixel.Y, 0);
 
+        StaTestHost.Run(() =>
+        {
+            using var viewModel = new MainWindowViewModel(workspace);
+            viewModel.SelectedTab = tab;
+            ReviewIssueViewModel issue = viewModel.ReviewIssues.Single(item =>
+                item.IssueId == $"point-unreviewed-{pointId:D}");
+            viewModel.SelectedReviewIssue = issue;
+            tab.IsDirty = false;
+            Assert.IsTrue(viewModel.AcceptReviewPointCommand.CanExecute(null));
+            viewModel.AcceptReviewPointCommand.Execute(null);
+            Assert.IsTrue(tab.IsDirty);
+            Assert.AreEqual(ReviewStatus.Accepted, workspace.CurrentProject.Panels
+                .Single(panel => panel.PanelId == seeded.PanelId).Points.Single().ReviewStatus);
+            Assert.IsFalse(viewModel.ReviewIssues.Any(item => item.IssueId == issue.IssueId));
+            viewModel.UndoCommand.Execute(null);
+            Assert.IsFalse(tab.IsDirty);
+            Assert.AreEqual(ReviewStatus.Unreviewed, workspace.CurrentProject.Panels
+                .Single(panel => panel.PanelId == seeded.PanelId).Points.Single().ReviewStatus);
+            viewModel.RedoCommand.Execute(null);
+            Assert.IsTrue(tab.IsDirty);
+            Assert.AreEqual(ReviewStatus.Accepted, workspace.CurrentProject.Panels
+                .Single(panel => panel.PanelId == seeded.PanelId).Points.Single().ReviewStatus);
+            viewModel.AddPoint(seriesId.ToString("D"));
+            viewModel.UndoCommand.Execute(null);
+            Assert.AreEqual(ReviewStatus.Accepted, workspace.CurrentProject.Panels
+                .Single(panel => panel.PanelId == seeded.PanelId).Points.Single().ReviewStatus);
+        });
+
         ProductionReviewProjectionResult second = workspace.Project(run, store);
         Assert.IsTrue(second.Succeeded, second.Failure?.TechnicalMessage);
         PanelRecord repeatedPanel = workspace.CurrentProject.Panels.Single(panel => panel.PanelId == seeded.PanelId);
         AssertProjectionCoordinates(repeatedPanel, seeded.Crop,
             pointId, markerId, tab.PixelWidth, tab.PixelHeight);
         Assert.AreEqual(PhaseId.FromGuid(phase1Id), repeatedPanel.Points.Single().PhaseId);
+        Assert.AreEqual(ReviewStatus.Accepted, repeatedPanel.Points.Single().ReviewStatus);
         Assert.IsTrue(repeatedPanel.Phases.Any(phase => phase.PhaseId.Value == phase1Id));
 
         string projectPath = Path.Combine(directory.Path, "projection-roundtrip.garproj");
@@ -304,6 +334,7 @@ public sealed class RasterPanelWorkspaceTests
         var reopened = new ManualPreviewWorkspaceService();
         _ = await reopened.OpenProjectAsync(projectPath, CancellationToken.None);
         PanelRecord reopenedPanel = reopened.CurrentProject.Panels.Single(panel => panel.PanelId == seeded.PanelId);
+        Assert.AreEqual(ReviewStatus.Accepted, reopenedPanel.Points.Single().ReviewStatus);
         Assert.AreEqual(PhaseId.FromGuid(phase1Id), reopenedPanel.Points.Single().PhaseId);
         Assert.IsTrue(reopenedPanel.Phases.Any(phase => phase.PhaseId.Value == phase1Id));
         AssertProjectionCoordinates(reopenedPanel, seeded.Crop,

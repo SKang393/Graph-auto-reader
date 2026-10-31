@@ -231,7 +231,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         return true;
     }
 
-    public void SynchronizeRestoredTab(string tabId)
+    public void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
         _phaseOverrides[tab.TabId] = CreatePhaseOverrides(tab);
@@ -243,11 +243,20 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             _pointXStates.Remove(removedPointId);
             _pointModificationHistories.Remove(removedPointId);
         }
+        PanelRecord? priorPanel = CurrentProject.Panels.SingleOrDefault(panel =>
+            panel.PanelId.Value == Guid.Parse(tab.PanelId!));
         foreach (AppGraphPoint point in tab.Points)
         {
-            _pointXStates[point.PointId] = tab.Calibration is null
-                ? new ManualPointXState(null, null, PointXSource.Unknown, 0, HasGraphX: false)
-                : new ManualPointXState(null, point.GraphX, PointXSource.Estimated, 1, HasGraphX: true);
+            PointRecord? prior = priorPanel?.Points.SingleOrDefault(item =>
+                item.PointId.Value.ToString("D") == point.PointId);
+            DomainPixelPoint restoredPixel = MapPointPanelToSource(priorPanel, new DomainPixelPoint(point.PixelX, point.PixelY));
+            bool unchanged = prior is not null && prior.OriginalPixel == restoredPixel &&
+                prior.GraphX == (tab.Calibration is null ? null : point.GraphX) &&
+                prior.GraphY == (tab.Calibration is null ? null : point.GraphY);
+            if (!unchanged || !_pointXStates.ContainsKey(point.PointId))
+                _pointXStates[point.PointId] = tab.Calibration is null
+                    ? new ManualPointXState(null, null, PointXSource.Unknown, 0, HasGraphX: false)
+                    : new ManualPointXState(null, point.GraphX, PointXSource.Estimated, 1, HasGraphX: true);
             if (!_pointModificationHistories.ContainsKey(point.PointId))
             {
                 _pointModificationHistories[point.PointId] = [];
@@ -258,6 +267,17 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             Guid.Parse(tab.PanelId!),
             entityId: null,
             "Session edit history restored a tab state");
+        if (reviewStatuses is not null)
+        {
+            CurrentProject = CurrentProject with
+            {
+                Panels = CurrentProject.Panels.Select(panel => panel.PanelId.Value == Guid.Parse(tab.PanelId!)
+                    ? panel with { Points = panel.Points.Select(point =>
+                        reviewStatuses.TryGetValue(point.PointId.Value.ToString("D"), out ReviewStatus status)
+                            ? point with { ReviewStatus = status } : point).ToArray() }
+                    : panel).ToArray(),
+            };
+        }
     }
 
     public async Task<IReadOnlyList<WorkspaceTabViewModel>> ImportImagesAsync(
@@ -1005,6 +1025,33 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 coordinate_space = "original_pixels",
                 crop_transform_id = cropTransformId,
             }));
+    }
+
+    public void SetPointReviewStatus(string tabId, string pointId, ReviewStatus status)
+    {
+        if (status is not (ReviewStatus.Accepted or ReviewStatus.Unreviewed))
+            throw new ArgumentOutOfRangeException(nameof(status));
+        WorkspaceTabViewModel tab = RequireTab(tabId);
+        _ = RequirePoint(tab, pointId);
+        Guid panelId = Guid.Parse(tab.PanelId!);
+        Guid parsedPointId = Guid.Parse(pointId);
+        PanelRecord panel = CurrentProject.Panels.Single(item => item.PanelId.Value == panelId);
+        PointRecord point = panel.Points.Single(item => item.PointId.Value == parsedPointId);
+        if (point.ReviewStatus is not (ReviewStatus.Accepted or ReviewStatus.Unreviewed))
+            throw new InvalidOperationException("Only an unreviewed or explicitly accepted point can change review status.");
+        if (point.ReviewStatus == status) return;
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        var auditEvent = new AuditEvent(AuditEventId.New(), now, DomainEventKind.PointEdited,
+            panel.PanelId, pointId, status == ReviewStatus.Accepted ? "Point accepted by user" : "Point acceptance undone", Details: null);
+        CurrentProject = CurrentProject with
+        {
+            ModifiedUtc = now,
+            Panels = CurrentProject.Panels.Select(item => item.PanelId == panel.PanelId
+                ? item with { Points = item.Points.Select(candidate => candidate.PointId == point.PointId
+                    ? candidate with { ReviewStatus = status } : candidate).ToArray() }
+                : item).ToArray(),
+            Audit = CurrentProject.Audit with { Events = CurrentProject.Audit.Events.Append(auditEvent).ToArray() },
+        };
     }
 
     public void DeletePoint(string tabId, string pointId)
@@ -2472,7 +2519,13 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 point.OriginalPixel.Y,
                 point.PointConfidence,
                 template?.SourceImage ?? WorkflowImageVariant.Original,
-                WorkflowReviewStatus.Accepted,
+                point.ReviewStatus switch
+                {
+                    ReviewStatus.Accepted => WorkflowReviewStatus.Accepted,
+                    ReviewStatus.Corrected => WorkflowReviewStatus.Corrected,
+                    ReviewStatus.Rejected => WorkflowReviewStatus.Rejected,
+                    _ => WorkflowReviewStatus.Unreviewed,
+                },
                 series.Symbol,
                 series.Shape.ToString(),
                 series.Fill.ToString(),
@@ -2664,6 +2717,13 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 OriginalPixelY = workspacePixel.Y,
                 GraphX = point.GraphX,
                 GraphY = point.GraphY,
+                ReviewStatus = point.ReviewStatus switch
+                {
+                    ReviewStatus.Accepted => WorkflowReviewStatus.Accepted,
+                    ReviewStatus.Corrected => WorkflowReviewStatus.Corrected,
+                    ReviewStatus.Rejected => WorkflowReviewStatus.Rejected,
+                    _ => WorkflowReviewStatus.Unreviewed,
+                },
                 SeriesId = seriesId.Value.ToString("D"),
                 PhaseId = phaseId.Value.ToString("D"),
                 Symbol = series.Symbol,
@@ -3227,7 +3287,10 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             }
             else
             {
-                merged.Add(point);
+                bool sameReviewedPoint = existing is { ReviewStatus: ReviewStatus.Accepted } &&
+                    existing.OriginalPixel == point.OriginalPixel && existing.SeriesId == point.SeriesId &&
+                    existing.PhaseId == point.PhaseId && existing.GraphX == point.GraphX && existing.GraphY == point.GraphY;
+                merged.Add(sameReviewedPoint ? point with { ReviewStatus = ReviewStatus.Accepted } : point);
             }
         }
 
@@ -3932,7 +3995,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                     ? prior.ModificationHistory.ToArray()
                     : workspaceModificationHistory;
             bool manuallyCorrected = prior is null ||
-                modificationHistory.Length > 0 ||
+                !modificationHistory.SequenceEqual(prior.ModificationHistory) ||
                 prior.SeriesId != seriesId ||
                 prior.PhaseId != phase.PhaseId ||
                 prior.OriginalPixel != originalPixel ||

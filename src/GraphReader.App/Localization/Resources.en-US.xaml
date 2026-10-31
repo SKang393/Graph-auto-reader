@@ -20,6 +20,7 @@
   <sys:String x:Key="Edit.Redo">Redo</sys:String>
   <sys:String x:Key="Edit.AddPoint">Add point</sys:String>
   <sys:String x:Key="Edit.DeletePoint">Delete point</sys:String>
+  <sys:String x:Key="Edit.AcceptPoint">Accept point</sys:String>
   <sys:String x:Key="Edit.MovePoint">Move point</sys:String>
   <sys:String x:Key="Edit.MergeSeries">Merge series</sys:String>
   <sys:String x:Key="Edit.SplitSeries">Split series</sys:String>
@@ -102,6 +103,7 @@
   <sys:String x:Key="Manual.AddOpenPoint">Add open point</sys:String>
   <sys:String x:Key="Manual.MovePoint">Move selected point</sys:String>
   <sys:String x:Key="Manual.DeletePoint">Delete selected point</sys:String>
+  <sys:String x:Key="Review.AcceptPoint">Accept selected point</sys:String>
   <sys:String x:Key="Manual.PhaseCode">Phase code</sys:String>
   <sys:String x:Key="Manual.PhaseLabel">Phase label</sys:String>
   <sys:String x:Key="Manual.AddDivider">Add divider</sys:String>

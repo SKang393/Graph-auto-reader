@@ -19,6 +19,7 @@ public static class LocalizationKeys
     public const string EditRedo = "Edit.Redo";
     public const string EditAddPoint = "Edit.AddPoint";
     public const string EditDeletePoint = "Edit.DeletePoint";
+    public const string EditAcceptPoint = "Edit.AcceptPoint";
     public const string EditMovePoint = "Edit.MovePoint";
     public const string EditMergeSeries = "Edit.MergeSeries";
     public const string EditSplitSeries = "Edit.SplitSeries";
@@ -96,6 +97,7 @@ public static class LocalizationKeys
     public const string ManualAddOpenPoint = "Manual.AddOpenPoint";
     public const string ManualMovePoint = "Manual.MovePoint";
     public const string ManualDeletePoint = "Manual.DeletePoint";
+    public const string ReviewAcceptPoint = "Review.AcceptPoint";
     public const string ManualPhaseCode = "Manual.PhaseCode";
     public const string ManualPhaseLabel = "Manual.PhaseLabel";
     public const string ManualAddDivider = "Manual.AddDivider";
@@ -298,6 +300,7 @@ public static class LocalizationKeys
         WorkflowCancel,
         EditUndo,
         EditRedo,
+        EditAcceptPoint,
         WorkflowImportToolTip,
         WorkflowEnhanceToolTip,
         WorkflowAutoDetectToolTip,
@@ -364,6 +367,7 @@ public static class LocalizationKeys
         ManualAddOpenPoint,
         ManualMovePoint,
         ManualDeletePoint,
+        ReviewAcceptPoint,
         ManualPhaseCode,
         ManualPhaseLabel,
         ManualAddDivider,

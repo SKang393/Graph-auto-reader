@@ -193,6 +193,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         DeletePointCommand = new RelayCommand(
             parameter => DeletePoint((string)parameter!),
             parameter => parameter is string pointId && FindPoint(pointId) is not null);
+        AcceptReviewPointCommand = new RelayCommand(_ => AcceptReviewPoint(), _ => CanAcceptReviewPoint());
         MovePointCommand = new RelayCommand(
             parameter =>
             {
@@ -723,6 +724,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public ICommand DeletePointCommand { get; }
 
+    public ICommand AcceptReviewPointCommand { get; }
+
     public ICommand MovePointCommand { get; }
 
     public ICommand MergeSeriesCommand { get; }
@@ -815,6 +818,46 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         return distinctPaths.Length == 0
             ? Task.CompletedTask
             : ImportPathsCoreAsync(distinctPaths, cancellationToken);
+    }
+
+    private bool CanAcceptReviewPoint()
+    {
+        if (IsBusy || _manualWorkspaceService is null || SelectedTab is not { } tab ||
+            SelectedReviewIssue is not { Kind: ReviewIssueKind.Point, EntityId: { } pointId } issue ||
+            !string.Equals(issue.TabId, tab.TabId, StringComparison.Ordinal) ||
+            !string.Equals(issue.IssueId, $"point-unreviewed-{pointId}", StringComparison.Ordinal) ||
+            !Guid.TryParse(tab.PanelId, out Guid panelId) || !Guid.TryParse(pointId, out Guid id))
+            return false;
+        return _manualWorkspaceService.CurrentProject.Panels
+            .SingleOrDefault(panel => panel.PanelId.Value == panelId)?.Points
+            .Any(point => point.PointId.Value == id && point.ReviewStatus == ReviewStatus.Unreviewed) == true &&
+            FindPoint(pointId) is not null;
+    }
+
+    private void AcceptReviewPoint()
+    {
+        if (!CanAcceptReviewPoint()) return;
+        WorkspaceTabViewModel tab = SelectedTab!;
+        string pointId = SelectedReviewIssue!.EntityId!;
+        IManualWorkspaceService service = _manualWorkspaceService!;
+        bool wasDirty = tab.IsDirty;
+        service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Accepted);
+        GetEditHistory(tab).Record(GetLocalizedString(LocalizationKeys.EditAcceptPoint),
+            () =>
+            {
+                service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Unreviewed);
+                tab.IsDirty = wasDirty;
+            },
+            () =>
+            {
+                service.SetPointReviewStatus(tab.TabId, pointId, ReviewStatus.Accepted);
+                tab.IsDirty = true;
+            });
+        tab.IsDirty = true;
+        RefreshWorkspaceProjection();
+        NotifyHistoryStateChanged();
+        if (SelectedReviewIssue is { } next) SetSelectedReviewIssue(next, synchronizeWorkspace: true);
+        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, pointId);
     }
 
     public void AddPoint(string seriesId)
@@ -1822,7 +1865,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         SnapshotTrigger trigger,
         string? tabId,
         string? entityId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool markDirty = true)
     {
         if (_manualWorkspaceService is null)
         {
@@ -1832,7 +1876,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         WorkspaceTabViewModel? editedTab = tabId is null
             ? null
             : Tabs.FirstOrDefault(tab => string.Equals(tab.TabId, tabId, StringComparison.Ordinal));
-        if (editedTab is not null)
+        if (markDirty && editedTab is not null)
         {
             editedTab.IsDirty = true;
         }
@@ -1865,11 +1909,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private async void QueueAutosave(
         SnapshotTrigger trigger,
         string? tabId,
-        string? entityId)
+        string? entityId,
+        bool markDirty = true)
     {
         try
         {
-            await TryAutosaveAsync(trigger, tabId, entityId, _shutdown.Token);
+            await TryAutosaveAsync(trigger, tabId, entityId, _shutdown.Token, markDirty);
         }
         catch (OperationCanceledException) when (_shutdown.IsCancellationRequested)
         {
@@ -2354,7 +2399,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
-        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "undo");
+        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "undo", markDirty: false);
     }
 
     private void RedoSelectedTab()
@@ -2375,7 +2420,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
         RefreshWorkspaceProjection();
         NotifyHistoryStateChanged();
-        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "redo");
+        QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, "redo", markDirty: false);
     }
 
     private void NotifyHistoryStateChanged()
@@ -2415,7 +2460,17 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             divider.Code,
             divider.Label)).ToArray(),
         CaptureSeriesRelations(tab),
+        CapturePointReviewStatuses(tab),
         tab.IsDirty);
+
+    private Dictionary<string, ReviewStatus> CapturePointReviewStatuses(WorkspaceTabViewModel tab)
+    {
+        if (_manualWorkspaceService is null || !Guid.TryParse(tab.PanelId, out Guid panelId))
+            return new Dictionary<string, ReviewStatus>();
+        return _manualWorkspaceService.CurrentProject.Panels.SingleOrDefault(panel => panel.PanelId.Value == panelId)?
+            .Points.ToDictionary(point => point.PointId.Value.ToString("D"), point => point.ReviewStatus,
+                StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string, ReviewStatus>();
+    }
 
     private SeriesRelationSnapshot[] CaptureSeriesRelations(WorkspaceTabViewModel tab)
     {
@@ -2498,7 +2553,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
         if (_workspaceService is IWorkspaceEditStateSink stateSink)
         {
-            stateSink.SynchronizeRestoredTab(tab.TabId);
+            stateSink.SynchronizeRestoredTab(tab.TabId, snapshot.ReviewStatuses);
         }
         if (_manualWorkspaceService is not null)
         {
@@ -2594,6 +2649,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         bool synchronizeWorkspace)
     {
         _ = SetProperty(ref _selectedReviewIssue, issue);
+        RelayCommand.RaiseCanExecuteChanged();
         if (!synchronizeWorkspace || issue is null)
         {
             return;
@@ -2974,6 +3030,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IReadOnlyList<SeriesSnapshot> Series,
         IReadOnlyList<DividerSnapshot> Dividers,
         IReadOnlyList<SeriesRelationSnapshot> SeriesRelations,
+        IReadOnlyDictionary<string, ReviewStatus> ReviewStatuses,
         bool IsDirty);
 
     private sealed record SeriesRelationSnapshot(

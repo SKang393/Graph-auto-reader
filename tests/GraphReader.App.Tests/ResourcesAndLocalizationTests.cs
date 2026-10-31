@@ -148,6 +148,7 @@ public sealed class ResourcesAndLocalizationTests
     [TestMethod]
     public void ManualEditHistoryLabelsResolveAndAreNeverPassedAsUnregisteredLiterals()
     {
+        Assert.IsTrue(LocalizationKeys.All.Contains(LocalizationKeys.EditAcceptPoint, StringComparer.Ordinal));
         string viewModelPath = Path.Combine(
             RepositoryTestPaths.Root,
             "src",
@@ -163,6 +164,7 @@ public sealed class ResourcesAndLocalizationTests
         [
             LocalizationKeys.EditAddPoint,
             LocalizationKeys.EditDeletePoint,
+            LocalizationKeys.EditAcceptPoint,
             LocalizationKeys.EditMovePoint,
             LocalizationKeys.EditMergeSeries,
             LocalizationKeys.EditSplitSeries,

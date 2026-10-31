@@ -1561,6 +1561,8 @@ public sealed class ProductionWorkflowStagesTests
         WorkspaceTabViewModel reopenedProvenanceTab = (await reopenedProvenanceWorkspace.OpenProjectAsync(
             provenanceProjectPath,
             CancellationToken.None)).Single();
+        reopenedProvenanceWorkspace.SetPointReviewStatus(reopenedProvenanceTab.TabId, pointId.ToString("D"), ReviewStatus.Unreviewed);
+        reopenedProvenanceWorkspace.SetPointReviewStatus(reopenedProvenanceTab.TabId, pointId.ToString("D"), ReviewStatus.Accepted);
         JsonElement reopenedProjectionDetails = reopenedProvenanceWorkspace.CurrentProject.Audit.Events
             .Single(auditEvent => auditEvent.Details is JsonElement details &&
                 details.TryGetProperty("kind", out JsonElement kind) &&
@@ -1574,6 +1576,10 @@ public sealed class ProductionWorkflowStagesTests
             reopenedProvenanceTab.TabId,
             reopenedAutomaticOutput,
             CancellationToken.None);
+        ExtendedAuditRow[] reviewedRows = reopenedAutomaticExport.AuditArtifacts
+            .SelectMany(static artifact => artifact.Rows).ToArray();
+        Assert.IsTrue(reviewedRows.Length > 0);
+        Assert.IsTrue(reviewedRows.All(static row => row.ReviewStatus == ExportReviewStatus.Accepted));
         Assert.IsTrue(reopenedAutomaticExport.Succeeded,
             string.Join(" | ", reopenedAutomaticExport.Failures.Select(static failure => failure.TechnicalMessage)));
 

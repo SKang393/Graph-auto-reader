@@ -900,6 +900,12 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
+            <Button Margin="0,6,0,0"
+                    Command="{Binding AcceptReviewPointCommand}"
+                    Content="{DynamicResource Review.AcceptPoint}"
+                    Style="{DynamicResource App.Style.Button}"
+                    automation:AutomationProperties.AutomationId="Review.AcceptPoint"
+                    automation:AutomationProperties.Name="{DynamicResource Review.AcceptPoint}" />
           </StackPanel>
         </Border>
         <ScrollViewer Grid.Row="3"
