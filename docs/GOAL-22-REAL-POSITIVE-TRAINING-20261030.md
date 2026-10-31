@@ -44,3 +44,13 @@ A subsequent aggregate audit attributed the 415 artifact-only exclusions to
 252 residual-mask exclusions, 152 geometry-seed exclusions, and 11 involving
 both. That diagnostic does not prove that any individual label or mask is
 wrong; a truth-free correction must still preserve structural rejection.
+
+A separate train-only score-shift diagnosis compared the authenticated V37
+checkpoint with this candidate on the RX 6600 XT. At the fixed 0.1 cutoff,
+component-train negative acceptance rose from 1.72% to 15.06%, family-train
+negative acceptance rose from 3.91% to 9.10%, and labeled real-positive
+acceptance rose from 64.58% to 92.86%. The shifts were group-dependent rather
+than a uniform offset. The aggregate diagnosis SHA-256 is
+`291186dc29a16d4046ce7c429e3c4bf18bdab7af6e751f4f89682da32dfbd277`.
+It used no real negatives, development labels or pixels, sealed reads, or
+optimizer steps, and it does not by itself establish a causal explanation.
