@@ -11349,6 +11349,34 @@
       "development_report_sha256": "733856d2985cf6133ce881c21f19c110560d9e999c8664de2038e996fba5aadd",
       "onnx_sha256": "88f22b586521213407f1e3392aceb92d95f5b2e3e98f456707feceeb587678a4",
       "closed_utc_date": "2026-10-31"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-preservation-bidirectional-v1",
+      "status": "candidate_1_preregistered",
+      "execution_authorized": true,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": ["P1"],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {"P1": "ml/markers/center/preservation_bidirectional_v1/p1.json"},
+      "candidate_config_sha256": {"P1": "cb058e66a13f8dcf86fe6919f663266aa5111f7c51ef7a5be0fea380f155a3d7"},
+      "protocol_path": "ml/markers/center/preservation_bidirectional_v1/protocol.json",
+      "protocol_sha256": "7588f537b160e22e036813593132235fa3e141001b37f545b2962ee1d1b682bb",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One exploratory user-authorized real-positive and synthetic train-only bidirectional preservation trial. No sealed reads, production activation, promotion or release.",
+      "isolated_change": "Retain the fixed component-negative and real-positive recipe; add fixed downward component-positive and upward family-negative residual penalties using authenticated synthetic train labels only.",
+      "optimizer_steps_expected": 2264,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "training_device": "RX 6600 XT gfx1032 cuda:0",
+      "release_eligible": false
     }
   ]
 }
