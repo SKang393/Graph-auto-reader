@@ -1,0 +1,29 @@
+{
+  "schema": "graphreader.synthetic-reject-phrase-catalog.v1",
+  "scope": "fixed_package_generated_ascii_words_only",
+  "train": [
+    {"id": "baseline", "text": "Baseline"},
+    {"id": "intervention", "text": "Intervention"},
+    {"id": "outcome", "text": "Outcome"},
+    {"id": "primary-outcome", "text": "Primary outcome"},
+    {"id": "probe", "text": "Probe"},
+    {"id": "sessions", "text": "Sessions"},
+    {"id": "withdrawal", "text": "Withdrawal"},
+    {"id": "phase", "text": "Phase"},
+    {"id": "treatment", "text": "Treatment"},
+    {"id": "behavior", "text": "Behavior"}
+  ],
+  "validation": [
+    {"id": "reintroduction", "text": "Reintroduction"},
+    {"id": "generalization", "text": "Generalization"},
+    {"id": "annotation", "text": "Annotation"},
+    {"id": "observation", "text": "Observation"},
+    {"id": "participant", "text": "Participant"},
+    {"id": "measure", "text": "Measure"},
+    {"id": "criterion", "text": "Criterion"},
+    {"id": "legend", "text": "Legend"},
+    {"id": "frequency", "text": "Frequency"},
+    {"id": "duration", "text": "Duration"}
+  ],
+  "independence_claim": "Phrase IDs and font IDs are disjoint across train and validation; broader benchmark independence is unproven."
+}
