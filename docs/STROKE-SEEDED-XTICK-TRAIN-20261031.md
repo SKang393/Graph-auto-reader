@@ -174,6 +174,16 @@ production default. Diagnostic report SHA-256:
 `acc2c0bf20153647b5f1470c812c6de7e567c7a35869970b276dde17bd83640e`.
 The runner built and its metric test passed.
 
+An attribution pass on the same panels found that, of 156 missed visible
+ticks, 53 had no candidate midpoint within 10 pixels and 81 had a horizontal
+nearest candidate. The remaining nearest candidates failed other observation
+or tick-eligibility checks. The selected axis orientation and placement were
+generally close to the rendered axis; one selected axis had a shortened span.
+This is evidence about a consumed synthetic set, not proof that nearby lines
+are the correct missing stroke. Report SHA-256:
+`fd17c37c4f7eb78bed6cb2924f91030ad868aa2fb9be27e8aa1d31b781f3aa17`.
+The diagnostic built and 4 geometry-gate tests passed.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
