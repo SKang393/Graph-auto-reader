@@ -1,0 +1,29 @@
+{
+  "schema": "graphreader.marker-candidate-tensor-bridge-runner.v1",
+  "status": "synthetic_train_review_only",
+  "source_bindings": {
+    "runner.py": "64ded50dc88878c7142b96b905057f791eae153760bc54f26236b89a858af91a",
+    "bridge.py": "523bdc6be748007a10b3ec588243976c6472d4782ace4f5f607e6a7ca2511c83",
+    "__init__.py": "0800091eb5df0e3d9af780d5e085cf07e1ec40018eee92a3cc9e8bf134cea62b"
+  },
+  "source_closure_sha256": "28a5578aa1e676875c52bca252446442a8bb8f17cade69bfe514cc06e5d4e5ef",
+  "expected_inputs": {
+    "full_capture_report_sha256": "c46e2a909df60d8665a7121c0a60a2bf0f6a64e60ce36b36dad19d40b8ff8de3",
+    "identity_metadata_sha256": "2ca7fce16eee67d7f040e62f6979ebc76c83bcec6bafad03e67e381ce83d2055",
+    "full_capture_complete_sha256": "957e2bec1d45b49665e05c6442e90fa4285d27e02140b8458f2f5066de001019",
+    "full_capture_binding_sha256": "792d6ec1bc59f16f92cb03adae1b59d2ca0d35ba85218f6eb9a9218d2594327b",
+    "corpus_builder_binding_sha256": "f095bac6f76a9a2d444869ba4d75538e76237c399d3b98997c97292b4cebebd4",
+    "association_report_sha256": "91a4cfd05f91d155bd95d30877d6feb17f742573d4f4ec0a91f27a450ec59244",
+    "artifact_report_sha256": "0db3f20d13b9aa730148111d4e88064532f74caa0c02ea9c337b65eacd4f5c51"
+  },
+  "execution": {
+    "source_count_per_run": 1,
+    "fresh_output_required": true,
+    "review_only": true,
+    "trainable_rows": 0,
+    "negative_training_rows": 0,
+    "training_approved": false,
+    "optimizer_steps": 0,
+    "grouping_basis": "source_id_only; participant/study independence is unverified"
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "schema": "graphreader.marker-candidate-tensor-bridge.v2",
+  "status": "exploratory_train_only_review_needed",
+  "expected_inputs": {
+    "association_report_sha256": "91a4cfd05f91d155bd95d30877d6feb17f742573d4f4ec0a91f27a450ec59244",
+    "artifact_report_sha256": "0db3f20d13b9aa730148111d4e88064532f74caa0c02ea9c337b65eacd4f5c51",
+    "full_capture_binding_sha256": "792d6ec1bc59f16f92cb03adae1b59d2ca0d35ba85218f6eb9a9218d2594327b",
+    "full_capture_complete_sha256": "957e2bec1d45b49665e05c6442e90fa4285d27e02140b8458f2f5066de001019",
+    "full_capture_report_sha256": "c46e2a909df60d8665a7121c0a60a2bf0f6a64e60ce36b36dad19d40b8ff8de3",
+    "corpus_builder_binding_sha256": "f095bac6f76a9a2d444869ba4d75538e76237c399d3b98997c97292b4cebebd4",
+    "identity_metadata_sha256": "2ca7fce16eee67d7f040e62f6979ebc76c83bcec6bafad03e67e381ce83d2055"
+  },
+  "source_bindings": {
+    "tools/MarkerArtifactAssociationV1/association.py": "432796f6e2e879ca5dc59e583b80ffa7ccca527bffebd279c34501b45f5a6c69",
+    "tools/MarkerArtifactAssociationV1/batch_capture.py": "0484cdb65176ec4765ae10b46d9f765d2c3e5c1ed20bee4133c95ba41099c644",
+    "tools/MarkerArtifactAssociationV1/batch_producer.py": "30c012425a1c7712c2a714982341735a893927d6ba62a49c992fd1c23380b918",
+    "tools/MarkerArtifactAssociationV1/full_capture_producer.py": "5591497f1c67a5762a5cc5f809e0a64dc53d8bdd7339c44289652c39bfad5cc8",
+    "ml/synthetic/marker_context_train_corpus_v5/plan.py": "51a5501881f9cf5d2e65526679a4248c9b11bd244bcc4406ac3f60540857462e",
+    "tools/GraphReader.MarkerContextEvidence/MarkerContextEvidenceCapture.cs": "403e4450c1839449e9895fea7660c00362c863274b05ab85e48c272cdd965c01",
+    "src/GraphReader.Markers/Classification/MarkerPatchExtractor.cs": "5c15dff2dd3f3dfd0685ba9f5380eb1e82dc0c37ee16438795fa00a033fd13ca",
+    "src/GraphReader.Markers/Classification/MarkerClassificationService.cs": "c6835d703a6228712e895614fd5001d168276001fecd225e1b786ef71e651f47",
+    "src/GraphReader.Markers/Classification/MarkerClassificationContracts.cs": "c38f541a828801cd271f47e1c3a1cc1ff687f8b5b41e67ec33ae41485a4cbad9",
+    "src/GraphReader.App/Integration/Workflow/ProductionMarkerClassificationAdapter.cs": "7c4ade83e37d1df7df93792f16d6ab3eeb097d19391191d525595b6b105c598a",
+    "tools/GraphReader.MarkerBoundInputTrainCapture/CenterRunner.cs": "f43f9cc9edd9aa402208c75d06bb39fb07120d5f5e29504f2b2ef2d836e5aadf",
+    "tools/GraphReader.MarkerDualViewTrainCapture/SamplerCapture.cs": "c54ea7d2bdd5788cc9ecc5760439683cc77653bbe9a2b617818303c61ece1eb9",
+    "ml/synthetic/marker_context_train_corpus_v5/builder.py": "f5dfd871446132b4c777e564d7416f3feec02a0178c3c1ee80a9139806be9e6f",
+    "ml/synthetic/marker_context_catalog_v1/labels.py": "27a36dc116e0424c0c932683c5f16d4650c0334b4362743cfd14741da48699e1"
+  },
+  "source_closure_sha256": "28a5578aa1e676875c52bca252446442a8bb8f17cade69bfe514cc06e5d4e5ef",
+  "matching": {
+    "coordinate_space": "original_source_pixels",
+    "distance": "euclidean",
+    "maximum_distance_px": 2.0,
+    "joint_marker_and_artifact_matching": true,
+    "one_to_one_only": true,
+    "duplicate_candidate_centers": "unknown",
+    "unmatched_candidates": "unknown",
+    "overlay_and_symbol_inputs": "excluded",
+    "ambiguous_or_colliding_links": "unknown",
+    "positive_near_any_valid_visible_glyph": "ambiguous, regardless of artifact association status",
+    "artifact_review_label": "only matched_artifact_review_only"
+  },
+  "sampler": {
+    "evidence_schema": "internal normalized envelope derived from bound inline panel",
+    "local": {
+      "shape_nchw": [
+        1,
+        1,
+        32,
+        32
+      ],
+      "radius_scale": 2.25,
+      "minimum_half_extent_frame_pixels": 4.0,
+      "padding_value": 0.0,
+      "content_bounds": "exact saved per-candidate bound, validated; null is allowed"
+    },
+    "wide": {
+      "shape_nchw": [
+        1,
+        1,
+        32,
+        32
+      ],
+      "radius_scale": 6.75,
+      "minimum_half_extent_frame_pixels": 12.0,
+      "padding_value": 0.0,
+      "content_bounds": "must be absent"
+    },
+    "tensor_encoding": "little_endian_float32_raw_sampler_output",
+    "normalization": "not_applied_or_verified",
+    "ocr_and_artifact_masks": "provenance_only_not_sampled",
+    "capture_panel_schema": "graphreader.bound-input-train-capture.v1 inline panel record"
+  },
+  "labels": {
+    "positive": "review_positive_marker",
+    "visible_glyph": "review_visible_legend_candidate",
+    "all_other_candidates": "unknown_unlabeled",
+    "trainable_rows": 0,
+    "negative_training_rows": 0,
+    "training_approved": false,
+    "optimizer_steps": 0
+  },
+  "limitations": [
+    "No actual train-source truth scan is performed by this package until separately reviewed.",
+    "Inputs are raw sampler evidence; the model-store factory, production decoder, classifier normalization, and ONNX inference are not verified here.",
+    "A visibility proof is bound to the separately reviewed artifact report and renderer source; this bridge does not re-render ablations.",
+    "Rows are review-only and do not authorize training, model registration, export, or production use.",
+    "The bridge accepts the saved full-capture inline panel schema; it does not require separate per-view evidence JSON files. Internal normalized envelopes are derived from those panel bytes."
+  ],
+  "truth_inventory": {
+    "source_count": 64,
+    "source_membership": "identity metadata, full capture report, full truth sidecar, and artifact report must form exact bijections",
+    "input_policy": "bridge derives positive/glyph/overlay inventories from hash-bound raw evidence; caller label lists are not accepted",
+    "positive_source": "pinned labels.classify over canonical annotation from full truth sidecar",
+    "glyph_source": "all annotation legend_symbol records must join one-for-one to glyphs in pinned artifact report",
+    "overlay_source": "bound truth sidecar overlay record",
+    "omission_policy": "fail closed on count, ID, scene, case, image, panel, or report mismatch"
+  }
+}

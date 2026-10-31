@@ -7,6 +7,7 @@ tools/GraphReader.AxisScoringVariants/source-bindings.json -text whitespace=cr-a
 tools/GraphReader.AxisScoringVariants/source-bindings-v*.json -text whitespace=cr-at-eol
 tools/GraphReader.AxisScoringVariants/Analyze*FeatureProbe.ps1 -text whitespace=cr-at-eol
 tools/MarkerContextFullAssociationV1/* -text whitespace=cr-at-eol,-blank-at-eof
+tools/MarkerCandidateTensorBridgeV1/* -text whitespace=cr-at-eol,-blank-at-eof
 # The consumed structure-consensus evidence binds this source's CRLF bytes.
 src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs text eol=crlf
 
