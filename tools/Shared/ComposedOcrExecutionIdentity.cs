@@ -29,6 +29,21 @@ internal static class ComposedOcrExecutionIdentity
         string composition, string axisStage, string detector, string detectorManifest,
         string recognizer, string recognizerManifest, string provider, string optimization,
         int intraThreads, int interThreads, int workers, int queue,
+        IReadOnlyDictionary<string, string> files) =>
+        Convert.ToHexStringLower(SHA256.HashData(CreateDescriptor(
+            composition, axisStage, detector, detectorManifest, recognizer, recognizerManifest,
+            provider, optimization, intraThreads, interThreads, workers, queue, files)));
+
+    /// <summary>
+    /// Return the exact UTF-8 preimage of the existing v1 execution identity.
+    /// These bytes are produced by System.Text.Json and must be hashed as-is;
+    /// reserializing parsed JSON is not guaranteed to preserve the identity.
+    /// This describes the shared OCR stage, not the complete worker host.
+    /// </summary>
+    internal static byte[] CreateDescriptor(
+        string composition, string axisStage, string detector, string detectorManifest,
+        string recognizer, string recognizerManifest, string provider, string optimization,
+        int intraThreads, int interThreads, int workers, int queue,
         IReadOnlyDictionary<string, string> files)
     {
         if (string.IsNullOrWhiteSpace(composition) || string.IsNullOrWhiteSpace(axisStage) ||
@@ -44,14 +59,13 @@ internal static class ComposedOcrExecutionIdentity
             ValidateSha(hash);
             sharedFiles.Add(name, hash);
         }
-        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(new
+        return JsonSerializer.SerializeToUtf8Bytes(new
         {
             domain = "graphreader.composed-ocr-execution.v1", composition, axisStage,
             detector, detectorManifest, recognizer, recognizerManifest, provider, optimization,
             intraThreads, interThreads, workers, queue, files = sharedFiles,
             framework = Environment.Version.ToString(), architecture = RuntimeInformation.ProcessArchitecture.ToString(),
         });
-        return Convert.ToHexStringLower(SHA256.HashData(bytes));
     }
 
     internal static IReadOnlyDictionary<string, string> ReadRuntimeFiles(string directory)
@@ -67,7 +81,7 @@ internal static class ComposedOcrExecutionIdentity
 
     private static void ValidateSha(string value)
     {
-        if (value.Length != 64 || value.Any(static c => c is not (>= '0' and <= '9' or >= 'a' and <= 'f')))
+        if (value is null || value.Length != 64 || value.Any(static c => c is not (>= '0' and <= '9' or >= 'a' and <= 'f')))
             throw new InvalidDataException("COMPOSED_OCR_EXECUTION_HASH_INVALID");
     }
 }

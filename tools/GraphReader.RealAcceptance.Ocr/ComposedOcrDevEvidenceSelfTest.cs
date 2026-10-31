@@ -2,6 +2,8 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -70,6 +72,30 @@ internal static class ComposedOcrDevEvidenceSelfTest
             ComposedOcrExecutionIdentity.Create("fixture-composition", "fixture-axis", detector.Length == 0 ? Execution : detector,
                 Request, Candidate, Request, "cpu", "disabled", threads, 1, 1, 1, items);
         string baseline = Identity(files);
+        byte[] descriptor = ComposedOcrExecutionIdentity.CreateDescriptor("fixture-composition", "fixture-axis",
+            Execution, Request, Candidate, Request, "cpu", "disabled", 1, 1, 1, 1, files);
+        if (Convert.ToHexStringLower(SHA256.HashData(descriptor)) != baseline)
+            throw new InvalidDataException("Descriptor bytes differ from the existing execution identity");
+        var legacyFiles = new SortedDictionary<string, string>(files, StringComparer.Ordinal);
+        byte[] legacy = JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            domain = "graphreader.composed-ocr-execution.v1", composition = "fixture-composition",
+            axisStage = "fixture-axis", detector = Execution, detectorManifest = Request,
+            recognizer = Candidate, recognizerManifest = Request, provider = "cpu", optimization = "disabled",
+            intraThreads = 1, interThreads = 1, workers = 1, queue = 1, files = legacyFiles,
+            framework = Environment.Version.ToString(), architecture = RuntimeInformation.ProcessArchitecture.ToString(),
+        });
+        if (!descriptor.SequenceEqual(legacy)) throw new InvalidDataException("Legacy execution preimage changed");
+        using (JsonDocument parsed = JsonDocument.Parse(descriptor))
+        {
+            JsonElement root = parsed.RootElement;
+            if (root.GetProperty("domain").GetString() != "graphreader.composed-ocr-execution.v1" ||
+                root.GetProperty("framework").GetString() != Environment.Version.ToString() ||
+                root.GetProperty("architecture").GetString() != RuntimeInformation.ProcessArchitecture.ToString() ||
+                root.GetProperty("files").EnumerateObject().Count() != ComposedOcrExecutionIdentity.RequiredFiles.Length)
+                throw new InvalidDataException("Descriptor process or runtime inventory changed");
+        }
+        checks.Add("descriptor_is_exact_legacy_hash_preimage");
         if (baseline != Identity(files.Reverse().ToDictionary(static x => x.Key, static x => x.Value))) throw new InvalidDataException("File order changed identity");
         foreach (string name in ComposedOcrExecutionIdentity.RequiredFiles)
         {

@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.IO;
+using System.Security.Cryptography;
 using System.Text.Json;
 using GraphReader.Evidence;
 
@@ -14,6 +15,7 @@ namespace GraphReader.RealAcceptance.Ocr;
 internal static class ComposedOcrDevEvidence
 {
     internal const string Schema = "graphreader.composed-ocr-memory-dev-result.v2";
+    internal const string DescriptorSchema = "graphreader.composed-ocr-dev-compatible-descriptor.v1";
 
     internal static int RunCommand(string[] args)
     {
@@ -29,7 +31,21 @@ internal static class ComposedOcrDevEvidence
         }
     }
 
-    internal static object Run(string[] args)
+    internal static int RunDescriptorCommand(string[] args)
+    {
+        try
+        {
+            Console.WriteLine(JsonSerializer.Serialize(Run(args, includeDescriptor: true)));
+            return 0;
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Console.Error.WriteLine("COMPOSED_OCR_DEV_COMPATIBILITY_FAILED:" + exception.GetType().Name);
+            return 1;
+        }
+    }
+
+    internal static object Run(string[] args, bool includeDescriptor = false)
     {
         if (args.Length != 7) Fail("ARGUMENTS");
         string root = Directory.GetCurrentDirectory();
@@ -38,8 +54,20 @@ internal static class ComposedOcrDevEvidence
         if (new FileInfo(path).Length is <= 0 or > 16 * 1024 * 1024) Fail("SIZE");
         byte[] bytes = File.ReadAllBytes(path);
         if (FrozenCandidateBinding.Hash(bytes) != FrozenCandidateBinding.RequireSha256(args[2], "report hash")) Fail("CHECKSUM");
-        string execution = ExecutionIdentity(binding);
+        byte[] descriptor = ExecutionDescriptor(binding);
+        string execution = Convert.ToHexStringLower(SHA256.HashData(descriptor));
         JsonElement development = Validate(bytes, execution, args[5], args[6]);
+        if (includeDescriptor)
+        {
+            return new
+            {
+                schema = DescriptorSchema,
+                status = "compatible_development_evidence", scope = "owned-synthetic-development-runtime-compatibility",
+                execution_sha256 = execution, execution_descriptor_base64 = Convert.ToBase64String(descriptor), development,
+                accuracy_gate_evaluated = false, stage_admission_granted = false, production_approved = false,
+                private_reads = 0, sealed_reads = 0, model_inference = false,
+            };
+        }
         return new
         {
             status = "compatible_development_evidence", scope = "owned-synthetic-development-runtime-compatibility",
@@ -50,7 +78,10 @@ internal static class ComposedOcrDevEvidence
     }
 
     internal static string ExecutionIdentity(FrozenCandidateBinding binding) =>
-        ComposedOcrExecutionIdentity.Create(binding.Algorithms.OcrCompositionVersion,
+        Convert.ToHexStringLower(SHA256.HashData(ExecutionDescriptor(binding)));
+
+    internal static byte[] ExecutionDescriptor(FrozenCandidateBinding binding) =>
+        ComposedOcrExecutionIdentity.CreateDescriptor(binding.Algorithms.OcrCompositionVersion,
             binding.Algorithms.AxisStageVersion, binding.OcrDetection.Payload.Sha256,
             binding.OcrDetection.Manifest.Sha256, binding.OcrRecognition.Payload.Sha256,
             binding.OcrRecognition.Manifest.Sha256, binding.Runtime.ExecutionProvider,

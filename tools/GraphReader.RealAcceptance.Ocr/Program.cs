@@ -172,6 +172,10 @@ internal static class Program
         {
             return ComposedOcrDevEvidence.RunCommand(args);
         }
+        if (args.Length == 7 && args[0] == "--describe-composed-ocr-dev-evidence")
+        {
+            return ComposedOcrDevEvidence.RunDescriptorCommand(args);
+        }
         if (args.Length == 1 && args[0] == "--self-test-composed-ocr-dev-evidence")
         {
             return await RunEngaugeSelfTestAsync(() => Task.FromResult(ComposedOcrDevEvidenceSelfTest.Run()));
