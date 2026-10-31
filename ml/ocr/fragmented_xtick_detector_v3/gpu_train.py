@@ -29,7 +29,7 @@ from ml.ocr.fragmented_xtick_detector_v2.materialize import _png_bytes, cases, r
 
 ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parents[2]
-CONFIG_PATH = ROOT / "training" / "p1.json"
+CONFIG_PATH = ROOT / "training" / "p2.json"
 GPU_PYTHON = REPO_ROOT / "tools" / "gpu-training" / "venv" / "Scripts" / "python.exe"
 MAX_MANIFEST_BYTES = 1_000_000
 MAX_ANNOTATION_BYTES = 65_536
@@ -122,25 +122,25 @@ def _parse_json(bound: BoundBytes, label: str) -> dict[str, Any]:
 
 
 def _config() -> dict[str, Any]:
-    bound = _bound_read(ROOT, "training/p1.json", "V2 GPU config")
-    config = _parse_json(bound, "V2 GPU config")
+    bound = _bound_read(ROOT, "training/p2.json", "V3 30-epoch GPU config")
+    config = _parse_json(bound, "V3 30-epoch GPU config")
     expected = {
         "schema": "graphreader.ocr-fragmented-xtick-v3-gpu-exploratory.v1",
-        "revision": "graph-text-fragmented-xtick-detector-v3-stratified-batches",
-        "candidate_id": "P1-stratified-unregistered",
+        "revision": "graph-text-fragmented-xtick-detector-v3-stratified-batches-30-epochs",
+        "candidate_id": "P2-stratified-30-epochs-unregistered",
         "state": "prepared-gpu-authorized-unregistered",
         "task": "ocr-detection",
-        "scope": "train-only synthetic spatial localization experiment",
+        "scope": "train-only synthetic spatial localization, 30-epoch duration diagnostic",
         "positive_count": 64,
         "background_negative_count": 32,
         "model": "fragmented-xtick-spatial-locator-v3-cell-relative",
         "input": "single-channel 256x96 train-only synthetic raster",
         "target": "12x32 objectness map plus cell-relative center offsets and normalized width-height",
         "loss": "balanced_positive_negative_bce_plus_positive_cell_smooth_l1_center_offset_width_height",
-        "epochs": 3,
+        "epochs": 30,
         "batch_size": 8,
         "learning_rate": 0.001,
-        "expected_optimizer_steps": 36,
+        "expected_optimizer_steps": 360,
         "seed": 24014201,
         "shuffle_seed": 24014202,
         "required_launcher": "tools/gpu-training/Run-GpuPython.ps1",
@@ -152,15 +152,16 @@ def _config() -> dict[str, Any]:
         "private_input_allowed": False,
         "optimizer_execution_authorized": True,
         "batching": "deterministic stratified full-epoch batches, every batch has positives and negatives",
-        "planned_output_root": "artifacts/fragmented-xtick-detector-v3-p1-stratified-trainfit-v1",
+        "training_duration": "30 epochs, 12 optimizer steps per epoch",
+        "planned_output_root": "artifacts/fragmented-xtick-detector-v3-p2-stratified-30epoch-trainfit-v1",
         "production_approval": False,
         "release_eligible": False,
     }
     for key, value in expected.items():
         if config.get(key) != value:
-            raise TrainingAdmissionError(f"V2 GPU config mismatch: {key}")
+            raise TrainingAdmissionError(f"V3 30-epoch GPU config mismatch: {key}")
     if config.get("expected_runner_sha256") != runner_sha256():
-        raise TrainingAdmissionError("V2 runner source hash changed")
+        raise TrainingAdmissionError("V3 runner source hash changed")
     return config
 
 
@@ -474,6 +475,7 @@ def run_training(output_root: Path) -> dict[str, object]:
         negative_indices = tuple(index for index, box in enumerate(boxes) if box is None)
         losses: list[float] = []; positive_losses: list[float] = []; background_losses: list[float] = []
         step_batch_class_counts: list[tuple[int, int]] = []
+        epoch_train_fit: list[dict[str, float]] = []
         for epoch in range(int(config["epochs"])):
             batches = stratified_batches(positive_indices, negative_indices, int(config["batch_size"]), int(config["shuffle_seed"]) + epoch)
             for indices in batches:
@@ -501,10 +503,11 @@ def run_training(output_root: Path) -> dict[str, object]:
                 loss.backward(); optimizer.step(); steps += 1; losses.append(float(loss.detach().cpu().item()))
                 if positive_mean is not None: positive_losses.append(float(positive_mean.detach().cpu().item()))
                 if background_mean is not None: background_losses.append(float(background_mean.detach().cpu().item()))
+            epoch_train_fit.append(evaluate_train_fit(model, features, objectness, targets, mask, device, torch))
         if steps != int(config["expected_optimizer_steps"]): raise TrainingAdmissionError("V2 optimizer step count differs from config")
         train_fit_after = evaluate_train_fit(model, features, objectness, targets, mask, device, torch)
         checkpoint = output / "checkpoint.pt"; torch.save({"state_dict": model.state_dict(), "input_manifest_sha256": input_receipt["manifest_sha256"], "runtime": runtime, "optimizer_steps": steps}, checkpoint)
-        report = {"schema": "graphreader.ocr-fragmented-xtick-v3-gpu-result.v1", "status": "completed-unregistered-exploratory", "input": input_receipt, "runtime": runtime, "optimizer_steps": steps, "loss_first": losses[0], "loss_last": losses[-1], "positive_cell_bce_first": positive_losses[0], "positive_cell_bce_last": positive_losses[-1], "background_cell_bce_first": background_losses[0], "background_cell_bce_last": background_losses[-1], "objectness_loss": "mean(positive_bce,background_bce), both classes present in each batch", "batch_class_counts_first_epoch": [list(pair) for pair in step_batch_class_counts[:len(batches)]], "box_target": "cell-relative center offsets plus normalized width-height", "train_fit_before": train_fit_before, "train_fit_after": train_fit_after, "train_fit_is_held_out_validation": False, "checkpoint_path": checkpoint.relative_to(REPO_ROOT).as_posix(), "checkpoint_sha256": _sha256_bytes(checkpoint.read_bytes()), "dev_input_read": False, "sealed_input_read": False, "private_input_read": False, "production_approval": False, "release_eligible": False}
+        report = {"schema": "graphreader.ocr-fragmented-xtick-v3-gpu-result.v1", "status": "completed-unregistered-exploratory", "input": input_receipt, "runtime": runtime, "optimizer_steps": steps, "loss_first": losses[0], "loss_last": losses[-1], "positive_cell_bce_first": positive_losses[0], "positive_cell_bce_last": positive_losses[-1], "background_cell_bce_first": background_losses[0], "background_cell_bce_last": background_losses[-1], "objectness_loss": "mean(positive_bce,background_bce), both classes present in each batch", "batch_class_counts_first_epoch": [list(pair) for pair in step_batch_class_counts[:len(batches)]], "box_target": "cell-relative center offsets plus normalized width-height", "train_fit_before": train_fit_before, "epoch_train_fit": epoch_train_fit, "train_fit_after": train_fit_after, "train_fit_is_held_out_validation": False, "checkpoint_path": checkpoint.relative_to(REPO_ROOT).as_posix(), "checkpoint_sha256": _sha256_bytes(checkpoint.read_bytes()), "dev_input_read": False, "sealed_input_read": False, "private_input_read": False, "production_approval": False, "release_eligible": False}
         report_sha256 = _write_receipt(output / "report.json", report)
         return {"output_root": output.relative_to(REPO_ROOT).as_posix(), "report_sha256": report_sha256, "optimizer_steps": steps, "production_approval": False, "release_eligible": False}
     except BaseException as error:

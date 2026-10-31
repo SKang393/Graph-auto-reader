@@ -45,3 +45,17 @@ as a sufficient explanation for this particular collapse.
 - Report SHA-256: `6f26f5b69166b84a1b60a1c7192afe79f76680f7137229ed66da3d93a9f9df10`
 - Checkpoint SHA-256: `ed205368ab644dbd1f3d5514437551f6febb54f7114d0208f6bbe99615693c5a`
 - Focused tests: 11 passed; all optimizer steps ran on the RX 6600 XT.
+
+## Duration follow-up
+
+The same V3 recipe, extended to 30 epochs, completed 360 RX 6600 XT steps.
+Training-set positive-cell recall at 0.5 recovered to 0.984, while background
+false-positive cells averaged 20.06 per image and box target MAE was 0.141.
+These are cell-level training diagnostics, not image-level detection accuracy.
+The run indicates that three epochs were insufficient but does not establish
+a usable detector or justify a production decision.
+
+- Runner SHA-256: `620b27122a257c9791917bac0c3423e09b3ca4d36b9b1a652a32c371a63c6f62`
+- Report SHA-256: `835e8a4d7845e7654e1888075fa66d6579af1d54996523ea1999698c6fd01f9f`
+- Checkpoint SHA-256: `ec2276cc85dacf89a064bfbbdf1aed5ca98b8bab40c429c4d2d84ccc1ca4dd15`
+- Focused tests: 11 passed; no CPU optimizer execution.

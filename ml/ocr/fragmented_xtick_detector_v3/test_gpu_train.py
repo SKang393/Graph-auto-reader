@@ -51,6 +51,8 @@ class FragmentedXTickV3GpuTests(unittest.TestCase):
     def test_config_is_authorized_but_remains_unregistered(self) -> None:
         config = _config()
         self.assertTrue(config["optimizer_execution_authorized"])
+        self.assertEqual((30, 360), (config["epochs"], config["expected_optimizer_steps"]))
+        self.assertEqual("artifacts/fragmented-xtick-detector-v3-p2-stratified-30epoch-trainfit-v1", config["planned_output_root"])
         self.assertFalse(config["production_approval"])
         self.assertFalse(config["release_eligible"])
 
@@ -89,7 +91,9 @@ class FragmentedXTickV3GpuTests(unittest.TestCase):
         source = Path(REPO_ROOT / "ml/ocr/fragmented_xtick_detector_v3/gpu_train.py").read_text(encoding="utf-8")
         self.assertIn("stratified_batches(positive_indices, negative_indices", source)
         self.assertIn("train_fit_before = evaluate_train_fit", source)
+        self.assertIn("epoch_train_fit.append(evaluate_train_fit", source)
         self.assertIn("train_fit_after = evaluate_train_fit", source)
+        self.assertIn('"epoch_train_fit": epoch_train_fit', source)
         self.assertIn('"train_fit_is_held_out_validation": False', source)
 
     def test_stratified_batches_are_deterministic_mixed_and_cover_each_case_once(self) -> None:
