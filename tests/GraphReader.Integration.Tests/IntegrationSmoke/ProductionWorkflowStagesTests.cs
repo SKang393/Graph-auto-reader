@@ -1436,7 +1436,7 @@ public sealed class ProductionWorkflowStagesTests
         MarkerRecord filteredMarker = marker with
         {
             MarkerId = filteredMarkerId,
-            Center = new GraphReader.Domain.PixelPoint(0.7, 0.7),
+            Center = new GraphReader.Domain.PixelPoint(0.05, 0.05),
             ArtifactProbability = 0.8,
             CandidateSeriesId = null,
             ReviewStatus = ReviewStatus.Rejected,
@@ -1792,6 +1792,41 @@ public sealed class ProductionWorkflowStagesTests
         Assert.AreEqual(0.75, tab.Points.Single().PixelX, 0);
         Assert.HasCount(1, workspace.CurrentProject.Panels.Single().Points.Single().ModificationHistory);
         Assert.AreSame(immutableImage, tab.ImageSource);
+
+        var productionForPromotion = new ProductionWorkspaceService();
+        WorkspaceTabViewModel productionPromotionTab = (await productionForPromotion.OpenProjectAsync(
+            provenanceProjectPath, CancellationToken.None)).Single();
+        GraphReader.App.Models.GraphPoint promoted = productionForPromotion.PromoteFilteredMarker(
+            productionPromotionTab.TabId, filteredMarkerId.Value.ToString("D"), seriesId.Value.ToString("D"));
+        ProductionWorkflowStageException blockedPromotion = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+            () => productionForPromotion.RunAutomaticDetectionAsync(CancellationToken.None));
+        Assert.AreEqual("Errors.PromotedMarkerAnalysisBlocked", blockedPromotion.Failure.UserMessageKey);
+        string promotedOutput = Path.Combine(directory.Path, "promoted-marker-export");
+        ExportResult promotedExport = await productionForPromotion.ExportAsync(
+            productionPromotionTab.TabId, promotedOutput, CancellationToken.None);
+        Assert.IsTrue(promotedExport.Succeeded,
+            string.Join(" | ", promotedExport.Failures.Select(static failure => failure.TechnicalMessage)));
+        ExtendedAuditRow promotedRow = promotedExport.AuditArtifacts.SelectMany(static artifact => artifact.Rows)
+            .First(row => row.PointId.ToString("D") == promoted.PointId);
+        Assert.AreEqual(ExportReviewStatus.Corrected, promotedRow.ReviewStatus);
+        Assert.AreEqual(ExportXValueSource.Estimated, promotedRow.XSource);
+        Assert.AreEqual("manual", promotedRow.SourceStage);
+        string savedPromotionPath = Path.Combine(directory.Path, "promoted-production.garproj");
+        DomainResult<ProjectSaveReceipt> savedPromotion = await productionForPromotion.SaveProjectAsync(
+            savedPromotionPath, CancellationToken.None);
+        Assert.IsTrue(savedPromotion.IsSuccess,
+            string.Join(" | ", savedPromotion.Errors.Select(static error => error.TechnicalMessage)));
+        var reopenedProductionPromotion = new ProductionWorkspaceService();
+        WorkspaceTabViewModel reopenedPromotionTab = (await reopenedProductionPromotion.OpenProjectAsync(
+            savedPromotionPath, CancellationToken.None)).Single();
+        ExportResult reopenedPromotedExport = await reopenedProductionPromotion.ExportAsync(
+            reopenedPromotionTab.TabId, Path.Combine(directory.Path, "reopened-promoted-export"), CancellationToken.None);
+        Assert.IsTrue(reopenedPromotedExport.Succeeded,
+            string.Join(" | ", reopenedPromotedExport.Failures.Select(static failure => failure.TechnicalMessage)));
+        Assert.IsTrue(reopenedPromotedExport.AuditArtifacts.SelectMany(static artifact => artifact.Rows)
+            .Any(row => row.PointId.ToString("D") == promoted.PointId && row.XSource == ExportXValueSource.Estimated));
+        await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+            () => reopenedProductionPromotion.RunAutomaticDetectionAsync(CancellationToken.None));
     }
 
     [TestMethod]

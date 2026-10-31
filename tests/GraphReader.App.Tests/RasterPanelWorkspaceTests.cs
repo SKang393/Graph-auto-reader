@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using GraphReader.App.Integration.Workflow;
+using GraphReader.App.Localization;
 using GraphReader.App.Models;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
@@ -23,6 +24,8 @@ namespace GraphReader.App.Tests;
 [TestClass]
 public sealed class RasterPanelWorkspaceTests
 {
+    private static readonly string[] RequiredStages = ["axis", "ocr", "markers", "legends", "phases"];
+
     [TestMethod]
     public async Task MultiPanelImageSharesSourceAndRoundTripsCropLocalWorkspaceCoordinates()
     {
@@ -368,11 +371,96 @@ public sealed class RasterPanelWorkspaceTests
         Assert.AreEqual(filteredMarkerId.ToString("D"), reopenedCandidate.MarkerId);
         Assert.AreEqual(65, reopenedCandidate.PixelX, 0);
         Assert.AreEqual(75, reopenedCandidate.PixelY, 0);
+        WorkspaceTabViewModel reopenedTab = reopened.CreateWorkspace().Single(item => item.PanelId == tab.PanelId);
+        reopened.MovePoint(reopenedTab.TabId, pointId.ToString("D"), 64.5, 75);
+        Assert.Throws<InvalidOperationException>(() => reopened.PromoteFilteredMarker(
+            reopenedTab.TabId, filteredMarkerId.ToString("D"), seriesId.ToString("D")));
+        reopened.MovePoint(reopenedTab.TabId, pointId.ToString("D"), 63.9, 75);
+        GraphReader.App.Models.GraphPoint adjacent = reopened.PromoteFilteredMarker(
+            reopenedTab.TabId, filteredMarkerId.ToString("D"), seriesId.ToString("D"));
+        Assert.AreEqual(65, adjacent.PixelX, 0);
         Assert.AreEqual(ReviewStatus.Accepted, reopenedPanel.Points.Single().ReviewStatus);
         Assert.AreEqual(PhaseId.FromGuid(phase1Id), reopenedPanel.Points.Single().PhaseId);
         Assert.IsTrue(reopenedPanel.Phases.Any(phase => phase.PhaseId.Value == phase1Id));
         AssertProjectionCoordinates(reopenedPanel, seeded.Crop,
             pointId, markerId, tab.PixelWidth, tab.PixelHeight);
+
+        var approvedStages = RequiredStages
+            .Select(stage => new AutomaticStageStatus(stage, AutomaticStageState.Approved, "Fixture"))
+            .ToArray();
+        var uiProduction = new ProductionWorkspaceService(automaticStages: approvedStages);
+        WorkspaceTabViewModel uiTab = (await uiProduction.OpenProjectAsync(projectPath, CancellationToken.None))
+            .Single(item => item.PanelId == tab.PanelId);
+        StaTestHost.Run(() =>
+        {
+            using var viewModel = new MainWindowViewModel(uiProduction,
+                new LocalizationService(new System.Windows.ResourceDictionary()));
+            viewModel.SelectedTab = uiTab;
+            Assert.IsTrue(viewModel.AutoDetectCommand.CanExecute(null));
+            viewModel.SelectedFilteredMarker = viewModel.FilteredMarkers.Single();
+            viewModel.SelectedSeriesId = seriesId.ToString("D");
+            viewModel.PromoteFilteredMarkerCommand.Execute(null);
+            Assert.IsFalse(viewModel.AutoDetectCommand.CanExecute(null));
+            StringAssert.Contains(viewModel.AutoDetectionAvailabilityText, "Automatic analysis is unavailable");
+            viewModel.UndoCommand.Execute(null);
+            Assert.IsTrue(viewModel.AutoDetectCommand.CanExecute(null));
+            viewModel.RedoCommand.Execute(null);
+            Assert.IsFalse(viewModel.AutoDetectCommand.CanExecute(null));
+        });
+
+        string promotedPointId = string.Empty;
+        StaTestHost.Run(() =>
+        {
+            using var viewModel = new MainWindowViewModel(workspace);
+            viewModel.SelectedTab = tab;
+            viewModel.SelectedFilteredMarker = viewModel.FilteredMarkers.Single();
+            viewModel.SelectedSeriesId = null;
+            Assert.IsFalse(viewModel.PromoteFilteredMarkerCommand.CanExecute(null));
+            viewModel.SelectedSeriesId = seriesId.ToString("D");
+            Assert.IsTrue(viewModel.PromoteFilteredMarkerCommand.CanExecute(null));
+            viewModel.PromoteFilteredMarkerCommand.Execute(null);
+            PanelRecord panel = workspace.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId);
+            PointRecord promoted = panel.Points.Single(item => item.PointId.Value != pointId);
+            promotedPointId = promoted.PointId.Value.ToString("D");
+            Assert.AreEqual(MarkerId.FromGuid(filteredMarkerId), promoted.MarkerId);
+            Assert.AreEqual("manual", promoted.SourceStage);
+            Assert.AreEqual(ReviewStatus.Corrected, promoted.ReviewStatus);
+            Assert.AreEqual(PointXSource.Estimated, promoted.XSource);
+            Assert.IsEmpty(viewModel.FilteredMarkers);
+            Assert.IsFalse(viewModel.PromoteFilteredMarkerCommand.CanExecute(null));
+            Assert.IsTrue(workspace.PromotionBlocksAnalysis());
+
+            viewModel.UndoCommand.Execute(null);
+            Assert.HasCount(1, workspace.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId).Points);
+            Assert.HasCount(1, viewModel.FilteredMarkers);
+            Assert.IsFalse(workspace.PromotionBlocksAnalysis());
+            viewModel.RedoCommand.Execute(null);
+            PointRecord restored = workspace.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId)
+                .Points.Single(item => item.PointId.Value.ToString("D") == promotedPointId);
+            Assert.AreEqual(MarkerId.FromGuid(filteredMarkerId), restored.MarkerId);
+            Assert.AreEqual(ReviewStatus.Corrected, restored.ReviewStatus);
+            Assert.IsEmpty(viewModel.FilteredMarkers);
+            Assert.IsTrue(workspace.PromotionBlocksAnalysis());
+        });
+        ProductionReviewProjectionResult blocked = workspace.Project(run, store);
+        Assert.IsFalse(blocked.Succeeded);
+        Assert.AreEqual(LocalizationKeys.PromotedMarkerAnalysisBlocked, blocked.Failure!.UserMessageKey);
+        Assert.HasCount(2, workspace.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId).Points);
+        string promotedProjectPath = Path.Combine(directory.Path, "projection-promoted.garproj");
+        DomainResult<ProjectSaveReceipt> promotedSave = await workspace.SaveProjectAsync(promotedProjectPath, CancellationToken.None);
+        Assert.IsTrue(promotedSave.IsSuccess, string.Join(" | ", promotedSave.Errors.Select(static error => error.TechnicalMessage)));
+        var promotedReopen = new ProjectionWorkspace();
+        _ = await promotedReopen.OpenProjectAsync(promotedProjectPath, CancellationToken.None);
+        PointRecord reopenedPromoted = promotedReopen.CurrentProject.Panels.Single(item => item.PanelId == seeded.PanelId)
+            .Points.Single(item => item.PointId.Value.ToString("D") == promotedPointId);
+        Assert.AreEqual(MarkerId.FromGuid(filteredMarkerId), reopenedPromoted.MarkerId);
+        Assert.AreEqual(ReviewStatus.Corrected, reopenedPromoted.ReviewStatus);
+        Assert.IsTrue(promotedReopen.CurrentProject.Audit.Events.Any(entry =>
+            entry.Details is { ValueKind: JsonValueKind.Object } details &&
+            details.TryGetProperty("point_id", out JsonElement auditPoint) && auditPoint.GetString() == promotedPointId &&
+            details.TryGetProperty("promoted_marker_id", out JsonElement auditMarker) &&
+            auditMarker.GetString() == filteredMarkerId.ToString("D")));
+        Assert.IsFalse(promotedReopen.Project(run, store).Succeeded);
     }
 
     [TestMethod]
@@ -708,6 +796,8 @@ public sealed class RasterPanelWorkspaceTests
 
     private sealed class ProjectionWorkspace : ManualPreviewWorkspaceService
     {
+        public bool PromotionBlocksAnalysis() => GetActivePromotionFailure() is not null;
+
         public WorkflowImportRequest CreateImportRequest() =>
             CreateProductionWorkflowImportRequest(enhancementEnabled: false);
 

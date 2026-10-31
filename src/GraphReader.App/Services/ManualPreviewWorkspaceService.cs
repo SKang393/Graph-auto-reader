@@ -231,7 +231,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         return true;
     }
 
-    public void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null)
+    public void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null,
+        IReadOnlyDictionary<string, string>? pointMarkerIds = null)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
         _phaseOverrides[tab.TabId] = CreatePhaseOverrides(tab);
@@ -267,14 +268,18 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             Guid.Parse(tab.PanelId!),
             entityId: null,
             "Session edit history restored a tab state");
-        if (reviewStatuses is not null)
+        if (reviewStatuses is not null || pointMarkerIds is not null)
         {
             CurrentProject = CurrentProject with
             {
                 Panels = CurrentProject.Panels.Select(panel => panel.PanelId.Value == Guid.Parse(tab.PanelId!)
-                    ? panel with { Points = panel.Points.Select(point =>
-                        reviewStatuses.TryGetValue(point.PointId.Value.ToString("D"), out ReviewStatus status)
-                            ? point with { ReviewStatus = status } : point).ToArray() }
+                    ? panel with { Points = panel.Points.Select(point => point with
+                    {
+                        ReviewStatus = reviewStatuses is not null && reviewStatuses.TryGetValue(point.PointId.Value.ToString("D"), out ReviewStatus status)
+                            ? status : point.ReviewStatus,
+                        MarkerId = pointMarkerIds is not null && pointMarkerIds.TryGetValue(point.PointId.Value.ToString("D"), out string? markerId)
+                            ? MarkerId.FromGuid(Guid.Parse(markerId)) : point.MarkerId,
+                    }).ToArray() }
                     : panel).ToArray(),
             };
         }
@@ -953,7 +958,32 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             "Manual intervention series relations changed");
     }
 
-    public AppGraphPoint AddPoint(string tabId, string seriesId, double pixelX, double pixelY)
+    public AppGraphPoint AddPoint(string tabId, string seriesId, double pixelX, double pixelY) =>
+        AddPointCore(tabId, seriesId, pixelX, pixelY, null);
+
+    public AppGraphPoint PromoteFilteredMarker(string tabId, string markerId, string seriesId)
+    {
+        WorkspaceTabViewModel tab = RequireTab(tabId);
+        _ = RequireSeries(tab, seriesId);
+        PanelRecord panel = CurrentProject.Panels.Single(item => item.PanelId.Value == Guid.Parse(tab.PanelId!));
+        if (tab.Calibration is null || panel.Calibration is not { Status: DomainCalibrationStatus.Valid })
+            throw new InvalidOperationException("A valid calibration is required before adding a filtered marker.");
+        Guid id = Guid.Parse(markerId);
+        MarkerRecord marker = panel.Markers.Single(item => item.MarkerId.Value == id);
+        if (marker.ReviewStatus != ReviewStatus.Rejected || panel.Points.Any(point => point.MarkerId == marker.MarkerId))
+            throw new InvalidOperationException("The filtered marker is no longer available for promotion.");
+        DomainPixelPoint local = MapPointSourceToPanel(panel, marker.Center);
+        EnsureFinitePoint(local.X, local.Y);
+        if (local.X < 0 || local.Y < 0 || local.X >= tab.PixelWidth || local.Y >= tab.PixelHeight)
+            throw new InvalidOperationException("The filtered marker is outside the visible panel.");
+        // Keep this narrower than the marker radius: adjacent real markers must remain selectable.
+        double tolerance = Math.Clamp(marker.Radius * 0.25, 0.5, 2.0);
+        if (tab.Points.Any(point => Math.Pow(point.PixelX - local.X, 2) + Math.Pow(point.PixelY - local.Y, 2) <= tolerance * tolerance))
+            throw new InvalidOperationException("A point is already very close to this candidate. Inspect the graph and use the manual point tool if it is distinct.");
+        return AddPointCore(tabId, seriesId, local.X, local.Y, marker.MarkerId);
+    }
+
+    private AppGraphPoint AddPointCore(string tabId, string seriesId, double pixelX, double pixelY, MarkerId? promotedMarker)
     {
         WorkspaceTabViewModel tab = RequireTab(tabId);
         _ = RequireSeries(tab, seriesId);
@@ -983,7 +1013,19 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
                 kind = ProductionAddAuditKind,
                 correction_id = Guid.NewGuid().ToString("D"),
                 point_id = point.PointId,
+                promoted_marker_id = promotedMarker?.Value.ToString("D"),
             }));
+        if (promotedMarker is { } markerId)
+        {
+            Guid panelId = Guid.Parse(tab.PanelId!);
+            Guid pointId = Guid.Parse(point.PointId);
+            CurrentProject = CurrentProject with
+            {
+                Panels = CurrentProject.Panels.Select(panel => panel.PanelId.Value == panelId
+                    ? panel with { Points = panel.Points.Select(item => item.PointId.Value == pointId
+                        ? item with { MarkerId = markerId } : item).ToArray() } : panel).ToArray(),
+            };
+        }
         return point;
     }
 
@@ -2112,6 +2154,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     {
         ArgumentNullException.ThrowIfNull(result);
         ArgumentNullException.ThrowIfNull(panelStore);
+        if (GetActivePromotionFailure() is { } activePromotion)
+            return ProductionReviewProjectionResult.Rejected(activePromotion);
         if (result.Review.ProjectId != CurrentProject.ProjectId.Value)
         {
             return RejectProductionProjection(
@@ -3184,6 +3228,20 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             technicalMessage,
             Recoverable: true,
             "Keep the current manual review and rerun after every panel has exact approved projection evidence."));
+
+    protected ProductionWorkflowFailure? GetActivePromotionFailure()
+    {
+        // Conservatively block any manual marker-linked point, including older projects
+        // without this version's promotion audit, so missing provenance cannot permit duplicates.
+        if (!CurrentProject.Panels.Any(panel => panel.Points.Any(point => point.MarkerId.HasValue &&
+                string.Equals(point.SourceStage, "manual", StringComparison.Ordinal))))
+            return null;
+        return new ProductionWorkflowFailure(ProductionWorkflowFailureCodes.ReviewProjectionRejected,
+            LocalizationKeys.PromotedMarkerAnalysisBlocked,
+            "Automatic analysis is blocked while a promoted filtered marker is present, to prevent duplicate points.",
+            Recoverable: true,
+            "Save or export this project. Create a separate project from the original image for a new automatic run.");
+    }
 
     private static bool TryValidateProjection(
         WorkflowReviewPanel reviewPanel,

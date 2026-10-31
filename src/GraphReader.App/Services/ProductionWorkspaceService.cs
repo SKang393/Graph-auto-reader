@@ -71,6 +71,8 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
 
     public WorkflowRunResult? LastAutomaticRun { get; private set; }
 
+    public bool HasActivePromotedMarkerPoints => GetActivePromotionFailure() is not null;
+
     public override async Task<IReadOnlyList<WorkspaceTabViewModel>> OpenProjectAsync(
         string path,
         CancellationToken cancellationToken)
@@ -689,6 +691,8 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
     public async Task<WorkflowRunResult> RunAutomaticDetectionAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (GetActivePromotionFailure() is { } activePromotion)
+            throw new ProductionWorkflowStageException(activePromotion);
         AutomaticStageStatus? blocked = RequiredDetectionStages
             .Select(required => AutomaticStages.SingleOrDefault(status =>
                 string.Equals(status.Stage, required, StringComparison.Ordinal)))

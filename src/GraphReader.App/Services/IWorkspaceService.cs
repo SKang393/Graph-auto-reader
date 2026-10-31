@@ -112,6 +112,8 @@ public interface IManualWorkspaceService : IRuntimeWorkspaceService
 
     GraphReader.App.Models.GraphPoint AddPoint(string tabId, string seriesId, double pixelX, double pixelY);
 
+    GraphReader.App.Models.GraphPoint PromoteFilteredMarker(string tabId, string markerId, string seriesId);
+
     void MovePoint(string tabId, string pointId, double pixelX, double pixelY);
 
     void DeletePoint(string tabId, string pointId);
@@ -153,7 +155,8 @@ public interface IManualWorkspaceService : IRuntimeWorkspaceService
 
 public interface IWorkspaceEditStateSink
 {
-    void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null);
+    void SynchronizeRestoredTab(string tabId, IReadOnlyDictionary<string, ReviewStatus>? reviewStatuses = null,
+        IReadOnlyDictionary<string, string>? pointMarkerIds = null);
 }
 
 /// <summary>
@@ -162,6 +165,8 @@ public interface IWorkspaceEditStateSink
 /// </summary>
 public interface IAutomaticWorkspaceService : IManualWorkspaceService
 {
+    bool HasActivePromotedMarkerPoints { get; }
+
     WorkflowRunResult? LastAutomaticRun { get; }
 
     Task<WorkflowRunResult> RunAutomaticDetectionAsync(CancellationToken cancellationToken);

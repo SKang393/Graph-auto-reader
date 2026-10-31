@@ -195,6 +195,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         DeletePointCommand = new RelayCommand(
             parameter => DeletePoint((string)parameter!),
             parameter => parameter is string pointId && FindPoint(pointId) is not null);
+        PromoteFilteredMarkerCommand = new RelayCommand(_ => PromoteFilteredMarker(), _ => CanPromoteFilteredMarker());
         AcceptReviewPointCommand = new RelayCommand(_ => AcceptReviewPoint(), _ => CanAcceptReviewPoint());
         MovePointCommand = new RelayCommand(
             parameter =>
@@ -317,9 +318,6 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             : CanRunAutomaticStage(WorkflowStage.Prepare)
                 ? string.Empty
                 : GetLocalizedString(LocalizationKeys.WorkflowEnhanceUnavailable);
-        AutoDetectionAvailabilityText = CanRunAutomaticStage(WorkflowStage.Detect)
-            ? string.Empty
-            : GetLocalizedString(LocalizationKeys.WorkflowAutoDetectUnavailable);
         RefreshWorkspaceProjection();
     }
 
@@ -387,7 +385,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         get => _selectedFilteredMarker;
         set
         {
-            if (!SetProperty(ref _selectedFilteredMarker, value) || value is null) return;
+            if (!SetProperty(ref _selectedFilteredMarker, value)) return;
+            RelayCommand.RaiseCanExecuteChanged();
+            if (value is null) return;
             SetSelectedReviewIssue(null, synchronizeWorkspace: false);
             SelectedPointId = null;
             HandleCanvasNavigation(new Point(value.PixelX, value.PixelY));
@@ -505,7 +505,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public string EnhancementAvailabilityText { get; }
 
-    public string AutoDetectionAvailabilityText { get; }
+    public string AutoDetectionAvailabilityText =>
+        _workspaceService is IAutomaticWorkspaceService { HasActivePromotedMarkerPoints: true }
+            ? GetLocalizedString(LocalizationKeys.PromotedMarkerAnalysisBlocked)
+            : CanRunAutomaticStage(WorkflowStage.Detect)
+                ? string.Empty
+                : GetLocalizedString(LocalizationKeys.WorkflowAutoDetectUnavailable);
 
     public bool HasEnhancedPreview => SelectedTab?.HasEnhancedPreview == true;
 
@@ -740,6 +745,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public ICommand DeletePointCommand { get; }
 
+    public ICommand PromoteFilteredMarkerCommand { get; }
+
     public ICommand AcceptReviewPointCommand { get; }
 
     public ICommand MovePointCommand { get; }
@@ -834,6 +841,31 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         return distinctPaths.Length == 0
             ? Task.CompletedTask
             : ImportPathsCoreAsync(distinctPaths, cancellationToken);
+    }
+
+    private bool CanPromoteFilteredMarker() =>
+        !IsBusy && _manualWorkspaceService is not null && SelectedTab?.Calibration is not null &&
+        SelectedFilteredMarker is { } candidate && FilteredMarkers.Contains(candidate) &&
+        SelectedSeriesId is { } seriesId && FindSeries(seriesId) is not null;
+
+    private void PromoteFilteredMarker()
+    {
+        if (!CanPromoteFilteredMarker()) return;
+        WorkspaceTabViewModel tab = SelectedTab!;
+        string seriesId = SelectedSeriesId!;
+        string markerId = SelectedFilteredMarker!.MarkerId;
+        WorkspaceTabSnapshot before = CaptureTabSnapshot(tab);
+        try
+        {
+            GraphPoint point = _manualWorkspaceService!.PromoteFilteredMarker(tab.TabId, markerId, seriesId);
+            SelectedPointId = point.PointId;
+            RecordManualEdit(tab, LocalizationKeys.EditAddPoint, before);
+            QueueAutosave(SnapshotTrigger.PointEdited, tab.TabId, point.PointId);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
+        {
+            SetOperationFailure(exception, LocalizationKeys.ManualEditRejected, "MANUAL_MARKER_PROMOTION_REJECTED", "review-inputs");
+        }
     }
 
     private bool CanAcceptReviewPoint()
@@ -2209,6 +2241,9 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private bool CanRunAutomaticStage(WorkflowStage stage)
     {
+        if (stage == WorkflowStage.Detect &&
+            _workspaceService is IAutomaticWorkspaceService { HasActivePromotedMarkerPoints: true })
+            return false;
         if (stage == WorkflowStage.Detect && SelectedTab is null)
         {
             return false;
@@ -2477,7 +2512,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             divider.Label)).ToArray(),
         CaptureSeriesRelations(tab),
         CapturePointReviewStatuses(tab),
+        CapturePointMarkerIds(tab),
         tab.IsDirty);
+
+    private Dictionary<string, string> CapturePointMarkerIds(WorkspaceTabViewModel tab)
+    {
+        if (_manualWorkspaceService is null || !Guid.TryParse(tab.PanelId, out Guid panelId))
+            return new Dictionary<string, string>();
+        return _manualWorkspaceService.CurrentProject.Panels.SingleOrDefault(panel => panel.PanelId.Value == panelId)?
+            .Points.Where(static point => point.MarkerId.HasValue)
+            .ToDictionary(point => point.PointId.Value.ToString("D"), point => point.MarkerId!.Value.Value.ToString("D"),
+                StringComparer.OrdinalIgnoreCase) ?? new Dictionary<string, string>();
+    }
 
     private Dictionary<string, ReviewStatus> CapturePointReviewStatuses(WorkspaceTabViewModel tab)
     {
@@ -2569,7 +2615,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
         if (_workspaceService is IWorkspaceEditStateSink stateSink)
         {
-            stateSink.SynchronizeRestoredTab(tab.TabId, snapshot.ReviewStatuses);
+            stateSink.SynchronizeRestoredTab(tab.TabId, snapshot.ReviewStatuses, snapshot.PointMarkerIds);
         }
         if (_manualWorkspaceService is not null)
         {
@@ -2652,6 +2698,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void NotifyReviewStateChanged()
     {
+        OnPropertyChanged(nameof(AutoDetectionAvailabilityText));
         OnPropertyChanged(nameof(ReviewIssueCount));
         OnPropertyChanged(nameof(BlockingReviewIssueCount));
         OnPropertyChanged(nameof(HasReviewIssues));
@@ -3053,6 +3100,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         IReadOnlyList<DividerSnapshot> Dividers,
         IReadOnlyList<SeriesRelationSnapshot> SeriesRelations,
         IReadOnlyDictionary<string, ReviewStatus> ReviewStatuses,
+        IReadOnlyDictionary<string, string> PointMarkerIds,
         bool IsDirty);
 
     private sealed record SeriesRelationSnapshot(

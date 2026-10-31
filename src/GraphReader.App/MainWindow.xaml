@@ -922,6 +922,12 @@
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>
+                <TextBlock Margin="0,6,0,6" Text="{DynamicResource Review.FilteredMarkers.PromoteExplanation}" TextWrapping="Wrap" />
+                <Button Command="{Binding PromoteFilteredMarkerCommand}"
+                        Content="{DynamicResource Review.FilteredMarkers.Promote}"
+                        Style="{DynamicResource App.Style.Button}"
+                        automation:AutomationProperties.AutomationId="Review.PromoteFilteredMarker"
+                        automation:AutomationProperties.Name="{DynamicResource Review.FilteredMarkers.Promote}" />
               </StackPanel>
             </Expander>
           </StackPanel>
