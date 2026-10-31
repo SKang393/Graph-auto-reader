@@ -108,3 +108,17 @@ duplicate-image weighting apply.
 - V5 recognizer SHA-256: `9db95c41ce396e8b2dff3b525556615528a00ca87f4cc531274374b961417c84`
 - Corrected report SHA-256: `438a3b4c1628e3810d51f5c8a3ab41ee2ea6ab2c3b42ba567b0ef4469b4b941b`
 - Diagnostic build succeeded and 3 report checks passed.
+
+## Ground-truth crop comparison
+
+The same recognizer and production cropper were run on annotated boxes and
+P2 predicted boxes for all 165 positive crops in the consumed probe. The
+annotated boxes produced 32 exact strings, 32 wrong strings and 101 empty
+alternatives. Predicted boxes produced 23 exact, 30 wrong and 112 empty;
+neither set produced explicit recognizer failures. This shows that box
+localization alone does not explain the empty outputs. The adapter's batch
+timing cannot determine the reason for each individual empty result.
+
+- Comparison runner SHA-256: `08b420f83e7ef250333acaac32653a54c7ae0411154a92126b6d80b79f3e19d6`
+- Corrected report SHA-256: `8bb9ee29ab4ac0ee0f09572fabd367624d82cc11d5a33d42a044752d56bd018e`
+- Diagnostic build and 4 report checks passed; inference used CPU.
