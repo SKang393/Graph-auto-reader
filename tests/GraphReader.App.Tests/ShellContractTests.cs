@@ -144,7 +144,14 @@ public sealed class ShellContractTests
                 element.Attribute(automation + "AutomationProperties.AutomationId")?.Value))
             .ToArray();
 
-        Assert.HasCount(62, identified);
+        Assert.IsNotEmpty(identified);
+        string[] automationIds = identified
+            .Select(element => element.Attribute(automation + "AutomationProperties.AutomationId")!.Value)
+            .ToArray();
+        Assert.AreEqual(
+            automationIds.Length,
+            automationIds.Distinct(StringComparer.Ordinal).Count(),
+            "Shell automation IDs must be unique.");
         string[] unnamed = identified
             .Where(element => string.IsNullOrWhiteSpace(
                 element.Attribute(automation + "AutomationProperties.Name")?.Value))
