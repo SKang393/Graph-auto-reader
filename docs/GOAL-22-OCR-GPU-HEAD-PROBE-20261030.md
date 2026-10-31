@@ -90,3 +90,27 @@ The reported 474,857,472-byte process peak working set includes imports and is
 not a GPU memory measurement. Three focused checks passed.
 
 - Production-size preflight SHA-256: `7409758605004e060d0f6b27072c47e1d2a2eda99f26e523ebb2254b2334ba96`
+
+## Unregistered head-training foundation
+
+`ml/ocr/gpu_db_head_training_v1` provides an experimental GPU-only execution
+seam for the four pinned synthetic feature, target, and mask sets. Its bounded
+recipe and journal bind a machine-specific execution inventory. Full inventory
+verification precedes source loading and optimizer creation; named critical
+files are rechecked at step boundaries. Checks are point-in-time, and do not
+attest the operating system, drivers, hardware, already-loaded code, or changes
+to noncritical environment files during a run.
+
+Ten synthetic no-step tests passed. A GPU launcher check identified the RX 6600
+XT and authenticated the four source sets. No optimizer step, forward/backward
+training run, checkpoint, or candidate registration has occurred. The data,
+mask policy, training lineage independence, and resulting model accuracy have
+not passed production admission. This foundation is not a release approval.
+
+The v2 execution inventory SHA-256 is
+`9aee72574a78fc2407614a6e80e021c1324fcd58950105f2ce03ba498aa3e4c9`.
+It reused the prior captured environment hashes during rebasing; a complete
+live verification passed on 2026-10-30, without starting training. Its log is
+`artifacts/ocr-gpu-db-head-unregistered-v1/full-verify-v2-20261030.log`,
+SHA-256 `92ad19fd6b94c33fdf845504e61a5cf1513e52eef871497d8b62161878b580d8`.
+The inventory must still be reverified at experiment startup.
