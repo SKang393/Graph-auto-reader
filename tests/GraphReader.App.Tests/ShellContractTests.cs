@@ -144,7 +144,7 @@ public sealed class ShellContractTests
                 element.Attribute(automation + "AutomationProperties.AutomationId")?.Value))
             .ToArray();
 
-        Assert.HasCount(61, identified);
+        Assert.HasCount(62, identified);
         string[] unnamed = identified
             .Where(element => string.IsNullOrWhiteSpace(
                 element.Attribute(automation + "AutomationProperties.Name")?.Value))
