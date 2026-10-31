@@ -65,6 +65,13 @@ public sealed record ReviewIssueViewModel(
     public bool IsBlocking => Severity == ReviewIssueSeverity.Blocking;
 }
 
+public sealed record FilteredMarkerCandidateViewModel(
+    string MarkerId,
+    string Symbol,
+    double PixelX,
+    double PixelY,
+    double ArtifactProbability);
+
 public sealed class DataPreviewRowViewModel : ObservableObject
 {
     private bool _isSelected;

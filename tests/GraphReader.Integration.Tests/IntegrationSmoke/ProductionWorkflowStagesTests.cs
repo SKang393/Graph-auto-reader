@@ -1432,6 +1432,15 @@ public sealed class ProductionWorkflowStagesTests
             PointId.FromGuid(pointId), markerId, seriesId, phaseId,
             new GraphReader.Domain.PixelPoint(0.5, 0.5), 1, 50, 1, 1, null,
             PointXSource.Printed, 1, 1, 0.95, "markers", "1", ReviewStatus.Accepted, []);
+        MarkerId filteredMarkerId = MarkerId.New();
+        MarkerRecord filteredMarker = marker with
+        {
+            MarkerId = filteredMarkerId,
+            Center = new GraphReader.Domain.PixelPoint(0.7, 0.7),
+            ArtifactProbability = 0.8,
+            CandidateSeriesId = null,
+            ReviewStatus = ReviewStatus.Rejected,
+        };
         Guid productionRunId = Guid.NewGuid();
         var identityTransform = new WorkflowTransformProvenance(
             "marker-original-identity",
@@ -1471,7 +1480,7 @@ public sealed class ProductionWorkflowStagesTests
                 [domainPoint],
                 [transform],
                 [ocrEvidence],
-                [marker],
+                [marker, filteredMarker],
                 "Participant fixture"));
         store.SetExportEvidence(imported.PanelId, exportEvidence);
         var reviewPanel = new WorkflowReviewPanel(prepared, [point], [envelope]);
@@ -1514,7 +1523,7 @@ public sealed class ProductionWorkflowStagesTests
         Assert.AreEqual("Participant fixture", projectedPanel.Participant);
         AssertSourceBoundTransformChain(projectedPanel, transform);
         Assert.AreEqual(ocrRegionId, projectedPanel.OcrRegions.Single().RegionId);
-        Assert.AreEqual(markerId, projectedPanel.Markers.Single().MarkerId);
+        Assert.AreEqual(markerId, projectedPanel.Markers.Single(item => item.MarkerId == markerId).MarkerId);
         Assert.AreEqual(imported.Original.Sha256, tab.SourceSha256);
         AuditEvent projectionAudit = workspace.CurrentProject.Audit.Events.Single(auditEvent =>
             auditEvent.Details is JsonElement details &&
@@ -1580,6 +1589,8 @@ public sealed class ProductionWorkflowStagesTests
             .SelectMany(static artifact => artifact.Rows).ToArray();
         Assert.IsTrue(reviewedRows.Length > 0);
         Assert.IsTrue(reviewedRows.All(static row => row.ReviewStatus == ExportReviewStatus.Accepted));
+        Assert.IsTrue(reviewedRows.All(row => row.PointId == pointId),
+            "A filtered marker must not create an export row.");
         Assert.IsTrue(reopenedAutomaticExport.Succeeded,
             string.Join(" | ", reopenedAutomaticExport.Failures.Select(static failure => failure.TechnicalMessage)));
 
@@ -1666,7 +1677,7 @@ public sealed class ProductionWorkflowStagesTests
         Assert.AreEqual("Participant fixture", persistedProjectedPanel.Participant);
         AssertSourceBoundTransformChain(persistedProjectedPanel, transform);
         Assert.AreEqual(ocrRegionId, persistedProjectedPanel.OcrRegions.Single().RegionId);
-        Assert.AreEqual(markerId, persistedProjectedPanel.Markers.Single().MarkerId);
+        Assert.AreEqual(markerId, persistedProjectedPanel.Markers.Single(item => item.MarkerId == markerId).MarkerId);
         Assert.AreEqual(calibration.CalibrationId, persistedProjectedPanel.Calibration!.CalibrationId);
         Assert.AreEqual("markers", persistedProjectedPanel.Points.Single().SourceStage);
         Assert.AreEqual("1", persistedProjectedPanel.Points.Single().ModelVersion);
@@ -1674,7 +1685,7 @@ public sealed class ProductionWorkflowStagesTests
         PanelRecord reopenedPersistedPanel = reopenedProvenanceWorkspace.CurrentProject.Panels.Single();
         AssertSourceBoundTransformChain(reopenedPersistedPanel, transform);
         Assert.AreEqual(ocrRegionId, reopenedPersistedPanel.OcrRegions.Single().RegionId);
-        Assert.AreEqual(markerId, reopenedPersistedPanel.Markers.Single().MarkerId);
+        Assert.AreEqual(markerId, reopenedPersistedPanel.Markers.Single(item => item.MarkerId == markerId).MarkerId);
         Assert.AreEqual("markers", reopenedPersistedPanel.Points.Single().SourceStage);
         Assert.AreEqual("1", reopenedPersistedPanel.Points.Single().ModelVersion);
         string productionExportRoot = Path.Combine(directory.Path, "production-export");
@@ -1694,7 +1705,7 @@ public sealed class ProductionWorkflowStagesTests
         persistedProjectedPanel = workspace.CurrentProject.Panels.Single();
         AssertSourceBoundTransformChain(persistedProjectedPanel, transform);
         Assert.AreEqual(ocrRegionId, persistedProjectedPanel.OcrRegions.Single().RegionId);
-        Assert.AreEqual(markerId, persistedProjectedPanel.Markers.Single().MarkerId);
+        Assert.AreEqual(markerId, persistedProjectedPanel.Markers.Single(item => item.MarkerId == markerId).MarkerId);
         Assert.AreEqual("markers", persistedProjectedPanel.Points.Single().SourceStage);
         Assert.AreEqual("1", persistedProjectedPanel.Points.Single().ModelVersion);
 

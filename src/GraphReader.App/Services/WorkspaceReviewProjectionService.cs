@@ -10,6 +10,25 @@ namespace GraphReader.App.Services;
 
 public static class WorkspaceReviewProjectionService
 {
+    public static IReadOnlyList<FilteredMarkerCandidateViewModel> ProjectFilteredMarkers(
+        WorkspaceTabViewModel tab, ProjectDocument? project)
+    {
+        ArgumentNullException.ThrowIfNull(tab);
+        PanelRecord? panel = FindPanel(tab, project);
+        if (panel is null) return [];
+        HashSet<MarkerId> linked = panel.Points.Where(static point => point.MarkerId.HasValue)
+            .Select(static point => point.MarkerId!.Value).ToHashSet();
+        return panel.Markers.Where(marker => marker.ReviewStatus == ReviewStatus.Rejected && !linked.Contains(marker.MarkerId))
+            .Select(marker =>
+            {
+                PixelPoint local = ManualPreviewWorkspaceService.MapPointSourceToPanel(panel, marker.Center);
+                return new FilteredMarkerCandidateViewModel(marker.MarkerId.Value.ToString("D"), marker.Symbol,
+                    local.X, local.Y, marker.ArtifactProbability);
+            })
+            .OrderBy(static marker => marker.PixelX).ThenBy(static marker => marker.PixelY)
+            .ThenBy(static marker => marker.MarkerId, StringComparer.Ordinal).ToArray();
+    }
+
     public static IReadOnlyList<ReviewIssueViewModel> ProjectIssues(
         WorkspaceTabViewModel tab,
         ProjectDocument? project,

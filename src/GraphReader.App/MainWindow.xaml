@@ -906,6 +906,24 @@
                     Style="{DynamicResource App.Style.Button}"
                     automation:AutomationProperties.AutomationId="Review.AcceptPoint"
                     automation:AutomationProperties.Name="{DynamicResource Review.AcceptPoint}" />
+            <Expander Margin="0,10,0,0" Header="{DynamicResource Review.FilteredMarkers}">
+              <StackPanel>
+                <TextBlock Margin="0,4,0,6" Text="{DynamicResource Review.FilteredMarkers.Explanation}" TextWrapping="Wrap" />
+                <ListBox MaxHeight="140" ItemsSource="{Binding FilteredMarkers}"
+                         SelectedItem="{Binding SelectedFilteredMarker, Mode=TwoWay}"
+                         automation:AutomationProperties.Name="{DynamicResource Review.FilteredMarkers}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,0,8,0" Text="{Binding Symbol}" />
+                        <TextBlock Text="{DynamicResource Review.FilteredMarkers.Probability}" />
+                        <TextBlock Margin="4,0,0,0" Text="{Binding ArtifactProbability, StringFormat={}{0:P0}}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </StackPanel>
+            </Expander>
           </StackPanel>
         </Border>
         <ScrollViewer Grid.Row="3"

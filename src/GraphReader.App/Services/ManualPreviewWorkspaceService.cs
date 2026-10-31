@@ -4448,7 +4448,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             ? new DomainPixelPoint(point.X + crop.X, point.Y + crop.Y)
             : point;
 
-    private static DomainPixelPoint MapPointSourceToPanel(
+    internal static DomainPixelPoint MapPointSourceToPanel(
         PanelRecord? panel,
         DomainPixelPoint point) =>
         TryGetRasterCrop(panel, out CropRectangle crop)

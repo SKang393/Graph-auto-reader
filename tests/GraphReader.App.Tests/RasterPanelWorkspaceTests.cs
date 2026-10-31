@@ -254,12 +254,21 @@ public sealed class RasterPanelWorkspaceTests
             MarkerId.FromGuid(markerId), new GraphReader.Domain.PixelPoint(20, 30), 4, MarkerShape.Circle,
             MarkerFill.Filled, "●", 0.01, 0.95, 0.94, 0.93, null, SeriesId.FromGuid(seriesId),
             SourceImageKind.Original, ReviewStatus.Unreviewed);
+        Guid filteredMarkerId = Guid.NewGuid();
+        MarkerRecord filteredMarker = marker with
+        {
+            MarkerId = MarkerId.FromGuid(filteredMarkerId),
+            Center = new GraphReader.Domain.PixelPoint(65, 75),
+            CandidateSeriesId = null,
+            ArtifactProbability = 0.8,
+            ReviewStatus = ReviewStatus.Rejected,
+        };
         var preparation = new TransformRecord(
             TransformId.New(), TransformKind.Scale, CoordinateSpace.OriginalPixels, CoordinateSpace.EnhancedPixels,
             [2, 0, 0, 0, 2, 0, 0, 0, 1], [0.5, 0, 0, 0, 0.5, 0, 0, 0, 1],
             JsonSerializer.SerializeToElement(new { scale = 2 }), false);
         var projection = new ProductionPanelProjectionEvidence(
-            calibration, phases, [series], [point], [preparation], [ocr], [marker], "P1");
+            calibration, phases, [series], [point], [preparation], [ocr], [marker, filteredMarker], "P1");
         var exportEvidence = new ProductionPanelExportEvidence(
             new ExportCalibration(ExportCalibrationStatus.Valid, true, true, true, 1, 0.98),
             phases.Select(phase => new ExportPhase(
@@ -285,6 +294,17 @@ public sealed class RasterPanelWorkspaceTests
         ProductionReviewProjectionResult first = workspace.Project(run, store);
         Assert.IsTrue(first.Succeeded, first.Failure?.TechnicalMessage);
         Assert.AreEqual(1, first.ProjectedPointCount);
+        PanelRecord originalPanel = workspace.CurrentProject.Panels.Single(panel => panel.PanelId == seeded.PanelId);
+        PanelRecord linkedPanel = originalPanel with
+        {
+            Points = [originalPanel.Points.Single() with { MarkerId = MarkerId.FromGuid(filteredMarkerId) }],
+        };
+        ProjectDocument linkedProject = workspace.CurrentProject with
+        {
+            Panels = workspace.CurrentProject.Panels.Select(panel => panel.PanelId == seeded.PanelId ? linkedPanel : panel).ToArray(),
+        };
+        Assert.IsEmpty(WorkspaceReviewProjectionService.ProjectFilteredMarkers(tab, linkedProject),
+            "A marker already linked to a point is not an unresolved candidate.");
         AssertProjectionCoordinates(workspace.CurrentProject.Panels.Single(panel => panel.PanelId == seeded.PanelId), seeded.Crop,
             pointId, markerId, tab.PixelWidth, tab.PixelHeight);
         ProductionPanelProjectionEvidence localEvidence = store.Get(workflowPanel.PanelId).ExportEvidence!.ProjectionEvidence!;
@@ -295,9 +315,18 @@ public sealed class RasterPanelWorkspaceTests
         {
             using var viewModel = new MainWindowViewModel(workspace);
             viewModel.SelectedTab = tab;
+            FilteredMarkerCandidateViewModel candidate = viewModel.FilteredMarkers.Single();
+            Assert.AreEqual(filteredMarkerId.ToString("D"), candidate.MarkerId);
+            Assert.AreEqual(65, candidate.PixelX, 0);
+            Assert.AreEqual(75, candidate.PixelY, 0);
+            viewModel.SelectedFilteredMarker = candidate;
+            Assert.AreEqual(65, viewModel.Magnifier.PixelPosition.X, 0);
+            Assert.AreEqual(75, viewModel.Magnifier.PixelPosition.Y, 0);
+            Assert.HasCount(1, tab.Points, "Inspection must not create an exportable point.");
             ReviewIssueViewModel issue = viewModel.ReviewIssues.Single(item =>
                 item.IssueId == $"point-unreviewed-{pointId:D}");
             viewModel.SelectedReviewIssue = issue;
+            Assert.IsNull(viewModel.SelectedFilteredMarker);
             tab.IsDirty = false;
             Assert.IsTrue(viewModel.AcceptReviewPointCommand.CanExecute(null));
             viewModel.AcceptReviewPointCommand.Execute(null);
@@ -334,6 +363,11 @@ public sealed class RasterPanelWorkspaceTests
         var reopened = new ManualPreviewWorkspaceService();
         _ = await reopened.OpenProjectAsync(projectPath, CancellationToken.None);
         PanelRecord reopenedPanel = reopened.CurrentProject.Panels.Single(panel => panel.PanelId == seeded.PanelId);
+        FilteredMarkerCandidateViewModel reopenedCandidate = WorkspaceReviewProjectionService
+            .ProjectFilteredMarkers(reopened.CreateWorkspace().Single(item => item.PanelId == tab.PanelId), reopened.CurrentProject).Single();
+        Assert.AreEqual(filteredMarkerId.ToString("D"), reopenedCandidate.MarkerId);
+        Assert.AreEqual(65, reopenedCandidate.PixelX, 0);
+        Assert.AreEqual(75, reopenedCandidate.PixelY, 0);
         Assert.AreEqual(ReviewStatus.Accepted, reopenedPanel.Points.Single().ReviewStatus);
         Assert.AreEqual(PhaseId.FromGuid(phase1Id), reopenedPanel.Points.Single().PhaseId);
         Assert.IsTrue(reopenedPanel.Phases.Any(phase => phase.PhaseId.Value == phase1Id));

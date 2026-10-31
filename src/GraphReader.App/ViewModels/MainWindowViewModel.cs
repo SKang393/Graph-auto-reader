@@ -87,6 +87,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private string _statusKeyBeforeOperation = "Workflow.Review";
     private string? _statusOverrideBeforeOperation;
     private ReviewIssueViewModel? _selectedReviewIssue;
+    private FilteredMarkerCandidateViewModel? _selectedFilteredMarker;
     private DataPreviewRowViewModel? _selectedDataPreviewRow;
     private bool _isDataPreviewExpanded;
     private ExportSummaryViewModel? _exportSummary;
@@ -144,6 +145,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         BaselineRelationChoices = [];
         ProbeRelationChoices = [];
         ReviewIssues = [];
+        FilteredMarkers = [];
         DataPreviewRows = [];
         RecentProjects = new ObservableCollection<string>(LoadRecentProjectPaths(recentProjectsPath));
         _isWorkflowAvailable = string.IsNullOrWhiteSpace(startupErrorMessageKey);
@@ -377,6 +379,20 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     public ObservableCollection<ReviewIssueViewModel> ReviewIssues { get; }
+
+    public ObservableCollection<FilteredMarkerCandidateViewModel> FilteredMarkers { get; }
+
+    public FilteredMarkerCandidateViewModel? SelectedFilteredMarker
+    {
+        get => _selectedFilteredMarker;
+        set
+        {
+            if (!SetProperty(ref _selectedFilteredMarker, value) || value is null) return;
+            SetSelectedReviewIssue(null, synchronizeWorkspace: false);
+            SelectedPointId = null;
+            HandleCanvasNavigation(new Point(value.PixelX, value.PixelY));
+        }
+    }
 
     public ReviewIssueViewModel? SelectedReviewIssue
     {
@@ -2588,6 +2604,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private void RefreshWorkspaceProjection()
     {
         string? selectedPointId = SelectedPointId;
+        SelectedFilteredMarker = null;
+        FilteredMarkers.Clear();
         ReviewIssues.Clear();
         DataPreviewRows.Clear();
         if (SelectedTab is not { } tab)
@@ -2600,6 +2618,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
 
         ProjectDocument? project = _manualWorkspaceService?.CurrentProject;
+        foreach (FilteredMarkerCandidateViewModel marker in WorkspaceReviewProjectionService.ProjectFilteredMarkers(tab, project))
+            FilteredMarkers.Add(marker);
         foreach (ReviewIssueViewModel issue in WorkspaceReviewProjectionService.ProjectIssues(
                      tab,
                      project,
@@ -2654,6 +2674,8 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         {
             return;
         }
+
+        SelectedFilteredMarker = null;
 
         if (issue.EntityId is not { } entityId)
         {
