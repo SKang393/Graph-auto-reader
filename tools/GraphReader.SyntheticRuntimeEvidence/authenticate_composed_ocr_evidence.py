@@ -73,11 +73,11 @@ def _development_inputs(root, request_path, request_sha256):
     return path, bound
 
 
-def _replay(apphost, root, request, request_sha256, candidate, candidate_sha256):
-    environment = dict(os.environ, OMP_WAIT_POLICY="PASSIVE", KMP_BLOCKTIME="0")
+def _replay(apphost, root, request, request_sha256, candidate, candidate_sha256, *, v2=False):
+    environment = parent._sanitized_child_environment()
     flags = (subprocess.CREATE_NO_WINDOW | subprocess.IDLE_PRIORITY_CLASS) if os.name == "nt" else 0
     result = subprocess.run(
-        [str(apphost), "--check-composed-ocr-memory-dev", request.relative_to(root).as_posix(),
+        [str(apphost), "--check-composed-ocr-prerequisite-dev" if v2 else "--check-composed-ocr-memory-dev", request.relative_to(root).as_posix(),
          request_sha256, candidate.relative_to(root).as_posix(), candidate_sha256],
         cwd=root, env=environment, stdin=subprocess.DEVNULL, capture_output=True,
         timeout=300, creationflags=flags, check=False,
@@ -102,6 +102,10 @@ class ComposedOcrEvidenceAuthenticator:
     apphost_path: Path
     development_request_path: Path
     development_request_sha256: str
+    workflow_candidate_path: Path | None = None
+    workflow_candidate_sha256: str | None = None
+    native_validator_path: Path | None = None
+    native_validator_sha256: str | None = None
 
     def authenticate(self, *, repository_root, candidate_path, candidate_sha256):
         root = Path(repository_root).resolve()
@@ -132,9 +136,35 @@ class ComposedOcrEvidenceAuthenticator:
             coverage_protocol_sha256=parent.COVERAGE_PROTOCOL_SHA256,
         )
         evidence = replace(evidence, runtime_identity_sha256=parent._runtime_identity(evidence, root, candidate_path))
+        v2 = saved.get("schema") == parent.COMPOSED_SCORE_SCHEMA_V2
+        optional = (self.workflow_candidate_path, self.workflow_candidate_sha256,
+                    self.native_validator_path, self.native_validator_sha256)
+        if v2:
+            if any(value is None for value in optional):
+                raise parent.OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID")
+            workflow = _path(root, self.workflow_candidate_path)
+            validator = _path(root, self.native_validator_path)
+            described = parent._describe_composed_native(
+                root, score_path=score_path, score_sha256=self.score_sha256,
+                workflow_candidate_path=workflow, workflow_candidate_sha256=self.workflow_candidate_sha256,
+                request_sha256=self.development_request_sha256, stage_candidate_sha256=candidate_sha256,
+                validator_path=validator, validator_sha256=self.native_validator_sha256)
+            evidence = replace(evidence, native_execution=parent.ComposedNativeExecutionEvidence(
+                workflow, self.workflow_candidate_sha256, validator, self.native_validator_sha256,
+                described["execution_descriptor_base64"], described["execution_sha256"]))
+        elif any(value is not None for value in optional):
+            raise parent.OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID")
         # Reject invalid/failed development before spending another inference run.
         parent._composed_dev_evidence(evidence, parent._canonical_bars(root))
-        recomputed = _replay(apphost, root, request, self.development_request_sha256, candidate_path, candidate_sha256)
+        try:
+            with parent._locked_runtime_files({item.path: item.sha256 for item in evidence.runtime_files}):
+                if v2:
+                    recomputed = _replay(apphost, root, request, self.development_request_sha256, candidate_path, candidate_sha256, v2=True)
+                else:
+                    recomputed = _replay(apphost, root, request, self.development_request_sha256, candidate_path, candidate_sha256)
+                parent._revalidate_evidence_files(evidence, root, candidate_path)
+        except OSError:
+            raise parent.OcrSealedEvaluationError("OCR_SEALED_EVALUATION_RUNTIME_INVALID") from None
         left, right = dict(saved), dict(recomputed)
         for value in (left, right):
             value.pop("elapsed_milliseconds", None)

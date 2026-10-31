@@ -12,13 +12,16 @@ prepares sealed admission.
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+import base64
 from copy import deepcopy
 from dataclasses import dataclass
+import hashlib
 import json
 import math
 import os
 from pathlib import Path
 import shutil
+import subprocess
 from typing import Protocol, runtime_checkable
 from uuid import uuid4
 
@@ -46,6 +49,8 @@ from ml.policy.ocr_sealed_transport import (
     OcrSealedTransportError,
     OcrSealedTransportResult,
     OcrSealedUnclassifiedOutputError,
+    _locked_runtime_files,
+    _sanitized_child_environment,
     run_ocr_sealed_worker,
     validate_result_envelope,
 )
@@ -71,9 +76,12 @@ FULL_OCR_EVIDENCE_SCHEMA = "graphreader.authenticated-full-ocr-train-dev-evidenc
 FULL_OCR_SCORE_SCHEMA = "graphreader.full-ocr-candidate-score.v2"
 COMPOSED_EVIDENCE_SCHEMA = "graphreader.authenticated-composed-ocr-train-dev-evidence.v1"
 COMPOSED_SCORE_SCHEMA = "graphreader.composed-ocr-memory-dev-result.v1"
+COMPOSED_SCORE_SCHEMA_V2 = "graphreader.composed-ocr-memory-dev-result.v2"
 COMPOSED_REQUEST_SCHEMA = "graphreader.composed-ocr-sealed-worker-request.v1"
 COMPOSED_OUTCOME_SCHEMA = "graphreader.composed-ocr-sealed-evaluation.v1"
 COMPOSED_PREFLIGHT_SCHEMA = "graphreader.composed-ocr-sealed-preflight-binding.v1"
+COMPOSED_OUTCOME_SCHEMA_V2 = "graphreader.composed-ocr-sealed-evaluation.v2"
+COMPOSED_PREFLIGHT_SCHEMA_V2 = "graphreader.composed-ocr-sealed-preflight-binding.v2"
 ACCEPTANCE_BARS_PATH = Path("ml/policy/acceptance-bars.json")
 ACCEPTANCE_BARS_SHA256 = "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
 COVERAGE_PROTOCOL_PATH = Path("ml/policy/goal22-ocr-sealed-coverage-v1.json")
@@ -105,12 +113,25 @@ class AuthenticatedFullOcrEvidence:
     metric_reference_sha256: str
     acceptance_scope: str
     coverage_protocol_sha256: str
+    native_execution: "ComposedNativeExecutionEvidence | None" = None
 
 
 @dataclass(frozen=True)
 class AuthenticatedRuntimeFile:
     path: Path
     sha256: str
+
+
+@dataclass(frozen=True)
+class ComposedNativeExecutionEvidence:
+    """Actual native checker and whole-workflow binding for a v2 dev score."""
+
+    workflow_candidate_path: Path
+    workflow_candidate_sha256: str
+    validator_path: Path
+    validator_sha256: str
+    execution_descriptor_base64: str
+    execution_sha256: str
 
 
 @runtime_checkable
@@ -296,6 +317,15 @@ def _runtime_identity(
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_RUNTIME_INVALID")
     if any(files.get(path) != digest for path, digest in inventory.items()):
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_RUNTIME_INVALID")
+    worker_directory = command_files[-1].parent
+    recorded = {path for path in files if path.is_relative_to(worker_directory)}
+    try:
+        actual = {path.resolve() for path in worker_directory.rglob("*")
+                  if path.is_file() and path.suffix.lower() in {".dll", ".exe", ".json"}}
+    except OSError:
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_RUNTIME_INVALID") from None
+    if recorded != actual:
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_RUNTIME_INVALID")
     identity = {
         "schema": ("graphreader.composed-ocr-runtime-execution.v1"
                    if evidence.schema == COMPOSED_EVIDENCE_SCHEMA
@@ -309,6 +339,137 @@ def _runtime_identity(
     return sha256_bytes(canonical_json_bytes(identity))
 
 
+def _unique_json_bytes(value: bytes) -> dict[str, object]:
+    def unique(pairs):
+        result = {}
+        for key, item in pairs:
+            if key in result:
+                raise ValueError("duplicate JSON property")
+            result[key] = item
+        return result
+    try:
+        parsed = json.loads(value.decode("utf-8"), object_pairs_hook=unique,
+                            parse_constant=lambda _: (_ for _ in ()).throw(ValueError("constant")))
+    except (UnicodeError, ValueError, RecursionError):
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID") from None
+    if type(parsed) is not dict:
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID")
+    return parsed
+
+
+def _describe_composed_native(
+    root: Path, *, score_path: Path, score_sha256: str,
+    workflow_candidate_path: Path, workflow_candidate_sha256: str,
+    request_sha256: str, stage_candidate_sha256: str,
+    validator_path: Path, validator_sha256: str,
+) -> dict[str, object]:
+    _relative_artifact(root, workflow_candidate_path, "workflow binding")
+    if (not workflow_candidate_path.is_file() or
+            sha256_file(workflow_candidate_path) != _sha256(workflow_candidate_sha256, "workflow binding")):
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID")
+    workflow = _read_json_object(workflow_candidate_path)
+    files = {score_path.resolve(): score_sha256, workflow_candidate_path.resolve(): workflow_candidate_sha256,
+             validator_path.resolve(): validator_sha256}
+    try:
+        for group in ("managed_files", "native_files"):
+            rows = workflow[group]
+            if type(rows) is not list:
+                raise ValueError("invalid runtime inventory")
+            for row in rows:
+                path = (root / row["file"]).resolve()
+                path.relative_to(root.resolve())
+                digest = _sha256(row["sha256"], "validator runtime")
+                if path in files and files[path] != digest:
+                    raise ValueError("conflicting runtime identity")
+                files[path] = digest
+        with _locked_runtime_files(files, require_windows=True):
+            if _read_json_object(workflow_candidate_path) != workflow:
+                raise ValueError("validator inventory changed before locking")
+            return _describe_composed_native_locked(
+                root, score_path=score_path, score_sha256=score_sha256,
+                workflow_candidate_path=workflow_candidate_path, workflow_candidate_sha256=workflow_candidate_sha256,
+                request_sha256=request_sha256, stage_candidate_sha256=stage_candidate_sha256,
+                validator_path=validator_path, validator_sha256=validator_sha256)
+    except (OSError, KeyError, TypeError, ValueError):
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID") from None
+
+
+def _describe_composed_native_locked(
+    root: Path, *, score_path: Path, score_sha256: str,
+    workflow_candidate_path: Path, workflow_candidate_sha256: str,
+    request_sha256: str, stage_candidate_sha256: str,
+    validator_path: Path, validator_sha256: str,
+) -> dict[str, object]:
+    """Run the actual C# compatibility checker over an exact local binding."""
+    label = "OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID"
+    score_rel = _relative_artifact(root, score_path, "composed dev score")
+    workflow_rel = _relative_artifact(root, workflow_candidate_path, "workflow binding")
+    _relative_artifact(root, validator_path, "native validator")
+    for path, expected in ((score_path, score_sha256),
+                           (workflow_candidate_path, workflow_candidate_sha256),
+                           (validator_path, validator_sha256)):
+        if not path.is_file() or sha256_file(path) != _sha256(expected, "native input"):
+            raise OcrSealedEvaluationError(label)
+    if validator_path.name != "GraphReader.RealAcceptance.Ocr.exe":
+        raise OcrSealedEvaluationError(label)
+    _sha256(request_sha256, "development request")
+    _sha256(stage_candidate_sha256, "stage candidate")
+    workflow = _read_json_object(workflow_candidate_path)
+    native = workflow.get("native_files")
+    if type(native) is not list:
+        raise OcrSealedEvaluationError(label)
+    matches = [row for row in native if type(row) is dict
+               and (root / str(row.get("file", ""))).resolve() == validator_path.resolve()
+               and row.get("sha256") == validator_sha256]
+    if len(matches) != 1:
+        raise OcrSealedEvaluationError(label)
+    flags = (subprocess.CREATE_NO_WINDOW | subprocess.IDLE_PRIORITY_CLASS) if os.name == "nt" else 0
+    try:
+        result = subprocess.run(
+            [str(validator_path), "--describe-composed-ocr-dev-evidence", score_rel, score_sha256,
+             workflow_rel, workflow_candidate_sha256, request_sha256, stage_candidate_sha256],
+            cwd=root, stdin=subprocess.DEVNULL, capture_output=True, timeout=120,
+            creationflags=flags, check=False, env=_sanitized_child_environment(),
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        raise OcrSealedEvaluationError(label) from None
+    if result.returncode != 0 or result.stderr or not 0 < len(result.stdout) <= 1024 * 1024:
+        raise OcrSealedEvaluationError(label)
+    response = _unique_json_bytes(result.stdout)
+    fields = {"schema", "status", "scope", "execution_sha256", "execution_descriptor_base64",
+              "development", "accuracy_gate_evaluated", "stage_admission_granted",
+              "production_approved", "model_inference", "private_reads", "sealed_reads"}
+    if (set(response) != fields or response.get("schema") != "graphreader.composed-ocr-dev-compatible-descriptor.v1"
+            or response.get("status") != "compatible_development_evidence"
+            or response.get("scope") != "owned-synthetic-development-runtime-compatibility"
+            or any(response.get(k) is not False for k in
+                   ("accuracy_gate_evaluated", "stage_admission_granted", "production_approved", "model_inference"))
+            or any(type(response.get(k)) is not int or response[k] != 0 for k in ("private_reads", "sealed_reads"))):
+        raise OcrSealedEvaluationError(label)
+    try:
+        encoded = response["execution_descriptor_base64"]
+        if type(encoded) is not str:
+            raise ValueError("bad descriptor")
+        descriptor = base64.b64decode(encoded, validate=True)
+        parsed = _unique_json_bytes(descriptor)
+    except (ValueError, TypeError):
+        raise OcrSealedEvaluationError(label) from None
+    score = _read_json_object(score_path)
+    execution = _sha256(response["execution_sha256"], "native execution")
+    metrics = score.get("metrics")
+    if (type(metrics) is not dict or hashlib.sha256(descriptor).hexdigest() != execution
+            or score.get("execution_sha256") != execution
+            or response.get("development") != metrics.get("validation")
+            or parsed.get("domain") != "graphreader.composed-ocr-execution.v1"):
+        raise OcrSealedEvaluationError(label)
+    for path, expected in ((score_path, score_sha256),
+                           (workflow_candidate_path, workflow_candidate_sha256),
+                           (validator_path, validator_sha256)):
+        if not path.is_file() or sha256_file(path) != expected:
+            raise OcrSealedEvaluationError(label)
+    return response
+
+
 def _revalidate_evidence_files(
     evidence: AuthenticatedFullOcrEvidence,
     root: Path,
@@ -320,6 +481,91 @@ def _revalidate_evidence_files(
         or _runtime_identity(evidence, root, candidate_path) != evidence.runtime_identity_sha256
     ):
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_IDENTITY_INVALID")
+    if evidence.native_execution is not None:
+        native = evidence.native_execution
+        score = _read_json_object(evidence.full_ocr_score_path)
+        described = _describe_composed_native(
+            root, score_path=evidence.full_ocr_score_path, score_sha256=evidence.full_ocr_score_sha256,
+            workflow_candidate_path=native.workflow_candidate_path,
+            workflow_candidate_sha256=native.workflow_candidate_sha256,
+            request_sha256=_sha256(score.get("request_sha256"), "development request"),
+            stage_candidate_sha256=evidence.candidate_sha256,
+            validator_path=native.validator_path, validator_sha256=native.validator_sha256)
+        if (described["execution_sha256"] != native.execution_sha256 or
+                described["execution_descriptor_base64"] != native.execution_descriptor_base64):
+            raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID")
+
+
+_COMPOSED_SHARED_FILES = frozenset({
+    "GraphReader.App.dll", "GraphReader.Axis.dll", "GraphReader.Domain.dll",
+    "GraphReader.Export.dll", "GraphReader.Imaging.dll", "GraphReader.Inference.dll",
+    "GraphReader.Legends.dll", "GraphReader.Markers.dll", "GraphReader.Ocr.dll",
+    "GraphReader.Pdf.dll", "GraphReader.Phases.dll", "GraphReader.SuperResolution.dll",
+    "Microsoft.ML.OnnxRuntime.dll", "OpenCvSharp.dll", "OpenCvSharpExtern.dll",
+    "onnxruntime.dll", "onnxruntime_providers_shared.dll", "Imazen.WebP.dll",
+    "libwebp.dll", "libwebpdemux.dll", "libwebpmux.dll", "libsharpyuv.dll",
+    "UglyToad.PdfPig.dll", "UglyToad.PdfPig.Core.dll", "UglyToad.PdfPig.DocumentLayoutAnalysis.dll",
+    "UglyToad.PdfPig.Fonts.dll", "UglyToad.PdfPig.Package.dll", "UglyToad.PdfPig.Tokenization.dll",
+    "UglyToad.PdfPig.Tokens.dll", "System.Numerics.Tensors.dll",
+})
+
+
+def _validate_composed_stage_descriptor(evidence, score, native) -> None:
+    """Bind the C# execution preimage to stage, workflow and worker bytes."""
+    failure = "OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID"
+    try:
+        data = base64.b64decode(native.execution_descriptor_base64, validate=True)
+        descriptor = _unique_json_bytes(data)
+        candidate = _read_json_object(evidence.candidate_path)
+        workflow = _read_json_object(native.workflow_candidate_path)
+        fields = {"domain", "composition", "axisStage", "detector", "detectorManifest", "recognizer",
+                  "recognizerManifest", "provider", "optimization", "intraThreads", "interThreads",
+                  "workers", "queue", "files", "framework", "architecture"}
+        files = descriptor["files"]
+        algorithms, runtime = workflow["algorithms"], workflow["runtime"]
+        detector, recognizer = workflow["ocr_detection"], workflow["ocr_recognition"]
+        worker_files = {}
+        if (len(evidence.runtime_command_prefix) != 1 or
+                Path(evidence.runtime_command_prefix[0]).name != "GraphReader.SyntheticRuntimeEvidence.exe"):
+            raise ValueError("unexpected v2 worker host")
+        worker_host = Path(evidence.runtime_command_prefix[0]).resolve()
+        actual_worker_paths = {path.resolve() for path in worker_host.parent.rglob("*")
+                               if path.is_file() and path.suffix.lower() in {".dll", ".exe", ".json"}}
+        if (worker_host not in actual_worker_paths or
+                actual_worker_paths != {item.path.resolve() for item in evidence.runtime_files}):
+            raise ValueError("worker runtime inventory is incomplete")
+        for item in evidence.runtime_files:
+            if item.path.name in worker_files:
+                raise ValueError("duplicate worker file name")
+            worker_files[item.path.name] = item.sha256
+        valid = (
+            set(descriptor) == fields
+            and descriptor["domain"] == "graphreader.composed-ocr-execution.v1"
+            and hashlib.sha256(data).hexdigest() == native.execution_sha256 == score["execution_sha256"]
+            and descriptor["composition"] == algorithms["ocr_composition_version"] == candidate["composition_version"]
+            and descriptor["axisStage"] == algorithms["axis_stage_version"]
+            and descriptor["detector"] == detector["payload"]["sha256"] == candidate["detector"]["model_sha256"]
+            and descriptor["detectorManifest"] == detector["manifest"]["sha256"] == candidate["detector"]["manifest_sha256"]
+            and descriptor["recognizer"] == recognizer["payload"]["sha256"] == candidate["recognizer"]["model_sha256"]
+            and descriptor["recognizerManifest"] == recognizer["manifest"]["sha256"] == candidate["recognizer"]["manifest_sha256"]
+            and descriptor["provider"] == runtime["execution_provider"] == "cpu"
+            and descriptor["optimization"] == runtime["graph_optimization"] == "disabled"
+            and all(type(descriptor[key]) is int for key in ("intraThreads", "interThreads", "workers", "queue"))
+            and descriptor["intraThreads"] == runtime["intra_operation_threads"] == 1
+            and descriptor["interThreads"] == runtime["inter_operation_threads"] == 1
+            and descriptor["workers"] == runtime["worker_count"] == 1
+            and descriptor["queue"] == runtime["queue_capacity"] == 1
+            and type(descriptor["framework"]) is str and bool(descriptor["framework"])
+            and descriptor["architecture"] == "X64"
+            and type(files) is dict and set(files) == _COMPOSED_SHARED_FILES
+            and all(worker_files.get(name) == _sha256(digest, "native stage file")
+                    for name, digest in files.items())
+            and files["OpenCvSharpExtern.dll"] == candidate["native_sha256"]
+        )
+    except (KeyError, TypeError, ValueError, OcrSealedEvaluationError):
+        raise OcrSealedEvaluationError(failure) from None
+    if not valid:
+        raise OcrSealedEvaluationError(failure)
 
 
 def _composed_dev_evidence(
@@ -333,8 +579,17 @@ def _composed_dev_evidence(
         "truth_consumed_by_inference", "case_output", "private_reads", "sealed_reads",
         "stage_admission_granted", "production_approved",
     }
+    v2 = score.get("schema") == COMPOSED_SCORE_SCHEMA_V2
+    if v2:
+        required.add("execution_sha256")
+        native = evidence.native_execution
+        if native is None:
+            raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID")
+        _validate_composed_stage_descriptor(evidence, score, native)
+    elif evidence.native_execution is not None:
+        raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID")
     if (
-        set(score) != required or score.get("schema") != COMPOSED_SCORE_SCHEMA
+        set(score) != required or score.get("schema") not in {COMPOSED_SCORE_SCHEMA, COMPOSED_SCORE_SCHEMA_V2}
         or score.get("status") != "completed" or score.get("sources") != 23
         or type(score.get("sources")) is not int
         or score.get("candidate_sha256") != evidence.candidate_sha256
@@ -616,6 +871,7 @@ def _authenticate_preflight(
 def _preflight_binding(
     evidence: AuthenticatedFullOcrEvidence,
     *,
+    root: Path | None = None,
     registry_sha256: str,
     set_id: str,
     gate_seal: GateSeal,
@@ -640,6 +896,32 @@ def _preflight_binding(
         ),
         "evidence_policy": evidence_policy_reference(),
     }
+    if evidence.native_execution is not None:
+        if evidence.schema != COMPOSED_EVIDENCE_SCHEMA or root is None:
+            raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID")
+        native = evidence.native_execution
+        host = Path(evidence.runtime_command_prefix[0]).resolve()
+        worker_files = []
+        for item in evidence.runtime_files:
+            try:
+                relative = item.path.resolve().relative_to(host.parent).as_posix()
+            except ValueError:
+                raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_NATIVE_IDENTITY_INVALID") from None
+            worker_files.append({"path": relative, "sha256": _sha256(item.sha256, "worker file")})
+        binding["schema"] = COMPOSED_PREFLIGHT_SCHEMA_V2
+        binding["native_execution"] = {
+            "schema": "graphreader.composed-ocr-native-binding.v1",
+            "workflow_candidate_path": _relative_artifact(root, native.workflow_candidate_path, "workflow candidate"),
+            "workflow_candidate_sha256": _sha256(native.workflow_candidate_sha256, "workflow candidate"),
+            "validator_path": _relative_artifact(root, native.validator_path, "native validator"),
+            "validator_sha256": _sha256(native.validator_sha256, "native validator"),
+            "execution_descriptor_base64": native.execution_descriptor_base64,
+            "execution_sha256": _sha256(native.execution_sha256, "native execution"),
+            "worker_host_path": _relative_artifact(root, host, "worker host"),
+            "development_command_mode": "--check-composed-ocr-prerequisite-dev",
+            "sealed_command_mode": "--evaluate-composed-ocr-sealed",
+            "worker_files": sorted(worker_files, key=lambda value: value["path"]),
+        }
     return sha256_bytes(canonical_json_bytes(binding)), binding
 
 
@@ -733,8 +1015,10 @@ def _outcome(
 ) -> dict[str, object]:
     if sha256_bytes(canonical_json_bytes(dict(preflight_binding))) != attempt_id:
         raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_CLOSURE_CONFLICT")
-    return {
-        "schema": (COMPOSED_OUTCOME_SCHEMA if preflight_binding.get("schema") == COMPOSED_PREFLIGHT_SCHEMA
+    v2 = preflight_binding.get("schema") == COMPOSED_PREFLIGHT_SCHEMA_V2
+    outcome = {
+        "schema": (COMPOSED_OUTCOME_SCHEMA_V2 if v2 else
+                   COMPOSED_OUTCOME_SCHEMA if preflight_binding.get("schema") == COMPOSED_PREFLIGHT_SCHEMA
                    else OUTCOME_SCHEMA),
         "status": status,
         "read_status": read_status,
@@ -774,6 +1058,9 @@ def _outcome(
         "pixel_output": "pixel" in disclosures,
         "production_approved": False,
     }
+    if v2:
+        outcome["native_execution"] = deepcopy(preflight_binding["native_execution"])
+    return outcome
 
 
 def _close_components(
@@ -910,9 +1197,12 @@ def _validate_recovered_outcome(root, outcome, record, request_path, request_sha
     """Recompute a saved verdict before completing an interrupted close."""
     conflict = "OCR_SEALED_EVALUATION_CLOSURE_CONFLICT"
     status = outcome["status"]
-    composed = record.get("attempt_binding", {}).get("schema") == COMPOSED_PREFLIGHT_SCHEMA
+    binding = record.get("attempt_binding", {})
+    v2 = binding.get("schema") == COMPOSED_PREFLIGHT_SCHEMA_V2
+    composed = binding.get("schema") in {COMPOSED_PREFLIGHT_SCHEMA, COMPOSED_PREFLIGHT_SCHEMA_V2}
     if (
-        outcome.get("schema") != (COMPOSED_OUTCOME_SCHEMA if composed else OUTCOME_SCHEMA)
+        outcome.get("schema") != (COMPOSED_OUTCOME_SCHEMA_V2 if v2 else COMPOSED_OUTCOME_SCHEMA if composed else OUTCOME_SCHEMA)
+        or (v2 and outcome.get("native_execution") != binding.get("native_execution"))
         or outcome.get("read_status") != record.get("read_status")
         or outcome.get("split") != "sealed"
         or outcome.get("acceptance_scope") != ACCEPTANCE_SCOPE
@@ -1054,7 +1344,7 @@ def _resume_existing_evaluation(
         if (
             outcome_path.read_bytes() != canonical_json_bytes(outcome)
             or
-            outcome.get("schema") != (COMPOSED_OUTCOME_SCHEMA
+            outcome.get("schema") != (COMPOSED_OUTCOME_SCHEMA_V2 if evidence.native_execution is not None else COMPOSED_OUTCOME_SCHEMA
                 if evidence.schema == COMPOSED_EVIDENCE_SCHEMA else OUTCOME_SCHEMA)
             or outcome.get("admission_binding_sha256") != admission_id
             or outcome.get("attempt_id") != record.get("attempt_id")
@@ -1192,6 +1482,7 @@ def evaluate_ocr_sealed_candidate(
     )
     preflight_binding_sha256, preflight_binding = _preflight_binding(
         evidence,
+        root=root,
         registry_sha256=expected_registry_sha256,
         set_id=set_id,
         gate_seal=gate_seal,
@@ -1298,14 +1589,21 @@ def evaluate_ocr_sealed_candidate(
             request_relative,
             request_sha256,
         ]
-        transport = transport_runner(
-            command,
-            root,
-            expected,
-            acknowledge,
-            confirm,
-            timeout_seconds=timeout_seconds,
-        )
+        try:
+            runtime_files = {item.path.resolve(): item.sha256 for item in evidence.runtime_files}
+            with _locked_runtime_files(runtime_files, require_windows=evidence.native_execution is not None):
+                _revalidate_evidence_files(evidence, root, candidate)
+                transport = transport_runner(
+                    command,
+                    root,
+                    expected,
+                    acknowledge,
+                    confirm,
+                    timeout_seconds=timeout_seconds,
+                )
+                _revalidate_evidence_files(evidence, root, candidate)
+        except OSError:
+            raise OcrSealedEvaluationError("OCR_SEALED_EVALUATION_RUNTIME_INVALID") from None
         if not isinstance(transport, OcrSealedTransportResult):
             raise OcrSealedTransportError("OCR_SEALED_TRANSPORT_RESULT_INVALID")
         envelope = validate_result_envelope(transport.envelope, expected)

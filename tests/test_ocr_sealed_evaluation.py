@@ -121,7 +121,7 @@ def _runtime_fixture(tmp_path: Path, *, composed=False) -> tuple[Path, Path, eva
     artifacts = root / "artifacts"
     runtime = artifacts / "runtime"
     runtime.mkdir(parents=True)
-    apphost = runtime / "worker.exe"
+    apphost = runtime / "GraphReader.SyntheticRuntimeEvidence.exe"
     apphost.write_bytes(b"apphost")
     assemblies = []
     runtime_files = [apphost]
@@ -405,8 +405,9 @@ def test_post_prepare_exception_is_settled_and_sanitized(
     assert "private case name" not in result.outcome_path.read_text(encoding="utf-8")
 
 
+@pytest.mark.parametrize("inventory_changed", [False, True])
 def test_transport_disclosure_retires_with_typed_categories(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, inventory_changed: bool
 ) -> None:
     root, candidate, evidence = _runtime_fixture(tmp_path)
     training, gate, _ = _patched_evaluate(monkeypatch, root, candidate, evidence)
@@ -439,6 +440,8 @@ def test_transport_disclosure_retires_with_typed_categories(
 
     def disclosed(_command, _root, expected, acknowledge, _confirm, **_kwargs):
         acknowledge(expected.attempt_id, "b" * 64, lambda _frame: None)
+        if inventory_changed:
+            (Path(evidence.runtime_command_prefix[0]).parent / "unexpected.dll").write_bytes(b"fixture")
         raise OcrSealedDisclosureError(("truth", "pixel"), "a" * 64)
 
     result = evaluation.evaluate_ocr_sealed_candidate(
@@ -461,8 +464,9 @@ def test_transport_disclosure_retires_with_typed_categories(
     assert outcome["failure_code"] == "OCR_SEALED_TRANSPORT_CASE_DATA_DISCLOSURE"
 
 
+@pytest.mark.parametrize("inventory_changed", [False, True])
 def test_unclassified_output_is_quarantined_without_disclosure_categories(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, inventory_changed: bool
 ) -> None:
     root, candidate, evidence = _runtime_fixture(tmp_path)
     training, gate, _ = _patched_evaluate(monkeypatch, root, candidate, evidence)
@@ -494,6 +498,8 @@ def test_unclassified_output_is_quarantined_without_disclosure_categories(
 
     def unclassified(_command, _root, expected, acknowledge, _confirm, **_kwargs):
         acknowledge(expected.attempt_id, "b" * 64, lambda _frame: None)
+        if inventory_changed:
+            (Path(evidence.runtime_command_prefix[0]).parent / "unexpected.dll").write_bytes(b"fixture")
         raise OcrSealedUnclassifiedOutputError(channels)
 
     result = evaluation.evaluate_ocr_sealed_candidate(

@@ -50,10 +50,14 @@ class TextExtentFullOcrAuthenticator:
             raise parent.OcrSealedEvaluationError('OCR_SEALED_EVALUATION_RUNTIME_INVALID')
         runtime_files = tuple(parent.AuthenticatedRuntimeFile(p,sha256_file(p)) for p in runtime_paths)
         summary, evaluation = inputs['input_summary'], inputs['evaluation_report']
-        recomputed = scorer.score(root/summary['path'],summary['sha256'], candidate_path,candidate_sha256,
-            root/evaluation['path'],evaluation['sha256'],
-            root/'artifacts/ocr-dev-authentication'/f'{uuid4().hex}.json',
-            source_sha=inputs['input_adapter']['sha256'], repository_root=root)
+        try:
+            with parent._locked_runtime_files({item.path: item.sha256 for item in runtime_files}):
+                recomputed = scorer.score(root/summary['path'],summary['sha256'], candidate_path,candidate_sha256,
+                    root/evaluation['path'],evaluation['sha256'],
+                    root/'artifacts/ocr-dev-authentication'/f'{uuid4().hex}.json',
+                    source_sha=inputs['input_adapter']['sha256'], repository_root=root)
+        except OSError:
+            raise parent.OcrSealedEvaluationError('OCR_SEALED_EVALUATION_RUNTIME_INVALID') from None
         _same_evidence(saved,recomputed)
         if sha256_file(path) != self.score_sha256:
             raise parent.OcrSealedEvaluationError('OCR_SEALED_EVALUATION_IDENTITY_INVALID')

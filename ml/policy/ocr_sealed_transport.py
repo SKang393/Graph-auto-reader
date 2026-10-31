@@ -5,10 +5,12 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from contextlib import contextmanager
 from dataclasses import dataclass
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 from queue import Empty, Full, Queue
 import re
@@ -17,6 +19,79 @@ import sys
 import threading
 import time
 from typing import Any, BinaryIO
+
+
+def _sanitized_child_environment() -> dict[str, str]:
+    # Do not permit inherited CLR or host injection/profiler settings.
+    prefixes = ("DOTNET_", "CORECLR_", "COR_", "COMPLUS_", "LD_", "DYLD_")
+    environment = {key: value for key, value in os.environ.items()
+                   if not key.upper().startswith(prefixes)}
+    environment.update(OMP_WAIT_POLICY="PASSIVE", KMP_BLOCKTIME="0")
+    return environment
+
+
+@contextmanager
+def _locked_runtime_files(files: Mapping[Path, str], *, require_windows: bool = False):
+    """Pin files on Windows; retain legacy hash checks elsewhere when allowed."""
+    if not files:
+        raise OSError("runtime inventory is empty")
+    hosts = [path for path in files if path.name == "GraphReader.SyntheticRuntimeEvidence.exe"]
+    if len(hosts) > 1:
+        raise OSError("multiple worker hosts")
+    def check_worker_inventory():
+        if not hosts:
+            return
+        directory = hosts[0].parent.resolve()
+        expected = {path.resolve() for path in files if path.resolve().is_relative_to(directory)}
+        actual = {path.resolve() for path in directory.rglob("*")
+                  if path.is_file() and path.suffix.lower() in {".dll", ".exe", ".json"}}
+        if actual != expected:
+            raise OSError("worker runtime inventory changed")
+    if os.name != "nt":
+        if require_windows:
+            raise OSError("Windows runtime file locking is required")
+        def check_hashes():
+            for path, digest in files.items():
+                with path.open("rb") as stream:
+                    if hashlib.file_digest(stream, "sha256").hexdigest() != digest:
+                        raise OSError("runtime file identity mismatch")
+        check_hashes()
+        check_worker_inventory()
+        # A child failure already fails closed. Preserve its typed error so
+        # disclosure/quarantine bookkeeping cannot be hidden by a later check.
+        yield
+        check_worker_inventory()
+        check_hashes()
+        return
+    import ctypes
+    from ctypes import wintypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    create = kernel.CreateFileW
+    create.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD,
+                       wintypes.LPVOID, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+    create.restype = wintypes.HANDLE
+    close = kernel.CloseHandle
+    close.argtypes = [wintypes.HANDLE]
+    close.restype = wintypes.BOOL
+    invalid = ctypes.c_void_p(-1).value
+    handles = []
+    try:
+        for path, digest in sorted(files.items(), key=lambda item: str(item[0]).casefold()):
+            handle = create(str(path), 0x80000000, 1, None, 3, 0x80, None)
+            if handle == invalid:
+                raise OSError(ctypes.get_last_error(), "runtime file cannot be locked", str(path))
+            handles.append(handle)
+            with path.open("rb") as stream:
+                actual = hashlib.file_digest(stream, "sha256").hexdigest()
+            if actual != digest:
+                raise OSError("runtime file identity mismatch")
+        check_worker_inventory()
+        yield
+        check_worker_inventory()
+    finally:
+        for handle in reversed(handles):
+            close(handle)
 
 
 RESULT_SCHEMA = "graphreader.original-db-ocr-sealed-worker-result.v1"
@@ -590,6 +665,7 @@ def run_ocr_sealed_worker(
             process = subprocess.Popen(
                 list(command), cwd=working_directory, stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, bufsize=0,
+                env=_sanitized_child_environment(),
             )
         except (OSError, ValueError):
             raise _fail("OCR_SEALED_TRANSPORT_PROCESS_FAILED") from None
