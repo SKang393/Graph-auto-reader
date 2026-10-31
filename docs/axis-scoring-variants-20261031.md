@@ -1,0 +1,5 @@
+# Axis scoring variants, 2026-10-31
+
+The synthetic candidate-level diagnostic evaluated 27 deterministic line configurations with the current axis detector. Six competing-axis cases selected a materially wrong pair while a closer pair was available; all six were marked ambiguous for review. Three cases also showed that simply choosing the longer competitor would be wrong. The other 21 selected the reference pair without review. These fixtures support retaining the ambiguity guard; they do not establish a general replacement ranking rule.
+
+The report SHA-256 is `6cc32b1e6788a11e8a4a406fbed227829c051526ca53807963c07d676d8eef4c`, and its source manifest SHA-256 is `268e73488d30820dccaa18c5011de2354690364a00590f250d8aeacd96d30274`. An independent audit checked the report, source and runtime hashes, and confirmed reference corners were used only after selection. Source and binary hashes are independently bound, not proof of the build relationship. The diagnostic does not test raster decoding, line extraction, marker classification or end-to-end recognition and is not an acceptance result.
