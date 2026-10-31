@@ -7375,6 +7375,21 @@
                        "openCvRuntimeSha256":  "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
                        "releaseEligible":  false,
                        "releaseStatus":  "internal",
+                       "retained":  false,
+                       "recordIncomplete":  false,
+                       "missingMetadata":  []
+                   },
+                   {
+                       "buildNumber":  435,
+                       "version":  "0.4.35",
+                       "directory":  "0.4.35-20261031T190125794Z-46bfb59a",
+                       "stampedVersion":  "0.4.35",
+                       "commit":  "46bfb59a964fefdf6aece5fe209d8586541e78d1",
+                       "buildTimeUtc":  "2026-10-31T19:01:25.7949324+00:00",
+                       "executableSha256":  "fa536d303c7526086923e40e25acef2750cc7ed3e72a01724b9e589db88464bc",
+                       "openCvRuntimeSha256":  "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+                       "releaseEligible":  false,
+                       "releaseStatus":  "internal",
                        "retained":  true,
                        "recordIncomplete":  false,
                        "missingMetadata":  []
