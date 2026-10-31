@@ -4,6 +4,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\..'))
 $script = Join-Path $projectRoot 'packaging\pdfium-source\Stage-CleanMachineCandidate.ps1'
+$originalScript = $script
 $testRoot = Join-Path $projectRoot ('artifacts\temp\pdfium-candidate-test-' + [Guid]::NewGuid().ToString('N'))
 $repo = Join-Path $testRoot 'fixture'
 $evidence = Join-Path $repo 'artifacts\evidence'
@@ -54,6 +55,31 @@ $audit = @{ components = @(@{ id = 'pdfium-native'; reviewStatus = 'reviewed'; c
 Write-Text $auditPath ($audit | ConvertTo-Json -Depth 8)
 $auditHash = Hash $auditPath
 $arguments = @{ CandidateRoot = $candidate; EvidenceRoot = $evidence; RepositoryRoot = $repo; ExpectedExecutableSha256 = (Hash $exe); ExpectedApplicationDllSha256 = (Hash $dll) }
+# Exercise the real script with powershell.exe -File and no RepositoryRoot.
+# Synthetic approval must fail its real pin, after default root initialization.
+$oldPreference = $ErrorActionPreference
+try {
+    $ErrorActionPreference = 'Continue'
+    $actualOutput = (& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $originalScript `
+        -CandidateRoot $candidate -EvidenceRoot $evidence `
+        -ExpectedExecutableSha256 (Hash $exe) -ExpectedApplicationDllSha256 (Hash $dll) 2>&1 | Out-String)
+    $actualExit = $LASTEXITCODE
+} finally { $ErrorActionPreference = $oldPreference }
+if ($actualExit -eq 0 -or $actualOutput -notmatch 'independently pinned approval') {
+    throw "Real -File default root did not reach the approval guard: $actualOutput"
+}
+# Also verify the complete success path through a fixture copy with a matching
+# synthetic pin, using -File and the default inferred fixture repository root.
+$defaultCandidate = Join-Path $repo 'artifacts\default-candidate'
+New-Item -ItemType Directory -Path $defaultCandidate | Out-Null
+Copy-Item $exe (Join-Path $defaultCandidate 'GraphReader.App.exe')
+Copy-Item $dll (Join-Path $defaultCandidate 'GraphReader.App.dll')
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $fixtureScript `
+    -CandidateRoot $defaultCandidate -EvidenceRoot $evidence `
+    -ExpectedExecutableSha256 (Hash $exe) -ExpectedApplicationDllSha256 (Hash $dll)
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path (Join-Path $defaultCandidate 'pdfium-clean-machine-candidate.json'))) {
+    throw 'Fixture -File default-root success failed.'
+}
 $wrongHashArguments = $arguments.Clone()
 $wrongHashArguments.ExpectedExecutableSha256 = '0' * 64
 Must-Fail { & $script @wrongHashArguments } 'Application hash mismatch' 'Candidate application bytes'

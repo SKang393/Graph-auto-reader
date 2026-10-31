@@ -8,12 +8,13 @@ param(
     [Parameter(Mandatory)][string]$EvidenceRoot,
     [Parameter(Mandatory)][string]$ExpectedExecutableSha256,
     [Parameter(Mandatory)][string]$ExpectedApplicationDllSha256,
-    [string]$RepositoryRoot = (Join-Path $PSScriptRoot '..\..')
+    [string]$RepositoryRoot
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $reviewedApprovalSha256 = '40f47b14c42748b8fb43d0905d1694746186d6b9018d5bce4c97a93305836936'
 $sourceProjectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) { $RepositoryRoot = $sourceProjectRoot }
 $RepositoryRoot = [IO.Path]::GetFullPath($RepositoryRoot)
 $CandidateRoot = [IO.Path]::GetFullPath($CandidateRoot)
 $EvidenceRoot = [IO.Path]::GetFullPath($EvidenceRoot)
