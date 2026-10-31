@@ -15,6 +15,7 @@ ml/ocr/fragmented_xtick_detector_v1/* -text whitespace=cr-at-eol,-blank-at-eof
 ml/ocr/fragmented_xtick_detector_v2/** -text whitespace=cr-at-eol,-blank-at-eof
 ml/ocr/fragmented_xtick_detector_v3/** -text whitespace=cr-at-eol,-blank-at-eof
 ml/ocr/fragmented_xtick_detector_v4/** -text whitespace=cr-at-eol,-blank-at-eof
+ml/ocr/stroke_seeded_xtick_v1/** -text whitespace=cr-at-eol,-blank-at-eof
 # The consumed structure-consensus evidence binds this source's CRLF bytes.
 src/GraphReader.Ocr/ConnectedComponentTextRegionDetector.cs text eol=crlf
 
