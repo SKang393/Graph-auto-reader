@@ -1,0 +1,14 @@
+{
+  "schema": "graphreader.gpu-numeric-tick-recognizer.recipe.v1",
+  "scope": "public_synthetic_train_validation_only",
+  "device": "cuda:0",
+  "required_gpu": {"name": "AMD Radeon RX 6600 XT", "architecture": "gfx1032", "hip_required": true},
+  "task": "numeric_x_tick_recognition",
+  "alphabet": "0123456789.-",
+  "training_admission": "blocked_pending_authenticated_synthetic_tick_corpus_v3_and_font_provenance",
+  "optimizer_construction_allowed": false,
+  "optimizer_steps_allowed": false,
+  "checkpoint_writes_allowed": false,
+  "production_approved": false,
+  "sealed_or_private_inputs_allowed": false
+}
