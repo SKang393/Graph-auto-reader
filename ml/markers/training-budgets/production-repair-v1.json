@@ -11383,6 +11383,48 @@
       "development_report_sha256": "42d5b7150934eb995a4606d889cfe25b9e1fdae0bc88669a5ba6a6175d9dbf95",
       "onnx_sha256": "15266a41c2858945f79e91b6fcbf006efd18e89c28376c40c90d33575f22b473",
       "closed_utc_date": "2026-10-31"
+    },
+    {
+      "task": "axis-candidate-ranker",
+      "revision": "axis-candidate-linear-gpu-v1",
+      "status": "development_evaluated_unapproved",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": ["P1"],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/axis/gpu_candidate_ranker_v1/p1-v4.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "4acacf53a23a7bc948a482c2fde7daddb839e682082891964805126eb0c745cd"
+      },
+      "protocol_path": "ml/axis/gpu_candidate_ranker_v1/protocol.json",
+      "protocol_sha256": "58a2af74486dd2894659fd034d282fcb434352a8ddcab839e817761f5dc7f0e9",
+      "runner_source_bundle_sha256": "ecd61cacb94d50ee108608d449994d9f98c909ee15366adf56931db8f84856a0",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One exploratory train-only synthetic axis-candidate ranking trial. No sealed reads, production activation, promotion or release.",
+      "isolated_change": "Train a linear scorer for the 17 existing candidate features while preserving production candidate generation, fallback and uncertainty gates.",
+      "optimizer_steps_expected": 372,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "training_device": "RX 6600 XT gfx1032 cuda:0",
+      "release_eligible": false,
+      "optimizer_steps": 372,
+      "training_groups_sha256": "d9c5928ffea0407fd5b1041d3c3ca9146f128d71054cca0026a51e88a3dc67b5",
+      "training_targets_sha256": "15193d25c5346799d16aadbaaffb303cdcb0b361aa2a7ebdedf336d706289582",
+      "training_report_sha256": "3c196ec8f935d797f709efd48a415051b4d68e2bf22e085d32064d50aaee57a1",
+      "checkpoint_sha256": "42a57afd0428bf028dbbf24279a0547ab02769dec1db4d49c5313d5735483adf",
+      "finalization_sha256": "4e113ba64158c60ae285f58bb8e1231f40c55970177e81673548ea81b0d9140c",
+      "development_report_sha256": "362850c0788abdb95e03dc595e92f5988ae34438d86d74d23b03e3893c9dc7e6",
+      "development_outcome": "Exploratory synthetic comparison: 23 improved, 9 equal, 14 worsened among 46 scored panels; 2 fallbacks unscored. No acceptance or promotion.",
+      "closed_utc_date": "2026-10-31"
     }
   ]
 }

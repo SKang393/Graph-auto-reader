@@ -26,7 +26,9 @@ public sealed record AxisCandidatePanelBatchBinding(
     IReadOnlyDictionary<string, string> ToolSourceBindings,
     IReadOnlyDictionary<string, string> ToolRuntimeBindings,
     OpenCvLineCandidateOptions OpenCvOptions,
-    AxisGeometryOptions GeometryOptions);
+    AxisGeometryOptions GeometryOptions,
+    string? DevCorpusManifestPath = null,
+    string? DevCorpusManifestSha256 = null);
 
 public sealed record AxisCandidatePanelSelection(
     [property: JsonPropertyName("source_id")] string SourceId,

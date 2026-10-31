@@ -58,6 +58,8 @@ public sealed class PanelBatchEvidenceRunnerTests
         Assert.IsNotNull(panel.NormalizedFeatures);
         Assert.AreEqual(panel.CandidateSnapshots.Count, panel.NormalizedFeatures.Rows.Count);
         Assert.IsNotNull(report.Runtime);
+        Assert.AreEqual(new OpenCvLineCandidateOptions(), report.Runtime!.OpenCvOptions);
+        Assert.AreEqual(new AxisGeometryOptions(), report.Runtime.GeometryOptions);
     }
 
     [TestMethod]
@@ -84,6 +86,380 @@ public sealed class PanelBatchEvidenceRunnerTests
         Assert.AreEqual("failed", report.Status);
         Assert.AreEqual("PANEL_TRANSFORM_NOT_PRODUCTION_CROP_TRANSLATION", report.Failure?.Code);
         Assert.IsEmpty(report.PanelResults);
+    }
+
+    [TestMethod]
+    public async Task ChangedOpenCvOptionsAreRejectedBeforeProviderExecution()
+    {
+        using var fixture = new PanelFixture(nondefaultOpenCvOptions: true);
+        var provider = new StaticProvider(FixtureCandidates());
+
+        AxisCandidatePanelBatchReport report = await fixture.LoadRunner(provider).RunAsync();
+
+        Assert.AreEqual("failed", report.Status);
+        Assert.AreEqual("NON_PRODUCTION_AXIS_OPTIONS_REJECTED", report.Failure?.Code);
+        Assert.AreEqual(0, provider.CallCount);
+        Assert.IsEmpty(report.PanelResults);
+    }
+
+    [TestMethod]
+    public async Task ChangedGeometryOptionsAreRejectedBeforeProviderExecution()
+    {
+        using var fixture = new PanelFixture(nondefaultGeometryOptions: true);
+        var provider = new StaticProvider(FixtureCandidates());
+
+        AxisCandidatePanelBatchReport report = await fixture.LoadRunner(provider).RunAsync();
+
+        Assert.AreEqual("failed", report.Status);
+        Assert.AreEqual("NON_PRODUCTION_AXIS_OPTIONS_REJECTED", report.Failure?.Code);
+        Assert.AreEqual(0, provider.CallCount);
+        Assert.IsEmpty(report.PanelResults);
+    }
+
+    [TestMethod]
+    public void FixedDevAndTrainAdmissionsUseTheirAuthenticatedRuntimeMaps()
+    {
+        string projectRoot = PanelFixture.FindProjectRoot(Environment.CurrentDirectory);
+        const string devAdmissionRelativePath = "artifacts/goal22-runs/axis-roles-dev-measure-admission-v2/binding.json";
+        const string devAdmissionSha256 = "a32b43b05c74ea2279f2a7cd90e53024c5981f356dbf8735adbc8d1653168203";
+        const string trainAdmissionRelativePath = "artifacts/goal22-runs/axis-ranker-panelization-admission-v2/binding.json";
+        const string trainAdmissionSha256 = "a521b39708c1cfbcb9d37bb2a099e8037f89ff848fca83f218159d20d5b3eb1a";
+        const string devRuntimePrefix = "artifacts/goal22-runs/axis-roles-panelization-build-v2/";
+        const int expectedDevRuntimeCount = 73;
+
+        AssertLocalFilesPresentOrInconclusive(
+            projectRoot,
+            [devAdmissionRelativePath, trainAdmissionRelativePath]);
+        using JsonDocument devAdmission = ReadPinnedAdmission(projectRoot, devAdmissionRelativePath, devAdmissionSha256);
+        using JsonDocument trainAdmission = ReadPinnedAdmission(projectRoot, trainAdmissionRelativePath, trainAdmissionSha256);
+        JsonElement devRuntimeFiles = devAdmission.RootElement.GetProperty("runtime_files");
+        SortedDictionary<string, string> devRuntimeMap = ReadMap(devRuntimeFiles, devRuntimePrefix);
+        Assert.AreEqual(expectedDevRuntimeCount, devRuntimeMap.Count);
+        SortedDictionary<string, string> devSourceMap = ReadMap(devAdmission.RootElement.GetProperty("files"));
+        SortedDictionary<string, string> trainRuntimeMap = ReadMap(trainAdmission.RootElement.GetProperty("files"));
+        Assert.AreEqual(81, trainRuntimeMap.Count);
+        AssertLocalFilesPresentOrInconclusive(
+            projectRoot,
+            devRuntimeMap.Keys.Concat(devSourceMap.Keys).Concat(trainRuntimeMap.Keys)
+                .Append(devAdmissionRelativePath).Append(trainAdmissionRelativePath));
+        var devRunner = CreateParserRunner(projectRoot, "public_synthetic_development", devAdmissionSha256, devRuntimeMap);
+        SortedDictionary<string, string> parsedDevMap = InvokePanelizerRuntimeParser(devRunner, devAdmission.RootElement);
+        AssertMapEqual(devRuntimeMap, parsedDevMap);
+
+        SortedDictionary<string, string> malformedDevMap = new(devRuntimeMap, StringComparer.Ordinal)
+        {
+            [devRuntimeMap.Keys.First()] = new string('0', 64),
+        };
+        object malformedDevRunner = CreateParserRunner(
+            projectRoot, "public_synthetic_development", devAdmissionSha256, malformedDevMap);
+        TargetInvocationException devException = Assert.ThrowsExactly<TargetInvocationException>(
+            () => InvokePanelizerRuntimeParser(malformedDevRunner, devAdmission.RootElement));
+        StringAssert.Contains(devException.InnerException!.Message, "PANELIZER_RUNTIME_INPUT_PIN_MISMATCH");
+
+        var trainRunner = CreateParserRunner(projectRoot, "public_synthetic_train", trainAdmissionSha256, trainRuntimeMap);
+        SortedDictionary<string, string> parsedTrainMap = InvokePanelizerRuntimeParser(trainRunner, trainAdmission.RootElement);
+        AssertMapEqual(trainRuntimeMap, parsedTrainMap);
+
+        MethodInfo allowlist = typeof(AxisCandidatePanelBatchEvidenceRunner).GetMethod(
+            "IsPanelizerRuntimePathAllowed",
+            BindingFlags.NonPublic | BindingFlags.Static)
+            ?? throw new AssertFailedException("Panelizer runtime allowlist helper was not found.");
+        bool IsAllowed(string path, string scope) =>
+            (bool)(allowlist.Invoke(null, [path, scope]) ?? throw new AssertFailedException("Allowlist helper returned null."));
+        Assert.IsTrue(IsAllowed("artifacts/goal22-tools/axis-roles-dev-measure-v2/job.py", "public_synthetic_train"),
+            "The shared training source binding must remain valid for train scope.");
+        Assert.IsTrue(IsAllowed("artifacts/goal22-tools/axis-roles-dev-measure-v2/bind.py", "public_synthetic_development"));
+        Assert.IsFalse(IsAllowed("artifacts/goal22-tools/axis-roles-dev-measure-v2/bind.py", "public_synthetic_train"));
+        Assert.IsFalse(IsAllowed("artifacts/goal22-tools/axis-roles-dev-measure-v2/other.py", "public_synthetic_development"));
+        Assert.IsFalse(IsAllowed("artifacts/goal22-tools/axis-roles-dev-measure-v2/../bind.py", "public_synthetic_development"));
+    }
+
+    [TestMethod]
+    public void FixedDevManifestPassesCompletePreflightWithExactRuntimePathCasing()
+    {
+        string projectRoot = PanelFixture.FindProjectRoot(Environment.CurrentDirectory);
+        const string manifestPath = "artifacts/goal22-runs/axis-candidate-evidence-public-v3-dev-prep-20261031-v5/input-manifest.json";
+        const string manifestSha256 = "6c8805a6b547952628eab5e3ecabf1aef467bdf084817d5e6627b8c8b5229222";
+        AssertLocalFilesPresentOrInconclusive(projectRoot, [manifestPath]);
+        AxisCandidatePanelBatchEvidenceRunner runner = AxisCandidatePanelBatchEvidenceRunner.Load(
+            projectRoot,
+            manifestPath,
+            manifestSha256);
+
+        var toolRuntime = (SortedDictionary<string, string>)InvokePrivate(runner, "ReadActualToolRuntimeBindings")!;
+        Assert.AreEqual(5, toolRuntime.Count);
+        AxisCandidatePanelBatchBinding binding = (AxisCandidatePanelBatchBinding)(
+            typeof(AxisCandidatePanelBatchEvidenceRunner).GetField("_binding", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(runner)
+            ?? throw new AssertFailedException("Runner binding was not available."));
+        string descriptorNativePath = binding.ToolRuntimeBindings.Keys.Single(path => path.Contains("OpenCvSharpExtern", StringComparison.Ordinal));
+        string actualNativePath = toolRuntime.Keys.Single(path => path.Contains("OpenCvSharpExtern", StringComparison.Ordinal));
+        Assert.IsTrue(descriptorNativePath.EndsWith("OpenCvSharpExtern.DLL", StringComparison.Ordinal),
+            $"Descriptor must preserve the loaded-module path spelling, got {descriptorNativePath}");
+        Assert.IsTrue(actualNativePath.EndsWith("OpenCvSharpExtern.DLL", StringComparison.Ordinal),
+            $"Test host must preserve the loaded-module path spelling, got {actualNativePath}");
+        Assert.AreEqual(binding.ToolRuntimeBindings[descriptorNativePath], toolRuntime[actualNativePath],
+            "The executable and test host must bind identical native OpenCV bytes.");
+
+        string caseOnlyPath = actualNativePath[..^4] + ".dll";
+        var caseChangedRuntime = new SortedDictionary<string, string>(
+            toolRuntime.ToDictionary(static pair => pair.Key, static pair => pair.Value, StringComparer.Ordinal),
+            StringComparer.Ordinal);
+        string nativeHash = caseChangedRuntime[actualNativePath];
+        caseChangedRuntime.Remove(actualNativePath);
+        caseChangedRuntime.Add(caseOnlyPath, nativeHash);
+        AxisCandidatePanelBatchEvidenceRunner mismatchedRunner = CreateParserRunner(
+            projectRoot,
+            binding with { ToolRuntimeBindings = caseChangedRuntime });
+        TargetInvocationException casingFailure = Assert.ThrowsExactly<TargetInvocationException>(
+            () => InvokePrivate(mismatchedRunner, "VerifyToolRuntimeBindings"));
+        StringAssert.Contains(casingFailure.InnerException!.Message, "TOOL_RUNTIME_BINDING_MISMATCH");
+
+        InvokePrivate(runner, "ValidateBinding");
+        object context = InvokePrivateWithMissingPrerequisiteSkip(runner, "LoadAndVerifyPanelBatchInputs")
+            ?? throw new AssertFailedException("Panel preflight returned no context.");
+        Assert.AreEqual(32, ReadContextCount(context, "SourceCount"));
+        Assert.AreEqual(48, ReadContextCount(context, "PanelCount"));
+        Assert.AreEqual(73, ReadContextMap(context, "PanelizerRuntimeBindings").Count);
+        Assert.AreEqual(18, ((SortedDictionary<string, string>)InvokePrivateWithMissingPrerequisiteSkip(runner, "VerifyProductionSourceBindings")!).Count);
+        Assert.AreEqual(9, ((SortedDictionary<string, string>)InvokePrivateWithMissingPrerequisiteSkip(runner, "VerifyToolSourceBindings")!).Count);
+        InvokePrivateWithMissingPrerequisiteSkip(runner, "VerifyPanelizerRuntimeBindings", context);
+        InvokePrivateWithMissingPrerequisiteSkip(runner, "VerifyPanelImageInventory", context);
+        AxisCandidatePanelBatchEvidenceRunner actualHostRunner = CreateParserRunner(
+            projectRoot,
+            binding with { ToolRuntimeBindings = toolRuntime });
+        Assert.AreEqual(5, ((SortedDictionary<string, string>)InvokePrivate(actualHostRunner, "VerifyToolRuntimeBindings")!).Count);
+    }
+
+    private static JsonDocument ReadPinnedAdmission(string projectRoot, string relativePath, string expectedSha256)
+    {
+        string fullPath = Path.Combine(projectRoot, relativePath.Replace('/', Path.DirectorySeparatorChar));
+        byte[] bytes = File.ReadAllBytes(fullPath);
+        Assert.AreEqual(expectedSha256, Convert.ToHexStringLower(SHA256.HashData(bytes)), $"Fixed admission changed: {relativePath}");
+        return JsonDocument.Parse(bytes);
+    }
+
+    [TestMethod]
+    public void MissingLocalEvidenceIsInconclusiveButPresentFilesAreNotSkipped()
+    {
+        string projectRoot = PanelFixture.FindProjectRoot(Environment.CurrentDirectory);
+        string missing = $"artifacts/goal22-runs/test-only-missing-{Guid.NewGuid():N}/binding.json";
+        AssertLocalFilesPresentOrInconclusive(projectRoot, ["AGENTS.md"]);
+        Assert.ThrowsExactly<AssertInconclusiveException>(
+            () => AssertLocalFilesPresentOrInconclusive(projectRoot, [missing]));
+        Assert.ThrowsExactly<AssertFailedException>(
+            () => AssertLocalFilesPresentOrInconclusive(projectRoot, ["artifacts"]));
+    }
+
+    [TestMethod]
+    public void DanglingLocalEvidenceLinkFailsInsteadOfSkippingWhenSupported()
+    {
+        string projectRoot = PanelFixture.FindProjectRoot(Environment.CurrentDirectory);
+        string fixtureId = Guid.NewGuid().ToString("N");
+        string fixtureRoot = Path.Combine(projectRoot, "artifacts", "goal22-runs", "axis-candidate-evidence-test-fixtures", fixtureId);
+        string expectedParent = Path.Combine(projectRoot, "artifacts", "goal22-runs", "axis-candidate-evidence-test-fixtures");
+        Assert.IsTrue(fixtureRoot.StartsWith(expectedParent + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase),
+            "Evidence path test fixture escaped its dedicated fixture root.");
+        Directory.CreateDirectory(fixtureRoot);
+        string link = Path.Combine(
+            "artifacts", "goal22-runs", "axis-candidate-evidence-test-fixtures", fixtureId, "dangling.json");
+        string target = Path.Combine(projectRoot, "artifacts", "goal22-runs", "missing-link-target.json");
+        string fullLink = Path.Combine(projectRoot, link);
+        try
+        {
+            try
+            {
+                File.CreateSymbolicLink(fullLink, target);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or PlatformNotSupportedException)
+            {
+                Assert.Inconclusive($"Symbolic links are unavailable on this host: {exception.Message}");
+            }
+            Assert.ThrowsExactly<AssertFailedException>(
+                () => AssertLocalFilesPresentOrInconclusive(projectRoot, [link.Replace('\\', '/')]));
+        }
+        finally
+        {
+            if (Directory.Exists(fixtureRoot))
+            {
+                Directory.Delete(fixtureRoot, recursive: true);
+            }
+        }
+    }
+
+    private static void AssertLocalFilesPresentOrInconclusive(string projectRoot, IEnumerable<string> relativePaths)
+    {
+        string root = Path.GetFullPath(projectRoot);
+        var missing = new List<string>();
+        foreach (string relative in relativePaths.Distinct(StringComparer.Ordinal))
+        {
+            string fullPath = Path.GetFullPath(Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar)));
+            string rootRelative = Path.GetRelativePath(root, fullPath);
+            if (Path.IsPathRooted(rootRelative) || rootRelative == ".." ||
+                rootRelative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            {
+                Assert.Fail($"Required local evidence path escaped the project root: {relative}");
+            }
+
+            string current = root;
+            string[] segments = rootRelative.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+            for (int index = 0; index < segments.Length; index++)
+            {
+                current = Path.Combine(current, segments[index]);
+                bool isFinal = index == segments.Length - 1;
+                FileSystemInfo info = isFinal ? new FileInfo(current) : new DirectoryInfo(current);
+                if (info.LinkTarget is not null)
+                {
+                    Assert.Fail($"Present local evidence path contains a symbolic link: {relative}");
+                }
+
+                FileAttributes attributes;
+                try
+                {
+                    attributes = File.GetAttributes(current);
+                }
+                catch (FileNotFoundException)
+                {
+                    missing.Add(relative);
+                    break;
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    missing.Add(relative);
+                    break;
+                }
+
+                if ((attributes & FileAttributes.ReparsePoint) != 0)
+                {
+                    Assert.Fail($"Present local evidence path contains a reparse point: {relative}");
+                }
+                bool isDirectory = (attributes & FileAttributes.Directory) != 0;
+                if ((isFinal && isDirectory) || (!isFinal && !isDirectory))
+                {
+                    Assert.Fail($"Present local evidence path is not a regular file: {relative}");
+                }
+            }
+        }
+        if (missing.Count > 0)
+        {
+            Assert.Inconclusive("Locally materialized Goal 22 evidence is absent: " + string.Join(", ", missing.Take(4)));
+        }
+    }
+
+    private static object? InvokePrivateWithMissingPrerequisiteSkip(object instance, string name, params object?[] arguments)
+    {
+        try
+        {
+            return InvokePrivate(instance, name, arguments);
+        }
+        catch (TargetInvocationException exception) when (
+            exception.InnerException is FileNotFoundException or DirectoryNotFoundException)
+        {
+            Assert.Inconclusive("Locally materialized Goal 22 evidence referenced by the pinned manifest is absent: " +
+                exception.InnerException.Message);
+            return null;
+        }
+    }
+
+    private static SortedDictionary<string, string> ReadMap(JsonElement files, string? prefix = null)
+    {
+        Assert.AreEqual(JsonValueKind.Object, files.ValueKind);
+        var map = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (JsonProperty property in files.EnumerateObject())
+        {
+            if (prefix is null || property.Name.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                map.Add(property.Name, property.Value.GetString() ?? throw new AssertFailedException("Admission hash is null."));
+            }
+        }
+        return map;
+    }
+
+    private static object CreateParserRunner(
+        string projectRoot,
+        string scope,
+        string admissionSha256,
+        IReadOnlyDictionary<string, string> runtimeMap)
+    {
+        var binding = new AxisCandidatePanelBatchBinding(
+            "graphreader.axis-candidate-panel-batch-input.v1",
+            scope,
+            scope == "public_synthetic_train" ? "train" : "dev",
+            "admission.json",
+            admissionSha256,
+            "receipt.json",
+            new string('1', 64),
+            "run",
+            64,
+            61,
+            3,
+            0,
+            96,
+            Array.Empty<AxisCandidatePanelSelection>(),
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            runtimeMap,
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            new Dictionary<string, string>(StringComparer.Ordinal),
+            new OpenCvLineCandidateOptions(),
+            new AxisGeometryOptions());
+        ConstructorInfo constructor = typeof(AxisCandidatePanelBatchEvidenceRunner).GetConstructor(
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            [typeof(string), typeof(string), typeof(string), typeof(string), typeof(AxisCandidatePanelBatchBinding), typeof(ILineCandidateProvider), typeof(IAxisGeometryDetector)],
+            modifiers: null)
+            ?? throw new AssertFailedException("Private parser test constructor was not found.");
+        return constructor.Invoke([projectRoot, "", "", "", binding, null, null]);
+    }
+
+    private static SortedDictionary<string, string> InvokePanelizerRuntimeParser(object runner, JsonElement admission)
+    {
+        MethodInfo parser = typeof(AxisCandidatePanelBatchEvidenceRunner).GetMethod(
+            "ReadPanelizerRuntimeBindings", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new AssertFailedException("Panelizer runtime parser was not found.");
+        return (SortedDictionary<string, string>)(parser.Invoke(runner, [admission])
+            ?? throw new AssertFailedException("Panelizer runtime parser returned null."));
+    }
+
+    private static object? InvokePrivate(object instance, string name, params object?[] arguments)
+    {
+        MethodInfo method = typeof(AxisCandidatePanelBatchEvidenceRunner).GetMethod(
+            name,
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new AssertFailedException($"Private preflight method was not found: {name}");
+        return method.Invoke(instance, arguments);
+    }
+
+    private static int ReadContextCount(object context, string propertyName)
+    {
+        object value = context.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public)?.GetValue(context)
+            ?? throw new AssertFailedException($"Preflight context count was missing: {propertyName}");
+        return (int)value;
+    }
+
+    private static SortedDictionary<string, string> ReadContextMap(object context, string propertyName) =>
+        (SortedDictionary<string, string>)(context.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public)?.GetValue(context)
+            ?? throw new AssertFailedException($"Preflight context map was missing: {propertyName}"));
+
+    private static AxisCandidatePanelBatchEvidenceRunner CreateParserRunner(
+        string projectRoot,
+        AxisCandidatePanelBatchBinding binding)
+    {
+        ConstructorInfo constructor = typeof(AxisCandidatePanelBatchEvidenceRunner).GetConstructor(
+            BindingFlags.Instance | BindingFlags.NonPublic,
+            binder: null,
+            [typeof(string), typeof(string), typeof(string), typeof(string), typeof(AxisCandidatePanelBatchBinding), typeof(ILineCandidateProvider), typeof(IAxisGeometryDetector)],
+            modifiers: null)
+            ?? throw new AssertFailedException("Private parser test constructor was not found.");
+        return (AxisCandidatePanelBatchEvidenceRunner)constructor.Invoke([projectRoot, "", "", "", binding, null, null]);
+    }
+
+    private static void AssertMapEqual(SortedDictionary<string, string> expected, SortedDictionary<string, string> actual)
+    {
+        Assert.AreEqual(expected.Count, actual.Count);
+        foreach ((string key, string value) in expected)
+        {
+            Assert.IsTrue(actual.TryGetValue(key, out string? actualValue), $"Runtime path missing: {key}");
+            Assert.AreEqual(value, actualValue, $"Runtime hash mismatch: {key}");
+        }
     }
 
     [TestMethod]
@@ -188,6 +564,8 @@ public sealed class PanelBatchEvidenceRunnerTests
         private readonly bool _tamperPanelBytes;
         private readonly bool _invalidTransform;
         private readonly bool _fullImageFallback;
+        private readonly bool _nondefaultOpenCvOptions;
+        private readonly bool _nondefaultGeometryOptions;
         private string _inputManifestPath = string.Empty;
         private string _inputManifestSha = string.Empty;
 
@@ -195,9 +573,12 @@ public sealed class PanelBatchEvidenceRunnerTests
             bool tamperPanelBytes = false,
             bool invalidTransform = false,
             bool fullImageFallback = false,
-            bool failedSource = false)
+            bool failedSource = false,
+            bool nondefaultOpenCvOptions = false,
+            bool nondefaultGeometryOptions = false)
         {
             ProjectRoot = FindProjectRoot(Environment.CurrentDirectory);
+            AssertLocalFilesPresentOrInconclusive(ProjectRoot, RuntimeFiles);
             Id = Guid.NewGuid().ToString("N");
             _fixtureRoot = Path.Combine(ProjectRoot, "artifacts", "goal22-runs", "axis-candidate-evidence-test-fixtures", Id);
             Directory.CreateDirectory(_fixtureRoot);
@@ -205,6 +586,8 @@ public sealed class PanelBatchEvidenceRunnerTests
             _tamperPanelBytes = tamperPanelBytes;
             _invalidTransform = invalidTransform;
             _fullImageFallback = fullImageFallback;
+            _nondefaultOpenCvOptions = nondefaultOpenCvOptions;
+            _nondefaultGeometryOptions = nondefaultGeometryOptions;
             SourceId = Guid.NewGuid().ToString();
             PanelId = Guid.NewGuid().ToString();
             PanelizationRunRoot = $"artifacts/goal22-runs/axis-candidate-evidence-test-fixtures/{Id}/panel-run";
@@ -362,7 +745,7 @@ public sealed class PanelBatchEvidenceRunnerTests
                 {
                     ["useLineSegmentDetector"] = true,
                     ["useProbabilisticHough"] = true,
-                    ["cannyLowThreshold"] = 40,
+                    ["cannyLowThreshold"] = _nondefaultOpenCvOptions ? 39 : 40,
                     ["cannyHighThreshold"] = 120,
                     ["houghThreshold"] = 24,
                     ["houghMinimumLineLengthPixels"] = 12,
@@ -373,7 +756,7 @@ public sealed class PanelBatchEvidenceRunnerTests
                 {
                     ["maximumAxisDeviationDegrees"] = 15,
                     ["mergeAngleToleranceDegrees"] = 4,
-                    ["mergeDistancePixels"] = 3,
+                    ["mergeDistancePixels"] = _nondefaultGeometryOptions ? 3.1 : 3,
                     ["minimumCandidateLengthPixels"] = 1,
                     ["minimumAxisSpanFraction"] = 0.25,
                     ["tickMaximumLengthFraction"] = 0.08,
@@ -474,7 +857,7 @@ public sealed class PanelBatchEvidenceRunnerTests
 
         private static string Hash(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
 
-        private static string FindProjectRoot(string start)
+        public static string FindProjectRoot(string start)
         {
             var current = new DirectoryInfo(Path.GetFullPath(start));
             while (current is not null)

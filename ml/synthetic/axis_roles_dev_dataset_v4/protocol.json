@@ -1,0 +1,71 @@
+{
+  "schema": "graphreader.synthetic-axis-roles-dev-v4.protocol.v1",
+  "scope": "development_only",
+  "status": "source_and_tests_only_dataset_not_materialized",
+  "recipes": [
+    {"index": 0, "seed": 20270500, "design": "ab", "overlay": "none", "participant_format": "full"},
+    {"index": 1, "seed": 20270501, "design": "aba", "overlay": "none", "participant_format": "numeric"},
+    {"index": 2, "seed": 20270502, "design": "abab", "overlay": "none", "participant_format": "full"},
+    {"index": 3, "seed": 20270503, "design": "multiple_baseline", "overlay": "none", "participant_format": "numeric"},
+    {"index": 4, "seed": 20270504, "design": "ab", "overlay": "grid", "participant_format": "full"},
+    {"index": 5, "seed": 20270505, "design": "aba", "overlay": "grid", "participant_format": "numeric"},
+    {"index": 6, "seed": 20270506, "design": "abab", "overlay": "grid", "participant_format": "full"},
+    {"index": 7, "seed": 20270507, "design": "multiple_baseline", "overlay": "grid", "participant_format": "numeric"},
+    {"index": 8, "seed": 20270508, "design": "ab", "overlay": "frame", "participant_format": "full"},
+    {"index": 9, "seed": 20270509, "design": "aba", "overlay": "frame", "participant_format": "numeric"},
+    {"index": 10, "seed": 20270510, "design": "abab", "overlay": "frame", "participant_format": "full"},
+    {"index": 11, "seed": 20270511, "design": "multiple_baseline", "overlay": "frame", "participant_format": "numeric"},
+    {"index": 12, "seed": 20270512, "design": "ab", "overlay": "grid_frame", "participant_format": "full"},
+    {"index": 13, "seed": 20270513, "design": "aba", "overlay": "grid_frame", "participant_format": "numeric"},
+    {"index": 14, "seed": 20270514, "design": "abab", "overlay": "grid_frame", "participant_format": "full"},
+    {"index": 15, "seed": 20270515, "design": "multiple_baseline", "overlay": "grid_frame", "participant_format": "numeric"}
+  ],
+  "child_process": {
+    "module": "ml.synthetic.axis_roles_dev_dataset_v4.worker",
+    "one_job_per_child": true,
+    "max_concurrent_children": 2,
+    "parent_imports_pillow": false,
+    "parent_patches_pillow": false,
+    "input_contains_paths": false,
+    "output_image_encoding": "base64_png_over_stdout"
+  },
+  "upstream_source_bindings": {
+    "ml/synthetic/__init__.py": "6875b53c0bbbd101cb06ff7987f06ea66520493f5361456ebc1d724870d13add",
+    "ml/synthetic/axis_roles_dev_dataset_v3/__init__.py": "cc4d0ff0d7ff47d972498c0dededc0d03f3bf9263ac565e85ef6515f91715962",
+    "ml/synthetic/axis_roles_dev_dataset_v3/prepare.py": "8a33d27c497e6029df380d6548da15aef514c42ca1c1e19ef22e2666842c02ae",
+    "ml/synthetic/axis_roles_dev_dataset_v1/__init__.py": "a524e35d32ff35623085148748de2e506c455a6ebdefa53622aa05afb15f93ab",
+    "ml/synthetic/axis_roles_dev_dataset_v1/prepare.py": "9314579eae7ae18538f1c74db67d029de488825856f49e0ae964f61f15da179d",
+    "ml/synthetic/camera_document_dev_dataset_v1/__init__.py": "4d0484f255cc94f147009fcfdad37de4dd0878e5e0a30d93edb29a4028a56630",
+    "ml/synthetic/camera_document_dev_dataset_v1/prepare.py": "f3583ad8ee81f28b40a541fb2df78722c3a2ee458968233652e4645d63dd6211",
+    "ml/synthetic/camera_document_profile_v1/__init__.py": "02fa477f103496a69299b5361b81f74d2a798d98af0a84a9bd429a26b3fe406e",
+    "ml/synthetic/camera_document_profile_v1/fonts.py": "9e8a1d6c8ad22dddcdd8261de6b5026a6dfb7b4a847dc4f9785212c58dc8cbef",
+    "ml/synthetic/camera_document_profile_v1/renderer.py": "2a4149b246f1fc52a69e4cddeda990014dd8d7c970f4a070d15ed7cf53650c33",
+    "ml/synthetic/camera_document_profile_v1/scene.schema.json": "7f584b562d0204ccebd77a5e9fcfad3572732d2ad87d77ca76752b7273f6deb4",
+    "ml/synthetic/camera_document_profile_v1/schema.py": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+    "ml/synthetic/camera_document_profile_v1/snapshot_bindings.json": "01a01e3b81e524c4428884a063280cc18a18237328547732f7ae7b166ef7ab71",
+    "ml/synthetic/camera_document_profile_v1/templates.py": "353bb2747ae9340d0243d8364f5b321c5229f1187d5f6a5d759705e55a364dea",
+    "ml/synthetic/camera_document_profile_v1/assets/LICENSE": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+    "ml/synthetic/camera_document_profile_v1/assets/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5"
+  },
+  "font_provenance": {
+    "family": "Noto Sans Regular",
+    "repository": "https://github.com/notofonts/noto-fonts",
+    "source_commit": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+    "source_path": "hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+    "source_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+    "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+    "license": "OFL-1.1",
+    "license_path": "ml/synthetic/camera_document_profile_v1/assets/LICENSE",
+    "license_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/LICENSE",
+    "license_sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+    "claims": "Source and accompanying license bytes are hash-pinned; no broader legal review is asserted."
+  },
+  "claims_and_limits": [
+    "This is a development-only catalog. It is not a train-validation-test split or an independent benchmark.",
+    "Recipe seeds are unique within this catalog; historical independence and near-duplicate exclusion are unproven.",
+    "The existing V1 canvas hook is executed only in a one-job child process; the parent process never imports the PIL-dependent renderer or patches PIL.",
+    "The child calls only the V3 material/reference helpers; it does not invoke V3 generation, verification, or historical scans and does not import V2.",
+    "Only the 16 listed development recipes are supported. No reserved recipes or reserved pixels are included.",
+    "Same-host deterministic output is checked by tests. Cross-host byte identity is not claimed."
+  ]
+}

@@ -1,0 +1,590 @@
+{
+  "font_provenance": {
+    "claims": "Source and accompanying license bytes are hash-pinned; no broader legal review is asserted.",
+    "family": "Noto Sans Regular",
+    "license": "OFL-1.1",
+    "license_path": "ml/synthetic/camera_document_profile_v1/assets/LICENSE",
+    "license_sha256": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+    "license_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/LICENSE",
+    "repository": "https://github.com/notofonts/noto-fonts",
+    "sha256": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+    "source_commit": "ffebf8c1ee449e544955a7e813c54f9b73848eac",
+    "source_path": "hinted/ttf/NotoSans/NotoSans-Regular.ttf",
+    "source_url": "https://github.com/notofonts/noto-fonts/blob/ffebf8c1ee449e544955a7e813c54f9b73848eac/hinted/ttf/NotoSans/NotoSans-Regular.ttf"
+  },
+  "historical_seed_ranges": [
+    [
+      20261040,
+      20261279
+    ],
+    [
+      20270100,
+      20270131
+    ],
+    [
+      20270200,
+      20270215
+    ]
+  ],
+  "limits": [
+    "Only recipe identities are fixed; no output is training-approved.",
+    "Train recipes must never contain protected development or reserved seeds.",
+    "Seed disjointness is not generator or font independence."
+  ],
+  "optimizer_steps": 0,
+  "protected_seed_ranges": [
+    [
+      20270300,
+      20270331
+    ],
+    [
+      20270400,
+      20270415
+    ],
+    [
+      20270500,
+      20270515
+    ]
+  ],
+  "recipes": [
+    {
+      "design": "ab",
+      "index": 0,
+      "overlay": "none",
+      "participant_format": "full",
+      "seed": 20270600,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 1,
+      "overlay": "none",
+      "participant_format": "full",
+      "seed": 20270601,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 2,
+      "overlay": "none",
+      "participant_format": "full",
+      "seed": 20270602,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 3,
+      "overlay": "none",
+      "participant_format": "full",
+      "seed": 20270603,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 4,
+      "overlay": "grid",
+      "participant_format": "full",
+      "seed": 20270604,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 5,
+      "overlay": "grid",
+      "participant_format": "full",
+      "seed": 20270605,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 6,
+      "overlay": "grid",
+      "participant_format": "full",
+      "seed": 20270606,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 7,
+      "overlay": "grid",
+      "participant_format": "full",
+      "seed": 20270607,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 8,
+      "overlay": "frame",
+      "participant_format": "full",
+      "seed": 20270608,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 9,
+      "overlay": "frame",
+      "participant_format": "full",
+      "seed": 20270609,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 10,
+      "overlay": "frame",
+      "participant_format": "full",
+      "seed": 20270610,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 11,
+      "overlay": "frame",
+      "participant_format": "full",
+      "seed": 20270611,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 12,
+      "overlay": "grid_frame",
+      "participant_format": "full",
+      "seed": 20270612,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 13,
+      "overlay": "grid_frame",
+      "participant_format": "full",
+      "seed": 20270613,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 14,
+      "overlay": "grid_frame",
+      "participant_format": "full",
+      "seed": 20270614,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 15,
+      "overlay": "grid_frame",
+      "participant_format": "full",
+      "seed": 20270615,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 16,
+      "overlay": "none",
+      "participant_format": "numeric",
+      "seed": 20270616,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 17,
+      "overlay": "none",
+      "participant_format": "numeric",
+      "seed": 20270617,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 18,
+      "overlay": "none",
+      "participant_format": "numeric",
+      "seed": 20270618,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 19,
+      "overlay": "none",
+      "participant_format": "numeric",
+      "seed": 20270619,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 20,
+      "overlay": "grid",
+      "participant_format": "numeric",
+      "seed": 20270620,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 21,
+      "overlay": "grid",
+      "participant_format": "numeric",
+      "seed": 20270621,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 22,
+      "overlay": "grid",
+      "participant_format": "numeric",
+      "seed": 20270622,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 23,
+      "overlay": "grid",
+      "participant_format": "numeric",
+      "seed": 20270623,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 24,
+      "overlay": "frame",
+      "participant_format": "numeric",
+      "seed": 20270624,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 25,
+      "overlay": "frame",
+      "participant_format": "numeric",
+      "seed": 20270625,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 26,
+      "overlay": "frame",
+      "participant_format": "numeric",
+      "seed": 20270626,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 27,
+      "overlay": "frame",
+      "participant_format": "numeric",
+      "seed": 20270627,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 28,
+      "overlay": "grid_frame",
+      "participant_format": "numeric",
+      "seed": 20270628,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 29,
+      "overlay": "grid_frame",
+      "participant_format": "numeric",
+      "seed": 20270629,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 30,
+      "overlay": "grid_frame",
+      "participant_format": "numeric",
+      "seed": 20270630,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 31,
+      "overlay": "grid_frame",
+      "participant_format": "numeric",
+      "seed": 20270631,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 32,
+      "overlay": "none",
+      "participant_format": "full",
+      "seed": 20270632,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 33,
+      "overlay": "none",
+      "participant_format": "full",
+      "seed": 20270633,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 34,
+      "overlay": "none",
+      "participant_format": "full",
+      "seed": 20270634,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 35,
+      "overlay": "none",
+      "participant_format": "full",
+      "seed": 20270635,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 36,
+      "overlay": "grid",
+      "participant_format": "full",
+      "seed": 20270636,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 37,
+      "overlay": "grid",
+      "participant_format": "full",
+      "seed": 20270637,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 38,
+      "overlay": "grid",
+      "participant_format": "full",
+      "seed": 20270638,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 39,
+      "overlay": "grid",
+      "participant_format": "full",
+      "seed": 20270639,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 40,
+      "overlay": "frame",
+      "participant_format": "full",
+      "seed": 20270640,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 41,
+      "overlay": "frame",
+      "participant_format": "full",
+      "seed": 20270641,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 42,
+      "overlay": "frame",
+      "participant_format": "full",
+      "seed": 20270642,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 43,
+      "overlay": "frame",
+      "participant_format": "full",
+      "seed": 20270643,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 44,
+      "overlay": "grid_frame",
+      "participant_format": "full",
+      "seed": 20270644,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 45,
+      "overlay": "grid_frame",
+      "participant_format": "full",
+      "seed": 20270645,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 46,
+      "overlay": "grid_frame",
+      "participant_format": "full",
+      "seed": 20270646,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 47,
+      "overlay": "grid_frame",
+      "participant_format": "full",
+      "seed": 20270647,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 48,
+      "overlay": "none",
+      "participant_format": "numeric",
+      "seed": 20270648,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 49,
+      "overlay": "none",
+      "participant_format": "numeric",
+      "seed": 20270649,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 50,
+      "overlay": "none",
+      "participant_format": "numeric",
+      "seed": 20270650,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 51,
+      "overlay": "none",
+      "participant_format": "numeric",
+      "seed": 20270651,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 52,
+      "overlay": "grid",
+      "participant_format": "numeric",
+      "seed": 20270652,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 53,
+      "overlay": "grid",
+      "participant_format": "numeric",
+      "seed": 20270653,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 54,
+      "overlay": "grid",
+      "participant_format": "numeric",
+      "seed": 20270654,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 55,
+      "overlay": "grid",
+      "participant_format": "numeric",
+      "seed": 20270655,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 56,
+      "overlay": "frame",
+      "participant_format": "numeric",
+      "seed": 20270656,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 57,
+      "overlay": "frame",
+      "participant_format": "numeric",
+      "seed": 20270657,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 58,
+      "overlay": "frame",
+      "participant_format": "numeric",
+      "seed": 20270658,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 59,
+      "overlay": "frame",
+      "participant_format": "numeric",
+      "seed": 20270659,
+      "split_role": "train"
+    },
+    {
+      "design": "ab",
+      "index": 60,
+      "overlay": "grid_frame",
+      "participant_format": "numeric",
+      "seed": 20270660,
+      "split_role": "train"
+    },
+    {
+      "design": "aba",
+      "index": 61,
+      "overlay": "grid_frame",
+      "participant_format": "numeric",
+      "seed": 20270661,
+      "split_role": "train"
+    },
+    {
+      "design": "abab",
+      "index": 62,
+      "overlay": "grid_frame",
+      "participant_format": "numeric",
+      "seed": 20270662,
+      "split_role": "train"
+    },
+    {
+      "design": "multiple_baseline",
+      "index": 63,
+      "overlay": "grid_frame",
+      "participant_format": "numeric",
+      "seed": 20270663,
+      "split_role": "train"
+    }
+  ],
+  "reserved_rendered": false,
+  "schema": "graphreader.synthetic-axis-role-train-catalog.v1",
+  "scope": "synthetic_training_input_development_only",
+  "training_admitted": false,
+  "v4_protocol_sha256": "378cff27a073070107297f91118b6203cd5fae8a62887f37c80be868f2668238",
+  "v4_runtime_source_bindings": {
+    "ml/synthetic/__init__.py": "6875b53c0bbbd101cb06ff7987f06ea66520493f5361456ebc1d724870d13add",
+    "ml/synthetic/axis_roles_dev_dataset_v1/__init__.py": "a524e35d32ff35623085148748de2e506c455a6ebdefa53622aa05afb15f93ab",
+    "ml/synthetic/axis_roles_dev_dataset_v1/prepare.py": "9314579eae7ae18538f1c74db67d029de488825856f49e0ae964f61f15da179d",
+    "ml/synthetic/axis_roles_dev_dataset_v3/__init__.py": "cc4d0ff0d7ff47d972498c0dededc0d03f3bf9263ac565e85ef6515f91715962",
+    "ml/synthetic/axis_roles_dev_dataset_v3/prepare.py": "8a33d27c497e6029df380d6548da15aef514c42ca1c1e19ef22e2666842c02ae",
+    "ml/synthetic/axis_roles_dev_dataset_v4/__init__.py": "82c03d9b363e06e6e07bd92f3f746e78b6d975ec469d6cc472491c07c10b84b6",
+    "ml/synthetic/axis_roles_dev_dataset_v4/prepare.py": "8d7157c0ded7fca8ae1a9719391cd10de450e1010a2c565798ebef1bfb297417",
+    "ml/synthetic/axis_roles_dev_dataset_v4/protocol.json": "378cff27a073070107297f91118b6203cd5fae8a62887f37c80be868f2668238",
+    "ml/synthetic/axis_roles_dev_dataset_v4/worker.py": "6fe3bf398537d587595cabf0097e537fe62b57836fad0bfb9f7c5f2d3f479ef5",
+    "ml/synthetic/camera_document_dev_dataset_v1/__init__.py": "4d0484f255cc94f147009fcfdad37de4dd0878e5e0a30d93edb29a4028a56630",
+    "ml/synthetic/camera_document_dev_dataset_v1/prepare.py": "f3583ad8ee81f28b40a541fb2df78722c3a2ee458968233652e4645d63dd6211",
+    "ml/synthetic/camera_document_profile_v1/__init__.py": "02fa477f103496a69299b5361b81f74d2a798d98af0a84a9bd429a26b3fe406e",
+    "ml/synthetic/camera_document_profile_v1/assets/LICENSE": "0dab92d0544f7b233403f14b84a663bdbfa746982eda629e7f4f9ffe1b036feb",
+    "ml/synthetic/camera_document_profile_v1/assets/NotoSans-Regular.ttf": "b85c38ecea8a7cfb39c24e395a4007474fa5a4fc864f6ee33309eb4948d232d5",
+    "ml/synthetic/camera_document_profile_v1/fonts.py": "9e8a1d6c8ad22dddcdd8261de6b5026a6dfb7b4a847dc4f9785212c58dc8cbef",
+    "ml/synthetic/camera_document_profile_v1/renderer.py": "2a4149b246f1fc52a69e4cddeda990014dd8d7c970f4a070d15ed7cf53650c33",
+    "ml/synthetic/camera_document_profile_v1/scene.schema.json": "7f584b562d0204ccebd77a5e9fcfad3572732d2ad87d77ca76752b7273f6deb4",
+    "ml/synthetic/camera_document_profile_v1/schema.py": "08360ded42755a0fcf688d4fd7f16320d65909ab90275ac4f3cb7ec14784af98",
+    "ml/synthetic/camera_document_profile_v1/snapshot_bindings.json": "01a01e3b81e524c4428884a063280cc18a18237328547732f7ae7b166ef7ab71",
+    "ml/synthetic/camera_document_profile_v1/templates.py": "353bb2747ae9340d0243d8364f5b321c5229f1187d5f6a5d759705e55a364dea"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "graphreader.axis-gpu-ranker-protocol.v1",
+  "task": "axis-candidate-ranker",
+  "revision": "axis-candidate-linear-gpu-v1",
+  "candidate_id": "P1",
+  "hypothesis": "A linear ranking of the 17 runtime-available geometric features can select lower-normalized-corner-error axis candidates more often than the native ranking on source-disjoint synthetic development panels.",
+  "isolated_change": "Train one 17-to-1 linear scorer on the fixed detected train panels; preserve the production detector, its candidate generation, fallback handling and uncertainty gate.",
+  "training_split": {
+    "groups_path": "artifacts/goal22-runs/axis-ranker-gpu-training-data-v1/groups.json",
+    "groups_sha256": "d9c5928ffea0407fd5b1041d3c3ca9146f128d71054cca0026a51e88a3dc67b5",
+    "data_receipt_sha256": "2f3eadd30b19fd8d86930571f230e01fe8fb8832bce999e4c98759ca21859622",
+    "target_sha256": "15193d25c5346799d16aadbaaffb303cdcb0b361aa2a7ebdedf336d706289582",
+    "sources": 64,
+    "labelable_detected_panels": 93,
+    "excluded_full_image_fallbacks": 3,
+    "candidates": 27776
+  },
+  "development_split": {
+    "manifest_path": "artifacts/axis-roles-dev-corpus-v3-20261031/manifest.json",
+    "manifest_sha256": "c3c735a38dac5aa893331958ba09319e7fcfac534f8122738d8d07db37f507b1",
+    "sources": 32,
+    "training_access": false,
+    "limitation": "Previously used in development and shares generator and fonts with training; not an independent external acceptance set."
+  },
+  "development_metric": "Compare native and candidate-selected mean corner error normalized by plot width and height for each uniquely matched detected panel, retain source, fallback, panel and candidate-coverage failure denominators, and report regressions separately.",
+  "acceptance_policy": {
+    "path": "ml/policy/acceptance-bars.json",
+    "scope": "Shared policy applies unchanged; its Tier 2 requires no silently exported unvalidated calibrations and review/block for invalid calibration. It defines no axis corner-error numeric bar.",
+    "production_promotion": "Requires separately admitted development and real sealed acceptance, with the existing uncertainty/review gates preserved."
+  },
+  "sealed_budget": {
+    "authorized_runs": 0,
+    "rule": "No sealed read in this training run. A separately admitted sealed evaluation is considered only after development evidence clears the applicable policy."
+  },
+  "training_device": "AMD Radeon RX 6600 XT gfx1032 cuda:0",
+  "training_runs": 1,
+  "release_eligible": false
+}

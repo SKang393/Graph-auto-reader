@@ -1,0 +1,98 @@
+{
+  "schema": "graphreader.axis-ranker-dev-evaluation-protocol.v1",
+  "scope": "public_synthetic_development_only",
+  "split": "dev",
+  "dev_manifest_path": "artifacts/axis-roles-dev-corpus-v3-20261031/manifest.json",
+  "dev_manifest_sha256": "c3c735a38dac5aa893331958ba09319e7fcfac534f8122738d8d07db37f507b1",
+  "source_count": 32,
+  "panel_count": 48,
+  "panelization_status_counts": {
+    "detected": 30,
+    "no_panel_fallback": 2,
+    "failed": 0
+  },
+  "panelization_receipt_path": "artifacts/goal22-runs/axis-roles-dev-measure-run-v2/truth-free-receipt.json",
+  "panelization_receipt_sha256": "4bd1189d391b6a2e0cd9dfd4c73c1c3206f774327ebf7fa5f36fe6a6dfc8678a",
+  "training_config_path": "ml/axis/gpu_candidate_ranker_v1/p1-v4.json",
+  "training_config_sha256": "4acacf53a23a7bc948a482c2fde7daddb839e682082891964805126eb0c745cd",
+  "training_report_path": "artifacts/goal22-runs/axis-ranker-gpu-training-attempt-v1/report.json",
+  "training_report_sha256": "3c196ec8f935d797f709efd48a415051b4d68e2bf22e085d32064d50aaee57a1",
+  "checkpoint_path": "artifacts/goal22-runs/axis-ranker-gpu-training-attempt-v1/checkpoint.json",
+  "checkpoint_sha256": "42a57afd0428bf028dbbf24279a0547ab02769dec1db4d49c5313d5735483adf",
+  "finalization_path": "artifacts/goal22-runs/axis-ranker-gpu-training-attempt-v1/finalization.json",
+  "finalization_sha256": "4e113ba64158c60ae285f58bb8e1231f40c55970177e81673548ea81b0d9140c",
+  "feature_schema": "graphreader.axis-candidate-features.v1",
+  "feature_count": 17,
+  "baseline": "first candidate in production observer rank order",
+  "candidate": "highest train-only linear checkpoint score; tie preserves earlier observer rank",
+  "corner_metric": "mean Euclidean corner error in pixels and mean normalized error where x is divided by truth plot width and y by truth plot height, matching train_labels_v2.continuous_targets",
+  "truth_boundary": "source-only candidate export is hash-bound before this offline scorer reads public dev annotations",
+  "required_export_runtime": {
+    "production_axis_adapter_source": "src/GraphReader.App/Integration/Workflow/ProductionAxisGeometryAdapter.cs",
+    "open_cv_options": "production OpenCvLineCandidateProvider defaults",
+    "geometry_options": "production AxisGeometryRequest defaults",
+    "panelizer_runtime_map": "the 73-file axis-roles-panelization-build-v2 subset of fixed dev admission runtime_files; dev admission files source map is separately hash-verified",
+    "panel_statuses": ["success", "failed"],
+    "required_coordinate_space": "panel_original_pixels",
+    "crop_transform": "exact integer crop translation in both directions"
+  },
+  "annotation_contract": {
+    "schema_version": 1,
+    "plot_fields": ["box", "coordinate_space", "panel_id", "polygon"],
+    "plot_identity_adapter": "preserve annotation panel_id as the labels helper plot id",
+    "runtime_panel_association": "geometric plot-center-in-crop association; annotation panel_id is not equated to runtime panel_id",
+    "preflight_counts": {
+      "sources": 32,
+      "annotation_plots": 48,
+      "runtime_panels": 48,
+      "detected_unique_matches": 46,
+      "fallback_unscored_sources": 2
+    }
+  },
+  "candidate_row_contract": {
+    "keys": ["rank", "features"],
+    "identity_binding": "zero-based snapshot Rank and one-based normalized row rank pair rows by exact order; each 17-value vector is recomputed from the corresponding ordered snapshot",
+    "stored_candidate_identity_sha256": false
+  },
+  "scorer_source_bundle": [
+    "ml/axis/__init__.py",
+    "ml/axis/candidate_ranker_dev_eval_v1/__init__.py",
+    "ml/axis/candidate_ranker_dev_eval_v1/evaluator.py",
+    "ml/axis/candidate_ranker_dev_eval_v1/protocol.json",
+    "ml/axis/candidate_ranker_foundation_v1/__init__.py",
+    "ml/axis/candidate_ranker_foundation_v1/features.py",
+    "ml/axis/candidate_ranker_foundation_v1/labels.py"
+  ],
+  "exporter_production_source_bundle": [
+    "Directory.Packages.props",
+    "artifacts/goal22-tools/axis-roles-production-panelization-v2/Panelization.csproj",
+    "artifacts/goal22-tools/axis-roles-production-panelization-v2/Program.cs",
+    "src/GraphReader.App/GraphReader.App.csproj",
+    "src/GraphReader.App/Integration/Workflow/ProductionAxisGeometryAdapter.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionRasterFrameDecoder.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionRasterPanelizer.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionWorkflowDetectionStage.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionWorkflowImportStage.cs",
+    "src/GraphReader.App/Integration/Workflow/ProductionWorkflowPanelStore.cs",
+    "src/GraphReader.App/Integration/Workflow/RasterPanelSourceProvenance.cs",
+    "src/GraphReader.App/Integration/Workflow/WorkflowContracts.cs",
+    "src/GraphReader.Axis/AxisGeometryContracts.cs",
+    "src/GraphReader.Axis/AxisGeometryDetector.cs",
+    "src/GraphReader.Axis/GraphReader.Axis.csproj",
+    "src/GraphReader.Axis/OpenCvLineCandidateProvider.cs",
+    "src/GraphReader.Imaging/GraphReader.Imaging.csproj",
+    "src/GraphReader.Imaging/ImageImportService.cs"
+  ],
+  "exporter_tool_source_bundle": [
+    "tools/GraphReader.AxisCandidateEvidence/EvidenceContracts.cs",
+    "tools/GraphReader.AxisCandidateEvidence/EvidenceRunner.cs",
+    "tools/GraphReader.AxisCandidateEvidence/FeatureNormalization.cs",
+    "tools/GraphReader.AxisCandidateEvidence/GlobalUsings.cs",
+    "tools/GraphReader.AxisCandidateEvidence/GraphReader.AxisCandidateEvidence.csproj",
+    "tools/GraphReader.AxisCandidateEvidence/PanelBatchEvidenceContracts.cs",
+    "tools/GraphReader.AxisCandidateEvidence/PanelBatchEvidenceRunner.cs",
+    "tools/GraphReader.AxisCandidateEvidence/Program.cs",
+    "tools/GraphReader.AxisCandidateEvidence/input-binding.json"
+  ],
+  "acceptance": "exploratory only; no production or release acceptance claim"
+}

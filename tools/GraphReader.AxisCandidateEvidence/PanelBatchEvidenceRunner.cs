@@ -17,6 +17,20 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
 {
     public const string ReportSchema = "graphreader.axis-candidate-panel-batch-evidence.v1";
     private const string InputSchema = "graphreader.axis-candidate-panel-batch-input.v1";
+    private const string DevCorpusManifestPath = "artifacts/axis-roles-dev-corpus-v3-20261031/manifest.json";
+    private const string DevCorpusManifestSha256 = "c3c735a38dac5aa893331958ba09319e7fcfac534f8122738d8d07db37f507b1";
+    private const string DevAdmissionPath = "artifacts/goal22-runs/axis-roles-dev-measure-admission-v2/binding.json";
+    private const string DevAdmissionSha256 = "a32b43b05c74ea2279f2a7cd90e53024c5981f356dbf8735adbc8d1653168203";
+    private const string DevInputsPath = "artifacts/goal22-runs/axis-roles-dev-measure-admission-v2/inputs.json";
+    private const string DevInputsSha256 = "c0a4b9f292f0ea71e61365323909bfbbad46e84ad67baa27d93ec2ba5916c6cd";
+    private const string DevReceiptPath = "artifacts/goal22-runs/axis-roles-dev-measure-run-v2/truth-free-receipt.json";
+    private const string DevReceiptSha256 = "4bd1189d391b6a2e0cd9dfd4c73c1c3206f774327ebf7fa5f36fe6a6dfc8678a";
+    private const string DevPanelizationRunRoot = "artifacts/goal22-runs/axis-roles-dev-measure-run-v2";
+    private const string DevPanelizerRuntimePrefix = "artifacts/goal22-runs/axis-roles-panelization-build-v2/";
+    private const int DevPanelizerRuntimeFileCount = 73;
+    private const string ProductionAxisAdapterSourcePath = "src/GraphReader.App/Integration/Workflow/ProductionAxisGeometryAdapter.cs";
+    private static readonly OpenCvLineCandidateOptions ProductionOpenCvOptions = new();
+    private static readonly AxisGeometryOptions ProductionGeometryOptions = new();
 
     private static readonly string[] RequiredProductionSourcePaths =
     [
@@ -59,6 +73,31 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
         "artifacts/goal22-tools/axis-roles-production-panelization-v2/Panelization.csproj",
         "artifacts/goal22-tools/axis-roles-production-panelization-v2/Program.cs",
         "ml/axis/candidate_ranker_foundation_v1/panelize_train_v2.py",
+    ];
+
+    private static readonly string[] DevOnlyPanelizerRuntimeSourcePaths =
+    [
+        "artifacts/goal22-tools/axis-roles-dev-measure-v2/bind.py",
+        "artifacts/goal22-tools/axis-roles-dev-measure-v2/rank.py",
+        "artifacts/goal22-tools/axis-roles-dev-measure-v2/run.py",
+        "artifacts/goal22-tools/axis-roles-dev-measure-v2/test_rank.py",
+        "artifacts/goal22-tools/axis-unmasked-ocr-v1/rank_numeric_regions.py",
+    ];
+
+    private static readonly string[] DevAdmissionSourcePaths =
+    [
+        "artifacts/goal22-tools/axis-roles-dev-measure-v2/bind.py",
+        "artifacts/goal22-tools/axis-roles-dev-measure-v2/job.py",
+        "artifacts/goal22-tools/axis-roles-dev-measure-v2/rank.py",
+        "artifacts/goal22-tools/axis-roles-dev-measure-v2/run.py",
+        "artifacts/goal22-tools/axis-roles-dev-measure-v2/test_rank.py",
+        "artifacts/goal22-tools/axis-roles-production-panelization-v2/Panelization.csproj",
+        "artifacts/goal22-tools/axis-roles-production-panelization-v2/Program.cs",
+        "artifacts/goal22-tools/axis-unmasked-ocr-v1/rank_numeric_regions.py",
+        "src/GraphReader.App/Integration/Workflow/ProductionRasterPanelizer.cs",
+        "src/GraphReader.App/Integration/Workflow/ProductionWorkflowImportStage.cs",
+        "src/GraphReader.App/Integration/Workflow/RasterPanelSourceProvenance.cs",
+        "src/GraphReader.Imaging/ImageImportService.cs",
     ];
 
     private static readonly string[] ToolSourcePaths =
@@ -168,6 +207,10 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
             EnsureSameHash(context.AdmissionBindingPath, _binding.PanelizationAdmissionBindingSha256, "panelization admission binding");
             EnsureSameHash(context.ReceiptPath, _binding.PanelizationReceiptSha256, "panelization receipt");
             EnsureSameHash(_manifestPath, _manifestSha256, "panel input manifest");
+            foreach (BoundPath supplemental in context.SupplementalBoundFiles ?? [])
+            {
+                EnsureSameHash(supplemental.Path, supplemental.Sha256, supplemental.Name);
+            }
             VerifyPanelImageInventory(context);
             foreach (SourceWorkItem source in context.Sources.Where(static source => source.PanelizationReportPath is not null))
             {
@@ -220,6 +263,7 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
     {
         bool validScope =
             (_binding.Scope == "public_synthetic_train" && _binding.Split == "train") ||
+            (_binding.Scope == "public_synthetic_development" && _binding.Split == "dev") ||
             (_binding.Scope == "synthetic_test_fixture" && _binding.Split == "test-fixture");
         if (_binding.Schema != InputSchema || !validScope ||
             !IsHash(_binding.PanelizationAdmissionBindingSha256) ||
@@ -232,13 +276,43 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
             _binding.ProductionSourceBindings is null || _binding.PanelizerRuntimeBindings is null ||
             _binding.ToolSourceBindings is null || _binding.ToolRuntimeBindings is null ||
             _binding.OpenCvOptions is null || _binding.GeometryOptions is null ||
-            !ExactKeys(_binding.ProductionSourceBindings.Keys, RequiredProductionSourcePaths) ||
+            !ExactKeys(
+                _binding.ProductionSourceBindings.Keys,
+                _binding.Scope == "public_synthetic_development"
+                    ? RequiredProductionSourcePaths.Append(ProductionAxisAdapterSourcePath)
+                    : RequiredProductionSourcePaths) ||
             !ExactKeys(_binding.ToolSourceBindings.Keys, ToolSourcePaths) ||
             _binding.PanelizerRuntimeBindings.Count < RequiredPanelizerRuntimePaths.Length ||
             _binding.PanelizerRuntimeBindings.Count > 200 ||
             _binding.SelectedPanels.Select(static item => (item.SourceId, item.PanelId)).Distinct().Count() != _binding.SelectedPanels.Count)
         {
             throw new PanelEvidenceException("PANEL_INPUT_MANIFEST_SCHEMA_INVALID", typeof(InvalidDataException));
+        }
+
+        if (_binding.OpenCvOptions != ProductionOpenCvOptions || _binding.GeometryOptions != ProductionGeometryOptions)
+        {
+            throw new PanelEvidenceException("NON_PRODUCTION_AXIS_OPTIONS_REJECTED", typeof(InvalidDataException));
+        }
+
+        if (_binding.Scope == "public_synthetic_development")
+        {
+            if (_binding.DevCorpusManifestPath != DevCorpusManifestPath ||
+                _binding.DevCorpusManifestSha256 != DevCorpusManifestSha256 ||
+                _binding.PanelizationAdmissionBindingPath != DevAdmissionPath ||
+                _binding.PanelizationAdmissionBindingSha256 != DevAdmissionSha256 ||
+                _binding.PanelizationReceiptPath != DevReceiptPath ||
+                _binding.PanelizationReceiptSha256 != DevReceiptSha256 ||
+                _binding.PanelizationRunRoot != DevPanelizationRunRoot ||
+                _binding.ExpectedSourceCount != 32 || _binding.ExpectedDetectedSourceCount != 30 ||
+                _binding.ExpectedFallbackSourceCount != 2 || _binding.ExpectedFailedSourceCount != 0 ||
+                _binding.ExpectedPanelCount != 48 || _binding.SelectedPanels.Count != 0)
+            {
+                throw new PanelEvidenceException("DEV_PANEL_INPUT_IDENTITY_REJECTED", typeof(InvalidDataException));
+            }
+        }
+        else if (_binding.DevCorpusManifestPath is not null || _binding.DevCorpusManifestSha256 is not null)
+        {
+            throw new PanelEvidenceException("DEV_MANIFEST_ON_NON_DEV_INPUT_REJECTED", typeof(InvalidDataException));
         }
 
         _ = ResolveProjectPath(_binding.PanelizationAdmissionBindingPath, _projectRoot);
@@ -269,6 +343,11 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
 
     private PanelBatchContext LoadAndVerifyPanelBatchInputs()
     {
+        if (_binding.Scope == "public_synthetic_development")
+        {
+            return LoadAndVerifyDevPanelBatchInputs();
+        }
+
         IReadOnlyList<AxisCandidatePanelSelection> selectionItems = _binding.SelectedPanels ??
             throw new PanelEvidenceException("SELECTED_PANEL_LIST_MISSING", typeof(InvalidDataException));
         string admissionBindingPath = ResolveProjectPath(_binding.PanelizationAdmissionBindingPath);
@@ -424,6 +503,207 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
             panelCount);
     }
 
+    private PanelBatchContext LoadAndVerifyDevPanelBatchInputs()
+    {
+        string admissionBindingPath = ResolveProjectPath(DevAdmissionPath);
+        byte[] admissionBytes = Program.ReadLocked(admissionBindingPath);
+        EnsureHash(admissionBytes, DevAdmissionSha256, "fixed public dev admission binding");
+        using JsonDocument admission = JsonDocument.Parse(admissionBytes);
+        JsonElement admissionRoot = admission.RootElement;
+        if (RequiredString(admissionRoot, "schema") != "graphreader.axis-roles-dev-measure-binding.v2" ||
+            RequiredHash(admissionRoot, "corpus_manifest_sha256") != DevCorpusManifestSha256 ||
+            admissionRoot.GetProperty("source_count").GetInt32() != 32 ||
+            admissionRoot.GetProperty("reserved_read").GetBoolean() ||
+            admissionRoot.GetProperty("truth_in_prediction").GetBoolean() ||
+            admissionRoot.GetProperty("production_approved").GetBoolean() ||
+            admissionRoot.GetProperty("optimizer_steps").GetInt32() != 0)
+        {
+            throw new PanelEvidenceException("DEV_ADMISSION_BINDING_REJECTED", typeof(InvalidDataException));
+        }
+
+        string manifestPath = ResolveProjectPath(DevCorpusManifestPath);
+        byte[] manifestBytes = Program.ReadLocked(manifestPath);
+        EnsureHash(manifestBytes, DevCorpusManifestSha256, "fixed public dev corpus manifest");
+        using JsonDocument manifest = JsonDocument.Parse(manifestBytes);
+        JsonElement manifestRoot = manifest.RootElement;
+        if (manifestRoot.GetProperty("dev_cases").GetArrayLength() != 32 ||
+            manifestRoot.GetProperty("private_reads").GetInt32() != 0 ||
+            manifestRoot.GetProperty("sealed_reads").GetInt32() != 0 ||
+            manifestRoot.GetProperty("reserved_pixels_accessed").GetBoolean() ||
+            manifestRoot.GetProperty("training_approved").GetBoolean())
+        {
+            throw new PanelEvidenceException("DEV_CORPUS_MANIFEST_REJECTED", typeof(InvalidDataException));
+        }
+
+        string inputsPath = ResolveProjectPath(DevInputsPath);
+        byte[] inputsBytes = Program.ReadLocked(inputsPath);
+        EnsureHash(inputsBytes, DevInputsSha256, "fixed public dev source inventory");
+        EnsureHash(inputsBytes, RequiredHash(admissionRoot, "inputs_sha256"), "dev source inventory binding");
+        using JsonDocument inputs = JsonDocument.Parse(inputsBytes);
+        JsonElement inputsRoot = inputs.RootElement;
+        if (RequiredString(inputsRoot, "schema") != "graphreader.axis-roles-dev-source-input.v1" ||
+            inputsRoot.GetProperty("sources").GetArrayLength() != 32)
+        {
+            throw new PanelEvidenceException("DEV_SOURCE_INVENTORY_REJECTED", typeof(InvalidDataException));
+        }
+
+        var manifestCases = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+        foreach (JsonElement item in manifestRoot.GetProperty("dev_cases").EnumerateArray())
+        {
+            string id = RequiredGuid(item, "scene_id");
+            if (!manifestCases.TryAdd(id, item))
+            {
+                throw new PanelEvidenceException("DEV_SCENE_ID_DUPLICATE", typeof(InvalidDataException), id);
+            }
+        }
+
+        var inventory = new Dictionary<string, SourceInventoryItem>(StringComparer.OrdinalIgnoreCase);
+        foreach (JsonElement item in inputsRoot.GetProperty("sources").EnumerateArray())
+        {
+            string id = RequiredGuid(item, "id");
+            string path = RequiredRelativePath(item, "path");
+            string sha = RequiredHash(item, "sha256");
+            int width = item.GetProperty("width").GetInt32();
+            int height = item.GetProperty("height").GetInt32();
+            if (!manifestCases.TryGetValue(id, out JsonElement manifestCase))
+            {
+                throw new PanelEvidenceException("DEV_SOURCE_NOT_IN_MANIFEST", typeof(InvalidDataException), id);
+            }
+            int caseIndex = manifestCase.GetProperty("index").GetInt32();
+            string expectedSourcePath = $"artifacts/axis-roles-dev-corpus-v3-20261031/images/{caseIndex}.png";
+            if (path != expectedSourcePath || sha != RequiredHash(manifestCase, "image_sha256") ||
+                width <= 0 || height <= 0 || !inventory.TryAdd(id, new SourceInventoryItem(id, path, sha, width, height)))
+            {
+                throw new PanelEvidenceException("DEV_SOURCE_ROW_MISMATCH", typeof(InvalidDataException), id);
+            }
+            string sourcePath = ResolveProjectPath(path);
+            if (HashPath(sourcePath) != sha)
+            {
+                throw new PanelEvidenceException("DEV_SOURCE_IMAGE_HASH_MISMATCH", typeof(InvalidDataException), id);
+            }
+        }
+        if (inventory.Count != 32 || manifestCases.Keys.Except(inventory.Keys, StringComparer.OrdinalIgnoreCase).Any())
+        {
+            throw new PanelEvidenceException("DEV_SOURCE_DENOMINATOR_MISMATCH", typeof(InvalidDataException));
+        }
+
+        SortedDictionary<string, string> panelizerRuntime = ReadPanelizerRuntimeBindings(admissionRoot);
+        string receiptPath = ResolveProjectPath(DevReceiptPath);
+        byte[] receiptBytes = Program.ReadLocked(receiptPath);
+        EnsureHash(receiptBytes, DevReceiptSha256, "fixed truth-free dev panelization receipt");
+        using JsonDocument receipt = JsonDocument.Parse(receiptBytes);
+        JsonElement receiptRoot = receipt.RootElement;
+        if (RequiredString(receiptRoot, "schema") != "graphreader.axis-roles-dev-truth-free-receipt.v2" ||
+            RequiredHash(receiptRoot, "binding_sha256") != DevAdmissionSha256 ||
+            receiptRoot.GetProperty("truth_read").GetBoolean() ||
+            receiptRoot.GetProperty("reserved_read").GetBoolean() ||
+            receiptRoot.GetProperty("sources").GetArrayLength() != 32)
+        {
+            throw new PanelEvidenceException("DEV_PANELIZATION_RECEIPT_REJECTED", typeof(InvalidDataException));
+        }
+
+        var sources = new List<SourceWorkItem>(32);
+        var allPanels = new List<PanelWorkItem>(48);
+        var seenSourceIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        int detectedCount = 0;
+        int fallbackCount = 0;
+        int failedCount = 0;
+        int panelCount = 0;
+        foreach (JsonElement receiptSource in receiptRoot.GetProperty("sources").EnumerateArray())
+        {
+            string sourceId = RequiredGuid(receiptSource, "id");
+            if (!seenSourceIds.Add(sourceId) || !inventory.TryGetValue(sourceId, out SourceInventoryItem? source))
+            {
+                throw new PanelEvidenceException("DEV_RECEIPT_SOURCE_MISMATCH", typeof(InvalidDataException), sourceId);
+            }
+            JsonElement panelization = receiptSource.GetProperty("panelization");
+            string status = RequiredString(panelization, "source_status");
+            string processStatus = RequiredString(panelization, "process_status");
+            int exitCode = panelization.GetProperty("exit_code").GetInt32();
+            int declaredPanelCount = panelization.GetProperty("panel_count").GetInt32();
+            JsonElement receiptPanels = receiptSource.GetProperty("panels");
+            if (declaredPanelCount != receiptPanels.GetArrayLength())
+            {
+                throw new PanelEvidenceException("DEV_RECEIPT_PANEL_COUNT_MISMATCH", typeof(InvalidDataException), sourceId);
+            }
+            IReadOnlyList<string> sourceWarnings = ReadStringArray(panelization.GetProperty("warnings"));
+            if (status == "failed")
+            {
+                failedCount++;
+                if (processStatus != "failed" || exitCode == 0 || declaredPanelCount != 0)
+                {
+                    throw new PanelEvidenceException("DEV_FAILED_SOURCE_ACCOUNTING_INVALID", typeof(InvalidDataException), sourceId);
+                }
+                sources.Add(new SourceWorkItem(source, status, sourceWarnings, null, null, [], null));
+                continue;
+            }
+            if (status is not ("detected" or "no_panel_fallback") || processStatus != "completed" || exitCode != 0 ||
+                declaredPanelCount < 1 || !panelization.GetProperty("success").GetBoolean())
+            {
+                throw new PanelEvidenceException("DEV_SOURCE_STATUS_INVALID", typeof(InvalidDataException), sourceId);
+            }
+            if (status == "detected") detectedCount++; else fallbackCount++;
+            string panelizationSha = RequiredHash(panelization, "panelization_sha256");
+            string reportRelative = $"{DevPanelizationRunRoot}/{sourceId}/panelization/panelization.json";
+            string reportPath = ResolveProjectPath(reportRelative);
+            byte[] reportBytes = Program.ReadLocked(reportPath);
+            EnsureHash(reportBytes, panelizationSha, "dev per-source panelization report");
+            using JsonDocument panelReport = JsonDocument.Parse(reportBytes);
+            JsonElement reportSource = panelReport.RootElement.GetProperty("sources")[0];
+            JsonElement reportPanels = reportSource.GetProperty("panels");
+            if (reportPanels.GetArrayLength() != receiptPanels.GetArrayLength())
+            {
+                throw new PanelEvidenceException("DEV_PANEL_SUMMARY_COUNT_MISMATCH", typeof(InvalidDataException), sourceId);
+            }
+            for (int index = 0; index < reportPanels.GetArrayLength(); index++)
+            {
+                JsonElement reported = reportPanels[index];
+                JsonElement summarized = receiptPanels[index];
+                if (RequiredGuid(reported, "panel_id") != RequiredGuid(summarized, "panel_id") ||
+                    RequiredHash(reported, "sha256") != RequiredHash(summarized, "panel_sha256"))
+                {
+                    throw new PanelEvidenceException("DEV_PANEL_SUMMARY_IDENTITY_MISMATCH", typeof(InvalidDataException), sourceId);
+                }
+            }
+            List<PanelWorkItem> sourcePanels = ReadAndCrossCheckPanelizationReport(
+                reportBytes,
+                Path.GetDirectoryName(reportPath)!,
+                source,
+                sourceId,
+                source.Sha256,
+                status,
+                declaredPanelCount,
+                reportPanels);
+            panelCount += sourcePanels.Count;
+            sources.Add(new SourceWorkItem(source, status, sourceWarnings, reportPath, panelizationSha, sourcePanels, null));
+            allPanels.AddRange(sourcePanels);
+        }
+
+        if (seenSourceIds.Count != 32 || inventory.Count != 32 || detectedCount != 30 || fallbackCount != 2 ||
+            failedCount != 0 || panelCount != 48 || allPanels.Count != 48)
+        {
+            throw new PanelEvidenceException("DEV_PANELIZATION_DENOMINATOR_MISMATCH", typeof(InvalidDataException));
+        }
+        if (_binding.SelectedPanels is null || _binding.SelectedPanels.Count != 0)
+        {
+            throw new PanelEvidenceException("DEV_PANEL_SELECTION_MUST_BE_ALL", typeof(InvalidDataException));
+        }
+
+        return new PanelBatchContext(
+            admissionBindingPath,
+            receiptPath,
+            sources,
+            allPanels,
+            panelizerRuntime,
+            inventory.Count,
+            detectedCount,
+            fallbackCount,
+            failedCount,
+            panelCount,
+            [new BoundPath(manifestPath, DevCorpusManifestSha256, "public dev corpus manifest"),
+             new BoundPath(inputsPath, DevInputsSha256, "public dev source inventory")]);
+    }
+
     private Dictionary<string, SourceInventoryItem> ReadSourceInventory(JsonElement admissionRoot)
     {
         var result = new Dictionary<string, SourceInventoryItem>(StringComparer.OrdinalIgnoreCase);
@@ -461,19 +741,31 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
 
     private SortedDictionary<string, string> ReadPanelizerRuntimeBindings(JsonElement admissionRoot)
     {
-        JsonElement files = admissionRoot.GetProperty("files");
+        bool isPublicDev = _binding.Scope == "public_synthetic_development";
+        if (isPublicDev)
+        {
+            VerifyDevAdmissionSourceFiles(admissionRoot);
+        }
+
+        JsonElement files = admissionRoot.GetProperty(isPublicDev ? "runtime_files" : "files");
         var actual = new SortedDictionary<string, string>(StringComparer.Ordinal);
         if (files.ValueKind != JsonValueKind.Object || files.EnumerateObject().Count() > 200)
         {
             throw new PanelEvidenceException("PANELIZER_RUNTIME_FILE_MAP_INVALID", typeof(InvalidDataException));
         }
 
-        foreach (JsonProperty file in files.EnumerateObject())
+        JsonProperty[] panelizerFiles = files.EnumerateObject()
+            .Where(file => !isPublicDev || file.Name.StartsWith(DevPanelizerRuntimePrefix, StringComparison.Ordinal))
+            .ToArray();
+        if (isPublicDev && panelizerFiles.Length != DevPanelizerRuntimeFileCount)
+        {
+            throw new PanelEvidenceException("DEV_PANELIZER_RUNTIME_FILE_COUNT_INVALID", typeof(InvalidDataException));
+        }
+
+        foreach (JsonProperty file in panelizerFiles)
         {
             string path = file.Name;
-            if (!path.StartsWith("artifacts/goal22-runs/axis-roles-panelization-build-v2/", StringComparison.Ordinal) &&
-                !AdditionalPanelizerSourcePaths.Contains(path, StringComparer.Ordinal) &&
-                !RequiredProductionSourcePaths.Contains(path, StringComparer.Ordinal))
+            if (!IsPanelizerRuntimePathAllowed(path, _binding.Scope))
             {
                 throw new PanelEvidenceException("PANELIZER_RUNTIME_PATH_SCOPE_REJECTED", typeof(InvalidDataException), path);
             }
@@ -501,6 +793,54 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
         }
         return actual;
     }
+
+    private void VerifyDevAdmissionSourceFiles(JsonElement admissionRoot)
+    {
+        JsonElement files = admissionRoot.GetProperty("files");
+        if (files.ValueKind != JsonValueKind.Object || files.EnumerateObject().Count() != DevAdmissionSourcePaths.Length)
+        {
+            throw new PanelEvidenceException("DEV_ADMISSION_SOURCE_MAP_INVALID", typeof(InvalidDataException));
+        }
+
+        var actual = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (JsonProperty file in files.EnumerateObject())
+        {
+            string path = file.Name;
+            if (!DevAdmissionSourcePaths.Contains(path, StringComparer.Ordinal) ||
+                !(DevOnlyPanelizerRuntimeSourcePaths.Contains(path, StringComparer.Ordinal) ||
+                  AdditionalPanelizerSourcePaths.Contains(path, StringComparer.Ordinal) ||
+                  RequiredProductionSourcePaths.Contains(path, StringComparer.Ordinal)))
+            {
+                throw new PanelEvidenceException("DEV_ADMISSION_SOURCE_PATH_SCOPE_REJECTED", typeof(InvalidDataException), path);
+            }
+
+            string expected = file.Value.GetString() ?? string.Empty;
+            if (!IsHash(expected))
+            {
+                throw new PanelEvidenceException("DEV_ADMISSION_SOURCE_HASH_INVALID", typeof(InvalidDataException), path);
+            }
+
+            string fullPath = ResolveProjectPath(path);
+            Program.EnsureNoReparsePoints(fullPath, _projectRoot, allowMissing: false);
+            string observed = HashPath(fullPath);
+            if (!string.Equals(observed, expected, StringComparison.Ordinal))
+            {
+                throw new PanelEvidenceException("DEV_ADMISSION_SOURCE_HASH_MISMATCH", typeof(InvalidDataException), path);
+            }
+            actual.Add(path, observed);
+        }
+
+        if (!ExactKeys(DevAdmissionSourcePaths, actual.Keys))
+        {
+            throw new PanelEvidenceException("DEV_ADMISSION_SOURCE_MAP_INCOMPLETE", typeof(InvalidDataException));
+        }
+    }
+
+    private static bool IsPanelizerRuntimePathAllowed(string path, string scope) =>
+        path.StartsWith("artifacts/goal22-runs/axis-roles-panelization-build-v2/", StringComparison.Ordinal) ||
+        AdditionalPanelizerSourcePaths.Contains(path, StringComparer.Ordinal) ||
+        RequiredProductionSourcePaths.Contains(path, StringComparer.Ordinal) ||
+        (scope == "public_synthetic_development" && DevOnlyPanelizerRuntimeSourcePaths.Contains(path, StringComparer.Ordinal));
 
     private List<PanelWorkItem> ReadAndCrossCheckPanelizationReport(
         byte[] reportBytes,
@@ -1193,7 +1533,10 @@ public sealed class AxisCandidatePanelBatchEvidenceRunner
         int DetectedSourceCount,
         int FallbackSourceCount,
         int FailedSourceCount,
-        int PanelCount);
+        int PanelCount,
+        IReadOnlyList<BoundPath>? SupplementalBoundFiles = null);
+
+    private sealed record BoundPath(string Path, string Sha256, string Name);
 
     private sealed class CandidateObserver : IAxisGeometryCandidateObserver
     {
