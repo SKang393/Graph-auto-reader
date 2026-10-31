@@ -137,3 +137,12 @@ consumed synthetic probe results, not product acceptance.
 - Diagnostic runner SHA-256: `0c617bf3c145d0e74b22a7909325cd83e7590675819073593254008d001c3156`
 - Report SHA-256: `1d23fd6c3f84f0a12d4eda8b630bd41ca620f406198e8540cb81d40b48eb8e75`
 - Diagnostic build and 3 report checks passed; inference used CPU.
+
+An additional encoding-only check reproduced the component-rejection flag on
+all 165 crops: all 82 rejections were caused by a component height ratio of at
+least 0.75, with none caused by the maximum glyph count. The synthetic tick
+stroke geometrically intersected the padded extraction on 74 of those 82
+rejected crops, but 8 of 9 crops without that intersection were also rejected.
+Overlap alone therefore does not establish the cause. The aggregate report
+SHA-256 is `1a56694aec60058f43116aac295303ba3fbe24b8bd878674cd52a860efcc1c92`;
+the diagnostic build and 3 report checks passed.
