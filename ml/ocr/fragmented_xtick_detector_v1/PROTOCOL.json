@@ -1,0 +1,64 @@
+{
+  "schema": "graphreader.ocr-fragmented-xtick-preparation.v1",
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "revision": "graph-text-fragmented-xtick-detector-v1",
+  "task": "ocr-detection",
+  "state": "train-only-materializer-preparation",
+  "hypothesis": "A detector candidate trained only on fresh procedural scenes that require joining fragmented numeric X-tick glyph components while rejecting adjacent axis/tick fragments may reduce this reviewable detector failure mode without changing recognition, calibration, or marker stages.",
+  "isolated_change": "fresh procedural fragmented numeric X-tick family registration and case-identity preparation only",
+  "data_scope": "No fixture archive, prior candidate weight, prior candidate tensor, private/article image, development corpus, sealed corpus, external dataset, or consumed candidate case identity is read or reused. Only fresh train cases may be rendered into a caller-selected E-project artifact output; development and future-public cases remain unrendered.",
+  "synthetic_family": "fresh-fragmented-numeric-xtick-v1",
+  "defect_contract": {
+    "positive": "A complete numeric X-tick label whose glyph components are separated by a deterministic one-pixel break or compression-like gap.",
+    "confusers": [
+      "adjacent x-axis tick segment",
+      "x-axis baseline fragment",
+      "small marker-like dot outside the label bounds"
+    ],
+    "required_candidate_behavior": "Join only components with the same declared numeric label identity; keep each listed confuser negative.",
+    "not_yet_demonstrated_against_a_model": true
+  },
+  "splits": [
+    {
+      "split": "train",
+      "case_count": 96,
+      "seed_offset": 24011001,
+      "renderer_family": "fragmented-numeric-xtick-train-v1",
+      "degradation_family": "one-pixel-glyph-gap-train-v1"
+    },
+    {
+      "split": "dev",
+      "case_count": 24,
+      "seed_offset": 24012001,
+      "renderer_family": "fragmented-numeric-xtick-dev-v1",
+      "degradation_family": "row-fade-glyph-gap-dev-v1"
+    },
+    {
+      "split": "sealed_public_future",
+      "case_count": 32,
+      "seed_offset": 24013001,
+      "renderer_family": "fragmented-numeric-xtick-public-v1",
+      "degradation_family": "quantized-glyph-gap-public-v1"
+    }
+  ],
+  "training": {
+    "optimizer_steps_authorized": 0,
+    "gpu_requirement_for_any_future_optimizer": "RX 6600 XT only; CPU training is prohibited",
+    "candidate_id": null
+  },
+  "train_materialization": {
+    "authorized": true,
+    "font_path": "src/GraphReader.App/Assets/Fonts/NotoSans-Regular.ttf",
+    "font_sha256": "478c558ea716033cd60c03438f628dfa75694dcf6b5f6d505a2f05fd2b4f3823",
+    "output_root": "artifacts/",
+    "development_or_public_rendering_authorized": false
+  },
+  "future_evaluation": {
+    "dev_evaluation_authorized": false,
+    "sealed_evaluation_authorized": false,
+    "sealed_cases_materialized": false,
+    "acceptance_bar_reference": "ml/policy/acceptance-bars.json"
+  },
+  "production_approval": false,
+  "release_eligible": false
+}
