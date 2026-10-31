@@ -156,7 +156,13 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             throw DetectionFailure("No intersecting x-axis and y-axis pair could be fitted.");
         }
 
-        pairCandidates.Sort(static (left, right) => right.Score.CompareTo(left.Score));
+        // A score tie must not make the selected review candidate depend on
+        // detector enumeration order.  Line providers are allowed to return
+        // the same observations in a different order, especially after image
+        // preprocessing changes.  Keep score as the only selection signal,
+        // then use immutable geometry and candidate IDs solely as a stable
+        // tie-breaker.
+        pairCandidates.Sort(CompareAxisPairs);
         var bestPair = pairCandidates[0];
         var alternativeMargin = pairCandidates.Count == 1
             ? 1d
@@ -782,6 +788,53 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             rightDistance,
             topDistance,
             score);
+    }
+
+    private static int CompareAxisPairs(AxisPair left, AxisPair right)
+    {
+        int comparison = right.Score.CompareTo(left.Score);
+        if (comparison != 0)
+        {
+            return comparison;
+        }
+
+        comparison = left.Intersection.X.CompareTo(right.Intersection.X);
+        if (comparison != 0)
+        {
+            return comparison;
+        }
+
+        comparison = right.Intersection.Y.CompareTo(left.Intersection.Y);
+        if (comparison != 0)
+        {
+            return comparison;
+        }
+
+        comparison = CompareCandidateIds(left.Horizontal.Members, right.Horizontal.Members);
+        return comparison != 0
+            ? comparison
+            : CompareCandidateIds(left.Vertical.Members, right.Vertical.Members);
+    }
+
+    private static int CompareCandidateIds(
+        IReadOnlyList<Observation> left,
+        IReadOnlyList<Observation> right)
+    {
+        string[] leftIds = [.. left.Select(static member => member.Candidate.CandidateId)
+            .Order(StringComparer.Ordinal)];
+        string[] rightIds = [.. right.Select(static member => member.Candidate.CandidateId)
+            .Order(StringComparer.Ordinal)];
+        int count = Math.Min(leftIds.Length, rightIds.Length);
+        for (int index = 0; index < count; index++)
+        {
+            int comparison = string.Compare(leftIds[index], rightIds[index], StringComparison.Ordinal);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+        }
+
+        return leftIds.Length.CompareTo(rightIds.Length);
     }
 
     private static PlotPolygon CreatePlotPolygon(AxisPair pair)

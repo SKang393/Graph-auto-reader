@@ -83,6 +83,30 @@ public sealed class AxisCandidateSnapshotObserverTests
     }
 
     [TestMethod]
+    public async Task ReorderingLineCandidatesDoesNotChangeBestFirstCandidateSnapshots()
+    {
+        AxisGeometryRequest request = MultiCandidateRequest();
+        var forwardObserver = new CapturingObserver();
+        var reverseObserver = new CapturingObserver();
+
+        AxisGeometryResult forward = await new AxisGeometryDetector().DetectAsync(
+            request with { CandidateObserver = forwardObserver });
+        AxisGeometryResult reversed = await new AxisGeometryDetector().DetectAsync(
+            request with
+            {
+                LineCandidates = request.LineCandidates.Reverse().ToArray(),
+                CandidateObserver = reverseObserver,
+            });
+
+        AssertGeometryEquivalent(forward, reversed);
+        string forwardSnapshots = JsonSerializer.Serialize(
+            forwardObserver.Candidates ?? throw new AssertFailedException("Forward observer was not called."));
+        string reverseSnapshots = JsonSerializer.Serialize(
+            reverseObserver.Candidates ?? throw new AssertFailedException("Reverse observer was not called."));
+        Assert.AreEqual(forwardSnapshots, reverseSnapshots);
+    }
+
+    [TestMethod]
     public async Task ObserverCancellationPropagatesWhenRequestTokenIsCanceled()
     {
         using var cancellation = new CancellationTokenSource();
