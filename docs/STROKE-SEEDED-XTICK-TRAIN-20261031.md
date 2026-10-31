@@ -146,3 +146,12 @@ rejected crops, but 8 of 9 crops without that intersection were also rejected.
 Overlap alone therefore does not establish the cause. The aggregate report
 SHA-256 is `1a56694aec60058f43116aac295303ba3fbe24b8bd878674cd52a860efcc1c92`;
 the diagnostic build and 3 report checks passed.
+
+An isolated vertical crop-margin sweep on the same consumed probe did not
+support changing production settings. For predicted boxes, increasing margin
+from 0.25 to 0.50 and 0.75 reduced tall rejections from 82 to 61 and 22, but
+also reduced exact readings from 23 to 13 and 4. Ground-truth exact readings
+likewise fell from 32 to 14 and 6. The 0.25 results reproduced the baseline;
+all 158 forced low-score background crops returned empty. Report SHA-256:
+`59b98d96c3717b444f822f4f45e2549048f70c9ec33fcfc7e723c9a8494377ff`.
+The diagnostic build and 3 report checks passed.
