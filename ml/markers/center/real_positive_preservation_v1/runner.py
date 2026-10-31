@@ -33,7 +33,7 @@ COMPONENT_LABEL_SHA256 = "e744ba10fddc380ac6edd71d4e8b94f98de8ae3e35c8c47e2e3f32
 COMPONENT_BACKBONE_SHA256 = "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
 LOCAL = Path("ml/markers/center/real_positive_preservation_v1")
 REQUIRED_SOURCES = tuple(dict.fromkeys((*PRIOR_SOURCES, *(LOCAL / item for item in
-    ("__init__.py", "component_source.py", "objective.py", "schedule.py", "runner.py", "protocol.json")))))
+    ("__init__.py", "component_source.py", "objective.py", "schedule.py", "runner.py", "entrypoint.py", "protocol.json")))))
 
 
 def expected_component_config() -> dict:
