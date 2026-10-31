@@ -122,3 +122,18 @@ timing cannot determine the reason for each individual empty result.
 - Comparison runner SHA-256: `08b420f83e7ef250333acaac32653a54c7ae0411154a92126b6d80b79f3e19d6`
 - Corrected report SHA-256: `8bb9ee29ab4ac0ee0f09572fabd367624d82cc11d5a33d42a044752d56bd018e`
 - Diagnostic build and 4 report checks passed; inference used CPU.
+
+## Component rejection diagnosis
+
+An isolated diagnostic invoked the adapter's exact crop encoding and captured
+its actual model logits. Its derived results matched the adapter on all 165
+predicted positive crops. The 112 empty results comprised 82 component
+geometry/glyph-count rejections, 12 model reject-class results, 11 confidence
+rejections and 7 numeric-grammar rejections. The adapter exposes only one
+combined component-rejection flag, so this does not distinguish its causes.
+The remaining crops produced 23 exact and 30 incorrect strings. These are
+consumed synthetic probe results, not product acceptance.
+
+- Diagnostic runner SHA-256: `0c617bf3c145d0e74b22a7909325cd83e7590675819073593254008d001c3156`
+- Report SHA-256: `1d23fd6c3f84f0a12d4eda8b630bd41ca620f406198e8540cb81d40b48eb8e75`
+- Diagnostic build and 3 report checks passed; inference used CPU.
