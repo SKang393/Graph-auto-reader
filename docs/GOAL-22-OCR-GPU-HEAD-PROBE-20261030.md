@@ -78,3 +78,15 @@ Touch-only cases and two outgrown-clamp instances remain outside the policy;
 this result does not establish model-output separation or training suitability.
 
 - Conflict-pixel counterfactual SHA-256: `ce95ddda8e00e0045b62579b8e73fb6888d09d5126317674273b46d3d89b6961`
+
+The separate production-size preflight used the four bound 960/128 tensors and
+four CPU frozen-trunk inference calls. It produced 12 hash-checked caches
+totaling 62,914,560 bytes. Four target contacts remained; two X-tick widths
+were clamped, and neither exceeded its source box. A conservative whole-instance
+mask retained 101 of 110 text instances; the conflict-pixel counterfactual
+retained positive support for all 47 X-ticks and 22 of 23 Y-ticks. These masks
+use a fixed two-pixel margin in 960 tensor coordinates and remain unapproved.
+The reported 474,857,472-byte process peak working set includes imports and is
+not a GPU memory measurement. Three focused checks passed.
+
+- Production-size preflight SHA-256: `7409758605004e060d0f6b27072c47e1d2a2eda99f26e523ebb2254b2334ba96`
