@@ -1,0 +1,7 @@
+# Marker-context capture, 2026-10-31
+
+The V5 synthetic train corpus rendered 64 source images, with four cases in each of 16 design, connection and cue cells. Its completion receipt SHA-256 is `957e2bec1d45b49665e05c6442e90fa4285d27e02140b8458f2f5066de001019`; its raster manifest SHA-256 is `be0d63fb22796fd07ba83e5ad714888f136875b180883c1b36d0481cbf5433f2`. The source identities were checked against the separate development identity metadata. Overlays remain review-only and the corpus is not approved for training.
+
+The independently reviewed two-image smoke capture used the production raster importer, OCR models, V27 center model and patch sampler. Both sources completed, yielding 27 and 36 center proposals. An independent audit recomputed the hashes of all 63 local and wide tensors, each containing 1,024 finite samples. Both panels had identity source transforms and no detected content bounds, so this does not verify clipping for nonempty bounds. The report SHA-256 is `c5e48426d47cfa256f36b8dcdea615a9a7debc35f475b0584e6b92064d6dede9`.
+
+The diagnostic reported 13.91 seconds elapsed and 601,448,448 bytes peak working set for the whole process, including loaded models. It ran CPU inference, not training. No classifier model, optimizer, truth, development raster, private input or sealed input was used. The experimental wide view is not proof of production classifier parity, classifier accuracy or model acceptance. Full-corpus capture and defensible negative-label admission remain outstanding.
