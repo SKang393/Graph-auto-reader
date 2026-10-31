@@ -206,6 +206,28 @@ therefore remains unsuitable for integration. It used the RX 6600 XT for
 inference only; 4 focused tests passed. Report SHA-256:
 `3a81674fa9655e96c298f4094105b8c6d41d5f0991428f26e6bdd4ded3b7a5ef`.
 
+## Train-source ink-proposal curation
+
+The existing V6 training recipes were rerendered and all 681 original crop
+images and annotations were checked byte-for-byte before a truth-blind ink
+scan. Of 896 scanned proposals, conservative association produced 105
+positives, 368 text-free backgrounds and 423 excluded cases. One of the 24
+source groups failed axis detection and contributed no examples. All emitted
+image and annotation hashes and class invariants were independently checked.
+
+The data is not yet model acceptance evidence. It has only 105 positive
+proposals, and 278 of the backgrounds come from one source. The original V6
+manifest did not pin full-panel pixel hashes; the curation run recorded those
+hashes after reproducing the pinned crop and annotation bytes. The existing
+P1/P2 trainer does not admit this manifest without a new pinned recipe. The
+materializer's crop-function docstring says 96 by 48, but the source-bound
+constants and executable transform use 48 by 48; its existing bytes are kept
+unchanged to preserve V6 reproducibility.
+
+- Curation manifest SHA-256: `aa265cdd89bef3a77e01d0809f48077bdacb1df1ca4e38ea0b81e637109ce672`
+- Curation source SHA-256: `7e8a32dda6b5cf74f013db0992bd66ed894301dca21cf94ea32f64f1275c32df`
+- Curation rule tests: 9 passed. No training or probe input was used.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
