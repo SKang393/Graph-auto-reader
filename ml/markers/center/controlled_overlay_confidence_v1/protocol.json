@@ -1,0 +1,15 @@
+{
+  "schema": "graphreader.controlled-overlay-confidence-protocol.v1",
+  "task": "marker-center",
+  "revision": "marker-center-controlled-overlay-v1",
+  "candidate_id": "P1",
+  "hypothesis": "A small confidence residual trained on runtime-emitted controlled marker and distractor patches can improve their fixed-threshold decisions while limiting increased confidence on authenticated synthetic negatives.",
+  "isolated_change": "Freeze the V37 model and geometry. Train its zero-initialized confidence residual using controlled-overlay binary cross entropy, an upward-shift penalty on synthetic component negatives, and a controlled-shift penalty.",
+  "training_split": "The post-hoc exact-ink-deduplicated build partition: 194 emitted patches from ten user-authorized training study groups, with 98 inserted markers and 96 inserted distractors. Also use the identity-view synthetic component training negatives. Never label unmarked natural graph content as negative.",
+  "development_splits": "A 24-patch exact-ink-disjoint internal diagnostic holdout from two groups; the fixed synthetic component and family development scenes; and the separate 16-project real development partition. Source-level overlap with synthetic development and image overlap with sealed real studies remain unverified.",
+  "metric": "Marker precision and recall at the existing 0.1 operating threshold. Controlled-patch counts are conditional on proposal emission and are not scene-level accuracy.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json",
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "sealed_budget": 0,
+  "limitations": "The split is post-hoc, the overlay families are limited, the internal holdout has only two groups, 52 of 200 generated images had no proposal near the insertion, and manual annotations are imperfect. A successful experiment alone cannot approve a product model."
+}

@@ -1,0 +1,23 @@
+{
+  "task": "marker-center",
+  "revision": "marker-center-controlled-overlay-v1",
+  "candidate_id": "P1",
+  "expected_runner_source_bundle_sha256": "f4052736d21b89b9a0865e0542eb8cb269d100d14df025692aebea01ed79e467",
+  "dataset_sha256": "d1390de8797a75bc0c821996a327938b1dcd729de4f7b1f67d130e3c5fe29de6",
+  "overlap_audit_sha256": "866dea7af54ab5c87f7c63fb37540ed94cef61195fcffd40754edb1fc351f080",
+  "source_checkpoint_sha256": "2daeedb92fdfb6c425cca6035040ca0e857c6d6bb1ba548281729fee71c24cd4",
+  "recipe": {
+    "seed": 20261101,
+    "epochs": 4,
+    "batch_size": 32,
+    "steps": 28,
+    "component_batch": 256,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.0001,
+    "component_upward_penalty": 1.0,
+    "controlled_shift_penalty": 0.1
+  },
+  "training_device": "AMD Radeon RX 6600 XT gfx1032 cuda:0",
+  "sealed_runs_authorized": 0,
+  "production_approval": false
+}

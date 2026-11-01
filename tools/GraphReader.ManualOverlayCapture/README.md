@@ -116,8 +116,10 @@ compressed frame hash, and marker coordinates, radii and confidences. The
 runtime description also remained byte-identical after the full capture. The
 diagnostic patch extraction produced 290 build patches from 15 groups and 140
 holdout patches from five groups. Those patches remain unapproved for training:
-plot-domain membership and a bounded GPU training/evaluation protocol are not
-yet established.
+plot-domain membership and a bounded GPU training/evaluation protocol had not
+yet been established for that extraction. A later runtime-domain and native
+sampler audit admitted a deduplicated subset to a separate exploratory trial;
+see [its outcome](../../ml/markers/center/controlled_overlay_confidence_v1/TRAINING_RESULT.md).
 
 The later [proposal-domain and native patch parity probe](../../ml/markers/center/manual_train_overlay_corpus_v1/DOMAIN_PROBE_RESULT.md)
 measured those eligibility constraints using a fresh full capture. The earlier

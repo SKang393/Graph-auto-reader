@@ -11494,6 +11494,44 @@
       "development_outcome": "Exploratory fixed 0.1 synthetic evaluation: component precision 91.57%, family precision 76.89%, both below 95%; source-level train/dev overlap unverified. No sealed read or promotion.",
       "admission_ledger_patch_sha256": "970965a568781a1cd4d514ff17b53c82d54fdd0c3484ded1ae648d5801dff2b9",
       "closed_utc_date": "2026-10-31"
+    },
+    {
+      "task": "marker-center",
+      "revision": "marker-center-controlled-overlay-v1",
+      "status": "failed_dev_unconsumed",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": ["P1"],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {"P1": "ml/markers/center/controlled_overlay_confidence_v1/p1.json"},
+      "candidate_config_sha256": {"P1": "4c75a9bcb8635464b4bd432d24be0e88beba000f57b470ae1e034161bbc8dd2c"},
+      "protocol_path": "ml/markers/center/controlled_overlay_confidence_v1/protocol.json",
+      "protocol_sha256": "b3ef1d67dff2ac391c262f98c177c34ddfe213875899dabfc0c46f4b157e37a7",
+      "runner_source_bundle_sha256": "f4052736d21b89b9a0865e0542eb8cb269d100d14df025692aebea01ed79e467",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "acceptance_bars_sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+      "authorization_scope": "One exploratory user-authorized controlled-overlay and synthetic training candidate. No sealed read, promotion, production activation, or release.",
+      "optimizer_steps_expected": 28,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "training_device": "RX 6600 XT gfx1032 cuda:0",
+      "production_approval": false,
+      "release_eligible": false,
+      "optimizer_steps": 28,
+      "checkpoint_sha256": "d5eb62bfa4a7cafd362ae1b0e27f64081fe0f6a4b47a51c6ce6fa8932b3926b0",
+      "training_outcome_sha256": "42eb8899cfb2afa957acf61ec3dfcf23ca88f3c1b63c1c6d10d670f9b1a6da37",
+      "controlled_holdout_report_sha256": "12246da9ac8a5b9ce35608e032b7bfc323c3f23993ef7a3cca9749969b0df79f",
+      "development_report_sha256": "056aaca3479a8c77b7d5eda37ee55b6d77013282d2079082cbe887ec5956cd19",
+      "onnx_sha256": "35b50adbd6961293b888c5de3f2e5594b9cda7a9cb95d6c68b425999271a1535",
+      "development_outcome": "At the fixed 0.1 threshold, synthetic component precision was 92.48% and family precision 77.78%, both below the 95% bar. No real-development candidate run or sealed payload read was performed.",
+      "closed_utc_date": "2026-11-01"
     }
   ]
 }
