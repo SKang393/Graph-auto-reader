@@ -1,0 +1,17 @@
+{
+  "schema": "graphreader.manual-dev-axis-freeze.v1",
+  "status": "predictions-frozen-before-anchor-export",
+  "registration_commit": "66499f5caaf05919e2524b5de9126c915cdf690a",
+  "scope": "previously-exposed-development-not-release-acceptance",
+  "input_manifest_sha256": "d0adfe55915cc323ff408acf342110972eca2a92ae188ac43b8090d91054afd4",
+  "panel_report_sha256": "0e67a8f67a24785d8c365b40d75cdaf163bee807ca495ddce95a5938206e023b",
+  "tick_predictions_sha256": "b57654ed6d590923f1a130f66bd5a279ef70f21d91d4145ffd3c6457546932f1",
+  "images": 16,
+  "panels": 16,
+  "axis_results": 16,
+  "probe_selections_changed": 0,
+  "calibration_anchors_exported_before_predictions": false,
+  "previous_exposure_and_sealed_overlap_verified": false,
+  "sealed_payload_reads": 0,
+  "optimizer_steps": 0
+}
