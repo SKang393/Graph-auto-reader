@@ -11,7 +11,7 @@
   "registryConfigurationRequired": false,
   "startMenuShortcut": false,
   "uninstallEntry": false,
-  "implementationStatus": "partial",
-  "runtimeVerificationStatus": "unverified-application-path-consumption-and-read-only-handling",
-  "status": "packaging-implemented-application-integration-pending"
+  "implementationStatus": "implemented",
+  "runtimeVerificationStatus": "unverified-clean-machine",
+  "status": "implementation-complete-runtime-unverified"
 }

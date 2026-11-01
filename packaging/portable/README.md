@@ -6,15 +6,20 @@
 `portable.json` records the enforceable portable behavior. The build
 script creates an empty `portable.mode` beside `GraphReader.App.exe` in
 portable staging. The domain path policy resolves that sentinel to `Data`
-beneath the extracted application directory. End-to-end application
-composition has not yet proved that every mutable subsystem consumes that path
-policy or reports a read-only extraction directory clearly. Runtime sentinels
-are generated and remain ignored by Git.
+beneath the extracted application directory. App startup initializes the
+mutable roots, verifies write access, and reports a portable-specific actionable
+error when initialization fails. Focused domain and integration tests verify
+sentinel path selection, installed/portable isolation, and structured read-only
+failure handling. They do not prove every mutable subsystem uses those roots in
+an extracted application. Runtime sentinels are generated and remain ignored by
+Git.
 
 The ZIP is created directly from that staging directory and retains root-level
 application, license, contract, manifest, and build-metadata files. Publication
-still requires read-only-folder handling, registry independence, path
-isolation, read-only handling, and clean-machine launch checks from paths
-containing spaces and Unicode characters. Application integration and
-read-only handling remain Session 18 work, so the tracked definition is
-`packaging-implemented-application-integration-pending`.
+still requires clean-machine launch, registry independence and path isolation
+checks from paths containing spaces and Unicode characters, including
+verification under an actual write-denied profile. The focused read-only
+integration test uses a recording directory-access fake, so clean-machine
+runtime verification remains
+`unverified-clean-machine`; the tracked implementation status is
+`implementation-complete-runtime-unverified`.
