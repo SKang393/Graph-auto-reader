@@ -38,3 +38,5 @@ bridge limit from that setting, this changes both behaviors and is exploratory;
 the application continues to use its normal provider options.
 The private diagnostic outputs remain until the active axis investigation no
 longer consumes them. They are not packaging inputs.
+The follow-up connectivity measurement is recorded in
+[CONNECTIVITY_RESULT.md](CONNECTIVITY_RESULT.md).
