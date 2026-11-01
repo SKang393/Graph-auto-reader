@@ -11,7 +11,8 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Associates OCR labels with unique outward tick strokes in original pixels.</summary>
 internal static class ProductionTickLabelGeometry
 {
-    internal const string Version = "original-pixel-tick-label-association-v2-axis-connected-review";
+    internal const string Version = "original-pixel-tick-label-association-v3-lane-review";
+    private const double MaximumRelativeYTickLaneGap = 1.25d;
     private static readonly AxisGeometryOptions Options = new();
 
     internal static TickLabelGeometryResult Resolve(
@@ -35,6 +36,7 @@ internal static class ProductionTickLabelGeometry
             throw new ArgumentException("Tick labels must have unique identities.", nameof(regions));
         var measured = new Dictionary<string, (OcrTextRole Role, double Center, double Original)>(StringComparer.Ordinal);
         var warnings = new List<string>();
+        AddOutlyingYTickWarnings(labels, axis.YAxis.Line, image, warnings, cancellationToken);
         ReadOnlySpan<byte> pixels = image.Pixels.Span;
         long sum = 0;
         for (int y = 0; y < image.Height; y++)
@@ -119,6 +121,37 @@ internal static class ProductionTickLabelGeometry
         return new(new ReadOnlyDictionary<string, double>(measured.ToDictionary(
             static item => item.Key, static item => item.Value.Center, StringComparer.Ordinal)),
             Array.AsReadOnly(warnings.ToArray()));
+    }
+
+    private static void AddOutlyingYTickWarnings(
+        IReadOnlyList<OcrRegion> labels, GeometryLineSegment axis, OcrImage image,
+        List<string> warnings, CancellationToken cancellationToken)
+    {
+        var gaps = new List<(OcrRegion Label, double Gap)>();
+        foreach (OcrRegion label in labels)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            OcrRectangle box = label.Polygon.Bounds;
+            if (label.Role != OcrTextRole.YTick || !GraphNumericParser.Parse(label.Text).IsSuccess ||
+                !double.IsFinite(label.Confidence) || label.Confidence is <= 0 or > 1 ||
+                box.Left < 0 || box.Top < 0 || box.Right > image.Width || box.Bottom > image.Height)
+                continue;
+            double axisX = axis.Start.X + ((box.Center.Y - axis.Start.Y) / (axis.End.Y - axis.Start.Y) *
+                (axis.End.X - axis.Start.X));
+            double gap = (axisX - box.Right) / box.Height;
+            if (double.IsFinite(gap)) gaps.Add((label, gap));
+        }
+        if (gaps.Count < 3) return;
+        double[] ordered = gaps.Select(static item => item.Gap).Order().ToArray();
+        int middle = ordered.Length / 2;
+        double median = ordered.Length % 2 == 0
+            ? ordered[middle - 1] + ((ordered[middle] - ordered[middle - 1]) / 2d)
+            : ordered[middle];
+        foreach (var (label, gap) in gaps)
+        {
+            if (label.ReviewStatus == OcrReviewStatus.Unreviewed && gap > median + MaximumRelativeYTickLaneGap)
+                warnings.Add($"ocr_tick_sequence_needs_review:YTick:outlying_text_lane:{label.RegionId}");
+        }
     }
 }
 

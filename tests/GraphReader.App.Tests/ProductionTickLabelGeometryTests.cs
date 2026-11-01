@@ -134,6 +134,65 @@ public sealed class ProductionTickLabelGeometryTests
             image, box, Axis().YAxis.Line, new CancellationToken(canceled: true)));
     }
 
+    [TestMethod]
+    public void DistantNumericYReadingRequiresReviewUnlessConfirmed()
+    {
+        OcrRegion[] labels =
+        [
+            YLabel("near-a") with { Polygon = OcrPolygon.FromRectangle(new(9, 15, 5, 5)), Text = "10" },
+            YLabel("near-b") with { Polygon = OcrPolygon.FromRectangle(new(9, 30, 5, 5)), Text = "20" },
+            YLabel("near-c") with { Polygon = OcrPolygon.FromRectangle(new(9, 45, 5, 5)), Text = "30" },
+            YLabel("far") with { Polygon = OcrPolygon.FromRectangle(new(0, 55, 3, 5)), Text = "40" },
+        ];
+        TickLabelGeometryResult result = ProductionTickLabelGeometry.Resolve(Axis(), Image([], []), labels, CancellationToken.None);
+        Assert.Contains("ocr_tick_sequence_needs_review:YTick:outlying_text_lane:far", result.Warnings);
+        Assert.IsFalse(result.Warnings.Any(static warning => warning.Contains("outlying_text_lane:near", StringComparison.Ordinal)));
+        Assert.AreEqual("40", labels[3].Text);
+        labels[3] = labels[3] with { ReviewStatus = OcrReviewStatus.Accepted };
+        TickLabelGeometryResult accepted = ProductionTickLabelGeometry.Resolve(Axis(), Image([], []), labels, CancellationToken.None);
+        Assert.IsFalse(accepted.Warnings.Any(static warning => warning.Contains("outlying_text_lane", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void DistantReadingWithoutThreeNumericYRegionsHasNoLaneComparison()
+    {
+        OcrRegion near = YLabel("near") with { Polygon = OcrPolygon.FromRectangle(new(9, 15, 5, 5)) };
+        OcrRegion far = YLabel("far") with { Polygon = OcrPolygon.FromRectangle(new(0, 55, 3, 5)) };
+        TickLabelGeometryResult result = ProductionTickLabelGeometry.Resolve(Axis(), Image([], []), [near, far], CancellationToken.None);
+        Assert.IsFalse(result.Warnings.Any(static warning => warning.Contains("outlying_text_lane", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void RejectedAndUnweightedReadingsCannotCreateALaneReference()
+    {
+        OcrRegion near = YLabel("near") with { Polygon = OcrPolygon.FromRectangle(new(9, 15, 5, 5)) };
+        OcrRegion far = YLabel("far") with { Polygon = OcrPolygon.FromRectangle(new(0, 55, 3, 5)) };
+        OcrRegion rejected = YLabel("rejected") with { ReviewStatus = OcrReviewStatus.Rejected };
+        OcrRegion unweighted = YLabel("unweighted") with { Confidence = 0 };
+        TickLabelGeometryResult result = ProductionTickLabelGeometry.Resolve(
+            Axis(), Image([], []), [near, far, rejected, unweighted], CancellationToken.None);
+        Assert.IsFalse(result.Warnings.Any(static warning => warning.Contains("outlying_text_lane", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void YTickLaneUsesTheSlantedAxisAtEachReading()
+    {
+        AxisGeometryResult axis = Axis() with
+        {
+            YAxis = new(new(new(10, 10), new(30, 70)), 0.95, 0, 1, ["slanted"]),
+        };
+        OcrRegion[] labels =
+        [
+            YLabel("near-a") with { Polygon = OcrPolygon.FromRectangle(new(1.5, 15, 5, 5)) },
+            YLabel("near-b") with { Polygon = OcrPolygon.FromRectangle(new(6.5, 30, 5, 5)) },
+            YLabel("near-c") with { Polygon = OcrPolygon.FromRectangle(new(11.5, 45, 5, 5)) },
+            YLabel("far") with { Polygon = OcrPolygon.FromRectangle(new(5, 55, 3, 5)) },
+        ];
+        TickLabelGeometryResult result = ProductionTickLabelGeometry.Resolve(axis, Image([], []), labels, CancellationToken.None);
+        Assert.Contains("ocr_tick_sequence_needs_review:YTick:outlying_text_lane:far", result.Warnings);
+        Assert.IsFalse(result.Warnings.Any(static warning => warning.Contains("outlying_text_lane:near", StringComparison.Ordinal)));
+    }
+
     private static OcrRegion XLabel(string id) => new(id,
         OcrPolygon.FromRectangle(new(42, 78, 4, 12)), "1", [], OcrTextRole.XTick,
         0.95, OcrSourceImage.Original, OcrReviewStatus.Unreviewed);

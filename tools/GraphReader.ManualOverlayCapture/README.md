@@ -213,6 +213,8 @@ them; they are never packaging inputs.
 
 The later detector-emitted tick analysis is recorded in
 [WORKFLOW_TICK_DETAILS_RESULT.md](WORKFLOW_TICK_DETAILS_RESULT.md).
+The follow-up [visual review](WORKFLOW_Y_REVIEW_RESULT.md) and
+[lane safeguard](OUTLYING_LANE_RESULT.md) record the remaining errors.
 
 ## Checks
 

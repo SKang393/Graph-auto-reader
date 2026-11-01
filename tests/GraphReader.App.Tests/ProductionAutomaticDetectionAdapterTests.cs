@@ -896,6 +896,39 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
+    [DataRow(OcrReviewStatus.Unreviewed, true)]
+    [DataRow(OcrReviewStatus.Accepted, false)]
+    public async Task OutlyingNumericYReadingRequiresReviewUnlessConfirmed(OcrReviewStatus status, bool mustReject)
+    {
+        byte[] bytes = [4, 2, 1];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:outlying-tick.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "outlying-tick.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new RasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(outlyingTickStatus: status), new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(),
+            new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+        if (mustReject)
+        {
+            ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+                () => adapter.DetectAsync(request, CancellationToken.None));
+            Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, failure.Failure.Code);
+            StringAssert.Contains(failure.Failure.TechnicalMessage,
+                "ocr_tick_sequence_needs_review:YTick:outlying_text_lane:outlying-tick");
+            Assert.IsNull(store.Get(panelId).ExportEvidence);
+        }
+        else
+        {
+            await adapter.DetectAsync(request, CancellationToken.None);
+            Assert.IsNotNull(store.Get(panelId).ExportEvidence);
+        }
+    }
+
+    [TestMethod]
     [DataRow("ocr_tick_sequence_needs_review:XTick:ambiguous_or_irregular_spacing", true)]
     [DataRow("ocr_tick_sequence_needs_review:baseline_singleton_ambiguous:uncertain-region", true)]
     [DataRow("ocr_tick_sequence_needs_review:YTick:insufficient_unchanged_tick_anchors", true)]
@@ -1396,6 +1429,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         private readonly OcrTextRole? substitutedRole;
         private readonly string? substitutedText;
         private readonly OcrReviewStatus substitutedReviewStatus;
+        private readonly OcrReviewStatus? outlyingTickStatus;
 
         public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
             bool invalidLegendBounds = false, string? warning = null,
@@ -1404,7 +1438,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             OcrTextRole? competingAlternativeRole = null, string? competingAlternativeText = null,
             OcrReviewStatus competingAlternativeReviewStatus = OcrReviewStatus.Unreviewed,
             bool invalidEvidenceBinding = false, OcrTextRole? substitutedRole = null,
-            string? substitutedText = null, OcrReviewStatus substitutedReviewStatus = OcrReviewStatus.Unreviewed)
+            string? substitutedText = null, OcrReviewStatus substitutedReviewStatus = OcrReviewStatus.Unreviewed,
+            OcrReviewStatus? outlyingTickStatus = null)
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
@@ -1424,6 +1459,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             this.substitutedRole = substitutedRole;
             this.substitutedText = substitutedText;
             this.substitutedReviewStatus = substitutedReviewStatus;
+            this.outlyingTickStatus = outlyingTickStatus;
         }
 
         public string AdapterId => "test-ocr";
@@ -1510,6 +1546,15 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     Alternatives = [new OcrRecognitionAlternative(changedText, 0.95, OcrSourceImage.Original)],
                     ReviewStatus = substitutedReviewStatus,
                 } : region).ToArray();
+            }
+            if (outlyingTickStatus is { } outlierStatus)
+            {
+                OcrRegion outlier = Region("outlying-tick", 0, 51, "50", OcrTextRole.YTick) with
+                {
+                    Polygon = OcrPolygon.FromRectangle(new OcrRectangle(0, 51, 2, 2)),
+                    ReviewStatus = outlierStatus,
+                };
+                regions = [.. regions, outlier];
             }
             if (zeroConfidenceRole is { } tickRole)
             {
