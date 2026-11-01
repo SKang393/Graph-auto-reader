@@ -48,9 +48,11 @@ QEMU guest, a matching UUID and Windows build, and an offline adapter check.
 No current installer or portable release candidate has passed those gates.
 
 Before creating the guest, copy the necessary project tools and later the
-verified candidate into `E:\Graph-auto-reader` on the test PC. Keep the Windows
+verified candidate into a designated test folder on the test PC. The test PC
+and guest may use their C: drive; the development computer's project-local
+storage rule does not require an E: drive on another machine. Keep the Windows
 evaluation ISO, QEMU installer, VM disk, provenance, test outputs, and caches
-inside that folder. An already installed QEMU program under `C:\Program Files`
+inside the test folder. An already installed QEMU program under `C:\Program Files`
 may be used. Obtain the Windows evaluation image and its published SHA-256
 from the official distributor, and retain the exact QEMU installer used for
 the VM provenance. Do not enter a guessed or self-generated checksum as the
