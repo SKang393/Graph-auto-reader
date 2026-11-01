@@ -231,7 +231,7 @@ internal static partial class Program
         Require(!ocr.IsApproved && ocr.ConfigurationScope == "unapproved_frozen_candidate", "OCR approval scope differs.");
         Require(ocr.AdapterId.Contains("dense-tick-review-v1", StringComparison.Ordinal) == denseTickSeparation,
             "Dense candidate identity differs.");
-        Require(ocr.AdapterId.Contains("wide-horizontal-model-v1", StringComparison.Ordinal) == preferWideHorizontalModelOrientation,
+        Require(ocr.AdapterId.Contains("wide-horizontal-model-v2", StringComparison.Ordinal) == preferWideHorizontalModelOrientation,
             "Orientation candidate identity differs.");
         var markerDescriptor = new FrozenCandidateMarkerCenterModelDescriptor(
             new ModelIdentity(centerModel.ModelId, centerModel.Version, centerModel.Payload.Sha256, ProjectPath(centerModel.Payload.RelativePath)),

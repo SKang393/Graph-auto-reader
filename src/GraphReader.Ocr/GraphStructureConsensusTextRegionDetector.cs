@@ -54,6 +54,8 @@ public sealed record GraphStructureConsensusTextRegionDetectorOptions
 /// </summary>
 public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRegionDetector
 {
+    internal const string WideHorizontalOrientationReviewReason = "wide_horizontal_orientation_override";
+
     public const string CompositionVersion = "graph-structure-consensus-v1";
 
     public const string MatchedComponentCompositionVersion =
@@ -125,7 +127,7 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
 
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
-        $"{GetCompositionVersion(options.OutputGeometry, options.ModelInput, options.Admission)}{(options.PreferWideHorizontalModelOrientation ? ":wide-horizontal-model-v1" : string.Empty)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
+        $"{GetCompositionVersion(options.OutputGeometry, options.ModelInput, options.Admission)}{(options.PreferWideHorizontalModelOrientation ? ":wide-horizontal-model-v2" : string.Empty)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
 
     public static string GetCompositionVersion(GraphStructureConsensusGeometry geometry) => geometry switch
     {
@@ -312,17 +314,28 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
             usedCandidates.Add(match.CandidateIndex);
             OcrDetectedRegion model = modelRegions[match.ModelIndex];
             OcrDetectedRegion candidate = candidateRegions[match.CandidateIndex];
+            bool useWideHorizontalModel = options.PreferWideHorizontalModelOrientation &&
+                Math.Abs(model.OrientationDegrees) <= double.Epsilon &&
+                model.Polygon.Bounds.Width >= model.Polygon.Bounds.Height * 1.2;
+            bool orientationChanged = useWideHorizontalModel &&
+                GraphTextRoleClassifier.GetOrientation(candidate.OrientationDegrees) is
+                    OcrOrientation.RotatedClockwise or OcrOrientation.RotatedCounterClockwise;
             output.Add(options.OutputGeometry switch
             {
                 GraphStructureConsensusGeometry.ModelPolygon => model with
                 {
                     OrientationDegrees = Math.Abs(model.OrientationDegrees) <= double.Epsilon &&
-                        !(options.PreferWideHorizontalModelOrientation &&
-                          model.Polygon.Bounds.Width >= model.Polygon.Bounds.Height * 1.2)
+                        !useWideHorizontalModel
                         ? candidate.OrientationDegrees
                         : model.OrientationDegrees,
                     Context = model.Context ?? candidate.Context,
-                    Evidence = candidate.Evidence,
+                    Evidence = orientationChanged
+                        ? candidate.Evidence! with
+                        {
+                            Reasons = Array.AsReadOnly(candidate.Evidence!.Reasons
+                                .Append(WideHorizontalOrientationReviewReason).Distinct(StringComparer.Ordinal).ToArray()),
+                        }
+                        : candidate.Evidence,
                 },
                 GraphStructureConsensusGeometry.MatchedComponent => model with
                 {

@@ -111,6 +111,45 @@ public sealed class OcrPipelineAcceptanceTests
     }
 
     [TestMethod]
+    [DataRow(-90, true)]
+    [DataRow(0, false)]
+    public async Task HorizontalOrientationDisagreementRemainsReviewableAcrossCacheHits(
+        int componentAngle, bool expectReview)
+    {
+        var context = new OcrRegionContext(ExplicitRoleHint: OcrTextRole.YTick);
+        OcrDetectedRegion model = OcrTestFixtures.Region("tick", 6, 35, 18, 10, context: context);
+        OcrDetectedRegion component = model with
+        {
+            RegionId = "component",
+            OrientationDegrees = componentAngle,
+            Evidence = new OcrRegionEvidence(3, 0.25, 0.9, 0.1, false, ["text_candidate"]),
+        };
+        var detector = new GraphStructureConsensusTextRegionDetector(
+            new StubTextRegionDetector([model]),
+            new StubTextRegionDetector([component]),
+            new GraphStructureConsensusTextRegionDetectorOptions
+            {
+                PreferWideHorizontalModelOrientation = true,
+            });
+        var pipeline = new OcrPipeline(detector,
+            Recognizer(("tick", OcrSourceImage.Original, "90", 0.99)),
+            new InMemoryOcrResultCache());
+        OcrRequest request = OcrTestFixtures.Request();
+
+        OcrResult cold = await pipeline.RecognizeAsync(request, CancellationToken.None);
+        OcrResult warm = await pipeline.RecognizeAsync(request, CancellationToken.None);
+
+        Assert.IsTrue(cold.Succeeded, cold.Failure?.TechnicalMessage);
+        Assert.AreEqual(OcrTextRole.YTick, cold.Regions.Single().Role);
+        Assert.AreEqual("90", cold.Regions.Single().Text);
+        Assert.AreEqual(expectReview, cold.Warnings.Contains(
+            "ocr_tick_sequence_needs_review:YTick:orientation_override:tick", StringComparer.Ordinal));
+        Assert.AreEqual(expectReview, warm.Warnings.Contains(
+            "ocr_tick_sequence_needs_review:YTick:orientation_override:tick", StringComparer.Ordinal));
+        Assert.IsTrue(warm.Cache.CacheHit);
+    }
+
+    [TestMethod]
     public async Task CropRecognitionUsesBoundedBatchesAndPreservesInputOrder()
     {
         OcrDetectedRegion[] regions = Enumerable.Range(0, 5)

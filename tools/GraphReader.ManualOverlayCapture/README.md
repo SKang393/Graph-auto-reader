@@ -225,6 +225,8 @@ The [orientation reconstruction](ORIENTATION_CROP_RESULT.md) isolates that
 discrepancy for both traced examples.
 The [wide-horizontal candidate](WIDE_HORIZONTAL_CANDIDATE_RESULT.md) records
 its correction, remaining failure, and changed review warnings.
+The [orientation review follow-up](ORIENTATION_REVIEW_RESULT.md) verifies
+replacement warnings and the remaining calibration failures.
 
 ## Checks
 

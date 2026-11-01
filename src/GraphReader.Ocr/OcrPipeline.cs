@@ -868,6 +868,16 @@ public sealed class OcrPipeline
         warnings.AddRange(regions.Where(region => SingleGlyphTextMaskReview.RequiresReview(region, request.PlotBounds))
             .Select(static region => $"{SingleGlyphTextMaskReview.WarningCode(region)}:{region.RegionId}"));
         var detectedById = detectedRegions.ToDictionary(static region => region.RegionId, StringComparer.Ordinal);
+        foreach (OcrRegion region in regions)
+        {
+            if (detectedById[region.RegionId].Evidence?.Reasons.Contains(
+                    GraphStructureConsensusTextRegionDetector.WideHorizontalOrientationReviewReason,
+                    StringComparer.Ordinal) != true)
+                continue;
+            warnings.Add(region.Role is OcrTextRole.XTick or OcrTextRole.YTick
+                ? $"ocr_tick_sequence_needs_review:{region.Role}:orientation_override:{region.RegionId}"
+                : $"ocr_role_needs_review:{region.RegionId}:orientation_override");
+        }
         var maskRegionIds = regions
             .Where(region => IsCredibleTextMask(
                 region,
