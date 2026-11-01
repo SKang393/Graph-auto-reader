@@ -177,6 +177,58 @@ public sealed class OpenCvLineCandidateProviderTests
     }
 
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task MarkerCoveringBothAxisEndsNeedsConnectedInkAtTheCorner(bool connected)
+    {
+        GrayscaleLineCandidateFrame frame = CreateCornerMarkerFrame(connected);
+        IReadOnlyList<GeometryLineCandidate> candidates = await new OpenCvLineCandidateProvider()
+            .DetectLinesAsync(frame, CancellationToken.None);
+        bool hasCornerBridge = candidates.Any(candidate =>
+            candidate.CandidateId.StartsWith("raster-corner-bridge-", StringComparison.Ordinal) &&
+            Math.Abs(candidate.Segment.Start.X - 30.5) < 20 &&
+            Math.Abs(candidate.Segment.Start.Y - 130.5) < 20 &&
+            Math.Abs(candidate.Segment.End.X - 30.5) < 20 &&
+            Math.Abs(candidate.Segment.End.Y - 130.5) < 20);
+
+        Assert.AreEqual(connected, hasCornerBridge,
+            "A filled marker can connect both axes; empty pixels must not invent the corner.");
+        if (connected)
+        {
+            AxisGeometryResult geometry = await new AxisGeometryDetector().DetectAsync(
+                new AxisGeometryRequest(frame.Width, frame.Height, candidates));
+            Assert.AreEqual(30.5d, geometry.PlotPolygon.BottomLeft.X, 4d);
+            Assert.AreEqual(130.5d, geometry.PlotPolygon.BottomLeft.Y, 4d);
+            Assert.IsTrue(geometry.PlotPolygon.BottomRight.X > 200d);
+            Assert.IsTrue(geometry.PlotPolygon.TopLeft.Y < 30d);
+        }
+    }
+
+    [TestMethod]
+    public async Task LongAxisCanReachCornerWhenPerpendicularNativeSegmentsAreShort()
+    {
+        GrayscaleLineCandidateFrame original = CreateCornerMarkerFrame(connected: true);
+        byte[] pixels = original.Pixels.ToArray();
+        foreach (int centerX in new[] { 75, 120, 165, 210 })
+        for (int y = 115; y <= 145; y++)
+        for (int x = centerX - 15; x <= centerX + 15; x++)
+        {
+            if (Math.Pow(x - centerX, 2) + Math.Pow(y - 130, 2) <= 15d * 15d)
+                SetBlack(pixels, original.Stride, x, y);
+        }
+        IReadOnlyList<GeometryLineCandidate> candidates = await new OpenCvLineCandidateProvider()
+            .DetectLinesAsync(original with { Pixels = pixels }, CancellationToken.None);
+
+        Assert.IsTrue(candidates.Any(candidate =>
+            candidate.CandidateId.StartsWith("raster-corner-bridge-", StringComparison.Ordinal) &&
+            Math.Abs(candidate.Segment.Start.X - 30.5) < 5 &&
+            Math.Abs(candidate.Segment.End.X - 30.5) < 5 &&
+            Math.Max(candidate.Segment.Start.Y, candidate.Segment.End.Y) >= 128 &&
+            Math.Min(candidate.Segment.Start.Y, candidate.Segment.End.Y) <= 122),
+            "A long observed axis and a short perpendicular segment may support a connected corner.");
+    }
+
+    [TestMethod]
     public async Task NativeProviderValidatesOriginalPixelsBufferAndCancellation()
     {
         GrayscaleLineCandidateFrame valid = CreateCleanAxisFrame();
@@ -296,6 +348,19 @@ public sealed class OpenCvLineCandidateProviderTests
             }
         }
         return new GrayscaleLineCandidateFrame(original.Height, original.Width, original.Height, transposed);
+    }
+
+    private static GrayscaleLineCandidateFrame CreateCornerMarkerFrame(bool connected)
+    {
+        GrayscaleLineCandidateFrame frame = CreateCleanAxisFrame();
+        byte[] pixels = frame.Pixels.ToArray();
+        for (int y = 114; y <= 146; y++)
+        for (int x = 14; x <= 46; x++)
+        {
+            if (Math.Pow(x - 30.5d, 2) + Math.Pow(y - 130.5d, 2) <= 15d * 15d)
+                pixels[(y * frame.Stride) + x] = connected ? (byte)0 : byte.MaxValue;
+        }
+        return frame with { Pixels = pixels };
     }
 
     private static void SetBlack(byte[] pixels, int stride, int x, int y) =>

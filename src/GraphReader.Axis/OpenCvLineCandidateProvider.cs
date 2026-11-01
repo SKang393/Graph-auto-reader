@@ -272,8 +272,10 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
             cancellationToken.ThrowIfCancellationRequested();
             foreach (var support in lines)
             {
+                double lineDimension = Math.Abs(line.Direction.X) >= axisCosine ? frame.Width : frame.Height;
                 double supportDimension = Math.Abs(support.Direction.X) >= axisCosine ? frame.Width : frame.Height;
-                if (support.Candidate.Segment.Length < geometryOptions.MinimumAxisSpanFraction * supportDimension ||
+                if ((support.Candidate.Segment.Length < geometryOptions.MinimumAxisSpanFraction * supportDimension &&
+                        line.Candidate.Segment.Length < geometryOptions.MinimumAxisSpanFraction * lineDimension) ||
                     Math.Abs(line.Direction.X * support.Direction.X + line.Direction.Y * support.Direction.Y) > perpendicularTolerance)
                     continue;
 
@@ -283,9 +285,6 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
                 double cross = line.Direction.X * support.Direction.Y - line.Direction.Y * support.Direction.X;
                 double alongLine = (dx * support.Direction.Y - dy * support.Direction.X) / cross;
                 double alongSupport = (dx * line.Direction.Y - dy * line.Direction.X) / cross;
-                if (alongSupport < 0 || alongSupport > support.Candidate.Segment.Length)
-                    continue;
-
                 PixelPoint endpoint;
                 double gap;
                 if (alongLine < 0)
@@ -302,6 +301,19 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
                     continue;
 
                 var intersection = new PixelPoint(start.X + alongLine * line.Direction.X, start.Y + alongLine * line.Direction.Y);
+                // A marker at the origin can conceal both native line ends.
+                // In that case the perpendicular line is useful only if its
+                // own endpoint also reaches the corner through observed ink.
+                double supportGap = alongSupport < 0 ? -alongSupport :
+                    Math.Max(0d, alongSupport - support.Candidate.Segment.Length);
+                if (supportGap > maximumGap)
+                    continue;
+                PixelPoint supportEndpoint = alongSupport < 0
+                    ? support.Candidate.Segment.Start
+                    : support.Candidate.Segment.End;
+                if (supportGap > 0d && !HasLocalInkPath(supportEndpoint, intersection, frame, pixels,
+                        (int)Math.Ceiling(maximumInkSpan), cancellationToken))
+                    continue;
                 // Do not add a second, differently weighted extent when native
                 // collinear evidence already reaches this corner.
                 if (lines.Any(existing =>

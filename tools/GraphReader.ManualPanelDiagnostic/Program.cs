@@ -23,8 +23,10 @@ internal static class Program
     {
         try
         {
-            Require(args.Length == 2 && args[1].StartsWith("panel-diagnostic-", StringComparison.Ordinal) &&
+            Require(args.Length is 2 or 3 && args[1].StartsWith("panel-diagnostic-", StringComparison.Ordinal) &&
                 args[1].All(static c => char.IsAsciiLetterOrDigit(c) || c == '-'), "Supply a training split and new panel-diagnostic output name.");
+            string profile = args.Length == 3 ? args[2] : "baseline";
+            Require(profile is "baseline" or "wide", "Unknown line-provider profile.");
             Dataset dataset = args[0] switch
             {
                 "build" => new("internal_train_build", "artifacts/manual-axis-ocr-diagnostic-v1/axis-input.json",
@@ -51,7 +53,9 @@ internal static class Program
             Directory.CreateDirectory(output);
             var panelizer = new ProductionRasterPanelizer();
             var detector = new AxisGeometryDetector();
-            var provider = new OpenCvLineCandidateProvider();
+            var provider = new OpenCvLineCandidateProvider(profile == "wide"
+                ? new OpenCvLineCandidateOptions { HoughMinimumLineLengthPixels = 40d }
+                : null);
             var rows = new List<object>();
             var seen = new HashSet<string>(StringComparer.Ordinal);
             foreach (JsonElement item in input.RootElement.GetProperty("rows").EnumerateArray())
@@ -90,7 +94,7 @@ internal static class Program
             }
             Require(rows.Count == dataset.Count, "Unexpected training image count.");
             var report = new { schema = "graphreader.manual-panel-diagnostic.v1", scope = "exposed-training-data-not-acceptance",
-                source_split = dataset.Split, input_sha256 = dataset.InputHash, opencv_sha256 = OpenCvHash, optimizer_steps = 0, rows };
+                source_split = dataset.Split, profile, input_sha256 = dataset.InputHash, opencv_sha256 = OpenCvHash, optimizer_steps = 0, rows };
             string reportPath = Path.Combine(output, "report.json");
             await using (var stream = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, useAsync: true))
                 await JsonSerializer.SerializeAsync(stream, report, JsonOptions);

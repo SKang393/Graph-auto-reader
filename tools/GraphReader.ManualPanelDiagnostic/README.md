@@ -28,5 +28,9 @@ dotnet tools/GraphReader.ManualPanelDiagnostic/bin/Release/net10.0-windows/Graph
 The output name is create-only under `artifacts/manual-axis-ocr-diagnostic-v1`.
 The reviewed native binary SHA-256 is
 `c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31`.
+An optional final `wide` argument changes the diagnostic Hough minimum line
+length from 12 to 40 pixels. Because the provider also derives its local ink
+bridge limit from that setting, this changes both behaviors and is exploratory;
+the application continues to use its normal provider options.
 The private diagnostic outputs remain until the active axis investigation no
 longer consumes them. They are not packaging inputs.
