@@ -387,7 +387,9 @@ public sealed partial class ProductionOcrAdapter :
         string reviewedOpenCvRuntimeSha256,
         CancellationToken cancellationToken,
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
-        bool denseTickSeparation = false)
+        bool denseTickSeparation = false,
+        Action<OcrDetectionObservation>? detectionObserver = null,
+        Func<ITextRecognizer, ITextRecognizer>? recognizerDecorator = null)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -440,7 +442,9 @@ public sealed partial class ProductionOcrAdapter :
                 ProductionOcrConfigurationScope.UnapprovedFrozenCandidate,
                 cancellationToken,
                 outputGeometry,
-                denseTickSeparation: denseTickSeparation)
+                denseTickSeparation: denseTickSeparation,
+                detectionObserver: detectionObserver,
+                recognizerDecorator: recognizerDecorator)
             .ConfigureAwait(false);
     }
 
@@ -457,11 +461,16 @@ public sealed partial class ProductionOcrAdapter :
         GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
         GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required,
         int? detectorMaximumSideLength = null,
-        bool denseTickSeparation = false)
+        bool denseTickSeparation = false,
+        Action<OcrDetectionObservation>? detectionObserver = null,
+        Func<ITextRecognizer, ITextRecognizer>? recognizerDecorator = null)
     {
         RequireResolutionExperiment(detectorMaximumSideLength, configurationScope, outputGeometry, modelInput, admission);
         if (denseTickSeparation && configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate)
             throw new InvalidOperationException("Dense tick separation is limited to unapproved frozen evaluation.");
+        if ((detectionObserver is not null || recognizerDecorator is not null) &&
+            configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate)
+            throw new InvalidOperationException("OCR observation hooks are limited to unapproved frozen evaluation.");
         LocalOnnxTextRegionDetectorOptions detectorOptions = ReadDetectionOptions(
             detectionModel,
             detectionManifestPath);
@@ -503,11 +512,15 @@ public sealed partial class ProductionOcrAdapter :
                 {
                     recognizer = new OfficialRecognitionSpacingV2TextRecognizer(recognizer);
                 }
+                if (recognizerDecorator is not null)
+                    recognizer = recognizerDecorator(recognizer) ??
+                        throw new InvalidOperationException("The diagnostic recognizer decorator returned null.");
                 return new OcrPipeline(
                     detector,
                     recognizer,
                     new MemoryOcrResultCache(),
-                    recognition.Pipeline with { EnableDenseTickSeparation = denseTickSeparation });
+                    recognition.Pipeline with { EnableDenseTickSeparation = denseTickSeparation },
+                    detectionObserver);
             },
             detectionModel,
             InferenceProvider.Cpu,

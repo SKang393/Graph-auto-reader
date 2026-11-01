@@ -138,9 +138,11 @@ internal static partial class Program
                     .SetEquals(batch.Select(static crop => crop.RegionId)), "Reviewed-axis recognition inventory differs.");
                 foreach (OcrRecognition reading in readings)
                 {
+                    OcrCrop crop = batch.Single(item => item.RegionId == reading.RegionId);
                     OcrRecognitionAlternative? best = reading.Alternatives.OrderByDescending(static item => item.Confidence)
                         .ThenBy(static item => item.Text, StringComparer.Ordinal).FirstOrDefault();
                     Require(outcomes.TryAdd(reading.RegionId, new { text = best?.Text, confidence = best?.Confidence,
+                        crop_sha256 = crop.CropSha256, crop_width = crop.Width, crop_height = crop.Height,
                         alternatives = reading.Alternatives.Select(item =>
                         {
                             NumericParseResult parsed = GraphNumericParser.Parse(item.Text);

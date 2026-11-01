@@ -44,6 +44,7 @@ internal static partial class Program
         "tools/GraphReader.ManualOverlayCapture/Program.cs",
         "tools/GraphReader.ManualOverlayCapture/ReviewedAxisCapture.cs",
         "tools/GraphReader.ManualOverlayCapture/AxisConnectivityParity.cs",
+        "tools/GraphReader.ManualOverlayCapture/TraceTextRecognizer.cs",
         "tools/GraphReader.ManualOverlayCapture/prepare_input.py",
         "src/GraphReader.Ocr/DenseTickTextRegionRecovery.cs",
         "src/GraphReader.Ocr/OcrPipeline.cs",
@@ -64,6 +65,8 @@ internal static partial class Program
     {
         try
         {
+            if (args.Length == 1 && args[0] == "--trace-recognizer-self-test")
+                return await TraceRecognizerSelfTest();
             if (args.Length == 2 && args[0] is "--describe" or "--describe-workflow")
             {
                 string path = OutputPath(args[1]);
@@ -81,6 +84,9 @@ internal static partial class Program
             if (args.Length == 7 && args[0] == "--capture-workflow-one")
                 return await Capture(args[2], args[3], args[4], args[5], args[6],
                     workflow: true, smoke: false, onlyId: args[1]);
+            if (args.Length == 7 && args[0] == "--capture-workflow-trace-one")
+                return await Capture(args[2], args[3], args[4], args[5], args[6],
+                    workflow: true, smoke: false, onlyId: args[1], traceRecognition: true);
             if (args.Length == 7 && args[0] == "--capture-dense-workflow-one")
                 return await Capture(args[2], args[3], args[4], args[5], args[6],
                     workflow: true, smoke: false, onlyId: args[1], denseTickSeparation: true);
@@ -95,7 +101,7 @@ internal static partial class Program
                     tightHorizontal: args[0] == "--recognize-reviewed-axis-tight");
             if (args.Length == 6 && args[0] == "--axis-connectivity-parity")
                 return await CheckAxisConnectivityParity(args[1], args[2], args[3], args[4], args[5]);
-            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-workflow-details|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis[-tight]|--axis-connectivity-parity <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-workflow-details|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one|--capture-workflow-trace-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis[-tight]|--axis-connectivity-parity <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
@@ -135,7 +141,7 @@ internal static partial class Program
 
     private static async Task<int> Capture(string inputPath, string inputSha, string descriptionPath, string descriptionSha,
         string outputName, bool workflow, bool smoke, string? onlyId = null, bool denseTickSeparation = false,
-        bool captureDetails = false)
+        bool captureDetails = false, bool traceRecognition = false)
     {
         using var classifierLocks = workflow ? new ClassifierInputLocks() : null;
         byte[] description = await ReadPinned(descriptionPath, descriptionSha, 1_000_000);
@@ -174,6 +180,7 @@ internal static partial class Program
             "Only the fixed 20-image or 200-image inputs are supported.");
         Require(!workflow || (original && inputSha == "b9044372d5d6b37257ef0e1823935eaed840b99f9dc5a66a2c5359a1b7beeba6"),
             "Workflow diagnostics require the pinned original train input.");
+        Require(!traceRecognition || (workflow && onlyId is not null), "Recognition tracing requires one workflow source.");
         if (onlyId is not null)
         {
             Require(workflow && !smoke, "Single-source capture requires workflow mode.");
@@ -205,9 +212,14 @@ internal static partial class Program
         FrozenCandidateOcrModelDescriptor OcrDescriptor(FrozenCandidateModel model) => new(
             new ModelIdentity(model.ModelId, model.Version, model.Payload.Sha256, ProjectPath(model.Payload.RelativePath)),
             ProjectPath(model.Manifest.RelativePath), model.Manifest.Sha256);
+        var detectionTrace = new List<OcrDetectionObservation>();
+        var recognitionTrace = new List<TraceCropObservation>();
+        Action<OcrDetectionObservation>? detectionObserver = traceRecognition ? detectionTrace.Add : null;
+        Func<ITextRecognizer, ITextRecognizer>? recognizerDecorator = traceRecognition
+            ? recognizer => new TraceTextRecognizer(recognizer, recognitionTrace) : null;
         ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForFrozenCandidateEvaluationAsync(
             OcrDescriptor(detector), OcrDescriptor(recognizer), runtime, OpenCvSha, CancellationToken.None,
-            GraphStructureConsensusGeometry.ModelPolygon, denseTickSeparation);
+            GraphStructureConsensusGeometry.ModelPolygon, denseTickSeparation, detectionObserver, recognizerDecorator);
         Require(!ocr.IsApproved && ocr.ConfigurationScope == "unapproved_frozen_candidate", "OCR approval scope differs.");
         Require(ocr.AdapterId.Contains("dense-tick-review-v1", StringComparison.Ordinal) == denseTickSeparation,
             "Dense candidate identity differs.");
@@ -268,9 +280,13 @@ internal static partial class Program
                         Guid.NewGuid(), project, evidence.CopyOriginalBytes());
                     if (workflow)
                     {
+                        detectionTrace.Clear();
+                        recognitionTrace.Clear();
                         (object row, bool panelFailed) = await CaptureWorkflowPanel(
                             automatic, request, panel, provenance, captureTickDetails: onlyId is not null || captureDetails,
-                            probeTickRecovery: onlyId is not null);
+                            probeTickRecovery: onlyId is not null,
+                            detectionTrace: traceRecognition ? detectionTrace : null,
+                            recognitionTrace: traceRecognition ? recognitionTrace : null);
                         panelRows.Add(row);
                         sourceFailed |= panelFailed;
                         continue;
@@ -316,7 +332,8 @@ internal static partial class Program
                 scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
                 runtime_description_sha256 = descriptionSha, model_binding_sha256 = ModelBindingSha,
                 classifier_sha256 = ClassifierFiles[2].Sha, opencv_sha256 = OpenCvSha,
-                smoke = smoke || onlyId is not null, dense_tick_separation = denseTickSeparation, detailed_capture = captureDetails,
+                smoke = smoke || onlyId is not null, dense_tick_separation = denseTickSeparation,
+                detailed_capture = captureDetails, recognition_traced = traceRecognition,
                 optimizer_steps = 0, training_approved = false, classification_requested = true,
                 truth_read = false, sealed_payload_reads = 0, rows = results }
             : new { schema = "graphreader.manual-marker-input-capture.v1",
@@ -332,7 +349,8 @@ internal static partial class Program
 
     private static async Task<(object Row, bool Failed)> CaptureWorkflowPanel(
         ProductionAutomaticDetectionAdapter automatic, ProductionWorkflowDetectionRequest request,
-        WorkflowImportedPanel panel, object provenance, bool captureTickDetails, bool probeTickRecovery)
+        WorkflowImportedPanel panel, object provenance, bool captureTickDetails, bool probeTickRecovery,
+        List<OcrDetectionObservation>? detectionTrace, List<TraceCropObservation>? recognitionTrace)
     {
         ProductionCandidateCalibrationObservation? observation = null;
         ProductionCandidateTickLaneObservation? tickLane = null;
@@ -391,6 +409,7 @@ internal static partial class Program
             y_axis_line = captureTickDetails ? observation?.Axis.YAxis.Line : null,
             calibration_validity = observation?.Calibration.Validity.ToString(),
             calibration_reasons = captureTickDetails ? observation?.Calibration.Reasons : null,
+            detection_trace = detectionTrace?.ToArray(), recognition_trace = recognitionTrace?.ToArray(),
             tick_lane = captureTickDetails ? tickLane : null,
             tick_recovery_probe = tickRecoveryProbe,
             ocr_tick_regions = captureTickDetails ? observation?.Ocr.Regions

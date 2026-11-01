@@ -219,6 +219,8 @@ The [adjacent-ink safeguard](ADJACENT_INK_RESULT.md) records its tradeoff on
 partial crops, graph structure, and readable labels.
 The [direct reread comparison](WORKFLOW_CROP_REREAD_RESULT.md) investigates
 the workflow's incorrect tick readings.
+The [crop trace](WORKFLOW_CROP_TRACE_RESULT.md) identifies their orientation
+discrepancy.
 
 ## Checks
 
