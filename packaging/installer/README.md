@@ -112,3 +112,24 @@ the final host harness SHA-256 is
 This existing-host test does not establish a clean-Windows result, an upgrade
 or downgrade result, a full interactive workflow, automatic recognition, or
 release approval.
+
+## Offline guest manual-preview transaction check
+
+The same diagnostic setup and internal 0.4.35 preview were subsequently tested
+in the laptop's offline Windows 10 QEMU guest as a signed-in, non-administrator
+user. The setup returned exit 0 on initial install; the installed application
+passed its no-window startup smoke. Same-version repair preserved test user data
+and an unowned file, including in the retained backup. Deferred uninstall
+reported success, removed the registration and shortcut, and preserved those
+files. The preview ZIP was then extracted to a path containing spaces and
+Korean characters; its startup smoke passed, created its adjacent `Data`
+directory, and did not recreate the registration or shortcut.
+
+The diagnostic setup SHA-256 is recorded above. The portable ZIP SHA-256 was
+`6cf370fbc931667c51a861fe72e1920284262cfe051f546338f8e775f203f31e`, and
+the copied guest result SHA-256 was
+`3a787d14aaf32e4bfdfffc0941c5f280ed3e5ebf3b8bdf83e9148e50f77cc2b9`.
+The guest had guest tools installed and later reported an installation age over
+the 24-hour clean-machine limit. This is an internal-preview diagnostic, not
+the final candidate's clean-machine, upgrade, interactive-workflow, automatic
+recognition, or release acceptance evidence.
