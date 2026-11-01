@@ -1,0 +1,20 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Sungwoo Kang -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../../../src/GraphReader.Export/GraphReader.Export.csproj" />
+    <Compile Include="../../../../../tools/GraphReader.RealAcceptance.Ocr/FrozenRealCorpusInventory.cs" Link="Frozen/FrozenRealCorpusInventory.cs" />
+    <Compile Include="../../../../../tools/GraphReader.RealAcceptance.Ocr/FrozenDevTrainingSelector.cs" Link="Frozen/FrozenDevTrainingSelector.cs" />
+    <Compile Include="../../../../../tools/GraphReader.RealAcceptance.Ocr/EngaugeDevSourceMaterializer.cs" Link="Frozen/EngaugeDevSourceMaterializer.cs" />
+    <Compile Include="../../../../../tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapter.cs" Link="Frozen/EngaugeDigWholeWorkflowTruthAdapter.cs" />
+    <Compile Include="../../../../../tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs" Link="Frozen/WholeWorkflowCsvEvaluator.cs" />
+  </ItemGroup>
+</Project>

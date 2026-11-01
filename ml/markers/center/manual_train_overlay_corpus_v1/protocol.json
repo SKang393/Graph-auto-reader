@@ -1,0 +1,143 @@
+{
+  "excluded_examined_pilot_components": 2,
+  "expected_source_components": 22,
+  "expected_train_projects": 104,
+  "grouping": {
+    "build_name": "internal_train_build",
+    "component_domain": "graphreader.marker-train-overlay-pilot-v1",
+    "component_rule": "connected components over study id and exact embedded-image SHA-256",
+    "holdout_name": "internal_train_holdout",
+    "official_dev_or_historical_independence_claim": false,
+    "partition_domain": "graphreader.manual-train-overlay-corpus-v1",
+    "partition_rule": "sha256:graphreader.manual-train-overlay-corpus-v1:first-byte-lt-64"
+  },
+  "input_manifest": "artifacts/goal22-runs/manual-train-only-source-capture-20261031-v1/manifest.json",
+  "input_manifest_sha256": "a4722b25227227a89c8a13ba7e4788d7e68ab524c9219760198823a2a254cb57",
+  "pilot_plan": "artifacts/goal22-runs/marker-train-overlay-pilot-plan-v2/plan.json",
+  "pilot_plan_sha256": "eac5d357a7440537d209e2c22e2af957e06d4edc39e2036ac69b03d427a26243",
+  "plan": "artifacts/goal22-runs/marker-train-overlay-corpus-plan-v7/plan.json",
+  "rendering": {
+    "max_overlay_output_bytes": 1000000000,
+    "native_content_labeling": "unknown_everywhere",
+    "outside_patch_pixels": "must remain identical after RGBA decode",
+    "patch_fill_rgba": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "patch_height_px": 80,
+    "patch_width_px": 112,
+    "recipes": [
+      {
+        "id": "filled_circle_r3",
+        "label": "injected_positive_only",
+        "radius_px": 3,
+        "shape": "filled_circle",
+        "stroke_px": 0
+      },
+      {
+        "id": "filled_circle_r5",
+        "label": "injected_positive_only",
+        "radius_px": 5,
+        "shape": "filled_circle",
+        "stroke_px": 0
+      },
+      {
+        "id": "open_circle_r4_w1",
+        "label": "injected_positive_only",
+        "radius_px": 4,
+        "shape": "open_circle",
+        "stroke_px": 1
+      },
+      {
+        "half_extent_px": 4,
+        "id": "filled_square_h4",
+        "label": "injected_positive_only",
+        "shape": "filled_square",
+        "stroke_px": 0
+      },
+      {
+        "id": "filled_diamond_r5",
+        "label": "injected_positive_only",
+        "radius_px": 5,
+        "shape": "filled_diamond",
+        "stroke_px": 0
+      },
+      {
+        "id": "horizontal_line_l13_w1",
+        "label": "injected_distractor_only",
+        "length_px": 13,
+        "shape": "horizontal_line",
+        "stroke_px": 1
+      },
+      {
+        "id": "vertical_line_l13_w1",
+        "label": "injected_distractor_only",
+        "length_px": 13,
+        "shape": "vertical_line",
+        "stroke_px": 1
+      },
+      {
+        "id": "diagonal_line_l13_w1",
+        "label": "injected_distractor_only",
+        "length_px": 13,
+        "shape": "diagonal_line",
+        "stroke_px": 1
+      },
+      {
+        "id": "plus_span11_w1",
+        "label": "injected_distractor_only",
+        "shape": "plus",
+        "span_px": 11,
+        "stroke_px": 1
+      },
+      {
+        "id": "t_span13_w1",
+        "label": "injected_distractor_only",
+        "shape": "tee",
+        "span_px": 13,
+        "stroke_px": 1
+      }
+    ],
+    "rounding": "floor(value + 0.5) for nonnegative source screen coordinates"
+  },
+  "runtime_assemblies": {
+    "GraphReader.Export": "1821387c4a73684ae101ed26d91630906c387e7796d9b810ff9bda52bb734bf1",
+    "GraphReader.MarkerTrainOverlayCorpus": "76c1db5354b0321ef133cc6f48e1862de482eefdeae7e8e6a286148b5680b8dd"
+  },
+  "schema": "graphreader.manual-train-marker-overlay-corpus-protocol.v1",
+  "scope": {
+    "development_payload_reads": 0,
+    "full_image_false_positive_precision": "not measured",
+    "historical_independence": "unverified",
+    "optimizer_steps": 0,
+    "sealed_payload_reads": 0,
+    "training_admitted": false
+  },
+  "selection": {
+    "max_source_groups": 20,
+    "max_source_pixels": 40000000,
+    "max_total_source_png_bytes": 1000000000,
+    "minimum_anchor_margin_px": 64,
+    "one_source_per_component": true,
+    "pilot_components_excluded_from_generation": true
+  },
+  "source_files": {
+    "Directory.Build.props": "abd1af7b9041fa91ff7d3d94fb5853f58330d2ac4e9c112202191813a812a310",
+    "Directory.Packages.props": "08d7476c82014698470650758506ffc625916f590ac08a66181be825ae6ecac2",
+    "global.json": "e19ae6304f93e71dc33b4de89a3f2978ee723dee2b1c52dc043afe77e402a046",
+    "ml/markers/center/manual_train_overlay_corpus_v1/extractor/GraphReader.MarkerTrainOverlayCorpus.csproj": "99c6c052de001e9f0f57ef9177b1d9c99110cacbee50acb5e2c4973d141a5cd9",
+    "ml/markers/center/manual_train_overlay_corpus_v1/extractor/Program.cs": "16db0af22880ffc64714d3c55e787b899bf5b95d87918d5d01f32e4051ff09f5",
+    "ml/markers/center/manual_train_overlay_corpus_v1/materialize.py": "5ac5dafccee9f663fdc0a179a262006794b7b5f542d29870952afae8284769c4",
+    "ml/markers/center/manual_train_overlay_corpus_v1/plan.py": "28c2909447da806e920b5daf1f5694ae45c76004ccf390214b1f6ceda2b57cbf",
+    "src/GraphReader.Export/ExportContracts.cs": "f6231677ec6c1055b1358a5622aa652cedde3ce6744f0014e6520e01863a661f",
+    "src/GraphReader.Export/GraphReader.Export.csproj": "db3508b49d72d8230acd3afc4162912a196942a1b67ad66b5788fed89d0ecaae",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDevSourceMaterializer.cs": "1b898bf35a799f297a2a0f2321679ff62408ddb30de6a1ff3277a540cc6f3159",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapter.cs": "569241baac82321ff659c30fa0352ca44122d3a2f481a5c6c22b8a055892e45f",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenDevTrainingSelector.cs": "2c14934db53f3072dafabce1a0a337b404179d56b0abaec758875012bfaad3d5",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenRealCorpusInventory.cs": "1eafaa5f7906de3343bd5bc2a64f8665380ae9723f2d80f6ccaa999646c8b6ec",
+    "tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs": "aa31af34c670d0dce05650ae6bc5bc0db9163195b5667ccba71fbf2619378f97"
+  },
+  "status": "train-only-source-grouped-overlay-expansion-unapproved"
+}
