@@ -3,7 +3,7 @@
 
 import unittest
 
-from dense_tick_score import prediction_map, score_rows
+from dense_tick_score import match_integrated, prediction_map, score_rows
 
 
 class DenseTickScoreTests(unittest.TestCase):
@@ -31,6 +31,14 @@ class DenseTickScoreTests(unittest.TestCase):
     def test_invalid_prediction_type_is_rejected(self):
         with self.assertRaises(ValueError):
             prediction_map([{"id": "a", "r": {"Text": 1}}], "r", "Text")
+
+    def test_integrated_match_accepts_one_pixel_trim_but_rejects_ambiguity(self):
+        inputs = [{"id": "a", "box_xyxy": [10, 20, 30, 40]}]
+        region = {"role": "XTick", "text": "3", "polygon": {"bounds":
+                  {"left": 11, "top": 20, "right": 30, "bottom": 40}}}
+        self.assertEqual({"a": "3"}, match_integrated(inputs, [region]))
+        with self.assertRaises(ValueError):
+            match_integrated(inputs, [region, region])
 
 
 if __name__ == "__main__":

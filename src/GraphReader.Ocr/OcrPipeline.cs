@@ -60,6 +60,9 @@ public sealed record OcrPipelineOptions
 
     public bool EnableTickLaneRecovery { get; init; }
 
+    /// <summary>Experimental, review-required separation of merged X tick labels.</summary>
+    public bool EnableDenseTickSeparation { get; init; }
+
     public bool EnableHeaderGlyphRecovery { get; init; }
 }
 
@@ -787,6 +790,75 @@ public sealed class OcrPipeline
                 recognitionCacheHit = false;
             }
             postprocessStopwatch.Start();
+        }
+        if (_options.EnableDenseTickSeparation)
+        {
+            postprocessStopwatch.Stop();
+            preprocessStopwatch.Start();
+            IReadOnlyList<DenseTickCrop> candidates = DenseTickTextRegionRecovery.Select(
+                regions, request.XAxisTickStrokes, request.PlotBounds, cancellationToken);
+            OcrDetectedRegion[] denseRegions = candidates.Select(static candidate => candidate.Region).ToArray();
+            IReadOnlyList<IReadOnlyList<OcrCrop>> denseBatches;
+            try
+            {
+                ValidateDetectedRegions(detectedRegions.Concat(denseRegions).ToArray());
+                denseBatches = OcrCropBatcher.CreateBatches(request.OriginalImage, denseRegions,
+                    cropOptions with { HorizontalPaddingPixels = 0 }, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+            catch (Exception exception)
+            {
+                return FailureResult(request, Error("OCR_DENSE_TICK_CROP_FAILED", exception.Message, "retry"),
+                    totalStopwatch.Elapsed.TotalMilliseconds, warnings, regionFailures);
+            }
+            preprocessStopwatch.Stop();
+            var denseResults = new List<OcrRecognition>();
+            foreach (IReadOnlyList<OcrCrop> batch in denseBatches)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                try
+                {
+                    IReadOnlyList<OcrRecognition> recognized = await _recognizer.RecognizeBatchAsync(batch, cancellationToken)
+                        .ConfigureAwait(false);
+                    if (recognized.Count != batch.Count ||
+                        recognized.Any(static item => item.SourceImage != OcrSourceImage.Original) ||
+                        !recognized.Select(static item => item.RegionId).ToHashSet(StringComparer.Ordinal)
+                            .SetEquals(batch.Select(static item => item.RegionId)))
+                        throw new InvalidOperationException("Dense tick recognition identities differ from the crop batch.");
+                    denseResults.AddRange(recognized);
+                    inferenceMilliseconds += recognized.Sum(static result => result.InferenceMilliseconds);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+                catch (Exception exception)
+                {
+                    warnings.Add("ocr_recognition_batch_failed");
+                    denseResults.AddRange(batch.Select(crop => new OcrRecognition(crop.RegionId, crop.SourceImage, [], 0,
+                        Error("OCR_RECOGNITION_FAILED", exception.Message, "retry"))));
+                }
+            }
+            postprocessStopwatch.Start();
+            if (denseRegions.Length > 0)
+            {
+                IReadOnlyList<OcrRegion> separated = MergeResults(denseRegions, denseResults, request.PlotBounds, warnings);
+                string sourceId = candidates[0].SourceRegionId;
+                // Retain the original transcription for review, but do not fit its
+                // concatenated digits as one tick when crop readings are available.
+                if (separated.Count > 0)
+                    regions = OcrCollections.Freeze(regions.Select(region => region.RegionId == sourceId
+                        ? region with { Role = OcrTextRole.Other } : region).Concat(separated));
+                warnings.Add($"ocr_tick_sequence_needs_review:XTick:dense_region_separation:{sourceId}");
+                regionFailures = OcrCollections.Freeze(regionFailures.Concat(
+                    ExtractRegionFailures(denseResults, warnings, denseRegions, request.PlotBounds)));
+                recognitionResults.AddRange(denseResults);
+                detectedRegions = OcrCollections.Freeze(detectedRegions.Concat(denseRegions));
+                batches = batches.Concat(denseBatches).ToArray();
+                crops = batches.SelectMany(static batch => batch).ToArray();
+                cacheKey = OcrCacheKeyDeriver.Create(crops, _recognizer, request, _options,
+                    _detector.ConfigurationFingerprint);
+                recognitionCacheKey = OcrCacheKeyDeriver.CreateRecognition(
+                    crops, _recognizer, request.ContractVersion, request.TransformChain);
+                recognitionCacheHit = false;
+            }
         }
         ContainedTextFragmentResolution fragments = ContainedTextFragmentResolver.Resolve(regions, cancellationToken);
         regions = fragments.Regions;

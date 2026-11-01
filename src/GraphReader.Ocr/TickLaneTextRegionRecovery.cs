@@ -308,7 +308,7 @@ public static class TickLaneTextRegionRecovery
         static double? Finite(double value) => double.IsFinite(value) ? value : null;
     }
 
-    private static bool IsUsableXAxisTickStroke(OcrXAxisTickStroke stroke, OcrRectangle plot) =>
+    internal static bool IsUsableXAxisTickStroke(OcrXAxisTickStroke stroke, OcrRectangle plot) =>
         !string.IsNullOrWhiteSpace(stroke.TickId) && stroke.Center.IsFinite &&
         stroke.LineStart.IsFinite && stroke.LineEnd.IsFinite &&
         double.IsFinite(stroke.Confidence) && stroke.Confidence is > 0d and <= 1d &&

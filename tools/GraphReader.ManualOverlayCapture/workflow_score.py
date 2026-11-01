@@ -51,9 +51,12 @@ def main() -> None:
     parser.add_argument("--report-sha256", required=True)
     parser.add_argument("--runtime-sha256", required=True)
     parser.add_argument("--capture-version", choices=("v1", "v2"), default="v1")
+    parser.add_argument("--dense-experiment", action="store_true")
     args = parser.parse_args()
     manifest = checked_json(RUN / "original-raster-input-v1.json", INPUT_SHA)
-    workflow = checked_json(RUN / f"original-workflow-full-{args.capture_version}/report.json", args.report_sha256)
+    capture = (f"dense-workflow-full-{args.capture_version}" if args.dense_experiment
+               else f"original-workflow-full-{args.capture_version}")
+    workflow = checked_json(RUN / capture / "report.json", args.report_sha256)
     reference = checked_json(RUN / "original-capture-v3/report.json", REFERENCE_SHA)
     receipt = checked_json(ORIGINALS / "source-receipt.json", ORIGINAL_RECEIPT_SHA)
     plan = checked_json(PLAN, PLAN_SHA)
@@ -62,6 +65,7 @@ def main() -> None:
             manifest["receipt_sha256"] != ORIGINAL_RECEIPT_SHA or
             workflow["schema"] != "graphreader.manual-marker-workflow-capture.v1" or
             workflow["scope"] != "train-only-unapproved-candidate-not-acceptance" or
+            workflow.get("dense_tick_separation", False) is not args.dense_experiment or
             workflow["input_sha256"] != INPUT_SHA or workflow["runtime_description_sha256"] != args.runtime_sha256 or
             workflow["classifier_sha256"] != CLASSIFIER_SHA or workflow["smoke"] is not False or
             workflow["classification_requested"] is not True or workflow["truth_read"] is not False or
@@ -127,7 +131,8 @@ def main() -> None:
                               "Failed or missing panels retain their unique recorded-point denominator.",
                               "Marker-stage observations can exist even if the full workflow failed later.",
                               "This train diagnostic does not approve the candidate or establish release acceptance."]}
-    output = RUN / f"original-workflow-score-{args.capture_version}.json"
+    output = RUN / (f"dense-workflow-score-{args.capture_version}.json" if args.dense_experiment
+                    else f"original-workflow-score-{args.capture_version}.json")
     with output.open("x", encoding="utf-8", newline="\n") as stream:
         json.dump(result, stream, indent=2, sort_keys=True)
         stream.write("\n")

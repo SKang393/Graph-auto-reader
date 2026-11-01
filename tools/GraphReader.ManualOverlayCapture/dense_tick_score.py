@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -65,7 +66,72 @@ def score_rows(truth: list[dict], predictions: dict[str, str | None]) -> dict:
             "fully_visible_labels": visible, "fully_visible_exact": visible_exact}
 
 
+def match_integrated(inputs: list[dict], regions: list[dict]) -> dict[str, str | None]:
+    """Match the frozen windows to observed X ticks, allowing the one-pixel overlap trim."""
+    results: dict[str, str | None] = {}
+    used: set[int] = set()
+    for row in inputs:
+        if len(row["box_xyxy"]) != 4:
+            raise ValueError("invalid frozen crop bounds")
+        matches = [(index, region) for index, region in enumerate(regions) if region["role"] == "XTick" and
+                   all(abs(region["polygon"]["bounds"][key] - expected) <= 1
+                       for key, expected in zip(("left", "top", "right", "bottom"), row["box_xyxy"]))]
+        if row["id"] in results or len(matches) > 1 or matches and matches[0][0] in used:
+            raise ValueError("integrated crop identities are ambiguous")
+        if matches:
+            used.add(matches[0][0])
+        results[row["id"]] = matches[0][1]["text"] if matches else None
+    return results
+
+
+def score_integrated() -> None:
+    runtime = "732fb2289103d81223d466bebcc6cfe5295b0de9d3a695d3939f771e67f9839c"
+    captures = {
+        "internal_train_build": ("source-003", "dense-integrated-a-v3", "ff4feff3f672c719bee1d5ba22a7613684ce317ed00871027f931e6a0c1bf356"),
+        "internal_train_holdout": ("source-017", "dense-integrated-b-v3", "ebcf3351cbfc91e88f4c093d9ffc11f384d77ee85eeb9595e399da6421a6e529"),
+    }
+    totals = {}
+    for split, (source_id, directory, report_sha) in captures.items():
+        hashes = SPLITS[split]
+        inputs = checked_json(OUTPUT / f"dense-window-input-{split}-v1.json", hashes["input"])
+        truth = checked_json(OUTPUT / f"dense-window-truth-{split}-v1.json", hashes["truth"])
+        report = checked_json(RUN / directory / "report.json", report_sha)
+        if (inputs["source_split"] != split or truth["input_sha256"] != hashes["input"] or
+                {row["id"] for row in inputs["rows"]} != {row["id"] for row in truth["rows"]} or
+                report["schema"] != "graphreader.manual-marker-workflow-capture.v1" or
+                report["scope"] != "train-only-unapproved-candidate-not-acceptance" or
+                report["input_sha256"] != "b9044372d5d6b37257ef0e1823935eaed840b99f9dc5a66a2c5359a1b7beeba6" or
+                report["runtime_description_sha256"] != runtime or report["dense_tick_separation"] is not True or
+                report["truth_read"] is not False or report["optimizer_steps"] != 0 or
+                report["sealed_payload_reads"] != 0 or len(report["rows"]) != 1 or
+                report["rows"][0]["id"] != source_id or len(report["rows"][0]["panels"]) != 1):
+            raise ValueError("integrated report binding differs")
+        panel = report["rows"][0]["panels"][0]
+        if (not panel["marker_stage_reached"] or len(panel["ocr_dense_source_regions"]) != 1 or
+                not any("dense_region_separation:" in reason for reason in panel["calibration_reasons"])):
+            raise ValueError("integrated evidence or review warning is missing")
+        predictions = match_integrated(inputs["rows"], panel["ocr_tick_regions"])
+        totals[split] = {**score_rows(truth["rows"], predictions),
+                         "matched_geometry": sum(value is not None for value in predictions.values()),
+                         "calibration_validity": panel["calibration_validity"],
+                         "review_warning_retained": True}
+    result = {"schema": "graphreader.manual-integrated-dense-score.v1", "scope": "train-diagnostic-not-acceptance",
+              "runtime_description_sha256": runtime, "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+              "totals": totals, "limitations": ["Two previously inspected training images and assistant-reviewed labels.",
+              "One-pixel overlap trimming means one integrated crop differs from its frozen comparison window.",
+              "Does not measure whole-axis recall, false positives, or release acceptance."]}
+    blob = (json.dumps(result, sort_keys=True, indent=2) + "\n").encode()
+    with (OUTPUT / "dense-integrated-score-v2.json").open("xb") as stream:
+        stream.write(blob)
+    print(json.dumps({"totals": totals, "sha256": hashlib.sha256(blob).hexdigest()}))
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--integrated", action="store_true")
+    if parser.parse_args().integrated:
+        score_integrated()
+        return
     totals = {}
     for split, hashes in SPLITS.items():
         inputs = checked_json(OUTPUT / f"dense-window-input-{split}-v1.json", hashes["input"])

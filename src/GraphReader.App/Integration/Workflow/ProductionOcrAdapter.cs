@@ -212,7 +212,8 @@ public sealed partial class ProductionOcrAdapter :
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
         GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
         GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required,
-        int? detectorMaximumSideLength = null)
+        int? detectorMaximumSideLength = null,
+        bool denseTickSeparation = false)
     {
         ArgumentNullException.ThrowIfNull(pipelineFactory);
         pipeline = new Lazy<OcrPipeline>(
@@ -229,6 +230,12 @@ public sealed partial class ProductionOcrAdapter :
         if (detectorMaximumSideLength is not null)
         {
             compositionVersion += "-detector-max-1920";
+        }
+        if (denseTickSeparation)
+        {
+            if (configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate)
+                throw new InvalidOperationException("Dense tick separation is limited to unapproved frozen evaluation.");
+            compositionVersion += "-dense-tick-review-v1";
         }
         if (configurationScope == ProductionOcrConfigurationScope.ApprovedProduction &&
             (outputGeometry != GraphStructureConsensusGeometry.ModelPolygon ||
@@ -379,7 +386,8 @@ public sealed partial class ProductionOcrAdapter :
         ProductionInferenceRuntimeHost runtimeHost,
         string reviewedOpenCvRuntimeSha256,
         CancellationToken cancellationToken,
-        GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon)
+        GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
+        bool denseTickSeparation = false)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -431,7 +439,8 @@ public sealed partial class ProductionOcrAdapter :
                 reviewedOpenCvRuntimeSha256,
                 ProductionOcrConfigurationScope.UnapprovedFrozenCandidate,
                 cancellationToken,
-                outputGeometry)
+                outputGeometry,
+                denseTickSeparation: denseTickSeparation)
             .ConfigureAwait(false);
     }
 
@@ -447,9 +456,12 @@ public sealed partial class ProductionOcrAdapter :
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
         GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
         GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required,
-        int? detectorMaximumSideLength = null)
+        int? detectorMaximumSideLength = null,
+        bool denseTickSeparation = false)
     {
         RequireResolutionExperiment(detectorMaximumSideLength, configurationScope, outputGeometry, modelInput, admission);
+        if (denseTickSeparation && configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate)
+            throw new InvalidOperationException("Dense tick separation is limited to unapproved frozen evaluation.");
         LocalOnnxTextRegionDetectorOptions detectorOptions = ReadDetectionOptions(
             detectionModel,
             detectionManifestPath);
@@ -495,7 +507,7 @@ public sealed partial class ProductionOcrAdapter :
                     detector,
                     recognizer,
                     new MemoryOcrResultCache(),
-                    recognition.Pipeline);
+                    recognition.Pipeline with { EnableDenseTickSeparation = denseTickSeparation });
             },
             detectionModel,
             InferenceProvider.Cpu,
@@ -506,7 +518,8 @@ public sealed partial class ProductionOcrAdapter :
             outputGeometry,
             modelInput,
             admission,
-            detectorMaximumSideLength);
+            detectorMaximumSideLength,
+            denseTickSeparation);
     }
 
     private static void RequireResolutionExperiment(

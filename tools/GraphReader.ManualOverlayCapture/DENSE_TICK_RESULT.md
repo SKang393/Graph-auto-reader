@@ -59,3 +59,54 @@ was added. Release builds of both diagnostic tools, the decoder self-test,
 seven proposal/scoring unit tests, and pyflakes passed. Private manifests,
 images, labels, predictions, and review crops remain project-local and are not
 packaging inputs.
+
+## Review-required workflow experiment
+
+An opt-in, unapproved frozen-candidate composition now proposes crops at
+observed axis strokes inside a single wide numeric X-tick region. It requires
+repeated measured spacing and trims overlapping crop windows. It reads original
+pixels without horizontal padding, retains the original concatenated text as
+unreviewed `Other` evidence when crop readings are available, and adds an
+unresolved tick-review warning. It never supplies a missing digit. A failed or
+incomplete recognition batch retains the original region and does not cache a
+partial result. This path cannot be enabled by the approved production factory.
+
+On the same two previously inspected images the candidate reproduced all 19
+selected windows, with one window trimmed by one pixel. It read 17/19 labels
+exactly, including 17/18 fully visible labels. The labels remain
+assistant-reviewed rather than independently adjudicated. Both panels reached
+the marker stage but still failed calibration, and the separation review warning
+was present on both. One returned `NeedsReview`, the other
+`InvalidSessionOrigin`.
+
+On all 20 original training images, the candidate proposed separation on two
+of 21 panels. All 21 reached the marker stage, all 20 images failed automatic
+calibration, and no final workflow points were produced. Ten panels returned
+`InvalidSessionOrigin` and 11 returned `NeedsReview`; 20 also retained axis
+geometry review flags. On the 332 imperfect recorded points, the center and
+accepted-marker stages matched 250 and 207 respectively, identical to the
+earlier candidate run. All 21 center observations retained identical geometry
+and confidence. The other 19 panels retained the earlier calibration status and
+error message in the prior overlap-trimmed comparison. These point annotations
+cannot establish precision. The final run used CPU inference only, no training,
+and took about 2 minutes 36 seconds.
+
+| Integrated evidence | SHA-256 |
+| --- | --- |
+| Runtime description before and after | `732fb2289103d81223d466bebcc6cfe5295b0de9d3a695d3939f771e67f9839c` |
+| Build-image workflow report | `ff4feff3f672c719bee1d5ba22a7613684ce317ed00871027f931e6a0c1bf356` |
+| Holdout-image workflow report | `ebcf3351cbfc91e88f4c093d9ffc11f384d77ee85eeb9595e399da6421a6e529` |
+| Hash-checked crop comparison | `dc07543727473f6a2fe1ef799a3c85d353ca700a887e4251061db78215cc8053` |
+| Full 20-image workflow report | `99f88a13003e8b367f5f0b195864bd7507d92c81340fadc91d4f7551861b2a02` |
+| Full workflow point score | `bec9bfaffc7b970ebe42ed95bf9fac500921bcc1e7962ecf6946d979ffd42fe2` |
+
+Before the final guard against zero-length strokes, the complete solution run
+passed 2,391 tests, skipped 25, and failed none. After the guard, all ten
+focused dense-tick tests passed and the diagnostic rebuilt with no warnings or
+errors. The original workflow adapter already filters zero-length strokes;
+the additional guard protects direct OCR callers. Eleven diagnostic Python
+tests and pyflakes passed after the final scoring changes.
+
+These results do not establish complete tick detection, correct axis geometry,
+an approved OCR model, or product acceptance. The two source images were
+already inspected during development; neither is an independent release test.

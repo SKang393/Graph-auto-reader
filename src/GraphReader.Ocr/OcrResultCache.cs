@@ -113,6 +113,11 @@ public static class OcrCacheKeyDeriver
             yield return TickLaneTextRegionRecovery.CompositionVersion;
             yield return XAxisTickStrokeMaterial(request.XAxisTickStrokes);
         }
+        if (options.EnableDenseTickSeparation)
+        {
+            yield return DenseTickTextRegionRecovery.CompositionVersion;
+            yield return XAxisTickStrokeMaterial(request.XAxisTickStrokes);
+        }
         if (options.EnableHeaderGlyphRecovery)
         {
             yield return HeaderGlyphTextRegionRecovery.CompositionVersion;

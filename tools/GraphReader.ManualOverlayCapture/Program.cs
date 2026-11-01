@@ -43,6 +43,10 @@ internal static class Program
         "tools/GraphReader.ManualOverlayCapture/GraphReader.ManualOverlayCapture.csproj",
         "tools/GraphReader.ManualOverlayCapture/Program.cs",
         "tools/GraphReader.ManualOverlayCapture/prepare_input.py",
+        "src/GraphReader.Ocr/DenseTickTextRegionRecovery.cs",
+        "src/GraphReader.Ocr/OcrPipeline.cs",
+        "src/GraphReader.Ocr/OcrResultCache.cs",
+        "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs",
         "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBinding.cs",
         "tools/GraphReader.RealAcceptance.Ocr/NoPersistenceStageCache.cs",
         "tools/GraphReader.MarkerBoundInputTrainCapture/CandidateInterfaces.cs",
@@ -68,10 +72,16 @@ internal static class Program
             if (args.Length == 7 && args[0] == "--capture-workflow-one")
                 return await Capture(args[2], args[3], args[4], args[5], args[6],
                     workflow: true, smoke: false, onlyId: args[1]);
+            if (args.Length == 7 && args[0] == "--capture-dense-workflow-one")
+                return await Capture(args[2], args[3], args[4], args[5], args[6],
+                    workflow: true, smoke: false, onlyId: args[1], denseTickSeparation: true);
+            if (args.Length == 6 && args[0] == "--capture-dense-workflow")
+                return await Capture(args[1], args[2], args[3], args[4], args[5],
+                    workflow: true, smoke: false, denseTickSeparation: true);
             if (args.Length == 6 && args[0] is "--recognize-dense" or "--recognize-dense-standard")
                 return await RecognizeDenseTicks(args[1], args[2], args[3], args[4], args[5],
                     densePadding: args[0] == "--recognize-dense");
-            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard] <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard] <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
@@ -110,7 +120,7 @@ internal static class Program
     }
 
     private static async Task<int> Capture(string inputPath, string inputSha, string descriptionPath, string descriptionSha,
-        string outputName, bool workflow, bool smoke, string? onlyId = null)
+        string outputName, bool workflow, bool smoke, string? onlyId = null, bool denseTickSeparation = false)
     {
         using var classifierLocks = workflow ? new ClassifierInputLocks() : null;
         byte[] description = await ReadPinned(descriptionPath, descriptionSha, 1_000_000);
@@ -182,8 +192,10 @@ internal static class Program
             ProjectPath(model.Manifest.RelativePath), model.Manifest.Sha256);
         ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForFrozenCandidateEvaluationAsync(
             OcrDescriptor(detector), OcrDescriptor(recognizer), runtime, OpenCvSha, CancellationToken.None,
-            GraphStructureConsensusGeometry.ModelPolygon);
+            GraphStructureConsensusGeometry.ModelPolygon, denseTickSeparation);
         Require(!ocr.IsApproved && ocr.ConfigurationScope == "unapproved_frozen_candidate", "OCR approval scope differs.");
+        Require(ocr.AdapterId.Contains("dense-tick-review-v1", StringComparison.Ordinal) == denseTickSeparation,
+            "Dense candidate identity differs.");
         var markerDescriptor = new FrozenCandidateMarkerCenterModelDescriptor(
             new ModelIdentity(centerModel.ModelId, centerModel.Version, centerModel.Payload.Sha256, ProjectPath(centerModel.Payload.RelativePath)),
             ProjectPath(centerModel.Manifest.RelativePath), centerModel.Manifest.Sha256);
@@ -288,7 +300,8 @@ internal static class Program
                 scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
                 runtime_description_sha256 = descriptionSha, model_binding_sha256 = ModelBindingSha,
                 classifier_sha256 = ClassifierFiles[2].Sha, opencv_sha256 = OpenCvSha,
-                smoke = smoke || onlyId is not null, optimizer_steps = 0, training_approved = false, classification_requested = true,
+                smoke = smoke || onlyId is not null, dense_tick_separation = denseTickSeparation,
+                optimizer_steps = 0, training_approved = false, classification_requested = true,
                 truth_read = false, sealed_payload_reads = 0, rows = results }
             : new { schema = "graphreader.manual-marker-input-capture.v1",
                 scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
@@ -368,6 +381,11 @@ internal static class Program
                 .Select(region => new { role = region.Role.ToString(), region.Text, region.Confidence,
                     review_status = region.ReviewStatus.ToString(), region.Polygon,
                     alternatives = region.Alternatives.Select(item => new { item.Text, item.Confidence }).ToArray() })
+                .ToArray() : null,
+            ocr_dense_source_regions = captureTickDetails ? observation?.Ocr.Regions
+                .Where(region => region.Role == OcrTextRole.Other && GraphNumericParser.IsLiteralGraphNumber(region.Text) &&
+                    region.Text.Length >= 10 && region.Polygon.Bounds.Width > region.Polygon.Bounds.Height * 4)
+                .Select(region => new { region.RegionId, region.Text, region.Confidence, region.Polygon })
                 .ToArray() : null,
             centers_before_classification = observation?.MarkerPipeline.CentersBeforeClassification ?? [],
             classified_plot = observation?.MarkerPipeline.ClassifiedPlotMarkers.Select(item => new
