@@ -42,3 +42,24 @@ horizontal axis; moving the fixture away from the origin tested that distinction
 The diagnostic used CPU image processing, no optimizer steps, and no sealed
 payloads. Its private features and visual review remain project-local for the
 active structure-versus-text investigation.
+
+## Additional reviewed training boxes
+
+The same component probe was applied to 76 earlier assistant-selected label
+boxes from eight other training images, using their previously captured
+candidate axis geometry. All 76 were measurable. None shared a component with
+the selected vertical axis at either cutoff; four shared one with the horizontal
+axis. Together with the first 46 matched text proposals, this yields zero
+vertical connections among 122 reviewed text boxes in these exposed samples.
+
+This does not establish a safe exclusion rule. A synthetic fixture deliberately
+places label ink against an axis, and the same connectivity check flags it.
+Real labels can touch axes, and the current component test does not distinguish
+that case from a connected tick or marker. The study-partitioned development
+set and full automatic workflow have not yet validated this signal.
+
+The truth-blind feature report SHA-256 is
+`d890336d4c5fd5004a72cd6b208e17bc550c2407902c1a2925ceb0ddc88ff5e2`;
+the aggregate score is
+`1c1f84a2c951f49e17ab5063c72c94ddc22d4dbb292b1f159688607a5adc47bb`.
+The image and label-box inputs remain private project-local artifacts.

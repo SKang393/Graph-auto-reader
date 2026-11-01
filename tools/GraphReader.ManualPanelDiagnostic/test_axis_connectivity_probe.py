@@ -27,6 +27,13 @@ class AxisConnectivityTests(unittest.TestCase):
             connected_to_axes(np.zeros((10, 10), dtype=np.uint8), [-1, 0, 5, 5],
                               ((2, 8), (2, 1), (8, 8)), 128)
 
+    def test_label_ink_touching_an_axis_is_also_connected(self):
+        image = np.full((100, 100), 255, dtype=np.uint8)
+        image[10:91, 60] = 0
+        image[40:55, 58:61] = 0
+        self.assertTrue(connected_to_axes(image, [58, 40, 60, 55],
+                                          ((60, 90), (60, 10), (95, 90)), 128)[0])
+
     def test_scoring_keeps_unmeasured_cases_in_the_denominator(self):
         features = {"a": {"status": "measured", "dark_vertical": True, "dark_horizontal": False,
                           "faint_vertical": True, "faint_horizontal": True},
