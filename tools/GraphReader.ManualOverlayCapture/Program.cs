@@ -52,6 +52,7 @@ internal static partial class Program
         "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
         "src/GraphReader.App/Integration/Workflow/ProductionTickLabelGeometry.cs",
         "src/GraphReader.App/Integration/Workflow/ProductionAxisConnectedTextReview.cs",
+        "src/GraphReader.App/Integration/Workflow/ProductionAdjacentTickInkReview.cs",
         "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBinding.cs",
         "tools/GraphReader.RealAcceptance.Ocr/NoPersistenceStageCache.cs",
         "tools/GraphReader.MarkerBoundInputTrainCapture/CandidateInterfaces.cs",

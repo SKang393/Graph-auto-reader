@@ -929,6 +929,40 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
+    [DataRow(OcrReviewStatus.Unreviewed, true)]
+    [DataRow(OcrReviewStatus.Accepted, false)]
+    public async Task AdjacentInkNumericYReadingRequiresReviewUnlessConfirmed(OcrReviewStatus status, bool mustReject)
+    {
+        byte[] bytes = [4, 2, 8];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:adjacent-ink-tick.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "adjacent-ink-tick.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new AdjacentRasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(originalIsBlack: false, substitutedRole: OcrTextRole.YTick, substitutedText: "0",
+                substitutedReviewStatus: status), new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(),
+            new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+        if (mustReject)
+        {
+            ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+                () => adapter.DetectAsync(request, CancellationToken.None));
+            Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, failure.Failure.Code);
+            StringAssert.Contains(failure.Failure.TechnicalMessage,
+                "ocr_tick_sequence_needs_review:YTick:adjacent_ink:y0");
+            Assert.IsNull(store.Get(panelId).ExportEvidence);
+        }
+        else
+        {
+            await adapter.DetectAsync(request, CancellationToken.None);
+            Assert.IsNotNull(store.Get(panelId).ExportEvidence);
+        }
+    }
+
+    [TestMethod]
     [DataRow("ocr_tick_sequence_needs_review:XTick:ambiguous_or_irregular_spacing", true)]
     [DataRow("ocr_tick_sequence_needs_review:baseline_singleton_ambiguous:uncertain-region", true)]
     [DataRow("ocr_tick_sequence_needs_review:YTick:insufficient_unchanged_tick_anchors", true)]
@@ -1338,6 +1372,19 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             byte[] pixels = Enumerable.Repeat(byte.MaxValue, 10_000).ToArray();
             for (int y = 10; y <= 90; y++) pixels[(y * 100) + 10] = 0;
             for (int x = 1; x <= 10; x++) pixels[(80 * 100) + x] = 0;
+            return new ProductionDecodedRaster(100, 100, request.Image.Sha256, request.ImageVariant,
+                MarkerAffineTransform.Identity, OcrFrameTransform.Identity, 100, 100, pixels,
+                pixels.Select(static value => value / 255f).ToArray());
+        }
+    }
+
+    private sealed class AdjacentRasterDecoder : IProductionRasterFrameDecoder
+    {
+        public ProductionDecodedRaster Decode(ProductionWorkflowDetectionRequest request, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            byte[] pixels = Enumerable.Repeat(byte.MaxValue, 10_000).ToArray();
+            for (int y = 78; y < 86; y++) pixels[y * 100] = 0;
             return new ProductionDecodedRaster(100, 100, request.Image.Sha256, request.ImageVariant,
                 MarkerAffineTransform.Identity, OcrFrameTransform.Identity, 100, 100, pixels,
                 pixels.Select(static value => value / 255f).ToArray());

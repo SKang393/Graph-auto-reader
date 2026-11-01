@@ -193,6 +193,55 @@ public sealed class ProductionTickLabelGeometryTests
         Assert.IsFalse(result.Warnings.Any(static warning => warning.Contains("outlying_text_lane:near", StringComparison.Ordinal)));
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void AdjacentInkRequiresReviewForUnreviewedNumericTick(bool paddedStride)
+    {
+        OcrImage image = Image([], [], paddedStride);
+        byte[] pixels = image.Pixels.ToArray();
+        for (int y = 33; y <= 40; y++) for (int x = 2; x <= 3; x++) pixels[(y * image.Stride) + x] = 0;
+        OcrRegion label = YLabel("nearby-ink");
+        TickLabelGeometryResult result = ProductionTickLabelGeometry.Resolve(
+            Axis(), image with { Pixels = pixels }, [label], CancellationToken.None);
+        Assert.Contains("ocr_tick_sequence_needs_review:YTick:adjacent_ink:nearby-ink", result.Warnings);
+        Assert.AreEqual("20", label.Text);
+        TickLabelGeometryResult accepted = ProductionTickLabelGeometry.Resolve(
+            Axis(), image with { Pixels = pixels }, [label with { ReviewStatus = OcrReviewStatus.Accepted }], CancellationToken.None);
+        Assert.IsFalse(accepted.Warnings.Any(static warning => warning.Contains("adjacent_ink", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void IsolatedNoiseAndUniformBlackDoNotProvideAdjacentInkEvidence()
+    {
+        OcrImage image = Image([], []);
+        byte[] pixels = image.Pixels.ToArray();
+        pixels[(35 * image.Stride) + 3] = 0;
+        foreach (byte[] raster in new[] { pixels, new byte[image.Stride * image.Height] })
+        {
+            TickLabelGeometryResult result = ProductionTickLabelGeometry.Resolve(
+                Axis(), image with { Pixels = raster }, [YLabel("noise")], CancellationToken.None);
+            Assert.IsFalse(result.Warnings.Any(static warning => warning.Contains("adjacent_ink", StringComparison.Ordinal)));
+        }
+    }
+
+    [TestMethod]
+    public void AdjacentInkSearchRejectsDistantInkInvalidBoundsAndOversizedStrips()
+    {
+        OcrImage image = Image([], []);
+        byte[] pixels = image.Pixels.ToArray();
+        for (int y = 33; y <= 40; y++) pixels[(y * image.Stride) + 25] = 0;
+        Assert.IsFalse(ProductionAdjacentTickInkReview.HasAdjacentInk(
+            image with { Pixels = pixels }, new OcrRectangle(40, 31, 10, 12), CancellationToken.None));
+        Assert.IsFalse(ProductionAdjacentTickInkReview.HasAdjacentInk(
+            image, new OcrRectangle(-1, 31, 10, 12), CancellationToken.None));
+        Assert.ThrowsExactly<OperationCanceledException>(() => ProductionAdjacentTickInkReview.HasAdjacentInk(
+            image, new OcrRectangle(40, 31, 10, 12), new CancellationToken(canceled: true)));
+        var large = new OcrImage(1200, 1500, 1200, new byte[1200 * 1500], OcrSourceImage.Original, OcrFrameTransform.Identity);
+        Assert.IsFalse(ProductionAdjacentTickInkReview.HasAdjacentInk(
+            large, new OcrRectangle(1100, 0, 10, 1000), CancellationToken.None));
+    }
+
     private static OcrRegion XLabel(string id) => new(id,
         OcrPolygon.FromRectangle(new(42, 78, 4, 12)), "1", [], OcrTextRole.XTick,
         0.95, OcrSourceImage.Original, OcrReviewStatus.Unreviewed);

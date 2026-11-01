@@ -11,7 +11,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Associates OCR labels with unique outward tick strokes in original pixels.</summary>
 internal static class ProductionTickLabelGeometry
 {
-    internal const string Version = "original-pixel-tick-label-association-v3-lane-review";
+    internal const string Version = "original-pixel-tick-label-association-v4-adjacent-ink-review";
     private const double MaximumRelativeYTickLaneGap = 1.25d;
     private static readonly AxisGeometryOptions Options = new();
 
@@ -52,10 +52,12 @@ internal static class ProductionTickLabelGeometry
             OcrRectangle box = label.Polygon.Bounds;
             GeometryLineSegment line = vertical ? axis.YAxis.Line : axis.XAxis.Line;
             if (vertical && label.ReviewStatus == OcrReviewStatus.Unreviewed &&
-                GraphNumericParser.Parse(label.Text).IsSuccess &&
-                ProductionAxisConnectedTextReview.HasConnectedInk(image, box, line, cancellationToken))
+                GraphNumericParser.Parse(label.Text).IsSuccess)
             {
-                warnings.Add($"ocr_tick_sequence_needs_review:YTick:axis_connected_text:{label.RegionId}");
+                if (ProductionAxisConnectedTextReview.HasConnectedInk(image, box, line, cancellationToken))
+                    warnings.Add($"ocr_tick_sequence_needs_review:YTick:axis_connected_text:{label.RegionId}");
+                if (ProductionAdjacentTickInkReview.HasAdjacentInk(image, box, cancellationToken))
+                    warnings.Add($"ocr_tick_sequence_needs_review:YTick:adjacent_ink:{label.RegionId}");
             }
             double center = vertical ? box.Center.Y : box.Center.X;
             double radius = vertical ? box.Height : Math.Max(box.Width / 2, box.Height);
