@@ -78,6 +78,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
     {
         IReadOnlyList<WorkspaceTabViewModel> tabs = await base.OpenProjectAsync(path, cancellationToken)
             .ConfigureAwait(false);
+        LastAutomaticRun = null;
         _failedRestorePanelIds.Clear();
         foreach (WorkspaceTabViewModel tab in tabs)
         {
@@ -88,6 +89,37 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
         }
         RestoreProductionExportEvidence(tabs);
         return tabs;
+    }
+
+    internal IReadOnlyList<string> GetRetainedPipelineWarnings(WorkspaceTabViewModel tab)
+    {
+        if (!Guid.TryParse(tab.PanelId, out Guid panelId) ||
+            !Guid.TryParse(tab.SourceId, out Guid sourceId) ||
+            _failedRestorePanelIds.Contains(panelId) ||
+            !_panelStore.TryGet(panelId, out ProductionPanelEvidence? retained) ||
+            retained?.ExportEvidence is not { } evidence ||
+            retained.Panel.PanelId != panelId || retained.Panel.SourceId != sourceId)
+        {
+            return [];
+        }
+
+        PanelRecord? panel = CurrentProject.Panels.SingleOrDefault(item => item.PanelId.Value == panelId);
+        SourceReference? source = CurrentProject.Sources.SingleOrDefault(item => item.SourceId.Value == sourceId);
+        string retainedSourceSha = retained.RasterPanelSource?.Source.Image.Sha256 ??
+            retained.PdfPanelSource?.DocumentSha256 ?? retained.Panel.Original.Sha256;
+        if (panel is null || panel.SourceId.Value != sourceId || source is null ||
+            !string.Equals(source.Sha256, retainedSourceSha, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(tab.SourceSha256, source.Sha256, StringComparison.OrdinalIgnoreCase) ||
+            evidence.Provenance.Count == 0 || evidence.Provenance.Any(envelope =>
+                envelope.ProjectId != CurrentProject.ProjectId.Value || envelope.PanelId != panelId ||
+                (!string.Equals(envelope.InputSha256, retained.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase) &&
+                 !string.Equals(envelope.InputSha256, retained.Enhanced?.Sha256, StringComparison.OrdinalIgnoreCase))))
+        {
+            return [];
+        }
+
+        return evidence.Provenance.SelectMany(static envelope => envelope.Warnings)
+            .Distinct(StringComparer.Ordinal).ToArray();
     }
 
     protected override void PrepareProjectForSave()
@@ -261,7 +293,10 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                 }
 
                 ValidateCurrentProductionExportEvidence(CurrentProject, panel, retained, exportEvidence);
-                _panelStore.Register(retained);
+                // The receipt and reimported source above bind this evidence to the
+                // opened project. Replace a prior session's potentially different
+                // representation only after all of those checks have succeeded.
+                _panelStore.RegisterValidatedReopenedPanel(retained);
                 _panelStore.SetExportEvidence(panel.PanelId.Value, exportEvidence);
                 _failedRestorePanelIds.Remove(panel.PanelId.Value);
             }

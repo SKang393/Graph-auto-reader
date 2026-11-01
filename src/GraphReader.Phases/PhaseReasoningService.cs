@@ -93,6 +93,8 @@ public sealed class PhaseReasoningService : IPhaseReasoningService
             .OrderBy(static divider => divider.OriginalX)
             .ThenBy(static divider => divider.DividerId, StringComparer.Ordinal)
             .ToArray();
+        if (orderedDividers.Any(divider => HasWideDividerCluster(request, divider)))
+            warnings.Add("phase_divider_wide_cluster_needs_review");
         PhaseRegion[] phases = ResolvePhases(request, orderedDividers, warnings, cancellationToken);
         PhasePointAssignment[] assignments = AssignPoints(request.Points, phases, cancellationToken);
         PhaseSeriesRelation[] relations = ResolveSeriesRelations(request.Series, warnings, cancellationToken);
@@ -122,6 +124,24 @@ public sealed class PhaseReasoningService : IPhaseReasoningService
             OverallConfidence(orderedDividers, phases),
             warnings,
             null));
+    }
+
+    private static bool HasWideDividerCluster(PhaseReasoningRequest request, PhaseDivider divider)
+    {
+        if (divider.Source == PhaseEvidenceSource.Manual || divider.SegmentIds.Count < 2) return false;
+        HashSet<string> memberIds = divider.SegmentIds.ToHashSet(StringComparer.Ordinal);
+        if (divider.SourcePanelIds.Contains(request.PanelId, StringComparer.Ordinal) &&
+            IsWide(request.Segments, memberIds, request.Options.DividerClusterTolerancePixels)) return true;
+        return request.AlignedPanels.Any(panel => divider.SourcePanelIds.Contains(panel.PanelId, StringComparer.Ordinal) &&
+            IsWide(panel.Segments, memberIds, request.Options.DividerClusterTolerancePixels));
+
+        static bool IsWide(IReadOnlyList<PhaseDividerSegment> segments, HashSet<string> ids, double tolerance)
+        {
+            double[] locations = segments.Where(segment => ids.Contains(segment.SegmentId))
+                .Select(static segment => (segment.Start.X + segment.End.X) / 2)
+                .ToArray();
+            return locations.Length >= 2 && locations.Max() - locations.Min() > tolerance;
+        }
     }
 
     private static PhaseRegion[] ResolvePhases(

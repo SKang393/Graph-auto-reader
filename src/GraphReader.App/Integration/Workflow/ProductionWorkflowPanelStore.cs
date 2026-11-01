@@ -400,6 +400,12 @@ public sealed class ProductionWorkflowPanelStore
 
     public IReadOnlyList<Guid> PanelIds => panels.Keys.Order().ToArray();
 
+    internal void RegisterValidatedReopenedPanel(ProductionPanelEvidence evidence)
+    {
+        ArgumentNullException.ThrowIfNull(evidence);
+        panels[evidence.Panel.PanelId] = evidence;
+    }
+
     public ProductionPanelEvidence Get(Guid panelId) =>
         panels.TryGetValue(panelId, out ProductionPanelEvidence? evidence)
             ? evidence

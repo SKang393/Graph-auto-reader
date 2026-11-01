@@ -495,6 +495,7 @@ internal static partial class Program
             }).ToArray() ?? [],
             text_excluded_marker_ids = observation?.MarkerPipeline.TextExcludedMarkerIds ?? [],
             markers = observation?.AcceptedMarkers.Select(item => item.Marker).ToArray() ?? [],
+            workflow_warnings = batch?.Warnings ?? [],
             workflow_points = batch?.Candidates.Select(item => new
             {
                 x = item.OriginalPixelX, y = item.OriginalPixelY, item.GraphX, item.GraphY,

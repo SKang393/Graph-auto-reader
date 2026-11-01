@@ -175,6 +175,23 @@ public sealed class PhaseDividerDetectorTests
     }
 
     [TestMethod]
+    public void DetectorDoesNotReturnDividerCentersCloserThanItsClusterTolerance()
+    {
+        var options = new PhaseReasoningOptions { DividerClusterTolerancePixels = 3 };
+        IReadOnlyList<PhaseDivider> dividers = new PhaseDividerDetector().Detect(
+            PhaseTestFixture.Request(segments:
+            [
+                PhaseTestFixture.Segment("first", 100),
+                PhaseTestFixture.Segment("second", 102.5),
+                PhaseTestFixture.Segment("third", 103.5),
+            ], options: options), CancellationToken.None);
+
+        Assert.IsTrue(dividers.Zip(dividers.Skip(1), (left, right) =>
+            right.OriginalX - left.OriginalX >= options.DividerClusterTolerancePixels).All(static valid => valid),
+            "The detector returned divider centers that its own phase service rejects as too close.");
+    }
+
+    [TestMethod]
     public void DetectHonorsCancellation()
     {
         using var cancellation = new CancellationTokenSource();

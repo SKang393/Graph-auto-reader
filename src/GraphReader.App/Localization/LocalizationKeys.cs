@@ -279,6 +279,7 @@ public static class LocalizationKeys
     public const string ReviewPipelineWarningTitle = "Review.PipelineWarning.Title";
     public const string ReviewPipelineWarningInterpretation = "Review.PipelineWarning.Interpretation";
     public const string ReviewPipelineWarningAction = "Review.PipelineWarning.Action";
+    public const string ReviewPhaseDividerClusterInterpretation = "Review.PhaseDividerCluster.Interpretation";
     public const string ExportPreviewTitle = "ExportPreview.Title";
     public const string ExportPreviewPoints = "ExportPreview.Points";
     public const string ExportPreviewSeries = "ExportPreview.Series";
@@ -554,6 +555,7 @@ public static class LocalizationKeys
         ReviewPipelineWarningTitle,
         ReviewPipelineWarningInterpretation,
         ReviewPipelineWarningAction,
+        ReviewPhaseDividerClusterInterpretation,
         ExportPreviewTitle,
         ExportPreviewPoints,
         ExportPreviewSeries,

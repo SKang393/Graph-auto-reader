@@ -316,7 +316,7 @@ public sealed class CalmPrecisionStateTests
                     .GetResult();
                 WorkspaceTabViewModel analyzedTab = tabs[0];
                 WorkspaceTabViewModel otherTab = tabs[1];
-                WorkflowRunResult run = CreateWarningRun(analyzedTab);
+                WorkflowRunResult run = CreateWarningRun(analyzedTab, projectId: workspace.CurrentProject.ProjectId.Value);
                 PropertyInfo lastRunProperty = typeof(ProductionWorkspaceService).GetProperty(
                     nameof(ProductionWorkspaceService.LastAutomaticRun)) ??
                     throw new InvalidOperationException("LastAutomaticRun property is unavailable.");
@@ -335,6 +335,84 @@ public sealed class CalmPrecisionStateTests
                 Assert.DoesNotContain("private", warning.Interpretation);
                 Assert.IsNotNull(warning.TechnicalMessage);
                 Assert.Contains("private", warning.TechnicalMessage!);
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void WidePhaseClusterWarningExplainsTheReviewNeeded()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graph-reader-phase-warning-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                string imagePath = Path.Combine(root, "source.png");
+                WriteImage(imagePath, 160, 120);
+                var workspace = new ProductionWorkspaceService();
+                WorkspaceTabViewModel tab = workspace.ImportImagesAsync([imagePath], CancellationToken.None)
+                    .GetAwaiter().GetResult().Single();
+                WorkflowRunResult run = CreateWarningRun(tab, "phase_divider_wide_cluster_needs_review",
+                    workspace.CurrentProject.ProjectId.Value);
+                PropertyInfo lastRunProperty = typeof(ProductionWorkspaceService).GetProperty(
+                    nameof(ProductionWorkspaceService.LastAutomaticRun)) ??
+                    throw new InvalidOperationException("LastAutomaticRun property is unavailable.");
+                lastRunProperty.SetValue(workspace, run);
+                var localization = new GraphReader.App.Localization.LocalizationService(new System.Windows.ResourceDictionary());
+                using var viewModel = new MainWindowViewModel(workspace, localization);
+
+                ReviewIssueViewModel warning = viewModel.ReviewIssues.Single(
+                    static issue => issue.Kind == ReviewIssueKind.PipelineWarning);
+                Assert.AreEqual("Nearby phase lines were grouped. Check whether they mark one boundary or several.",
+                    warning.Interpretation);
+                Assert.AreEqual(ReviewIssueSeverity.Warning, warning.Severity);
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void RetainedPhaseWarningIsShownWithoutAnInMemoryRun()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graph-reader-retained-warning-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                string imagePath = Path.Combine(root, "source.png");
+                WriteImage(imagePath, 160, 120);
+                var store = new ProductionWorkflowPanelStore();
+                var workspace = new ProductionWorkspaceService(panelStore: store);
+                WorkspaceTabViewModel tab = workspace.ImportImagesAsync([imagePath], CancellationToken.None)
+                    .GetAwaiter().GetResult().Single();
+                WorkflowReviewPanel panel = CreateWarningRun(tab).Review.Panels.Single();
+                store.Register(new ProductionPanelEvidence(panel.PreparedPanel.ImportedPanel,
+                    WorkflowSourceKind.Image, File.ReadAllBytes(imagePath)));
+                var envelope = new WorkflowVisionEnvelope(1, Guid.NewGuid(),
+                    workspace.CurrentProject.ProjectId.Value, panel.PanelId, "phases", "1",
+                    panel.PreparedPanel.Original.Sha256, null, new WorkflowVisionTiming(0, 0, 0, 0), 1,
+                    warnings: ["phase_divider_wide_cluster_needs_review"]);
+                store.SetExportEvidence(panel.PanelId, new ProductionPanelExportEvidence(
+                    new GraphReader.Export.ExportCalibration(GraphReader.Export.ExportCalibrationStatus.Valid,
+                        true, true, true, 1, 1), [], [], [], [], [envelope]));
+                var localization = new GraphReader.App.Localization.LocalizationService(new System.Windows.ResourceDictionary());
+                using var viewModel = new MainWindowViewModel(workspace, localization);
+
+                Assert.IsNull(workspace.LastAutomaticRun);
+                ReviewIssueViewModel warning = viewModel.ReviewIssues.Single(
+                    static issue => issue.Kind == ReviewIssueKind.PipelineWarning);
+                Assert.AreEqual("Nearby phase lines were grouped. Check whether they mark one boundary or several.",
+                    warning.Interpretation);
+                Assert.AreEqual(ReviewIssueSeverity.Warning, warning.Severity);
             });
         }
         finally
@@ -583,7 +661,8 @@ public sealed class CalmPrecisionStateTests
         new GraphReader.Axis.LinearAxisTransform(-10d / 9d, 1000d / 9d),
         Confidence: 1);
 
-    private static WorkflowRunResult CreateWarningRun(WorkspaceTabViewModel tab)
+    private static WorkflowRunResult CreateWarningRun(WorkspaceTabViewModel tab,
+        string warning = "C:\\private\\models\\axis.onnx requires review.", Guid? projectId = null)
     {
         var original = new WorkflowImageEvidence(
             tab.SourcePath ?? throw new InvalidOperationException("Source path is required."),
@@ -601,9 +680,9 @@ public sealed class CalmPrecisionStateTests
         return new WorkflowRunResult(
             Guid.NewGuid(),
             new WorkflowReviewState(
-                Guid.NewGuid(),
+                projectId ?? Guid.NewGuid(),
                 [reviewPanel],
-                warnings: ["C:\\private\\models\\axis.onnx requires review."]),
+                warnings: [warning]),
             []);
     }
 

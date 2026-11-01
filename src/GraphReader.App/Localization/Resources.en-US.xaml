@@ -287,6 +287,7 @@
   <sys:String x:Key="Review.PipelineWarning.Title">Analysis warning</sys:String>
   <sys:String x:Key="Review.PipelineWarning.Interpretation">Automatic analysis reported evidence that requires review.</sys:String>
   <sys:String x:Key="Review.PipelineWarning.Action">Inspect the graph and related detections before export.</sys:String>
+  <sys:String x:Key="Review.PhaseDividerCluster.Interpretation">Nearby phase lines were grouped. Check whether they mark one boundary or several.</sys:String>
 
   <sys:String x:Key="ExportPreview.Title">Export preview</sys:String>
   <sys:String x:Key="ExportPreview.Points">Points</sys:String>

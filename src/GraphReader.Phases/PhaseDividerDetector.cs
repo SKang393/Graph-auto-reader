@@ -106,19 +106,24 @@ public sealed class PhaseDividerDetector : IPhaseDividerDetector
 
         List<List<SegmentEvidence>> clusters = [];
         List<SegmentEvidence>? current = null;
-        double clusterMinimumX = 0;
+        double clusterWeightedX = 0;
+        double clusterWeight = 0;
 
         foreach (SegmentEvidence candidate in candidates)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (current is null || candidate.X - clusterMinimumX > options.DividerClusterTolerancePixels)
+            if (current is null || candidate.X - (clusterWeight > 0 ? clusterWeightedX / clusterWeight : current[0].X) >
+                options.DividerClusterTolerancePixels)
             {
                 current = [];
                 clusters.Add(current);
-                clusterMinimumX = candidate.X;
+                clusterWeightedX = 0;
+                clusterWeight = 0;
             }
 
             current.Add(candidate);
+            clusterWeightedX += candidate.X * candidate.Weight;
+            clusterWeight += candidate.Weight;
         }
 
         List<DetectedDivider> dividers = [];

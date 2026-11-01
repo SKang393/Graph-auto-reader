@@ -2116,15 +2116,22 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private PipelineWarningPresentation[] ResolvePipelineWarnings(WorkspaceTabViewModel tab)
     {
         string panelIdText = tab.PanelId ?? tab.TabId;
-        return _workspaceService is IAutomaticWorkspaceService { LastAutomaticRun: { } run } &&
+        IEnumerable<string> warnings = _workspaceService is IAutomaticWorkspaceService { LastAutomaticRun: { } run } &&
+            _manualWorkspaceService is not null &&
+            run.Review.ProjectId == _manualWorkspaceService.CurrentProject.ProjectId.Value &&
             Guid.TryParse(panelIdText, out Guid panelId) &&
             run.Review.Panels.Any(panel => panel.PanelId == panelId)
                 ? run.Review.Warnings
-                    .Select(static warning => new PipelineWarningPresentation(
-                        LocalizationKeys.ReviewPipelineWarningInterpretation,
-                        warning))
-                    .ToArray()
                 : [];
+        if (_workspaceService is ProductionWorkspaceService production)
+            warnings = warnings.Concat(production.GetRetainedPipelineWarnings(tab));
+        return warnings.Distinct(StringComparer.Ordinal)
+            .Select(static warning => new PipelineWarningPresentation(
+                string.Equals(warning, "phase_divider_wide_cluster_needs_review", StringComparison.Ordinal)
+                    ? LocalizationKeys.ReviewPhaseDividerClusterInterpretation
+                    : LocalizationKeys.ReviewPipelineWarningInterpretation,
+                warning))
+            .ToArray();
     }
 
     private static string SymbolFor(MarkerShape shape, MarkerFill fill) => (shape, fill) switch

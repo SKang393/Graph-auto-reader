@@ -3080,6 +3080,49 @@ public sealed class ProductionWorkflowStagesTests
     }
 
     [TestMethod]
+    public async Task ProductionWarningsSurviveReopenAndStayWithTheirPanel()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = await WriteSourceAsync(directory.Path);
+        string otherPath = Path.Combine(directory.Path, "other.png");
+        File.Copy(imagePath, otherPath);
+        string projectPath = Path.Combine(directory.Path, "warning-reopen.garproj");
+        var store = new ProductionWorkflowPanelStore();
+        WorkflowRunResult? nextResult = null;
+        var workspace = new ProductionWorkspaceService(
+            automaticStages: ApprovedAutomaticStages(),
+            automaticWorkflow: (_, _) => Task.FromResult(nextResult!),
+            panelStore: store);
+        WorkspaceTabViewModel[] tabs =
+            (await workspace.ImportImagesAsync([imagePath, otherPath], CancellationToken.None)).ToArray();
+        Assert.HasCount(2, tabs);
+        SeedManualReviewState(workspace, tabs[0]);
+        Guid runId = Guid.NewGuid();
+        const string warning = "phase_divider_wide_cluster_needs_review";
+        WorkflowReviewPanel panel = await CreateExactReviewPanelAsync(
+            workspace, tabs[0], imagePath, store, retainProjection: true,
+            runId: runId, includeProvenance: true, warning: warning);
+        nextResult = new WorkflowRunResult(runId,
+            new WorkflowReviewState(workspace.CurrentProject.ProjectId.Value, [panel], warnings: [warning]), []);
+        await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        CollectionAssert.AreEqual(new[] { warning }, workspace.GetRetainedPipelineWarnings(tabs[0]).ToArray(),
+            "The warning should be available before saving.");
+        DomainResult<ProjectSaveReceipt> saved = await workspace.SaveProjectAsync(projectPath, CancellationToken.None);
+        Assert.IsTrue(saved.IsSuccess, string.Join(" | ", saved.Errors.Select(static error => error.TechnicalMessage)));
+        JsonElement receipt = workspace.CurrentProject.Panels.Single(item => item.PanelId.Value == panel.PanelId)
+            .Validation!.Value.GetProperty("graphreader_production_export_evidence");
+        Assert.IsTrue(receipt.TryGetProperty("export_evidence", out _), receipt.GetRawText());
+
+        WorkspaceTabViewModel[] reopened = (await workspace.OpenProjectAsync(projectPath, CancellationToken.None)).ToArray();
+
+        Assert.IsNull(workspace.LastAutomaticRun, "Reopening must not retain the previous in-memory run.");
+        WorkspaceTabViewModel analyzed = reopened.Single(item => item.PanelId == tabs[0].PanelId);
+        WorkspaceTabViewModel other = reopened.Single(item => item.PanelId == tabs[1].PanelId);
+        CollectionAssert.AreEqual(new[] { warning }, workspace.GetRetainedPipelineWarnings(analyzed).ToArray());
+        Assert.IsEmpty(workspace.GetRetainedPipelineWarnings(other));
+    }
+
+    [TestMethod]
     public async Task ApprovedAutomaticRerunPreservesDeleteMoveAddAndReassignAfterReopen()
     {
         using var directory = new TemporaryDirectory();
@@ -3484,7 +3527,8 @@ public sealed class ProductionWorkflowStagesTests
         bool retainProjection,
         Guid? runId = null,
         bool includeProvenance = false,
-        IPdfImportService? pdfImportService = null)
+        IPdfImportService? pdfImportService = null,
+        string? warning = null)
     {
         PanelRecord panel = workspace.CurrentProject.Panels.Single(candidate =>
             string.Equals(candidate.PanelId.Value.ToString("D"), tab.PanelId, StringComparison.OrdinalIgnoreCase));
@@ -3549,7 +3593,8 @@ public sealed class ProductionWorkflowStagesTests
                 inputSha256: imported.Original.Sha256,
                 model: new WorkflowVisionModel("synthetic-marker-fixture", "1", new string('c', 64), "cpu"),
                 timing: new WorkflowVisionTiming(0, 0, 0, 0),
-                confidence: 1)]
+                confidence: 1,
+                warnings: warning is null ? [] : [warning])]
             : [];
 
         if (retainProjection)

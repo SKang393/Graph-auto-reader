@@ -9,6 +9,52 @@ namespace GraphReader.Phases.Tests;
 public sealed class PhaseReasoningServiceTests
 {
     [TestMethod]
+    public async Task WideDividerClusterRequestsReviewWithoutLosingSegmentEvidence()
+    {
+        PhaseReasoningResult result = await PhaseTestFixture.ResolveAsync(PhaseTestFixture.Request(
+            segments:
+            [
+                PhaseTestFixture.Segment("first", 100),
+                PhaseTestFixture.Segment("second", 102.5),
+                PhaseTestFixture.Segment("third", 103.5),
+                PhaseTestFixture.Segment("separate", 150),
+            ], options: new PhaseReasoningOptions { DividerClusterTolerancePixels = 3 }));
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.HasCount(2, result.Payload.Dividers);
+        string[] expectedSegmentIds = ["first", "second", "third"];
+        CollectionAssert.AreEquivalent(expectedSegmentIds, result.Payload.Dividers[0].SegmentIds.ToArray());
+        CollectionAssert.Contains(result.Warnings.ToArray(), "phase_divider_wide_cluster_needs_review");
+    }
+
+    [TestMethod]
+    public async Task NarrowDividerClusterDoesNotAddWideClusterWarning()
+    {
+        PhaseReasoningResult result = await PhaseTestFixture.ResolveAsync(PhaseTestFixture.Request(
+            segments: [PhaseTestFixture.Segment("first", 100), PhaseTestFixture.Segment("second", 101)]));
+
+        Assert.IsTrue(result.Succeeded);
+        CollectionAssert.DoesNotContain(result.Warnings.ToArray(), "phase_divider_wide_cluster_needs_review");
+    }
+
+    [TestMethod]
+    public async Task WideClusterFromAlignedPanelAlsoRequestsReview()
+    {
+        var peer = new PhasePanelEvidence(PhaseTestFixture.PeerPanelId, PhaseTestFixture.PlotBounds,
+        [
+            PhaseTestFixture.Segment("first", 100, panelId: PhaseTestFixture.PeerPanelId),
+            PhaseTestFixture.Segment("second", 102.5, panelId: PhaseTestFixture.PeerPanelId),
+            PhaseTestFixture.Segment("third", 103.5, panelId: PhaseTestFixture.PeerPanelId),
+        ], [], shareDividersWithTarget: true);
+        PhaseReasoningResult result = await PhaseTestFixture.ResolveAsync(PhaseTestFixture.Request(alignedPanels: [peer]));
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.HasCount(1, result.Payload.Dividers);
+        Assert.AreEqual(PhaseEvidenceSource.CrossPanel, result.Payload.Dividers[0].Source);
+        CollectionAssert.Contains(result.Warnings.ToArray(), "phase_divider_wide_cluster_needs_review");
+    }
+
+    [TestMethod]
     public async Task MissingHeadingsDefaultsFirstTwoRegionsToAb()
     {
         PhaseReasoningResult result = await PhaseTestFixture.ResolveAsync(
