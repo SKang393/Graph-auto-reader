@@ -46,11 +46,16 @@ public sealed class RuntimePathBootstrapper
             string executableDirectory = _environment.ExecutableDirectory;
             string localApplicationDataRoot = _environment.LocalApplicationDataRoot;
             ArgumentException.ThrowIfNullOrWhiteSpace(executableDirectory);
-            ArgumentException.ThrowIfNullOrWhiteSpace(localApplicationDataRoot);
 
-            paths = ApplicationPaths.Create(
+            ApplicationPaths resolvedPaths = ApplicationPaths.Create(
                 executableDirectory,
                 localApplicationDataRoot);
+            if (resolvedPaths.Mode == DistributionMode.Installed)
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(localApplicationDataRoot);
+            }
+
+            paths = resolvedPaths;
 
             if (paths.Mode == DistributionMode.Portable &&
                 !string.IsNullOrWhiteSpace(_environment.DevelopmentPortableDataRoot))

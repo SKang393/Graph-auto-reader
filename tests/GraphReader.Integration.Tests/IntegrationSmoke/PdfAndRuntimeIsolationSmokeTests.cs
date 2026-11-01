@@ -93,6 +93,44 @@ public sealed class PdfAndRuntimeIsolationSmokeTests
     }
 
     [TestMethod]
+    public void PortableModeInitializesWhenLocalApplicationDataIsUnavailable()
+    {
+        using var environment = new IntegrationSmokeTestEnvironment();
+        string executableRoot = environment.PathFor("portable without LocalAppData");
+        Directory.CreateDirectory(executableRoot);
+        File.WriteAllText(Path.Combine(executableRoot, "portable.mode"), string.Empty);
+        var access = new RecordingDirectoryAccess();
+        var bootstrapper = new RuntimePathBootstrapper(
+            new RecordedRuntimeEnvironment(executableRoot, string.Empty),
+            access);
+
+        DomainResult<IApplicationPaths> initialized = bootstrapper.Initialize();
+
+        Assert.IsTrue(initialized.IsSuccess, Format(initialized.Errors));
+        Assert.AreEqual(DistributionMode.Portable, initialized.Value!.Mode);
+        Assert.AreEqual(5, access.Paths.Count);
+        Assert.IsTrue(access.Paths.All(path => IsUnder(path, Path.Combine(executableRoot, "Data"))));
+    }
+
+    [TestMethod]
+    public void InstalledModeStillRejectsUnavailableLocalApplicationData()
+    {
+        using var environment = new IntegrationSmokeTestEnvironment();
+        string executableRoot = environment.PathFor("installed without LocalAppData");
+        Directory.CreateDirectory(executableRoot);
+        var access = new RecordingDirectoryAccess();
+        var bootstrapper = new RuntimePathBootstrapper(
+            new RecordedRuntimeEnvironment(executableRoot, string.Empty),
+            access);
+
+        DomainResult<IApplicationPaths> initialized = bootstrapper.Initialize();
+
+        Assert.IsFalse(initialized.IsSuccess);
+        Assert.AreEqual("APPLICATION_PATHS_UNAVAILABLE", initialized.Errors.Single().Code);
+        Assert.AreEqual(0, access.Paths.Count);
+    }
+
+    [TestMethod]
     public void DevelopmentDataOverrideIsAcceptedOnlyInPortableMode()
     {
         using var environment = new IntegrationSmokeTestEnvironment();
