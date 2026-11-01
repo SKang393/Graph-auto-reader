@@ -3,7 +3,7 @@
 
 import unittest
 
-from raw_confidence_score import categories
+from raw_confidence_score import categories, transition
 
 
 class ConfidenceCategoryTests(unittest.TestCase):
@@ -13,6 +13,13 @@ class ConfidenceCategoryTests(unittest.TestCase):
         self.assertEqual("at_or_above_threshold_no_final_nearby", categories(0.1, False))
         with self.assertRaises(ValueError):
             categories(float("nan"), False)
+
+    def test_ablation_counts_only_crossings_of_the_existing_threshold(self):
+        self.assertEqual("crossed_up", transition(0.09, 0.1))
+        self.assertEqual("crossed_down", transition(0.1, 0.09))
+        self.assertEqual("unchanged_side", transition(0.2, 0.5))
+        with self.assertRaises(ValueError):
+            transition(0.1, float("nan"))
 
 
 if __name__ == "__main__":

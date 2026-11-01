@@ -78,9 +78,36 @@ centers. The patch extractor matches the C# runtime on the synthetic fixture
 described above; these counts remain preliminary diagnostics, not causal
 attribution.
 
+As a counterfactual, the same raw model was evaluated with only the artifact
+channel zeroed. Across 267 eligible points, 14 crossed upward and two crossed
+downward at the fixed 0.1 threshold. Eight of the upward crossings had no
+nearby final center and had artifact-mask content in their input patches. This
+does not test postprocessing or false positives and does not justify removing
+the artifact mask from the workflow.
+
 The 20 images yielded 29 build patches and 14 holdout patches near the injected
 shapes. They are not independent real-marker observations, and the smoke
 holdout is especially small. No candidate was selected or trained from them.
+
+## Full controlled-overlay result
+
+All 200 images completed with no reported capture failures; all 200 saved
+frames had nonzero OCR and artifact masks. The candidate detected a center
+within five pixels of 58/100 injected markers and 5/100 injected distractors.
+The build split was 45/75 markers and 3/75 distractors; the five-group internal
+holdout was 13/25 and 2/25. These are controlled, modified patches, not
+full-image precision or independent release acceptance. The 100 marker examples
+repeat five shapes across only 20 source groups. Seven groups detected none of
+their five marker overlays, and nine detected all five, suggesting that
+graph-level geometry or proposal filtering merits further investigation.
+
+All 20 images repeated from the smoke run reproduced the same panel hash,
+compressed frame hash, and marker coordinates, radii and confidences. The
+runtime description also remained byte-identical after the full capture. The
+diagnostic patch extraction produced 290 build patches from 15 groups and 140
+holdout patches from five groups. Those patches remain unapproved for training:
+plot-domain membership and a bounded GPU training/evaluation protocol are not
+yet established.
 
 | Private input or result | SHA-256 |
 | --- | --- |
@@ -90,13 +117,15 @@ holdout is especially small. No candidate was selected or trained from them.
 | Smoke capture report | `7676aa3b8dc3e8c171d8db3fb19841c12d769cd68a4b00212d7ce16e9e53896e` |
 | Controlled-overlay score | `be153a477f1a71fff2c38febbfff508368159bf1722839434a233dc9b02c34a9` |
 | Native recorded-point score | `7773a19d4a345b58fddcd45e9be040112648d6e4d272b7b0641021d9fa24240a` |
-| Local-confidence diagnostic | `d635bd642967408fe122ba694e5ed72d914ee983111d3149a3704a142aa71b92` |
+| Local-confidence and mask-ablation diagnostic | `ba3aa2765ac6ded025c6c871d354544bad2a285270c4c2088481d495346d989d` |
 | Smoke patch report | `b205b49df0bf512b97109e936453103d993980ebd14ae7b3268efbf8bcfab194` |
+| Full capture report | `860ae730a4e5409335b28b9236952b9ca0ed166313d3ea9e5c73538864f46068` |
+| Full controlled-overlay score | `ac02af58fb6fe1d79e07693e7c6fbe29eb750ccdd4307adc11cbafbb605643f4` |
+| Full patch report | `9b91b7fd1fe791c0584bbd91559670e3adeaa8e068c7844a7d272bb568420ef2` |
 
-The full 200-image capture is an active downstream consumer of the current
-runtime and private inputs. The frames, input manifests, scores, and temporary
-review crops remain project-local until the marker-input comparison and its
-candidate follow-up finish; they are never packaging inputs.
+The frames, input manifests, scores, and temporary review crops remain
+project-local while the marker-stage diagnosis and candidate follow-up consume
+them; they are never packaging inputs.
 
 ## Checks
 

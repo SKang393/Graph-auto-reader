@@ -46,6 +46,16 @@ def categories(max_probability: float | None, final_nearby: bool) -> str:
         "_final_nearby" if final_nearby else "_no_final_nearby")
 
 
+def transition(original: float, ablated: float) -> str:
+    if not all(math.isfinite(value) and 0 <= value <= 1 for value in (original, ablated)):
+        raise ValueError("invalid candidate probability")
+    if original < 0.1 <= ablated:
+        return "crossed_up"
+    if ablated < 0.1 <= original:
+        return "crossed_down"
+    return "unchanged_side"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-sha256", required=True)
@@ -82,6 +92,7 @@ def main() -> None:
             raise ValueError("train source identity differs")
         seen.add(source["component_sha256"])
         counts: dict[str, int] = {}
+        ablation: dict[str, int] = {}
         eligible = excluded = unavailable = 0
         if prediction["status"] != "completed":
             rows.append({"id": item["id"], "partition": overlay["assigned_partition"], "status": "capture_failed"})
@@ -121,31 +132,45 @@ def main() -> None:
             patches = [candidate for gx, gy in lattice_near(local_x, local_y, panel["frame_width"], panel["frame_height"])
                        if (candidate := proposal_patch(planes, gx, gy)) is not None]
             maximum = None
+            ablated_maximum = None
             if patches:
                 tensor = np.stack(patches).astype(np.float32, copy=False)
-                output = runtime.run(["candidate_predictions"], {"candidate_patches": tensor})[0]
-                if output.shape != (len(patches), 4) or not np.isfinite(output).all():
+                zero_artifact = tensor.copy()
+                zero_artifact[:, 2] = 0
+                output = runtime.run(["candidate_predictions"], {"candidate_patches": np.concatenate((tensor, zero_artifact))})[0]
+                if output.shape != (2 * len(patches), 4) or not np.isfinite(output).all():
                     raise ValueError("candidate inference output differs")
-                maximum = float(output[:, 0].max())
+                maximum = float(output[:len(patches), 0].max())
+                ablated_maximum = float(output[len(patches):, 0].max())
             final_nearby = any(math.hypot(marker["center"]["x"] - local_x, marker["center"]["y"] - local_y) <= 5
                                for marker in panel["markers"])
             category = categories(maximum, final_nearby)
             counts[category] = counts.get(category, 0) + 1
+            if maximum is not None and ablated_maximum is not None:
+                key = transition(maximum, ablated_maximum)
+                ablation[key] = ablation.get(key, 0) + 1
+                if np.max(tensor[:, 2]) >= np.float32(0.35):
+                    ablation["artifact_present_in_patch"] = ablation.get("artifact_present_in_patch", 0) + 1
+                    if key == "crossed_up" and not final_nearby:
+                        ablation["crossed_up_no_final_nearby_with_artifact"] = ablation.get("crossed_up_no_final_nearby_with_artifact", 0) + 1
             eligible += 1
         rows.append({"id": item["id"], "partition": overlay["assigned_partition"], "status": "scored",
                      "eligible_points": eligible, "patch_excluded": excluded, "unavailable_points": unavailable,
-                     "counts": counts})
+                     "counts": counts, "artifact_ablation": ablation})
     totals = {}
     for partition in ("internal_train_build", "internal_train_holdout"):
         chosen = [row for row in rows if row["partition"] == partition]
         scored = [row for row in chosen if row["status"] == "scored"]
         names = {key for row in scored for key in row["counts"]}
+        ablation_names = {key for row in scored for key in row["artifact_ablation"]}
         totals[partition] = {"images": len(chosen), "scored_images": len(scored),
                              "eligible_points": sum(row["eligible_points"] for row in scored),
                              "patch_excluded": sum(row["patch_excluded"] for row in scored),
                              "unavailable_points": sum(row["unavailable_points"] for row in scored),
-                             "counts": {name: sum(row["counts"].get(name, 0) for row in scored) for name in sorted(names)}}
-    result = {"schema": "graphreader.manual-marker-local-confidence.v1", "scope": "train-diagnostic-not-acceptance",
+                             "counts": {name: sum(row["counts"].get(name, 0) for row in scored) for name in sorted(names)},
+                             "artifact_ablation": {name: sum(row["artifact_ablation"].get(name, 0) for row in scored)
+                                                   for name in sorted(ablation_names)}}
+    result = {"schema": "graphreader.manual-marker-local-confidence.v2", "scope": "train-diagnostic-not-acceptance",
               "input_sha256": args.input_sha256, "report_sha256": args.report_sha256,
               "runtime_description_sha256": args.runtime_sha256, "model_sha256": MODEL_SHA,
               "scorer_source_sha256": digest(Path(__file__)), "provider": "CPUExecutionProvider", "optimizer_steps": 0,
@@ -153,9 +178,10 @@ def main() -> None:
               "totals": totals, "rows": rows,
               "limitations": ["Grid proposals are not checked against the runtime plot domain.",
                               "A nearby final marker is not one-to-one matched and can come from a different grid point.",
+                              "Zeroing the artifact channel is a counterfactual raw-model probe, not a workflow or precision test.",
                               "Recorded points are imperfect; target patches near modified image regions are excluded.",
                               "This does not measure full-image precision or production acceptance."]}
-    output = RUN / "smoke-local-confidence-v1.json"
+    output = RUN / "smoke-local-confidence-v2.json"
     with output.open("x", encoding="utf-8", newline="\n") as stream:
         json.dump(result, stream, indent=2, sort_keys=True)
         stream.write("\n")
