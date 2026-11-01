@@ -1,0 +1,73 @@
+{
+  "schema": "graphreader.artifact-mask-intersection-center-recall-outcome.v1",
+  "status": "diagnosis-complete-no-production-change",
+  "finding": "The 16/45 missed clear-cross/grid centers in the previously frozen broad synthetic validation are the outer perimeter nodes of its spacing-9 grid. That fixture extends each grid line by integer spacing/2 = 4 pixels beyond its outer node. The provider requires at least 5 foreground pixels in both directions for each of two opposing line pairs, so these perimeter nodes are ineligible before marker-conflict or NMS checks. The measured marker-like probability at grid centers and across each 5x5 mask footprint was zero.",
+  "interpretation": {
+    "classification": "documented five-pixel arm support limitation, exposed by an overinclusive synthetic center annotation",
+    "production_bug_confirmed": false,
+    "real_graph_relevance": "unknown; this diagnostic used synthetic rasters only",
+    "possible_product_requirement": "If production must mask edge intersections with only four pixels of line continuation, that requires a separately reviewed algorithm change and additional validation. This diagnostic does not establish that requirement or justify lowering the threshold.",
+    "marker_conflict_gate": "not causal in these fixtures; zero centers had marker probability >= 0.5 in the tested mask footprint",
+    "nms_gate": "not causal; observed eligible centers equal the number satisfying the arm-length rule"
+  },
+  "split_and_scope": {
+    "synthetic_development_cases": 3,
+    "synthetic_diagnostic_validation_cases": 2,
+    "development_and_validation_specs_disjoint": true,
+    "synthetic_diagnostic_validation_consumed": true,
+    "synthetic_training_sources": 0,
+    "real_development_partition_status": "previously exposed by prior work; not accessed or used by this diagnostic",
+    "real_development_payloads_read": 0,
+    "train_payloads_read": 0,
+    "sealed_payloads_read": 0,
+    "training_run": false,
+    "production_source_changed": false,
+    "production_gate_changed": false,
+    "standard_test_assembly_changed": false
+  },
+  "aggregate": {
+    "all_fixtures": {
+      "grid_centers": 107,
+      "baseline_intersection_regions": 79,
+      "baseline_centers_masked": 79,
+      "centers_with_marker_probability": 0,
+      "centers_with_marker_probability_in_5x5_footprint": 0
+    },
+    "per_case": [
+      { "role": "synthetic-development", "grid_spacing": 9, "centers": 25, "regions_and_masked_centers": 9, "unmasked_perimeter_centers": 16, "explanation": "margin floor(spacing/2)=4 is below required 5" },
+      { "role": "synthetic-development", "grid_spacing": 10, "centers": 25, "regions_and_masked_centers": 25, "unmasked_perimeter_centers": 0, "explanation": "margin floor(spacing/2)=5 meets required 5" },
+      { "role": "synthetic-development", "grid_spacing": 11, "centers": 25, "regions_and_masked_centers": 25, "unmasked_perimeter_centers": 0, "explanation": "margin floor(spacing/2)=5 meets required 5" },
+      { "role": "synthetic-diagnostic-validation", "grid_spacing": 8, "centers": 16, "regions_and_masked_centers": 4, "unmasked_perimeter_centers": 12, "explanation": "margin floor(spacing/2)=4 is below required 5" },
+      { "role": "synthetic-diagnostic-validation", "grid_spacing": 12, "centers": 16, "regions_and_masked_centers": 16, "unmasked_perimeter_centers": 0, "explanation": "margin floor(spacing/2)=6 meets required 5" }
+    ],
+    "prior_frozen_spacing9_and_spacing12_validation": {
+      "grid_centers": 41,
+      "masked_centers": 25,
+      "unmasked_centers": 16,
+      "remaining_hollow_marker_case": "unchanged and remains a separate known limitation in the prior v1 evaluation"
+    }
+  },
+  "commands": [
+    "dotnet run --project tools/artifact-mask/intersection-center-recall-v1/IntersectionRecallExperiment.csproj -c Release -- artifacts/artifact-mask/intersection-center-recall-v1/baseline.json",
+    "powershell -NoProfile -ExecutionPolicy Bypass -File tools/artifact-mask/intersection-center-recall-v1/VerifyIntersectionRecall.ps1 -ReportPath artifacts/artifact-mask/intersection-center-recall-v1/baseline.json"
+  ],
+  "verification": "PASS: source/report verifier confirmed all five per-case counts, aggregate 79/107, zero marker-conflict footprints, and the exact source arm-length predicate.",
+  "hashes_sha256": {
+    "protocol_json": "1bfaafc35611884e73f1e643b90041cc5f738bf3a713c48b3e6560964d9ae971",
+    "experiment_cs": "ba5e4f776ea0e700d3cc9a77550290f8d3bbc63ddd980f110341b3ee17c3cdec",
+    "experiment_csproj": "5e0658286e759f57b6c153f15581a68dd36533c81e86c884c4ab7f5c26eda1ef",
+    "verifier_ps1": "56db4c17cb46ea56bd544fcdf5608423f324cec5fd605a0165c50741d3c51580",
+    "baseline_report_json": "091a81aecb7a5c70130d1ef9e1ea2b8253dcecefe879ad5e8e13ef664bc00938",
+    "baseline_provider_source": "a5b2de8deae5b0ec3a57bc9baf6269cc03988e8694a12270857f6ba7e0254047",
+    "structural_provider_source": "cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100",
+    "app_assembly": "d72f2fa453ca77fecb87f120aac7797f664e1f62c04579ecf568b3c7ca76b3a5",
+    "ocr_assembly": "51ebfecf00db624612df1eb0cfa2647683204b3cc588a81706c17a62ca552513"
+  },
+  "limitations": [
+    "These are small generated Gray8 component cases using a fixed oracle plot polygon, empty OCR, and no trained model. They do not measure production calibration or real graph quality.",
+    "Synthetic validation here diagnoses a rule boundary; it is not candidate validation, release acceptance, or sealed acceptance.",
+    "The center annotation labels every generated lattice node, including perimeter nodes whose line continuation is shorter than the provider's minimum-arm contract. This is why the prior broad score counts 16 nodes as missed even though the current rule intentionally rejects them.",
+    "No real-development cases were examined, so whether real graphs need four-pixel edge-junction support remains unknown."
+  ],
+  "promotion": "No candidate repair was implemented or proposed for integration. The production provider, threshold, and gates remain unchanged."
+}

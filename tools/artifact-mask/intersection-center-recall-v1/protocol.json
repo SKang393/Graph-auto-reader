@@ -1,0 +1,34 @@
+{
+  "schema": "graphreader.artifact-mask-intersection-center-recall.v1",
+  "status": "predeclared-diagnostic",
+  "scope": {
+    "synthetic_only": true,
+    "private_or_real_dev_inputs": 0,
+    "sealed_inputs": 0,
+    "training": false,
+    "production_changes": false,
+    "production_gate_changes": false
+  },
+  "question": "Do the baseline misses on a dense 9px grid arise from marker-like conflict probabilities, or from another AddIntersections condition?",
+  "development": {
+    "role": "diagnostic-development",
+    "cases": [
+      { "id": "grid-spacing-9", "width": 5, "height": 5, "spacing": 9, "start": [24, 28] },
+      { "id": "grid-spacing-10", "width": 5, "height": 5, "spacing": 10, "start": [24, 28] },
+      { "id": "grid-spacing-11", "width": 5, "height": 5, "spacing": 11, "start": [24, 28] }
+    ]
+  },
+  "validation": {
+    "role": "unseen-synthetic-validation",
+    "source_specs_disjoint_from_development": true,
+    "cases": [
+      { "id": "grid-spacing-8-val", "width": 4, "height": 4, "spacing": 8, "start": [30, 31] },
+      { "id": "grid-spacing-12-val", "width": 4, "height": 4, "spacing": 12, "start": [23, 29] }
+    ]
+  },
+  "candidate": {
+    "rule": "No repair selected before the diagnosis. If marker-like conflict is causally confirmed, a test-only disambiguation may exempt only grid junction cores that lie in a repeated orthogonal lattice with at least three vertical and three horizontal lines; marker-center and other artifact criteria remain unchanged.",
+    "expected_observation": "The structural probability plane is the input to OverlapsMarkerLikeInk; count exact baseline regions and annotated lattice centers, and report marker-like probabilities at each center and within its radius-2 footprint.",
+    "limits": ["Synthetic component diagnostic only", "No labeled marker truth in grid-only cases", "No production acceptance", "No real development or sealed inputs"]
+  }
+}
