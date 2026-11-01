@@ -366,3 +366,55 @@ stroke width, antialiasing and independent acceptance remain untested.
 - Diagnostic runner SHA-256: `7b56f3eb2e5ba7b239f3c59dde12aaa8e976267db03ac192253c6129e5e2f288`
 - Corrected report SHA-256: `330df878f43020e10dd7332a6545b92fb36590f124d00efc23a2ba4155262df4`
 - Diagnostic build and 3 report checks passed; inference used CPU.
+
+## P3 stroke filter on scanned proposals
+
+The frozen P3 classifier was applied to the previously scanned synthetic probe,
+without retraining. Eight of 365 proposals had one of three crop hashes already
+present in P3 training and were quarantined before inference. On the same 357
+eligible proposals, the raw scan matched 73 of 181 visible ticks and produced
+284 unmatched proposals; the earlier P2 box-score filter matched 72 and left
+263 unmatched; P3 at its fixed 0.5 threshold matched 67 and left 11 unmatched.
+P3 retained no proposals on any of the 10 panels without a visible tick. Axis
+geometry required review on 22 of 24 panels. Duplicate crop occurrences are
+counted as proposal rows, and matching is greedy one-to-one within the greater
+of three pixels or half the annotated tick length.
+
+The P2 result on all 365 proposals reproduced the prior saved report. Source
+IDs, source identities and full-panel pixel hashes did not overlap between P3
+training and this probe. A check against the earlier classifier holdout used
+manifest hash metadata only, without opening holdout images or annotations.
+The probe has already been used for development and is not release acceptance.
+P3 training's transitive materializer execution bytes remain unproven, as
+documented in its corrected training report.
+
+- P3 probe report SHA-256: `0cfe59debc97b64a20a2b2a1b53e4394e72c25f50d3b58c50581864a52750ac0`
+- Proposal-score artifact SHA-256: `c8f3adfb1c090ec57257064ba315c2b59d50bba49a93d23145f5071e6cfc50fc`
+- Admission and device tests: 3 passed. Inference used RX 6600 XT; no training ran.
+
+## General and numeric recognizer comparison
+
+Using the application cropper and V8 recognizer preprocessing on the same
+consumed probe, the general PP-OCRv5 recognizer with its source postprocessor
+read 132 of 133 matched predicted tick-label boxes exactly, with one wrong
+reading. The numeric component recognizer read 21 exactly, 29 incorrectly,
+and returned no alternative for 83. On all 165 positive predicted boxes the
+general recognizer read 155 exactly and 10 incorrectly; on their annotated
+boxes it read all 165 exactly. Neither recognizer returned text on 158 forced
+background crops. Those backgrounds passed through recognition regardless of
+their low detector scores and exclude the probe's previously filtered text
+confusers. The V5 results reproduced the earlier ground-truth comparison.
+
+These synthetic results identify a useful general-recognizer route, but do not
+establish a safe replacement or fusion rule on real graphs. The application
+calibration adapter now requires review when an unreviewed tick has competing
+numeric alternatives with different values, rather than silently accepting a
+fit from one reading. Equivalent values and user-accepted readings remain
+usable. Its adapter identity advanced to v5. The application adapter test group
+passed 39 tests, including both axis roles and equivalent numeric alternatives.
+
+- General-recognizer comparison report SHA-256: `da43904697e4f9add72c264c35ac5b231e57eae5d0f8655b811deb275c3b9331`
+- Paired report accounting and baseline checks: 3 passed. Recognition was CPU
+  inference only; no model training or production payload approval occurred.
+- The diagnostic records the runner source and assembly hashes, not a complete
+  transitive build receipt. No production selection threshold was changed.
