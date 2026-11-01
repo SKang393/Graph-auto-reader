@@ -287,7 +287,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                         enhancedTransforms: null,
                         cancellationToken))
                 .ConfigureAwait(false);
-            chain.Append(centers.Envelope);
+            AppendEvidence(chain, centers.Envelope);
 
             LegendSymbolInputBatch legendInputs;
             try
@@ -304,7 +304,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     Recoverable: true,
                     "Retain earlier detection evidence and review the legend geometry."));
             }
-            if (legendInputs.Envelope is not null) chain.Append(legendInputs.Envelope);
+            if (legendInputs.Envelope is not null) AppendEvidence(chain, legendInputs.Envelope);
             ProductionMarkerClassificationEvidence classification;
             try
             {
@@ -322,7 +322,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     "Errors.DetectionEvidenceRejected", exception.Message, Recoverable: true,
                     "Retain detection evidence and use a classifier that supports isolated legend symbols."));
             }
-            chain.Append(classification.Envelope);
+            AppendEvidence(chain, classification.Envelope);
 
             ClassifiedMarker[] plotMarkers = CanonicalizeMarkers(
                 request,
@@ -351,7 +351,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             }
             exclusionTimer.Stop();
             if (textExclusion.Warnings.Count > 0)
-                chain.Append(new WorkflowVisionEnvelope(
+                AppendEvidence(chain, new WorkflowVisionEnvelope(
                     1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                     "markers", ProductionTextMarkerExclusion.Version, request.Image.Sha256, null,
                     new WorkflowVisionTiming(exclusionTimer.Elapsed.TotalMilliseconds, 0, 0, exclusionTimer.Elapsed.TotalMilliseconds),
@@ -363,7 +363,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 .Concat(frameExcluded).ToHashSet(StringComparer.Ordinal);
             frameExclusionTimer.Stop();
             if (frameExcluded.Count > 0)
-                chain.Append(new WorkflowVisionEnvelope(
+                AppendEvidence(chain, new WorkflowVisionEnvelope(
                     1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                     "markers", ProductionLegendSymbolInputs.Version + ":frame-exclusion", request.Image.Sha256, null,
                     new WorkflowVisionTiming(frameExclusionTimer.Elapsed.TotalMilliseconds, 0, 0,
@@ -394,7 +394,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                             : markerClassificationAdapter.ClassifyAsync(request, markerFrame, seedInputs.Markers,
                                 seedInputs.ContentBounds, cancellationToken)).ConfigureAwait(false);
                     WorkflowVisionEnvelope seedEnvelope = seedClassification.Envelope;
-                    chain.Append(new WorkflowVisionEnvelope(
+                    AppendEvidence(chain, new WorkflowVisionEnvelope(
                         seedEnvelope.ContractVersion, seedEnvelope.RunId, seedEnvelope.ProjectId,
                         seedEnvelope.PanelId, seedEnvelope.Stage,
                         seedEnvelope.StageVersion + ":" + ProductionMarkerTemplateRecovery.Version + ":seed-verification",
@@ -424,7 +424,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     recoveryTimer.Stop();
                     if (recoveryCandidates.Count > 0)
                     {
-                        chain.Append(new WorkflowVisionEnvelope(
+                        AppendEvidence(chain, new WorkflowVisionEnvelope(
                             1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                             "markers", recoveryVersion, request.Image.Sha256, null,
                             new WorkflowVisionTiming(recoveryTimer.Elapsed.TotalMilliseconds, 0, 0,
@@ -440,7 +440,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                                 : markerClassificationAdapter.ClassifyAsync(request, markerFrame, recoveryCandidates, cancellationToken))
                             .ConfigureAwait(false);
                         WorkflowVisionEnvelope recoveredEnvelope = recovered.Envelope;
-                        chain.Append(new WorkflowVisionEnvelope(
+                        AppendEvidence(chain, new WorkflowVisionEnvelope(
                             recoveredEnvelope.ContractVersion, recoveredEnvelope.RunId, recoveredEnvelope.ProjectId,
                             recoveredEnvelope.PanelId, recoveredEnvelope.Stage,
                             recoveredEnvelope.StageVersion + ":" + recoveryVersion,
@@ -466,7 +466,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     suppressionTimer.Stop();
                     if (suppressed.Count > 0)
                     {
-                        chain.Append(new WorkflowVisionEnvelope(
+                        AppendEvidence(chain, new WorkflowVisionEnvelope(
                             1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                             "markers", ProductionMarkerSuppressionRecovery.Version, request.Image.Sha256, null,
                             new WorkflowVisionTiming(suppressionTimer.Elapsed.TotalMilliseconds, 0, 0,
@@ -484,7 +484,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                             CanonicalizeMarkers(request, recovered.Markers, ProductionMarkerSuppressionRecovery.Version),
                             ArtifactRejectionThreshold, cancellationToken);
                         WorkflowVisionEnvelope recoveredEnvelope = recovered.Envelope;
-                        chain.Append(new WorkflowVisionEnvelope(
+                        AppendEvidence(chain, new WorkflowVisionEnvelope(
                             recoveredEnvelope.ContractVersion, recoveredEnvelope.RunId, recoveredEnvelope.ProjectId,
                             recoveredEnvelope.PanelId, recoveredEnvelope.Stage,
                             recoveredEnvelope.StageVersion + ":" + ProductionMarkerSuppressionRecovery.Version,
@@ -526,7 +526,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 excludedMarkerIds.UnionWith(strokeGaps.ExcludedMarkerIds);
                 acceptedMarkers = acceptedMarkers.Where(marker =>
                     !strokeGaps.ExcludedMarkerIds.Contains(marker.Marker.MarkerId)).ToArray();
-                chain.Append(new WorkflowVisionEnvelope(
+                AppendEvidence(chain, new WorkflowVisionEnvelope(
                     1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                     "markers", ProductionMarkerStrokeGapExclusion.Version, request.Image.Sha256, null,
                     new WorkflowVisionTiming(strokeGapTimer.Elapsed.TotalMilliseconds, 0, 0,
@@ -551,7 +551,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             if (markerGlyphs.MarkerGlyphs.Count > 0)
             {
                 ocr = new ProductionOcrEvidence(markerGlyphs.Result, ocr.ModelEvidence, ocr.ConfiguredModels);
-                chain.Append(new WorkflowVisionEnvelope(
+                AppendEvidence(chain, new WorkflowVisionEnvelope(
                     1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                     "markers", ProductionMarkerGlyphDisambiguation.Version, request.Image.Sha256, null,
                     new WorkflowVisionTiming(markerGlyphTimer.Elapsed.TotalMilliseconds, 0, 0,
@@ -606,7 +606,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     CreateLegendRequest(request, axis.Geometry, ocr.Result, grouping, acceptedSymbols),
                     cancellationToken)
                 .ConfigureAwait(false);
-            chain.Append(legend.Envelope);
+            AppendEvidence(chain, legend.Envelope);
 
             var phaseContextTimer = System.Diagnostics.Stopwatch.StartNew();
             PhaseGeometryContextResult phaseContext;
@@ -628,7 +628,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             }
             phaseContextTimer.Stop();
             if (phaseContext.Warnings.Count > 0)
-                chain.Append(new WorkflowVisionEnvelope(
+                AppendEvidence(chain, new WorkflowVisionEnvelope(
                     1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                     "phases", ProductionPhaseGeometryContext.Version, request.Image.Sha256, null,
                     new WorkflowVisionTiming(phaseContextTimer.Elapsed.TotalMilliseconds, 0, 0, phaseContextTimer.Elapsed.TotalMilliseconds),
@@ -641,7 +641,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     CreatePhaseRequest(request, phaseAxis, ocr.Result, grouping, legend.Payload),
                     cancellationToken)
                 .ConfigureAwait(false);
-            chain.Append(phases.Envelope);
+            AppendEvidence(chain, phases.Envelope);
 
             var seriesContextTimer = System.Diagnostics.Stopwatch.StartNew();
             SeriesPhaseContextResult seriesContext;
@@ -658,7 +658,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
             }
             seriesContextTimer.Stop();
             if (seriesContext.Warnings.Count > 0)
-                chain.Append(new WorkflowVisionEnvelope(
+                AppendEvidence(chain, new WorkflowVisionEnvelope(
                     1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                     "phases", ProductionSeriesPhaseContext.Version, request.Image.Sha256, null,
                     new WorkflowVisionTiming(seriesContextTimer.Elapsed.TotalMilliseconds, 0, 0, seriesContextTimer.Elapsed.TotalMilliseconds),
@@ -711,6 +711,25 @@ public sealed class ProductionAutomaticDetectionAdapter :
         }
     }
 
+    private static void AppendEvidence(
+        ProductionDetectionEvidenceChain chain,
+        WorkflowVisionEnvelope envelope)
+    {
+        try
+        {
+            chain.Append(envelope);
+        }
+        catch (ArgumentException exception)
+        {
+            throw chain.Reject(new ProductionWorkflowFailure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                $"Automatic detection returned invalid evidence: {exception.Message}",
+                Recoverable: true,
+                "Reject the component output and verify its run, project, panel, image, and coordinate-space binding."));
+        }
+    }
+
     private static void ValidateOriginalImage(ProductionWorkflowDetectionRequest request)
     {
         if (request.ImageVariant != WorkflowImageVariant.Original)
@@ -736,7 +755,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     .DetectForCandidateEvaluationAsync(request, cancellationToken)
                 : axisAdapter.DetectAsync(request, cancellationToken))
             .ConfigureAwait(false);
-        chain.Append(axis.Envelope);
+        AppendEvidence(chain, axis.Envelope);
 
         OcrRectangle plotBounds = ToOcrBounds(axis.Geometry.PlotPolygon);
         IReadOnlyList<double> phaseDividerXs = CreateOcrPhaseDividerXs(
@@ -790,7 +809,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
         foreach (ProductionOcrModelEvidence evidence in ocr.ModelEvidence
             .OrderBy(static evidence => evidence.Task, StringComparer.Ordinal))
         {
-            chain.Append(evidence.Envelope);
+            AppendEvidence(chain, evidence.Envelope);
         }
 
         var tickGeometryTimer = System.Diagnostics.Stopwatch.StartNew();
@@ -840,7 +859,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                 Array.AsReadOnly(associations)));
         }
         if (tickGeometry.Warnings.Count > 0)
-            chain.Append(new WorkflowVisionEnvelope(
+            AppendEvidence(chain, new WorkflowVisionEnvelope(
                 1, request.RunId, request.ProjectId, request.Panel.ImportedPanel.PanelId,
                 "ocr", ProductionTickLabelGeometry.Version, request.Image.Sha256, null,
                 new WorkflowVisionTiming(tickGeometryTimer.Elapsed.TotalMilliseconds, 0, 0, tickGeometryTimer.Elapsed.TotalMilliseconds),
@@ -861,7 +880,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
                     ocr,
                     cancellationToken))
             .ConfigureAwait(false);
-        chain.Append(masks.ArtifactEnvelope);
+        AppendEvidence(chain, masks.ArtifactEnvelope);
         return (raster, axis, ocr, tickGeometry, plotBounds, masks);
     }
 

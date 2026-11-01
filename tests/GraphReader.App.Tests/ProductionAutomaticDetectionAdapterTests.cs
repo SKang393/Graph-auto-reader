@@ -689,6 +689,58 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
+    public async Task InvalidOcrEvidenceBindingReturnsStructuredFailureAndRetainsAxisEvidence()
+    {
+        byte[] bytes = [1, 2, 3];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:invalid-ocr-binding.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "invalid-ocr-binding.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new RasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(invalidEvidenceBinding: true), new MaskComposer(), new CenterAdapter(),
+            new ClassificationAdapter(), new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+
+        ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+            () => adapter.DetectAsync(request, CancellationToken.None));
+
+        Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, failure.Failure.Code);
+        StringAssert.Contains(failure.Failure.TechnicalMessage, "invalid evidence");
+        Assert.AreEqual("Errors.DetectionEvidenceRejected", failure.Failure.UserMessageKey);
+        Assert.HasCount(2, failure.CompletedEvidence);
+        Assert.AreEqual("axis", failure.CompletedEvidence[0].Stage);
+        Assert.AreEqual("ocr", failure.CompletedEvidence[1].Stage);
+        Assert.IsNull(store.Get(panelId).ExportEvidence);
+    }
+
+    [TestMethod]
+    public async Task NonAppendArgumentFailureIsNotMisclassifiedAsEvidenceRejection()
+    {
+        byte[] bytes = [1, 2, 3];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:decoder-argument-failure.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "decoder-argument-failure.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store,
+            new ThrowingRasterDecoder(new ArgumentException("recorded decoder argument failure")),
+            new AxisAdapter(), new OcrAdapter(), new MaskComposer(), new CenterAdapter(),
+            new ClassificationAdapter(), new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+
+        ArgumentException failure = await Assert.ThrowsAsync<ArgumentException>(
+            () => adapter.DetectAsync(request, CancellationToken.None));
+
+        Assert.AreEqual("recorded decoder argument failure", failure.Message);
+        Assert.IsNull(store.Get(panelId).ExportEvidence);
+    }
+
+    [TestMethod]
     [DataRow(OcrTextRole.XTick, false)]
     [DataRow(OcrTextRole.YTick, false)]
     [DataRow(OcrTextRole.XTick, true)]
@@ -1123,10 +1175,11 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         string version,
         string modelId,
         char checksum,
-        bool deterministic = false) => new(
+        bool deterministic = false,
+        Guid? projectId = null) => new(
             1,
             request.RunId,
-            request.ProjectId,
+            projectId ?? request.ProjectId,
             request.Panel.ImportedPanel.PanelId,
             stage,
             version,
@@ -1157,6 +1210,13 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                 new byte[10_000],
                 new float[10_000]);
         }
+    }
+
+    private sealed class ThrowingRasterDecoder(ArgumentException exception) : IProductionRasterFrameDecoder
+    {
+        public ProductionDecodedRaster Decode(
+            ProductionWorkflowDetectionRequest request,
+            CancellationToken cancellationToken) => throw exception;
     }
 
     private sealed class AxisAdapter(double dividerDrift = 0, bool needsReview = false, bool includeReviewReason = true) : IProductionAxisGeometryAdapter
@@ -1240,13 +1300,15 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         private readonly OcrTextRole? competingAlternativeRole;
         private readonly string? competingAlternativeText;
         private readonly OcrReviewStatus competingAlternativeReviewStatus;
+        private readonly bool invalidEvidenceBinding;
 
         public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
             bool invalidLegendBounds = false, string? warning = null,
             OcrTextRole? zeroConfidenceRole = null, bool rejectZeroConfidenceTick = false, bool includeMarkerGlyph = false,
             bool originalIsBlack = true, string finalSessionLabel = "2", bool omitXTicks = false,
             OcrTextRole? competingAlternativeRole = null, string? competingAlternativeText = null,
-            OcrReviewStatus competingAlternativeReviewStatus = OcrReviewStatus.Unreviewed)
+            OcrReviewStatus competingAlternativeReviewStatus = OcrReviewStatus.Unreviewed,
+            bool invalidEvidenceBinding = false)
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
@@ -1262,6 +1324,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             this.competingAlternativeRole = competingAlternativeRole;
             this.competingAlternativeText = competingAlternativeText;
             this.competingAlternativeReviewStatus = competingAlternativeReviewStatus;
+            this.invalidEvidenceBinding = invalidEvidenceBinding;
         }
 
         public string AdapterId => "test-ocr";
@@ -1387,7 +1450,8 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                         Envelope(request, "ocr", "ocr-v1", "ocr-detection", 'b')),
                     new ProductionOcrModelEvidence(
                         "ocr_recognition",
-                        Envelope(request, "ocr", "ocr-v1", "ocr-recognition", 'c')),
+                        Envelope(request, "ocr", "ocr-v1", "ocr-recognition", 'c',
+                            projectId: invalidEvidenceBinding ? Guid.NewGuid() : null)),
                 ],
                 new ProductionOcrConfigurationEvidence(
                 [
