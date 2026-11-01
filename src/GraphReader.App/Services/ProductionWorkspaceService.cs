@@ -109,7 +109,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             retained.PdfPanelSource?.DocumentSha256 ?? retained.Panel.Original.Sha256;
         if (panel is null || panel.SourceId.Value != sourceId || source is null ||
             !string.Equals(source.Sha256, retainedSourceSha, StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(tab.SourceSha256, source.Sha256, StringComparison.OrdinalIgnoreCase) ||
+            !string.Equals(tab.SourceSha256, retained.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase) ||
             evidence.Provenance.Count == 0 || evidence.Provenance.Any(envelope =>
                 envelope.ProjectId != CurrentProject.ProjectId.Value || envelope.PanelId != panelId ||
                 (!string.Equals(envelope.InputSha256, retained.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase) &&
@@ -801,7 +801,8 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                     completedPanelIds.Add(projectedCheckpoint.Review.Panels.Single().PanelId);
                     return Task.CompletedTask;
                 },
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                panelId => RestoreFailedPanelEvidence(priorEvidence, panelId)).ConfigureAwait(false);
             }
             catch (ProductionWorkflowStageException exception) when (
                 exception.Failure.UserMessageKey == LocalizationKeys.PromotedMarkerAnalysisBlocked)
@@ -890,11 +891,16 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
         foreach (Guid id in _panelStore.PanelIds)
         {
             if (completed.Contains(id)) continue;
-            if (prior.TryGetValue(id, out ProductionPanelEvidence? evidence))
-                _panelStore.RestoreSnapshot(evidence);
-            else
-                _panelStore.ClearExportEvidence(id);
+            RestoreFailedPanelEvidence(prior, id);
         }
+    }
+
+    private void RestoreFailedPanelEvidence(Dictionary<Guid, ProductionPanelEvidence> prior, Guid panelId)
+    {
+        if (prior.TryGetValue(panelId, out ProductionPanelEvidence? evidence))
+            _panelStore.RestoreSnapshot(evidence);
+        else if (_panelStore.TryGet(panelId, out _))
+            _panelStore.ClearExportEvidence(panelId);
     }
 
     private void MarkCurrentProductionPanels(IEnumerable<WorkflowReviewPanel> panels)

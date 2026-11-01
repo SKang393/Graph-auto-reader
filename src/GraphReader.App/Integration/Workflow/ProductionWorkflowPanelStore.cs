@@ -52,16 +52,26 @@ public sealed class ProductionWorkflowStageException : InvalidOperationException
 {
     public ProductionWorkflowStageException(
         ProductionWorkflowFailure failure,
-        IEnumerable<WorkflowVisionEnvelope>? completedEvidence = null)
+        IEnumerable<WorkflowVisionEnvelope>? completedEvidence = null,
+        int failedCalibrationPanelCount = 0,
+        int completedPanelCount = 0)
         : base((failure ?? throw new ArgumentNullException(nameof(failure))).TechnicalMessage)
     {
+        if (failedCalibrationPanelCount < 0 || completedPanelCount < 0)
+            throw new ArgumentOutOfRangeException(nameof(failedCalibrationPanelCount));
         Failure = failure;
         CompletedEvidence = Array.AsReadOnly((completedEvidence ?? []).ToArray());
+        FailedCalibrationPanelCount = failedCalibrationPanelCount;
+        CompletedPanelCount = completedPanelCount;
     }
 
     public ProductionWorkflowFailure Failure { get; }
 
     public IReadOnlyList<WorkflowVisionEnvelope> CompletedEvidence { get; }
+
+    public int FailedCalibrationPanelCount { get; }
+
+    public int CompletedPanelCount { get; }
 }
 
 public sealed class PdfPanelSourceProvenance : IEquatable<PdfPanelSourceProvenance>

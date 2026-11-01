@@ -2368,9 +2368,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 exception is ProductionWorkflowStageException productionFailure &&
                 productionFailure.Failure.Code == ProductionWorkflowFailureCodes.RecalibrationRequired)
             {
-                string messageKey = SelectCalibrationFailurePanel(productionFailure)
-                    ? LocalizationKeys.DetectionCalibrationRequired
-                    : LocalizationKeys.DetectionCalibrationPanelUnknown;
+                bool identified = SelectCalibrationFailurePanel(productionFailure);
+                string messageKey = productionFailure.CompletedPanelCount > 0
+                    ? identified ? LocalizationKeys.DetectionCalibrationPartial : LocalizationKeys.DetectionCalibrationPartialPanelUnknown
+                    : !identified ? LocalizationKeys.DetectionCalibrationPanelUnknown
+                    : productionFailure.FailedCalibrationPanelCount > 1 ? LocalizationKeys.DetectionCalibrationMultiple
+                    : LocalizationKeys.DetectionCalibrationRequired;
                 LastOperationStatus = LastOperationStatus! with
                 {
                     UserMessageKey = messageKey,

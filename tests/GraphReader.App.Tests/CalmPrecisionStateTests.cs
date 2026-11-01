@@ -119,6 +119,37 @@ public sealed class CalmPrecisionStateTests
     }
 
     [TestMethod]
+    [DataRow(1, 1, true, "Errors.DetectionCalibrationPartial")]
+    [DataRow(2, 0, true, "Errors.DetectionCalibrationMultiple")]
+    [DataRow(1, 1, false, "Errors.DetectionCalibrationPartialPanelUnknown")]
+    public async Task CalibrationBatchStatusReportsCompletedPanelsAndReview(
+        int failedPanels, int completedPanels, bool hasMatchingEvidence, string expectedKey)
+    {
+        Guid panelId = Guid.NewGuid();
+        string hash = new('a', 64);
+        var target = new WorkspaceTabViewModel(
+            "second", "Second graph", new ObservableCollection<GraphPoint>(),
+            new ObservableCollection<SeriesCardViewModel>(), null, null, null,
+            panelId: panelId.ToString("D"), sourceSha256: hash, pixelWidth: 640, pixelHeight: 480);
+        var evidence = new WorkflowVisionEnvelope(1, Guid.NewGuid(), Guid.NewGuid(), panelId, "axis", "1",
+            hash, null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+        var failure = new ProductionWorkflowFailure(ProductionWorkflowFailureCodes.RecalibrationRequired,
+            "Errors.CalibrationInvalid", "private technical details", true, "calibrate");
+        using var viewModel = new MainWindowViewModel(new ControlledWorkspaceService(CreateEmptyTab(),
+            (_, _) => throw new ProductionWorkflowStageException(failure,
+                hasMatchingEvidence ? [evidence] : [], failedPanels, completedPanels)));
+        viewModel.Tabs.Add(target);
+
+        viewModel.AutoDetectCommand.Execute(null);
+        await WaitUntilAsync(() => !viewModel.IsBusy);
+
+        Assert.AreEqual(expectedKey, viewModel.StatusMessageKey);
+        if (hasMatchingEvidence) Assert.AreSame(target, viewModel.SelectedTab);
+        else Assert.AreNotSame(target, viewModel.SelectedTab);
+        Assert.DoesNotContain("private technical details", viewModel.StatusMessage);
+    }
+
+    [TestMethod]
     [DataRow(true, false)]
     [DataRow(false, false)]
     [DataRow(true, true)]

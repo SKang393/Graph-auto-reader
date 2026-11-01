@@ -2592,11 +2592,13 @@ public sealed class ProductionWorkflowStagesTests
         }
 
         Guid runId = Guid.NewGuid();
-        WorkflowReviewPanel[] reviewPanels = tabs.Select(tab => CreateReviewFromRetainedPanel(
+        const string warning = "phase_divider_wide_cluster_needs_review";
+        WorkflowReviewPanel[] reviewPanels = tabs.Select((tab, index) => CreateReviewFromRetainedPanel(
             workspace,
             tab,
             store,
-            runId)).ToArray();
+            runId,
+            warning: index == 0 ? warning : null)).ToArray();
         run = new WorkflowRunResult(
             runId,
             new WorkflowReviewState(workspace.CurrentProject.ProjectId.Value, reviewPanels),
@@ -2610,6 +2612,10 @@ public sealed class ProductionWorkflowStagesTests
         WorkspaceTabViewModel[] reopenedTabs = (await reopened.OpenProjectAsync(savedPath, CancellationToken.None)).ToArray();
         Assert.HasCount(2, reopenedTabs);
         Assert.AreEqual(2, reopened.CurrentProject.Panels.Select(static panel => panel.PanelId).Distinct().Count());
+        CollectionAssert.AreEqual(new[] { warning }, reopened.GetRetainedPipelineWarnings(
+            reopenedTabs.Single(tab => tab.PanelId == tabs[0].PanelId)).ToArray());
+        Assert.IsEmpty(reopened.GetRetainedPipelineWarnings(
+            reopenedTabs.Single(tab => tab.PanelId == tabs[1].PanelId)));
         foreach (WorkspaceTabViewModel tab in reopenedTabs)
         {
             string output = Path.Combine(directory.Path, $"cropped-reopened-{tab.PanelId}");
@@ -2890,6 +2896,81 @@ public sealed class ProductionWorkflowStagesTests
             new[] { WorkflowStep.Import, WorkflowStep.Prepare, WorkflowStep.Detect, WorkflowStep.Review },
             completed.Steps.Select(static step => step.Step).ToArray());
         Assert.AreSame(completed, workspace.LastAutomaticRun);
+    }
+
+    [TestMethod]
+    [DataRow("partial")]
+    [DataRow("both_calibration")]
+    [DataRow("nonrecoverable")]
+    [DataRow("other_failure")]
+    public async Task CalibrationFailuresDoNotPreventLaterPanelAttempts(string scenario)
+    {
+        using var directory = new TemporaryDirectory();
+        string firstDirectory = Path.Combine(directory.Path, "calibration-first");
+        string secondDirectory = Path.Combine(directory.Path, "calibration-second");
+        Directory.CreateDirectory(firstDirectory);
+        Directory.CreateDirectory(secondDirectory);
+        string firstPath = await WriteSourceAsync(firstDirectory);
+        string secondPath = await WriteSourceAsync(secondDirectory);
+        var store = new ProductionWorkflowPanelStore();
+        var expectedPanels = new Dictionary<Guid, WorkflowReviewPanel>();
+        using var cancellation = new CancellationTokenSource();
+        var detector = new CheckpointDetectionStage(expectedPanels, cancellation);
+        var orchestrator = new WorkflowOrchestrator(new WorkflowServiceSet(
+            new ProductionWorkflowImportStage(store, new ImageImportService()),
+            new ProductionWorkflowPrepareStage(store), detector, new UnusedWorkflowExportStage()));
+        var workspace = new ProductionWorkspaceService(automaticStages: ApprovedAutomaticStages(),
+            workflowOrchestrator: orchestrator, panelStore: store);
+        WorkspaceTabViewModel[] tabs = (await workspace.ImportImagesAsync([firstPath, secondPath], CancellationToken.None)).ToArray();
+        foreach (WorkspaceTabViewModel tab in tabs) SeedManualReviewState(workspace, tab);
+        WorkflowReviewPanel first = await CreateExactReviewPanelAsync(workspace, tabs[0], firstPath, store, true, includeProvenance: true);
+        WorkflowReviewPanel second = await CreateExactReviewPanelAsync(workspace, tabs[1], secondPath, store, true, includeProvenance: true);
+        expectedPanels.Add(first.PanelId, first);
+        expectedPanels.Add(second.PanelId, second);
+        ProductionPanelEvidence firstBefore = store.Get(first.PanelId);
+        detector.BeforeDetection = panelId =>
+        {
+            if (panelId == first.PanelId)
+            {
+                store.ClearExportEvidence(panelId);
+                throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
+                    scenario == "other_failure" ? ProductionWorkflowFailureCodes.DetectionEvidenceRejected
+                        : ProductionWorkflowFailureCodes.RecalibrationRequired,
+                    "Errors.CalibrationInvalid", "The first panel requires review.",
+                    scenario != "nonrecoverable", "Review calibration."));
+            }
+            Assert.AreSame(firstBefore, store.Get(first.PanelId),
+                "A failed panel must be restored before the next panel starts.");
+            if (scenario == "both_calibration")
+                throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid",
+                    "The second panel requires calibration review.", true, "Review calibration."));
+        };
+
+        ProductionWorkflowStageException failure = await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() =>
+            workspace.RunAutomaticDetectionAsync(CancellationToken.None));
+
+        Assert.AreSame(firstBefore, store.Get(first.PanelId));
+        if (scenario is "nonrecoverable" or "other_failure")
+        {
+            Assert.AreEqual(1, detector.CallCount, "Other failures must still stop the batch.");
+            Assert.AreEqual(0, failure.FailedCalibrationPanelCount);
+            Assert.IsNull(workspace.LastAutomaticRun);
+        }
+        else
+        {
+            bool bothFailed = scenario == "both_calibration";
+            Assert.AreEqual(2, detector.CallCount);
+            Assert.AreEqual(bothFailed ? 2 : 1, failure.FailedCalibrationPanelCount);
+            Assert.AreEqual(bothFailed ? 0 : 1, failure.CompletedPanelCount);
+            if (bothFailed)
+                Assert.IsNull(workspace.LastAutomaticRun);
+            else
+            {
+                Assert.IsNotNull(workspace.LastAutomaticRun);
+                Assert.AreEqual(second.PanelId, workspace.LastAutomaticRun.Review.Panels.Single().PanelId);
+            }
+        }
     }
 
     [TestMethod]
@@ -3653,7 +3734,8 @@ public sealed class ProductionWorkflowStagesTests
         ProductionWorkspaceService workspace,
         WorkspaceTabViewModel tab,
         ProductionWorkflowPanelStore store,
-        Guid runId)
+        Guid runId,
+        string? warning = null)
     {
         PanelRecord panel = workspace.CurrentProject.Panels.Single(candidate =>
             string.Equals(candidate.PanelId.Value.ToString("D"), tab.PanelId, StringComparison.OrdinalIgnoreCase));
@@ -3720,7 +3802,8 @@ public sealed class ProductionWorkflowStagesTests
                 imported.Original.Sha256,
                 new WorkflowVisionModel("synthetic-cropped-fixture", "1", new string('d', 64), "cpu"),
                 new WorkflowVisionTiming(0, 0, 0, 0),
-                1),
+                1,
+                warnings: warning is null ? [] : [warning]),
         ];
         store.SetExportEvidence(
             imported.PanelId,

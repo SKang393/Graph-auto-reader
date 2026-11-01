@@ -28,7 +28,8 @@ public sealed class WorkflowOrchestrator
         WorkflowRunRequest request,
         WorkflowReviewState? previousReview,
         Func<WorkflowRunResult, CancellationToken, Task>? completedPanelCheckpoint,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Action<Guid>? recoverableCalibrationFailure = null)
     {
         ValidateRunRequest(request, previousReview);
         cancellationToken.ThrowIfCancellationRequested();
@@ -74,34 +75,21 @@ public sealed class WorkflowOrchestrator
         IReadOnlyList<WorkflowCorrection> journal = previousReview?.CorrectionJournal ?? Array.Empty<WorkflowCorrection>();
         var reviewedPanels = new List<WorkflowReviewPanel>(preparedPanels.Count);
         var detectionWarnings = new List<string>();
+        var calibrationFailures = new List<ProductionWorkflowStageException>();
         int detectionCount = 0;
         TimeSpan detectionElapsed = TimeSpan.Zero;
         TimeSpan reviewElapsed = TimeSpan.Zero;
         foreach (WorkflowPreparedPanel prepared in preparedPanels)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            WorkflowDetectionBatch original = await services.Detector
-                .DetectAsync(
-                    prepared,
-                    WorkflowImageVariant.Original,
-                    request.RunId,
-                    request.Import.ProjectId,
-                    cancellationToken)
-                .ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-            ValidateDetectionBatch(
-                request,
-                prepared,
-                original,
-                WorkflowImageVariant.Original);
-
+            WorkflowDetectionBatch original;
             WorkflowDetectionBatch? enhanced = null;
-            if (request.Import.EnhancementEnabled && prepared.Enhanced is not null)
+            try
             {
-                enhanced = await services.Detector
+                original = await services.Detector
                     .DetectAsync(
                         prepared,
-                        WorkflowImageVariant.Enhanced,
+                        WorkflowImageVariant.Original,
                         request.RunId,
                         request.Import.ProjectId,
                         cancellationToken)
@@ -110,8 +98,39 @@ public sealed class WorkflowOrchestrator
                 ValidateDetectionBatch(
                     request,
                     prepared,
-                    enhanced,
-                    WorkflowImageVariant.Enhanced);
+                    original,
+                    WorkflowImageVariant.Original);
+
+                if (request.Import.EnhancementEnabled && prepared.Enhanced is not null)
+                {
+                    enhanced = await services.Detector
+                        .DetectAsync(
+                            prepared,
+                            WorkflowImageVariant.Enhanced,
+                            request.RunId,
+                            request.Import.ProjectId,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                    cancellationToken.ThrowIfCancellationRequested();
+                    ValidateDetectionBatch(
+                        request,
+                        prepared,
+                        enhanced,
+                        WorkflowImageVariant.Enhanced);
+                }
+            }
+            catch (ProductionWorkflowStageException failure) when (
+                recoverableCalibrationFailure is not null &&
+                failure.Failure.Recoverable &&
+                failure.Failure.Code == ProductionWorkflowFailureCodes.RecalibrationRequired)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                recoverableCalibrationFailure(prepared.ImportedPanel.PanelId);
+                calibrationFailures.Add(failure);
+                timer.Stop();
+                detectionElapsed += timer.Elapsed;
+                timer.Restart();
+                continue;
             }
 
             IReadOnlyList<WorkflowPoint> points = OriginalEnhancedConsensus.Merge(
@@ -174,6 +193,18 @@ public sealed class WorkflowOrchestrator
             }
 
             timer.Restart();
+        }
+
+        if (calibrationFailures.Count > 0)
+        {
+            ProductionWorkflowStageException first = calibrationFailures[0];
+            if (calibrationFailures.Count == 1 && reviewedPanels.Count == 0)
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(first).Throw();
+            throw new ProductionWorkflowStageException(first.Failure with
+            {
+                TechnicalMessage = $"{calibrationFailures.Count} panel(s) require calibration; " +
+                    $"{reviewedPanels.Count} panel(s) completed. {first.Failure.TechnicalMessage}",
+            }, first.CompletedEvidence, calibrationFailures.Count, reviewedPanels.Count);
         }
 
         steps.Add(new WorkflowStepRecord(WorkflowStep.Detect, detectionElapsed, detectionCount));

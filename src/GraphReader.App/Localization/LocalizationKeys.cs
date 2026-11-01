@@ -45,6 +45,9 @@ public static class LocalizationKeys
     public const string ProductionWorkflowUnavailable = "Errors.ProductionWorkflowUnavailable";
     public const string DetectionCalibrationRequired = "Errors.DetectionCalibrationRequired";
     public const string DetectionCalibrationPanelUnknown = "Errors.DetectionCalibrationPanelUnknown";
+    public const string DetectionCalibrationPartial = "Errors.DetectionCalibrationPartial";
+    public const string DetectionCalibrationPartialPanelUnknown = "Errors.DetectionCalibrationPartialPanelUnknown";
+    public const string DetectionCalibrationMultiple = "Errors.DetectionCalibrationMultiple";
     public const string OperationFailed = "Errors.OperationFailed";
     public const string ManualEditRejected = "Errors.ManualEditRejected";
     public const string EnhancementConfigurationInvalid = "Errors.EnhancementConfigurationInvalid";
@@ -323,6 +326,9 @@ public static class LocalizationKeys
         ProductionWorkflowUnavailable,
         DetectionCalibrationRequired,
         DetectionCalibrationPanelUnknown,
+        DetectionCalibrationPartial,
+        DetectionCalibrationPartialPanelUnknown,
+        DetectionCalibrationMultiple,
         OperationFailed,
         ManualEditRejected,
         EnhancementConfigurationInvalid,
