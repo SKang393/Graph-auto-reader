@@ -26,3 +26,20 @@ the application's smoke process successfully over SSH. The result SHA-256 is
 `9ac701f0e146936e5e1557ea0dc0b61af7caf02c076d13da0fa60bf23103db88`.
 The report sets `releaseEvidence=false`; this host is not a clean Windows VM,
 and the smoke result is not a visual or recognition-accuracy test.
+
+A separate SSH-driven check on the same existing laptop extracted the
+hash-verified preview into a new task-owned directory and invoked its
+`--portable-smoke` path. It exited 0 and created all five expected directories
+under the extracted `Data` root. A temporary deny-write ACL on that test root
+was verified by an actual failed write to `Data/Settings`; the same smoke then
+exited 2. The root ACL was restored to its prior security descriptor and a
+subsequent write to `Settings` succeeded. The test used no UI automation.
+
+The host report SHA-256 is
+`efb6e62275636873ee8cca70667ad71d4ccd869240dd4488869fae1167e85343`;
+the verified probe script SHA-256 is
+`cfc8053d16f1bd571a3c0ccac0fb8bddf399e715293b82176662abe467dd4a60`.
+The actual localized message was not visually checked. This older
+ManualPreview package lacks the current recognition changes, and the laptop's
+existing Windows installation is not a clean VM. This result does not satisfy
+installer, portable, full-workflow, model, or release acceptance gates.
