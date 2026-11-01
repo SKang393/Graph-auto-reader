@@ -77,3 +77,20 @@ Its source SHA-256 is
 Its payload and composition identities match the preceding diagnostic, but
 some loaded assembly hashes differ; the runs are not claimed byte-identical.
 Self-test and explicit-opt-in checks passed; this is not production acceptance.
+
+The next census ran the exact V8 proposal detector separately and reconciled
+its returned proposal IDs with the composition's outcomes on all 16 panels.
+Of 110 returned proposals, 103 were accepted with recognition, seven were
+rejected by the composition, and none remained unaccounted. Within the oracle
+vertical extent and a left-axis band of 10 percent of plot width, there were
+13 proposals: 12 accepted and one rejected. No text boxes or tick labels are
+available to establish which proposals are correct. The public detector API
+returns only proposals at or above its fixed 0.82 confidence floor, so the
+census cannot count lower-scoring component candidates.
+
+The source-bound aggregate report SHA-256 is
+`acd38e18176153b04b7834c4a4f1c2f5f533d1988cf1bc4e24028c257edc52a4`;
+the evaluator source SHA-256 is
+`6b2dd111fed3b91a88d319a86e00e261fa4227c769c1e8698039f0ca4a618584`.
+The self-test passed. It used the previously exposed development data and
+oracle plot bounds with unmasked images; no sealed payload or training was used.
