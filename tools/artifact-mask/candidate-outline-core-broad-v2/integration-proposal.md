@@ -23,3 +23,7 @@ Add a production structural-probability decorator that wraps `RasterPreOcrStruct
 ## Limitations
 
 No real or sealed data, OCR text truth, training, or production workflow acceptance was used. The radial support rule has explicit size limits and has not been validated against varied real marker shapes, anti-aliasing, or noise. Parent review is required before any shared production-source edit.
+
+## Historical evidence and ordinary reruns
+
+The exact test source used for the recorded strict comparison is preserved as `test-source-executed.cs` (SHA-256 `2bd0d0f51818b463b0036cc675f8129b9ce46c664599e602cc7c98ecb7d6e77f`). The current test accepts the consumed protocol and runs the same synthetic behavior assertions as a repeatable regression check. It reports `strict_identity_binding: false` unless `GRAPHREADER_ARTIFACT_MASK_STRICT_BINDING=1` and all pre-run protocol, source, and assembly checks pass. A normal rerun is not the original preregistered evidence and does not restore the consumed family.
