@@ -65,7 +65,10 @@ internal static class Program
             if (args.Length == 6 && args[0] is "--capture" or "--capture-workflow" or "--capture-workflow-smoke")
                 return await Capture(args[1], args[2], args[3], args[4], args[5],
                     workflow: args[0] != "--capture", smoke: args[0] == "--capture-workflow-smoke");
-            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory>");
+            if (args.Length == 7 && args[0] == "--capture-workflow-one")
+                return await Capture(args[2], args[3], args[4], args[5], args[6],
+                    workflow: true, smoke: false, onlyId: args[1]);
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture-workflow-one <source-id> <same capture arguments>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
@@ -104,7 +107,7 @@ internal static class Program
     }
 
     private static async Task<int> Capture(string inputPath, string inputSha, string descriptionPath, string descriptionSha,
-        string outputName, bool workflow, bool smoke)
+        string outputName, bool workflow, bool smoke, string? onlyId = null)
     {
         using var classifierLocks = workflow ? new ClassifierInputLocks() : null;
         byte[] description = await ReadPinned(descriptionPath, descriptionSha, 1_000_000);
@@ -143,6 +146,12 @@ internal static class Program
             "Only the fixed 20-image or 200-image inputs are supported.");
         Require(!workflow || (original && inputSha == "b9044372d5d6b37257ef0e1823935eaed840b99f9dc5a66a2c5359a1b7beeba6"),
             "Workflow diagnostics require the pinned original train input.");
+        if (onlyId is not null)
+        {
+            Require(workflow && !smoke, "Single-source capture requires workflow mode.");
+            entries = entries.Where(entry => entry.Id == onlyId).ToList();
+            Require(entries.Count == 1, "Selected source is absent from the pinned train input.");
+        }
         if (smoke) entries = entries.Take(1).ToList();
         string output = OutputPath(outputName);
         Require(!Directory.Exists(output) && !File.Exists(output), "Output already exists.");
@@ -274,7 +283,7 @@ internal static class Program
                 scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
                 runtime_description_sha256 = descriptionSha, model_binding_sha256 = ModelBindingSha,
                 classifier_sha256 = ClassifierFiles[2].Sha, opencv_sha256 = OpenCvSha,
-                smoke, optimizer_steps = 0, training_approved = false, classification_requested = true,
+                smoke = smoke || onlyId is not null, optimizer_steps = 0, training_approved = false, classification_requested = true,
                 truth_read = false, sealed_payload_reads = 0, rows = results }
             : new { schema = "graphreader.manual-marker-input-capture.v1",
                 scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
@@ -318,7 +327,7 @@ internal static class Program
         object row = new { panel_id = panel.PanelId, panel_sha256 = panel.Original.Sha256, provenance,
             status = failure is null ? "completed" : "failed", error_type = failure?.GetType().Name,
             failure_code = (failure as ProductionWorkflowStageException)?.Failure.Code,
-            error = failure?.Message, marker_stage_reached = observation is not null,
+            error = failure?.Message, error_stack = failure?.ToString(), marker_stage_reached = observation is not null,
             axis_needs_review = observation?.Axis.Uncertainty.NeedsReview,
             calibration_validity = observation?.Calibration.Validity.ToString(),
             centers_before_classification = observation?.MarkerPipeline.CentersBeforeClassification ?? [],

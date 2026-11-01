@@ -18,6 +18,39 @@ public sealed class SessionLatticeAcceptanceTests
     ];
 
     [TestMethod]
+    [DataRow(3000000000d)]
+    [DataRow(-3000000000d)]
+    public void OutOfRangeFirstSessionReturnsInsufficientEvidenceWithoutInventingValues(double printedValue)
+    {
+        var request = new SessionLatticeRequest
+        {
+            PrintedTicks = [new("extreme-ocr-tick", 100, printedValue)],
+            MarkerColumns = Columns(100, 125, 150),
+        };
+
+        SessionLatticeResult result = SessionLattice.Fit(request);
+
+        Assert.AreEqual(CalibrationValidity.InsufficientEvidence, result.Validity);
+        Assert.IsFalse(result.HasAbsoluteSessionOrigin);
+        Assert.IsTrue(result.Assignments.All(point => point.PrintedX is null && point.EstimatedX is null));
+        Assert.IsTrue(result.Reasons.Any(reason => reason.Contains("range", StringComparison.OrdinalIgnoreCase)));
+    }
+
+    [TestMethod]
+    public void PitchAtIntegerQuantizationBoundaryReturnsInsufficientEvidence()
+    {
+        var request = new SessionLatticeRequest
+        {
+            SharedPanels = [new("extreme-pitch", 100, (double)long.MaxValue / 1000d)],
+        };
+
+        SessionLatticeResult result = SessionLattice.Fit(request);
+
+        Assert.AreEqual(CalibrationValidity.InsufficientEvidence, result.Validity);
+        Assert.IsFalse(result.HasAbsoluteSessionOrigin);
+    }
+
+    [TestMethod]
     public void MissingLabelsRecoverHeldOutPitchWithinTwoPercentWithoutInventingExactX()
     {
         var request = new SessionLatticeRequest

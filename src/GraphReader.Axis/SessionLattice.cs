@@ -190,6 +190,15 @@ public static class SessionLattice
             best.Origin.PixelX,
             best.Pitch,
             uniqueObservedColumns.Length > 0);
+        if (uniqueObservedColumns.Length > 0 && firstObservedSession is null)
+        {
+            stopwatch.Stop();
+            return InsufficientResult(
+                request,
+                uniqueAlignmentColumns.Length,
+                "The first observed session is outside the supported integer range and requires review.",
+                stopwatch.Elapsed);
+        }
         if (request.RequireFirstObservedSessionOne &&
             firstObservedSession is { } firstSession &&
             firstSession != 1)
@@ -385,7 +394,8 @@ public static class SessionLattice
             return;
         }
 
-        if (pitch > long.MaxValue / 1000d)
+        // The double representation of long.MaxValue rounds up to 2^63.
+        if (pitch >= long.MaxValue / 1000d)
         {
             return;
         }
@@ -856,7 +866,12 @@ public static class SessionLattice
             return null;
         }
 
-        return checked(1 + (int)Math.Round((pixelX - origin) / pitch));
+        double offset = Math.Round((pixelX - origin) / pitch);
+        if (!double.IsFinite(offset) || offset < int.MinValue || offset > int.MaxValue - 1d)
+        {
+            return null;
+        }
+        return (int)offset + 1;
     }
 
     private static double WeightedMedian(IReadOnlyList<WeightedValue> values)
