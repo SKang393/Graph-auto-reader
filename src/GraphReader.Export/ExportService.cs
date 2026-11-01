@@ -768,13 +768,21 @@ public sealed class ExportService : IExportService
                 cancellationToken.ThrowIfCancellationRequested();
                 string finalPath = SafeOutputPath(fullDirectory, fileName);
                 string temporaryPath = finalPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-                await File.WriteAllTextAsync(
-                        temporaryPath,
-                        content,
-                        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
-                        cancellationToken)
-                    .ConfigureAwait(false);
-                staged.Add((temporaryPath, finalPath));
+                await using (var stream = new FileStream(
+                    temporaryPath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None,
+                    bufferSize: 64 * 1024,
+                    options: FileOptions.Asynchronous))
+                {
+                    staged.Add((temporaryPath, finalPath));
+                    await using var writer = new StreamWriter(
+                        stream,
+                        new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+                    await writer.WriteAsync(content.AsMemory(), cancellationToken).ConfigureAwait(false);
+                    await writer.FlushAsync(cancellationToken).ConfigureAwait(false);
+                }
             }
 
             cancellationToken.ThrowIfCancellationRequested();

@@ -749,7 +749,10 @@ public sealed class ExportServiceAcceptanceTests
                 actualFiles);
             foreach ((string path, string content) in returnedFiles)
             {
-                Assert.AreEqual(content, await File.ReadAllTextAsync(path, Encoding.UTF8));
+                byte[] expectedBytes = Encoding.UTF8.GetBytes(content);
+                byte[] actualBytes = await File.ReadAllBytesAsync(path);
+                CollectionAssert.AreEqual(expectedBytes, actualBytes);
+                Assert.AreEqual(content, Encoding.UTF8.GetString(actualBytes));
             }
 
             Assert.IsFalse(
