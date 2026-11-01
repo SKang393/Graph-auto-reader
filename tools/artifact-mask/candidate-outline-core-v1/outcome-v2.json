@@ -1,0 +1,38 @@
+{
+  "schema": "graphreader.artifact-mask-outline-core-outcome.v2",
+  "protocol_executed_snapshot": "protocol-v2-executed.json",
+  "protocol_executed_sha256": "91ff126dbffe81184f6f1a41cf78ae85f463c94a063d117d3f6d01d7557c71b0",
+  "protocol_current_status": "consumed-for-candidate-development",
+  "command": "$env:GRAPHREADER_ARTIFACT_MASK_STRICT_BINDING='1'; dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore --no-build --filter FullyQualifiedName~ArtifactMaskOutlineCoreCandidateTests --results-directory artifacts/artifact-mask/candidate-outline-core-v2-run-1 --logger \"trx;LogFileName=outline-core-v2.trx\"",
+  "result": "passed",
+  "strict_identity_binding": true,
+  "synthetic_component_metrics": {
+    "cases": 8,
+    "expected_crossing_centers_to_mask": 4,
+    "candidate_crossing_center_false_negatives": 0,
+    "candidate_marker_center_suppression": 0,
+    "candidate_masked_outline_pixels": 0,
+    "outline_truth_pixels": 192,
+    "candidate_standalone_ring_intersection_regions": 0,
+    "baseline_crossing_center_false_negatives": 0,
+    "baseline_marker_center_suppression": 2,
+    "baseline_masked_outline_pixels": 0,
+    "baseline_standalone_ring_intersection_regions": 0,
+    "baseline_total_intersection_regions": 6,
+    "candidate_total_intersection_regions": 4
+  },
+  "identity": {
+    "candidate_test_source_sha256": "26d5a0e003717ed33b6621087d303a8cf1f5df1d9b7e594f5842a3e103a3f00d",
+    "app_assembly_sha256": "351946e17e6937feafb1304c3ce5f2884b2618a37e2721a4541890b5e362d396",
+    "ocr_assembly_sha256": "459287fe644e5d9cc02990b537f9ace6e569ff34b9caff2f41cd11a3e4b77485",
+    "test_assembly_sha256": "c8fdabf3047f261205f139da7faa15fd37c09bb13e39500f353f7fb2bb9b330a",
+    "baseline_provider_source_sha256": "a5b2de8deae5b0ec3a57bc9baf6269cc03988e8694a12270857f6ba7e0254047",
+    "base_structural_provider_source_sha256": "cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100",
+    "trx_sha256": "a039a7afefd5ae70a271195feff4f7241407e8b9fb80c7fed8b46ba58a009806"
+  },
+  "limitations": [
+    "The v1 family was consumed for development tuning after it exposed a false suppression on a clear X crossing; it is not validation evidence for v2.",
+    "The v2 family is synthetic and only tests a structural component with oracle plot bounds and empty OCR input.",
+    "No production source, threshold, model, approval gate, or private/sealed data was modified or used."
+  ]
+}

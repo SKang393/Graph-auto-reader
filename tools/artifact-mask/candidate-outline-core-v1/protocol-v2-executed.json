@@ -1,0 +1,76 @@
+{
+  "schema": "graphreader.artifact-mask-outline-core-candidate.v2",
+  "status": "preregistered-before-validation-comparison",
+  "validation_family_consumed": false,
+  "scope": {
+    "synthetic_only": true,
+    "training_performed": false,
+    "model_inference_performed": false,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_source_modified": false,
+    "production_gate_modified": false,
+    "production_approval": false
+  },
+  "validation_split": {
+    "train_sources": 0,
+    "dev_family": "artifact-mask-round-outline-heldout-v2",
+    "dev_sources": 8,
+    "seed": 20261103,
+    "family_disjoint_from_consumed_v1": true,
+    "uses_reserved_repository_test_family": false,
+    "rendered_images_persisted": false,
+    "placement_prng": "xorshift32-shift13-17-5; unsigned 32-bit arithmetic",
+    "cases": [
+      {"case_id":"cross-plus-a11","topology":"horizontal-and-vertical-crossing","arm_length":11,"outline":"none","expected_center":"mask"},
+      {"case_id":"cross-x-a15","topology":"two-diagonal-crossing","arm_length":15,"outline":"none","expected_center":"mask"},
+      {"case_id":"ring-r4-plus-a11","topology":"horizontal-and-vertical-crossing","arm_length":11,"outline":"circle-radius-4","expected_center":"preserve-marker-center"},
+      {"case_id":"ring-r8-plus-a16","topology":"horizontal-and-vertical-crossing","arm_length":16,"outline":"circle-radius-8","expected_center":"preserve-marker-center"},
+      {"case_id":"ring-r6-x-a15","topology":"two-diagonal-crossing","arm_length":15,"outline":"circle-radius-6","expected_center":"preserve-marker-center"},
+      {"case_id":"ring-r5-offset13-plus-a13","topology":"horizontal-and-vertical-crossing","arm_length":13,"outline":"circle-radius-5-offset-12px-horizontal","expected_center":"mask-crossing-center"},
+      {"case_id":"ring-r7-alone","topology":"none","arm_length":0,"outline":"circle-radius-7","expected_center":"no-intersection-region"},
+      {"case_id":"ring-r4-offset-plus-a10","topology":"horizontal-and-vertical-crossing","arm_length":10,"outline":"circle-radius-4-offset-12px-horizontal","expected_center":"mask-crossing-center"}
+    ]
+  },
+  "component_input_contract": {
+    "canvas": [160,110],
+    "plot_polygon": [[10,95],[105,95],[105,10],[10,10]],
+    "ocr_regions": 0,
+    "ocr_context": "empty; no predicted or ground-truth text is supplied",
+    "ocr_seed_pixels": 0,
+    "geometry_seed_pixels": 0,
+    "axis_geometry": "fixed oracle plot polygon; no axis fitter is invoked",
+    "raster": "immutable Gray8 black-on-white synthetic pixels",
+    "rendering": "in-memory deterministic test fixture; no images are persisted"
+  },
+  "baseline_identity": {
+    "provider":"RasterResidualArtifactMaskProvider",
+    "composition_version":"raster-residual-v4-marker-core-review",
+    "provider_source_sha256":"a5b2de8deae5b0ec3a57bc9baf6269cc03988e8694a12270857f6ba7e0254047",
+    "structural_provider_source_sha256":"cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100",
+    "model_sha256":null
+  },
+  "candidate_identity": {
+    "name":"outline-circle-cross-core-probability-v2",
+    "implementation":"test-only structural probability wrapper; requires a long crossing and at least 15 of 16 angular sectors supported on one circular annulus before preserving conflict-core pixels",
+    "source_sha256":"26d5a0e003717ed33b6621087d303a8cf1f5df1d9b7e594f5842a3e103a3f00d",
+    "app_assembly_sha256":"351946e17e6937feafb1304c3ce5f2884b2618a37e2721a4541890b5e362d396",
+    "ocr_assembly_sha256":"459287fe644e5d9cc02990b537f9ace6e569ff34b9caff2f41cd11a3e4b77485",
+    "diagnostic_test_assembly_sha256":"c8fdabf3047f261205f139da7faa15fd37c09bb13e39500f353f7fb2bb9b330a",
+    "model_sha256":null
+  },
+  "predeclared_comparison": {
+    "baseline_and_candidate_run_on_identical_in_memory_images":true,
+    "candidate_clear_or_offset_cross_centers_masked_minimum":4,
+    "candidate_marker_center_suppression_maximum":0,
+    "candidate_standalone_ring_intersections_maximum":0,
+    "measure_false_positive_and_false_negative_counts":true,
+    "production_threshold_changes":false,
+    "production_code_or_gate_changes":false
+  },
+  "limitations":[
+    "Component diagnostic only with oracle plot bounds and empty OCR context, not full workflow evaluation.",
+    "This candidate uses a synthetic truth-blind raster shape rule and is not approved for composition or production.",
+    "Ring-center labels are synthetic geometry truth and do not establish performance on real markers."
+  ]
+}
