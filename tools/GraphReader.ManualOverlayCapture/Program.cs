@@ -17,7 +17,7 @@ using OpenCvSharp;
 
 namespace GraphReader.RealAcceptance.Ocr;
 
-internal static class Program
+internal static partial class Program
 {
     private const string Root = @"E:\Graph-auto-reader";
     private const string OutputRoot = "artifacts/manual-marker-input-diagnostic-v1";
@@ -42,6 +42,7 @@ internal static class Program
     [
         "tools/GraphReader.ManualOverlayCapture/GraphReader.ManualOverlayCapture.csproj",
         "tools/GraphReader.ManualOverlayCapture/Program.cs",
+        "tools/GraphReader.ManualOverlayCapture/ReviewedAxisCapture.cs",
         "tools/GraphReader.ManualOverlayCapture/prepare_input.py",
         "src/GraphReader.Ocr/DenseTickTextRegionRecovery.cs",
         "src/GraphReader.Ocr/OcrPipeline.cs",
@@ -81,7 +82,9 @@ internal static class Program
             if (args.Length == 6 && args[0] is "--recognize-dense" or "--recognize-dense-standard")
                 return await RecognizeDenseTicks(args[1], args[2], args[3], args[4], args[5],
                     densePadding: args[0] == "--recognize-dense");
-            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard] <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
+            if (args.Length == 6 && args[0] == "--recognize-reviewed-axis")
+                return await RecognizeReviewedAxis(args[1], args[2], args[3], args[4], args[5]);
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)

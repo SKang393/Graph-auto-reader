@@ -175,6 +175,8 @@ The separate classifier and downstream candidate-workflow diagnostic, including
 all failed panels, is recorded in [WORKFLOW_RESULT.md](WORKFLOW_RESULT.md).
 The follow-up on merged dense X-axis labels is recorded in
 [DENSE_TICK_RESULT.md](DENSE_TICK_RESULT.md).
+The server recognizer's competing readings on 76 reviewed training crops are
+summarized in [REVIEWED_AXIS_SERVER_RESULT.md](REVIEWED_AXIS_SERVER_RESULT.md).
 
 | Original-image evidence | SHA-256 |
 | --- | --- |
