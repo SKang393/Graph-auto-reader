@@ -60,6 +60,29 @@ public sealed class CalibrationInlierRoutingTests
     }
 
     [TestMethod]
+    public void RequestedMaximumCannotBePositionedFromAnOrdinalOnlyOrigin()
+    {
+        var request = new SessionFirstCalibrationRequest
+        {
+            YTicks = [new("bottom", 300, 0), new("top", 50, 100)],
+            XMaximum = 21,
+            Lattice = new SessionLatticeRequest
+            {
+                UnlabeledTicks = [new("left", 100), new("next", 125), new("last", 150)],
+                MarkerColumns = [new(125), new(150)],
+            },
+        };
+
+        SessionFirstCalibrationResult result = RobustCalibration.FitSessionFirst(request);
+
+        Assert.AreNotEqual(CalibrationValidity.Valid, result.Validity);
+        Assert.IsFalse(result.Lattice.HasAbsoluteSessionOrigin);
+        Assert.IsTrue(result.Lattice.IsOrdinalOnly);
+        Assert.IsFalse(result.Anchors.Any(static anchor => anchor.Kind == CalibrationAnchorKind.SessionMaximumY0));
+        Assert.IsTrue(result.Anchors.All(static anchor => anchor.GraphX is null && !anchor.IsExact));
+    }
+
+    [TestMethod]
     public void CompetingPrintedFitsCannotBecomeValidByDiscardingOneSide()
     {
         var request = new SessionLatticeRequest

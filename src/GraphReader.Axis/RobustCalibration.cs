@@ -843,7 +843,8 @@ public static class RobustCalibration
             return double.IsFinite(pixelX);
         }
 
-        if (lattice.Session1PixelX is { } origin && lattice.PitchPixels is { } pitch)
+        if (lattice.HasAbsoluteSessionOrigin &&
+            lattice.Session1PixelX is { } origin && lattice.PitchPixels is { } pitch)
         {
             pixelX = origin + ((xMaximum - 1d) * pitch);
             return double.IsFinite(pixelX);

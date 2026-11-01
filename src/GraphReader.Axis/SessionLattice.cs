@@ -185,12 +185,16 @@ public static class SessionLattice
                 : "A manual session-origin override supersedes conflicting automatic origin evidence.");
         }
 
-        int? firstObservedSession = ResolveSessionNumber(
-            uniqueObservedColumns.FirstOrDefault().PixelX,
-            best.Origin.PixelX,
-            best.Pitch,
-            uniqueObservedColumns.Length > 0);
-        if (uniqueObservedColumns.Length > 0 && firstObservedSession is null)
+        // The provisional origin establishes ordering only. It cannot prove
+        // that the first observed marker is or is not absolute session one.
+        int? firstObservedSession = best.Origin.HasAbsoluteOrigin
+            ? ResolveSessionNumber(
+                uniqueObservedColumns.FirstOrDefault().PixelX,
+                best.Origin.PixelX,
+                best.Pitch,
+                uniqueObservedColumns.Length > 0)
+            : null;
+        if (best.Origin.HasAbsoluteOrigin && uniqueObservedColumns.Length > 0 && firstObservedSession is null)
         {
             stopwatch.Stop();
             return InsufficientResult(

@@ -102,6 +102,27 @@ public sealed class SessionLatticeAcceptanceTests
     }
 
     [TestMethod]
+    public void EarlierUnlabeledTickDoesNotInventAnInvalidAbsoluteSessionOrigin()
+    {
+        var request = new SessionLatticeRequest
+        {
+            UnlabeledTicks = [new("left", 100), new("next", 125), new("third", 150), new("last", 175)],
+            MarkerColumns = Columns(125, 150, 175),
+        };
+
+        SessionLatticeResult result = SessionLattice.Fit(request);
+
+        Assert.AreEqual(CalibrationValidity.NeedsReview, result.Validity);
+        Assert.IsFalse(result.HasAbsoluteSessionOrigin);
+        Assert.IsTrue(result.IsOrdinalOnly);
+        Assert.HasCount(3, result.Assignments);
+        Assert.IsTrue(result.Assignments.All(point => point.PrintedX is null && point.EstimatedX is null &&
+            point.EvidenceKind == SessionXEvidenceKind.OrdinalOnly));
+        Assert.IsTrue(result.Reasons.Any(reason => reason.Contains("No printed", StringComparison.Ordinal)));
+        Assert.IsFalse(result.Reasons.Any(reason => reason.Contains("first observed column maps to session", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
     public void SharedPanelResolvesSparseMultiProbeGapsWithoutHarmonicAlias()
     {
         var request = new SessionLatticeRequest
