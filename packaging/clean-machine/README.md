@@ -25,6 +25,16 @@ a public release by itself. The report must be reviewed, copied to the tracked
 release-evidence location, checksum-bound in the mandatory gate, and revalidated
 by `Install-ReleaseRuntime.ps1` before production packaging may consume it.
 
+An offline laptop-guest diagnostic of internal ManualPreview 0.4.35 loaded the
+reviewed OpenCV binary `c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31`
+and passed the no-window application smoke. The validator exited 2: the guest
+reported a 26.405-hour installation age, and its provenance truthfully identified
+an existing installation rather than a fresh one. The copied report SHA-256 is
+`06d50275bab1d669559dbe3a07da392a70fb6f37b945718737269613586eea65`.
+The installation media was user reported rather than independently attested.
+This diagnostic does not satisfy the clean-machine gate or validate a final
+production candidate.
+
 `Invoke-GraphReaderPdfiumCleanMachineValidation.ps1` applies the same VM, ISO,
 freshness, toolchain, and offline checks to a production common-publish payload.
 It validates all five packaged PDFium files, executes the exact reviewed runner
