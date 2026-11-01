@@ -53,3 +53,24 @@ tests and pyflakes passed. This establishes input and proposal parity only.
 The small controlled dataset, missing proposals, imperfect manual data, and
 unverified natural-image false positives still require a separate bounded
 GPU-only experiment and evaluation. No model or release gate was approved.
+
+## Controlled dataset materialization
+
+The verified positions were materialized into project-local arrays: 214 build
+patches (108 injected markers and 106 injected distractors) from 11 groups, and
+120 holdout patches (60 of each) from four groups. The original partitions
+contained 15 and five groups; groups with no emitted proposal supply no patch.
+The 52 images without an emitted target remain recorded as unavailable for
+this patch-level dataset. No unmarked native pixels were assigned negative
+labels. The selected groups are disjoint under the existing study-plus-image
+grouping, which does not establish independence from historical or sealed data.
+
+The [materialization protocol](CONTROLLED_DATASET_PROTOCOL.md) has SHA-256
+`4840a41cc3a482b1a69d70e85f5ca82e79e38c15c5b40afb75972a3d716b70db`;
+the pre-run registration has SHA-256
+`c6aa90f64142bfb9f3845a914d7980a9cc3b33a2ee136f550217a0f9fbc10701`;
+and the private dataset report has SHA-256
+`d1390de8797a75bc0c821996a327938b1dcd729de4f7b1f67d130e3c5fe29de6`.
+An independent readback verified every file hash, all 334 tensor hashes,
+partition counts, and disjoint selected groups. Eight focused tests and
+pyflakes passed. This step ran no optimizer and did not approve a model.
