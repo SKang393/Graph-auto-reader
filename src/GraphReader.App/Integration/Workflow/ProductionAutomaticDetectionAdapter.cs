@@ -110,7 +110,7 @@ public sealed class ProductionAutomaticDetectionAdapter :
 
     public string AdapterId => string.Join(
         ':',
-        "graphreader-production-detection-v4",
+        "graphreader-production-detection-v5",
         ProductionLegendSymbolInputs.Version,
         ProductionTextMarkerExclusion.Version,
         ProductionMarkerTemplateRecovery.Version,
@@ -1439,6 +1439,20 @@ public sealed class ProductionAutomaticDetectionAdapter :
             NumericParseResult parsed = GraphNumericParser.Parse(region.Text);
             if (parsed.IsSuccess && parsed.Value is { } value)
             {
+                // Independently run recognizers can be merged after their own
+                // sequence checks. A regular fit must not hide a competing
+                // numeric reading that has not been reviewed by the user.
+                if (region.ReviewStatus == OcrReviewStatus.Unreviewed &&
+                    region.Alternatives.Any(alternative =>
+                    {
+                        if (!double.IsFinite(alternative.Confidence) || alternative.Confidence is <= 0 or > 1)
+                            return false;
+                        NumericParseResult other = GraphNumericParser.Parse(alternative.Text);
+                        return other.IsSuccess && other.Value is { } otherValue && otherValue != value;
+                    }))
+                {
+                    confidenceWarnings.Add($"ocr_tick_sequence_needs_review:{role}:competing_numeric_readings:{region.RegionId}");
+                }
                 if (!double.IsFinite(region.Confidence) || region.Confidence is <= 0 or > 1)
                 {
                     // Review retains the reading, but an unweighted tick cannot fit an axis.

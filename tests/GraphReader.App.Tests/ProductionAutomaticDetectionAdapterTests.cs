@@ -726,6 +726,47 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
+    [DataRow(OcrTextRole.XTick, "9", OcrReviewStatus.Unreviewed, true)]
+    [DataRow(OcrTextRole.YTick, "9", OcrReviewStatus.Unreviewed, true)]
+    [DataRow(OcrTextRole.XTick, "1.0", OcrReviewStatus.Unreviewed, false)]
+    [DataRow(OcrTextRole.YTick, "0.00", OcrReviewStatus.Unreviewed, false)]
+    [DataRow(OcrTextRole.XTick, "9", OcrReviewStatus.Accepted, false)]
+    public async Task CompetingNumericReadingsRequireReviewBeforeAutomaticCalibration(
+        OcrTextRole role, string alternative, OcrReviewStatus status, bool mustReject)
+    {
+        byte[] bytes = [1, 2, 3];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:competing-ticks.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "competing-ticks.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new RasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(competingAlternativeRole: role, competingAlternativeText: alternative,
+                competingAlternativeReviewStatus: status),
+            new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(),
+            new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+
+        if (mustReject)
+        {
+            ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+                () => adapter.DetectAsync(request, CancellationToken.None));
+            Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, failure.Failure.Code);
+            StringAssert.Contains(failure.Failure.TechnicalMessage,
+                $"ocr_tick_sequence_needs_review:{role}:competing_numeric_readings:");
+            Assert.IsTrue(failure.CompletedEvidence.Any(static item => item.Stage == "ocr"));
+            Assert.IsNull(store.Get(panelId).ExportEvidence);
+        }
+        else
+        {
+            await adapter.DetectAsync(request, CancellationToken.None);
+            Assert.IsNotNull(store.Get(panelId).ExportEvidence);
+        }
+    }
+
+    [TestMethod]
     [DataRow("ocr_tick_sequence_needs_review:XTick:ambiguous_or_irregular_spacing", true)]
     [DataRow("ocr_tick_sequence_needs_review:baseline_singleton_ambiguous:uncertain-region", true)]
     [DataRow("ocr_tick_sequence_needs_review:YTick:insufficient_unchanged_tick_anchors", true)]
@@ -1196,11 +1237,16 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         private readonly bool originalIsBlack;
         private readonly string finalSessionLabel;
         private readonly bool omitXTicks;
+        private readonly OcrTextRole? competingAlternativeRole;
+        private readonly string? competingAlternativeText;
+        private readonly OcrReviewStatus competingAlternativeReviewStatus;
 
         public OcrAdapter(string participant = "Chandler", bool includeLegendText = false, bool framedLegend = false,
             bool invalidLegendBounds = false, string? warning = null,
             OcrTextRole? zeroConfidenceRole = null, bool rejectZeroConfidenceTick = false, bool includeMarkerGlyph = false,
-            bool originalIsBlack = true, string finalSessionLabel = "2", bool omitXTicks = false)
+            bool originalIsBlack = true, string finalSessionLabel = "2", bool omitXTicks = false,
+            OcrTextRole? competingAlternativeRole = null, string? competingAlternativeText = null,
+            OcrReviewStatus competingAlternativeReviewStatus = OcrReviewStatus.Unreviewed)
         {
             this.participant = participant;
             this.includeLegendText = includeLegendText;
@@ -1213,6 +1259,9 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             this.originalIsBlack = originalIsBlack;
             this.finalSessionLabel = finalSessionLabel;
             this.omitXTicks = omitXTicks;
+            this.competingAlternativeRole = competingAlternativeRole;
+            this.competingAlternativeText = competingAlternativeText;
+            this.competingAlternativeReviewStatus = competingAlternativeReviewStatus;
         }
 
         public string AdapterId => "test-ocr";
@@ -1281,6 +1330,15 @@ public sealed class ProductionAutomaticDetectionAdapterTests
                     Region("y100", 1, 18, "100", OcrTextRole.YTick),
                     Region("participant", 82, 84, participant, OcrTextRole.Participant),
                 ];
+            if (competingAlternativeRole is { } alternativeRole && competingAlternativeText is { } alternativeText)
+            {
+                string targetId = alternativeRole == OcrTextRole.XTick ? "x1" : "y0";
+                regions = regions.Select(region => region.RegionId == targetId ? region with
+                {
+                    Alternatives = [.. region.Alternatives, new OcrRecognitionAlternative(alternativeText, 0.96, OcrSourceImage.Original)],
+                    ReviewStatus = competingAlternativeReviewStatus,
+                } : region).ToArray();
+            }
             if (zeroConfidenceRole is { } tickRole)
             {
                 OcrRegion extra = tickRole == OcrTextRole.XTick
