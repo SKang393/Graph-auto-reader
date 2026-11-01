@@ -58,6 +58,9 @@ If Windows prevents removal of the setup-owned temporary extraction directory,
 setup reports the cleanup error on standard error when available. This does
 not change a successful install into a reported failure or replace the
 original installation error.
+If the setup failure log cannot be written, interactive setup shows the original
+error and states that the log is unavailable. Quiet setup still exits with an
+error code.
 
 Clean-machine install, launch, repair, upgrade, uninstall, and user-data
 preservation remain mandatory evidence before publication. The tracked

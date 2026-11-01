@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../installer/InstallDirectoryTransaction.cs" Link="InstallDirectoryTransaction.cs" />
+    <Compile Include="../../installer/InstallerFailureReporting.cs" Link="InstallerFailureReporting.cs" />
     <Compile Include="../../installer/InstallerMetadataSnapshot.cs" Link="InstallerMetadataSnapshot.cs" />
     <Compile Include="../../installer/InstallCoordination.cs" Link="InstallCoordination.cs" />
     <Compile Include="../../installer/UninstallStatus.cs" Link="UninstallStatus.cs" />

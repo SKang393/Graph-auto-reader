@@ -65,6 +65,20 @@ if (InstallDirectoryTransaction.TryRemoveTemporaryStaging(temporaryStaging) is n
     Directory.Exists(temporaryStaging))
     throw new InvalidOperationException("Staging cleanup did not remove unlocked or tolerate absent files.");
 
+var originalFailure = new InvalidOperationException("original setup failure");
+string loggedFailure = InstallerFailureReporting.Describe(originalFailure, () => testRoot);
+string failureLog = Path.Combine(testRoot, "GraphAutoReader-Installer.log");
+if (!loggedFailure.Contains(failureLog, StringComparison.Ordinal) ||
+    !File.ReadAllText(failureLog).Contains(originalFailure.Message, StringComparison.Ordinal))
+    throw new InvalidOperationException("Setup failure was not logged and reported.");
+string missingLog = InstallerFailureReporting.Describe(originalFailure, () => Path.Combine(testRoot, "missing-directory"));
+string unavailableTemp = InstallerFailureReporting.Describe(originalFailure, () => throw new IOException("temporary path unavailable"));
+if (!missingLog.Contains(originalFailure.Message, StringComparison.Ordinal) ||
+    !unavailableTemp.Contains(originalFailure.Message, StringComparison.Ordinal) ||
+    !missingLog.Contains("log could not be written", StringComparison.Ordinal) ||
+    !unavailableTemp.Contains("log could not be written", StringComparison.Ordinal))
+    throw new InvalidOperationException("Log failures hid the original setup error.");
+
 ExpectFailure(() => InstallDirectoryTransaction.Execute(root, stage =>
 {
     File.WriteAllText(Path.Combine(stage, "partial.txt"), "partial");
@@ -263,6 +277,7 @@ Console.WriteLine("PASS: failures restore files and metadata; upgrade and repeat
 Console.WriteLine("PASS: verified unchanged obsolete payload stays in backup; modified and untracked files remain active");
 Console.WriteLine("PASS: concurrent reinstall invalidates deferred identity; quiet validation and status-write failures classified");
 Console.WriteLine("PASS: locked temporary staging reports cleanup failure without throwing");
+Console.WriteLine("PASS: unavailable diagnostic log preserves the original setup error");
 
 internal sealed class FakeRegistry : IInstallerRegistryStore
 {

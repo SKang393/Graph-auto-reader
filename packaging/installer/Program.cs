@@ -107,12 +107,8 @@ internal static class Program
         }
         catch (Exception exception)
         {
-            string logPath = Path.Combine(Path.GetTempPath(), "GraphAutoReader-Installer.log");
-            File.AppendAllText(
-                logPath,
-                $"{DateTime.UtcNow:O} {exception}{Environment.NewLine}",
-                new UTF8Encoding(false));
-            ShowMessage($"Setup could not complete. Details were written to:{Environment.NewLine}{logPath}", quiet, true);
+            string message = InstallerFailureReporting.Describe(exception, Path.GetTempPath);
+            ShowMessage(message, quiet, true);
             return 1;
         }
     }
