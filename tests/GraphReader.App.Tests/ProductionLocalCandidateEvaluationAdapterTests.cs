@@ -566,6 +566,45 @@ public sealed class ProductionLocalCandidateEvaluationAdapterTests
     }
 
     [TestMethod]
+    public async Task CacheBindingDistinguishesDelimiterContainingModelIdentities()
+    {
+        TestInputs inputs = CreateInputs();
+        ProductionOcrAdapter adapter = CreateOcrAdapter(
+            new TextDetectorStub(), new TextRecognizerStub(), isApproved: false);
+        ProductionOcrEvidence evidence = await adapter.RecognizeForLocalSyntheticCandidateEvaluationAsync(
+            inputs.Request,
+            inputs.Raster,
+            new OcrRectangle(4, 4, 24, 20),
+            CreateDetectorImage(inputs.Raster),
+            CancellationToken.None);
+        ProductionOcrConfiguredModel detector = evidence.ConfiguredModels.Models.Single(
+            static model => model.Task == "ocr_detection");
+
+        ProductionOcrConfigurationEvidence first = WithDetectorIdentity("foo|bar", "baz");
+        ProductionOcrConfigurationEvidence second = WithDetectorIdentity("foo", "bar|baz");
+        Assert.AreEqual(
+            string.Join("|", detector.Task, "foo|bar", "baz", detector.Sha256, detector.ExecutionProvider),
+            string.Join("|", detector.Task, "foo", "bar|baz", detector.Sha256, detector.ExecutionProvider));
+
+        string firstBinding = ProductionOcrModelEvidence.ComputeCacheBindingSha256(
+            "result", new string('f', 64), inputs.Request, evidence.Result, first.Models);
+        string secondBinding = ProductionOcrModelEvidence.ComputeCacheBindingSha256(
+            "result", new string('f', 64), inputs.Request, evidence.Result, second.Models);
+
+        Assert.AreNotEqual(firstBinding, secondBinding);
+
+        ProductionOcrConfigurationEvidence WithDetectorIdentity(string modelId, string version) =>
+            new(
+                evidence.ConfiguredModels.Models.Select(model => model.Task == "ocr_detection"
+                    ? new ProductionOcrConfiguredModel(
+                        model.Task,
+                        new ModelIdentity(modelId, version, model.Sha256, "test.onnx"),
+                        InferenceProvider.Cpu)
+                    : model),
+                ProductionOcrConfigurationScope.UnapprovedLocalSyntheticCandidate);
+    }
+
+    [TestMethod]
     public void DirectAdapterConstructionCannotClaimProductionApproval()
     {
         var pipeline = new OcrPipeline(

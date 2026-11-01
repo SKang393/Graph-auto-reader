@@ -5,7 +5,7 @@ using GraphReader.Axis;
 using GraphReader.Markers.Detection;
 using GraphReader.Ocr;
 using System.Security.Cryptography;
-using System.Text;
+using System.Text.Json;
 
 namespace GraphReader.App.Integration.Workflow;
 
@@ -25,21 +25,28 @@ public sealed record ProductionOcrModelEvidence(
         OcrResult result,
         IReadOnlyList<ProductionOcrConfiguredModel> configuredModels)
     {
-        string[] material =
+        string[][] material =
         [
-            "ocr-cache-reuse-v1",
-            kind,
-            cacheKeySha256,
-            request.RunId.ToString("D"),
-            request.ProjectId.ToString("D"),
-            request.Panel.ImportedPanel.PanelId.ToString("D"),
-            request.Image.Sha256,
-            result.StageVersion,
+            ["schema", "ocr-cache-reuse-v2"],
+            ["kind", kind],
+            ["cache_key_sha256", cacheKeySha256],
+            ["run_id", request.RunId.ToString("D")],
+            ["project_id", request.ProjectId.ToString("D")],
+            ["panel_id", request.Panel.ImportedPanel.PanelId.ToString("D")],
+            ["input_sha256", request.Image.Sha256],
+            ["stage_version", result.StageVersion],
             .. configuredModels.OrderBy(static model => model.Task, StringComparer.Ordinal)
-                .Select(static model => string.Join("|", model.Task, model.ModelId,
-                    model.Version, model.Sha256, model.ExecutionProvider)),
+                .Select(static model => new[]
+                {
+                    "configured_model",
+                    model.Task,
+                    model.ModelId,
+                    model.Version,
+                    model.Sha256,
+                    model.ExecutionProvider,
+                }),
         ];
-        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join("\u001f", material))));
+        return Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(material)));
     }
 }
 
