@@ -217,6 +217,8 @@ The follow-up [visual review](WORKFLOW_Y_REVIEW_RESULT.md) and
 [lane safeguard](OUTLYING_LANE_RESULT.md) record the remaining errors.
 The [adjacent-ink safeguard](ADJACENT_INK_RESULT.md) records its tradeoff on
 partial crops, graph structure, and readable labels.
+The [direct reread comparison](WORKFLOW_CROP_REREAD_RESULT.md) investigates
+the workflow's incorrect tick readings.
 
 ## Checks
 
