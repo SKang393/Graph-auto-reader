@@ -32,7 +32,7 @@ With width 8 and every other scanner setting frozen, a global translation was fi
 | V2 frozen width rule | `07aeab1d6c093ffa1df7ddc524b286480a0aae8a717dcb223610e356c4b26930` |
 | Fit attribution report | `6c93f77f84a568c455c60a48e588f53066eee9e68c4a5f1c54b81015c52e4ccb` |
 | Center correction frozen rule | `725b1283dcac361b66e2e22f99e271c179c28aafc5323e36ec49bcdb30cce8dc` |
-| Center correction report | `4957523a6d955f3cb6194da9ad294b9b45af99a19a9d8780f27875dfca2a56d7` |
+| Center correction report | `4957523a6d955f3cb6194daa9d294b9b45af99a19a9d8780f27875dfca2a56d7` |
 
 The code entrypoints pin input manifests/reports and record their dependency hashes:
 
