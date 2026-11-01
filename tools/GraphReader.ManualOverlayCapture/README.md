@@ -159,8 +159,8 @@ from 1,707 to 1,913, with 197 of the 206 additional candidates in the two
 images whose plot extents changed substantially. The recorded points are
 imperfect and do not label all image content, so these additional candidates
 cannot be classified as correct or false positives from this score. It does
-not execute downstream marker classification or recovery and is not release
-acceptance. See `../GraphReader.ManualPanelDiagnostic/SQUARE_BRIDGE_RESULT.md`
+not execute downstream marker classification or recovery in the center-only
+capture and is not release acceptance. See `../GraphReader.ManualPanelDiagnostic/SQUARE_BRIDGE_RESULT.md`
 for the first axis adjustment.
 
 The subsequent faint-ink adjustment recovered eight recorded points on one
@@ -171,6 +171,8 @@ showed proposals on text, arrows, and connecting lines. These are center-stage
 observations; the capture does not determine which proposals the later
 classifier and exclusions would remove. The visible-axis repair and review
 status are documented in `../GraphReader.ManualPanelDiagnostic/FAINT_INK_RESULT.md`.
+The separate classifier and downstream candidate-workflow diagnostic, including
+all failed panels, is recorded in [WORKFLOW_RESULT.md](WORKFLOW_RESULT.md).
 
 | Original-image evidence | SHA-256 |
 | --- | --- |
@@ -209,7 +211,7 @@ them; they are never packaging inputs.
 
 ```powershell
 dotnet build tools/GraphReader.ManualOverlayCapture/GraphReader.ManualOverlayCapture.csproj -c Release --no-restore -m:1 -p:NuGetAudit=false -p:UseSharedCompilation=false
-python -B -m unittest test_score test_patches test_native_score test_raw_confidence_score test_stage_score test_original_score -v
+python -B -m unittest test_score test_patches test_native_score test_raw_confidence_score test_stage_score test_original_score test_workflow_score -v
 dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore -m:1 -p:UseSharedCompilation=false --filter FullyQualifiedName~PlotDomainCandidateMatchesPythonSkewedCoordinatesAndPatchBytes
 ```
 

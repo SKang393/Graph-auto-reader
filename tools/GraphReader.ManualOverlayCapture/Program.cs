@@ -28,6 +28,15 @@ internal static class Program
     private const string ModelBinding = "artifacts/goal22-runs/marker-context-center-only-binding-v1.json";
     private const string ModelBindingSha = "51c7b65a076579764da6b58c51ea4ff0c10bcd48232e1ac1b625b74cf100be73";
     private const string OpenCvSha = "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31";
+    private const string ClassifierStore = "artifacts/production-model-store/package";
+    private static readonly (string Path, string Sha)[] ClassifierFiles =
+    [
+        ("production-model-index.json", "2cbd8adb51f80307b1ca4f011d54f108a78c3299c901e680ed92696ec46750a8"),
+        ("manifest/graph-marker-classifier/0.1.0/manifest.json", "fb0aebde5785e760c8c10bcf7fdb2c04dba7e63315d16ddcb6dbc6b25d4af312"),
+        ("runtime/graph-marker-classifier/0.1.0/marker-classifier-probability-packed.onnx", "26f9304f1689053a0b94aa896a1e239f6ade1e5c1920736a3535c1b32f803b8a"),
+        ("notices/graph-marker-classifier/0.1.0/MARKER_CLASSIFIER_MODEL_NOTICE.md", "b89466813efc2841b429b158ab6051686920a7888868869149e60cf9cde39b0c"),
+        ("evidence/graph-marker-classifier/0.1.0/marker-classifier-production-approval.json", "c4fb25e45e9c6d77100de8230a30443231445fa71751d685ba66c65da370e7a3"),
+    ];
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
     private static readonly string[] Sources =
     [
@@ -45,17 +54,18 @@ internal static class Program
     {
         try
         {
-            if (args.Length == 2 && args[0] == "--describe")
+            if (args.Length == 2 && args[0] is "--describe" or "--describe-workflow")
             {
                 string path = OutputPath(args[1]);
-                byte[] bytes = Describe();
+                byte[] bytes = Describe(args[0] == "--describe-workflow");
                 await WriteNew(path, bytes);
                 Console.WriteLine($"runtime_description_sha256={Hash(bytes)}");
                 return 0;
             }
-            if (args.Length == 6 && args[0] == "--capture")
-                return await Capture(args[1], args[2], args[3], args[4], args[5]);
-            Console.Error.WriteLine("Usage: --describe <new-json> OR --capture <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory>");
+            if (args.Length == 6 && args[0] is "--capture" or "--capture-workflow" or "--capture-workflow-smoke")
+                return await Capture(args[1], args[2], args[3], args[4], args[5],
+                    workflow: args[0] != "--capture", smoke: args[0] == "--capture-workflow-smoke");
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
@@ -65,7 +75,7 @@ internal static class Program
         }
     }
 
-    private static byte[] Describe()
+    private static byte[] Describe(bool workflow)
     {
         string native = NativePath();
         Require(Hash(File.ReadAllBytes(native)) == OpenCvSha, "Reviewed OpenCV bytes differ.");
@@ -78,17 +88,27 @@ internal static class Program
             .Order(StringComparer.OrdinalIgnoreCase)
             .Select(path => new { file = Relative(path), sha256 = Hash(File.ReadAllBytes(path)) }).ToArray();
         var sourceFiles = Sources.Select(path => new { file = path, sha256 = Hash(File.ReadAllBytes(ProjectPath(path))) }).ToArray();
+        var classifierFiles = workflow ? ClassifierFiles.Select(item =>
+        {
+            string path = $"{ClassifierStore}/{item.Path}";
+            string sha = Hash(File.ReadAllBytes(ProjectPath(path)));
+            Require(sha == item.Sha, "Classifier binding differs.");
+            return new { file = path, sha256 = sha };
+        }).ToArray() : [];
         return JsonSerializer.SerializeToUtf8Bytes(new { schema = "graphreader.manual-marker-capture-runtime.v1",
             scope = "train-only-unapproved-candidate-no-optimizer", model_binding_sha256 = ModelBindingSha,
             opencv_sha256 = OpenCvSha, artifact_configuration_sha256 = artifact.Identity.ConfigurationSha256,
             artifact_app_sha256 = artifact.Identity.AssemblySha256, artifact_ocr_sha256 = artifact.OcrAssemblySha256,
-            source_files = sourceFiles, runtime_files = runtimeFiles, optimizer_steps = 0, production_approval = false }, JsonOptions);
+            source_files = sourceFiles, runtime_files = runtimeFiles, classifier_files = classifierFiles,
+            workflow_enabled = workflow, optimizer_steps = 0, production_approval = false }, JsonOptions);
     }
 
-    private static async Task<int> Capture(string inputPath, string inputSha, string descriptionPath, string descriptionSha, string outputName)
+    private static async Task<int> Capture(string inputPath, string inputSha, string descriptionPath, string descriptionSha,
+        string outputName, bool workflow, bool smoke)
     {
+        using var classifierLocks = workflow ? new ClassifierInputLocks() : null;
         byte[] description = await ReadPinned(descriptionPath, descriptionSha, 1_000_000);
-        Require(description.AsSpan().SequenceEqual(Describe()), "Frozen runtime description differs.");
+        Require(description.AsSpan().SequenceEqual(Describe(workflow)), "Frozen runtime description differs.");
         byte[] input = await ReadPinned(inputPath, inputSha, 1_000_000);
         using JsonDocument manifest = JsonDocument.Parse(input);
         JsonElement root = manifest.RootElement;
@@ -121,6 +141,9 @@ internal static class Program
         }
         Require(((selection is "smoke" or "original") && entries.Count == 20) || (selection == "full" && entries.Count == 200),
             "Only the fixed 20-image or 200-image inputs are supported.");
+        Require(!workflow || (original && inputSha == "b9044372d5d6b37257ef0e1823935eaed840b99f9dc5a66a2c5359a1b7beeba6"),
+            "Workflow diagnostics require the pinned original train input.");
+        if (smoke) entries = entries.Take(1).ToList();
         string output = OutputPath(outputName);
         Require(!Directory.Exists(output) && !File.Exists(output), "Output already exists.");
         Directory.CreateDirectory(output);
@@ -154,12 +177,28 @@ internal static class Program
             ProjectPath(centerModel.Manifest.RelativePath), centerModel.Manifest.Sha256);
         ProductionProposalMarkerCenterAdapter center = ProductionProposalMarkerCenterAdapter.CreateForFrozenCandidateCascadeEvaluation(markerDescriptor, runtime.Runtime);
         Require(!center.IsApproved, "Marker model must remain unapproved.");
+        IProductionMarkerClassificationAdapter classifier = new NoClassification();
+        if (workflow)
+        {
+            var classifierStore = new ProductionModelStore(ProjectPath(ClassifierStore));
+            ResolvedProductionModel model = await classifierStore.ResolveAsync(
+                "graph-marker-classifier", "0.1.0", InferenceProvider.Cpu, CancellationToken.None);
+            Require(model.Task == "marker_classifier" &&
+                string.Equals(model.Identity.Sha256, ClassifierFiles[2].Sha, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(model.ManifestSha256, ClassifierFiles[1].Sha, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(model.NoticeSha256, ClassifierFiles[3].Sha, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(model.BenchmarkEvidenceSha256, ClassifierFiles[4].Sha, StringComparison.OrdinalIgnoreCase),
+                "Resolved classifier binding differs.");
+            classifier = ProductionMarkerClassificationAdapter.Create(model, runtime);
+            Require(classifier.IsApproved, "Classifier approval scope differs.");
+        }
 
         var results = new List<object>();
         int failed = 0;
         foreach ((string id, string path, string sha) in entries)
         {
             var panelRows = new List<object>();
+            bool sourceFailed = false;
             try
             {
                 string sourcePath = ProjectPath(path);
@@ -169,7 +208,7 @@ internal static class Program
                 var axis = new ObservedAxis(new ProductionAxisGeometryAdapter(OpenCvSha, isApproved: false));
                 var observedOcr = new ObservedOcr(ocr);
                 var automatic = new ProductionAutomaticDetectionAdapter(store, new ProductionRasterFrameDecoder(), axis, observedOcr,
-                    new ProductionDetectionMaskComposer(artifact), center, new NoClassification(),
+                    new ProductionDetectionMaskComposer(artifact), center, classifier,
                     new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter());
                 var importer = new ProductionWorkflowImportStage(store, new ImageImportService());
                 Guid project = ProductionWorkflowPanelStore.CreateStableId("manual-overlay-capture-project-v1", inputSha);
@@ -187,6 +226,13 @@ internal static class Program
                     var prepared = new WorkflowPreparedPanel(panel, panel.Original, enhanced: null);
                     var request = new ProductionWorkflowDetectionRequest(prepared, panel.Original, WorkflowImageVariant.Original,
                         Guid.NewGuid(), project, evidence.CopyOriginalBytes());
+                    if (workflow)
+                    {
+                        (object row, bool panelFailed) = await CaptureWorkflowPanel(automatic, request, panel, provenance);
+                        panelRows.Add(row);
+                        sourceFailed |= panelFailed;
+                        continue;
+                    }
                     ProductionCandidateMarkerFrameBundle bundle = await automatic.PrepareMarkerFrameBundleForCandidateEvaluationAsync(request, CancellationToken.None);
                     ProductionAxisGeometryEvidence geometry = axis.ForPanel(panel.PanelId);
                     var plot = new MarkerPolygon(geometry.Geometry.PlotPolygon.Points.Select(point => new MarkerPoint(point.X, point.Y)).ToArray());
@@ -212,7 +258,8 @@ internal static class Program
                         axis_reasons = geometry.Geometry.Uncertainty.Reasons, markers = markers.Markers });
                 }
                 Require(Hash(await File.ReadAllBytesAsync(sourcePath)) == sha, "Source bytes differ after import.");
-                results.Add(new { id, image_sha256 = sha, status = "completed", panels = panelRows });
+                if (sourceFailed) failed++;
+                results.Add(new { id, image_sha256 = sha, status = sourceFailed ? "failed" : "completed", panels = panelRows });
             }
             catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
             {
@@ -222,14 +269,101 @@ internal static class Program
             }
             Console.WriteLine($"processed={results.Count}/{entries.Count}; failed={failed}");
         }
-        byte[] report = JsonSerializer.SerializeToUtf8Bytes(new { schema = "graphreader.manual-marker-input-capture.v1",
-            scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
-            runtime_description_sha256 = descriptionSha, model_binding_sha256 = ModelBindingSha,
-            opencv_sha256 = OpenCvSha, optimizer_steps = 0, training_approved = false,
-            classification_executed = false, truth_read = false, sealed_payload_reads = 0, rows = results }, JsonOptions);
+        object reportObject = workflow
+            ? new { schema = "graphreader.manual-marker-workflow-capture.v1",
+                scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
+                runtime_description_sha256 = descriptionSha, model_binding_sha256 = ModelBindingSha,
+                classifier_sha256 = ClassifierFiles[2].Sha, opencv_sha256 = OpenCvSha,
+                smoke, optimizer_steps = 0, training_approved = false, classification_requested = true,
+                truth_read = false, sealed_payload_reads = 0, rows = results }
+            : new { schema = "graphreader.manual-marker-input-capture.v1",
+                scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
+                runtime_description_sha256 = descriptionSha, model_binding_sha256 = ModelBindingSha,
+                opencv_sha256 = OpenCvSha, optimizer_steps = 0, training_approved = false,
+                classification_executed = false, truth_read = false, sealed_payload_reads = 0, rows = results };
+        byte[] report = JsonSerializer.SerializeToUtf8Bytes(reportObject, JsonOptions);
         await WriteNew(Path.Combine(output, "report.json"), report);
         Console.WriteLine($"completed={results.Count - failed}; failed={failed}; report_sha256={Hash(report)}");
         return failed == 0 ? 0 : 3;
+    }
+
+    private static async Task<(object Row, bool Failed)> CaptureWorkflowPanel(
+        ProductionAutomaticDetectionAdapter automatic, ProductionWorkflowDetectionRequest request,
+        WorkflowImportedPanel panel, object provenance)
+    {
+        ProductionCandidateCalibrationObservation? observation = null;
+        WorkflowDetectionBatch? batch = null;
+        Exception? failure = null;
+        automatic.CandidateCalibrationObserver = value =>
+        {
+            Require(observation is null && value.PanelId == panel.PanelId &&
+                string.Equals(value.PanelSha256, panel.Original.Sha256, StringComparison.OrdinalIgnoreCase),
+                "Candidate workflow observation identity differs.");
+            observation = value;
+        };
+        try
+        {
+            batch = await automatic.DetectForCandidateEvaluationAsync(request, CancellationToken.None);
+            Require(observation is not null, "Candidate workflow omitted its marker-stage observation.");
+        }
+        catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
+        {
+            failure = error;
+        }
+        finally
+        {
+            automatic.CandidateCalibrationObserver = null;
+        }
+
+        object row = new { panel_id = panel.PanelId, panel_sha256 = panel.Original.Sha256, provenance,
+            status = failure is null ? "completed" : "failed", error_type = failure?.GetType().Name,
+            failure_code = (failure as ProductionWorkflowStageException)?.Failure.Code,
+            error = failure?.Message, marker_stage_reached = observation is not null,
+            axis_needs_review = observation?.Axis.Uncertainty.NeedsReview,
+            calibration_validity = observation?.Calibration.Validity.ToString(),
+            centers_before_classification = observation?.MarkerPipeline.CentersBeforeClassification ?? [],
+            classified_plot = observation?.MarkerPipeline.ClassifiedPlotMarkers.Select(item => new
+            {
+                marker = item.Marker, artifact_probability = item.ArtifactProbability,
+                shape = item.Shape.ToString(), fill = item.Fill.ToString(),
+            }).ToArray() ?? [],
+            text_excluded_marker_ids = observation?.MarkerPipeline.TextExcludedMarkerIds ?? [],
+            markers = observation?.AcceptedMarkers.Select(item => item.Marker).ToArray() ?? [],
+            workflow_points = batch?.Candidates.Select(item => new
+            {
+                x = item.OriginalPixelX, y = item.OriginalPixelY, item.GraphX, item.GraphY,
+            }).ToArray() ?? [] };
+        return (row, failure is not null);
+    }
+
+    private sealed class ClassifierInputLocks : IDisposable
+    {
+        private readonly List<FileStream> streams = [];
+
+        public ClassifierInputLocks()
+        {
+            try
+            {
+                foreach ((string path, string sha) in ClassifierFiles)
+                {
+                    var stream = new FileStream(ProjectPath($"{ClassifierStore}/{path}"),
+                        FileMode.Open, FileAccess.Read, FileShare.Read);
+                    streams.Add(stream);
+                    Require(Convert.ToHexStringLower(SHA256.HashData(stream)) == sha, "Classifier input differs.");
+                    stream.Position = 0;
+                }
+            }
+            catch
+            {
+                Dispose();
+                throw;
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (FileStream stream in streams) stream.Dispose();
+        }
     }
 
     private static FrozenCandidateModel ReadModel(JsonElement item, string task)
