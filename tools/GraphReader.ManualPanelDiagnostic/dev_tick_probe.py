@@ -12,6 +12,7 @@ import math
 from pathlib import Path
 import re
 
+import cv2
 import numpy as np
 
 from tick_rank_probe import choose
@@ -72,7 +73,7 @@ def predict(report_sha: str) -> None:
                       "changed": sum(row.get("selected_rank", 0) != 0 for row in rows), "sha256": digest(path)}))
 
 
-def score(truth_sha: str, prediction_sha: str) -> None:
+def calibration_diagnostic(truth_sha: str, prediction_sha: str) -> None:
     manifest = read_checked(RUN / "dev-axis-capture-v1/manifest.json", MANIFEST_SHA)
     truth = read_checked(RUN / "dev-axis-capture-v1/anchors.json", truth_sha)
     predictions = read_checked(RUN / "tick-rank-dev-v1.json", prediction_sha)
@@ -134,36 +135,131 @@ def score(truth_sha: str, prediction_sha: str) -> None:
                 not (left - 5 <= baseline_x <= right + 5 and left - 5 <= selected_x <= right + 5):
             rows.append({**row, "status": "calibrated_axis_outside_panel"})
             continue
-        rows.append({**row, "status": "scored", "baseline_error_pixels": baseline,
-                     "selected_error_pixels": selected, "selected_rank": panel["selected_rank"]})
-    scored = [row for row in rows if row["status"] == "scored"]
-    result = {"schema": "graphreader.axis-tick-dev-score.v1", "scope": "exposed-development-not-acceptance",
+        rows.append({**row, "status": "measured", "baseline_distance_to_graph_zero_pixels": baseline,
+                     "selected_distance_to_graph_zero_pixels": selected, "selected_rank": panel["selected_rank"]})
+    measured = [row for row in rows if row["status"] == "measured"]
+    result = {"schema": "graphreader.axis-tick-dev-calibration-diagnostic.v2", "scope": "exposed-development-not-acceptance",
               "manifest_sha256": MANIFEST_SHA, "truth_sha256": truth_sha, "prediction_sha256": prediction_sha,
-              "tolerance_pixels": 5, "rows": rows,
-              "limitations": ["Manual calibration is imperfect and graph X=0 may not equal a visible axis.",
-                              "Only vertical axis position at one Y coordinate is measured.",
+              "rows": rows,
+              "limitations": ["Distance to graph X=0 is not an axis accuracy or error metric.",
+                              "Graph X=0 may not equal a visible axis and some axes are absent.",
+                              "Manual calibrations are imperfect and only one Y coordinate is measured.",
                               "Study groups and historical exposure limit independence."]}
-    path = RUN / "tick-rank-dev-score-v1.json"
+    path = RUN / "tick-rank-dev-calibration-extrapolation-v2.json"
     write_new(path, result)
-    print(json.dumps({"cases": len(rows), "scored": len(scored),
-                      "baseline_within_5px": sum(row["baseline_error_pixels"] <= 5 for row in scored),
-                      "selected_within_5px": sum(row["selected_error_pixels"] <= 5 for row in scored),
-                      "changed_scored": sum(row["selected_rank"] != 0 for row in scored),
-                      "unavailable": len(rows) - len(scored), "sha256": digest(path)}))
+    print(json.dumps({"cases": len(rows), "measured": len(measured),
+                      "not_an_axis_accuracy_metric": True, "sha256": digest(path)}))
+
+
+def visual_review(report_sha: str, prediction_sha: str, review_sha: str) -> None:
+    manifest = read_checked(RUN / "dev-axis-capture-v1/manifest.json", MANIFEST_SHA)
+    report = read_checked(RUN / "panel-diagnostic-dev-v1/report.json", report_sha)
+    predictions = read_checked(RUN / "tick-rank-dev-v1.json", prediction_sha)
+    review = read_checked(RUN / "dev-axis-visual-review-v1.json", review_sha)
+    if (report["input_sha256"] != MANIFEST_SHA or predictions["input_sha256"] != report_sha or
+            predictions["manifest_sha256"] != MANIFEST_SHA or predictions["truth_read"] is not False or
+            review["manifest_sha256"] != MANIFEST_SHA or review["prediction_sha256"] != prediction_sha or
+            review["blinded"] is not False):
+        raise ValueError("visual review provenance differs")
+
+    def indexed(rows: list[dict]) -> dict[str, dict]:
+        result = {row["id"]: row for row in rows}
+        if len(result) != len(rows):
+            raise ValueError("duplicate image identity")
+        return result
+
+    images = indexed(manifest["rows"])
+    reports = indexed(report["rows"])
+    decisions = indexed(review["rows"])
+    predicted: dict[str, list[dict]] = {}
+    for row in predictions["rows"]:
+        predicted.setdefault(row["id"], []).append(row)
+    if len(images) != 16 or set(images) != set(reports) or set(images) != set(decisions) or set(images) != set(predicted):
+        raise ValueError("visual review inventory differs")
+
+    rows = []
+    for image_id, decision in decisions.items():
+        panels = reports[image_id]["panels"]
+        choices = predicted[image_id]
+        if len(panels) != 1 or len(choices) != 1 or not choices[0]["success"]:
+            rows.append({"id": image_id, "status": "ambiguous_or_missing_panel"})
+            continue
+        panel, choice = panels[0], choices[0]
+        if panel["Order"] != choice["panel"]:
+            raise ValueError("panel identity differs")
+        axis = panel["axis"]
+        image = images[image_id]
+        source = ROOT / image["image_path"]
+        if digest(source) != image["image_sha256"]:
+            raise ValueError("source image differs")
+        if decision["status"] in ("not_visible", "ambiguous"):
+            rows.append({"id": image_id, "status": decision["status"], "needs_review": axis["needs_review"],
+                         "uncertainty_reasons": axis["uncertainty_reasons"]})
+            continue
+        if decision["status"] != "visible":
+            raise ValueError("unknown visual-review status")
+        pixels = cv2.imdecode(np.fromfile(source, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+        if pixels is None or pixels.shape != (image["height"], image["width"]):
+            raise ValueError("source image dimensions differ")
+        x0, x1 = decision["x_range"]
+        y0, y1 = decision["y_range"]
+        if not (0 <= x0 < x1 <= image["width"] and 0 <= y0 < y1 <= image["height"]):
+            raise ValueError("invalid visual-review window")
+        reference_x = x0 + int(np.argmin(pixels[y0:y1, x0:x1].mean(axis=0)))
+        reference_y = (y0 + y1 - 1) / 2
+        crop = panel["crop"]
+        candidate = next((item for item in axis["ranked_candidates"] if item["Rank"] == choice["selected_rank"]), None)
+        if (candidate is None or choice["crop"] != crop or
+                axis["ranked_candidates"][0]["Intersection"] != choice["baseline"] or
+                candidate["Intersection"] != choice["selected"]):
+            raise ValueError("frozen candidate differs")
+
+        def x_at_y(start: dict, end: dict) -> float:
+            start_y, end_y = start["Y"] + crop["Y"], end["Y"] + crop["Y"]
+            if not min(start_y, end_y) <= reference_y <= max(start_y, end_y) or abs(end_y - start_y) < 1e-9:
+                raise ValueError("axis does not span the reviewed reference")
+            return crop["X"] + start["X"] + (end["X"] - start["X"]) * (reference_y - start_y) / (end_y - start_y)
+
+        baseline_x = x_at_y(axis["y_axis"]["Start"], axis["y_axis"]["End"])
+        selected_x = x_at_y(candidate["Intersection"], candidate["TopLeft"])
+        rows.append({"id": image_id, "status": "visible", "reference_x": reference_x, "reference_y": reference_y,
+                     "baseline_distance_pixels": abs(baseline_x - reference_x),
+                     "selected_distance_pixels": abs(selected_x - reference_x), "selected_rank": choice["selected_rank"]})
+
+    visible = [row for row in rows if row["status"] == "visible"]
+    absent = [row for row in rows if row["status"] == "not_visible"]
+    result = {"schema": "graphreader.axis-tick-dev-visual-review.v1", "scope": "development-not-acceptance",
+              "manifest_sha256": MANIFEST_SHA, "report_sha256": report_sha, "prediction_sha256": prediction_sha,
+              "review_sha256": review_sha, "tolerance_pixels": 5, "rows": rows,
+              "limitations": ["Reference windows were chosen after predictions and were not independently adjudicated.",
+                              "The darkest mean column measures only one horizontal position, not the full axis.",
+                              "Historical and sealed overlap are unknown; this is not release acceptance."]}
+    path = RUN / "tick-rank-dev-visual-score-v2.json"
+    write_new(path, result)
+    print(json.dumps({"images": len(rows), "visible": len(visible), "not_visible": len(absent),
+                      "other_unavailable": len(rows) - len(visible) - len(absent),
+                      "baseline_within_5px": sum(row["baseline_distance_pixels"] <= 5 for row in visible),
+                      "selected_within_5px": sum(row["selected_distance_pixels"] <= 5 for row in visible),
+                      "max_distance_pixels": max((max(row["baseline_distance_pixels"], row["selected_distance_pixels"]) for row in visible), default=None),
+                      "not_visible_flagged_review": sum(row["needs_review"] for row in absent),
+                      "changed": sum(row["selected_rank"] != 0 for row in visible), "sha256": digest(path)}))
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=("predict", "score"))
+    parser.add_argument("mode", choices=("predict", "calibration-diagnostic", "visual-review"))
     parser.add_argument("--report-sha256")
     parser.add_argument("--truth-sha256")
     parser.add_argument("--prediction-sha256")
+    parser.add_argument("--review-sha256")
     args = parser.parse_args()
     valid = lambda value: bool(value and re.fullmatch(r"[0-9a-f]{64}", value))
     if args.mode == "predict" and valid(args.report_sha256):
         predict(args.report_sha256)
-    elif args.mode == "score" and valid(args.truth_sha256) and valid(args.prediction_sha256):
-        score(args.truth_sha256, args.prediction_sha256)
+    elif args.mode == "calibration-diagnostic" and valid(args.truth_sha256) and valid(args.prediction_sha256):
+        calibration_diagnostic(args.truth_sha256, args.prediction_sha256)
+    elif args.mode == "visual-review" and valid(args.report_sha256) and valid(args.prediction_sha256) and valid(args.review_sha256):
+        visual_review(args.report_sha256, args.prediction_sha256, args.review_sha256)
     else:
         parser.error("the selected mode requires lowercase SHA-256 input identities")
 

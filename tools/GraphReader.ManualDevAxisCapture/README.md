@@ -19,15 +19,15 @@ the same projects only after supplied manifest and prediction hashes match, then
 writes the anchors separately under that ignored directory. No case names,
 source paths, images, or transcriptions belong in tracked results.
 
-For each usable three-point calibration, the planned location-only comparison
-fits the recorded affine calibration and compares the predicted vertical axis
-with the screen location of graph X = 0 at the relevant Y coordinate. Report
-baseline and tick-selected counts within five pixels, unavailable or ambiguous
-calibrations, duplicate images, and exact image overlaps with training data.
-Account for source studies when interpreting results. Multiple panels require
-the calibration to be associated with the corresponding panel; do not silently
-assign unmatched anchors. This is development analysis on imperfect manual
-data, not independent expert adjudication, a sealed test, or product acceptance.
+The recorded three-point calibration can locate graph X = 0, but that position
+is not a reliable reference for a drawn vertical axis. Some graphs start at
+session 1, and some have no visible vertical axis. The calibration extrapolation
+output is a diagnostic, not an axis accuracy score. For visible-line review,
+report the reference method and cases with no visible or ambiguous line
+separately; never substitute an extrapolated origin for a missing line.
+Account for source studies and exact train-image overlap when interpreting
+results. This is development analysis on imperfect manual data, not independent
+expert adjudication, a sealed test, or product acceptance.
 
 ```powershell
 dotnet build tools/GraphReader.ManualDevAxisCapture/GraphReader.ManualDevAxisCapture.csproj -c Release -m:1
