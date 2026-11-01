@@ -33,3 +33,6 @@ GPU probe and this inference completed successfully.
 
 Two focused summary tests and pyflakes passed. Per-image results and the
 controlled tensors remain project-local and are not release artifacts.
+The later [overlap audit](OVERLAP_RESULT.md) identifies repeated input pixels
+across the source-grouped partitions. This baseline remains an in-sample
+measurement over the original 214 build patches.
