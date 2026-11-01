@@ -48,6 +48,7 @@ internal static partial class Program
         "tools/GraphReader.ManualOverlayCapture/OrientationCropCounterfactual.cs",
         "tools/GraphReader.ManualOverlayCapture/MarkerPatchParity.cs",
         "tools/GraphReader.ManualOverlayCapture/AssistedCalibration.cs",
+        "tools/GraphReader.ManualOverlayCapture/PhaseValidationDiagnostic.cs",
         "tools/GraphReader.ManualOverlayCapture/prepare_input.py",
         "src/GraphReader.Ocr/DenseTickTextRegionRecovery.cs",
         "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs",
@@ -75,6 +76,8 @@ internal static partial class Program
                 return await MarkerPatchParitySelfTest();
             if (args.Length == 1 && args[0] == "--assisted-binding-self-test")
                 return AssistedBindingSelfTest();
+            if (args.Length == 1 && args[0] == "--phase-validation-self-test")
+                return PhaseValidationSelfTest();
             if (args.Length == 3 && args[0] == "--assisted-binding-check")
             {
                 Dictionary<string, AssistedCalibrationInput> bindings = await ReadAssistedCalibrations(args[1], args[2]);
@@ -296,10 +299,11 @@ internal static partial class Program
                 var store = new ProductionWorkflowPanelStore();
                 var axis = new ObservedAxis(new ProductionAxisGeometryAdapter(OpenCvSha, isApproved: false));
                 var observedOcr = new ObservedOcr(ocr);
+                ObservedPhaseValidation? observedPhases = assisted is null ? null : new ObservedPhaseValidation();
                 IProductionOcrAdapter selectedOcr = workflow && onlyId is not null ? ocr : observedOcr;
                 var automatic = new ProductionAutomaticDetectionAdapter(store, new ProductionRasterFrameDecoder(), axis, selectedOcr,
                     new ProductionDetectionMaskComposer(artifact), center, classifier,
-                    new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter());
+                    new ProductionLegendReasoningAdapter(), observedPhases ?? (IProductionPhaseReasoningAdapter)new ProductionPhaseReasoningAdapter());
                 var importer = new ProductionWorkflowImportStage(store, new ImageImportService());
                 Guid project = ProductionWorkflowPanelStore.CreateStableId("manual-overlay-capture-project-v1", inputSha);
                 Guid sourceId = ProductionWorkflowPanelStore.CreateStableId("manual-overlay-capture-source-v1", inputSha, id, sha);
@@ -332,7 +336,8 @@ internal static partial class Program
                             automatic, request, panel, provenance, captureTickDetails: onlyId is not null || captureDetails,
                             probeTickRecovery: onlyId is not null,
                             detectionTrace: traceRecognition ? detectionTrace : null,
-                            recognitionTrace: traceRecognition ? recognitionTrace : null);
+                            recognitionTrace: traceRecognition ? recognitionTrace : null,
+                            phaseValidation: observedPhases);
                         panelRows.Add(row);
                         sourceFailed |= panelFailed;
                         continue;
@@ -405,7 +410,8 @@ internal static partial class Program
     private static async Task<(object Row, bool Failed)> CaptureWorkflowPanel(
         ProductionAutomaticDetectionAdapter automatic, ProductionWorkflowDetectionRequest request,
         WorkflowImportedPanel panel, object provenance, bool captureTickDetails, bool probeTickRecovery,
-        List<OcrDetectionObservation>? detectionTrace, List<TraceCropObservation>? recognitionTrace)
+        List<OcrDetectionObservation>? detectionTrace, List<TraceCropObservation>? recognitionTrace,
+        ObservedPhaseValidation? phaseValidation)
     {
         ProductionCandidateCalibrationObservation? observation = null;
         ProductionCandidateTickLaneObservation? tickLane = null;
@@ -465,6 +471,7 @@ internal static partial class Program
             calibration_validity = observation?.Calibration.Validity.ToString(),
             calibration_reasons = captureTickDetails ? observation?.Calibration.Reasons : null,
             detection_trace = detectionTrace?.ToArray(), recognition_trace = recognitionTrace?.ToArray(),
+            phase_validation = phaseValidation?.Find(panel.PanelId),
             tick_lane = captureTickDetails ? tickLane : null,
             tick_recovery_probe = tickRecoveryProbe,
             ocr_tick_regions = captureTickDetails ? observation?.Ocr.Regions
