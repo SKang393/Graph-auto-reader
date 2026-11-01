@@ -1,0 +1,56 @@
+{
+  "schema": "graphreader.stroke-seeded-wide-proposal-curation-config.v1",
+  "recipe_id": "ink-stroke-validity-p3-train-wide-clusters-curation-p3",
+  "parent_p2_config_sha256": "2d750a9690832ac60537d09fe78e529e87c9151295f044562197c94c9a47253b",
+  "p3_config_sha256": "927b93c88d7e61dc505516995b72f2235aa7fc8824e5fc54b45ae6741c3c5717",
+  "v6_manifest_sha256": "12565af18cd69b680b978454058ab0f4448336931e5db7b3c128b861af9e0f1a",
+  "v2_curation_manifest_sha256": "aa265cdd89bef3a77e01d0809f48077bdacb1df1ca4e38ea0b81e637109ce672",
+  "train_source_group_ids": [
+    "stroke-seeded-xtick-v1-train-27103100",
+    "stroke-seeded-xtick-v1-train-27103101",
+    "stroke-seeded-xtick-v1-train-27103102",
+    "stroke-seeded-xtick-v1-train-27103104",
+    "stroke-seeded-xtick-v1-train-27103105",
+    "stroke-seeded-xtick-v1-train-27103106",
+    "stroke-seeded-xtick-v1-train-27103107",
+    "stroke-seeded-xtick-v1-train-27103108",
+    "stroke-seeded-xtick-v1-train-27103109",
+    "stroke-seeded-xtick-v1-train-27103110",
+    "stroke-seeded-xtick-v1-train-27103112",
+    "stroke-seeded-xtick-v1-train-27103113",
+    "stroke-seeded-xtick-v1-train-27103116",
+    "stroke-seeded-xtick-v1-train-27103117",
+    "stroke-seeded-xtick-v1-train-27103118",
+    "stroke-seeded-xtick-v1-train-27103119",
+    "stroke-seeded-xtick-v1-train-27103120",
+    "stroke-seeded-xtick-v1-train-27103122",
+    "stroke-seeded-xtick-v1-train-27103123"
+  ],
+  "architecture_seed_schedule": {
+    "inherits_model_seed": 27104152,
+    "inherits_sampler_seed": 27104153,
+    "epochs": 60,
+    "batch_size": 32,
+    "steps_per_epoch": 23,
+    "per_class_draws_per_epoch": 368,
+    "optimizer": "AdamW",
+    "learning_rate": 0.001,
+    "loss": "binary_cross_entropy_with_logits",
+    "sampling": "round-robin source groups per class; persistent deterministic group cursors; replacement only when a group is exhausted"
+  },
+  "scanner_variant": {
+    "source": "train-only truth-blind ink pixel scan",
+    "only_changed_scan_setting": "max_cluster_width=1000000, replacing 8 px baseline cap",
+    "other_scan_settings": {"radius": 12, "core_exclusion": 2, "edge_guard": 4, "maximum_ink_gray": 200}
+  },
+  "admission_policy": {
+    "new_rows_only": ["positive", "background_only"],
+    "positive_semantics": "unique_visible_tick with exactly one complete intended XTick glyph and no intersecting XTick or other text",
+    "negative_semantics": "no_ground_truth_tick_nearby with no intersecting XTick or other text",
+    "ambiguous_or_excluded": "never admitted",
+    "same_image_conflict": "quarantine all candidate rows for hash; preserve old P3 baseline row unchanged",
+    "same_hash_same_label_as_baseline": "record as duplicate and add no row",
+    "candidate_hash_deduplication": "one row per exact PNG SHA-256; merge source group provenance"
+  },
+  "output_relative": "artifacts/stroke-seeded-xtick-v1-wideproposal-train-candidates-p3"
+}

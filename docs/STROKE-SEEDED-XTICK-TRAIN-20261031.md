@@ -467,3 +467,30 @@ P3's earlier training-provenance limitation still applies.
 - Paired filter report SHA-256: `1e8615201c2f0a2f920a1bce8b1b5fae5e0762f944f8042ae9bd352bc8a5849c`
 - Scanner fixture tests: 4 passed; paired admission and metric tests: 3 passed.
   Classifier inference used the RX 6600 XT with no training or CPU fallback.
+
+## Wide-proposal train-only curation
+
+The fixed P3 training allowlist selected 19 source groups. The curation pass
+reproduced 573 V6 crop/annotation rows, verified rendered panel hashes, and
+reproduced the original C# scanner on 807 proposals before the wider scan.
+The wider scan produced 915 proposal occurrences: 96 positive, 379 text-free
+background and 440 excluded by the existing conservative curation rules.
+
+After exact-image reconciliation with the frozen P3 training inputs, 19 new
+unique crops remained: eight positive and eleven negative. Another 185 strict
+candidate occurrences duplicated an existing baseline image with the same
+label, three duplicated another candidate, and 268 were quarantined because
+the same crop also appeared with ambiguous truth. None of the 19 retained crop
+hashes matched the earlier holdout metadata or the consumed probe manifest.
+Independent checks verified each retained image and annotation hash and its
+train-group assignment. The train population is small and source-skewed; this
+is candidate input, not model or acceptance evidence.
+
+Two earlier attempts reached curation but failed during report assembly with
+undefined names; no optimizer ran. The completed third pass followed a local
+static check and five focused admission, reconciliation and synthetic
+report-assembly checks. Its manifest SHA-256 is
+`d02190e6260a18769e2fba06f286670d69bd78a9640a58078bee1fc83567cce5`,
+and its wrapper source SHA-256 is
+`e5f10b513a88b72970bcdf4ddbb93e4cddadc0cfe36524ef05085e80aa533c8b`.
+The completed pass reported 155.09 seconds; no model training occurred.
