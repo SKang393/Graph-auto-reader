@@ -221,6 +221,8 @@ The [direct reread comparison](WORKFLOW_CROP_REREAD_RESULT.md) investigates
 the workflow's incorrect tick readings.
 The [crop trace](WORKFLOW_CROP_TRACE_RESULT.md) identifies their orientation
 discrepancy.
+The [orientation reconstruction](ORIENTATION_CROP_RESULT.md) isolates that
+discrepancy for both traced examples.
 
 ## Checks
 
