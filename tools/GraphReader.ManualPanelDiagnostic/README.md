@@ -46,3 +46,5 @@ The separate crop-transcription diagnostic is recorded in
 [DEV_OCR_RESULT.md](DEV_OCR_RESULT.md).
 The controlled horizontal-padding comparison is recorded in
 [CROP_PADDING_RESULT.md](CROP_PADDING_RESULT.md).
+The exploratory combined tick-reading signal is recorded in
+[TICK_CONSENSUS_RESULT.md](TICK_CONSENSUS_RESULT.md).
