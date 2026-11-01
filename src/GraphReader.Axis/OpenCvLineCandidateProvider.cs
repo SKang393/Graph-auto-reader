@@ -223,8 +223,10 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
                             Math.Max(nativeInkSpan, (distance / 2d) + InkEndpointRadius)));
                         if (((gapX * neighbor.Outward.X) + (gapY * neighbor.Outward.Y)) / distance < alignmentCosine ||
                             -((gapX * endpoint.Outward.X) + (gapY * endpoint.Outward.Y)) / distance < alignmentCosine ||
-                            !HasLocalInkPath(neighbor.Point, endpoint.Point, frame, pixels,
-                                detourRadius, cancellationToken) ||
+                            (!HasLocalInkPath(neighbor.Point, endpoint.Point, frame, pixels,
+                                detourRadius, cancellationToken) &&
+                             !HasLocalInkPath(neighbor.Point, endpoint.Point, frame, pixels,
+                                InkEndpointRadius + 1, cancellationToken, requireStraightContrast: true)) ||
                             !usedPairs.Add((neighbor.Candidate.CandidateId, endpoint.Candidate.CandidateId)))
                         {
                             continue;
@@ -355,11 +357,17 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         GrayscaleLineCandidateFrame frame,
         byte[] pixels,
         int detourRadius,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool requireStraightContrast = false)
     {
         const byte maximumInkGray = 200;
+        const byte maximumFaintInkGray = 230;
+        const byte minimumBackgroundGray = 245;
+        const int backgroundSampleDistance = 7;
         int fromX = (int)Math.Round(from.X), fromY = (int)Math.Round(from.Y);
         int toX = (int)Math.Round(to.X), toY = (int)Math.Round(to.Y);
+        double deltaX = to.X - from.X, deltaY = to.Y - from.Y;
+        double length = Math.Sqrt((deltaX * deltaX) + (deltaY * deltaY));
         int left = Math.Max(0, Math.Min(fromX, toX) - detourRadius);
         int right = Math.Min(frame.Width - 1, Math.Max(fromX, toX) + detourRadius);
         int top = Math.Max(0, Math.Min(fromY, toY) - detourRadius);
@@ -370,7 +378,7 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         {
             for (int x = Math.Max(left, fromX - InkEndpointRadius); x <= Math.Min(right, fromX + InkEndpointRadius); x++)
             {
-                if (pixels[(y * frame.Stride) + x] < maximumInkGray && visited.Add((x, y)))
+                if (IsInk(x, y) && visited.Add((x, y)))
                 {
                     pending.Enqueue((x, y));
                 }
@@ -391,7 +399,7 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
                 {
                     int x = point.X + dx, y = point.Y + dy;
                     if (x >= left && x <= right && y >= top && y <= bottom &&
-                        pixels[(y * frame.Stride) + x] < maximumInkGray && visited.Add((x, y)))
+                        IsInk(x, y) && visited.Add((x, y)))
                     {
                         pending.Enqueue((x, y));
                     }
@@ -400,6 +408,38 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         }
 
         return false;
+
+        bool IsInk(int x, int y)
+        {
+            byte gray = pixels[(y * frame.Stride) + x];
+            if (!requireStraightContrast)
+            {
+                return gray < maximumInkGray;
+            }
+
+            // The relaxed threshold applies only within a narrow straight
+            // corridor and only to ink visibly darker than adjacent background.
+            if (length <= 0d || Math.Abs(((x - from.X) * deltaY) - ((y - from.Y) * deltaX)) / length > detourRadius)
+            {
+                return false;
+            }
+            if (gray < maximumInkGray)
+            {
+                return true;
+            }
+            if (gray >= maximumFaintInkGray)
+            {
+                return false;
+            }
+
+            int offsetX = (int)Math.Round(-deltaY * backgroundSampleDistance / length);
+            int offsetY = (int)Math.Round(deltaX * backgroundSampleDistance / length);
+            return BrightBackground(x + offsetX, y + offsetY) || BrightBackground(x - offsetX, y - offsetY);
+
+            bool BrightBackground(int sampleX, int sampleY) =>
+                sampleX >= 0 && sampleX < frame.Width && sampleY >= 0 && sampleY < frame.Height &&
+                pixels[(sampleY * frame.Stride) + sampleX] >= minimumBackgroundGray;
+        }
     }
 
     private sealed record InkEndpoint(PixelPoint Point, PixelPoint Outward, GeometryLineCandidate Candidate);

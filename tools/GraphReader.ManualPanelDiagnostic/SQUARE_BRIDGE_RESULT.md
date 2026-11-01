@@ -26,8 +26,9 @@ candidates on the two images with enlarged extents. Recorded points are
 incomplete and imperfect, so the unmatched candidates have unknown correctness.
 The score does not exercise later classification or recovery. Some synthetic
 overlay patches erased axis ink, so their failed plot geometry is not assumed
-to represent the unmodified originals. One original graph still chooses an
-incorrect slanted axis and remains flagged for review.
+to represent the unmodified originals. At this checkpoint one original graph
+still chose an incorrect slanted axis and remained flagged for review. The
+subsequent faint-ink repair is recorded in `FAINT_INK_RESULT.md`.
 
 | Evidence | SHA-256 |
 | --- | --- |

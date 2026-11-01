@@ -161,7 +161,16 @@ imperfect and do not label all image content, so these additional candidates
 cannot be classified as correct or false positives from this score. It does
 not execute downstream marker classification or recovery and is not release
 acceptance. See `../GraphReader.ManualPanelDiagnostic/SQUARE_BRIDGE_RESULT.md`
-for the axis checks and remaining geometry failure.
+for the first axis adjustment.
+
+The subsequent faint-ink adjustment recovered eight recorded points on one
+internal holdout image. Matches rose from 242/332 to 250/332 overall, with
+build unchanged at 181/253 and holdout rising from 61/79 to 69/79. Returned
+center candidates increased from 1,913 to 1,933. Inspection of two train images
+showed proposals on text, arrows, and connecting lines. These are center-stage
+observations; the capture does not determine which proposals the later
+classifier and exclusions would remove. The visible-axis repair and review
+status are documented in `../GraphReader.ManualPanelDiagnostic/FAINT_INK_RESULT.md`.
 
 | Original-image evidence | SHA-256 |
 | --- | --- |
@@ -171,6 +180,9 @@ for the axis checks and remaining geometry failure.
 | After runtime description | `f9a40e9bea7b3d11b4037e5aac8fc62b4e867eee757312e0e0e6e73872d6746d` |
 | After capture | `d96efe9f3eb414f4163e927da7e61943fc73875b2f22d230e186cb9363cd5f9e` |
 | After point score | `1687239ae043b205c1f7fec2f2eafb9eb7a673c9b7fbbd50ce54c6aa6f19fc90` |
+| Faint-ink runtime description | `c7339cadbc26bd45c05b512513358029312100b1214c541b7d9be7b5cce681ba` |
+| Faint-ink capture | `27d85db95b09e2c79f021de5d9cb4a65ac69c3fc82763d7b4656bdcaca28bfa2` |
+| Faint-ink point score | `40ae0a929c0a63e8bae1b0894c908c0f14c83fab210a60711ed356e25eb79e26` |
 
 | Private input or result | SHA-256 |
 | --- | --- |

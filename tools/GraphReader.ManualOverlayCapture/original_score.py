@@ -47,7 +47,7 @@ def main() -> None:
     parser.add_argument("--input-sha256", required=True)
     parser.add_argument("--report-sha256", required=True)
     parser.add_argument("--runtime-sha256", required=True)
-    parser.add_argument("--capture-version", choices=("v1", "v2"), default="v1")
+    parser.add_argument("--capture-version", choices=("v1", "v2", "v3"), default="v1")
     args = parser.parse_args()
     manifest = checked_json(RUN / "original-raster-input-v1.json", args.input_sha256)
     capture_dir = RUN / f"original-capture-{args.capture_version}"

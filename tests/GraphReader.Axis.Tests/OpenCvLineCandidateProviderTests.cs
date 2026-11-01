@@ -329,6 +329,37 @@ public sealed class OpenCvLineCandidateProviderTests
     }
 
     [TestMethod]
+    [DataRow(255, true)]
+    [DataRow(255, false)]
+    [DataRow(225, false)]
+    public async Task FaintStraightInkRequiresVisibleContrastAgainstBackground(int background, bool connected)
+    {
+        const int width = 1000, height = 600, baseline = 500, left = 250, right = 290;
+        byte[] pixels = Enumerable.Repeat((byte)background, width * height).ToArray();
+        for (int x = 80; x <= 900; x++)
+        {
+            SetBlack(pixels, width, x, baseline);
+            SetBlack(pixels, width, x, baseline + 1);
+        }
+        for (int x = left; x <= right; x++)
+        {
+            pixels[(baseline * width) + x] = connected ? (byte)220 : (byte)background;
+            pixels[((baseline + 1) * width) + x] = connected ? (byte)220 : (byte)background;
+        }
+
+        var frame = new GrayscaleLineCandidateFrame(width, height, width, pixels);
+        IReadOnlyList<GeometryLineCandidate> candidates = await new OpenCvLineCandidateProvider()
+            .DetectLinesAsync(frame, CancellationToken.None);
+        bool bridge = candidates.Any(candidate =>
+            candidate.CandidateId.StartsWith("raster-ink-bridge-", StringComparison.Ordinal) &&
+            Math.Abs(candidate.Segment.Midpoint.Y - baseline) < 4 &&
+            Math.Min(candidate.Segment.Start.X, candidate.Segment.End.X) <= left &&
+            Math.Max(candidate.Segment.Start.X, candidate.Segment.End.X) >= right);
+        Assert.AreEqual(connected, bridge,
+            "A faint stroke can join segments only where it contrasts with nearby background.");
+    }
+
+    [TestMethod]
     public async Task NativeProviderValidatesOriginalPixelsBufferAndCancellation()
     {
         GrayscaleLineCandidateFrame valid = CreateCleanAxisFrame();
