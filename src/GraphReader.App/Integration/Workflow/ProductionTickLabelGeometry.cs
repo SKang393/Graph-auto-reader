@@ -11,7 +11,7 @@ namespace GraphReader.App.Integration.Workflow;
 /// <summary>Associates OCR labels with unique outward tick strokes in original pixels.</summary>
 internal static class ProductionTickLabelGeometry
 {
-    internal const string Version = "original-pixel-tick-label-association-v1";
+    internal const string Version = "original-pixel-tick-label-association-v2-axis-connected-review";
     private static readonly AxisGeometryOptions Options = new();
 
     internal static TickLabelGeometryResult Resolve(
@@ -49,6 +49,12 @@ internal static class ProductionTickLabelGeometry
             bool vertical = label.Role == OcrTextRole.YTick;
             OcrRectangle box = label.Polygon.Bounds;
             GeometryLineSegment line = vertical ? axis.YAxis.Line : axis.XAxis.Line;
+            if (vertical && label.ReviewStatus == OcrReviewStatus.Unreviewed &&
+                GraphNumericParser.Parse(label.Text).IsSuccess &&
+                ProductionAxisConnectedTextReview.HasConnectedInk(image, box, line, cancellationToken))
+            {
+                warnings.Add($"ocr_tick_sequence_needs_review:YTick:axis_connected_text:{label.RegionId}");
+            }
             double center = vertical ? box.Center.Y : box.Center.X;
             double radius = vertical ? box.Height : Math.Max(box.Width / 2, box.Height);
             int extent = vertical ? image.Height : image.Width;

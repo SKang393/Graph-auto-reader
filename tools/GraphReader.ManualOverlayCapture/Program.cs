@@ -43,12 +43,15 @@ internal static partial class Program
         "tools/GraphReader.ManualOverlayCapture/GraphReader.ManualOverlayCapture.csproj",
         "tools/GraphReader.ManualOverlayCapture/Program.cs",
         "tools/GraphReader.ManualOverlayCapture/ReviewedAxisCapture.cs",
+        "tools/GraphReader.ManualOverlayCapture/AxisConnectivityParity.cs",
         "tools/GraphReader.ManualOverlayCapture/prepare_input.py",
         "src/GraphReader.Ocr/DenseTickTextRegionRecovery.cs",
         "src/GraphReader.Ocr/OcrPipeline.cs",
         "src/GraphReader.Ocr/OcrResultCache.cs",
         "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs",
         "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
+        "src/GraphReader.App/Integration/Workflow/ProductionTickLabelGeometry.cs",
+        "src/GraphReader.App/Integration/Workflow/ProductionAxisConnectedTextReview.cs",
         "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBinding.cs",
         "tools/GraphReader.RealAcceptance.Ocr/NoPersistenceStageCache.cs",
         "tools/GraphReader.MarkerBoundInputTrainCapture/CandidateInterfaces.cs",
@@ -85,7 +88,9 @@ internal static partial class Program
                     densePadding: args[0] == "--recognize-dense");
             if (args.Length == 6 && args[0] == "--recognize-reviewed-axis")
                 return await RecognizeReviewedAxis(args[1], args[2], args[3], args[4], args[5]);
-            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
+            if (args.Length == 6 && args[0] == "--axis-connectivity-parity")
+                return await CheckAxisConnectivityParity(args[1], args[2], args[3], args[4], args[5]);
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis|--axis-connectivity-parity <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)

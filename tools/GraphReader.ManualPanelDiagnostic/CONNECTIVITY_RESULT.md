@@ -63,3 +63,46 @@ The truth-blind feature report SHA-256 is
 the aggregate score is
 `1c1f84a2c951f49e17ab5063c72c94ddc22d4dbb292b1f159688607a5adc47bb`.
 The image and label-box inputs remain private project-local artifacts.
+
+## Review-only workflow safeguard
+
+The application now requests review when an unreviewed numeric Y-axis reading
+shares a local component of original-pixel ink with the selected vertical axis.
+It preserves the OCR region and text. A user-confirmed reading can proceed
+through the existing calibration path. This is a positive review signal, not a
+filter: legitimate text can touch an axis, and the connection is not proof that
+a reading is wrong. A uniform crop, out-of-bounds box, or local crop over one
+million pixels supplies no positive connection signal; that is not proof that
+the reading is safe.
+
+The actual C# implementation and production raster decoder matched the earlier
+Python connectivity measurements on all 196 frozen proposals: 62 from exposed
+training images and 134 from development images. This checks implementation
+parity, not recognition accuracy. The development review is described in
+[DEV_CONNECTIVITY_RESULT.md](DEV_CONNECTIVITY_RESULT.md), including its small
+number of structural examples and non-independent classifications.
+
+The frozen candidate workflow then processed all 20 original training images.
+One of 21 panels gained the new review warning; the other 20 retained the same
+status and error. All 21 panels reached the marker stage and returned structured
+recalibration-required results. Nine had invalid session origins, ten needed
+review, and two had insufficient evidence. All 20 images failed to complete,
+and no final points were produced. The center and accepted-marker stages matched
+250 and 207 of 332 imperfect recorded points, unchanged from the preceding run;
+the incomplete point annotations do not establish precision.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Parity input | `7e5e8dc0bf40521bdbc66fa91a370a7613eb8da65d9cd128bd9fca1af2151dd5` |
+| Runtime description before and after | `f2349f37ee9e345a277038d7bc933363413e71655cae88dd150743fd4a0d677b` |
+| C# versus Python parity report | `26678a2ee6c475189baa7cc02efb05e5f4257f0760d2dacc6e9260fb35b8e8b2` |
+| Full workflow report | `f7910323ae4536c8d84998fd71c5ffb13c12ea96182ceea725ba92c67b343efb` |
+| Full workflow score | `c2e1d149262bb88ee5c0b46767ef524eda5e4c2ea44b9f0b3ba3372f03674a4e` |
+
+All 763 application tests passed after correcting an older synthetic fixture
+that drew its simulated label directly against the axis tick. The integration
+suite passed 170 tests with seven skipped; its first attempt lacked the
+process-local Git safe-directory setting. Nine Python diagnostic tests and
+pyflakes passed, and the diagnostic build had no warnings. These checks used
+CPU inference or image processing, no optimizer steps, and no sealed payloads.
+They do not approve a model or establish product acceptance.

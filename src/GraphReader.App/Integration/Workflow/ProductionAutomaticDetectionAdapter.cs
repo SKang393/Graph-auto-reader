@@ -1251,6 +1251,8 @@ public sealed class ProductionAutomaticDetectionAdapter :
             cancellationToken);
         string[] unresolvedTicks = ocr.Warnings.Where(static warning =>
             warning.StartsWith("ocr_tick_sequence_needs_review:", StringComparison.Ordinal))
+            .Concat(tickGeometry.Warnings.Where(static warning =>
+                warning.StartsWith("ocr_tick_sequence_needs_review:", StringComparison.Ordinal)))
             .Concat(confidenceWarnings).Distinct(StringComparer.Ordinal).ToArray();
         string[] unresolvedAxisGeometry = axis.Uncertainty.NeedsReview
             ? axis.Uncertainty.Reasons.Count > 0

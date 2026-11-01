@@ -383,7 +383,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
             for (int x = 10; x <= 90; x++) pixels[(90 * 100) + x] = 0;
             for (int y = 10; y <= 90; y++) pixels[(y * 100) + 10] = 0;
             foreach (int y in new[] { 22, 82 })
-                for (int x = 6; x <= 10; x++) pixels[(y * 100) + x] = 0;
+                for (int x = 7; x <= 10; x++) pixels[(y * 100) + x] = 0;
             foreach (int top in new[] { 18, 78 })
                 for (int y = top; y < top + 8; y++)
                     for (int x = 1; x < 6; x++) pixels[(y * 100) + x] = 0;
@@ -862,6 +862,40 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     }
 
     [TestMethod]
+    [DataRow(OcrReviewStatus.Unreviewed, true)]
+    [DataRow(OcrReviewStatus.Accepted, false)]
+    public async Task AxisConnectedNumericReadingRequiresReviewUnlessConfirmed(OcrReviewStatus status, bool mustReject)
+    {
+        byte[] bytes = [1, 2, 3];
+        string hash = Convert.ToHexStringLower(SHA256.HashData(bytes));
+        Guid panelId = Guid.NewGuid();
+        var image = new WorkflowImageEvidence("memory:axis-connected-tick.png", hash, 100, 100, WorkflowImageVariant.Original);
+        var imported = new WorkflowImportedPanel(panelId, Guid.NewGuid(), "axis-connected-tick.png", image);
+        var store = new ProductionWorkflowPanelStore();
+        store.Register(new ProductionPanelEvidence(imported, WorkflowSourceKind.Image, bytes));
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new ConnectedRasterDecoder(), new AxisAdapter(),
+            new OcrAdapter(originalIsBlack: false, substitutedRole: OcrTextRole.YTick, substitutedText: "0",
+                substitutedReviewStatus: status), new MaskComposer(), new CenterAdapter(), new ClassificationAdapter(),
+            new LegendAdapter(), new PhaseAdapter(), new EmptyConnectionBuilder());
+        var request = new ProductionWorkflowDetectionRequest(new WorkflowPreparedPanel(imported, image, null),
+            image, WorkflowImageVariant.Original, Guid.NewGuid(), Guid.NewGuid(), bytes);
+        if (mustReject)
+        {
+            ProductionWorkflowStageException failure = await Assert.ThrowsAsync<ProductionWorkflowStageException>(
+                () => adapter.DetectAsync(request, CancellationToken.None));
+            Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, failure.Failure.Code);
+            StringAssert.Contains(failure.Failure.TechnicalMessage,
+                "ocr_tick_sequence_needs_review:YTick:axis_connected_text:y0");
+            Assert.IsNull(store.Get(panelId).ExportEvidence);
+        }
+        else
+        {
+            await adapter.DetectAsync(request, CancellationToken.None);
+            Assert.IsNotNull(store.Get(panelId).ExportEvidence);
+        }
+    }
+
+    [TestMethod]
     [DataRow("ocr_tick_sequence_needs_review:XTick:ambiguous_or_irregular_spacing", true)]
     [DataRow("ocr_tick_sequence_needs_review:baseline_singleton_ambiguous:uncertain-region", true)]
     [DataRow("ocr_tick_sequence_needs_review:YTick:insufficient_unchanged_tick_anchors", true)]
@@ -1261,6 +1295,20 @@ public sealed class ProductionAutomaticDetectionAdapterTests
         public ProductionDecodedRaster Decode(
             ProductionWorkflowDetectionRequest request,
             CancellationToken cancellationToken) => throw exception;
+    }
+
+    private sealed class ConnectedRasterDecoder : IProductionRasterFrameDecoder
+    {
+        public ProductionDecodedRaster Decode(ProductionWorkflowDetectionRequest request, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            byte[] pixels = Enumerable.Repeat(byte.MaxValue, 10_000).ToArray();
+            for (int y = 10; y <= 90; y++) pixels[(y * 100) + 10] = 0;
+            for (int x = 1; x <= 10; x++) pixels[(80 * 100) + x] = 0;
+            return new ProductionDecodedRaster(100, 100, request.Image.Sha256, request.ImageVariant,
+                MarkerAffineTransform.Identity, OcrFrameTransform.Identity, 100, 100, pixels,
+                pixels.Select(static value => value / 255f).ToArray());
+        }
     }
 
     private sealed class AxisAdapter(double dividerDrift = 0, bool needsReview = false, bool includeReviewReason = true) : IProductionAxisGeometryAdapter

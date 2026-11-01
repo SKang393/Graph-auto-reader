@@ -100,6 +100,40 @@ public sealed class ProductionTickLabelGeometryTests
             Axis(), Image([50], []), [XLabel("x")], new CancellationToken(canceled: true)));
     }
 
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void NumericYReadingConnectedToAxisRequiresReviewWithoutRemovingIt(bool paddedStride)
+    {
+        OcrImage image = Image([], [], paddedStride);
+        byte[] pixels = image.Pixels.ToArray();
+        for (int x = 6; x <= 20; x++) pixels[(37 * image.Stride) + x] = 0;
+        OcrRegion label = YLabel("connected");
+        TickLabelGeometryResult result = ProductionTickLabelGeometry.Resolve(
+            Axis(), image with { Pixels = pixels }, [label], CancellationToken.None);
+        Assert.Contains("ocr_tick_sequence_needs_review:YTick:axis_connected_text:connected", result.Warnings);
+        Assert.AreEqual("20", label.Text);
+        Assert.AreEqual(OcrReviewStatus.Unreviewed, label.ReviewStatus);
+        TickLabelGeometryResult accepted = ProductionTickLabelGeometry.Resolve(
+            Axis(), image with { Pixels = pixels }, [label with { ReviewStatus = OcrReviewStatus.Accepted }], CancellationToken.None);
+        Assert.IsFalse(accepted.Warnings.Any(static warning => warning.Contains("axis_connected_text", StringComparison.Ordinal)));
+    }
+
+    [TestMethod]
+    public void DetachedTextAndUniformPixelsDoNotCreateConnectivityEvidence()
+    {
+        OcrImage image = Image([], []);
+        byte[] pixels = image.Pixels.ToArray();
+        for (int y = 34; y < 40; y++) for (int x = 6; x < 10; x++) pixels[(y * image.Stride) + x] = 0;
+        OcrRectangle box = YLabel("detached").Polygon.Bounds;
+        Assert.IsFalse(ProductionAxisConnectedTextReview.HasConnectedInk(
+            image with { Pixels = pixels }, box, Axis().YAxis.Line, CancellationToken.None));
+        Assert.IsFalse(ProductionAxisConnectedTextReview.HasConnectedInk(
+            image with { Pixels = new byte[image.Stride * image.Height] }, box, Axis().YAxis.Line, CancellationToken.None));
+        Assert.ThrowsExactly<OperationCanceledException>(() => ProductionAxisConnectedTextReview.HasConnectedInk(
+            image, box, Axis().YAxis.Line, new CancellationToken(canceled: true)));
+    }
+
     private static OcrRegion XLabel(string id) => new(id,
         OcrPolygon.FromRectangle(new(42, 78, 4, 12)), "1", [], OcrTextRole.XTick,
         0.95, OcrSourceImage.Original, OcrReviewStatus.Unreviewed);
