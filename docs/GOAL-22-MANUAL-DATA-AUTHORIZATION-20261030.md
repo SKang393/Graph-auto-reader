@@ -60,3 +60,20 @@ The evaluator source SHA-256 is
 the report records project and loaded assembly hashes after inference. Build,
 self-test, and split/payload preflight passed. Inference used the CPU only; no
 optimizer ran and no production model was approved.
+
+A role and geometry census on the same 16 exposed development projects found
+zero eligible numeric Y-tick regions in 10 projects, one in two, and at least
+two in four. Of the accepted numeric regions, 12 Y-tick regions fell both
+within the oracle vertical plot extent and within 10 percent of plot width to
+the left of its axis; no accepted numeric region with another role met both
+conditions. The corpus has no verified tick text or boxes, so this does not
+measure missed-label recall or prove why labels are absent. The census did not
+count candidate proposals rejected by the OCR composition.
+
+The aggregate census report SHA-256 is
+`5305b2b5ec2cbce9ea7a688cd2f65ed607455a00ae69fef9422ff166a434771d`.
+Its source SHA-256 is
+`14aaf59991932d7f593a576524affbba028c26ffb3009d8f2d381fc6adb3dc82`.
+Its payload and composition identities match the preceding diagnostic, but
+some loaded assembly hashes differ; the runs are not claimed byte-identical.
+Self-test and explicit-opt-in checks passed; this is not production acceptance.
