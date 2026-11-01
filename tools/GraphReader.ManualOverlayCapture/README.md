@@ -119,6 +119,10 @@ holdout patches from five groups. Those patches remain unapproved for training:
 plot-domain membership and a bounded GPU training/evaluation protocol are not
 yet established.
 
+The later [proposal-domain and native patch parity probe](../../ml/markers/center/manual_train_overlay_corpus_v1/DOMAIN_PROBE_RESULT.md)
+measured those eligibility constraints using a fresh full capture. The earlier
+430-patch extraction remains a historical diagnostic, not the eligible subset.
+
 ## Stage trace
 
 The stage-enabled 20-image rerun reproduced the earlier panel bytes, merged

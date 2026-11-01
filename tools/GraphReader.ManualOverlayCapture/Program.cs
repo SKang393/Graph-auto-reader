@@ -46,6 +46,7 @@ internal static partial class Program
         "tools/GraphReader.ManualOverlayCapture/AxisConnectivityParity.cs",
         "tools/GraphReader.ManualOverlayCapture/TraceTextRecognizer.cs",
         "tools/GraphReader.ManualOverlayCapture/OrientationCropCounterfactual.cs",
+        "tools/GraphReader.ManualOverlayCapture/MarkerPatchParity.cs",
         "tools/GraphReader.ManualOverlayCapture/prepare_input.py",
         "src/GraphReader.Ocr/DenseTickTextRegionRecovery.cs",
         "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs",
@@ -69,6 +70,10 @@ internal static partial class Program
         {
             if (args.Length == 1 && args[0] == "--trace-recognizer-self-test")
                 return await TraceRecognizerSelfTest();
+            if (args.Length == 1 && args[0] == "--marker-patch-parity-self-test")
+                return await MarkerPatchParitySelfTest();
+            if (args.Length == 8 && args[0] == "--verify-marker-patches")
+                return await VerifyMarkerPatchParity(args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
             if (args.Length == 4 && args[0] == "--orientation-crop-check")
                 return await CheckOrientationCrops(args[1], args[2], args[3]);
             if (args.Length == 2 && args[0] is "--describe" or "--describe-workflow")
@@ -108,7 +113,7 @@ internal static partial class Program
                     tightHorizontal: args[0] == "--recognize-reviewed-axis-tight");
             if (args.Length == 6 && args[0] == "--axis-connectivity-parity")
                 return await CheckAxisConnectivityParity(args[1], args[2], args[3], args[4], args[5]);
-            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-workflow-details|-workflow-horizontal-candidate|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one|--capture-workflow-trace-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis[-tight]|--axis-connectivity-parity <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json> OR --orientation-crop-check <runtime-description> <description-sha256> <new-output-json>");
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-workflow-details|-workflow-horizontal-candidate|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one|--capture-workflow-trace-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis[-tight]|--axis-connectivity-parity <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json> OR --orientation-crop-check <runtime-description> <description-sha256> <new-output-json> OR --verify-marker-patches <input> <input-sha256> <capture> <capture-sha256> <runtime-description> <description-sha256> <new-output-json>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)

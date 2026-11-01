@@ -38,6 +38,9 @@ real-image plot-domain membership remains under investigation. Do not
 substitute fabricated masks or treat this corpus as training-ready until the
 real input path and a bounded GPU-only training and evaluation protocol are
 verified.
+The later [proposal-domain and patch-parity probe](DOMAIN_PROBE_RESULT.md)
+identifies the subset actually emitted by the runtime. It does not by itself
+admit a training run or establish natural-image accuracy.
 
 ## Run bindings
 
