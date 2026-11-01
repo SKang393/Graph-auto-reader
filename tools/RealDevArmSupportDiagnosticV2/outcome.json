@@ -1,0 +1,66 @@
+{
+  "schema": "graphreader.real-dev-arm-support-diagnostic-outcome.v2",
+  "status": "aggregate-diagnostic-complete",
+  "cohort": {
+    "selected_development_projects": 16,
+    "successfully_scanned_images": 16,
+    "train_project_metadata_only": 104,
+    "train_payloads_opened": false,
+    "sealed_payloads_opened": false,
+    "real_development_partition_previously_exposed": true,
+    "partition_assignment_sha256": "decdac87c0c6d8ee8350b4e26bee2256c551ce20c518732f62fb6d990ea5850a",
+    "training_or_model_inference": false
+  },
+  "method": {
+    "raster": "ProductionRasterFrameDecoder original Gray8",
+    "plot_geometry": "ProductionAxisGeometryAdapter CPU-detected plot polygon",
+    "candidate_scan": "fixed source-compatible scan: gray<=196; opposing rays capped at 64; at least two pairs with total span>13; radius-6 strength-ordered NMS",
+    "comparison": "minimum opposing-arm length 5 (production) versus 4 (diagnostic only)",
+    "point_association": "Engauge point center is counted as covered only if it lies inside a candidate's exact 5x5 square mask; this is a proximity association, not marker truth",
+    "ocr_and_seed_masks": "omitted; proposal counts are raster geometry only, not production output"
+  },
+  "aggregate_observations": {
+    "engauge_point_centers": 217,
+    "arm4_raw_geometry_candidates": 24738,
+    "arm5_raw_geometry_candidates": 20739,
+    "arm4_nms_centers": 766,
+    "arm5_nms_centers": 611,
+    "arm4_centers_outside_every_arm5_nms_radius6_neighborhood": 78,
+    "those_78_arm4_centers_whose_5x5_mask_covers_an_engauge_point": 7,
+    "those_78_arm4_centers_with_no_engauge_point_in_the_5x5_mask": 71,
+    "engauge_points_covered_by_arm4_nms_masks": 81,
+    "engauge_points_covered_by_arm5_nms_masks": 85,
+    "engauge_points_covered_only_by_arm4_masks": 11,
+    "engauge_points_covered_only_by_arm5_masks": 15,
+    "scan_failures": 0,
+    "unique_source_images": 16,
+    "elapsed_ms": 8046.531
+  },
+  "interpretation": {
+    "observed": "The four-pixel scan discovers additional plausible crossing geometry. NMS center shifts cause mixed point-center coverage changes: 11 point centers are covered only at arm 4 and 15 only at arm 5.",
+    "not_established": "Engauge points are not complete marker masks and provide no labeled negative structures. A proposal covering a point is not verified as a marker conflict; absence of a point is not a verified negative. The cohort therefore cannot establish artifact precision, marker recall, or whether four-pixel support is a real product requirement.",
+    "decision": "No production threshold change is supported by this sample. Preserve the five-pixel rule pending independently labeled crossing and marker evidence.",
+    "open_cv_runtime": "One loaded OpenCV native module was verified against the run's bundled path at SHA256 1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd. This is a development diagnostic binary and does not establish parity with the separately reviewed 0.4.35 release runtime (previously identified with prefix c96f91b3)."
+  },
+  "report_provenance": {
+    "original_report": "artifacts/real-dev-arm-support-diagnostic-v2/aggregate.json",
+    "original_report_sha256": "9373eb3ab2fb0ca10dc8646e3228cff60508fbf8778638b640471d8eb52df256",
+    "corrected_report": "artifacts/real-dev-arm-support-diagnostic-v2/aggregate-source-bound.json",
+    "corrected_report_sha256": "e4fad42c1aee1d9b2f5408caf2c3955622a9f291ddf81b448f517985458259e5",
+    "corrected_metadata_field": "identity.program_sha256 only",
+    "executed_source_snapshot": "tools/RealDevArmSupportDiagnosticV2/Program-executed.snapshot",
+    "executed_source_sha256": "167f206d2dd130ef6ca0d6473f6889969b183acacb50ed548777329cf07999ed",
+    "current_program_source_sha256": "8b839dbe3dd0376e30b4b73a91b606936ed74659f1f7116703d6061530423430",
+    "source_difference": "The current Program.cs corrects the mistaken V1 source path in the report-hash expression. The exact executed source is retained; metrics were not rerun."
+  },
+  "protocol_sha256": "f57b9f49d4cd61cc4cd78203ef143938671720df95e430aa34736f07b7da861c",
+  "project_sha256": "db4cbfd36a08cddb28f6fba14efd947a066cbe9c625cc15ce493a36abddeed34",
+  "verifier_sha256": "da098f19449b9bfb830205ca074d578a297efa6c2b01b11d49e0e7ace26cfdb2",
+  "commands": [
+    "dotnet build tools/RealDevArmSupportDiagnosticV2/RealDevArmSupportDiagnosticV2.csproj -c Release --no-restore",
+    "dotnet run --project tools/RealDevArmSupportDiagnosticV2/RealDevArmSupportDiagnosticV2.csproj -c Release --no-build -- artifacts/real-dev-arm-support-diagnostic-v2/aggregate.json",
+    "powershell -NoProfile -ExecutionPolicy Bypass -File tools/RealDevArmSupportDiagnosticV2/VerifyAggregate.ps1 -OriginalReport artifacts/real-dev-arm-support-diagnostic-v2/aggregate.json -CorrectedReport artifacts/real-dev-arm-support-diagnostic-v2/aggregate-source-bound.json"
+  ],
+  "verification": "Final build succeeded with 0 warnings and 0 errors. Aggregate correction verifier passed: scope, arithmetic, native runtime hash match, executed-source snapshot, and one-field-only metadata correction.",
+  "output_limits": "All project names, paths, pixels, text, coordinates, and case-level outputs remain local to ignored artifacts or memory and are not included here. No train or sealed payloads were opened; no production or approval gates were changed."
+}

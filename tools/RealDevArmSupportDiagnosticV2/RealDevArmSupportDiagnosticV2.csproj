@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>GraphReader.RealAcceptance.Ocr</AssemblyName>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\FrozenRealCorpusInventory.cs" Link="FrozenRealCorpusInventory.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\FrozenDevTrainingSelector.cs" Link="FrozenDevTrainingSelector.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\EngaugeDevSourceMaterializer.cs" Link="EngaugeDevSourceMaterializer.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\EngaugeDigWholeWorkflowTruthAdapter.cs" Link="EngaugeDigWholeWorkflowTruthAdapter.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\WholeWorkflowCsvEvaluator.cs" Link="WholeWorkflowCsvEvaluator.cs" />
+    <ProjectReference Include="..\..\src\GraphReader.App\GraphReader.App.csproj" />
+    <ProjectReference Include="..\..\src\GraphReader.Export\GraphReader.Export.csproj" />
+    <ProjectReference Include="..\..\src\GraphReader.Axis\GraphReader.Axis.csproj" />
+    <ProjectReference Include="..\..\src\GraphReader.Ocr\GraphReader.Ocr.csproj" />
+  </ItemGroup>
+</Project>

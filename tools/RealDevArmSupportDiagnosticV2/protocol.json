@@ -1,0 +1,34 @@
+{
+  "schema": "graphreader.real-dev-arm-support-diagnostic.v2",
+  "status": "preregistered-before-source-read",
+  "scope": {
+    "cohort": "locked real-development partition only",
+    "expected_projects": 16,
+    "assignment_rule": "sha256:graphreader-engauge-real-dev-study-v1:first-byte-lt-204",
+    "assignment_sha256": "decdac87c0c6d8ee8350b4e26bee2256c551ce20c518732f62fb6d990ea5850a",
+    "train_payload_reads": false,
+    "sealed_payload_reads": false,
+    "training": false,
+    "gpu_inference": false,
+    "ocr_or_model_payload_reads": false,
+    "desktop_ui": false,
+    "output_case_details": false
+  },
+  "method": {
+    "source_selection": "reuse FrozenDevTrainingSelector and the same study-level assignment and exact 16-project development gate from RealDevArtifactMaskPairV1; open only selected development .dig projects and their referenced source images",
+    "raster": "ProductionRasterFrameDecoder on each original raster",
+    "plot_region": "ProductionAxisGeometryAdapter detected plot polygon using the local OpenCV CPU path",
+    "scan": "count foreground centers inside detected plot polygon with two opposing line pairs; line runs use gray<=196 and cap at 64; pair must each have summed span>13",
+    "contrast": "fixed diagnostic comparison of min-arm=5 (production constant) against min-arm=4; no production threshold or code is changed",
+    "deduplication": "apply the provider's strength-descending NMS radius 6 independently to each fixed min-arm scan",
+    "annotation_use": "Engauge point centers are evaluation-only; count a center as covered when it lies inside the provider's 5x5 square mask (Chebyshev radius 2), without treating that overlap as verified marker/artifact truth",
+    "aggregation": "aggregate only across images; no text, paths, source identifiers, coordinates, pixels, or per-project counts in output"
+  },
+  "interpretation_limits": [
+    "This is a raster structure census, not a production mask run or candidate evaluation. The first V1 report used Euclidean point proximity and is retained as non-authoritative for point-mask overlap; V2 uses the exact 5x5 square mask footprint.",
+    "It does not apply production OCR masks, axis/tick geometry seed masks, or marker-like conflict rejection.",
+    "Engauge point centers are incomplete point labels; they do not label all marker pixels or negative structures.",
+    "Proposals near point centers are only spatial associations, not verified ticks, markers, or false positives.",
+    "This previously exposed development sample cannot establish sealed acceptance or generalization."
+  ]
+}
