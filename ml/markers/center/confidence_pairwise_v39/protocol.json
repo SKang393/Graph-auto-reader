@@ -1,0 +1,298 @@
+{
+  "acceptance_bar": {
+    "path": "ml/policy/acceptance-bars.json",
+    "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "use": "Use unchanged shared evaluator; this training run cannot grant production approval. Sealed prerequisites and whole-workflow gates remain required."
+  },
+  "budget": {
+    "candidate_id": "P1",
+    "experiment_budget": 1,
+    "optimizer_steps": 0,
+    "private_reads": 0,
+    "production_approval": false,
+    "release_eligible": false,
+    "sealed_reads_authorized": 0,
+    "sealed_runs_authorized": 0
+  },
+  "candidate_id": "P1",
+  "development": {
+    "accessed_by_training_entrypoint": false,
+    "matching_tolerance_px": 5.0,
+    "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+    "required_scopes": {
+      "component": [
+        167,
+        2004
+      ],
+      "family": [
+        9,
+        206
+      ]
+    },
+    "root": "artifacts/goal22-worktrees/resume-20260908",
+    "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41",
+    "threshold": 0.1,
+    "train_dev_separation": {
+      "dev_component_split_label": "dev",
+      "dev_family_split_label": "validation",
+      "dev_inventory_sha256": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099",
+      "dev_split_name": "real-range-generator-v1-dev",
+      "family_dev_split_name": "synthetic-five-axis-family-v1-validation",
+      "family_train_split_name": "synthetic-five-axis-family-v1-train",
+      "historical_family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
+      "historical_family_train_tensor_set_sha256": "e56c8f641f9e0d19e9439aeb39d8c10c3edda5657ad4a554ab45ea9ef1261599",
+      "limitation": "Frozen manifests bind distinct train/dev split identities and the complete dev inventory. The training feature tensors do not carry per-scene source IDs, so record-level train/dev intersection is not independently verified.",
+      "parent_feature_report_sha256": "3a98504c7b31f16af8f4b127ab438cba3fe7918d51c9417021221f96bb6ad7cc",
+      "per_scene_overlap_verified": false,
+      "split_config_path": "ml/markers/center/mask_preserving_v24/training/p1_retry13.json",
+      "split_config_sha256": "adb5a6ff5215757f06e1a35ab08f86a981061c5f242ac87653743ef6847f6ce3",
+      "split_sha256": {
+        "component_dev_split": "72dda9b9031f3050d72f5946105576cad89fe938f36f619f84ef4c9cafa8e566",
+        "component_train_split": "57dc4850c6882ab1ddabe0c4e76bc03f1cb03963c3d0de16b703152071e773d9",
+        "configured_family_dev_tensor_set": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
+        "configured_family_train_tensor_set": "28c5f0b752beaff8273082fe6bab0be121547218cfa7462a0665374941fe0c7c",
+        "family_dev_split": "f6cbeaf05dc40fa8be10b2120846d26db78a0a0836a92d5cc05ebb276bba445c",
+        "family_train_split": "dd8348657d54317d8cfec420cf9791bc91ed7205e03e62dc9df7b9d7fae4ef7c"
+      },
+      "train_split_name": "real-range-generator-v1-train",
+      "training_feature_report_path": "artifacts/goal22-runs/reflected-spatial-features-20261002-v1/report.json",
+      "training_feature_report_sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500",
+      "training_tensor_cache_manifest_path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/manifest.json",
+      "training_tensor_cache_manifest_sha256": "d61e43d62891a5266dfd68dfd8286fdb0d28d685d2146763a9f49dfb24471700"
+    },
+    "truth_denominator": {
+      "scenes": 176,
+      "truths": 2210
+    }
+  },
+  "eval_only": {
+    "checkpoint_schema": "state_dict+export_contract+canonical_candidate_binding",
+    "entrypoint": "ml.markers.center.confidence_pairwise_v39.evaluation",
+    "input_sha256": {
+      "cache_manifest": "d61e43d62891a5266dfd68dfd8286fdb0d28d685d2146763a9f49dfb24471700",
+      "dev_file": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41",
+      "dev_inventory": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099",
+      "feature_report": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500",
+      "historical_preparation": "445d3ce137161ede26e50b77f2a4fc82c8db0cd46a85224ffd0665a7ebebad6d",
+      "training_split_config": "adb5a6ff5215757f06e1a35ab08f86a981061c5f242ac87653743ef6847f6ce3",
+      "v37_report": "cedef52cbae22a095e81db2797bf7d378ea702b9c6185c1088441e7417a0730d"
+    },
+    "per_scene_overlap_verified": false,
+    "private_reads": 0,
+    "production_approval": false,
+    "requires_external_checkpoint_sha256": true,
+    "requires_external_training_report_sha256": true,
+    "runtime": {
+      "input": [
+        "candidate_patches",
+        "float32",
+        [
+          null,
+          3,
+          33,
+          33
+        ]
+      ],
+      "numpy": "2.3.5",
+      "onnx_graph_optimization": "ORT_DISABLE_ALL",
+      "onnx_opset": 18,
+      "optimizer_steps": 0,
+      "output": [
+        "candidate_predictions",
+        "float32",
+        [
+          null,
+          4
+        ]
+      ],
+      "provider": "CPUExecutionProvider",
+      "python": "3.13.7",
+      "torch": "2.13.0+rocm10.1.0",
+      "torch_threads": 12
+    },
+    "sealed_reads": 0,
+    "source_bundle_sha256": "ba17027cb6e0cf04ae67f09a240e9ef8efe5cf02656de7a77ceec00b9ec759c8",
+    "source_paths": [
+      "ml/markers/center/confidence_pairwise_v39/__init__.py",
+      "ml/markers/center/confidence_pairwise_v39/evaluation.py",
+      "ml/markers/center/confidence_pairwise_v39/test_evaluation.py",
+      "ml/markers/gate_seal.py",
+      "ml/markers/center/confidence_bce_v33/runner.py",
+      "ml/markers/center/confidence_reflection_v37/runner.py",
+      "ml/markers/center/confidence_reflection_v37/cache.py",
+      "ml/markers/center/confidence_spatial_v35/model.py",
+      "ml/markers/center/scale_classifier_v16/model.py",
+      "ml/markers/center/shape_coverage_cache.py",
+      "ml/markers/center/shape_coverage_evaluation.py",
+      "ml/markers/center/balanced_support_diagnostic.py",
+      "ml/markers/center/component_diversity_v27/diagnose_head_swap.py",
+      "ml/markers/center/component_diversity_v27/diagnose_score_localization.py",
+      "ml/markers/center/component_diversity_v27/train_p1.py",
+      "ml/markers/center/line_aware_v1/pipeline.py",
+      "ml/markers/center/mask_preserving_v24/mask_preserving.py",
+      "ml/markers/center/mask_preserving_v24/train_p1.py",
+      "ml/markers/center/plot_domain_v25/diagnose_dev.py",
+      "ml/markers/center/plot_domain_v25/proposal_domain.py",
+      "ml/markers/center/localization_confidence_v26/diagnose_suppressor_anchors.py",
+      "ml/markers/center/shape_coverage_v28/runner.py",
+      "ml/markers/classifier/native_context_v3/runner.py",
+      "ml/markers/center/mask_preserving_v24/training/p1_retry13.json"
+    ],
+    "source_sha256": {
+      "ml/markers/center/confidence_pairwise_v39/__init__.py": "2ed1fbbbd84794fb6072c73d866838f0d91df3e668429cdbff67600f0c49e375",
+      "ml/markers/center/confidence_pairwise_v39/evaluation.py": "c31cfe275ad21edc52aeb846e50650f9b7eafbbae98eb6e009ce645a7cebf793",
+      "ml/markers/center/confidence_pairwise_v39/test_evaluation.py": "a5f4272144f38b03c90154319bcd64920d5525834d193e4ee26f5e29a2be2da2",
+      "ml/markers/gate_seal.py": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725",
+      "ml/markers/center/confidence_bce_v33/runner.py": "815094d0ea1136d5237a6cde6c0e60921f9990e73c86fff22e52ed6207dbffbd",
+      "ml/markers/center/confidence_reflection_v37/runner.py": "6f23c3fcb15a48202a007412b4d4d1958117601881215594e36037c07aad52f9",
+      "ml/markers/center/confidence_reflection_v37/cache.py": "009947a9afad2f12178c1add41283ff6b1d7bd2840b0dda54eafe96dc9c61dde",
+      "ml/markers/center/confidence_spatial_v35/model.py": "bdf3611dd99f6551833f6121c7bf538d1a34b2ace57b125f0b815ac8ad6f69ff",
+      "ml/markers/center/scale_classifier_v16/model.py": "899dfbed25707f121f657f4138f8a50060bc554acfbac48b7e2f93bc3668587f",
+      "ml/markers/center/shape_coverage_cache.py": "25156ffe89ed9be64522baa951e526a13838ea9e1eca465349e81c0850148fda",
+      "ml/markers/center/shape_coverage_evaluation.py": "f1662b9946c90f807dad90603b60dfed005cdcf422c1bbfb4e7ab183ec8fc79d",
+      "ml/markers/center/balanced_support_diagnostic.py": "77d4ca84b0d3045c96044feca1fc00617fe85981a3d4778218425a042c5024bb",
+      "ml/markers/center/component_diversity_v27/diagnose_head_swap.py": "568f7be7ef1750a196c925abe3843f44a95b89ec32a85393c01065143936d826",
+      "ml/markers/center/component_diversity_v27/diagnose_score_localization.py": "3dda4482fdd5df1067718615a72e4acc02ed964d00031af2c59a3f37211b6061",
+      "ml/markers/center/component_diversity_v27/train_p1.py": "0ce0b00232b49425cdd89dd2b4c08293d6d7314057fed90e7378c3104abfab0c",
+      "ml/markers/center/line_aware_v1/pipeline.py": "6af504d5f952bff6b7201fc2ce6a961ba87525b5bee6424229962ba1f2b17407",
+      "ml/markers/center/mask_preserving_v24/mask_preserving.py": "171ddcc2efbd2742f5699dad8d16ecec217ca983ee06cec4bc63e1f17e3120e2",
+      "ml/markers/center/mask_preserving_v24/train_p1.py": "875a1c2950977bd5ebff726090d939b9325e8b5722e7bc6d4904d89b3366d1c4",
+      "ml/markers/center/plot_domain_v25/diagnose_dev.py": "7d138c9cb7d29bb97f2d88d7b76f15e90f9bcda32817850d54e263e8203a0bb2",
+      "ml/markers/center/plot_domain_v25/proposal_domain.py": "6c009f1b3bc9b22dbe4467132873286ba6a0f9bd0f39b8faaa22b53ae624c760",
+      "ml/markers/center/localization_confidence_v26/diagnose_suppressor_anchors.py": "ad19a8c9a77781cf0a925728e51aadd26577da11f917847a2d328e104ae71051",
+      "ml/markers/center/shape_coverage_v28/runner.py": "a02ab319cbdfe2916afbeeef9228cf4bb9f8a5497cb4625a0e8224b2b3a56007",
+      "ml/markers/classifier/native_context_v3/runner.py": "e1c04921dc7902441e19443e404cf7ca231457d0c71cb9c5ec485e383959e066",
+      "ml/markers/center/mask_preserving_v24/training/p1_retry13.json": "adb5a6ff5215757f06e1a35ab08f86a981061c5f242ac87653743ef6847f6ce3"
+    },
+    "training_status_required": "training_complete_awaiting_dev_evaluation",
+    "v37_compatibility_sha256": {
+      "ml/markers/center/confidence_reflection_v37/runner.py": "6f23c3fcb15a48202a007412b4d4d1958117601881215594e36037c07aad52f9",
+      "ml/markers/center/confidence_reflection_v37/cache.py": "009947a9afad2f12178c1add41283ff6b1d7bd2840b0dda54eafe96dc9c61dde",
+      "ml/markers/center/confidence_spatial_v35/model.py": "bdf3611dd99f6551833f6121c7bf538d1a34b2ace57b125f0b815ac8ad6f69ff",
+      "ml/markers/center/scale_classifier_v16/model.py": "899dfbed25707f121f657f4138f8a50060bc554acfbac48b7e2f93bc3668587f",
+      "ml/markers/center/shape_coverage_cache.py": "25156ffe89ed9be64522baa951e526a13838ea9e1eca465349e81c0850148fda",
+      "ml/markers/center/balanced_support_diagnostic.py": "77d4ca84b0d3045c96044feca1fc00617fe85981a3d4778218425a042c5024bb",
+      "ml/markers/center/component_diversity_v27/diagnose_head_swap.py": "568f7be7ef1750a196c925abe3843f44a95b89ec32a85393c01065143936d826",
+      "ml/markers/center/component_diversity_v27/diagnose_score_localization.py": "3dda4482fdd5df1067718615a72e4acc02ed964d00031af2c59a3f37211b6061",
+      "ml/markers/center/line_aware_v1/pipeline.py": "6af504d5f952bff6b7201fc2ce6a961ba87525b5bee6424229962ba1f2b17407",
+      "ml/markers/center/mask_preserving_v24/mask_preserving.py": "171ddcc2efbd2742f5699dad8d16ecec217ca983ee06cec4bc63e1f17e3120e2",
+      "ml/markers/center/mask_preserving_v24/train_p1.py": "875a1c2950977bd5ebff726090d939b9325e8b5722e7bc6d4904d89b3366d1c4",
+      "ml/markers/center/plot_domain_v25/diagnose_dev.py": "7d138c9cb7d29bb97f2d88d7b76f15e90f9bcda32817850d54e263e8203a0bb2",
+      "ml/markers/center/plot_domain_v25/proposal_domain.py": "6c009f1b3bc9b22dbe4467132873286ba6a0f9bd0f39b8faaa22b53ae624c760",
+      "ml/markers/center/localization_confidence_v26/diagnose_suppressor_anchors.py": "ad19a8c9a77781cf0a925728e51aadd26577da11f917847a2d328e104ae71051",
+      "ml/markers/center/shape_coverage_v28/runner.py": "a02ab319cbdfe2916afbeeef9228cf4bb9f8a5497cb4625a0e8224b2b3a56007"
+    },
+    "evaluation_thresholds": [
+      0.1
+    ],
+    "shape_coverage_helper_api_note": "The optional evaluation_thresholds argument is additive and defaults to the unchanged historical sweep for every existing caller; V39 requests only 0.1. Historical V27 integrity is checked at 0.25 without scoring the V39 candidate there."
+  },
+  "evaluation_command": {
+    "invocation": "& .\\tools\\gpu-training\\Run-GpuPython.ps1 -PythonArguments @('-m', 'ml.markers.center.confidence_pairwise_v39.evaluation', '--checkpoint-sha256', '<training-report checkpoint_sha256>', '--training-report-sha256', '<external SHA-256 of training-report.json>')",
+    "output_path": "artifacts/goal22-runs/marker-center-confidence-pairwise-v39-P1-dev-eval",
+    "preflight_invocation": "& .\\tools\\gpu-training\\Run-GpuPython.ps1 -PythonArguments @('-m', 'ml.markers.center.confidence_pairwise_v39.evaluation', '--preflight-only')",
+    "requires_fixed_checkpoint_path": "artifacts/goal22-runs/marker-center-confidence-pairwise-v39-P1/marker-center-pairwise.pt",
+    "requires_fixed_training_report_path": "artifacts/goal22-runs/marker-center-confidence-pairwise-v39-P1/training-report.json"
+  },
+  "evidence_policy": {
+    "path": "ml/policy/evidence-policy.json",
+    "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+  },
+  "execution": {
+    "checkpoint_selection": "fixed final epoch, no development selection",
+    "launcher": {
+      "path": "tools/gpu-training/Run-GpuPython.ps1",
+      "sha256": "37fbdcf0dceecc278973c9b28bf85556319a67587b3de9127a38c98e745908f5"
+    },
+    "numpy": "2.3.5",
+    "optimizer": {
+      "amsgrad": false,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "capturable": true,
+      "capturable_reason": "Keep AdamW's step state on the RX 6600 XT; default capturable=false explicitly creates the step tensor on CPU.",
+      "differentiable": false,
+      "eps": 1e-08,
+      "foreach": null,
+      "fused": null,
+      "maximize": false,
+      "type": "AdamW",
+      "weight_decay": 0.0001
+    },
+    "optimizer_device": "RX 6600 XT only, PyTorch HIP cuda:0, gfx1032; CPU fallback forbidden",
+    "production_approval": false,
+    "python": "3.13.7",
+    "requirements_lock": {
+      "path": "tools/gpu-training/requirements.lock.txt",
+      "sha256": "efc2c06c5be88c463e4fe567964b2d87c07a9c61f5118f9738654cf4be74d4aa"
+    },
+    "torch": "2.13.0+rocm10.1.0",
+    "memory_preflight": {
+      "minimum_available_physical_bytes": 9663676416,
+      "position": "before canonical ledger admission",
+      "reason": "V37-compatible cache loading temporarily holds source arrays and their concatenated feature array; refuse before the single-use admission if the desktop lacks conservative headroom."
+    }
+  },
+  "hypothesis": "On the same authenticated reflected synthetic training features, V27 initializer, architecture and fixed eight-epoch recipe as V37, adding within-report-group positive-versus-negative ranking pressure may improve confidence ordering without changing frozen geometry.",
+  "isolated_change": "Replace unweighted BCE alone with unweighted synthetic BCE plus mean softplus pairwise ranking loss for positive-negative pairs sharing the same authenticated scope:transform feature group in a batch. Fixed logit margin is 1.0. Retain V37 AdamW defaults for betas, epsilon, weight decay, AMSGrad, maximize, foreach, fused and differentiable; set capturable=true solely so AdamW step state remains on the selected GPU. All other training recipe and inputs are held to V37. No real positive-only data is used.",
+  "metric": "Use the unchanged shared metric/matching implementation at the single registered 0.1 operating threshold and 5 px match radius. The helper receives an explicit one-element threshold list; its default multi-threshold behavior is unchanged for prior callers.",
+  "production_approval": false,
+  "revision": "marker-center-confidence-pairwise-v39",
+  "schema": "graphreader.marker-center-confidence-pairwise-protocol.v1",
+  "split_identities": {
+    "development": {
+      "accessed_by_this_training_entrypoint": false,
+      "path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/dev.pt",
+      "sha256": "98662114b6e0b5e581b9ded142a51d304a65914881aeda0d75c74b84cc857e41",
+      "threshold": 0.1
+    },
+    "initializer": {
+      "path": "artifacts/goal22-runs/marker-v27-component-diversity/P1-recovery1/marker-center-component-diversity-v27-p1.pt",
+      "root": "artifacts/goal22-worktrees/resume-20260908",
+      "sha256": "774ef9455e9ce7b489e640c5237b81275f24e42c2d2d0d3d87be4e953b3eb365"
+    },
+    "sealed": {
+      "accessed_by_this_training_entrypoint": false,
+      "authorized_runs": 0
+    },
+    "training": {
+      "feature_report_path": "artifacts/goal22-runs/reflected-spatial-features-20261002-v1/report.json",
+      "feature_report_sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500",
+      "groups": 20,
+      "root": "artifacts/goal22-worktrees/resume-20260908",
+      "rows": 1106472,
+      "synthetic_only": true
+    }
+  },
+  "task": "marker-center",
+  "train_dev_separation": {
+    "dev_component_split_label": "dev",
+    "dev_family_split_label": "validation",
+    "dev_inventory_sha256": "e2843baf05fd33b9b5c7287b00c4f20ce0a278dfe9481308daf612d6c2dde099",
+    "dev_split_name": "real-range-generator-v1-dev",
+    "family_dev_split_name": "synthetic-five-axis-family-v1-validation",
+    "family_train_split_name": "synthetic-five-axis-family-v1-train",
+    "historical_family_dev_tensor_set_sha256": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
+    "historical_family_train_tensor_set_sha256": "e56c8f641f9e0d19e9439aeb39d8c10c3edda5657ad4a554ab45ea9ef1261599",
+    "limitation": "Frozen manifests bind distinct train/dev split identities and the complete dev inventory. The training feature tensors do not carry per-scene source IDs, so record-level train/dev intersection is not independently verified.",
+    "parent_feature_report_sha256": "3a98504c7b31f16af8f4b127ab438cba3fe7918d51c9417021221f96bb6ad7cc",
+    "per_scene_overlap_verified": false,
+    "split_config_path": "ml/markers/center/mask_preserving_v24/training/p1_retry13.json",
+    "split_config_sha256": "adb5a6ff5215757f06e1a35ab08f86a981061c5f242ac87653743ef6847f6ce3",
+    "split_sha256": {
+      "component_dev_split": "72dda9b9031f3050d72f5946105576cad89fe938f36f619f84ef4c9cafa8e566",
+      "component_train_split": "57dc4850c6882ab1ddabe0c4e76bc03f1cb03963c3d0de16b703152071e773d9",
+      "configured_family_dev_tensor_set": "7a8d688123e76c1b144ea5a19a00cb3a76a004c25c02194cb75345ddedae8120",
+      "configured_family_train_tensor_set": "28c5f0b752beaff8273082fe6bab0be121547218cfa7462a0665374941fe0c7c",
+      "family_dev_split": "f6cbeaf05dc40fa8be10b2120846d26db78a0a0836a92d5cc05ebb276bba445c",
+      "family_train_split": "dd8348657d54317d8cfec420cf9791bc91ed7205e03e62dc9df7b9d7fae4ef7c"
+    },
+    "train_split_name": "real-range-generator-v1-train",
+    "training_feature_report_path": "artifacts/goal22-runs/reflected-spatial-features-20261002-v1/report.json",
+    "training_feature_report_sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500",
+    "training_tensor_cache_manifest_path": "artifacts/goal22-runs/center-shape-coverage-cache-v3/manifest.json",
+    "training_tensor_cache_manifest_sha256": "d61e43d62891a5266dfd68dfd8286fdb0d28d685d2146763a9f49dfb24471700"
+  }
+}

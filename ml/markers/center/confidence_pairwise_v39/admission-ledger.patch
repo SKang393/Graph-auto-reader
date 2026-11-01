@@ -1,0 +1,73 @@
+diff --git a/ml/markers/training-budgets/production-repair-v1.json b/ml/markers/training-budgets/production-repair-v1.json
+index 368f021e..653086dc 100644
+--- a/ml/markers/training-budgets/production-repair-v1.json
++++ b/ml/markers/training-budgets/production-repair-v1.json
+@@ -11425,6 +11425,68 @@
+       "development_report_sha256": "362850c0788abdb95e03dc595e92f5988ae34438d86d74d23b03e3893c9dc7e6",
+       "development_outcome": "Exploratory synthetic comparison: 23 improved, 9 equal, 14 worsened among 46 scored panels; 2 fallbacks unscored. No acceptance or promotion.",
+       "closed_utc_date": "2026-10-31"
++    },
++    {
++      "task": "marker-center",
++      "revision": "marker-center-confidence-pairwise-v39",
++      "status": "candidate_1_preregistered",
++      "execution_authorized": true,
++      "authorized_candidate_id": "P1",
++      "preregistered_candidate_ids": [
++        "P1"
++      ],
++      "consumed_candidate_ids": [],
++      "experiment_budget": 1,
++      "candidate_config_paths": {
++        "P1": "ml/markers/center/confidence_pairwise_v39/p1.json"
++      },
++      "candidate_config_sha256": {
++        "P1": "58d873011a4887574abd316db030229dd015852c767ba7ed12d6ea1edcd7c21e"
++      },
++      "protocol_path": "ml/markers/center/confidence_pairwise_v39/protocol.json",
++      "protocol_sha256": "85a2c3aca5278fb0397b6ebcb46f23c6ce90d33981dd0ce53b6745d0e332dbcb",
++      "runner_source_paths": [
++        "ml/markers/gate_seal.py",
++        "ml/markers/training_budget.py",
++        "ml/policy/evidence_policy.py",
++        "ml/markers/center/__init__.py",
++        "ml/markers/center/confidence_pairwise_v39/__init__.py",
++        "ml/markers/center/confidence_pairwise_v39/objective.py",
++        "ml/markers/center/confidence_pairwise_v39/evaluation.py",
++        "ml/markers/center/confidence_pairwise_v39/protocol.json",
++        "ml/markers/center/confidence_pairwise_v39/runner.py",
++        "tools/gpu-training/Run-GpuPython.ps1",
++        "tools/gpu-training/requirements.lock.txt",
++        "tools/gpu-training/gpu-package-provenance.json",
++        "ml/markers/center/confidence_reflection_v37/__init__.py",
++        "ml/markers/center/confidence_reflection_v37/augmentation.py",
++        "ml/markers/center/confidence_reflection_v37/cache.py",
++        "ml/markers/center/confidence_spatial_v35/__init__.py",
++        "ml/markers/center/confidence_spatial_v35/cache.py",
++        "ml/markers/center/confidence_spatial_v35/model.py",
++        "ml/markers/center/scale_classifier_v16/__init__.py",
++        "ml/markers/center/scale_classifier_v16/model.py"
++      ],
++      "runner_source_bundle_sha256": "3a0dd88bb015dbe66dc240f4b8715064b4331a427571c9d6c836c08fc42144db",
++      "evaluator_source_bundle_sha256": "ba17027cb6e0cf04ae67f09a240e9ef8efe5cf02656de7a77ceec00b9ec759c8",
++      "evidence_policy": {
++        "path": "ml/policy/evidence-policy.json",
++        "schema_version": 1,
++        "policy_revision": "2026-08-19",
++        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
++      },
++      "acceptance_bars_sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
++      "authorization_scope": "One exploratory synthetic-train-only GPU candidate and fixed development evaluation under the user-authorized Goal 22 work. No private or sealed reads, production promotion or release.",
++      "isolated_change": "Retain the V37 synthetic rows, V27 initializer, architecture and fixed schedule; add one-logit within-group positive-negative ranking loss to BCE. Use capturable AdamW to keep optimizer state on the RX 6600 XT.",
++      "optimizer_steps_expected": 69160,
++      "source_binding_mode": "immutable_pre_run_snapshot",
++      "budget_consumption_event": "first_sealed_split_read",
++      "sealed_runs_authorized": 0,
++      "private_reads_authorized": 0,
++      "training_device": "RX 6600 XT gfx1032 cuda:0",
++      "per_scene_train_dev_overlap_verified": false,
++      "production_approval": false,
++      "release_eligible": false
+     }
+   ]
+ }

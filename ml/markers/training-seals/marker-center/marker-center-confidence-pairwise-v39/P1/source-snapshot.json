@@ -1,0 +1,171 @@
+{
+  "base_commit": "0979217fbd8f5338c76819309161dd1dbda02f66",
+  "captured_utc": "2026-11-01T03:06:57.901342+00:00",
+  "identity": {
+    "candidate_id": "P1",
+    "revision": "marker-center-confidence-pairwise-v39",
+    "task": "marker-center"
+  },
+  "inline_hashes": {},
+  "preregistered_ledger_entry": {
+    "acceptance_bars_sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56",
+    "authorization_scope": "One exploratory synthetic-train-only GPU candidate and fixed development evaluation under the user-authorized Goal 22 work. No private or sealed reads, production promotion or release.",
+    "authorized_candidate_id": "P1",
+    "budget_consumption_event": "first_sealed_split_read",
+    "candidate_config_paths": {
+      "P1": "ml/markers/center/confidence_pairwise_v39/p1.json"
+    },
+    "candidate_config_sha256": {
+      "P1": "58d873011a4887574abd316db030229dd015852c767ba7ed12d6ea1edcd7c21e"
+    },
+    "consumed_candidate_ids": [],
+    "evaluator_source_bundle_sha256": "ba17027cb6e0cf04ae67f09a240e9ef8efe5cf02656de7a77ceec00b9ec759c8",
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "execution_authorized": true,
+    "experiment_budget": 1,
+    "isolated_change": "Retain the V37 synthetic rows, V27 initializer, architecture and fixed schedule; add one-logit within-group positive-negative ranking loss to BCE. Use capturable AdamW to keep optimizer state on the RX 6600 XT.",
+    "optimizer_steps_expected": 69160,
+    "per_scene_train_dev_overlap_verified": false,
+    "preregistered_candidate_ids": [
+      "P1"
+    ],
+    "private_reads_authorized": 0,
+    "production_approval": false,
+    "protocol_path": "ml/markers/center/confidence_pairwise_v39/protocol.json",
+    "protocol_sha256": "85a2c3aca5278fb0397b6ebcb46f23c6ce90d33981dd0ce53b6745d0e332dbcb",
+    "release_eligible": false,
+    "revision": "marker-center-confidence-pairwise-v39",
+    "runner_source_bundle_sha256": "3a0dd88bb015dbe66dc240f4b8715064b4331a427571c9d6c836c08fc42144db",
+    "runner_source_paths": [
+      "ml/markers/gate_seal.py",
+      "ml/markers/training_budget.py",
+      "ml/policy/evidence_policy.py",
+      "ml/markers/center/__init__.py",
+      "ml/markers/center/confidence_pairwise_v39/__init__.py",
+      "ml/markers/center/confidence_pairwise_v39/objective.py",
+      "ml/markers/center/confidence_pairwise_v39/evaluation.py",
+      "ml/markers/center/confidence_pairwise_v39/protocol.json",
+      "ml/markers/center/confidence_pairwise_v39/runner.py",
+      "tools/gpu-training/Run-GpuPython.ps1",
+      "tools/gpu-training/requirements.lock.txt",
+      "tools/gpu-training/gpu-package-provenance.json",
+      "ml/markers/center/confidence_reflection_v37/__init__.py",
+      "ml/markers/center/confidence_reflection_v37/augmentation.py",
+      "ml/markers/center/confidence_reflection_v37/cache.py",
+      "ml/markers/center/confidence_spatial_v35/__init__.py",
+      "ml/markers/center/confidence_spatial_v35/cache.py",
+      "ml/markers/center/confidence_spatial_v35/model.py",
+      "ml/markers/center/scale_classifier_v16/__init__.py",
+      "ml/markers/center/scale_classifier_v16/model.py"
+    ],
+    "sealed_runs_authorized": 0,
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "status": "candidate_1_preregistered",
+    "task": "marker-center",
+    "training_device": "RX 6600 XT gfx1032 cuda:0"
+  },
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "ml/markers/center/__init__.py",
+      "sha256": "7ad1be210b692abc0e3f351c85c8ce58117c82132e2847ee5bb32a678721e681"
+    },
+    {
+      "path": "ml/markers/center/confidence_pairwise_v39/__init__.py",
+      "sha256": "2ed1fbbbd84794fb6072c73d866838f0d91df3e668429cdbff67600f0c49e375"
+    },
+    {
+      "path": "ml/markers/center/confidence_pairwise_v39/evaluation.py",
+      "sha256": "c31cfe275ad21edc52aeb846e50650f9b7eafbbae98eb6e009ce645a7cebf793"
+    },
+    {
+      "path": "ml/markers/center/confidence_pairwise_v39/objective.py",
+      "sha256": "a75f4726172ebacbb958dfb0b67dd55831a1041123e3fbb4010e95aa127c5e91"
+    },
+    {
+      "path": "ml/markers/center/confidence_pairwise_v39/p1.json",
+      "sha256": "58d873011a4887574abd316db030229dd015852c767ba7ed12d6ea1edcd7c21e"
+    },
+    {
+      "path": "ml/markers/center/confidence_pairwise_v39/protocol.json",
+      "sha256": "85a2c3aca5278fb0397b6ebcb46f23c6ce90d33981dd0ce53b6745d0e332dbcb"
+    },
+    {
+      "path": "ml/markers/center/confidence_pairwise_v39/runner.py",
+      "sha256": "e3c350da9f6381766755d679ed014161ed39e236ca4512146cec2a9977a0cb8e"
+    },
+    {
+      "path": "ml/markers/center/confidence_reflection_v37/__init__.py",
+      "sha256": "ab3cee69e593e21236cb58826bea789195bebc3b552b8291abf3cb96a987d3db"
+    },
+    {
+      "path": "ml/markers/center/confidence_reflection_v37/augmentation.py",
+      "sha256": "b35aabdab9f0a0b397f8d6a450a6d6afcc5a0c2c8816d1d31ba5770b8c84e96f"
+    },
+    {
+      "path": "ml/markers/center/confidence_reflection_v37/cache.py",
+      "sha256": "009947a9afad2f12178c1add41283ff6b1d7bd2840b0dda54eafe96dc9c61dde"
+    },
+    {
+      "path": "ml/markers/center/confidence_spatial_v35/__init__.py",
+      "sha256": "ea8efb4af6e3f91db9cf0d680bcbdf7d4abaa13ba5cced2a90ec2a41865a919c"
+    },
+    {
+      "path": "ml/markers/center/confidence_spatial_v35/cache.py",
+      "sha256": "2b02a7daa6040aae23e19deff405c8e63ac1eef85e107916106127e4394d3171"
+    },
+    {
+      "path": "ml/markers/center/confidence_spatial_v35/model.py",
+      "sha256": "bdf3611dd99f6551833f6121c7bf538d1a34b2ace57b125f0b815ac8ad6f69ff"
+    },
+    {
+      "path": "ml/markers/center/scale_classifier_v16/__init__.py",
+      "sha256": "ae2fbca99d9e97d1131cd2295d2766a9045203187baad5485d695b176e9f6768"
+    },
+    {
+      "path": "ml/markers/center/scale_classifier_v16/model.py",
+      "sha256": "899dfbed25707f121f657f4138f8a50060bc554acfbac48b7e2f93bc3668587f"
+    },
+    {
+      "path": "ml/markers/gate_seal.py",
+      "sha256": "0015612194e6c082cedd0b9d830dc427e94567302b39e5f3fe43dd090c0eb725"
+    },
+    {
+      "path": "ml/markers/training-budgets/production-repair-v1.json",
+      "sha256": "0885f7b401ffbeea7d6f6c44be0ba24559e16a3cdeee58869ea92a26849ea6b0"
+    },
+    {
+      "path": "ml/markers/training_budget.py",
+      "sha256": "278642eb3b6decdd6ed77a41dd635092567e67b03b912d503af2790189ebf8c4"
+    },
+    {
+      "path": "ml/policy/acceptance-bars.json",
+      "sha256": "aab9f2ab60cf166828f0928b8496f537341870fd457d0408952e22549fc53a56"
+    },
+    {
+      "path": "ml/policy/evidence-policy.json",
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    {
+      "path": "ml/policy/evidence_policy.py",
+      "sha256": "cc735718f68ef6f53f3ee2a91f8d3fb86f0705e16c1332cc8933bbc6011129e7"
+    },
+    {
+      "path": "tools/gpu-training/Run-GpuPython.ps1",
+      "sha256": "37fbdcf0dceecc278973c9b28bf85556319a67587b3de9127a38c98e745908f5"
+    },
+    {
+      "path": "tools/gpu-training/gpu-package-provenance.json",
+      "sha256": "368901486b09aa576606247aab441dbbd1c6f08a19f4a76791c39fa68fccf0ff"
+    },
+    {
+      "path": "tools/gpu-training/requirements.lock.txt",
+      "sha256": "efc2c06c5be88c463e4fe567964b2d87c07a9c61f5118f9738654cf4be74d4aa"
+    }
+  ]
+}

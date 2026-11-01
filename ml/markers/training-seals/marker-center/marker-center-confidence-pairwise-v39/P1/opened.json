@@ -1,0 +1,47 @@
+{
+  "binding": {
+    "base_commit": "0979217fbd8f5338c76819309161dd1dbda02f66",
+    "candidate_config_path": "ml/markers/center/confidence_pairwise_v39/p1.json",
+    "candidate_config_sha256": "58d873011a4887574abd316db030229dd015852c767ba7ed12d6ea1edcd7c21e",
+    "candidate_id": "P1",
+    "evidence_policy": {
+      "path": "ml/policy/evidence-policy.json",
+      "policy_revision": "2026-08-19",
+      "schema_version": 1,
+      "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+    },
+    "revision": "marker-center-confidence-pairwise-v39",
+    "runner_source_bundle_sha256": "3a0dd88bb015dbe66dc240f4b8715064b4331a427571c9d6c836c08fc42144db",
+    "runner_source_paths": [
+      "ml/markers/center/__init__.py",
+      "ml/markers/center/confidence_pairwise_v39/__init__.py",
+      "ml/markers/center/confidence_pairwise_v39/evaluation.py",
+      "ml/markers/center/confidence_pairwise_v39/objective.py",
+      "ml/markers/center/confidence_pairwise_v39/protocol.json",
+      "ml/markers/center/confidence_pairwise_v39/runner.py",
+      "ml/markers/center/confidence_reflection_v37/__init__.py",
+      "ml/markers/center/confidence_reflection_v37/augmentation.py",
+      "ml/markers/center/confidence_reflection_v37/cache.py",
+      "ml/markers/center/confidence_spatial_v35/__init__.py",
+      "ml/markers/center/confidence_spatial_v35/cache.py",
+      "ml/markers/center/confidence_spatial_v35/model.py",
+      "ml/markers/center/scale_classifier_v16/__init__.py",
+      "ml/markers/center/scale_classifier_v16/model.py",
+      "ml/markers/gate_seal.py",
+      "ml/markers/training_budget.py",
+      "ml/policy/evidence_policy.py",
+      "tools/gpu-training/Run-GpuPython.ps1",
+      "tools/gpu-training/gpu-package-provenance.json",
+      "tools/gpu-training/requirements.lock.txt"
+    ],
+    "source_binding_mode": "immutable_pre_run_snapshot",
+    "source_snapshot_path": "ml/markers/training-seals/marker-center/marker-center-confidence-pairwise-v39/P1/source-snapshot.json",
+    "source_snapshot_sha256": "f520f06901ab5146dc430b015590cda6e0036e9689239190c8ad7306149fce12",
+    "task": "marker-center",
+    "training_budget_ledger_sha256": "0885f7b401ffbeea7d6f6c44be0ba24559e16a3cdeee58869ea92a26849ea6b0"
+  },
+  "budget_status": "pending_sealed_read",
+  "opened_utc": "2026-11-01T03:06:58.172829+00:00",
+  "schema_version": 1,
+  "status": "opened"
+}

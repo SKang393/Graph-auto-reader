@@ -115,3 +115,7 @@ ml/markers/center/confidence_residual_v38/p1.json -text whitespace=cr-at-eol
 ml/markers/center/confidence_residual_v38/P1_RESULT.json -text whitespace=cr-at-eol
 ml/markers/center/residual_negative_v38/__init__.py -text whitespace=cr-at-eol
 ml/markers/center/residual_negative_v38/protocol.json -text whitespace=cr-at-eol
+# Preserve V39 pre-run source checkout line endings.
+ml/markers/center/__init__.py text eol=crlf
+tools/gpu-training/gpu-package-provenance.json text eol=crlf
+tools/gpu-training/requirements.lock.txt text eol=crlf

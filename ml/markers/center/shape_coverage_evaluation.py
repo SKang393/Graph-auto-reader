@@ -24,6 +24,19 @@ from .plot_domain_v25 import diagnose_dev as matching
 THRESHOLDS = (.25, .4, .55, .7)
 
 
+def evaluation_threshold_set(operating_threshold: float,
+                             evaluation_thresholds: tuple[float, ...] | None = None) -> tuple[float, ...]:
+    if not math.isfinite(operating_threshold) or not 0 < operating_threshold <= 1:
+        raise ValueError("Operating threshold must be a finite probability above zero")
+    if evaluation_thresholds is None:
+        return tuple(sorted({operating_threshold, *THRESHOLDS}))
+    if (not evaluation_thresholds or operating_threshold not in evaluation_thresholds or
+            any(not math.isfinite(value) or not 0 < value <= 1 for value in evaluation_thresholds) or
+            len(set(evaluation_thresholds)) != len(evaluation_thresholds)):
+        raise ValueError("Explicit evaluation thresholds must be unique valid probabilities and include the operating point")
+    return tuple(sorted(evaluation_thresholds))
+
+
 def match_predictions(items, centers):
     # The frozen diagnostic matcher consumes traced candidates, whose public
     # prediction is the same MarkerPrediction value used by runtime decoding.
@@ -61,18 +74,33 @@ def summarize_counts(counts: Counter) -> dict:
     return result
 
 
+def historical_v27_integrity_counts(scene, coordinates, baseline_values, domain) -> Counter:
+    """Reproduce only the frozen V27 historical count at its pinned 0.25 point."""
+    historical = predictions(scene, coordinates, baseline_values, domain, balanced=False, threshold=.25)
+    pairs = match_predictions(historical, scene.centers)
+    metrics = bars.center_metrics(historical, scene.centers, 5.)
+    return Counter({
+        "true_positives": len(pairs),
+        "false_positives": len(historical) - len(pairs),
+        "false_negatives": len(scene.centers) - len(pairs),
+        "duplicate_count": metrics.duplicate_count,
+        "prohibited_structure_hits": sum(legacy.prohibited_hits(historical, scene).values()),
+    })
+
+
 def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path,
-             *, operating_threshold: float = .25) -> dict:
-    if not math.isfinite(operating_threshold) or not 0 < operating_threshold <= 1:
-        raise ValueError("Operating threshold must be a finite probability above zero")
-    thresholds = tuple(sorted({operating_threshold, *THRESHOLDS}))
+             *, operating_threshold: float = .25,
+             evaluation_thresholds: tuple[float, ...] | None = None) -> dict:
+    thresholds = evaluation_threshold_set(operating_threshold, evaluation_thresholds)
     minimum_threshold = thresholds[0]
     paths, old_report, prior_report, hashes = source._authenticate(repo, historical.SOURCE_DIAGNOSTIC_SHA256)
     coordinates_cache, _ = source._load_caches(paths, old_report, prior_report)
     baseline_report, baseline_cache = historical._load_v27_cache(repo)
     totals, records = {}, []
+    historical_v27_025 = {}
     parity = {"rows": 0, "maximum_absolute_error": 0., "confidence_decision_changes": 0}
     for scope, items in scenes.items():
+        historical_v27_025[scope] = Counter()
         totals[scope] = {kind: {str(t): Counter() for t in thresholds} for kind in (
             "v27_historical", "v27_balanced", "candidate_historical", "candidate_balanced")}
         for index, bound in enumerate(items):
@@ -118,6 +146,13 @@ def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path,
                     "candidate_historical": predictions(scene, coordinates, actual, domain, balanced=False, threshold=minimum_threshold),
                     "candidate_balanced": predictions(scene, coordinates, actual, domain, balanced=True, threshold=minimum_threshold)}
                 centers = np.asarray(scene.centers, dtype=np.float32).reshape(-1, 2)
+                # Keep the frozen V27 full-development integrity assertion even
+                # when a caller requests a single registered threshold. This
+                # checks the baseline only and does not score the candidate at
+                # an auxiliary operating point.
+                if evaluation_thresholds is not None and .25 not in thresholds:
+                    historical_v27_025[scope].update(
+                        historical_v27_integrity_counts(scene, coordinates, baseline_values, domain))
                 supported = int((np.linalg.norm(coordinates[:, None, :]-centers[None, :, :], axis=2).min(axis=0) <= 5).sum()) if len(centers) else 0
                 per_scene = {}
                 for kind, items_at_threshold in all_predictions.items():
@@ -137,7 +172,8 @@ def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path,
                                 "proposal_count": len(coordinates), "results": per_scene})
     # Original V27 results must be reproduced before comparing new geometry.
     for scope in totals:
-        result = totals[scope]["v27_historical"]["0.25"]
+        result = (historical_v27_025[scope] if evaluation_thresholds is not None and .25 not in thresholds
+                  else totals[scope]["v27_historical"]["0.25"])
         expected = {"component": (1796, 238, 208), "family": (190, 39, 16)}[scope]
         if tuple(result[k] for k in ("true_positives", "false_positives", "false_negatives")) != expected:
             raise ValueError("Historical full development results were not reproduced")
@@ -148,5 +184,5 @@ def evaluate(repo: Path, scenes: dict, model, session, budget, output: Path,
     clears = bars._passes_required_dev_gates(results["component"]["candidate_balanced"][str(operating_threshold)],
                                            results["family"]["candidate_balanced"][str(operating_threshold)], bar)
     return {"results": results, "records": records, "parity": parity, "acceptance_bar": bar,
-            "clears_shared_dev_bars": clears, "threshold_sensitivity_is_descriptive_only": True,
+            "clears_shared_dev_bars": clears, "threshold_sensitivity_is_descriptive_only": evaluation_thresholds is None,
             "operating_threshold": operating_threshold, "geometry": "multiradius_enclosed_balanced_v2"}
