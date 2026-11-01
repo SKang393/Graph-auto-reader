@@ -33,14 +33,15 @@ public sealed class ValidationPrivateEvaluationTests
     [TestMethod]
     public void ValidationPrivateEvaluationCannotRunInContinuousIntegration()
     {
-        string externalDirectory = CreateExternalDirectory();
+        SyntheticDirectories directories = CreateSyntheticDirectories();
         try
         {
             PrivateEvaluationAdapter adapter = CreateAdapter(
+                directories.Repository,
                 variable => variable == "CI" ? "true" : null);
 
             PrivateEvaluationAvailability availability = adapter.CheckAvailability(
-                new PrivateEvaluationRequest(ExplicitOptIn: true, externalDirectory));
+                new PrivateEvaluationRequest(ExplicitOptIn: true, directories.External));
 
             Assert.IsFalse(availability.IsAvailable);
             Assert.HasCount(1, availability.Reasons);
@@ -50,7 +51,7 @@ public sealed class ValidationPrivateEvaluationTests
         }
         finally
         {
-            Directory.Delete(externalDirectory);
+            directories.Delete();
         }
     }
 
@@ -58,7 +59,7 @@ public sealed class ValidationPrivateEvaluationTests
     public void ValidationPrivateEvaluationRejectsRepositoryData()
     {
         string repositoryRoot = RepositoryRoot.Find();
-        PrivateEvaluationAdapter adapter = CreateAdapter();
+        PrivateEvaluationAdapter adapter = CreateAdapter(repositoryRoot);
 
         PrivateEvaluationAvailability availability = adapter.CheckAvailability(
             new PrivateEvaluationRequest(ExplicitOptIn: true, repositoryRoot));
@@ -73,35 +74,51 @@ public sealed class ValidationPrivateEvaluationTests
     [TestMethod]
     public void ValidationPrivateEvaluationAllowsExplicitExternalLocalData()
     {
-        string externalDirectory = CreateExternalDirectory();
+        SyntheticDirectories directories = CreateSyntheticDirectories();
         try
         {
-            PrivateEvaluationAdapter adapter = CreateAdapter();
+            PrivateEvaluationAdapter adapter = CreateAdapter(directories.Repository);
 
             PrivateEvaluationAvailability availability = adapter.CheckAvailability(
-                new PrivateEvaluationRequest(ExplicitOptIn: true, externalDirectory));
+                new PrivateEvaluationRequest(ExplicitOptIn: true, directories.External));
 
             Assert.IsTrue(availability.IsAvailable);
             Assert.AreEqual(
-                Path.TrimEndingDirectorySeparator(Path.GetFullPath(externalDirectory)),
+                Path.TrimEndingDirectorySeparator(Path.GetFullPath(directories.External)),
                 availability.ExternalDirectory);
             Assert.IsEmpty(availability.Reasons);
         }
         finally
         {
-            Directory.Delete(externalDirectory);
+            directories.Delete();
         }
     }
 
     private static PrivateEvaluationAdapter CreateAdapter(
+        string? repositoryRoot = null,
         Func<string, string?>? readEnvironmentVariable = null) =>
-        new(RepositoryRoot.Find(), readEnvironmentVariable ?? (_ => null));
+        new(repositoryRoot ?? RepositoryRoot.Find(), readEnvironmentVariable ?? (_ => null));
 
-    private static string CreateExternalDirectory()
+    private static SyntheticDirectories CreateSyntheticDirectories()
     {
-        string directory = Path.Combine(
+        string root = Path.Combine(
             Path.GetTempPath(),
-            $"GraphReader-Validation-{Guid.NewGuid():N}");
-        return Directory.CreateDirectory(directory).FullName;
+            $"GraphReader-ValidationPrivateEvaluation-{Guid.NewGuid():N}");
+        string repository = Path.Combine(root, "repository");
+        string external = Path.Combine(root, "external");
+        Directory.CreateDirectory(repository);
+        Directory.CreateDirectory(external);
+
+        return new SyntheticDirectories(root, repository, external);
+    }
+
+    private sealed record SyntheticDirectories(string Root, string Repository, string External)
+    {
+        public void Delete()
+        {
+            Directory.Delete(External);
+            Directory.Delete(Repository);
+            Directory.Delete(Root);
+        }
     }
 }
