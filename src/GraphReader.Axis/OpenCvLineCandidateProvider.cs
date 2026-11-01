@@ -158,7 +158,7 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         double nativeInkSpan = _options.HoughMinimumLineLengthPixels * 2d;
         // Large scanned plots can contain symbols wider than the fixed Hough
         // minimum. Scale only the observed-ink search, not Hough detection.
-        double maximumInkSpan = Math.Max(nativeInkSpan, Math.Min(80d, Math.Min(frame.Width, frame.Height) * 0.06d));
+        double maximumInkSpan = Math.Max(nativeInkSpan, Math.Min(80d, Math.Min(frame.Width, frame.Height) * 0.08d));
         double maximumGap = maximumInkSpan + (2 * InkEndpointRadius);
         if (maximumGap <= minimumGap)
         {

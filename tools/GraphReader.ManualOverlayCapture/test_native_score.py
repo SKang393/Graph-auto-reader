@@ -36,6 +36,12 @@ class NativePointScoreTests(unittest.TestCase):
         self.assertEqual(1, result["missed_artifact_overlap"])
         self.assertEqual(0, result["missed_ocr_overlap"])
 
+    def test_original_image_scores_points_without_a_modified_patch_exclusion(self):
+        result = score_image([{"x": 50, "y": 50}], [panel(0, 0, 100, 100, [(50, 50)])], None)
+        self.assertEqual(0, result["patch_excluded"])
+        self.assertEqual(1, result["eligible_points"])
+        self.assertEqual(1, result["matched_points"])
+
 
 if __name__ == "__main__":
     unittest.main()

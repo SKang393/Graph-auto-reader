@@ -289,6 +289,46 @@ public sealed class OpenCvLineCandidateProviderTests
     }
 
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task WideSquareOnAxisRequiresConnectedInkForScaleAwareBridge(bool connected)
+    {
+        const int width = 1600, height = 570, axisX = 100, baseline = 490, centerX = 280, halfWidth = 20;
+        byte[] pixels = Enumerable.Repeat(byte.MaxValue, width * height).ToArray();
+        for (int x = axisX; x <= 1500; x++)
+        {
+            SetBlack(pixels, width, x, baseline);
+            SetBlack(pixels, width, x, baseline + 1);
+        }
+        for (int y = 50; y <= baseline + 1; y++)
+        {
+            SetBlack(pixels, width, axisX, y);
+            SetBlack(pixels, width, axisX + 1, y);
+        }
+        for (int y = baseline - halfWidth; y <= baseline + halfWidth; y++)
+        for (int x = centerX - halfWidth; x <= centerX + halfWidth; x++)
+            pixels[(y * width) + x] = connected ? (byte)0 : byte.MaxValue;
+
+        var frame = new GrayscaleLineCandidateFrame(width, height, width, pixels);
+        IReadOnlyList<GeometryLineCandidate> candidates = await new OpenCvLineCandidateProvider()
+            .DetectLinesAsync(frame, CancellationToken.None);
+        bool bridge = candidates.Any(candidate =>
+            candidate.CandidateId.StartsWith("raster-ink-bridge-", StringComparison.Ordinal) &&
+            Math.Abs(candidate.Segment.Midpoint.Y - baseline) < 4 &&
+            Math.Min(candidate.Segment.Start.X, candidate.Segment.End.X) <= centerX - halfWidth &&
+            Math.Max(candidate.Segment.Start.X, candidate.Segment.End.X) >= centerX + halfWidth);
+        Assert.AreEqual(connected, bridge,
+            "A square can join the native line segments only when the original pixels contain a connected path.");
+        if (connected)
+        {
+            AxisGeometryResult geometry = await new AxisGeometryDetector().DetectAsync(
+                new AxisGeometryRequest(width, height, candidates));
+            Assert.IsTrue(geometry.PlotPolygon.BottomRight.X > 1490d,
+                "A connected square must not truncate the returned axis.");
+        }
+    }
+
+    [TestMethod]
     public async Task NativeProviderValidatesOriginalPixelsBufferAndCancellation()
     {
         GrayscaleLineCandidateFrame valid = CreateCleanAxisFrame();

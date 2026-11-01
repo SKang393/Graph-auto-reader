@@ -14,6 +14,12 @@ raster manifest, image bytes, frozen candidate model bindings, and runtime
 description. File names describe the injected shape, so the input is not a
 blinded human review.
 
+The `original` input also selects the same 20 source groups' unmodified
+images from a checksum-verified train-only receipt. It contains no point labels
+or coordinates. `original_score.py` reads the recorded points only after the
+original capture is frozen, and compares the same eligible points with the
+overlay score.
+
 For each imported panel the capture uses the candidate workflow's original
 raster decoder, axis detector, OCR adapter, artifact-mask composer, and V27
 marker-center candidate. The OCR, artifact, and marker components are not
@@ -123,7 +129,7 @@ pixels outside the returned plot polygon; six of seven groups with zero of five
 controlled-marker hits also had their smoke anchor outside that boundary.
 Several white overlay patches visibly covered portions of an axis, so the
 modified-image result cannot establish the same failure on the original
-graphs. A separate unmodified-image check is required.
+graphs. The separate unmodified-image check below replaces that assumption.
 
 The local stage proximity patterns comprised 71 misses without a nearby
 emitted grid proposal, 49 with a nearby grid proposal but no nearby
@@ -135,6 +141,36 @@ overlap and 37 had residual-mask overlap in the local five-by-five window;
 categories can overlap. The residual legend category occurred near 36 misses.
 These observations are not proof of causation and do not measure false
 positives or the later classifier/recovery workflow.
+
+## Unmodified-image comparison
+
+All 20 unmodified train images completed capture with no image failures. Before
+the wider connected-ink bridge, the center candidate matched 163/253 recorded
+points in 15 build images and 60/79 in five internal holdout images. On the
+same 277 points outside the modified patches it matched 180 on the originals,
+compared with 150 on the overlays. Two of the seven groups with no controlled
+overlay hits also placed the tested anchor outside the original plot boundary.
+
+After the bridge adjustment, those original-image matches increased to 181/253
+and 61/79. On the same 277 points the original count increased to 198. One of
+the seven zero-hit groups still had its anchor outside the original plot.
+Across all original images the number of returned center candidates increased
+from 1,707 to 1,913, with 197 of the 206 additional candidates in the two
+images whose plot extents changed substantially. The recorded points are
+imperfect and do not label all image content, so these additional candidates
+cannot be classified as correct or false positives from this score. It does
+not execute downstream marker classification or recovery and is not release
+acceptance. See `../GraphReader.ManualPanelDiagnostic/SQUARE_BRIDGE_RESULT.md`
+for the axis checks and remaining geometry failure.
+
+| Original-image evidence | SHA-256 |
+| --- | --- |
+| Raster manifest | `b9044372d5d6b37257ef0e1823935eaed840b99f9dc5a66a2c5359a1b7beeba6` |
+| Before capture | `436e45e9765698a2a17bb0d86a42981223399e29638539375a61e617d378381c` |
+| Before point score | `56b5d400089cc8713b898a12ef972b6da1aa35aff4544dc4c7a17468581fdffd` |
+| After runtime description | `f9a40e9bea7b3d11b4037e5aac8fc62b4e867eee757312e0e0e6e73872d6746d` |
+| After capture | `d96efe9f3eb414f4163e927da7e61943fc73875b2f22d230e186cb9363cd5f9e` |
+| After point score | `1687239ae043b205c1f7fec2f2eafb9eb7a673c9b7fbbd50ce54c6aa6f19fc90` |
 
 | Private input or result | SHA-256 |
 | --- | --- |
@@ -161,7 +197,7 @@ them; they are never packaging inputs.
 
 ```powershell
 dotnet build tools/GraphReader.ManualOverlayCapture/GraphReader.ManualOverlayCapture.csproj -c Release --no-restore -m:1 -p:NuGetAudit=false -p:UseSharedCompilation=false
-python -B -m unittest test_score test_patches test_native_score test_raw_confidence_score test_stage_score -v
+python -B -m unittest test_score test_patches test_native_score test_raw_confidence_score test_stage_score test_original_score -v
 dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore -m:1 -p:UseSharedCompilation=false --filter FullyQualifiedName~PlotDomainCandidateMatchesPythonSkewedCoordinatesAndPatchBytes
 ```
 

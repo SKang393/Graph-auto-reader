@@ -6,7 +6,9 @@
 This diagnostic runs the application's `ProductionRasterPanelizer`, followed
 by `AxisGeometryDetector` with the reviewed OpenCV binary, on the eight pinned
 build images, five exposed internal holdout images, seven other pinned
-training-source groups, or the pinned 16-image development capture. It does not
+training-source groups, the 20 corresponding unmodified training images, or the
+pinned 16-image development capture. The `original` profile selects those 20
+unmodified images from the checksum-verified training-source receipt. It does not
 read transcriptions, train a model, modify the application, or establish
 release acceptance. Image-specific geometry remains in ignored project-local
 artifacts. The normal importer catches a genuine no-panel result and retains
@@ -24,6 +26,8 @@ split. For example:
 dotnet build tools/GraphReader.ManualPanelDiagnostic/GraphReader.ManualPanelDiagnostic.csproj -c Release --no-restore -m:1
 dotnet tools/GraphReader.ManualPanelDiagnostic/bin/Release/net10.0-windows/GraphReader.RealAcceptance.Ocr.dll build panel-diagnostic-example
 ```
+
+Use `original` in place of `build` for the pinned unmodified-image profile.
 
 The output name is create-only under `artifacts/manual-axis-ocr-diagnostic-v1`.
 The reviewed native binary SHA-256 is

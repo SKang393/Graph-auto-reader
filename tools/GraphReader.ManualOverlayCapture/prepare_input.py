@@ -14,6 +14,8 @@ ROOT = Path(r"E:\Graph-auto-reader")
 RASTERS = ROOT / "artifacts/goal22-runs/marker-train-overlay-corpus-render-v7"
 OUTPUT = ROOT / "artifacts/manual-marker-input-diagnostic-v1"
 RECEIPT_SHA = "b7631113c9425cd06c62e4198dd173e8423013d973040e4a05ef5448bcd7a02f"
+ORIGINALS = ROOT / "artifacts/goal22-runs/marker-train-overlay-corpus-extract-v7"
+ORIGINAL_RECEIPT_SHA = "23964f24a72fa7c34344f252f08d17582e6855111945ffd4c360fdeb7977bd21"
 
 
 def digest(path: Path) -> str:
@@ -26,8 +28,11 @@ def digest(path: Path) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=("smoke", "full"))
+    parser.add_argument("mode", choices=("smoke", "full", "original"))
     args = parser.parse_args()
+    if args.mode == "original":
+        prepare_originals()
+        return
     receipt_path = RASTERS / "receipt.json"
     if digest(receipt_path) != RECEIPT_SHA:
         raise ValueError("train overlay receipt differs")
@@ -67,6 +72,38 @@ def main() -> None:
         json.dump(result, stream, sort_keys=True, separators=(",", ":"))
         stream.write("\n")
     print(json.dumps({"selection": args.mode, "images": len(rows), "groups": len(groups), "sha256": digest(path)}))
+
+
+def prepare_originals() -> None:
+    receipt_path = ORIGINALS / "source-receipt.json"
+    if digest(receipt_path) != ORIGINAL_RECEIPT_SHA:
+        raise ValueError("train source receipt differs")
+    receipt = json.loads(receipt_path.read_bytes())
+    if (receipt["schema"] != "graphreader.manual-train-marker-overlay-corpus-source-extraction.v1" or
+            receipt["selected_sources"] != 20 or receipt["extracted_sources"] != 20 or receipt["failed_sources"] != 0 or
+            receipt["development_payload_reads"] != 0 or receipt["sealed_payload_reads"] != 0 or
+            receipt["training_admitted"] is not False):
+        raise ValueError("train source scope differs")
+    rows = []
+    for index, source in enumerate(sorted(receipt["sources"], key=lambda value: value["source_index"])):
+        expected_name = f"source-{index:03d}.png"
+        if source["source_index"] != index or source["path"] != expected_name:
+            raise ValueError("train source identity differs")
+        path = ORIGINALS / expected_name
+        if path.is_symlink() or digest(path) != source["extracted_png_sha256"]:
+            raise ValueError("train source image differs")
+        rows.append({"id": f"source-{index:03d}", "image_path": path.relative_to(ROOT).as_posix(),
+                     "image_sha256": source["extracted_png_sha256"]})
+    if len(rows) != 20 or len({row["image_sha256"] for row in rows}) != 20:
+        raise ValueError("train source inventory differs")
+    result = {"schema": "graphreader.manual-marker-raster-input.v1", "scope": "train-only-original-raster-no-truth",
+              "receipt_sha256": ORIGINAL_RECEIPT_SHA, "selection": "original", "training_approved": False, "rows": rows}
+    OUTPUT.mkdir(parents=True, exist_ok=True)
+    path = OUTPUT / "original-raster-input-v1.json"
+    with path.open("x", encoding="utf-8", newline="\n") as stream:
+        json.dump(result, stream, sort_keys=True, separators=(",", ":"))
+        stream.write("\n")
+    print(json.dumps({"selection": "original", "images": len(rows), "sha256": digest(path)}))
 
 
 if __name__ == "__main__":

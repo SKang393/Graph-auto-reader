@@ -23,6 +23,8 @@ internal static class Program
     private const string OutputRoot = "artifacts/manual-marker-input-diagnostic-v1";
     private const string RasterRoot = "artifacts/goal22-runs/marker-train-overlay-corpus-render-v7/";
     private const string ReceiptSha = "b7631113c9425cd06c62e4198dd173e8423013d973040e4a05ef5448bcd7a02f";
+    private const string OriginalRasterRoot = "artifacts/goal22-runs/marker-train-overlay-corpus-extract-v7/";
+    private const string OriginalReceiptSha = "23964f24a72fa7c34344f252f08d17582e6855111945ffd4c360fdeb7977bd21";
     private const string ModelBinding = "artifacts/goal22-runs/marker-context-center-only-binding-v1.json";
     private const string ModelBindingSha = "51c7b65a076579764da6b58c51ea4ff0c10bcd48232e1ac1b625b74cf100be73";
     private const string OpenCvSha = "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31";
@@ -91,9 +93,15 @@ internal static class Program
         using JsonDocument manifest = JsonDocument.Parse(input);
         JsonElement root = manifest.RootElement;
         Exact(root, "schema", "scope", "receipt_sha256", "selection", "training_approved", "rows");
+        string selection = root.GetProperty("selection").GetString() ?? "";
+        bool original = selection == "original";
+        string rasterRoot = original ? OriginalRasterRoot : RasterRoot;
+        string inputScope = original ? "train-only-original-raster-no-truth" : "train-only-raster-no-truth";
+        string receiptSha = original ? OriginalReceiptSha : ReceiptSha;
+        string idPrefix = original ? "source-" : "overlay-";
         Require(root.GetProperty("schema").GetString() == "graphreader.manual-marker-raster-input.v1" &&
-            root.GetProperty("scope").GetString() == "train-only-raster-no-truth" &&
-            root.GetProperty("receipt_sha256").GetString() == ReceiptSha &&
+            root.GetProperty("scope").GetString() == inputScope &&
+            root.GetProperty("receipt_sha256").GetString() == receiptSha &&
             root.GetProperty("training_approved").ValueKind == JsonValueKind.False, "Input scope differs.");
         var entries = new List<(string Id, string Path, string Sha)>();
         var ids = new HashSet<string>(StringComparer.Ordinal);
@@ -104,16 +112,15 @@ internal static class Program
             string id = row.GetProperty("id").GetString() ?? "";
             string relative = row.GetProperty("image_path").GetString() ?? "";
             string sha = row.GetProperty("image_sha256").GetString() ?? "";
-            string rasterDirectory = ProjectPath(RasterRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            Require(id.Length == 11 && id.StartsWith("overlay-", StringComparison.Ordinal) && id[8..].All(char.IsAsciiDigit) &&
-                ids.Add(id) && imageHashes.Add(sha) && relative.StartsWith(RasterRoot, StringComparison.Ordinal) &&
+            string rasterDirectory = ProjectPath(rasterRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            Require(id.Length == idPrefix.Length + 3 && id.StartsWith(idPrefix, StringComparison.Ordinal) && id[idPrefix.Length..].All(char.IsAsciiDigit) &&
+                ids.Add(id) && imageHashes.Add(sha) && relative.StartsWith(rasterRoot, StringComparison.Ordinal) &&
                 ProjectPath(relative).StartsWith(rasterDirectory, StringComparison.OrdinalIgnoreCase) && relative.EndsWith(".png", StringComparison.Ordinal),
                 "Invalid or repeated train raster identity.");
             entries.Add((id, relative, sha));
         }
-        string selection = root.GetProperty("selection").GetString() ?? "";
-        Require((selection == "smoke" && entries.Count == 20) || (selection == "full" && entries.Count == 200),
-            "Only the fixed 20-image smoke or 200-image input is supported.");
+        Require(((selection is "smoke" or "original") && entries.Count == 20) || (selection == "full" && entries.Count == 200),
+            "Only the fixed 20-image or 200-image inputs are supported.");
         string output = OutputPath(outputName);
         Require(!Directory.Exists(output) && !File.Exists(output), "Output already exists.");
         Directory.CreateDirectory(output);

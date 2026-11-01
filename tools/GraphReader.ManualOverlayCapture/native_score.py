@@ -47,16 +47,19 @@ def maximum_matches(points: list[tuple[float, float]], markers: list[tuple[float
     return len(matched_point_indices(points, markers, tolerance))
 
 
-def score_image(curve_points: list[dict], panels: list[dict], patch: list[int],
+def score_image(curve_points: list[dict], panels: list[dict], patch: list[int] | None,
                 frames: dict[str, np.ndarray] | None = None) -> dict:
     points = [(float(point["x"]), float(point["y"])) for point in curve_points]
     if not all(math.isfinite(x) and math.isfinite(y) for x, y in points):
         raise ValueError("nonfinite recorded curve point")
     unique = list(dict.fromkeys(points))
-    left, top, right, bottom = patch
-    if not (left < right and top < bottom):
-        raise ValueError("invalid controlled patch")
-    remaining = [point for point in unique if not (left - 5 <= point[0] < right + 5 and top - 5 <= point[1] < bottom + 5)]
+    if patch is None:
+        remaining = unique
+    else:
+        left, top, right, bottom = patch
+        if not (left < right and top < bottom):
+            raise ValueError("invalid controlled patch")
+        remaining = [point for point in unique if not (left - 5 <= point[0] < right + 5 and top - 5 <= point[1] < bottom + 5)]
     assigned: list[list[tuple[float, float]]] = [[] for _ in panels]
     unavailable = 0
     for point in remaining:

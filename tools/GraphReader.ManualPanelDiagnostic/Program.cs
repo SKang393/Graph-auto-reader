@@ -41,6 +41,9 @@ internal static class Program
                 "dev" => new("internal_dev", "artifacts/manual-axis-ocr-diagnostic-v1/dev-axis-capture-v1/manifest.json",
                     "d0adfe55915cc323ff408acf342110972eca2a92ae188ac43b8090d91054afd4",
                     "artifacts/manual-axis-ocr-diagnostic-v1/dev-axis-capture-v1/images/", "dev-image-", 16),
+                "original" => new("internal_train_original", "artifacts/manual-marker-input-diagnostic-v1/original-raster-input-v1.json",
+                    "b9044372d5d6b37257ef0e1823935eaed840b99f9dc5a66a2c5359a1b7beeba6",
+                    "artifacts/goal22-runs/marker-train-overlay-corpus-extract-v7/", "source-", 20),
                 _ => throw new InvalidDataException("Only pinned development or training samples are allowed."),
             };
             string native = Path.Combine(AppContext.BaseDirectory, "runtimes", "win-x64", "native", "OpenCvSharpExtern.dll");
@@ -49,9 +52,16 @@ internal static class Program
                 name == "OpenCvSharpExtern" ? NativeLibrary.Load(native) : IntPtr.Zero);
             byte[] inputBytes = await ReadPinned(dataset.Input, dataset.InputHash, 100_000);
             using JsonDocument input = JsonDocument.Parse(inputBytes);
-            string expectedSchema = dataset.Split == "internal_dev" ? "graphreader.manual-dev-axis-input.v1" : "graphreader.manual-axis-geometry-input.v1";
+            string expectedSchema = dataset.Split switch
+            {
+                "internal_dev" => "graphreader.manual-dev-axis-input.v1",
+                "internal_train_original" => "graphreader.manual-marker-raster-input.v1",
+                _ => "graphreader.manual-axis-geometry-input.v1",
+            };
+            string expectedScope = dataset.Split == "internal_train_original" ? "train-only-original-raster-no-truth" : dataset.Split;
+            string scopeField = dataset.Split == "internal_train_original" ? "scope" : "source_split";
             Require(input.RootElement.GetProperty("schema").GetString() == expectedSchema &&
-                input.RootElement.GetProperty("source_split").GetString() == dataset.Split, "Input scope differs.");
+                input.RootElement.GetProperty(scopeField).GetString() == expectedScope, "Input scope differs.");
             string output = ProjectPath(OutputParent + args[1]);
             Require(!Directory.Exists(output) && !File.Exists(output), "Output already exists.");
             Directory.CreateDirectory(output);
@@ -69,8 +79,20 @@ internal static class Program
                 string path = item.GetProperty("image_path").GetString()!;
                 Require(path.StartsWith(dataset.SourcePrefix, StringComparison.Ordinal), "Source is outside the pinned training capture.");
                 byte[] bytes = await ReadPinned(path, item.GetProperty("image_sha256").GetString()!, 64_000_000);
-                int width = item.GetProperty("width").GetInt32();
-                int height = item.GetProperty("height").GetInt32();
+                int width, height;
+                if (dataset.Split == "internal_train_original")
+                {
+                    using var stream = new MemoryStream(bytes, writable: false);
+                    BitmapDecoder decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+                    Require(decoder.Frames.Count == 1, "Expected a single source image frame.");
+                    width = decoder.Frames[0].PixelWidth;
+                    height = decoder.Frames[0].PixelHeight;
+                }
+                else
+                {
+                    width = item.GetProperty("width").GetInt32();
+                    height = item.GetProperty("height").GetInt32();
+                }
                 var panels = new List<object>();
                 string? failure = null;
                 try
