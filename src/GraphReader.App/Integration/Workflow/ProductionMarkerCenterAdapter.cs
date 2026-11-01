@@ -487,9 +487,11 @@ public sealed class ProductionMarkerCenterAdapter : IProductionMarkerCenterAdapt
             !string.Equals(result.Model.Sha256, Model.Sha256, StringComparison.OrdinalIgnoreCase) ||
             result.Markers.Select(static marker => marker.MarkerId)
                 .Distinct(StringComparer.Ordinal).Count() != result.Markers.Count ||
-            result.Markers.Any(static marker =>
+            result.Markers.Any(marker =>
                 string.IsNullOrWhiteSpace(marker.MarkerId) ||
                 !marker.Center.IsFinite || !double.IsFinite(marker.Radius) || marker.Radius <= 0 ||
+                marker.Center.X < 0 || marker.Center.X >= request.Image.Width ||
+                marker.Center.Y < 0 || marker.Center.Y >= request.Image.Height ||
                 !string.Equals(marker.CoordinateSpace, MarkerContract.CoordinateSpace, StringComparison.Ordinal)) ||
             invalidSource ||
             result.Model.Provider is null ||
