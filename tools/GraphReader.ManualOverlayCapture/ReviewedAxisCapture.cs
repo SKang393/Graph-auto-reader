@@ -20,12 +20,15 @@ internal static partial class Program
     {
         const string reviewedInput = "06d77e4621e536ea3328e6baed894d2a8f449bc5d6c2534df0c0f31dba2b8d81";
         const string holdoutInput = "469b5ee37f1d2ad80b4dcb638a3d2183c4949e003de3322d9a186e140228779a";
-        Require(inputSha is reviewedInput or holdoutInput, "Reviewed-axis input is not pinned.");
+        const string devInput = "e53c8da9756930b87243a12dbd007c7af9e24ca01c96a44a85e5ab69c0ccb669";
+        Require(inputSha is reviewedInput or holdoutInput or devInput, "Reviewed-axis input is not pinned.");
         bool holdout = inputSha == holdoutInput;
-        string sourceRoot = holdout ? OriginalRasterRoot : "artifacts/manual-dig-train-anchor-review-v1/images/";
-        string split = holdout ? "internal_train_holdout" : "internal_train_build";
-        int expectedRows = holdout ? 62 : 76;
-        int expectedSources = holdout ? 5 : 8;
+        bool dev = inputSha == devInput;
+        string sourceRoot = dev ? "artifacts/manual-axis-ocr-diagnostic-v1/dev-axis-capture-v1/images/" :
+            holdout ? OriginalRasterRoot : "artifacts/manual-dig-train-anchor-review-v1/images/";
+        string split = dev ? "internal_dev" : holdout ? "internal_train_holdout" : "internal_train_build";
+        int expectedRows = dev ? 134 : holdout ? 62 : 76;
+        int expectedSources = dev ? 15 : holdout ? 5 : 8;
         using var classifierLocks = new ClassifierInputLocks();
         byte[] description = await ReadPinned(descriptionPath, descriptionSha, 1_000_000);
         Require(description.AsSpan().SequenceEqual(Describe(workflow: true)), "Frozen runtime description differs.");
@@ -34,7 +37,8 @@ internal static partial class Program
         JsonElement root = document.RootElement;
         Exact(root, "schema", "scope", "source_split", "rows");
         Require(root.GetProperty("schema").GetString() == "graphreader.manual-axis-ocr-input.v1" &&
-            root.GetProperty("scope").GetString() == (holdout ? "exposed-train-only" : "assistant-reviewed-training-only") &&
+            root.GetProperty("scope").GetString() == (dev ? "exposed-dev-no-transcriptions" :
+                holdout ? "exposed-train-only" : "assistant-reviewed-training-only") &&
             root.GetProperty("source_split").GetString() == split, "Reviewed-axis scope differs.");
 
         var entries = new List<(string Id, string Path, string Sha, double[] Box)>();
@@ -45,7 +49,9 @@ internal static partial class Program
             string path = row.GetProperty("image_path").GetString() ?? "";
             string sha = row.GetProperty("image_sha256").GetString() ?? "";
             double[] box = row.GetProperty("box_xyxy").EnumerateArray().Select(static value => value.GetDouble()).ToArray();
-            Require(id == $"{(holdout ? "tick-proposal" : "item")}-{entries.Count:D3}" &&
+            string expectedId = dev ? $"dev-proposal-{entries.Count:D4}" :
+                $"{(holdout ? "tick-proposal" : "item")}-{entries.Count:D3}";
+            Require(id == expectedId &&
                 path.StartsWith(sourceRoot, StringComparison.Ordinal) &&
                 box.Length == 4 && box.All(double.IsFinite) && box[0] >= 0 && box[1] >= 0 &&
                 box[2] > box[0] && box[3] > box[1], "Reviewed-axis crop differs.");
@@ -135,9 +141,10 @@ internal static partial class Program
             "Reviewed-axis output inventory differs.");
         Require(description.AsSpan().SequenceEqual(Describe(workflow: true)), "Runtime changed during reviewed-axis recognition.");
         byte[] report = JsonSerializer.SerializeToUtf8Bytes(new { schema = "graphreader.manual-reviewed-server-ocr.v1",
-            scope = "train-diagnostic-not-acceptance", input_sha256 = inputSha, runtime_description_sha256 = descriptionSha,
+            scope = dev ? "dev-diagnostic-not-acceptance" : "train-diagnostic-not-acceptance",
+            input_sha256 = inputSha, runtime_description_sha256 = descriptionSha,
             model_sha256 = model.Payload.Sha256, source_split = split, source_count = sources.Length,
-            input_profile = holdout ? "tick-aligned-proposals" : "reviewed-label-boxes",
+            input_profile = dev || holdout ? "tick-aligned-proposals" : "reviewed-label-boxes",
             crop_profile = "candidate-standard-padding", inference_provider = "CPUExecutionProvider", optimizer_steps = 0,
             truth_read = false, sealed_payload_reads = 0, rows = entries.Select(entry => new { id = entry.Id, server = outcomes[entry.Id] }).ToArray() }, JsonOptions);
         await WriteNew(output, report);

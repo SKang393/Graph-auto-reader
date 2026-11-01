@@ -42,3 +42,5 @@ The follow-up connectivity measurement is recorded in
 [CONNECTIVITY_RESULT.md](CONNECTIVITY_RESULT.md).
 The study-partitioned development review is recorded in
 [DEV_CONNECTIVITY_RESULT.md](DEV_CONNECTIVITY_RESULT.md).
+The separate crop-transcription diagnostic is recorded in
+[DEV_OCR_RESULT.md](DEV_OCR_RESULT.md).
