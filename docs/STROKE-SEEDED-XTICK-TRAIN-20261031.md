@@ -267,6 +267,28 @@ No inference was rerun for that metadata correction. Corrected report SHA-256:
 `51d716225552ec7e3412c373c858117e13a7e79666dbd061a24af0ecbe724b59`.
 Five focused tests passed; both checkpoints ran on the RX 6600 XT.
 
+## Binary stroke-validity experiment
+
+An exploratory classifier used the curated proposal matching state, rather
+than OCR text eligibility, as its binary target. It deduplicated image hashes
+and linked groups sharing an image before selecting an internal four-component
+holdout. Training used 81 positive and 365 negative images; the holdout had
+20 positive and 67 negative images with no shared group or image hash. The
+RX 6600 XT performed 460 optimizer steps. At score 0.5 the holdout produced
+20 true positives, 64 false positives, 3 true negatives and no false negatives:
+precision 0.238 and recall 1.0. The small class-stratified synthetic holdout
+does not represent deployment, and the checkpoint is unsuitable for use.
+
+An independent audit found that the full crop includes text and chart context,
+and that interleaved group sampling did not equalize group contributions.
+The runner compared its helper hash to a fixed literal rather than hashing
+the imported helper bytes, so exact execution-time helper provenance remains
+unproven. No production or real-graph acceptance is implied.
+
+- Experiment report SHA-256: `8d5c8ec0f8e0783d33cf88ca8414ea9d7b84874d1ef474eb47af3c469c632046`
+- Checkpoint SHA-256: `fc78f81149d5d8a16df862795de87251658ec6e3e6d60d5404e74ea99b5973a9`
+- Focused admission, split, sampler and GPU-binding tests: 6 passed.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
