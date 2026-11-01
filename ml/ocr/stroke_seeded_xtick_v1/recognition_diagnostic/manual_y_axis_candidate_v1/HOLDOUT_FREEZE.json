@@ -1,0 +1,33 @@
+{
+  "schema": "graphreader.manual-y-axis-holdout-freeze.v1",
+  "status": "predictions-frozen-before-visual-label-review",
+  "source_split": "internal_train_holdout",
+  "source_groups": 5,
+  "axis_results": 5,
+  "proposals": 39,
+  "optimizer_steps": 0,
+  "development_payload_reads": 0,
+  "sealed_payload_reads": 0,
+  "holdout_images_visually_reviewed_before_freeze": false,
+  "holdout_text_labels_read_before_freeze": false,
+  "protocol_sha256": "3991c8f7834f16e84fefbc5c77eed30e635fb76045b796a6b4ab0aa3bbae9c34",
+  "axis_input_sha256": "c49f7693ce9401c8e90b7b196fc280d528c2a21f012c1e4a41d410a1ae4199fc",
+  "axis_result_sha256": "771136edf0cb411e0d0e3e424950068964c616dbf208ce54a57a8af33e2488a6",
+  "axis_source_sha256": "6356c49b3c14f3d0926457710ccdb4cd0f0926498f617121c7b34b2c2524dbfc",
+  "axis_assembly_sha256": "e0bb254e3aa019d8f0728e63091039551e8eace3101aa63f108489b995e897c8",
+  "axis_opencv_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+  "proposal_source_sha256": "b4ffb2712c0eac839916f920d22245faec222ffd37aaf9cb85bec6fbae91a823",
+  "holdout_runner_sha256": "f90ad0b8de24563e3036dfa89388b28a7a6dbc91aad009453d505934d221f463",
+  "proposals_sha256": "fe38d7081bde85cc2e3a09991816357d78d074580767d3ea43fe3d88e3637500",
+  "ocr_input_sha256": "3e7161f250ec7da0c8d5b5406f5a5cc173586b9add3fc0f4e4566efa9f209382",
+  "ocr_source_sha256": "0afa6b76dc9234854cab0486399811c4a22d536c88cd395cc33032cd99e94e0d",
+  "ocr_assembly_sha256": "63e3895fa2b32baa557ccd73e8ee7f626559c4f13696836b80f9f8137c140dbf",
+  "ocr_decode_opencv_sha256": "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd",
+  "ocr_predictions_sha256": "75705954477b11aa99a0d54881bcb7c414f8cda8731a696f6e99d3dedcaa1d30",
+  "official_ocr_model_sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+  "limitations": [
+    "Small internal train-only holdout; historical and sealed overlap is not fully established.",
+    "Axis inference used reviewed OpenCV; the OCR diagnostic image decoder used its existing development OpenCV binary.",
+    "This is not a production release or end-to-end acceptance run."
+  ]
+}

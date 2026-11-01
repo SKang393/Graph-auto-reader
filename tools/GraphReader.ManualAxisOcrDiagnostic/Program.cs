@@ -55,8 +55,9 @@ internal static class Program
             Require(!File.Exists(output), "Output already exists.");
             byte[] inputBytes = await ReadPinned(inputRelative, expectedInput, 1_000_000);
             using JsonDocument input = JsonDocument.Parse(inputBytes);
+            string? sourceSplit = input.RootElement.GetProperty("source_split").GetString();
             Require(input.RootElement.GetProperty("schema").GetString() == "graphreader.manual-axis-ocr-input.v1" &&
-                input.RootElement.GetProperty("source_split").GetString() == "internal_train_build", "Input scope differs.");
+                (sourceSplit is "internal_train_build" or "internal_train_holdout"), "Input scope differs.");
             _ = await ReadPinned(NumericPath, NumericHash, 20_000_000);
             _ = await ReadPinned(OfficialPath, OfficialHash, 20_000_000);
             _ = await ReadPinned(AmbiguityPath, AmbiguityHash, 20_000_000);
@@ -72,7 +73,8 @@ internal static class Program
                 string id = row.GetProperty("id").GetString()!;
                 string imagePath = row.GetProperty("image_path").GetString()!;
                 string imageHash = row.GetProperty("image_sha256").GetString()!;
-                Require(imagePath.StartsWith("artifacts/manual-dig-train-anchor-review-v1/images/", StringComparison.Ordinal),
+                Require(imagePath.StartsWith("artifacts/manual-dig-train-anchor-review-v1/images/", StringComparison.Ordinal) ||
+                    imagePath.StartsWith("artifacts/goal22-runs/marker-train-overlay-corpus-extract-v7/", StringComparison.Ordinal),
                     "Image is outside the selected train-only review.");
                 if (!frames.TryGetValue(imageHash, out OcrImage? image))
                 {
@@ -123,7 +125,7 @@ internal static class Program
             {
                 schema = "graphreader.manual-axis-ocr-predictions.v1",
                 status = "training-pilot-diagnostic-not-acceptance",
-                input_sha256 = Hash(inputBytes), inference_provider = "CPUExecutionProvider", optimizer_steps = 0,
+                input_sha256 = Hash(inputBytes), source_split = sourceSplit, inference_provider = "CPUExecutionProvider", optimizer_steps = 0,
                 numeric_model_sha256 = NumericHash, official_model_sha256 = OfficialHash, ambiguity_model_sha256 = AmbiguityHash,
                 rows = entries.Select(entry => new { id = entry.Id, numeric = numericOut[entry.Id], official = officialOut[entry.Id] }).ToArray(),
             };
