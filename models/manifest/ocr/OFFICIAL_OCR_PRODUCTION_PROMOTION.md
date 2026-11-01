@@ -225,9 +225,10 @@ failure returns both tasks to unavailable. It must not emit release artifacts.
 
 ## Production store layout
 
-The final ignored store is rooted at `artifacts/production-model-store`. Its
-package index must resolve each resource beneath the canonical task identity
-and version paths enforced by `ProductionModelStore`:
+The model-store workspace is rooted at `artifacts/production-model-store`.
+The runtime model root must be a clean indexed package directory, whose index
+resolves each resource beneath the canonical task identity and version paths
+enforced by `ProductionModelStore`:
 
 ```text
 manifest/<model-id>/<version>/manifest.json
@@ -235,6 +236,17 @@ runtime/<model-id>/<version>/<declared-onnx-file>
 notices/<model-id>/<version>/<notice-file>
 evidence/<model-id>/<version>/<shared-report-file>
 ```
+
+On 2026-10-31 the parent workspace also contained a nested `package` directory,
+so passing the parent as `GRAPHREADER_PRODUCTION_MODEL_STORE` correctly failed
+closed on an unlisted file. Passing the clean
+`artifacts/production-model-store/package` directory instead allowed the
+opt-in `ExactLocalClassifierManifestComposesLazyProductionAdapter` integration
+test to pass: the approved classifier was resolved by its exact payload hash
+and the inference host remained lazy. The package-index SHA-256 was
+`2cbd8adb51f80307b1ca4f011d54f108a78c3299c901e680ed92696ec46750a8`.
+This component check did not load the model, approve the missing detector or
+recognizer, or establish full automatic-workflow or release readiness.
 
 The source-built conversion outputs remain ignored research artifacts until
 the full transition above passes. A conversion report, payload hash, or CPU
