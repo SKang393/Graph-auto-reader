@@ -4,6 +4,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using GraphReader.Inference;
 using GraphReader.Ocr;
 using OpenCvSharp;
@@ -155,7 +156,7 @@ internal static class Program
             string projectPath = "ml/ocr/stroke_seeded_xtick_v1/recognition_diagnostic/official_comparison/OfficialComparison.csproj";
             var report = new
             {
-                schema = "graphreader.stroke-seeded-xtick-official-comparison.v1",
+                schema = "graphreader.stroke-seeded-xtick-official-comparison.v3",
                 acceptance_status = "consumed synthetic development diagnostic only",
                 probe_manifest_sha256 = ManifestHash, predictions_sha256 = PredictionsHash,
                 official_model_sha256 = OfficialHash, official_yaml_sha256 = YamlHash,
@@ -167,6 +168,7 @@ internal static class Program
                 provider = "CPUExecutionProvider", provider_cache_writes = capture.Providers[InferenceProvider.Cpu],
                 crop_contract = "Application OcrCropBatcher and V8 numeric/general settings; source-image identity transform.",
                 recognition_contract = "Numeric V5 versus official PP-OCRv5 with V8 source-spacing and ambiguity postprocessor.",
+                selection_simulation = "Assumes each positive crop has a tick role and is accepted; applies only V8 numeric text/confidence preference, not the V8 detector or role classifier.",
                 background_contract = "Forced top-one boxes on backgrounds, regardless of detector score; these are not selected detections.",
                 sample_count = rows.Count, compared_crop_count = entries.Count, summaries,
                 training_performed = false, production_behavior_changed = false, production_approval = false,
@@ -236,6 +238,23 @@ internal static class Program
             failure = entries.Count(e => outcomes[e.Id].Failure is not null),
             background_with_text = entries.Count(e => e.Sample.Expected is null && outcomes[e.Id].Failure is null && outcomes[e.Id].Text is not null),
         };
+        bool NumericEligible(Entry entry)
+        {
+            Outcome outcome = numeric[entry.Id];
+            return outcome.Failure is null && outcome.Confidence is >= 0.65 && outcome.Text is not null &&
+                Regex.IsMatch(outcome.Text.Trim(), @"^-?\d+(?:\.\d+)?%?$", RegexOptions.CultureInvariant);
+        }
+        Outcome Selected(Entry entry) => NumericEligible(entry) ? numeric[entry.Id] : official[entry.Id];
+        bool NumericValueConflict(Entry entry)
+        {
+            Outcome left = numeric[entry.Id], right = official[entry.Id];
+            if (left.Failure is not null || right.Failure is not null ||
+                left.Confidence is not (> 0 and <= 1) || right.Confidence is not (> 0 and <= 1)) return false;
+            NumericParseResult leftNumber = GraphNumericParser.Parse(left.Text);
+            NumericParseResult rightNumber = GraphNumericParser.Parse(right.Text);
+            return leftNumber.IsSuccess && rightNumber.IsSuccess && leftNumber.Value is { } leftValue &&
+                rightNumber.Value is { } rightValue && leftValue != rightValue;
+        }
         return new
         {
             count = entries.Length, numeric = Counts(numeric), official = Counts(official),
@@ -243,6 +262,19 @@ internal static class Program
             only_numeric_exact = entries.Count(e => e.Sample.Expected is not null && numeric[e.Id].Failure is null && numeric[e.Id].Text == e.Sample.Expected && (official[e.Id].Failure is not null || official[e.Id].Text != e.Sample.Expected)),
             only_official_exact = entries.Count(e => e.Sample.Expected is not null && official[e.Id].Failure is null && official[e.Id].Text == e.Sample.Expected && (numeric[e.Id].Failure is not null || numeric[e.Id].Text != e.Sample.Expected)),
             disagreement = entries.Count(e => numeric[e.Id].Text != official[e.Id].Text),
+            assumed_tick_selection = new
+            {
+                numeric_selected = entries.Count(NumericEligible),
+                exact = entries.Count(e => e.Sample.Expected is not null && Selected(e).Failure is null && Selected(e).Text == e.Sample.Expected),
+                wrong = entries.Count(e => e.Sample.Expected is not null && Selected(e).Failure is null && Selected(e).Text is not null && Selected(e).Text != e.Sample.Expected),
+                empty = entries.Count(e => Selected(e).Failure is null && Selected(e).Text is null),
+                failure = entries.Count(e => Selected(e).Failure is not null),
+                numeric_selected_wrong_official_exact = entries.Count(e => e.Sample.Expected is not null && NumericEligible(e) && numeric[e.Id].Text != e.Sample.Expected && official[e.Id].Failure is null && official[e.Id].Text == e.Sample.Expected),
+                numeric_selected_exact_official_wrong = entries.Count(e => e.Sample.Expected is not null && NumericEligible(e) && numeric[e.Id].Text == e.Sample.Expected && (official[e.Id].Failure is not null || official[e.Id].Text != e.Sample.Expected)),
+                numeric_value_conflicts = entries.Count(NumericValueConflict),
+                conflicts_numeric_selected_wrong_official_exact = entries.Count(e => e.Sample.Expected is not null && NumericValueConflict(e) && NumericEligible(e) && numeric[e.Id].Text != e.Sample.Expected && official[e.Id].Text == e.Sample.Expected),
+                conflicts_numeric_selected_exact_official_wrong = entries.Count(e => e.Sample.Expected is not null && NumericValueConflict(e) && NumericEligible(e) && numeric[e.Id].Text == e.Sample.Expected && official[e.Id].Text != e.Sample.Expected),
+            },
         };
     }
 

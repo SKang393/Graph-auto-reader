@@ -9,7 +9,7 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[5]
-REPORT = ROOT / "artifacts/stroke-seeded-xtick-v1-official-recognizer-comparison-v1/report.json"
+REPORT = ROOT / "artifacts/stroke-seeded-xtick-v1-official-recognizer-comparison-v3/report.json"
 BASELINE = ROOT / "artifacts/stroke-seeded-xtick-v1-p2-v5-ground-truth-comparison-v2/report.json"
 BASELINE_SHA256 = "8bb9ee29ab4ac0ee0f09572fabd367624d82cc11d5a33d42a044752d56bd018e"
 
@@ -48,6 +48,11 @@ class OfficialComparisonReportTests(unittest.TestCase):
                     self.assertEqual(result["background_with_text"], 0)
             self.assertEqual(subset["both_exact"] + subset["only_numeric_exact"], subset["numeric"]["exact"])
             self.assertEqual(subset["both_exact"] + subset["only_official_exact"], subset["official"]["exact"])
+            if not background:
+                selection = subset["assumed_tick_selection"]
+                self.assertEqual(sum(selection[key] for key in ("exact", "wrong", "empty", "failure")), subset["count"])
+                self.assertLessEqual(selection["conflicts_numeric_selected_wrong_official_exact"], selection["numeric_value_conflicts"])
+                self.assertLessEqual(selection["conflicts_numeric_selected_exact_official_wrong"], selection["numeric_value_conflicts"])
 
     def test_report_binds_runner_and_inference_scope(self):
         runner = Path(__file__).with_name("Program.cs").read_bytes()

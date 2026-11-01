@@ -418,3 +418,17 @@ passed 39 tests, including both axis roles and equivalent numeric alternatives.
   inference only; no model training or production payload approval occurred.
 - The diagnostic records the runner source and assembly hashes, not a complete
   transitive build receipt. No production selection threshold was changed.
+
+A follow-up simulated the existing V8 preference only after assuming every
+crop was an accepted tick, without running its detector or role classifier.
+For the 133 matched predicted boxes, that preference selected 122 exact and
+11 wrong readings, versus 132 exact and one wrong using the general reader.
+Ten numeric selections disagreed in value with a correct general reading;
+there were 16 numeric-value conflicts in total. This is a crop-level
+counterfactual, not a measured end-to-end workflow or a new acceptance gate.
+The calibration safeguard applies when conflicting alternatives actually reach
+the adapter as unreviewed tick evidence.
+
+- Follow-up report SHA-256: `67fc30897054adccc2f19d2e653435626f661b2f5561cee30c838bb10ee03291`
+- Follow-up source SHA-256: `000893b85ab112a0b7a514ef142e02d23f134b36b1b9c299d205d01eaa413fd0`
+- Report accounting and prior V5 baseline checks: 3 passed. CPU inference only.
