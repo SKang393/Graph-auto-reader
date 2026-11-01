@@ -1,0 +1,71 @@
+{
+  "schema": "graphreader.artifact-mask-outline-core-broad-outcome.v2",
+  "executed_protocol": "protocol-executed.json",
+  "executed_protocol_sha256": "fb8f28a135c8adbed752553bcad2ea2969d6e16d14a34df482b67e8bdbf83cc1",
+  "current_consumed_protocol_sha256": "668e64e71a2eb70c7d38d62a65f7bb8be2a6724262e832d20d7e5eb6d94af648",
+  "test_result": "passed",
+  "strict_identity_binding": true,
+  "validation_family_consumed": true,
+  "build_command": "dotnet build tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore",
+  "test_command": "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore --no-build --filter FullyQualifiedName~ArtifactMaskOutlineCoreBroadV2CandidateTests --results-directory artifacts/artifact-mask/candidate-outline-core-broad-v2-run-1 --logger \"trx;LogFileName=broad-v2.trx\"",
+  "trx_path": "artifacts/artifact-mask/candidate-outline-core-broad-v2-run-1/broad-v2.trx",
+  "trx_sha256": "68f69f01c588e376f81f67971c2f5457c8afbf5dc7cc8ea58c6a1f9934f24600",
+  "identities": {
+    "candidate_source_sha256": "26d5a0e003717ed33b6621087d303a8cf1f5df1d9b7e594f5842a3e103a3f00d",
+    "broad_test_source_sha256": "2bd0d0f51818b463b0036cc675f8129b9ce46c664599e602cc7c98ecb7d6e77f",
+    "app_assembly_sha256": "64531a49f2a1eda0155dff6885ace6a36de4adbcf1c26c414394e5afe4110aa0",
+    "ocr_assembly_sha256": "cc3a8b5da92556edd5c5c58d6da450097fbd45d980394f00ddf372ad00cc8b6a",
+    "test_assembly_sha256": "2cc19642b3f2acfed12bf1d4776d01a447bd801f451254a630a19cc1b1fbff9a",
+    "baseline_provider_source_sha256": "a5b2de8deae5b0ec3a57bc9baf6269cc03988e8694a12270857f6ba7e0254047",
+    "structural_provider_source_sha256": "cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100"
+  },
+  "metrics": {
+    "cases": 13,
+    "marker_centers": 8,
+    "baseline_marker_center_suppressions": 3,
+    "candidate_marker_center_suppressions": 0,
+    "marker_pixels": 562,
+    "baseline_masked_marker_pixels": 0,
+    "candidate_masked_marker_pixels": 0,
+    "ordinary_cross_grid_centers": 16,
+    "baseline_unmasked_centers": 0,
+    "candidate_unmasked_centers": 0,
+    "arrow_pixels": 83,
+    "baseline_arrow_pixels_masked": 83,
+    "candidate_arrow_pixels_masked": 83,
+    "bracket_pixels": 47,
+    "baseline_bracket_pixels_masked": 47,
+    "candidate_bracket_pixels_masked": 47,
+    "legend_pixels": 49,
+    "baseline_legend_pixels_masked": 49,
+    "candidate_legend_pixels_masked": 49,
+    "baseline_region_counts": {
+      "AnnotationArrow": 1,
+      "Bracket": 1,
+      "LegendStructure": 1,
+      "ConnectingLineIntersection": 19
+    },
+    "candidate_region_counts": {
+      "AnnotationArrow": 1,
+      "Bracket": 1,
+      "LegendStructure": 1,
+      "ConnectingLineIntersection": 16
+    },
+    "baseline_elapsed_ms": 40.2341,
+    "candidate_elapsed_ms": 34.4758,
+    "baseline_average_ms": 3.094930769230769,
+    "candidate_average_ms": 2.6519846153846154
+  },
+  "training": false,
+  "model_inference": false,
+  "model_sha256": null,
+  "production_source_modified": false,
+  "production_gate_modified": false,
+  "production_approval": false,
+  "limitations": [
+    "Synthetic component evidence only; fixed oracle plot bounds and synthetic OCR context for arrow/legend.",
+    "No production model or OCR text truth boxes.",
+    "Single warmed timing pass is descriptive, not a performance benchmark.",
+    "Candidate preserved centers on tested outlined circles/squares and filled markers; this family is not representative real-data acceptance."
+  ]
+}
