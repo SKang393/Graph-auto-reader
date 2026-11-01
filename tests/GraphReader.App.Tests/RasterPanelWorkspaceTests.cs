@@ -148,6 +148,49 @@ public sealed class RasterPanelWorkspaceTests
     }
 
     [TestMethod]
+    public async Task CancelledFinalSourceImportDoesNotReplaceCurrentWorkspace()
+    {
+        using var directory = new TemporaryDirectory();
+        string currentImage = Path.Combine(directory.Path, "current.png");
+        string targetImage = Path.Combine(directory.Path, "target.png");
+        await File.WriteAllBytesAsync(currentImage, CreatePlainPng(96, 64));
+        await File.WriteAllBytesAsync(targetImage, CreatePlainPng(80, 60));
+        string targetProjectPath = Path.Combine(directory.Path, "target.garproj");
+
+        var importer = new CancelAfterSuccessfulImportService();
+        var workspace = new ManualPreviewWorkspaceService(imageImportService: importer);
+        WorkspaceTabViewModel currentTab = (await workspace.ImportImagesAsync(
+            [currentImage], CancellationToken.None)).Single();
+        _ = workspace.Calibrate(currentTab.TabId, new ManualCalibrationRequest(
+            new Axis.PixelPoint(5, 55),
+            new Axis.PixelPoint(5, 5),
+            new Axis.PixelPoint(75, 55),
+            YMaximum: 100,
+            XMaximum: 7));
+        SeriesCardViewModel series = workspace.AddSeries(currentTab.TabId,
+            new ManualSeriesDefinition("Manual", "●", MarkerShape.Circle, MarkerFill.Filled, SemanticRole.Intervention));
+        GraphReader.App.Models.GraphPoint point = workspace.AddPoint(currentTab.TabId, series.SeriesId, 30, 25);
+        Guid currentProjectId = workspace.CurrentProject.ProjectId.Value;
+        string[] currentTabIds = workspace.CreateWorkspace().Select(static tab => tab.TabId).ToArray();
+
+        var targetWorkspace = new ManualPreviewWorkspaceService();
+        _ = await targetWorkspace.ImportImagesAsync([targetImage], CancellationToken.None);
+        DomainResult<ProjectSaveReceipt> saved = await targetWorkspace.SaveProjectAsync(
+            targetProjectPath,
+            CancellationToken.None);
+        Assert.IsTrue(saved.IsSuccess, string.Join(" | ", saved.Errors.Select(static error => error.TechnicalMessage)));
+
+        using var cancellation = new CancellationTokenSource();
+        importer.CancellationAfterNextSuccessfulImport = cancellation;
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(() =>
+            workspace.OpenProjectAsync(targetProjectPath, cancellation.Token));
+
+        Assert.AreEqual(currentProjectId, workspace.CurrentProject.ProjectId.Value);
+        CollectionAssert.AreEqual(currentTabIds, workspace.CreateWorkspace().Select(static tab => tab.TabId).ToArray());
+        Assert.IsTrue(workspace.CreateWorkspace().Single().Points.Any(item => item.PointId == point.PointId));
+    }
+
+    [TestMethod]
     public async Task ReviewPanelIdentityDisambiguatesIdenticalCropImages()
     {
         using var directory = new TemporaryDirectory();
@@ -874,6 +917,28 @@ public sealed class RasterPanelWorkspaceTests
             WorkflowRunResult result,
             ProductionWorkflowPanelStore store) =>
             ProjectProductionReview(result, store);
+    }
+
+    private sealed class CancelAfterSuccessfulImportService : IImageImportService
+    {
+        private readonly ImageImportService inner = new();
+
+        public CancellationTokenSource? CancellationAfterNextSuccessfulImport { get; set; }
+
+        public async Task<ImageImportResult> ImportAsync(string path, CancellationToken cancellationToken)
+        {
+            ImageImportResult result = await inner.ImportAsync(path, cancellationToken);
+            if (result.IsSuccess && CancellationAfterNextSuccessfulImport is { } cancellation)
+            {
+                CancellationAfterNextSuccessfulImport = null;
+                cancellation.Cancel();
+            }
+            return result;
+        }
+
+        public Task<BatchImportResult> ImportBatchAsync(
+            IEnumerable<string> paths,
+            CancellationToken cancellationToken) => inner.ImportBatchAsync(paths, cancellationToken);
     }
 
     private sealed class CapturingEnhancementService : IEnhancementService

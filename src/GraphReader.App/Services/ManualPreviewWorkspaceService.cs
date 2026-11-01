@@ -608,6 +608,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         }
 
         RestoreProductionCorrectionState(project, stagedTabs, stagedDetectionKeys, stagedTombstones);
+        cancellationToken.ThrowIfCancellationRequested();
         _tabs.Clear();
         _tabs.AddRange(stagedTabs);
         ReplaceContents(_phaseOverrides, stagedPhaseOverrides);
