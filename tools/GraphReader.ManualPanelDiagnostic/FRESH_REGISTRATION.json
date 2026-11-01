@@ -1,0 +1,18 @@
+{
+  "schema": "graphreader.axis-tick-fresh-registration.v1",
+  "status": "registered-before-prediction-and-axis-review",
+  "scope": "seven-internal-training-source-groups-not-release-acceptance",
+  "input_manifest_sha256": "bd158b9bebc87e7eaf831a0e224d78af3e3f1e9350c9f5a30587728055eb457d",
+  "protocol_sha256": "7f94ee4471f2d3a02483d31e2ceff2f4dd3645845c7bdeebe080a0d302ea435c",
+  "panel_source_sha256": "1d8ca4bd6ae467817bea03d582e2c694d8d91ccbfcedb4395fe7ad64903683b2",
+  "probe_source_sha256": "e61192366927c3f48b580a9fade972a2e1286777488b4490c633523ea1d0b69d",
+  "probe_tests_sha256": "cf2866009c0964c2b589ec6247f1ff18c61c5763dba5866e0c83dfffbde01746",
+  "panel_assembly_sha256": "835308d52a9d1d612b0e18285731d7e8cb687725cb41cb5b3dc95653dfab73b5",
+  "axis_assembly_sha256": "f3d6c89ae9f2ce6474dfb9c240b60cbe4ae6a3b825499f3a7cd4b9b15a3ec541",
+  "app_assembly_sha256": "8baac14c0a5c816264ba8bbdb6c644ced2320a5cb6f48da546c84c4bf31bb559",
+  "pdf_assembly_sha256": "5da2af59807712594c52fb2c7349e600d27ce6cda5175349afcd06f6b19ff003",
+  "opencv_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+  "previous_exposure_and_sealed_overlap_verified": false,
+  "optimizer_steps": 0,
+  "sealed_payload_reads": 0
+}

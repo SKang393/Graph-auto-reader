@@ -15,9 +15,6 @@ using OpenCvSharp;
 internal static class Program
 {
     private const string Root = @"E:\Graph-auto-reader";
-    private const string Input = "artifacts/manual-axis-ocr-diagnostic-v1/holdout-axis-input.json";
-    private const string InputHash = "c49f7693ce9401c8e90b7b196fc280d528c2a21f012c1e4a41d410a1ae4199fc";
-    private const string SourcePrefix = "artifacts/goal22-runs/marker-train-overlay-corpus-extract-v7/";
     private const string OutputParent = "artifacts/manual-axis-ocr-diagnostic-v1/";
     private const string OpenCvHash = "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31";
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
@@ -26,17 +23,30 @@ internal static class Program
     {
         try
         {
-            Require(args.Length == 1 && args[0].StartsWith("panel-diagnostic-", StringComparison.Ordinal) &&
-                args[0].All(static c => char.IsAsciiLetterOrDigit(c) || c == '-'), "Supply a new panel-diagnostic output name.");
+            Require(args.Length == 2 && args[1].StartsWith("panel-diagnostic-", StringComparison.Ordinal) &&
+                args[1].All(static c => char.IsAsciiLetterOrDigit(c) || c == '-'), "Supply a training split and new panel-diagnostic output name.");
+            Dataset dataset = args[0] switch
+            {
+                "build" => new("internal_train_build", "artifacts/manual-axis-ocr-diagnostic-v1/axis-input.json",
+                    "ed420156153e1e5496a97b8edce657aa9e63730837c06ba07c46943d713887ae",
+                    "artifacts/manual-dig-train-anchor-review-v1/images/", "train-sample-", 8),
+                "holdout" => new("internal_train_holdout", "artifacts/manual-axis-ocr-diagnostic-v1/holdout-axis-input.json",
+                    "c49f7693ce9401c8e90b7b196fc280d528c2a21f012c1e4a41d410a1ae4199fc",
+                    "artifacts/goal22-runs/marker-train-overlay-corpus-extract-v7/", "holdout-", 5),
+                "fresh" => new("internal_train_fresh", "artifacts/manual-axis-ocr-diagnostic-v1/axis-fresh-input.json",
+                    "bd158b9bebc87e7eaf831a0e224d78af3e3f1e9350c9f5a30587728055eb457d",
+                    "artifacts/goal22-runs/marker-train-overlay-corpus-extract-v7/", "fresh-", 7),
+                _ => throw new InvalidDataException("Only the three pinned training samples are allowed."),
+            };
             string native = Path.Combine(AppContext.BaseDirectory, "runtimes", "win-x64", "native", "OpenCvSharpExtern.dll");
             Require(File.Exists(native) && Hash(await File.ReadAllBytesAsync(native)) == OpenCvHash, "Reviewed OpenCV runtime differs.");
             NativeLibrary.SetDllImportResolver(typeof(Cv2).Assembly, (name, _, _) =>
                 name == "OpenCvSharpExtern" ? NativeLibrary.Load(native) : IntPtr.Zero);
-            byte[] inputBytes = await ReadPinned(Input, InputHash, 100_000);
+            byte[] inputBytes = await ReadPinned(dataset.Input, dataset.InputHash, 100_000);
             using JsonDocument input = JsonDocument.Parse(inputBytes);
             Require(input.RootElement.GetProperty("schema").GetString() == "graphreader.manual-axis-geometry-input.v1" &&
-                input.RootElement.GetProperty("source_split").GetString() == "internal_train_holdout", "Input scope differs.");
-            string output = ProjectPath(OutputParent + args[0]);
+                input.RootElement.GetProperty("source_split").GetString() == dataset.Split, "Input scope differs.");
+            string output = ProjectPath(OutputParent + args[1]);
             Require(!Directory.Exists(output) && !File.Exists(output), "Output already exists.");
             Directory.CreateDirectory(output);
             var panelizer = new ProductionRasterPanelizer();
@@ -47,9 +57,9 @@ internal static class Program
             foreach (JsonElement item in input.RootElement.GetProperty("rows").EnumerateArray())
             {
                 string id = item.GetProperty("id").GetString()!;
-                Require(seen.Add(id) && id.StartsWith("holdout-", StringComparison.Ordinal), "Invalid image identity.");
+                Require(seen.Add(id) && id.StartsWith(dataset.IdPrefix, StringComparison.Ordinal), "Invalid image identity.");
                 string path = item.GetProperty("image_path").GetString()!;
-                Require(path.StartsWith(SourcePrefix, StringComparison.Ordinal), "Source is outside the frozen holdout capture.");
+                Require(path.StartsWith(dataset.SourcePrefix, StringComparison.Ordinal), "Source is outside the pinned training capture.");
                 byte[] bytes = await ReadPinned(path, item.GetProperty("image_sha256").GetString()!, 64_000_000);
                 int width = item.GetProperty("width").GetInt32();
                 int height = item.GetProperty("height").GetInt32();
@@ -62,45 +72,52 @@ internal static class Program
                     foreach (ProductionRasterPanel panel in result.Panels)
                     {
                         byte[] crop = panel.CopyEncodedBytes();
-                        byte[] pixels = DecodeGrayscale(crop, panel.Width, panel.Height);
-                        object axis;
-                        try
-                        {
-                            var frame = new GrayscaleLineCandidateFrame(panel.Width, panel.Height, panel.Width, pixels);
-                            IReadOnlyList<GeometryLineCandidate> lines = await provider.DetectLinesAsync(frame, CancellationToken.None);
-                            var observer = new CandidateObserver();
-                            var request = new AxisGeometryRequest(panel.Width, panel.Height, lines) { CandidateObserver = observer };
-                            AxisGeometryResult geometry = await detector.DetectAsync(request);
-                            Require(observer.Candidates is not null, "Ranked axis candidates were not captured.");
-                            axis = new { success = true, y_axis = geometry.YAxis.Line, x_axis = geometry.XAxis.Line,
-                                confidence = geometry.Confidence, needs_review = geometry.Uncertainty.NeedsReview,
-                                uncertainty_reasons = geometry.Uncertainty.Reasons,
-                                warnings = geometry.Diagnostics.Warnings, line_candidates = lines,
-                                ranked_candidates = observer.Candidates };
-                        }
-                        catch (AxisGeometryDetectionException error)
-                        {
-                            axis = new { success = false, failure = error.Code };
-                        }
                         panels.Add(new { panel.Order, crop = panel.EncodedCropInSourcePixels, panel.Width, panel.Height,
-                            crop_sha256 = Hash(crop), axis });
+                            crop_sha256 = Hash(crop), fallback = false, axis = await AnalyzeAxis(crop, panel.Width, panel.Height) });
                     }
                     rows.Add(new { id, failure, panels, warnings = result.Warnings });
                 }
                 catch (ProductionRasterPanelizationException error)
                 {
                     failure = error.Code;
+                    if (error.Code == ProductionRasterPanelizationFailureCodes.NoPanelDetected)
+                    {
+                        panels.Add(new { Order = 1, crop = new PdfRectD(0, 0, width, height), Width = width, Height = height,
+                            crop_sha256 = Hash(bytes), fallback = true, axis = await AnalyzeAxis(bytes, width, height) });
+                    }
                     rows.Add(new { id, failure, panels, warnings = error.Warnings });
                 }
             }
-            Require(rows.Count == 5, "Unexpected holdout image count.");
-            var report = new { schema = "graphreader.manual-panel-diagnostic.v1", scope = "exposed-internal-train-holdout-not-acceptance",
-                input_sha256 = InputHash, opencv_sha256 = OpenCvHash, optimizer_steps = 0, rows };
+            Require(rows.Count == dataset.Count, "Unexpected training image count.");
+            var report = new { schema = "graphreader.manual-panel-diagnostic.v1", scope = "exposed-training-data-not-acceptance",
+                source_split = dataset.Split, input_sha256 = dataset.InputHash, opencv_sha256 = OpenCvHash, optimizer_steps = 0, rows };
             string reportPath = Path.Combine(output, "report.json");
             await using (var stream = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, useAsync: true))
                 await JsonSerializer.SerializeAsync(stream, report, JsonOptions);
             Console.WriteLine($"completed images={rows.Count}; optimizer_steps=0; report_sha256={Hash(await File.ReadAllBytesAsync(reportPath))}");
             return 0;
+
+            async Task<object> AnalyzeAxis(byte[] crop, int width, int height)
+            {
+                byte[] pixels = DecodeGrayscale(crop, width, height);
+                try
+                {
+                    var frame = new GrayscaleLineCandidateFrame(width, height, width, pixels);
+                    IReadOnlyList<GeometryLineCandidate> lines = await provider.DetectLinesAsync(frame, CancellationToken.None);
+                    var observer = new CandidateObserver();
+                    var request = new AxisGeometryRequest(width, height, lines) { CandidateObserver = observer };
+                    AxisGeometryResult geometry = await detector.DetectAsync(request);
+                    Require(observer.Candidates is not null, "Ranked axis candidates were not captured.");
+                    return new { success = true, y_axis = geometry.YAxis.Line, x_axis = geometry.XAxis.Line,
+                        confidence = geometry.Confidence, needs_review = geometry.Uncertainty.NeedsReview,
+                        uncertainty_reasons = geometry.Uncertainty.Reasons, warnings = geometry.Diagnostics.Warnings,
+                        line_candidates = lines, ranked_candidates = observer.Candidates };
+                }
+                catch (AxisGeometryDetectionException error)
+                {
+                    return new { success = false, failure = error.Code };
+                }
+            }
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
         {
@@ -157,6 +174,8 @@ internal static class Program
 
     private static string Hash(ReadOnlySpan<byte> data) => Convert.ToHexStringLower(SHA256.HashData(data));
     private static void Require(bool condition, string message) { if (!condition) throw new InvalidDataException(message); }
+
+    private sealed record Dataset(string Split, string Input, string InputHash, string SourcePrefix, string IdPrefix, int Count);
 
     private sealed class CandidateObserver : IAxisGeometryCandidateObserver
     {
