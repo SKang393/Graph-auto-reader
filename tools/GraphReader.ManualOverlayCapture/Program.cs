@@ -185,11 +185,21 @@ internal static class Program
                     var plot = new MarkerPolygon(geometry.Geometry.PlotPolygon.Points.Select(point => new MarkerPoint(point.X, point.Y)).ToArray());
                     ProductionMarkerCenterEvidence markers = await ((IProductionCandidateMarkerCenterAdapter)center)
                         .DetectForCandidateEvaluationAsync(request, bundle.Frame, plot, CancellationToken.None);
+                    ProposalMarkerCandidateDiagnosticResult diagnostic = markers.CandidateDiagnostics
+                        ?? throw new InvalidDataException("Candidate stage diagnostics are unavailable.");
                     string frameName = $"{id}-panel-{panelIndex++:D2}.bin.gz";
                     string framePath = Path.Combine(output, frameName);
                     WriteFrame(framePath, bundle.Frame);
+                    string attributionName = frameName.Replace(".bin.gz", "-attribution.bin.gz", StringComparison.Ordinal);
+                    string attributionPath = Path.Combine(output, attributionName);
+                    WriteAttribution(attributionPath, bundle);
+                    string stageName = frameName.Replace(".bin.gz", "-stages.json.gz", StringComparison.Ordinal);
+                    string stagePath = Path.Combine(output, stageName);
+                    await WriteStages(stagePath, geometry, diagnostic);
                     panelRows.Add(new { panel_id = panel.PanelId, panel_sha256 = panel.Original.Sha256, provenance,
                         frame_file = frameName, frame_sha256 = Hash(await File.ReadAllBytesAsync(framePath)),
+                        attribution_file = attributionName, attribution_sha256 = Hash(await File.ReadAllBytesAsync(attributionPath)),
+                        stage_file = stageName, stage_sha256 = Hash(await File.ReadAllBytesAsync(stagePath)),
                         frame_width = bundle.Frame.Width, frame_height = bundle.Frame.Height,
                         axis_needs_review = geometry.Geometry.Uncertainty.NeedsReview,
                         axis_reasons = geometry.Geometry.Uncertainty.Reasons, markers = markers.Markers });
@@ -246,6 +256,36 @@ internal static class Program
         gzip.Write(MemoryMarshal.AsBytes(frame.ChannelsFirstPixels.Span));
         gzip.Write(MemoryMarshal.AsBytes(frame.OcrMask.Values.Span));
         gzip.Write(MemoryMarshal.AsBytes(frame.ArtifactMask.Values.Span));
+    }
+
+    private static void WriteAttribution(string path, ProductionCandidateMarkerFrameBundle bundle)
+    {
+        int pixels = checked(bundle.Frame.Width * bundle.Frame.Height);
+        Require(BitConverter.IsLittleEndian && bundle.ArtifactSeedMask.Values.Length == pixels &&
+            bundle.ResidualArtifactMask.Values.Length == pixels && bundle.ResidualCategoryBits.Length == pixels,
+            "Unexpected artifact attribution planes.");
+        using var file = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536);
+        using var gzip = new GZipStream(file, CompressionLevel.Fastest);
+        using var writer = new BinaryWriter(gzip);
+        writer.Write(0x314d5247); // GRM1, little endian
+        writer.Write(bundle.Frame.Width);
+        writer.Write(bundle.Frame.Height);
+        writer.Flush();
+        gzip.Write(MemoryMarshal.AsBytes(bundle.ArtifactSeedMask.Values.Span));
+        gzip.Write(MemoryMarshal.AsBytes(bundle.ResidualArtifactMask.Values.Span));
+        gzip.Write(bundle.ResidualCategoryBits);
+    }
+
+    private static async Task WriteStages(string path, ProductionAxisGeometryEvidence geometry,
+        ProposalMarkerCandidateDiagnosticResult diagnostic)
+    {
+        await using var file = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, useAsync: true);
+        await using var gzip = new GZipStream(file, CompressionLevel.Fastest);
+        await JsonSerializer.SerializeAsync(gzip, new { schema = "graphreader.manual-marker-stage-evidence.v1",
+            plot = geometry.Geometry.PlotPolygon.Points, counters = diagnostic.StageCounters,
+            emitted_proposals = diagnostic.EmittedProposalCenters,
+            above_threshold_decoded = diagnostic.AboveThresholdDecodedPoints,
+            pre_nms_candidates = diagnostic.PreNmsCandidates }, JsonOptions);
     }
 
     private static string NativePath() => Path.Combine(AppContext.BaseDirectory, "reviewed-native", "OpenCvSharpExtern.dll");

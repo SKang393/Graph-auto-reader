@@ -27,6 +27,10 @@ attestation, a complete workflow run, or release evidence.
 Each private gzip frame starts with little-endian `GRF1`, width, and height,
 then three float32 planes: luminance, OCR mask, and merged artifact mask. The
 runtime proposal adapter converts luminance to ink by subtracting it from one.
+The stage-enabled rerun also saves a `GRM1` gzip containing the seed and
+residual artifact-mask float32 planes and residual category bits. A separate
+compressed stage record contains the plot polygon, emitted grid locations,
+above-threshold decoded points, pre-suppression candidates, and stage counts.
 Panel-to-source transforms, predicted centers, hashes, and failures are kept
 in the private capture report. The scorer reads the controlled labels only
 after that report is frozen. It scores centers in the modified patches and
@@ -109,6 +113,29 @@ holdout patches from five groups. Those patches remain unapproved for training:
 plot-domain membership and a bounded GPU training/evaluation protocol are not
 yet established.
 
+## Stage trace
+
+The stage-enabled 20-image rerun reproduced the earlier panel bytes, merged
+frame bytes, and marker geometry/confidences on all 20 images. Its recorded
+seed and residual planes reproduce every merged artifact mask exactly. Among
+the 127 recorded points without a nearby final center, 71 were more than 16
+pixels outside the returned plot polygon; six of seven groups with zero of five
+controlled-marker hits also had their smoke anchor outside that boundary.
+Several white overlay patches visibly covered portions of an axis, so the
+modified-image result cannot establish the same failure on the original
+graphs. A separate unmodified-image check is required.
+
+The local stage proximity patterns comprised 71 misses without a nearby
+emitted grid proposal, 49 with a nearby grid proposal but no nearby
+above-threshold decoded point, one with a decoded point but no nearby
+pre-suppression candidate, and six with a pre-suppression candidate but no
+nearby final center. These proximity checks are not linked proposal traces and
+can associate different nearby proposals. Among missed points, 21 had seed-mask
+overlap and 37 had residual-mask overlap in the local five-by-five window;
+categories can overlap. The residual legend category occurred near 36 misses.
+These observations are not proof of causation and do not measure false
+positives or the later classifier/recovery workflow.
+
 | Private input or result | SHA-256 |
 | --- | --- |
 | Smoke raster manifest | `28f6480b72126ad8b1598cab758a6484a4ac2071daa12fc8986e47ef6ae6510f` |
@@ -122,6 +149,9 @@ yet established.
 | Full capture report | `860ae730a4e5409335b28b9236952b9ca0ed166313d3ea9e5c73538864f46068` |
 | Full controlled-overlay score | `ac02af58fb6fe1d79e07693e7c6fbe29eb750ccdd4307adc11cbafbb605643f4` |
 | Full patch report | `9b91b7fd1fe791c0584bbd91559670e3adeaa8e068c7844a7d272bb568420ef2` |
+| Stage runtime description | `f2479eb7c7f5496e7d4962e1436665781162330de9dd071a0460c6fc03d0a26e` |
+| Stage capture report | `e6163654e958000182cc710cb1b54c882532282f53799147aa5291f3587e2ed4` |
+| Stage aggregate | `69031b8aeadc193c43a6a7a7891ffefe35add5daa977ffdeb10ebffdf326fc1e` |
 
 The frames, input manifests, scores, and temporary review crops remain
 project-local while the marker-stage diagnosis and candidate follow-up consume
@@ -131,7 +161,7 @@ them; they are never packaging inputs.
 
 ```powershell
 dotnet build tools/GraphReader.ManualOverlayCapture/GraphReader.ManualOverlayCapture.csproj -c Release --no-restore -m:1 -p:NuGetAudit=false -p:UseSharedCompilation=false
-python -B -m unittest test_score test_patches test_native_score test_raw_confidence_score -v
+python -B -m unittest test_score test_patches test_native_score test_raw_confidence_score test_stage_score -v
 dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore -m:1 -p:UseSharedCompilation=false --filter FullyQualifiedName~PlotDomainCandidateMatchesPythonSkewedCoordinatesAndPatchBytes
 ```
 
