@@ -1,0 +1,22 @@
+{
+  "hypothesis": "A small nonlinear residual initialized at the native axis-pair score can improve candidate ordering without starting from an unrelated random ranking.",
+  "isolated_change": "Train a 17-to-32-to-1 tanh residual on fixed geometry features and add it to the native score. Use a sharper target distribution and a fixed residual penalty. Preserve candidate generation and every production review gate.",
+  "split_identities": {
+    "train_groups_sha256": "d9c5928ffea0407fd5b1041d3c3ca9146f128d71054cca0026a51e88a3dc67b5",
+    "train_targets_sha256": "15193d25c5346799d16aadbaaffb303cdcb0b361aa2a7ebdedf336d706289582",
+    "train_sources": 64,
+    "labelable_train_panels": 93,
+    "unscored_train_fallbacks": 3,
+    "development": "Previously inspected source-disjoint 32-source synthetic development set, with 46 labelable panels and two unscored fallback panels. Shared generator and font families limit independence.",
+    "sealed": "No sealed data access is authorized."
+  },
+  "metric": "Compare mean four-corner error normalized by plot width and height with native rank one, retain failed and fallback panel counts, and report improved and worsened panels separately. No threshold search or checkpoint selection.",
+  "acceptance_bar": "ml/policy/acceptance-bars.json",
+  "budget": {
+    "candidate_count": 1,
+    "epochs": 4,
+    "optimizer_steps": 372,
+    "sealed_runs": 0,
+    "production_approval": false
+  }
+}

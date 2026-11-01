@@ -11532,6 +11532,50 @@
       "onnx_sha256": "35b50adbd6961293b888c5de3f2e5594b9cda7a9cb95d6c68b425999271a1535",
       "development_outcome": "At the fixed 0.1 threshold, synthetic component precision was 92.48% and family precision 77.78%, both below the 95% bar. No real-development candidate run or sealed payload read was performed.",
       "closed_utc_date": "2026-11-01"
+    },
+    {
+      "task": "axis-candidate-ranker",
+      "revision": "axis-candidate-residual-gpu-v1",
+      "status": "development_evaluated_unapproved",
+      "execution_authorized": false,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/axis/residual_candidate_ranker_v1/p1.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "31d1fdf9605295e709122a761394dcb7f6145b27e18f67e8ddc4647afab78a65"
+      },
+      "protocol_path": "ml/axis/residual_candidate_ranker_v1/protocol.json",
+      "protocol_sha256": "e96674031f477ba9f7d266f2ad20349a425c439d9a7d6eaaa62914c3cae483a5",
+      "runner_source_bundle_sha256": "3d789e3cbb436265024df9ee8d3572377a166cc90610b023de5e15ccdd83917a",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One exploratory train-only synthetic axis candidate ranking trial. No sealed reads, production activation, promotion or release.",
+      "isolated_change": "Native-score-initialized nonlinear residual with fixed sharper listwise targets and residual penalty; unchanged production uncertainty checks.",
+      "optimizer_steps_expected": 372,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "training_device": "RX 6600 XT gfx1032 cuda:0",
+      "release_eligible": false,
+      "optimizer_steps": 372,
+      "training_groups_sha256": "d9c5928ffea0407fd5b1041d3c3ca9146f128d71054cca0026a51e88a3dc67b5",
+      "training_targets_sha256": "15193d25c5346799d16aadbaaffb303cdcb0b361aa2a7ebdedf336d706289582",
+      "training_report_sha256": "129d8f7284a877f76e52887b5e94d30ff382e500d136d2f5ce8c9c3af7a88f64",
+      "checkpoint_sha256": "4c35bd9424f209fe7e9912560fc4fdcfb1d0580f1af591543bac2461ba4d0adb",
+      "finalization_sha256": "650df17633ef446913329416d21f73f3833b80951c31f67fa30ca9c8f66f35fb",
+      "development_report_sha256": "1799539d02f56d2d6c9175311c7bc45ac93cf69ea02434501c71ee435492da30",
+      "development_outcome": "Exploratory synthetic comparison: 24 improved, 7 equal, 15 worsened among 46 scored panels; 2 fallbacks unscored. All changed scored panels remain within the native axis ambiguity review margin. No acceptance or promotion.",
+      "closed_utc_date": "2026-11-01"
     }
   ]
 }
