@@ -37,3 +37,21 @@ tests passed, covering regular evidence, rescue of an alternate axis, and
 rejection of short or insufficiently supported alternatives. Predictions and
 per-image geometry remain private project-local artifacts for the active axis
 investigation.
+
+## Seven additional training-source groups
+
+The registered probe and panelizer predictions were frozen in
+`FRESH_FREEZE.json` before the seven source images were visually reviewed for
+this probe. The probe selected the baseline on all seven panels. Afterward, an
+assistant selected a narrow window on each visible Y axis; the darkest mean
+column in that window served as a reference at the window's midpoint. Both
+baseline and probe were within five pixels on all seven, with a maximum
+difference of 1.73 pixels. The private review report SHA-256 is
+`8d21f0a929cf2f741d63e3ee8566ea39ee37ccc3455e73b6711a6f2c6bb4f805`.
+
+This checks one horizontal position per visible Y axis. It does not verify axis
+endpoints, calibration, OCR, markers, or the full workflow. The assistant chose
+the reference windows after prediction and the review was not independently
+adjudicated. No selection changed, so this check measures observed regression
+only; it cannot demonstrate a benefit. Prior source exposure and historical or
+sealed overlap remain unverified. The probe remains outside production.
