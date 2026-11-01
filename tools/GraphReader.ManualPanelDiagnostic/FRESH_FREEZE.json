@@ -1,0 +1,20 @@
+{
+  "schema": "graphreader.axis-tick-fresh-freeze.v1",
+  "status": "predictions-frozen-before-axis-review",
+  "registration_commit": "cd0812b898ed3d7f9c43cbf01472859c8eb1f96a",
+  "scope": "seven-internal-training-source-groups-not-release-acceptance",
+  "input_manifest_sha256": "bd158b9bebc87e7eaf831a0e224d78af3e3f1e9350c9f5a30587728055eb457d",
+  "panel_report_sha256": "a148c5b571c62eaad1e28697b9a7b672c6f87132bfc45c9557051f4ee20dcc18",
+  "tick_predictions_sha256": "145da90e5a9e2c16af2f41516b72cc08e475cb6fa3ae2f5772a01a1441ba6f04",
+  "probe_source_sha256": "e61192366927c3f48b580a9fade972a2e1286777488b4490c633523ea1d0b69d",
+  "images": 7,
+  "panels": 7,
+  "full_image_review_fallbacks": 1,
+  "axis_results": 7,
+  "probe_selections_changed": 0,
+  "images_visually_reviewed_for_this_probe_before_freeze": false,
+  "calibration_anchors_read_for_this_probe_before_freeze": false,
+  "previous_exposure_and_sealed_overlap_verified": false,
+  "optimizer_steps": 0,
+  "sealed_payload_reads": 0
+}
