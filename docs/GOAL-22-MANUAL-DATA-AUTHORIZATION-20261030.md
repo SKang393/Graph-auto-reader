@@ -32,3 +32,31 @@ candidate, not as pristine validation for it. The old selector enumerates the
 reserved sealed assignment but does not parse or infer on its 51 project
 payloads. No training occurred. The partial cache remains under the ignored
 project-local artifacts directory and is not acceptance evidence.
+
+## Locked development OCR component diagnostic
+
+A separate evaluator verified the frozen inventory and study assignment, then
+opened only the 16 projects in the locked development partition. All 16
+parsed: 48 axis anchors and 217 manually sampled curve points. The existing,
+unapproved V8 OCR composition returned 23 usable numeric regions classified as
+Y-axis ticks. Four projects supplied enough evidence for a valid Y fit and 12
+did not. For the four fitted projects only, 51 sampled points had mean absolute
+Y error 0.01387 graph units and 12 anchor comparisons had mean absolute error
+1.8339 pixels. Graph units differ by source, and the manual points and anchors
+are imperfect; these conditional figures are not an accuracy or release gate.
+
+The evaluator used the production raster decoder, numeric parser and Y fitter,
+but supplied plot bounds from the manual anchors and passed an unmasked image
+to the OCR component. It did not measure automatic plot detection, the
+production axis-derived mask, marker detection, or end-to-end exports. It
+cannot distinguish missed tick labels from labels assigned another role. The
+development partition was already potentially exposed as described above; no
+training or reserved sealed project payload was read in this run.
+
+The aggregate-only report SHA-256 is
+`7c8e4ffa9c45c59af3b2731cb3aedbdd92552bfe03c010ebd8751ee2f7699e34`.
+The evaluator source SHA-256 is
+`2d2a75ba49445532faff5f2c782649eef831e284d75a3a558437bfdfe0774604`;
+the report records project and loaded assembly hashes after inference. Build,
+self-test, and split/payload preflight passed. Inference used the CPU only; no
+optimizer ran and no production model was approved.
