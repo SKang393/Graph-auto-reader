@@ -157,6 +157,104 @@ public sealed class ViewModelAcceptanceTests
     }
 
     [TestMethod]
+    public void SwitchingTabsCancelsPendingCalibrationWithoutReusingAnchors()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graph-reader-tab-calibration-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                string firstPath = Path.Combine(root, "first.png");
+                string secondPath = Path.Combine(root, "second.png");
+                WriteImage(firstPath, 160, 120);
+                WriteImage(secondPath, 161, 120);
+                var workspace = new ManualPreviewWorkspaceService();
+                WorkspaceTabViewModel[] tabs = workspace.ImportImagesAsync([firstPath, secondPath], CancellationToken.None)
+                    .GetAwaiter().GetResult().ToArray();
+                using var viewModel = new MainWindowViewModel(workspace);
+                WorkspaceTabViewModel first = tabs[0], second = tabs[1];
+                viewModel.SelectedTab = first;
+                viewModel.ManualXMaximum = 9;
+                viewModel.StartCalibrationCommand.Execute(null);
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 100)).GetAwaiter().GetResult();
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 10)).GetAwaiter().GetResult();
+
+                viewModel.SelectedTab = first;
+                Assert.AreEqual(ManualEditorMode.Calibration, viewModel.EditorMode, "Selecting the same tab must preserve the pending operation.");
+                ManualEditorMode? modeWhenSelectionPublished = null;
+                viewModel.PropertyChanged += (_, args) =>
+                {
+                    if (args.PropertyName == nameof(MainWindowViewModel.SelectedTab))
+                        modeWhenSelectionPublished = viewModel.EditorMode;
+                };
+                viewModel.SelectedTab = second;
+                Assert.AreEqual(ManualEditorMode.Select, viewModel.EditorMode);
+                Assert.AreEqual(ManualEditorMode.Select, modeWhenSelectionPublished);
+                Assert.AreEqual(GraphReader.App.Localization.LocalizationKeys.StatusCancelled, viewModel.StatusMessage);
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(150, 100)).GetAwaiter().GetResult();
+                Assert.IsNull(second.Calibration);
+                Assert.IsNull(first.Calibration);
+
+                viewModel.SelectedTab = first;
+                viewModel.StartCalibrationCommand.Execute(null);
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 100)).GetAwaiter().GetResult();
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 10)).GetAwaiter().GetResult();
+                Assert.IsNull(first.Calibration, "A new calibration must start with no prior anchors.");
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(150, 100)).GetAwaiter().GetResult();
+                Assert.IsNotNull(first.Calibration);
+                Assert.IsNull(second.Calibration);
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
+    public void SwitchingTabsCancelsPendingPointMove()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graph-reader-tab-move-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                string firstPath = Path.Combine(root, "first.png");
+                string secondPath = Path.Combine(root, "second.png");
+                WriteImage(firstPath, 160, 120);
+                WriteImage(secondPath, 161, 120);
+                var workspace = new ManualPreviewWorkspaceService();
+                WorkspaceTabViewModel[] tabs = workspace.ImportImagesAsync([firstPath, secondPath], CancellationToken.None)
+                    .GetAwaiter().GetResult().ToArray();
+                var definition = new ManualSeriesDefinition("Series", "●", GraphReader.Domain.MarkerShape.Circle,
+                    GraphReader.Domain.MarkerFill.Filled, GraphReader.Domain.SemanticRole.Baseline);
+                foreach (WorkspaceTabViewModel tab in tabs)
+                {
+                    SeriesCardViewModel series = workspace.AddSeries(tab.TabId, definition);
+                    workspace.AddPoint(tab.TabId, series.SeriesId, 20, 30);
+                }
+                using var viewModel = new MainWindowViewModel(workspace);
+                viewModel.SelectedTab = tabs[0];
+                Assert.IsTrue(viewModel.BeginMovePointCommand.CanExecute(null));
+                viewModel.BeginMovePointCommand.Execute(null);
+                Assert.AreEqual(ManualEditorMode.MovePoint, viewModel.EditorMode);
+
+                viewModel.SelectedTab = tabs[1];
+                Assert.AreEqual(ManualEditorMode.Select, viewModel.EditorMode);
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(90, 70)).GetAwaiter().GetResult();
+                Assert.AreEqual(20d, tabs[1].Points.Single().PixelX);
+                Assert.AreEqual(30d, tabs[1].Points.Single().PixelY);
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public void AddAndDeleteUpdateSeriesCountImmediately()
     {
         var viewModel = CreateWorkspace();

@@ -328,6 +328,19 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         get => _selectedTab;
         set
         {
+            if (!ReferenceEquals(_selectedTab, value))
+            {
+                // A pending canvas action belongs to its original panel.
+                // Cancel it before publishing the new selection to bindings.
+                bool canceledEdit = EditorMode != ManualEditorMode.Select;
+                _calibrationAnchors.Clear();
+                EditorMode = ManualEditorMode.Select;
+                if (canceledEdit && !IsBusy)
+                {
+                    SetStatus(GetLocalizedString(LocalizationKeys.StatusCancelled));
+                }
+            }
+
             if (SetProperty(ref _selectedTab, value))
             {
                 OnPropertyChanged(nameof(SeriesCards));
