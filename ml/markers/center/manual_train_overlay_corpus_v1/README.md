@@ -29,10 +29,15 @@ optimizer steps.
 This is a data-pipeline feasibility result, not a trained model or production
 acceptance. The current corpus is small, uses simplified shapes and erased
 patches, and cannot measure full-image false-positive precision. The current
-marker feature path also requires runtime-bound OCR and artifact-mask channels;
-those channels have not been generated for these images. Do not substitute
-fabricated masks or treat this corpus as training-ready until the real input
-path and a bounded GPU-only training and evaluation protocol are verified.
+marker feature path also requires runtime-bound OCR and artifact-mask channels.
+An unapproved candidate capture has now produced those channels for a 20-image
+smoke sample; see the separate
+[marker-input diagnostic](../../../../tools/GraphReader.ManualOverlayCapture/README.md).
+The proposal-input tensor matches the C# runtime on one synthetic fixture;
+the full capture and real-image plot-domain membership remain under
+investigation. Do not substitute fabricated masks or treat this corpus as
+training-ready until the real input path and a bounded GPU-only training and
+evaluation protocol are verified.
 
 ## Run bindings
 
