@@ -289,6 +289,17 @@ unproven. No production or real-graph acceptance is implied.
 - Checkpoint SHA-256: `fc78f81149d5d8a16df862795de87251658ec6e3e6d60d5404e74ea99b5973a9`
 - Focused admission, split, sampler and GPU-binding tests: 6 passed.
 
+A later inference-only diagnostic evaluated the same classifier on its 446
+unique training images without opening holdout image or annotation bytes. At
+score 0.5, it classified all 81 positives and 268 of 365 negatives as positive
+(precision 0.232, recall 1.0). Negative scores varied strongly by source.
+Masking outside a proposal-centered window made every training negative score
+positive. That perturbation also changes the input distribution, so it does
+not prove which image feature caused the behavior. The checkpoint remains
+unfit for use. Report SHA-256:
+`50aeafeeea48405cf5f219f076ebb9a513cb569f76a8ccac74f3b53a83c39214`.
+Eight diagnostic tests passed; inference used the RX 6600 XT.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
