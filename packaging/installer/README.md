@@ -58,3 +58,21 @@ Clean-machine install, launch, repair, upgrade, uninstall, and user-data
 preservation remain mandatory evidence before publication. The tracked
 definition remains `implementation-complete-runtime-unverified` until that
 evidence exists.
+
+## Installer transaction component check
+
+At source commit `f13382ce`, the existing
+`packaging/tests/installer-transaction` program was published as a
+self-contained Windows executable and run over SSH in a new, task-owned
+directory on the separate laptop. Its executable SHA-256 was
+`313166c12afdd89f688703d975295d42d5233227a35464557da30de10ae3f0df`;
+the copied host report SHA-256 was
+`464f0622f381b12a5f3790b8a8c2ad3e3963455222f48c37b6c52d65076d2eb0`.
+The executable exited 0 and reported passing checks for file and metadata
+rollback, upgrade and uninstall preservation, rejection of a reparse point,
+and invalidation of a deferred operation after replacement. The fixture used
+real local filesystem operations and an in-memory registry substitute.
+
+This is a component test on the laptop's existing Windows installation. It
+did not run the actual setup executable, make Windows registration changes,
+test application launch, or establish clean-machine release evidence.
