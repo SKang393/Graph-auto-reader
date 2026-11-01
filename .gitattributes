@@ -132,3 +132,5 @@ ml/markers/center/manual_train_overlay_pilot_v1/protocol.json -text whitespace=c
 Directory.Packages.props text eol=crlf
 global.json text eol=crlf
 src/GraphReader.Export/GraphReader.Export.csproj text eol=crlf
+# Preserve the scanner attribution execution bytes.
+ml/ocr/stroke_seeded_xtick_v1/recognition_diagnostic/scanner_train_miss_v1/attribute_fit_misses.py -text whitespace=cr-at-eol
