@@ -1,0 +1,27 @@
+{
+  "baseline_p3_report_sha256": "0cfe59debc97b64a20a2b2a1b53e4394e72c25f50d3b58c50581864a52750ac0",
+  "baseline_p3_score_rows_sha256": "c8f3adfb1c090ec57257064ba315c2b59d50bba49a93d23145f5071e6cfc50fc",
+  "crop_geometry": "pinned P1 crop materializer at proposal center x and center y minus 2px",
+  "p1_holdout_files_opened": false,
+  "p3_checkpoint_sha256": "8b1f8ce7d9897e3db19e71a4f21576b92e51ae56a90aa1fec9fb1df364820c92",
+  "p3_config_sha256": "927b93c88d7e61dc505516995b72f2235aa7fc8824e5fc54b45ae6741c3c5717",
+  "p3_runner_sha256": "b7c0b381f7d58be23ac8d1b139a18a8467fed9e34c320421765063dbe76c118d",
+  "p3_train_manifest_sha256": "aa265cdd89bef3a77e01d0809f48077bdacb1df1ca4e38ea0b81e637109ce672",
+  "probe_manifest_sha256": "127b276ee9837f48ccd2123930969d70717b0f833b05da28d9351b047ecfa1ba",
+  "production_activation": false,
+  "quarantine": [
+    "exact P3 training crop hash",
+    "P1 holdout crop hash metadata"
+  ],
+  "recipe_id": "p3-filter-baseline-vs-unbounded-cluster-width-v1",
+  "relaxed_proposal_report_sha256": "10f1282c134285070c9fcfbc29d09fb8d2c46d1fe27ccac2d1c31d9592077d1d8",
+  "scan_diagnostic_source_sha256": "32662ad05c220de6a9a5fce451f5101baab32ce4ac6156f1ba4b58d3266b834a",
+  "scanner_proposals_sha256": "0297966c41243bd4a27a0c1fa0aa7e849fc8beb5fa7a5dc177fc7e9029cb6081",
+  "schema": "graphreader.p3-wide-cluster-probe-pair.v1",
+  "threshold": 0.5,
+  "output_relative": "artifacts/stroke-seeded-xtick-v1-p3-widecluster-probe-v2",
+  "preflight_relative": "artifacts/stroke-seeded-xtick-v1-p3-widecluster-probe-v2-preflight.json",
+  "training_performed": false,
+  "truth_read_after_inference_only": true,
+  "wide_cluster_limit_px": 1000000
+}

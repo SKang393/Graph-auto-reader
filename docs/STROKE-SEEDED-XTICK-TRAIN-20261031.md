@@ -432,3 +432,38 @@ the adapter as unreviewed tick evidence.
 - Follow-up report SHA-256: `67fc30897054adccc2f19d2e653435626f661b2f5561cee30c838bb10ee03291`
 - Follow-up source SHA-256: `000893b85ab112a0b7a514ef142e02d23f134b36b1b9c299d205d01eaa413fd0`
 - Report accounting and prior V5 baseline checks: 3 passed. CPU inference only.
+
+## Wide-cluster proposal experiment
+
+The saved scanner replay reproduced all 365 original proposals: 73 visible
+tick matches and 292 unmatched proposals. Of the 108 missed visible ticks,
+10 were inside the endpoint guard. A separate proximity attribution grouped
+the same 108 misses into 53 near width-rejected clusters, 47 near an accepted
+cluster with nonmatching geometry, and 8 without a nearby hit cluster. The
+edge and cluster categories overlap; they are not additive causal proof.
+
+Reducing only the axis-core exclusion from two pixels to one did not improve
+the scan: 72 visible matches and 291 unmatched proposals. Removing only the
+eight-pixel cluster-width rejection increased matches to 94 of 181 but also
+increased unmatched proposals to 348, including 44 on panels with no visible
+ticks. These are exploratory changes, not production defaults.
+
+Using the frozen P3 classifier at the unchanged 0.5 threshold gave the
+following paired results on the same 24 panels and 181 visible truths:
+
+| Scanner plus P3 | Eligible proposals | Matched ticks | Unmatched | Precision | Recall | Unmatched on no-visible panels |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Original | 357 | 67 | 11 | 0.859 | 0.370 | 0 |
+| Width gate removed | 433 | 78 | 21 | 0.788 | 0.431 | 2 |
+
+Eight original and nine wider-scan proposals were quarantined for exact
+training-crop overlap; none overlapped the earlier holdout metadata hashes.
+Duplicates remain counted as proposal rows. The wider proposal set has a
+better recall but too many unmatched proposals for production, and the
+panels are consumed synthetic development data, not acceptance evidence.
+P3's earlier training-provenance limitation still applies.
+
+- Scanner diagnosis SHA-256: `10f1282c134285070c9fcbc29d09fb8d2c46d1fe27ccac2d1c31d9592077d1d8`
+- Paired filter report SHA-256: `1e8615201c2f0a2f920a1bce8b1b5fae5e0762f944f8042ae9bd352bc8a5849c`
+- Scanner fixture tests: 4 passed; paired admission and metric tests: 3 passed.
+  Classifier inference used the RX 6600 XT with no training or CPU fallback.
