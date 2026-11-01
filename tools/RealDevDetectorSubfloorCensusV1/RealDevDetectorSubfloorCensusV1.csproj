@@ -1,0 +1,25 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Sungwoo Kang -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\FrozenRealCorpusInventory.cs" Link="FrozenRealCorpusInventory.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\FrozenDevTrainingSelector.cs" Link="FrozenDevTrainingSelector.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\EngaugeDevSourceMaterializer.cs" Link="EngaugeDevSourceMaterializer.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\EngaugeDigWholeWorkflowTruthAdapter.cs" Link="EngaugeDigWholeWorkflowTruthAdapter.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\WholeWorkflowCsvEvaluator.cs" Link="WholeWorkflowCsvEvaluator.cs" />
+    <Compile Include="..\GraphReader.RealAcceptance.Ocr\NoPersistenceStageCache.cs" Link="NoPersistenceStageCache.cs" />
+    <ProjectReference Include="..\..\src\GraphReader.Export\GraphReader.Export.csproj" />
+    <ProjectReference Include="..\..\src\GraphReader.Axis\GraphReader.Axis.csproj" />
+    <ProjectReference Include="..\..\src\GraphReader.App\GraphReader.App.csproj" />
+    <ProjectReference Include="..\..\src\GraphReader.Inference\GraphReader.Inference.csproj" />
+    <ProjectReference Include="..\..\src\GraphReader.Ocr\GraphReader.Ocr.csproj" />
+  </ItemGroup>
+</Project>

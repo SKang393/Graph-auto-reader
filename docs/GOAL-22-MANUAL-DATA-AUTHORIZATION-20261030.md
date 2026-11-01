@@ -94,3 +94,24 @@ the evaluator source SHA-256 is
 `6b2dd111fed3b91a88d319a86e00e261fa4227c769c1e8698039f0ca4a618584`.
 The self-test passed. It used the previously exposed development data and
 oracle plot bounds with unmasked images; no sealed payload or training was used.
+
+A subsequent source-bound diagnostic rescored the detector's grouped
+pre-filter candidates, using its private proposal and encoding methods. For
+each of the 16 panels, the candidates scoring at least 0.82 matched the public
+detector's IDs, bounds and confidence exactly before any aggregate was
+recorded. Of 1,802 grouped candidates, 1,692 scored below 0.82 and 110 scored
+at or above it. Within both the oracle vertical extent and a band extending
+left from the axis by 10 percent of plot width, 61 scored below the floor and
+13 at or above it. The corresponding 5 percent band had five candidates,
+all below the floor.
+
+These are candidate counts, not verified missed or correct tick labels. The
+Engauge anchors supply approximate oracle plot geometry, and no tick-box or
+transcription ground truth was available. The data is previously exposed
+development data. This diagnostic did not change the detector floor, train a
+model, or read sealed payloads. Its aggregate report SHA-256 is
+`49cf02591f1a5a179d1d0e82aaa3a2a43b44365f373c23bbec0c87d245a1e103`;
+the diagnostic source SHA-256 is
+`571fb6f81a79907b6a7fbd3ef61a171adcad76d7206dde7ff72a01c51001af5c`.
+The opt-in guard and report self-test passed, and the report records the
+project and loaded assembly hashes.
