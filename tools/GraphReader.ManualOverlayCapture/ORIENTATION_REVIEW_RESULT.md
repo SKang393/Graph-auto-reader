@@ -36,3 +36,21 @@ The first new regression failed before the safeguard and passed afterward,
 including a cache-hit check. The capture returned exit code 1 because all 20
 workflows required review. CPU inference was used; no optimizer steps or sealed
 payload reads occurred. Per-region data remain project-local.
+
+## Unreadable or non-tick result follow-up
+
+The next candidate revision also requests calibration review when an
+orientation-overridden region lies in a possible tick lane but recognition
+fails or classifies it as non-tick text. It keeps any successful neighboring
+reading. A new mixed-recognition regression failed before the change; both the
+unreadable and non-tick variants pass afterward. The application regression
+also confirms that this warning blocks automatic export. This revision has a
+new cache and adapter identity and remains unapproved. The 20-image figures
+above describe the preceding candidate; the new revision has not received a
+separate real-image comparison.
+
+After the code change, 851 OCR tests passed with 13 skipped, 777 application
+tests passed, and 170 integration tests passed with seven skipped. A subsequent
+focused run passed both unreadable and non-tick cases. The diagnostic Release
+build succeeded without warnings. No model training or release approval was
+performed.

@@ -150,6 +150,47 @@ public sealed class OcrPipelineAcceptanceTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task OrientationOverrideWithoutRecognizedTickInLaneStillRequiresCalibrationReview(bool recognizeOtherText)
+    {
+        OcrDetectedRegion suspect = OcrTestFixtures.Region("suspect", 6, 35, 18, 10);
+        OcrDetectedRegion clear = OcrTestFixtures.Region("clear", 10, 60, 12, 8,
+            context: new OcrRegionContext(NumericExpected: true));
+        OcrRegionEvidence evidence = new(3, 0.25, 0.9, 0.1, false, ["text_candidate"]);
+        var detector = new GraphStructureConsensusTextRegionDetector(
+            new StubTextRegionDetector([suspect, clear]),
+            new StubTextRegionDetector([
+                suspect with { RegionId = "suspect-component", OrientationDegrees = -90, Evidence = evidence },
+                clear with { RegionId = "clear-component", Evidence = evidence },
+            ]),
+            new GraphStructureConsensusTextRegionDetectorOptions { PreferWideHorizontalModelOrientation = true });
+        var failure = new OcrFailure("OCR_RECOGNITION_FAILED", "error", "Errors.OcrFailed",
+            "Fixture recognition failed.", true, "retry");
+        var recognizer = new StubTextRecognizer((crops, _) =>
+            ValueTask.FromResult<IReadOnlyList<OcrRecognition>>(crops.Select(crop =>
+                crop.RegionId == "suspect"
+                    ? recognizeOtherText
+                        ? new OcrRecognition(crop.RegionId, crop.SourceImage,
+                            [new OcrRecognitionAlternative("heading", 0.95, crop.SourceImage)], 0.1)
+                        : new OcrRecognition(crop.RegionId, crop.SourceImage, [], 0.1, failure)
+                    : new OcrRecognition(crop.RegionId, crop.SourceImage,
+                        [new OcrRecognitionAlternative("10", 0.95, crop.SourceImage)], 0.1)).ToArray()));
+        var pipeline = new OcrPipeline(detector, recognizer, new InMemoryOcrResultCache());
+
+        OcrResult result = await pipeline.RecognizeAsync(OcrTestFixtures.Request(), CancellationToken.None);
+
+        Assert.IsTrue(result.Succeeded);
+        Assert.HasCount(recognizeOtherText ? 2 : 1, result.Regions);
+        Assert.IsTrue(result.Regions.Any(static region => region.RegionId == "clear"));
+        if (recognizeOtherText)
+            Assert.IsFalse(result.Regions.Any(static region => region.RegionId == "suspect" &&
+                (region.Role is OcrTextRole.XTick or OcrTextRole.YTick)));
+        CollectionAssert.Contains(result.Warnings.ToArray(),
+            "ocr_tick_sequence_needs_review:orientation_override:suspect");
+    }
+
+    [TestMethod]
     public async Task CropRecognitionUsesBoundedBatchesAndPreservesInputOrder()
     {
         OcrDetectedRegion[] regions = Enumerable.Range(0, 5)

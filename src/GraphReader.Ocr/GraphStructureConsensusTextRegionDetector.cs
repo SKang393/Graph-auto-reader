@@ -127,7 +127,7 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
 
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
-        $"{GetCompositionVersion(options.OutputGeometry, options.ModelInput, options.Admission)}{(options.PreferWideHorizontalModelOrientation ? ":wide-horizontal-model-v2" : string.Empty)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
+        $"{GetCompositionVersion(options.OutputGeometry, options.ModelInput, options.Admission)}{(options.PreferWideHorizontalModelOrientation ? ":wide-horizontal-model-v3" : string.Empty)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
 
     public static string GetCompositionVersion(GraphStructureConsensusGeometry geometry) => geometry switch
     {

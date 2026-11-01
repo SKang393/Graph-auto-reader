@@ -878,6 +878,17 @@ public sealed class OcrPipeline
                 ? $"ocr_tick_sequence_needs_review:{region.Role}:orientation_override:{region.RegionId}"
                 : $"ocr_role_needs_review:{region.RegionId}:orientation_override");
         }
+        var recognizedTickIds = regions.Where(static region => region.Role is OcrTextRole.XTick or OcrTextRole.YTick)
+            .Select(static region => region.RegionId).ToHashSet(StringComparer.Ordinal);
+        foreach (OcrDetectedRegion detected in detectedRegions)
+        {
+            if (!recognizedTickIds.Contains(detected.RegionId) &&
+                detected.Evidence?.Reasons.Contains(
+                    GraphStructureConsensusTextRegionDetector.WideHorizontalOrientationReviewReason,
+                    StringComparer.Ordinal) == true &&
+                IsPotentialTickRegion(detected.RegionId, detectedRegions, request.PlotBounds))
+                warnings.Add($"ocr_tick_sequence_needs_review:orientation_override:{detected.RegionId}");
+        }
         var maskRegionIds = regions
             .Where(region => IsCredibleTextMask(
                 region,

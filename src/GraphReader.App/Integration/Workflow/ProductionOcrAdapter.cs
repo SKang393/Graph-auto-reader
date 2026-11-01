@@ -243,7 +243,7 @@ public sealed partial class ProductionOcrAdapter :
             if (configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate ||
                 outputGeometry != GraphStructureConsensusGeometry.ModelPolygon)
                 throw new InvalidOperationException("Wide horizontal orientation is limited to unapproved frozen model-polygon evaluation.");
-            compositionVersion += "-wide-horizontal-model-v2";
+            compositionVersion += "-wide-horizontal-model-v3";
         }
         if (configurationScope == ProductionOcrConfigurationScope.ApprovedProduction &&
             (outputGeometry != GraphStructureConsensusGeometry.ModelPolygon ||

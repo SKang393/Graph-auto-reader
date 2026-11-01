@@ -969,6 +969,7 @@ public sealed class ProductionAutomaticDetectionAdapterTests
     [DataRow("ocr_tick_sequence_needs_review:XTick:numeric_alternative_selected", true)]
     [DataRow("ocr_tick_sequence_needs_review:XTick:dense_region_separation:wide", true)]
     [DataRow("ocr_tick_sequence_needs_review:YTick:orientation_override:tick", true)]
+    [DataRow("ocr_tick_sequence_needs_review:orientation_override:unreadable-tick", true)]
     [DataRow("ocr_tick_alternative_resolved_by_monotonic_spacing:YTick", false)]
     [DataRow("ocr_role_needs_review:note:detached_above_header_row", false)]
     public async Task UnresolvedNumericReviewCannotBecomeAnAutomaticExport(string warning, bool mustReject)

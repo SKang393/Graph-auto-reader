@@ -233,7 +233,7 @@ public sealed class GraphStructureConsensusTextRegionDetectorTests
         OcrDetectedRegion result = AssertExactlyOne(await detector.DetectAsync(Image(), CancellationToken.None));
 
         Assert.AreEqual((double)expectedAngle, result.OrientationDegrees);
-        StringAssert.Contains(detector.ConfigurationFingerprint, "wide-horizontal-model-v2");
+        StringAssert.Contains(detector.ConfigurationFingerprint, "wide-horizontal-model-v3");
     }
 
     [TestMethod]
@@ -248,7 +248,7 @@ public sealed class GraphStructureConsensusTextRegionDetectorTests
         OcrDetectedRegion result = AssertExactlyOne(await detector.DetectAsync(Image(), CancellationToken.None));
 
         Assert.AreEqual(-90d, result.OrientationDegrees);
-        Assert.IsFalse(detector.ConfigurationFingerprint.Contains("wide-horizontal-model-v2", StringComparison.Ordinal));
+        Assert.IsFalse(detector.ConfigurationFingerprint.Contains("wide-horizontal-model-v3", StringComparison.Ordinal));
     }
 
     [TestMethod]
