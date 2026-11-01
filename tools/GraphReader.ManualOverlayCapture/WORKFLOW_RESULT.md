@@ -95,3 +95,31 @@ The full solution check, `dotnet test GraphAutoReader.slnx -c Release
 diagnostic for a source outside the pinned manifest was rejected before it
 created an output directory. CPU inference was used; no training or sealed
 payload read occurred.
+
+## Nonliteral tick review safeguard
+
+The numeric parser can interpret letters such as `O` and `I` as digits. If an
+unreviewed OCR region was already assigned a tick role, the automatic workflow
+could previously use that interpretation without requiring review. It now
+retains the parsed evidence but flags a nonliteral primary reading as
+unresolved, preventing automatic export. Literal numeric text and values the
+user has explicitly accepted or corrected continue through the existing path.
+
+Two workflow regressions with unreviewed `I` and `O` initially failed because
+automatic detection completed without an exception. After the change, all 755
+application tests passed. Three additional edge cases were then added; all nine
+focused nonliteral and literal cases passed. The diagnostic rebuilt without
+warnings. No optimizer or sealed-data read occurred.
+
+On the 20 original training images, no panel produced this new warning. All 21
+panels retained their previous calibration status and failure message, all 20
+images still failed automatic calibration, and no final points were produced.
+The center and accepted-marker matches stayed at 250/332 and 207/332. This
+comparison verifies behavior on those exposed images; it does not establish
+automatic recognition or production acceptance.
+
+| Safeguard evidence | SHA-256 |
+| --- | --- |
+| Runtime description before and after | `dc4edbbeb804c051f0b876c313bc2f4f2939b341c6ff85cda6370e957d760ff0` |
+| Full workflow report | `fef9a75bbd2c64771dcea6778a3214c129d7d1055f0acd08533c83b268cd3fe2` |
+| Workflow point score | `f373749dd56197916e8e9b70e0c301bc255ac8b795d1a97b84a4a28bae7b2db5` |

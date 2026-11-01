@@ -50,7 +50,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report-sha256", required=True)
     parser.add_argument("--runtime-sha256", required=True)
-    parser.add_argument("--capture-version", choices=("v1", "v2"), default="v1")
+    parser.add_argument("--capture-version", choices=("v1", "v2", "v3"), default="v1")
     parser.add_argument("--dense-experiment", action="store_true")
     args = parser.parse_args()
     manifest = checked_json(RUN / "original-raster-input-v1.json", INPUT_SHA)

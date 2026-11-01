@@ -1458,6 +1458,13 @@ public sealed class ProductionAutomaticDetectionAdapter :
             NumericParseResult parsed = GraphNumericParser.Parse(region.Text);
             if (parsed.IsSuccess && parsed.Value is { } value)
             {
+                if (region.ReviewStatus == OcrReviewStatus.Unreviewed &&
+                    !GraphNumericParser.IsLiteralGraphNumber(region.Text))
+                {
+                    // Letter-to-digit substitutions are useful suggestions,
+                    // but geometry alone cannot confirm the printed value.
+                    confidenceWarnings.Add($"ocr_tick_sequence_needs_review:{role}:nonliteral_numeric_reading:{region.RegionId}");
+                }
                 // Independently run recognizers can be merged after their own
                 // sequence checks. A regular fit must not hide a competing
                 // numeric reading that has not been reviewed by the user.

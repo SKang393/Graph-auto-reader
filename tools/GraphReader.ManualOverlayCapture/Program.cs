@@ -48,6 +48,7 @@ internal static partial class Program
         "src/GraphReader.Ocr/OcrPipeline.cs",
         "src/GraphReader.Ocr/OcrResultCache.cs",
         "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs",
+        "src/GraphReader.App/Integration/Workflow/ProductionAutomaticDetectionAdapter.cs",
         "tools/GraphReader.RealAcceptance.Ocr/FrozenCandidateBinding.cs",
         "tools/GraphReader.RealAcceptance.Ocr/NoPersistenceStageCache.cs",
         "tools/GraphReader.MarkerBoundInputTrainCapture/CandidateInterfaces.cs",
