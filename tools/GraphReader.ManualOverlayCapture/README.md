@@ -223,6 +223,8 @@ The [crop trace](WORKFLOW_CROP_TRACE_RESULT.md) identifies their orientation
 discrepancy.
 The [orientation reconstruction](ORIENTATION_CROP_RESULT.md) isolates that
 discrepancy for both traced examples.
+The [wide-horizontal candidate](WIDE_HORIZONTAL_CANDIDATE_RESULT.md) records
+its correction, remaining failure, and changed review warnings.
 
 ## Checks
 

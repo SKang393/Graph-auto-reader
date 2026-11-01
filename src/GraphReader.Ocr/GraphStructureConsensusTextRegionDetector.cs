@@ -41,6 +41,9 @@ public sealed record GraphStructureConsensusTextRegionDetectorOptions
 
     public GraphStructureConsensusAdmission Admission { get; init; } =
         GraphStructureConsensusAdmission.Required;
+
+    /// <summary>Experimental preference for an explicitly horizontal, wide model polygon.</summary>
+    public bool PreferWideHorizontalModelOrientation { get; init; }
 }
 
 /// <summary>
@@ -101,6 +104,14 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
                 nameof(options));
         }
 
+        if (this.options.PreferWideHorizontalModelOrientation &&
+            this.options.OutputGeometry != GraphStructureConsensusGeometry.ModelPolygon)
+        {
+            throw new ArgumentException(
+                "The wide horizontal model orientation experiment requires model polygon output.",
+                nameof(options));
+        }
+
         if (this.options.Admission == GraphStructureConsensusAdmission.Advisory &&
             (this.options.OutputGeometry != GraphStructureConsensusGeometry.InitialDbContour ||
              this.options.ModelInput != GraphStructureModelInput.Original ||
@@ -114,7 +125,7 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
 
     public string ConfigurationFingerprint => string.Create(
         CultureInfo.InvariantCulture,
-        $"{GetCompositionVersion(options.OutputGeometry, options.ModelInput, options.Admission)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
+        $"{GetCompositionVersion(options.OutputGeometry, options.ModelInput, options.Admission)}{(options.PreferWideHorizontalModelOrientation ? ":wide-horizontal-model-v1" : string.Empty)}:{options.MinimumOverlapCoefficient:R}:{options.MinimumTextLikelihood:R}:model={modelDetector.ConfigurationFingerprint}:candidate={structureCandidateDetector.ConfigurationFingerprint}");
 
     public static string GetCompositionVersion(GraphStructureConsensusGeometry geometry) => geometry switch
     {
@@ -305,7 +316,9 @@ public sealed class GraphStructureConsensusTextRegionDetector : IDualInputTextRe
             {
                 GraphStructureConsensusGeometry.ModelPolygon => model with
                 {
-                    OrientationDegrees = Math.Abs(model.OrientationDegrees) <= double.Epsilon
+                    OrientationDegrees = Math.Abs(model.OrientationDegrees) <= double.Epsilon &&
+                        !(options.PreferWideHorizontalModelOrientation &&
+                          model.Polygon.Bounds.Width >= model.Polygon.Bounds.Height * 1.2)
                         ? candidate.OrientationDegrees
                         : model.OrientationDegrees,
                     Context = model.Context ?? candidate.Context,

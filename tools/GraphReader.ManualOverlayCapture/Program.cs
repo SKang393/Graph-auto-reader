@@ -48,6 +48,7 @@ internal static partial class Program
         "tools/GraphReader.ManualOverlayCapture/OrientationCropCounterfactual.cs",
         "tools/GraphReader.ManualOverlayCapture/prepare_input.py",
         "src/GraphReader.Ocr/DenseTickTextRegionRecovery.cs",
+        "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs",
         "src/GraphReader.Ocr/OcrPipeline.cs",
         "src/GraphReader.Ocr/OcrResultCache.cs",
         "src/GraphReader.App/Integration/Workflow/ProductionOcrAdapter.cs",
@@ -84,6 +85,9 @@ internal static partial class Program
             if (args.Length == 6 && args[0] == "--capture-workflow-details")
                 return await Capture(args[1], args[2], args[3], args[4], args[5],
                     workflow: true, smoke: false, captureDetails: true);
+            if (args.Length == 6 && args[0] == "--capture-workflow-horizontal-candidate")
+                return await Capture(args[1], args[2], args[3], args[4], args[5],
+                    workflow: true, smoke: false, captureDetails: true, preferWideHorizontalModelOrientation: true);
             if (args.Length == 7 && args[0] == "--capture-workflow-one")
                 return await Capture(args[2], args[3], args[4], args[5], args[6],
                     workflow: true, smoke: false, onlyId: args[1]);
@@ -104,7 +108,7 @@ internal static partial class Program
                     tightHorizontal: args[0] == "--recognize-reviewed-axis-tight");
             if (args.Length == 6 && args[0] == "--axis-connectivity-parity")
                 return await CheckAxisConnectivityParity(args[1], args[2], args[3], args[4], args[5]);
-            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-workflow-details|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one|--capture-workflow-trace-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis[-tight]|--axis-connectivity-parity <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json> OR --orientation-crop-check <runtime-description> <description-sha256> <new-output-json>");
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-workflow-details|-workflow-horizontal-candidate|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one|--capture-workflow-trace-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis[-tight]|--axis-connectivity-parity <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json> OR --orientation-crop-check <runtime-description> <description-sha256> <new-output-json>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
@@ -144,7 +148,7 @@ internal static partial class Program
 
     private static async Task<int> Capture(string inputPath, string inputSha, string descriptionPath, string descriptionSha,
         string outputName, bool workflow, bool smoke, string? onlyId = null, bool denseTickSeparation = false,
-        bool captureDetails = false, bool traceRecognition = false)
+        bool captureDetails = false, bool traceRecognition = false, bool preferWideHorizontalModelOrientation = false)
     {
         using var classifierLocks = workflow ? new ClassifierInputLocks() : null;
         byte[] description = await ReadPinned(descriptionPath, descriptionSha, 1_000_000);
@@ -222,10 +226,13 @@ internal static partial class Program
             ? recognizer => new TraceTextRecognizer(recognizer, recognitionTrace) : null;
         ProductionOcrAdapter ocr = await ProductionOcrAdapter.CreateForFrozenCandidateEvaluationAsync(
             OcrDescriptor(detector), OcrDescriptor(recognizer), runtime, OpenCvSha, CancellationToken.None,
-            GraphStructureConsensusGeometry.ModelPolygon, denseTickSeparation, detectionObserver, recognizerDecorator);
+            GraphStructureConsensusGeometry.ModelPolygon, denseTickSeparation, detectionObserver, recognizerDecorator,
+            preferWideHorizontalModelOrientation);
         Require(!ocr.IsApproved && ocr.ConfigurationScope == "unapproved_frozen_candidate", "OCR approval scope differs.");
         Require(ocr.AdapterId.Contains("dense-tick-review-v1", StringComparison.Ordinal) == denseTickSeparation,
             "Dense candidate identity differs.");
+        Require(ocr.AdapterId.Contains("wide-horizontal-model-v1", StringComparison.Ordinal) == preferWideHorizontalModelOrientation,
+            "Orientation candidate identity differs.");
         var markerDescriptor = new FrozenCandidateMarkerCenterModelDescriptor(
             new ModelIdentity(centerModel.ModelId, centerModel.Version, centerModel.Payload.Sha256, ProjectPath(centerModel.Payload.RelativePath)),
             ProjectPath(centerModel.Manifest.RelativePath), centerModel.Manifest.Sha256);
@@ -337,6 +344,7 @@ internal static partial class Program
                 classifier_sha256 = ClassifierFiles[2].Sha, opencv_sha256 = OpenCvSha,
                 smoke = smoke || onlyId is not null, dense_tick_separation = denseTickSeparation,
                 detailed_capture = captureDetails, recognition_traced = traceRecognition,
+                wide_horizontal_model_orientation = preferWideHorizontalModelOrientation,
                 optimizer_steps = 0, training_approved = false, classification_requested = true,
                 truth_read = false, sealed_payload_reads = 0, rows = results }
             : new { schema = "graphreader.manual-marker-input-capture.v1",

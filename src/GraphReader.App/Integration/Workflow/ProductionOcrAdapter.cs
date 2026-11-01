@@ -213,7 +213,8 @@ public sealed partial class ProductionOcrAdapter :
         GraphStructureModelInput modelInput = GraphStructureModelInput.AxisMasked,
         GraphStructureConsensusAdmission admission = GraphStructureConsensusAdmission.Required,
         int? detectorMaximumSideLength = null,
-        bool denseTickSeparation = false)
+        bool denseTickSeparation = false,
+        bool preferWideHorizontalModelOrientation = false)
     {
         ArgumentNullException.ThrowIfNull(pipelineFactory);
         pipeline = new Lazy<OcrPipeline>(
@@ -236,6 +237,13 @@ public sealed partial class ProductionOcrAdapter :
             if (configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate)
                 throw new InvalidOperationException("Dense tick separation is limited to unapproved frozen evaluation.");
             compositionVersion += "-dense-tick-review-v1";
+        }
+        if (preferWideHorizontalModelOrientation)
+        {
+            if (configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate ||
+                outputGeometry != GraphStructureConsensusGeometry.ModelPolygon)
+                throw new InvalidOperationException("Wide horizontal orientation is limited to unapproved frozen model-polygon evaluation.");
+            compositionVersion += "-wide-horizontal-model-v1";
         }
         if (configurationScope == ProductionOcrConfigurationScope.ApprovedProduction &&
             (outputGeometry != GraphStructureConsensusGeometry.ModelPolygon ||
@@ -389,7 +397,8 @@ public sealed partial class ProductionOcrAdapter :
         GraphStructureConsensusGeometry outputGeometry = GraphStructureConsensusGeometry.ModelPolygon,
         bool denseTickSeparation = false,
         Action<OcrDetectionObservation>? detectionObserver = null,
-        Func<ITextRecognizer, ITextRecognizer>? recognizerDecorator = null)
+        Func<ITextRecognizer, ITextRecognizer>? recognizerDecorator = null,
+        bool preferWideHorizontalModelOrientation = false)
     {
         ArgumentNullException.ThrowIfNull(detectionModel);
         ArgumentNullException.ThrowIfNull(recognitionModel);
@@ -444,7 +453,8 @@ public sealed partial class ProductionOcrAdapter :
                 outputGeometry,
                 denseTickSeparation: denseTickSeparation,
                 detectionObserver: detectionObserver,
-                recognizerDecorator: recognizerDecorator)
+                recognizerDecorator: recognizerDecorator,
+                preferWideHorizontalModelOrientation: preferWideHorizontalModelOrientation)
             .ConfigureAwait(false);
     }
 
@@ -463,11 +473,16 @@ public sealed partial class ProductionOcrAdapter :
         int? detectorMaximumSideLength = null,
         bool denseTickSeparation = false,
         Action<OcrDetectionObservation>? detectionObserver = null,
-        Func<ITextRecognizer, ITextRecognizer>? recognizerDecorator = null)
+        Func<ITextRecognizer, ITextRecognizer>? recognizerDecorator = null,
+        bool preferWideHorizontalModelOrientation = false)
     {
         RequireResolutionExperiment(detectorMaximumSideLength, configurationScope, outputGeometry, modelInput, admission);
         if (denseTickSeparation && configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate)
             throw new InvalidOperationException("Dense tick separation is limited to unapproved frozen evaluation.");
+        if (preferWideHorizontalModelOrientation &&
+            (configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate ||
+             outputGeometry != GraphStructureConsensusGeometry.ModelPolygon))
+            throw new InvalidOperationException("Wide horizontal orientation is limited to unapproved frozen model-polygon evaluation.");
         if ((detectionObserver is not null || recognizerDecorator is not null) &&
             configurationScope != ProductionOcrConfigurationScope.UnapprovedFrozenCandidate)
             throw new InvalidOperationException("OCR observation hooks are limited to unapproved frozen evaluation.");
@@ -504,6 +519,7 @@ public sealed partial class ProductionOcrAdapter :
                         OutputGeometry = outputGeometry,
                         ModelInput = modelInput,
                         Admission = admission,
+                        PreferWideHorizontalModelOrientation = preferWideHorizontalModelOrientation,
                     });
                 ITextRecognizer recognizer = new LocalOnnxTextRecognizer(
                     runtime,
@@ -532,7 +548,8 @@ public sealed partial class ProductionOcrAdapter :
             modelInput,
             admission,
             detectorMaximumSideLength,
-            denseTickSeparation);
+            denseTickSeparation,
+            preferWideHorizontalModelOrientation);
     }
 
     private static void RequireResolutionExperiment(

@@ -212,6 +212,46 @@ public sealed class GraphStructureConsensusTextRegionDetectorTests
     }
 
     [TestMethod]
+    [DataRow(31, 24, 0, -90, 0)]
+    [DataRow(24, 31, 0, -90, -90)]
+    [DataRow(30, 25, 0, -90, 0)]
+    [DataRow(29, 25, 0, -90, -90)]
+    [DataRow(31, 24, 75, -90, 75)]
+    public async Task ExperimentalOrientationPreservesWideHorizontalModelAndVerticalEvidence(
+        int width, int height, int modelAngle, int candidateAngle, int expectedAngle)
+    {
+        var bounds = new OcrRectangle(10, 10, width, height);
+        var detector = new GraphStructureConsensusTextRegionDetector(
+            new FixedDetector([Region("model", bounds, 0.9, orientationDegrees: modelAngle)], "model"),
+            new FixedDetector([Region("candidate", bounds, 0.9,
+                Evidence(3, 0.9, 0.1, false), candidateAngle)], "candidate"),
+            new GraphStructureConsensusTextRegionDetectorOptions
+            {
+                PreferWideHorizontalModelOrientation = true,
+            });
+
+        OcrDetectedRegion result = AssertExactlyOne(await detector.DetectAsync(Image(), CancellationToken.None));
+
+        Assert.AreEqual((double)expectedAngle, result.OrientationDegrees);
+        StringAssert.Contains(detector.ConfigurationFingerprint, "wide-horizontal-model-v1");
+    }
+
+    [TestMethod]
+    public async Task DefaultOrientationFallbackIsUnchanged()
+    {
+        var bounds = new OcrRectangle(10, 10, 31, 24);
+        var detector = new GraphStructureConsensusTextRegionDetector(
+            new FixedDetector([Region("model", bounds, 0.9)], "model"),
+            new FixedDetector([Region("candidate", bounds, 0.9,
+                Evidence(3, 0.9, 0.1, false), -90)], "candidate"));
+
+        OcrDetectedRegion result = AssertExactlyOne(await detector.DetectAsync(Image(), CancellationToken.None));
+
+        Assert.AreEqual(-90d, result.OrientationDegrees);
+        Assert.IsFalse(detector.ConfigurationFingerprint.Contains("wide-horizontal-model-v1", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public async Task MatchedComponentIdentityDeterministicallyBindsBothSourceIdsAndPolygon()
     {
         async Task<string> DetectId(string modelId, string componentId, OcrRectangle componentBounds)
@@ -270,6 +310,15 @@ public sealed class GraphStructureConsensusTextRegionDetectorTests
                 new GraphStructureConsensusTextRegionDetectorOptions
                 {
                     OutputGeometry = (GraphStructureConsensusGeometry)99,
+                }));
+        Assert.ThrowsExactly<ArgumentException>(() =>
+            new GraphStructureConsensusTextRegionDetector(
+                model,
+                candidate,
+                new GraphStructureConsensusTextRegionDetectorOptions
+                {
+                    OutputGeometry = GraphStructureConsensusGeometry.MatchedComponent,
+                    PreferWideHorizontalModelOrientation = true,
                 }));
     }
 
