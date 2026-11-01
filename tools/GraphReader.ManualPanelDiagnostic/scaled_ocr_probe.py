@@ -27,6 +27,7 @@ CANDIDATE_SHA = "b4ffb2712c0eac839916f920d22245faec222ffd37aaf9cb85bec6fbae91a82
 LABELS_SHA = "0d80b0663457f25a89e7d39a0e60f5e156604a0d382dcb9e8f132f7c29331713"
 OCR_INPUT_SHA = "4f64d264b97443118cfcf21d40325ac62a380596da1bde6d012a661b580377c7"
 JOIN_SHA = "1e8e2804586f217b8145a6b32e0524805374da2f0ee6d8c84bf4fe7ce0efd4f7"
+TICK_PROBE_SHA = "e61192366927c3f48b580a9fade972a2e1286777488b4490c633523ea1d0b69d"
 PATTERN = re.compile(r"^-?\d+(?:\.\d+)?%?$")
 
 
@@ -43,11 +44,14 @@ def write_new(path: Path, value: object) -> None:
         stream.write("\n")
 
 
-def make_input() -> None:
+def make_input(use_ticks: bool = False) -> None:
     report = json.loads(read_checked(RUN / "panel-diagnostic-scale-v1/report.json", AXIS_REPORT_SHA))
     sources = json.loads(read_checked(RUN / "holdout-axis-input.json", SOURCE_INPUT_SHA))
     code = ROOT / "ml/ocr/stroke_seeded_xtick_v1/recognition_diagnostic/manual_y_axis_candidate_v1/candidate.py"
     read_checked(code, CANDIDATE_SHA)
+    if use_ticks:
+        read_checked(Path(__file__).with_name("tick_rank_probe.py"), TICK_PROBE_SHA)
+        from tick_rank_probe import choose
     if report["source_split"] != "internal_train_holdout" or sources["source_split"] != "internal_train_holdout":
         raise ValueError("source split differs")
     by_id = {row["id"]: row for row in sources["rows"]}
@@ -74,7 +78,11 @@ def make_input() -> None:
             if (x, y, width, height) != (crop["X"], crop["Y"], crop["Width"], crop["Height"]) or \
                     x < 0 or y < 0 or x + width > source["width"] or y + height > source["height"]:
                 raise ValueError("panel crop differs")
-            axis = panel["axis"]["y_axis"]
+            if use_ticks:
+                selected, _, _ = choose(panel)
+                axis = {"Start": selected["Intersection"], "End": selected["TopLeft"]}
+            else:
+                axis = panel["axis"]["y_axis"]
             top, bottom = sorted((axis["Start"], axis["End"]), key=lambda point: point["Y"])
             if bottom["Y"] - top["Y"] < 10:
                 continue
@@ -85,11 +93,12 @@ def make_input() -> None:
             ]
             for box in propose(pixels[y:y + height, x:x + width], geometry):
                 source_box = [box[0] + x, box[1] + y, box[2] + x, box[3] + y]
-                identity = f"scaled-proposal-{len(ocr_rows):03d}"
+                identity = f"{'tick' if use_ticks else 'scaled'}-proposal-{len(ocr_rows):03d}"
                 ocr_rows.append({"id": identity, "image_path": relative, "image_sha256": source["image_sha256"],
                                  "box_xyxy": source_box})
                 joins.append({"id": identity, "sample_id": image["id"], "box": source_box})
-    output, join = RUN / "scaled-ocr-input-v1.json", RUN / "scaled-ocr-join-v1.json"
+    prefix = "tick" if use_ticks else "scaled"
+    output, join = RUN / f"{prefix}-ocr-input-v1.json", RUN / f"{prefix}-ocr-join-v1.json"
     if output.exists() or join.exists():
         raise ValueError("new output paths required")
     write_new(output, {"schema": "graphreader.manual-axis-ocr-input.v1", "scope": "exposed-train-only",
@@ -105,12 +114,13 @@ def iou(a: list[int], b: list[int]) -> float:
     return intersection / union if union else 0.0
 
 
-def score(prediction_sha: str) -> None:
+def score(prediction_sha: str, use_ticks: bool, input_sha: str, join_sha: str) -> None:
     labels = json.loads(read_checked(RUN / "holdout-labels.json", LABELS_SHA))["rows"]
-    predictions = json.loads(read_checked(RUN / "scaled-ocr-predictions-v1.json", prediction_sha))
-    joins = json.loads(read_checked(RUN / "scaled-ocr-join-v1.json", JOIN_SHA))
-    read_checked(RUN / "scaled-ocr-input-v1.json", OCR_INPUT_SHA)
-    if predictions["input_sha256"] != OCR_INPUT_SHA or predictions["source_split"] != "internal_train_holdout" or \
+    prefix = "tick" if use_ticks else "scaled"
+    predictions = json.loads(read_checked(RUN / f"{prefix}-ocr-predictions-v1.json", prediction_sha))
+    joins = json.loads(read_checked(RUN / f"{prefix}-ocr-join-v1.json", join_sha))
+    read_checked(RUN / f"{prefix}-ocr-input-v1.json", input_sha)
+    if predictions["input_sha256"] != input_sha or predictions["source_split"] != "internal_train_holdout" or \
             predictions["optimizer_steps"] != 0:
         raise ValueError("OCR prediction provenance differs")
     outputs = {row["id"]: row for row in predictions["rows"]}
@@ -137,7 +147,7 @@ def score(prediction_sha: str) -> None:
         else:
             counts["wrong"] += 1
     counts["missed"] = len(remaining)
-    path = RUN / "scaled-ocr-score-v2.json"
+    path = RUN / ("tick-ocr-score-v1.json" if use_ticks else "scaled-ocr-score-v2.json")
     write_new(path, {"schema": "graphreader.scaled-axis-ocr-score.v1", "scope": "exposed-training-not-acceptance",
                      "labels": 52, "proposals": len(joins), "match_iou": 0.5, "counts": dict(counts),
                      "labels_sha256": LABELS_SHA, "predictions_sha256": prediction_sha,
@@ -151,13 +161,20 @@ def score(prediction_sha: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=("propose", "score"))
+    parser.add_argument("mode", choices=("propose", "score", "tick-propose", "tick-score"))
     parser.add_argument("--prediction-sha256")
+    parser.add_argument("--input-sha256")
+    parser.add_argument("--join-sha256")
     args = parser.parse_args()
     if args.mode == "propose":
         make_input()
-    elif args.prediction_sha256 and re.fullmatch(r"[0-9a-f]{64}", args.prediction_sha256):
-        score(args.prediction_sha256)
+    elif args.mode == "tick-propose":
+        make_input(use_ticks=True)
+    elif args.prediction_sha256 and re.fullmatch(r"[0-9a-f]{64}", args.prediction_sha256) and (
+            args.mode == "score" or all(value and re.fullmatch(r"[0-9a-f]{64}", value)
+                                       for value in (args.input_sha256, args.join_sha256))):
+        score(args.prediction_sha256, args.mode == "tick-score", args.input_sha256 or OCR_INPUT_SHA,
+              args.join_sha256 or JOIN_SHA)
     else:
         parser.error("score requires a lowercase prediction SHA-256")
 

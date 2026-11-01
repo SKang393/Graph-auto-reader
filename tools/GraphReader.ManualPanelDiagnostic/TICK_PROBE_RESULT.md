@@ -55,3 +55,23 @@ the reference windows after prediction and the review was not independently
 adjudicated. No selection changed, so this check measures observed regression
 only; it cannot demonstrate a benefit. Prior source exposure and historical or
 sealed overlap remain unverified. The probe remains outside production.
+
+## OCR follow-up on exposed images
+
+Applying the same experimental tick rule to the repaired panel geometry, then
+using the unchanged label proposal and official OCR reader, produced 46 exact
+reads among 52 reviewed labels. Six labels were missed; 16 proposals were
+unmatched, including two with numeric text. The same repaired geometry without
+tick reranking produced 35 exact reads and 17 misses. The tick rule was designed
+with these images already visible, so this is a development measurement, not a
+blind or independent acceptance result. The unmatched numeric proposals were
+not adjudicated as false positives.
+
+The private OCR input SHA-256 is
+`469b5ee37f1d2ad80b4dcb638a3d2183c4949e003de3322d9a186e140228779a`,
+predictions are
+`405e22bc6b700570aa2068fd01388ba39add23a869e85a18871041dd25cd6c68`,
+and the aggregate score is
+`e6cacc3acdabc8fa2cf8aa39939536701315a475a7b78e9ddef7c6f4b5f99c21`.
+CPU inference performed no optimizer steps. The tick rule and OCR composition
+remain unapproved and are not enabled in the production workflow.
