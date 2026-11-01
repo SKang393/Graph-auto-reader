@@ -119,3 +119,6 @@ ml/markers/center/residual_negative_v38/protocol.json -text whitespace=cr-at-eol
 ml/markers/center/__init__.py text eol=crlf
 tools/gpu-training/gpu-package-provenance.json text eol=crlf
 tools/gpu-training/requirements.lock.txt text eol=crlf
+# Preserve conservative mask experiment source bytes recorded by its receipts.
+tools/artifact-mask/candidate-conservative-outline-core-v1/development-test-source-executed.cs -text whitespace=cr-at-eol,-blank-at-eof
+tools/artifact-mask/candidate-conservative-outline-core-v1/validation-test-source-executed.cs -text whitespace=cr-at-eol,-blank-at-eof

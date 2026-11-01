@@ -1,0 +1,68 @@
+{
+  "schema": "graphreader.artifact-mask-conservative-outline-core.v1",
+  "status": "preregistered-before-comparison",
+  "family_role": "development",
+  "family_consumed": false,
+  "scope": {"synthetic_only":true,"training_sources":0,"private_reads":0,"sealed_reads":0,"production_source_modified":false,"production_gate_modified":false},
+  "split": {
+    "family":"artifact-mask-conservative-outline-core-development-v1",
+    "source_count":9,
+    "seed":20261113,
+    "all_inputs_in_memory":true,
+    "source_specs_disjoint_from_validation":true,
+    "reserved_repository_family_used":false,
+    "placement_rule":"explicit case centers, radii and grid spacing; no random sampling",
+    "cases":[
+      {"id":"dev-plus-clear-a","type":"ordinary-cross","topology":"plus","arms":18,"center":[44,38]},
+      {"id":"dev-x-clear-b","type":"ordinary-cross","topology":"x","arms":20,"center":[96,38]},
+      {"id":"dev-circle-r5-plus","type":"outlined-circle-over-cross","radius":5,"arms":18,"topology":"plus","center":[52,94]},
+      {"id":"dev-square-r6-x","type":"outlined-square-over-cross","radius":6,"arms":20,"topology":"x","center":[96,98]},
+      {"id":"dev-grid-spacing8","type":"grid","verticals":4,"horizontals":4,"spacing":8,"start":[28,30]},
+      {"id":"dev-grid-spacing11","type":"grid","verticals":4,"horizontals":3,"spacing":11,"start":[28,34]},
+      {"id":"dev-text-clutter-plus","type":"text-clutter-cross","topology":"plus","arms":17,"center":[76,70]},
+      {"id":"dev-circle-clutter-r7","type":"circle-text-clutter-over-cross","radius":7,"arms":18,"topology":"plus","center":[48,66]},
+      {"id":"dev-arrow-bracket-legend","type":"arrow-bracket-legend-and-cross","arrow_annotations":1,"brackets":1,"legend_structures":1,"crossings":1}
+    ]
+  },
+  "input_contract": {
+    "canvas":[200,150],
+    "plot_polygon":[[10,140],[110,140],[110,10],[10,10]],
+    "ocr_ground_truth_boxes":0,
+    "ocr_context":"fixed synthetic annotation and legend regions only",
+    "axis_geometry":"fixed oracle plot polygon; no fitting",
+    "rendering":"deterministic in-memory Gray8 black-on-white raster",
+    "marker_annotation":"fixture-drawn outline and center pixels used only for scoring",
+    "crossing_annotation":"fixture-drawn ordinary cross and grid pixels used only for scoring",
+    "clutter_annotation":"fixture-drawn block-letter strokes used only for scoring; not supplied as OCR text boxes",
+    "prohibited_annotation":"fixture-drawn arrow, bracket and legend pixels used only for scoring"
+  },
+  "candidate_rule": "From the baseline structural probabilities, raise marker-like probability in the existing 5x5 center only when: the center has two long crossing line pairs; a strict same-radius circle or square outline supports at least 15 of 16 angular sectors using original ink pixels without the old 3x3 sector dilation; and there is no other long crossing within 12 pixels outside the center core.",
+  "comparison": {
+    "same_input_raster_axis_ocr_seed_for_baseline_candidate":true,
+    "compare_every_marker_center_and_outline_pixel":true,
+    "compare_every_clear_cross_and_grid_center_and_pixel":true,
+    "compare_text_like_clutter_pixels":true,
+    "compare_arrow_bracket_legend_truth_pixels_and_category_counts":true,
+    "candidate_thresholds_fixed_before_validation":true,
+    "criteria":[
+      "candidate suppresses fewer annotated marker centers than baseline and does not add suppressed centers",
+      "candidate masks no additional annotated marker pixels",
+      "candidate masks no additional annotated text-like clutter pixels",
+      "candidate does not lose any baseline clear-cross or grid center mask",
+      "candidate does not reduce arrow, bracket, or legend truth-pixel coverage or region counts"
+    ],
+    "production_threshold_or_gate_change":false,
+    "release_acceptance":false
+  },
+  "candidate_identity": {
+    "source_sha256":"1e6d16d8d55595fd9eeea96e447906265507ac868112217fe19c1e85f12f078a",
+    "app_assembly_sha256":"d55f9191e52872750711866921fa19f62a43b86df59acfdc33739dab45a0dbce",
+    "ocr_assembly_sha256":"31310c7be9a244df5eaa32acf83246390e46571e840ff8aa7f8e9c2ecc48d139",
+    "test_source_sha256":"1e6d16d8d55595fd9eeea96e447906265507ac868112217fe19c1e85f12f078a",
+    "test_assembly_sha256":"cd02a21d2ea32eb0ace85ea77e253e18f88c23496f67daac9626971be07b77c5"
+  },
+  "baseline_identity": {
+    "provider_source_sha256":"a5b2de8deae5b0ec3a57bc9baf6269cc03988e8694a12270857f6ba7e0254047",
+    "structural_provider_source_sha256":"cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100"
+  }
+}

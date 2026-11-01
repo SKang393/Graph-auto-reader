@@ -1,0 +1,66 @@
+{
+  "schema": "graphreader.artifact-mask-conservative-outline-core.v1",
+  "status": "preregistered-before-validation",
+  "family_role": "validation",
+  "family_consumed": false,
+  "scope": {"synthetic_only":true,"training_sources":0,"private_reads":0,"sealed_reads":0,"production_source_modified":false,"production_gate_modified":false},
+  "split": {
+    "family":"artifact-mask-conservative-outline-core-unseen-validation-v1",
+    "source_count":14,
+    "seed":20261119,
+    "all_inputs_in_memory":true,
+    "source_specs_disjoint_from_development":true,
+    "reserved_repository_family_used":false,
+    "placement_rule":"separately fixed centers, radii and grid spacing; no random sampling; all cases are held until candidate source freeze",
+    "cases":[
+      {"id":"val-plus-clear-u1","type":"ordinary-cross","topology":"plus","arms":16,"center":[46,36]},
+      {"id":"val-x-clear-u2","type":"ordinary-cross","topology":"x","arms":22,"center":[98,36]},
+      {"id":"val-grid-spacing9-u1","type":"grid","verticals":5,"horizontals":5,"spacing":9,"start":[24,28]},
+      {"id":"val-grid-spacing12-u2","type":"grid","verticals":4,"horizontals":4,"spacing":12,"start":[23,29]},
+      {"id":"val-circle-r4-plus-u1","type":"outlined-circle-over-cross","radius":4,"arms":17,"topology":"plus","center":[45,98]},
+      {"id":"val-circle-r8-x-u2","type":"outlined-circle-over-cross","radius":8,"arms":21,"topology":"x","center":[97,99]},
+      {"id":"val-square-r5-x-u1","type":"outlined-square-over-cross","radius":5,"arms":18,"topology":"x","center":[67,70]},
+      {"id":"val-square-r9-plus-u2","type":"outlined-square-over-cross","radius":9,"arms":22,"topology":"plus","center":[48,50]},
+      {"id":"val-text-clutter-x-u1","type":"text-clutter-cross","topology":"x","arms":19,"center":[80,84]},
+      {"id":"val-circle-clutter-r6-u2","type":"circle-text-clutter-over-cross","radius":6,"arms":18,"topology":"plus","center":[47,69]},
+      {"id":"val-square-clutter-r8-u1","type":"square-text-clutter-over-cross","radius":8,"arms":20,"topology":"x","center":[94,68]},
+      {"id":"val-arrow-bracket-legend-u2","type":"arrow-bracket-legend-and-cross","arrow_annotations":1,"brackets":1,"legend_structures":1,"crossings":1},
+      {"id":"val-filled-disk-r5-u1","type":"filled-marker-over-cross","shape":"disk","radius":5,"arms":17,"center":[79,39]},
+      {"id":"val-filled-square-r6-u2","type":"filled-marker-over-cross","shape":"square","radius":6,"arms":19,"center":[101,47]}
+    ]
+  },
+  "input_contract": {
+    "canvas":[200,150],
+    "plot_polygon":[[10,140],[110,140],[110,10],[10,10]],
+    "ocr_ground_truth_boxes":0,
+    "ocr_context":"fixed synthetic annotation and legend regions only",
+    "axis_geometry":"fixed oracle plot polygon; no fitting",
+    "rendering":"deterministic in-memory Gray8 black-on-white raster",
+    "marker_annotation":"fixture-drawn outline, filled marker and center pixels used only for scoring",
+    "crossing_annotation":"fixture-drawn ordinary cross and grid pixels used only for scoring",
+    "clutter_annotation":"fixture-drawn block-letter strokes used only for scoring; not supplied as OCR text boxes",
+    "prohibited_annotation":"fixture-drawn arrow, bracket and legend pixels used only for scoring"
+  },
+  "candidate_rule": "same frozen strict 15-of-16 same-radius circle-or-square outline and no-other-long-crossing-within-12-pixels rule as the development run; no threshold or code change after this protocol is frozen",
+  "comparison": {
+    "same_input_raster_axis_ocr_seed_for_baseline_candidate":true,
+    "compare_every_marker_center_and_outline_pixel":true,
+    "compare_every_clear_cross_and_grid_center_and_pixel":true,
+    "compare_text_like_clutter_pixels":true,
+    "compare_arrow_bracket_legend_truth_pixels_and_category_counts":true,
+    "candidate_thresholds_fixed_before_validation":true,
+    "production_threshold_or_gate_change":false,
+    "release_acceptance":false
+  },
+  "candidate_identity": {
+    "source_sha256":"7e8375fb0fc407c843db8acd35ab7e85f2fe5d771305741dbcbcb773a0c90bc9",
+    "app_assembly_sha256":"098afc5fc93bb22ab49929194d167b12c727a91de21fa5aaec935f2b9c8bf47d",
+    "ocr_assembly_sha256":"373d68964eb241a19cdef0080e72bfd32ecd0221cf4e128506b67cd63cc1d0ce",
+    "test_source_sha256":"7e8375fb0fc407c843db8acd35ab7e85f2fe5d771305741dbcbcb773a0c90bc9",
+    "test_assembly_sha256":"bb5b57e95ac16daf57bd2b91958f4e3d6274070ea9c180e4470ef06b486df813"
+  },
+  "baseline_identity": {
+    "provider_source_sha256":"a5b2de8deae5b0ec3a57bc9baf6269cc03988e8694a12270857f6ba7e0254047",
+    "structural_provider_source_sha256":"cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100"
+  }
+}
