@@ -1,0 +1,41 @@
+{
+  "schema": "graphreader.relaxed-width-numeric-confirmation.v1",
+  "recipe_id": "relaxed-width-p3-p5-frozen-recognizer-comparison-v1",
+  "description": "Truth-blind P3/P5-scored scanner proposals passed through the existing V5 numeric recognizer and official PP-OCRv5 path, followed by aggregate truth comparison.",
+  "p3_p5_threshold": 0.5,
+  "numeric_confidence_threshold": 0.65,
+  "official_confidence_threshold": 0.0,
+  "numeric_grammar": "^-?\\d+(?:\\.\\d+)?%?$",
+  "decision_rule_evidence": {
+    "source": "ml/ocr/component_ensemble_v5/artifacts/P1-run/candidate-report.json",
+    "sha256": "e5095b63221b7a745e48ead61011a7794e5da54e0fc24fd641d785bc09257260",
+    "synthetic_only": true,
+    "sealed_public_archive_opened": false,
+    "selected_threshold": 0.65,
+    "selection_gate_passed": true
+  },
+  "models": {
+    "numeric": {
+      "id": "graph-numeric-component-ensemble-v5",
+      "path": "ml/ocr/component_ensemble_v5/artifacts/P1-run/graph-numeric-component-ensemble-v5-p1.onnx",
+      "sha256": "9db95c41ce396e8b2dff3b525556615528a00ca87f4cc531274374b961417c84"
+    },
+    "official": {
+      "id": "en_PP-OCRv5_mobile_rec",
+      "path": "ml/ocr/official_bakeoff/runs/conversion/en_PP-OCRv5_mobile_rec.onnx",
+      "sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+      "alphabet_path": "ml/ocr/official_bakeoff/runs/extracted/en_PP-OCRv5_mobile_rec_infer/inference.yml",
+      "alphabet_sha256": "27e91d0582f40168aa218303c76e184bc78fa7a5d105aad0cfbad8458b441067",
+      "ambiguity_model_path": "ml/ocr/ambiguity_source_group_classifier_v3/artifacts/P2-run/graph-ambiguity-source-group-v3-p2.onnx",
+      "ambiguity_model_sha256": "b8e2773ca3966469081875fc36b3981ef4eb458356d8dfdae2be2722602f0096"
+    }
+  },
+  "crop_geometry": "each proposal's exact 256x96 P1 crop centered on the predicted ink stroke is supplied as a whole-region OCR crop; this is not a text-box localization",
+  "numeric_cropper": "OcrCropBatcher 128x32, horizontal padding 12, vertical padding 1, content margin ratio 0.25, preserve-aspect-pad, padding value 1.0",
+  "official_cropper": "OcrCropBatcher 320x48, horizontal padding 8, vertical padding 2, preserve-aspect-pad, padding value 0.5",
+  "official_rule": "record official result when it returns a nonempty GraphNumber grammar match; preserve V8 OfficialMinimumConfidence=0 and do not impose a new confidence threshold",
+  "truth_access": "only after both recognizers complete and their frozen result file is hash-verified",
+  "training_performed": false,
+  "production_activation": false,
+  "acceptance_status": "exploratory consumed synthetic development diagnostic only"
+}

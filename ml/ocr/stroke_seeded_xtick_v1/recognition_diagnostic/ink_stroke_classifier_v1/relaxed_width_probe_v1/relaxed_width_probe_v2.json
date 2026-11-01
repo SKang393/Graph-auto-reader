@@ -1,0 +1,23 @@
+{
+  "schema": "graphreader.relaxed-width-p3-p5-probe-config.v2",
+  "recipe_id": "truth-blind-relaxed-width-paired-frozen-p3-p5-v2",
+  "evaluator_sha256": "04b183c38966eb5ce5dfb84b87361f205a877135715bf48fc3b4709df83c4788",
+  "scanner_diagnostic_sha256": "32662ad05c220de6a9a5fce451f5101baab32ce4ac6156f1ba4b58d3266b834a",
+  "scanner_comparison_report_sha256": "10f1282c134285070c9fcbc29d09fb8d2c46d1fe27ccac2d1c31d9592077d1d8",
+  "probe_manifest_sha256": "127b276ee9837f48ccd2123930969d70717b0f833b05da28d9351b047ecfa1ba",
+  "baseline_scanner_proposals_sha256": "0297966c41243bd4a27a0c1fa0aa7e849fc8beb5fa7a5dc177fc7e9029cb6081",
+  "p5_evaluator_sha256": "1dd3ada4bd9fdd9de33b71c72c604c05b8fe637c8561b822e82834c413f455b4",
+  "threshold": 0.5,
+  "maximum_cluster_width_px": 1000000,
+  "expected_baseline_rows": 365,
+  "expected_relaxed_rows": 442,
+  "expected_visible_denominator": 181,
+  "training_performed": false,
+  "holdout_image_or_annotation_reads_allowed": false,
+  "private_or_sealed_reads_allowed": false,
+  "production_activation": false,
+  "output_relative": "artifacts/stroke-seeded-xtick-v1-relaxed-width-p3-p5-probe-v2",
+  "preflight_relative": "artifacts/stroke-seeded-xtick-v1-relaxed-width-p3-p5-probe-v2/preflight.json",
+  "candidate_manifest_relative": "artifacts/stroke-seeded-xtick-v1-relaxed-width-p3-p5-probe-v2/candidate_rows.json",
+  "paired_report_relative": "artifacts/stroke-seeded-xtick-v1-relaxed-width-p3-p5-probe-v2/paired_report.json"
+}
