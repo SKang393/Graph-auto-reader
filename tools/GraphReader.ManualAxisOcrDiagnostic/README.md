@@ -51,3 +51,9 @@ dotnet tools/GraphReader.ManualAxisOcrDiagnostic/bin/Release/net10.0-windows/Gra
 The output path is create-only. Reproducing the run requires a fresh output
 location and the exact private input; the tracked repository does not contain
 the manually reviewed labels or images.
+
+The runner also accepts `--input <project-relative-path>`,
+`--expected-input-sha256 <hash>`, and `--output <project-relative-path>` for
+another bounded input and create-only output inside its diagnostic directory.
+The automatic-box candidate using that entry point is documented in
+`ml/ocr/stroke_seeded_xtick_v1/recognition_diagnostic/manual_y_axis_candidate_v1/RESULT.md`.

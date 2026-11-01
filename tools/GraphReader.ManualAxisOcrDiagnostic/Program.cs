@@ -29,10 +29,31 @@ internal static class Program
         try
         {
             if (args.Length == 1 && args[0] == "--self-test") return SelfTest();
-            Require(args.Length == 2 && args[0] == "--expected-input-sha256", "Expected input hash is required.");
-            string output = ProjectPath(OutputPath);
+            string inputRelative = InputPath;
+            string outputRelative = OutputPath;
+            string expectedInput;
+            if (args.Length == 2 && args[0] == "--expected-input-sha256")
+            {
+                expectedInput = args[1];
+            }
+            else
+            {
+                Require(args.Length == 6 && args[0] == "--input" && args[2] == "--expected-input-sha256" && args[4] == "--output",
+                    "Expected project-local input, hash, and output are required.");
+                inputRelative = args[1];
+                expectedInput = args[3];
+                outputRelative = args[5];
+            }
+            const string diagnosticRoot = "artifacts/manual-axis-ocr-diagnostic-v1/";
+            Require(inputRelative.StartsWith(diagnosticRoot, StringComparison.Ordinal) &&
+                outputRelative.StartsWith(diagnosticRoot, StringComparison.Ordinal), "Diagnostic paths escaped their task directory.");
+            string taskDirectory = ProjectPath(diagnosticRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            Require(ProjectPath(inputRelative).StartsWith(taskDirectory, StringComparison.OrdinalIgnoreCase),
+                "Input escaped its task directory.");
+            string output = ProjectPath(outputRelative);
+            Require(output.StartsWith(taskDirectory, StringComparison.OrdinalIgnoreCase), "Output escaped its task directory.");
             Require(!File.Exists(output), "Output already exists.");
-            byte[] inputBytes = await ReadPinned(InputPath, args[1], 1_000_000);
+            byte[] inputBytes = await ReadPinned(inputRelative, expectedInput, 1_000_000);
             using JsonDocument input = JsonDocument.Parse(inputBytes);
             Require(input.RootElement.GetProperty("schema").GetString() == "graphreader.manual-axis-ocr-input.v1" &&
                 input.RootElement.GetProperty("source_split").GetString() == "internal_train_build", "Input scope differs.");
@@ -69,8 +90,9 @@ internal static class Program
                     box[2] <= image.Width && box[3] <= image.Height && box[2] > box[0] && box[3] > box[1], "Invalid label box.");
                 entries.Add(CreateEntry(id, image, box));
             }
-            Require(entries.Count == 76 && entries.Select(static entry => entry.Id).Distinct(StringComparer.Ordinal).Count() == 76 &&
-                frames.Count == 8, "Unexpected training pilot size.");
+            Require(entries.Count is > 0 and <= 500 &&
+                entries.Select(static entry => entry.Id).Distinct(StringComparer.Ordinal).Count() == entries.Count &&
+                frames.Count is > 0 and <= 20, "Unexpected training pilot size.");
 
             IReadOnlyList<InferenceProvider> providers = [InferenceProvider.Cpu];
             var cache = new ProviderCache();
