@@ -1,0 +1,51 @@
+{
+  "schema": "graphreader.seed-crop-localization-protocol.v1",
+  "status": "predeclared train-only ROI fit and internal source-group holdout",
+  "input_policy": {
+    "curation_manifest": "artifacts/stroke-seeded-xtick-v1-inkscan-train-curation-v2/manifest.json",
+    "curation_manifest_sha256": "aa265cdd89bef3a77e01d0809f48077bdacb1df1ca4e38ea0b81e637109ce672",
+    "base_manifest": "artifacts/stroke-seeded-xtick-v1-train-verified-v6/manifest.json",
+    "base_manifest_sha256": "12565af18cd69b680b978454058ab0f4448336931e5db7b3c128b861af9e0f1a",
+    "curation_materializer_sha256": "98b7630e4b6b2df3dc7a1a99c33b27da63fde61f2f75adfe86a1ed351c66bf9d",
+    "curation_script_sha256": "7e8a32dda6b5cf74f013db0992bd66ed894301dca21cf94ea32f64f1275c32df",
+    "admitted_rows": "manifest records with split=train and kind positive or background_only and trainable_single_box=true",
+    "excluded_rows": "never open annotation or image payloads for kind=excluded",
+    "source_group_holdout": [
+      "stroke-seeded-xtick-v1-train-27103105",
+      "stroke-seeded-xtick-v1-train-27103106",
+      "stroke-seeded-xtick-v1-train-27103110"
+    ],
+    "hash_split": "union source groups that share an admitted image SHA-256; hold out complete linked components; fail any train-fit overlap"
+  },
+  "localization_rule": {
+    "fit_rows": "unique admitted positive image hashes from all trainable source groups outside the fixed 3-group internal holdout",
+    "seed_center": "proposal_center_original_xy transformed by crop_transform.original_to_crop_pixel",
+    "glyph_geometry": "exact target_crop_xyxy from curation annotation, whose glyph-mask bounds were validated during curation",
+    "roi": "axis-aligned min left/top and max right/bottom of target boxes relative to mapped seed center, expanded by fixed 2 crop pixels on every side",
+    "threshold_tuning": false,
+    "model_training": false
+  },
+  "recognizers": {
+    "numeric_v5": {
+      "model_sha256": "9db95c41ce396e8b2dff3b525556615528a00ca87f4cc531274374b961417c84",
+      "training_evidence_sha256": "e5095b63221b7a745e48ead61011a7794e5da54e0fc24fd641d785bc09257260",
+      "confidence_threshold": 0.65,
+      "grammar": "^-?\\d+(?:\\.\\d+)?%?$",
+      "crop": "production OcrCropBatcher 128x32, horizontal padding 12, vertical padding 1, content ratio 0.25, preserve aspect and pad"
+    },
+    "official_ppocr": {
+      "model_sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+      "yaml_sha256": "27e91d0582f40168aa218303c76e184bc78fa7a5d105aad0cfbad8458b441067",
+      "ambiguity_model_sha256": "b8e2773ca3966469081875fc36b3981ef4eb458356d8dfdae2be2722602f0096",
+      "minimum_confidence": 0.0,
+      "grammar": "^-?\\d+(?:\\.\\d+)?%?$",
+      "crop": "production OcrCropBatcher 320x48, horizontal padding 8, vertical padding 2, preserve aspect and pad"
+    },
+    "provider": "CPUExecutionProvider; inference only; no training"
+  },
+  "limitations": [
+    "The fit and internal holdout are procedural train sources, not real graphs.",
+    "One envelope ROI may include excess context; the rule does not localize multiple labels within a crop.",
+    "These diagnostics do not establish product acceptance or authorize production activation."
+  ]
+}

@@ -1,0 +1,247 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Sungwoo Kang
+
+using System.Security.Cryptography;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using GraphReader.Inference;
+using GraphReader.Ocr;
+using OpenCvSharp;
+
+internal static class Program
+{
+    private const string NumericPath = "ml/ocr/component_ensemble_v5/artifacts/P1-run/graph-numeric-component-ensemble-v5-p1.onnx";
+    private const string NumericHash = "9db95c41ce396e8b2dff3b525556615528a00ca87f4cc531274374b961417c84";
+    private const string NumericEvidencePath = "ml/ocr/component_ensemble_v5/artifacts/P1-run/candidate-report.json";
+    private const string NumericEvidenceHash = "e5095b63221b7a745e48ead61011a7794e5da54e0fc24fd641d785bc09257260";
+    private const string OfficialPath = "ml/ocr/official_bakeoff/runs/conversion/en_PP-OCRv5_mobile_rec.onnx";
+    private const string OfficialHash = "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743";
+    private const string OfficialYamlPath = "ml/ocr/official_bakeoff/runs/extracted/en_PP-OCRv5_mobile_rec_infer/inference.yml";
+    private const string OfficialYamlHash = "27e91d0582f40168aa218303c76e184bc78fa7a5d105aad0cfbad8458b441067";
+    private const string AmbiguityPath = "ml/ocr/ambiguity_source_group_classifier_v3/artifacts/P2-run/graph-ambiguity-source-group-v3-p2.onnx";
+    private const string AmbiguityHash = "b8e2773ca3966469081875fc36b3981ef4eb458356d8dfdae2be2722602f0096";
+    private static readonly Regex Number = new(@"^-?\d+(?:\.\d+)?%?$", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static readonly JsonSerializerOptions JsonWriteOptions = new() { WriteIndented = true };
+
+    private static async Task<int> Main(string[] args)
+    {
+        if (args.Length == 1 && args[0] == "--self-test") return SelfTest();
+        if (args.Length != 3) { Console.Error.WriteLine("usage: Localization <project-root> <input.json> <recognitions.json>"); return 2; }
+        try
+        {
+            string root = Path.GetFullPath(args[0]).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            string inputPath = Path.GetFullPath(args[1]);
+            string outputPath = Path.GetFullPath(args[2]);
+            Require(inputPath.StartsWith(Path.Combine(root, "artifacts") + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase), "Input escaped project artifacts.");
+            Require(outputPath.StartsWith(Path.Combine(root, "artifacts") + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase), "Output escaped project artifacts.");
+            Require(!File.Exists(outputPath), "Refusing to overwrite recognition output.");
+            byte[] inputBytes = await File.ReadAllBytesAsync(inputPath);
+            using JsonDocument inputDoc = JsonDocument.Parse(inputBytes);
+            JsonElement input = inputDoc.RootElement;
+            Require(input.GetProperty("schema").GetString() == "graphreader.seed-crop-localization-input.v1" &&
+                input.GetProperty("truth_read").GetBoolean() == false && input.GetProperty("development_probe").GetBoolean(), "Input is not the frozen truth-blind development contract.");
+            string protocolPath = Path.Combine(Path.GetDirectoryName(inputPath)!, "protocol.json");
+            using JsonDocument protocolDoc = JsonDocument.Parse(await File.ReadAllBytesAsync(protocolPath));
+            Require(protocolDoc.RootElement.GetProperty("input_sha256").GetString() == Hash(inputBytes) &&
+                protocolDoc.RootElement.GetProperty("schema").GetString() == "graphreader.seed-crop-localization-dev-protocol.v1" &&
+                protocolDoc.RootElement.GetProperty("train_roi_protocol_sha256").GetString() == input.GetProperty("train_roi_protocol_sha256").GetString(),
+                "Input bytes do not match the generated protocol identity.");
+            byte[] evidenceBytes = await ReadPinned(root, NumericEvidencePath, NumericEvidenceHash, 2_000_000);
+            using JsonDocument evidence = JsonDocument.Parse(evidenceBytes);
+            Require(evidence.RootElement.GetProperty("selected_threshold").GetDouble() == 0.65 &&
+                evidence.RootElement.GetProperty("synthetic_only").GetBoolean(), "Numeric threshold evidence changed.");
+            _ = await ReadPinned(root, NumericPath, NumericHash, 20_000_000);
+            _ = await ReadPinned(root, OfficialPath, OfficialHash, 20_000_000);
+            string yaml = System.Text.Encoding.UTF8.GetString(await ReadPinned(root, OfficialYamlPath, OfficialYamlHash, 100_000));
+            _ = await ReadPinned(root, AmbiguityPath, AmbiguityHash, 20_000_000);
+            string alphabet = ReadAlphabet(yaml);
+            Require(Hash(System.Text.Encoding.UTF8.GetBytes(alphabet)) == OcrV8ProductionCompositionFactory.OfficialAlphabetSha256, "Official alphabet contract mismatch.");
+
+            var rows = new List<InferenceRow>();
+            foreach (JsonElement row in input.GetProperty("rows").EnumerateArray())
+            {
+                if (row.GetProperty("quarantine_reasons").GetArrayLength() != 0) continue;
+                string rel = row.GetProperty("image_path").GetString()!;
+                byte[] imageBytes = await ReadPinned(root, rel, row.GetProperty("image_sha256").GetString()!, 1_000_000);
+                var candidate = new Candidate(row.GetProperty("proposal_id").GetString()!, row.GetProperty("source_id").GetString()!, row.GetProperty("panel_id").GetString()!,
+                    row.GetProperty("p3_score").GetDouble(), row.GetProperty("p5_score").GetDouble(),
+                    row.GetProperty("p3_selected").GetBoolean(), row.GetProperty("p5_selected").GetBoolean(),
+                    row.GetProperty("proposal").Clone(), row.GetProperty("image_sha256").GetString()!, imageBytes,
+                    row.GetProperty("localized_roi_xyxy").EnumerateArray().Select(v => v.GetDouble()).ToArray(),
+                    row.GetProperty("roi_clipped").GetBoolean());
+                rows.Add(new InferenceRow(candidate, candidate.Clipped ? null : CreateEntry(candidate)));
+            }
+
+            IReadOnlyList<InferenceProvider> providers = [InferenceProvider.Cpu];
+            var cache = new ProviderCache();
+            var registry = new OnnxSessionRegistry(new OrtExecutionProviderDiscovery(), new WindowsExecutionProviderPolicy(),
+                new OnnxInferenceSessionFactory(NoUiThreadGuard.Instance), CpuThreadConfiguration.Create(1));
+            await using var runtime = new InferenceRuntime(registry, new BoundedInferenceScheduler(capacity: 4, workerCount: 1), cache, allowedProviders: providers);
+            ModelIdentity Identity(string id, string version, string hash, string relative) =>
+                new(id, version, hash, Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar)));
+            var numeric = new LocalOnnxComponentTextRecognizer(runtime, new LocalOnnxComponentTextRecognizerOptions(
+                Identity("graph-numeric-component-ensemble-v5", "0.0.21-p1", NumericHash, NumericPath), "0123456789.-%")
+                { StageVersion = "seed-crop-localization-v1", AllowedProviders = providers });
+            var officialBase = new LocalOnnxTextRecognizer(runtime, new LocalOnnxTextRecognizerOptions(
+                Identity("en_PP-OCRv5_mobile_rec", "0.0.21-converted", OfficialHash, OfficialPath), alphabet)
+            {
+                InputWidth = 320, InputHeight = 48, InputChannels = 3, InputLayout = OcrTensorLayout.ChannelsFirst,
+                InputColorMode = OcrTensorColorMode.GrayscaleReplicated, OutputLayout = OcrOutputLayout.BatchTimeClass,
+                OutputActivation = OcrRecognitionOutputActivation.Probabilities, ExpectedTimeSteps = 40, BlankClassIndex = 0,
+                MaximumAlternatives = 1, InputName = "x", OutputName = "fetch_name_0", StageVersion = "seed-crop-localization-official-v1",
+                ChannelMeans = [0.5f, 0.5f, 0.5f], ChannelScales = [2f, 2f, 2f], AllowedProviders = providers,
+            });
+            var official = new OcrV8OfficialTextRecognizer(officialBase, new OcrV8SourcePostprocessor(runtime,
+                new LocalOnnxAmbiguitySourceGroupOptions(Identity("graph-ambiguity-source-group-v3-p2", "0.0.21-p2", AmbiguityHash, AmbiguityPath))
+                { AllowedProviders = providers }));
+            var active = rows.Where(r => r.Entry is not null).Select(r => r.Entry!).ToArray();
+            var numericOut = await Recognize(numeric, active, e => e.Numeric);
+            var officialOut = await Recognize(official, active, e => e.Official);
+            var fullNumericOut = await Recognize(numeric, active, e => e.FullNumeric);
+            var fullOfficialOut = await Recognize(official, active, e => e.FullOfficial);
+            Require(cache.ProviderCalls.Count == 1 && cache.ProviderCalls.ContainsKey(InferenceProvider.Cpu), "Unexpected inference provider.");
+            var result = rows.Select(r =>
+            {
+                if (r.Entry is null) return new Result(r.Candidate.CaseId, r.Candidate.SourceGroup, r.Candidate.PanelId,
+                    r.Candidate.P3Score, r.Candidate.P5Score, r.Candidate.P3Selected, r.Candidate.P5Selected, r.Candidate.ImageHash, true,
+                    r.Candidate.Proposal,
+                    null, null, null, null, null, null, null, null, null, null, null);
+                Outcome n = numericOut[r.Candidate.CaseId]; Outcome o = officialOut[r.Candidate.CaseId];
+                Outcome fn = fullNumericOut[r.Candidate.CaseId]; Outcome fo = fullOfficialOut[r.Candidate.CaseId];
+                return new Result(r.Candidate.CaseId, r.Candidate.SourceGroup, r.Candidate.PanelId,
+                    r.Candidate.P3Score, r.Candidate.P5Score, r.Candidate.P3Selected, r.Candidate.P5Selected, r.Candidate.ImageHash, false,
+                    r.Candidate.Proposal,
+                    n.Text, n.Confidence, n.Failure, o.Text, o.Confidence,
+                    fn.Text, fn.Confidence, fn.Failure, fo.Text, fo.Confidence, fo.Failure);
+            }).ToArray();
+            var report = new
+            {
+                schema = "graphreader.seed-crop-localization-recognition.v1", completed = true,
+                truth_read = false, inference_provider = "CPUExecutionProvider", selected_rows = input.GetProperty("rows").GetArrayLength(),
+                inference_rows = rows.Count(r => r.Entry is not null), quarantined_rows = input.GetProperty("rows").EnumerateArray().Count(r => r.GetProperty("quarantine_reasons").GetArrayLength() != 0),
+                distinct_image_hashes = rows.Select(r => r.Candidate.ImageHash).Distinct().Count(),
+                input_sha256 = Hash(inputBytes), numeric_model_sha256 = NumericHash, numeric_evidence_sha256 = NumericEvidenceHash,
+                official_model_sha256 = OfficialHash, official_alphabet_sha256 = OcrV8ProductionCompositionFactory.OfficialAlphabetSha256,
+                ambiguity_model_sha256 = AmbiguityHash, numeric_confirmation_threshold = 0.65, official_minimum_confidence = 0.0,
+                numeric_grammar = Number.ToString(), inference_assembly_sha256 = Hash(await File.ReadAllBytesAsync(typeof(InferenceRuntime).Assembly.Location)),
+                ocr_assembly_sha256 = Hash(await File.ReadAllBytesAsync(typeof(LocalOnnxComponentTextRecognizer).Assembly.Location)),
+                p3_p5_threshold = 0.5, recognitions = result,
+            };
+            await File.WriteAllTextAsync(outputPath, JsonSerializer.Serialize(report, JsonWriteOptions));
+            Console.WriteLine($"completed selected={report.selected_rows}; inferred={report.inference_rows}; quarantined={report.quarantined_rows}; provider=CPUExecutionProvider");
+            return 0;
+        }
+        catch (Exception e) { Console.Error.WriteLine($"failed: {e.GetType().Name}: {e.Message}"); return 1; }
+    }
+
+    private static int SelfTest()
+    {
+        try
+        {
+            using Mat fixture = new(96, 256, MatType.CV_8UC1, new Scalar(255));
+            Cv2.ImEncode(".png", fixture, out byte[] fixtureBytes);
+            var candidate = new Candidate("test", "group", "panel", 0.8, 0.7, true, true,
+                default, new string('0', 64), fixtureBytes, [10, 20, 60, 60], false);
+            Entry e = CreateEntry(candidate);
+            Require(e.Numeric.Width == 128 && e.Numeric.Height == 32 && e.Official.Width == 320 && e.Official.Height == 48, "Localized crop dimensions differ.");
+            Require(e.Numeric.OriginalPolygon.Bounds == new OcrRectangle(10, 20, 50, 40), "Localized crop did not preserve ROI mapping.");
+            Console.WriteLine("localized production cropper self-test passed: numeric=128x32 official=320x48 ROI preserved");
+            return 0;
+        }
+        catch (Exception e) { Console.Error.WriteLine($"self-test failed: {e.GetType().Name}: {e.Message}"); return 1; }
+    }
+
+    private static Entry CreateEntry(Candidate candidate)
+    {
+        using Mat decoded = Cv2.ImDecode(candidate.ImageBytes, ImreadModes.Grayscale);
+        Require(!decoded.Empty() && decoded.Width == 256 && decoded.Height == 96 && decoded.Type() == MatType.CV_8UC1, "Crop image is not 256x96 grayscale.");
+        byte[] pixels = new byte[decoded.Width * decoded.Height]; System.Runtime.InteropServices.Marshal.Copy(decoded.Data, pixels, 0, pixels.Length);
+        var image = new OcrImage(decoded.Width, decoded.Height, decoded.Width, pixels, OcrSourceImage.Original,
+            OcrFrameTransform.Identity, CanonicalOriginalWidth: decoded.Width, CanonicalOriginalHeight: decoded.Height);
+        var roi = candidate.Roi;
+        Require(roi.Length == 4 && roi.All(double.IsFinite) && roi[0] >= 0 && roi[1] >= 0 && roi[2] <= 256 && roi[3] <= 96 && roi[2] > roi[0] && roi[3] > roi[1], "Localized ROI is out of frame or invalid.");
+        var region = new OcrDetectedRegion(candidate.CaseId, OcrPolygon.FromRectangle(new OcrRectangle(roi[0], roi[1], roi[2] - roi[0], roi[3] - roi[1])), 0, 1);
+        var wholeRegion = new OcrDetectedRegion(candidate.CaseId + "-whole", OcrPolygon.FromRectangle(new OcrRectangle(0, 0, 256, 96)), 0, 1);
+        OcrCrop Make(OcrDetectedRegion selected, OcrCropBatcherOptions options)
+        {
+            var batches = OcrCropBatcher.CreateBatches(image, [selected], options);
+            Require(batches.Count == 1 && batches[0].Count == 1 && batches[0][0].OriginalPolygon.Bounds == selected.Polygon.Bounds,
+                "Production cropper changed localized source geometry.");
+            return batches[0][0];
+        }
+        return new Entry(candidate,
+            Make(region, new OcrCropBatcherOptions { TargetWidth = 128, TargetHeight = 32, BatchSize = 16, HorizontalPaddingPixels = 12, VerticalPaddingPixels = 1,
+                VerticalContentPaddingRatio = 0.25, ResizeMode = OcrCropResizeMode.PreserveAspectRatioPad, PaddingValue = 1f }),
+            Make(region, new OcrCropBatcherOptions { TargetWidth = 320, TargetHeight = 48, BatchSize = 16, HorizontalPaddingPixels = 8, VerticalPaddingPixels = 2,
+                ResizeMode = OcrCropResizeMode.PreserveAspectRatioPad, PaddingValue = 0.5f }),
+            Make(wholeRegion, new OcrCropBatcherOptions { TargetWidth = 128, TargetHeight = 32, BatchSize = 16, HorizontalPaddingPixels = 12, VerticalPaddingPixels = 1,
+                VerticalContentPaddingRatio = 0.25, ResizeMode = OcrCropResizeMode.PreserveAspectRatioPad, PaddingValue = 1f }),
+            Make(wholeRegion, new OcrCropBatcherOptions { TargetWidth = 320, TargetHeight = 48, BatchSize = 16, HorizontalPaddingPixels = 8, VerticalPaddingPixels = 2,
+                ResizeMode = OcrCropResizeMode.PreserveAspectRatioPad, PaddingValue = 0.5f }));
+    }
+
+    private static async Task<Dictionary<string, Outcome>> Recognize(ITextRecognizer recognizer, Entry[] entries, Func<Entry, OcrCrop> crop)
+    {
+        var output = new Dictionary<string, Outcome>(StringComparer.Ordinal);
+        foreach (Entry[] batch in entries.Chunk(16))
+        {
+            var results = await recognizer.RecognizeBatchAsync(batch.Select(crop).ToArray(), CancellationToken.None);
+            Require(results.Count == batch.Length, "Recognizer result count mismatch.");
+            for (int i = 0; i < batch.Length; i++)
+            {
+                var best = results[i].Alternatives.OrderByDescending(a => a.Confidence).FirstOrDefault();
+                output.Add(batch[i].Candidate.CaseId, new Outcome(best?.Text, best?.Confidence, results[i].Failure?.Code));
+            }
+        }
+        return output;
+    }
+
+    private static async Task<byte[]> ReadPinned(string root, string relative, string expected, int limit)
+    {
+        string path = Path.GetFullPath(Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar)));
+        Require(path.StartsWith(root, StringComparison.OrdinalIgnoreCase), "Pinned file escaped project root.");
+        byte[] bytes = await File.ReadAllBytesAsync(path);
+        Require(bytes.Length <= limit && Hash(bytes) == expected, "Pinned file length/hash mismatch.");
+        return bytes;
+    }
+    private static string ReadAlphabet(string yaml)
+    {
+        string[] lines = yaml.Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n');
+        int start = Array.FindIndex(lines, line => line.Trim() == "character_dict:");
+        Require(start >= 0, "Official character dictionary absent.");
+        var result = new System.Text.StringBuilder();
+        for (int index = start + 1; index < lines.Length && lines[index].StartsWith("  - ", StringComparison.Ordinal); index++)
+        {
+            string value = lines[index][4..].Trim();
+            if (value.Length >= 2 && value[0] == '\'' && value[^1] == '\'') value = value[1..^1].Replace("''", "'", StringComparison.Ordinal);
+            else if (value.Length >= 2 && value[0] == '"' && value[^1] == '"') value = JsonSerializer.Deserialize<string>(value) ?? string.Empty;
+            result.Append(value);
+        }
+        if (!result.ToString().Contains(' ', StringComparison.Ordinal)) result.Append(' ');
+        return result.ToString();
+    }
+    private static string Hash(ReadOnlySpan<byte> data) => Convert.ToHexStringLower(SHA256.HashData(data));
+    private static void Require(bool condition, string message) { if (!condition) throw new InvalidDataException(message); }
+    private sealed record Candidate(string CaseId, string SourceGroup, string PanelId, double P3Score, double P5Score,
+        bool P3Selected, bool P5Selected, JsonElement Proposal, string ImageHash, byte[] ImageBytes, double[] Roi, bool Clipped);
+    private sealed record Entry(Candidate Candidate, OcrCrop Numeric, OcrCrop Official, OcrCrop FullNumeric, OcrCrop FullOfficial);
+    private sealed record InferenceRow(Candidate Candidate, Entry? Entry);
+    private sealed record Outcome(string? Text, double? Confidence, string? Failure);
+    private sealed record Result(string CaseId, string SourceGroup, string PanelId, double P3Score, double P5Score,
+        bool P3Selected, bool P5Selected, string ImageHash, bool RoiClipped, JsonElement Proposal,
+        string? NumericText, double? NumericConfidence, string? NumericFailure, string? OfficialText, double? OfficialConfidence,
+        string? FullNumericText, double? FullNumericConfidence, string? FullNumericFailure,
+        string? FullOfficialText, double? FullOfficialConfidence, string? FullOfficialFailure);
+    private sealed class ProviderCache : IStageCache
+    {
+        public Dictionary<InferenceProvider, int> ProviderCalls { get; } = [];
+        public ValueTask<byte[]?> TryGetAsync(StageCacheKey key, CancellationToken cancellationToken) => ValueTask.FromResult<byte[]?>(null);
+        public ValueTask PutAsync(StageCacheKey key, ReadOnlyMemory<byte> value, CancellationToken cancellationToken)
+        {
+            Require(value.Length >= 6, "Provider cache value is too short.");
+            InferenceProvider provider = (InferenceProvider)value.Span[5];
+            ProviderCalls[provider] = ProviderCalls.GetValueOrDefault(provider) + 1;
+            return ValueTask.CompletedTask;
+        }
+    }
+}

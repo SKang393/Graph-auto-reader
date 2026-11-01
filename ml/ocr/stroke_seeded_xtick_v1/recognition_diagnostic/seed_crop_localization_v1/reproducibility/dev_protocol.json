@@ -1,0 +1,15 @@
+{
+  "candidate_manifest_sha256": "efb3da7ee27baaea3ffa10b2202c0419d174ffea3b375667264de378307ad1cd",
+  "dev_is_already_consumed": true,
+  "fixed_classifier_threshold": 0.5,
+  "formal_acceptance": false,
+  "input_sha256": "8940fe0579ffa209985fe1aa04823c77735d92971932b1527b967e62d9e9fb49",
+  "overlap_preflight_sha256": "3d886ff888207edf076331a6a5b1351a89e13a3d17399efd8f1e2d3b45ad0eee",
+  "paired_classifier_report_sha256": "5612b128c796c224084493b3e4890cc6f5c0a22eb5d36fa1472ddd62c952d172",
+  "schema": "graphreader.seed-crop-localization-dev-protocol.v1",
+  "score_rows_sha256": "30be7b889ac536cabdaba0b7155b590c08c6d5d2f0505cf1c34a7496725f21fe",
+  "threshold_tuning": false,
+  "train_roi_protocol_sha256": "d165efb7f58db4ce68b52a5c9e7141fc440e8ea3fa1f9408f3aab7b9e1af8835",
+  "training_performed": false,
+  "truth_read": false
+}
