@@ -4,12 +4,44 @@
 using GraphReader.Axis;
 using GraphReader.Markers.Detection;
 using GraphReader.Ocr;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace GraphReader.App.Integration.Workflow;
 
 public sealed record ProductionOcrModelEvidence(
     string Task,
-    WorkflowVisionEnvelope Envelope);
+    WorkflowVisionEnvelope Envelope,
+    string? CacheKind = null,
+    string? CacheKeySha256 = null,
+    string? CacheBindingSha256 = null)
+{
+    internal const string CacheReuseTask = "ocr_cache_reuse";
+
+    internal static string ComputeCacheBindingSha256(
+        string kind,
+        string cacheKeySha256,
+        ProductionWorkflowDetectionRequest request,
+        OcrResult result,
+        IReadOnlyList<ProductionOcrConfiguredModel> configuredModels)
+    {
+        string[] material =
+        [
+            "ocr-cache-reuse-v1",
+            kind,
+            cacheKeySha256,
+            request.RunId.ToString("D"),
+            request.ProjectId.ToString("D"),
+            request.Panel.ImportedPanel.PanelId.ToString("D"),
+            request.Image.Sha256,
+            result.StageVersion,
+            .. configuredModels.OrderBy(static model => model.Task, StringComparer.Ordinal)
+                .Select(static model => string.Join("|", model.Task, model.ModelId,
+                    model.Version, model.Sha256, model.ExecutionProvider)),
+        ];
+        return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(string.Join("\u001f", material))));
+    }
+}
 
 public sealed class ProductionDetectionMaskSeed
 {
@@ -483,7 +515,9 @@ public sealed class ProductionDetectionMaskComposer :
                 raster,
                 seed,
                 axisEvidence,
-                ocrEvidence.ModelEvidence,
+                ocrEvidence.ModelEvidence
+                    .Where(static item => item.Task != ProductionOcrModelEvidence.CacheReuseTask)
+                    .ToArray(),
                 ocrEvidence.Result,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -724,10 +758,45 @@ public sealed class ProductionDetectionMaskComposer :
                 "Zero-crop OCR evidence must be a successful empty detector result with no regions, masks, batches, or region failures.");
         }
 
-        string[] requiredExecutionTasks = zeroCropResult
-            ? ["ocr_detection"]
-            : RequiredOcrTasks;
+        string? expectedCacheKind = result.Cache.CacheHit
+            ? "result"
+            : result.Cache.RecognitionCacheHit
+                ? "recognition"
+                : null;
+        string? expectedCacheKey = expectedCacheKind switch
+        {
+            "result" => result.Cache.CacheKey,
+            "recognition" => result.Cache.RecognitionCacheKey,
+            _ => null,
+        };
+        if (result.Cache.CacheHit && !result.Cache.RecognitionCacheHit ||
+            result.Cache.RecognitionCacheHit && !result.Cache.CacheHit && zeroCropResult)
+        {
+            throw Failure("OCR cache diagnostics describe an inconsistent result or recognition cache hit.");
+        }
+
+        ProductionOcrModelEvidence[] cacheEvidence = evidence.ModelEvidence
+            .Where(static item => item.Task == ProductionOcrModelEvidence.CacheReuseTask)
+            .ToArray();
+        if (expectedCacheKind is null)
+        {
+            if (cacheEvidence.Length != 0)
+                throw Failure("OCR cache reuse evidence was supplied without a cache hit.");
+        }
+        else if (cacheEvidence.Length != 1 ||
+            !ValidateCacheReuseEvidence(
+                request, result, configured, expectedCacheKind, expectedCacheKey, cacheEvidence[0]))
+        {
+            throw Failure("OCR cache hit requires one current-run reuse receipt bound to the exact cache key and configured models.");
+        }
+
+        string[] requiredExecutionTasks = result.Cache.CacheHit
+            ? []
+            : result.Cache.RecognitionCacheHit || zeroCropResult
+                ? ["ocr_detection"]
+                : RequiredOcrTasks;
         ProductionOcrModelEvidence[] ordered = evidence.ModelEvidence
+            .Where(static item => item.Task != ProductionOcrModelEvidence.CacheReuseTask)
             .OrderBy(static evidence => evidence.Task, StringComparer.Ordinal)
             .ToArray();
         if (ordered.Length != requiredExecutionTasks.Length ||
@@ -747,7 +816,9 @@ public sealed class ProductionDetectionMaskComposer :
             string identity = $"{model?.ModelId}|{model?.Version}|{model?.Sha256}";
             ProductionOcrConfiguredModel configuredModel = configured.Single(model =>
                 string.Equals(model.Task, modelEvidenceItem.Task, StringComparison.Ordinal));
-            if (!envelope.Stage.Equals(OcrContract.Stage, StringComparison.Ordinal) ||
+            if (modelEvidenceItem.CacheKind is not null || modelEvidenceItem.CacheKeySha256 is not null ||
+                modelEvidenceItem.CacheBindingSha256 is not null ||
+                !envelope.Stage.Equals(OcrContract.Stage, StringComparison.Ordinal) ||
                 !envelope.StageVersion.Equals(result.StageVersion, StringComparison.Ordinal) ||
                 envelope.RunId != request.RunId || envelope.ProjectId != request.ProjectId ||
                 envelope.PanelId != request.Panel.ImportedPanel.PanelId ||
@@ -768,7 +839,47 @@ public sealed class ProductionDetectionMaskComposer :
             }
         }
 
-        return ordered.Select(static evidence => evidence.Envelope).ToArray();
+        return evidence.ModelEvidence.OrderBy(static item => item.Task, StringComparer.Ordinal)
+            .Select(static item => item.Envelope).ToArray();
+    }
+
+    private static bool ValidateCacheReuseEvidence(
+        ProductionWorkflowDetectionRequest request,
+        OcrResult result,
+        IReadOnlyList<ProductionOcrConfiguredModel> configuredModels,
+        string expectedKind,
+        string? expectedKey,
+        ProductionOcrModelEvidence evidence)
+    {
+        if (expectedKey is null || expectedKey.Length != 64 ||
+            !expectedKey.All(Uri.IsHexDigit) ||
+            !string.Equals(evidence.CacheKind, expectedKind, StringComparison.Ordinal) ||
+            !string.Equals(evidence.CacheKeySha256, expectedKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        string bindingSha256 = ProductionOcrModelEvidence.ComputeCacheBindingSha256(
+            expectedKind, expectedKey, request, result, configuredModels);
+        if (!string.Equals(evidence.CacheBindingSha256, bindingSha256, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        WorkflowVisionEnvelope envelope = evidence.Envelope;
+        string[] expectedWarnings =
+        [
+            $"ocr_cache_reuse_kind:{expectedKind}",
+            $"ocr_cache_key_sha256:{expectedKey.ToLowerInvariant()}",
+            $"ocr_cache_binding_sha256:{bindingSha256}",
+        ];
+        return envelope.Model is null &&
+            envelope.Stage == OcrContract.Stage &&
+            envelope.StageVersion == result.StageVersion &&
+            envelope.RunId == request.RunId &&
+            envelope.ProjectId == request.ProjectId &&
+            envelope.PanelId == request.Panel.ImportedPanel.PanelId &&
+            string.Equals(envelope.InputSha256, request.Panel.Original.Sha256, StringComparison.OrdinalIgnoreCase) &&
+            envelope.CoordinateSpace == OcrContract.CoordinateSpace &&
+            expectedWarnings.All(warning => envelope.Warnings.Count(item => item == warning) == 1);
     }
 
     private static string ConfiguredIdentity(ProductionOcrConfiguredModel model) =>

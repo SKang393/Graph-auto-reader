@@ -890,7 +890,7 @@ public sealed partial class ProductionOcrAdapter :
             result.Timing.PostprocessMilliseconds,
             result.Timing.TotalMilliseconds);
         var models = new List<ProductionOcrModelEvidence>(capacity: 2);
-        bool detectionCompleted = !string.Equals(
+        bool detectionCompleted = !result.Cache.CacheHit && !string.Equals(
             result.Failure?.Code,
             "OCR_REGION_DETECTION_FAILED",
             StringComparison.Ordinal);
@@ -907,7 +907,8 @@ public sealed partial class ProductionOcrAdapter :
                     envelopeWarnings)));
         }
 
-        if (result.Succeeded && result.Cache.CropCount > 0)
+        if (result.Succeeded && !result.Cache.CacheHit && !result.Cache.RecognitionCacheHit &&
+            result.Cache.CropCount > 0)
         {
             models.Add(new(
                 "ocr_recognition",
@@ -918,6 +919,17 @@ public sealed partial class ProductionOcrAdapter :
                     recognitionProvider,
                     combinedTiming,
                     envelopeWarnings)));
+        }
+
+        if (result.Succeeded && result.Cache.CacheHit)
+        {
+            models.Add(CreateCacheReuseEvidence(
+                request, result, "result", result.Cache.CacheKey, combinedTiming, envelopeWarnings));
+        }
+        else if (result.Succeeded && result.Cache.RecognitionCacheHit)
+        {
+            models.Add(CreateCacheReuseEvidence(
+                request, result, "recognition", result.Cache.RecognitionCacheKey, combinedTiming, envelopeWarnings));
         }
 
         if (!result.Succeeded)
@@ -932,6 +944,56 @@ public sealed partial class ProductionOcrAdapter :
         }
 
         return new ProductionOcrEvidence(result, models, configuredModels);
+    }
+
+    private ProductionOcrModelEvidence CreateCacheReuseEvidence(
+        ProductionWorkflowDetectionRequest request,
+        OcrResult result,
+        string kind,
+        string? cacheKey,
+        WorkflowVisionTiming timing,
+        IReadOnlyList<string> warnings)
+    {
+        if (string.IsNullOrWhiteSpace(cacheKey) || cacheKey.Length != 64 ||
+            !cacheKey.All(Uri.IsHexDigit))
+        {
+            throw Failure(
+                ProductionWorkflowFailureCodes.DetectionEvidenceRejected,
+                "Errors.DetectionEvidenceRejected",
+                $"OCR reported a {kind} cache hit without a SHA-256 cache key.",
+                "Reject the cache result and rerun OCR with a valid cache entry.");
+        }
+
+        string normalizedKey = cacheKey.ToLowerInvariant();
+        string bindingSha256 = ProductionOcrModelEvidence.ComputeCacheBindingSha256(
+            kind, normalizedKey, request, result, configuredModels.Models);
+        string[] cacheWarnings =
+        [
+            .. warnings,
+            $"ocr_cache_reuse_kind:{kind}",
+            $"ocr_cache_key_sha256:{normalizedKey}",
+            $"ocr_cache_binding_sha256:{bindingSha256}",
+        ];
+        var envelope = new WorkflowVisionEnvelope(
+            1,
+            request.RunId,
+            request.ProjectId,
+            request.Panel.ImportedPanel.PanelId,
+            OcrContract.Stage,
+            result.StageVersion,
+            request.Image.Sha256,
+            model: null,
+            timing,
+            result.Confidence,
+            cacheWarnings,
+            request.Transforms,
+            OcrContract.CoordinateSpace);
+        return new ProductionOcrModelEvidence(
+            ProductionOcrModelEvidence.CacheReuseTask,
+            envelope,
+            kind,
+            normalizedKey,
+            bindingSha256);
     }
 
     internal static ProductionOcrAdapter CreateFromValidatedApprovedPipeline(
