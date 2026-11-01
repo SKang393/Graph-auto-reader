@@ -1,0 +1,117 @@
+{
+  "schema": "graphreader.artifact-mask-readiness-family.v1",
+  "status": "preregistered-before-component-diagnostic",
+  "scope": {
+    "synthetic_only": true,
+    "training_performed": false,
+    "model_inference_performed": false,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approval": false,
+    "acceptance_gate": false
+  },
+  "split": {
+    "train": {
+      "family": null,
+      "source_count": 0,
+      "purpose": "No training inputs are required for this deterministic component diagnostic."
+    },
+    "dev": {
+      "family": "artifact-mask-crossing-conflict-v1",
+      "source_count": 6,
+      "seed": 20261031,
+      "family_is_custom_and_isolated": true,
+      "uses_existing_reserved_test_family": false,
+      "placement_prng": "xorshift32-shift13-17-5; unsigned 32-bit arithmetic",
+      "rendered_images_persisted": false,
+      "cases": [
+        {
+          "case_id": "clear-plus-short",
+          "topology": "horizontal-and-vertical-crossing",
+          "arm_length": 10,
+          "marker": "none",
+          "expectation": "mask_center"
+        },
+        {
+          "case_id": "clear-x-short",
+          "topology": "two-diagonal-crossing",
+          "arm_length": 12,
+          "marker": "none",
+          "expectation": "mask_center"
+        },
+        {
+          "case_id": "connected-dense-crossing",
+          "topology": "two-diagonal-crossing-with-third-connector",
+          "arm_length": 10,
+          "marker": "none",
+          "expectation": "review_center_as_ambiguous"
+        },
+        {
+          "case_id": "filled-centered-core",
+          "topology": "horizontal-and-vertical-crossing",
+          "arm_length": 10,
+          "marker": "filled-square-radius-3-at-center",
+          "expectation": "preserve_marker_center"
+        },
+        {
+          "case_id": "filled-offset-core",
+          "topology": "two-diagonal-crossing-with-third-connector",
+          "arm_length": 10,
+          "marker": "filled-square-radius-3-offset-two-pixels",
+          "expectation": "preserve_marker_center"
+        },
+        {
+          "case_id": "outlined-core-boundary",
+          "topology": "two-diagonal-crossing",
+          "arm_length": 12,
+          "marker": "outlined-square-radius-6",
+          "expectation": "measure_only_no_acceptance_threshold"
+        }
+      ]
+    }
+  },
+  "component_input_contract": {
+    "canvas": [160, 110],
+    "plot_polygon": [[10, 95], [105, 95], [105, 10], [10, 10]],
+    "ocr_regions": 0,
+    "ocr_context": "empty; no predicted or ground-truth text is supplied",
+    "ocr_seed_pixels": 0,
+    "geometry_seed_pixels": 0,
+    "axis_geometry": "fixed oracle plot polygon; no axis fitter is invoked",
+    "raster": "immutable Gray8 black-on-white synthetic pixels",
+    "rendering": "in-memory deterministic test fixture; no images are persisted"
+  },
+  "provider_identity": {
+    "algorithm": "RasterResidualArtifactMaskProvider",
+    "composition_version": "raster-residual-v4-marker-core-review",
+    "configuration_fingerprint": "raster-residual-v4-marker-core-review;gray<=196;seed>=0.5;component=8;arrow-span>=14;arrow-tail-ray-intersects-label;bracket-span>=14;intersection-arm=5..64;intersection-radius=2;nms=6;compact-review-span<=13;intersection-pair-span>13;intersection-marker-like-footprint<0.5;legend-left-gap<=3.5h",
+    "provider_source_sha256": "a5b2de8deae5b0ec3a57bc9baf6269cc03988e8694a12270857f6ba7e0254047",
+    "structural_provider_source_sha256": "cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100",
+    "adapter_source_sha256": "78d34109cf8c4f886ac8069cf8fcc8e6ddfab9ade897e14f50d99706591adfa8",
+    "diagnostic_test_source_sha256": "2ed9630956bcc8ede08ce46a742a19e033828e9f67fddd588c1463713f5715bb",
+    "diagnostic_test_assembly_sha256": "2021b4a34467bbc2c326dae842bf3bf03f90c28d0bc4675677cbf9e79ceebfbf",
+    "app_assembly_sha256": "e07a780b86b6ea91c2012b3fbe1fee196d09f3c0cc013315bcfa115ba28f80f4",
+    "ocr_assembly_sha256": "165751e50d5952d4555223b063fb0fac145630aa266f255104d0abc33c6f8eb4",
+    "model_sha256": null,
+    "model_runtime": "none; provider and morphology implementation are deterministic code, not model inference"
+  },
+  "predeclared_outputs": {
+    "clear_crosses_mask_center": 2,
+    "dense_or_filled_conflicts_preserve_center": 3,
+    "outlined_marker_case_reported_without_gate": 1,
+    "masked_marker_truth_pixels_maximum": 0,
+    "reported_metrics": [
+      "candidate region count by category",
+      "masked center count by predeclared expectation",
+      "masked pixels overlapping synthetic marker pixels, aggregate only"
+    ],
+    "threshold_changes": false,
+    "approval_claim": false
+  },
+  "interpretation_limitations": [
+    "This is a component diagnostic with oracle plot bounds and empty OCR context, not production workflow evaluation.",
+    "The explicit training split is empty. No training data or optimizer is involved.",
+    "The outlined-marker case is a boundary observation only and does not define a pass bar.",
+    "Synthetic pixel outcomes cannot establish representative graph accuracy or production approval."
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "graphreader.artifact-mask-readiness-outcome.v1",
+  "status": "component_diagnostic_passed_not_acceptance",
+  "scope": {
+    "synthetic_only": true,
+    "training_performed": false,
+    "model_inference_performed": false,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_approval": false
+  },
+  "protocol": {
+    "path": "tools/artifact-mask/readiness-family-v1.json",
+    "sha256": "1c0565c82570219209b1a822576ef5da60a8468d16cca0dc93d71a1bd5472eb7",
+    "family": "artifact-mask-crossing-conflict-v1",
+    "seed": 20261031,
+    "train_sources": 0,
+    "dev_sources": 6,
+    "rendered_pixels_persisted": false
+  },
+  "source_bindings": {
+    "provider_source_sha256": "a5b2de8deae5b0ec3a57bc9baf6269cc03988e8694a12270857f6ba7e0254047",
+    "structural_provider_source_sha256": "cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100",
+    "adapter_source_sha256": "78d34109cf8c4f886ac8069cf8fcc8e6ddfab9ade897e14f50d99706591adfa8",
+    "diagnostic_test_source_sha256": "2ed9630956bcc8ede08ce46a742a19e033828e9f67fddd588c1463713f5715bb",
+    "app_assembly_sha256": "e07a780b86b6ea91c2012b3fbe1fee196d09f3c0cc013315bcfa115ba28f80f4",
+    "ocr_assembly_sha256": "165751e50d5952d4555223b063fb0fac145630aa266f255104d0abc33c6f8eb4",
+    "diagnostic_test_assembly_sha256": "2021b4a34467bbc2c326dae842bf3bf03f90c28d0bc4675677cbf9e79ceebfbf",
+    "model_sha256": null
+  },
+  "commands": {
+    "build": "dotnet build tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore",
+    "test": [
+      "$env:GRAPHREADER_ARTIFACT_MASK_STRICT_BINDING = '1'",
+      "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore --no-build --filter FullyQualifiedName~ArtifactMaskReadinessFamilyTests --results-directory artifacts/artifact-mask/readiness-family-v1-run-3 --logger \"trx;LogFileName=component-diagnostic.trx\""
+    ],
+    "build_result": "passed, 0 warnings, 0 errors",
+    "test_result": "passed, 1 test, 0 failures, strict identity binding enabled"
+  },
+  "report": {
+    "path": "artifacts/artifact-mask/readiness-family-v1-run-3/component-diagnostic.trx",
+    "sha256": "23ca644bfeba0abea50763b324e966bdbe30d2f91759a40be21c806b3e0566d2",
+    "aggregate": {
+      "dev_cases": 6,
+      "clear_cross_centers_masked": 2,
+      "dense_or_filled_conflict_centers_preserved": 3,
+      "outlined_boundary_center_masked_for_measurement_only": true,
+      "intersection_regions": 3,
+      "synthetic_marker_truth_pixels": 146,
+      "masked_marker_truth_pixels": 0
+    }
+  },
+  "retries": [
+    {
+      "command": "dotnet build tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore",
+      "result": "initial compile failed on missing System.IO imports and MSTEST0017 argument-order diagnostics; imports and argument order were fixed before any provider test run"
+    },
+    {
+      "command": "dotnet build tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore",
+      "result": "second compile failed only on two MSTEST0017 argument-order diagnostics; assertions were corrected before any provider test run"
+    },
+    {
+      "command": "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore --no-build --filter FullyQualifiedName~ArtifactMaskReadinessFamilyTests --logger \"console;verbosity=normal\"",
+      "result": "failed before completing the cases with InvalidDataException: Protocol includes an unsupported crossing topology; corrected topology labels in the preregistered protocol to match the already intended diagonal X plus third horizontal connector"
+    }
+  ],
+  "preregistration_change": {
+    "case_geometry_changed": false,
+    "case_membership_changed": false,
+    "seed_changed": false,
+    "expected_observations_changed": false,
+    "protocol_label_changed": true,
+    "detail": "Two topology strings were normalized to two-diagonal-crossing-with-third-connector before the final strict-bound run. The C# fixture drawing and expected outcomes were unchanged."
+  },
+  "limitations": [
+    "Component diagnostic only: fixed oracle plot bounds and empty OCR context; no axis detector, OCR model, artifact-seed generator, or full workflow was executed.",
+    "The six cases support retaining the current V4 conflict behavior for this bounded synthetic family, but do not establish representative accuracy, model readiness, or production acceptance.",
+    "The outlined-marker boundary observation has no pass threshold."
+  ]
+}
