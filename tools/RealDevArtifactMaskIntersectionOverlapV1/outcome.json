@@ -1,0 +1,61 @@
+{
+  "schema": "graphreader.real-dev-artifact-mask-intersection-overlap-outcome.v1",
+  "status": "development-diagnostic-only-unapproved",
+  "development_partition_previously_exposed": true,
+  "real_dev_pair_v1": {
+    "source": "tools/RealDevArtifactMaskPairV1/Program.cs",
+    "source_sha256": "c718f9a80781d99e6366b534f39047e0e7ce916505dd5c343dd885f7c717407f",
+    "project_sha256": "f27a06f917d0c90d965d251da7b01c8ac16c33102edac5b4b10daa5105de5e61",
+    "protocol": "tools/RealDevArtifactMaskPairV1/protocol.json",
+    "protocol_sha256": "f2fe6b406aad0e458bc3c5cbae7c193b136f4c22b7c2b0a1f41ce616e7148393",
+    "runner_assembly_sha256": "71d938f07a941169af26e90b1a1f70854bcf38b1c646c3e2e0d266125d8b419b",
+    "first_non_authoritative_report_sha256": "a3a59fa20b6e6c6f75923e6349b25cc581d5aacecd021b53c2416dbee96f1814",
+    "first_report_train_payload_flag_authoritative": false,
+    "first_run_used_stale_runner_assembly": true,
+    "authoritative_report_sha256": "9585f5b6e973101e2be69ff6e9b0a34060a7c82fe9c43aa2ece491072a82bb39",
+    "disclosure_companion_sha256": "50e5bf1515d5f98bc166cc5a190c8155296cd8dadbb71a276c5581c732281bf8",
+    "aggregate": {
+      "development_projects_paired": 16,
+      "engauge_centers": 217,
+      "baseline_masked_centers": 7,
+      "candidate_masked_centers": 0,
+      "baseline_masked_pixels": 4404,
+      "candidate_masked_pixels": 2879,
+      "baseline_connecting_line_intersections": 61,
+      "candidate_connecting_line_intersections": 0,
+      "baseline_brackets": 19,
+      "candidate_brackets": 19
+    }
+  },
+  "intersection_overlap_v1": {
+    "source": "tools/RealDevArtifactMaskIntersectionOverlapV1/Program.cs",
+    "source_sha256": "f4bdddae35f8c1fd73c474b0df64047353f833bdd913dcd1186cbdd7251066c8",
+    "project_sha256": "17ac2f5fc9c127d3d889cc435d20109910bbc93a43277180f5d4452cc97f8b4c",
+    "protocol": "tools/RealDevArtifactMaskIntersectionOverlapV1/protocol.json",
+    "protocol_sha256": "b90982792d9dfa26cff62ad2ff1ae9363b616cdec1a1a64b39af213961763707",
+    "runner_assembly_sha256": "dc5b0f3d61581e5bb6e14b96dc0d5e516caa0208d8a9a09504d038332c59beb0",
+    "report_sha256": "925ee768d4cb11c367b4a8c8f1974b5955a09636627fee68eac874de1f0bf86e",
+    "development_partition_previously_exposed": true,
+    "aggregate": {
+      "baseline_intersection_regions": 61,
+      "regions_conflicting_with_candidate_marker_probability": 61,
+      "regions_containing_rounded_engauge_center": 7,
+      "regions_near_center_only_within_6_pixels": 14,
+      "regions_without_engauge_center_within_6_pixels": 40,
+      "unlabeled_regions_are_not_verified_negatives": true
+    }
+  },
+  "limits": {
+    "no_real_dev_threshold_tuning": true,
+    "no_sealed_payload_reads": true,
+    "no_production_edits_or_gate_changes": true,
+    "no_elapsed_time_measurement": true,
+    "runtime_binary_parity_verified": false,
+    "diagnostic_opencv_native_sha256": "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd",
+    "reviewed_release_opencv_native_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+    "runtime_binary_parity_note": "Both real-dev tools loaded 1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd, not the reviewed 0.4.35 binary c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31; parity with reviewed runtime is unverified.",
+    "cross_tool_content_digest_domains_match": false,
+    "matching_aggregates_prove_byte_identical_inputs_across_tools": false,
+    "candidate_remains_unapproved": true
+  }
+}

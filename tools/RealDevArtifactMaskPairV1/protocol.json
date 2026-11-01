@@ -1,0 +1,67 @@
+{
+  "schema": "graphreader.real-dev-artifact-mask-pair.v1",
+  "status": "preregistered-before-run",
+  "purpose": "paired source-bound component diagnostic on the already-exposed 16-project development partition",
+  "split": {
+    "inventory_projects": 120,
+    "train_projects_metadata_only": 104,
+    "development_projects": 16,
+    "sealed_count_metadata_only": 51,
+    "study_count": 28,
+    "assignment_rule": "sha256:graphreader-engauge-real-dev-study-v1:first-byte-lt-204",
+    "assignment_sha256": "decdac87c0c6d8ee8350b4e26bee2256c551ce20c518732f62fb6d990ea5850a",
+    "development_only_payload_reads": true,
+    "development_exposure_disclosed": true
+  },
+  "candidate_ocr": {
+    "provider": "cpu_only",
+    "composition": "OcrV8ProductionCompositionFactory",
+    "model_sha256": {
+      "detector": "474b8468dbd91416f4e4978dafc46cb2317775d59d821c0470e0cd3e0f6203db",
+      "official_recognizer": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+      "numeric_recognizer": "9db95c41ce396e8b2dff3b525556615528a00ca87f4cc531274374b961417c84",
+      "ambiguity_recognizer": "b8e2773ca3966469081875fc36b3981ef4eb458356d8dfdae2be2722602f0096",
+      "official_alphabet": "8b31115bc8675a58b670879950b550e7d9840984954d9584d251fd72a764477a"
+    },
+    "axis": "ProductionAxisGeometryAdapter with OpenCvLineCandidateProvider, CPU",
+    "ocr_raster": "ProductionRasterFrameDecoder; original unmasked raster and detected axis plot bounds"
+  },
+  "mask_comparison": {
+    "baseline": "RasterResidualArtifactMaskProvider default structural probability provider",
+    "candidate": "same provider plus fixed test-only OutlineCoreCandidateProbabilityProvider from ArtifactMaskOutlineCoreCandidateTests",
+    "candidate_rule_source_sha256": "26d5a0e003717ed33b6621087d303a8cf1f5df1d9b7e594f5842a3e103a3f00d",
+    "seed": "exact ProductionDetectionMaskComposer.BuildSeedMasks implementation invoked by source-bound reflection",
+    "seed_limitation": "V8 exposes a combined four-model OcrResult and not the two-model ProductionOcrEvidence execution receipts required by the composition wrapper; only receipt validation is bypassed for the diagnostic. Both paired providers receive byte-identical raster, axis, OCR result, and seed."
+  },
+  "metrics": {
+    "aggregation": "aggregate only; no project IDs, paths, OCR text, points, images, or case-level values in output",
+    "point_metric": "nearest-pixel Engauge marker-center sampling for baseline/candidate mask state changes",
+    "mask_metric": "total masked pixel count and coverage across successfully paired rasters",
+    "artifact_metric": "counts by every RasterResidualArtifactCategory",
+    "limits": "No complete marker masks or labeled negative structures; this cannot estimate precision or recall and is not production or sealed acceptance. The 16 studies were previously exposed development data; a prior paired execution is preserved as non-authoritative, so this run is a second development exposure."
+  },
+  "scope": {
+    "train_payload_reads": false,
+    "sealed_payload_reads": false,
+    "training": false,
+    "gpu_inference": false,
+    "desktop_ui": false,
+    "production_source_modified": false,
+    "production_gate_modified": false,
+    "case_level_output": false,
+    "production_approval": false,
+    "sealed_acceptance": false,
+    "ground_truth_text_boxes": false
+  },
+  "identity": {
+    "program_sha256": "c718f9a80781d99e6366b534f39047e0e7ce916505dd5c343dd885f7c717407f",
+    "project_sha256": "f27a06f917d0c90d965d251da7b01c8ac16c33102edac5b4b10daa5105de5e61",
+    "candidate_source_sha256": "26d5a0e003717ed33b6621087d303a8cf1f5df1d9b7e594f5842a3e103a3f00d",
+    "app_assembly_sha256": "d55f9191e52872750711866921fa19f62a43b86df59acfdc33739dab45a0dbce",
+    "ocr_assembly_sha256": "31310c7be9a244df5eaa32acf83246390e46571e840ff8aa7f8e9c2ecc48d139",
+    "axis_assembly_sha256": "d4048bb4adf9422432d60ec6dd4ef21619dee387f7c3cc7842dd7e9890cda2f2",
+    "app_test_assembly_sha256": "55a9d915948b10e60aa417dde75c25007ccea016837cd76cebbaf031745f41f6",
+    "runner_assembly_sha256": "71d938f07a941169af26e90b1a1f70854bcf38b1c646c3e2e0d266125d8b419b",
+    "opencv_native_sha256": "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd"
+  }
+}

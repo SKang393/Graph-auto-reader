@@ -1,0 +1,73 @@
+{
+  "schema": "graphreader.real-dev-artifact-mask-intersection-overlap.v1",
+  "status": "preregistered-before-run",
+  "purpose": "aggregate-only attribution of baseline intersection regions to fixed candidate marker-probability conflicts and Engauge marker-center neighborhoods",
+  "split": {
+    "inventory_projects": 120,
+    "train_projects_metadata_only": 104,
+    "development_projects": 16,
+    "sealed_count_metadata_only": 51,
+    "study_count": 28,
+    "assignment_rule": "sha256:graphreader-engauge-real-dev-study-v1:first-byte-lt-204",
+    "assignment_sha256": "decdac87c0c6d8ee8350b4e26bee2256c551ce20c518732f62fb6d990ea5850a",
+    "development_partition_exposure_number": 3,
+    "earlier_pair_runs_preserved": 2,
+    "development_exposure_disclosed": true,
+    "development_only_payload_reads": true
+  },
+  "inputs": {
+    "ocr": "OcrV8ProductionCompositionFactory, CPU only, fixed model hashes from paired diagnostic protocol v1",
+    "axis": "ProductionAxisGeometryAdapter with OpenCvLineCandidateProvider, CPU",
+    "raster": "ProductionRasterFrameDecoder, original unmasked raster; OCR detector receives detected axis plot bounds",
+    "seed": "ProductionDetectionMaskComposer.BuildSeedMasks exact source-bound reflection; receipt validation bypassed because V8 returns combined OcrResult without ProductionOcrEvidence receipts",
+    "pair": "same raster, axis, OCR, and seed passed to baseline and fixed candidate residual mask providers"
+  },
+  "candidate_ocr": {
+    "provider": "cpu_only"
+  },
+  "candidate": {
+    "provider": "fixed test-only OutlineCoreCandidateProbabilityProvider nested in ArtifactMaskOutlineCoreCandidateTests",
+    "source_sha256": "26d5a0e003717ed33b6621087d303a8cf1f5df1d9b7e594f5842a3e103a3f00d",
+    "behavior_under_test": "runs its unchanged base provider; on Gray8 ink with GeometryMask below 128, it raises marker probability to at least 0.90 within the 5x5 center core after two long crossing axes and at least 15 of 16 sectors have annular ink support at radius 4 through 9",
+    "frame_contract": "ProductionRasterFrameDecoder supplies contiguous Gray8 stride equal to width; RasterResidualArtifactMaskProvider supplies GeometryMask stride equal to width. Candidate reads Gray8 and GeometryMask only; no color plane.",
+    "intersection_suppression_contract": "baseline OverlapsMarkerLikeInk rejects a 5x5 intersection candidate when any marker probability in that footprint is at least 0.5"
+  },
+  "predeclared_metrics": {
+    "baseline_region_set": "all baseline ConnectingLineIntersection regions, each represented by its 5x5 mask bounds",
+    "candidate_conflict": "region count whose corresponding 5x5 baseline bounds contain any candidate marker probability >= 0.5",
+    "engauge_overlap": "region count whose 5x5 mask bounds contain at least one rounded Engauge marker center",
+    "engauge_near_only": "not contained in the 5x5 bounds, but at least one rounded center within Euclidean 6 pixels of the bounds center",
+    "no_engauge_center": "no rounded Engauge point center within Euclidean 6 pixels; this is unlabeled, not a verified negative",
+    "reporting": "aggregate counts only; no source IDs, labels, names, text, paths, images, or coordinates"
+  },
+  "limitations": {
+    "engauge_centers_are_imperfect_points_not_complete_marker_masks": true,
+    "unlabeled_structures_are_not_verified_negatives": true,
+    "component_diagnostic_not_production_workflow_or_acceptance": true,
+    "candidate_ocr_detector_is_unmasked_and_this_is_not_full_production_detection": true,
+    "elapsed_time_not_measured": true
+  },
+  "scope": {
+    "train_payload_reads": false,
+    "sealed_payload_reads": false,
+    "training": false,
+    "gpu_inference": false,
+    "desktop_ui": false,
+    "production_source_modified": false,
+    "production_gate_modified": false,
+    "case_level_output": false,
+    "production_approval": false,
+    "sealed_acceptance": false
+  },
+  "identity": {
+    "program_sha256": "f4bdddae35f8c1fd73c474b0df64047353f833bdd913dcd1186cbdd7251066c8",
+    "project_sha256": "17ac2f5fc9c127d3d889cc435d20109910bbc93a43277180f5d4452cc97f8b4c",
+    "candidate_source_sha256": "26d5a0e003717ed33b6621087d303a8cf1f5df1d9b7e594f5842a3e103a3f00d",
+    "app_assembly_sha256": "d55f9191e52872750711866921fa19f62a43b86df59acfdc33739dab45a0dbce",
+    "ocr_assembly_sha256": "31310c7be9a244df5eaa32acf83246390e46571e840ff8aa7f8e9c2ecc48d139",
+    "axis_assembly_sha256": "d4048bb4adf9422432d60ec6dd4ef21619dee387f7c3cc7842dd7e9890cda2f2",
+    "app_test_assembly_sha256": "55a9d915948b10e60aa417dde75c25007ccea016837cd76cebbaf031745f41f6",
+    "runner_assembly_sha256": "dc5b0f3d61581e5bb6e14b96dc0d5e516caa0208d8a9a09504d038332c59beb0",
+    "opencv_native_sha256": "1fa122bdb8e94175e7719fb8aa8f2ab211268a756f5d0c7a13c710ed79ae30cd"
+  }
+}
