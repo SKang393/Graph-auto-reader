@@ -50,6 +50,15 @@ cannot approve release packaging. `Install-ReleaseRenderer.ps1` must independent
 validate the current harness hash, report schema, typed results, VM identity,
 application bytes, renderer bytes, resources, fixed render, and packaged fallback.
 
+In the same offline laptop guest, the reviewed standalone renderer
+`e61fa4e46ada9ae3e9040865674c35c3abdb5722031d5c9447a54155e483a468`
+rendered the controlled synthetic 72-by-72 PDF with raw output SHA-256
+`b549878f8641965a3c78a659177f4b4e027fa250d161d33b9a3df551e8f72158`.
+The copied component report SHA-256 is
+`f64d7e31277fb79ceba90cca8bb8971e571dfc67c1016a717eec39d50b1aabc0`.
+This exercised the standalone renderer only in the aged guest; it did not run
+the packaged production application or satisfy the PDFium clean-machine gate.
+
 ## Preparing a separate Windows test PC
 
 The separate PC is the VM host. A normal physical Windows installation on that
