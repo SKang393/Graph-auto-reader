@@ -155,7 +155,10 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
         // Native endpoints stop short of ink. Include the same endpoint
         // uncertainty used by the path check, without enlarging its detour.
         // Short LSD terminal stubs still carry valid endpoint evidence.
-        double maximumInkSpan = _options.HoughMinimumLineLengthPixels * 2d;
+        double nativeInkSpan = _options.HoughMinimumLineLengthPixels * 2d;
+        // Large scanned plots can contain symbols wider than the fixed Hough
+        // minimum. Scale only the observed-ink search, not Hough detection.
+        double maximumInkSpan = Math.Max(nativeInkSpan, Math.Min(80d, Math.Min(frame.Width, frame.Height) * 0.06d));
         double maximumGap = maximumInkSpan + (2 * InkEndpointRadius);
         if (maximumGap <= minimumGap)
         {
@@ -214,11 +217,14 @@ public sealed class OpenCvLineCandidateProvider : ILineCandidateProvider
                         double gapX = endpoint.Point.X - neighbor.Point.X;
                         double gapY = endpoint.Point.Y - neighbor.Point.Y;
                         double distance = Math.Sqrt((gapX * gapX) + (gapY * gapY));
-                        if (distance <= minimumGap || distance > maximumGap ||
-                            ((gapX * neighbor.Outward.X) + (gapY * neighbor.Outward.Y)) / distance < alignmentCosine ||
+                        if (!double.IsFinite(distance) || distance <= minimumGap || distance > maximumGap)
+                            continue;
+                        int detourRadius = (int)Math.Ceiling(Math.Min(maximumInkSpan,
+                            Math.Max(nativeInkSpan, (distance / 2d) + InkEndpointRadius)));
+                        if (((gapX * neighbor.Outward.X) + (gapY * neighbor.Outward.Y)) / distance < alignmentCosine ||
                             -((gapX * endpoint.Outward.X) + (gapY * endpoint.Outward.Y)) / distance < alignmentCosine ||
                             !HasLocalInkPath(neighbor.Point, endpoint.Point, frame, pixels,
-                                (int)Math.Ceiling(maximumInkSpan), cancellationToken) ||
+                                detourRadius, cancellationToken) ||
                             !usedPairs.Add((neighbor.Candidate.CandidateId, endpoint.Candidate.CandidateId)))
                         {
                             continue;

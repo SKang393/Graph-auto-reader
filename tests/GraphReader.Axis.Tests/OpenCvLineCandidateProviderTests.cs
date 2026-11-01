@@ -229,6 +229,66 @@ public sealed class OpenCvLineCandidateProviderTests
     }
 
     [TestMethod]
+    [DataRow(true, false, false)]
+    [DataRow(true, true, false)]
+    [DataRow(false, false, false)]
+    [DataRow(false, true, false)]
+    [DataRow(false, false, true)]
+    public async Task LargeMarkerRequiresObservedInkAcrossItsNativeEdgeGap(bool connected, bool outlined, bool distantDetour)
+    {
+        const int width = 1200, height = 600, baseline = 520, centerX = 300, radius = 18;
+        byte[] pixels = Enumerable.Repeat(byte.MaxValue, width * height).ToArray();
+        for (int x = 80; x <= 1100; x++)
+        {
+            SetBlack(pixels, width, x, baseline);
+            SetBlack(pixels, width, x, baseline + 1);
+        }
+        for (int y = 80; y <= baseline + 1; y++)
+        {
+            SetBlack(pixels, width, 80, y);
+            SetBlack(pixels, width, 81, y);
+        }
+        for (int y = baseline - radius; y <= baseline + radius; y++)
+        for (int x = centerX - radius; x <= centerX + radius; x++)
+        {
+            double distanceSquared = Math.Pow(x - centerX, 2) + Math.Pow(y - baseline, 2);
+            if (distanceSquared <= radius * radius)
+                pixels[(y * width) + x] = connected && (!outlined || distanceSquared >= (radius - 2) * (radius - 2))
+                    ? (byte)0 : byte.MaxValue;
+        }
+        if (distantDetour)
+        {
+            // A separate U-shaped trace connects the endpoints far from the
+            // baseline. It is not evidence for a straight axis through air.
+            for (int y = baseline - 35; y <= baseline; y++)
+            {
+                SetBlack(pixels, width, centerX - radius - 1, y);
+                SetBlack(pixels, width, centerX + radius + 1, y);
+            }
+            for (int x = centerX - radius - 1; x <= centerX + radius + 1; x++)
+                SetBlack(pixels, width, x, baseline - 35);
+        }
+        var frame = new GrayscaleLineCandidateFrame(width, height, width, pixels);
+        IReadOnlyList<GeometryLineCandidate> candidates = await new OpenCvLineCandidateProvider()
+            .DetectLinesAsync(frame, CancellationToken.None);
+
+        bool bridge = candidates.Any(candidate =>
+            candidate.CandidateId.StartsWith("raster-ink-bridge-", StringComparison.Ordinal) &&
+            Math.Abs(candidate.Segment.Midpoint.Y - baseline) < 4 &&
+            Math.Min(candidate.Segment.Start.X, candidate.Segment.End.X) <= centerX - 12 &&
+            Math.Max(candidate.Segment.Start.X, candidate.Segment.End.X) >= centerX + 12);
+        Assert.AreEqual(connected, bridge,
+            "A larger connected symbol can preserve the axis; an equally sized empty gap cannot.");
+        if (connected)
+        {
+            AxisGeometryResult geometry = await new AxisGeometryDetector().DetectAsync(
+                new AxisGeometryRequest(width, height, candidates));
+            Assert.IsTrue(geometry.PlotPolygon.BottomRight.X > 1090d,
+                "A connected symbol must not truncate the returned axis.");
+        }
+    }
+
+    [TestMethod]
     public async Task NativeProviderValidatesOriginalPixelsBufferAndCancellation()
     {
         GrayscaleLineCandidateFrame valid = CreateCleanAxisFrame();
