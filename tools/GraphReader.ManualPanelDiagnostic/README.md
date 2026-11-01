@@ -40,3 +40,5 @@ The private diagnostic outputs remain until the active axis investigation no
 longer consumes them. They are not packaging inputs.
 The follow-up connectivity measurement is recorded in
 [CONNECTIVITY_RESULT.md](CONNECTIVITY_RESULT.md).
+The study-partitioned development review is recorded in
+[DEV_CONNECTIVITY_RESULT.md](DEV_CONNECTIVITY_RESULT.md).
