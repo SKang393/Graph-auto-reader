@@ -300,6 +300,19 @@ unfit for use. Report SHA-256:
 `50aeafeeea48405cf5f219f076ebb9a513cb569f76a8ccac74f3b53a83c39214`.
 Eight diagnostic tests passed; inference used the RX 6600 XT.
 
+The P2 classifier kept the same training split, model and 460-step schedule,
+but allocated draws uniformly across source groups within each class. At the
+unchanged score 0.5 on training images, its true positives/false positives/
+false negatives/true negatives were 48/10/33/355, versus 81/268/0/97 for P1.
+Precision rose to 0.828 but recall fell to 0.593. All training images were
+covered by epoch 5. No internal holdout images were read during P2 training or
+evaluation; these are train-only figures, not generalization evidence.
+P2 hashed the actual imported helper bytes and recorded runtime versions.
+
+- P2 report SHA-256: `5152d2101d51a60254d72b7c8d42f8b900a6258ea7a309fbb1c7fa51bb559263`
+- P2 checkpoint SHA-256: `166d5ded9213ef5b5d87b23183124aed116f573f00297dca4d30c76a0eb7b43d`
+- Source-uniform sampler and GPU-binding tests: 5 passed.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
