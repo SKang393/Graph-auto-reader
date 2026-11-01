@@ -228,6 +228,30 @@ unchanged to preserve V6 reproducibility.
 - Curation source SHA-256: `7e8a32dda6b5cf74f013db0992bd66ed894301dca21cf94ea32f64f1275c32df`
 - Curation rule tests: 9 passed. No training or probe input was used.
 
+## Curated-mix GPU experiment and paired probe
+
+The mixed recipe retained the original V6 training rows and added 148 unique
+curated images, with rotating and source-balanced sampling. It ran 2,760 steps
+on the AMD Radeon RX 6600 XT. The full training pool contained 792 rows but
+only 473 unique image hashes; its metrics are occurrence-weighted train fit.
+The scanner-failed source contributed no new curated rows, though its existing
+V6 rows remained eligible. Two imported helpers were not hash-pinned in the
+training receipt, so their exact execution-time bytes cannot be proven later.
+
+On the already-consumed 323-row synthetic probe, with score and match IoU 0.5,
+the earlier P2 model achieved one-box precision 0.816 and recall 0.806; the
+mixed model achieved 0.775 and 0.752. With full NMS, P2 had 153 true positives,
+375 false positives and 12 misses, versus 149, 276 and 16 for the mixed model.
+Thus the mixed model reduced extra boxes but lost matches; neither result is
+production acceptance. Duplicate rows and prior background exclusions in the
+probe remain as described above.
+
+- Training report SHA-256: `4997c1c47f238f39a2fef7308d72fe70c7070e0bee8427a0608fe21c019917f9`
+- Mixed checkpoint SHA-256: `da1b72d949cfd8ca198ec18a9c346f069acef55e6ac64a2ef9e9cb2bcf402e63`
+- Paired probe report SHA-256: `8e91f01366e06946c5d3d0566da41fac8e3aaed19ed830f6519dcfbf1a6165b7`
+- Sampler tests: 3 passed; paired evaluation tests: 2 passed. Training and
+  paired inference used the RX 6600 XT.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
