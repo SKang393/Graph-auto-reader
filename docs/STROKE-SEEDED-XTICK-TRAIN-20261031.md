@@ -252,6 +252,21 @@ probe remain as described above.
 - Sampler tests: 3 passed; paired evaluation tests: 2 passed. Training and
   paired inference used the RX 6600 XT.
 
+The same checkpoints were also compared on 365 truth-blind ink-scan
+proposals from the consumed synthetic panels. At score 0.5, P2 matched 72 of
+181 visible ticks and left 271 proposals unmatched; the mixed checkpoint
+matched 65 and left 225 unmatched. On the 10 panels with no visible ticks,
+the mixed checkpoint retained no proposals at that threshold, versus 18 for
+P2. There were 22 axis-uncertain panels. Both variants remain unsuitable for
+production, and this is not real-graph or untouched acceptance evidence.
+
+The first paired attempt completed inference but failed to serialize its
+report; a fixed retry reproduced the P2 baseline. A separate correction to
+the retry report records 12 batches per model and 24 model-batch calls total.
+No inference was rerun for that metadata correction. Corrected report SHA-256:
+`51d716225552ec7e3412c373c858117e13a7e79666dbd061a24af0ecbe724b59`.
+Five focused tests passed; both checkpoints ran on the RX 6600 XT.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
