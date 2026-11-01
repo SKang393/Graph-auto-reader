@@ -1,0 +1,27 @@
+{
+  "schema": "graphreader.stroke-seeded-p3-text-gate-recipe.v1",
+  "recipe_id": "frozen-p3-top-region-confidence-gate-on-fresh-seeded-crops-v1",
+  "source_seed_start": 27105100,
+  "source_count": 24,
+  "renderer_family_counts": {
+    "hand_drawn": 6,
+    "print_monochrome": 6,
+    "scan_rough": 6,
+    "vector_clean": 6
+  },
+  "split_rule": "union source groups sharing crop PNG SHA256 or full-panel pixel SHA256; sort components by SHA256(domain|sorted source IDs); add whole components until ceil(20 percent of all admitted positive crops) are assigned to validation",
+  "split_domain": "stroke-seeded-p3-text-gate-source-split-v1",
+  "detector_score_threshold_candidates": [0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9],
+  "fit_selection_rule": "maximize fit F1; tie by greater precision, then higher threshold",
+  "region_match_iou": 0.5,
+  "material_gain_rule": "on validation, require at least 20 percent fewer false-positive crop candidates than scanner-only and no more than 5 percentage points loss in positive-crop recall",
+  "p3_db_parameters": {
+    "probability_threshold": 0.3,
+    "box_confidence_threshold": 0.6,
+    "unclip_ratio": 1.5,
+    "minimum_side_px": 3,
+    "maximum_regions": 1000
+  },
+  "training": false,
+  "production_activation": false
+}
