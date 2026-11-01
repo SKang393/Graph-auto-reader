@@ -69,17 +69,18 @@ evidence exists.
 
 ## Installer transaction component check
 
-At source commit `f13382ce`, the existing
+At source commit `e1c023d6`, the existing
 `packaging/tests/installer-transaction` program was published as a
 self-contained Windows executable and run over SSH in a new, task-owned
 directory on the separate laptop. Its executable SHA-256 was
-`313166c12afdd89f688703d975295d42d5233227a35464557da30de10ae3f0df`;
+`64222957a6fc821546dd19746a82dca603476ee42dcfce10023d9a827af3e8a6`;
 the copied host report SHA-256 was
-`464f0622f381b12a5f3790b8a8c2ad3e3963455222f48c37b6c52d65076d2eb0`.
+`836f39998f760d6d1025d823cf17b7c434ec1a86172ec6fe1b06ac90198afed3`.
 The executable exited 0 and reported passing checks for file and metadata
 rollback, upgrade and uninstall preservation, rejection of a reparse point,
-and invalidation of a deferred operation after replacement. The fixture used
-real local filesystem operations and an in-memory registry substitute.
+invalidation of a deferred operation after replacement, locked temporary
+staging cleanup, and unavailable failure-log handling. The fixture used real
+local filesystem operations and an in-memory registry substitute.
 
 This is a component test on the laptop's existing Windows installation. It
 did not run the actual setup executable, make Windows registration changes,
