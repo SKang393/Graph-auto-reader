@@ -308,6 +308,11 @@ Precision rose to 0.828 but recall fell to 0.593. All training images were
 covered by epoch 5. No internal holdout images were read during P2 training or
 evaluation; these are train-only figures, not generalization evidence.
 P2 hashed the actual imported helper bytes and recorded runtime versions.
+An independent audit confirmed the sampling and metric arithmetic, but found
+that the P1 trainer and train-admission modules were imported normally before
+their source hashes were checked. Their loaded bytecode is therefore not
+proven by the recorded source hashes; no stale bytecode was observed. Future
+runs must verify the actual executed dependency bytes before use.
 
 - P2 report SHA-256: `5152d2101d51a60254d72b7c8d42f8b900a6258ea7a309fbb1c7fa51bb559263`
 - P2 checkpoint SHA-256: `166d5ded9213ef5b5d87b23183124aed116f573f00297dca4d30c76a0eb7b43d`
