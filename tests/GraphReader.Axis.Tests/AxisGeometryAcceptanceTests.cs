@@ -51,6 +51,32 @@ public sealed class AxisGeometryAcceptanceTests
     }
 
     [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task AxisConfidenceUsesTheReportedPlotExtent(bool shortHorizontal)
+    {
+        // The supporting line continues beyond the corner, but very little of
+        // it lies in the direction used for the reported plot.
+        AxisGeometryRequest request = shortHorizontal
+            ? new AxisFixtureBuilder()
+                .Line(0, 300, 410, 300, id: "long-line-left-of-origin")
+                .Line(400, 300, 400, 50, id: "vertical-axis")
+                .Build()
+            : new AxisFixtureBuilder()
+                .Line(100, 300, 700, 300, id: "horizontal-axis")
+                .Line(100, 280, 100, 399, id: "long-line-below-origin")
+                .Build();
+
+        AxisGeometryResult result = await new AxisGeometryDetector().DetectAsync(request);
+
+        Assert.IsTrue(result.Uncertainty.NeedsReview);
+        Assert.IsTrue(result.Uncertainty.Reasons.Contains(shortHorizontal ? "x_axis_partial" : "y_axis_partial"));
+        AxisLineFit shortAxis = shortHorizontal ? result.XAxis : result.YAxis;
+        Assert.IsTrue(shortAxis.Line.Length < (shortHorizontal ? 200d : 100d));
+        Assert.IsTrue(shortAxis.Confidence < 0.85d, "Ink outside the reported plot must not inflate axis confidence.");
+    }
+
+    [TestMethod]
     public async Task DottedDividerAlignedWithTickIsNotAnAxisOrTick()
     {
         AxisGeometryRequest request = new AxisFixtureBuilder()

@@ -204,14 +204,18 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             dividerCandidateIds,
             cancellationToken);
 
+        var xEvidenceSpan = Math.Min(bestPair.Horizontal.Span, plotWidth);
+        var yEvidenceSpan = Math.Min(bestPair.Vertical.Span, plotHeight);
         var xConfidence = AxisConfidence(
             bestPair.Horizontal,
             bestPair.Score,
+            xEvidenceSpan,
             request.ImageWidth,
             options.MinimumAxisSpanFraction);
         var yConfidence = AxisConfidence(
             bestPair.Vertical,
             bestPair.Score,
+            yEvidenceSpan,
             request.ImageHeight,
             options.MinimumAxisSpanFraction);
         var confidence = Clamp01((xConfidence + yConfidence + bestPair.Score) / 3d);
@@ -222,12 +226,12 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
             uncertaintyReasons.Add("axis_pair_ambiguous");
         }
 
-        if (bestPair.Horizontal.Span / request.ImageWidth < options.MinimumAxisSpanFraction)
+        if (xEvidenceSpan / request.ImageWidth < options.MinimumAxisSpanFraction)
         {
             uncertaintyReasons.Add("x_axis_partial");
         }
 
-        if (bestPair.Vertical.Span / request.ImageHeight < options.MinimumAxisSpanFraction)
+        if (yEvidenceSpan / request.ImageHeight < options.MinimumAxisSpanFraction)
         {
             uncertaintyReasons.Add("y_axis_partial");
         }
@@ -1364,10 +1368,13 @@ public sealed class AxisGeometryDetector : IAxisGeometryDetector
     private static double AxisConfidence(
         LineFamily family,
         double pairScore,
+        double supportedExtent,
         int imageExtent,
         double minimumSpanFraction)
     {
-        var spanScore = Clamp01(family.Span / Math.Max(1d, imageExtent * minimumSpanFraction));
+        // Supporting ink outside the reported plot cannot increase confidence
+        // in the portion of the axis that is actually returned.
+        var spanScore = Clamp01(supportedExtent / Math.Max(1d, imageExtent * minimumSpanFraction));
         var errorScore = 1d / (1d + family.RootMeanSquareError);
         return Clamp01(
             (0.35d * spanScore) +
