@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Sungwoo Kang
 
-using System.Runtime.InteropServices;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using GraphReader.Inference;
 using GraphReader.Ocr;
-using OpenCvSharp;
 
 internal static class Program
 {
@@ -29,6 +30,8 @@ internal static class Program
         try
         {
             if (args.Length == 1 && args[0] == "--self-test") return SelfTest();
+            bool denseTick = args.Length > 0 && args[0] == "--dense-tick";
+            if (denseTick) args = args[1..];
             string inputRelative = InputPath;
             string outputRelative = OutputPath;
             string expectedInput;
@@ -79,18 +82,13 @@ internal static class Program
                 if (!frames.TryGetValue(imageHash, out OcrImage? image))
                 {
                     byte[] bytes = await ReadPinned(imagePath, imageHash, 64_000_000);
-                    using Mat decoded = Cv2.ImDecode(bytes, ImreadModes.Grayscale);
-                    Require(!decoded.Empty() && decoded.Type() == MatType.CV_8UC1 && decoded.IsContinuous(), "Image decode failed.");
-                    byte[] pixels = new byte[checked(decoded.Width * decoded.Height)];
-                    Marshal.Copy(decoded.Data, pixels, 0, pixels.Length);
-                    image = new OcrImage(decoded.Width, decoded.Height, decoded.Width, pixels, OcrSourceImage.Original,
-                        OcrFrameTransform.Identity, CanonicalOriginalWidth: decoded.Width, CanonicalOriginalHeight: decoded.Height);
+                    image = DecodeImage(bytes);
                     frames.Add(imageHash, image);
                 }
                 double[] box = row.GetProperty("box_xyxy").EnumerateArray().Select(static item => item.GetDouble()).ToArray();
                 Require(box.Length == 4 && box.All(double.IsFinite) && box[0] >= 0 && box[1] >= 0 &&
                     box[2] <= image.Width && box[3] <= image.Height && box[2] > box[0] && box[3] > box[1], "Invalid label box.");
-                entries.Add(CreateEntry(id, image, box));
+                entries.Add(CreateEntry(id, image, box, denseTick));
             }
             Require(entries.Count is > 0 and <= 500 &&
                 entries.Select(static entry => entry.Id).Distinct(StringComparer.Ordinal).Count() == entries.Count &&
@@ -126,6 +124,7 @@ internal static class Program
                 schema = "graphreader.manual-axis-ocr-predictions.v1",
                 status = "training-pilot-diagnostic-not-acceptance",
                 input_sha256 = Hash(inputBytes), source_split = sourceSplit, inference_provider = "CPUExecutionProvider", optimizer_steps = 0,
+                crop_profile = denseTick ? "dense-tick-no-horizontal-padding" : "standard",
                 numeric_model_sha256 = NumericHash, official_model_sha256 = OfficialHash, ambiguity_model_sha256 = AmbiguityHash,
                 rows = entries.Select(entry => new { id = entry.Id, numeric = numericOut[entry.Id], official = officialOut[entry.Id] }).ToArray(),
             };
@@ -141,7 +140,7 @@ internal static class Program
         }
     }
 
-    private static Entry CreateEntry(string id, OcrImage image, double[] box)
+    private static Entry CreateEntry(string id, OcrImage image, double[] box, bool denseTick = false)
     {
         var region = new OcrDetectedRegion(id, OcrPolygon.FromRectangle(new OcrRectangle(box[0], box[1], box[2] - box[0], box[3] - box[1])), 0, 1);
         OcrCrop Crop(OcrCropBatcherOptions options)
@@ -152,10 +151,32 @@ internal static class Program
             return batches[0][0];
         }
         return new Entry(id,
-            Crop(new OcrCropBatcherOptions { TargetWidth = 128, TargetHeight = 32, BatchSize = 16, HorizontalPaddingPixels = 12,
+            Crop(new OcrCropBatcherOptions { TargetWidth = 128, TargetHeight = 32, BatchSize = 16, HorizontalPaddingPixels = denseTick ? 0 : 12,
                 VerticalPaddingPixels = 1, VerticalContentPaddingRatio = 0.25, ResizeMode = OcrCropResizeMode.PreserveAspectRatioPad, PaddingValue = 1f }),
-            Crop(new OcrCropBatcherOptions { TargetWidth = 320, TargetHeight = 48, BatchSize = 16, HorizontalPaddingPixels = 8,
+            Crop(new OcrCropBatcherOptions { TargetWidth = 320, TargetHeight = 48, BatchSize = 16, HorizontalPaddingPixels = denseTick ? 0 : 8,
                 VerticalPaddingPixels = 2, ResizeMode = OcrCropResizeMode.PreserveAspectRatioPad, PaddingValue = 0.5f }));
+    }
+
+    private static OcrImage DecodeImage(byte[] bytes)
+    {
+        using var stream = new MemoryStream(bytes, writable: false);
+        BitmapDecoder decoder = BitmapDecoder.Create(stream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+        Require(decoder.Frames.Count == 1, "Expected one image frame.");
+        var bgra = new FormatConvertedBitmap(decoder.Frames[0], PixelFormats.Bgra32, null, 0);
+        int width = bgra.PixelWidth, height = bgra.PixelHeight;
+        var color = new byte[checked(width * height * 4)];
+        bgra.CopyPixels(color, checked(width * 4), 0);
+        var pixels = new byte[checked(width * height)];
+        for (int index = 0; index < pixels.Length; index++)
+        {
+            int offset = index * 4, alpha = color[offset + 3];
+            int blue = ((color[offset] * alpha) + (255 * (255 - alpha)) + 127) / 255;
+            int green = ((color[offset + 1] * alpha) + (255 * (255 - alpha)) + 127) / 255;
+            int red = ((color[offset + 2] * alpha) + (255 * (255 - alpha)) + 127) / 255;
+            pixels[index] = (byte)(((299 * red) + (587 * green) + (114 * blue) + 500) / 1000);
+        }
+        return new OcrImage(width, height, width, pixels, OcrSourceImage.Original,
+            OcrFrameTransform.Identity, CanonicalOriginalWidth: width, CanonicalOriginalHeight: height);
     }
 
     private static int SelfTest()
@@ -166,6 +187,21 @@ internal static class Program
         Entry entry = CreateEntry("fixture", image, [20, 30, 40, 45]);
         Require(entry.Numeric.Width == 128 && entry.Numeric.Height == 32 && entry.Official.Width == 320 && entry.Official.Height == 48 &&
             entry.Official.SourceCrop is not null, "Cropper self-test failed.");
+        for (int y = 34; y < 41; y++)
+        for (int x = 14; x < 18; x++) pixels[(y * 100) + x] = 0;
+        Entry standard = CreateEntry("standard", image, [20, 30, 40, 45]);
+        Entry dense = CreateEntry("dense", image, [20, 30, 40, 45], denseTick: true);
+        Require(standard.Official.Pixels.ToArray().Min() < 0.2f && dense.Official.Pixels.ToArray().Min() >= 0.49f,
+            "Dense tick cropping must not include adjacent ink outside the requested bounds.");
+        BitmapSource fixture = BitmapSource.Create(2, 1, 96, 96, PixelFormats.Bgra32, null,
+            new byte[] { 0, 0, 0, 255, 255, 255, 255, 255 }, 8);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(fixture));
+        using var stream = new MemoryStream();
+        encoder.Save(stream);
+        OcrImage decoded = DecodeImage(stream.ToArray());
+        Require(decoded.Width == 2 && decoded.Height == 1 && decoded.Pixels.Span[0] == 0 && decoded.Pixels.Span[1] == 255,
+            "Original-pixel image decoding failed.");
         Console.WriteLine("PASS: original-pixel crop geometry and reader input sizes");
         return 0;
     }

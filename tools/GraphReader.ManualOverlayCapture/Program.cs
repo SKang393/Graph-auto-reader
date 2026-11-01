@@ -68,7 +68,10 @@ internal static class Program
             if (args.Length == 7 && args[0] == "--capture-workflow-one")
                 return await Capture(args[2], args[3], args[4], args[5], args[6],
                     workflow: true, smoke: false, onlyId: args[1]);
-            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture-workflow-one <source-id> <same capture arguments>");
+            if (args.Length == 6 && args[0] is "--recognize-dense" or "--recognize-dense-standard")
+                return await RecognizeDenseTicks(args[1], args[2], args[3], args[4], args[5],
+                    densePadding: args[0] == "--recognize-dense");
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard] <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
@@ -216,7 +219,8 @@ internal static class Program
                 var store = new ProductionWorkflowPanelStore();
                 var axis = new ObservedAxis(new ProductionAxisGeometryAdapter(OpenCvSha, isApproved: false));
                 var observedOcr = new ObservedOcr(ocr);
-                var automatic = new ProductionAutomaticDetectionAdapter(store, new ProductionRasterFrameDecoder(), axis, observedOcr,
+                IProductionOcrAdapter selectedOcr = workflow && onlyId is not null ? ocr : observedOcr;
+                var automatic = new ProductionAutomaticDetectionAdapter(store, new ProductionRasterFrameDecoder(), axis, selectedOcr,
                     new ProductionDetectionMaskComposer(artifact), center, classifier,
                     new ProductionLegendReasoningAdapter(), new ProductionPhaseReasoningAdapter());
                 var importer = new ProductionWorkflowImportStage(store, new ImageImportService());
@@ -237,7 +241,8 @@ internal static class Program
                         Guid.NewGuid(), project, evidence.CopyOriginalBytes());
                     if (workflow)
                     {
-                        (object row, bool panelFailed) = await CaptureWorkflowPanel(automatic, request, panel, provenance);
+                        (object row, bool panelFailed) = await CaptureWorkflowPanel(
+                            automatic, request, panel, provenance, captureTickDetails: onlyId is not null);
                         panelRows.Add(row);
                         sourceFailed |= panelFailed;
                         continue;
@@ -298,9 +303,10 @@ internal static class Program
 
     private static async Task<(object Row, bool Failed)> CaptureWorkflowPanel(
         ProductionAutomaticDetectionAdapter automatic, ProductionWorkflowDetectionRequest request,
-        WorkflowImportedPanel panel, object provenance)
+        WorkflowImportedPanel panel, object provenance, bool captureTickDetails)
     {
         ProductionCandidateCalibrationObservation? observation = null;
+        ProductionCandidateTickLaneObservation? tickLane = null;
         WorkflowDetectionBatch? batch = null;
         Exception? failure = null;
         automatic.CandidateCalibrationObserver = value =>
@@ -310,6 +316,16 @@ internal static class Program
                 "Candidate workflow observation identity differs.");
             observation = value;
         };
+        if (captureTickDetails)
+        {
+            automatic.CandidateTickLaneObserver = value =>
+            {
+                Require(tickLane is null && value.PanelId == panel.PanelId &&
+                    string.Equals(value.PanelSha256, panel.Original.Sha256, StringComparison.OrdinalIgnoreCase),
+                    "Tick-lane observation identity differs.");
+                tickLane = value;
+            };
+        }
         try
         {
             batch = await automatic.DetectForCandidateEvaluationAsync(request, CancellationToken.None);
@@ -322,6 +338,20 @@ internal static class Program
         finally
         {
             automatic.CandidateCalibrationObserver = null;
+            automatic.CandidateTickLaneObserver = null;
+        }
+
+        object? tickRecoveryProbe = null;
+        if (captureTickDetails && observation is not null)
+        {
+            try
+            {
+                tickRecoveryProbe = await ProbeTickRecovery(request, observation);
+            }
+            catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
+            {
+                tickRecoveryProbe = new { error_type = error.GetType().Name, error = error.Message };
+            }
         }
 
         object row = new { panel_id = panel.PanelId, panel_sha256 = panel.Original.Sha256, provenance,
@@ -330,6 +360,15 @@ internal static class Program
             error = failure?.Message, error_stack = failure?.ToString(), marker_stage_reached = observation is not null,
             axis_needs_review = observation?.Axis.Uncertainty.NeedsReview,
             calibration_validity = observation?.Calibration.Validity.ToString(),
+            calibration_reasons = captureTickDetails ? observation?.Calibration.Reasons : null,
+            tick_lane = captureTickDetails ? tickLane : null,
+            tick_recovery_probe = tickRecoveryProbe,
+            ocr_tick_regions = captureTickDetails ? observation?.Ocr.Regions
+                .Where(region => region.Role is OcrTextRole.XTick or OcrTextRole.YTick)
+                .Select(region => new { role = region.Role.ToString(), region.Text, region.Confidence,
+                    review_status = region.ReviewStatus.ToString(), region.Polygon,
+                    alternatives = region.Alternatives.Select(item => new { item.Text, item.Confidence }).ToArray() })
+                .ToArray() : null,
             centers_before_classification = observation?.MarkerPipeline.CentersBeforeClassification ?? [],
             classified_plot = observation?.MarkerPipeline.ClassifiedPlotMarkers.Select(item => new
             {
@@ -343,6 +382,150 @@ internal static class Program
                 x = item.OriginalPixelX, y = item.OriginalPixelY, item.GraphX, item.GraphY,
             }).ToArray() ?? [] };
         return (row, failure is not null);
+    }
+
+    private static async Task<object> ProbeTickRecovery(
+        ProductionWorkflowDetectionRequest request, ProductionCandidateCalibrationObservation observation)
+    {
+        // This counterfactual reconstructs detected boxes from recognized output.
+        // It is not the complete detector output and does not alter the workflow.
+        OcrRegion[] regions = observation.Ocr.Regions.ToArray();
+        OcrDetectedRegion[] detected = regions.Select(region => new OcrDetectedRegion(
+            region.RegionId, region.Polygon, 0, region.Confidence)).ToArray();
+        string[] wideNumeric = regions.Where(region => region.Role == OcrTextRole.XTick &&
+                GraphNumericParser.IsLiteralGraphNumber(region.Text) && region.Text.Length >= 10 &&
+                region.Polygon.Bounds.Width > region.Polygon.Bounds.Height * 4)
+            .Select(region => region.RegionId).ToArray();
+        var rejected = wideNumeric.ToHashSet(StringComparer.Ordinal);
+        var polygon = observation.Axis.PlotPolygon;
+        double left = polygon.Points.Min(point => point.X), top = polygon.Points.Min(point => point.Y);
+        double right = polygon.Points.Max(point => point.X), bottom = polygon.Points.Max(point => point.Y);
+        var plot = new OcrRectangle(left, top, right - left, bottom - top);
+        IReadOnlyList<OcrXAxisTickStroke> strokes = ProductionAutomaticDetectionAdapter.CreateOcrXAxisTickStrokes(observation.Axis);
+        OcrImage image = new ProductionRasterFrameDecoder().Decode(request, CancellationToken.None).CreateOcrImage();
+        IReadOnlyList<OcrDetectedRegion> baseline = await TickLaneTextRegionRecovery.FindAsync(
+            image, detected, regions, plot, strokes, CancellationToken.None);
+        IReadOnlyList<OcrDetectedRegion> withoutWide = await TickLaneTextRegionRecovery.FindAsync(
+            image, detected.Where(region => !rejected.Contains(region.RegionId)).ToArray(),
+            regions.Where(region => !rejected.Contains(region.RegionId)).ToArray(), plot, strokes, CancellationToken.None);
+        return new { reconstructed_detected_boxes = true, wide_numeric_regions = wideNumeric.Length,
+            supplied_strokes = strokes.Count, baseline, without_wide_numeric = withoutWide };
+    }
+
+    private static async Task<int> RecognizeDenseTicks(string inputPath, string inputSha,
+        string descriptionPath, string descriptionSha, string outputName, bool densePadding)
+    {
+        using var classifierLocks = new ClassifierInputLocks();
+        byte[] description = await ReadPinned(descriptionPath, descriptionSha, 1_000_000);
+        Require(description.AsSpan().SequenceEqual(Describe(workflow: true)), "Frozen runtime description differs.");
+        Require(inputSha is "0de2129cc8e5c3c9b98625df095f48fe23cb159c23e9d8f29c091c2d03ed2f05" or
+            "26e65944663b12902df7ae9630fee968b5db8435d9ed8e899c6d45f5e36ef86e", "Dense input is not pinned.");
+        byte[] input = await ReadPinned(inputPath, inputSha, 1_000_000);
+        using JsonDocument inputDocument = JsonDocument.Parse(input);
+        JsonElement root = inputDocument.RootElement;
+        Exact(root, "schema", "scope", "source_split", "rows");
+        Require(root.GetProperty("schema").GetString() == "graphreader.manual-axis-ocr-input.v1" &&
+            root.GetProperty("scope").GetString() == "train-only-no-truth", "Dense input scope differs.");
+        JsonElement.ArrayEnumerator inputRows = root.GetProperty("rows").EnumerateArray();
+        var entries = new List<(string Id, double[] Box)>();
+        string? sourcePath = null, sourceSha = null;
+        foreach (JsonElement row in inputRows)
+        {
+            Exact(row, "id", "image_path", "image_sha256", "box_xyxy");
+            string id = row.GetProperty("id").GetString() ?? "";
+            string path = row.GetProperty("image_path").GetString() ?? "";
+            string sha = row.GetProperty("image_sha256").GetString() ?? "";
+            Require(path.StartsWith(OriginalRasterRoot, StringComparison.Ordinal), "Dense source path differs.");
+            sourcePath ??= path;
+            sourceSha ??= sha;
+            Require(path == sourcePath && sha == sourceSha && id == $"item-{entries.Count:D3}", "Dense source identity differs.");
+            double[] box = row.GetProperty("box_xyxy").EnumerateArray().Select(item => item.GetDouble()).ToArray();
+            Require(box.Length == 4 && box.All(double.IsFinite) && box[0] >= 0 && box[1] >= 0 &&
+                box[2] > box[0] && box[3] > box[1], "Dense crop bounds differ.");
+            entries.Add((id, box));
+        }
+        Require(sourcePath is not null && sourceSha is not null && entries.Count is 4 or 15,
+            "Dense source inventory differs.");
+        string verifiedSourcePath = sourcePath ?? throw new InvalidDataException("Dense source path is missing.");
+        string verifiedSourceSha = sourceSha ?? throw new InvalidDataException("Dense source hash is missing.");
+        string output = OutputPath(outputName);
+        Require(!File.Exists(output) && !Directory.Exists(output), "Dense output already exists.");
+        await using var sourceLock = new FileStream(ProjectPath(verifiedSourcePath), FileMode.Open, FileAccess.Read, FileShare.Read);
+        _ = await ReadPinned(verifiedSourcePath, verifiedSourceSha, 64_000_000);
+        byte[] modelBytes = await ReadPinned(ModelBinding, ModelBindingSha, 1_000_000);
+        using JsonDocument modelDocument = JsonDocument.Parse(modelBytes);
+        FrozenCandidateModel model = ReadModel(modelDocument.RootElement.GetProperty("ocr_recognition"), "ocr_recognition");
+        Require(model.Payload.Sha256 == "0980049401eceb506952f769765a6b95be07cb1197dcbb13c93f107a328f8418",
+            "Dense recognizer identity differs.");
+        using var modelLock = new FileStream(ProjectPath(model.Payload.RelativePath), FileMode.Open, FileAccess.Read, FileShare.Read);
+        nint native = NativeLibrary.Load(NativePath());
+        NativeLibrary.SetDllImportResolver(typeof(Mat).Assembly,
+            (name, _, _) => name == "OpenCvSharpExtern" ? native : nint.Zero);
+        var store = new ProductionWorkflowPanelStore();
+        var importer = new ProductionWorkflowImportStage(store, new ImageImportService());
+        Guid project = ProductionWorkflowPanelStore.CreateStableId("manual-dense-tick-project-v1", inputSha);
+        Guid sourceId = ProductionWorkflowPanelStore.CreateStableId("manual-dense-tick-source-v1", inputSha, verifiedSourceSha);
+        WorkflowImportSnapshot snapshot = await importer.ImportAsync(new WorkflowImportRequest(project,
+            [new WorkflowSourceRequest(sourceId, WorkflowSourceKind.Image, ProjectPath(verifiedSourcePath))], enhancementEnabled: false),
+            CancellationToken.None);
+        Require(snapshot.Panels.Count == 1, "Dense input must import as one panel.");
+        WorkflowImportedPanel panel = snapshot.Panels[0];
+        Require(string.Equals(panel.Original.Sha256, verifiedSourceSha, StringComparison.OrdinalIgnoreCase), "Dense panel is not the original image.");
+        ProductionPanelEvidence evidence = store.Get(panel.PanelId);
+        var prepared = new WorkflowPreparedPanel(panel, panel.Original, enhanced: null);
+        var request = new ProductionWorkflowDetectionRequest(prepared, panel.Original, WorkflowImageVariant.Original,
+            Guid.NewGuid(), project, evidence.CopyOriginalBytes());
+        OcrImage image = new ProductionRasterFrameDecoder().Decode(request, CancellationToken.None).CreateOcrImage();
+        OcrDetectedRegion[] regions = entries.Select(entry =>
+        {
+            double[] box = entry.Box;
+            Require(box[2] <= image.Width && box[3] <= image.Height, "Dense crop exceeds the image.");
+            return new OcrDetectedRegion(entry.Id,
+                OcrPolygon.FromRectangle(new OcrRectangle(box[0], box[1], box[2] - box[0], box[3] - box[1])), 0, 1);
+        }).ToArray();
+        var identity = new ModelIdentity(model.ModelId, model.Version, model.Payload.Sha256, ProjectPath(model.Payload.RelativePath));
+        (LocalOnnxTextRecognizerOptions recognizerOptions, OcrPipelineOptions pipelineOptions) =
+            ProductionOcrAdapter.ReadRecognitionOptions(identity, ProjectPath(model.Manifest.RelativePath));
+        await using var runtime = new ProductionInferenceRuntimeHost(new OrtExecutionProviderDiscovery(),
+            new WindowsExecutionProviderPolicy(), new OnnxInferenceSessionFactory(NoUiThreadGuard.Instance, OnnxGraphOptimizationMode.Disabled),
+            CpuThreadConfiguration.Create(2), [InferenceProvider.Cpu], output + ".runtime-cache", 1, 1, new NoPersistenceStageCache());
+        var recognizer = new LocalOnnxTextRecognizer(runtime.Runtime, recognizerOptions);
+        var cropOptions = new OcrCropBatcherOptions
+        {
+            TargetWidth = pipelineOptions.CropWidth, TargetHeight = pipelineOptions.CropHeight,
+            WidthMode = pipelineOptions.CropWidthMode, MaximumTargetWidth = pipelineOptions.MaximumCropWidth,
+            BatchSize = pipelineOptions.BatchSize, PaddingPixels = pipelineOptions.CropPaddingPixels,
+            HorizontalPaddingPixels = densePadding ? 0 : pipelineOptions.CropHorizontalPaddingPixels,
+            VerticalPaddingPixels = pipelineOptions.CropVerticalPaddingPixels,
+            VerticalContentPaddingRatio = pipelineOptions.CropVerticalContentPaddingRatio,
+            ResizeMode = pipelineOptions.CropResizeMode, PaddingValue = pipelineOptions.CropPaddingValue,
+        };
+        var outcomes = new Dictionary<string, object>(StringComparer.Ordinal);
+        foreach (IReadOnlyList<OcrCrop> batch in OcrCropBatcher.CreateBatches(image, regions, cropOptions))
+        {
+            IReadOnlyList<OcrRecognition> readings = await recognizer.RecognizeBatchAsync(batch, CancellationToken.None);
+            Require(readings.Count == batch.Count, "Dense recognition batch differs.");
+            foreach (OcrRecognition reading in readings)
+            {
+                OcrRecognitionAlternative? best = reading.Alternatives.OrderByDescending(item => item.Confidence).FirstOrDefault();
+                Require(outcomes.TryAdd(reading.RegionId, new { text = best?.Text, confidence = best?.Confidence,
+                    alternatives = reading.Alternatives.Select(item => new { item.Text, item.Confidence }).ToArray(),
+                    failure = reading.Failure?.Code }), "Repeated dense recognition identity.");
+            }
+        }
+        Require(outcomes.Count == entries.Count && entries.All(entry => outcomes.ContainsKey(entry.Id)), "Dense recognition inventory differs.");
+        Require(description.AsSpan().SequenceEqual(Describe(workflow: true)), "Runtime changed during dense recognition.");
+        _ = await ReadPinned(verifiedSourcePath, verifiedSourceSha, 64_000_000);
+        byte[] report = JsonSerializer.SerializeToUtf8Bytes(new { schema = "graphreader.manual-dense-server-ocr.v1",
+            scope = "train-diagnostic-not-acceptance", input_sha256 = inputSha, runtime_description_sha256 = descriptionSha,
+            model_sha256 = model.Payload.Sha256, source_split = root.GetProperty("source_split").GetString(),
+            crop_profile = densePadding ? "dense-tick-no-horizontal-padding" : "candidate-standard-padding",
+            inference_provider = "CPUExecutionProvider",
+            optimizer_steps = 0, truth_read = false, sealed_payload_reads = 0,
+            rows = entries.Select(entry => new { id = entry.Id, server = outcomes[entry.Id] }).ToArray() }, JsonOptions);
+        await WriteNew(output, report);
+        Console.WriteLine($"completed rows={entries.Count}; report_sha256={Hash(report)}");
+        return 0;
     }
 
     private sealed class ClassifierInputLocks : IDisposable

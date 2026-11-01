@@ -173,6 +173,8 @@ classifier and exclusions would remove. The visible-axis repair and review
 status are documented in `../GraphReader.ManualPanelDiagnostic/FAINT_INK_RESULT.md`.
 The separate classifier and downstream candidate-workflow diagnostic, including
 all failed panels, is recorded in [WORKFLOW_RESULT.md](WORKFLOW_RESULT.md).
+The follow-up on merged dense X-axis labels is recorded in
+[DENSE_TICK_RESULT.md](DENSE_TICK_RESULT.md).
 
 | Original-image evidence | SHA-256 |
 | --- | --- |

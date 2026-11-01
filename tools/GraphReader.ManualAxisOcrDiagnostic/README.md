@@ -57,3 +57,5 @@ The runner also accepts `--input <project-relative-path>`,
 another bounded input and create-only output inside its diagnostic directory.
 The automatic-box candidate using that entry point is documented in
 `ml/ocr/stroke_seeded_xtick_v1/recognition_diagnostic/manual_y_axis_candidate_v1/RESULT.md`.
+The optional `--dense-tick` crop profile and its small, train-only comparison
+are documented in [DENSE_TICK_RESULT.md](../GraphReader.ManualOverlayCapture/DENSE_TICK_RESULT.md).
