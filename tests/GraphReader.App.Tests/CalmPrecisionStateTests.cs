@@ -119,6 +119,62 @@ public sealed class CalmPrecisionStateTests
     }
 
     [TestMethod]
+    [DataRow(true, false)]
+    [DataRow(false, false)]
+    [DataRow(true, true)]
+    [DataRow(false, true)]
+    public void InterruptedDetectionMakesOnlyCompletedPanelReviewable(bool cancel, bool retainPriorPanel)
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graph-reader-partial-review-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                string firstPath = Path.Combine(root, "first.png");
+                string secondPath = Path.Combine(root, "second.png");
+                WriteImage(firstPath, 8, 8);
+                WriteImage(secondPath, 9, 9);
+                var service = new CheckpointWorkspaceService(cancel);
+                WorkspaceTabViewModel[] tabs = service.ImportImagesAsync([firstPath, secondPath], CancellationToken.None)
+                    .GetAwaiter().GetResult().ToArray();
+                if (retainPriorPanel) service.SeedPriorPanel(tabs[1]);
+                using var viewModel = new MainWindowViewModel(service);
+                Assert.AreSame(tabs[0], viewModel.SelectedTab);
+                Assert.IsFalse(viewModel.ReviewCommand.CanExecute(null));
+
+                viewModel.AutoDetectCommand.Execute(null);
+                if (cancel) viewModel.CancelCommand.Execute(null);
+                var frame = new System.Windows.Threading.DispatcherFrame();
+                var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(10) };
+                DateTime deadline = DateTime.UtcNow.AddSeconds(2);
+                timer.Tick += (_, _) =>
+                {
+                    if (!viewModel.IsBusy || DateTime.UtcNow >= deadline)
+                    {
+                        timer.Stop();
+                        frame.Continue = false;
+                    }
+                };
+                timer.Start();
+                System.Windows.Threading.Dispatcher.PushFrame(frame);
+                Assert.IsFalse(viewModel.IsBusy, "Detection did not finish after interruption.");
+
+                viewModel.SelectedTab = tabs[0];
+                Assert.AreEqual(WorkspaceSurfaceState.Reviewing, viewModel.SurfaceState);
+                Assert.IsTrue(viewModel.ReviewCommand.CanExecute(null));
+                viewModel.SelectedTab = tabs[1];
+                Assert.AreEqual(WorkspaceSurfaceState.Ready, viewModel.SurfaceState);
+                Assert.IsFalse(viewModel.ReviewCommand.CanExecute(null));
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     [DataRow("mixed")]
     [DataRow("empty")]
     [DataRow("different_image")]
@@ -590,5 +646,49 @@ public sealed class CalmPrecisionStateTests
 
         public Task RunStageAsync(WorkflowStage stage, CancellationToken cancellationToken) =>
             runStage(stage, cancellationToken);
+    }
+
+    private sealed class CheckpointWorkspaceService(bool cancel) : ManualPreviewWorkspaceService(
+        automaticStages:
+        [
+            new("axis", AutomaticStageState.Approved, "fixture"),
+            new("ocr", AutomaticStageState.Approved, "fixture"),
+            new("markers", AutomaticStageState.Approved, "fixture"),
+            new("legends", AutomaticStageState.Approved, "fixture"),
+            new("phases", AutomaticStageState.Approved, "fixture"),
+        ]), IAutomaticWorkspaceService
+    {
+        public WorkflowRunResult? LastAutomaticRun { get; private set; }
+
+        public void SeedPriorPanel(WorkspaceTabViewModel tab)
+        {
+            WorkflowReviewPanel prior = CreateWarningRun(tab).Review.Panels.Single();
+            LastAutomaticRun = new WorkflowRunResult(Guid.NewGuid(),
+                new WorkflowReviewState(CurrentProject.ProjectId.Value, [prior]), []);
+        }
+
+        public Task<WorkflowRunResult> RunAutomaticDetectionAsync(CancellationToken cancellationToken) =>
+            throw new NotSupportedException("The fixture exercises the workspace stage entry point.");
+
+        public override async Task RunStageAsync(WorkflowStage stage, CancellationToken cancellationToken)
+        {
+            if (stage != WorkflowStage.Detect) return;
+            WorkspaceTabViewModel[] tabs = CreateWorkspace().ToArray();
+            WorkflowReviewPanel completed = CreateWarningRun(tabs[0]).Review.Panels.Single();
+            WorkflowReviewPanel[] prior = LastAutomaticRun?.Review.Panels.ToArray() ?? [];
+            LastAutomaticRun = new WorkflowRunResult(Guid.NewGuid(),
+                new WorkflowReviewState(CurrentProject.ProjectId.Value, [completed, .. prior]), []);
+            if (cancel)
+            {
+                await Task.Delay(Timeout.Infinite, cancellationToken);
+                return;
+            }
+            var evidence = new WorkflowVisionEnvelope(1, Guid.NewGuid(), CurrentProject.ProjectId.Value,
+                Guid.Parse(tabs[1].PanelId!), "axis", "fixture", tabs[1].SourceSha256!, null,
+                new WorkflowVisionTiming(0, 0, 0, 0), 1);
+            throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
+                ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid",
+                "The next panel needs review.", true, "Calibrate."), [evidence]);
+        }
     }
 }

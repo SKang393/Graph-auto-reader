@@ -2290,6 +2290,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
+        WorkspaceTabViewModel? selectedBeforeOperation = SelectedTab;
+        Dictionary<Guid, WorkflowReviewPanel> previousDetectionPanels =
+            stage == WorkflowStage.Detect && _workspaceService is IAutomaticWorkspaceService { LastAutomaticRun: { } previousRun }
+                ? previousRun.Review.Panels.ToDictionary(static panel => panel.PanelId)
+                : [];
         _activeOperation?.Dispose();
         _activeOperation = CancellationTokenSource.CreateLinkedTokenSource(
             _shutdown.Token,
@@ -2335,16 +2340,18 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
         catch (OperationCanceledException) when (_activeOperation.IsCancellationRequested)
         {
+            bool completedPanels = stage == WorkflowStage.Detect && MarkInterruptedDetectionCheckpoints(previousDetectionPanels);
             _statusMessageKey = _statusKeyBeforeOperation;
             _statusMessageOverride = _statusOverrideBeforeOperation;
             OnPropertyChanged(nameof(StatusMessageKey));
             OnPropertyChanged(nameof(StatusMessage));
             LastOperationStatus = _operationStatusBeforeOperation;
-            SurfaceState = _surfaceBeforeOperation;
+            RestoreInterruptedSurface(completedPanels, selectedBeforeOperation);
             RefreshWorkspaceProjection();
         }
         catch (Exception exception)
         {
+            bool completedPanels = stage == WorkflowStage.Detect && MarkInterruptedDetectionCheckpoints(previousDetectionPanels);
             SetOperationFailure(
                 exception,
                 LocalizationKeys.ProductionWorkflowUnavailable,
@@ -2363,13 +2370,55 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 };
                 StatusMessageKey = messageKey;
             }
-            SurfaceState = _surfaceBeforeOperation;
+            RestoreInterruptedSurface(completedPanels, selectedBeforeOperation);
             RefreshWorkspaceProjection();
         }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    private bool MarkInterruptedDetectionCheckpoints(Dictionary<Guid, WorkflowReviewPanel> previousPanels)
+    {
+        if (_workspaceService is not IAutomaticWorkspaceService { LastAutomaticRun: { } run } ||
+            _manualWorkspaceService is null || run.Review.ProjectId != _manualWorkspaceService.CurrentProject.ProjectId.Value)
+        {
+            return false;
+        }
+
+        bool changed = false;
+        foreach (WorkflowReviewPanel panel in run.Review.Panels)
+        {
+            if (previousPanels.TryGetValue(panel.PanelId, out WorkflowReviewPanel? previous) &&
+                ReferenceEquals(previous, panel)) continue;
+            WorkflowImportedPanel imported = panel.PreparedPanel.ImportedPanel;
+            WorkspaceTabViewModel[] matches = Tabs.Where(tab =>
+                Guid.TryParse(tab.PanelId, out Guid panelId) && panelId == imported.PanelId &&
+                Guid.TryParse(tab.SourceId, out Guid sourceId) && sourceId == imported.SourceId &&
+                string.Equals(tab.SourceSha256, imported.Original.Sha256, StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (matches.Length != 1) continue;
+            _reviewReadyTabIds.Add(matches[0].TabId);
+            GetEditHistory(matches[0]).Clear();
+            changed = true;
+        }
+        if (changed) NotifyHistoryStateChanged();
+        return changed;
+    }
+
+    private void RestoreInterruptedSurface(bool completedPanels, WorkspaceTabViewModel? selectedBeforeOperation)
+    {
+        if (!completedPanels && ReferenceEquals(SelectedTab, selectedBeforeOperation))
+        {
+            SurfaceState = _surfaceBeforeOperation;
+            return;
+        }
+
+        SurfaceState = SelectedTab is null
+            ? WorkspaceSurfaceState.Empty
+            : _reviewReadyTabIds.Contains(SelectedTab.TabId)
+                ? WorkspaceSurfaceState.Reviewing
+                : WorkspaceSurfaceState.Ready;
     }
 
     internal bool SelectCalibrationFailurePanel(ProductionWorkflowStageException failure)
