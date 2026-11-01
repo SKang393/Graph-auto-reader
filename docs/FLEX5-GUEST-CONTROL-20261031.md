@@ -24,3 +24,18 @@ further review.
 The current guest still lacks a verified command and result channel. Clean
 Windows installer and portable tests therefore remain incomplete. Host-level
 smoke results do not substitute for clean-guest evidence.
+
+An interactive launcher and matching command file were prepared in the
+laptop's task directory. The launcher checks the exact ISO hash, refuses to
+start a second instance of the same guest, attaches the guest-agent serial
+channel on laptop loopback, and leaves guest networking disabled. It starts no
+installer inside the guest. Its PowerShell syntax, the availability of both
+QEMU serial device types, the ISO hash, and absence of the two loopback port
+listeners were checked; the interactive launcher itself has not been run.
+
+Completing guest control requires an interactive guest-tools installation and
+a working agent. The staged guest-tools executable and guest-agent MSI are
+unsigned, although the inspected Windows serial driver and catalog have valid
+Microsoft signatures. An earlier unattended Windows guest setup was rejected
+by the execution safety layer. No alternative unattended guest setup has been
+used. This preparation does not constitute clean-Windows acceptance.
