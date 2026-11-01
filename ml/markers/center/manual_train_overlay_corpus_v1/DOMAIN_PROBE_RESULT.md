@@ -74,3 +74,5 @@ and the private dataset report has SHA-256
 An independent readback verified every file hash, all 334 tensor hashes,
 partition counts, and disjoint selected groups. Eight focused tests and
 pyflakes passed. This step ran no optimizer and did not approve a model.
+The subsequent [GPU confidence baseline](../controlled_overlay_confidence_v1/BASELINE_RESULT.md)
+compares the existing candidates on build patches without opening the holdout.
