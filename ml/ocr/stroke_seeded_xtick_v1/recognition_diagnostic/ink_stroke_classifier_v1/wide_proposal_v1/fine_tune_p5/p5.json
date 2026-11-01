@@ -1,0 +1,38 @@
+{
+  "changed_variable": "per-example BCE loss weight only; selected training hard negatives weighted 3x",
+  "expected_hard_negative_rows": 14,
+  "hard_negative_selection": "frozen P4 checkpoint score >= 0.5 on label-0 P4 training rows only",
+  "hard_negative_weight": 3.0,
+  "optimizer_created": false,
+  "output_relative": "artifacts/stroke-seeded-xtick-v1-p5-hard-negative-train-preflight-v1.json",
+  "p4_checkpoint_sha256": "9b924cafd94c079ad866d1b6e79961fe3abab61c3e96fe5efac7c9796b836df9",
+  "p4_config_sha256": "e137dc7e6fde4bec1a5ed33135f5f0269325236d48ebe2a6ce2c2607cb4670bd",
+  "p4_preflight_sha256": "0f2d943793bd084658b42021d717ab4f90d0cb4526682ef6c22589153d6376db",
+  "p4_report_sha256": "f7ad0713ff10866c5ea5f093059aa8e3cad3a932fba6682c7d22b212319ffd35",
+  "p4_runner_sha256": "48489355ba5ea31005cbd223ad0fc541e9ba81759659dfeeec985af476151fde",
+  "preflight_runner_sha256": "72dfd36e257ba6f5033a31e9166e55eec424eb2acc957ef56e64ec53655c1239",
+  "probe_dev_sealed_private_inputs_read": false,
+  "production_activation": false,
+  "recipe_id": "ink-stroke-validity-p5-train-only-hard-negative-weighting",
+  "schema": "graphreader.p5-train-only-hard-negative-preflight.v1",
+  "threshold_tuning": false,
+  "training_class_counts": {
+    "negative": 376,
+    "positive": 89
+  },
+  "training_performed": false,
+  "training_rows": 465,
+  "unchanged_recipe": {
+    "architecture": "P4 RF31 classifier",
+    "batch_size": 32,
+    "epochs": 20,
+    "initialization": "frozen P3 checkpoint; fresh AdamW state",
+    "learning_rate": 0.001,
+    "optimizer": "AdamW",
+    "optimizer_steps": 460,
+    "sampler": "P4 source-uniform round-robin sampler",
+    "sampler_seed": 27104153,
+    "torch_rng_seed": 27104152,
+    "weight_decay": 0.01
+  }
+}
