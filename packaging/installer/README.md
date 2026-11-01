@@ -85,3 +85,30 @@ local filesystem operations and an in-memory registry substitute.
 This is a component test on the laptop's existing Windows installation. It
 did not run the actual setup executable, make Windows registration changes,
 test application launch, or establish clean-machine release evidence.
+
+## Existing-host manual-preview transaction check
+
+A diagnostic setup was built from installer sources at commit `8a9e4621` and
+the internal 0.4.35 ManualPreview application at commit `46bfb59a`. This was a
+test fixture, not a release package: its payload was assembled from the preview
+with the portable sentinel removed and diagnostic build metadata added. The
+setup SHA-256 was `52ee036fab2657b8e839cea9be58d9f258fc8f2077e1ad03762b80c651dfa39f`;
+its embedded payload digest verified as
+`27207dd48eb538456cddef6bd5089e880e719d4b286dd4a0f56b5007e2d29dc8`.
+
+On the laptop's existing Windows account, the initial install produced the
+expected application and uninstaller hashes, per-user registration and Start
+Menu shortcut. The first test harness did not capture the install process exit
+code, so that exit code remains unknown. A subsequent host test ran the installed
+preview's no-window startup smoke, a same-version repair, and deferred quiet
+uninstall. Repair preserved test user data and an unowned installation file in
+both the active installation and its backup. Uninstall returned pending exit
+10, then reported success; the registration and shortcut were removed while
+the data and unowned file remained in their retained locations. The result
+SHA-256 is `d50784d3782b0f98bed0ac04d1b586d5eb03a29404bcc4bbad0a358e751dd4d4`;
+the final host harness SHA-256 is
+`f67b828184fa201e4dd647d84d225848a3fc4a2edf1dd850df019492e5aee7d8`.
+
+This existing-host test does not establish a clean-Windows result, an upgrade
+or downgrade result, a full interactive workflow, automatic recognition, or
+release approval.
