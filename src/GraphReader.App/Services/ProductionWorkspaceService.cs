@@ -711,9 +711,18 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
         WorkflowRunResult result;
         if (_automaticWorkflow is not null)
         {
-            result = await _automaticWorkflow(
-                LastAutomaticRun?.Review,
-                cancellationToken).ConfigureAwait(false);
+            try
+            {
+                result = await _automaticWorkflow(
+                    LastAutomaticRun?.Review,
+                    cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            catch
+            {
+                RestorePriorEvidence(priorEvidence, []);
+                throw;
+            }
         }
         else
         {
@@ -774,12 +783,18 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                 }
                 throw;
             }
+            catch
+            {
+                RestorePriorEvidence(priorEvidence, completedPanelIds);
+                throw;
+            }
 
             Guid[] resultPanelIds = result.Review.Panels.Select(static panel => panel.PanelId).ToArray();
             if (resultPanelIds.Length == 0 ||
                 resultPanelIds.Any(panelId => !completedPanelIds.Contains(panelId)) ||
                 accumulated is null)
             {
+                RestorePriorEvidence(priorEvidence, completedPanelIds);
                 throw new InvalidOperationException(
                     "The production batch completed without a checkpoint for every review panel.");
             }
@@ -805,34 +820,46 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             return result;
         }
 
-        if (result is null)
+        try
         {
-            throw new InvalidOperationException(
-                "The production automatic workflow returned no result.");
-        }
-        ProductionReviewProjectionResult projection = ProjectProductionReview(result, _panelStore);
-        if (!projection.Succeeded)
-        {
-            if (projection.Failure?.UserMessageKey == LocalizationKeys.PromotedMarkerAnalysisBlocked)
-                RestorePriorEvidence(priorEvidence, new HashSet<Guid>());
-            throw new ProductionWorkflowStageException(projection.Failure ?? new ProductionWorkflowFailure(
-                ProductionWorkflowFailureCodes.ReviewProjectionRejected,
-                "Errors.ProductionReviewProjectionRejected",
-                "The production review projection failed without structured evidence.",
-                Recoverable: true,
-                "Keep the current manual review and rerun automatic detection."));
-        }
+            if (result is null)
+            {
+                throw new InvalidOperationException(
+                    "The production automatic workflow returned no result.");
+            }
+            ProductionReviewProjectionResult projection = ProjectProductionReview(result, _panelStore);
+            if (!projection.Succeeded)
+            {
+                throw new ProductionWorkflowStageException(projection.Failure ?? new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.ReviewProjectionRejected,
+                    "Errors.ProductionReviewProjectionRejected",
+                    "The production review projection failed without structured evidence.",
+                    Recoverable: true,
+                    "Keep the current manual review and rerun automatic detection."));
+            }
 
-        LastAutomaticRun = projection.ProjectedRun ?? throw new InvalidOperationException(
-            "A successful production review projection returned no corrected workflow run.");
-        MarkCurrentProductionPanels(LastAutomaticRun.Review.Panels);
-        return LastAutomaticRun;
+            LastAutomaticRun = projection.ProjectedRun ?? throw new InvalidOperationException(
+                "A successful production review projection returned no corrected workflow run.");
+            MarkCurrentProductionPanels(LastAutomaticRun.Review.Panels);
+            return LastAutomaticRun;
+        }
+        catch
+        {
+            RestorePriorEvidence(priorEvidence, []);
+            throw;
+        }
     }
 
-    private void RestorePriorEvidence(IReadOnlyDictionary<Guid, ProductionPanelEvidence> prior, HashSet<Guid> completed)
+    private void RestorePriorEvidence(Dictionary<Guid, ProductionPanelEvidence> prior, HashSet<Guid> completed)
     {
-        foreach ((Guid id, ProductionPanelEvidence evidence) in prior)
-            if (!completed.Contains(id)) _panelStore.RestoreSnapshot(evidence);
+        foreach (Guid id in _panelStore.PanelIds)
+        {
+            if (completed.Contains(id)) continue;
+            if (prior.TryGetValue(id, out ProductionPanelEvidence? evidence))
+                _panelStore.RestoreSnapshot(evidence);
+            else
+                _panelStore.ClearExportEvidence(id);
+        }
     }
 
     private void MarkCurrentProductionPanels(IEnumerable<WorkflowReviewPanel> panels)

@@ -1860,11 +1860,13 @@ public sealed class ProductionWorkflowStagesTests
         string imagePath = await WriteSourceAsync(directory.Path);
         var store = new ProductionWorkflowPanelStore();
         WorkflowRunResult? nextResult = null;
+        Action? beforeResult = null;
         var workspace = new ProductionWorkspaceService(
             automaticStages: ApprovedAutomaticStages(),
             automaticWorkflow: (_, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                beforeResult?.Invoke();
                 return Task.FromResult(nextResult ?? throw new AssertFailedException("The test workflow result was not assigned."));
             },
             panelStore: store);
@@ -1878,6 +1880,14 @@ public sealed class ProductionWorkflowStagesTests
         WorkflowRunResult accepted = await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
         Assert.AreSame(accepted, workspace.LastAutomaticRun);
         WorkspaceStateSnapshot before = CaptureWorkspace(workspace);
+        ProductionPanelEvidence priorEvidence = store.Get(exactPanel.PanelId);
+        beforeResult = () =>
+        {
+            ProductionPanelExportEvidence old = store.Get(exactPanel.PanelId).ExportEvidence!;
+            store.SetExportEvidence(exactPanel.PanelId, new ProductionPanelExportEvidence(old.Calibration, old.Phases,
+                old.Series, old.Relations, old.Points, old.Provenance, "transient test value", old.Mode,
+                old.AuditMode, old.SessionOriginPolicy, old.ProjectionEvidence));
+        };
 
         WorkflowPoint exactPoint = exactPanel.Points.Single();
         WorkflowPoint mismatchedPoint = exactPoint with
@@ -1895,7 +1905,57 @@ public sealed class ProductionWorkflowStagesTests
 
         Assert.AreEqual(ProductionWorkflowFailureCodes.ReviewProjectionRejected, exception.Failure.Code);
         Assert.AreSame(accepted, workspace.LastAutomaticRun, "A rejected rerun must preserve the prior accepted run.");
+        Assert.AreSame(priorEvidence, store.Get(exactPanel.PanelId));
         AssertWorkspaceUnchanged(workspace, before);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task InterruptedCustomWorkflowRestoresPriorEvidence(bool cancel)
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = await WriteSourceAsync(directory.Path);
+        var store = new ProductionWorkflowPanelStore();
+        using var cancellation = new CancellationTokenSource();
+        WorkflowRunResult? nextResult = null;
+        Guid panelId = Guid.Empty;
+        bool interrupt = false;
+        var workspace = new ProductionWorkspaceService(automaticStages: ApprovedAutomaticStages(),
+            automaticWorkflow: (_, token) =>
+            {
+                if (interrupt)
+                {
+                    ProductionPanelExportEvidence old = store.Get(panelId).ExportEvidence!;
+                    store.SetExportEvidence(panelId, new ProductionPanelExportEvidence(old.Calibration, old.Phases,
+                        old.Series, old.Relations, old.Points, old.Provenance, "transient test value", old.Mode,
+                        old.AuditMode, old.SessionOriginPolicy, old.ProjectionEvidence));
+                    if (cancel)
+                    {
+                        cancellation.Cancel();
+                        token.ThrowIfCancellationRequested();
+                    }
+                    throw new InvalidOperationException("The custom workflow failed after updating evidence.");
+                }
+                return Task.FromResult(nextResult ?? throw new AssertFailedException("The test workflow result was not assigned."));
+            }, panelStore: store);
+        WorkspaceTabViewModel tab = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        SeedManualReviewState(workspace, tab);
+        WorkflowReviewPanel panel = await CreateExactReviewPanelAsync(workspace, tab, imagePath, store, true);
+        panelId = panel.PanelId;
+        nextResult = new WorkflowRunResult(Guid.NewGuid(), new WorkflowReviewState(
+            workspace.CurrentProject.ProjectId.Value, [panel]), []);
+        WorkflowRunResult priorRun = await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        ProductionPanelEvidence priorEvidence = store.Get(panelId);
+        interrupt = true;
+
+        if (cancel)
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => workspace.RunAutomaticDetectionAsync(cancellation.Token));
+        else
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => workspace.RunAutomaticDetectionAsync(CancellationToken.None));
+
+        Assert.AreSame(priorEvidence, store.Get(panelId));
+        Assert.AreSame(priorRun, workspace.LastAutomaticRun);
     }
 
     [TestMethod]
@@ -2830,6 +2890,107 @@ public sealed class ProductionWorkflowStagesTests
             new[] { WorkflowStep.Import, WorkflowStep.Prepare, WorkflowStep.Detect, WorkflowStep.Review },
             completed.Steps.Select(static step => step.Step).ToArray());
         Assert.AreSame(completed, workspace.LastAutomaticRun);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task InterruptedBatchRestoresUnfinishedPanelEvidence(bool cancel)
+    {
+        using var directory = new TemporaryDirectory();
+        string firstDirectory = Path.Combine(directory.Path, "rollback-first");
+        string secondDirectory = Path.Combine(directory.Path, "rollback-second");
+        Directory.CreateDirectory(firstDirectory);
+        Directory.CreateDirectory(secondDirectory);
+        string firstPath = await WriteSourceAsync(firstDirectory);
+        string secondPath = await WriteSourceAsync(secondDirectory);
+        var store = new ProductionWorkflowPanelStore();
+        var expectedPanels = new Dictionary<Guid, WorkflowReviewPanel>();
+        using var cancellation = new CancellationTokenSource();
+        var detector = new CheckpointDetectionStage(expectedPanels, cancellation);
+        var orchestrator = new WorkflowOrchestrator(new WorkflowServiceSet(
+            new ProductionWorkflowImportStage(store, new ImageImportService()),
+            new ProductionWorkflowPrepareStage(store), detector, new UnusedWorkflowExportStage()));
+        var workspace = new ProductionWorkspaceService(automaticStages: ApprovedAutomaticStages(),
+            workflowOrchestrator: orchestrator, panelStore: store);
+        WorkspaceTabViewModel[] tabs = (await workspace.ImportImagesAsync([firstPath, secondPath], CancellationToken.None)).ToArray();
+        SeedManualReviewState(workspace, tabs[0]);
+        SeedManualReviewState(workspace, tabs[1]);
+        WorkflowReviewPanel firstPanel = await CreateExactReviewPanelAsync(workspace, tabs[0], firstPath, store, true, includeProvenance: true);
+        WorkflowReviewPanel secondPanel = await CreateExactReviewPanelAsync(workspace, tabs[1], secondPath, store, true, includeProvenance: true);
+        expectedPanels.Add(firstPanel.PanelId, firstPanel);
+        expectedPanels.Add(secondPanel.PanelId, secondPanel);
+        WorkflowRunResult priorRun = await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        ProductionPanelEvidence priorSecondEvidence = store.Get(secondPanel.PanelId);
+        PanelRecord priorSecondProject = workspace.CurrentProject.Panels.Single(item => item.PanelId.Value == secondPanel.PanelId);
+
+        detector.BeforeDetection = panelId =>
+        {
+            if (panelId != secondPanel.PanelId) return;
+            ProductionPanelExportEvidence old = store.Get(panelId).ExportEvidence!;
+            store.SetExportEvidence(panelId, new ProductionPanelExportEvidence(old.Calibration, old.Phases,
+                old.Series, old.Relations, old.Points, old.Provenance, "transient test value", old.Mode,
+                old.AuditMode, old.SessionOriginPolicy, old.ProjectionEvidence));
+            if (!cancel)
+                throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid",
+                    "The second panel requires calibration review.", true, "Review calibration."));
+        };
+        if (cancel) detector.CancelBeforePanelId = secondPanel.PanelId;
+
+        if (cancel)
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => workspace.RunAutomaticDetectionAsync(cancellation.Token));
+        else
+            await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() => workspace.RunAutomaticDetectionAsync(CancellationToken.None));
+
+        Assert.AreSame(priorSecondEvidence, store.Get(secondPanel.PanelId));
+        Assert.IsNotNull(workspace.LastAutomaticRun);
+        Assert.AreSame(priorRun.Review.Panels.Single(item => item.PanelId == secondPanel.PanelId),
+            workspace.LastAutomaticRun.Review.Panels.Single(item => item.PanelId == secondPanel.PanelId));
+        Assert.AreNotSame(priorRun.Review.Panels.Single(item => item.PanelId == firstPanel.PanelId),
+            workspace.LastAutomaticRun.Review.Panels.Single(item => item.PanelId == firstPanel.PanelId));
+        PanelRecord currentSecondProject = workspace.CurrentProject.Panels.Single(item => item.PanelId.Value == secondPanel.PanelId);
+        Assert.IsTrue(JsonElement.DeepEquals(JsonSerializer.SerializeToElement(priorSecondProject), JsonSerializer.SerializeToElement(currentSecondProject)));
+        ExportResult retainedExport = await workspace.ExportAsync(tabs[1].TabId,
+            Path.Combine(directory.Path, "retained-export"), CancellationToken.None);
+        Assert.IsTrue(retainedExport.Succeeded, string.Join(" | ", retainedExport.Failures.Select(static item => item.TechnicalMessage)));
+    }
+
+    [TestMethod]
+    public async Task FailedFirstRunClearsNewPanelExportEvidenceButRetainsOriginal()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = await WriteSourceAsync(directory.Path);
+        var store = new ProductionWorkflowPanelStore();
+        var fixtureStore = new ProductionWorkflowPanelStore();
+        var expectedPanels = new Dictionary<Guid, WorkflowReviewPanel>();
+        using var cancellation = new CancellationTokenSource();
+        var detector = new CheckpointDetectionStage(expectedPanels, cancellation);
+        var orchestrator = new WorkflowOrchestrator(new WorkflowServiceSet(
+            new ProductionWorkflowImportStage(store, new ImageImportService()),
+            new ProductionWorkflowPrepareStage(store), detector, new UnusedWorkflowExportStage()));
+        var workspace = new ProductionWorkspaceService(automaticStages: ApprovedAutomaticStages(),
+            workflowOrchestrator: orchestrator, panelStore: store);
+        WorkspaceTabViewModel tab = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).Single();
+        SeedManualReviewState(workspace, tab);
+        WorkflowReviewPanel panel = await CreateExactReviewPanelAsync(workspace, tab, imagePath, fixtureStore, true);
+        expectedPanels.Add(panel.PanelId, panel);
+        Assert.IsFalse(store.TryGet(panel.PanelId, out _));
+        byte[] original = await File.ReadAllBytesAsync(imagePath);
+        detector.BeforeDetection = panelId =>
+        {
+            store.SetExportEvidence(panelId, fixtureStore.Get(panelId).ExportEvidence!);
+            throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
+                ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid",
+                "Calibration review is required.", true, "Review calibration."));
+        };
+
+        await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() =>
+            workspace.RunAutomaticDetectionAsync(CancellationToken.None));
+
+        Assert.IsNull(workspace.LastAutomaticRun);
+        Assert.IsNull(store.Get(panel.PanelId).ExportEvidence);
+        CollectionAssert.AreEqual(original, store.Get(panel.PanelId).CopyOriginalBytes());
     }
 
     [TestMethod]

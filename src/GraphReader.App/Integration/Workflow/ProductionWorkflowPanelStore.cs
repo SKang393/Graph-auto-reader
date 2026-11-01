@@ -257,7 +257,7 @@ public sealed class ProductionPanelEvidence
             PdfPanelSource,
             RasterPanelSource);
 
-    internal ProductionPanelEvidence WithExportEvidence(ProductionPanelExportEvidence evidence) =>
+    internal ProductionPanelEvidence WithExportEvidence(ProductionPanelExportEvidence? evidence) =>
         new(
             Panel,
             SourceKind,
@@ -447,6 +447,12 @@ public sealed class ProductionWorkflowPanelStore
             static id => throw new KeyNotFoundException($"No production panel evidence exists for '{id}'."),
             (_, current) => current.WithExportEvidence(evidence));
     }
+
+    internal void ClearExportEvidence(Guid panelId) =>
+        panels.AddOrUpdate(
+            panelId,
+            static id => throw new KeyNotFoundException($"No production panel evidence exists for '{id}'."),
+            (_, current) => current.ExportEvidence is null ? current : current.WithExportEvidence(null));
 
     internal static Guid CreateStableId(params string[] values)
     {
