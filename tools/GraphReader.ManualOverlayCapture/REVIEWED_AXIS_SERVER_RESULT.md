@@ -39,3 +39,35 @@ adding that import fixed it. Two scorer tests and pyflakes passed. The capture
 used CPU inference, performed no optimizer steps, read no sealed payloads, and
 took about ten seconds. Private source images, labels, and per-crop readings
 remain project-local for the active recognition investigation.
+
+## Previously exposed training-holdout proposals
+
+The same reader then processed 62 pre-existing tick-aligned Y-label proposals
+from five other training images. Of 52 assistant-reviewed labels, 46 had a
+proposal with IoU at least 0.5 and all 46 primary readings matched the label
+exactly; six labels had no matching proposal. Thirty of the 46 correct numeric
+readings had a competing numeric alternative with positive confidence.
+
+Sixteen proposals did not match the reviewed labels. Seven of those produced
+text that the graph-number parser interpreted as numeric. An assistant
+inspected the seven original-pixel crops after inference: two were portions of
+markers, one was a boxed symbol, and four were axis strokes or ticks. This
+visual classification is not independently adjudicated. The seven examples
+show why a numeric-looking OCR result alone cannot establish a text label, and
+why the unreviewed ambiguity guard was not relaxed.
+
+| Private evidence | SHA-256 |
+| --- | --- |
+| Frozen proposal input | `469b5ee37f1d2ad80b4dcb638a3d2183c4949e003de3322d9a186e140228779a` |
+| Proposal-to-source join | `537684e62452558a6370980e761f9b92e488959ce691b467f73835f3545f412d` |
+| Reviewed labels | `0d80b0663457f25a89e7d39a0e60f5e156604a0d382dcb9e8f132f7c29331713` |
+| Runtime description before and after | `9498e565bbd2d72e86076c7fb6a74b7e940b9210334ec0597939887e534e0163` |
+| Frozen server predictions | `314e6698241d34f9c11b6076c22d75d720dc99046849ea70c526d6ceb714ca37` |
+| Coverage and recognition score | `c1bdec7a9c67e954362f043a8e43245827449a58e05996b8db7f61a8a00dc260` |
+| Private visual review sheet | `f2cdad3410c7fc4e241741fcdd201af060ce2578c8da097bf12d04736547c716` |
+
+The proposal rule and these five images had already been inspected during
+development; this is not independent or sealed acceptance. Unmatched proposals
+outside the seven visually reviewed cases remain unclassified. The run used
+CPU inference with no optimizer or sealed-data reads. The diagnostic built with
+zero warnings, and four scorer tests plus pyflakes passed.
