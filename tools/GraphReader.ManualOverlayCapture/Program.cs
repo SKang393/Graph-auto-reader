@@ -47,6 +47,7 @@ internal static partial class Program
         "tools/GraphReader.ManualOverlayCapture/TraceTextRecognizer.cs",
         "tools/GraphReader.ManualOverlayCapture/OrientationCropCounterfactual.cs",
         "tools/GraphReader.ManualOverlayCapture/MarkerPatchParity.cs",
+        "tools/GraphReader.ManualOverlayCapture/AssistedCalibration.cs",
         "tools/GraphReader.ManualOverlayCapture/prepare_input.py",
         "src/GraphReader.Ocr/DenseTickTextRegionRecovery.cs",
         "src/GraphReader.Ocr/GraphStructureConsensusTextRegionDetector.cs",
@@ -72,6 +73,14 @@ internal static partial class Program
                 return await TraceRecognizerSelfTest();
             if (args.Length == 1 && args[0] == "--marker-patch-parity-self-test")
                 return await MarkerPatchParitySelfTest();
+            if (args.Length == 1 && args[0] == "--assisted-binding-self-test")
+                return AssistedBindingSelfTest();
+            if (args.Length == 3 && args[0] == "--assisted-binding-check")
+            {
+                Dictionary<string, AssistedCalibrationInput> bindings = await ReadAssistedCalibrations(args[1], args[2]);
+                Console.WriteLine($"assisted_binding_count={bindings.Count}; production_approval=false");
+                return 0;
+            }
             if (args.Length == 8 && args[0] == "--verify-marker-patches")
                 return await VerifyMarkerPatchParity(args[1], args[2], args[3], args[4], args[5], args[6], args[7]);
             if (args.Length == 4 && args[0] == "--orientation-crop-check")
@@ -93,6 +102,10 @@ internal static partial class Program
             if (args.Length == 6 && args[0] == "--capture-workflow-horizontal-candidate")
                 return await Capture(args[1], args[2], args[3], args[4], args[5],
                     workflow: true, smoke: false, captureDetails: true, preferWideHorizontalModelOrientation: true);
+            if (args.Length == 8 && args[0] == "--capture-workflow-assisted")
+                return await Capture(args[1], args[2], args[3], args[4], args[7],
+                    workflow: true, smoke: false, captureDetails: true, preferWideHorizontalModelOrientation: true,
+                    assistedPath: args[5], assistedSha: args[6]);
             if (args.Length == 7 && args[0] == "--capture-workflow-one")
                 return await Capture(args[2], args[3], args[4], args[5], args[6],
                     workflow: true, smoke: false, onlyId: args[1]);
@@ -153,7 +166,8 @@ internal static partial class Program
 
     private static async Task<int> Capture(string inputPath, string inputSha, string descriptionPath, string descriptionSha,
         string outputName, bool workflow, bool smoke, string? onlyId = null, bool denseTickSeparation = false,
-        bool captureDetails = false, bool traceRecognition = false, bool preferWideHorizontalModelOrientation = false)
+        bool captureDetails = false, bool traceRecognition = false, bool preferWideHorizontalModelOrientation = false,
+        string? assistedPath = null, string? assistedSha = null)
     {
         using var classifierLocks = workflow ? new ClassifierInputLocks() : null;
         byte[] description = await ReadPinned(descriptionPath, descriptionSha, 1_000_000);
@@ -193,6 +207,15 @@ internal static partial class Program
         Require(!workflow || (original && inputSha == "b9044372d5d6b37257ef0e1823935eaed840b99f9dc5a66a2c5359a1b7beeba6"),
             "Workflow diagnostics require the pinned original train input.");
         Require(!traceRecognition || (workflow && onlyId is not null), "Recognition tracing requires one workflow source.");
+        Dictionary<string, AssistedCalibrationInput>? assisted = assistedPath is null ? null :
+            await ReadAssistedCalibrations(assistedPath, assistedSha ?? "");
+        if (assisted is not null)
+        {
+            Require(workflow && original && !smoke && onlyId is null && assisted.Count == 7,
+                "Assisted calibration is restricted to the seven fixed training images.");
+            entries = entries.Where(entry => assisted.ContainsKey(entry.Id)).ToList();
+            Require(entries.Count == assisted.Count, "An assisted source is absent from the fixed raster manifest.");
+        }
         if (onlyId is not null)
         {
             Require(workflow && !smoke, "Single-source capture requires workflow mode.");
@@ -283,14 +306,22 @@ internal static partial class Program
                 WorkflowImportSnapshot snapshot = await importer.ImportAsync(new WorkflowImportRequest(project,
                     [new WorkflowSourceRequest(sourceId, WorkflowSourceKind.Image, sourcePath)], enhancementEnabled: false), CancellationToken.None);
                 Require(snapshot.Panels.Count is > 0 and <= 8, "Unsupported imported panel count.");
+                if (assisted is not null)
+                    Require(snapshot.Panels.Count(panel => panel.PanelId == assisted[id].PanelId) == 1,
+                        "The assisted panel identity was not reproduced.");
                 int panelIndex = 0;
                 foreach (WorkflowImportedPanel panel in snapshot.Panels)
                 {
+                    if (assisted is not null && panel.PanelId != assisted[id].PanelId) continue;
                     ProductionPanelEvidence evidence = store.Get(panel.PanelId);
                     Require(panel.SourceId == sourceId && evidence.Panel.SourceId == sourceId &&
                         evidence.Panel.PanelId == panel.PanelId, "Imported panel identity differs.");
                     object provenance = PanelProvenance.Validate(evidence, sha, panel.Original.Sha256);
-                    var prepared = new WorkflowPreparedPanel(panel, panel.Original, enhanced: null);
+                    var prepared = new WorkflowPreparedPanel(panel, panel.Original, enhanced: null)
+                    {
+                        ManualCalibrationBinding = assisted is null ? null :
+                            assisted[id].Bind(project, sourceId, panel, sha),
+                    };
                     var request = new ProductionWorkflowDetectionRequest(prepared, panel.Original, WorkflowImageVariant.Original,
                         Guid.NewGuid(), project, evidence.CopyOriginalBytes());
                     if (workflow)
@@ -342,7 +373,15 @@ internal static partial class Program
             }
             Console.WriteLine($"processed={results.Count}/{entries.Count}; failed={failed}");
         }
-        object reportObject = workflow
+        object reportObject = assisted is not null
+            ? new { schema = "graphreader.manual-assisted-workflow-capture.v1",
+                scope = "train-only-assisted-unapproved-not-acceptance", input_sha256 = inputSha,
+                runtime_description_sha256 = descriptionSha, binding_sha256 = assistedSha,
+                model_binding_sha256 = ModelBindingSha, classifier_sha256 = ClassifierFiles[2].Sha,
+                opencv_sha256 = OpenCvSha, simulated_manual_confirmation = true,
+                optimizer_steps = 0, training_approved = false, classification_requested = true,
+                truth_read = true, sealed_payload_reads = 0, rows = results }
+            : workflow
             ? new { schema = "graphreader.manual-marker-workflow-capture.v1",
                 scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
                 runtime_description_sha256 = descriptionSha, model_binding_sha256 = ModelBindingSha,
