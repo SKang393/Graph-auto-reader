@@ -21,3 +21,14 @@ A subsequent aggregate-only audit opened those 120 selected development projects
 After the adapter was changed to allow only the empty Engauge doctype, the same selected-development aggregate audit parsed all 120 projects, yielding 360 anchors, 120 curves, and 2,004 data points. The audit ran no model or optimizer and returned no per-case results. It establishes format compatibility, not label accuracy, complete marker truth, cross-split source-image independence, or a training authorization.
 
 The subsequent locked-source snapshot audit used the fixed study-level rule `sha256:graphreader-engauge-real-dev-study-v1:first-byte-lt-204`: 104 train projects with 1,787 labeled points and 16 development projects with 217 points. It detected two additional projects sharing exact image hashes within the train partition, no within-development duplicate images, and no exact image hash crossing those two partitions. The repeated train images require grouping before any loss weighting. The audit ran no model or optimizer and exposed only aggregate counts. Visually identical images with different encodings and source overlap with the frozen sealed studies remain unverified; runtime masks and label quality are not approved.
+
+On 2026-10-31 an older `--run-real-dev` OCR diagnostic was started and
+interrupted before producing any aggregate or case result. That older selector
+uses all 120 real-development projects, so it can overlap both parts of the
+later 104/16 partition. Only ONNX initialization warnings were observed, and it
+is not known whether any project payload reached inference before interruption.
+Treat all 16 locked development projects as potentially exposed to that OCR
+candidate, not as pristine validation for it. The old selector enumerates the
+reserved sealed assignment but does not parse or infer on its 51 project
+payloads. No training occurred. The partial cache remains under the ignored
+project-local artifacts directory and is not acceptance evidence.
