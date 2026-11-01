@@ -128,12 +128,14 @@ were observed. Workbook and CSV inputs were read without modification.
 The selected projects contained 178 Engauge curve points, and their matched
 exports contained 178 rows with a numeric first-column value and at least one
 other numeric value. Using the first column as X and any later numeric cell in
-the same row as Y, six points found a row within absolute or relative `1e-6`.
-At absolute `0.00501` or relative `1e-6`, 140 found a row, with all points
-matching in ten of the 13 projects. Of the 38 remaining points, seven had a
+the same row as Y, six points had one-to-one matches within absolute or
+relative `1e-6`. At absolute `0.00501` or relative `1e-6`, 140 had one-to-one
+matches, with all points matching in ten of the 13 projects. The other three
+projects, all associated with CSVs, had no matching points under this rule.
+Of the 38 remaining points, seven had a
 matching X only, four a matching Y only, and 27 had neither within that
-tolerance. Rows may be reused by this comparison. These are exploratory
-consistency counts, not one-to-one verified errors: file-name association,
+tolerance. These are exploratory consistency counts, not verified errors:
+file-name association,
 column meanings, calibration and rounding have not been independently reviewed.
 The exports and points share a manual digitization source and do not supply
 independent OCR text boxes or transcriptions.
@@ -143,11 +145,11 @@ payloads. No sealed payloads or training were used. The aggregate inventory,
 structure profile and point-comparison report SHA-256 values are respectively
 `8d6096f4f93e085190a7b06d4d8b1843d299df1ccbfbbee461250413255ef308`,
 `52a1c30f6b6ed8d486e0316c33d217b27fcedd8c2a5b79e141afaa5928dd7d01`, and
-`617fd6918ad42162e345bc3c7cf412da4b0ce356f9f62df5f3ab8085b1d8d387`.
+`d54d47ed76536697414fad22f7dc782a0ef86aa5225c6cf321ed781d65805803`.
 The inventory source SHA-256 is
 `d28dea14c7f730ba3cd116e6694a583f009b05c7a49f15514088e2e390c7dd54`;
 the comparison source SHA-256 is
-`3995be5e9de94912d6a5a91177e53de803f7a8445fb2027a4d811b0b746817e9`.
+`5d2ebfdd37e4bc0d366c3ba70ff626a92ab84cff9c81120ade5e1e943e73dd50`.
 Build and matching self-tests passed. Python 3.12.14 and `openpyxl` 3.1.5 from
 the bundled analysis runtime were used for read-only spreadsheet inspection.
 Private paths and point values remain only in ignored project-local artifacts

@@ -25,6 +25,25 @@ def matching_point(x: float, y: float, rows: list[tuple[float, list[float]]], to
                for row_x, values in rows)
 
 
+def unique_point_matches(points: list[dict], rows: list[tuple[float, list[float]]], tolerance: float) -> int:
+    adjacency = [[index for index, row in enumerate(rows)
+                  if matching_point(float(point["x"]), float(point["y"]), [row], tolerance)]
+                 for point in points]
+    row_to_point: dict[int, int] = {}
+
+    def assign(point_index: int, visited: set[int]) -> bool:
+        for row_index in adjacency[point_index]:
+            if row_index in visited:
+                continue
+            visited.add(row_index)
+            if row_index not in row_to_point or assign(row_to_point[row_index], visited):
+                row_to_point[row_index] = point_index
+                return True
+        return False
+
+    return sum(assign(index, set()) for index in range(len(points)))
+
+
 def unmatched_category(x: float, y: float, rows: list[tuple[float, list[float]]]) -> str:
     x_present = any(math.isclose(x, row_x, rel_tol=1e-6, abs_tol=0.00501) for row_x, _ in rows)
     y_present = any(math.isclose(y, value, rel_tol=1e-6, abs_tol=0.00501)
@@ -61,7 +80,8 @@ def main() -> int:
                 not matching_point(3, 4, example, 1e-6) or matching_point(1, 4, example, 1e-6) or
                 not matching_point(1.004, 2, example, 0.00501) or
                 unmatched_category(1, 4, example) != "unmatched_x_and_y_in_different_rows" or
-                unmatched_category(1, 8, example) != "unmatched_x_only"):
+                unmatched_category(1, 8, example) != "unmatched_x_only" or
+                unique_point_matches([{"x": 1, "y": 2}, {"x": 1, "y": 2}], example, 1e-6) != 1):
             raise ValueError("synthetic point matching self-test failed")
         print("REAL_DEV_EXPORT_POINT_COMPARISON_SELF_TEST_PASS")
         return 0
@@ -116,9 +136,16 @@ def main() -> int:
                 raise ValueError("invalid digitizer point record")
             strict = sum(matching_point(float(p["x"]), float(p["y"]), rows, 1e-6) for p in points)
             rounded = sum(matching_point(float(p["x"]), float(p["y"]), rows, 0.00501) for p in points)
+            strict_unique = unique_point_matches(points, rows, 1e-6)
+            rounded_unique = unique_point_matches(points, rows, 0.00501)
             totals.update({"cases_compared": 1, "digitizer_points": len(points), "numeric_export_rows": len(rows),
                            "strict_point_matches": strict, "rounded_point_matches": rounded,
-                           "cases_all_points_rounded_match": int(bool(points) and rounded == len(points))})
+                           "strict_one_to_one_matches": strict_unique, "rounded_one_to_one_matches": rounded_unique,
+                           "cases_all_points_rounded_match": int(bool(points) and rounded == len(points)),
+                           "cases_all_points_unique_rounded_match": int(bool(points) and rounded_unique == len(points)),
+                           "cases_zero_points_rounded_match": int(bool(points) and rounded == 0)})
+            if points and rounded == 0:
+                totals[f"cases_zero_rounded_{export.suffix.lower()[1:]}"] += 1
             for point in points:
                 x, y = float(point["x"]), float(point["y"])
                 if not matching_point(x, y, rows, 0.00501):
@@ -144,7 +171,7 @@ def main() -> int:
                         "Exports and points share a manual source and are not independent ground truth.",
                         "First-column and rounding assumptions may not hold for every export."],
     }
-    with (source.parent / "point-comparison-v2.json").open("x", encoding="utf-8", newline="\n") as output:
+    with (source.parent / "point-comparison-v4.json").open("x", encoding="utf-8", newline="\n") as output:
         json.dump(report, output, indent=2)
         output.write("\n")
     print(json.dumps(report, separators=(",", ":")))
