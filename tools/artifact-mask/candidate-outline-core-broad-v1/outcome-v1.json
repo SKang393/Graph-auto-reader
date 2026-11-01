@@ -1,0 +1,44 @@
+{
+  "schema": "graphreader.artifact-mask-outline-core-broad-outcome.v1",
+  "executed_protocol": "protocol-executed.json",
+  "executed_protocol_sha256": "49493eb05bff56436cca3cc9f0f08bd6b4f04def0423f4f8a142466b5bc4c19d",
+  "comparison_trx": "artifacts/artifact-mask/candidate-outline-core-broad-v1-run-2/broad-family.trx",
+  "comparison_trx_sha256": "1cf02d5146d4503aa010b74c7554c1a471686dd06364e89ed772681538b2e566",
+  "result": "passed predeclared candidate comparison",
+  "validation_family_consumed": true,
+  "aggregate": {
+    "cases": 13,
+    "marker_centers": 8,
+    "baseline_marker_center_suppression": 3,
+    "candidate_marker_center_suppression": 1,
+    "marker_truth_pixels": 666,
+    "baseline_marker_pixels_masked": 0,
+    "candidate_marker_pixels_masked": 0,
+    "clear_cross_grid_centers": 16,
+    "baseline_clear_cross_grid_centers_unmasked": 0,
+    "candidate_clear_cross_grid_centers_unmasked": 0,
+    "crossing_truth_pixels": 1494,
+    "baseline_crossing_pixels_masked": 171,
+    "candidate_crossing_pixels_masked": 153,
+    "arrow_truth_pixels": 83,
+    "arrow_pixels_masked_baseline_candidate": 83,
+    "bracket_truth_pixels": 47,
+    "bracket_pixels_masked_baseline_candidate": 0,
+    "legend_truth_pixels": 49,
+    "legend_pixels_masked_baseline_candidate": 49,
+    "baseline_region_counts": {"AnnotationArrow":1,"Bracket":0,"LegendStructure":1,"ConnectingLineIntersection":19},
+    "candidate_region_counts": {"AnnotationArrow":1,"Bracket":0,"LegendStructure":1,"ConnectingLineIntersection":17},
+    "baseline_elapsed_ms": 37.9054,
+    "candidate_elapsed_ms": 34.9361
+  },
+  "interpretation": "Candidate reduced marker-center suppression, but still suppressed one large outlined-square center. Clear-cross/grid center outcomes were unchanged. Bracket pixels did not become a component because the synthetic arrow shaft touched the bracket and merged the shapes; bracket behavior is unmeasured.",
+  "preflight_void": {
+    "command": "dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore --no-build --filter FullyQualifiedName~ArtifactMaskOutlineCoreBroadCandidateTests --results-directory artifacts/artifact-mask/candidate-outline-core-broad-v1-run-1 --logger \"trx;LogFileName=broad-family.trx\"",
+    "reason": "missing test_source_sha256 field in protocol; failed before constructing inputs or running providers"
+  },
+  "limitations": [
+    "Synthetic component evidence only, with fixed oracle plot bounds and synthetic OCR context for arrow and legend classification.",
+    "Candidate is test-only and not approved for production integration.",
+    "Single-pass elapsed times are descriptive and not a performance benchmark."
+  ]
+}

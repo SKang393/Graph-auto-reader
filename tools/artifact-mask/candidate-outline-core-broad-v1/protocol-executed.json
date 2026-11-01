@@ -1,0 +1,86 @@
+{
+  "schema": "graphreader.artifact-mask-outline-core-broad.v1",
+  "status": "preregistered-before-comparison",
+  "family_consumed": false,
+  "scope": {
+    "synthetic_only": true,
+    "training_sources": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "production_source_modified": false,
+    "production_gate_modified": false
+  },
+  "split": {
+    "dev_family": "artifact-mask-outline-core-broad-dev-v1",
+    "source_count": 13,
+    "seed": 20261104,
+    "all_inputs_in_memory": true,
+    "distinct_from_candidate_v1_and_v2_source_specs": true,
+    "reserved_repository_family_used": false,
+    "placement_rule": "fixed explicit centers and dimensions; no random sampling",
+    "cases": [
+      {"id":"cross-plus-short-position-a","type":"ordinary-cross","topology":"plus","arms":16,"center":[38,32]},
+      {"id":"cross-x-long-position-b","type":"ordinary-cross","topology":"x","arms":22,"center":[100,38]},
+      {"id":"grid-sparse","type":"grid","verticals":2,"horizontals":2,"spacing":42,"start":[30,30],"crossings":4},
+      {"id":"grid-dense","type":"grid","verticals":3,"horizontals":3,"spacing":28,"start":[26,26],"crossings":9},
+      {"id":"circle-outline-small-cross","type":"outlined-circle-over-cross","radius":4,"arms":16,"center":[48,96]},
+      {"id":"circle-outline-large-cross","type":"outlined-circle-over-cross","radius":9,"arms":22,"topology":"x","center":[100,98]},
+      {"id":"square-outline-small-cross","type":"outlined-square-over-cross","radius":6,"arms":16,"center":[100,96]},
+      {"id":"square-outline-large-cross","type":"outlined-square-over-cross","radius":10,"arms":22,"topology":"x","center":[48,44]},
+      {"id":"circle-outline-alone","type":"outlined-circle-alone","radius":8,"center":[88,75]},
+      {"id":"square-outline-alone","type":"outlined-square-alone","radius":8,"center":[100,74]},
+      {"id":"filled-disk-over-cross","type":"filled-marker-over-cross","shape":"disk","radius":6,"arms":18,"center":[86,38]},
+      {"id":"filled-square-over-cross","type":"filled-marker-over-cross","shape":"square","radius":7,"arms":18,"center":[100,44]},
+      {"id":"structure-composite","type":"arrow-bracket-legend-and-cross","arrow_annotations":1,"brackets":1,"legend_structures":1,"crossings":1}
+    ]
+  },
+  "input_contract": {
+    "canvas": [200,150],
+    "plot_polygon": [[10,140],[110,140],[110,10],[10,10]],
+    "ocr_ground_truth_boxes": 0,
+    "ocr_input": "only the fixed synthetic annotation and legend regions required to classify the arrow and legend; no marker or crossing labels",
+    "axis_geometry": "fixed oracle plot polygon; no fitting",
+    "rendering": "deterministic Gray8 black-on-white synthetic raster, allocated in memory",
+    "marker_annotation": "drawn marker pixels plus specified center; evaluation only",
+    "prohibited_annotation": "drawn crossing-center points and arrow, bracket, legend, and grid/cross pixels; evaluation only"
+  },
+  "candidate_identity": {
+    "rule": "unchanged outline-circle-cross-core-probability-v2; require long crossing plus >=15/16 annular sectors at a radius 4..9, then raise marker-like probability in existing 5x5 core",
+    "implementation_source": "tests/GraphReader.App.Tests/ArtifactMaskOutlineCoreCandidateTests.cs; private nested test-only provider loaded by reflection",
+    "model_sha256": null,
+    "source_sha256": "26d5a0e003717ed33b6621087d303a8cf1f5df1d9b7e594f5842a3e103a3f00d",
+    "test_source_sha256": "22320da07768f3abdca6b98d014fd5bbc04d20dbe25a3cd650a9dfd5a74d0324",
+    "app_assembly_sha256": "64531a49f2a1eda0155dff6885ace6a36de4adbcf1c26c414394e5afe4110aa0",
+    "ocr_assembly_sha256": "cc3a8b5da92556edd5c5c58d6da450097fbd45d980394f00ddf372ad00cc8b6a",
+    "test_assembly_sha256": "2e2e7957d1b655e241dcae75886d9de86777473e466e2b15f103376c9ec3ec89"
+  },
+  "baseline_identity": {
+    "provider": "RasterResidualArtifactMaskProvider",
+    "composition_version": "raster-residual-v4-marker-core-review",
+    "provider_source_sha256": "a5b2de8deae5b0ec3a57bc9baf6269cc03988e8694a12270857f6ba7e0254047",
+    "structural_provider_source_sha256": "cc68012e2c94b6b918edc4d5e981fdd614e4dab42f7ed405bc88fde37785c100",
+    "model_sha256": null
+  },
+  "predeclared_comparison": {
+    "same_input_raster_axis_ocr_seed_for_baseline_and_candidate": true,
+    "report_every_annotated_marker_center_and_marker_pixel_mask_count": true,
+    "report_every_annotated_prohibited_crossing_center_and_structure_pixel_mask_count": true,
+    "report_all_four_region_category_counts": true,
+    "report_elapsed_time_for_both_providers": true,
+    "bounded_improvement_requires": [
+      "candidate must suppress fewer marker centers than baseline",
+      "candidate must not suppress more marker centers than baseline",
+      "candidate must not mask more marker truth pixels than baseline",
+      "candidate must not lose any clear-cross or grid crossing-center mask compared with baseline",
+      "candidate must not reduce mask coverage on arrow, bracket, or legend truth pixels",
+      "candidate must not reduce AnnotationArrow, Bracket, or LegendStructure region counts"
+    ],
+    "no_production_threshold_or_gate_change": true,
+    "not_release_acceptance": true
+  },
+  "limitations": [
+    "This is synthetic component evidence using fixed oracle plot bounds, not a full production workflow or release acceptance.",
+    "Ground-truth geometry is drawn by the fixture and only used to score output; no OCR truth boxes are supplied.",
+    "Arrow and legend OCR regions are synthetic runtime context required for those categories, not marker labels."
+  ]
+}
