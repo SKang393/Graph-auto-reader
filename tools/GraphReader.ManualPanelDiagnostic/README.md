@@ -5,8 +5,8 @@
 
 This diagnostic runs the application's `ProductionRasterPanelizer`, followed
 by `AxisGeometryDetector` with the reviewed OpenCV binary, on the eight pinned
-build images, five exposed internal holdout images, or seven other pinned
-training-source groups. It does not
+build images, five exposed internal holdout images, seven other pinned
+training-source groups, or the pinned 16-image development capture. It does not
 read transcriptions, train a model, modify the application, or establish
 release acceptance. Image-specific geometry remains in ignored project-local
 artifacts. The normal importer catches a genuine no-panel result and retains

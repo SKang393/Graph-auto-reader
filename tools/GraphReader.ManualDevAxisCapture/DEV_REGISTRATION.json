@@ -1,0 +1,23 @@
+{
+  "schema": "graphreader.manual-dev-axis-registration.v1",
+  "status": "registered-before-axis-prediction-and-anchor-export",
+  "scope": "previously-exposed-development-not-release-acceptance",
+  "development_projects": 16,
+  "distinct_images": 16,
+  "study_groups": 5,
+  "exact_image_overlap_with_training": 0,
+  "input_manifest_sha256": "d0adfe55915cc323ff408acf342110972eca2a92ae188ac43b8090d91054afd4",
+  "panel_source_sha256": "7aa6abbf773aa8cd074b04741c0bd23050f96b55a81a817474e5fb9c5de0b166",
+  "development_probe_source_sha256": "5fbf1f9f9fb5c2a582e16078858b5d11a9744bf03f53e0262dd73e2d18cd6062",
+  "tick_probe_source_sha256": "e61192366927c3f48b580a9fade972a2e1286777488b4490c633523ea1d0b69d",
+  "capture_source_sha256": "297bfb476ca912c1ce1f8350ff67e5f8d747703bfc117fae246bdbd20b1ee63e",
+  "capture_assembly_sha256": "5e3d5ac53858eea30af7c0f3870ed007a0a171324d5046b3c25f0299088d184d",
+  "panel_assembly_sha256": "10df3e98ddcfcdd8275cad9109d84815b4efe3f3fcf6348a0a7503a36cbdacb0",
+  "axis_assembly_sha256": "ba295dd771f2f1743d369f9b41fde20bb99ce3cc992c00e4ffda4609fe790f9b",
+  "app_assembly_sha256": "9d66c6c7db884b655016eca531638ce8e1a80b582f686026781dd54425dde6a8",
+  "pdf_assembly_sha256": "0844285fd517f81a2ebd03141ca6e598ebdb479962cd043af81ef8ea2cdefad8",
+  "opencv_sha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+  "historical_exposure_and_sealed_overlap_verified": false,
+  "sealed_payload_reads": 0,
+  "optimizer_steps": 0
+}

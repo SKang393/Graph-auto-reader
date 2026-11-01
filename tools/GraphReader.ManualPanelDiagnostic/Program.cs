@@ -38,7 +38,10 @@ internal static class Program
                 "fresh" => new("internal_train_fresh", "artifacts/manual-axis-ocr-diagnostic-v1/axis-fresh-input.json",
                     "bd158b9bebc87e7eaf831a0e224d78af3e3f1e9350c9f5a30587728055eb457d",
                     "artifacts/goal22-runs/marker-train-overlay-corpus-extract-v7/", "fresh-", 7),
-                _ => throw new InvalidDataException("Only the three pinned training samples are allowed."),
+                "dev" => new("internal_dev", "artifacts/manual-axis-ocr-diagnostic-v1/dev-axis-capture-v1/manifest.json",
+                    "d0adfe55915cc323ff408acf342110972eca2a92ae188ac43b8090d91054afd4",
+                    "artifacts/manual-axis-ocr-diagnostic-v1/dev-axis-capture-v1/images/", "dev-image-", 16),
+                _ => throw new InvalidDataException("Only pinned development or training samples are allowed."),
             };
             string native = Path.Combine(AppContext.BaseDirectory, "runtimes", "win-x64", "native", "OpenCvSharpExtern.dll");
             Require(File.Exists(native) && Hash(await File.ReadAllBytesAsync(native)) == OpenCvHash, "Reviewed OpenCV runtime differs.");
@@ -46,7 +49,8 @@ internal static class Program
                 name == "OpenCvSharpExtern" ? NativeLibrary.Load(native) : IntPtr.Zero);
             byte[] inputBytes = await ReadPinned(dataset.Input, dataset.InputHash, 100_000);
             using JsonDocument input = JsonDocument.Parse(inputBytes);
-            Require(input.RootElement.GetProperty("schema").GetString() == "graphreader.manual-axis-geometry-input.v1" &&
+            string expectedSchema = dataset.Split == "internal_dev" ? "graphreader.manual-dev-axis-input.v1" : "graphreader.manual-axis-geometry-input.v1";
+            Require(input.RootElement.GetProperty("schema").GetString() == expectedSchema &&
                 input.RootElement.GetProperty("source_split").GetString() == dataset.Split, "Input scope differs.");
             string output = ProjectPath(OutputParent + args[1]);
             Require(!Directory.Exists(output) && !File.Exists(output), "Output already exists.");
@@ -93,7 +97,7 @@ internal static class Program
                 }
             }
             Require(rows.Count == dataset.Count, "Unexpected training image count.");
-            var report = new { schema = "graphreader.manual-panel-diagnostic.v1", scope = "exposed-training-data-not-acceptance",
+            var report = new { schema = "graphreader.manual-panel-diagnostic.v1", scope = "development-diagnostic-not-acceptance",
                 source_split = dataset.Split, profile, input_sha256 = dataset.InputHash, opencv_sha256 = OpenCvHash, optimizer_steps = 0, rows };
             string reportPath = Path.Combine(output, "report.json");
             await using (var stream = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, useAsync: true))
