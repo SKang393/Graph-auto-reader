@@ -318,6 +318,22 @@ runs must verify the actual executed dependency bytes before use.
 - P2 checkpoint SHA-256: `166d5ded9213ef5b5d87b23183124aed116f573f00297dca4d30c76a0eb7b43d`
 - Source-uniform sampler and GPU-binding tests: 5 passed.
 
+A 60-epoch P3 duration experiment reused the source-uniform training split,
+model, loss and seeds, and completed 1,380 RX 6600 XT optimizer steps. On the
+same training images at score 0.5, P3 obtained 62 true positives, 15 false
+positives, 19 false negatives and 350 true negatives (precision 0.805, recall
+0.765). P2 had 48, 10, 33 and 355 respectively. No holdout image, annotation
+or prediction was read or scored. These results remain train fit only.
+
+The executed report inherited a P2 result label and overstated complete source
+provenance. A separate correction changes the label to P3 and records that a
+transitively imported materializer was not pinned at execution; the original
+report remains unchanged. No training was repeated for the correction.
+
+- Corrected P3 report SHA-256: `c8af111f18fe6a7d913aeb91f59f9934ffa82d7b057e9e5861617a00213b689f`
+- P3 checkpoint SHA-256: `8b1f8ce7d9897e3db19e71a4f21576b92e51ae56a90aa1fec9fb1df364820c92`
+- P3 focused tests: 5 passed, including source-byte and correction checks.
+
 An additional encoding-only check reproduced the component-rejection flag on
 all 165 crops: all 82 rejections were caused by a component height ratio of at
 least 0.75, with none caused by the maximum glyph count. The synthetic tick
