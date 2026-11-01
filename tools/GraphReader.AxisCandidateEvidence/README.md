@@ -1,5 +1,9 @@
 # Axis candidate evidence exporter
 
+The separate [synthetic tick-rank replay](TICK_RANK_TRAIN_RESULT.md) records an
+exploratory training-only comparison. It does not change this exporter or the
+production axis selection.
+
 This artifact-local tool runs the existing `GraphReader.Axis` geometry detector
 on the single pinned public synthetic validation image in `input-binding.json`.
 It consumes only the image and its manifest hash; it does not read annotations,
