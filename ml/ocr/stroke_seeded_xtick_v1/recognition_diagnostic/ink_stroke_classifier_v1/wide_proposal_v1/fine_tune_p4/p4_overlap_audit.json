@@ -1,0 +1,33 @@
+{
+  "schema": "graphreader.stroke-seeded-ink-p4-metadata-overlap-audit.v1",
+  "scope": "metadata-only hash/source-group comparison; no holdout or probe image/annotation bytes opened",
+  "p3_config_sha256": "927b93c88d7e61dc505516995b72f2235aa7fc8824e5fc54b45ae6741c3c5717",
+  "p3_train_candidate_manifest_sha256": "d02190e6260a18769e2fba06f286670d69bd78a9640a58078bee1fc83567cce5",
+  "holdout_metadata": {
+    "source_manifest_path": "artifacts/stroke-seeded-xtick-v1-inkscan-train-curation-v2/manifest.json",
+    "source_manifest_sha256": "aa265cdd89bef3a77e01d0809f48077bdacb1df1ca4e38ea0b81e637109ce672",
+    "source_group_count": 4,
+    "crop_hash_count": 89,
+    "retained_candidate_hash_overlap": 0
+  },
+  "consumed_probe_metadata": {
+    "manifest_path": "artifacts/stroke-seeded-xtick-v1-p2-probe-corpus-v3/manifest.json",
+    "manifest_sha256": "127b276ee9837f48ccd2123930969d70717b0f833b05da28d9351b047ecfa1ba",
+    "record_count": 359,
+    "duplicate_train_image_exclusions": 63,
+    "all_64_hex_values_scanned": 665,
+    "retained_candidate_hash_overlap": 0,
+    "source_count": 20,
+    "source_pixel_hash_count": 16,
+    "train_source_id_overlap": 0,
+    "train_source_pixel_hash_overlap": 0
+  },
+  "candidate_metadata": {
+    "retained_image_hash_count": 19,
+    "train_source_group_count": 19,
+    "images_and_annotations_rehashed": true
+  },
+  "holdout_or_probe_payload_bytes_opened": false,
+  "private_or_sealed_inputs_read": false,
+  "production_approval": false
+}

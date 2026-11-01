@@ -1,0 +1,112 @@
+{
+  "schema": "graphreader.stroke-seeded-ink-stroke-classifier-config.p4-finetune.v1",
+  "recipe_id": "ink-stroke-validity-p4-sourceuniform-wideproposal-finetune",
+  "split": "same-frozen-P3-training-groups; no holdout or probe input",
+  "initialization": {
+    "model_identity": "stroke-seeded-ink-validity-rf31-p3-sourceuniform-60ep",
+    "checkpoint_relative": "artifacts/stroke-seeded-xtick-v1-ink-stroke-classifier-p3-sourceuniform-60ep-rx6600xt/checkpoint.pt",
+    "checkpoint_sha256": "8b1f8ce7d9897e3db19e71a4f21576b92e51ae56a90aa1fec9fb1df364820c92",
+    "optimizer_state": "fresh AdamW state; P3 checkpoint contains model state only"
+  },
+  "training_inputs": {
+    "p3_curation_manifest_sha256": "aa265cdd89bef3a77e01d0809f48077bdacb1df1ca4e38ea0b81e637109ce672",
+    "wide_candidate_manifest_sha256": "d02190e6260a18769e2fba06f286670d69bd78a9640a58078bee1fc83567cce5",
+    "expected_base_unique_images": 446,
+    "expected_base_class_counts": {
+      "positive": 81,
+      "negative": 365
+    },
+    "expected_added_unique_images": 19,
+    "expected_added_class_counts": {
+      "positive": 8,
+      "negative": 11
+    },
+    "expected_combined_unique_images": 465,
+    "expected_combined_class_counts": {
+      "positive": 89,
+      "negative": 376
+    },
+    "expected_owner_group_counts": {
+      "positive": 12,
+      "negative": 19
+    },
+    "train_source_groups": [
+      "stroke-seeded-xtick-v1-train-27103100",
+      "stroke-seeded-xtick-v1-train-27103101",
+      "stroke-seeded-xtick-v1-train-27103102",
+      "stroke-seeded-xtick-v1-train-27103104",
+      "stroke-seeded-xtick-v1-train-27103105",
+      "stroke-seeded-xtick-v1-train-27103106",
+      "stroke-seeded-xtick-v1-train-27103107",
+      "stroke-seeded-xtick-v1-train-27103108",
+      "stroke-seeded-xtick-v1-train-27103109",
+      "stroke-seeded-xtick-v1-train-27103110",
+      "stroke-seeded-xtick-v1-train-27103112",
+      "stroke-seeded-xtick-v1-train-27103113",
+      "stroke-seeded-xtick-v1-train-27103116",
+      "stroke-seeded-xtick-v1-train-27103117",
+      "stroke-seeded-xtick-v1-train-27103118",
+      "stroke-seeded-xtick-v1-train-27103119",
+      "stroke-seeded-xtick-v1-train-27103120",
+      "stroke-seeded-xtick-v1-train-27103122",
+      "stroke-seeded-xtick-v1-train-27103123"
+    ],
+    "excluded_prior_holdout_groups": [
+      "stroke-seeded-xtick-v1-train-27103103",
+      "stroke-seeded-xtick-v1-train-27103114",
+      "stroke-seeded-xtick-v1-train-27103115",
+      "stroke-seeded-xtick-v1-train-27103121"
+    ],
+    "candidate_semantic_label_conflicts": 0,
+    "candidate_ambiguous_hash_rows_quarantined": 268,
+    "metadata_overlap_audit_relative": "ml/ocr/stroke_seeded_xtick_v1/recognition_diagnostic/ink_stroke_classifier_v1/wide_proposal_v1/fine_tune_p4/p4_overlap_audit.json",
+    "metadata_overlap_audit_sha256": "a42c60882517bcf2a3e45043f83eda029374f6070dea0a45477b550218b40196"
+  },
+  "architecture": "P1 V3 feature stack + global average pooling + 24-to-1 binary head",
+  "model_seed": 27104152,
+  "sampler_seed": 27104153,
+  "epochs": 20,
+  "batch_size": 32,
+  "steps_per_epoch": 23,
+  "optimizer_steps": 460,
+  "learning_rate": 0.001,
+  "weight_decay": 0.01,
+  "optimizer": "AdamW",
+  "capturable": true,
+  "torch_rng_seed": 27104152,
+  "torch_rng_seed_policy": "torch.manual_seed and torch.cuda.manual_seed_all before model construction; Python sampler uses the separate configured seeds",
+  "loss": "binary_cross_entropy_with_logits",
+  "class_draws_per_batch": 16,
+  "per_class_draws_per_epoch": 368,
+  "sampler": "same P3 source-uniform round-robin owner-group draws with persistent per-group example cursor; replacement only after group exhaustion",
+  "threshold_for_train_only_metrics": 0.5,
+  "threshold_tuning": false,
+  "cpu_training_allowed": false,
+  "required_device_name_substring": "RX 6600 XT",
+  "cpu_fallback_allowed": false,
+  "optimizer_execution_authorized": true,
+  "preflight_is_default": true,
+  "training_requires_explicit_flag": "--train",
+  "production_approval": false,
+  "release_eligible": false,
+  "probe_dev_sealed_private_inputs_allowed": false,
+  "p3_report_sha256": "aa57c136d7a6272ca1d0f3590d8ad7404413fdae85be24db39986a3952f854bf",
+  "dependencies": {
+    "p4_runner_sha256": "48489355ba5ea31005cbd223ad0fc541e9ba81759659dfeeec985af476151fde",
+    "p3_runner_sha256": "b7c0b381f7d58be23ac8d1b139a18a8467fed9e34c320421765063dbe76c118d",
+    "p2_runner_sha256": "dc86c5ee004794519c6c1ac7fa21699b06a31637914de3ab827353c828e3aa5d",
+    "p2_config_sha256": "b230e743cadb3d057aef443b3da1dc5821e2da2ce88ecc20ae3175725069aa42",
+    "p1_trainer_sha256": "3e8617809584dadb9c6b35cb52b95136fe766212a2f0bb65f4863b0d17ebc594",
+    "train_admission_sha256": "72947560a68324ca2a6b470898755334e2f6ef98dd7491552e3618a615b30ede",
+    "model_helper_sha256": "985180618c262164bc16168e71bc9ba239b890a8f4d62ce8823d19c8dc6777c5",
+    "p3_config_sha256": "927b93c88d7e61dc505516995b72f2235aa7fc8824e5fc54b45ae6741c3c5717",
+    "p3_checkpoint_sha256": "8b1f8ce7d9897e3db19e71a4f21576b92e51ae56a90aa1fec9fb1df364820c92",
+    "p3_report_sha256": "aa57c136d7a6272ca1d0f3590d8ad7404413fdae85be24db39986a3952f854bf",
+    "train_curation_manifest_sha256": "aa265cdd89bef3a77e01d0809f48077bdacb1df1ca4e38ea0b81e637109ce672",
+    "wide_candidate_manifest_sha256": "d02190e6260a18769e2fba06f286670d69bd78a9640a58078bee1fc83567cce5",
+    "wide_curation_runner_sha256": "e5f10b513a88b72970bcdf4ddbb93e4cddadc0cfe36524ef05085e80aa533c8b",
+    "wide_curation_config_sha256": "919915504214530c378b2eb682f6d0fce113087aaf18e422f2246e596719661a"
+  },
+  "output_relative": "artifacts/stroke-seeded-xtick-v1-ink-stroke-classifier-p4-wideproposal-finetune-rx6600xt",
+  "preflight_relative": "artifacts/stroke-seeded-xtick-v1-ink-stroke-classifier-p4-wideproposal-finetune-preflight-v4.json"
+}
