@@ -211,6 +211,9 @@ The frames, input manifests, scores, and temporary review crops remain
 project-local while the marker-stage diagnosis and candidate follow-up consume
 them; they are never packaging inputs.
 
+The later detector-emitted tick analysis is recorded in
+[WORKFLOW_TICK_DETAILS_RESULT.md](WORKFLOW_TICK_DETAILS_RESULT.md).
+
 ## Checks
 
 ```powershell

@@ -74,6 +74,9 @@ internal static partial class Program
             if (args.Length == 6 && args[0] is "--capture" or "--capture-workflow" or "--capture-workflow-smoke")
                 return await Capture(args[1], args[2], args[3], args[4], args[5],
                     workflow: args[0] != "--capture", smoke: args[0] == "--capture-workflow-smoke");
+            if (args.Length == 6 && args[0] == "--capture-workflow-details")
+                return await Capture(args[1], args[2], args[3], args[4], args[5],
+                    workflow: true, smoke: false, captureDetails: true);
             if (args.Length == 7 && args[0] == "--capture-workflow-one")
                 return await Capture(args[2], args[3], args[4], args[5], args[6],
                     workflow: true, smoke: false, onlyId: args[1]);
@@ -91,7 +94,7 @@ internal static partial class Program
                     tightHorizontal: args[0] == "--recognize-reviewed-axis-tight");
             if (args.Length == 6 && args[0] == "--axis-connectivity-parity")
                 return await CheckAxisConnectivityParity(args[1], args[2], args[3], args[4], args[5]);
-            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis[-tight]|--axis-connectivity-parity <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
+            Console.Error.WriteLine("Usage: --describe[-workflow] <new-json> OR --capture[-workflow|-workflow-smoke|-workflow-details|-dense-workflow] <raster-manifest> <manifest-sha256> <runtime-description> <description-sha256> <new-output-directory> OR --capture[-dense]-workflow-one <source-id> <same capture arguments> OR --recognize-dense[-standard]|--recognize-reviewed-axis[-tight]|--axis-connectivity-parity <input> <input-sha256> <runtime-description> <description-sha256> <new-output-json>");
             return 2;
         }
         catch (Exception error) when (error is not OutOfMemoryException and not StackOverflowException)
@@ -130,7 +133,8 @@ internal static partial class Program
     }
 
     private static async Task<int> Capture(string inputPath, string inputSha, string descriptionPath, string descriptionSha,
-        string outputName, bool workflow, bool smoke, string? onlyId = null, bool denseTickSeparation = false)
+        string outputName, bool workflow, bool smoke, string? onlyId = null, bool denseTickSeparation = false,
+        bool captureDetails = false)
     {
         using var classifierLocks = workflow ? new ClassifierInputLocks() : null;
         byte[] description = await ReadPinned(descriptionPath, descriptionSha, 1_000_000);
@@ -264,7 +268,8 @@ internal static partial class Program
                     if (workflow)
                     {
                         (object row, bool panelFailed) = await CaptureWorkflowPanel(
-                            automatic, request, panel, provenance, captureTickDetails: onlyId is not null);
+                            automatic, request, panel, provenance, captureTickDetails: onlyId is not null || captureDetails,
+                            probeTickRecovery: onlyId is not null);
                         panelRows.Add(row);
                         sourceFailed |= panelFailed;
                         continue;
@@ -310,7 +315,7 @@ internal static partial class Program
                 scope = "train-only-unapproved-candidate-not-acceptance", input_sha256 = inputSha,
                 runtime_description_sha256 = descriptionSha, model_binding_sha256 = ModelBindingSha,
                 classifier_sha256 = ClassifierFiles[2].Sha, opencv_sha256 = OpenCvSha,
-                smoke = smoke || onlyId is not null, dense_tick_separation = denseTickSeparation,
+                smoke = smoke || onlyId is not null, dense_tick_separation = denseTickSeparation, detailed_capture = captureDetails,
                 optimizer_steps = 0, training_approved = false, classification_requested = true,
                 truth_read = false, sealed_payload_reads = 0, rows = results }
             : new { schema = "graphreader.manual-marker-input-capture.v1",
@@ -326,7 +331,7 @@ internal static partial class Program
 
     private static async Task<(object Row, bool Failed)> CaptureWorkflowPanel(
         ProductionAutomaticDetectionAdapter automatic, ProductionWorkflowDetectionRequest request,
-        WorkflowImportedPanel panel, object provenance, bool captureTickDetails)
+        WorkflowImportedPanel panel, object provenance, bool captureTickDetails, bool probeTickRecovery)
     {
         ProductionCandidateCalibrationObservation? observation = null;
         ProductionCandidateTickLaneObservation? tickLane = null;
@@ -365,7 +370,7 @@ internal static partial class Program
         }
 
         object? tickRecoveryProbe = null;
-        if (captureTickDetails && observation is not null)
+        if (probeTickRecovery && observation is not null)
         {
             try
             {
@@ -382,14 +387,17 @@ internal static partial class Program
             failure_code = (failure as ProductionWorkflowStageException)?.Failure.Code,
             error = failure?.Message, error_stack = failure?.ToString(), marker_stage_reached = observation is not null,
             axis_needs_review = observation?.Axis.Uncertainty.NeedsReview,
+            y_axis_line = captureTickDetails ? observation?.Axis.YAxis.Line : null,
             calibration_validity = observation?.Calibration.Validity.ToString(),
             calibration_reasons = captureTickDetails ? observation?.Calibration.Reasons : null,
             tick_lane = captureTickDetails ? tickLane : null,
             tick_recovery_probe = tickRecoveryProbe,
             ocr_tick_regions = captureTickDetails ? observation?.Ocr.Regions
                 .Where(region => region.Role is OcrTextRole.XTick or OcrTextRole.YTick)
-                .Select(region => new { role = region.Role.ToString(), region.Text, region.Confidence,
-                    review_status = region.ReviewStatus.ToString(), region.Polygon,
+                .Select(region => new { region.RegionId, role = region.Role.ToString(), region.Text, region.Confidence,
+                    review_status = region.ReviewStatus.ToString(), region.Polygon, bounds = region.Polygon.Bounds,
+                    numeric_value = GraphNumericParser.Parse(region.Text).Value,
+                    literal_numeric = GraphNumericParser.IsLiteralGraphNumber(region.Text),
                     alternatives = region.Alternatives.Select(item => new { item.Text, item.Confidence }).ToArray() })
                 .ToArray() : null,
             ocr_dense_source_regions = captureTickDetails ? observation?.Ocr.Regions
