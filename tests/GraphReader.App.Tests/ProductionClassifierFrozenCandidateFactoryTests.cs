@@ -45,6 +45,39 @@ public sealed class ProductionClassifierFrozenCandidateFactoryTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task CandidateRejectsClassificationBoundToChangedMarker(bool missingMarkerId)
+    {
+        using var directory = new TemporaryDirectory();
+        var service = new RecordingService(marker => missingMarkerId
+            ? marker with { MarkerId = null! }
+            : marker with { Center = new MarkerPoint(marker.Center.X + 1, marker.Center.Y) });
+        ProductionMarkerClassificationAdapter adapter = ProductionMarkerClassificationAdapter.CreateForFrozenCandidateEvaluation(
+            WriteDescriptor(directory.Path), service);
+        ProductionWorkflowDetectionRequest request = Request();
+        var frame = new MarkerImageFrame(32, 32, 1, new float[1024], MarkerSourceImage.Original,
+            MarkerAffineTransform.Identity, MarkerMask.Empty(32, 32), MarkerMask.Empty(32, 32));
+        MarkerCenter marker = new(
+            "marker-1",
+            new MarkerPoint(8, 12),
+            3,
+            0,
+            0.9,
+            MarkerSourceImage.Original);
+
+        ProductionWorkflowStageException exception = await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() =>
+            ((IProductionCandidateMarkerClassificationAdapter)adapter)
+                .ClassifyForCandidateEvaluationAsync(
+                    request,
+                    frame,
+                    [marker],
+                    new Dictionary<string, MarkerRectangle>(),
+                    CancellationToken.None));
+        Assert.AreEqual(ProductionWorkflowFailureCodes.DetectionEvidenceRejected, exception.Failure.Code);
+    }
+
+    [TestMethod]
     public void CandidateRejectsChangedPayloadAndApprovalClaim()
     {
         using var directory = new TemporaryDirectory();
@@ -197,6 +230,10 @@ public sealed class ProductionClassifierFrozenCandidateFactoryTests
 
     private sealed class RecordingService : IMarkerClassificationService
     {
+        private readonly Func<MarkerCenter, MarkerCenter>? mapMarker;
+
+        internal RecordingService(Func<MarkerCenter, MarkerCenter>? mapMarker = null) => this.mapMarker = mapMarker;
+
         internal int Calls { get; private set; }
         internal MarkerClassificationRequest? LastRequest { get; private set; }
 
@@ -205,8 +242,22 @@ public sealed class ProductionClassifierFrozenCandidateFactoryTests
             cancellationToken.ThrowIfCancellationRequested();
             Calls++;
             LastRequest = request;
+            ClassifiedMarker[] markers = request.Markers.Select(marker =>
+            {
+                MarkerSymbolDescriptor symbol = MarkerSymbolMap.Describe(MarkerShape.Circle, MarkerFill.Filled);
+                return new ClassifiedMarker(
+                    mapMarker?.Invoke(marker) ?? marker,
+                    MarkerShape.Circle,
+                    MarkerFill.Filled,
+                    symbol.Symbol,
+                    symbol.AccessibleName,
+                    0,
+                    0.9,
+                    0.9,
+                    [1f, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            }).ToArray();
             return ValueTask.FromResult(new MarkerClassificationResult(1, "fixture", request.ProjectId, request.PanelId,
-                "markers", request.Options.StageVersion, request.InputSha256, "original_pixels", [],
+                "markers", request.Options.StageVersion, request.InputSha256, "original_pixels", markers,
                 new MarkerClassificationTiming(0, 0, 0, 0), 1, [], [],
                 new MarkerClassificationModelReport(request.Model.ModelId, request.Model.Version, request.Model.Sha256,
                     InferenceProvider.Cpu), null));

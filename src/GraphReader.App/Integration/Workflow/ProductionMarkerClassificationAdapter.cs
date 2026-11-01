@@ -461,9 +461,17 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionCandidate
         string[] expectedIds = inputMarkers.Select(static marker => marker.MarkerId)
             .Order(StringComparer.Ordinal)
             .ToArray();
-        string[] actualIds = result.Markers.Select(static marker => marker.Marker.MarkerId)
+        string[] actualIds = result.Markers.Select(static marker => marker?.Marker?.MarkerId ?? string.Empty)
             .Order(StringComparer.Ordinal)
             .ToArray();
+        Dictionary<string, MarkerCenter> inputMarkersById = inputMarkers.ToDictionary(
+            static marker => marker.MarkerId,
+            StringComparer.Ordinal);
+        bool markerAssociationChanged = result.Markers.Any(classified =>
+            classified is null || classified.Marker is null ||
+            string.IsNullOrWhiteSpace(classified.Marker.MarkerId) ||
+            !inputMarkersById.TryGetValue(classified.Marker.MarkerId, out MarkerCenter? original) ||
+            classified.Marker != original);
         if (result.ContractVersion != MarkerClassificationContract.Version ||
             !string.Equals(result.ProjectId, request.ProjectId.ToString("D"), StringComparison.Ordinal) ||
             !string.Equals(result.PanelId, request.Panel.ImportedPanel.PanelId.ToString("D"), StringComparison.Ordinal) ||
@@ -474,6 +482,7 @@ public sealed class ProductionMarkerClassificationAdapter : IProductionCandidate
             !string.Equals(result.Model.Version, Model.Version, StringComparison.Ordinal) ||
             !string.Equals(result.Model.Sha256, Model.Sha256, StringComparison.OrdinalIgnoreCase) ||
             !expectedIds.SequenceEqual(actualIds, StringComparer.Ordinal) ||
+            markerAssociationChanged ||
             (inputMarkers.Count > 0 && result.Model.Provider is null) ||
             result.Model.Provider == InferenceProvider.Fake)
         {
