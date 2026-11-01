@@ -1,0 +1,48 @@
+{
+  "schema": "graphreader.marker-center-v39-train-fp-attribution.v1",
+  "scope": "synthetic_train_identity_groups_only",
+  "base_diagnostic": {
+    "protocol_path": "ml/markers/center/confidence_pairwise_false_positive_diagnostic_v1/protocol.json",
+    "protocol_sha256": "bfcee52090575dd449a8f4c56502db8c9aa3654c86d87b92468c9bd25fb6256a",
+    "source_bundle_sha256": "fdfd39f2f78e05005715b300e673c1dff53f26a5e27bb3e6a9a5678065f869c1",
+    "report_path": "artifacts/goal22-runs/marker-center-confidence-pairwise-v39-train-hardneg-diagnostic-v1/diagnostic.json",
+    "report_sha256": "7b26e7a9fb3d97d6a323e39543cf00f0943a07d0e745a27dd5a33362aeef9968",
+    "receipt_path": "artifacts/goal22-runs/marker-center-confidence-pairwise-v39-train-hardneg-diagnostic-v1/receipt.json",
+    "receipt_sha256": "18e84ef65c0215d5c10ec938e30c6b2be30779259e597a78c1d42284065ae242"
+  },
+  "analysis": {
+    "fixed_threshold": 0.1,
+    "chunk_rows": 2048,
+    "top_channels": 8,
+    "logit_decomposition_tolerance": {"absolute": 0.00002, "relative": 0.00001},
+    "group_scopes": [
+      "component:identity",
+      "family:identity",
+      "coverage:identity",
+      "crowded:identity",
+      "crowded_mined_negative:identity"
+    ],
+    "negative_categories": [
+      "candidate_false_positive",
+      "candidate_only_false_positive",
+      "candidate_true_negative",
+      "candidate_false_negative_of_baseline"
+    ],
+    "output_path": "artifacts/goal22-runs/marker-center-confidence-pairwise-v39-fp-attribution-v1"
+  },
+  "interpretation_limits": [
+    "Hidden-unit contribution differences are descriptive associations within rows used to fit the candidate, not causal explanations or human-readable visual features.",
+    "No source-scene identity is available in the selected feature rows; reports use scope-local row counts only.",
+    "Threshold 0.1 is fixed from the prior diagnostic; this tool does not search thresholds or calibrate a model.",
+    "Distinct split hashes do not prove per-scene train/dev disjointness; no development payload is read."
+  ],
+  "data_policy": {
+    "development_payloads_read": 0,
+    "private_reads": 0,
+    "sealed_reads": 0,
+    "optimizer_steps": 0,
+    "training": false,
+    "threshold_search": false,
+    "production_approval": false
+  }
+}

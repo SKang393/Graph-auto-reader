@@ -122,3 +122,7 @@ tools/gpu-training/requirements.lock.txt text eol=crlf
 # Preserve conservative mask experiment source bytes recorded by its receipts.
 tools/artifact-mask/candidate-conservative-outline-core-v1/development-test-source-executed.cs -text whitespace=cr-at-eol,-blank-at-eof
 tools/artifact-mask/candidate-conservative-outline-core-v1/validation-test-source-executed.cs -text whitespace=cr-at-eol,-blank-at-eof
+# Preserve V39 train-only diagnostic execution bytes.
+ml/markers/center/confidence_pairwise_false_positive_diagnostic_v1/__init__.py -text whitespace=cr-at-eol,-blank-at-eof
+ml/markers/center/confidence_pairwise_false_positive_diagnostic_v1/diagnostic.py -text whitespace=cr-at-eol,-blank-at-eof
+ml/markers/center/confidence_pairwise_false_positive_diagnostic_v1/protocol.json -text whitespace=cr-at-eol,-blank-at-eof

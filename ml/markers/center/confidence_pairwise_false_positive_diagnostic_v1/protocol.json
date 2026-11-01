@@ -1,0 +1,66 @@
+{
+  "schema": "graphreader.marker-center-confidence-v39-train-hard-negative-diagnostic.v1",
+  "revision": "marker-center-confidence-pairwise-v39-train-hard-negative-diagnostic-v1",
+  "scope": "synthetic_train_only_in_sample_diagnostic",
+  "fixed_threshold": 0.1,
+  "chunk_rows": 4096,
+  "top_negative_count": 20,
+  "feature_report": {
+    "path": "artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/reflected-spatial-features-20261002-v1/report.json",
+    "sha256": "284ebfa305b7b827c59383711122b1668398460ddde2489007252335ee55f500",
+    "status": "fixed_reflection_training_features_measured",
+    "feature_width": 768,
+    "all_training_rows": 1106472,
+    "identity_rows_only": 276618,
+    "identity_positive": 24676,
+    "identity_negative": 251942,
+    "selected_groups": [
+      {"scope":"component:identity","rows":35838,"positive":3258,"negative":32580,"features_sha256":"b400b41aea707210c1d2b790b816492bd7d367457a0acbec03b26d1429b74257","labels_sha256":"e744ba10fddc380ac6edd71d4e8b94f98de8ae3e35c8c47e2e3f3228d299e536"},
+      {"scope":"family:identity","rows":9053,"positive":823,"negative":8230,"features_sha256":"c6026d49a76adfefde6a490324852e972ced51fa60da99d5a1d1e13993352f91","labels_sha256":"75fc6d9cf16f4064ef98330226acf52a684311d124d2516e0c335f286029bd9a"},
+      {"scope":"coverage:identity","rows":42747,"positive":3863,"negative":38884,"features_sha256":"fd56d735aefd1badbc54c044cf2da9e3647e37aa9a42f426ef2163ef47d26ff2","labels_sha256":"e5d58400cf95f4d02ac990e309d9df154392a2862514db3e6da44542d3967d3f"},
+      {"scope":"crowded:identity","rows":182614,"positive":16732,"negative":165882,"features_sha256":"43da80b520a20679a67ad90c9a6788278aefffaa83b2fa82c205e74d0dd3c781","labels_sha256":"b1a14fb913a8598c1f896cdce3646216fade3cd598a23013f51158b252b5363e"},
+      {"scope":"crowded_mined_negative:identity","rows":6366,"positive":0,"negative":6366,"features_sha256":"f402e970c496df204d3a640eedf20861888aa4edf8bd1f9d77857a7d5dda15af","labels_sha256":"372fae1478838681eb08d2e7f545c83a365d04279676fdeb05124a0c24d86305"}
+    ]
+  },
+  "candidate": {
+    "revision": "marker-center-confidence-pairwise-v39",
+    "candidate_id": "P1",
+    "config_path": "ml/markers/center/confidence_pairwise_v39/p1.json",
+    "config_sha256": "58d873011a4887574abd316db030229dd015852c767ba7ed12d6ea1edcd7c21e",
+    "protocol_path": "ml/markers/center/confidence_pairwise_v39/protocol.json",
+    "protocol_sha256": "85a2c3aca5278fb0397b6ebcb46f23c6ce90d33981dd0ce53b6745d0e332dbcb",
+    "training_report_path": "artifacts/goal22-runs/marker-center-confidence-pairwise-v39-P1/training-report.json",
+    "training_report_sha256": "99b6393b11d2665aceb1f6a2b892883ddb826da52f7b38cf281b6cad8e341aea",
+    "checkpoint_path": "artifacts/goal22-runs/marker-center-confidence-pairwise-v39-P1/marker-center-pairwise.pt",
+    "checkpoint_sha256": "61f90a4452f3f9814386f754c30bc431074a937879c26fec71344a1e381159bd",
+    "training_source_bundle_sha256": "3a0dd88bb015dbe66dc240f4b8715064b4331a427571c9d6c836c08fc42144db",
+    "expected_training_steps": 69160,
+    "expected_training_rows": 1106472,
+    "expected_device": {"name":"AMD Radeon RX 6600 XT","hip_architecture":"gfx1032","torch_device":"cuda:0"}
+  },
+  "scoring_sources": [
+    {"path":"ml/markers/center/__init__.py","sha256":"7ad1be210b692abc0e3f351c85c8ce58117c82132e2847ee5bb32a678721e681"},
+    {"path":"ml/markers/center/confidence_spatial_v35/__init__.py","sha256":"ea8efb4af6e3f91db9cf0d680bcbdf7d4abaa13ba5cced2a90ec2a41865a919c"},
+    {"path":"ml/markers/center/confidence_spatial_v35/model.py","sha256":"bdf3611dd99f6551833f6121c7bf538d1a34b2ace57b125f0b815ac8ad6f69ff"},
+    {"path":"ml/markers/center/scale_classifier_v16/__init__.py","sha256":"ae2fbca99d9e97d1131cd2295d2766a9045203187baad5485d695b176e9f6768"},
+    {"path":"ml/markers/center/scale_classifier_v16/model.py","sha256":"899dfbed25707f121f657f4138f8a50060bc554acfbac48b7e2f93bc3668587f"}
+  ],
+  "train_dev_identity": {
+    "component_train_split_sha256":"57dc4850c6882ab1ddabe0c4e76bc03f1cb03963c3d0de16b703152071e773d9",
+    "component_dev_split_sha256":"72dda9b9031f3050d72f5946105576cad89fe938f36f619f84ef4c9cafa8e566",
+    "family_train_split_sha256":"dd8348657d54317d8cfec420cf9791bc91ed7205e03e62dc9df7b9d7fae4ef7c",
+    "family_dev_split_sha256":"f6cbeaf05dc40fa8be10b2120846d26db78a0a0836a92d5cc05ebb276bba445c",
+    "per_scene_overlap_verified": false,
+    "limitation":"Train and dev split labels are distinct, but source-level train/dev intersection is not verified because feature tensors carry no scene IDs. This diagnostic makes no generalization or acceptance claim."
+  },
+  "data_policy": {
+    "selected_transform":"identity_only",
+    "development_payloads_read":0,
+    "private_reads":0,
+    "sealed_reads":0,
+    "optimizer_steps":0,
+    "threshold_search":false,
+    "output_path":"artifacts/goal22-runs/marker-center-confidence-pairwise-v39-train-hardneg-diagnostic-v1"
+  },
+  "interpretation": "A hard negative here means a hash-authenticated synthetic training row labeled negative and ranked high by the already-trained V39 head. These are in-sample rows, not independent false-positive evidence or new labels."
+}
