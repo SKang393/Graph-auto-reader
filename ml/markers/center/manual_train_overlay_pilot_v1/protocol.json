@@ -1,0 +1,47 @@
+{
+  "expected_train_projects": 104,
+  "grouping": {
+    "domain": "graphreader.marker-train-overlay-pilot-v1",
+    "partition": "assigned signature only; one component per internal train feasibility partition",
+    "rule": "connected components over study id and exact embedded-image SHA-256"
+  },
+  "input_manifest": "artifacts/goal22-runs/manual-train-only-source-capture-20261031-v1/manifest.json",
+  "input_manifest_sha256": "a4722b25227227a89c8a13ba7e4788d7e68ab524c9219760198823a2a254cb57",
+  "rendering": {
+    "distractor": "black horizontal line 11 pixels long, offset (+22,+12) from positive center",
+    "native_content": "unknown, including inside and outside patch; no native negatives inferred",
+    "patch": "opaque white 72x56 pixel rectangle centered on selected curve point",
+    "positive": "filled black circle radius 4 pixels centered at rounded curve point",
+    "rounding": "floor(value + 0.5) for nonnegative screen coordinates"
+  },
+  "runtime_assemblies": {
+    "GraphReader.Export": "fd486c570b55fb7f904d8cde38744f1111fbc82c6cd57b0376e2017d38449750",
+    "GraphReader.MarkerTrainOverlayPilot": "c5295810106c793c19ffda6cbb0fc80fdfea46befe929a42f6df2e39a62d6465"
+  },
+  "schema": "graphreader.manual-train-marker-overlay-pilot-protocol.v1",
+  "scope": {
+    "development_payload_reads": 0,
+    "full_image_false_positive_precision": "not measured",
+    "historical_independence": "unverified",
+    "optimizer_steps": 0,
+    "sealed_payload_reads": 0,
+    "training_admitted": false
+  },
+  "source_files": {
+    "Directory.Build.props": "abd1af7b9041fa91ff7d3d94fb5853f58330d2ac4e9c112202191813a812a310",
+    "Directory.Packages.props": "08d7476c82014698470650758506ffc625916f590ac08a66181be825ae6ecac2",
+    "global.json": "e19ae6304f93e71dc33b4de89a3f2978ee723dee2b1c52dc043afe77e402a046",
+    "ml/markers/center/manual_train_overlay_pilot_v1/extractor/GraphReader.MarkerTrainOverlayPilot.csproj": "43d224e9666911cfbeb534d7a75cf40547562e9ea07341e4907c0aa632a08418",
+    "ml/markers/center/manual_train_overlay_pilot_v1/extractor/Program.cs": "8177d4f6044facf2ad12a02d94ff3336fd9b000056fb9bccda5a8589bf7a1380",
+    "ml/markers/center/manual_train_overlay_pilot_v1/plan.py": "aad35c8a81626034d32c2468541e9d2fb2111f83cd85e015ce9357fc5a310bcd",
+    "ml/markers/center/manual_train_overlay_pilot_v1/render.py": "69c3c173b0ce0989d7729583d73d39e31c533f3345c3ac5fe522a7bd5bea795b",
+    "src/GraphReader.Export/ExportContracts.cs": "f6231677ec6c1055b1358a5622aa652cedde3ce6744f0014e6520e01863a661f",
+    "src/GraphReader.Export/GraphReader.Export.csproj": "db3508b49d72d8230acd3afc4162912a196942a1b67ad66b5788fed89d0ecaae",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDevSourceMaterializer.cs": "1b898bf35a799f297a2a0f2321679ff62408ddb30de6a1ff3277a540cc6f3159",
+    "tools/GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapter.cs": "569241baac82321ff659c30fa0352ca44122d3a2f481a5c6c22b8a055892e45f",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenDevTrainingSelector.cs": "2c14934db53f3072dafabce1a0a337b404179d56b0abaec758875012bfaad3d5",
+    "tools/GraphReader.RealAcceptance.Ocr/FrozenRealCorpusInventory.cs": "1eafaa5f7906de3343bd5bc2a64f8665380ae9723f2d80f6ccaa999646c8b6ec",
+    "tools/GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs": "aa31af34c670d0dce05650ae6bc5bc0db9163195b5667ccba71fbf2619378f97"
+  },
+  "status": "train-only-feasibility-pilot-unapproved"
+}

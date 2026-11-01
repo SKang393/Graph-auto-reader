@@ -126,3 +126,9 @@ tools/artifact-mask/candidate-conservative-outline-core-v1/validation-test-sourc
 ml/markers/center/confidence_pairwise_false_positive_diagnostic_v1/__init__.py -text whitespace=cr-at-eol,-blank-at-eof
 ml/markers/center/confidence_pairwise_false_positive_diagnostic_v1/diagnostic.py -text whitespace=cr-at-eol,-blank-at-eof
 ml/markers/center/confidence_pairwise_false_positive_diagnostic_v1/protocol.json -text whitespace=cr-at-eol,-blank-at-eof
+# Preserve the train-only overlay pilot protocol execution bytes.
+ml/markers/center/manual_train_overlay_pilot_v1/protocol.json -text whitespace=cr-at-eol
+# Preserve the overlay pilot pre-run build-input checkout line endings.
+Directory.Packages.props text eol=crlf
+global.json text eol=crlf
+src/GraphReader.Export/GraphReader.Export.csproj text eol=crlf
