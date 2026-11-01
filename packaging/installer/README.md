@@ -54,6 +54,11 @@ include `.graphreader-owned-files.json`, which records the staged payload paths
 and SHA-256 hashes before retained files are copied in. Legacy installs lack
 that ownership record, so no automatic deletion is based on it.
 
+If Windows prevents removal of the setup-owned temporary extraction directory,
+setup reports the cleanup error on standard error when available. This does
+not change a successful install into a reported failure or replace the
+original installation error.
+
 Clean-machine install, launch, repair, upgrade, uninstall, and user-data
 preservation remain mandatory evidence before publication. The tracked
 definition remains `implementation-complete-runtime-unverified` until that

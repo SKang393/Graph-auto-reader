@@ -220,9 +220,11 @@ internal static class Program
         }
         finally
         {
-            if (Directory.Exists(stagingRoot))
+            Exception? cleanupError = InstallDirectoryTransaction.TryRemoveTemporaryStaging(stagingRoot);
+            if (cleanupError is not null)
             {
-                Directory.Delete(stagingRoot, true);
+                try { Console.Error.WriteLine($"Could not remove temporary installer staging at {stagingRoot}: {cleanupError.Message}"); }
+                catch (Exception error) when (error is IOException or ObjectDisposedException) { }
             }
         }
     }

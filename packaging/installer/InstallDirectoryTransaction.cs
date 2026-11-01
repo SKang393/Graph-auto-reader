@@ -11,6 +11,23 @@ internal static class InstallDirectoryTransaction
 {
     private const long MaximumOwnershipInventoryBytes = 64L * 1024 * 1024;
 
+    internal static Exception? TryRemoveTemporaryStaging(string path)
+    {
+        try
+        {
+            Directory.Delete(path, recursive: true);
+            return null;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return null;
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException)
+        {
+            return error;
+        }
+    }
+
     internal static void PreserveForUninstall(string root, string destination)
     {
         string fullRoot = Path.GetFullPath(root);

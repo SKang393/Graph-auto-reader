@@ -51,6 +51,20 @@ void ExpectFailure(Action action)
     throw new InvalidOperationException("Expected the synthetic installation failure.");
 }
 
+string temporaryStaging = Path.Combine(testRoot, "temporary-staging");
+Directory.CreateDirectory(temporaryStaging);
+string lockedPath = Path.Combine(temporaryStaging, "locked.txt");
+using (var locked = new FileStream(lockedPath, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+{
+    Exception? cleanupError = InstallDirectoryTransaction.TryRemoveTemporaryStaging(temporaryStaging);
+    if (cleanupError is not IOException || !Directory.Exists(temporaryStaging))
+        throw new InvalidOperationException("Locked staging cleanup did not return its failure without throwing.");
+}
+if (InstallDirectoryTransaction.TryRemoveTemporaryStaging(temporaryStaging) is not null ||
+    InstallDirectoryTransaction.TryRemoveTemporaryStaging(temporaryStaging) is not null ||
+    Directory.Exists(temporaryStaging))
+    throw new InvalidOperationException("Staging cleanup did not remove unlocked or tolerate absent files.");
+
 ExpectFailure(() => InstallDirectoryTransaction.Execute(root, stage =>
 {
     File.WriteAllText(Path.Combine(stage, "partial.txt"), "partial");
@@ -248,6 +262,7 @@ if (!statusWriteFailure.Completed || statusWriteFailure.StatusError is not IOExc
 Console.WriteLine("PASS: failures restore files and metadata; upgrade and repeated uninstall preserve user files");
 Console.WriteLine("PASS: verified unchanged obsolete payload stays in backup; modified and untracked files remain active");
 Console.WriteLine("PASS: concurrent reinstall invalidates deferred identity; quiet validation and status-write failures classified");
+Console.WriteLine("PASS: locked temporary staging reports cleanup failure without throwing");
 
 internal sealed class FakeRegistry : IInstallerRegistryStore
 {
