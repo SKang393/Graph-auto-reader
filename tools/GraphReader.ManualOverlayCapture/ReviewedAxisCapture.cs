@@ -16,7 +16,7 @@ namespace GraphReader.RealAcceptance.Ocr;
 internal static partial class Program
 {
     private static async Task<int> RecognizeReviewedAxis(string inputPath, string inputSha,
-        string descriptionPath, string descriptionSha, string outputName)
+        string descriptionPath, string descriptionSha, string outputName, bool tightHorizontal)
     {
         const string reviewedInput = "06d77e4621e536ea3328e6baed894d2a8f449bc5d6c2534df0c0f31dba2b8d81";
         const string holdoutInput = "469b5ee37f1d2ad80b4dcb638a3d2183c4949e003de3322d9a186e140228779a";
@@ -83,7 +83,7 @@ internal static partial class Program
             TargetWidth = pipelineOptions.CropWidth, TargetHeight = pipelineOptions.CropHeight,
             WidthMode = pipelineOptions.CropWidthMode, MaximumTargetWidth = pipelineOptions.MaximumCropWidth,
             BatchSize = pipelineOptions.BatchSize, PaddingPixels = pipelineOptions.CropPaddingPixels,
-            HorizontalPaddingPixels = pipelineOptions.CropHorizontalPaddingPixels,
+            HorizontalPaddingPixels = tightHorizontal ? 0 : pipelineOptions.CropHorizontalPaddingPixels,
             VerticalPaddingPixels = pipelineOptions.CropVerticalPaddingPixels,
             VerticalContentPaddingRatio = pipelineOptions.CropVerticalContentPaddingRatio,
             ResizeMode = pipelineOptions.CropResizeMode, PaddingValue = pipelineOptions.CropPaddingValue,
@@ -145,7 +145,8 @@ internal static partial class Program
             input_sha256 = inputSha, runtime_description_sha256 = descriptionSha,
             model_sha256 = model.Payload.Sha256, source_split = split, source_count = sources.Length,
             input_profile = dev || holdout ? "tick-aligned-proposals" : "reviewed-label-boxes",
-            crop_profile = "candidate-standard-padding", inference_provider = "CPUExecutionProvider", optimizer_steps = 0,
+            crop_profile = tightHorizontal ? "candidate-zero-horizontal-padding" : "candidate-standard-padding",
+            inference_provider = "CPUExecutionProvider", optimizer_steps = 0,
             truth_read = false, sealed_payload_reads = 0, rows = entries.Select(entry => new { id = entry.Id, server = outcomes[entry.Id] }).ToArray() }, JsonOptions);
         await WriteNew(output, report);
         Console.WriteLine($"completed rows={entries.Count}; sources={sources.Length}; report_sha256={Hash(report)}");

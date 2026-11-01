@@ -44,3 +44,5 @@ The study-partitioned development review is recorded in
 [DEV_CONNECTIVITY_RESULT.md](DEV_CONNECTIVITY_RESULT.md).
 The separate crop-transcription diagnostic is recorded in
 [DEV_OCR_RESULT.md](DEV_OCR_RESULT.md).
+The controlled horizontal-padding comparison is recorded in
+[CROP_PADDING_RESULT.md](CROP_PADDING_RESULT.md).
