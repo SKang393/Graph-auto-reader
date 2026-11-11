@@ -166,3 +166,24 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 - **Why:** the current OCR still fails development acceptance, and the existing original mobile detector performs worse. The local external-file rule requires explicit identification of a new imported model. Testing pretrained weights precedes considering more training.
 - **Files:** [plain-language choice and official sources](GOAL-22-PRETRAINED-OCR-CHOICE.md), [comparison outcome](GOAL-22-SERVER-OCR-COMPARISON.md)
 - **Unblocks when:** resolved by the explicit model identification and comparison authorization above. This is not candidate selection, production approval or a public release.
+
+## REV-010 - authorize one-job internal preview upload runner
+
+- **Status:** open
+- **Blocks:** internal 0.4.37 artifact upload and latest-preview replacement
+- **Effort:** approximately one minute
+- **Action:** approve creating and running one ephemeral self-hosted runner for
+  `SKang393/Graph-auto-reader`, limited to the existing internal-upload workflow
+  and the locally verified 0.4.37 ZIP. The workflow has `contents: read`; the
+  runner executes one job and unregisters, with no persistent service or public
+  release. This allows that repository workflow to execute on this PC.
+- **Why:** automatic approval review rejected runner registration and startup
+  because artifact-upload authorization did not explicitly grant this access
+  change. The package already passes 978 build tests and local ZIP verification.
+  The active 0.4.36 preview and user Data remain unchanged.
+- **Files:** [package identity and delivery record](INTERNAL-PREVIEW-DELIVERY-20261111.md),
+  [build ledger](BUILD_LEDGER.json),
+  [existing upload workflow](../.github/workflows/internal-preview-upload.yml)
+- **Unblocks when:** the maintainer explicitly approves the one-job runner;
+  upload verification and downloaded-byte comparison must then pass before
+  switching the live preview.

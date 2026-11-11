@@ -1,7 +1,7 @@
 {
     "schemaVersion":  1,
     "policy":  "one packaged application build consumes one build number; build number equals version ordinal; 2.0.0 promotion allocates build 20000 without intermediate records",
-    "assignedUtc":  "2026-11-11T09:00:02.4010495+00:00",
+    "assignedUtc":  "2026-11-11T20:58:02.0614387+00:00",
     "builds":  [
                    {
                        "buildNumber":  1,
@@ -7447,6 +7447,53 @@
                                             "sourceCiRunId":  42990061725,
                                             "sourceCiConclusion":  "success",
                                             "packageUploadRunConclusion":  "success",
+                                            "visualWorkflowChecked":  false,
+                                            "cleanWindowsVmChecked":  false,
+                                            "productionApproved":  false
+                                        }
+                   },
+                   {
+                       "buildNumber":  437,
+                       "version":  "0.4.37",
+                       "directory":  "0.4.37-20261111T205316351Z-e4067fd9",
+                       "stampedVersion":  "0.4.37",
+                       "commit":  "e4067fd912496b1eedc1afafefbfe6de5b00b19b",
+                       "buildTimeUtc":  "2026-11-11T20:53:16.3519412+00:00",
+                       "executableSha256":  "5b7291502533bcafe4e957497c3fce71b6c1083dfed7fe8e4290cbdd2b11946f",
+                       "openCvRuntimeSha256":  "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+                       "releaseEligible":  false,
+                       "releaseStatus":  "internal",
+                       "retained":  false,
+                       "recordIncomplete":  false,
+                       "missingMetadata":  [
+
+                                           ],
+                       "purpose":  "Internal ManualPreview for safe unsaved main-window closure and readable, fully sized graph tabs.",
+                       "candidate":  {
+                                         "localDirectory":  "artifacts/dev-portable-candidate-0437/builds/0.4.37-20261111T205316351Z-e4067fd9",
+                                         "deliveryStatus":  "awaiting-runner-approval",
+                                         "locallyRetained":  true,
+                                         "pendingConsumer":  "One-job repository artifact upload, downloaded-byte verification, and latest-pointer replacement."
+                                     },
+                       "packages":  [
+                                        {
+                                            "name":  "GraphAutoReader-0.4.37-win-x64-internal-preview.zip",
+                                            "sizeBytes":  79867980,
+                                            "sha256":  "bc9c3548e13f3faf2098f35ec9c7870647859d03493795b66fcf5678b81f2236",
+                                            "verificationStatus":  "verified-local"
+                                        }
+                                    ],
+                       "verification":  {
+                                            "buildExitCode":  0,
+                                            "buildSeconds":  151.11,
+                                            "localTestsPassed":  978,
+                                            "localTestsSkipped":  7,
+                                            "portableSmokeExitCode":  0,
+                                            "productionRuntimeSmokeExitCode":  2,
+                                            "nativeProvenanceReview":  "passed",
+                                            "sourceCiRunId":  43098399627,
+                                            "sourceCiConclusion":  "queued",
+                                            "packageUploadRunConclusion":  "waiting-for-runner-approval",
                                             "visualWorkflowChecked":  false,
                                             "cleanWindowsVmChecked":  false,
                                             "productionApproved":  false

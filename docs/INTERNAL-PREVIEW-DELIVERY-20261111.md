@@ -3,7 +3,7 @@
 
 # Internal preview artifact delivery
 
-## Build 437 preparation
+## Build 437 local verification
 
 The next internal ManualPreview is `0.4.37`. It packages the native-QA repairs
 from `0641f5c6`: an explicit safe-default discard decision before closing
@@ -17,6 +17,38 @@ The first attempt stopped before publish on eight test-window resource-order
 failures. Their [bounded repair and full-suite result](MANUAL-PREVIEW-NATIVE-QA-20261111.md)
 record 813 passing App tests. No package was emitted by that attempt, and the
 retry retains the prepared 0.4.37 version.
+
+The corrected clean source `e4067fd912496b1eedc1afafefbfe6de5b00b19b`
+built successfully in 151.110 seconds using the same reviewed OpenCV evidence
+and explicit local attestation. App passed 813 tests, Domain 23, and selected
+integration 142, with seven existing integration skips: 978 passed in total.
+Portable startup returned 0; the expected ManualPreview Production-mode probe
+returned 2. The 468-file publish totals 185,973,726 bytes. Its executable hash
+is `5b7291502533bcafe4e957497c3fce71b6c1083dfed7fe8e4290cbdd2b11946f`.
+
+The 79,867,980-byte
+`GraphAutoReader-0.4.37-win-x64-internal-preview.zip` has SHA-256
+`bc9c3548e13f3faf2098f35ec9c7870647859d03493795b66fcf5678b81f2236`.
+The existing internal-upload verifier passed locally, including source
+ancestry, metadata, actual native/application bytes, archive paths and excluded
+Data/private content. No public release, tag or installer was produced.
+
+Upload is waiting on [REV-010](REVIEW_QUEUE.md). Automatic approval review
+rejected registration and startup of the temporary GitHub runner because it
+grants repository workflow execution access to this PC. No runner was
+registered or started by the rejected command. The already downloaded runner
+2.338.2 matches the official release SHA-256
+`a1f17aa987fc8158bc7521d284912267a0d01b7c2c4684b33c86783b5e8221cc`
+and its official repository identifies the license as MIT. No persistent
+service or credentials were installed.
+
+The build ledger records 437 as a pending replacement, separately from the
+single active retained build 436. The candidate directory under
+`artifacts/dev-portable-candidate-0437` and ZIP/tool staging under
+`artifacts/internal-preview-upload-0437` remain only for the pending upload,
+downloaded-byte verification and switch. Do not rebuild this already-produced
+version. The source CI run `43098399627` was still queued with no job records
+at this checkpoint; no new full-CI success is claimed.
 
 ## Upload mechanism
 

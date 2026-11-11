@@ -173,14 +173,15 @@ disposable after the source/outcome record is pushed and the native check
 finishes. The original synthetic input, current package and user Data remain
 required. This record does not substitute for a current runtime artifact.
 
-The closed integration worktree
-`artifacts/goal22-worktrees/resume-ocr-gpu-20261111` contained 5,758 files
-totaling 338,720,314 bytes at closeout inventory, before this paragraph was
-added. The isolated native-QA directory contained eight files totaling
-442,688 bytes. Neither tree contained a reparse point; all task-owned native
-processes exited. Both trees are retired after this source/outcome record
-reaches `origin/main` and integration checks finish. Their source is retained
-in pushed Git history. No downstream consumer requires the compiler output,
-screenshots, synthetic QA autosaves or completed GPU test caches. The retained
+After the corrected package build, closeout inventory covered the integration
+worktree `artifacts/goal22-worktrees/resume-ocr-gpu-20261111`, isolated native-QA
+directory, local verifier's duplicate ZIP staging, and two completed builder
+logs: 6,394 files, approximately 623 MB. No directory contained a reparse point;
+all task-owned native processes exited. These five targets are retired after
+this source/outcome record reaches `origin/main`. Their source is retained in
+pushed Git history. No downstream consumer requires the compiler output,
+screenshots, synthetic QA autosaves or completed GPU test caches. The 0.4.37
+candidate build, original verified ZIP and prepared upload tool remain for
+the explicitly pending upload in REV-010. The retained
 0.4.36 ZIP was rehashed and still matched
 `c751d6d9953dd7f60a0c8480798646a8e228b5dc265966abd619d682034ea2ce`.
