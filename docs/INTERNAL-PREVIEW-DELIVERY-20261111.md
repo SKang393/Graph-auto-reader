@@ -13,6 +13,11 @@ meaningful repair to the current preview. Build 436 and shared Data remain
 active until the replacement's package verification, upload and ledger push
 complete. This is not a production activation or public release.
 
+The first attempt stopped before publish on eight test-window resource-order
+failures. Their [bounded repair and full-suite result](MANUAL-PREVIEW-NATIVE-QA-20261111.md)
+record 813 passing App tests. No package was emitted by that attempt, and the
+retry retains the prepared 0.4.37 version.
+
 ## Upload mechanism
 
 The existing Windows workflow uploads only release-eligible pairs. A new

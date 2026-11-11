@@ -42,8 +42,17 @@ public partial class MainWindow : Window
     }
 
     public MainWindow(IThemeService? themeService)
+        : this(themeService, windowResources: null)
+    {
+    }
+
+    internal MainWindow(IThemeService? themeService, ResourceDictionary? windowResources)
     {
         _themeService = themeService;
+        if (windowResources is not null)
+        {
+            Resources = windowResources;
+        }
         InitializeComponent();
         _seriesLayoutPath = ResolveLayoutPath(SeriesLayoutFileName);
         _windowLayoutPath = ResolveLayoutPath(WindowLayoutFileName);

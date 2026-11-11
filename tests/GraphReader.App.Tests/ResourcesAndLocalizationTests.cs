@@ -98,7 +98,12 @@ public sealed class ResourcesAndLocalizationTests
             () =>
             {
                 using var themeService = new RecordingThemeService();
-                var window = new MainWindow(themeService);
+                Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+                var resources = new ResourceDictionary();
+                resources.MergedDictionaries.Add(LoadTheme("DesignTokens"));
+                resources.MergedDictionaries.Add(LoadTheme("SystemTheme"));
+                resources.MergedDictionaries.Add(LoadTheme("Controls"));
+                var window = new MainWindow(themeService, resources);
                 var viewModel = (MainWindowViewModel)window.DataContext;
                 var selector = (ComboBox)window.FindName("ThemeSelector");
                 window.Show();
@@ -116,6 +121,11 @@ public sealed class ResourcesAndLocalizationTests
                 Assert.AreEqual(ApplicationTheme.Dark, themeService.EffectiveTheme);
                 Assert.Contains(ApplicationTheme.Dark, themeService.AppliedThemes);
                 window.Close();
+
+                static ResourceDictionary LoadTheme(string name) => new()
+                {
+                    Source = new Uri($"/GraphReader.App;component/Themes/{name}.xaml", UriKind.Relative),
+                };
             });
     }
 

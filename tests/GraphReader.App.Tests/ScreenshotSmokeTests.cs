@@ -193,7 +193,7 @@ public sealed class ScreenshotSmokeTests
         {
             IsPhaseOverlayVisible = showPhaseOverlay,
         };
-        var window = new MainWindow
+        var window = new MainWindow(themeService: null, CreateResources(themeSource))
         {
             DataContext = viewModel,
         };
@@ -206,7 +206,7 @@ public sealed class ScreenshotSmokeTests
 
     private static FrameworkElement CreateManualPreviewWorkspace(MainWindowViewModel viewModel)
     {
-        var window = new MainWindow
+        var window = new MainWindow(themeService: null, CreateResources(LightThemeSource))
         {
             DataContext = viewModel,
         };
@@ -219,6 +219,13 @@ public sealed class ScreenshotSmokeTests
 
     private static void AddResources(FrameworkElement element, string themeSource)
     {
+        element.Resources.MergedDictionaries.Add(CreateResources(themeSource));
+    }
+
+    private static ResourceDictionary CreateResources(string themeSource)
+    {
+        Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+        var resources = new ResourceDictionary();
         string[] resourceSources =
         [
             "/GraphReader.App;component/Themes/DesignTokens.xaml",
@@ -229,12 +236,12 @@ public sealed class ScreenshotSmokeTests
         ];
         foreach (var source in resourceSources)
         {
-            element.Resources.MergedDictionaries.Add(
+            resources.MergedDictionaries.Add(
                 new ResourceDictionary
                 {
                     Source = new Uri(source, UriKind.RelativeOrAbsolute),
                 });
         }
-
+        return resources;
     }
 }

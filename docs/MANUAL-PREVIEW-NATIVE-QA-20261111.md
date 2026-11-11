@@ -134,6 +134,32 @@ No dependency, license, scientific value rule, frozen schema, model approval
 or packaged version changes are implied. Automatic recognition, a production
 candidate, the installer and clean-Windows acceptance remain open.
 
+## Full App suite and package preflight
+
+The first 0.4.37 builder invocation from `bd662600` stopped before publish in
+76.765 seconds: 805 App tests passed and eight failed with
+`XamlParseException: Cannot find resource named 'App.Style.TabItem'`.
+The affected cases were the runtime theme selector, light/dark workspace
+renders, four DPI-scale renders and the empty manual-preview render.
+Those standalone test windows loaded resources only after construction;
+production `App.xaml` loads them before creating its main window.
+
+An internal constructor now accepts a per-window resource dictionary before
+`InitializeComponent`. The two affected test setups use their existing theme
+dictionaries through that seam, retaining all assertions and STA isolation.
+Public startup constructors retain their behavior. No global Application
+singleton or skipped test was introduced.
+
+```powershell
+dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release --no-restore -m:1 -nr:false -p:NuGetAudit=false -p:UseSharedCompilation=false --logger 'trx;LogFileName=app-resource-order.trx' --results-directory artifacts/app-resource-order-tests --verbosity minimal
+```
+
+The corrected full suite passed 813/813, with no failures or skips, in 52.863
+seconds wall time (27-second test duration). Result SHA-256:
+`76a7317e198c21edb6c4230514db46ead02be44b09214488ac5311768a435ec0`.
+`git diff --check` passed. The failed builder produced no package, so the
+replacement remains version 0.4.37; it does not reuse a packaged build number.
+
 ## Disposable evidence
 
 The pre-fix import screenshot SHA-256 was
