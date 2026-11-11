@@ -18,6 +18,45 @@ public sealed class ImagePersistenceExportSmokeTests
     private static readonly int[] ExpectedBatchIndexes = [0, 1, 2];
 
     [TestMethod]
+    public async Task AdjacentColumnDoesNotExportAnotherColumnsPrintedSession()
+    {
+        var lattice = SessionLattice.Fit(new SessionLatticeRequest
+        {
+            PrintedTicks = [new("one", 10.1, 1), new("three", 13.3, 3)],
+            MarkerColumns = [new(10), new(11.6), new(13.2)],
+        });
+        Assert.AreEqual(CalibrationValidity.Valid, lattice.Validity);
+        SessionXEvidence middle = lattice.Assignments.Single(point => point.Ordinal == 2);
+        Assert.IsNull(middle.PrintedX);
+        Assert.AreEqual(2d, middle.EstimatedX);
+
+        using var environment = new IntegrationSmokeTestEnvironment();
+        string sourcePath = environment.WriteBmp("session-evidence.bmp", 10, 20, 30);
+        ProjectDocument project = IntegrationSmokeProjectFactory.Create(
+            sourcePath, IntegrationSmokeProjectFactory.Sha256(await File.ReadAllBytesAsync(sourcePath)));
+        ExportRequest original = CreateExportRequest(project.Panels.Single(), environment.PathFor("exports"));
+        ExportPoint[] points = original.Points.Select(point => point.PointId == IntegrationSmokeIds.InterventionPoint.Value
+            ? point with
+            {
+                PrintedXValue = middle.PrintedX,
+                EstimatedXValue = middle.EstimatedX,
+                XSource = ExportXValueSource.Estimated,
+                GraphX = middle.PrintedX ?? middle.EstimatedX,
+            }
+            : point).ToArray();
+        var request = new ExportRequest(original.RunId, original.ProjectId, original.PanelId, original.OutputDirectory,
+            original.Participant, original.Mode, original.AuditMode, original.Operation, original.Calibration,
+            original.SessionOriginPolicy, original.Phases, original.Series, points, original.Relations);
+
+        ExportResult result = await new ExportService().ExportAsync(request, CancellationToken.None);
+        Assert.IsTrue(result.Succeeded, Format(result.Failures));
+        ExtendedAuditRow row = result.AuditArtifacts.Single().Rows.Single(
+            item => item.PointId == IntegrationSmokeIds.InterventionPoint.Value);
+        Assert.AreEqual(2d, row.XValue);
+        Assert.AreEqual(ExportXValueSource.Estimated, row.XSource);
+    }
+
+    [TestMethod]
     public async Task ImageWorkflowPreservesOriginalAndExportsCorrectedAuditableRows()
     {
         using var environment = new IntegrationSmokeTestEnvironment();

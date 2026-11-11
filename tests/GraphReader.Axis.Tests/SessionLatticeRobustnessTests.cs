@@ -11,6 +11,49 @@ public sealed class SessionLatticeRobustnessTests
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
+    public void APrintedTickCannotBeReusedByAdjacentColumns(bool reverse)
+    {
+        PrintedXTickEvidence[] ticks = [new("one", 10.1, 1), new("three", 13.3, 3)];
+        MarkerColumnEvidence[] columns = [new(10), new(11.6), new(13.2)];
+        var request = new SessionLatticeRequest
+        {
+            PrintedTicks = reverse ? ticks.Reverse().ToArray() : ticks,
+            MarkerColumns = reverse ? columns.Reverse().ToArray() : columns,
+        };
+
+        SessionLatticeResult result = SessionLattice.Fit(request);
+
+        Assert.AreEqual(CalibrationValidity.Valid, result.Validity);
+        Assert.HasCount(3, result.Assignments);
+        SessionXEvidence middle = result.Assignments.Single(point => point.Ordinal == 2);
+        Assert.IsNull(middle.PrintedX, "The first tick belongs to the first column only.");
+        Assert.AreEqual(2d, middle.EstimatedX);
+        Assert.AreEqual(SessionXEvidenceKind.Estimated, middle.EvidenceKind);
+        CollectionAssert.AreEqual(new double?[] { 1d, null, 3d }, result.Assignments.Select(point => point.PrintedX).ToArray());
+        Assert.AreEqual(0, result.Assignments.Count(point => point.PrintedX.HasValue && point.PrintedX != point.EstimatedX));
+    }
+
+    [TestMethod]
+    public void SparseLaterFirstSessionRetainsOffsetAndMissingTickEstimate()
+    {
+        var request = new SessionLatticeRequest
+        {
+            PrintedTicks = [new("twenty-nine", 100, 29), new("thirty-one", 150, 31)],
+            MarkerColumns = [new(100), new(125), new(150)],
+            RequireFirstObservedSessionOne = false,
+        };
+
+        SessionLatticeResult result = SessionLattice.Fit(request);
+
+        Assert.AreEqual(CalibrationValidity.Valid, result.Validity);
+        CollectionAssert.AreEqual(new double?[] { 29d, null, 31d }, result.Assignments.Select(point => point.PrintedX).ToArray());
+        CollectionAssert.AreEqual(new double?[] { 29d, 30d, 31d }, result.Assignments.Select(point => point.EstimatedX).ToArray());
+        Assert.AreEqual(SessionXEvidenceKind.Estimated, result.Assignments[1].EvidenceKind);
+    }
+
+    [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
     public void OneStrayColumnDoesNotInvalidateAConsistentScaleOrAcquireAnInventedSession(bool reverse)
     {
         double[] pixels = Enumerable.Range(0, 21).Select(static index => 100d + (25d * index)).Append(338.5).ToArray();

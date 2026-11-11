@@ -689,24 +689,65 @@ public static class SessionLattice
         double matchingTolerance = Math.Max(
             request.DuplicateColumnTolerancePixels,
             request.AlignmentToleranceFraction * lattice.Pitch);
+        var printedByColumn = new PrintedXTickEvidence?[columns.Count];
+        var printedDistances = Enumerable.Repeat(double.PositiveInfinity, columns.Count).ToArray();
+        var ambiguousColumns = new bool[columns.Count];
+        if (lattice.Origin.HasAbsoluteOrigin)
+        {
+            foreach (PrintedXTickEvidence tick in request.PrintedTicks)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                int nearestIndex = -1;
+                double nearestDistance = double.PositiveInfinity;
+                bool tied = false;
+                for (int index = 0; index < columns.Count; index++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    double distance = Math.Abs(tick.PixelX - columns[index].PixelX);
+                    if (distance < nearestDistance)
+                    {
+                        nearestIndex = index;
+                        nearestDistance = distance;
+                        tied = false;
+                    }
+                    else if (distance == nearestDistance)
+                    {
+                        tied = true;
+                    }
+                }
+
+                if (nearestIndex < 0 || tied || nearestDistance > matchingTolerance)
+                {
+                    continue;
+                }
+
+                double session = 1d + ((columns[nearestIndex].PixelX - lattice.Origin.PixelX) / lattice.Pitch);
+                double rounded = Math.Round(session);
+                if (rounded < 1d || Math.Abs(session - rounded) > request.AlignmentToleranceFraction ||
+                    tick.PrintedValue != rounded)
+                {
+                    continue;
+                }
+
+                if (nearestDistance < printedDistances[nearestIndex])
+                {
+                    printedByColumn[nearestIndex] = tick;
+                    printedDistances[nearestIndex] = nearestDistance;
+                    ambiguousColumns[nearestIndex] = false;
+                }
+                else if (nearestDistance == printedDistances[nearestIndex] &&
+                    printedByColumn[nearestIndex]?.PrintedValue != tick.PrintedValue)
+                {
+                    ambiguousColumns[nearestIndex] = true;
+                }
+            }
+        }
+
         for (int index = 0; index < columns.Count; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             WeightedColumn column = columns[index];
-            PrintedXTickEvidence? printed = null;
-            double nearestPrintedDistance = double.PositiveInfinity;
-            foreach (PrintedXTickEvidence tick in request.PrintedTicks)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                double distance = Math.Abs(tick.PixelX - column.PixelX);
-                if (distance <= matchingTolerance && distance < nearestPrintedDistance)
-                {
-                    printed = tick;
-                    nearestPrintedDistance = distance;
-                }
-            }
-
-            double? printedX = lattice.Origin.HasAbsoluteOrigin ? printed?.PrintedValue : null;
+            double? printedX = ambiguousColumns[index] ? null : printedByColumn[index]?.PrintedValue;
             double? estimatedX = null;
             if (lattice.Origin.HasAbsoluteOrigin)
             {
