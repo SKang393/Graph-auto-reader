@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Sungwoo Kang
+
+name: Upload internal preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_label:
+        description: One-job runner label beginning graphreader-upload-
+        required: true
+        type: string
+      expected_source_sha:
+        description: Full source commit SHA, which must equal this workflow run's main SHA
+        required: true
+        type: string
+      expected_version:
+        description: Exact version embedded in the local ManualPreview package
+        required: true
+        type: string
+      expected_package_sha256:
+        description: SHA-256 of the one local internal preview ZIP
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: internal-preview-upload
+  cancel-in-progress: false
+
+jobs:
+  verify-and-upload:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' &&
+      startsWith(inputs.runner_label, 'graphreader-upload-')
+    runs-on: [self-hosted, windows, x64, "${{ inputs.runner_label }}"]
+    timeout-minutes: 15
+    env:
+      GRAPHREADER_INTERNAL_UPLOAD_WORKFLOW_SHA: ${{ github.sha }}
+      GRAPHREADER_INTERNAL_UPLOAD_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+      GRAPHREADER_INTERNAL_UPLOAD_VERSION: ${{ inputs.expected_version }}
+      GRAPHREADER_INTERNAL_UPLOAD_PACKAGE_SHA256: ${{ inputs.expected_package_sha256 }}
+      GRAPHREADER_INTERNAL_UPLOAD_RUNNER_LABEL: ${{ inputs.runner_label }}
+
+    steps:
+      - name: Check out the exact main source commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify local internal preview package
+        shell: pwsh
+        run: ./packaging/Test-InternalPreviewUpload.ps1
+
+      - name: Upload verified internal preview ZIP
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: GraphAutoReader-${{ inputs.expected_version }}-internal-preview-${{ github.run_id }}
+          path: ${{ runner.temp }}/graphreader-internal-preview/*.zip
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 90

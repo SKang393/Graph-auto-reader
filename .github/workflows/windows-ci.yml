@@ -137,6 +137,12 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass
           -File "${{ github.workspace }}\packaging\tests\Test-FrozenNative.Tests.ps1"
 
+      - name: Test internal preview upload verification
+        shell: pwsh
+        run: >-
+          pwsh -NoProfile
+          -File "${{ github.workspace }}\packaging\tests\Test-InternalPreviewUpload.Tests.ps1"
+
       - name: Validate packaging definitions
         shell: pwsh
         run: >-
