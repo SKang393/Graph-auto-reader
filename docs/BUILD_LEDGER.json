@@ -1,7 +1,7 @@
 {
     "schemaVersion":  1,
-    "policy":  "one produced build consumes one build number; ordinal equals build number",
-    "assignedUtc":  "2026-10-31T07:44:40.7284074+00:00",
+    "policy":  "one packaged application build consumes one build number; build number equals version ordinal; 2.0.0 promotion allocates build 20000 without intermediate records",
+    "assignedUtc":  "2026-11-11T09:00:02.4010495+00:00",
     "builds":  [
                    {
                        "buildNumber":  1,
@@ -7377,7 +7377,9 @@
                        "releaseStatus":  "internal",
                        "retained":  false,
                        "recordIncomplete":  false,
-                       "missingMetadata":  []
+                       "missingMetadata":  [
+
+                                           ]
                    },
                    {
                        "buildNumber":  435,
@@ -7390,9 +7392,65 @@
                        "openCvRuntimeSha256":  "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
                        "releaseEligible":  false,
                        "releaseStatus":  "internal",
+                       "retained":  false,
+                       "recordIncomplete":  false,
+                       "missingMetadata":  [
+
+                                           ]
+                   },
+                   {
+                       "buildNumber":  436,
+                       "version":  "0.4.36",
+                       "directory":  "0.4.36-20261111T085128044Z-0ffdfa51",
+                       "stampedVersion":  "0.4.36",
+                       "commit":  "0ffdfa51f7d4db3e141b1bf8968a46792f572267",
+                       "buildTimeUtc":  "2026-11-11T08:51:28.0446702+00:00",
+                       "executableSha256":  "bf9e152fbd5a5276849c75e39ef1ebf681617ec1927385a6592b1e6f8f87e14d",
+                       "openCvRuntimeSha256":  "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+                       "releaseEligible":  false,
+                       "releaseStatus":  "internal",
                        "retained":  true,
                        "recordIncomplete":  false,
-                       "missingMetadata":  []
+                       "missingMetadata":  [
+
+                                           ],
+                       "purpose":  "Internal ManualPreview for per-panel calibration warnings, source-bound recovery, and unsaved-close protection.",
+                       "packages":  [
+                                        {
+                                            "name":  "GraphAutoReader-0.4.36-win-x64-internal-preview.zip",
+                                            "sizeBytes":  79867038,
+                                            "sha256":  "c751d6d9953dd7f60a0c8480798646a8e228b5dc265966abd619d682034ea2ce",
+                                            "verificationStatus":  "verified-local-and-downloaded"
+                                        }
+                                    ],
+                       "artifactStorage":  {
+                                               "provider":  "github-actions",
+                                               "artifactId":  13841873219,
+                                               "name":  "GraphAutoReader-0.4.36-internal-preview-42992048647",
+                                               "url":  "https://github.com/SKang393/Graph-auto-reader/actions/runs/42992048647/artifacts/13841873219",
+                                               "workflowRunId":  42992048647,
+                                               "workflowCommit":  "b53bc76d8e027e6ec4d6e28026b2a001317928de",
+                                               "sizeInBytes":  79615613,
+                                               "digest":  "sha256:a8aa64e05801696891706043c4355791b011073c21c08b869088451aa98c00f9",
+                                               "createdUtc":  "2026-11-11T09:04:44Z",
+                                               "expiresUtc":  "2027-02-09T09:04:11Z",
+                                               "downloadedPackageVerifiedUtc":  "2026-11-11T09:08:36.0794691+00:00"
+                                           },
+                       "verification":  {
+                                            "buildExitCode":  0,
+                                            "buildSeconds":  142.067,
+                                            "localTestsPassed":  970,
+                                            "localTestsSkipped":  7,
+                                            "portableSmokeExitCode":  0,
+                                            "productionRuntimeSmokeExitCode":  2,
+                                            "nativeProvenanceReview":  "passed",
+                                            "sourceCiRunId":  42990061725,
+                                            "sourceCiConclusion":  "success",
+                                            "packageUploadRunConclusion":  "success",
+                                            "visualWorkflowChecked":  false,
+                                            "cleanWindowsVmChecked":  false,
+                                            "productionApproved":  false
+                                        }
                    }
                ]
 }

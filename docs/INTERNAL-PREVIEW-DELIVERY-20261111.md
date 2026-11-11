@@ -47,18 +47,55 @@ commit relationships, accepted root `System.Private.*.dll` assemblies,
 rejected private directories, absent portable mode, invalid version components,
 forbidden Data/private/debug content, traversal and reserved Windows names.
 YAML parsing, step-shape checks and `git diff --check` passed.
-The verifier test is included in Windows CI. No dependency was added; the future
-GitHub runner is an MIT-licensed local tool, not an application payload.
+The verifier test is included in Windows CI. No application dependency was added.
+The GitHub runner is an MIT-licensed local tool, not an application payload.
 
-Actual delivery remains pending. After a meaningful checkpoint passes, prepare
-and commit the next version, build into an isolated replacement staging root,
-validate and upload its exact ZIP, then push the ledger before changing the
-live pointer or retiring the old build. Preserve user Data. This batch did not
-build a product package, install/register a runner, upload bytes, or change the
-current build identity.
+## Verified build 436 delivery
+
+Internal ManualPreview `0.4.36` packages the completed per-panel calibration
+warning, source-bound save/recovery, and unsaved-close protection changes. Its
+application source is `0ffdfa51f7d4db3e141b1bf8968a46792f572267`.
+`Build-DevPortable.ps1 -FastTestsOnly` ran from the clean isolated checkout with
+the existing reviewed OpenCV evidence and explicit private attestation path.
+It completed in 142.067 seconds: 806 application, 23 domain, and 141 integration
+tests passed, with 7 integration tests skipped. Portable smoke exited 0;
+the Production-mode probe exited the expected 2 for ManualPreview. The source
+checkpoint's Windows CI run `42990061725` also completed successfully.
+
+The package contains 468 files totaling 185,971,166 uncompressed bytes. The
+79,867,038-byte `GraphAutoReader-0.4.36-win-x64-internal-preview.zip` has SHA-256
+`c751d6d9953dd7f60a0c8480798646a8e228b5dc265966abd619d682034ea2ce`.
+The original verifier rejected the standard `System.Private.CoreLib.dll` name;
+the corrected verifier and both PowerShell regression runs passed without
+changing or rebuilding the ZIP.
+
+The manual workflow ran from `b53bc76d8e027e6ec4d6e28026b2a001317928de`,
+which contains the package source as an ancestor. Run `42992048647` verified
+and uploaded exactly one ZIP. [Artifact 13841873219](https://github.com/SKang393/Graph-auto-reader/actions/runs/42992048647/artifacts/13841873219)
+was downloaded again and matched the original package SHA-256 and size.
+Its server expiration is `2027-02-09T09:04:11Z`; replace or refresh the current
+artifact before that date. The server archive digest is recorded separately
+from the enclosed package hash in `BUILD_LEDGER.json`.
+
+The task-specific Actions runner 2.338.2 handled one job, exited, and
+automatically deregistered. The repository runner count returned to zero.
+Its downloaded tool ZIP matched the published SHA-256
+`a1f17aa987fc8158bc7521d284912267a0d01b7c2c4684b33c86783b5e8221cc`.
+
+The live pointer switch follows the push of this verified ledger record.
+The superseded local 0.4.33 directory contains 467 files / 232,608,648 bytes,
+no embedded Data directory, no project data files, and no reparse points.
+Retire it only after the 0.4.36 pointer is verified. Preserve the existing
+shared Data, feedback, and manual-evidence directories. Remove task-owned
+duplicate upload/download staging and the stopped runner after their consumers
+finish; keep one 0.4.36 package identity and its runnable directory.
+
+This is an internal manual preview. Automatic stages remain unavailable;
+visual workflow, clean-Windows VM, installer, and production-model acceptance
+are not established by these checks. No public release or tag was created.
 
 For an isolated build checkout, `Build-DevPortable.ps1` now accepts
 `-OpenCvAttestationPath` alongside `-ReviewedOpenCvEvidenceRoot`. This forwards
 the already existing private file to the review validator without copying it
-into the preview. The actual reviewed-native installer flow passed an isolated
-fixture with the external path; the package-producing builder has not yet run.
+into the preview. Both the isolated installer fixture and this actual preview
+builder passed the existing source-audit and private-review validators.
