@@ -247,17 +247,20 @@ Its seven inputs remain the following checksum-verified files under the primary
 | `LICENSES/PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt` | `c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4` |
 | `LICENSES/PaddlePaddle-PP-OCRv5-Models-Notice.txt` | `8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729` |
 
-### Active consumer and cleanup boundary
+### Completed consumers and cleanup
 
 The actual GPU bridge, fixed optimizer run and bounded open-dev investigation
 are complete. [The P1 outcome](GOAL-22-OCR-MARKER-STYLE-GPU-P1-OUTCOME.md)
-records the presealed parity failure and diagnostic score. After its record is
-pushed, retire `artifacts/marker-style-nine-source-20261111` and
-`artifacts/marker-style-capture-binding-20261111`, including their authenticated
-fixture, candidate, source snapshot, tensors and targets. Manual-preview QA may
-retain its one selected synthetic image until its saved-project check finishes.
-Until those consumers finish and their outcomes are pushed, keep the required
-inputs. Historical V44/V46 inputs remain
+records the presealed parity failure and diagnostic score. After that outcome
+reached `origin/main` at `f6df0550`, the clean integrated calibration/capture
+worktree and its merged branch were retired. This removed 6,407 files totaling
+787,207,832 bytes, including 244 nine-source files (307,442,968 bytes) and two
+binding files (5,615 bytes). One owned packaging-test symbolic link pointing
+inside the same closed worktree was unlinked non-recursively before confirming
+there were no remaining reparse points or private corpus. Manual-preview QA
+uses a different existing synthetic image. The listed capture output paths and
+hashes above are historical, not current validation inputs. Historical V44/V46
+inputs remain
 unchanged for their explicit compatibility/bridge consumers. These historical
 truths or splits were not evaluated by the nine-source run.
 

@@ -122,12 +122,20 @@ weights were imported. The parent SHA-256 is
 No model-store entry, production approval, version increment or package was
 created for this outcome.
 
-After this outcome and the canonical ledger reach `origin/main`, retire the
-failed P1 checkpoint/ONNX, diagnostic predictions/runtime copies, sampled
-screenshots, raw logs and attempt snapshots. The bounded investigation has
-finished and no further candidate consumer is scheduled. Preserve the existing
-historical runtime models and authenticated base training inputs. The newly
-generated nine-source tensors, masks and graph copies can also be retired once
-the manual-preview QA consumer releases its selected synthetic image. Their
-tracked generator, capture/target commands and input identities are recorded in
+Outcome commit `f6df0550d0efc525a4c523354ebda276a45bc807` reached
+`origin/main`, verified by `git ls-remote`. The failed P1 checkpoint/ONNX,
+diagnostic predictions/runtime copies, sampled screenshots, raw logs and attempt
+snapshots were then removed: 186 files, 218,303,294 bytes across five exact
+targets. Each target resolved within the current checkout and contained no
+reparse points. These historical outputs are retired, including the score path
+recorded above. The canonical ledger and this document retain their identities
+and outcomes. The existing historical runtime models and authenticated base
+training inputs were preserved. Manual-preview QA selected a different existing
+synthetic image, so it did not consume the nine-source capture. The completed
+calibration/capture worktree and merged branch were then retired: 6,407 files,
+787,207,832 bytes including the 246 generated capture/binding files totaling
+307,448,583 bytes. One owned packaging-test link to a target inside that same
+closed worktree was removed non-recursively first; no reparse points or private
+corpus remained. The tracked generator, capture/target commands and historical
+input identities are recorded in
 [the capture outcome](OCR-MARKER-STYLE-COVERAGE-20261111.md).
