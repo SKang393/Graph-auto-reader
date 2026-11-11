@@ -77,6 +77,8 @@ public static class LocalizationKeys
     public const string ProjectRecover = "Project.Recover";
     public const string ProjectCloseTab = "Project.CloseTab";
     public const string ProjectCloseDirtyBlocked = "Project.CloseDirtyBlocked";
+    public const string ProjectConfirmDiscardAll = "Project.ConfirmDiscardAll";
+    public const string ProjectCloseBusyBlocked = "Project.CloseBusyBlocked";
     public const string ManualTitle = "Manual.Title";
     public const string ManualModeSelect = "Manual.Mode.Select";
     public const string ManualModeCalibrate = "Manual.Mode.Calibrate";
@@ -360,6 +362,8 @@ public static class LocalizationKeys
         ProjectRecover,
         ProjectCloseTab,
         ProjectCloseDirtyBlocked,
+        ProjectConfirmDiscardAll,
+        ProjectCloseBusyBlocked,
         ManualTitle,
         ManualModeSelect,
         ManualModeCalibrate,

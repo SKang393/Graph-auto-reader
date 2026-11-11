@@ -447,14 +447,14 @@
 
         <TabControl x:Name="GraphTabStrip"
                     Grid.Row="1"
-                    Height="42"
+                    MinHeight="42"
                     Margin="0,0,0,8"
                     ItemsSource="{Binding Tabs}"
                     SelectedItem="{Binding SelectedTab, Mode=TwoWay}"
                     automation:AutomationProperties.AutomationId="Navigation.GraphTabs"
                     automation:AutomationProperties.Name="{DynamicResource Navigation.AutomationName}">
           <TabControl.ItemContainerStyle>
-            <Style TargetType="TabItem">
+            <Style TargetType="TabItem" BasedOn="{StaticResource App.Style.TabItem}">
               <Setter Property="automation:AutomationProperties.Name" Value="{Binding DisplayName}" />
               <Style.Triggers>
                 <DataTrigger Binding="{Binding AnalysisNeedsReview}" Value="True">

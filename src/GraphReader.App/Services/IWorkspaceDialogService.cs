@@ -2,6 +2,7 @@
 // Copyright 2026 Sungwoo Kang
 
 using System.IO;
+using System.Windows;
 using GraphReader.App.Localization;
 using Microsoft.Win32;
 
@@ -16,6 +17,8 @@ public interface IWorkspaceDialogService
     string? SelectProjectToSave(string? currentPath);
 
     string? SelectExportDirectory();
+
+    bool ConfirmDiscardUnsavedChanges() => false;
 }
 
 public sealed class WindowsWorkspaceDialogService : IWorkspaceDialogService
@@ -70,6 +73,13 @@ public sealed class WindowsWorkspaceDialogService : IWorkspaceDialogService
         };
         return dialog.ShowDialog() == true ? dialog.FolderName : null;
     }
+
+    public bool ConfirmDiscardUnsavedChanges() => MessageBox.Show(
+        Text(LocalizationKeys.ProjectConfirmDiscardAll, "Closing will discard unsaved changes across all open projects. Discard changes and close?"),
+        Text(LocalizationKeys.AppTitle, "Graph Auto Reader"),
+        MessageBoxButton.YesNo,
+        MessageBoxImage.Warning,
+        MessageBoxResult.No) == MessageBoxResult.Yes;
 
     private string Text(string key, string fallback) =>
         _localizationService?.GetString(key) ?? fallback;

@@ -65,6 +65,7 @@ public partial class MainWindow : Window
         };
         _autosaveTimer.Tick += OnAutosaveTimerTick;
         _autosaveTimer.Start();
+        Closing += OnClosing;
         Closed += OnClosed;
     }
 
@@ -93,6 +94,14 @@ public partial class MainWindow : Window
         else if (e.PropertyName == nameof(MainWindowViewModel.SelectedTab))
         {
             Dispatcher.BeginInvoke(GraphCanvasHost.ResetView, DispatcherPriority.Loaded);
+        }
+    }
+
+    private void OnClosing(object? sender, CancelEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel && !viewModel.CanCloseWindow())
+        {
+            e.Cancel = true;
         }
     }
 

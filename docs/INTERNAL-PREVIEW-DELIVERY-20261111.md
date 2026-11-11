@@ -99,9 +99,14 @@ build checkout (6,323 files, approximately 541 MB including compiler outputs)
 are disposable after this closeout record is pushed. Their source and measured
 outcomes are retained in Git and the remote artifact; neither is an OCR input.
 
-This is an internal manual preview. Automatic stages remain unavailable;
-visual workflow, clean-Windows VM, installer, and production-model acceptance
-are not established by these checks. No public release or tag was created.
+This is an internal manual preview. A later
+[native QA session](MANUAL-PREVIEW-NATIVE-QA-20261111.md) checked manual
+calibration, point editing, Review, Export preview and autosave, and reproduced
+tab readability and main-window close-protection defects. Native CSV writing
+and explicit save/reopen remain unverified. Automatic stages remain unavailable;
+clean-Windows VM, installer and production-model acceptance are not established.
+No public release or tag was created. Follow-up source fixes do not modify the
+immutable 0.4.36 package.
 
 For an isolated build checkout, `Build-DevPortable.ps1` now accepts
 `-OpenCvAttestationPath` alongside `-ReviewedOpenCvEvidenceRoot`. This forwards

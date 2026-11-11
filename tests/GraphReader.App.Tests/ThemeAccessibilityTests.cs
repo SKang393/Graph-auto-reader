@@ -4,6 +4,9 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Automation.Peers;
+using System.Windows.Controls;
+using System.Windows.Markup;
+using System.Windows.Media;
 using System.Xml.Linq;
 using GraphReader.App.Appearance;
 using GraphReader.App.Controls;
@@ -16,6 +19,119 @@ public sealed class ThemeAccessibilityTests
     private const string PresentationNamespace = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
     private const string XamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
     private const string AutomationNamespace = "clr-namespace:System.Windows.Automation;assembly=PresentationCore";
+    private static readonly string[] TabThemes = ["DarkTheme", "LightTheme", "SystemTheme"];
+
+    [TestMethod]
+    public void OverflowingPanelTabsReserveFullHeaderHeightAboveScrollbar()
+    {
+        XNamespace presentation = PresentationNamespace;
+        XNamespace xaml = XamlNamespace;
+        XElement tabs = new(LoadAppXaml("MainWindow.xaml").Descendants(presentation + "TabControl")
+            .Single(element => element.Attribute(xaml + "Name")?.Value == "GraphTabStrip"));
+        tabs.SetAttributeValue(XNamespace.Xmlns + "x", XamlNamespace);
+        tabs.SetAttributeValue(XNamespace.Xmlns + "automation", AutomationNamespace);
+        tabs.Attribute("ItemsSource")!.Remove();
+        tabs.Attribute("SelectedItem")!.Remove();
+        tabs.AddFirst(new XElement(presentation + "TabControl.Resources",
+            new XElement(presentation + "ResourceDictionary",
+                new XElement(presentation + "ResourceDictionary.MergedDictionaries",
+                    Dictionary("DesignTokens"), Dictionary("DarkTheme"), Dictionary("Controls")),
+                new XElement(presentation + "BooleanToVisibilityConverter",
+                    new XAttribute(xaml + "Key", "BooleanToVisibilityConverter")))));
+
+        StaTestHost.Run(() =>
+        {
+            Application.ResourceAssembly ??= typeof(ThemeService).Assembly;
+            var strip = (TabControl)XamlReader.Parse(tabs.ToString());
+            strip.Items.Add(new { DisplayName = "First imported source with a long panel name", AnalysisNeedsReview = true, IsDirty = true });
+            strip.Items.Add(new { DisplayName = "Second imported source with a long panel name", AnalysisNeedsReview = false, IsDirty = false });
+            var layout = new Grid();
+            layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            layout.RowDefinitions.Add(new RowDefinition());
+            Grid.SetRow(strip, 0);
+            layout.Children.Add(strip);
+            layout.Measure(new Size(320, 240));
+            layout.Arrange(new Rect(0, 0, 320, 240));
+            layout.UpdateLayout();
+
+            ScrollViewer scroll = Descendants(strip).OfType<ScrollViewer>().Single();
+            Assert.AreEqual(Visibility.Visible, scroll.ComputedHorizontalScrollBarVisibility,
+                "The actual tab-strip template must exercise horizontal overflow.");
+            var first = (TabItem)strip.ItemContainerGenerator.ContainerFromIndex(0);
+            Assert.IsGreaterThanOrEqualTo(first.DesiredSize.Height, scroll.ViewportHeight,
+                "The scrollbar must have its own space below the full header.");
+            Button close = Descendants(first).OfType<Button>().Single();
+            var viewport = Descendants(scroll).OfType<ScrollContentPresenter>().Single();
+            Rect closeBounds = close.TransformToAncestor(viewport).TransformBounds(new Rect(close.RenderSize));
+            Assert.IsLessThanOrEqualTo(scroll.ViewportHeight + 0.01, closeBounds.Bottom,
+                "The close button must fit vertically inside the header viewport.");
+        });
+
+        XElement Dictionary(string name) => new(presentation + "ResourceDictionary",
+            new XAttribute("Source", $"/GraphReader.App;component/Themes/{name}.xaml"));
+
+        static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
+        {
+            for (int index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, index);
+                yield return child;
+                foreach (DependencyObject descendant in Descendants(child)) yield return descendant;
+            }
+        }
+    }
+
+    [TestMethod]
+    public void PanelTabChromeUsesThemeBrushesForSelectedAndUnselectedHeaders()
+    {
+        XNamespace presentation = PresentationNamespace;
+        XNamespace xaml = XamlNamespace;
+        XElement tabs = LoadAppXaml("MainWindow.xaml").Descendants(presentation + "TabControl")
+            .Single(element => element.Attribute(xaml + "Name")?.Value == "GraphTabStrip");
+        Assert.AreEqual("{StaticResource App.Style.TabItem}", tabs
+            .Element(presentation + "TabControl.ItemContainerStyle")!
+            .Element(presentation + "Style")!.Attribute("BasedOn")?.Value);
+
+        StaTestHost.Run(() =>
+        {
+            Application.ResourceAssembly ??= typeof(ThemeService).Assembly;
+            var resources = new ResourceDictionary();
+            ResourceDictionary Load(string name) => new()
+            {
+                Source = new Uri($"/GraphReader.App;component/Themes/{name}.xaml", UriKind.Relative),
+            };
+            resources.MergedDictionaries.Add(Load("DesignTokens"));
+            resources.MergedDictionaries.Add(Load("DarkTheme"));
+            resources.MergedDictionaries.Add(Load("Controls"));
+            var label = new TextBlock { Text = "Panel 2" };
+            var tab = new TabItem
+            {
+                Header = label,
+                Resources = resources,
+                Style = (Style)resources["App.Style.TabItem"],
+            };
+            tab.ApplyTemplate();
+            tab.Measure(new Size(300, 42));
+            tab.Arrange(new Rect(0, 0, 300, 42));
+            var chrome = (Border)tab.Template.FindName("Chrome", tab);
+            Assert.IsNotNull(tab.FocusVisualStyle);
+            Assert.IsTrue(tab.Focusable);
+            foreach (string theme in TabThemes)
+            {
+                resources.MergedDictionaries[1] = Load(theme);
+                tab.IsSelected = false;
+                AssertBrush("App.Brush.Surface", chrome.Background);
+                AssertBrush("App.Brush.Text", label.Foreground);
+                tab.IsSelected = true;
+                AssertBrush("App.Brush.PrimarySubtle", chrome.Background);
+                AssertBrush("App.Brush.Primary", chrome.BorderBrush);
+                AssertBrush("App.Brush.Text", label.Foreground);
+            }
+
+            void AssertBrush(string key, Brush actual) => Assert.AreEqual(
+                ((SolidColorBrush)resources[key]).Color, ((SolidColorBrush)actual).Color, key);
+        });
+    }
 
     [TestMethod]
     public void HighContrastUsesSystemPaletteAndReducedMotionUsesZeroDuration()

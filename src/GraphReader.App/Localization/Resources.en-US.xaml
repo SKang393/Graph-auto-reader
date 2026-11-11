@@ -80,6 +80,8 @@
   <sys:String x:Key="Project.Recover">Recover autosave</sys:String>
   <sys:String x:Key="Project.CloseTab">Close tab</sys:String>
   <sys:String x:Key="Project.CloseDirtyBlocked">Save the project before closing a tab with unsaved changes.</sys:String>
+  <sys:String x:Key="Project.ConfirmDiscardAll">Closing will discard unsaved changes across all open projects. Discard changes and close?</sys:String>
+  <sys:String x:Key="Project.CloseBusyBlocked">Wait for the current operation to finish or cancel it before closing.</sys:String>
   <sys:String x:Key="Manual.Title">Manual tools</sys:String>
   <sys:String x:Key="Manual.Mode.Select">Select</sys:String>
   <sys:String x:Key="Manual.Mode.Calibrate">Calibrate</sys:String>

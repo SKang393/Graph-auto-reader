@@ -323,6 +323,17 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<WorkspaceTabViewModel> Tabs { get; }
 
+    internal bool CanCloseWindow()
+    {
+        if (IsBusy)
+        {
+            SetStatus(GetLocalizedString(LocalizationKeys.ProjectCloseBusyBlocked));
+            return false;
+        }
+
+        return !Tabs.Any(tab => tab.IsDirty) || _dialogService?.ConfirmDiscardUnsavedChanges() == true;
+    }
+
     public WorkspaceTabViewModel? SelectedTab
     {
         get => _selectedTab;

@@ -320,9 +320,42 @@
   <Style x:Key="App.Style.TabItem" TargetType="TabItem">
     <Setter Property="MinHeight" Value="36" />
     <Setter Property="Padding" Value="12,6" />
+    <Setter Property="Background" Value="{DynamicResource App.Brush.Surface}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource App.Brush.Border}" />
+    <Setter Property="BorderThickness" Value="1" />
     <Setter Property="Foreground" Value="{DynamicResource App.Brush.Text}" />
     <Setter Property="FontFamily" Value="{DynamicResource App.FontFamily.Default}" />
     <Setter Property="FocusVisualStyle" Value="{StaticResource App.Style.FocusVisual}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="TabItem">
+          <Border x:Name="Chrome"
+                  Padding="{TemplateBinding Padding}"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{DynamicResource App.CornerRadius.Small}"
+                  SnapsToDevicePixels="True">
+            <ContentPresenter ContentSource="Header"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              RecognizesAccessKey="True" />
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+    <Style.Triggers>
+      <Trigger Property="IsMouseOver" Value="True">
+        <Setter Property="Background" Value="{DynamicResource App.Brush.SurfaceRaised}" />
+      </Trigger>
+      <Trigger Property="IsSelected" Value="True">
+        <Setter Property="Background" Value="{DynamicResource App.Brush.PrimarySubtle}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource App.Brush.Primary}" />
+      </Trigger>
+      <Trigger Property="IsKeyboardFocusWithin" Value="True">
+        <Setter Property="BorderBrush" Value="{DynamicResource App.Brush.Focus}" />
+      </Trigger>
+    </Style.Triggers>
   </Style>
 
   <Style x:Key="App.Style.Panel" TargetType="Border">
