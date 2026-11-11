@@ -29,10 +29,22 @@ pwsh -File packaging/Test-CandidateEvidence.ps1 `
   -ExpectedVersion <candidate-version>
 ```
 
-This validates recorded evidence and candidate identity only. It does not run
-the tests, create a candidate, perform the full artifact verification, approve
-a model or release, or publish anything. Candidate emission and integration
-with the release verifier remain unfinished.
+For a clean source checkout with all pre-candidate gates satisfied, prepare and
+commit the next build version under the normal ledger policy, then use
+`packaging/Build-Windows.ps1 -CandidateOnly` with the reviewed native evidence
+roots. It performs a fresh common publish and full structural verification,
+defers only the three post-build gates, and reports `ReleaseReady=false`. This
+is a packaged build and consumes one version. Account for it in the build ledger
+and follow the retention and upload rules; `-Force` is prohibited in this mode.
+
+After actual observations are reviewed and recorded, verify the same unchanged
+candidate with `packaging/Test-ReleaseArtifact.ps1 -ArtifactRoot <release-dir>
+-CandidateEvidencePath <tracked-reviewed-record>`. This runs the evidence
+checker and full structural verification without rebuilding or changing the
+packages. Add `-RequireReleaseVersion` only when checking release cadence.
+Neither verification mode approves a model or release or publishes anything.
+The ordinary release verifier continues to reject the candidate's blocked
+embedded gates; public-release promotion and publication remain separate work.
 
 `Invoke-GraphReaderCleanMachineValidation.ps1` runs inside a newly installed,
 network-disabled Windows x64 VM. It binds one clean development-portable payload

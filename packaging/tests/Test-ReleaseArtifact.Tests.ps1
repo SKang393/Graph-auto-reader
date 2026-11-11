@@ -2,7 +2,7 @@
 # Copyright 2026 Sungwoo Kang
 
 [CmdletBinding()]
-param()
+param([string]$CaseFilter)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -1405,6 +1405,7 @@ function Assert-Case {
         [scriptblock]$Body
     )
 
+    if (-not [string]::IsNullOrWhiteSpace($CaseFilter) -and $Name -notlike $CaseFilter) { return }
     try {
         & $Body
         $script:passed++
@@ -1620,6 +1621,71 @@ try {
         if ($result.Output -notlike '*ArtifactProofStatus*PASS*') {
             throw "Artifact verification did not report PASS proof status. Output: $($result.Output)"
         }
+    }
+
+    Assert-Case 'Candidate verification binds reviewed fixture evidence and preserves package bytes' {
+        $fixture = New-ReleaseFixture -Name 'candidate-evidence-integration'
+        $root = Split-Path -Parent (Split-Path -Parent $fixture.Manifest)
+        $auditPath = Join-Path $root 'packaging/common/release-audit.json'
+        $audit = Get-Content -Raw -LiteralPath $auditPath | ConvertFrom-Json
+        $ids = @('installer-clean-windows-vm','portable-clean-windows-vm','release-artifact-pair-parity')
+        foreach ($id in $ids) { $audit.mandatoryEvidenceGates += [pscustomobject]@{ id=$id; description='Synthetic fixture'; status='blocked'; evidence=@(); notes='Await fixture checks' } }
+        Write-JsonFile -Path $auditPath -Value $audit
+        $harnessPath = Join-Path $root 'packaging/fixture-harness.ps1'
+        [IO.File]::WriteAllText($harnessPath, '# Synthetic test fixture harness')
+        & git -C $root init --quiet
+        & git -C $root add packaging/common/release-audit.json packaging/fixture-harness.ps1
+        & git -C $root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Synthetic candidate source'
+        if ($LASTEXITCODE -ne 0) { throw 'Could not commit candidate source fixture.' }
+        $sourceCommit = (& git -C $root rev-parse HEAD).Trim()
+        Add-TestPayloadEntryAndSynchronize -Fixture $fixture -RelativePath 'release-audit.json' -Content ([IO.File]::ReadAllBytes($auditPath))
+        $metadataPath = Join-Path $fixture.ReleaseRoot 'release-metadata.json'
+        $metadata = Get-Content -Raw -LiteralPath $metadataPath | ConvertFrom-Json
+        $metadata.gitCommit = $sourceCommit
+        Write-JsonFile -Path $metadataPath -Value $metadata
+        Update-TestChecksums -ReleaseRoot $fixture.ReleaseRoot
+        $baseArgs = @('-ManifestPath', $fixture.Manifest, '-ArtifactRoot', $fixture.ReleaseRoot, '-LocalizationReportPath', $fixture.LocalizationReport)
+        $ordinary = Invoke-Gate -Arguments $baseArgs
+        Assert-ExitCode -Result $ordinary -Expected 1 -Contains 'not pass'
+        $candidate = Invoke-Gate -Arguments ($baseArgs + @('-CandidateOnly'))
+        Assert-ExitCode -Result $candidate -Expected 0 -Contains 'CandidateOnly'
+        $originalPortable = [IO.File]::ReadAllBytes($fixture.PortablePath)
+        Add-TestPortableEntry -Fixture $fixture -RelativePath 'AGENTS.md' -Content ([Text.Encoding]::UTF8.GetBytes('forbidden fixture'))
+        $invalidCandidate = Invoke-Gate -Arguments ($baseArgs + @('-CandidateOnly'))
+        Assert-ExitCode -Result $invalidCandidate -Expected 1 -Contains 'forbidden'
+        [IO.File]::WriteAllBytes($fixture.PortablePath, $originalPortable)
+        $installerPath = Join-Path $fixture.ReleaseRoot 'GraphAutoReader-2.0.0-win-x64-setup.exe'
+        $installerHash = Get-TestSha256 -Path $installerPath
+        $portableHash = Get-TestSha256 -Path $fixture.PortablePath
+        $appHash = Get-TestSha256 -Path (Join-Path $fixture.CommonRoot 'GraphReader.App.exe')
+        $checks = @(
+            @('install','launch','repair_or_reinstall','upgrade','uninstall','user_data_preservation','start_menu','path_with_spaces','offline_workflow','image_import','batch_import','pdf_import','model_discovery','cpu_fallback','save_autosave_recovery','csv_export','licenses_notices','settings_path_isolation'),
+            @('extract_and_launch','offline_workflow','image_import','batch_import','pdf_import','model_discovery','cpu_fallback','save_autosave_recovery','csv_export','licenses_notices','settings_path_isolation','no_writes_outside_allowed_roots','registry_independence','spaces_and_unicode_path','read_only_diagnostics'),
+            @('version','source_commit','contract','models','notices','checksums','forbidden_file_scan','common_payload'))
+        $gates = for ($i=0; $i -lt 3; $i++) {
+            $values = [ordered]@{}; foreach ($check in $checks[$i]) { $values[$check] = $true }
+            $relative = "evidence/synthetic-report-$i.json"
+            $reportPath = Join-Path $root $relative
+            Write-JsonFile -Path $reportPath -Value ([ordered]@{schema='graphreader.candidate-observation.v1'; testFixture=$true; gateId=$ids[$i]; sourceCommit=$sourceCommit; version='2.0.0'; executableSha256=$appHash; harnessSha256=(Get-TestSha256 -Path $harnessPath); vmId='8edb9b52-d3a1-4cda-96b0-54cc5696630a'; observedAtUtc='2026-10-31T16:00:00Z'})
+            [ordered]@{id=$ids[$i]; checks=$values; report=@{path=$relative; sha256=(Get-TestSha256 -Path $reportPath); harnessPath='packaging/fixture-harness.ps1'; harnessSha256=(Get-TestSha256 -Path $harnessPath)}}
+        }
+        $receiptPath = Join-Path $root 'evidence/synthetic-receipt.json'
+        Write-JsonFile -Path $receiptPath -Value ([ordered]@{schema='graphreader.candidate-evidence.v1'; fixture=$true; review=@{status='approved'; reviewer='Synthetic fixture'}; identity=@{sourceCommit=$sourceCommit; version='2.0.0'; metadataSha256=(Get-TestSha256 -Path $metadataPath); commonPayload=$metadata.commonPayload.sha256; installer=$installerHash; portable=$portableHash}; vmProvenance=@{environmentKind='fresh-windows-evaluation-vm'; networkMode='none'; freshInstall=$true; isoSha256Verified=$true; vmId='8edb9b52-d3a1-4cda-96b0-54cc5696630a'; observedVmId='8edb9b52-d3a1-4cda-96b0-54cc5696630a'; osBuild='26200'; expectedOsBuild='26200'; osUbr=6584; expectedOsUbr=6584; observedAtUtc='2026-10-31T16:00:00Z'; installTimeUtc='2026-10-31T14:00:00Z'; qemuVersion='QEMU emulator version 11.0'; qemuInstallerSha256=('c'*64); expectedCommit=$sourceCommit; expectedVersion='2.0.0'; expectedExecutableSha256=$appHash; isoSha256=('a'*64); officialIsoSha256=('a'*64); vmConfigurationSha256=('b'*64)}; gates=$gates})
+        foreach ($gate in $audit.mandatoryEvidenceGates | Where-Object { $_.id -in $ids }) { $gate.status='pass'; $gate.notes='Synthetic reviewed evidence'; $gate.evidence=@(@{path='evidence/synthetic-receipt.json'; sha256=(Get-TestSha256 -Path $receiptPath)}) }
+        Write-JsonFile -Path $auditPath -Value $audit
+        & git -C $root add packaging/common/release-audit.json evidence
+        & git -C $root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Synthetic candidate evidence'
+        if ($LASTEXITCODE -ne 0) { throw 'Could not commit candidate evidence fixture.' }
+        $fixtureBlocked = Invoke-Gate -Arguments ($baseArgs + @('-CandidateEvidencePath', $receiptPath))
+        Assert-ExitCode -Result $fixtureBlocked -Expected 1 -Contains 'Synthetic fixture evidence'
+        $reviewed = Invoke-Gate -Arguments ($baseArgs + @('-CandidateEvidencePath', $receiptPath, '-AllowFixtureEvidence'))
+        Assert-ExitCode -Result $reviewed -Expected 0 -Contains 'FixtureEvidence'
+        $reviewedResult = & $testScript -ManifestPath $fixture.Manifest -ArtifactRoot $fixture.ReleaseRoot -LocalizationReportPath $fixture.LocalizationReport -CandidateEvidencePath $receiptPath -AllowFixtureEvidence
+        if ($reviewedResult.ReleaseApproved -ne $false -or $reviewedResult.FixtureEvidence -ne $true -or $reviewedResult.ReviewedCandidateEvidence -ne $false) { throw 'Synthetic evidence verification overclaimed its status.' }
+        if ((Get-TestSha256 -Path $installerPath) -cne $installerHash -or (Get-TestSha256 -Path $fixture.PortablePath) -cne $portableHash) { throw 'Evidence verification mutated a candidate package.' }
+        [IO.File]::AppendAllText($fixture.PortablePath, 'synthetic corruption')
+        $tampered = Invoke-Gate -Arguments ($baseArgs + @('-CandidateEvidencePath', $receiptPath, '-AllowFixtureEvidence'))
+        Assert-ExitCode -Result $tampered -Expected 1 -Contains 'artifact identity differs'
     }
 
     Assert-Case 'Unexpected release-root content is rejected' {
@@ -2419,6 +2485,68 @@ try {
         }
     }
 
+    Assert-Case 'Candidate build emits a structurally checked synthetic nonrelease pair' {
+        $fixture = New-ValidModelBuildFixture -Name 'candidate-fresh-build' -IncludeNoto
+        $props = Join-Path $fixture.Root 'Directory.Build.props'
+        (Get-Content -Raw -LiteralPath $props).Replace('2.0.0','0.4.36') | Set-Content -LiteralPath $props -Encoding utf8
+        $auditPath = Join-Path $fixture.Root 'packaging/common/release-audit.json'
+        $audit = Get-Content -Raw -LiteralPath $auditPath | ConvertFrom-Json
+        foreach ($id in @('installer-clean-windows-vm','portable-clean-windows-vm','release-artifact-pair-parity')) {
+            $audit.mandatoryEvidenceGates += [pscustomobject]@{ id=$id; description='Synthetic fixture'; status='blocked'; evidence=@(); notes='Await synthetic candidate' }
+        }
+        Write-JsonFile -Path $auditPath -Value $audit
+        Write-JsonFile -Path (Join-Path $fixture.Root 'docs/BUILD_LEDGER.json') -Value ([ordered]@{schemaVersion=1; builds=@(@{buildNumber=435; version='0.4.35'})})
+        & git -C $fixture.Root add --all
+        & git -C $fixture.Root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Synthetic candidate build source'
+        if ($LASTEXITCODE -ne 0) { throw 'Could not commit synthetic candidate source.' }
+        $buildScript = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\Build-Windows.ps1'))
+        $result = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -CandidateOnly
+        if (-not $result.ArtifactsEmitted -or -not $result.CandidateOnly -or $result.ReleaseReady) { throw 'Synthetic candidate build was not marked nonrelease.' }
+        $ordinary = Invoke-Gate -Arguments @('-ManifestPath', $fixture.Manifest, '-ArtifactRoot', $result.ArtifactRoot)
+        Assert-ExitCode -Result $ordinary -Expected 1 -Contains 'not pass'
+    }
+
+    Assert-Case 'Candidate audit defers only fixed post-build gates' {
+        $fixture = New-ValidModelBuildFixture -Name 'candidate-audit-gates'
+        $auditPath = Join-Path $fixture.Root 'packaging/common/release-audit.json'
+        $releaseAudit = Get-Content -LiteralPath $auditPath -Raw | ConvertFrom-Json
+        foreach ($id in @('installer-clean-windows-vm','portable-clean-windows-vm','release-artifact-pair-parity')) {
+            $releaseAudit.mandatoryEvidenceGates += [pscustomobject]@{ id=$id; description='Synthetic fixture'; status='blocked'; evidence=@(); notes='Await fixture candidate' }
+        }
+        Write-JsonFile -Path (Join-Path $fixture.Root 'docs/BUILD_LEDGER.json') -Value ([ordered]@{ schemaVersion=1; builds=@(@{buildNumber=19999; version='1.99.99'}) })
+        Write-JsonFile -Path $auditPath -Value $releaseAudit
+        & git -C $fixture.Root add --all
+        & git -C $fixture.Root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Fixture candidate gates'
+        if ($LASTEXITCODE -ne 0) { throw 'Could not commit candidate gate fixture.' }
+        $buildScript = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\Build-Windows.ps1'))
+        $audit = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -AuditOnly -CandidateOnly
+        if ($audit.CandidateReady -or $audit.ReleaseReady -or @($audit.Blockers | Where-Object { $_ -like '*first stable 2.0.0*' }).Count -ne 1) { throw 'Candidate audit allowed the first stable transition before post-build gates.' }
+        $ordinary = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -AuditOnly
+        if ($ordinary.ReleaseReady -or @($ordinary.Blockers | Where-Object { $_ -like '*installer-clean-windows-vm*blocked*' }).Count -ne 1) { throw 'Ordinary audit accepted a blocked candidate gate.' }
+        $props = Join-Path $fixture.Root 'Directory.Build.props'
+        (Get-Content -Raw -LiteralPath $props).Replace('2.0.0','0.4.36') | Set-Content -LiteralPath $props -Encoding utf8
+        Write-JsonFile -Path (Join-Path $fixture.Root 'docs/BUILD_LEDGER.json') -Value ([ordered]@{ schemaVersion=1; builds=@(@{buildNumber=435; version='0.4.35'}) })
+        & git -C $fixture.Root add --all
+        & git -C $fixture.Root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Synthetic internal candidate version'
+        $internal = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -AuditOnly -CandidateOnly
+        if (-not $internal.CandidateReady -or $internal.ReleaseReady -or $internal.ReleaseEligible) { throw "Internal candidate version was not accepted as a nonrelease candidate: $(@($internal.Blockers) -join ' | ')" }
+        $force = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -AuditOnly -CandidateOnly -Force
+        if ($force.CandidateReady -or @($force.Blockers | Where-Object { $_ -like '*cannot use -Force*' }).Count -ne 1) { throw 'Candidate audit allowed -Force.' }
+        (Get-Content -Raw -LiteralPath $props).Replace('0.4.36','2.0.1') | Set-Content -LiteralPath $props -Encoding utf8
+        Write-JsonFile -Path (Join-Path $fixture.Root 'docs/BUILD_LEDGER.json') -Value ([ordered]@{schemaVersion=1; builds=@(@{buildNumber=20000; version='2.0.0'})})
+        & git -C $fixture.Root add --all
+        & git -C $fixture.Root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Synthetic post-stable candidate version'
+        $postStable = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -AuditOnly -CandidateOnly
+        if (-not $postStable.CandidateReady -or $postStable.ReleaseReady) { throw "Post-stable candidate was not accepted: $(@($postStable.Blockers) -join ' | ')" }
+        $releaseAudit.mandatoryEvidenceGates[0].status = 'blocked'
+        $releaseAudit.mandatoryEvidenceGates[0].evidence = @()
+        Write-JsonFile -Path $auditPath -Value $releaseAudit
+        & git -C $fixture.Root add --all
+        & git -C $fixture.Root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Fixture prerequisite blocked'
+        $blocked = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -AuditOnly -CandidateOnly
+        if ($blocked.CandidateReady -or @($blocked.Blockers | Where-Object { $_ -like '*fixture-release-gate*blocked*' }).Count -ne 1) { throw 'Candidate audit accepted a blocked prerequisite.' }
+    }
+
     Assert-Case 'Blocked mandatory evidence gate keeps release audit closed' {
         $fixture = New-ValidModelBuildFixture -Name 'blocked-mandatory-evidence-gate'
         $releaseAuditPath = Join-Path $fixture.Root 'packaging/common/release-audit.json'
@@ -2645,3 +2773,4 @@ Write-Output "Packaging verification tests: $passed passed, $failed failed."
 if ($failed -ne 0) {
     exit 1
 }
+if (-not [string]::IsNullOrWhiteSpace($CaseFilter) -and $passed -eq 0) { throw "No packaging test matched '$CaseFilter'." }

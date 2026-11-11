@@ -3,11 +3,12 @@
 
 # Candidate evidence binding
 
-The release builder currently requires installer, portable, and pair-parity
-evidence before emitting the pair. Component-only OpenCV/PDFium staging does
-not produce that pair. A complete candidate creation and verification path is
-still needed. This batch supplies its independently usable evidence checker;
-it does not claim to resolve candidate emission.
+The release builder previously required installer, portable, and pair-parity
+evidence before emitting the pair needed for those observations. Explicit
+candidate mode now defers those three gates and verifies the unchanged pair
+after reviewed evidence is recorded. Other production prerequisites remain
+mandatory. OpenCV/PDFium candidate-specific evidence has a separate creation
+and commit-binding cycle that is not resolved by this batch.
 
 `packaging/Test-CandidateEvidence.ps1` checks a reviewed, tracked receipt
 against existing schema-1 release metadata and actual installer, portable,
@@ -25,7 +26,7 @@ version, and executable. Per-gate reports are tracked and checksum-bound to
 the candidate, VM, observation time, and harness at the candidate source commit.
 These checks validate recorded claims, not actual guest execution or reviewer
 identity. Full artifact validation and final release approval remain separate.
-The default release path is unchanged. The result always reports
+The default release path remains strict. The checker always reports
 `releaseApproved=false` and `published=false`. Explicit synthetic-fixture mode
 produces a distinct fixture result and does not relax provenance validation.
 
@@ -46,8 +47,46 @@ approval, actual package, version change, or audit-gate status was created.
 No dependency or licensed asset was added. Fixture directories are removed by
 the test harness. See [the command and record requirements](../packaging/clean-machine/README.md).
 
-Candidate creation and integration with the complete artifact verifier are
-unfinished. The checker alone cannot authorize package emission or publication.
+## Candidate emission and full verification
+
+`packaging/Build-Windows.ps1 -CandidateOnly` performs a fresh common publish,
+emits one internal installer/portable pair, and runs full structural checks.
+It defers only `installer-clean-windows-vm`, `portable-clean-windows-vm`, and
+`release-artifact-pair-parity`; each must be explicitly blocked. Other model,
+license, native, workflow, and clean-source checks remain required. The version
+must be the next ledger version; `-Force`, reused publish output, and the first
+stable `2.0.0` transition are rejected. Output reports `ReleaseReady=false`.
+
+`packaging/Test-ReleaseArtifact.ps1 -CandidateEvidencePath <record>` combines
+the evidence checker with full artifact validation. It permits only the
+documented audit differences after evidence validation and does not rewrite
+either package. Synthetic records require `-AllowFixtureEvidence`, report
+`FixtureEvidence=true` and `ReviewedCandidateEvidence=false`, and cannot be
+passed through the builder. All verifier modes report `ReleaseApproved=false`.
+
+The focused command
+`pwsh -NoProfile -File packaging/tests/Test-ReleaseArtifact.Tests.ps1 -CaseFilter '*Candidate*'`
+passed three cases, including an actual fresh synthetic `0.4.36` pair, ordinary
+rejection, forbidden-content checks, integrated fixture receipts, immutable
+package checks, tamper detection, and version-policy boundaries. A separate
+audit case passed first-stable rejection and post-stable `2.0.1` acceptance.
+Review found and corrected an initial first-stable candidate loophole.
+
+The broad diagnostic run reported 64 passing and three failing cases. One
+failed to create its test junction inside the sandbox and passed its focused
+rerun with the required permissions. Two used the old `2.0.0` fixture while the
+builder correction was in progress; the revised cases passed in the focused
+run above. This was a mixed-revision run, not a clean full-suite pass. Fixture
+restore disabled NuGet auditing because the network was unavailable. An earlier
+Windows PowerShell hashing failure was repaired with stream-based SHA-256.
+`git diff --check` passed. The diagnostic log
+`artifacts/packaging-suite-candidate.log` is disposable after this outcome is
+pushed; fixture directories are removed by the test harness.
+
+No real candidate, production evidence, gate-status change, or public-release
+promotion occurred. Exact native evidence and remaining production
+prerequisites still block a real candidate. The checker alone cannot authorize
+publication.
 
 ## Current application process smoke
 

@@ -19,7 +19,12 @@ $ReceiptPath = [IO.Path]::GetFullPath($ReceiptPath)
 $repoPrefix = $RepositoryRoot + [IO.Path]::DirectorySeparatorChar
 if (-not $ReceiptPath.StartsWith($repoPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Receipt must be inside the repository.' }
 if ($ExpectedSourceCommit -cnotmatch '^[0-9a-f]{40}$') { throw 'Expected source commit must be a full lowercase SHA-1.' }
-function Hash([string]$Path) { (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant() }
+function Hash([string]$Path) {
+    $stream = [IO.File]::OpenRead($Path)
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { return ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '').ToLowerInvariant() }
+    finally { $sha.Dispose(); $stream.Dispose() }
+}
 function Assert-Hash([string]$Value, [string]$Label) { if ($Value -cnotmatch '^[0-9a-f]{64}$') { throw "Invalid $Label SHA-256." } }
 function Assert-NoReparse([string]$Path) {
     $current = [IO.Path]::GetFullPath($Path)

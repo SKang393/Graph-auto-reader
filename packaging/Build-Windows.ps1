@@ -8,6 +8,7 @@ param(
     [switch]$SkipPublish,
     [switch]$Force,
     [switch]$AuditOnly,
+    [switch]$CandidateOnly,
     [string]$ReviewedOpenCvEvidenceRoot,
     [string]$ReviewedPdfiumEvidenceRoot
 )
@@ -800,7 +801,8 @@ function Get-ModelAudit {
 function Get-ReleaseAudit {
     param(
         [Parameter(Mandatory)]
-        [string]$RepositoryRoot
+        [string]$RepositoryRoot,
+        [switch]$CandidateOnly
     )
 
     $issues = New-Object System.Collections.Generic.List[string]
@@ -917,8 +919,13 @@ function Get-ReleaseAudit {
                 }
             }
 
-            if ($gateStatus -eq 'blocked') {
+            if ($gateStatus -eq 'blocked' -and -not ($CandidateOnly -and $gateId -cin @('installer-clean-windows-vm','portable-clean-windows-vm','release-artifact-pair-parity'))) {
                 $issues.Add("Mandatory release evidence gate '$gateId' is blocked: $($gate.notes)")
+            }
+        }
+        if ($CandidateOnly) {
+            foreach ($id in @('installer-clean-windows-vm','portable-clean-windows-vm','release-artifact-pair-parity')) {
+                if (-not $mandatoryEvidenceGates.ContainsKey($id) -or [string]$mandatoryEvidenceGates[$id].status -cne 'blocked') { $issues.Add("Candidate requires blocked post-build gate '$id'.") }
             }
         }
     }
@@ -1603,13 +1610,26 @@ $contractVersion = Get-ContractVersion -RepositoryRoot $repositoryRoot
 $modelAudit = Get-ModelAudit `
     -RepositoryRoot $repositoryRoot `
     -RequiredModelTasks @($commonDefinition.requiredModelTasks)
-$releaseAudit = Get-ReleaseAudit -RepositoryRoot $repositoryRoot
+$releaseAudit = Get-ReleaseAudit -RepositoryRoot $repositoryRoot -CandidateOnly:$CandidateOnly
 $releaseBlockers = New-Object System.Collections.Generic.List[string]
 foreach ($issue in @($releaseAudit.Issues)) {
     $releaseBlockers.Add([string]$issue)
 }
 foreach ($issue in @($modelAudit.Issues)) {
     $releaseBlockers.Add([string]$issue)
+}
+if ($CandidateOnly) {
+    if ($Force) { $releaseBlockers.Add('Candidate staging cannot use -Force; preserve the prior candidate and account for its version.') }
+    $ledgerPath = Join-Path $repositoryRoot 'docs\BUILD_LEDGER.json'
+    try {
+        $ledger = Get-Content -Raw -LiteralPath $ledgerPath | ConvertFrom-Json
+        if ($ledger.schemaVersion -ne 1 -or @($ledger.builds).Count -eq 0) { throw 'Build ledger is empty or has an unsupported schema.' }
+        $last = $ledger.builds | Sort-Object { [int]$_.buildNumber } -Descending | Select-Object -First 1
+        $next = Get-NextGraphReaderVersion -Version ([string]$last.version)
+        if ($version.Value -cne $next) { throw "Candidate version '$($version.Value)' must be the next ledger version '$next'." }
+        if (Test-GraphReaderStablePromotion -FromVersion ([string]$last.version) -ToVersion $version.Value) { throw 'The first stable 2.0.0 transition requires completed release gates and cannot be a candidate build.' }
+    }
+    catch { $releaseBlockers.Add("Candidate version accounting failed: $($_.Exception.Message)") }
 }
 $reviewedOpenCvRequired = $null -ne $releaseAudit.Components -and
     $releaseAudit.Components.ContainsKey('opencvsharp-native')
@@ -1704,7 +1724,8 @@ $auditResult = [pscustomobject]@{
     GitWorkingTreeDirty = $gitWorkingTreeDirty
     ContractVersion = $contractVersion
     ReleaseEligible = $version.ReleaseEligible
-    ReleaseReady = $version.ReleaseEligible -and $releaseBlockers.Count -eq 0
+    ReleaseReady = -not $CandidateOnly -and $version.ReleaseEligible -and $releaseBlockers.Count -eq 0
+    CandidateReady = $CandidateOnly -and $releaseBlockers.Count -eq 0
     Blockers = $releaseBlockers.ToArray()
     Warnings = @($releaseAudit.Warnings)
     ModelManifestCount = @($modelAudit.Models).Count
@@ -1727,7 +1748,7 @@ if ($AuditOnly) {
     return
 }
 
-if (-not $version.ReleaseEligible) {
+if (-not $CandidateOnly -and -not $version.ReleaseEligible) {
     throw "Version $($version.Value) is an internal build. Public Windows artifacts begin with the explicit 2.0.0 milestone; later releases follow the twentieth-checkpoint cadence."
 }
 
@@ -2294,7 +2315,8 @@ $null = & $releaseVerifierPath `
     -ManifestPath $manifestFullPath `
     -ArtifactRoot $releasePath `
     -VersionFilePath (Join-Path $repositoryRoot 'Directory.Build.props') `
-    -RequireReleaseVersion
+    -RequireReleaseVersion:(-not $CandidateOnly) `
+    -CandidateOnly:$CandidateOnly
 
 [pscustomobject]@{
     SchemaVersion = 1
@@ -2303,8 +2325,9 @@ $null = & $releaseVerifierPath `
     RuntimeIdentifier = [string]$manifest.rid
     GitCommit = $gitCommit
     ContractVersion = $contractVersion
-    ReleaseEligible = $true
-    ReleaseReady = $true
+    ReleaseEligible = $version.ReleaseEligible
+    ReleaseReady = -not $CandidateOnly
+    CandidateOnly = [bool]$CandidateOnly
     CommonPublish = $commonPublishPath
     InstallerStage = $installerStagePath
     PortableStage = $portableStagePath

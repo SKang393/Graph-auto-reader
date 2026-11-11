@@ -7,12 +7,17 @@ param(
     [string]$ArtifactRoot,
     [string]$VersionFilePath,
     [string]$LocalizationReportPath,
-    [switch]$RequireReleaseVersion
+    [switch]$RequireReleaseVersion,
+    [switch]$CandidateOnly,
+    [string]$CandidateEvidencePath,
+    [switch]$AllowFixtureEvidence
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'VersionPolicy.ps1')
+if ($CandidateOnly -and -not [string]::IsNullOrWhiteSpace($CandidateEvidencePath)) { throw 'Candidate-only and reviewed-evidence modes cannot be combined.' }
+if ($AllowFixtureEvidence -and [string]::IsNullOrWhiteSpace($CandidateEvidencePath)) { throw 'Fixture evidence mode requires an explicit candidate evidence path.' }
 
 if ([string]::IsNullOrWhiteSpace($ManifestPath)) {
     $ManifestPath = Join-Path $PSScriptRoot 'artifacts.json'
@@ -298,7 +303,8 @@ function Assert-MandatoryReleaseEvidenceGates {
         [Parameter(Mandatory)]
         [string]$Description,
 
-        [string]$RepositoryRoot
+        [string]$RepositoryRoot,
+        [switch]$AllowCandidateGates
     )
 
     $gatesProperty = $ReleaseAudit.PSObject.Properties['mandatoryEvidenceGates']
@@ -314,13 +320,14 @@ function Assert-MandatoryReleaseEvidenceGates {
         if ([string]::IsNullOrWhiteSpace($gateId) -or -not $gateIds.Add($gateId)) {
             throw "$Description contains an empty or duplicate mandatory evidence gate id '$gateId'."
         }
-        if ([string]$gate.status -ne 'pass') {
+        $deferred = $AllowCandidateGates -and $gateId -cin @('installer-clean-windows-vm','portable-clean-windows-vm','release-artifact-pair-parity') -and [string]$gate.status -ceq 'blocked'
+        if ([string]$gate.status -ne 'pass' -and -not $deferred) {
             throw "$Description mandatory evidence gate '$gateId' is not pass."
         }
         if ([string]::IsNullOrWhiteSpace([string]$gate.description) -or
             [string]::IsNullOrWhiteSpace([string]$gate.notes) -or
             $gate.evidence -isnot [System.Array] -or
-            @($gate.evidence).Count -eq 0) {
+            (-not $deferred -and @($gate.evidence).Count -eq 0)) {
             throw "$Description mandatory evidence gate '$gateId' lacks its direct evidence contract."
         }
 
@@ -344,6 +351,12 @@ function Assert-MandatoryReleaseEvidenceGates {
                     -Expected $evidenceSha256.ToLowerInvariant() `
                     -Description "$Description mandatory evidence gate '$gateId' checksum differs"
             }
+        }
+    }
+    if ($AllowCandidateGates) {
+        foreach ($id in @('installer-clean-windows-vm','portable-clean-windows-vm','release-artifact-pair-parity')) {
+            $gate = @($gatesProperty.Value | Where-Object { $_.id -ceq $id })
+            if ($gate.Count -ne 1 -or $gate[0].status -cne 'blocked') { throw "$Description candidate requires blocked gate '$id'." }
         }
     }
 }
@@ -1460,7 +1473,9 @@ function Assert-PortableArchive {
         [string]$Path,
 
         [Parameter(Mandatory)]
-        [string[]]$RequiredContentPaths
+        [string[]]$RequiredContentPaths,
+
+        [switch]$AllowCandidateGates
     )
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -1520,7 +1535,8 @@ function Assert-PortableArchive {
         Assert-Equal -Actual ([int]$releaseAudit.schemaVersion) -Expected 1 -Description 'Packaged release audit schema version is invalid'
         Assert-MandatoryReleaseEvidenceGates `
             -ReleaseAudit $releaseAudit `
-            -Description 'Packaged release audit'
+            -Description 'Packaged release audit' `
+            -AllowCandidateGates:$AllowCandidateGates
         if ($releaseAudit.components -isnot [System.Array] -or @($releaseAudit.components).Count -eq 0) {
             throw 'Packaged release audit requires a nonempty components array.'
         }
@@ -1707,12 +1723,23 @@ if (-not [string]::IsNullOrWhiteSpace($ArtifactRoot)) {
         throw "Tracked release audit is missing: $trackedReleaseAuditPath"
     }
     $trackedReleaseAudit = Get-Content -LiteralPath $trackedReleaseAuditPath -Raw | ConvertFrom-Json
+    $reviewedCandidate = -not [string]::IsNullOrWhiteSpace($CandidateEvidencePath)
     Assert-MandatoryReleaseEvidenceGates `
         -ReleaseAudit $trackedReleaseAudit `
         -Description 'Tracked release audit' `
-        -RepositoryRoot $repositoryRoot
+        -RepositoryRoot $repositoryRoot `
+        -AllowCandidateGates:$CandidateOnly
 
     $artifactRootFullPath = [System.IO.Path]::GetFullPath($ArtifactRoot)
+    if ($reviewedCandidate) {
+        $candidateMetadataPath = Join-Path $artifactRootFullPath 'release-metadata.json'
+        $candidateMetadata = Get-Content -Raw -LiteralPath $candidateMetadataPath | ConvertFrom-Json
+        $candidateChecker = Join-Path $PSScriptRoot 'Test-CandidateEvidence.ps1'
+        if (-not (Test-Path -LiteralPath $candidateChecker -PathType Leaf)) { throw 'Candidate evidence checker is missing.' }
+        $candidateResult = & $candidateChecker -RepositoryRoot $repositoryRoot -CandidateRoot $artifactRootFullPath -ReceiptPath $CandidateEvidencePath -ExpectedSourceCommit ([string]$candidateMetadata.gitCommit) -ExpectedVersion $version -AllowFixture:$AllowFixtureEvidence
+        $expectedEvidenceStatus = if ($AllowFixtureEvidence) { 'fixture-evidence-validated' } else { 'evidence-validated' }
+        if ($candidateResult.status -cne $expectedEvidenceStatus -or $candidateResult.releaseApproved -ne $false) { throw 'Candidate evidence checker did not validate the requested evidence mode.' }
+    }
     $requiredContentArchivePaths = @(Get-RequiredContentArchivePaths `
             -RepositoryRoot $repositoryRoot `
             -RequiredContent @($commonDefinition.requiredContent))
@@ -1747,7 +1774,8 @@ if (-not [string]::IsNullOrWhiteSpace($ArtifactRoot)) {
 
     $portablePayloadRecords = @(Assert-PortableArchive `
             -Path $portableArtifactPath `
-            -RequiredContentPaths $requiredContentArchivePaths)
+            -RequiredContentPaths $requiredContentArchivePaths `
+            -AllowCandidateGates:($CandidateOnly -or $reviewedCandidate))
 
     $buildRoot = Split-Path -Parent $artifactRootFullPath
     $commonPublishPath = Join-Path $buildRoot ([string]$manifest.commonPublish)
@@ -1771,10 +1799,12 @@ if (-not [string]::IsNullOrWhiteSpace($ArtifactRoot)) {
     }
 
     $packagedReleaseAuditPath = Join-Path $commonPublishPath 'release-audit.json'
-    Assert-Equal `
-        -Actual (Get-Sha256 -Path $packagedReleaseAuditPath) `
-        -Expected (Get-Sha256 -Path $trackedReleaseAuditPath) `
-        -Description 'Packaged release audit differs from the tracked source'
+    if (-not $reviewedCandidate) {
+        Assert-Equal `
+            -Actual (Get-Sha256 -Path $packagedReleaseAuditPath) `
+            -Expected (Get-Sha256 -Path $trackedReleaseAuditPath) `
+            -Description 'Packaged release audit differs from the tracked source'
+    }
     if ($notoMetadataChecked) {
         $packagedReleaseAudit = Get-Content -LiteralPath $packagedReleaseAuditPath -Raw | ConvertFrom-Json
         Assert-NotoReleaseAuditMetadata `
@@ -1890,6 +1920,7 @@ if (-not [string]::IsNullOrWhiteSpace($ArtifactRoot)) {
         -InstallerName $expectedInstallerName `
         -ReleaseAuditPath $trackedReleaseAuditPath
 }
+elseif ($CandidateOnly -or -not [string]::IsNullOrWhiteSpace($CandidateEvidencePath)) { throw 'Candidate verification requires an artifact root.' }
 
 [pscustomobject]@{
     Manifest = $manifestFullPath
@@ -1900,6 +1931,10 @@ if (-not [string]::IsNullOrWhiteSpace($ArtifactRoot)) {
     Portable = $expectedPortableName
     ArtifactFilesChecked = -not [string]::IsNullOrWhiteSpace($ArtifactRoot)
     ArtifactProofStatus = if ([string]::IsNullOrWhiteSpace($ArtifactRoot)) { 'NOT_PERFORMED' } else { 'PASS' }
+    CandidateOnly = [bool]$CandidateOnly
+    ReviewedCandidateEvidence = -not $AllowFixtureEvidence -and -not [string]::IsNullOrWhiteSpace($CandidateEvidencePath)
+    FixtureEvidence = [bool]$AllowFixtureEvidence
+    ReleaseApproved = $false
     NotoMetadataChecked = $notoMetadataChecked
     NotoArtifactProofStatus = if (-not $notoMetadataChecked) {
         'NOT_APPLICABLE'
