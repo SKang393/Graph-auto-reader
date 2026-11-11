@@ -52,6 +52,22 @@ another same-source detection. Controls are matched on geometry only, not text
 or role. Confidence and shape distributions overlap the controls; this does
 not establish a safe confidence, shape, or duplicate-suppression rule.
 
+On 2026-11-11, a bounded pixel inspection selected the first unmatched region
+by panel/region ID in each manifest-order source, stopping after six sources,
+and paired each with its nearest same-panel geometry-matched control. The
+frozen input, generator, runtime, and report bindings matched; all 21 sources
+are owned synthetic development inputs. Two unmatched crops contained tiny
+legend fragments and four contained marker or connecting-stroke ink. The six
+controls contained visible text, with IoU from 0.824 to 0.972. Recorded crop
+translations were consistent, and no missing visible truth annotation was
+identified in this sample. Relevant crop and refinement helpers are unchanged
+from `7ec80465` through `24a88817`.
+
+This inspection established no causal preprocessing or coordinate defect and
+does not justify a threshold, role, or model change. The saved records do not
+map each final region back to its detector probability map and recognition
+tensor. No inference, training, private/sealed read, or accuracy rerun occurred.
+
 - Runtime binding SHA-256: `2a2abb3313f5dfcbb724552cd7c16dbac03b4fb04a65bef2b196c524c9dabc10`
 - Run report SHA-256: `a1f085a017569e93569bab9cf96c156e4aa47008005e7861bd4f12b2d58199c4`
 - Offline OCR audit SHA-256: `79fa6ee12a34684b3644cea2b390f261aee4b2a0f90adf192d234a312052a5c8`

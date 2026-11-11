@@ -686,6 +686,28 @@ def _load_runtime_reports(
     return reports, capture_panels, domains
 
 
+def _read_train_truth(
+    raw: Any, sources: Mapping[str, Mapping[str, Any]],
+) -> tuple[Mapping[str, Any], str, str, str, tuple[float, float, float, float]]:
+    """Validate one saved source-pixel row; population contracts belong to callers."""
+    item = _object(raw, "train text truth")
+    source_sha = _sha(item.get("source_sha256", item.get("source_id")), "truth source")
+    if source_sha not in sources:
+        raise TextExtentHeadInputError("train truth references an unbound source")
+    if item.get("source_id") != source_sha:
+        raise TextExtentHeadInputError("train truth source identity disagrees with its hash")
+    truth_id = _sha(item.get("truth_id"), "truth identity")
+    text_id = _string(item, "text_id")
+    if item.get("coordinate_space") != "original_pixels" or not _string(item, "text"):
+        raise TextExtentHeadInputError("train truth text must be nonempty in original pixels")
+    if not _string(item, "region_id") or not _string(item, "role"):
+        raise TextExtentHeadInputError("train truth region or role is invalid")
+    box = _box(item.get("source_box_ltrb"), "train source box")
+    source = sources[source_sha]
+    production_tiled_inputs._validate_box(box, source["width"], source["height"], "train source text")
+    return item, source_sha, truth_id, text_id, box
+
+
 def _build_train_split(
     truth_document: Mapping[str, Any],
     sources: Mapping[str, Mapping[str, Any]],
@@ -716,28 +738,12 @@ def _build_train_split(
     seen_text_ids: set[tuple[str, str]] = set()
     truth_counts: dict[str, int] = {source_sha: 0 for source_sha in sources}
     for raw in records:
-        item = _object(raw, "train text truth")
-        source_sha = _sha(item.get("source_sha256", item.get("source_id")), "truth source")
-        if source_sha not in sources:
-            raise TextExtentHeadInputError("train truth references an unbound source")
-        if item.get("source_id") != source_sha:
-            raise TextExtentHeadInputError("train truth source identity disagrees with its hash")
-        truth_id = _sha(item.get("truth_id"), "truth identity")
-        text_id = _string(item, "text_id")
+        item, source_sha, truth_id, text_id, box = _read_train_truth(raw, sources)
         if truth_id in seen_ids or (source_sha, text_id) in seen_text_ids:
             raise TextExtentHeadInputError("train truth identity repeats")
         seen_ids.add(truth_id)
         seen_text_ids.add((source_sha, text_id))
-        if item.get("coordinate_space") != "original_pixels" or not _string(item, "text"):
-            raise TextExtentHeadInputError("train truth text must be nonempty in original pixels")
-        if not _string(item, "region_id") or not _string(item, "role"):
-            raise TextExtentHeadInputError("train truth region or role is invalid")
         truth_counts[source_sha] += 1
-        box = _box(item.get("source_box_ltrb"), "train source box")
-        source = sources[source_sha]
-        production_tiled_inputs._validate_box(
-            box, source["width"], source["height"], "train source text"
-        )
         projected = tuple(
             projection
             for domain in by_source.get(source_sha, ())

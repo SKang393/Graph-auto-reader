@@ -688,14 +688,17 @@ def _build_scenes(
     dataset_seed: int,
     *,
     require_complete_style_catalog: bool = True,
+    marker_style_offset: int = 0,
 ) -> list[dict[str, Any]]:
+    if isinstance(marker_style_offset, bool) or not isinstance(marker_style_offset, int) or marker_style_offset < 0:
+        raise ValueError("marker_style_offset must be a non-negative integer")
     scenes: list[dict[str, Any]] = []
     style_catalog = [
         (shape, fill)
         for shape in MARKER_SHAPES
         for fill in FILL_STATES
     ]
-    style_index = 0
+    style_index = marker_style_offset
     line_index = 0
 
     for case_index, spec in enumerate(specs):
@@ -740,9 +743,9 @@ def _build_scenes(
             validate_scene(scene)
         scenes.append(scene)
 
-    if require_complete_style_catalog and style_index < len(style_catalog):
+    if require_complete_style_catalog and style_index - marker_style_offset < len(style_catalog):
         raise AssertionError(
-            f"Smoke matrix exposes {style_index} series but needs "
+            f"Smoke matrix exposes {style_index - marker_style_offset} series but needs "
             f"{len(style_catalog)} for complete marker style coverage."
         )
     return scenes
