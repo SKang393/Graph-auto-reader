@@ -3098,13 +3098,15 @@ public sealed class ProductionWorkflowStagesTests
             .Single(tab => tab.PanelId == tabs[1].PanelId);
         Assert.IsTrue(eventTab.AnalysisNeedsReview);
 
+        foreach (WorkspaceTabViewModel tab in tabs) tab.IsDirty = false;
         detector.BeforeDetection = null;
         detector.CancelBeforePanelId = Guid.Empty;
         _ = await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
         Assert.IsTrue(tabs.All(tab => !tab.AnalysisNeedsReview));
+        Assert.IsTrue(tabs[1].IsDirty, "Clearing a persisted warning must be saved even when scientific values do not change.");
         Assert.IsTrue((await workspace.SaveProjectAsync(savedPath, CancellationToken.None)).IsSuccess);
         Assert.IsTrue((await new ProductionWorkspaceService().OpenProjectAsync(savedPath, CancellationToken.None))
-            .All(tab => !tab.AnalysisNeedsReview), "A successful rerun must clear the persisted warning.");
+            .All(tab => !tab.AnalysisNeedsReview && !tab.IsDirty), "A successful rerun must clear the persisted warning and reopen clean.");
     }
 
     [TestMethod]

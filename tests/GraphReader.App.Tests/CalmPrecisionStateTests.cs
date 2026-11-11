@@ -273,6 +273,66 @@ public sealed class CalmPrecisionStateTests
     }
 
     [TestMethod]
+    public void CalibrationWarningTransitionProtectsCleanSavedTabWithoutDirtyingSavedWarnings()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graph-reader-warning-close-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                string imagePath = Path.Combine(root, "source.png");
+                string projectPath = Path.Combine(root, "saved.garproj");
+                WriteImage(imagePath, 160, 120);
+                ProductionWorkflowStageException? failure = null;
+                var workspace = new ProductionWorkspaceService(
+                    automaticWorkflow: (_, _) => throw failure!,
+                    automaticStages:
+                    [
+                        new("axis", AutomaticStageState.Approved, "fixture"),
+                        new("ocr", AutomaticStageState.Approved, "fixture"),
+                        new("markers", AutomaticStageState.Approved, "fixture"),
+                        new("legends", AutomaticStageState.Approved, "fixture"),
+                        new("phases", AutomaticStageState.Approved, "fixture"),
+                    ]);
+                _ = workspace.ImportImagesAsync([imagePath], CancellationToken.None).GetAwaiter().GetResult();
+                Assert.IsTrue(workspace.SaveProjectAsync(projectPath, CancellationToken.None).GetAwaiter().GetResult().IsSuccess);
+                WorkspaceTabViewModel clean = workspace.OpenProjectAsync(projectPath, CancellationToken.None)
+                    .GetAwaiter().GetResult().Single();
+                Assert.IsFalse(clean.IsDirty);
+                using var viewModel = new MainWindowViewModel(workspace);
+                failure = new ProductionWorkflowStageException(new ProductionWorkflowFailure(
+                    ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid",
+                    "Synthetic calibration failure.", true, "Review calibration."),
+                    [new WorkflowVisionEnvelope(1, Guid.NewGuid(), workspace.CurrentProject.ProjectId.Value,
+                        Guid.Parse(clean.PanelId!), "axis", "fixture", clean.SourceSha256!, null,
+                        new WorkflowVisionTiming(0, 0, 0, 0), 1)]);
+
+                Assert.ThrowsExactly<ProductionWorkflowStageException>(() =>
+                    workspace.RunAutomaticDetectionAsync(CancellationToken.None).GetAwaiter().GetResult());
+                viewModel.CloseTabCommand.Execute(clean);
+                Assert.Contains(clean, viewModel.Tabs, "A new unsaved warning must be protected by the existing close guard.");
+                Assert.IsTrue(clean.AnalysisNeedsReview);
+                Assert.IsTrue(clean.IsDirty);
+                Assert.AreEqual("Project.CloseDirtyBlocked", viewModel.StatusMessage);
+
+                Assert.IsTrue(workspace.SaveProjectAsync(projectPath, CancellationToken.None).GetAwaiter().GetResult().IsSuccess);
+                WorkspaceTabViewModel savedWarning = workspace.OpenProjectAsync(projectPath, CancellationToken.None)
+                    .GetAwaiter().GetResult().Single();
+                Assert.IsTrue(savedWarning.AnalysisNeedsReview);
+                Assert.IsFalse(savedWarning.IsDirty, "Loading saved warning state is not an edit.");
+                Assert.ThrowsExactly<ProductionWorkflowStageException>(() =>
+                    workspace.RunAutomaticDetectionAsync(CancellationToken.None).GetAwaiter().GetResult());
+                Assert.IsFalse(savedWarning.IsDirty, "An unchanged repeated warning must not invent an edit.");
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [TestMethod]
     [DataRow(true, false, false)]
     [DataRow(false, false, false)]
     [DataRow(true, true, false)]

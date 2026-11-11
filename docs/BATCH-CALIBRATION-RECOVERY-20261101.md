@@ -103,3 +103,21 @@ The preceding `edce79b6` checkpoint also passed
 2,461 solution tests passed, 29 optional tests were skipped, and build,
 localization, OCR accounting, and packaging checks succeeded. That CI run
 predates this persistence follow-up and is not evidence for the newer source.
+
+## Protect unsaved warning transitions, 2026-11-11
+
+A further regression reproduced closing a previously clean saved tab after a
+service-only calibration failure, before its new warning had been saved (one
+failure, 901 ms). A real warning-state transition now marks the tab dirty, so
+the existing close guard protects it. Loading a saved warning and repeating an
+unchanged warning remain clean. Successful clearing becomes dirty and is
+retained after save/reopen. No autosave policy or scientific export rule changed.
+
+The App command above passed 806 tests in 31 seconds. Integration passed 180
+with seven existing skips in 14 seconds. `git diff --check` passed. A test-only
+CA1861 array-allocation diagnostic was fixed before the regression run.
+
+The prior `54733e5e` checkpoint passed
+[Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/42976423307):
+2,470 solution tests passed with 29 optional skips, including the new candidate
+evidence fixture check. That run predates the close-protection follow-up.

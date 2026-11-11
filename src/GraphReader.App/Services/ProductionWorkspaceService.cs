@@ -933,7 +933,11 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
             Guid.TryParse(tab.SourceId, out Guid sourceId) && sourceId == panel.SourceId.Value &&
             (expectedImageSha256 is null || string.Equals(tab.SourceSha256, expectedImageSha256, StringComparison.OrdinalIgnoreCase)))
             .ToArray();
-        if (matches.Length == 1) matches[0].AnalysisNeedsReview = needsReview;
+        if (matches.Length == 1 && matches[0].AnalysisNeedsReview != needsReview)
+        {
+            matches[0].AnalysisNeedsReview = needsReview;
+            matches[0].IsDirty = true;
+        }
     }
 
     private void MarkCalibrationFailuresForReview(ProductionWorkflowStageException failure)
