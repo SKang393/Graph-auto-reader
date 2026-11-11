@@ -3,6 +3,52 @@
 
 # Native manual-preview workflow check, 2026-11-11
 
+## Build 437 Save, Export and fresh-process reopen
+
+The active 0.4.37 package from `e4067fd912496b1eedc1afafefbfe6de5b00b19b`
+was checked with the same project-owned source image and isolated
+`artifacts/manual-preview-0437-qa-20261111/Data`. Its executable SHA-256 is
+`5b7291502533bcafe4e957497c3fce71b6c1083dfed7fe8e4290cbdd2b11946f`.
+The native Save dialog's cached accessibility element remained unavailable,
+but screenshot-based field focus, keyboard selection and text entry worked.
+The app confirmed saving `native-save.garproj`; the file existed on disk.
+
+Native input calibrated sessions 1 through 24 with Y maximum 10, created one
+series and added one point. Additional canvas clicks selected/moved the cursor;
+they did not add more points. Save persisted the edit. Export preview showed
+one point, one series, one phase, zero blockers and zero warnings. Selecting
+the disposable QA folder through the native folder dialog wrote three files:
+CSV, audit CSV and audit JSON. The footer confirmed `Exported 3 file(s).`
+
+Independent read-only artifact verification found six project panels, exactly
+one populated. Its calibration anchors are `(1,0)`, `(1,10)` and `(24,0)`.
+The original source hash matched; the manual point at original pixel
+`(143.57142857142867, 239.9999999999999)` maps to Y `1.1538461538461622`.
+CSV contains one row with X 1 and phase `a`; the audit identifies X as
+`observation_order`, calibration as valid, and source stage as manual, with
+the same point identity and original pixel coordinates. This verifies workflow
+and provenance, not scientific click accuracy or automatic detection.
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Saved project | 22,419 | `ff5ec0453a3e8a52e5e45acab394edbcc072c16ebb586b00d6f3582f2f4e4c0f` |
+| CSV | 45 | `d49be813a10b8a0124827a3fc09f29d446aa862423319a15dcbc85265b75b9c4` |
+| Audit CSV | 697 | `7d2435305e43bc83d98122165be162ef49673dbd084d1b76b22d0ddd98c97569` |
+| Audit JSON | 1,423 | `c51c22f2f8092fefa64d660b88e5d01c438f893bba9431a705a79e05e2da0c71` |
+
+The saved window closed. A fresh process opened the project from the native
+Recent projects button, confirmed `Opened project 'native-save.garproj'.`,
+restored the series and point count, and again showed an export preview with
+one point/series/phase and zero blockers/warnings. The project hash stayed
+unchanged. Both QA processes were closed. Native initial image import still
+used the supported CLI argument; no installer or clean-machine claim follows.
+
+The reopened form displayed default Y maximum 100 and final session 20 despite
+the correctly retained 10/24 calibration. This is a form-state defect under
+repair, not evidence that the saved calibration or export was changed. The ten
+small QA files remain only for native verification of that repair, then are
+disposable after the outcome record is pushed. Shared user Data was not used.
+
 ## Scope and exact inputs
 
 The native Windows session exercised the retained internal ManualPreview

@@ -9,9 +9,9 @@ The next internal ManualPreview is `0.4.37`. It packages the native-QA repairs
 from `0641f5c6`: an explicit safe-default discard decision before closing
 unsaved work, and readable graph headers with complete overflow layout and
 keyboard navigation. The observed unsaved-close loss path makes this a
-meaningful repair to the current preview. The verified replacement is ready
-for activation after this ledger reaches `origin/main`; shared Data is outside
-both build directories. This is not a production activation or public release.
+meaningful repair to the current preview. The replacement is active; shared
+Data is outside both build directories. This is not a production activation
+or public release.
 
 The first attempt stopped before publish on eight test-window resource-order
 failures. Their [bounded repair and full-suite result](MANUAL-PREVIEW-NATIVE-QA-20261111.md)
@@ -49,12 +49,22 @@ and its official repository identifies the license as MIT. The earlier
 registration attempt had been rejected before execution, pending this explicit
 permission; it did not create an additional runner.
 
-The executable and ZIP have moved to their final paths under
-`artifacts/dev-portable`; a hidden portable smoke from that directory exited 0
-using isolated disposable Data. The ledger selects 437 as the retained build.
-After this record is pushed, the live pointer can switch and the superseded
-436 build, stopped runner, duplicate ZIP and delivery staging can be removed.
-The shared Data snapshot contains 12 files for the post-switch comparison.
+After ledger commit `3632468abeec0061f06af536d9a7a79311ff1a30` reached
+`origin/main`, the live pointer switched to the final 437 directory under
+`artifacts/dev-portable`. The executable and ZIP hashes match the ledger;
+a hidden portable smoke from that directory exited 0 using isolated disposable
+Data. The latest pointer SHA-256 is
+`28efec53e53f93fcb61c3860a2392cd688319c6ef43dc7a9d4f9c13cc6cfbdde`.
+All 12 shared Data files retained their exact sizes and hashes.
+
+The superseded 436 directory and ZIP, empty candidate staging with two
+disposable smoke preferences, stopped runner, runner download and verification
+copies were removed after source/push, active-process, exact-path and no-reparse
+checks. Four targets contained 5,878 files and 802,664,448 bytes. Exactly one
+build directory and one ZIP remain under `artifacts/dev-portable`; user Data,
+feedback and evidence directories were preserved. The runner had no remaining
+consumer and no persistent service. Source and outcomes remain in pushed Git;
+the actual 437 ZIP remains in repository artifact storage.
 Do not rebuild this already-produced version. Source CI run `43098399627`
 still had no job records at this checkpoint; no new full-CI success is claimed.
 
