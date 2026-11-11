@@ -185,7 +185,8 @@ internal static class Program
         }
         if (args.Length == 4 &&
             (args[0] == OfficialHeadTensorCapture.LegacyCommand ||
-             args[0] == OfficialHeadTensorCapture.SupplementalCommand))
+             args[0] == OfficialHeadTensorCapture.SupplementalCommand ||
+             args[0] == OfficialHeadTensorCapture.MarkerStyleCommand))
         {
             return await OfficialHeadTensorCapture.RunCommandAsync(args, RepositoryRoot())
                 .ConfigureAwait(false);

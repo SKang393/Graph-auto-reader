@@ -698,6 +698,9 @@ def _load_runtime_report(
     candidate_sha: str,
     dataset_seed: int,
     root: Path,
+    *,
+    expected_sources: int = EXPECTED_SOURCES,
+    expected_panels: int = EXPECTED_PANELS,
 ) -> tuple[list[head.CapturePanelInput], list[Any]]:
     if (
         report.get("schema") != "graphreader.synthetic-runtime-seed-evidence.v2"
@@ -708,11 +711,11 @@ def _load_runtime_report(
         or report.get("candidate_sha256") != candidate_sha.lower()
         or report.get("native_scope") != candidate.get("native_scope")
         or report.get("native_sha256") != candidate.get("native_sha256")
-        or report.get("count") != EXPECTED_SOURCES
-        or report.get("completed") != EXPECTED_SOURCES
+        or report.get("count") != expected_sources
+        or report.get("completed") != expected_sources
         or report.get("failed") != 0
-        or report.get("panel_count") != EXPECTED_PANELS
-        or report.get("completed_panels") != EXPECTED_PANELS
+        or report.get("panel_count") != expected_panels
+        or report.get("completed_panels") != expected_panels
         or report.get("failed_panels") != 0
     ):
         raise LegendCoverageHeadInputError("supplemental runtime report changed")
@@ -822,7 +825,8 @@ def _load_runtime_report(
             report_path, report_sha.lower(), png_path, png_sha, byte_count,
             gray_sha, bgr_sha,
         ))
-    if seen_sources != set(manifest_sources):
+    if (seen_sources != set(manifest_sources) or len(seen_sources) != expected_sources
+            or len(panels) != expected_panels):
         raise LegendCoverageHeadInputError("supplemental runtime source inventory changed")
     return panels, domains
 

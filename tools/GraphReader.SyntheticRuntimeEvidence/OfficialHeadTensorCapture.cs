@@ -20,10 +20,14 @@ internal static class OfficialHeadTensorCapture
 {
     internal const string LegacyCommand = "--capture-official-head-tensors";
     internal const string SupplementalCommand = "--capture-supplemental-official-head-tensors";
+    internal const string MarkerStyleCommand = "--capture-marker-style-official-head-tensors";
     internal const string SelfTestCommand = "--self-test-official-head-tensor-capture-profiles";
 
     internal const string OfficialCandidateSha =
         "154d40615bd54f5744e20bb5b4482b86e05f0e3d709c8ac8d794e8d3371a4e38";
+    // Exact path-only E: relocation of the historical candidate; payload/settings unchanged.
+    internal const string MarkerStyleCandidateSha =
+        "5b1bb9b10915a1b590135cffd6d5bc89cc311c3d2c48e9dd374c3196ebf4943d";
     private const string DetectorSha =
         "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb";
     private const int MaximumSideLength = 960;
@@ -61,6 +65,18 @@ internal static class OfficialHeadTensorCapture
         ValidationPanelCount: 0,
         ExpectedCandidateSha256: OfficialCandidateSha);
 
+    private static readonly CaptureProfile MarkerStyleProfile = new(
+        "graphreader.marker-style-official-head-tensor-capture-request.v1",
+        "graphreader.marker-style-official-head-tensor-capture-report.v1",
+        "project-owned-synthetic-train-only-marker-style-model-free",
+        ReportCount: 1,
+        TrainReportCount: 1,
+        ValidationReportCount: 0,
+        PanelCount: 9,
+        TrainPanelCount: 9,
+        ValidationPanelCount: 0,
+        ExpectedCandidateSha256: MarkerStyleCandidateSha);
+
     public static async Task<int> RunCommandAsync(string[] args, string repositoryRoot)
     {
         using var cancellation = new CancellationTokenSource();
@@ -95,7 +111,8 @@ internal static class OfficialHeadTensorCapture
         {
             throw new InvalidDataException(
                 "Usage: (--capture-official-head-tensors | " +
-                "--capture-supplemental-official-head-tensors) " +
+                "--capture-supplemental-official-head-tensors | " +
+                "--capture-marker-style-official-head-tensors) " +
                 "<request.json> <request-sha256> <new-output-directory>");
         }
 
@@ -118,12 +135,16 @@ internal static class OfficialHeadTensorCapture
         VerifyRepositoryDescriptor(request.GetProperty("binding"), root, "V3 binding");
         (JsonElement candidate, string candidateSha) = ReadCandidate(request, root, profile);
         (ModelIdentity model, string detectorManifestPath, string detectorManifestSha) =
-            ReadDetector(request, candidate, root);
+            ReadDetector(request, candidate, root, profile);
         (string nativePath, string nativeSha) = ReadNative(request, candidate);
         VerifyLicenses(request, candidate);
         Dictionary<string, ReportBinding> reports = ReadReports(
             request, root, candidateSha, profile);
         CaptureInput[] panels = ReadPanels(request, reports, root, profile);
+        if (profile == MarkerStyleProfile)
+        {
+            ValidateMarkerStyleBinding(request, root);
+        }
 
         cancellationToken.ThrowIfCancellationRequested();
         string nativeActual = Hash(File.ReadAllBytes(nativePath));
@@ -322,12 +343,128 @@ internal static class OfficialHeadTensorCapture
             RequireSha(candidateSha256, "candidate"), profile);
     }
 
+    internal static void ValidateMarkerStyleInventoryForSelfTest(
+        string fixtureJson, string manifestJson, string requestJson)
+    {
+        using var fixture = JsonDocument.Parse(fixtureJson);
+        using var manifest = JsonDocument.Parse(manifestJson);
+        using var request = JsonDocument.Parse(requestJson);
+        ValidateMarkerStyleInventory(fixture.RootElement, manifest.RootElement, request.RootElement);
+    }
+
+    internal static string ResolveDetectorManifestPathForSelfTest(
+        string requestedPath, string candidatePath, string root, string command)
+    {
+        if (!TryGetProfile(command, out CaptureProfile profile))
+        {
+            throw new InvalidDataException("Tensor capture command is invalid.");
+        }
+        return ResolveDetectorManifestPath(requestedPath, candidatePath, root, profile);
+    }
+
+    private static void ValidateMarkerStyleBinding(JsonElement request, string root)
+    {
+        JsonElement binding = request.GetProperty("binding");
+        string fixturePath = RepositoryPath(root, Text(binding, "path"));
+        using var fixture = JsonDocument.Parse(ReadVerified(
+            fixturePath, RequireSha(Text(binding, "sha256"), "marker-style fixture"), null, "fixture"));
+        JsonElement report = request.GetProperty("reports")[0];
+        string manifestPath = RepositoryPath(root, Text(report, "manifest_path"));
+        using var manifest = JsonDocument.Parse(ReadVerified(
+            manifestPath, RequireSha(Text(report, "manifest_sha256"), "marker-style manifest"), null, "manifest"));
+        ValidateMarkerStyleInventory(fixture.RootElement, manifest.RootElement, request);
+        foreach (JsonElement source in fixture.RootElement.GetProperty("sources").EnumerateArray())
+        {
+            JsonElement image = source.GetProperty("image");
+            string sourcePath = RepositoryPath(root, Text(image, "path"));
+            string sha = RequireSha(Text(image, "sha256"), "marker-style source");
+            ReadVerified(sourcePath, sha, null, "marker-style source PNG");
+            JsonElement row = manifest.RootElement.GetProperty("images").EnumerateArray()
+                .Single(item => Text(item, "image_sha256") == sha);
+            string manifestImagePath = Inside(root,
+                Path.Combine(Path.GetDirectoryName(manifestPath)!, Text(row, "image")));
+            if (!string.Equals(sourcePath, manifestImagePath, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException("Marker-style manifest image path differs from its fixture.");
+            }
+        }
+    }
+
+    private static void ValidateMarkerStyleInventory(
+        JsonElement fixture, JsonElement manifest, JsonElement request)
+    {
+        if (Text(fixture, "schema") != "graphreader.ocr-marker-style-train-fixture.v1" ||
+            Text(fixture, "scope") != "owned-synthetic-train-only" ||
+            fixture.GetProperty("optimizer_steps").GetInt32() != 0 ||
+            fixture.GetProperty("sealed_reads").GetInt32() != 0 ||
+            fixture.GetProperty("private_reads").GetInt32() != 0 ||
+            fixture.GetProperty("model_inference_runs").GetInt32() != 0 ||
+            fixture.GetProperty("production_approved").GetBoolean() ||
+            fixture.GetProperty("style_schedule").GetArrayLength() != 27 ||
+            Text(manifest, "schema") != "graphreader.synthetic-runtime-raster-inputs.v1" ||
+            Text(manifest, "source") != "project-owned-synthetic-five-axis-family-v1" ||
+            Text(manifest, "split") != "train" ||
+            manifest.GetProperty("contains_truth").GetBoolean() ||
+            manifest.GetProperty("contains_precomputed_masks").GetBoolean())
+        {
+            throw new InvalidDataException("Marker-style fixture or manifest scope changed.");
+        }
+        JsonElement[] sources = fixture.GetProperty("sources").EnumerateArray().ToArray();
+        JsonElement[] images = manifest.GetProperty("images").EnumerateArray().ToArray();
+        JsonElement[] panels = request.GetProperty("panels").EnumerateArray().ToArray();
+        var expected = new HashSet<string>(StringComparer.Ordinal);
+        foreach (JsonElement source in sources)
+        {
+            if (Text(source, "split") != "train" || !expected.Add(
+                RequireSha(Text(source.GetProperty("image"), "sha256"), "marker-style source")))
+            {
+                throw new InvalidDataException("Marker-style fixture source repeats or is not train.");
+            }
+        }
+        var observedImages = new HashSet<string>(StringComparer.Ordinal);
+        var observedPanels = new HashSet<string>(StringComparer.Ordinal);
+        foreach (JsonElement image in images)
+        {
+            if (Text(image, "split") != "train" || !observedImages.Add(
+                RequireSha(Text(image, "image_sha256"), "manifest source")))
+            {
+                throw new InvalidDataException("Marker-style manifest source repeats or is not train.");
+            }
+        }
+        if (sources.Length != 9 || images.Length != 9 || panels.Length != 9 ||
+            !expected.SetEquals(observedImages))
+        {
+            throw new InvalidDataException("Marker-style capture requires exactly its nine train sources.");
+        }
+        foreach (JsonElement panel in panels)
+        {
+            string source = RequireSha(Text(panel, "source_sha256"), "panel source");
+            if (Text(panel, "split") != "train" || !expected.Contains(source) || !observedPanels.Add(source))
+            {
+                throw new InvalidDataException("Marker-style capture source differs from its nine-source fixture.");
+            }
+            JsonElement image = images.Single(item => Text(item, "image_sha256") == source);
+            int[] crop = panel.GetProperty("crop").EnumerateArray().Select(static item => item.GetInt32()).ToArray();
+            if (crop.Length != 4 || crop[0] < 0 || crop[1] < 0 || crop[2] <= 0 || crop[3] <= 0 ||
+                (long)crop[0] + crop[2] > image.GetProperty("width").GetInt32() ||
+                (long)crop[1] + crop[3] > image.GetProperty("height").GetInt32())
+            {
+                throw new InvalidDataException("Marker-style captured crop exceeds its authenticated source.");
+            }
+        }
+        if (!expected.SetEquals(observedPanels))
+        {
+            throw new InvalidDataException("Marker-style capture requires exactly its nine train sources.");
+        }
+    }
+
     private static bool TryGetProfile(string command, out CaptureProfile profile)
     {
         profile = command switch
         {
             LegacyCommand => LegacyProfile,
             SupplementalCommand => SupplementalProfile,
+            MarkerStyleCommand => MarkerStyleProfile,
             _ => null!,
         };
         return profile is not null;
@@ -415,14 +552,15 @@ internal static class OfficialHeadTensorCapture
             sha != expectedCandidateSha)
         {
             throw new InvalidDataException(
-                "Supplemental capture requires the fixed official legacy candidate.");
+                "Capture requires the exact candidate bound to its profile.");
         }
     }
 
     private static (ModelIdentity Model, string ManifestPath, string ManifestSha) ReadDetector(
         JsonElement request,
         JsonElement candidate,
-        string root)
+        string root,
+        CaptureProfile profile)
     {
         JsonElement detector = request.GetProperty("detector");
         JsonElement expected = candidate.GetProperty("detector");
@@ -436,14 +574,8 @@ internal static class OfficialHeadTensorCapture
                 throw new InvalidDataException("Detector request differs from candidate identity.");
             }
         }
-        string manifestPath = RepositoryPath(root, Text(detector, "manifest_path"));
-        if (!string.Equals(
-                manifestPath,
-                Path.GetFullPath(Text(expected, "manifest_path")),
-                StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidDataException("Detector manifest path differs from candidate identity.");
-        }
+        string manifestPath = ResolveDetectorManifestPath(
+            Text(detector, "manifest_path"), Text(expected, "manifest_path"), root, profile);
         string modelSha = RequireSha(Text(detector, "model_sha256"), "detector model");
         if (modelSha != DetectorSha || Text(detector, "model_id") != "PP-OCRv5_mobile_det" ||
             Text(detector, "model_version") != "5.0.0")
@@ -457,6 +589,26 @@ internal static class OfficialHeadTensorCapture
             Text(detector, "model_version"),
             modelSha,
             Text(detector, "model_path")), manifestPath, manifestSha);
+    }
+
+    private static string ResolveDetectorManifestPath(
+        string requestedPath, string candidatePath, string root, CaptureProfile profile)
+    {
+        // Only the exact pinned nine-source candidate has relocated metadata outside
+        // this worktree. Historical profiles retain their repository-path boundary.
+        if (profile == MarkerStyleProfile &&
+            (!Path.IsPathFullyQualified(requestedPath) || !Path.IsPathFullyQualified(candidatePath)))
+        {
+            throw new InvalidDataException("Marker-style detector manifest must use its absolute candidate path.");
+        }
+        string path = profile == MarkerStyleProfile
+            ? Path.GetFullPath(requestedPath)
+            : RepositoryPath(root, requestedPath);
+        if (!string.Equals(path, Path.GetFullPath(candidatePath), StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException("Detector manifest path differs from candidate identity.");
+        }
+        return path;
     }
 
     private static (string Path, string Sha256) ReadNative(JsonElement request, JsonElement candidate)

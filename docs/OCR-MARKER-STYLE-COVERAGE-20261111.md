@@ -49,11 +49,9 @@ The nine-source test fixture has input-manifest SHA-256
 and corrected source-truth SHA-256
 `0ab8d513e8ddf4ff65775092bb2e05f36b5addd74970b0601b0f7d497c927f2b`.
 
-This is source-pixel preparation, not trainer-ready tensors or an accuracy
-improvement. Existing capture profiles accept six supplemental panels or the
-historical 37 panels. An explicit nine-panel profile and actual captured
-crop/tensor geometry are the next consumer; existing profiles must remain
-unchanged. Model-grid targets must use those actual transforms.
+This fixture alone is source-pixel preparation, not an accuracy improvement.
+The new nine-panel capture consumer is described below; actual inference and
+target generation remain the next execution step.
 
 Historical preflight/truth/tensor/scale-manifest hashes are respectively
 `23afd6d3163c84998586b54e72ef28d46cf80c561ff2a63449a005b48188cc53`,
@@ -64,3 +62,48 @@ Their existing `resume-20260908` inputs remain needed for the capture/adaptation
 consumer. Task-owned `artifacts/marker-style-*-tests-20261111` test outputs are
 disposable after this record is pushed. Regenerate them with the commands above;
 do not commit generated images, annotations, tensors or weights.
+
+## Explicit capture and target consumer
+
+`marker_style_head_inputs.py prepare` authenticates the fixture, actual runtime
+report and candidate, then emits the nine-source training capture request.
+The runtime tool's `--capture-marker-style-official-head-tensors` profile checks
+the real PNG/Gray8/BGR images and stores actual detector-input tensors.
+`marker_style_head_inputs.py targets` re-authenticates those outputs and uses
+the recorded crop projection and tensor dimensions for inverse DB targets and
+valid masks. Truth is not supplied to inference. Missing or clipped source
+text is rejected rather than assigned invented geometry.
+
+The historical six- and 37-panel profiles and 20-source/709-truth reader are
+unchanged. The nine-profile uses its own exact candidate pin:
+`5b1bb9b10915a1b590135cffd6d5bc89cc311c3d2c48e9dd374c3196ebf4943d`.
+It is a path-only copy of candidate
+`154d40615bd54f5744e20bb5b4482b86e05f0e3d709c8ac8d794e8d3371a4e38`:
+native, two model, two manifest and two license paths now reference the seven
+verified matching files inside the current primary E: checkout. All other
+fields and payload hashes match. The old C: project was not inspected.
+
+The new profile alone permits its exact canonical candidate detector-manifest
+path outside the nested worktree, with candidate-path equality and the existing
+manifest hash required. Historical profiles retain their repository-relative
+path restrictions. The ignored candidate and path-only comparison record at
+`artifacts/marker-style-capture-binding-20261111` are active capture inputs.
+The comparison record hash is
+`1221aab3b63242a0e4a4774b2a40c85b888d4327c959af7764e1e8bada6fa74d`.
+
+The initial consumer/legacy-reader suite passed 34 tests in 27.07 seconds.
+After the verified external-manifest path repair, the affected 21 Python tests
+passed in 25.78 seconds; the serialized Release tool build had zero warnings
+or errors in 7.58 seconds. Its profile selftest passed in 1.17 seconds without
+loading a model, covering profile, count, candidate, source and manifest-path
+rejections. Real candidate dependency/descriptor authentication also passed.
+Independent review found no actionable correctness defect before the path
+repair; focused regressions cover the repaired path boundary. The selftest is
+included in Windows CI. No optimizer, actual capture, private/sealed read or
+model approval occurred in this source batch.
+
+After the fixture outcome reached `origin/main`, the three completed coverage,
+ink and consumer-test directories were retired: 221 files, 17,430,904 bytes,
+plus seven verified pytest links inside those directories. Capture-test outputs
+remain disposable after their source/outcome is pushed and active checks end;
+the candidate binding and historical source/model inputs remain active.
