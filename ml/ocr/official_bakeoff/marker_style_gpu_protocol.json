@@ -1,0 +1,51 @@
+{
+  "schema": "graphreader.ocr-fixed-revision-protocol.v1",
+  "task": "ocr-detection",
+  "revision": "marker_style_coverage_gpu_head_v1",
+  "candidate_id": "P1",
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "acceptance_bars": "ml/policy/acceptance-bars.json",
+  "hypothesis": "Add nine project-owned synthetic train sources spanning 27 marker styles to the exact historical V45 population to reduce marker and stroke false positives while preserving text detection recall.",
+  "diagnostic": {
+    "source": "docs/GOAL-22-CURRENT-SYNTHETIC-RUN-20261030.md",
+    "assembled_detection_precision": 0.9049,
+    "assembled_detection_recall": 0.9868
+  },
+  "isolated_change": "Add the fixed nine-source training population to the exact historical 34-panel V45 training population. Execute the existing 240-epoch DB-head recipe on RX 6600 XT through ROCm cuda:0, retaining float64 conv0, seed, loss, AdamW parameters and earliest minimum full-train-loss checkpoint selection. GPU initializer and loss parity are checked; CPU and GPU optimization are not claimed byte-identical.",
+  "fixed_splits": {
+    "training": {
+      "historical_config": "ml/ocr/legend_coverage_db_head_v45/training/p1.json",
+      "historical_panel_count": 34,
+      "historical_truth_count": 862,
+      "new_request_sha256": "3b844be84617b5b3cd362bf7be6ceadc4d9db81aa4449a2c526b8d8b3a93a049",
+      "new_capture_sha256": "dee957b49af517f5da3cd0fc358fe41205bddb73a7eb86e4e1ecd5dc6fce70b6",
+      "new_targets_sha256": "d3c1417e5a210a9e23cf199973008642ec2d551d01b4313eb73a42e5775cdf48",
+      "new_source_count": 9,
+      "new_panel_count": 9,
+      "new_truth_count": 224,
+      "combined_panel_count": 43,
+      "combined_truth_count": 1086
+    },
+    "open_development": {
+      "identity": "historical V45 fixed validation split, bound by the V45 configuration and capture request",
+      "source_count": 3,
+      "panel_count": 9,
+      "truth_count": 183,
+      "selection_use": false
+    },
+    "private": "not read",
+    "sealed": "not read"
+  },
+  "metric": "Open-dev text-region detection precision and recall at the existing operating threshold; report marker and stroke false positives as diagnostic evidence.",
+  "acceptance_bar": {
+    "source": "ml/policy/acceptance-bars.json",
+    "text_region_detection_precision_minimum": 0.95,
+    "text_region_detection_recall_minimum": 0.95
+  },
+  "budget": {
+    "candidate_count": 1,
+    "candidate_id": "P1",
+    "sealed_runs": 0,
+    "evaluation": "Evaluate one frozen exported candidate on open development after training; no weight or threshold sweep."
+  }
+}

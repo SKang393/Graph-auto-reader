@@ -11576,6 +11576,77 @@
       "development_report_sha256": "1799539d02f56d2d6c9175311c7bc45ac93cf69ea02434501c71ee435492da30",
       "development_outcome": "Exploratory synthetic comparison: 24 improved, 7 equal, 15 worsened among 46 scored panels; 2 fallbacks unscored. All changed scored panels remain within the native axis ambiguity review margin. No acceptance or promotion.",
       "closed_utc_date": "2026-11-01"
+    },
+    {
+      "task": "ocr-detection",
+      "revision": "marker_style_coverage_gpu_head_v1",
+      "status": "void_before_sealed",
+      "execution_authorized": true,
+      "authorized_candidate_id": "P1",
+      "preregistered_candidate_ids": [
+        "P1"
+      ],
+      "consumed_candidate_ids": [],
+      "experiment_budget": 1,
+      "candidate_config_paths": {
+        "P1": "ml/ocr/official_bakeoff/marker_style_gpu_candidate.json"
+      },
+      "candidate_config_sha256": {
+        "P1": "b78a88c8b7b28c0fdb1a5a1b49783decfc77991134b21fefa0dd242bb14c8c36"
+      },
+      "protocol_path": "ml/ocr/official_bakeoff/marker_style_gpu_protocol.json",
+      "protocol_sha256": "be45837b82a9353c311dedfe29514456888d8c7fa1485f646352d4987ec1c21a",
+      "runner_source_bundle_sha256": "469866eb243b2fed096c02036651566f8287af592c52b24f359b8eaeea761b19",
+      "evidence_policy": {
+        "path": "ml/policy/evidence-policy.json",
+        "schema_version": 1,
+        "policy_revision": "2026-08-19",
+        "sha256": "4dc18136c284b0b1805d3a3b22a9197ad06e6a41f4e43b4e1d4d9245b97e0aed"
+      },
+      "authorization_scope": "One fixed synthetic train/open-dev candidate under the maintainer resume instruction. RX 6600 XT optimizer only; no private or sealed reads, production approval, or release.",
+      "isolated_change": "Add the fixed nine-source training population to the exact historical 34-panel V45 training population. Execute the existing 240-epoch DB-head recipe on RX 6600 XT through ROCm cuda:0, retaining float64 conv0, seed, loss, AdamW parameters and earliest minimum full-train-loss checkpoint selection. GPU initializer and loss parity are checked; CPU and GPU optimization are not claimed byte-identical.",
+      "optimizer_steps_expected": 10320,
+      "source_binding_mode": "immutable_pre_run_snapshot",
+      "budget_consumption_event": "first_sealed_split_read",
+      "sealed_runs_authorized": 0,
+      "training_device": "AMD Radeon RX 6600 XT gfx1032 cuda:0",
+      "production_approved": false,
+      "release_eligible": false,
+      "revision_retired": false,
+      "retry_requires_new_preregistration": false,
+      "retry_note": "The same P1 hypothesis and metric may reuse its authorization after a documented plumbing/source-binding repair. No retry was selected. The config preserves the original run binding, not the later persistence fix.",
+      "void_candidate_ids": ["P1"],
+      "void_runs": [
+        {
+          "candidate_id": "P1",
+          "status": "void",
+          "exception_type": "ValueError",
+          "exception_message": "Trained ONNX parity exceeded fixed tolerance",
+          "failure_phase": "trained_onnx_parity",
+          "sealed_split_read": false,
+          "budget_consumed": false,
+          "void_record_sha256": "f4ec60ebb763fef842342b54bfac9d5d769b2e6004a2a06e3943fd9180fd0ffc",
+          "source_snapshot_sha256": "90e2f9ac5a045e92c6d1086dba26ca4560ade48dfbc38525097723ff8fbe2557",
+          "reason": "The full 240-epoch schedule completed before the export comparison failed. No sealed input was read; the candidate budget remains unconsumed."
+        }
+      ],
+      "optimizer_steps": 10320,
+      "training_elapsed_seconds": 416.814,
+      "selected_epoch": null,
+      "loss_history_recorded": false,
+      "checkpoint_sha256": "0db4ad9300c6987c2b22c1fdcb821de938c973aa8d2ee69cbaca27111c9ee2fc",
+      "onnx_sha256": "f063fc9dbe874f1de68da5aa51168392aa9d8b9d29a3e3af259b3bd8614102eb",
+      "export_parity_maximum_absolute_error": 0.00001093745231628418,
+      "export_parity_absolute_tolerance": 0.00001,
+      "diagnostic_receipt_sha256": "f5ed3e539776742a04cc87dbfeb2b746a7ed29c62ca72b12e922010401623a2a",
+      "diagnostic_development_report_sha256": "b6be8b541eb13ca16a7ebaaf248a3d34c039ea3f763a304b44690b68c1cc8bbd",
+      "diagnostic_development_outcome": "Fixed nine-panel/three-source open-dev: 183 truths, 183 predictions, 146 TP, 37 FP, 37 FN, 79.7814% precision and recall for both raw and successfully recognized geometry. Export parity remains failed; this is not composed Review workflow acceptance.",
+      "private_reads": 0,
+      "sealed_reads": 0,
+      "acceptance_blocked": true,
+      "candidate_acceptance": false,
+      "outcome_document": "docs/GOAL-22-OCR-MARKER-STYLE-GPU-P1-OUTCOME.md",
+      "closed_utc_date": "2026-11-11"
     }
   ]
 }

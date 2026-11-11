@@ -1,4 +1,7 @@
 * text=auto eol=lf
+# Preserve the GPU OCR runner/config bytes bound to the recorded P1 attempt.
+ml/ocr/official_bakeoff/gpu_head_*.py -text whitespace=cr-at-eol
+ml/ocr/official_bakeoff/marker_style_gpu_*.json -text whitespace=cr-at-eol
 # Preserve the exact mixed-line-ending diagnostic sources bound by the
 # real-development artifact-mask overlap receipt.
 tools/RealDevArtifactMaskIntersectionOverlapV1/Program.cs -text whitespace=cr-at-eol,-blank-at-eof

@@ -249,11 +249,15 @@ Its seven inputs remain the following checksum-verified files under the primary
 
 ### Active consumer and cleanup boundary
 
-Terra's actual bridge preparation consumes this request/capture and their
-authenticated fixture, candidate, source snapshot, tensors and targets. Keep
-`artifacts/marker-style-nine-source-20261111` and
-`artifacts/marker-style-capture-binding-20261111` until that consumer completes
-and its outcome is recorded and pushed. Historical V44/V46 inputs remain
+The actual GPU bridge, fixed optimizer run and bounded open-dev investigation
+are complete. [The P1 outcome](GOAL-22-OCR-MARKER-STYLE-GPU-P1-OUTCOME.md)
+records the presealed parity failure and diagnostic score. After its record is
+pushed, retire `artifacts/marker-style-nine-source-20261111` and
+`artifacts/marker-style-capture-binding-20261111`, including their authenticated
+fixture, candidate, source snapshot, tensors and targets. Manual-preview QA may
+retain its one selected synthetic image until its saved-project check finishes.
+Until those consumers finish and their outcomes are pushed, keep the required
+inputs. Historical V44/V46 inputs remain
 unchanged for their explicit compatibility/bridge consumers. These historical
 truths or splits were not evaluated by the nine-source run.
 

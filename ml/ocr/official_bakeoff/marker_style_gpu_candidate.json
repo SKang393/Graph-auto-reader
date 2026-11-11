@@ -1,0 +1,104 @@
+{
+  "acceptance_bars": "ml/policy/acceptance-bars.json",
+  "candidate_count": 1,
+  "candidate_id": "P1",
+  "diagnostic_assembled_detection_precision": 0.9049,
+  "diagnostic_assembled_detection_recall": 0.9868,
+  "diagnostic_reference": "docs/GOAL-22-CURRENT-SYNTHETIC-RUN-20261030.md",
+  "evaluation": "Evaluate one frozen exported candidate on open dev after training; no weight or threshold sweep.",
+  "evidence_policy": "ml/policy/evidence-policy.json",
+  "expected_runner_source_bundle_sha256": "469866eb243b2fed096c02036651566f8287af592c52b24f359b8eaeea761b19",
+  "historical_bound_files": {
+    "candidate_template": {
+      "path": "artifacts/goal22-runs/ocr-v45-evaluation-inputs-v1/candidate-template.json",
+      "sha256": "fb69efa132597ff23f5b4096894fae3991e31eeb8b1559ed9e50ee68fe9e600b"
+    },
+    "capture_report": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-tensors/report.json",
+      "sha256": "15e48b27ce3b8f5f53311abbef7235c35b3e8e361c8baddb09a4d3a7e7d5938e"
+    },
+    "capture_request": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-capture-inputs/request.json",
+      "sha256": "7d62e9e962d01448fd193887573b6a2ab882574eba41f67a543c444c6222c059"
+    },
+    "feature_model": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-features/frozen-trunk.onnx",
+      "sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081"
+    },
+    "historical_capture": {
+      "path": "artifacts/goal22-runs/ocr-production-head-inputs/capture-run3/report.json",
+      "sha256": "d5ca3328ec5ad2af0191fd92e078d02943692ee851f8be96d2a529352f603482"
+    },
+    "parent_model": {
+      "path": "artifacts/goal22-runs/pretrained-detector-head-feasibility/reviewed-parent.onnx",
+      "sha256": "d4aa24d408cd70b8b9f66cc758e20f397fc31a9c69d8477cf8887fc53bd5fceb"
+    },
+    "parity_report": {
+      "path": "artifacts/goal22-runs/ocr-text-extent-features/report.json",
+      "sha256": "8d0a2e3fe9f8b5a8abbf73ab3f487ed632d99e84c9b112dc8b718366d680edf0"
+    },
+    "supplemental_capture_report": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/tensors/report.json",
+      "sha256": "2c605fb18cb0195453f1b569506546c22c3a873db19475e1fb87daa0bddaeb19"
+    },
+    "supplemental_composition_report": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-capture/composition-verification.json",
+      "sha256": "f0591ae25244b570ea2077d34b40dac96b40be1433d6ca89a0119989378529c0"
+    },
+    "supplemental_feature_model": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-features-v1/frozen-trunk.onnx",
+      "sha256": "6115e9e02bb20ea495b04e3f5329721115ba72b5e79cc7246773919c9699b081"
+    },
+    "supplemental_feature_report": {
+      "path": "artifacts/goal22-runs/ocr-supplemental-head-features-v1/report.json",
+      "sha256": "4b2710b380be1b16d5fef7d9184920051c413304353ed821480bda0ab3a16d05"
+    },
+    "supplemental_preparation": {
+      "path": "artifacts/goal22-runs/ocr-train-legend-head-inputs-v1/preparation.json",
+      "sha256": "622357d57895755eacb631ea518eaa4d3268ac65aa0df4c910fe72cc0d56c737"
+    },
+    "supplemental_request": {
+      "path": "artifacts/goal22-runs/ocr-train-legend-head-inputs-v1/request.json",
+      "sha256": "0e795a4d17b1b1d0b2f652a30ffff30e038ec51eae61a9699510d65b43eb6cf1"
+    },
+    "supplemental_truth": {
+      "path": "artifacts/goal22-runs/ocr-train-legend-head-inputs-v1/supplemental-train-text-truth.json",
+      "sha256": "13174cba2e740b47d1fc68f0e15c2078c720526be6475b91a8740e51195150b3"
+    }
+  },
+  "historical_config_sha256": "1e27a5fbd554a1ee292343416ab5c2616d3c361f43b5e46b9480372419b7232f",
+  "hypothesis": "Nine additional synthetic marker-style sources reduce nontext false positives while preserving recall relative to the pinned 34-panel base.",
+  "new_inputs": {
+    "capture": {
+      "path": "artifacts/marker-style-nine-source-20261111/capture/report.json",
+      "sha256": "dee957b49af517f5da3cd0fc358fe41205bddb73a7eb86e4e1ecd5dc6fce70b6"
+    },
+    "request": {
+      "path": "artifacts/marker-style-nine-source-20261111/request.json",
+      "sha256": "3b844be84617b5b3cd362bf7be6ceadc4d9db81aa4449a2c526b8d8b3a93a049"
+    },
+    "targets": {
+      "path": "artifacts/marker-style-nine-source-20261111/targets/manifest.json",
+      "sha256": "d3c1417e5a210a9e23cf199973008642ec2d551d01b4313eb73a42e5775cdf48"
+    }
+  },
+  "private_data": false,
+  "recipe": {
+    "backend": "rocm-rx6600xt-cuda0-float64-conv0",
+    "batch_size": 1,
+    "dice_epsilon": 1e-06,
+    "epochs": 240,
+    "learning_rate": 0.0001,
+    "seed": 20260939,
+    "selection": "earliest_minimum_full_train_loss",
+    "train_panels": 43,
+    "train_truths": 1086,
+    "weight_decay": 0.0001
+  },
+  "revision": "marker_style_coverage_gpu_head_v1",
+  "schema": "graphreader.marker-style-gpu-candidate.v1",
+  "sealed_budget": 0,
+  "sealed_data": false,
+  "synthetic_only": true,
+  "task": "ocr-detection"
+}
