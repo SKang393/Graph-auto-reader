@@ -3,6 +3,18 @@
 
 # Internal preview artifact delivery
 
+## Build 437 preparation
+
+The next internal ManualPreview is `0.4.37`. It packages the native-QA repairs
+from `0641f5c6`: an explicit safe-default discard decision before closing
+unsaved work, and readable graph headers with complete overflow layout and
+keyboard navigation. The observed unsaved-close loss path makes this a
+meaningful repair to the current preview. Build 436 and shared Data remain
+active until the replacement's package verification, upload and ledger push
+complete. This is not a production activation or public release.
+
+## Upload mechanism
+
 The existing Windows workflow uploads only release-eligible pairs. A new
 manual-only workflow can upload one locally built, reviewed ManualPreview ZIP
 through a dedicated one-job runner, without moving private native attestation
