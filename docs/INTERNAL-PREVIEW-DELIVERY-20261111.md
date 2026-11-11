@@ -82,13 +82,22 @@ automatically deregistered. The repository runner count returned to zero.
 Its downloaded tool ZIP matched the published SHA-256
 `a1f17aa987fc8158bc7521d284912267a0d01b7c2c4684b33c86783b5e8221cc`.
 
-The live pointer switch follows the push of this verified ledger record.
-The superseded local 0.4.33 directory contains 467 files / 232,608,648 bytes,
-no embedded Data directory, no project data files, and no reparse points.
-Retire it only after the 0.4.36 pointer is verified. Preserve the existing
-shared Data, feedback, and manual-evidence directories. Remove task-owned
-duplicate upload/download staging and the stopped runner after their consumers
-finish; keep one 0.4.36 package identity and its runnable directory.
+After ledger commit `890f8ff41fc156fb33c8d54416a7987f3da17dd7` reached
+`origin/main`, the live pointer switched to
+`artifacts/dev-portable/builds/0.4.36-20261111T085128044Z-0ffdfa51`.
+The moved executable and retained ZIP hashes matched the ledger, and a hidden
+portable smoke from the final directory exited 0. Hashes of all 12 existing
+shared Data files were unchanged by the switch; the smoke used disposable Data.
+
+The superseded 0.4.33 directory, stopped one-job runner, and two verification
+ZIP copies were removed after exact-path and no-reparse checks: 5,851 files,
+848,939,034 bytes. The old build had no embedded Data or project data files.
+One 0.4.36 build directory and its ZIP remain under `artifacts/dev-portable`.
+Existing shared Data, feedback, and manual-evidence directories were preserved.
+The completed delivery staging (20 small files, 439,243 bytes) and isolated
+build checkout (6,323 files, approximately 541 MB including compiler outputs)
+are disposable after this closeout record is pushed. Their source and measured
+outcomes are retained in Git and the remote artifact; neither is an OCR input.
 
 This is an internal manual preview. Automatic stages remain unavailable;
 visual workflow, clean-Windows VM, installer, and production-model acceptance

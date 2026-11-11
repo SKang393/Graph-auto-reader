@@ -259,9 +259,11 @@ truths or splits were not evaluated by the nine-source run.
 
 The five closed unit-capture directories below were inventoried, with no runtime
 references found. Terra confirmed that its bridge does not consume them. They
-contain 582 files, 293,167,982 bytes, plus 20 pytest links whose targets resolve
-inside the same respective directories. They are eligible for cleanup only
-after this outcome record reaches `origin/main`; no deletion occurred here.
+contained 582 files, 293,167,982 bytes, plus 20 pytest links whose targets resolved
+inside the same respective directories. After outcome commit `67bd1c4d` reached
+`origin/main` through `b53bc76d`, the links were removed non-recursively and each
+directory was rechecked for reparse points before deletion. All five are now
+absent. The actual nine-source capture and its active inputs were preserved.
 
 | Directory under `artifacts` | Files | Bytes |
 | --- | ---: | ---: |
