@@ -44,10 +44,41 @@ unchanged. Both QA processes were closed. Native initial image import still
 used the supported CLI argument; no installer or clean-machine claim follows.
 
 The reopened form displayed default Y maximum 100 and final session 20 despite
-the correctly retained 10/24 calibration. This is a form-state defect under
-repair, not evidence that the saved calibration or export was changed. The ten
-small QA files remain only for native verification of that repair, then are
-disposable after the outcome record is pushed. Shared user Data was not used.
+the correctly retained 10/24 calibration. The source repair below addresses
+that form-state defect; the saved calibration and export were not changed.
+The ten small QA files are disposable after this outcome record is pushed.
+Shared user Data was not used.
+
+## Calibration form restoration repair
+
+`MainWindowViewModel` now hydrates supported saved calibration values during
+construction, tab selection and calibration undo. Pending form drafts remain
+separate for each tab while its underlying calibration is unchanged. Closing a
+tab or replacing a project clears the relevant drafts. Viewing or editing form
+fields does not change calibration evidence, points, audit data or dirty flags;
+only committing a calibration does. Unsupported or uncalibrated states keep
+the existing new-form defaults without creating scientific evidence.
+
+One regression saves a real synthetic project, reopens through the actual
+Recent-project command, and checks distinct ranges `10/24/1` and `70/50/29`,
+uncalibrated defaults, pending draft `12/30/2`, tab switching, explicit
+three-click recalibration, undo restoration and unchanged saved file bytes.
+All 15 `ViewModelAcceptanceTests` passed in 877 ms of test time, 57.974 seconds
+wall time. Independent review and `git diff --check` passed. The command was:
+
+```text
+dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release -m:1 -nr:false -p:RestoreSources=E:\Graph-auto-reader\tools\nuget-packages -p:NuGetAudit=false -p:UseSharedCompilation=false --filter FullyQualifiedName~ViewModelAcceptanceTests --logger "trx;LogFileName=manual-calibration-form.trx" --results-directory artifacts/manual-calibration-form-tests --verbosity minimal
+```
+
+Native verification then used routine compiler output, App DLL SHA-256
+`b89e535598572683f4ac7a6204af5bd0912e5bdb8a2f9bc985aac0948c76c82a`,
+with reviewed native DLL `c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31`.
+Both native provenance validators passed. A fresh process reopened the same
+saved QA project; its native editable-control values were Y maximum 10, first
+session 1 and final session 24. The point count remained one and Review zero.
+The window closed and the saved project hash remained unchanged. This routine
+compile is not a package; immutable 0.4.37 predates this form repair. No model,
+contract, threshold, dependency or license changed.
 
 ## Scope and exact inputs
 

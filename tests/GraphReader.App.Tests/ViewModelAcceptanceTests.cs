@@ -52,6 +52,106 @@ public sealed class ViewModelAcceptanceTests
     }
 
     [TestMethod]
+    public void ReopenedCalibrationFormsFollowTabsAndPreservePendingDraftWithoutDirtying()
+    {
+        string root = Path.Combine(Path.GetTempPath(), $"graph-reader-calibration-form-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(root);
+        try
+        {
+            StaTestHost.Run(() =>
+            {
+                string firstPath = Path.Combine(root, "first.png"), secondPath = Path.Combine(root, "second.png");
+                string thirdPath = Path.Combine(root, "ordinal.png"), projectPath = Path.Combine(root, "saved.garproj");
+                WriteImage(firstPath, 160, 120);
+                WriteImage(secondPath, 161, 120);
+                WriteImage(thirdPath, 162, 120);
+                var original = new ManualPreviewWorkspaceService();
+                WorkspaceTabViewModel[] imported = original.ImportImagesAsync([firstPath, secondPath, thirdPath], CancellationToken.None)
+                    .GetAwaiter().GetResult().ToArray();
+                original.Calibrate(imported[0].TabId, Calibration(10, 24, 1));
+                original.Calibrate(imported[1].TabId, Calibration(70, 50, 29));
+                Assert.IsTrue(original.SaveProjectAsync(projectPath, CancellationToken.None).GetAwaiter().GetResult().IsSuccess);
+                byte[] savedBytes = File.ReadAllBytes(projectPath);
+
+                var loaded = new ManualPreviewWorkspaceService();
+                _ = loaded.OpenProjectAsync(projectPath, CancellationToken.None).GetAwaiter().GetResult();
+                using (var fromLoadedWorkspace = new MainWindowViewModel(loaded))
+                    AssertForm(fromLoadedWorkspace, 10, 24, 1);
+
+                var workspace = new ManualPreviewWorkspaceService();
+                using var viewModel = new MainWindowViewModel(workspace);
+                viewModel.ManualYMaximum = 200;
+                viewModel.ManualXMaximum = 40;
+                var frame = new System.Windows.Threading.DispatcherFrame();
+                var timeout = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+                timeout.Tick += (_, _) => frame.Continue = false;
+                viewModel.PropertyChanged += (_, args) =>
+                {
+                    if (args.PropertyName == nameof(MainWindowViewModel.IsBusy) && !viewModel.IsBusy)
+                        frame.Continue = false;
+                };
+                Assert.IsTrue(viewModel.OpenRecentProjectCommand.CanExecute(projectPath));
+                viewModel.OpenRecentProjectCommand.Execute(projectPath);
+                timeout.Start();
+                System.Windows.Threading.Dispatcher.PushFrame(frame);
+                timeout.Stop();
+                Assert.IsFalse(viewModel.IsBusy);
+                Assert.HasCount(3, viewModel.Tabs);
+                WorkspaceTabViewModel first = viewModel.Tabs[0], second = viewModel.Tabs[1], ordinal = viewModel.Tabs[2];
+                AssertForm(viewModel, 10, 24, 1);
+                Assert.IsTrue(viewModel.Tabs.All(tab => !tab.IsDirty));
+
+                viewModel.ManualYMaximum = 12;
+                viewModel.ManualXMaximum = 30;
+                viewModel.ManualFirstVisibleSessionText = "2";
+                viewModel.StartCalibrationCommand.Execute(null);
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 100)).GetAwaiter().GetResult();
+                viewModel.SelectedTab = second;
+                AssertForm(viewModel, 70, 50, 29);
+                Assert.AreEqual(ManualEditorMode.Select, viewModel.EditorMode);
+                viewModel.SelectedTab = ordinal;
+                AssertForm(viewModel, 100, 20, 1);
+                Assert.IsNull(ordinal.Calibration, "New-form defaults must not create ordinal calibration evidence.");
+                viewModel.SelectedTab = first;
+                AssertForm(viewModel, 12, 30, 2);
+                Assert.AreEqual(10, first.Calibration!.YMaximum, 0);
+                Assert.AreEqual(24, first.Calibration.XMaximum, 0);
+                Assert.IsTrue(viewModel.Tabs.All(tab => !tab.IsDirty), "Viewing or editing a form is not a scientific edit.");
+
+                viewModel.StartCalibrationCommand.Execute(null);
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 100)).GetAwaiter().GetResult();
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(10, 10)).GetAwaiter().GetResult();
+                viewModel.HandleCanvasPointAsync(new System.Windows.Point(150, 100)).GetAwaiter().GetResult();
+                Assert.AreEqual(12, first.Calibration.YMaximum, 0);
+                Assert.AreEqual(30, first.Calibration.XMaximum, 0);
+                Assert.AreEqual(2, first.Calibration.FirstVisibleSession, 0);
+                Assert.IsTrue(first.IsDirty);
+                Assert.IsFalse(second.IsDirty);
+                viewModel.UndoCommand.Execute(null);
+                AssertForm(viewModel, 10, 24, 1);
+                Assert.AreEqual(10, first.Calibration!.YMaximum, 0);
+                CollectionAssert.AreEqual(savedBytes, File.ReadAllBytes(projectPath));
+            });
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+
+        static ManualCalibrationRequest Calibration(double yMaximum, double xMaximum, int firstSession) => new(
+            new GraphReader.Axis.PixelPoint(10, 100), new GraphReader.Axis.PixelPoint(10, 10),
+            new GraphReader.Axis.PixelPoint(150, 100), yMaximum, xMaximum, firstSession);
+
+        static void AssertForm(MainWindowViewModel viewModel, double yMaximum, double xMaximum, int firstSession)
+        {
+            Assert.AreEqual(yMaximum, viewModel.ManualYMaximum, 0);
+            Assert.AreEqual(xMaximum, viewModel.ManualXMaximum, 0);
+            Assert.AreEqual(firstSession, viewModel.ManualFirstVisibleSession);
+            Assert.AreEqual(firstSession.ToString(System.Globalization.CultureInfo.InvariantCulture), viewModel.ManualFirstVisibleSessionText);
+        }
+    }
+
+    [TestMethod]
     public void InvalidFirstVisibleSessionCannotReuseStaleValueForCalibration()
     {
         string root = Path.Combine(Path.GetTempPath(), $"graph-reader-session-input-{Guid.NewGuid():N}");

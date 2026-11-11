@@ -80,6 +80,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private double _manualXMaximum = 20;
     private int _manualFirstVisibleSession = 1;
     private string _manualFirstVisibleSessionText = "1";
+    private readonly Dictionary<WorkspaceTabViewModel, ManualCalibrationFormState> _manualCalibrationForms = [];
     private readonly Dictionary<string, TabEditHistory> _editHistories = new(StringComparer.Ordinal);
     private readonly HashSet<string> _reviewReadyTabIds = new(StringComparer.Ordinal);
     private WorkspaceSurfaceState _surfaceState;
@@ -318,6 +319,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             : CanRunAutomaticStage(WorkflowStage.Prepare)
                 ? string.Empty
                 : GetLocalizedString(LocalizationKeys.WorkflowEnhanceUnavailable);
+        RestoreManualCalibrationForm(_selectedTab);
         RefreshWorkspaceProjection();
     }
 
@@ -341,6 +343,12 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (!ReferenceEquals(_selectedTab, value))
             {
+                if (_selectedTab is { } previous && Tabs.Contains(previous))
+                {
+                    _manualCalibrationForms[previous] = new ManualCalibrationFormState(
+                        previous.Calibration, ManualYMaximum, ManualXMaximum,
+                        ManualFirstVisibleSession, ManualFirstVisibleSessionText);
+                }
                 // A pending canvas action belongs to its original panel.
                 // Cancel it before publishing the new selection to bindings.
                 bool canceledEdit = EditorMode != ManualEditorMode.Select;
@@ -354,6 +362,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
             if (SetProperty(ref _selectedTab, value))
             {
+                RestoreManualCalibrationForm(value);
                 OnPropertyChanged(nameof(SeriesCards));
                 OnPropertyChanged(nameof(HasEnhancedPreview));
                 OnPropertyChanged(nameof(CurrentEnhancementPreviewMode));
@@ -1419,6 +1428,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 await _manualWorkspaceService.OpenProjectAsync(path, token);
             Tabs.Clear();
             _editHistories.Clear();
+            _manualCalibrationForms.Clear();
             _reviewReadyTabIds.Clear();
             foreach (WorkspaceTabViewModel tab in opened)
             {
@@ -1509,6 +1519,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 .OpenProjectAsync(recovered.Value.Path, token);
             Tabs.Clear();
             _editHistories.Clear();
+            _manualCalibrationForms.Clear();
             _reviewReadyTabIds.Clear();
             foreach (WorkspaceTabViewModel tab in opened)
             {
@@ -1853,6 +1864,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
         Tabs.Remove(tab);
         _editHistories.Remove(tab.TabId);
+        _manualCalibrationForms.Remove(tab);
         _reviewReadyTabIds.Remove(tab.TabId);
         SelectedTab = Tabs.Count == 0 ? null : Tabs[Math.Min(index, Tabs.Count - 1)];
         RelayCommand.RaiseCanExecuteChanged();
@@ -2006,6 +2018,37 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         SelectedTab is not null &&
         _manualWorkspaceService is not null &&
         IsManualFirstVisibleSessionInputValid;
+
+    private void RestoreManualCalibrationForm(WorkspaceTabViewModel? tab)
+    {
+        if (tab is null) return;
+        if (!_manualCalibrationForms.TryGetValue(tab, out ManualCalibrationFormState? form) ||
+            !ReferenceEquals(form.Calibration, tab.Calibration))
+        {
+            ManualCalibrationState? calibration = tab.Calibration;
+            // Copy existing values only when the integer-session form can represent
+            // them. Uncalibrated/ordinal tabs retain the established new-form defaults.
+            bool supported = calibration is not null &&
+                double.IsFinite(calibration.YMaximum) && calibration.YMaximum > 0 &&
+                double.IsFinite(calibration.XMaximum) &&
+                calibration.FirstVisibleSession is >= 1 and <= int.MaxValue &&
+                calibration.FirstVisibleSession == (int)calibration.FirstVisibleSession &&
+                calibration.XMaximum > calibration.FirstVisibleSession;
+            int first = supported ? (int)calibration!.FirstVisibleSession : 1;
+            form = new ManualCalibrationFormState(calibration,
+                supported ? calibration!.YMaximum : 100,
+                supported ? calibration!.XMaximum : 20,
+                first, first.ToString(CultureInfo.InvariantCulture));
+        }
+        ManualYMaximum = form.YMaximum;
+        ManualXMaximum = form.XMaximum;
+        ManualFirstVisibleSession = form.FirstVisibleSession;
+        ManualFirstVisibleSessionText = form.FirstVisibleSessionText;
+    }
+
+    private sealed record ManualCalibrationFormState(
+        ManualCalibrationState? Calibration, double YMaximum, double XMaximum,
+        int FirstVisibleSession, string FirstVisibleSessionText);
 
     private bool TryParsePositiveFirstVisibleSession(out int value) =>
         int.TryParse(
@@ -2666,7 +2709,13 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
 
     private void RestoreTabSnapshot(WorkspaceTabViewModel tab, WorkspaceTabSnapshot snapshot)
     {
+        bool calibrationChanged = !ReferenceEquals(tab.Calibration, snapshot.Calibration);
         tab.Calibration = snapshot.Calibration;
+        if (calibrationChanged)
+        {
+            _manualCalibrationForms.Remove(tab);
+            if (ReferenceEquals(SelectedTab, tab)) RestoreManualCalibrationForm(tab);
+        }
         tab.Points.Clear();
         foreach (PointSnapshot point in snapshot.Points)
         {
