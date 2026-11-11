@@ -46,8 +46,11 @@ used the supported CLI argument; no installer or clean-machine claim follows.
 The reopened form displayed default Y maximum 100 and final session 20 despite
 the correctly retained 10/24 calibration. The source repair below addresses
 that form-state defect; the saved calibration and export were not changed.
-The ten small QA files are disposable after this outcome record is pushed.
-Shared user Data was not used.
+After outcome commit `facfabf7` reached `origin/main`, the ten QA files, focused
+test report and test temporary file were removed: 12 files, 71,069 bytes. The
+temporary portable marker was also removed from routine compiler output.
+Exact-path, no-reparse and inactive-process checks preceded cleanup. Original
+synthetic input and shared user Data were preserved; shared Data was not used.
 
 ## Calibration form restoration repair
 
