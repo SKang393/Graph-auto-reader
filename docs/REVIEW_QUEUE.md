@@ -169,21 +169,21 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-010 - authorize one-job internal preview upload runner
 
-- **Status:** open
-- **Blocks:** internal 0.4.37 artifact upload and latest-preview replacement
-- **Effort:** approximately one minute
-- **Action:** approve creating and running one ephemeral self-hosted runner for
-  `SKang393/Graph-auto-reader`, limited to the existing internal-upload workflow
-  and the locally verified 0.4.37 ZIP. The workflow has `contents: read`; the
-  runner executes one job and unregisters, with no persistent service or public
-  release. This allows that repository workflow to execute on this PC.
+- **Status:** resolved
+- **Resolution:** the maintainer explicitly approved the one-job runner on
+  2026-11-11. Run `43102839837` uploaded the verified 0.4.37 ZIP; the downloaded
+  package matched its original size and SHA-256. The runner exited and
+  unregistered after one job, returning the repository runner count to zero.
+- **Blocks:** none requiring maintainer action
+- **Effort:** complete
+- **Action:** no maintainer action remains
 - **Why:** automatic approval review rejected runner registration and startup
   because artifact-upload authorization did not explicitly grant this access
   change. The package already passes 978 build tests and local ZIP verification.
-  The active 0.4.36 preview and user Data remain unchanged.
+  The explicit approval resolved that execution-access boundary.
 - **Files:** [package identity and delivery record](INTERNAL-PREVIEW-DELIVERY-20261111.md),
   [build ledger](BUILD_LEDGER.json),
   [existing upload workflow](../.github/workflows/internal-preview-upload.yml)
-- **Unblocks when:** the maintainer explicitly approves the one-job runner;
-  upload verification and downloaded-byte comparison must then pass before
-  switching the live preview.
+- **Unblocks when:** resolved by explicit approval, successful upload and
+  downloaded-byte verification. Latest-preview replacement follows the pushed
+  ledger and preserves shared user Data.

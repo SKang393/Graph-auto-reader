@@ -3,15 +3,15 @@
 
 # Internal preview artifact delivery
 
-## Build 437 local verification
+## Verified build 437 delivery
 
 The next internal ManualPreview is `0.4.37`. It packages the native-QA repairs
 from `0641f5c6`: an explicit safe-default discard decision before closing
 unsaved work, and readable graph headers with complete overflow layout and
 keyboard navigation. The observed unsaved-close loss path makes this a
-meaningful repair to the current preview. Build 436 and shared Data remain
-active until the replacement's package verification, upload and ledger push
-complete. This is not a production activation or public release.
+meaningful repair to the current preview. The verified replacement is ready
+for activation after this ledger reaches `origin/main`; shared Data is outside
+both build directories. This is not a production activation or public release.
 
 The first attempt stopped before publish on eight test-window resource-order
 failures. Their [bounded repair and full-suite result](MANUAL-PREVIEW-NATIVE-QA-20261111.md)
@@ -33,22 +33,30 @@ The existing internal-upload verifier passed locally, including source
 ancestry, metadata, actual native/application bytes, archive paths and excluded
 Data/private content. No public release, tag or installer was produced.
 
-Upload is waiting on [REV-010](REVIEW_QUEUE.md). Automatic approval review
-rejected registration and startup of the temporary GitHub runner because it
-grants repository workflow execution access to this PC. No runner was
-registered or started by the rejected command. The already downloaded runner
-2.338.2 matches the official release SHA-256
-`a1f17aa987fc8158bc7521d284912267a0d01b7c2c4684b33c86783b5e8221cc`
-and its official repository identifies the license as MIT. No persistent
-service or credentials were installed.
+The maintainer explicitly approved the one-job runner in
+[REV-010](REVIEW_QUEUE.md). Workflow run `43102839837`, from source
+`8ac60be1a488a89d9a53ed9319564447fea910f2`, verified and uploaded exactly one
+ZIP. [Artifact 13892703110](https://github.com/SKang393/Graph-auto-reader/actions/runs/43102839837/artifacts/13892703110)
+was downloaded again; its enclosed ZIP matched the original package size and
+SHA-256. Its server expiration is `2027-02-09T21:24:57Z`. The server archive
+digest is recorded separately from the enclosed ZIP hash in the build ledger.
 
-The build ledger records 437 as a pending replacement, separately from the
-single active retained build 436. The candidate directory under
-`artifacts/dev-portable-candidate-0437` and ZIP/tool staging under
-`artifacts/internal-preview-upload-0437` remain only for the pending upload,
-downloaded-byte verification and switch. Do not rebuild this already-produced
-version. The source CI run `43098399627` was still queued with no job records
-at this checkpoint; no new full-CI success is claimed.
+The temporary runner completed its one job, exited successfully, and
+automatically unregistered. The repository runner count returned to zero;
+no persistent service was installed. Runner 2.338.2 matches the official SHA-256
+`a1f17aa987fc8158bc7521d284912267a0d01b7c2c4684b33c86783b5e8221cc`
+and its official repository identifies the license as MIT. The earlier
+registration attempt had been rejected before execution, pending this explicit
+permission; it did not create an additional runner.
+
+The executable and ZIP have moved to their final paths under
+`artifacts/dev-portable`; a hidden portable smoke from that directory exited 0
+using isolated disposable Data. The ledger selects 437 as the retained build.
+After this record is pushed, the live pointer can switch and the superseded
+436 build, stopped runner, duplicate ZIP and delivery staging can be removed.
+The shared Data snapshot contains 12 files for the post-switch comparison.
+Do not rebuild this already-produced version. Source CI run `43098399627`
+still had no job records at this checkpoint; no new full-CI success is claimed.
 
 ## Upload mechanism
 

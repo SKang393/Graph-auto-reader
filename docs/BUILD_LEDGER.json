@@ -1,7 +1,7 @@
 {
     "schemaVersion":  1,
     "policy":  "one packaged application build consumes one build number; build number equals version ordinal; 2.0.0 promotion allocates build 20000 without intermediate records",
-    "assignedUtc":  "2026-11-11T20:58:02.0614387+00:00",
+    "assignedUtc":  "2026-11-11T21:43:23.3330940Z",
     "builds":  [
                    {
                        "buildNumber":  1,
@@ -7409,7 +7409,7 @@
                        "openCvRuntimeSha256":  "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
                        "releaseEligible":  false,
                        "releaseStatus":  "internal",
-                       "retained":  true,
+                       "retained":  false,
                        "recordIncomplete":  false,
                        "missingMetadata":  [
 
@@ -7463,24 +7463,18 @@
                        "openCvRuntimeSha256":  "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
                        "releaseEligible":  false,
                        "releaseStatus":  "internal",
-                       "retained":  false,
+                       "retained":  true,
                        "recordIncomplete":  false,
                        "missingMetadata":  [
 
                                            ],
                        "purpose":  "Internal ManualPreview for safe unsaved main-window closure and readable, fully sized graph tabs.",
-                       "candidate":  {
-                                         "localDirectory":  "artifacts/dev-portable-candidate-0437/builds/0.4.37-20261111T205316351Z-e4067fd9",
-                                         "deliveryStatus":  "awaiting-runner-approval",
-                                         "locallyRetained":  true,
-                                         "pendingConsumer":  "One-job repository artifact upload, downloaded-byte verification, and latest-pointer replacement."
-                                     },
                        "packages":  [
                                         {
                                             "name":  "GraphAutoReader-0.4.37-win-x64-internal-preview.zip",
                                             "sizeBytes":  79867980,
                                             "sha256":  "bc9c3548e13f3faf2098f35ec9c7870647859d03493795b66fcf5678b81f2236",
-                                            "verificationStatus":  "verified-local"
+                                            "verificationStatus":  "verified-local-and-downloaded"
                                         }
                                     ],
                        "verification":  {
@@ -7493,11 +7487,24 @@
                                             "nativeProvenanceReview":  "passed",
                                             "sourceCiRunId":  43098399627,
                                             "sourceCiConclusion":  "queued",
-                                            "packageUploadRunConclusion":  "waiting-for-runner-approval",
+                                            "packageUploadRunConclusion":  "success",
                                             "visualWorkflowChecked":  false,
                                             "cleanWindowsVmChecked":  false,
                                             "productionApproved":  false
-                                        }
+                                        },
+                       "artifactStorage":  {
+                                               "provider":  "github-actions",
+                                               "artifactId":  13892703110,
+                                               "name":  "GraphAutoReader-0.4.37-internal-preview-43102839837",
+                                               "url":  "https://github.com/SKang393/Graph-auto-reader/actions/runs/43102839837/artifacts/13892703110",
+                                               "workflowRunId":  43102839837,
+                                               "workflowCommit":  "8ac60be1a488a89d9a53ed9319564447fea910f2",
+                                               "sizeInBytes":  79616135,
+                                               "digest":  "sha256:39130d7282c161066382dacb47818d7bf0036ba6a1e5cab640e3cc9c54efb4fb",
+                                               "createdUtc":  "2026-11-11T21:25:29Z",
+                                               "expiresUtc":  "2027-02-09T21:24:57Z",
+                                               "downloadedPackageVerifiedUtc":  "2026-11-11T21:29:52.9876417+00:00"
+                                           }
                    }
                ]
 }
