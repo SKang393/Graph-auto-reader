@@ -126,3 +126,36 @@ The integrated close-protection commit `24a88817` subsequently passed
 [Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/42978549485):
 2,471 tests passed across 13 projects, 29 optional tests were skipped, and all
 64 packaging cases plus the candidate-evidence fixture check passed.
+
+## First-failure recovery through the window model, 2026-11-11
+
+One integration regression now connects the previously separate recovery
+segments. Its label-free stacked raster initially fails every panel without a
+completed automatic result. On an STA dispatcher, the actual window model
+accepts three user anchors for one cropped panel with sessions 29 through 35.
+The production orchestration then completes only that panel with three points,
+clears only its warning and selects another panel still needing review.
+Reselecting the corrected panel enables Review. Actual CSV/audit export and
+project save/reopen preserve the calibrated values, original-pixel audit,
+source checksum and remaining warnings. Original source bytes remain unchanged.
+
+The test reuses deterministic synthetic axis/OCR/marker adapters. It does not
+claim native mouse interaction, recognition accuracy or model approval. The
+existing `CapturingExportService` forwards to the real `ExportService`.
+Only `MultiPanelManualCalibrationWorkflowTests.cs` changed; no production
+behavior, dependency, schema, model, version or package changed.
+
+```powershell
+dotnet test tests/GraphReader.Integration.Tests/GraphReader.Integration.Tests.csproj -c Release -m:1 -nr:false -p:RestoreSources=E:\Graph-auto-reader\tools\nuget-packages -p:NuGetAudit=false -p:UseSharedCompilation=false --filter FullyQualifiedName~FailedPanelRecoversThroughViewModelAnchorsRerunExportAndReopen --verbosity minimal
+```
+
+With the existing E-local SDK/cache and an isolated temporary directory, the
+final focused run passed 1/1 in 12.850 seconds wall time (one-second test
+duration). The first sandboxed invocation could not connect VSTest to its host
+within 90 seconds and aborted before a test result (157.263 seconds total).
+Authorized host IPC allowed execution. Two test assumptions were corrected:
+the partial batch intentionally selects a still-failed panel, and separate CSV
+and JSON audit artifacts repeat the same point IDs. No production defect was
+found. `git diff --check` passed. Temporary fixture directories disposed
+themselves; four build/cache log files totaling 3,663 bytes and compiler outputs
+are disposable after this record is pushed and validation consumers finish.

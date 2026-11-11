@@ -3,6 +3,7 @@
 
 using System.Buffers.Binary;
 using System.IO.Compression;
+using System.Windows.Threading;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
@@ -31,6 +32,153 @@ namespace GraphReader.Integration.Tests.IntegrationSmoke;
 [TestClass]
 public sealed class MultiPanelManualCalibrationWorkflowTests
 {
+    [TestMethod]
+    public void FailedPanelRecoversThroughViewModelAnchorsRerunExportAndReopen()
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+                SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
+                Task scenario = VerifyFailedPanelRecoveryAsync();
+                _ = scenario.ContinueWith(
+                    _ => dispatcher.BeginInvokeShutdown(DispatcherPriority.Background),
+                    CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                Dispatcher.Run();
+                scenario.GetAwaiter().GetResult();
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+        }) { IsBackground = true };
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        Assert.IsTrue(thread.Join(TimeSpan.FromSeconds(30)), "The STA calibration recovery scenario timed out.");
+        if (failure is not null)
+            throw new AssertFailedException($"The STA calibration recovery scenario failed: {failure}", failure);
+    }
+
+    private static async Task VerifyFailedPanelRecoveryAsync()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = Path.Combine(directory.Path, "failed-stacked-graphs.png");
+        byte[] sourceBytes = CreateStackedGraphPng();
+        await File.WriteAllBytesAsync(imagePath, sourceBytes);
+        var store = new ProductionWorkflowPanelStore();
+        var imageImporter = new ImageImportService();
+        var axisCases = new Dictionary<Guid, SyntheticPanelGeometry>();
+        var adapter = new ProductionAutomaticDetectionAdapter(store, new ProductionRasterFrameDecoder(),
+            new SyntheticAxisAdapter(axisCases), new SyntheticOcrAdapter(), new SyntheticMaskComposer(),
+            new SyntheticMarkerCenterAdapter(axisCases), new SyntheticMarkerClassificationAdapter(),
+            new SyntheticLegendAdapter(), new SyntheticPhaseAdapter(), new EmptyConnectionBuilder());
+        var orchestrator = new WorkflowOrchestrator(new WorkflowServiceSet(
+            new ProductionWorkflowImportStage(store, imageImporter), new ProductionWorkflowPrepareStage(store),
+            new ProductionWorkflowDetectionStage(store, adapter), new UnusedExportStage()));
+        var capture = new CapturingExportService();
+        var workspace = new ProductionWorkspaceService(imageImportService: imageImporter,
+            automaticStages: ApprovedStages(), workflowOrchestrator: orchestrator, panelStore: store,
+            exportService: capture);
+        WorkspaceTabViewModel[] tabs = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).ToArray();
+        Assert.IsGreaterThan(1, tabs.Length);
+        foreach (WorkspaceTabViewModel tab in tabs)
+        {
+            PanelRecord panel = workspace.CurrentProject.Panels.Single(item => item.PanelId.Value.ToString("D") == tab.PanelId);
+            axisCases.Add(panel.PanelId.Value, GeometryFor(panel, tab.PixelWidth, tab.PixelHeight));
+        }
+
+        using var viewModel = new MainWindowViewModel(workspace);
+        await AnalyzeAsync();
+        Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, viewModel.LastOperationStatus?.Code);
+        Assert.IsNull(workspace.LastAutomaticRun, "The first attempt must fail before any completed projection.");
+        Assert.IsTrue(tabs.All(tab => tab.AnalysisNeedsReview && tab.Points.Count == 0));
+
+        WorkspaceTabViewModel target = tabs.First(tab => workspace.CurrentProject.Panels
+            .Single(panel => panel.PanelId.Value.ToString("D") == tab.PanelId).Crop.Y > 0);
+        Guid panelId = Guid.Parse(target.PanelId!);
+        PanelRecord before = workspace.CurrentProject.Panels.Single(panel => panel.PanelId.Value == panelId);
+        SyntheticPanelGeometry geometry = axisCases[panelId];
+        Assert.IsNotNull(target.ImageSource, "A failed panel must still expose its original image for anchor placement.");
+        Assert.IsNull(store.Get(panelId).ExportEvidence);
+        viewModel.SelectedTab = target;
+        viewModel.ManualYMaximum = 100;
+        viewModel.ManualFirstVisibleSessionText = "29";
+        viewModel.ManualXMaximum = 35;
+        Assert.IsTrue(viewModel.StartCalibrationCommand.CanExecute(null));
+        viewModel.StartCalibrationCommand.Execute(null);
+        foreach (AxisPixelPoint anchor in new[] { geometry.Session1Y0, geometry.Session1YMaximum, geometry.SessionMaximumY0 })
+            await viewModel.HandleCanvasPointAsync(new System.Windows.Point(anchor.X, anchor.Y));
+        Assert.AreEqual(ManualEditorMode.Select, viewModel.EditorMode);
+        Assert.IsTrue(target.AnalysisNeedsReview, "Anchors alone must not claim a successful reanalysis.");
+        WorkflowManualCalibrationBinding binding = workspace.CreateConfirmedManualCalibrationBindings().Single();
+        Assert.AreEqual(workspace.CurrentProject.ProjectId.Value, binding.ProjectId);
+        Assert.AreEqual(before.SourceId.Value, binding.SourceId);
+        Assert.AreEqual(panelId, binding.PanelId);
+        Assert.AreEqual(target.SourceSha256, binding.OriginalImageSha256);
+        Assert.AreEqual(geometry.Y0, binding.Calibration.Anchors.Single(anchor =>
+            anchor.Kind == DomainCalibrationAnchorKind.FirstVisibleSessionY0).Screen.Y, 0);
+
+        await AnalyzeAsync();
+        Assert.IsNotNull(workspace.LastAutomaticRun);
+        Assert.AreEqual(panelId, workspace.LastAutomaticRun.Review.Panels.Single().PanelId);
+        Assert.IsFalse(target.AnalysisNeedsReview);
+        Assert.IsTrue(tabs.Where(tab => tab != target).All(tab => tab.AnalysisNeedsReview));
+        Assert.IsTrue(viewModel.SelectedTab!.AnalysisNeedsReview,
+            "The partial batch must direct the user to a remaining failed panel.");
+        viewModel.SelectedTab = target;
+        Assert.IsTrue(viewModel.ReviewCommand.CanExecute(null));
+        Assert.HasCount(3, target.Points);
+        PanelRecord corrected = workspace.CurrentProject.Panels.Single(panel => panel.PanelId.Value == panelId);
+        Assert.AreEqual("manual_three_anchor", corrected.Calibration!.SessionLattice?.Source);
+        Assert.AreEqual(geometry.Y0 + before.Crop.Y, corrected.Calibration.Anchors.Single(anchor =>
+            anchor.Kind == DomainCalibrationAnchorKind.FirstVisibleSessionY0).Screen.Y, 0);
+        foreach (var point in corrected.Points)
+        {
+            SyntheticMarker marker = geometry.Markers.Single(item => item.PixelX + before.Crop.X == point.OriginalPixel.X);
+            Assert.AreEqual(marker.PixelY + before.Crop.Y, point.OriginalPixel.Y, 0);
+            Assert.AreEqual(29 + (marker.ExpectedGraphX - 1) * 6d / 19d, point.GraphX!.Value, 1e-8);
+            Assert.AreEqual(marker.ExpectedGraphY, point.GraphY!.Value, 1e-8);
+        }
+        SeriesCardViewModel series = target.SeriesCards.Single();
+        workspace.UpdateSeries(target.TabId, series.SeriesId,
+            new ManualSeriesDefinition(series.Label, series.Symbol, series.Shape, series.Fill, SemanticRole.Intervention));
+        ExportResult exported = await workspace.ExportAsync(target.TabId, Path.Combine(directory.Path, "before-save"), CancellationToken.None);
+        Assert.IsTrue(exported.Succeeded, string.Join(" | ", exported.Failures.Select(error => error.TechnicalMessage)));
+        Assert.HasCount(3, exported.AuditArtifacts.SelectMany(artifact => artifact.Rows)
+            .Select(row => row.PointId).Distinct().ToArray());
+        Assert.IsTrue(exported.AuditArtifacts.SelectMany(artifact => artifact.Rows).All(row =>
+            row.XSource == ExportXValueSource.Estimated && row.SessionOriginOverrideApplied &&
+            corrected.Points.Any(point => point.OriginalPixel.X == row.OriginalPixel.X && point.OriginalPixel.Y == row.OriginalPixel.Y)));
+        string savePath = Path.Combine(directory.Path, "recovered.garproj");
+        Assert.IsTrue((await workspace.SaveProjectAsync(savePath, CancellationToken.None)).IsSuccess);
+        var reopened = new ProductionWorkspaceService(exportService: capture);
+        WorkspaceTabViewModel[] restored = (await reopened.OpenProjectAsync(savePath, CancellationToken.None)).ToArray();
+        WorkspaceTabViewModel restoredTarget = restored.Single(tab => tab.PanelId == target.PanelId);
+        Assert.IsFalse(restoredTarget.AnalysisNeedsReview);
+        Assert.IsFalse(restoredTarget.IsDirty);
+        Assert.IsTrue(restored.Where(tab => tab.PanelId != target.PanelId).All(tab => tab.AnalysisNeedsReview));
+        Assert.AreEqual(target.SourceSha256, restoredTarget.SourceSha256);
+        Assert.AreEqual(29, restoredTarget.Calibration!.FirstVisibleSession);
+        ExportResult reopenedExport = await reopened.ExportAsync(restoredTarget.TabId,
+            Path.Combine(directory.Path, "after-reopen"), CancellationToken.None);
+        Assert.IsTrue(reopenedExport.Succeeded, string.Join(" | ", reopenedExport.Failures.Select(error => error.TechnicalMessage)));
+        CollectionAssert.AreEquivalent(
+            exported.AuditArtifacts.SelectMany(artifact => artifact.Rows).ToArray(),
+            reopenedExport.AuditArtifacts.SelectMany(artifact => artifact.Rows).ToArray());
+        CollectionAssert.AreEqual(sourceBytes, await File.ReadAllBytesAsync(imagePath));
+
+        async Task AnalyzeAsync()
+        {
+            Assert.IsTrue(viewModel.AutoDetectCommand.CanExecute(null));
+            viewModel.AutoDetectCommand.Execute(null);
+            DateTime deadline = DateTime.UtcNow.AddSeconds(10);
+            while (viewModel.IsBusy && DateTime.UtcNow < deadline) await Task.Delay(10);
+            Assert.IsFalse(viewModel.IsBusy, "The deterministic analysis command did not finish.");
+        }
+    }
+
     [TestMethod]
     [DataRow(1, 20)]
     [DataRow(29, 35)]
