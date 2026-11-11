@@ -357,5 +357,111 @@ class EvaluationTests(unittest.TestCase):
             subject._verify_export_identity(parent, candidate, checkpoint, parent_sha)
 
 
+class OriginalComposedInputTests(unittest.TestCase):
+    def setUp(self):
+        artifacts = Path.cwd() / "artifacts"
+        artifacts.mkdir(exist_ok=True)
+        self.temporary = tempfile.TemporaryDirectory(prefix="original-composed-input-test-", dir=artifacts)
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.output = self.root / "artifacts/inputs"
+        self.request_path = Path("artifacts/goal22-runs/ocr-text-extent-capture-inputs/request.json")
+        self.manifest_path = Path("artifacts/original/manifest.json")
+        self.images, self.rows, panels = [], [], []
+        for index in range(3):
+            name = f"original-{index}.png"
+            digest = write(self.root / self.manifest_path.parent / name, f"owned source {index}".encode())
+            self.images.append({"image": name, "image_sha256": digest, "width": 100, "height": 100,
+                                "split": "validation"})
+            panels.extend({"panel_id": f"{index}-{panel}", "split": "validation", "source_sha256": digest}
+                          for panel in range(3))
+            self.rows.extend({"truth_id": f"truth-{index}-{label}", "split": "validation",
+                "source_sha256": digest, "text": f"Label {label}", "role": "participant", "box": [1, 2, 9, 12],
+                "predicted_text": "MUST NOT BE READ", "predicted_role": "MUST NOT BE READ"} for label in range(61))
+        manifest_sha = write(self.root / self.manifest_path, {"images": self.images, "split": "validation", "contains_truth": False})
+        self.preflight_path = Path("artifacts/preflight.json")
+        preflight_sha = write(self.root / self.preflight_path, {"synthetic_only": True, "private_data": False,
+            "sealed_data": False, "historical_dev": {"source_count": 3, "truth_count": 183,
+            "source_ids": [image["image_sha256"] for image in self.images],
+            "manifest": {"path": self.manifest_path.as_posix(), "sha256": manifest_sha}}})
+        request_sha = write(self.root / self.request_path, {"synthetic_only": True, "private_data": False,
+            "sealed_data": False, "truth_included": False, "panels": panels,
+            "binding": {"path": self.preflight_path.as_posix(), "sha256": preflight_sha}})
+        self.cases = {"before": deepcopy(self.rows), "after": [{"text": "CORRECTED FIXTURE MUST NOT BE READ"}]}
+        self.oracle = {"synthetic_only": True, "private_data": False, "sealed_data": False,
+            "truths": [{key: value for key, value in row.items() if key not in ("predicted_text", "predicted_role")}
+                       for row in self.rows]}
+        self.framework = SimpleNamespace(ORIGINAL_REQUEST_SHA256=request_sha)
+        patcher = patch.object(subject, "_framework", return_value=self.framework)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def prepare(self):
+        case_path, oracle_path = Path("artifacts/cases.json"), Path("artifacts/oracle.json")
+        cases = {"path": case_path.as_posix(), "sha256": write(self.root / case_path, self.cases)}
+        oracle = {"path": oracle_path.as_posix(), "sha256": write(self.root / oracle_path, self.oracle)}
+        with patch.object(subject, "ORIGINAL_CASES", cases), patch.object(subject, "ORIGINAL_ORACLE", oracle):
+            return subject.prepare_parent_composed_inputs(historical_root=self.root, output=self.output)
+
+    def test_lossless_existing_reader_annotation_and_request_preserve_all_truth_without_predictions(self):
+        result = self.prepare()
+        self.assertEqual((result["source_count"], result["historical_panel_count"], result["truth_count"]), (3, 9, 183))
+        self.assertFalse(result["model_inference"])
+        self.assertFalse(result["prediction_fields_consumed"])
+        self.assertNotIn("training_stage", result)
+        self.assertNotIn("candidate_id", result)
+        observed = {}
+        for source in result["sources"]:
+            path = self.root / source["annotation"]["path"]
+            self.assertEqual(sha256(path.read_bytes()).hexdigest(), source["annotation"]["sha256"])
+            annotation = json.loads(path.read_bytes())
+            self.assertEqual(annotation["coordinate_space"], "original_pixels")
+            self.assertEqual(annotation["canvas"], {"width": 100, "height": 100})
+            self.assertEqual(len(annotation["texts"]), 61)
+            for row in annotation["texts"]:
+                x, y, width, height = row["rendered_pixel_box"]
+                observed[row["text_id"]] = (source["image"]["sha256"], row["region_id"], row["text"], row["role"],
+                                             [x, y, x + width, y + height])
+                self.assertNotIn("predicted_text", row)
+        self.assertEqual(observed, {row["truth_id"]: (row["source_sha256"], row["truth_id"], row["text"], row["role"], row["box"])
+                                   for row in self.rows})
+        request = json.loads((self.root / result["request"]["path"]).read_bytes())
+        self.assertEqual(request["schema"], "graphreader.composed-ocr-memory-dev-check.v1")
+        self.assertEqual(request["source_count"], 3)
+        with self.assertRaisesRegex(ValueError, "new composed input"):
+            self.prepare()
+
+    def test_original_case_and_oracle_mismatches_fail_before_writing(self):
+        baseline = deepcopy(self.oracle)
+        for change in ("missing", "duplicate", "source", "text", "box", "role", "sealed"):
+            with self.subTest(change=change):
+                self.oracle = deepcopy(baseline)
+                row = self.oracle["truths"][0]
+                if change == "missing": self.oracle["truths"].pop()
+                elif change == "duplicate": row["truth_id"] = self.oracle["truths"][1]["truth_id"]
+                elif change == "source": row["source_sha256"] = self.images[1]["image_sha256"]
+                elif change == "text": row["text"] = "different"
+                elif change == "box": row["box"] = [1, 2, 10, 12]
+                elif change == "role": row["role"] = "annotation"
+                else: self.oracle["sealed_data"] = True
+                with self.assertRaises(ValueError): self.prepare()
+                self.assertFalse(self.output.exists())
+
+    def test_original_images_and_both_metadata_checksums_are_required(self):
+        image_path = self.root / self.manifest_path.parent / self.images[0]["image"]
+        image_path.write_bytes(b"changed source")
+        with self.assertRaisesRegex(ValueError, "source image bytes"):
+            self.prepare()
+        self.assertFalse(self.output.exists())
+        with patch.object(subject, "ORIGINAL_CASES", {"path": "artifacts/cases.json", "sha256": "0" * 64}):
+            with self.assertRaisesRegex(ValueError, "checksum changed"):
+                subject.prepare_parent_composed_inputs(historical_root=self.root, output=self.output)
+        with patch.object(subject, "ORIGINAL_ORACLE", {"path": "artifacts/oracle.json", "sha256": "0" * 64}), \
+             patch.object(subject, "ORIGINAL_CASES", {"path": "artifacts/cases.json", "sha256": sha256((self.root / "artifacts/cases.json").read_bytes()).hexdigest()}):
+            with self.assertRaisesRegex(ValueError, "checksum changed"):
+                subject.prepare_parent_composed_inputs(historical_root=self.root, output=self.output)
+        self.assertFalse(self.output.exists())
+
+
 if __name__ == "__main__":
     unittest.main()

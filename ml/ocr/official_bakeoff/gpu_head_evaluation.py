@@ -40,6 +40,10 @@ DIAGNOSTIC_MODEL_SHA256 = "f063fc9dbe874f1de68da5aa51168392aa9d8b9d29a3e3af259b3
 DIAGNOSTIC_CHECKPOINT_SHA256 = "0db4ad9300c6987c2b22c1fdcb821de938c973aa8d2ee69cbaca27111c9ee2fc"
 DIAGNOSTIC_CONFIG_SHA256 = "b78a88c8b7b28c0fdb1a5a1b49783decfc77991134b21fefa0dd242bb14c8c36"
 DIAGNOSTIC_SOURCE_BUNDLE_SHA256 = "469866eb243b2fed096c02036651566f8287af592c52b24f359b8eaeea761b19"
+ORIGINAL_CASES = {"path": "artifacts/goal22-runs/layout-clearance-ocr-v1/case-details.json",
+                  "sha256": "107cc2265b6d1ae2af5c5dc1803d847d7d4696a6ff460ac1cacbd916cbc7f07d"}
+ORIGINAL_ORACLE = {"path": "artifacts/goal22-runs/ocr-v39-pretrained-db-head/inverse-target-oracle-inputs-v1/synthetic-truth.json",
+                   "sha256": "829beb67695011f936b08272e69bb718b8b35d33bdb94c32a45f521f523fc3f5"}
 
 
 def _framework():
@@ -65,6 +69,115 @@ def _read(root: Path, path: Path, digest: str):
 
 def _descriptor(root: Path, path: Path) -> dict:
     return {"path": _inside(root, path).relative_to(root).as_posix(), "sha256": sha256_file(path)}
+
+
+def prepare_parent_composed_inputs(*, historical_root: Path, output: Path) -> dict:
+    """Losslessly serialize cached ORIGINAL dev truth for the existing memory reader.
+
+    No scene/image generation, predictions, P1 receipt or model inference is used.
+    Candidate/runtime preparation remains separate from this input-only adapter.
+    """
+    root = historical_root.resolve()
+    output = _inside(root / "artifacts", output if output.is_absolute() else root / output)
+    if output.exists():
+        raise ValueError("Use a new composed input output")
+    framework = _framework()
+    original = _read(root, Path("artifacts/goal22-runs/ocr-text-extent-capture-inputs/request.json"),
+                     framework.ORIGINAL_REQUEST_SHA256)
+    if (original.get("synthetic_only") is not True or original.get("private_data") is not False
+        or original.get("sealed_data") is not False or original.get("truth_included") is not False):
+        raise ValueError("Original request is not the owned annotation-free scope")
+    preflight = _read(root, Path(original["binding"]["path"]), original["binding"]["sha256"])
+    dev = preflight["historical_dev"]
+    if (preflight.get("synthetic_only") is not True or preflight.get("private_data") is not False
+        or preflight.get("sealed_data") is not False or dev["source_count"] != 3 or dev["truth_count"] != 183):
+        raise ValueError("Original dev scope or population changed")
+    manifest_ref = dev["manifest"]
+    manifest = _read(root, Path(manifest_ref["path"]), manifest_ref["sha256"])
+    images = manifest["images"]
+    source_ids = {row["image_sha256"] for row in images}
+    panels = [row for row in original["panels"] if row["split"] == "validation"]
+    if (len(images) != 3 or len(source_ids) != 3 or source_ids != set(dev["source_ids"])
+        or len(panels) != 9 or len({row["panel_id"] for row in panels}) != 9
+        or {row["source_sha256"] for row in panels} != source_ids
+        or manifest.get("split") != "validation" or manifest.get("contains_truth") is not False):
+        raise ValueError("Original dev source or panel binding changed")
+    cases = _read(root, Path(ORIGINAL_CASES["path"]), ORIGINAL_CASES["sha256"])
+    oracle = _read(root, Path(ORIGINAL_ORACLE["path"]), ORIGINAL_ORACLE["sha256"])
+    if (oracle.get("synthetic_only") is not True or oracle.get("private_data") is not False
+        or oracle.get("sealed_data") is not False):
+        raise ValueError("Original oracle scope changed")
+
+    def dev_rows(rows):
+        selected = [row for row in rows if row["split"] == "validation"]
+        by_id = {row["truth_id"]: row for row in selected}
+        if (len(selected) != 183 or len(by_id) != 183
+            or any(not isinstance(key, str) or not key.strip() for key in by_id)
+            or {row["source_sha256"] for row in selected} != source_ids):
+            raise ValueError("Original dev truth identities or denominator changed")
+        return by_id
+
+    cached, checked = dev_rows(cases["before"]), dev_rows(oracle["truths"])
+    if set(cached) != set(checked):
+        raise ValueError("Original truth ID inventories differ")
+    for identity, row in cached.items():
+        other = checked[identity]
+        if (any(row[key] != other[key] for key in ("source_sha256", "box", "role"))
+            or not isinstance(row["text"], str) or not row["text"].strip()
+            or ("text" in other and row["text"] != other["text"])):
+            raise ValueError("Original truth records disagree")
+    annotations, sources = [], []
+    roles = {"x_tick", "y_tick", "axis_title", "phase_heading", "legend_text", "participant", "annotation", "condition_label"}
+    for image in images:
+        name = image["image"]
+        if Path(name).name != name or image["split"] != "validation":
+            raise ValueError("Original image path or split changed")
+        image_path = _inside(root, Path(manifest_ref["path"]).parent / name)
+        if sha256_file(image_path) != image["image_sha256"]:
+            raise ValueError("Original source image bytes changed")
+        width, height = image["width"], image["height"]
+        if type(width) is not int or type(height) is not int or min(width, height) <= 0:
+            raise ValueError("Original source dimensions are invalid")
+        texts = []
+        for identity, row in sorted(cached.items()):
+            if row["source_sha256"] != image["image_sha256"]:
+                continue
+            box = row["box"]
+            if (not isinstance(box, list) or len(box) != 4
+                or any(type(value) not in (int, float) or not math.isfinite(value) for value in box)
+                or not (0 <= box[0] < box[2] <= width and 0 <= box[1] < box[3] <= height)
+                or row["role"] not in roles):
+                raise ValueError("Original truth geometry or role is invalid")
+            texts.append({"text_id": identity, "region_id": identity, "text": row["text"], "role": row["role"],
+                          "rendered_pixel_box": [box[0], box[1], box[2] - box[0], box[3] - box[1]]})
+        annotation_path = output / (image["image_sha256"] + ".annotation.json")
+        annotations.append((annotation_path, {"coordinate_space": "original_pixels",
+                            "canvas": {"width": width, "height": height}, "texts": texts}))
+        sources.append({"split": "validation", "image": _descriptor(root, image_path),
+                        "annotation": {"path": annotation_path.relative_to(root).as_posix()}})
+    # All authentication and population checks precede the first output write.
+    output.mkdir(parents=True)
+    for source, (path, annotation) in zip(sources, annotations, strict=True):
+        path.write_bytes(canonical_json_bytes(annotation))
+        source["annotation"]["sha256"] = sha256_file(path)
+    inventory_path = output / "sources.json"
+    inventory_path.write_bytes(canonical_json_bytes({"source_count": 3, "sources": sources,
+        "private_reads": 0, "sealed_reads": 0, "production_approved": False}))
+    request_path = output / "request.json"
+    request_path.write_bytes(canonical_json_bytes({"schema": "graphreader.composed-ocr-memory-dev-check.v1",
+        "scope": "owned-synthetic-development", "generator": _descriptor(root, inventory_path),
+        "source_count": 3, "private_reads": 0, "sealed_reads": 0}))
+    receipt = {"schema": "graphreader.original-dev-composed-inputs.v1", "status": "inputs_prepared_no_inference",
+        "original_request": {"path": "artifacts/goal22-runs/ocr-text-extent-capture-inputs/request.json",
+                             "sha256": framework.ORIGINAL_REQUEST_SHA256},
+        "preflight": original["binding"], "original_manifest": manifest_ref,
+        "cached_original_truth": ORIGINAL_CASES, "oracle_truth": ORIGINAL_ORACLE,
+        "source_count": 3, "historical_panel_count": 9, "truth_count": 183, "sources": sources,
+        "request": _descriptor(root, request_path), "prediction_fields_consumed": False,
+        "scene_or_image_generation": False, "model_inference": False, "optimizer_steps": 0,
+        "private_reads": 0, "sealed_reads": 0, "production_approved": False}
+    (output / "preparation.json").write_bytes(canonical_json_bytes(receipt))
+    return receipt
 
 
 def _stage(stage_root: Path, stage_path: Path, stage_sha: str, config_sha: str):
@@ -496,8 +609,13 @@ def main():
     for name in ("stage-root", "receipt", "receipt-sha256", "historical-root", "runtime-root",
                  "runtime-snapshot", "runtime-snapshot-sha256", "output"):
         diagnostic_command.add_argument("--" + name, required=True)
+    parent_inputs = commands.add_parser("prepare-parent-composed-inputs")
+    parent_inputs.add_argument("--historical-root", required=True)
+    parent_inputs.add_argument("--output", required=True)
     args = parser.parse_args()
-    if args.command == "prepare":
+    if args.command == "prepare-parent-composed-inputs":
+        result = prepare_parent_composed_inputs(historical_root=Path(args.historical_root), output=Path(args.output))
+    elif args.command == "prepare":
         result = prepare(stage_root=Path(args.stage_root), stage_path=Path(args.stage), stage_sha256=args.stage_sha256,
             config_sha256=args.config_sha256, historical_root=Path(args.historical_root), runtime_root=Path(args.runtime_root),
             runtime_snapshot=Path(args.runtime_snapshot), runtime_snapshot_sha256=args.runtime_snapshot_sha256, output=Path(args.output))
