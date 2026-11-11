@@ -124,6 +124,7 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
 
     protected override void PrepareProjectForSave()
     {
+        base.PrepareProjectForSave();
         PanelRecord[] panels = CurrentProject.Panels.ToArray();
         PanelRecord[] refreshed = new PanelRecord[panels.Length];
         for (int index = 0; index < panels.Length; index++)
@@ -753,6 +754,12 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                     cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
             }
+            catch (ProductionWorkflowStageException exception)
+            {
+                RestorePriorEvidence(priorEvidence, []);
+                MarkCalibrationFailuresForReview(exception);
+                throw;
+            }
             catch
             {
                 RestorePriorEvidence(priorEvidence, []);
@@ -802,7 +809,11 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
                     return Task.CompletedTask;
                 },
                 cancellationToken,
-                panelId => RestoreFailedPanelEvidence(priorEvidence, panelId)).ConfigureAwait(false);
+                panelId =>
+                {
+                    RestoreFailedPanelEvidence(priorEvidence, panelId);
+                    SetAnalysisReviewWarning(panelId, needsReview: true);
+                }).ConfigureAwait(false);
             }
             catch (ProductionWorkflowStageException exception) when (
                 exception.Failure.UserMessageKey == LocalizationKeys.PromotedMarkerAnalysisBlocked)
@@ -908,6 +919,39 @@ public sealed class ProductionWorkspaceService : ManualPreviewWorkspaceService, 
         foreach (WorkflowReviewPanel panel in panels)
         {
             _failedRestorePanelIds.Remove(panel.PanelId);
+            SetAnalysisReviewWarning(panel.PanelId, needsReview: false,
+                panel.PreparedPanel.ImportedPanel.Original.Sha256);
+        }
+    }
+
+    private void SetAnalysisReviewWarning(Guid panelId, bool needsReview, string? expectedImageSha256 = null)
+    {
+        PanelRecord? panel = CurrentProject.Panels.SingleOrDefault(item => item.PanelId.Value == panelId);
+        if (panel is null) return;
+        WorkspaceTabViewModel[] matches = CreateWorkspace().Where(tab =>
+            Guid.TryParse(tab.PanelId, out Guid tabPanelId) && tabPanelId == panelId &&
+            Guid.TryParse(tab.SourceId, out Guid sourceId) && sourceId == panel.SourceId.Value &&
+            (expectedImageSha256 is null || string.Equals(tab.SourceSha256, expectedImageSha256, StringComparison.OrdinalIgnoreCase)))
+            .ToArray();
+        if (matches.Length == 1) matches[0].AnalysisNeedsReview = needsReview;
+    }
+
+    private void MarkCalibrationFailuresForReview(ProductionWorkflowStageException failure)
+    {
+        if (!failure.Failure.Recoverable || failure.Failure.Code != ProductionWorkflowFailureCodes.RecalibrationRequired)
+            return;
+        IReadOnlyList<WorkflowVisionEnvelope>[] chains =
+            [failure.CompletedEvidence, .. failure.FailedCalibrationPanelEvidence];
+        WorkflowVisionEnvelope? anchor = chains.SelectMany(static chain => chain)
+            .FirstOrDefault(static item => item is not null);
+        if (anchor is null || anchor.ProjectId != CurrentProject.ProjectId.Value) return;
+        foreach (IReadOnlyList<WorkflowVisionEnvelope> chain in chains)
+        {
+            if (chain.Count == 0 || chain[0] is not { } first || chain.Any(item => item is null ||
+                item.RunId != anchor.RunId || item.ProjectId != anchor.ProjectId || item.PanelId != first.PanelId ||
+                !string.Equals(item.InputSha256, first.InputSha256, StringComparison.OrdinalIgnoreCase)))
+                continue;
+            SetAnalysisReviewWarning(first.PanelId, needsReview: true, first.InputSha256);
         }
     }
 

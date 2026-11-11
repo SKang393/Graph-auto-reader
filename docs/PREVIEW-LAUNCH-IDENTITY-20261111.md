@@ -42,8 +42,12 @@ and remote-testing directory did not contain its executable or ZIP when
 checked. The repository's Actions artifact listing was empty. This bounded
 search does not establish that every possible copy is absent.
 
-The old local pointer and copied launcher still require reconciliation with a
-verified retained artifact. Preserve existing application data and the usable
+After `edce79b6` reached `origin/main`, the copied local launcher was updated
+from the tracked script. Its prior contents were first checked against the
+baseline to preserve any independent edits. Invoking its portable-smoke path
+then returned the expected retained-build mismatch before starting the app.
+The old local pointer still requires reconciliation with a verified retained
+artifact. Preserve existing application data and the usable
 older executable until a replacement is verified, uploaded, and recorded under
 [the retention policy](ARTIFACT-RETENTION.md). Do not invent availability or
 overwrite the historical build identities. No dependency or licensed asset was

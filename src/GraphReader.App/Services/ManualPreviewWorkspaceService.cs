@@ -53,6 +53,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
     private const string ManualOriginReceiptKey = "graphreader_manual_origin_confirmation";
     private const string ManualOriginReceiptSchema = "graphreader.manual_origin_confirmation.v1";
     private const string ManualOriginReason = "User confirmed the first visible session and manual calibration anchors.";
+    private const string AnalysisReviewWarningKey = "graphreader_analysis_review_warning";
     private static readonly JsonSerializerOptions ProductionEvidenceJsonOptions = CreateProductionEvidenceJsonOptions();
 
     private sealed record DeletedPointTombstone(
@@ -579,6 +580,9 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
             }
 
             ReindexAllSeries(tab);
+            tab.AnalysisNeedsReview = panel.Validation is { ValueKind: JsonValueKind.Object } validation &&
+                validation.TryGetProperty(AnalysisReviewWarningKey, out JsonElement warning) &&
+                JsonElement.DeepEquals(warning, CreateAnalysisReviewWarning(project.ProjectId.Value, source, panel, tab));
             stagedTabs.Add(tab);
             stagedOriginalBytes[tab.TabId] = originalBytes;
             if (source.Kind == SourceKind.Pdf)
@@ -790,6 +794,16 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
 
     protected virtual void PrepareProjectForSave()
     {
+        CurrentProject = CurrentProject with
+        {
+            Panels = CurrentProject.Panels.Select(panel =>
+            {
+                WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(item =>
+                    Guid.TryParse(item.PanelId, out Guid panelId) && panelId == panel.PanelId.Value &&
+                    Guid.TryParse(item.SourceId, out Guid sourceId) && sourceId == panel.SourceId.Value);
+                return tab is null ? panel : panel with { Validation = PreserveAnalysisReviewWarning(panel, tab) };
+            }).ToArray(),
+        };
     }
 
     public ManualCalibrationState Calibrate(string tabId, ManualCalibrationRequest request)
@@ -4229,6 +4243,47 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         }
         return result;
     }
+
+    private JsonElement? PreserveAnalysisReviewWarning(PanelRecord panel, WorkspaceTabViewModel tab)
+    {
+        if (!tab.AnalysisNeedsReview &&
+            (panel.Validation is not { ValueKind: JsonValueKind.Object } current ||
+             !current.TryGetProperty(AnalysisReviewWarningKey, out _)))
+            return panel.Validation;
+        if (panel.Validation is { ValueKind: not JsonValueKind.Object })
+            throw new InvalidOperationException("The panel validation extension is invalid.");
+        JsonObject validation = panel.Validation is { } existing
+            ? JsonNode.Parse(existing.GetRawText())!.AsObject()
+            : new JsonObject();
+        if (tab.AnalysisNeedsReview)
+        {
+            SourceReference source = CurrentProject.Sources.Single(item => item.SourceId == panel.SourceId);
+            validation[AnalysisReviewWarningKey] = JsonNode.Parse(
+                CreateAnalysisReviewWarning(CurrentProject.ProjectId.Value, source, panel, tab).GetRawText());
+        }
+        else
+        {
+            validation.Remove(AnalysisReviewWarningKey);
+        }
+        return JsonSerializer.SerializeToElement(validation);
+    }
+
+    private static JsonElement CreateAnalysisReviewWarning(
+        Guid projectId, SourceReference source, PanelRecord panel, WorkspaceTabViewModel tab) =>
+        JsonSerializer.SerializeToElement(new
+        {
+            schema = "graphreader.analysis_review_warning.v1",
+            reason = "calibration_required",
+            project_id = projectId,
+            panel_id = panel.PanelId.Value,
+            source_id = source.SourceId.Value,
+            source_sha256 = source.Sha256.ToLowerInvariant(),
+            panel_image_sha256 = tab.SourceSha256?.ToLowerInvariant(),
+            panel_image_width = tab.PixelWidth,
+            panel_image_height = tab.PixelHeight,
+            page_number = panel.PageNumber,
+            crop = panel.Crop,
+        });
 
     private JsonElement? SetManualOriginReceipt(PanelRecord panel, WorkspaceTabViewModel tab, bool enabled)
     {

@@ -212,11 +212,13 @@ public sealed class ProductionWorkflowStagesTests
         var importService = new PdfWithCroppedDetectorPanel();
         var retainedStore = new ProductionWorkflowPanelStore();
         WorkflowRunResult? nextResult = null;
+        ProductionWorkflowStageException? nextFailure = null;
         var workspace = new ProductionWorkspaceService(
             automaticStages: ApprovedAutomaticStages(),
             automaticWorkflow: (_, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                if (nextFailure is not null) throw nextFailure;
                 return Task.FromResult(nextResult ?? throw new AssertFailedException("PDF workflow result was not assigned."));
             },
             panelStore: retainedStore,
@@ -286,11 +288,27 @@ public sealed class ProductionWorkflowStagesTests
             CancellationToken.None);
         Assert.IsTrue(validPdfExport.Succeeded);
 
+        var calibrationFailure = new ProductionWorkflowFailure(ProductionWorkflowFailureCodes.RecalibrationRequired,
+            "Errors.CalibrationInvalid", "Synthetic PDF calibration review failure.", true, "Review calibration.");
+        WorkflowVisionEnvelope FailureEvidence(string hash) => new(1, Guid.NewGuid(), workspace.CurrentProject.ProjectId.Value,
+            Guid.Parse(tab.PanelId!), "axis", "fixture", hash, null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+        Assert.AreNotEqual(source.Sha256, tab.SourceSha256);
+        nextFailure = new ProductionWorkflowStageException(calibrationFailure, [FailureEvidence(source.Sha256)]);
+        await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() => workspace.RunAutomaticDetectionAsync(CancellationToken.None));
+        Assert.IsFalse(tab.AnalysisNeedsReview, "The PDF document hash must not substitute for the panel-image hash.");
+        nextFailure = new ProductionWorkflowStageException(calibrationFailure, [FailureEvidence(tab.SourceSha256!)]);
+        await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() => workspace.RunAutomaticDetectionAsync(CancellationToken.None));
+        Assert.IsTrue(tab.AnalysisNeedsReview, "A service-only calibration failure must mark the panel.");
+
         string savedPath = Path.Combine(directory.Path, "bound-panel.garproj");
         DomainResult<ProjectSaveReceipt> saved = await workspace.SaveProjectAsync(savedPath, CancellationToken.None);
         Assert.IsTrue(saved.IsSuccess, string.Join(" | ", saved.Errors.Select(static error => error.TechnicalMessage)));
         var reopened = new ProductionWorkspaceService(pdfImportService: importService);
-        _ = await reopened.OpenProjectAsync(savedPath, CancellationToken.None);
+        WorkspaceTabViewModel reopenedTab = (await reopened.OpenProjectAsync(savedPath, CancellationToken.None)).Single();
+        Assert.IsTrue(reopenedTab.AnalysisNeedsReview);
+        ExportResult retainedPdfExport = await reopened.ExportAsync(reopenedTab.TabId,
+            Path.Combine(directory.Path, "warned-pdf-retained-export"), CancellationToken.None);
+        Assert.IsTrue(retainedPdfExport.Succeeded, "The warning must preserve the prior valid production receipt.");
         JsonElement reopenedBinding = reopened.CurrentProject.Panels.Single().Validation!.Value
             .GetProperty("pdf_panel_source_binding");
         Assert.AreEqual(savedBinding.GetProperty("pdf_panel_source").GetProperty("figure_id").GetString(),
@@ -3000,7 +3018,8 @@ public sealed class ProductionWorkflowStagesTests
         var orchestrator = new WorkflowOrchestrator(new WorkflowServiceSet(
             new ProductionWorkflowImportStage(store, new ImageImportService()),
             new ProductionWorkflowPrepareStage(store), detector, new UnusedWorkflowExportStage()));
-        var workspace = new ProductionWorkspaceService(automaticStages: ApprovedAutomaticStages(),
+        IApplicationPaths applicationPaths = ApplicationPaths.Create(directory.Path, Path.Combine(directory.Path, "local-data"));
+        var workspace = new ProductionWorkspaceService(applicationPaths: applicationPaths, automaticStages: ApprovedAutomaticStages(),
             workflowOrchestrator: orchestrator, panelStore: store);
         WorkspaceTabViewModel[] tabs = (await workspace.ImportImagesAsync([firstPath, secondPath], CancellationToken.None)).ToArray();
         SeedManualReviewState(workspace, tabs[0]);
@@ -3010,8 +3029,12 @@ public sealed class ProductionWorkflowStagesTests
         expectedPanels.Add(firstPanel.PanelId, firstPanel);
         expectedPanels.Add(secondPanel.PanelId, secondPanel);
         WorkflowRunResult priorRun = await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        string savedPath = Path.Combine(directory.Path, "warned-batch.garproj");
+        Assert.IsTrue((await workspace.SaveProjectAsync(savedPath, CancellationToken.None)).IsSuccess);
         ProductionPanelEvidence priorSecondEvidence = store.Get(secondPanel.PanelId);
         PanelRecord priorSecondProject = workspace.CurrentProject.Panels.Single(item => item.PanelId.Value == secondPanel.PanelId);
+        tabs[0].AnalysisNeedsReview = true;
+        if (cancel) tabs[1].AnalysisNeedsReview = true;
 
         detector.BeforeDetection = panelId =>
         {
@@ -3032,6 +3055,8 @@ public sealed class ProductionWorkflowStagesTests
         else
             await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() => workspace.RunAutomaticDetectionAsync(CancellationToken.None));
 
+        Assert.IsFalse(tabs[0].AnalysisNeedsReview, "The successfully reanalyzed panel must clear its warning without a view model.");
+        Assert.IsTrue(tabs[1].AnalysisNeedsReview, "Failed or uncompleted panels must retain their warning.");
         Assert.AreSame(priorSecondEvidence, store.Get(secondPanel.PanelId));
         Assert.IsNotNull(workspace.LastAutomaticRun);
         Assert.AreSame(priorRun.Review.Panels.Single(item => item.PanelId == secondPanel.PanelId),
@@ -3043,6 +3068,43 @@ public sealed class ProductionWorkflowStagesTests
         ExportResult retainedExport = await workspace.ExportAsync(tabs[1].TabId,
             Path.Combine(directory.Path, "retained-export"), CancellationToken.None);
         Assert.IsTrue(retainedExport.Succeeded, string.Join(" | ", retainedExport.Failures.Select(static item => item.TechnicalMessage)));
+
+        // Timer autosave does not synchronize all panel edits, so warning preparation
+        // must also work when no explicit save or event snapshot followed the failure.
+        DomainResult<ProjectSnapshotReceipt> timer = await workspace.TimerAutosaveAsync(
+            workspace.CurrentProject.ModifiedUtc.AddMinutes(6), CancellationToken.None);
+        Assert.IsTrue(timer.IsSuccess, string.Join(" | ", timer.Errors.Select(static item => item.TechnicalMessage)));
+        string timerRecoveryPath = Path.Combine(directory.Path, "timer-warning-recovered.garproj");
+        Assert.IsTrue((await workspace.RecoverLatestToNewFileAsync(timerRecoveryPath, CancellationToken.None)).IsSuccess);
+        var recovered = new ProductionWorkspaceService(applicationPaths: applicationPaths);
+        WorkspaceTabViewModel[] timerTabs = (await recovered.OpenProjectAsync(timerRecoveryPath, CancellationToken.None)).ToArray();
+        Assert.IsTrue(timerTabs.Single(tab => tab.PanelId == tabs[1].PanelId).AnalysisNeedsReview);
+        Assert.IsFalse(timerTabs.Single(tab => tab.PanelId == tabs[0].PanelId).AnalysisNeedsReview);
+
+        Assert.IsTrue((await workspace.SaveProjectAsync(savedPath, CancellationToken.None)).IsSuccess);
+        var reopened = new ProductionWorkspaceService();
+        WorkspaceTabViewModel reopenedTab = (await reopened.OpenProjectAsync(savedPath, CancellationToken.None))
+            .Single(tab => tab.PanelId == tabs[1].PanelId);
+        Assert.IsTrue(reopenedTab.AnalysisNeedsReview);
+        Assert.IsTrue((await reopened.ExportAsync(reopenedTab.TabId,
+            Path.Combine(directory.Path, "warned-reopened-export"), CancellationToken.None)).Succeeded);
+
+        DomainResult<ProjectSnapshotReceipt> eventSnapshot = await workspace.AutosaveAsync(
+            SnapshotTrigger.PointEdited, tabs[1].TabId, "warning-persistence", CancellationToken.None);
+        Assert.IsTrue(eventSnapshot.IsSuccess, string.Join(" | ", eventSnapshot.Errors.Select(static item => item.TechnicalMessage)));
+        string eventRecoveryPath = Path.Combine(directory.Path, "event-warning-recovered.garproj");
+        Assert.IsTrue((await workspace.RecoverLatestToNewFileAsync(eventRecoveryPath, CancellationToken.None)).IsSuccess);
+        WorkspaceTabViewModel eventTab = (await new ProductionWorkspaceService().OpenProjectAsync(eventRecoveryPath, CancellationToken.None))
+            .Single(tab => tab.PanelId == tabs[1].PanelId);
+        Assert.IsTrue(eventTab.AnalysisNeedsReview);
+
+        detector.BeforeDetection = null;
+        detector.CancelBeforePanelId = Guid.Empty;
+        _ = await workspace.RunAutomaticDetectionAsync(CancellationToken.None);
+        Assert.IsTrue(tabs.All(tab => !tab.AnalysisNeedsReview));
+        Assert.IsTrue((await workspace.SaveProjectAsync(savedPath, CancellationToken.None)).IsSuccess);
+        Assert.IsTrue((await new ProductionWorkspaceService().OpenProjectAsync(savedPath, CancellationToken.None))
+            .All(tab => !tab.AnalysisNeedsReview), "A successful rerun must clear the persisted warning.");
     }
 
     [TestMethod]

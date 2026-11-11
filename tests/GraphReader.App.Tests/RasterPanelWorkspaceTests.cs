@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Localization;
 using GraphReader.App.Models;
@@ -25,6 +26,79 @@ namespace GraphReader.App.Tests;
 public sealed class RasterPanelWorkspaceTests
 {
     private static readonly string[] RequiredStages = ["axis", "ocr", "markers", "legends", "phases"];
+
+    [TestMethod]
+    public async Task AnalysisReviewWarningSurvivesCroppedPanelSaveAndReopen()
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = Path.Combine(directory.Path, "warning-stacked.png");
+        await File.WriteAllBytesAsync(imagePath, CreateStackedGraphPng(640, 900));
+        var workspace = new ManualPreviewWorkspaceService();
+        WorkspaceTabViewModel[] tabs = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None)).ToArray();
+        WorkspaceTabViewModel flagged = tabs.First();
+        Assert.AreNotEqual(workspace.CurrentProject.Sources.Single().Sha256, flagged.SourceSha256,
+            "The warning must distinguish the whole-source hash from its cropped panel-image hash.");
+        flagged.AnalysisNeedsReview = true;
+        string projectPath = Path.Combine(directory.Path, "warning.garproj");
+        Assert.IsTrue((await workspace.SaveProjectAsync(projectPath, CancellationToken.None)).IsSuccess);
+
+        var reopened = new ManualPreviewWorkspaceService();
+        WorkspaceTabViewModel[] restored = (await reopened.OpenProjectAsync(projectPath, CancellationToken.None)).ToArray();
+        Assert.IsTrue(restored.Single(tab => tab.PanelId == flagged.PanelId).AnalysisNeedsReview,
+            "A saved calibration-review warning must remain visible after reopening.");
+        Assert.IsTrue(restored.Where(tab => tab.PanelId != flagged.PanelId).All(tab => !tab.AnalysisNeedsReview));
+        restored.Single(tab => tab.PanelId == flagged.PanelId).AnalysisNeedsReview = false;
+        Assert.IsTrue((await reopened.SaveProjectAsync(projectPath, CancellationToken.None)).IsSuccess);
+        Assert.IsFalse((await new ManualPreviewWorkspaceService().OpenProjectAsync(projectPath, CancellationToken.None))
+            .Single(tab => tab.PanelId == flagged.PanelId).AnalysisNeedsReview);
+    }
+
+    [TestMethod]
+    [DataRow("project_id")]
+    [DataRow("panel_id")]
+    [DataRow("source_id")]
+    [DataRow("source_sha256")]
+    [DataRow("panel_image_sha256")]
+    [DataRow("panel_image_width")]
+    [DataRow("page_number")]
+    [DataRow("crop")]
+    public async Task StaleAnalysisReviewWarningIsIgnoredAndUnrelatedValidationPreserved(string property)
+    {
+        using var directory = new TemporaryDirectory();
+        string imagePath = Path.Combine(directory.Path, "warning-stale.png");
+        await File.WriteAllBytesAsync(imagePath, CreateStackedGraphPng(640, 900));
+        var workspace = new ManualPreviewWorkspaceService();
+        WorkspaceTabViewModel flagged = (await workspace.ImportImagesAsync([imagePath], CancellationToken.None))[0];
+        flagged.AnalysisNeedsReview = true;
+        string projectPath = Path.Combine(directory.Path, "warning-stale.garproj");
+        Assert.IsTrue((await workspace.SaveProjectAsync(projectPath, CancellationToken.None)).IsSuccess);
+        ProjectDocument saved = workspace.CurrentProject;
+        PanelRecord panel = saved.Panels.Single(item => item.PanelId.Value.ToString("D") == flagged.PanelId);
+        JsonObject validation = JsonNode.Parse(panel.Validation!.Value.GetRawText())!.AsObject();
+        JsonObject warning = validation["graphreader_analysis_review_warning"]!.AsObject();
+        warning[property] = property switch
+        {
+            "source_sha256" or "panel_image_sha256" => JsonValue.Create(new string('f', 64)),
+            "panel_image_width" or "page_number" => JsonValue.Create(1),
+            "crop" => JsonSerializer.SerializeToNode(new CropRectangle(0, 0, 1, 1)),
+            _ => JsonValue.Create(Guid.NewGuid()),
+        };
+        validation["unrelated_fixture"] = "preserved";
+        ProjectDocument stale = saved with
+        {
+            Panels = saved.Panels.Select(item => item.PanelId == panel.PanelId
+                ? item with { Validation = JsonSerializer.SerializeToElement(validation) } : item).ToArray(),
+        };
+        Assert.IsTrue((await new ProjectFileStore().SaveAsync(stale, projectPath, CancellationToken.None)).IsSuccess);
+        var reopened = new ManualPreviewWorkspaceService();
+        WorkspaceTabViewModel restored = (await reopened.OpenProjectAsync(projectPath, CancellationToken.None))
+            .Single(tab => tab.PanelId == flagged.PanelId);
+        Assert.IsFalse(restored.AnalysisNeedsReview, $"A stale {property} binding must not mark the panel.");
+        Assert.IsTrue((await reopened.SaveProjectAsync(projectPath, CancellationToken.None)).IsSuccess);
+        JsonElement retained = reopened.CurrentProject.Panels.Single(item => item.PanelId == panel.PanelId).Validation!.Value;
+        Assert.AreEqual("preserved", retained.GetProperty("unrelated_fixture").GetString());
+        Assert.IsFalse(retained.TryGetProperty("graphreader_analysis_review_warning", out _));
+    }
 
     [TestMethod]
     public async Task MultiPanelImageSharesSourceAndRoundTripsCropLocalWorkspaceCoordinates()

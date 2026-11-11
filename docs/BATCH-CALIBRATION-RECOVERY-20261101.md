@@ -68,7 +68,38 @@ these void attempts is model evidence or a sealed-set run.
 
 No dependency, schema, model, scientific calibration rule, or export gate
 changed. No package was produced. These are component and integration tests,
-not visual inspection or final distribution acceptance. The review indicator
-is currently tab state; retaining it across save/reopen is separate unfinished
-work. Disposable test compiler outputs can be regenerated with the commands
+not visual inspection or final distribution acceptance. Disposable test
+compiler outputs can be regenerated with the commands
 above and are retired when their active validation consumers finish.
+
+## Saved warnings and recovery, 2026-11-11
+
+The follow-up regression reproduced a missing indicator after saving and
+reopening a cropped panel (one failing test, 902 ms). Warnings now persist in
+the existing panel validation extension and are bound to project, panel,
+source, source-file hash, panel-image hash, dimensions, page, and crop. A
+reopened tab restores the warning only when that complete identity matches.
+The source-file hash remains distinct from a cropped raster or PDF panel's
+image hash. Unrelated validation keys remain intact.
+
+Production services record calibration failures even without a window view
+model. A completed projection clears the warning for that panel. Explicit
+save, timer/event autosave, recovery, and save after successful reanalysis all
+use the same persistence path. Previously validated production receipts and
+CSV values remain available: the warning reports the failed later analysis
+without falsely invalidating the earlier reviewed result.
+
+The same App and Integration commands above passed 805 tests in 28 seconds and
+180 tests in 12 seconds, respectively; the seven existing opt-in Integration
+cases remained skipped. These runs additionally set `TEMP` and `TMP` to
+`E:\Graph-auto-reader\tools\temp`. An initial test-only CA1826 failure from
+calling `First()` on an indexed collection was corrected before the successful
+runs. Static review found no remaining issue in warning binding, selective
+clearing, saved validation preservation, or prior-receipt export. No frozen
+schema, dependency, model, export gate, or package changed.
+
+The preceding `edce79b6` checkpoint also passed
+[Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/42974064247):
+2,461 solution tests passed, 29 optional tests were skipped, and build,
+localization, OCR accounting, and packaging checks succeeded. That CI run
+predates this persistence follow-up and is not evidence for the newer source.
