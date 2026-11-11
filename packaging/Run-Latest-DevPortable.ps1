@@ -7,6 +7,7 @@ param(
     [switch]$PortableSmoke,
     [switch]$DisableLocalEnhancement,
     [switch]$DisableLocalPdfium,
+    [string]$RepositoryRoot,
     [string]$ImagePath,
     [string]$RealEsrganRuntimeRoot,
     [string]$RealEsrganManifestPath,
@@ -40,12 +41,13 @@ function Get-Sha256 {
 $adjacentLatest = Join-Path $PSScriptRoot 'latest.json'
 if (Test-Path -LiteralPath $adjacentLatest -PathType Leaf) {
     $outputRoot = $PSScriptRoot
-    $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+    $inferredRepositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 }
 else {
-    $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-    $outputRoot = Join-Path $repositoryRoot 'artifacts\dev-portable'
+    $inferredRepositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+    $outputRoot = Join-Path $inferredRepositoryRoot 'artifacts\dev-portable'
 }
+$repositoryRoot = if ([string]::IsNullOrWhiteSpace($RepositoryRoot)) { $inferredRepositoryRoot } else { [System.IO.Path]::GetFullPath($RepositoryRoot) }
 
 $latestPath = Join-Path $outputRoot 'latest.json'
 if (-not (Test-Path -LiteralPath $latestPath -PathType Leaf)) {
@@ -62,6 +64,28 @@ if ([string]::IsNullOrWhiteSpace([string]$latest.executable)) {
 $expectedExecutableSha256 = [string]$latest.executableSha256
 if ($expectedExecutableSha256 -notmatch '^[0-9a-f]{64}$') {
     throw "latest.json does not contain a canonical executable SHA-256: $latestPath"
+}
+
+$ledgerPath = Join-Path $repositoryRoot 'docs\BUILD_LEDGER.json'
+if (-not (Test-Path -LiteralPath $ledgerPath -PathType Leaf)) {
+    throw "Cannot verify the retained build: ledger missing at $ledgerPath. For a custom output root, pass -RepositoryRoot with the checkout path; restore the tracked ledger and reconcile latest.json before launching."
+}
+try {
+    $ledger = Get-Content -LiteralPath $ledgerPath -Raw | ConvertFrom-Json
+    $retained = @($ledger.builds | Where-Object { $_.retained -eq $true })
+    $buildDirectoryName = [System.IO.Path]::GetFileName(([string]$latest.buildDirectory).Replace('/', '\').TrimEnd('\'))
+    $identityMatches = $ledger.schemaVersion -eq 1 -and $retained.Count -eq 1 -and
+        -not [string]::IsNullOrWhiteSpace($buildDirectoryName) -and
+        [string]$retained[0].directory -ceq $buildDirectoryName -and
+        [string]$retained[0].version -ceq [string]$latest.version -and
+        [string]$retained[0].commit -ceq [string]$latest.commit -and
+        [string]$retained[0].executableSha256 -ceq $expectedExecutableSha256
+}
+catch {
+    throw "Cannot verify retained build identity using $ledgerPath and ${latestPath}: $($_.Exception.Message)"
+}
+if (-not $identityMatches) {
+    throw "latest.json does not match the single retained build in $ledgerPath. Reconcile the pointer and retained build before launching; do not regenerate the ledger from a stale pointer."
 }
 
 $executablePath = [System.IO.Path]::GetFullPath((Join-Path $outputRoot ([string]$latest.executable)))
@@ -81,6 +105,9 @@ if (-not [string]::Equals(
 }
 
 $buildDirectory = Split-Path -Parent $executablePath
+if (-not [string]::Equals($buildDirectory, [System.IO.Path]::GetFullPath((Join-Path $outputRoot ([string]$latest.buildDirectory))), [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'latest.json executable is not inside its declared buildDirectory.'
+}
 if (-not (Test-Path -LiteralPath (Join-Path $buildDirectory 'portable.mode') -PathType Leaf)) {
     throw "The latest development portable is missing portable.mode: $buildDirectory"
 }

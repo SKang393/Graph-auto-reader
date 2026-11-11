@@ -51,6 +51,22 @@ function Invoke-ExpectedFailure {
     }
 }
 
+function Assert-LauncherRejected {
+    param([string]$Script, [string]$Marker, [string]$Reason, [string]$RepositoryRoot)
+    if (Test-Path -LiteralPath $Marker) { Remove-Item -LiteralPath $Marker -Force }
+    $arguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $Script, '-Wait')
+    if ($RepositoryRoot) { $arguments += @('-RepositoryRoot', $RepositoryRoot) }
+    $previousPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = 'Continue'
+        $output = & $hostExecutable @arguments 2>&1 | Out-String
+        $exitCode = $LASTEXITCODE
+    }
+    finally { $ErrorActionPreference = $previousPreference }
+    Assert-True ($exitCode -ne 0 -and $output.Contains($Reason)) "Launcher did not reject for '$Reason': $output"
+    Assert-True (-not (Test-Path -LiteralPath $Marker)) 'Rejected launcher started its target.'
+}
+
 function Invoke-Git {
     param(
         [Parameter(Mandatory)][string]$WorkingDirectory,
@@ -452,7 +468,8 @@ $relativeExecutable = $executable.Substring($outputRoot.Length + 1).Replace('\',
         'Build-DevPortable did not reject the retired unrecorded dirty-build mode.'
     $passed++
 
-    $launcherIsolationRoot = Join-Path $testRoot 'launcher enhancement isolation'
+    $launcherRepositoryRoot = Join-Path $testRoot 'launcher enhancement isolation'
+    $launcherIsolationRoot = Join-Path $launcherRepositoryRoot 'artifacts\dev-portable'
     $launcherIsolationBuild = Join-Path $launcherIsolationRoot 'builds\isolated'
     New-Item -ItemType Directory -Path $launcherIsolationBuild -Force | Out-Null
     Copy-Item -LiteralPath $launcherScript -Destination $launcherIsolationRoot
@@ -466,11 +483,21 @@ $relativeExecutable = $executable.Substring($outputRoot.Length + 1).Replace('\',
         "@echo off`r`necho [%GRAPHREADER_REALESRGAN_RUNTIME_ROOT%] > `"%~dp0enhancement-environment.txt`"`r`necho [%GRAPHREADER_REALESRGAN_MANIFEST_PATH%] >> `"%~dp0enhancement-environment.txt`"`r`necho [%GRAPHREADER_PDFIUM_APPROVAL_PATH%] >> `"%~dp0enhancement-environment.txt`"`r`necho [%*] >> `"%~dp0enhancement-environment.txt`"`r`n")
     [System.IO.File]::WriteAllText((Join-Path $launcherIsolationBuild 'portable.mode'), '')
     $captureHash = (Get-FileHash -LiteralPath $captureExecutable -Algorithm SHA256).Hash.ToLowerInvariant()
-    Write-JsonFile -Path (Join-Path $launcherIsolationRoot 'latest.json') -Value ([ordered]@{
+    $fixtureLatest = [ordered]@{
             schemaVersion = 2
+            version = '0.0.1'
+            commit = ('a' * 40)
+            buildDirectory = 'builds/isolated'
             executable = 'builds/isolated/capture.cmd'
             executableSha256 = $captureHash
-        })
+        }
+    $fixtureLedger = [ordered]@{
+        schemaVersion = 1
+        builds = @([ordered]@{ directory = 'isolated'; version = '0.0.1'; commit = ('a' * 40); executableSha256 = $captureHash; retained = $true })
+    }
+    $fixtureLedgerPath = Join-Path $launcherRepositoryRoot 'docs\BUILD_LEDGER.json'
+    Write-JsonFile -Path (Join-Path $launcherIsolationRoot 'latest.json') -Value $fixtureLatest
+    Write-JsonFile -Path $fixtureLedgerPath -Value $fixtureLedger
     $previousRuntimeRoot = [Environment]::GetEnvironmentVariable(
         'GRAPHREADER_REALESRGAN_RUNTIME_ROOT',
         'Process')
@@ -528,6 +555,27 @@ $relativeExecutable = $executable.Substring($outputRoot.Length + 1).Replace('\',
         'Launcher did not preserve the startup image path containing spaces.'
     $passed++
 
+    $customLauncherRoot = Join-Path $testRoot 'custom output location'
+    Copy-Item -LiteralPath $launcherIsolationRoot -Destination $customLauncherRoot -Recurse
+    $customMarker = Join-Path $customLauncherRoot 'builds\isolated\enhancement-environment.txt'
+    Remove-Item -LiteralPath $customMarker -Force
+    $customLauncher = Join-Path $customLauncherRoot 'Run-Latest-DevPortable.ps1'
+    & $hostExecutable -NoProfile -ExecutionPolicy Bypass -File $customLauncher -Wait -DisableLocalEnhancement -DisableLocalPdfium -RepositoryRoot $launcherRepositoryRoot | Out-Null
+    Assert-True ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $customMarker)) 'Custom output launcher did not use the specified repository ledger.'
+    Assert-LauncherRejected -Script $customLauncher -Marker $customMarker -Reason 'ledger missing' -RepositoryRoot (Join-Path $testRoot 'missing repository')
+    $passed++
+
+    $fixtureLedger.builds[0].retained = $false
+    Write-JsonFile -Path $fixtureLedgerPath -Value $fixtureLedger
+    Assert-LauncherRejected -Script $customLauncher -Marker $customMarker -Reason 'does not match the single retained build' -RepositoryRoot $launcherRepositoryRoot
+    $fixtureLedger.builds[0].retained = $true
+    $fixtureLedger.builds[0].commit = ('b' * 40)
+    Write-JsonFile -Path $fixtureLedgerPath -Value $fixtureLedger
+    Assert-LauncherRejected -Script $customLauncher -Marker $customMarker -Reason 'does not match the single retained build' -RepositoryRoot $launcherRepositoryRoot
+    $fixtureLedger.builds[0].commit = ('a' * 40)
+    Write-JsonFile -Path $fixtureLedgerPath -Value $fixtureLedger
+    $passed++
+
     [System.IO.File]::AppendAllText($captureExecutable, "rem tampered`r`n")
     Invoke-ExpectedFailure @(
         '-NoProfile',
@@ -536,13 +584,21 @@ $relativeExecutable = $executable.Substring($outputRoot.Length + 1).Replace('\',
         '-Wait')
     $passed++
 
-    $launcherRoot = Join-Path $testRoot 'launcher traversal'
-    New-Item -ItemType Directory -Path $launcherRoot | Out-Null
+    $launcherTraversalRepository = Join-Path $testRoot 'launcher traversal'
+    $launcherRoot = Join-Path $launcherTraversalRepository 'artifacts\dev-portable'
+    New-Item -ItemType Directory -Path $launcherRoot -Force | Out-Null
     Copy-Item -LiteralPath $launcherScript -Destination $launcherRoot
     Write-JsonFile -Path (Join-Path $launcherRoot 'latest.json') -Value ([ordered]@{
             schemaVersion = 2
+            version = '0.0.1'
+            commit = ('a' * 40)
+            buildDirectory = 'builds/isolated'
             executable = '../outside.exe'
             executableSha256 = ('0' * 64)
+        })
+    Write-JsonFile -Path (Join-Path $launcherTraversalRepository 'docs\BUILD_LEDGER.json') -Value ([ordered]@{
+            schemaVersion = 1
+            builds = @([ordered]@{ directory = 'isolated'; version = '0.0.1'; commit = ('a' * 40); executableSha256 = ('0' * 64); retained = $true })
         })
 
     Invoke-ExpectedFailure @(
@@ -551,7 +607,7 @@ $relativeExecutable = $executable.Substring($outputRoot.Length + 1).Replace('\',
         '-File', (Join-Path $launcherRoot 'Run-Latest-DevPortable.ps1'))
     $passed++
 
-    Write-Host "Development portable packaging tests passed: $passed/10"
+    Write-Host "Development portable packaging tests passed: $passed/12"
 }
 finally {
     if (Test-Path -LiteralPath $dirtyMarker -PathType Leaf) {
