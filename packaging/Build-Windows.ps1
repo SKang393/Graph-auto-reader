@@ -14,6 +14,7 @@ param(
     [string]$ExpectedFrozenReceiptSha256,
     [string]$OpenCvDiagnosticRoot,
     [string]$ReviewedOpenCvEvidenceRoot,
+    [string]$OpenCvAttestationPath,
     [string]$ReviewedPdfiumEvidenceRoot
 )
 
@@ -1869,12 +1870,11 @@ if ($reviewedOpenCvRequired) {
     if (-not (Test-Path -LiteralPath $releaseOpenCvInstallerPath -PathType Leaf)) {
         throw "Release OpenCV runtime installer is missing: $releaseOpenCvInstallerPath"
     }
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $releaseOpenCvInstallerPath `
-        -EvidenceRoot $reviewedOpenCvEvidencePath `
-        -DestinationRoot $commonPublishPath `
-        -ExpectedCommit $gitCommit `
-        -ExpectedVersion $version.Value `
-        -RepositoryRoot $repositoryRoot | Out-Host
+    $installerArguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $releaseOpenCvInstallerPath,
+        '-EvidenceRoot', $reviewedOpenCvEvidencePath, '-DestinationRoot', $commonPublishPath,
+        '-ExpectedCommit', $gitCommit, '-ExpectedVersion', $version.Value, '-RepositoryRoot', $repositoryRoot)
+    if (-not [string]::IsNullOrWhiteSpace($OpenCvAttestationPath)) { $installerArguments += @('-OpenCvAttestationPath', [IO.Path]::GetFullPath($OpenCvAttestationPath)) }
+    & powershell.exe @installerArguments | Out-Host
     if ($LASTEXITCODE -ne 0) {
         throw "Release OpenCV runtime installation failed with exit code $LASTEXITCODE."
     }

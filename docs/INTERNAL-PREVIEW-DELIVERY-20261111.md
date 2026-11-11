@@ -47,3 +47,9 @@ validate and upload its exact ZIP, then push the ledger before changing the
 live pointer or retiring the old build. Preserve user Data. This batch did not
 build a product package, install/register a runner, upload bytes, or change the
 current build identity.
+
+For an isolated build checkout, `Build-DevPortable.ps1` now accepts
+`-OpenCvAttestationPath` alongside `-ReviewedOpenCvEvidenceRoot`. This forwards
+the already existing private file to the review validator without copying it
+into the preview. The actual reviewed-native installer flow passed an isolated
+fixture with the external path; the package-producing builder has not yet run.

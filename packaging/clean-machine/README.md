@@ -18,6 +18,12 @@ match the frozen Production host EXE. PDFium's diagnostic must bind the frozen
 EXE and application DLL. Both diagnostics must use source commit A and its
 version.
 
+When the OpenCV private attestation is retained in the primary checkout,
+pass its existing path with `-OpenCvAttestationPath` to the build or verification
+entry point. The value is forwarded only to the existing review validator;
+it is not copied or written into package metadata. Omitting it retains the
+checkout-relative default and its existing rejection when missing.
+
 After reviewed native reports and their two gate updates are committed as B,
 run `Build-Windows.ps1 -CandidateOnly -FrozenPublishRoot <same-dir>
 -ExpectedFrozenReceiptSha256 <saved-sha> -OpenCvDiagnosticRoot <preview-dir>`

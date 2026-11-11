@@ -10,6 +10,7 @@ param(
     [Parameter(Mandatory)][string]$ExpectedSourceCommit,
     [Parameter(Mandatory)][string]$ExpectedVersion,
     [string]$ReviewedOpenCvEvidenceRoot,
+    [string]$OpenCvAttestationPath,
     [string]$ReviewedPdfiumEvidenceRoot,
     [switch]$AllowFixture
 )
@@ -191,7 +192,7 @@ if ($null -ne $nativeEvidenceCommit) {
             foreach ($name in @('GraphReader.App.exe','GraphReader.App.dll')) { Copy-Item -LiteralPath (Join-Path $commonRoot $name) -Destination $root }
         }
         Copy-Item -LiteralPath (Join-Path $commonRoot 'OpenCvSharpExtern.dll') -Destination $cvRoot
-        & (Join-Path $RepositoryRoot 'packaging\opencv-source\Install-ReleaseRuntime.ps1') -RepositoryRoot $RepositoryRoot -EvidenceRoot $ReviewedOpenCvEvidenceRoot -DestinationRoot $cvRoot -ExpectedCommit $ExpectedSourceCommit -ExpectedVersion $ExpectedVersion | Out-Null
+        & (Join-Path $RepositoryRoot 'packaging\opencv-source\Install-ReleaseRuntime.ps1') -RepositoryRoot $RepositoryRoot -EvidenceRoot $ReviewedOpenCvEvidenceRoot -DestinationRoot $cvRoot -ExpectedCommit $ExpectedSourceCommit -ExpectedVersion $ExpectedVersion -OpenCvAttestationPath $OpenCvAttestationPath | Out-Null
         & (Join-Path $RepositoryRoot 'packaging\pdfium-source\Install-ReleaseRenderer.ps1') -RepositoryRoot $RepositoryRoot -EvidenceRoot $ReviewedPdfiumEvidenceRoot -DestinationRoot $pdfRoot -ExpectedCommit $ExpectedSourceCommit -ExpectedVersion $ExpectedVersion | Out-Null
     }
     finally {

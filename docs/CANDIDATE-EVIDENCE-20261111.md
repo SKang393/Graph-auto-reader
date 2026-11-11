@@ -136,6 +136,37 @@ hashes remain unchanged. The exact failed case passed its Windows PowerShell
 rerun. Explicit parentheses also repaired an OS-update-revision type check
 exposed under that host. The next clean CI run remains the full-suite gate.
 
+The integrated `0774fa79` checkpoint subsequently passed
+[Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/42985228175):
+2,471 tests across 13 projects, 29 optional skips, all 68 packaging cases, and
+the standalone candidate, frozen-native and internal-upload verifier checks.
+That run predates the optional attestation-path forwarding follow-up below.
+
+## Use the existing private attestation from a worktree
+
+Both current native evidence roots passed their source/provenance checks using
+the exact reviewed OpenCV `c96f91b3` and PDFium `e61fa4e4` binaries. OpenCV's
+existing private attestation is present in the primary checkout; an isolated
+worktree need not copy it. The build entry points, OpenCV installers and final
+candidate verifiers now forward optional `-OpenCvAttestationPath` to the existing
+review validator. Defaults and checksum/policy validation are unchanged, and
+the path is excluded from package metadata.
+
+The focused Windows PowerShell fixture used the actual reviewed OpenCV evidence
+and actual source/review validators in an isolated checkout. It first rejected
+the missing default, then installed the exact reviewed binary with the explicit
+external attestation while leaving clean-machine/release flags false. The
+complete synthetic A-to-B-to-C fixture also passed with an external path
+containing spaces. An initial real-input fixture failure was missing copies of
+two tracked CMake inputs; those were supplied before the passing rerun. Parsing
+and diff checks passed. The private attestation was neither printed nor copied.
+
+PDFium's dependency review covered 240 labels, 16 notices and four system
+imports; this is provenance evidence, not a dependency approval or clean-VM
+pass. No product package, VM run, version change or native approval was created.
+Build-DevPortable's forwarding remains to be exercised by the actual internal
+preview build. The source and typed installer paths passed focused validation.
+
 ## Current application process smoke
 
 The previously compiled `f96db033` source was also exercised with

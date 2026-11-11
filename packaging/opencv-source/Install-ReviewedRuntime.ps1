@@ -9,7 +9,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$DestinationRoot,
 
-    [string]$RepositoryRoot
+    [string]$RepositoryRoot,
+
+    [string]$OpenCvAttestationPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -42,17 +44,21 @@ if (-not (Test-Path -LiteralPath $DestinationRoot -PathType Container)) {
 function Invoke-Validator {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$Path
+        [string]$Path,
+
+        [string]$AttestationPath
     )
 
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $Path -EvidenceRoot $EvidenceRoot
+    $arguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $Path, '-EvidenceRoot', $EvidenceRoot)
+    if (-not [string]::IsNullOrWhiteSpace($AttestationPath)) { $arguments += @('-AttestationPath', [IO.Path]::GetFullPath($AttestationPath)) }
+    & powershell.exe @arguments
     if ($LASTEXITCODE -ne 0) {
         throw "Reviewed OpenCV validator failed with exit code ${LASTEXITCODE}: $Path"
     }
 }
 
 Invoke-Validator -Path $evidenceValidatorPath
-Invoke-Validator -Path $reviewValidatorPath
+Invoke-Validator -Path $reviewValidatorPath -AttestationPath $OpenCvAttestationPath
 
 $policy = Get-Content -LiteralPath $policyPath -Raw | ConvertFrom-Json
 if ([int]$policy.schemaVersion -ne 1 -or

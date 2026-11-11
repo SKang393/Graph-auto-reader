@@ -11,6 +11,7 @@ param(
     [switch]$CandidateOnly,
     [string]$CandidateEvidencePath,
     [string]$ReviewedOpenCvEvidenceRoot,
+    [string]$OpenCvAttestationPath,
     [string]$ReviewedPdfiumEvidenceRoot,
     [switch]$AllowFixtureEvidence
 )
@@ -1779,7 +1780,7 @@ if (-not [string]::IsNullOrWhiteSpace($ArtifactRoot)) {
         $candidateMetadata = Get-Content -Raw -LiteralPath $candidateMetadataPath | ConvertFrom-Json
         $candidateChecker = Join-Path $PSScriptRoot 'Test-CandidateEvidence.ps1'
         if (-not (Test-Path -LiteralPath $candidateChecker -PathType Leaf)) { throw 'Candidate evidence checker is missing.' }
-        $candidateResult = & $candidateChecker -RepositoryRoot $repositoryRoot -CandidateRoot $artifactRootFullPath -ReceiptPath $CandidateEvidencePath -ExpectedSourceCommit ([string]$candidateMetadata.gitCommit) -ExpectedVersion $version -ReviewedOpenCvEvidenceRoot $ReviewedOpenCvEvidenceRoot -ReviewedPdfiumEvidenceRoot $ReviewedPdfiumEvidenceRoot -AllowFixture:$AllowFixtureEvidence
+        $candidateResult = & $candidateChecker -RepositoryRoot $repositoryRoot -CandidateRoot $artifactRootFullPath -ReceiptPath $CandidateEvidencePath -ExpectedSourceCommit ([string]$candidateMetadata.gitCommit) -ExpectedVersion $version -ReviewedOpenCvEvidenceRoot $ReviewedOpenCvEvidenceRoot -OpenCvAttestationPath $OpenCvAttestationPath -ReviewedPdfiumEvidenceRoot $ReviewedPdfiumEvidenceRoot -AllowFixture:$AllowFixtureEvidence
         $expectedEvidenceStatus = if ($AllowFixtureEvidence) { 'fixture-evidence-validated' } else { 'evidence-validated' }
         if ($candidateResult.status -cne $expectedEvidenceStatus -or $candidateResult.releaseApproved -ne $false) { throw 'Candidate evidence checker did not validate the requested evidence mode.' }
     }

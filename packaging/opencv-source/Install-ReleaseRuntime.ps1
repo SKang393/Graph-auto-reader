@@ -15,7 +15,9 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$ExpectedVersion,
 
-    [string]$RepositoryRoot
+    [string]$RepositoryRoot,
+
+    [string]$OpenCvAttestationPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -238,10 +240,10 @@ foreach ($evidence in @($gate.evidence)) {
         -ExpectedExecutableSha256 $destinationExecutableSha256
 }
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $installerPath `
-    -EvidenceRoot $EvidenceRoot `
-    -DestinationRoot $DestinationRoot `
-    -RepositoryRoot $RepositoryRoot
+$installerArguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $installerPath,
+    '-EvidenceRoot', $EvidenceRoot, '-DestinationRoot', $DestinationRoot, '-RepositoryRoot', $RepositoryRoot)
+if (-not [string]::IsNullOrWhiteSpace($OpenCvAttestationPath)) { $installerArguments += @('-OpenCvAttestationPath', [IO.Path]::GetFullPath($OpenCvAttestationPath)) }
+& powershell.exe @installerArguments
 if ($LASTEXITCODE -ne 0) {
     throw "Reviewed OpenCV runtime installation failed with exit code $LASTEXITCODE."
 }

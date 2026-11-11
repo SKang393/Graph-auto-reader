@@ -2518,6 +2518,17 @@ try {
             Write-JsonFile -Path (Join-Path $root 'docs/BUILD_LEDGER.json') -Value ([ordered]@{schemaVersion=1;builds=@(@{buildNumber=435;version='0.4.35'})})
             Copy-TestTree -Source (Join-Path $cv.Repository 'packaging/opencv-source') -Destination (Join-Path $root 'packaging/opencv-source')
             Copy-TestTree -Source (Join-Path $pdf.Repository 'packaging/pdfium-source') -Destination (Join-Path $root 'packaging/pdfium-source')
+            $attestationPath = Join-Path $cv.Root 'external attestation\fixture.json'
+            New-Item -ItemType Directory -Path (Split-Path -Parent $attestationPath) -Force | Out-Null
+            [IO.File]::WriteAllText($attestationPath, '{"fixture":"synthetic"}')
+            $attestationHash = Get-TestSha256 -Path $attestationPath
+            $attestationValidator = @'
+param([string]$EvidenceRoot, [string]$AttestationPath)
+if ([string]::IsNullOrWhiteSpace($AttestationPath) -or -not (Test-Path -LiteralPath $AttestationPath -PathType Leaf)) { exit 2 }
+if ((Get-FileHash -LiteralPath $AttestationPath -Algorithm SHA256).Hash.ToLowerInvariant() -cne 'FIXTURE_HASH') { exit 3 }
+exit 0
+'@.Replace('FIXTURE_HASH', $attestationHash)
+            [IO.File]::WriteAllText((Join-Path $root 'packaging/opencv-source/review/Test-SourceBuildReviewPolicy.ps1'), $attestationValidator)
             Copy-Item -LiteralPath (Join-Path $PSScriptRoot '..\opencv-source\Install-ReleaseRuntime.ps1') -Destination (Join-Path $root 'packaging/opencv-source/Install-ReleaseRuntime.ps1')
             Copy-Item -LiteralPath (Join-Path $PSScriptRoot '..\pdfium-source\Install-ReleaseRenderer.ps1') -Destination (Join-Path $root 'packaging/pdfium-source/Install-ReleaseRenderer.ps1')
             Copy-TestTree -Source (Join-Path $cv.Repository 'packaging/clean-machine') -Destination (Join-Path $root 'packaging/clean-machine')
@@ -2574,13 +2585,16 @@ try {
             $frozenDllBytes = [IO.File]::ReadAllBytes($frozenDllPath)
             [IO.File]::AppendAllText($frozenDllPath, 'synthetic tamper')
             $tamperRejected = $false
-            try { & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -CandidateOnly -FrozenPublishRoot $frozenRoot -ExpectedFrozenReceiptSha256 $prepared.FrozenReceiptSha256 -OpenCvDiagnosticRoot $previewRoot -ReviewedOpenCvEvidenceRoot $cv.Evidence -ReviewedPdfiumEvidenceRoot $pdf.Evidence | Out-Null } catch { $tamperRejected = $_.Exception.Message -like '*Frozen publish file differs*' }
+            try { & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -CandidateOnly -FrozenPublishRoot $frozenRoot -ExpectedFrozenReceiptSha256 $prepared.FrozenReceiptSha256 -OpenCvDiagnosticRoot $previewRoot -ReviewedOpenCvEvidenceRoot $cv.Evidence -OpenCvAttestationPath $attestationPath -ReviewedPdfiumEvidenceRoot $pdf.Evidence | Out-Null } catch { $tamperRejected = $_.Exception.Message -like '*Frozen publish file differs*' }
             [IO.File]::WriteAllBytes($frozenDllPath, $frozenDllBytes)
             if (-not $tamperRejected -or (Test-Path -LiteralPath $fixture.OutputRoot)) { throw 'Tampered frozen application was not rejected before candidate staging.' }
-            $resumed = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -CandidateOnly -FrozenPublishRoot $frozenRoot -ExpectedFrozenReceiptSha256 $prepared.FrozenReceiptSha256 -OpenCvDiagnosticRoot $previewRoot -ReviewedOpenCvEvidenceRoot $cv.Evidence -ReviewedPdfiumEvidenceRoot $pdf.Evidence
+            $resumed = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -CandidateOnly -FrozenPublishRoot $frozenRoot -ExpectedFrozenReceiptSha256 $prepared.FrozenReceiptSha256 -OpenCvDiagnosticRoot $previewRoot -ReviewedOpenCvEvidenceRoot $cv.Evidence -OpenCvAttestationPath $attestationPath -ReviewedPdfiumEvidenceRoot $pdf.Evidence
             if (-not $resumed.ArtifactsEmitted -or $resumed.ReleaseReady) { throw 'Synthetic frozen candidate did not remain nonrelease.' }
             if ((Get-TestSha256 -Path (Join-Path $resumed.CommonPublish 'GraphReader.App.dll')) -cne $frozenDllHash) { throw 'Candidate resumed with different application bytes.' }
             $metadataPath = Join-Path $resumed.ArtifactRoot 'release-metadata.json'
+            foreach ($publicRecord in @($metadataPath, (Join-Path $resumed.CommonPublish 'build-metadata.json'), (Join-Path $resumed.CommonPublish 'reviewed-opencv-runtime.json'))) {
+                if ((Get-Content -Raw -LiteralPath $publicRecord).Contains($attestationPath)) { throw 'Private attestation path leaked into candidate metadata.' }
+            }
             $metadata = Get-Content -Raw -LiteralPath $metadataPath | ConvertFrom-Json
             if ($metadata.gitCommit -cne $source -or $metadata.nativeEvidenceCommit -cne $nativeCommit) { throw 'Candidate source A and native evidence B are not distinct.' }
             $packageHashes = @((Get-TestSha256 -Path $resumed.InstallerArtifact),(Get-TestSha256 -Path $resumed.PortableArtifact))
@@ -2602,7 +2616,7 @@ try {
             & git -C $root add packaging/common/release-audit.json packaging/evidence/synthetic-postbuild-receipt.json packaging/evidence/synthetic-postbuild-0.json packaging/evidence/synthetic-postbuild-1.json packaging/evidence/synthetic-postbuild-2.json
             & git -C $root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Synthetic postbuild evidence C'
             if ($LASTEXITCODE -ne 0) { throw 'Could not commit synthetic evidence C.' }
-            $verified = & $testScript -ManifestPath $fixture.Manifest -ArtifactRoot $resumed.ArtifactRoot -CandidateEvidencePath $receiptPath -AllowFixtureEvidence -ReviewedOpenCvEvidenceRoot $cv.Evidence -ReviewedPdfiumEvidenceRoot $pdf.Evidence
+            $verified = & $testScript -ManifestPath $fixture.Manifest -ArtifactRoot $resumed.ArtifactRoot -CandidateEvidencePath $receiptPath -AllowFixtureEvidence -ReviewedOpenCvEvidenceRoot $cv.Evidence -OpenCvAttestationPath $attestationPath -ReviewedPdfiumEvidenceRoot $pdf.Evidence
             if ($verified.ReleaseApproved -ne $false -or $verified.FixtureEvidence -ne $true) { throw 'Synthetic final verification overclaimed.' }
             if ((Get-TestSha256 -Path $resumed.InstallerArtifact) -cne $packageHashes[0] -or (Get-TestSha256 -Path $resumed.PortableArtifact) -cne $packageHashes[1] -or (Get-TestSha256 -Path (Join-Path $frozenPublish 'GraphReader.App.dll')) -cne $frozenDllHash) { throw 'Frozen publish or package bytes changed during verification.' }
         }

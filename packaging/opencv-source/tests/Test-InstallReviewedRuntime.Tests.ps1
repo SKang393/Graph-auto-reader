@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Sungwoo Kang
 
-param([switch]$FixtureOnly)
+param([switch]$FixtureOnly, [string]$RealEvidenceRoot, [string]$RealAttestationPath, [string]$CaseFilter)
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -205,6 +205,7 @@ function Invoke-Case {
         [Parameter(Mandatory = $true)] [scriptblock]$Action
     )
 
+    if (-not [string]::IsNullOrWhiteSpace($CaseFilter) -and $Name -notlike $CaseFilter) { return }
     try {
         & $Action
         $script:passed++
@@ -219,17 +220,20 @@ function Invoke-Case {
 function Invoke-InstallerFixture {
     param(
         [Parameter(Mandatory = $true)] [pscustomobject]$Fixture,
-        [switch]$DiscardOutput
+        [switch]$DiscardOutput,
+        [string]$OpenCvAttestationPath
     )
 
     $previousErrorPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
+        $arguments = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$installerPath,'-EvidenceRoot',$Fixture.Evidence,'-DestinationRoot',$Fixture.Destination,'-RepositoryRoot',$Fixture.Repository)
+        if (-not [string]::IsNullOrWhiteSpace($OpenCvAttestationPath)) { $arguments += @('-OpenCvAttestationPath',$OpenCvAttestationPath) }
         if ($DiscardOutput.IsPresent) {
-            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $installerPath -EvidenceRoot $Fixture.Evidence -DestinationRoot $Fixture.Destination -RepositoryRoot $Fixture.Repository 2>&1 | Out-Null
+            & powershell.exe @arguments 2>&1 | Out-Null
         }
         else {
-            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $installerPath -EvidenceRoot $Fixture.Evidence -DestinationRoot $Fixture.Destination -RepositoryRoot $Fixture.Repository 2>&1 | Out-Host
+            & powershell.exe @arguments 2>&1 | Out-Host
         }
         return $LASTEXITCODE
     }
@@ -241,17 +245,20 @@ function Invoke-InstallerFixture {
 function Invoke-ReleaseInstallerFixture {
     param(
         [Parameter(Mandatory = $true)] [pscustomobject]$Fixture,
-        [switch]$DiscardOutput
+        [switch]$DiscardOutput,
+        [string]$OpenCvAttestationPath
     )
 
     $previousErrorPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = 'Continue'
+        $arguments = @('-NoProfile','-ExecutionPolicy','Bypass','-File',$releaseInstallerPath,'-EvidenceRoot',$Fixture.Evidence,'-DestinationRoot',$Fixture.Destination,'-ExpectedCommit',$Fixture.ExpectedCommit,'-ExpectedVersion',$Fixture.ExpectedVersion,'-RepositoryRoot',$Fixture.Repository)
+        if (-not [string]::IsNullOrWhiteSpace($OpenCvAttestationPath)) { $arguments += @('-OpenCvAttestationPath',$OpenCvAttestationPath) }
         if ($DiscardOutput.IsPresent) {
-            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $releaseInstallerPath -EvidenceRoot $Fixture.Evidence -DestinationRoot $Fixture.Destination -ExpectedCommit $Fixture.ExpectedCommit -ExpectedVersion $Fixture.ExpectedVersion -RepositoryRoot $Fixture.Repository 2>&1 | Out-Null
+            & powershell.exe @arguments 2>&1 | Out-Null
         }
         else {
-            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $releaseInstallerPath -EvidenceRoot $Fixture.Evidence -DestinationRoot $Fixture.Destination -ExpectedCommit $Fixture.ExpectedCommit -ExpectedVersion $Fixture.ExpectedVersion -RepositoryRoot $Fixture.Repository 2>&1 | Out-Host
+            & powershell.exe @arguments 2>&1 | Out-Host
         }
         return $LASTEXITCODE
     }
@@ -457,5 +464,56 @@ Invoke-Case -Name 'Blocked clean-machine gate cannot promote reviewed runtime by
     }
 }
 
+Invoke-Case -Name 'External attestation is forwarded without changing the default' -Action {
+    $fixture = New-Fixture
+    try {
+        $external = Join-Path $fixture.Root 'external attestation\synthetic.json'
+        Write-Utf8NoBom -Path $external -Content '{"fixture":"synthetic"}'
+        $expectedHash = (Get-FileHash -LiteralPath $external -Algorithm SHA256).Hash.ToLowerInvariant()
+        $review = @'
+param([string]$EvidenceRoot, [string]$AttestationPath)
+if ([string]::IsNullOrWhiteSpace($AttestationPath)) { $AttestationPath = Join-Path $PSScriptRoot '..\..\..\provenance-private\opencv-microsoft-static-runtime-attestation.json' }
+if (-not (Test-Path -LiteralPath $AttestationPath -PathType Leaf)) { exit 2 }
+if ((Get-FileHash -LiteralPath $AttestationPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'FIXTURE_HASH') { exit 3 }
+exit 0
+'@.Replace('FIXTURE_HASH', $expectedHash)
+        Write-Utf8NoBom -Path (Join-Path $fixture.Repository 'packaging\opencv-source\review\Test-SourceBuildReviewPolicy.ps1') -Content $review
+        if ((Invoke-InstallerFixture -Fixture $fixture -DiscardOutput) -eq 0) { throw 'Missing default attestation unexpectedly passed.' }
+        if (Test-Path -LiteralPath (Join-Path $fixture.Destination 'reviewed-opencv-runtime.json')) { throw 'Failed default wrote runtime metadata.' }
+        if ((Invoke-InstallerFixture -Fixture $fixture -OpenCvAttestationPath $external -DiscardOutput) -ne 0) { throw 'Explicit external attestation failed.' }
+        $metadata = Get-Content -Raw -LiteralPath (Join-Path $fixture.Destination 'reviewed-opencv-runtime.json') | ConvertFrom-Json
+        if ($metadata.cleanMachineEvidence -ne $false -or $metadata.releaseApproved -ne $false) { throw 'Reviewed fixture changed approval flags.' }
+        if ((Invoke-ReleaseInstallerFixture -Fixture $fixture -OpenCvAttestationPath $external -DiscardOutput) -ne 0) { throw 'Release installer did not forward the external attestation.' }
+        if (@(Get-ChildItem -LiteralPath $fixture.Destination -File -Recurse | Where-Object { $_.Name -eq 'synthetic.json' }).Count -ne 0) { throw 'Attestation was copied into the payload.' }
+        if ((Get-Content -Raw -LiteralPath (Join-Path $fixture.Destination 'reviewed-opencv-runtime.json')).Contains($external)) { throw 'Private attestation path was written into metadata.' }
+    }
+    finally { if (Test-Path -LiteralPath $fixture.Root) { Remove-Item -LiteralPath $fixture.Root -Recurse -Force } }
+}
+
+if (-not [string]::IsNullOrWhiteSpace($RealEvidenceRoot) -or -not [string]::IsNullOrWhiteSpace($RealAttestationPath)) {
+    Invoke-Case -Name 'Real reviewed evidence accepts an external attestation in an isolated fixture' -Action {
+        if ([string]::IsNullOrWhiteSpace($RealEvidenceRoot) -or [string]::IsNullOrWhiteSpace($RealAttestationPath)) { throw 'Both real evidence and attestation paths are required.' }
+        $fixture = New-Fixture
+        try {
+            $sourceProfile = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+            $targetProfile = Join-Path $fixture.Repository 'packaging\opencv-source'
+            foreach ($relative in @('Test-SourceAuditEvidence.ps1','OpenCvSourceAudit.Common.ps1','source-lock.json','opencv-minimal-cache.cmake','x64-windows-static.cmake','review\Test-SourceBuildReviewPolicy.ps1','review\source-build-review-policy.json','review\third-party-notices.candidate.txt')) {
+                Copy-Item -LiteralPath (Join-Path $sourceProfile $relative) -Destination (Join-Path $targetProfile $relative) -Force
+            }
+            $fixture.Evidence = [IO.Path]::GetFullPath($RealEvidenceRoot)
+            if ((Invoke-InstallerFixture -Fixture $fixture -DiscardOutput) -eq 0) { throw 'Missing checkout-default attestation unexpectedly passed.' }
+            if ((Invoke-InstallerFixture -Fixture $fixture -OpenCvAttestationPath $RealAttestationPath) -ne 0) { throw 'Real review validators rejected the explicit external attestation.' }
+            $installed = @(Get-ChildItem -LiteralPath $fixture.Destination -Recurse -File -Filter 'OpenCvSharpExtern.dll')
+            $expected = (Get-FileHash -LiteralPath (Join-Path $fixture.Evidence 'bin\OpenCvSharpExtern.dll') -Algorithm SHA256).Hash
+            if ($installed.Count -ne 1 -or (Get-FileHash -LiteralPath $installed[0].FullName -Algorithm SHA256).Hash -cne $expected) { throw 'Isolated installed runtime differs from reviewed evidence.' }
+            $metadataText = Get-Content -Raw -LiteralPath (Join-Path $fixture.Destination 'reviewed-opencv-runtime.json')
+            $metadata = $metadataText | ConvertFrom-Json
+            if ($metadata.cleanMachineEvidence -ne $false -or $metadata.releaseApproved -ne $false -or $metadataText.Contains([IO.Path]::GetFullPath($RealAttestationPath))) { throw 'Isolated runtime metadata crossed the review boundary or exposed the path.' }
+        }
+        finally { if (Test-Path -LiteralPath $fixture.Root) { Remove-Item -LiteralPath $fixture.Root -Recurse -Force } }
+    }
+}
+
 Write-Host "Reviewed OpenCV runtime packaging tests: $passed passed, $failed failed."
 if ($failed -ne 0) { exit 1 }
+if (-not [string]::IsNullOrWhiteSpace($CaseFilter) -and $passed -eq 0) { throw "No OpenCV test matched '$CaseFilter'." }

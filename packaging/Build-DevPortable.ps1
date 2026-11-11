@@ -7,7 +7,8 @@ param(
     [switch]$FastTestsOnly,
     [switch]$SkipRestore,
     [string]$OutputRoot,
-    [string]$ReviewedOpenCvEvidenceRoot
+    [string]$ReviewedOpenCvEvidenceRoot,
+    [string]$OpenCvAttestationPath
 )
 
 Set-StrictMode -Version Latest
@@ -243,9 +244,9 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($ReviewedOpenCvEvidenceRoot)) {
         $reviewedOpenCvEvidencePath = [IO.Path]::GetFullPath($ReviewedOpenCvEvidenceRoot)
         Invoke-CheckedCommand -Description 'install reviewed source-built OpenCV runtime' -Command {
-            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'packaging\opencv-source\Install-ReviewedRuntime.ps1') `
-                -EvidenceRoot $reviewedOpenCvEvidencePath `
-                -DestinationRoot $stagingDirectory
+            $installerArguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $repositoryRoot 'packaging\opencv-source\Install-ReviewedRuntime.ps1'), '-EvidenceRoot', $reviewedOpenCvEvidencePath, '-DestinationRoot', $stagingDirectory)
+            if (-not [string]::IsNullOrWhiteSpace($OpenCvAttestationPath)) { $installerArguments += @('-OpenCvAttestationPath', [IO.Path]::GetFullPath($OpenCvAttestationPath)) }
+            & powershell.exe @installerArguments
         }
         $openCvRuntime = Get-Content -LiteralPath (Join-Path $stagingDirectory 'reviewed-opencv-runtime.json') -Raw | ConvertFrom-Json
         if ([bool]$openCvRuntime.releaseApproved -or
