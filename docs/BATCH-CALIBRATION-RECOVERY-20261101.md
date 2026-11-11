@@ -121,3 +121,8 @@ The prior `54733e5e` checkpoint passed
 [Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/42976423307):
 2,470 solution tests passed with 29 optional skips, including the new candidate
 evidence fixture check. That run predates the close-protection follow-up.
+
+The integrated close-protection commit `24a88817` subsequently passed
+[Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/42978549485):
+2,471 tests passed across 13 projects, 29 optional tests were skipped, and all
+64 packaging cases plus the candidate-evidence fixture check passed.
