@@ -2506,6 +2506,115 @@ try {
         Assert-ExitCode -Result $ordinary -Expected 1 -Contains 'not pass'
     }
 
+    Assert-Case 'Frozen native A B C handoff uses both typed installers on exact synthetic bytes' {
+        $fixture = New-ValidModelBuildFixture -Name 'frozen-native-end-to-end' -IncludeNoto
+        $root = $fixture.Root
+        $cv = & (Join-Path $PSScriptRoot '..\opencv-source\tests\Test-InstallReviewedRuntime.Tests.ps1') -FixtureOnly
+        $pdf = & (Join-Path $PSScriptRoot '..\pdfium-source\tests\Test-InstallReleaseRenderer.Tests.ps1') -FixtureOnly
+        try {
+            Add-Content -LiteralPath (Join-Path $root '.gitignore') -Value @('/artifacts/','**/bin/','**/obj/')
+            $props = Join-Path $root 'Directory.Build.props'
+            (Get-Content -Raw -LiteralPath $props).Replace('2.0.0','0.4.36') | Set-Content -LiteralPath $props -Encoding utf8
+            Write-JsonFile -Path (Join-Path $root 'docs/BUILD_LEDGER.json') -Value ([ordered]@{schemaVersion=1;builds=@(@{buildNumber=435;version='0.4.35'})})
+            Copy-TestTree -Source (Join-Path $cv.Repository 'packaging/opencv-source') -Destination (Join-Path $root 'packaging/opencv-source')
+            Copy-TestTree -Source (Join-Path $pdf.Repository 'packaging/pdfium-source') -Destination (Join-Path $root 'packaging/pdfium-source')
+            Copy-Item -LiteralPath (Join-Path $PSScriptRoot '..\opencv-source\Install-ReleaseRuntime.ps1') -Destination (Join-Path $root 'packaging/opencv-source/Install-ReleaseRuntime.ps1')
+            Copy-Item -LiteralPath (Join-Path $PSScriptRoot '..\pdfium-source\Install-ReleaseRenderer.ps1') -Destination (Join-Path $root 'packaging/pdfium-source/Install-ReleaseRenderer.ps1')
+            Copy-TestTree -Source (Join-Path $cv.Repository 'packaging/clean-machine') -Destination (Join-Path $root 'packaging/clean-machine')
+            Copy-TestTree -Source (Join-Path $pdf.Repository 'packaging/clean-machine') -Destination (Join-Path $root 'packaging/clean-machine')
+            $rawCv = Join-Path $root 'src/GraphReader.App/OpenCvSharpExtern.dll'
+            [IO.File]::WriteAllText($rawCv, 'Synthetic unreviewed source runtime')
+            $project = Join-Path $root 'src/GraphReader.App/GraphReader.App.csproj'
+            $projectText = Get-Content -Raw -LiteralPath $project
+            $projectText.Replace('</Project>', '<ItemGroup><Content Include="OpenCvSharpExtern.dll" CopyToPublishDirectory="PreserveNewest" /></ItemGroup></Project>') | Set-Content -LiteralPath $project -Encoding utf8
+            $auditPath = Join-Path $root 'packaging/common/release-audit.json'
+            $audit = Get-Content -Raw -LiteralPath $auditPath | ConvertFrom-Json
+            $postIds = @('installer-clean-windows-vm','portable-clean-windows-vm','release-artifact-pair-parity')
+            foreach ($id in @('opencv-clean-machine-load','pdfium-clean-machine-load') + $postIds) { $audit.mandatoryEvidenceGates += [pscustomobject]@{id=$id;description='Synthetic fixture only';status='blocked';evidence=@();notes='Synthetic pending evidence'} }
+            foreach ($pair in @(@('opencvsharp-native',$cv.ReviewedHash),@('pdfium-native',$pdf.BinaryHash))) {
+                $component = [pscustomobject]@{id=$pair[0];component='Synthetic fixture native';version='1';source='synthetic';sourceRevision='fixture';license='Apache-2.0';bundledOrDownloaded='bundled';artifactSha256=$pair[1];checksumPolicy='exact-binary';noticePaths=@('LICENSE');commercialUse=$true;redistribution=$true;reviewStatus='reviewed';reviewer='synthetic fixture';reviewDate='2026-08-03';notes='Fixture only'}
+                $audit.components += $component
+            }
+            Write-JsonFile -Path $auditPath -Value $audit
+            & git -C $root add --all
+            & git -C $root add -f src/GraphReader.App/OpenCvSharpExtern.dll
+            & git -C $root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Synthetic frozen native source A'
+            if ($LASTEXITCODE -ne 0) { throw 'Could not commit synthetic source A.' }
+            $buildScript = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\Build-Windows.ps1'))
+            $frozenRoot = Join-Path $root 'artifacts/frozen-fixture'
+            $prepared = & $buildScript -ManifestPath $fixture.Manifest -PrepareNativeHandoff -FrozenPublishRoot $frozenRoot
+            if ($prepared.ArtifactsEmitted -or $prepared.ReleaseReady -or $prepared.Status -ne 'diagnostic-publish-only') { throw 'Synthetic preparation overclaimed or emitted packages.' }
+            $source = [string]$prepared.SourceCommit
+            $frozenPublish = Join-Path $frozenRoot 'publish'
+            $frozenExeHash = Get-TestSha256 -Path (Join-Path $frozenPublish 'GraphReader.App.exe')
+            $frozenDllHash = Get-TestSha256 -Path (Join-Path $frozenPublish 'GraphReader.App.dll')
+            $previewRoot = Join-Path $root 'artifacts/synthetic-preview'
+            New-Item -ItemType Directory -Path $previewRoot -Force | Out-Null
+            Copy-Item -LiteralPath (Join-Path $frozenPublish 'GraphReader.App.exe') -Destination $previewRoot
+            [IO.File]::WriteAllText((Join-Path $previewRoot 'portable.mode'), '')
+            Write-JsonFile -Path (Join-Path $previewRoot 'build-info.json') -Value ([ordered]@{schemaVersion=2;runtimeMode='ManualPreview';commit=$source;version='0.4.36';dirty=$false;executableSha256=$frozenExeHash;availableModelIds=@()})
+            $cvReport = Get-Content -Raw -LiteralPath $cv.CleanMachineEvidencePath | ConvertFrom-Json
+            $cvReport.payload.commit=$source; $cvReport.payload.version='0.4.36'; $cvReport.payload.executableSha256=$frozenExeHash
+            $cvReport.vmProvenance.expectedCommit=$source; $cvReport.vmProvenance.expectedVersion='0.4.36'; $cvReport.vmProvenance.expectedExecutableSha256=$frozenExeHash
+            $pdfReport = Get-Content -Raw -LiteralPath $pdf.CleanMachineEvidencePath | ConvertFrom-Json
+            $pdfReport.payload.commit=$source; $pdfReport.payload.version='0.4.36'; $pdfReport.payload.executableSha256=$frozenExeHash; $pdfReport.payload.applicationDllSha256=$frozenDllHash
+            $pdfReport.vmProvenance.expectedCommit=$source; $pdfReport.vmProvenance.expectedVersion='0.4.36'; $pdfReport.vmProvenance.expectedExecutableSha256=$frozenExeHash; $pdfReport.vmProvenance.expectedApplicationDllSha256=$frozenDllHash
+            $cvPath = Join-Path $root 'packaging/evidence/opencv-clean-machine.json'; $pdfPath = Join-Path $root 'packaging/evidence/pdfium-clean-machine.json'
+            Write-JsonFile -Path $cvPath -Value $cvReport; Write-JsonFile -Path $pdfPath -Value $pdfReport
+            foreach ($pair in @(@('opencv-clean-machine-load',$cvPath,'packaging/evidence/opencv-clean-machine.json'),@('pdfium-clean-machine-load',$pdfPath,'packaging/evidence/pdfium-clean-machine.json'))) {
+                $gate = @($audit.mandatoryEvidenceGates | Where-Object { $_.id -ceq $pair[0] })[0]
+                $gate.status='pass'; $gate.notes='Synthetic fixture only'; $gate.evidence=@(@{path=$pair[2];sha256=(Get-TestSha256 -Path $pair[1])})
+            }
+            Write-JsonFile -Path $auditPath -Value $audit
+            & git -C $root add packaging/common/release-audit.json packaging/evidence/opencv-clean-machine.json packaging/evidence/pdfium-clean-machine.json
+            & git -C $root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Synthetic native reports B'
+            if ($LASTEXITCODE -ne 0) { throw 'Could not commit synthetic evidence B.' }
+            $nativeCommit = (& git -C $root rev-parse HEAD).Trim()
+            $frozenDllPath = Join-Path $frozenPublish 'GraphReader.App.dll'
+            $frozenDllBytes = [IO.File]::ReadAllBytes($frozenDllPath)
+            [IO.File]::AppendAllText($frozenDllPath, 'synthetic tamper')
+            $tamperRejected = $false
+            try { & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -CandidateOnly -FrozenPublishRoot $frozenRoot -ExpectedFrozenReceiptSha256 $prepared.FrozenReceiptSha256 -OpenCvDiagnosticRoot $previewRoot -ReviewedOpenCvEvidenceRoot $cv.Evidence -ReviewedPdfiumEvidenceRoot $pdf.Evidence | Out-Null } catch { $tamperRejected = $_.Exception.Message -like '*Frozen publish file differs*' }
+            [IO.File]::WriteAllBytes($frozenDllPath, $frozenDllBytes)
+            if (-not $tamperRejected -or (Test-Path -LiteralPath $fixture.OutputRoot)) { throw 'Tampered frozen application was not rejected before candidate staging.' }
+            $resumed = & $buildScript -ManifestPath $fixture.Manifest -OutputRoot $fixture.OutputRoot -CandidateOnly -FrozenPublishRoot $frozenRoot -ExpectedFrozenReceiptSha256 $prepared.FrozenReceiptSha256 -OpenCvDiagnosticRoot $previewRoot -ReviewedOpenCvEvidenceRoot $cv.Evidence -ReviewedPdfiumEvidenceRoot $pdf.Evidence
+            if (-not $resumed.ArtifactsEmitted -or $resumed.ReleaseReady) { throw 'Synthetic frozen candidate did not remain nonrelease.' }
+            if ((Get-TestSha256 -Path (Join-Path $resumed.CommonPublish 'GraphReader.App.dll')) -cne $frozenDllHash) { throw 'Candidate resumed with different application bytes.' }
+            $metadataPath = Join-Path $resumed.ArtifactRoot 'release-metadata.json'
+            $metadata = Get-Content -Raw -LiteralPath $metadataPath | ConvertFrom-Json
+            if ($metadata.gitCommit -cne $source -or $metadata.nativeEvidenceCommit -cne $nativeCommit) { throw 'Candidate source A and native evidence B are not distinct.' }
+            $packageHashes = @((Get-TestSha256 -Path $resumed.InstallerArtifact),(Get-TestSha256 -Path $resumed.PortableArtifact))
+            $checks = @(
+                @('install','launch','repair_or_reinstall','upgrade','uninstall','user_data_preservation','start_menu','path_with_spaces','offline_workflow','image_import','batch_import','pdf_import','model_discovery','cpu_fallback','save_autosave_recovery','csv_export','licenses_notices','settings_path_isolation'),
+                @('extract_and_launch','offline_workflow','image_import','batch_import','pdf_import','model_discovery','cpu_fallback','save_autosave_recovery','csv_export','licenses_notices','settings_path_isolation','no_writes_outside_allowed_roots','registry_independence','spaces_and_unicode_path','read_only_diagnostics'),
+                @('version','source_commit','contract','models','notices','checksums','forbidden_file_scan','common_payload'))
+            $harness = Join-Path $root 'packaging/clean-machine/Invoke-GraphReaderCleanMachineValidation.ps1'
+            $gates = for ($i=0; $i -lt 3; $i++) {
+                $values=[ordered]@{}; foreach ($check in $checks[$i]) { $values[$check]=$true }
+                $relative="packaging/evidence/synthetic-postbuild-$i.json"; $report=Join-Path $root $relative
+                Write-JsonFile -Path $report -Value ([ordered]@{schema='graphreader.candidate-observation.v1';fixture=$true;gateId=$postIds[$i];sourceCommit=$source;version='0.4.36';executableSha256=$frozenExeHash;harnessSha256=(Get-TestSha256 -Path $harness);vmId='8edb9b52-d3a1-4cda-96b0-54cc5696630a';observedAtUtc='2026-10-31T16:00:00Z'})
+                [ordered]@{id=$postIds[$i];checks=$values;report=@{path=$relative;sha256=(Get-TestSha256 -Path $report);harnessPath='packaging/clean-machine/Invoke-GraphReaderCleanMachineValidation.ps1';harnessSha256=(Get-TestSha256 -Path $harness)}}
+            }
+            $receiptPath=Join-Path $root 'packaging/evidence/synthetic-postbuild-receipt.json'
+            Write-JsonFile -Path $receiptPath -Value ([ordered]@{schema='graphreader.candidate-evidence.v1';fixture=$true;review=@{status='approved';reviewer='synthetic fixture only'};identity=@{sourceCommit=$source;version='0.4.36';metadataSha256=(Get-TestSha256 -Path $metadataPath);commonPayload=$metadata.commonPayload.sha256;installer=$packageHashes[0];portable=$packageHashes[1]};vmProvenance=@{environmentKind='fresh-windows-evaluation-vm';networkMode='none';freshInstall=$true;isoSha256Verified=$true;vmId='8edb9b52-d3a1-4cda-96b0-54cc5696630a';observedVmId='8edb9b52-d3a1-4cda-96b0-54cc5696630a';osBuild='26200';expectedOsBuild='26200';osUbr=6584;expectedOsUbr=6584;observedAtUtc='2026-10-31T16:00:00Z';installTimeUtc='2026-10-31T14:00:00Z';qemuVersion='QEMU synthetic fixture';qemuInstallerSha256=('c'*64);expectedCommit=$source;expectedVersion='0.4.36';expectedExecutableSha256=$frozenExeHash;isoSha256=('a'*64);officialIsoSha256=('a'*64);vmConfigurationSha256=('b'*64)};gates=$gates})
+            foreach ($gate in $audit.mandatoryEvidenceGates | Where-Object { $_.id -in $postIds }) { $gate.status='pass';$gate.notes='Synthetic fixture only';$gate.evidence=@(@{path='packaging/evidence/synthetic-postbuild-receipt.json';sha256=(Get-TestSha256 -Path $receiptPath)}) }
+            Write-JsonFile -Path $auditPath -Value $audit
+            & git -C $root add packaging/common/release-audit.json packaging/evidence/synthetic-postbuild-receipt.json packaging/evidence/synthetic-postbuild-0.json packaging/evidence/synthetic-postbuild-1.json packaging/evidence/synthetic-postbuild-2.json
+            & git -C $root -c user.name=Fixture -c user.email=fixture@example.invalid commit --quiet -m 'Synthetic postbuild evidence C'
+            if ($LASTEXITCODE -ne 0) { throw 'Could not commit synthetic evidence C.' }
+            $verified = & $testScript -ManifestPath $fixture.Manifest -ArtifactRoot $resumed.ArtifactRoot -CandidateEvidencePath $receiptPath -AllowFixtureEvidence -ReviewedOpenCvEvidenceRoot $cv.Evidence -ReviewedPdfiumEvidenceRoot $pdf.Evidence
+            if ($verified.ReleaseApproved -ne $false -or $verified.FixtureEvidence -ne $true) { throw 'Synthetic final verification overclaimed.' }
+            if ((Get-TestSha256 -Path $resumed.InstallerArtifact) -cne $packageHashes[0] -or (Get-TestSha256 -Path $resumed.PortableArtifact) -cne $packageHashes[1] -or (Get-TestSha256 -Path (Join-Path $frozenPublish 'GraphReader.App.dll')) -cne $frozenDllHash) { throw 'Frozen publish or package bytes changed during verification.' }
+        }
+        finally {
+            $temporaryPrefix = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar
+            foreach ($temporary in @($cv.Root,$pdf.Root)) {
+                $resolvedTemporary = [IO.Path]::GetFullPath($temporary)
+                if ($resolvedTemporary.StartsWith($temporaryPrefix, [StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $resolvedTemporary)) { Remove-Item -LiteralPath $resolvedTemporary -Recurse -Force }
+            }
+        }
+    }
+
     Assert-Case 'Candidate audit defers only fixed post-build gates' {
         $fixture = New-ValidModelBuildFixture -Name 'candidate-audit-gates'
         $auditPath = Join-Path $fixture.Root 'packaging/common/release-audit.json'

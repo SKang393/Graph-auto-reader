@@ -41,6 +41,7 @@ try {
     # Keep the fixture gate array flat, including on Windows PowerShell.
     $sourceAudit.mandatoryEvidenceGates = @([ordered]@{ id = 'production-workflow'; status = 'pass'; notes = 'fixture'; evidence = @() }) + @($ids | ForEach-Object { [ordered]@{ id = $_; status = 'blocked'; notes = 'fixture'; evidence = @() } })
     Write-Json $auditPath $sourceAudit
+    [IO.File]::WriteAllText($auditPath, [IO.File]::ReadAllText($auditPath), [Text.UTF8Encoding]::new($true))
     $harnessPath = Join-Path $repo 'packaging\fixture-harness.ps1'
     [IO.File]::WriteAllText($harnessPath, '# Synthetic fixture harness')
     Commit-Fixture 'Fixture candidate source'

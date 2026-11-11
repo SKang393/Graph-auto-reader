@@ -9,6 +9,8 @@ param(
     [Parameter(Mandatory)][string]$ReceiptPath,
     [Parameter(Mandatory)][string]$ExpectedSourceCommit,
     [Parameter(Mandatory)][string]$ExpectedVersion,
+    [string]$ReviewedOpenCvEvidenceRoot,
+    [string]$ReviewedPdfiumEvidenceRoot,
     [switch]$AllowFixture
 )
 Set-StrictMode -Version Latest
@@ -101,7 +103,7 @@ $gateChecks = [ordered]@{
 $vm = $receipt.vmProvenance
 if ($vm.environmentKind -cne 'fresh-windows-evaluation-vm' -or $vm.networkMode -cne 'none' -or $vm.freshInstall -isnot [bool] -or $vm.freshInstall -ne $true -or $vm.isoSha256Verified -isnot [bool] -or $vm.isoSha256Verified -ne $true) { throw 'Receipt clean-machine provenance is incomplete.' }
 if ($vm.vmId -isnot [string] -or $vm.observedVmId -isnot [string] -or $vm.vmId -notmatch '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$' -or $vm.observedVmId -ine $vm.vmId -or $vm.vmId -eq '00000000-0000-0000-0000-000000000000') { throw 'Receipt VM UUID is invalid or mismatched.' }
-if ($vm.osBuild -isnot [string] -or $vm.osBuild -notmatch '^[0-9]+$' -or $vm.expectedOsBuild -cne $vm.osBuild -or $vm.osUbr -isnot [long] -and $vm.osUbr -isnot [int] -or $vm.osUbr -lt 0 -or $vm.expectedOsUbr -isnot [long] -and $vm.expectedOsUbr -isnot [int] -or $vm.expectedOsUbr -ne $vm.osUbr -or $vm.qemuVersion -isnot [string] -or $vm.qemuVersion -notmatch '^QEMU\s') { throw 'Receipt VM OS or QEMU identity is invalid.' }
+if ($vm.osBuild -isnot [string] -or $vm.osBuild -notmatch '^[0-9]+$' -or $vm.expectedOsBuild -cne $vm.osBuild -or ($vm.osUbr -isnot [long] -and $vm.osUbr -isnot [int]) -or $vm.osUbr -lt 0 -or ($vm.expectedOsUbr -isnot [long] -and $vm.expectedOsUbr -isnot [int]) -or $vm.expectedOsUbr -ne $vm.osUbr -or $vm.qemuVersion -isnot [string] -or $vm.qemuVersion -notmatch '^QEMU\s') { throw 'Receipt VM OS or QEMU identity is invalid.' }
 foreach ($name in @('isoSha256','officialIsoSha256','vmConfigurationSha256','qemuInstallerSha256','expectedExecutableSha256')) { Assert-Hash ([string]$vm.$name) $name }
 if ($vm.isoSha256 -cne $vm.officialIsoSha256) { throw 'Receipt ISO hashes differ.' }
 if ($vm.expectedCommit -cne $ExpectedSourceCommit -or $vm.expectedVersion -cne $ExpectedVersion -or $vm.expectedExecutableSha256 -cne $appRecord[0].sha256) { throw 'Receipt VM candidate identity differs.' }
@@ -147,9 +149,17 @@ foreach ($pair in @(@($auditPath, $auditRelative), @($ReceiptPath, $receiptRelat
 }
 $currentAudit = Get-Content -Raw -LiteralPath $auditPath | ConvertFrom-Json
 $sourceBytes = Get-TrackedBytes $ExpectedSourceCommit $auditRelative
+$nativeEvidenceCommit = $null
+if ($null -ne $metadata.PSObject.Properties['nativeEvidenceCommit']) {
+    $nativeEvidenceCommit = [string]$metadata.nativeEvidenceCommit
+    if ([string]::IsNullOrWhiteSpace($ReviewedOpenCvEvidenceRoot) -or [string]::IsNullOrWhiteSpace($ReviewedPdfiumEvidenceRoot)) { throw 'Frozen candidate verification requires both reviewed native evidence roots.' }
+    . (Join-Path $PSScriptRoot 'FrozenNative.Common.ps1')
+    Assert-FrozenNativeAuditTransition $RepositoryRoot $ExpectedSourceCommit $nativeEvidenceCommit
+    $sourceBytes = Get-TrackedBytes $nativeEvidenceCommit $auditRelative
+}
 $embeddedPath = Join-Path $commonRoot 'release-audit.json'
-Assert-TrackedFile $ExpectedSourceCommit $auditRelative $embeddedPath
-$sourceAudit = [Text.Encoding]::UTF8.GetString($sourceBytes) | ConvertFrom-Json
+Assert-TrackedFile $(if ($null -ne $nativeEvidenceCommit) { $nativeEvidenceCommit } else { $ExpectedSourceCommit }) $auditRelative $embeddedPath
+$sourceAudit = [Text.Encoding]::UTF8.GetString($sourceBytes).TrimStart([char]0xfeff) | ConvertFrom-Json
 foreach ($gate in @($sourceAudit.mandatoryEvidenceGates)) {
     if (-not $gateChecks.Contains([string]$gate.id) -and $gate.status -cne 'pass') { throw "Non-deferred prerequisite gate is not pass: $($gate.id)." }
 }
@@ -161,5 +171,33 @@ foreach ($id in $gateChecks.Keys) {
     foreach ($field in @('status','evidence','notes')) { $sourceGate[0].$field = $currentGate[0].$field }
 }
 if (($sourceAudit | ConvertTo-Json -Depth 100 -Compress) -cne ($currentAudit | ConvertTo-Json -Depth 100 -Compress)) { throw 'Non-deferred audit content differs from candidate source.' }
+if ($null -ne $nativeEvidenceCommit) {
+    $workingChanges = @(& git -C $RepositoryRoot status --porcelain --untracked-files=normal)
+    if ($LASTEXITCODE -ne 0 -or $workingChanges.Count -ne 0) { throw 'Frozen candidate evidence verification requires a clean evidence checkout.' }
+    & git -C $RepositoryRoot merge-base --is-ancestor $nativeEvidenceCommit HEAD
+    if ($LASTEXITCODE -ne 0) { throw 'Native evidence commit is not an ancestor of final evidence commit.' }
+    $allowed = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $null = $allowed.Add($auditRelative); $null = $allowed.Add($receiptRelative)
+    foreach ($gate in $receipt.gates) { $null = $allowed.Add([string]$gate.report.path) }
+    $changed = @(& git -C $RepositoryRoot diff --no-renames --name-only $nativeEvidenceCommit HEAD)
+    if ($LASTEXITCODE -ne 0) { throw 'Could not inspect final evidence transition.' }
+    foreach ($path in $changed) { if (-not $allowed.Contains([string]$path)) { throw "Final evidence commit changes unrelated source: $path" } }
+    $tempRoot = Join-Path $RepositoryRoot ('artifacts\candidate-native-verification-' + [Guid]::NewGuid().ToString('N'))
+    Assert-NoReparse $tempRoot
+    try {
+        $cvRoot = Join-Path $tempRoot 'opencv'; $pdfRoot = Join-Path $tempRoot 'pdfium'
+        New-Item -ItemType Directory -Path $cvRoot,$pdfRoot -Force | Out-Null
+        foreach ($root in @($cvRoot,$pdfRoot)) {
+            foreach ($name in @('GraphReader.App.exe','GraphReader.App.dll')) { Copy-Item -LiteralPath (Join-Path $commonRoot $name) -Destination $root }
+        }
+        Copy-Item -LiteralPath (Join-Path $commonRoot 'OpenCvSharpExtern.dll') -Destination $cvRoot
+        & (Join-Path $RepositoryRoot 'packaging\opencv-source\Install-ReleaseRuntime.ps1') -RepositoryRoot $RepositoryRoot -EvidenceRoot $ReviewedOpenCvEvidenceRoot -DestinationRoot $cvRoot -ExpectedCommit $ExpectedSourceCommit -ExpectedVersion $ExpectedVersion | Out-Null
+        & (Join-Path $RepositoryRoot 'packaging\pdfium-source\Install-ReleaseRenderer.ps1') -RepositoryRoot $RepositoryRoot -EvidenceRoot $ReviewedPdfiumEvidenceRoot -DestinationRoot $pdfRoot -ExpectedCommit $ExpectedSourceCommit -ExpectedVersion $ExpectedVersion | Out-Null
+    }
+    finally {
+        $prefix = [IO.Path]::GetFullPath((Join-Path $RepositoryRoot 'artifacts')).TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar
+        if ([IO.Path]::GetFullPath($tempRoot).StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $tempRoot)) { Remove-Item -LiteralPath $tempRoot -Recurse -Force }
+    }
+}
 $isFixture = $null -ne $receipt.PSObject.Properties['fixture'] -and $receipt.fixture -eq $true
 [pscustomobject]@{ status = $(if ($isFixture) { 'fixture-evidence-validated' } else { 'evidence-validated' }); sourceCommit = $ExpectedSourceCommit; version = $ExpectedVersion; releaseApproved = $false; published = $false }

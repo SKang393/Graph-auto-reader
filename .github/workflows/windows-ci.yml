@@ -131,6 +131,12 @@ jobs:
           pwsh -NoProfile
           -File "${{ github.workspace }}\packaging\tests\Test-CandidateEvidence.Tests.ps1"
 
+      - name: Test frozen native publish handoff
+        shell: pwsh
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File "${{ github.workspace }}\packaging\tests\Test-FrozenNative.Tests.ps1"
+
       - name: Validate packaging definitions
         shell: pwsh
         run: >-

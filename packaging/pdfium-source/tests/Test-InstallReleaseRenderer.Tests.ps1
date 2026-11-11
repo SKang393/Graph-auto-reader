@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Sungwoo Kang
 
+param([switch]$FixtureOnly)
+
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
@@ -209,6 +211,8 @@ function New-Fixture {
         CleanMachineEvidencePath = $cleanMachineEvidencePath
     }
 }
+
+if ($FixtureOnly) { New-Fixture; return }
 
 function Invoke-Case {
     param(

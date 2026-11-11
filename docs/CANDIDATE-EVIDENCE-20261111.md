@@ -7,17 +7,18 @@ The release builder previously required installer, portable, and pair-parity
 evidence before emitting the pair needed for those observations. Explicit
 candidate mode now defers those three gates and verifies the unchanged pair
 after reviewed evidence is recorded. Other production prerequisites remain
-mandatory. OpenCV/PDFium candidate-specific evidence has a separate creation
-and commit-binding cycle that is not resolved by this batch.
+mandatory. A separate frozen-publish handoff now addresses OpenCV/PDFium's
+creation and commit-binding cycle without rebuilding observed application bytes.
 
 `packaging/Test-CandidateEvidence.ps1` checks a reviewed, tracked receipt
 against existing schema-1 release metadata and actual installer, portable,
 and common-publish bytes. It checks every common file's path, size, and hash,
 the existing sorted manifest digest, and the package/shared-payload identities.
 The candidate source commit is separate from the later evidence-record commit.
-The embedded audit must match the candidate source, and only the status,
-evidence, and notes of the three named post-build gates may change in the later
-tracked audit. Other source prerequisites must remain passing and unchanged.
+The embedded audit must match the candidate source, or its separately validated
+native-evidence commit for a frozen publish. Only the status, evidence, and
+notes of the three named post-build gates may change in the later tracked
+audit. Other prerequisites must remain passing and unchanged.
 
 The record requires a named approved review, each required distribution
 observation, matching VM UUID/OS build/UBR, UTC installation and observation
@@ -83,10 +84,57 @@ Windows PowerShell hashing failure was repaired with stream-based SHA-256.
 `artifacts/packaging-suite-candidate.log` is disposable after this outcome is
 pushed; fixture directories are removed by the test harness.
 
+After `63623c86` reached `origin/main`, that completed diagnostic log was
+removed (one file, 32,527 bytes). The earlier application startup smoke was
+also retired after its record was pushed (five files, 502 bytes). Active test
+compiler outputs remain inputs to the ongoing native-staging work.
+
 No real candidate, production evidence, gate-status change, or public-release
 promotion occurred. Exact native evidence and remaining production
 prerequisites still block a real candidate. The checker alone cannot authorize
 publication.
+
+## Preserve the observed native application bytes
+
+Application informational versions embed the source commit. Rebuilding after
+recording native evidence therefore changes the application DLL. Diagnostic
+preparation now freezes a clean Production publish from source A with a complete
+file manifest and independently supplied receipt hash. Preparation creates no
+package and records no native approval. Candidate resume copies and rechecks
+these bytes after evidence commit B; only the two native reports and their
+audit-gate fields may differ from A. Existing typed OpenCV/PDFium installers
+must validate the actual reports, native resources, application bytes, and
+harnesses before installing approved runtime metadata into the new staging copy.
+
+Metadata records source A and native-evidence B separately. Final evidence C
+is limited to the existing three post-build gates and their records. Verification
+reruns both native validators against temporary copies of the candidate bytes,
+requires a clean checkout, and does not mutate the frozen input or package pair.
+The [clean-machine instructions](../packaging/clean-machine/README.md) describe
+the exact preparation, resume, and final-verification arguments.
+
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File packaging/tests/Test-ReleaseArtifact.Tests.ps1 -CaseFilter 'Frozen native A B C handoff uses both typed installers on exact synthetic bytes'`
+passed one complete synthetic handoff. It rejects a changed frozen DLL, runs
+both actual typed native installers, constructs a synthetic internal pair, then
+verifies final evidence and unchanged input/package hashes. Reports and approvals
+exist only in the synthetic repositories; no real native library or guest was
+validated. Standalone frozen-native and candidate-evidence tests also passed
+under Windows PowerShell. PowerShell parsing and diff checks passed, and
+independent read-only review found no remaining concrete bypass.
+
+This test exposed and fixed existing integration bugs: the wrong version-object
+property passed to native installers, missing native-resource classification,
+rejection of the reviewed PDFium `bin` path, separator mismatches, and native
+installer console output contaminating the builder's return object. Native file
+exceptions are restricted to validated, hash-bound resource paths.
+
+[CI for `63623c86`](https://github.com/SKang393/Graph-auto-reader/actions/runs/42979967868)
+passed 2,471 solution tests with 29 optional skips, but packaging reported
+66 passing cases and one failure: Windows PowerShell rejected a BOM-prefixed
+audit read from Git. Parsing now removes only the leading UTF-8 BOM while raw
+hashes remain unchanged. The exact failed case passed its Windows PowerShell
+rerun. Explicit parentheses also repaired an OS-update-revision type check
+exposed under that host. The next clean CI run remains the full-suite gate.
 
 ## Current application process smoke
 

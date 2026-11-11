@@ -5,6 +5,37 @@
 
 ## Candidate evidence verification
 
+### Frozen native handoff
+
+From clean source commit A, prepare a scratch Production publish with
+`Build-Windows.ps1 -PrepareNativeHandoff -FrozenPublishRoot <new-artifacts-dir>`.
+Save the returned `FrozenReceiptSha256` independently. This creates no package
+and makes no native approval claim. Use copies for the existing native guest
+diagnostics; do not modify the frozen `publish` folder or receipt. OpenCV's
+existing harness needs a separately prepared, clean, model-free ManualPreview
+with `portable.mode` and schema-2 `build-info.json`; its actual host EXE must
+match the frozen Production host EXE. PDFium's diagnostic must bind the frozen
+EXE and application DLL. Both diagnostics must use source commit A and its
+version.
+
+After reviewed native reports and their two gate updates are committed as B,
+run `Build-Windows.ps1 -CandidateOnly -FrozenPublishRoot <same-dir>
+-ExpectedFrozenReceiptSha256 <saved-sha> -OpenCvDiagnosticRoot <preview-dir>`
+with both reviewed native evidence roots. Resume checks the frozen files and
+the A-to-B source/audit transition, then runs the existing typed native release
+installers with A's identity before constructing the candidate. B may change
+only the two native reports and their gate status, evidence, and notes. All
+other candidate preconditions remain required. Source commit A and native
+evidence commit B are recorded separately; candidate packaging consumes the
+normal next version. The ordinary release path still requires a fresh publish.
+
+When verifying post-build evidence for such a candidate, provide
+`-ReviewedOpenCvEvidenceRoot` and `-ReviewedPdfiumEvidenceRoot` alongside
+`-CandidateEvidencePath`. Verification reruns the native evidence checks in
+temporary staging and checks that B-to-final evidence changes are restricted
+to the candidate reports, receipt, and three post-build audit gates. It does
+not change the frozen publish or either candidate package.
+
 `packaging/Test-CandidateEvidence.ps1` validates an independently reviewed,
 tracked `graphreader.candidate-evidence.v1` record against an existing
 candidate's schema-1 `release-metadata.json`, installer and portable bytes,

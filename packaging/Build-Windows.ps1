@@ -9,6 +9,10 @@ param(
     [switch]$Force,
     [switch]$AuditOnly,
     [switch]$CandidateOnly,
+    [switch]$PrepareNativeHandoff,
+    [string]$FrozenPublishRoot,
+    [string]$ExpectedFrozenReceiptSha256,
+    [string]$OpenCvDiagnosticRoot,
     [string]$ReviewedOpenCvEvidenceRoot,
     [string]$ReviewedPdfiumEvidenceRoot
 )
@@ -16,6 +20,11 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'VersionPolicy.ps1')
+. (Join-Path $PSScriptRoot 'FrozenNative.Common.ps1')
+if ($PrepareNativeHandoff -and ($CandidateOnly -or $AuditOnly -or $SkipPublish -or $Force)) { throw 'Native preparation cannot be combined with build or audit modes.' }
+if ($PrepareNativeHandoff -and [string]::IsNullOrWhiteSpace($FrozenPublishRoot)) { throw 'Native preparation requires -FrozenPublishRoot.' }
+if (-not $PrepareNativeHandoff -and -not [string]::IsNullOrWhiteSpace($FrozenPublishRoot) -and -not $CandidateOnly) { throw 'A frozen publish can only be consumed by -CandidateOnly.' }
+if ([string]::IsNullOrWhiteSpace($FrozenPublishRoot) -and (-not [string]::IsNullOrWhiteSpace($ExpectedFrozenReceiptSha256) -or -not [string]::IsNullOrWhiteSpace($OpenCvDiagnosticRoot))) { throw 'Frozen receipt and diagnostic inputs require -FrozenPublishRoot.' }
 
 if ([string]::IsNullOrWhiteSpace($ManifestPath)) {
     $ManifestPath = Join-Path $PSScriptRoot 'artifacts.json'
@@ -1525,13 +1534,15 @@ function Assert-PayloadAllowlist {
 function Assert-NoForbiddenReleaseFiles {
     param(
         [Parameter(Mandatory)]
-        [string]$Root
+        [string]$Root,
+        [string[]]$ApprovedNativePaths = @()
     )
 
     $forbidden = New-Object System.Collections.Generic.List[string]
     foreach ($file in @(Get-ChildItem -LiteralPath $Root -Recurse -File)) {
         $relativePath = $file.FullName.Substring([System.IO.Path]::GetFullPath($Root).Length).TrimStart('\', '/').Replace('\', '/')
-        $isForbidden = $relativePath -match '(?i)(^|/)(\.agents|private|human[-_ ]annotations?|training[-_ ]data|autosaves?|cache|obj|bin)(/|$)' -or
+        $isForbidden = $relativePath -match '(?i)(^|/)(\.agents|private|human[-_ ]annotations?|training[-_ ]data|autosaves?|cache|obj)(/|$)' -or
+            ($relativePath -match '(?i)(^|/)bin(/|$)' -and $ApprovedNativePaths -cnotcontains $relativePath) -or
             $relativePath -match '(?i)(^|/)(AGENTS\.md|CODEX_[^/]*|DOCUMENT_MAP\.md|MASTER_DEVELOPMENT_PLAN\.md|ARCHITECTURE_CONTRACTS\.md|WINDOWS_DISTRIBUTION\.md|VERSIONING\.md|DEPENDENCY_PROVENANCE_LEDGER\.csv)$' -or
             $relativePath -match '(?i)\.(pdb|snupkg|user|suo|autosave)$'
         if ($isForbidden) {
@@ -1607,6 +1618,43 @@ $portableFileName = Resolve-ArtifactLeafName `
 $gitCommit = Get-GitCommit -RepositoryRoot $repositoryRoot
 $gitWorkingTreeDirty = Get-GitWorkingTreeDirty -RepositoryRoot $repositoryRoot
 $contractVersion = Get-ContractVersion -RepositoryRoot $repositoryRoot
+if ($PrepareNativeHandoff) {
+    if ($gitWorkingTreeDirty) { throw 'Native preparation requires a clean committed source checkout.' }
+    $frozenRoot = [IO.Path]::GetFullPath($FrozenPublishRoot)
+    $artifactsPrefix = [IO.Path]::GetFullPath((Join-Path $repositoryRoot 'artifacts')).TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar
+    if (-not $frozenRoot.StartsWith($artifactsPrefix, [StringComparison]::OrdinalIgnoreCase) -or (Test-Path -LiteralPath $frozenRoot)) { throw 'Frozen preparation root must be a new directory inside repository artifacts.' }
+    Assert-FrozenNativePath $frozenRoot
+    $frozenPublish = Join-Path $frozenRoot 'publish'
+    New-Item -ItemType Directory -Path $frozenPublish -Force | Out-Null
+    $projectPath = Resolve-SafeChildPath -Parent $repositoryRoot -Child ([string]$commonDefinition.project)
+    & dotnet publish $projectPath --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=false -p:GraphReaderRuntimeMode=Production -p:DebugSymbols=false -p:DebugType=None --output $frozenPublish | Out-Host
+    if ($LASTEXITCODE -ne 0) { throw "Native diagnostic publish failed with exit code $LASTEXITCODE." }
+    Assert-WindowsX64Executable -Path (Join-Path $frozenPublish 'GraphReader.App.exe') -Description 'Frozen GraphReader.App.exe'
+    $receipt = [ordered]@{schema='graphreader.frozen-native-publish.v1'; sourceCommit=$gitCommit; version=$version.Value; runtimeMode='Production'; files=@(Get-FrozenNativeFiles $frozenPublish)}
+    $receiptPath = Join-Path $frozenRoot 'frozen-publish.json'
+    Write-JsonFile -Path $receiptPath -Value $receipt
+    [pscustomobject]@{ Status='diagnostic-publish-only'; SourceCommit=$gitCommit; Version=$version.Value; FrozenPublishRoot=$frozenRoot; FrozenReceiptSha256=(Get-FileHash -LiteralPath $receiptPath -Algorithm SHA256).Hash.ToLowerInvariant(); ArtifactsEmitted=$false; ReleaseReady=$false }
+    return
+}
+$nativeEvidenceCommit = $null
+$frozenReceipt = $null
+if (-not [string]::IsNullOrWhiteSpace($FrozenPublishRoot)) {
+    if ([string]::IsNullOrWhiteSpace($OpenCvDiagnosticRoot)) { throw 'Frozen resume requires -OpenCvDiagnosticRoot to verify the manual-preview host.' }
+    $frozenRoot = [IO.Path]::GetFullPath($FrozenPublishRoot)
+    $artifactsPrefix = [IO.Path]::GetFullPath((Join-Path $repositoryRoot 'artifacts')).TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar
+    if (-not $frozenRoot.StartsWith($artifactsPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Frozen publish must be inside repository artifacts.' }
+    $frozenPublish = Join-Path $frozenRoot 'publish'
+    $receiptPath = Join-Path $frozenRoot 'frozen-publish.json'
+    Assert-FrozenNativePath $receiptPath
+    if ($ExpectedFrozenReceiptSha256 -cnotmatch '^[0-9a-f]{64}$' -or (Get-FileHash -LiteralPath $receiptPath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $ExpectedFrozenReceiptSha256) { throw 'Frozen receipt is missing its externally pinned SHA-256 or has changed.' }
+    $frozenReceipt = Get-Content -Raw -LiteralPath $receiptPath | ConvertFrom-Json
+    $null = Assert-FrozenNativeFiles $frozenPublish $frozenReceipt $version.Value
+    $nativeEvidenceCommit = $gitCommit
+    Assert-FrozenNativeAuditTransition $repositoryRoot ([string]$frozenReceipt.sourceCommit) $nativeEvidenceCommit
+    $diagnosticRoot = [IO.Path]::GetFullPath($OpenCvDiagnosticRoot)
+    Assert-FrozenOpenCvDiagnostic $diagnosticRoot $frozenReceipt $version.Value
+    $gitCommit = [string]$frozenReceipt.sourceCommit
+}
 $modelAudit = Get-ModelAudit `
     -RepositoryRoot $repositoryRoot `
     -RequiredModelTasks @($commonDefinition.requiredModelTasks)
@@ -1665,6 +1713,7 @@ if ($reviewedOpenCvRequired) {
 }
 $reviewedPdfiumRequired = $null -ne $releaseAudit.Components -and
     $releaseAudit.Components.ContainsKey('pdfium-native')
+if ($null -ne $frozenReceipt -and (-not $reviewedOpenCvRequired -or -not $reviewedPdfiumRequired)) { $releaseBlockers.Add('Frozen native resume requires both reviewed OpenCV and PDFium audit components.') }
 $reviewedPdfiumEvidencePath = $null
 $reviewedPdfiumRuntimeSha256 = $null
 if ($reviewedPdfiumRequired) {
@@ -1791,9 +1840,13 @@ $publishArguments = @(
     '-p:DebugType=None',
     '--output', $commonPublishPath)
 
-& dotnet @publishArguments | Out-Host
-if ($LASTEXITCODE -ne 0) {
-    throw "dotnet publish failed with exit code $LASTEXITCODE."
+if ($null -ne $frozenReceipt) {
+    Copy-DirectoryContent -Source $frozenPublish -Destination $commonPublishPath
+    $null = Assert-FrozenNativeFiles $commonPublishPath $frozenReceipt $version.Value
+}
+else {
+    & dotnet @publishArguments | Out-Host
+    if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE." }
 }
 Assert-WindowsX64Executable `
     -Path (Join-Path $commonPublishPath 'GraphReader.App.exe') `
@@ -1809,7 +1862,9 @@ if ($productionRuntimeSmoke.ExitCode -ne 0) {
     throw "Published GraphReader.App.exe did not report its compiled Production runtime mode (exit $($productionRuntimeSmoke.ExitCode))."
 }
 
+$nativeRuntimePaths = @()
 if ($reviewedOpenCvRequired) {
+    if (Test-Path -LiteralPath (Join-Path $commonPublishPath 'reviewed-opencv-runtime.json')) { throw 'Application publish collides with reserved OpenCV metadata.' }
     $releaseOpenCvInstallerPath = Join-Path $packagingRoot 'opencv-source\Install-ReleaseRuntime.ps1'
     if (-not (Test-Path -LiteralPath $releaseOpenCvInstallerPath -PathType Leaf)) {
         throw "Release OpenCV runtime installer is missing: $releaseOpenCvInstallerPath"
@@ -1818,8 +1873,8 @@ if ($reviewedOpenCvRequired) {
         -EvidenceRoot $reviewedOpenCvEvidencePath `
         -DestinationRoot $commonPublishPath `
         -ExpectedCommit $gitCommit `
-        -ExpectedVersion $version.Version `
-        -RepositoryRoot $repositoryRoot
+        -ExpectedVersion $version.Value `
+        -RepositoryRoot $repositoryRoot | Out-Host
     if ($LASTEXITCODE -ne 0) {
         throw "Release OpenCV runtime installation failed with exit code $LASTEXITCODE."
     }
@@ -1829,6 +1884,7 @@ if ($reviewedOpenCvRequired) {
         [string]$releaseOpenCvMetadata.binarySha256 -cne $reviewedOpenCvRuntimeSha256) {
         throw 'Common publish OpenCV runtime metadata did not cross the direct-evidence release boundary.'
     }
+    $nativeRuntimePaths += 'reviewed-opencv-runtime.json'
 }
 
 if ($reviewedPdfiumRequired) {
@@ -1840,8 +1896,8 @@ if ($reviewedPdfiumRequired) {
         -EvidenceRoot $reviewedPdfiumEvidencePath `
         -DestinationRoot $commonPublishPath `
         -ExpectedCommit $gitCommit `
-        -ExpectedVersion $version.Version `
-        -RepositoryRoot $repositoryRoot
+        -ExpectedVersion $version.Value `
+        -RepositoryRoot $repositoryRoot | Out-Host
     if ($LASTEXITCODE -ne 0) {
         throw "Release PDFium renderer installation failed with exit code $LASTEXITCODE."
     }
@@ -1852,6 +1908,13 @@ if ($reviewedPdfiumRequired) {
         [string]$releasePdfiumApproval.binarySha256 -cne $reviewedPdfiumRuntimeSha256) {
         throw 'Common publish PDFium renderer did not cross the direct-evidence release boundary.'
     }
+    $nativeRuntimePaths += 'pdfium/reviewed-approval.json'
+    foreach ($field in @('binaryPath','sourceLockPath','buildManifestPath','noticePath')) {
+        $relativeNative = ([string]$releasePdfiumApproval.$field).Replace('\','/')
+        if ([string]::IsNullOrWhiteSpace($relativeNative) -or [IO.Path]::IsPathRooted($relativeNative) -or $relativeNative.Contains(':') -or @($relativeNative.Split('/') | Where-Object { $_ -in @('', '.', '..') }).Count -gt 0) { throw 'Approved PDFium resource path is invalid.' }
+        $nativeRuntimePaths += "pdfium/$relativeNative"
+    }
+    if (@($nativeRuntimePaths | Sort-Object -Unique).Count -ne $nativeRuntimePaths.Count) { throw 'Native runtime paths must be unique.' }
 }
 
 $requiredContentPaths = @(Get-RequiredContentArchivePaths -RepositoryRoot $repositoryRoot -Definition $commonDefinition)
@@ -1865,9 +1928,10 @@ $modelArchivePaths = @($modelAudit.Models | Where-Object {
         [string]$_.productionPackageData.NoticeArchivePath
         [string]$_.productionPackageData.EvidenceArchivePath
     }) + @('models/production-model-index.json')
-$nonApplicationPaths = @($requiredContentPaths) + @($modelArchivePaths) + @('build-metadata.json')
+$reservedPaths = @($requiredContentPaths) + @($modelArchivePaths) + @('build-metadata.json')
+$nonApplicationPaths = @($reservedPaths) + @($nativeRuntimePaths)
 $publishCollisions = @(Get-FileManifest -Root $commonPublishPath | Where-Object {
-        [string]$_.path -in $nonApplicationPaths
+        [string]$_.path -in $reservedPaths
     })
 if ($publishCollisions.Count -gt 0) {
     throw "Application publish collides with reserved distribution paths: $(@($publishCollisions.path) -join ', ')"
@@ -2047,9 +2111,9 @@ $buildMetadata = [ordered]@{
 }
 Write-JsonFile -Path $buildMetadataPath -Value $buildMetadata
 
-$commonAllowedPaths = @($applicationPublishPaths) + @($requiredContentPaths) + @($modelArchivePaths) + @('build-metadata.json')
+$commonAllowedPaths = @($applicationPublishPaths) + @($requiredContentPaths) + @($modelArchivePaths) + @($nativeRuntimePaths) + @('build-metadata.json')
 Assert-PayloadAllowlist -PayloadRoot $commonPublishPath -AllowedPaths $commonAllowedPaths
-Assert-NoForbiddenReleaseFiles -Root $commonPublishPath
+Assert-NoForbiddenReleaseFiles -Root $commonPublishPath -ApprovedNativePaths $nativeRuntimePaths
 Copy-DirectoryContent -Source $commonPublishPath -Destination $installerStagePath
 Copy-DirectoryContent -Source $commonPublishPath -Destination $portableStagePath
 
@@ -2078,8 +2142,8 @@ if ((Get-ManifestDigest -Files $portableCommonFiles) -ne $commonPayloadHash) {
     throw 'Portable staging differs from the shared publish by more than portable.mode.'
 }
 
-Assert-NoForbiddenReleaseFiles -Root $installerStagePath
-Assert-NoForbiddenReleaseFiles -Root $portableStagePath
+Assert-NoForbiddenReleaseFiles -Root $installerStagePath -ApprovedNativePaths $nativeRuntimePaths
+Assert-NoForbiddenReleaseFiles -Root $portableStagePath -ApprovedNativePaths $nativeRuntimePaths
 
 $installerArtifactPath = Resolve-SafeChildPath -Parent $releasePath -Child $installerFileName
 $portableArtifactPath = Resolve-SafeChildPath -Parent $releasePath -Child $portableFileName
@@ -2191,6 +2255,7 @@ $releaseMetadata = [ordered]@{
         downgrade = 'blocked unless --allow-downgrade is passed to the installer'
     }
 }
+if ($null -ne $nativeEvidenceCommit) { $releaseMetadata['nativeEvidenceCommit'] = $nativeEvidenceCommit }
 $releaseMetadataPath = Join-Path $releasePath 'release-metadata.json'
 Write-JsonFile -Path $releaseMetadataPath -Value $releaseMetadata
 

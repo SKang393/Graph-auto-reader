@@ -10,6 +10,8 @@ param(
     [switch]$RequireReleaseVersion,
     [switch]$CandidateOnly,
     [string]$CandidateEvidencePath,
+    [string]$ReviewedOpenCvEvidenceRoot,
+    [string]$ReviewedPdfiumEvidenceRoot,
     [switch]$AllowFixtureEvidence
 )
 
@@ -566,7 +568,9 @@ function Assert-PortableArchiveAllowlist {
         [string[]]$ModelArtifactPaths,
 
         [Parameter(Mandatory)]
-        [string[]]$ApplicationPublishPaths
+        [string[]]$ApplicationPublishPaths,
+
+        [string[]]$NativeRuntimePaths = @()
     )
 
     $allowedExactPaths = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
@@ -574,6 +578,7 @@ function Assert-PortableArchiveAllowlist {
             $RequiredContentPaths
             $ModelArtifactPaths
             $ApplicationPublishPaths
+            $NativeRuntimePaths
             'portable.mode'
             'build-metadata.json')) {
         $null = $allowedExactPaths.Add([string]$path)
@@ -878,6 +883,42 @@ function Get-ZipEntryText {
         $reader.Dispose()
         $stream.Dispose()
     }
+}
+
+function Get-NativeRuntimeArchivePaths {
+    param([System.IO.Compression.ZipArchive]$Archive, [object]$Audit)
+    $paths = [Collections.Generic.List[string]]::new()
+    $cv = @($Audit.components | Where-Object { $_.id -ceq 'opencvsharp-native' })
+    $pdf = @($Audit.components | Where-Object { $_.id -ceq 'pdfium-native' })
+    if ($cv.Count -gt 1 -or $pdf.Count -gt 1) { throw 'Native audit components are duplicated.' }
+    if ($cv.Count -eq 1) {
+        $metadata = (Get-ZipEntryText -Archive $Archive -EntryName 'reviewed-opencv-runtime.json') | ConvertFrom-Json
+        if ($metadata.schema -cne 'graphreader.reviewed-opencv-runtime.v1' -or $metadata.provenanceValidated -isnot [bool] -or -not $metadata.provenanceValidated -or $metadata.cleanMachineEvidence -isnot [bool] -or -not $metadata.cleanMachineEvidence -or $metadata.releaseApproved -isnot [bool] -or -not $metadata.releaseApproved -or $metadata.binarySha256 -cne $cv[0].artifactSha256) { throw 'Packaged OpenCV metadata is not approved or does not match the native audit.' }
+        $entry = @($Archive.Entries | Where-Object { $_.FullName -ceq 'OpenCvSharpExtern.dll' })
+        if ($entry.Count -ne 1) { throw 'Packaged OpenCV runtime is missing or duplicated.' }
+        $stream = $entry[0].Open(); try { $hash = Get-StreamSha256 -Stream $stream } finally { $stream.Dispose() }
+        if ($hash -cne $metadata.binarySha256) { throw 'Packaged OpenCV runtime checksum differs.' }
+        $paths.Add('reviewed-opencv-runtime.json')
+    }
+    if ($pdf.Count -eq 1) {
+        $approval = (Get-ZipEntryText -Archive $Archive -EntryName 'pdfium/reviewed-approval.json') | ConvertFrom-Json
+        foreach ($field in @('reviewApproved','redistributionApproved','bundlingApproved')) { if ($approval.$field -isnot [bool] -or -not $approval.$field) { throw 'Packaged PDFium approval is incomplete.' } }
+        if ($approval.binarySha256 -cne $pdf[0].artifactSha256) { throw 'Packaged PDFium approval differs from the native audit.' }
+        $paths.Add('pdfium/reviewed-approval.json')
+        foreach ($mapping in @(@('binaryPath','binarySha256'),@('sourceLockPath','sourceLockSha256'),@('buildManifestPath','buildManifestSha256'),@('noticePath','noticeSha256'))) {
+            $relative = ([string]$approval.($mapping[0])).Replace('\','/')
+            $expected = [string]$approval.($mapping[1])
+            if ([string]::IsNullOrWhiteSpace($relative) -or [IO.Path]::IsPathRooted($relative) -or $relative.Contains(':') -or @($relative.Split('/') | Where-Object { $_ -in @('', '.', '..') }).Count -gt 0 -or $expected -cnotmatch '^[0-9a-f]{64}$') { throw 'Packaged PDFium resource identity is invalid.' }
+            $path = "pdfium/$relative"
+            if ($paths.Contains($path)) { throw 'Packaged PDFium resource paths are duplicated.' }
+            $entry = @($Archive.Entries | Where-Object { $_.FullName.Replace('\','/') -ceq $path })
+            if ($entry.Count -ne 1) { throw "Packaged PDFium resource is missing: $path" }
+            $stream = $entry[0].Open(); try { $hash = Get-StreamSha256 -Stream $stream } finally { $stream.Dispose() }
+            if ($hash -cne $expected) { throw "Packaged PDFium resource checksum differs: $path" }
+            $paths.Add($path)
+        }
+    }
+    return @($paths)
 }
 
 function Assert-LicenseBundle {
@@ -1523,6 +1564,8 @@ function Assert-PortableArchive {
 
         Assert-LicenseBundle -Archive $archive -EntryNames $entryNames
         $modelArtifactPaths = @(Assert-ModelManifests -Archive $archive -EntryNames $entryNames)
+        $releaseAudit = (Get-ZipEntryText -Archive $archive -EntryName 'release-audit.json') | ConvertFrom-Json
+        $nativeRuntimePaths = @(Get-NativeRuntimeArchivePaths -Archive $archive -Audit $releaseAudit)
         $applicationPublishPaths = @(Get-ApplicationPublishArchivePaths `
                 -Archive $archive `
                 -EntryNames $entryNames)
@@ -1530,8 +1573,8 @@ function Assert-PortableArchive {
             -EntryNames $entryNames `
             -RequiredContentPaths $RequiredContentPaths `
             -ModelArtifactPaths $modelArtifactPaths `
-            -ApplicationPublishPaths $applicationPublishPaths
-        $releaseAudit = (Get-ZipEntryText -Archive $archive -EntryName 'release-audit.json') | ConvertFrom-Json
+            -ApplicationPublishPaths $applicationPublishPaths `
+            -NativeRuntimePaths $nativeRuntimePaths
         Assert-Equal -Actual ([int]$releaseAudit.schemaVersion) -Expected 1 -Description 'Packaged release audit schema version is invalid'
         Assert-MandatoryReleaseEvidenceGates `
             -ReleaseAudit $releaseAudit `
@@ -1736,7 +1779,7 @@ if (-not [string]::IsNullOrWhiteSpace($ArtifactRoot)) {
         $candidateMetadata = Get-Content -Raw -LiteralPath $candidateMetadataPath | ConvertFrom-Json
         $candidateChecker = Join-Path $PSScriptRoot 'Test-CandidateEvidence.ps1'
         if (-not (Test-Path -LiteralPath $candidateChecker -PathType Leaf)) { throw 'Candidate evidence checker is missing.' }
-        $candidateResult = & $candidateChecker -RepositoryRoot $repositoryRoot -CandidateRoot $artifactRootFullPath -ReceiptPath $CandidateEvidencePath -ExpectedSourceCommit ([string]$candidateMetadata.gitCommit) -ExpectedVersion $version -AllowFixture:$AllowFixtureEvidence
+        $candidateResult = & $candidateChecker -RepositoryRoot $repositoryRoot -CandidateRoot $artifactRootFullPath -ReceiptPath $CandidateEvidencePath -ExpectedSourceCommit ([string]$candidateMetadata.gitCommit) -ExpectedVersion $version -ReviewedOpenCvEvidenceRoot $ReviewedOpenCvEvidenceRoot -ReviewedPdfiumEvidenceRoot $ReviewedPdfiumEvidenceRoot -AllowFixture:$AllowFixtureEvidence
         $expectedEvidenceStatus = if ($AllowFixtureEvidence) { 'fixture-evidence-validated' } else { 'evidence-validated' }
         if ($candidateResult.status -cne $expectedEvidenceStatus -or $candidateResult.releaseApproved -ne $false) { throw 'Candidate evidence checker did not validate the requested evidence mode.' }
     }
