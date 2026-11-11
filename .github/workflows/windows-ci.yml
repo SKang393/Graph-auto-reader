@@ -125,6 +125,12 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass
           -File "${{ github.workspace }}\packaging\tests\Test-ReleaseArtifact.Tests.ps1"
 
+      - name: Test exact-candidate evidence validation
+        shell: pwsh
+        run: >-
+          pwsh -NoProfile
+          -File "${{ github.workspace }}\packaging\tests\Test-CandidateEvidence.Tests.ps1"
+
       - name: Validate packaging definitions
         shell: pwsh
         run: >-

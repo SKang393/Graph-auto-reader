@@ -3,6 +3,37 @@
 
 # Clean Windows validation
 
+## Candidate evidence verification
+
+`packaging/Test-CandidateEvidence.ps1` validates an independently reviewed,
+tracked `graphreader.candidate-evidence.v1` record against an existing
+candidate's schema-1 `release-metadata.json`, installer and portable bytes,
+common publish, and source commit. The record names the reviewer, carries the
+candidate identity and clean-VM provenance, and records the checks enumerated
+in the verifier for each of the three post-build gates. The later tracked audit
+must reference the record's exact SHA-256 for each gate. Only those three gate
+status, evidence, and notes fields may differ from the source audit embedded in
+the candidate. Use the candidate source commit, not the later record commit:
+
+Provenance includes the observed and expected VM UUID, OS build and UBR,
+installation and observation times, QEMU installer and configuration hashes,
+QEMU version, and expected candidate application identity. Each gate binds a
+tracked `graphreader.candidate-observation.v1` report and a harness from the
+candidate source commit by SHA-256. Fixture records require `-AllowFixture` and
+return a fixture-only status.
+
+```powershell
+pwsh -File packaging/Test-CandidateEvidence.ps1 `
+  -RepositoryRoot <checkout> -CandidateRoot <candidate-release-directory> `
+  -ReceiptPath <tracked-reviewed-record> -ExpectedSourceCommit <source-sha> `
+  -ExpectedVersion <candidate-version>
+```
+
+This validates recorded evidence and candidate identity only. It does not run
+the tests, create a candidate, perform the full artifact verification, approve
+a model or release, or publish anything. Candidate emission and integration
+with the release verifier remain unfinished.
+
 `Invoke-GraphReaderCleanMachineValidation.ps1` runs inside a newly installed,
 network-disabled Windows x64 VM. It binds one clean development-portable payload
 to exact application and source-built OpenCV checksums, loads the native DLL with
