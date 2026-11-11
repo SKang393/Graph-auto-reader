@@ -30,3 +30,45 @@ regression failed before the hash correction and passes afterward.
 -p:NuGetAudit=false -p:UseSharedCompilation=false` passed 2,457 tests with 25
 skipped. These are synthetic and component checks. They do not establish
 automatic recognition, approved models, or a product release.
+
+## Per-panel review indicators, 2026-11-11
+
+Calibration failures now retain a separate immutable evidence chain for every
+failed panel. The window marks each uniquely matching panel with a localized,
+accessible review indicator and selects the first matching failure. A missing,
+mixed, or image-mismatched first chain no longer hides valid later failures.
+Run, project, panel, and image identities must agree; evidence from another
+run or project cannot mark a tab.
+
+A completed detection clears only the indicators and edit history belonging
+to newly completed panels. Failed, cancelled, and unchanged panels retain
+their state, including when a batch returns successfully with only a subset
+of panels. The regression cases use the existing STA dispatcher host for WPF
+view models.
+
+From baseline `cd1cd4d8`, validation used the existing project-local SDK/cache
+environment (`DOTNET_CLI_HOME=E:\Graph-auto-reader\tools\dotnet-home` and
+`NUGET_PACKAGES=E:\Graph-auto-reader\tools\nuget-packages`):
+
+- `dotnet test tests/GraphReader.App.Tests -c Release --no-restore -m:1
+  -nr:false --logger "console;verbosity=minimal"`: 796 passed, zero skipped or
+  failed, 26 seconds.
+- `dotnet test tests/GraphReader.Integration.Tests -c Release --no-restore
+  -m:1 -nr:false --logger "console;verbosity=minimal"`: 180 passed, seven
+  skipped, zero failed, 19 seconds.
+- `git diff --check`: passed.
+
+The first executed App run passed 795 tests and failed one shell-localization
+check because the warning symbol was a literal. Moving that symbol into the
+localization resources fixed the failure. Initial setup also encountered an
+unsupported `dotnet test --source` option, a restore-process failure resolved
+by serialized restore, and a sandbox testhost connection timeout before any
+tests executed. The successful runs used normal host process access. None of
+these void attempts is model evidence or a sealed-set run.
+
+No dependency, schema, model, scientific calibration rule, or export gate
+changed. No package was produced. These are component and integration tests,
+not visual inspection or final distribution acceptance. The review indicator
+is currently tab state; retaining it across save/reopen is separate unfinished
+work. Disposable test compiler outputs can be regenerated with the commands
+above and are retired when their active validation consumers finish.

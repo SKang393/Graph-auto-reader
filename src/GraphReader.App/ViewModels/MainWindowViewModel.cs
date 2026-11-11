@@ -2324,12 +2324,20 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             StatusMessageKey = statusMessageKey;
             if (stage is WorkflowStage.Detect or WorkflowStage.Review)
             {
-                foreach (WorkspaceTabViewModel tab in Tabs)
+                if (stage == WorkflowStage.Detect && _workspaceService is IAutomaticWorkspaceService)
                 {
-                    _reviewReadyTabIds.Add(tab.TabId);
-                    if (stage == WorkflowStage.Detect)
+                    MarkInterruptedDetectionCheckpoints(previousDetectionPanels);
+                }
+                else
+                {
+                    foreach (WorkspaceTabViewModel tab in Tabs)
                     {
-                        GetEditHistory(tab).Clear();
+                        _reviewReadyTabIds.Add(tab.TabId);
+                        if (stage == WorkflowStage.Detect)
+                        {
+                            tab.AnalysisNeedsReview = false;
+                            GetEditHistory(tab).Clear();
+                        }
                     }
                 }
                 SurfaceState = WorkspaceSurfaceState.Reviewing;
@@ -2409,6 +2417,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 string.Equals(tab.SourceSha256, imported.Original.Sha256, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (matches.Length != 1) continue;
             _reviewReadyTabIds.Add(matches[0].TabId);
+            matches[0].AnalysisNeedsReview = false;
             GetEditHistory(matches[0]).Clear();
             changed = true;
         }
@@ -2435,27 +2444,47 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         // The evidence chain is panel-bound. Never navigate based on empty,
         // mixed, or image-mismatched evidence from a failed run.
-        WorkflowVisionEnvelope[] evidence = failure.CompletedEvidence.ToArray();
-        if (evidence.Length == 0 ||
+        if (!failure.Failure.Recoverable ||
+            failure.Failure.Code != ProductionWorkflowFailureCodes.RecalibrationRequired)
+            return false;
+        IReadOnlyList<WorkflowVisionEnvelope>[] chains =
+            [failure.CompletedEvidence, .. failure.FailedCalibrationPanelEvidence];
+        WorkflowVisionEnvelope? anchor = chains.SelectMany(static chain => chain)
+            .FirstOrDefault(static item => item is not null);
+        if (anchor is null)
+            return false;
+        WorkspaceTabViewModel? first = null;
+        foreach (IReadOnlyList<WorkflowVisionEnvelope> panelEvidence in chains)
+        {
+            WorkspaceTabViewModel? tab = FindCalibrationFailureTab(panelEvidence, anchor.RunId, anchor.ProjectId);
+            if (tab is not null)
+            {
+                tab.AnalysisNeedsReview = true;
+                first ??= tab;
+            }
+        }
+        if (first is null)
+            return false;
+        SelectedTab = first;
+        return true;
+    }
+
+    private WorkspaceTabViewModel? FindCalibrationFailureTab(
+        IReadOnlyList<WorkflowVisionEnvelope> evidence, Guid? expectedRun, Guid? expectedProject)
+    {
+        if (evidence.Count == 0 || evidence[0] is null ||
+            (expectedRun.HasValue && evidence[0].RunId != expectedRun) ||
+            (expectedProject.HasValue && evidence[0].ProjectId != expectedProject) ||
             (_manualWorkspaceService is not null &&
                 _manualWorkspaceService.CurrentProject.ProjectId.Value != evidence[0].ProjectId) ||
-            evidence.Any(item => item.PanelId != evidence[0].PanelId ||
+            evidence.Any(item => item is null || item.PanelId != evidence[0].PanelId ||
                 item.RunId != evidence[0].RunId || item.ProjectId != evidence[0].ProjectId ||
                 !string.Equals(item.InputSha256, evidence[0].InputSha256, StringComparison.OrdinalIgnoreCase)))
-        {
-            return false;
-        }
-
+            return null;
         WorkspaceTabViewModel[] matches = Tabs.Where(tab =>
             Guid.TryParse(tab.PanelId, out Guid panelId) && panelId == evidence[0].PanelId &&
             string.Equals(tab.SourceSha256, evidence[0].InputSha256, StringComparison.OrdinalIgnoreCase)).ToArray();
-        if (matches.Length == 1)
-        {
-            SelectedTab = matches[0];
-            return true;
-        }
-
-        return false;
+        return matches.Length == 1 ? matches[0] : null;
     }
 
     private void CancelActiveOperation() => _activeOperation?.Cancel();

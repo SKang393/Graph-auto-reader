@@ -456,6 +456,11 @@
           <TabControl.ItemContainerStyle>
             <Style TargetType="TabItem">
               <Setter Property="automation:AutomationProperties.Name" Value="{Binding DisplayName}" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding AnalysisNeedsReview}" Value="True">
+                  <Setter Property="automation:AutomationProperties.HelpText" Value="{DynamicResource Review.AnalysisNeedsReview}" />
+                </DataTrigger>
+              </Style.Triggers>
             </Style>
           </TabControl.ItemContainerStyle>
           <TabControl.ItemTemplate>
@@ -464,6 +469,13 @@
                 <TextBlock Margin="0,0,8,0"
                            VerticalAlignment="Center"
                            Text="{Binding DisplayName}" />
+                <TextBlock Margin="0,0,8,0"
+                           VerticalAlignment="Center"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource App.Brush.Warning}"
+                           Text="{DynamicResource Review.AnalysisNeedsReview.Symbol}"
+                           ToolTip="{DynamicResource Review.AnalysisNeedsReview}"
+                           Visibility="{Binding AnalysisNeedsReview, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
                 <Ellipse x:Name="DirtyMarker"
                          Width="7"
                          Height="7"

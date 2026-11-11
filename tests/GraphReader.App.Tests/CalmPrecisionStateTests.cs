@@ -113,6 +113,7 @@ public sealed class CalmPrecisionStateTests
         await WaitUntilAsync(() => !viewModel.IsBusy);
 
         Assert.AreSame(target, viewModel.SelectedTab);
+        Assert.IsTrue(target.AnalysisNeedsReview);
         Assert.AreEqual("Errors.DetectionCalibrationRequired", viewModel.StatusMessageKey);
         Assert.AreEqual(ProductionWorkflowFailureCodes.RecalibrationRequired, viewModel.LastOperationStatus?.Code);
         Assert.DoesNotContain("private technical details", viewModel.StatusMessage);
@@ -144,17 +145,142 @@ public sealed class CalmPrecisionStateTests
         await WaitUntilAsync(() => !viewModel.IsBusy);
 
         Assert.AreEqual(expectedKey, viewModel.StatusMessageKey);
-        if (hasMatchingEvidence) Assert.AreSame(target, viewModel.SelectedTab);
-        else Assert.AreNotSame(target, viewModel.SelectedTab);
+        if (hasMatchingEvidence)
+        {
+            Assert.AreSame(target, viewModel.SelectedTab);
+            Assert.IsTrue(target.AnalysisNeedsReview);
+        }
+        else
+        {
+            Assert.AreNotSame(target, viewModel.SelectedTab);
+            Assert.IsFalse(target.AnalysisNeedsReview);
+        }
         Assert.DoesNotContain("private technical details", viewModel.StatusMessage);
     }
 
     [TestMethod]
-    [DataRow(true, false)]
-    [DataRow(false, false)]
-    [DataRow(true, true)]
-    [DataRow(false, true)]
-    public void InterruptedDetectionMakesOnlyCompletedPanelReviewable(bool cancel, bool retainPriorPanel)
+    public void CalibrationBatchMarksEveryMatchingPanelAndRejectsStaleEvidence()
+    {
+        StaTestHost.Run(() =>
+        {
+            Guid run = Guid.NewGuid(), project = Guid.NewGuid();
+            WorkspaceTabViewModel first = Tab("first", 'a');
+            WorkspaceTabViewModel second = Tab("second", 'b');
+            WorkspaceTabViewModel stale = Tab("stale", 'c');
+            using var viewModel = new MainWindowViewModel(new ControlledWorkspaceService(first,
+                static (_, _) => Task.CompletedTask));
+            viewModel.Tabs.Add(second);
+            viewModel.Tabs.Add(stale);
+            WorkflowVisionEnvelope one = Evidence(first, run, project);
+            WorkflowVisionEnvelope two = Evidence(second, run, project);
+            WorkflowVisionEnvelope wrongRun = Evidence(stale, Guid.NewGuid(), project);
+            WorkflowVisionEnvelope wrongProject = Evidence(stale, run, Guid.NewGuid());
+            WorkflowVisionEnvelope wrongHash = new(1, run, project, Guid.Parse(stale.PanelId!), "axis", "1",
+                new string('d', 64), null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+            var failure = new ProductionWorkflowFailure(ProductionWorkflowFailureCodes.RecalibrationRequired,
+                "Errors.CalibrationInvalid", "calibration required", true, "calibrate");
+            var evidence = new List<WorkflowVisionEnvelope> { two };
+            var panels = new List<IEnumerable<WorkflowVisionEnvelope>>
+                { new[] { one }, evidence, new[] { wrongRun }, new[] { wrongProject }, new[] { wrongHash },
+                    new[] { Evidence(stale, run, project), one } };
+            var exception = new ProductionWorkflowStageException(failure, [one], 3, 0, panels);
+            evidence.Clear();
+            panels.Clear();
+
+            Assert.IsTrue(viewModel.SelectCalibrationFailurePanel(exception));
+            Assert.AreSame(first, viewModel.SelectedTab);
+            Assert.IsTrue(first.AnalysisNeedsReview);
+            Assert.IsTrue(second.AnalysisNeedsReview, "Failure evidence must be snapshotted and retained for each panel.");
+            Assert.IsFalse(stale.AnalysisNeedsReview, "Evidence from another run or image must not mark a tab.");
+            StringAssert.Contains(second.TabHeader, "!");
+        });
+
+        static WorkspaceTabViewModel Tab(string name, char hashCharacter) => new(
+            name, name, new ObservableCollection<GraphPoint>(), new ObservableCollection<SeriesCardViewModel>(),
+            null, null, null, panelId: Guid.NewGuid().ToString("D"),
+            sourceSha256: new string(hashCharacter, 64), pixelWidth: 640, pixelHeight: 480);
+        static WorkflowVisionEnvelope Evidence(WorkspaceTabViewModel tab, Guid runId, Guid projectId) =>
+            new(1, runId, projectId, Guid.Parse(tab.PanelId!), "axis", "1", tab.SourceSha256!,
+                null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+    }
+
+    [TestMethod]
+    [DataRow("unmatched")]
+    [DataRow("empty")]
+    [DataRow("mixed")]
+    [DataRow("different_image")]
+    public void CalibrationBatchSelectsFirstValidFailureWhenPrimaryEvidenceCannotMatch(string scenario)
+    {
+        StaTestHost.Run(() =>
+        {
+            Guid run = Guid.NewGuid(), project = Guid.NewGuid();
+            WorkspaceTabViewModel first = CreateEmptyTab();
+            var target = new WorkspaceTabViewModel("target", "Target",
+                new ObservableCollection<GraphPoint>(), new ObservableCollection<SeriesCardViewModel>(),
+                null, null, null, panelId: Guid.NewGuid().ToString("D"),
+                sourceSha256: new string('a', 64), pixelWidth: 640, pixelHeight: 480);
+            WorkflowVisionEnvelope Evidence(Guid panel, string hash) =>
+                new(1, run, project, panel, "axis", "1", hash, null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+            WorkflowVisionEnvelope valid = Evidence(Guid.Parse(target.PanelId!), target.SourceSha256!);
+            WorkflowVisionEnvelope unmatched = Evidence(Guid.NewGuid(), new string('b', 64));
+            WorkflowVisionEnvelope[] primary = scenario switch
+            {
+                "unmatched" => [unmatched],
+                "empty" => [],
+                "mixed" => [unmatched, valid],
+                "different_image" => [Evidence(Guid.Parse(target.PanelId!), new string('b', 64))],
+                _ => throw new ArgumentOutOfRangeException(nameof(scenario)),
+            };
+            var failure = new ProductionWorkflowFailure(ProductionWorkflowFailureCodes.RecalibrationRequired,
+                "Errors.CalibrationInvalid", "calibration required", true, "calibrate");
+            using var viewModel = new MainWindowViewModel(new ControlledWorkspaceService(first,
+                static (_, _) => Task.CompletedTask));
+            viewModel.Tabs.Add(target);
+
+            Assert.IsTrue(viewModel.SelectCalibrationFailurePanel(
+                new ProductionWorkflowStageException(failure, primary, 2, 0, [primary, new[] { valid }])));
+            Assert.AreSame(target, viewModel.SelectedTab);
+            Assert.IsTrue(target.AnalysisNeedsReview);
+            Assert.IsFalse(first.AnalysisNeedsReview);
+        });
+    }
+
+    [TestMethod]
+    public void SuccessfulDetectionClearsTheUnfinishedAnalysisIndicator()
+    {
+        StaTestHost.Run(() =>
+        {
+            Guid panel = Guid.NewGuid(), run = Guid.NewGuid(), project = Guid.NewGuid();
+            string hash = new('a', 64);
+            var tab = new WorkspaceTabViewModel("graph", "Graph", new ObservableCollection<GraphPoint>(),
+                new ObservableCollection<SeriesCardViewModel>(), null, null, null,
+                panelId: panel.ToString("D"), sourceSha256: hash, pixelWidth: 640, pixelHeight: 480);
+            var evidence = new WorkflowVisionEnvelope(1, run, project, panel, "axis", "1", hash,
+                null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
+            var failure = new ProductionWorkflowFailure(ProductionWorkflowFailureCodes.RecalibrationRequired,
+                "Errors.CalibrationInvalid", "calibration required", true, "calibrate");
+            int attempts = 0;
+            using var viewModel = new MainWindowViewModel(new ControlledWorkspaceService(tab, (_, _) =>
+                ++attempts == 1 ? throw new ProductionWorkflowStageException(failure, [evidence]) : Task.CompletedTask));
+
+            viewModel.AutoDetectCommand.Execute(null);
+            Assert.IsFalse(viewModel.IsBusy);
+            Assert.IsTrue(tab.AnalysisNeedsReview);
+            viewModel.AutoDetectCommand.Execute(null);
+            Assert.IsFalse(viewModel.IsBusy);
+            Assert.IsFalse(tab.AnalysisNeedsReview);
+        });
+    }
+
+    [TestMethod]
+    [DataRow(true, false, false)]
+    [DataRow(false, false, false)]
+    [DataRow(true, true, false)]
+    [DataRow(false, true, false)]
+    [DataRow(false, false, true)]
+    [DataRow(false, true, true)]
+    public void DetectionMakesOnlyNewlyCompletedPanelReviewable(
+        bool cancel, bool retainPriorPanel, bool completeSuccessfully)
     {
         string root = Path.Combine(Path.GetTempPath(), $"graph-reader-partial-review-{Guid.NewGuid():N}");
         Directory.CreateDirectory(root);
@@ -166,11 +292,12 @@ public sealed class CalmPrecisionStateTests
                 string secondPath = Path.Combine(root, "second.png");
                 WriteImage(firstPath, 8, 8);
                 WriteImage(secondPath, 9, 9);
-                var service = new CheckpointWorkspaceService(cancel);
+                var service = new CheckpointWorkspaceService(cancel, completeSuccessfully);
                 WorkspaceTabViewModel[] tabs = service.ImportImagesAsync([firstPath, secondPath], CancellationToken.None)
                     .GetAwaiter().GetResult().ToArray();
                 if (retainPriorPanel) service.SeedPriorPanel(tabs[1]);
                 using var viewModel = new MainWindowViewModel(service);
+                foreach (WorkspaceTabViewModel tab in tabs) tab.AnalysisNeedsReview = true;
                 Assert.AreSame(tabs[0], viewModel.SelectedTab);
                 Assert.IsFalse(viewModel.ReviewCommand.CanExecute(null));
 
@@ -190,6 +317,8 @@ public sealed class CalmPrecisionStateTests
                 timer.Start();
                 System.Windows.Threading.Dispatcher.PushFrame(frame);
                 Assert.IsFalse(viewModel.IsBusy, "Detection did not finish after interruption.");
+                Assert.IsFalse(tabs[0].AnalysisNeedsReview);
+                Assert.IsTrue(tabs[1].AnalysisNeedsReview);
 
                 viewModel.SelectedTab = tabs[0];
                 Assert.AreEqual(WorkspaceSurfaceState.Reviewing, viewModel.SurfaceState);
@@ -758,7 +887,7 @@ public sealed class CalmPrecisionStateTests
             runStage(stage, cancellationToken);
     }
 
-    private sealed class CheckpointWorkspaceService(bool cancel) : ManualPreviewWorkspaceService(
+    private sealed class CheckpointWorkspaceService(bool cancel, bool completeSuccessfully = false) : ManualPreviewWorkspaceService(
         automaticStages:
         [
             new("axis", AutomaticStageState.Approved, "fixture"),
@@ -788,6 +917,7 @@ public sealed class CalmPrecisionStateTests
             WorkflowReviewPanel[] prior = LastAutomaticRun?.Review.Panels.ToArray() ?? [];
             LastAutomaticRun = new WorkflowRunResult(Guid.NewGuid(),
                 new WorkflowReviewState(CurrentProject.ProjectId.Value, [completed, .. prior]), []);
+            if (completeSuccessfully) return;
             if (cancel)
             {
                 await Task.Delay(Timeout.Infinite, cancellationToken);

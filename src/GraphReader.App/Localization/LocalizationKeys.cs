@@ -248,6 +248,8 @@ public static class LocalizationKeys
     public const string ReviewCalibrationMissingTitle = "Review.CalibrationMissing.Title";
     public const string ReviewCalibrationMissingInterpretation = "Review.CalibrationMissing.Interpretation";
     public const string ReviewCalibrationMissingAction = "Review.CalibrationMissing.Action";
+    public const string ReviewAnalysisNeedsReview = "Review.AnalysisNeedsReview";
+    public const string ReviewAnalysisNeedsReviewSymbol = "Review.AnalysisNeedsReview.Symbol";
     public const string ReviewCalibrationInvalidTitle = "Review.CalibrationInvalid.Title";
     public const string ReviewCalibrationInvalidInterpretation = "Review.CalibrationInvalid.Interpretation";
     public const string ReviewCalibrationInvalidAction = "Review.CalibrationInvalid.Action";
@@ -527,6 +529,8 @@ public static class LocalizationKeys
         ReviewCalibrationMissingTitle,
         ReviewCalibrationMissingInterpretation,
         ReviewCalibrationMissingAction,
+        ReviewAnalysisNeedsReview,
+        ReviewAnalysisNeedsReviewSymbol,
         ReviewCalibrationInvalidTitle,
         ReviewCalibrationInvalidInterpretation,
         ReviewCalibrationInvalidAction,

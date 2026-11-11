@@ -196,6 +196,7 @@ public sealed class WorkspaceTabViewModel : ObservableObject
     private object? _overlayContent;
     private double _zoomLevel = 1;
     private bool _isDirty;
+    private bool _analysisNeedsReview;
     private ImageSource? _enhancedImageSource;
     private EnhancementPreviewMode _enhancementPreviewMode;
 
@@ -248,7 +249,17 @@ public sealed class WorkspaceTabViewModel : ObservableObject
 
     public string DisplayName { get; }
 
-    public string TabHeader => IsDirty ? $"{DisplayName} *" : DisplayName;
+    public string TabHeader => $"{DisplayName}{(AnalysisNeedsReview ? " !" : "")}{(IsDirty ? " *" : "")}";
+
+    public bool AnalysisNeedsReview
+    {
+        get => _analysisNeedsReview;
+        internal set
+        {
+            if (SetProperty(ref _analysisNeedsReview, value))
+                OnPropertyChanged(nameof(TabHeader));
+        }
+    }
 
     public bool IsDirty
     {

@@ -54,7 +54,8 @@ public sealed class ProductionWorkflowStageException : InvalidOperationException
         ProductionWorkflowFailure failure,
         IEnumerable<WorkflowVisionEnvelope>? completedEvidence = null,
         int failedCalibrationPanelCount = 0,
-        int completedPanelCount = 0)
+        int completedPanelCount = 0,
+        IEnumerable<IEnumerable<WorkflowVisionEnvelope>>? failedCalibrationPanelEvidence = null)
         : base((failure ?? throw new ArgumentNullException(nameof(failure))).TechnicalMessage)
     {
         if (failedCalibrationPanelCount < 0 || completedPanelCount < 0)
@@ -63,6 +64,12 @@ public sealed class ProductionWorkflowStageException : InvalidOperationException
         CompletedEvidence = Array.AsReadOnly((completedEvidence ?? []).ToArray());
         FailedCalibrationPanelCount = failedCalibrationPanelCount;
         CompletedPanelCount = completedPanelCount;
+        IEnumerable<IEnumerable<WorkflowVisionEnvelope>> panelEvidence = failedCalibrationPanelEvidence ??
+            (failure.Code == ProductionWorkflowFailureCodes.RecalibrationRequired && failure.Recoverable &&
+             CompletedEvidence.Count > 0 ? [CompletedEvidence] : []);
+        FailedCalibrationPanelEvidence = Array.AsReadOnly(panelEvidence
+            .Select(static evidence => (IReadOnlyList<WorkflowVisionEnvelope>)Array.AsReadOnly(evidence.ToArray()))
+            .ToArray());
     }
 
     public ProductionWorkflowFailure Failure { get; }
@@ -72,6 +79,8 @@ public sealed class ProductionWorkflowStageException : InvalidOperationException
     public int FailedCalibrationPanelCount { get; }
 
     public int CompletedPanelCount { get; }
+
+    public IReadOnlyList<IReadOnlyList<WorkflowVisionEnvelope>> FailedCalibrationPanelEvidence { get; }
 }
 
 public sealed class PdfPanelSourceProvenance : IEquatable<PdfPanelSourceProvenance>

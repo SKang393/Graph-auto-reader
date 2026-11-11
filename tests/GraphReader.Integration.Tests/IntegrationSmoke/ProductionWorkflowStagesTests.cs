@@ -2928,6 +2928,11 @@ public sealed class ProductionWorkflowStagesTests
         expectedPanels.Add(first.PanelId, first);
         expectedPanels.Add(second.PanelId, second);
         ProductionPanelEvidence firstBefore = store.Get(first.PanelId);
+        Guid failureRun = Guid.NewGuid();
+        Guid failureProject = workspace.CurrentProject.ProjectId.Value;
+        WorkflowVisionEnvelope Evidence(WorkflowReviewPanel panel) => new(
+            1, failureRun, failureProject, panel.PanelId, "axis", "1", panel.PreparedPanel.Original.Sha256,
+            null, new WorkflowVisionTiming(0, 0, 0, 0), 1);
         detector.BeforeDetection = panelId =>
         {
             if (panelId == first.PanelId)
@@ -2937,14 +2942,14 @@ public sealed class ProductionWorkflowStagesTests
                     scenario == "other_failure" ? ProductionWorkflowFailureCodes.DetectionEvidenceRejected
                         : ProductionWorkflowFailureCodes.RecalibrationRequired,
                     "Errors.CalibrationInvalid", "The first panel requires review.",
-                    scenario != "nonrecoverable", "Review calibration."));
+                    scenario != "nonrecoverable", "Review calibration."), [Evidence(first)]);
             }
             Assert.AreSame(firstBefore, store.Get(first.PanelId),
                 "A failed panel must be restored before the next panel starts.");
             if (scenario == "both_calibration")
                 throw new ProductionWorkflowStageException(new ProductionWorkflowFailure(
                     ProductionWorkflowFailureCodes.RecalibrationRequired, "Errors.CalibrationInvalid",
-                    "The second panel requires calibration review.", true, "Review calibration."));
+                    "The second panel requires calibration review.", true, "Review calibration."), [Evidence(second)]);
         };
 
         ProductionWorkflowStageException failure = await Assert.ThrowsExactlyAsync<ProductionWorkflowStageException>(() =>
@@ -2963,6 +2968,9 @@ public sealed class ProductionWorkflowStagesTests
             Assert.AreEqual(2, detector.CallCount);
             Assert.AreEqual(bothFailed ? 2 : 1, failure.FailedCalibrationPanelCount);
             Assert.AreEqual(bothFailed ? 0 : 1, failure.CompletedPanelCount);
+            CollectionAssert.AreEqual(
+                bothFailed ? new[] { first.PanelId, second.PanelId } : new[] { first.PanelId },
+                failure.FailedCalibrationPanelEvidence.Select(static evidence => evidence.Single().PanelId).ToArray());
             if (bothFailed)
                 Assert.IsNull(workspace.LastAutomaticRun);
             else
