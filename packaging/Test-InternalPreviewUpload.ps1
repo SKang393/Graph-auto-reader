@@ -48,6 +48,28 @@ function Get-RequiredEnvironmentValue {
     return $value
 }
 
+function Assert-SourceCommitAncestry {
+    param(
+        [Parameter(Mandatory)][string]$RepositoryRoot,
+        [Parameter(Mandatory)][string]$WorkflowCommit,
+        [Parameter(Mandatory)][string]$SourceCommit
+    )
+
+    $repositoryRoot = [IO.Path]::GetFullPath($RepositoryRoot)
+    $head = (& git -C $repositoryRoot rev-parse HEAD 2>$null)
+    if ($LASTEXITCODE -ne 0 -or ([string]$head).Trim() -cne $WorkflowCommit) {
+        throw 'Checked-out HEAD must equal the full workflow commit SHA.'
+    }
+    & git -C $repositoryRoot cat-file -e "$WorkflowCommit^{commit}" 2>$null
+    if ($LASTEXITCODE -ne 0) { throw 'Workflow commit is missing from the checkout.' }
+    & git -C $repositoryRoot cat-file -e "$SourceCommit^{commit}" 2>$null
+    if ($LASTEXITCODE -ne 0) { throw 'Expected source commit is missing from the checkout.' }
+    & git -C $repositoryRoot merge-base --is-ancestor $SourceCommit $WorkflowCommit 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Expected source commit must be an ancestor of the workflow commit.'
+    }
+}
+
 function Read-ZipJson {
     param([Parameter(Mandatory)][IO.Compression.ZipArchiveEntry]$Entry)
 
@@ -127,9 +149,14 @@ function Assert-SafeZipEntries {
                 throw "Private key or credential file is not permitted in preview ZIP: $name"
             }
         }
+        $isRootDotNetPrivateAssembly = $segments.Count -eq 1 -and
+            $segments[0] -match '(?i)^System\.Private\.[A-Za-z0-9_.-]+\.dll$'
+        $hasPrivateOrProvenanceSegment = @($segments | Where-Object {
+            $_ -match '(?i)provenance|private'
+        }).Count -gt 0
         if ($segments -contains 'Data' -or $segments -contains 'provenance-private' -or
             $segments -contains '.git' -or $segments -contains 'private' -or
-            @($segments | Where-Object { $_ -match '(?i)provenance|private' }).Count -gt 0 -or
+            ($hasPrivateOrProvenanceSegment -and -not $isRootDotNetPrivateAssembly) -or
             $segments -contains 'evidence' -or $segments -contains 'artifacts' -or
             $segments -contains 'sources' -or $segments -contains 'source' -or
             $segments -contains 'src' -or $segments -contains 'build' -or
@@ -140,6 +167,7 @@ function Assert-SafeZipEntries {
     }
 }
 
+if ($MyInvocation.InvocationName -ne '.') {
 $root = [IO.Path]::GetFullPath((Get-RequiredEnvironmentValue 'GRAPHREADER_INTERNAL_UPLOAD_ROOT'))
 $expectedWorkflowCommit = (Get-RequiredEnvironmentValue 'GRAPHREADER_INTERNAL_UPLOAD_WORKFLOW_SHA').ToLowerInvariant()
 $expectedSourceCommit = (Get-RequiredEnvironmentValue 'GRAPHREADER_INTERNAL_UPLOAD_SOURCE_SHA').ToLowerInvariant()
@@ -148,9 +176,8 @@ $expectedPackageHash = (Get-RequiredEnvironmentValue 'GRAPHREADER_INTERNAL_UPLOA
 $runnerLabel = Get-RequiredEnvironmentValue 'GRAPHREADER_INTERNAL_UPLOAD_RUNNER_LABEL'
 $runnerTemp = [IO.Path]::GetFullPath((Get-RequiredEnvironmentValue 'RUNNER_TEMP'))
 
-if ($expectedWorkflowCommit -cnotmatch '^[0-9a-f]{40}$' -or $expectedSourceCommit -cnotmatch '^[0-9a-f]{40}$' -or
-    $expectedWorkflowCommit -cne $expectedSourceCommit) {
-    throw 'Expected source SHA must be the full commit SHA that supplied this main-branch workflow.'
+if ($expectedWorkflowCommit -cnotmatch '^[0-9a-f]{40}$' -or $expectedSourceCommit -cnotmatch '^[0-9a-f]{40}$') {
+    throw 'Expected source and workflow SHAs must be full lowercase commit SHAs.'
 }
 $null = ConvertTo-GraphReaderVersion -Version $expectedVersion
 if ($expectedPackageHash -cnotmatch '^[0-9a-f]{64}$') { throw 'Expected package SHA-256 must be 64 lowercase hexadecimal characters.' }
@@ -160,6 +187,8 @@ if ($runnerLabel -cnotmatch '^graphreader-upload-[a-z0-9][a-z0-9-]{7,47}$') {
 if (-not (Test-Path -LiteralPath $root -PathType Container)) { throw "Configured internal upload root is missing: $root" }
 Assert-NoReparseAncestors $root
 Assert-NoReparseAncestors $runnerTemp
+$checkoutRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+Assert-SourceCommitAncestry -RepositoryRoot $checkoutRoot -WorkflowCommit $expectedWorkflowCommit -SourceCommit $expectedSourceCommit
 
 $zipFiles = @(Get-ChildItem -LiteralPath $root -File -Filter '*.zip')
 $expectedName = "GraphAutoReader-$expectedVersion-win-x64-internal-preview.zip"
@@ -243,4 +272,5 @@ catch {
         Remove-Item -LiteralPath $stageDirectory -Recurse -Force
     }
     throw
+}
 }

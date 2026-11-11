@@ -11,7 +11,7 @@ on:
         required: true
         type: string
       expected_source_sha:
-        description: Full source commit SHA, which must equal this workflow run's main SHA
+        description: Full source commit SHA embedded in the package and ancestral to this workflow run's main SHA
         required: true
         type: string
       expected_version:
@@ -50,7 +50,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Verify local internal preview package

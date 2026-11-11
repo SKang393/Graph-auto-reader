@@ -6,6 +6,7 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.IO.Compression
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $subject = Join-Path $projectRoot 'packaging\Test-InternalPreviewUpload.ps1'
+. $subject
 $testRoot = Join-Path $projectRoot ('artifacts\internal-preview-upload-fixture-' + [Guid]::NewGuid().ToString('N'))
 $inputRoot = Join-Path $testRoot 'local-root'
 $runnerTemp = Join-Path $testRoot 'runner-temp'
@@ -17,7 +18,7 @@ $environmentNames = @(
 $originalEnvironment = @{}
 foreach ($name in $environmentNames) { $originalEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
 $version = '0.4.36'
-$sourceCommit = '1234567890123456789012345678901234567890'
+$sourceCommit = (& git -C $projectRoot rev-parse HEAD).Trim().ToLowerInvariant()
 $runnerLabel = 'graphreader-upload-fixture-0123456789'
 $nativeBytes = [Text.Encoding]::UTF8.GetBytes('synthetic reviewed native fixture')
 $exeBytes = [Text.Encoding]::UTF8.GetBytes('synthetic ManualPreview executable')
@@ -96,6 +97,40 @@ function Set-Inputs([string]$ZipPath, [string]$Commit = $sourceCommit) {
     $env:GRAPHREADER_INTERNAL_UPLOAD_RUNNER_LABEL = $runnerLabel
     $env:RUNNER_TEMP = $runnerTemp
 }
+function Invoke-TestGit([string]$Repository, [string[]]$Arguments) {
+    $output = & git -C $Repository @Arguments 2>&1
+    if ($LASTEXITCODE -ne 0) { throw "git $($Arguments -join ' ') failed: $output" }
+    return ([string]($output -join "`n")).Trim()
+}
+function Assert-AncestryFixture {
+    $repository = Join-Path $testRoot 'ancestry-repository'
+    New-Item -ItemType Directory -Path $repository | Out-Null
+    $null = Invoke-TestGit $repository @('init', '--quiet')
+    $null = Invoke-TestGit $repository @('config', 'user.name', 'GraphReader test')
+    $null = Invoke-TestGit $repository @('config', 'user.email', 'graphreader-test@example.invalid')
+    Set-Content -LiteralPath (Join-Path $repository 'history.txt') -Value 'base' -NoNewline
+    $null = Invoke-TestGit $repository @('add', 'history.txt')
+    $null = Invoke-TestGit $repository @('commit', '--quiet', '-m', 'base')
+    $baseCommit = (Invoke-TestGit $repository @('rev-parse', 'HEAD')).ToLowerInvariant()
+
+    $null = Invoke-TestGit $repository @('switch', '--quiet', '-c', 'workflow-ancestor')
+    Set-Content -LiteralPath (Join-Path $repository 'history.txt') -Value 'workflow ancestor' -NoNewline
+    $null = Invoke-TestGit $repository @('commit', '--quiet', '-am', 'workflow ancestor')
+    $ancestorWorkflow = (Invoke-TestGit $repository @('rev-parse', 'HEAD')).ToLowerInvariant()
+    Assert-SourceCommitAncestry -RepositoryRoot $repository -WorkflowCommit $ancestorWorkflow -SourceCommit $baseCommit
+
+    $null = Invoke-TestGit $repository @('switch', '--quiet', '--create', 'workflow-divergent', $baseCommit)
+    Set-Content -LiteralPath (Join-Path $repository 'history.txt') -Value 'divergent workflow' -NoNewline
+    $null = Invoke-TestGit $repository @('commit', '--quiet', '-am', 'divergent workflow')
+    $divergentWorkflow = (Invoke-TestGit $repository @('rev-parse', 'HEAD')).ToLowerInvariant()
+    $rejected = $false
+    try { Assert-SourceCommitAncestry -RepositoryRoot $repository -WorkflowCommit $divergentWorkflow -SourceCommit $ancestorWorkflow }
+    catch {
+        if ($_.Exception.Message -notlike '*must be an ancestor*') { throw }
+        $rejected = $true
+    }
+    if (-not $rejected) { throw 'A non-ancestor source commit was accepted.' }
+}
 try {
     New-Item -ItemType Directory -Path $testRoot -Force | Out-Null
 
@@ -107,6 +142,18 @@ try {
         throw 'Valid preview was not staged byte-for-byte.'
     }
     Remove-Item -LiteralPath (Join-Path $runnerTemp 'graphreader-internal-preview') -Recurse -Force
+
+    $zip = New-Fixture -ExtraEntries @('System.Private.CoreLib.dll', 'System.Private.Uri.dll')
+    Set-Inputs $zip
+    $staged = & $subject
+    if (-not (Test-Path -LiteralPath $staged -PathType Leaf)) {
+        throw 'Root .NET System.Private assemblies were rejected or not staged.'
+    }
+    Remove-Item -LiteralPath (Join-Path $runnerTemp 'graphreader-internal-preview') -Recurse -Force
+
+    $zip = New-Fixture -ExtraEntries @('private/System.Private.CoreLib.dll')
+    Set-Inputs $zip
+    Invoke-Subject 'Mutable user data or private provenance'
 
     Set-Inputs $zip
     $env:GRAPHREADER_INTERNAL_UPLOAD_PACKAGE_SHA256 = '0' * 64
@@ -144,6 +191,8 @@ try {
     $zip = New-Fixture -ExtraEntries @('CON.txt')
     Set-Inputs $zip
     Invoke-Subject 'unsafe on Windows'
+
+    Assert-AncestryFixture
 
     Write-Host 'Internal preview upload verifier synthetic checks passed.'
 }
