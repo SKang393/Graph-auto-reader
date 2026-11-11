@@ -80,3 +80,19 @@ and current selected models; do not retain copied runtimes or predictions merely
 for possible future use. A future benchmark regenerates its own candidate
 against its actual source/runtime identity. Retention closeout is recorded below
 after verification. Production acceptance remains **FAIL**.
+
+After outcome commit `8399b567e853aa806e507e9d837ecfb4a15bffe7` was verified
+on `origin/main`, both run directories above were removed: 132 files,
+130,373,975 bytes. Exact absolute-path containment, no-reparse checks and an
+inactive-consumer process check preceded removal. Canonical inputs, selected
+model payloads, reviewed native dependencies and the current build were kept.
+
+## Open diagnostic scope correction
+
+The explicit owned-input diagnostic command now accepts both train and dev
+sources and preserves each source's split in its diagnostic projection. This
+permits investigating the measured distribution mismatch without relabeling
+train as dev. Private, real, sealed and registered-reserve inputs remain rejected;
+the aggregate/admission path is unchanged. The tool build passed with zero
+warnings/errors. `--self-test-composed-ocr-memory` passed 69 checks in a combined
+8.480-second build/self-test invocation, with zero inference/private/sealed reads.

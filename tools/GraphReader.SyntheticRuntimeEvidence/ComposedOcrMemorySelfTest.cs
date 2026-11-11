@@ -113,7 +113,7 @@ internal static class ComposedOcrMemorySelfTest
             async (image, hash, token) =>
             {
                 ComposedOcrSourcePredictions prediction = await Infer(image, hash, token).ConfigureAwait(false);
-                openCases.Add(ComposedOcrMemoryDevCheck.ProjectOpenCase(hash, prediction));
+                openCases.Add(ComposedOcrMemoryDevCheck.ProjectOpenCase(hash, openCases.Count == 0 ? "train" : "dev", prediction));
                 return prediction;
             }, CancellationToken.None).ConfigureAwait(false);
         Require(calls == 2 && openCases.Count == 2 && JsonSerializer.Serialize(observed) == serialized,
@@ -130,7 +130,8 @@ internal static class ComposedOcrMemorySelfTest
             "open runtime output preserves aggregate only and declares zero reads");
         Require(JsonSerializer.Serialize(openCases).Contains("private-label", StringComparison.Ordinal) &&
             openCases[0].AssembledRegions[0].Role == "phaseheading" &&
-            openCases[0].SourceSha256 == sources[0].ImageSha256 && openCases[1].RawDetectorRegions.Count == 0,
+            openCases[0].SourceSha256 == sources[0].ImageSha256 && openCases[0].Split == "train" &&
+            openCases[1].Split == "dev" && openCases[1].RawDetectorRegions.Count == 0,
             "explicit projection preserves predictions and their source identity");
         Require(openCases[0].RecognitionEvidence[0].FinalPrediction == openCases[0].AssembledRegions[0] &&
             openCases[0].RecognitionEvidence[0].Alternatives[0] is { Text: "private-alternative", Confidence: 0.8, SourceImage: "Original" } &&
@@ -214,6 +215,10 @@ internal static class ComposedOcrMemorySelfTest
             Validate(JsonNode.Parse(requestText)!, manifest);
             checks++;
         }
+        JsonNode mixedManifest = JsonNode.Parse(manifestText)!;
+        mixedManifest["sources"]!.AsArray().Add(new JsonObject { ["split"] = "train" });
+        Validate(JsonNode.Parse(requestText)!, mixedManifest);
+        checks++;
         Action<JsonNode, JsonNode>[] invalidScopes =
         [
             (r, _) => r["schema"] = "graphreader.composed-ocr-memory-dev-check.v1",
@@ -230,7 +235,6 @@ internal static class ComposedOcrMemorySelfTest
             (_, m) => m["sealed_reads"] = 1,
             (_, m) => m["production_approved"] = true,
             (_, m) => m["registered_reserve"] = true,
-            (_, m) => m["sources"]!.AsArray().Add(new JsonObject { ["split"] = "train" }),
             (_, m) => m["sources"]![0]!["split"] = "sealed",
             (_, m) => m["sources"]![0]!["split"] = "real-dev",
         ];

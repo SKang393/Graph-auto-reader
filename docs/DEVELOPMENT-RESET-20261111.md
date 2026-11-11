@@ -99,12 +99,17 @@ includes Windows x64, but does not establish Windows Radeon acceleration.
 The repository and model card label Apache-2.0; an unresolved
 [runtime licensing question](https://github.com/cactus-compute/cactus/issues/189)
 distinguishes the prebuilt 4.x runtime from the separately licensed older engine.
-Do not bundle or execute that engine until its applicable license is clear.
-No Cactus package, weights or runtime was downloaded for this review.
-If licensing becomes clear, compare one frozen Mirage candidate on owned open
-inputs, with downloads/cache inside the checkout and `CACTUS_TELEMETRY=0`.
-It must earn adoption through measured OCR quality and latency. Core work
-continues with existing licensed components without waiting on that question.
+Follow-up file-level inspection confirmed the publisher's 4.1.0 manifest binds
+an Apache-2.0 LICENSE file to the actual runtime release. That file is 11,358
+bytes, SHA-256 `cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30`;
+the manifest is `32e182f6f811acde1109084ee5f5c9a606098b95cc8774f27ece8bc1a506de3b`.
+Mirage's publisher card separately declares Apache-2.0. The older engine's
+different license alone is not evidence that it governs these 4.x artifacts.
+This supports one bounded local owned-input benchmark, with downloads/cache
+inside the checkout and `CACTUS_TELEMETRY=0`. Runtime source publication remains
+unresolved and is recorded separately from the confirmed license declaration.
+No Cactus component is bundled or approved. Adoption requires measured OCR
+quality and latency; core work continues while that comparison is performed.
 
 ## Storage and completion
 

@@ -90,7 +90,7 @@ internal static class ComposedOcrMemoryDevCheck
                             {
                                 ComposedOcrSourcePredictions output = await ComposedOcrInMemorySourceEvaluator.EvaluateAsync(
                                     image, hash, ocr, observations, axis, ct).ConfigureAwait(false);
-                                if (diagnostic) cases.Add(ProjectOpenCase(hash, output));
+                                if (diagnostic) cases.Add(ProjectOpenCase(hash, split == "validation" ? "dev" : split, output));
                                 return output;
                             }, token).ConfigureAwait(false));
                     }
@@ -165,14 +165,14 @@ internal static class ComposedOcrMemoryDevCheck
             manifest.GetProperty("production_approved").GetBoolean() ||
             manifest.GetProperty("private_reads").GetInt32() != 0 || manifest.GetProperty("sealed_reads").GetInt32() != 0 ||
             (manifest.TryGetProperty("registered_reserve", out JsonElement reserve) && reserve.GetBoolean()) ||
-            manifest.GetProperty("sources").EnumerateArray().Any(static entry => entry.GetProperty("split").GetString() != "dev"))
+            manifest.GetProperty("sources").EnumerateArray().Any(static entry => entry.GetProperty("split").GetString() is not ("train" or "dev")))
             throw new InvalidDataException("COMPOSED_OCR_OPEN_DIAGNOSTIC_SCOPE_INVALID");
     }
 
     // Explicit projection is available only in the open command. Shared prediction
     // records retain JsonIgnore and sealed workers retain aggregate-only output.
-    internal static OpenDiagnosticCase ProjectOpenCase(string hash, ComposedOcrSourcePredictions output) =>
-        new(hash, output.PanelCount, output.RecognitionFailedRegionCount,
+    internal static OpenDiagnosticCase ProjectOpenCase(string hash, string split, ComposedOcrSourcePredictions output) =>
+        new(hash, split, output.PanelCount, output.RecognitionFailedRegionCount,
             output.RawDetectorRegions.Select(ProjectOpenPrediction).ToArray(),
             output.AssembledRegions.Select(ProjectOpenPrediction).ToArray(),
             output.RecognitionEvidence.Select(static evidence => new OpenDiagnosticRecognition(
@@ -188,7 +188,7 @@ internal static class ComposedOcrMemoryDevCheck
     internal sealed record OpenDiagnosticAlternative(string Text, double Confidence, string SourceImage);
     internal sealed record OpenDiagnosticRecognition(OpenDiagnosticPrediction FinalPrediction,
         IReadOnlyList<OpenDiagnosticAlternative> Alternatives);
-    internal sealed record OpenDiagnosticCase(string SourceSha256, int PanelCount, int RecognitionFailedRegionCount,
+    internal sealed record OpenDiagnosticCase(string SourceSha256, string Split, int PanelCount, int RecognitionFailedRegionCount,
         IReadOnlyList<OpenDiagnosticPrediction> RawDetectorRegions, IReadOnlyList<OpenDiagnosticPrediction> AssembledRegions,
         IReadOnlyList<OpenDiagnosticRecognition> RecognitionEvidence, IReadOnlyList<string> Warnings);
 
