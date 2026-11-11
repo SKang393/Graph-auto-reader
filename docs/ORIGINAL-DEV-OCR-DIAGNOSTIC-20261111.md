@@ -85,9 +85,10 @@ The shared authenticator pins generator report
 model/runtime/input context and are not comparable improvements from this run.
 
 Next work is one current-runtime replay of that existing canonical development
-prerequisite with its fixed models and existing checker. The temporary runtime,
-annotations and receipts from this diagnostic remain only until this record is
-pushed and that input/runtime identity handoff finishes, then are disposable.
-Original required inputs and current model assets remain retained. Regeneration
+prerequisite with its fixed models and existing checker. After outcome commit
+`95aef04f` reached `origin/main` and that input identity handoff finished, the
+temporary runtime, annotations and receipts were retired with exact-path,
+no-reparse and active-process checks: 64 files, 41,490,874 bytes. Original required inputs and current
+model assets remain retained. Regeneration
 uses the adapter, the bound original truth sources and a source-matched tool
 build; no image or annotation content needs to be committed.
