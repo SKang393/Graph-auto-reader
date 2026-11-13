@@ -9,6 +9,20 @@ namespace GraphReader.App.Tests;
 public sealed class StartupArgumentsTests
 {
     [TestMethod]
+    public void OcrWorkerRequiresAnExclusiveAbsoluteAssetDirectory()
+    {
+        string assetRoot = Path.GetFullPath("review-assistance/ocr");
+        StartupArguments parsed = StartupArguments.Parse(["--calibration-ocr-worker", assetRoot]);
+        Assert.AreEqual(assetRoot, parsed.CalibrationOcrAssetsRoot);
+        Assert.IsFalse(parsed.PortableSmoke);
+        Assert.IsNull(parsed.OpenImagePath);
+        Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--calibration-ocr-worker"]));
+        Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--calibration-ocr-worker", "relative/assets"]));
+        Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--calibration-ocr-worker", assetRoot, "--portable-smoke"]));
+        Assert.ThrowsExactly<ArgumentException>(() => StartupArguments.Parse(["--open-image", assetRoot, "--calibration-ocr-worker", assetRoot]));
+    }
+
+    [TestMethod]
     public void ParseAcceptsPortableSmokeAndAbsoluteImagePath()
     {
         string imagePath = Path.GetFullPath(Path.Combine("images", "Chandler graph.png"));

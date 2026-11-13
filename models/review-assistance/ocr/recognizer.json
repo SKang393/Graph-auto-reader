@@ -1,0 +1,84 @@
+{
+  "manifest_version": 1,
+  "model_id": "en_PP-OCRv5_mobile_rec",
+  "model_version": "5.0.0",
+  "task": "ocr_recognition",
+  "source": {
+    "name": "PaddleOCR",
+    "url": "https://github.com/PaddlePaddle/PaddleOCR",
+    "revision": "33cbdd9deb2e00f61e7966db70669b249c005a37"
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "notice_path": "LICENSES/PaddlePaddle-PP-OCRv5-Models-Notice.txt",
+    "reviewed": true
+  },
+  "sha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743",
+  "files": [
+    "en_PP-OCRv5_mobile_rec.onnx"
+  ],
+  "commercial_use": true,
+  "redistribution": true,
+  "providers": [
+    "cpu"
+  ],
+  "benchmarks": [
+    {
+      "scope": "local-synthetic-seed-diagnostic",
+      "production_approved": false,
+      "accuracy_status": "not-evaluated-by-this-tool"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "x",
+      "element_type": "float32",
+      "layout": "NCHW",
+      "shape": [
+        "N",
+        3,
+        48,
+        "W"
+      ],
+      "channels": [
+        "b",
+        "g",
+        "r"
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "fetch_name_0",
+      "element_type": "float32",
+      "layout": "NTC",
+      "shape": [
+        "N",
+        "T",
+        "C"
+      ],
+      "alphabet": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\"#$%&'()*+,-./:;<=>?@[\\]_`{|}^~©®℉№Ω℮™∆✓✔✗✘✕☑☒●▪▫◼▶◀⬆¤¦§¨ª«¬¯°²³´µ¶¸¹º»¼½¾¿×‐‑‒—―‖‗‘’‚‛“”„‟†‡‣․…‧‰‴‵‶‷‸‹›※‼‽‾−₤₡₹₽₴₿¢€£¥ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫⅰⅱⅲⅳⅴⅵⅶⅷⅸⅹⅺⅻ➀➁➂➃➄➅➆➇➈➉➊➋➌➍➎➏➐➑➒➓❶❷❸❹❺❻❼❽❾❿①②③④⑤⑥⑦⑧⑨⑩↑→↓↕←↔⇒⇐⇔∀∃∄∴∵∝∞∩∪∂∫∬∭∮∯∰∑∏√∛∜∱∲∳∶∷∼∖∗≈≠≡≤≥⊂⊃⊥⊾⊿□∥∋ƒ′″ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρσςτυφχψωÅℏ⌀⍺⍵𝑢𝜓०‥︽﹥•÷∕∙⋅·±∓∟∠∡∢℧☺ ",
+      "blank_class_index": 0
+    }
+  ],
+  "preprocessing": {
+    "channel_order": "BGR",
+    "channel_means": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "channel_scales": [
+      2,
+      2,
+      2
+    ],
+    "width_policy": "paddle_batch_max_wh_ratio_v1",
+    "minimum_width": 320,
+    "maximum_width": 4096
+  },
+  "postprocessing": {
+    "algorithm": "ctc_greedy_alternatives_v1",
+    "maximum_alternatives": 3
+  }
+}

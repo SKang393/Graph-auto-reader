@@ -959,6 +959,77 @@
             <StackPanel Visibility="{Binding HasAxisSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
               <TextBlock Text="{DynamicResource Manual.AxisReview}" TextWrapping="Wrap" />
               <TextBlock Text="{Binding AxisSuggestionSummary}" TextWrapping="Wrap" Margin="0,4" />
+              <TextBlock Margin="0,0,0,4"
+                         FontWeight="SemiBold"
+                         Text="{DynamicResource Manual.CalibrationLabels.Title}"
+                         automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.Title"
+                         automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.Title}" />
+              <TextBlock Margin="0,2,0,6"
+                         Foreground="{DynamicResource App.Brush.TextMuted}"
+                         Text="{Binding CalibrationLabelZeroReminder}"
+                         TextWrapping="Wrap"
+                         automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.ZeroReminder"
+                         automation:AutomationProperties.Name="{Binding CalibrationLabelZeroReminder}" />
+              <Button Margin="0,0,0,6"
+                      Command="{Binding ReadCalibrationLabelsCommand}"
+                      Content="{DynamicResource Manual.CalibrationLabels.Read}"
+                      Style="{DynamicResource App.Style.Button}"
+                      automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.Read"
+                      automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.Read}" />
+              <TextBlock Margin="0,0,0,6"
+                         Foreground="{DynamicResource App.Brush.Warning}"
+                         Text="{Binding CalibrationLabelWarningText}"
+                         TextWrapping="Wrap"
+                         Visibility="{Binding HasCalibrationLabelWarning, Converter={StaticResource BooleanToVisibilityConverter}}"
+                         automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.Warning"
+                         automation:AutomationProperties.Name="{Binding CalibrationLabelWarningText}" />
+              <TextBlock Margin="0,0,0,6"
+                         Text="{Binding CalibrationLabelStatusText}"
+                         TextWrapping="Wrap"
+                         automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.Status"
+                         automation:AutomationProperties.Name="{Binding CalibrationLabelStatusText}" />
+              <ListBox Margin="0,0,0,6"
+                       Height="136"
+                       Background="{DynamicResource App.Brush.Surface}"
+                       Foreground="{DynamicResource App.Brush.Text}"
+                       ItemsSource="{Binding CalibrationLabelRows}"
+                       SelectedItem="{Binding SelectedCalibrationLabel, Mode=TwoWay}"
+                       ScrollViewer.VerticalScrollBarVisibility="Auto"
+                       ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                       Visibility="{Binding HasCalibrationLabelSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}"
+                       automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.List"
+                       automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.List}">
+                <ListBox.ItemContainerStyle>
+                  <Style TargetType="ListBoxItem" BasedOn="{StaticResource App.Style.ListBoxItem}">
+                    <Setter Property="AutomationProperties.Name" Value="{Binding DisplayText}" />
+                  </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding DisplayText}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <WrapPanel Margin="0,0,0,8">
+                <Button Margin="0,0,4,4"
+                        Command="{Binding UseCalibrationLabelForYMaximumCommand}"
+                        Content="{DynamicResource Manual.CalibrationLabels.UseYMaximum}"
+                        Style="{DynamicResource App.Style.Button}"
+                        automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.UseYMaximum"
+                        automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.UseYMaximum}" />
+                <Button Margin="0,0,4,4"
+                        Command="{Binding UseCalibrationLabelForFirstSessionCommand}"
+                        Content="{DynamicResource Manual.CalibrationLabels.UseFirstSession}"
+                        Style="{DynamicResource App.Style.Button}"
+                        automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.UseFirstSession"
+                        automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.UseFirstSession}" />
+                <Button Margin="0,0,0,4"
+                        Command="{Binding UseCalibrationLabelForFinalSessionCommand}"
+                        Content="{DynamicResource Manual.CalibrationLabels.UseFinalSession}"
+                        Style="{DynamicResource App.Style.Button}"
+                        automation:AutomationProperties.AutomationId="Manual.CalibrationLabels.UseFinalSession"
+                        automation:AutomationProperties.Name="{DynamicResource Manual.CalibrationLabels.UseFinalSession}" />
+              </WrapPanel>
               <Grid>
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*" />

@@ -28,8 +28,11 @@ public sealed partial class MainWindowViewModel
         get => _suggestedYMaximum;
         set
         {
-            SetProperty(ref _suggestedYMaximum, value);
-            RelayCommand.RaiseCanExecuteChanged();
+            if (SetProperty(ref _suggestedYMaximum, value))
+            {
+                ResetAxisSuggestionReview();
+                RelayCommand.RaiseCanExecuteChanged();
+            }
         }
     }
 
@@ -38,8 +41,11 @@ public sealed partial class MainWindowViewModel
         get => _suggestedFirstSession;
         set
         {
-            SetProperty(ref _suggestedFirstSession, value);
-            RelayCommand.RaiseCanExecuteChanged();
+            if (SetProperty(ref _suggestedFirstSession, value))
+            {
+                ResetAxisSuggestionReview();
+                RelayCommand.RaiseCanExecuteChanged();
+            }
         }
     }
 
@@ -48,8 +54,11 @@ public sealed partial class MainWindowViewModel
         get => _suggestedFinalSession;
         set
         {
-            SetProperty(ref _suggestedFinalSession, value);
-            RelayCommand.RaiseCanExecuteChanged();
+            if (SetProperty(ref _suggestedFinalSession, value))
+            {
+                ResetAxisSuggestionReview();
+                RelayCommand.RaiseCanExecuteChanged();
+            }
         }
     }
 
@@ -71,6 +80,7 @@ public sealed partial class MainWindowViewModel
     {
         SuggestAxesCommand = new AsyncRelayCommand(SuggestAxesAsync,
             () => !IsBusy && SelectedTab is not null && _workspaceService is IAxisSuggestionWorkspace { CanSuggestAxes: true });
+        InitializeCalibrationLabelCommands();
         ApplyAxisSuggestionCommand = new AsyncRelayCommand(ApplyAxisSuggestionAsync,
             () => !IsBusy && AxisSuggestionReviewed && TryGetSuggestedValues(out _, out _, out _));
         DismissAxisSuggestionCommand = new RelayCommand(_ => ClearAxisSuggestion(), _ => HasAxisSuggestion && !IsBusy);
@@ -112,6 +122,7 @@ public sealed partial class MainWindowViewModel
         UpdateAxisSuggestionOverlay();
         OnPropertyChanged(nameof(HasAxisSuggestion));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
+        OnPropertyChanged(nameof(CalibrationLabelStatusText));
         SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisReview));
     }, cancellationToken);
 
@@ -168,6 +179,7 @@ public sealed partial class MainWindowViewModel
     private void ClearAxisSuggestion()
     {
         _axisSuggestionGeneration++;
+        ClearCalibrationLabelResults(clearPickedValues: true);
         if (HasAxisSuggestion)
         {
             _calibrationAnchors.Clear();
@@ -188,5 +200,6 @@ public sealed partial class MainWindowViewModel
         AxisSuggestionReviewed = false;
         OnPropertyChanged(nameof(HasAxisSuggestion));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
+        OnPropertyChanged(nameof(CalibrationLabelStatusText));
     }
 }

@@ -135,8 +135,9 @@ unchanged. No version advance, public release or tag was created for these
 routine builds. The next meaningful package must include and verify the worker
 and notices in both distribution forms.
 
-Completed TRX, timing JSON and isolated native QA directories are disposable
-after this record is pushed and their consumers finish. Keep the original owned
+Completed TRX, timing JSON and isolated native QA directories were retired
+after this record was pushed and consumers finished: 30 files, 1,827,891 bytes.
+Keep the original owned
 input, current models and active compilation dependencies. The new recognition
 probe uses the original image/crop directly and does not depend on the saved QA
 project.

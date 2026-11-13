@@ -266,7 +266,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         CloseTabCommand = new RelayCommand(
             parameter => CloseTab(parameter as WorkspaceTabViewModel ?? SelectedTab),
             parameter => parameter is WorkspaceTabViewModel || SelectedTab is not null);
-        StartCalibrationCommand = new RelayCommand(_ => BeginCalibration(), _ => CanStartCalibration());
+        StartCalibrationCommand = new RelayCommand(_ => StartAxisCalibrationCorrection(), _ => CanStartCalibration());
         InitializeAxisSuggestionCommands();
         SelectEditorModeCommand = new RelayCommand(
             _ => EditorMode = ManualEditorMode.Select,
@@ -1176,6 +1176,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                     if (HasAxisSuggestion)
                     {
                         _suggestedAnchors = _calibrationAnchors.ToArray();
+                        UpdateAxisSuggestionGeometryFromCorrectedAnchors();
+                        _calibrationAnchors.Clear();
+                        OnPropertyChanged(nameof(EditorInstruction));
                         AxisSuggestionReviewed = false;
                         UpdateAxisSuggestionOverlay();
                         EditorMode = ManualEditorMode.Select;

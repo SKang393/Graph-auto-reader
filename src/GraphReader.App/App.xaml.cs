@@ -4,6 +4,7 @@
 using System.Windows;
 using GraphReader.App.Appearance;
 using GraphReader.App.Integration;
+using GraphReader.App.Integration.CalibrationOcr;
 using GraphReader.App.Integration.Runtime;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Localization;
@@ -39,6 +40,26 @@ public partial class App : Application, IDisposable
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        if (e.Args.Any(argument => string.Equals(argument, "--calibration-ocr-worker", StringComparison.OrdinalIgnoreCase)))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            try
+            {
+                StartupArguments workerArguments = StartupArguments.Parse(e.Args);
+                string assetRoot = workerArguments.CalibrationOcrAssetsRoot!;
+                int exitCode = await Task.Run(() => CalibrationOcrWorker.RunAsync(
+                    assetRoot, RuntimeModeSelector.SelectBuildDefault(),
+                    Console.OpenStandardInput(), Console.OpenStandardOutput()));
+                Shutdown(exitCode);
+            }
+            catch (Exception)
+            {
+                // Headless child startup never opens an error dialog in the user's session.
+                Shutdown(2);
+            }
+            return;
+        }
+
         _themeService = new ThemeService(Resources);
         LocalizationService = new LocalizationService(Resources);
         StartupArguments startupArguments = StartupArguments.Parse(e.Args);
@@ -121,6 +142,11 @@ public partial class App : Application, IDisposable
 
     public void Dispose()
     {
+        if (WorkspaceService is IDisposable disposableWorkspace)
+        {
+            disposableWorkspace.Dispose();
+        }
+
         ProductionInferenceRuntimeHost? inferenceRuntimeHost = _inferenceRuntimeHost;
         _inferenceRuntimeHost = null;
         if (inferenceRuntimeHost is not null)

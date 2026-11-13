@@ -20,9 +20,20 @@ public interface IAxisSuggestionWorkspace
     bool IsAxisSuggestionCurrent(WorkspaceAxisSuggestion suggestion);
 }
 
+public sealed record WorkspaceCalibrationLabelSuggestion(WorkspaceAxisSuggestion AxisSuggestion, CalibrationOcrResponse Response);
+
+public interface ICalibrationLabelSuggestionWorkspace
+{
+    bool CanReadCalibrationLabels { get; }
+    Task<WorkspaceCalibrationLabelSuggestion?> ReadCalibrationLabelsAsync(WorkspaceAxisSuggestion suggestion, CancellationToken cancellationToken);
+    bool IsCalibrationLabelSuggestionCurrent(WorkspaceCalibrationLabelSuggestion result);
+}
+
 public partial class ManualPreviewWorkspaceService
 {
     private readonly IAxisProposalService? _axisProposalService;
+    private readonly ICalibrationOcrSuggestionService? _calibrationOcrSuggestionService;
+    private int _calibrationOcrDisposed;
     public bool CanSuggestAxes => _axisProposalService is not null &&
         RuntimeEnvironment == GraphReader.App.Integration.Workflow.WorkflowRuntimeEnvironment.ManualPreview;
 
@@ -48,6 +59,47 @@ public partial class ManualPreviewWorkspaceService
         WorkspaceTabViewModel? tab = _tabs.SingleOrDefault(tab => tab.TabId == suggestion.TabId);
         return tab is not null && _originalPanelBytesByTab.TryGetValue(tab.TabId, out var image) &&
             ReferenceEquals(image, suggestion.OriginalImageIdentity) && suggestion.Binding == AxisSuggestionBinding(tab);
+    }
+
+    public bool CanReadCalibrationLabels => _calibrationOcrSuggestionService is not null &&
+        Volatile.Read(ref _calibrationOcrDisposed) == 0 &&
+        RuntimeEnvironment == GraphReader.App.Integration.Workflow.WorkflowRuntimeEnvironment.ManualPreview;
+
+    public async Task<WorkspaceCalibrationLabelSuggestion?> ReadCalibrationLabelsAsync(
+        WorkspaceAxisSuggestion suggestion, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(suggestion);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!CanReadCalibrationLabels || !IsAxisSuggestionCurrent(suggestion)) return null;
+        WorkspaceTabViewModel tab = RequireTab(suggestion.TabId);
+        RustAxisGeometry geometry = suggestion.Geometry;
+        if (geometry.Left < 0 || geometry.Top < 0 || geometry.Right >= tab.PixelWidth ||
+            geometry.Bottom >= tab.PixelHeight || geometry.Left >= geometry.Right || geometry.Top >= geometry.Bottom)
+            return null;
+        var panel = CurrentProject.Panels.Single(item => item.PanelId.Value.ToString() == tab.PanelId);
+        var source = CurrentProject.Sources.Single(item => item.SourceId == panel.SourceId);
+        byte[] image = _originalPanelBytesByTab[suggestion.TabId].Copy();
+        var request = new CalibrationOcrRequest(Guid.NewGuid().ToString("N"), suggestion.Binding, source.Sha256,
+            Convert.ToHexString(SHA256.HashData(image)).ToLowerInvariant(), tab.PixelWidth, tab.PixelHeight,
+            new CalibrationOcrPlot(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom));
+        CalibrationOcrResponse response = await _calibrationOcrSuggestionService!.SuggestAsync(request, image, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!IsAxisSuggestionCurrent(suggestion) || !CalibrationOcrWorkerClient.IsValidResponse(request, response)) return null;
+        return new WorkspaceCalibrationLabelSuggestion(suggestion, response);
+    }
+
+    public bool IsCalibrationLabelSuggestionCurrent(WorkspaceCalibrationLabelSuggestion result) =>
+        result is not null && CanReadCalibrationLabels && IsAxisSuggestionCurrent(result.AxisSuggestion) &&
+        result.Response.Request is { } request && CalibrationOcrWorkerClient.IsValidResponse(request, result.Response) &&
+        request.Binding == result.AxisSuggestion.Binding &&
+        request.Plot == new CalibrationOcrPlot(result.AxisSuggestion.Geometry.Left, result.AxisSuggestion.Geometry.Top,
+            result.AxisSuggestion.Geometry.Right, result.AxisSuggestion.Geometry.Bottom);
+
+    public void Dispose()
+    {
+        if (Interlocked.Exchange(ref _calibrationOcrDisposed, 1) == 0 && _calibrationOcrSuggestionService is not null)
+            _calibrationOcrSuggestionService.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        GC.SuppressFinalize(this);
     }
 
     private string AxisSuggestionBinding(WorkspaceTabViewModel tab)

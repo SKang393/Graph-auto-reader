@@ -48,3 +48,15 @@ has cooperative cancellation at 170 seconds, a hard process deadline at 175
 seconds, at most 128 candidates and at most 1,000,000 output bytes. A caller should
 also terminate its process tree after 180 seconds. Output is one JSON object on
 stdout; no source crop or model copy is written.
+
+`--worker-check <request.json> <absolute-App-exe> <asset-root>` exercises the
+real App client against that same explicitly owned source and crop. It encodes
+the panel only in memory, checks a cold request, a same-process warm request,
+a 50 ms cancellation and child exit, then a cold restart and disposal. If the
+third request finishes before cancellation, the check fails rather than claiming
+cancellation. It records observed label text as review-only diagnostic output.
+The probe itself does not apply the CPU job in this mode; the child applies and
+verifies its own budget before inference. The combined deadline is 360 seconds,
+with a 365-second hard watchdog. This check does not approve a model or report
+accuracy. Run it only on an explicitly identified owned synthetic source after
+execution has been authorized.

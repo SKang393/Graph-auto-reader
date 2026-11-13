@@ -84,8 +84,15 @@ measured automatic backend selection and UI integration remain pending.
 The [recognition-only probe](CALIBRATION-OCR-PROBE-20261113.md) then completed
 one owned-image call in 4.119 seconds internally, including 2.344 seconds for
 cold session initialization. It returned seven numeric review suggestions and
-two nonnumeric strings, with no accuracy claim. The next product step is a
-reused reader session feeding editable, source-bound suggestions into WPF.
+two nonnumeric strings, with no accuracy claim. The subsequent
+[calibration-label assistance batch](CALIBRATION-LABEL-ASSISTANCE-20261113.md)
+connected the retained reader to editable, source-bound WPF suggestions.
+One owned panel took 3.221 seconds cold and 1.593 seconds with the same session;
+cancellation, restart, disposal and explicit native value confirmation were
+checked. These are review-assistance observations, not automatic calibration
+accuracy or production approval. The next execution step is bounded hardware
+measurement and a visible, persisted backend choice; GPU presence alone must
+not change the conservative OCR default.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new

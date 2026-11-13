@@ -79,9 +79,16 @@ The existing 0.4.37 ZIP and latest pointer stay in place until a verified
 replacement is uploaded and recorded. Completed importer checks under
 `artifacts/preview-runtime-0437-import-check`,
 `artifacts/preview-runtime-0437-import-final` and the initial failed
-`artifacts/preview-runtime-test-ac0a74fbb11d4c87b4affcb792422269` are disposable
-after this record is pushed. No private attestation or complete source-built
+`artifacts/preview-runtime-test-ac0a74fbb11d4c87b4affcb792422269` were retired
+after this record reached main at `286382c0`: 14 files, 16,008,146 bytes.
+No private attestation or complete source-built
 OpenCV environment was duplicated.
+
+Hosted [Windows CI run 43522216337](https://github.com/SKang393/Graph-auto-reader/actions/runs/43522216337)
+completed successfully on that commit, including the new importer/helper
+checks, bounded OCR host self-tests, Rust/application tests and all packaging
+validation. Release build/publish jobs were correctly skipped. This CI run did
+not dispatch the separate hosted internal-preview packaging workflow.
 
 GitHub artifacts expire. The current workflow deliberately pins the known
 0.4.37 input; when a replacement is delivered, update the source artifact pin

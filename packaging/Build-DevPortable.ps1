@@ -9,7 +9,8 @@ param(
     [string]$OutputRoot,
     [string]$ReviewedOpenCvEvidenceRoot,
     [string]$OpenCvAttestationPath,
-    [string]$ReviewedOpenCvPreviewZip
+    [string]$ReviewedOpenCvPreviewZip,
+    [string]$CalibrationReviewModelPath
 )
 
 Set-StrictMode -Version Latest
@@ -313,6 +314,14 @@ OpenCV SHA-256: $($openCvRuntime.binarySha256)
         localOnlyWarning = 'Development Preview. Local maintainer testing only. Do not redistribute or publish.'
     }
     Write-JsonFile -Path (Join-Path $stagingDirectory 'build-info.json') -Value $buildInfo
+
+    if (-not [string]::IsNullOrWhiteSpace($CalibrationReviewModelPath)) {
+        Invoke-CheckedCommand -Description 'stage exact review-only calibration reader' -Command {
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'packaging\Stage-CalibrationReviewAssets.ps1') `
+                -ModelPath ([IO.Path]::GetFullPath($CalibrationReviewModelPath)) `
+                -DestinationRoot (Join-Path $stagingDirectory 'review-assistance\ocr') -Purpose InternalPreview
+        }
+    }
 
     $currentCommand = 'portable smoke'
     $previousDataRoot = [Environment]::GetEnvironmentVariable('GRAPHREADER_DEV_PORTABLE_DATA_ROOT', 'Process')

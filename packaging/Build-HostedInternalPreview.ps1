@@ -4,7 +4,8 @@
 param(
     [string]$ExpectedVersion,
     [string]$ExpectedSourceSha,
-    [string]$ReviewedOpenCvPreviewZip
+    [string]$ReviewedOpenCvPreviewZip,
+    [string]$CalibrationReviewModelPath
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -61,8 +62,12 @@ if ($MyInvocation.InvocationName -ne '.') {
     $outputRoot = Join-Path $repo 'artifacts/hosted-internal-preview'
     if (Test-Path -LiteralPath $outputRoot) { throw 'Hosted preview output root already exists.' }
     Assert-NoReparseAncestors $runnerTemp
-    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'Build-DevPortable.ps1') `
-        -FastTestsOnly -OutputRoot $outputRoot -ReviewedOpenCvPreviewZip ([IO.Path]::GetFullPath($ReviewedOpenCvPreviewZip))
+    $buildArguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $PSScriptRoot 'Build-DevPortable.ps1'),
+        '-FastTestsOnly', '-OutputRoot', $outputRoot, '-ReviewedOpenCvPreviewZip', ([IO.Path]::GetFullPath($ReviewedOpenCvPreviewZip)))
+    if (-not [string]::IsNullOrWhiteSpace($CalibrationReviewModelPath)) {
+        $buildArguments += @('-CalibrationReviewModelPath', [IO.Path]::GetFullPath($CalibrationReviewModelPath))
+    }
+    & powershell.exe @buildArguments
     if ($LASTEXITCODE -ne 0) { throw "Hosted portable build failed with exit code $LASTEXITCODE." }
     $latest = Get-Content -LiteralPath (Join-Path $outputRoot 'latest.json') -Raw | ConvertFrom-Json
     if ([string]$latest.version -cne $ExpectedVersion -or [string]$latest.commit -cne $ExpectedSourceSha -or

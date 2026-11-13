@@ -36,6 +36,7 @@ public static class ApplicationComposition
     public const string RealEsrganManifestEnvironmentVariable = "GRAPHREADER_REALESRGAN_MANIFEST_PATH";
     public const string RealEsrganRuntimeRootEnvironmentVariable = "GRAPHREADER_REALESRGAN_RUNTIME_ROOT";
     public const string PdfiumApprovalEnvironmentVariable = "GRAPHREADER_PDFIUM_APPROVAL_PATH";
+    public const string CalibrationOcrAssetsEnvironmentVariable = "GRAPHREADER_CALIBRATION_OCR_ASSET_ROOT";
 
     public static ApplicationCompositionResult Create(
         WorkflowRuntimeEnvironment environment,
@@ -298,7 +299,8 @@ public static class ApplicationComposition
                     enhancementResolver: enhancementResolver,
                     pdfImportService: pdf.PdfImporter,
                     axisProposalService: new RustAxisProposalService(
-                        Path.Combine(applicationRoot, "native", "graphreader-engine.exe"))),
+                        Path.Combine(applicationRoot, "native", "graphreader-engine.exe")),
+                    calibrationOcrSuggestionService: CreateCalibrationOcrSuggestionService(applicationRoot)),
                 null),
             WorkflowRuntimeEnvironment.RecordedFake => new ApplicationCompositionResult(
                 environment,
@@ -306,6 +308,28 @@ public static class ApplicationComposition
                 null),
             _ => throw new ArgumentOutOfRangeException(nameof(environment)),
         };
+    }
+
+    private static CalibrationOcrWorkerClient? CreateCalibrationOcrSuggestionService(string applicationRoot)
+    {
+        string? requestedRoot = Environment.GetEnvironmentVariable(CalibrationOcrAssetsEnvironmentVariable);
+        string assetRoot = string.IsNullOrWhiteSpace(requestedRoot)
+            ? Path.Combine(applicationRoot, "review-assistance", "ocr")
+            : requestedRoot;
+        string executablePath = Path.Combine(applicationRoot, "GraphReader.App.exe");
+        if (!Path.IsPathFullyQualified(assetRoot) || !File.Exists(executablePath))
+        {
+            return null;
+        }
+
+        string[] requiredFiles =
+        [
+            "en_PP-OCRv5_mobile_rec.onnx", "recognizer.json",
+            "PaddlePaddle-PP-OCRv5-Models-Apache-2.0.txt", "PaddlePaddle-PP-OCRv5-Models-Notice.txt",
+        ];
+        return requiredFiles.All(name => File.Exists(Path.Combine(assetRoot, name)))
+            ? new CalibrationOcrWorkerClient(executablePath, Path.GetFullPath(assetRoot))
+            : null;
     }
 
     private static IUiThreadGuard CreateProductionUiThreadGuard()

@@ -19,7 +19,7 @@ internal static class Program
     internal const string ModelHash = "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743";
     internal const string ManifestHash = "17259b3260c0d39b292be70b36e68d53a067992de3afeaf0809d4d981de4327a";
     private const int MaximumOutputBytes = 1_000_000;
-    private static readonly JsonSerializerOptions Json = new()
+    internal static readonly JsonSerializerOptions Json = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         PropertyNameCaseInsensitive = false,
@@ -29,16 +29,26 @@ internal static class Program
 
     public static async Task<int> Main(string[] args)
     {
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(170));
+        bool workerCheck = args.Length > 0 && args[0] == "--worker-check";
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(workerCheck ? 360 : 170));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--worker-check", var workerRequest, var appExe, var assetRoot])
+            {
+                byte[] input = ReadBounded(workerRequest, 32_768);
+                ProbeRequest ownedRequest = JsonSerializer.Deserialize<ProbeRequest>(input, Json)
+                    ?? throw new InvalidDataException("Missing request.");
+                Emit(await SelfHostedWorkerCheck.RunAsync(ownedRequest, Hash(input), appExe, assetRoot, deadline.Token));
+                return 0;
+            }
+            if (workerCheck) throw new InvalidDataException("Usage: --worker-check <request.json> <absolute-App-exe> <asset-root>");
             // Apply and query the aggregate cap before entering any OCR/runtime code.
             using CpuBudgetJob budget = CpuBudgetJob.Apply();
             if (args is ["--self-test"])
@@ -188,7 +198,7 @@ internal static class Program
             BgrPixels: new(crop[2] * 3, color)), frame.PixelWidth, frame.PixelHeight);
     }
 
-    private static byte[] ReadBounded(string path, long maximum)
+    internal static byte[] ReadBounded(string path, long maximum)
     {
         using var file = new FileStream(Path.GetFullPath(path), FileMode.Open, FileAccess.Read, FileShare.Read);
         if (file.Length is <= 0 || file.Length > maximum) throw new InvalidDataException("Input exceeds its resource bound.");
@@ -196,9 +206,9 @@ internal static class Program
         file.ReadExactly(bytes);
         return bytes;
     }
-    private static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+    internal static string Hash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
     private static string FileHash(string path) { using var stream = File.OpenRead(path); return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant(); }
-    private static void RequireHash(byte[] bytes, string expected)
+    internal static void RequireHash(byte[] bytes, string expected)
     {
         if (expected.Length != 64 || !string.Equals(Hash(bytes), expected, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("Input checksum mismatch.");
@@ -220,6 +230,6 @@ internal static class Program
         public ValueTask<byte[]?> TryGetAsync(StageCacheKey key, CancellationToken cancellationToken) => ValueTask.FromResult<byte[]?>(null);
         public ValueTask PutAsync(StageCacheKey key, ReadOnlyMemory<byte> value, CancellationToken cancellationToken) => ValueTask.CompletedTask;
     }
-    private sealed record ProbeRequest(string Scope, string ImagePath, string ImageSha256, int[] SourceCropXywh,
+    internal sealed record ProbeRequest(string Scope, string ImagePath, string ImageSha256, int[] SourceCropXywh,
         double[] PlotLtrb, string ModelPath, string ManifestPath, string LicensePath, string NoticePath);
 }

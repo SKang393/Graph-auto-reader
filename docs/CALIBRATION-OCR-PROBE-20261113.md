@@ -106,8 +106,9 @@ were added to a distribution. Existing ONNX/OpenCV notices remain applicable.
 ## Retention and next acceptance
 
 The temporary request, 4275-byte stdout, 3087-byte stderr, execution and identity
-receipts under `artifacts/calibration-ocr-probe-20261113` can be retired after
-this record is pushed and consumers finish. Keep the original owned input and
+receipts under `artifacts/calibration-ocr-probe-20261113` were retired after
+this record reached main at `286382c0` and consumers finished: five files,
+15,009 bytes. Keep the original owned input and
 current reader/manifest/license. No new dataset or environment was created.
 
 The previous pushed Rust-assistance outcome's completed TRX, timing and native

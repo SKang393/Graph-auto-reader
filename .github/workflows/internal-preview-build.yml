@@ -57,6 +57,21 @@ jobs:
           merge-multiple: true
           digest-mismatch: error
 
+      - name: Set up the pinned conversion interpreter
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11.9'
+          architecture: x64
+          check-latest: false
+
+      - name: Recreate only the exact reviewed reader bytes
+        shell: pwsh
+        timeout-minutes: 22
+        run: |
+          python packaging/Materialize-CalibrationReviewModel.py `
+            --output "$env:RUNNER_TEMP\graphreader-review-model\en_PP-OCRv5_mobile_rec.onnx"
+          if ($LASTEXITCODE -ne 0) { throw 'The exact review reader could not be materialized.' }
+
       - name: Build and verify the internal preview
         id: build
         shell: pwsh
@@ -64,7 +79,8 @@ jobs:
           ./packaging/Build-HostedInternalPreview.ps1 `
             -ExpectedVersion $env:GRAPHREADER_EXPECTED_VERSION `
             -ExpectedSourceSha $env:GRAPHREADER_EXPECTED_SOURCE_SHA `
-            -ReviewedOpenCvPreviewZip 'artifacts/reviewed-preview-input/GraphAutoReader-0.4.37-win-x64-internal-preview.zip'
+            -ReviewedOpenCvPreviewZip 'artifacts/reviewed-preview-input/GraphAutoReader-0.4.37-win-x64-internal-preview.zip' `
+            -CalibrationReviewModelPath "$env:RUNNER_TEMP\graphreader-review-model\en_PP-OCRv5_mobile_rec.onnx"
 
       - name: Upload verified internal preview ZIP
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
