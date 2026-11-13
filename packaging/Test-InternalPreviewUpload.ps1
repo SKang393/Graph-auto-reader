@@ -138,7 +138,8 @@ function Assert-SafeZipEntries {
             if ($totalLength -gt 4GB) { throw 'Preview ZIP expands beyond the 4 GiB validation limit.' }
             $leaf = $segments[-1]
             $extension = [IO.Path]::GetExtension($leaf)
-            if ($extension -in $forbiddenExtensions) {
+            $isRustStandardLibraryNotice = $name -ceq 'native/Rust-StandardLibrary-Notices.html'
+            if ($extension -in $forbiddenExtensions -and -not $isRustStandardLibraryNotice) {
                 throw "Forbidden project, source, debug, or key file in preview ZIP: $name"
             }
             if ($leaf -match '^(?i:.*\.(autosave\.)?garproj)$') {
@@ -259,6 +260,26 @@ try {
                 $nativeMetadata.releaseApproved -isnot [bool] -or $nativeMetadata.releaseApproved -ne $false -or
                 $runtime.releaseApproved -isnot [bool] -or $runtime.releaseApproved -ne $false) {
                 throw 'Reviewed native runtime bytes or nonproduction flags differ from build metadata.'
+            }
+
+            $rustWorkerName = 'native/graphreader-engine.exe'
+            $rustNoticeName = 'native/Rust-StandardLibrary-Notices.html'
+            $rustMetadataName = 'native/rust-toolchain.json'
+            $rustNames = @($rustWorkerName, $rustNoticeName, $rustMetadataName)
+            $rustPresent = @($rustNames | Where-Object { $byName.ContainsKey($_) }).Count
+            if ($rustPresent -gt 0) {
+                if ($rustPresent -ne $rustNames.Count) { throw 'Rust worker payload requires its worker, standard-library notice, and hash metadata.' }
+                $rustMetadata = Read-ZipJson $byName[$rustMetadataName]
+                $rustWorkerHash = Get-ZipEntrySha256 $byName[$rustWorkerName]
+                $rustNoticeHash = Get-ZipEntrySha256 $byName[$rustNoticeName]
+                if ($rustMetadata.schema -cne 'graphreader.rust-worker-build.v1' -or
+                    [string]$rustMetadata.worker_sha256 -notmatch '^[0-9a-f]{64}$' -or
+                    [string]$rustMetadata.standard_library_notice_sha256 -notmatch '^[0-9a-f]{64}$' -or
+                    [string]$rustMetadata.worker_sha256 -cne $rustWorkerHash -or
+                    [string]$rustMetadata.standard_library_notice_sha256 -cne $rustNoticeHash -or
+                    [string]$rustMetadata.crt_linkage -cne 'static') {
+                    throw 'Rust worker or standard-library notice bytes differ from native/rust-toolchain.json.'
+                }
             }
         }
         finally { $archive.Dispose() }

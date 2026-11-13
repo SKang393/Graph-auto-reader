@@ -96,6 +96,18 @@ jobs:
           "GRAPHREADER_RUST_BLOCKING_WORKER=${{ github.workspace }}\artifacts\native-engine\debug\examples\blocking_test_worker.exe" |
               Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+      - name: Test reviewed preview runtime import
+        shell: pwsh
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File "${{ github.workspace }}\packaging\tests\Test-ReviewedPreviewRuntime.Tests.ps1"
+
+      - name: Test hosted internal preview build verification
+        shell: pwsh
+        run: >-
+          powershell -NoProfile -ExecutionPolicy Bypass
+          -File "${{ github.workspace }}\packaging\tests\Test-HostedInternalPreview.Tests.ps1"
+
       - name: Restore
         shell: pwsh
         run: dotnet restore GraphAutoReader.slnx
@@ -113,6 +125,14 @@ jobs:
         run: >-
           powershell -NoProfile -ExecutionPolicy Bypass
           -File "${{ github.workspace }}\packaging\localization\Test-LocalizationAudit.ps1"
+
+      - name: Test bounded calibration OCR host without models
+        shell: pwsh
+        run: |
+          dotnet build tools/GraphReader.CalibrationOcrProbe/GraphReader.CalibrationOcrProbe.csproj --configuration Release --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Calibration OCR host build failed.' }
+          dotnet tools/GraphReader.CalibrationOcrProbe/bin/Release/net10.0-windows/win-x64/GraphReader.CalibrationOcrProbe.dll --self-test
+          if ($LASTEXITCODE -ne 0) { throw 'Calibration OCR host self-tests failed.' }
 
       - name: Test in-memory OCR metric accounting
         shell: pwsh

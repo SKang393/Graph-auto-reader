@@ -8,7 +8,8 @@ param(
     [switch]$SkipRestore,
     [string]$OutputRoot,
     [string]$ReviewedOpenCvEvidenceRoot,
-    [string]$OpenCvAttestationPath
+    [string]$OpenCvAttestationPath,
+    [string]$ReviewedOpenCvPreviewZip
 )
 
 Set-StrictMode -Version Latest
@@ -117,6 +118,10 @@ function Get-GitOutput {
 
 try {
     $currentCommand = 'read repository state'
+    if (-not [string]::IsNullOrWhiteSpace($ReviewedOpenCvPreviewZip) -and
+        (-not [string]::IsNullOrWhiteSpace($ReviewedOpenCvEvidenceRoot) -or -not [string]::IsNullOrWhiteSpace($OpenCvAttestationPath))) {
+        throw 'Reviewed OpenCV preview ZIP and source evidence/attestation inputs are mutually exclusive.'
+    }
     if ($AllowDirty.IsPresent) {
         throw '-AllowDirty is retired: every produced build must be committed, recorded, and pushed.'
     }
@@ -241,7 +246,16 @@ try {
     if ($publishedOpenCvRuntime.Count -ne 1) {
         throw "Expected exactly one published OpenCvSharpExtern.dll, found $($publishedOpenCvRuntime.Count)."
     }
-    if (-not [string]::IsNullOrWhiteSpace($ReviewedOpenCvEvidenceRoot)) {
+    if (-not [string]::IsNullOrWhiteSpace($ReviewedOpenCvPreviewZip)) {
+        if ([IO.Path]::GetFullPath($publishedOpenCvRuntime[0].FullName) -ine [IO.Path]::GetFullPath((Join-Path $stagingDirectory 'OpenCvSharpExtern.dll'))) {
+            throw 'Preview OpenCV import requires the published runtime at the staging root.'
+        }
+        Invoke-CheckedCommand -Description 'import reviewed OpenCV from recorded internal preview' -Command {
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repositoryRoot 'packaging\opencv-source\Import-ReviewedPreviewRuntime.ps1') -ArchivePath ([IO.Path]::GetFullPath($ReviewedOpenCvPreviewZip)) -DestinationRoot $stagingDirectory -RepositoryRoot $repositoryRoot
+        }
+        $openCvRuntime = Get-Content -LiteralPath (Join-Path $stagingDirectory 'reviewed-opencv-runtime.json') -Raw | ConvertFrom-Json
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($ReviewedOpenCvEvidenceRoot)) {
         $reviewedOpenCvEvidencePath = [IO.Path]::GetFullPath($ReviewedOpenCvEvidenceRoot)
         Invoke-CheckedCommand -Description 'install reviewed source-built OpenCV runtime' -Command {
             $installerArguments = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $repositoryRoot 'packaging\opencv-source\Install-ReviewedRuntime.ps1'), '-EvidenceRoot', $reviewedOpenCvEvidencePath, '-DestinationRoot', $stagingDirectory)

@@ -1,0 +1,90 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Sungwoo Kang -->
+
+# Hosted internal preview delivery
+
+## Problem and implemented path
+
+The 0.4.37 internal preview was uploaded through a temporary one-job runner.
+That runner is unregistered. The new manual `Build internal preview` workflow
+uses a GitHub-hosted Windows runner and the prepared main source SHA/version.
+It does not create a runner on the maintainer's PC or publish a public release.
+
+The source-built OpenCV runtime already delivered in 0.4.37 can be reused for
+ManualPreview without transferring private provenance records. The new importer
+requires an exact ZIP filename/SHA match to one complete internal build ledger
+entry. It checks the embedded clean ManualPreview version/commit, executable
+identity, reviewed runtime metadata, current source-revision policy and DLL
+hash before copying only the DLL, runtime metadata and required notices.
+Duplicate/traversal entries are rejected. A small lineage record preserves the
+source archive identity and `cleanMachineEvidence=false`, `releaseApproved=false`.
+The source-evidence install path is unchanged; the two inputs are mutually
+exclusive. Production packaging gates are unchanged.
+
+The hosted wrapper requires GitHub Actions, main, a clean exact checkout and
+the expected central version. Existing Build-DevPortable performs its fast test
+set, self-contained publish and smoke checks. The wrapper verifies the Rust
+worker and standard-library notice hashes, creates one internal ZIP, checks
+each archived file against the published bytes and reuses the existing upload
+validator. User Data is excluded. The validator permits only the exact Rust
+standard-library HTML notice path with its worker/metadata hash checks; older
+pre-Rust previews remain valid. General HTML and source/private files remain
+rejected.
+
+The workflow downloads the existing immutable artifact using the official
+[download-artifact action](https://github.com/actions/download-artifact/blob/9000827ccba6bdab643e8b6fd33ac0654aef8333/action.yml),
+pinned at v8.0.2 commit `9000827ccba6bdab643e8b6fd33ac0654aef8333`.
+This is an MIT-licensed build-time action, not an application dependency.
+Checkout, .NET setup and upload retain the repository's existing pinned actions.
+
+## Source archive identity
+
+- Artifact: `13892703110`, run `43102839837`.
+- Package: `GraphAutoReader-0.4.37-win-x64-internal-preview.zip`, 79,867,980 bytes.
+- ZIP SHA-256: `bc9c3548e13f3faf2098f35ec9c7870647859d03493795b66fcf5678b81f2236`.
+- Source commit: `e4067fd912496b1eedc1afafefbfe6de5b00b19b`.
+- OpenCV DLL SHA-256: `c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31`.
+- Imported lineage SHA-256: `45dbeff4fae19e77a6bd60c0d31269620b860b50195dc90988bdcd6d9363d8d4`.
+
+## Validation
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File packaging/tests/Test-ReviewedPreviewRuntime.Tests.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File packaging/tests/Test-HostedInternalPreview.Tests.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File packaging/tests/Test-InternalPreviewUpload.Tests.ps1
+```
+
+Importer fixtures passed 7/7: valid archive, wrong ledger hash, missing notice,
+Production metadata, changed DLL, traversal and case-duplicate entries. The
+initial fixture run exposed a missing Windows PowerShell compression assembly;
+loading that assembly explicitly fixed it before the passing run. Actual
+0.4.37 import also passed with the DLL and lineage hashes above. The final
+importer includes all four required OpenCV/MSVC license and notice files.
+
+Hosted helper fixtures passed 5/5: valid identity, wrong version, wrong source,
+changed Rust worker and changed Rust notice. Upload-validator regression checks
+passed, including valid Rust payload, arbitrary HTML rejection, worker/notice
+hash mismatch and incomplete native payload. PowerShell syntax checks and
+`git diff --check` passed. Independent importer review found no concrete blocker.
+
+These are source/fixture/import checks. No hosted build has been dispatched for
+this change, no new package/version has been produced, and installed/portable
+clean-machine acceptance remains open. A successful future workflow must still
+have its uploaded ZIP downloaded and verified, ledger pushed, latest pointer
+switched and superseded local package retired before replacement is complete.
+
+## Retention and maintenance
+
+The existing 0.4.37 ZIP and latest pointer stay in place until a verified
+replacement is uploaded and recorded. Completed importer checks under
+`artifacts/preview-runtime-0437-import-check`,
+`artifacts/preview-runtime-0437-import-final` and the initial failed
+`artifacts/preview-runtime-test-ac0a74fbb11d4c87b4affcb792422269` are disposable
+after this record is pushed. No private attestation or complete source-built
+OpenCV environment was duplicated.
+
+GitHub artifacts expire. The current workflow deliberately pins the known
+0.4.37 input; when a replacement is delivered, update the source artifact pin
+to a verified retained package before the old artifact expires. Build numbers
+still advance once per actual packaged build, and public release cadence and
+final product approval remain governed by VERSIONING.md.

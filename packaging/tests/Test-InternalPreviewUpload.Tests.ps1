@@ -22,6 +22,8 @@ $sourceCommit = (& git -C $projectRoot rev-parse HEAD).Trim().ToLowerInvariant()
 $runnerLabel = 'graphreader-upload-fixture-0123456789'
 $nativeBytes = [Text.Encoding]::UTF8.GetBytes('synthetic reviewed native fixture')
 $exeBytes = [Text.Encoding]::UTF8.GetBytes('synthetic ManualPreview executable')
+$rustWorkerBytes = [Text.Encoding]::UTF8.GetBytes('synthetic Rust worker fixture')
+$rustNoticeBytes = [Text.Encoding]::UTF8.GetBytes('synthetic Rust standard-library notice')
 function Hash-Bytes([byte[]]$Bytes) {
     $sha = [Security.Cryptography.SHA256]::Create()
     try { return ([BitConverter]::ToString($sha.ComputeHash($Bytes))).Replace('-', '').ToLowerInvariant() }
@@ -33,7 +35,8 @@ function Write-ZipEntry($Archive, [string]$Name, [byte[]]$Bytes) {
     try { $stream.Write($Bytes, 0, $Bytes.Length) } finally { $stream.Dispose() }
 }
 function New-Fixture {
-    param([string[]]$ExtraEntries = @(), [string]$MetadataCommit = $sourceCommit, [switch]$MissingPortableMode)
+    param([string[]]$ExtraEntries = @(), [string]$MetadataCommit = $sourceCommit, [switch]$MissingPortableMode,
+        [switch]$RustPayload, [switch]$BadRustNoticeHash, [switch]$BadRustWorkerHash, [switch]$MissingRustNotice)
     if (Test-Path -LiteralPath $inputRoot) { Remove-Item -LiteralPath $inputRoot -Recurse -Force }
     New-Item -ItemType Directory -Path $inputRoot,$runnerTemp -Force | Out-Null
     $nativeHash = Hash-Bytes $nativeBytes
@@ -71,6 +74,23 @@ function New-Fixture {
             }
             if (-not $MissingPortableMode) { Write-ZipEntry $archive 'portable.mode' $utf8.GetBytes('synthetic portable marker') }
             Write-ZipEntry $archive 'runtimes/win-x64/native/OpenCvSharpExtern.dll' $nativeBytes
+            if ($RustPayload) {
+                $rustWorkerHash = Hash-Bytes $rustWorkerBytes
+                $rustNoticeHash = Hash-Bytes $rustNoticeBytes
+                if ($BadRustWorkerHash) { $rustWorkerHash = '0' * 64 }
+                if ($BadRustNoticeHash) { $rustNoticeHash = '0' * 64 }
+                Write-ZipEntry $archive 'native/graphreader-engine.exe' $rustWorkerBytes
+                if (-not $MissingRustNotice) { Write-ZipEntry $archive 'native/Rust-StandardLibrary-Notices.html' $rustNoticeBytes }
+                $rustMetadata = [ordered]@{
+                    schema = 'graphreader.rust-worker-build.v1'
+                    compiler = 'rustc fixture'
+                    worker_sha256 = $rustWorkerHash
+                    standard_library_notice_sha256 = $rustNoticeHash
+                    cargo_lock_sha256 = ('c' * 64)
+                    crt_linkage = 'static'
+                }
+                Write-ZipEntry $archive 'native/rust-toolchain.json' $utf8.GetBytes(($rustMetadata | ConvertTo-Json -Depth 5 -Compress))
+            }
             foreach ($extra in $ExtraEntries) { Write-ZipEntry $archive $extra $utf8.GetBytes('forbidden fixture content') }
         }
         finally { $archive.Dispose() }
@@ -142,6 +162,28 @@ try {
         throw 'Valid preview was not staged byte-for-byte.'
     }
     Remove-Item -LiteralPath (Join-Path $runnerTemp 'graphreader-internal-preview') -Recurse -Force
+
+    $zip = New-Fixture -RustPayload
+    Set-Inputs $zip
+    $staged = & $subject
+    if (-not (Test-Path -LiteralPath $staged -PathType Leaf)) { throw 'Valid Rust worker and exact notice were rejected.' }
+    Remove-Item -LiteralPath (Join-Path $runnerTemp 'graphreader-internal-preview') -Recurse -Force
+
+    $zip = New-Fixture -ExtraEntries @('native/Other-Notice.html')
+    Set-Inputs $zip
+    Invoke-Subject 'Forbidden project, source, debug, or key file'
+
+    $zip = New-Fixture -RustPayload -BadRustNoticeHash
+    Set-Inputs $zip
+    Invoke-Subject 'Rust worker or standard-library notice bytes differ'
+
+    $zip = New-Fixture -RustPayload -BadRustWorkerHash
+    Set-Inputs $zip
+    Invoke-Subject 'Rust worker or standard-library notice bytes differ'
+
+    $zip = New-Fixture -RustPayload -MissingRustNotice
+    Set-Inputs $zip
+    Invoke-Subject 'Rust worker payload requires its worker'
 
     $zip = New-Fixture -ExtraEntries @('System.Private.CoreLib.dll', 'System.Private.Uri.dll')
     Set-Inputs $zip

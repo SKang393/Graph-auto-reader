@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Sungwoo Kang
+
+name: Build internal preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_source_sha:
+        description: Exact prepared main commit to build
+        required: true
+        type: string
+      expected_version:
+        description: Prepared next internal build version
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: internal-preview-build
+  cancel-in-progress: false
+
+jobs:
+  build-and-upload:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: windows-2025
+    timeout-minutes: 45
+    env:
+      GRAPHREADER_EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+      GRAPHREADER_EXPECTED_VERSION: ${{ inputs.expected_version }}
+
+    steps:
+      - name: Check out the exact main workflow commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
+      # Reuse the delivered, ledger-pinned runtime only. The importer verifies
+      # the inner ZIP hash and preserves nonproduction review status.
+      - name: Download the recorded OpenCV source package
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: '13892703110'
+          run-id: '43102839837'
+          github-token: ${{ github.token }}
+          path: artifacts/reviewed-preview-input
+          merge-multiple: true
+          digest-mismatch: error
+
+      - name: Build and verify the internal preview
+        id: build
+        shell: pwsh
+        run: |
+          ./packaging/Build-HostedInternalPreview.ps1 `
+            -ExpectedVersion $env:GRAPHREADER_EXPECTED_VERSION `
+            -ExpectedSourceSha $env:GRAPHREADER_EXPECTED_SOURCE_SHA `
+            -ReviewedOpenCvPreviewZip 'artifacts/reviewed-preview-input/GraphAutoReader-0.4.37-win-x64-internal-preview.zip'
+
+      - name: Upload verified internal preview ZIP
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: GraphAutoReader-${{ steps.build.outputs.version }}-internal-preview-${{ github.run_id }}
+          path: ${{ runner.temp }}/graphreader-internal-preview/*
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 90
