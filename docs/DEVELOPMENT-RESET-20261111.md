@@ -81,7 +81,11 @@ The [2026-11-13 assistance batch](RUST-AXIS-ASSISTANCE-20261113.md) completed th
 native proposal -> confirmed calibration -> point -> export -> reopen check.
 DXGI inventory and explicit adapter selection are implemented and tested;
 measured automatic backend selection and UI integration remain pending.
-Recognition-only timing is the next product step, reusing the licensed reader.
+The [recognition-only probe](CALIBRATION-OCR-PROBE-20261113.md) then completed
+one owned-image call in 4.119 seconds internally, including 2.344 seconds for
+cold session initialization. It returned seven numeric review suggestions and
+two nonnumeric strings, with no accuracy claim. The next product step is a
+reused reader session feeding editable, source-bound suggestions into WPF.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
