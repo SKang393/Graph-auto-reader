@@ -18,7 +18,8 @@ checked before results are used. Changing those inputs invalidates stale work.
 The App test run recorded 831 passed and four UI fixture failures out of 835.
 The four failures concerned fixture initialization and expected labels or
 localization, not an established product UI outcome. After fixture correction,
-the focused follow-up passed 6/6; the full suite was not rerun after that fix.
+the focused follow-up passed 6/6. The subsequent hosted build of source
+`2992419ccf0b6d483adb023dae0ac56c86d8880a` passed the full App suite, 835/835.
 The probe also encountered a local CS0136 variable-shadowing compile error;
 the lead corrected it before the successful lifecycle run.
 
@@ -39,7 +40,8 @@ with BelowNormal priority and one CPU inference thread. This is an aggregate
 scheduling budget, not a promise that an individual core never reaches 100%.
 The lifecycle result SHA-256 is
 `d764ba8b5a9b9bb3fb687bd09131fedaf8e946c50587297c4ed5a1b007bad828`;
-the active local evidence is under `artifacts/calibration-label-tests/`.
+the disposable local evidence under `artifacts/calibration-label-tests/` was
+retired after its record reached main in `2992419c`.
 
 ## Reviewed assets and remaining work
 
@@ -50,8 +52,9 @@ and its tracked manifest SHA-256 is
 The PaddlePaddle PP-OCRv5 model Apache-2.0 license and notice are pinned at
 `c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4` and
 `8d81f5d0c58547cce471c24f82efe768a9d907d06764f67e90cc680c6d777729`.
-The hosted materializer requires the exact reviewed model hash, but its hosted
-download and conversion path has not yet been run. No private or sealed input
+The hosted materializer reproduced the exact reviewed model hash in
+[build 43528703957](https://github.com/SKang393/Graph-auto-reader/actions/runs/43528703957).
+No private or sealed input
 was read, no model was trained, and no production approval was granted.
 
 ## Native review and save
@@ -87,8 +90,10 @@ unselected and selected rows in System-dark and Light. UI Automation exposed
 the row's display text as its accessible name. Selecting the nonnumeric
 participant row left all three Use actions disabled. Changing to panel 2 and
 back cleared the proposal and OCR rows while retaining the saved calibration.
-The corrected App exited 0 with no remaining App processes. The local QA and
-test outputs remain active until this outcome is pushed, then are retired.
+The corrected App exited 0 with no remaining App processes. After this outcome
+reached main, the local QA and test directories were retired: 24 files,
+1,339,197 bytes. The small reviewed asset staging directory remains an active
+input for the bounded hardware comparison and is retired when that consumer ends.
 
 The final App build and focused retry used the existing E-local .NET and NuGet
 environment:
@@ -99,3 +104,19 @@ dotnet test tests/GraphReader.App.Tests/GraphReader.App.Tests.csproj -c Release 
 ```
 
 This record does not establish real-data accuracy or release readiness.
+
+## Delivered preview 0.4.38
+
+The GitHub-hosted build passed 835 App tests, 23 Domain tests and 143 integration
+tests, with seven opt-in integration tests skipped. The source CI run
+`43528642593` also completed successfully; public release jobs were skipped.
+The uploaded artifact was downloaded, its outer digest and inner ZIP hash were
+verified, and all 477 extracted files matched their archived bytes. Package and
+artifact identities are in `BUILD_LEDGER.json`.
+
+Native checks of the downloaded portable used its bundled assets, with no local
+asset-root override. Rust returned the three axis anchors `(144,260)`,
+`(144,96)`, `(1055,260)`. OCR returned nine review rows; all three calibration
+value fields remained blank and Apply remained disabled. The themed rows were
+readable. No App processes remained after close. This checks the delivered
+portable on the maintainer's PC, not an installer or a clean Windows machine.

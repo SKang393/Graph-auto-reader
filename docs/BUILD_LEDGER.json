@@ -7463,7 +7463,7 @@
                        "openCvRuntimeSha256":  "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
                        "releaseEligible":  false,
                        "releaseStatus":  "internal",
-                       "retained":  true,
+                       "retained":  false,
                        "recordIncomplete":  false,
                        "missingMetadata":  [
 
@@ -7505,6 +7505,61 @@
                                                "expiresUtc":  "2027-02-09T21:24:57Z",
                                                "downloadedPackageVerifiedUtc":  "2026-11-11T21:29:52.9876417+00:00"
                                            }
+                   },
+                   {
+                     "buildNumber": 438,
+                     "version": "0.4.38",
+                     "directory": "0.4.38-20261113T234328316Z-2992419c",
+                     "stampedVersion": "0.4.38",
+                     "commit": "2992419ccf0b6d483adb023dae0ac56c86d8880a",
+                     "buildTimeUtc": "2026-11-13T23:43:28.3163074+00:00",
+                     "executableSha256": "0c4645c56784097f563e9aacec73252e799c91613b1536e751d01ce8a452c6c2",
+                     "openCvRuntimeSha256": "c96f91b3ec1843e822642d25aceef0591efcf2b3ca999fac72ae5fcddc7f3b31",
+                     "releaseEligible": false,
+                     "releaseStatus": "internal",
+                     "retained": true,
+                     "recordIncomplete": false,
+                     "missingMetadata": [],
+                     "purpose": "Internal ManualPreview with Rust axis suggestions and source-bound, explicitly reviewed OCR calibration labels under a half-core worker budget.",
+                     "packages": [
+                       {
+                         "name": "GraphAutoReader-0.4.38-win-x64-internal-preview.zip",
+                         "sizeBytes": 87440684,
+                         "sha256": "6cbe09d2453147a39d31a781a6453b69c1044011a04ad76a0b175879be64d65e",
+                         "verificationStatus": "verified-hosted-and-downloaded"
+                       }
+                     ],
+                     "artifactStorage": {
+                       "provider": "github-actions",
+                       "artifactId": 14086606947,
+                       "name": "GraphAutoReader-0.4.38-internal-preview-43528703957",
+                       "url": "https://github.com/SKang393/Graph-auto-reader/actions/runs/43528703957/artifacts/14086606947",
+                       "workflowRunId": 43528703957,
+                       "workflowCommit": "2992419ccf0b6d483adb023dae0ac56c86d8880a",
+                       "sizeInBytes": 87184827,
+                       "digest": "sha256:1ae6100a6d94cc159f87a89c0fe2bab7bdb196bd4421844180a91026494e21cc",
+                       "createdUtc": "2026-11-13T23:43:54Z",
+                       "expiresUtc": "2027-02-11T23:39:18Z",
+                       "downloadedPackageVerifiedUtc": "2026-11-13T23:53:35.9975984+00:00"
+                     },
+                     "verification": {
+                       "buildExitCode": 0,
+                       "hostedTestsPassed": 1001,
+                       "hostedTestsSkipped": 7,
+                       "portableSmokeExitCode": 0,
+                       "productionRuntimeSmokeExitCode": 2,
+                       "nativeProvenanceReview": "passed",
+                       "sourceCiRunId": 43528642593,
+                       "sourceCiConclusion": "success",
+                       "packageUploadRunConclusion": "success",
+                       "visualWorkflowChecked": true,
+                       "visualWorkflowScope": "Delivered portable: Rust axis suggestions, nine OCR rows, blank value fields, disabled Apply, no App process after close.",
+                       "bundledReviewOcrChecked": true,
+                       "cleanWindowsVmChecked": false,
+                       "productionApproved": false,
+                       "rustWorkerSha256": "e1f22fb457564267250bf41d804b954a0f9e08dd44bcd14f7db0a60e9e1459cb",
+                       "reviewOcrSha256": "7839f12b644f574eaf677e92a11bd3e337f4b2f910160666073888783fece743"
+                     }
                    }
                ]
 }

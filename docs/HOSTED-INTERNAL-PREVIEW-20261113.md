@@ -67,16 +67,14 @@ passed, including valid Rust payload, arbitrary HTML rejection, worker/notice
 hash mismatch and incomplete native payload. PowerShell syntax checks and
 `git diff --check` passed. Independent importer review found no concrete blocker.
 
-These are source/fixture/import checks. No hosted build has been dispatched for
-this change, no new package/version has been produced, and installed/portable
-clean-machine acceptance remains open. A successful future workflow must still
-have its uploaded ZIP downloaded and verified, ledger pushed, latest pointer
-switched and superseded local package retired before replacement is complete.
+These initial source/fixture/import checks were followed by the successful
+hosted 0.4.38 delivery below. Installed/portable clean-machine acceptance
+remains open.
 
 ## Retention and maintenance
 
-The existing 0.4.37 ZIP and latest pointer stay in place until a verified
-replacement is uploaded and recorded. Completed importer checks under
+The 0.4.37 ZIP and latest pointer are replaced only after the verified 0.4.38
+ledger is pushed. Completed importer checks under
 `artifacts/preview-runtime-0437-import-check`,
 `artifacts/preview-runtime-0437-import-final` and the initial failed
 `artifacts/preview-runtime-test-ac0a74fbb11d4c87b4affcb792422269` were retired
@@ -90,8 +88,34 @@ checks, bounded OCR host self-tests, Rust/application tests and all packaging
 validation. Release build/publish jobs were correctly skipped. This CI run did
 not dispatch the separate hosted internal-preview packaging workflow.
 
-GitHub artifacts expire. The current workflow deliberately pins the known
-0.4.37 input; when a replacement is delivered, update the source artifact pin
-to a verified retained package before the old artifact expires. Build numbers
+GitHub artifacts expire. The current workflow pins the verified 0.4.38 input;
+future deliveries must update that pin before the artifact expires. Build numbers
 still advance once per actual packaged build, and public release cadence and
 final product approval remain governed by VERSIONING.md.
+
+## Hosted delivery 0.4.38
+
+[Build 43528703957](https://github.com/SKang393/Graph-auto-reader/actions/runs/43528703957)
+completed successfully from `2992419ccf0b6d483adb023dae0ac56c86d8880a`.
+The hosted materializer reproduced the pinned OCR reader. App, Domain and
+integration checks passed 1,001 tests; seven opt-in integration tests were
+skipped. ManualPreview smoke exited 0 and the deliberately unavailable
+Production smoke exited 2. Source CI `43528642593` passed separately.
+
+- Artifact `14086606947`: 87,184,827 bytes, SHA-256
+  `1ae6100a6d94cc159f87a89c0fe2bab7bdb196bd4421844180a91026494e21cc`.
+- Inner ZIP `GraphAutoReader-0.4.38-win-x64-internal-preview.zip`:
+  87,440,684 bytes, SHA-256
+  `6cbe09d2453147a39d31a781a6453b69c1044011a04ad76a0b175879be64d65e`.
+- Downloaded extraction: 477 files, 195,801,513 bytes, each checked against its
+  ZIP entry; source, executable, Rust worker, notices and OCR assets matched.
+- Native delivered-app check: bundled Rust anchors and nine OCR suggestions,
+  blank values and disabled Apply; no App process remained after close.
+- Artifact expiry: 2027-02-11. No installer, public release or production
+  approval was created.
+
+After this ledger reaches main, replace `latest.json`, retain the new ZIP and
+one extracted build, and retire the previous 468-file build (185,973,726 bytes),
+its 79,867,980-byte ZIP, and the incoming outer archive/receipt/QA scratch.
+Preserve the shared user `Data` directory. The replacement record is the
+prerequisite for that routine cleanup; it is not a clean-machine acceptance claim.
