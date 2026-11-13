@@ -129,7 +129,7 @@ public sealed class ProviderAndSessionTests
         var overridden = CpuThreadConfiguration.Create(requested, detector);
 
         Assert.AreEqual(3, defaults.PhysicalCoreCount);
-        Assert.AreEqual(Math.Min(3, Environment.ProcessorCount), defaults.IntraOperationThreads);
+        Assert.AreEqual(1, defaults.IntraOperationThreads);
         Assert.AreEqual(requested, overridden.IntraOperationThreads);
         Assert.AreEqual(1, overridden.InterOperationThreads);
     }
@@ -142,7 +142,7 @@ public sealed class ProviderAndSessionTests
         var configuration = CpuThreadConfiguration.Create(detector: detector);
 
         Assert.AreEqual(physicalCores, configuration.PhysicalCoreCount);
-        Assert.AreEqual(Environment.ProcessorCount, configuration.IntraOperationThreads);
+        Assert.AreEqual(1, configuration.IntraOperationThreads);
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(
             () => CpuThreadConfiguration.Create(physicalCores, detector));
     }

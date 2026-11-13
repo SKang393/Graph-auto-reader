@@ -39,7 +39,7 @@ namespace GraphReader.App.Services;
 /// Real-data manual workspace. It intentionally begins empty and never supplies
 /// recorded detections when production models are absent.
 /// </summary>
-public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspaceEditStateSink
+public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspaceEditStateSink, IAxisSuggestionWorkspace
 {
     private const string ProductionProjectionAuditKind = "production_review_projection";
     private const string ProductionAddAuditKind = "production_point_added";
@@ -112,7 +112,8 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         WorkflowRuntimeEnvironment runtimeEnvironment = WorkflowRuntimeEnvironment.ManualPreview,
         IReadOnlyList<AutomaticStageStatus>? automaticStages = null,
         Func<CancellationToken, Task<RealEsrganBackendResolution>>? enhancementResolver = null,
-        IPdfImportService? pdfImportService = null)
+        IPdfImportService? pdfImportService = null,
+        IAxisProposalService? axisProposalService = null)
     {
         if (runtimeEnvironment == WorkflowRuntimeEnvironment.RecordedFake)
         {
@@ -124,6 +125,7 @@ public class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspace
         _applicationPaths = applicationPaths;
         _imageImportService = imageImportService ?? new ImageImportService();
         _pdfImportService = pdfImportService;
+        _axisProposalService = axisProposalService;
         _projectFileStore = projectFileStore ?? new ProjectFileStore();
         _exportService = exportService ?? new ExportService();
         _phaseEditor = phaseEditor ?? new PhaseManualEditor();

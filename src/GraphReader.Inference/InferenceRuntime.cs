@@ -62,7 +62,10 @@ public sealed class InferenceRuntime : IAsyncDisposable
         }
 
         var cacheKey = InferenceCacheKeyDeriver.Derive(request);
-        if (!request.BypassCache)
+        // Existing request cache keys do not encode an adapter LUID. Avoid cross-device
+        // reuse until a device-aware cache contract is available.
+        bool useCache = !request.BypassCache && !_registry.HasExplicitAdapterSelection;
+        if (useCache)
         {
             var cacheStopwatch = Stopwatch.StartNew();
             var cached = await _cache.TryGetAsync(cacheKey, cancellationToken).ConfigureAwait(false);
@@ -103,7 +106,7 @@ public sealed class InferenceRuntime : IAsyncDisposable
                 token => acquisition.Session!.RunAsync(request.Input, token),
                 request.Timeout,
                 cancellationToken).ConfigureAwait(false);
-            await _cache.PutAsync(cacheKey, CacheCodec.Encode(execution), cancellationToken).ConfigureAwait(false);
+            if (!_registry.HasExplicitAdapterSelection) await _cache.PutAsync(cacheKey, CacheCodec.Encode(execution), cancellationToken).ConfigureAwait(false);
             return new InferenceResponse(true, execution, null, attempts.AsReadOnly());
         }
         catch (TimeoutException exception)
@@ -178,7 +181,7 @@ public sealed class InferenceRuntime : IAsyncDisposable
                     token => cpuAcquisition.Session!.RunAsync(request.Input, token),
                     remaining,
                     cancellationToken).ConfigureAwait(false);
-                await _cache.PutAsync(cacheKey, CacheCodec.Encode(cpuExecution), cancellationToken).ConfigureAwait(false);
+                if (!_registry.HasExplicitAdapterSelection) await _cache.PutAsync(cacheKey, CacheCodec.Encode(cpuExecution), cancellationToken).ConfigureAwait(false);
                 return new InferenceResponse(true, cpuExecution, null, attempts.AsReadOnly());
             }
             catch (TimeoutException timeoutException)

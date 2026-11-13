@@ -24,6 +24,22 @@ Current release blockers are:
    checksum-mapped, but runtime packaging, clean-machine execution, and release
    approval remain absent.
 
+## Rust standard library in the local processing worker
+
+- Component: Rust standard library statically linked into `native/graphreader-engine.exe`.
+- Copyright: The Rust Project Contributors and the contributors listed in the
+  toolchain's complete standard-library notice.
+- License: Apache-2.0 OR MIT, with component notices preserved in
+  `native/Rust-StandardLibrary-Notices.html` in application output.
+- The build copies that notice from the exact compiler used and records the
+  compiler version/commit, worker hash, notice hash and Cargo lock hash in
+  `native/rust-toolchain.json`. The worker has no external Cargo dependencies.
+- Windows MSVC builds use the statically linked C runtime; no separate
+  `VCRUNTIME140.dll` is added to the package. Applicable Microsoft toolchain
+  distribution terms still apply. This does not establish clean-machine testing.
+- Upstream copyright guidance:
+  <https://github.com/rust-lang/rust/blob/main/COPYRIGHT>.
+
 ## Real-ESRGAN
 
 - Component: official Real-ESRGAN model weights and/or inference code

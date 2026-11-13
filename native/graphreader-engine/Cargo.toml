@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Sungwoo Kang
+[package]
+name = "graphreader-engine"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+
+[profile.dev]
+incremental = false
+
+[profile.test]
+incremental = false

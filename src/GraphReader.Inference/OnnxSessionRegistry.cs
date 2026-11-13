@@ -34,6 +34,9 @@ public sealed class OnnxSessionRegistry : IAsyncDisposable
 
     public int CreatedSessionCount => Volatile.Read(ref _createdSessionCount);
 
+    internal bool HasExplicitAdapterSelection =>
+        (_factory as IInferenceAdapterSelection)?.DirectMlSelectionIdentity is not null;
+
     public ValueTask<SessionAcquisition> GetOrCreateAsync(
         ModelIdentity model,
         CancellationToken cancellationToken) =>
@@ -190,12 +193,23 @@ public sealed class OnnxSessionRegistry : IAsyncDisposable
         List<ProviderAttempt> attempts,
         CancellationToken cancellationToken)
     {
+        var selection = _factory as IInferenceAdapterSelection;
+        if (provider == InferenceProvider.DirectMl && selection?.DirectMlSelectionIdentity is not null)
+        {
+            try { selection.ValidateDirectMlSelection(); }
+            catch (Exception exception) when (exception is not OperationCanceledException and not OutOfMemoryException)
+            {
+                attempts.Add(new ProviderAttempt(provider, false, exception.Message));
+                return new SessionAcquisition(null, attempts.AsReadOnly(), null);
+            }
+        }
         var key = string.Join(
             "|",
             Path.GetFullPath(model.FilePath),
             model.Sha256.ToUpperInvariant(),
             provider.ToString(),
-            _cpuConfiguration.IntraOperationThreads.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            _cpuConfiguration.IntraOperationThreads.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            provider == InferenceProvider.DirectMl ? selection?.DirectMlSelectionIdentity : null);
         Lazy<Task<DrainingInferenceSession>> lazy;
         Task<DrainingInferenceSession> creation;
         lock (_lifecycleSync)
@@ -350,9 +364,11 @@ public enum OnnxGraphOptimizationMode
     Disabled,
 }
 
-public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
+public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory, IInferenceAdapterSelection
 {
     private readonly IUiThreadGuard _uiThreadGuard;
+    private readonly DirectMlAdapterSelection? _adapterSelection;
+    private readonly IDxgiAdapterInventory? _adapterInventory;
 
     public OnnxInferenceSessionFactory(
         IUiThreadGuard uiThreadGuard,
@@ -385,6 +401,27 @@ public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
     public OnnxGraphOptimizationMode GraphOptimizationMode { get; }
 
     public OrtLoggingLevel LoggingLevel { get; }
+
+    public OnnxInferenceSessionFactory(IUiThreadGuard uiThreadGuard,
+        OnnxGraphOptimizationMode graphOptimizationMode, OrtLoggingLevel loggingLevel,
+        DirectMlAdapterSelection adapterSelection, IDxgiAdapterInventory adapterInventory)
+        : this(uiThreadGuard, graphOptimizationMode, loggingLevel)
+    {
+        _adapterSelection = adapterSelection ?? throw new ArgumentNullException(nameof(adapterSelection));
+        if (adapterSelection.Index < 0) throw new ArgumentOutOfRangeException(nameof(adapterSelection));
+        _adapterInventory = adapterInventory ?? throw new ArgumentNullException(nameof(adapterInventory));
+    }
+
+    public string? DirectMlSelectionIdentity => _adapterSelection is null ? null :
+        $"dxgi:{_adapterSelection.Index}:{unchecked((ulong)_adapterSelection.Luid):x16}";
+
+    public void ValidateDirectMlSelection()
+    {
+        if (_adapterSelection is null) return;
+        DxgiAdapter? adapter = _adapterInventory!.Enumerate().SingleOrDefault(item => item.Index == _adapterSelection.Index);
+        if (adapter is null || adapter.Luid != _adapterSelection.Luid || adapter.IsSoftware)
+            throw new InvalidOperationException("Selected DirectML adapter is missing, changed, or software-only.");
+    }
 
     public async ValueTask<IInferenceSession> CreateAsync(
         ModelIdentity model,
@@ -419,6 +456,8 @@ public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
             throw new ArgumentOutOfRangeException(nameof(provider), "The ONNX factory supports DirectML and CPU only.");
         }
 
+        if (provider == InferenceProvider.DirectMl) ValidateDirectMlSelection();
+
         var options = new SessionOptions();
         options.LogSeverityLevel = LoggingLevel;
         if (GraphOptimizationMode == OnnxGraphOptimizationMode.Disabled)
@@ -431,7 +470,7 @@ public sealed class OnnxInferenceSessionFactory : IInferenceSessionFactory
             // Required by the DirectML execution provider contract.
             options.ExecutionMode = ExecutionMode.ORT_SEQUENTIAL;
             options.EnableMemoryPattern = false;
-            options.AppendExecutionProvider_DML(0);
+            options.AppendExecutionProvider_DML(_adapterSelection?.Index ?? 0);
         }
         else
         {

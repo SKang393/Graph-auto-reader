@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 Sungwoo Kang
+
+[target.x86_64-pc-windows-msvc]
+# The portable worker must not require an independently installed VC runtime.
+rustflags = ["-D", "warnings", "-C", "target-feature=+crt-static", "-C", "link-arg=/Brepro"]

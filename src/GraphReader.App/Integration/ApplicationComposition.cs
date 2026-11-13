@@ -296,7 +296,9 @@ public static class ApplicationComposition
                     applicationPaths,
                     automaticStages: automaticStages,
                     enhancementResolver: enhancementResolver,
-                    pdfImportService: pdf.PdfImporter),
+                    pdfImportService: pdf.PdfImporter,
+                    axisProposalService: new RustAxisProposalService(
+                        Path.Combine(applicationRoot, "native", "graphreader-engine.exe"))),
                 null),
             WorkflowRuntimeEnvironment.RecordedFake => new ApplicationCompositionResult(
                 environment,

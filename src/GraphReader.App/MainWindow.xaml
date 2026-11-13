@@ -952,6 +952,60 @@
             <TextBlock FontSize="{DynamicResource App.FontSize.Subtitle}"
                        FontWeight="SemiBold"
                        Text="{DynamicResource Manual.Title}" />
+            <Button Command="{Binding SuggestAxesCommand}" Content="{DynamicResource Manual.SuggestAxes}"
+                    automation:AutomationProperties.AutomationId="Manual.SuggestAxes"
+                    automation:AutomationProperties.Name="{DynamicResource Manual.SuggestAxes}"
+                    Style="{DynamicResource App.Style.Button}" Margin="0,0,0,8" />
+            <StackPanel Visibility="{Binding HasAxisSuggestion, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,8">
+              <TextBlock Text="{DynamicResource Manual.AxisReview}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding AxisSuggestionSummary}" TextWrapping="Wrap" Margin="0,4" />
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Column="0" Text="{DynamicResource Manual.YMaximum}" TextWrapping="Wrap" Margin="0,0,4,0" />
+                <TextBlock Grid.Column="1" Text="{DynamicResource Manual.FirstVisibleSession}" TextWrapping="Wrap" Margin="2,0" />
+                <TextBlock Grid.Column="2" Text="{DynamicResource Manual.XMaximum}" TextWrapping="Wrap" Margin="4,0,0,0" />
+                <TextBox Grid.Row="1" Grid.Column="0" Margin="0,0,4,0"
+                         Text="{Binding SuggestedYMaximum, UpdateSourceTrigger=PropertyChanged}"
+                         automation:AutomationProperties.AutomationId="Manual.AxisProposal.YMaximum"
+                         automation:AutomationProperties.Name="{DynamicResource Manual.YMaximum}" />
+                <TextBox Grid.Row="1" Grid.Column="1" Margin="2,0"
+                         Text="{Binding SuggestedFirstSession, UpdateSourceTrigger=PropertyChanged}"
+                         automation:AutomationProperties.AutomationId="Manual.AxisProposal.FirstSession"
+                         automation:AutomationProperties.Name="{DynamicResource Manual.FirstVisibleSession}" />
+                <TextBox Grid.Row="1" Grid.Column="2" Margin="4,0,0,0"
+                         Text="{Binding SuggestedFinalSession, UpdateSourceTrigger=PropertyChanged}"
+                         automation:AutomationProperties.AutomationId="Manual.AxisProposal.FinalSession"
+                         automation:AutomationProperties.Name="{DynamicResource Manual.XMaximum}" />
+              </Grid>
+              <CheckBox IsChecked="{Binding AxisSuggestionReviewed}" Margin="0,6"
+                        automation:AutomationProperties.AutomationId="Manual.AxisProposal.Reviewed"
+                        automation:AutomationProperties.Name="{DynamicResource Manual.AxisReviewed}">
+                <TextBlock Text="{DynamicResource Manual.AxisReviewed}" TextWrapping="Wrap" />
+              </CheckBox>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Margin="0,0,4,0" Command="{Binding ApplyAxisSuggestionCommand}"
+                        Content="{DynamicResource Manual.AxisApply}" Style="{DynamicResource App.Style.Button}"
+                        automation:AutomationProperties.AutomationId="Manual.AxisProposal.Apply"
+                        automation:AutomationProperties.Name="{DynamicResource Manual.AxisApply}" />
+                <Button Grid.Column="1" Margin="4,0,0,0" Command="{Binding DismissAxisSuggestionCommand}"
+                        Content="{DynamicResource Manual.AxisDismiss}" Style="{DynamicResource App.Style.Button}"
+                        automation:AutomationProperties.AutomationId="Manual.AxisProposal.Dismiss"
+                        automation:AutomationProperties.Name="{DynamicResource Manual.AxisDismiss}" />
+              </Grid>
+            </StackPanel>
+
             <TextBlock Margin="0,4,0,8"
                        Foreground="{DynamicResource App.Brush.TextMuted}"
                        Text="{Binding EditorInstruction}"

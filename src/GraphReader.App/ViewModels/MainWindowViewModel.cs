@@ -30,7 +30,7 @@ public enum ManualEditorMode
     MovePhaseDivider,
 }
 
-public sealed class MainWindowViewModel : ObservableObject, IDisposable
+public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private static readonly string[] RequiredAutomaticDetectionStages =
         ["axis", "ocr", "markers", "legends", "phases"];
@@ -267,6 +267,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             parameter => CloseTab(parameter as WorkspaceTabViewModel ?? SelectedTab),
             parameter => parameter is WorkspaceTabViewModel || SelectedTab is not null);
         StartCalibrationCommand = new RelayCommand(_ => BeginCalibration(), _ => CanStartCalibration());
+        InitializeAxisSuggestionCommands();
         SelectEditorModeCommand = new RelayCommand(
             _ => EditorMode = ManualEditorMode.Select,
             _ => SelectedTab is not null);
@@ -351,6 +352,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 }
                 // A pending canvas action belongs to its original panel.
                 // Cancel it before publishing the new selection to bindings.
+                ClearAxisSuggestion();
                 bool canceledEdit = EditorMode != ManualEditorMode.Select;
                 _calibrationAnchors.Clear();
                 EditorMode = ManualEditorMode.Select;
@@ -1151,7 +1153,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
             return;
         }
 
-        if (EditorMode == ManualEditorMode.Calibration && !IsManualFirstVisibleSessionInputValid)
+        if (EditorMode == ManualEditorMode.Calibration && !HasAxisSuggestion && !IsManualFirstVisibleSessionInputValid)
         {
             SetStatus(GetLocalizedString(LocalizationKeys.ManualFirstVisibleSessionInvalid));
             return;
@@ -1171,6 +1173,15 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(EditorInstruction));
                 if (_calibrationAnchors.Count == 3)
                 {
+                    if (HasAxisSuggestion)
+                    {
+                        _suggestedAnchors = _calibrationAnchors.ToArray();
+                        AxisSuggestionReviewed = false;
+                        UpdateAxisSuggestionOverlay();
+                        EditorMode = ManualEditorMode.Select;
+                        OnPropertyChanged(nameof(AxisSuggestionSummary));
+                        break;
+                    }
                     _manualWorkspaceService.Calibrate(
                         tab.TabId,
                         new ManualCalibrationRequest(
@@ -1612,6 +1623,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
         }
 
         _calibrationAnchors.Clear();
+        AxisSuggestionReviewed = false;
         EditorMode = ManualEditorMode.Calibration;
         UpdateCalibrationPromptIfActive();
     }
@@ -1620,6 +1632,11 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (EditorMode == ManualEditorMode.Calibration)
         {
+            if (HasAxisSuggestion)
+            {
+                SetStatus(GetLocalizedString(LocalizationKeys.ManualAxisReview));
+                return;
+            }
             if (_calibrationAnchors.Count > 0)
             {
                 _calibrationAnchors.Clear();
@@ -2017,7 +2034,7 @@ public sealed class MainWindowViewModel : ObservableObject, IDisposable
     private bool CanStartCalibration() =>
         SelectedTab is not null &&
         _manualWorkspaceService is not null &&
-        IsManualFirstVisibleSessionInputValid;
+        (HasAxisSuggestion || IsManualFirstVisibleSessionInputValid);
 
     private void RestoreManualCalibrationForm(WorkspaceTabViewModel? tab)
     {

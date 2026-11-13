@@ -10,13 +10,37 @@
     <GraphReaderRuntimeMode Condition="'$(GraphReaderRuntimeMode)' == ''">ManualPreview</GraphReaderRuntimeMode>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GraphReaderRepositoryRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..'))</GraphReaderRepositoryRoot>
+    <GraphReaderRustTargetDirectory>$(GraphReaderRepositoryRoot)\artifacts\native-engine</GraphReaderRustTargetDirectory>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="$(GraphReaderRustTargetDirectory)\release\graphreader-engine.exe"
+             Link="native\graphreader-engine.exe"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(GraphReaderRustTargetDirectory)\release\Rust-StandardLibrary-Notices.html"
+             Link="native\Rust-StandardLibrary-Notices.html"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(GraphReaderRustTargetDirectory)\release\rust-toolchain.json"
+             Link="native\rust-toolchain.json"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="BuildGraphReaderRustEngine" BeforeTargets="PrepareForBuild"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(GraphReaderRepositoryRoot)\packaging\native-engine\Build-NativeEngine.ps1&quot; -RepositoryRoot &quot;$(GraphReaderRepositoryRoot)&quot;"
+          WorkingDirectory="$(GraphReaderRepositoryRoot)" />
+  </Target>
 
   <ItemGroup>
     <InternalsVisibleTo Include="GraphReader.App.Tests" />
     <InternalsVisibleTo Include="GraphReader.Integration.Tests" />
     <InternalsVisibleTo Include="GraphReader.RealAcceptance.Ocr" />
     <InternalsVisibleTo Include="GraphReader.SyntheticRuntimeEvidence" />
+    <InternalsVisibleTo Include="GraphReader.CalibrationOcrProbe" />
     <AssemblyMetadata Include="GraphReaderRuntimeMode" Value="$(GraphReaderRuntimeMode)" />
   </ItemGroup>
 

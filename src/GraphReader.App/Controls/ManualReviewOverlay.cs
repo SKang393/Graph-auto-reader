@@ -18,6 +18,13 @@ public sealed class ManualReviewOverlay : FrameworkElement
     private readonly ObservableCollection<AppGraphPoint> _points;
     private readonly ObservableCollection<SeriesCardViewModel> _series;
     private readonly ObservableCollection<EditablePhaseDivider> _dividers;
+    private Point[] _axisProposal = [];
+
+    public void SetAxisProposal(IEnumerable<Point> anchors)
+    {
+        _axisProposal = anchors.ToArray();
+        InvalidateVisual();
+    }
 
     public ManualReviewOverlay(
         ObservableCollection<AppGraphPoint> points,
@@ -54,6 +61,14 @@ public sealed class ManualReviewOverlay : FrameworkElement
     protected override void OnRender(DrawingContext drawingContext)
     {
         base.OnRender(drawingContext);
+        if (_axisProposal.Length == 3)
+        {
+            var axisPen = new Pen(Brushes.DeepSkyBlue, 2) { DashStyle = DashStyles.Dash };
+            drawingContext.DrawLine(axisPen, _axisProposal[0], _axisProposal[1]);
+            drawingContext.DrawLine(axisPen, _axisProposal[0], _axisProposal[2]);
+            foreach (Point anchor in _axisProposal)
+                drawingContext.DrawEllipse(Brushes.White, new Pen(Brushes.Black, 2), anchor, 5, 5);
+        }
         var dividerPen = new Pen(Brushes.DarkSlateGray, 1) { DashStyle = DashStyles.Dash };
         foreach (EditablePhaseDivider divider in _dividers)
         {

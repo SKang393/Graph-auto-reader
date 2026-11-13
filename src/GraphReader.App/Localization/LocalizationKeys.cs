@@ -80,6 +80,13 @@ public static class LocalizationKeys
     public const string ProjectConfirmDiscardAll = "Project.ConfirmDiscardAll";
     public const string ProjectCloseBusyBlocked = "Project.CloseBusyBlocked";
     public const string ManualTitle = "Manual.Title";
+    public const string ManualSuggestAxes = "Manual.SuggestAxes";
+    public const string ManualAxisReview = "Manual.AxisReview";
+    public const string ManualAxisPositions = "Manual.AxisPositions";
+    public const string ManualAxisUnavailable = "Manual.AxisUnavailable";
+    public const string ManualAxisReviewed = "Manual.AxisReviewed";
+    public const string ManualAxisApply = "Manual.AxisApply";
+    public const string ManualAxisDismiss = "Manual.AxisDismiss";
     public const string ManualModeSelect = "Manual.Mode.Select";
     public const string ManualModeCalibrate = "Manual.Mode.Calibrate";
     public const string ManualModePoints = "Manual.Mode.Points";
@@ -365,6 +372,13 @@ public static class LocalizationKeys
         ProjectConfirmDiscardAll,
         ProjectCloseBusyBlocked,
         ManualTitle,
+        ManualSuggestAxes,
+        ManualAxisReview,
+        ManualAxisPositions,
+        ManualAxisUnavailable,
+        ManualAxisReviewed,
+        ManualAxisApply,
+        ManualAxisDismiss,
         ManualModeSelect,
         ManualModeCalibrate,
         ManualModePoints,

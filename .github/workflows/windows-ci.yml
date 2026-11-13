@@ -81,6 +81,21 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass
           -File "${{ github.workspace }}\packaging\tests\Test-DevPortable.Tests.ps1"
 
+      - name: Build and test Rust worker
+        shell: pwsh
+        run: |
+          rustc --version
+          if ($LASTEXITCODE -ne 0) { throw 'The Windows build requires the Rust MSVC toolchain.' }
+          cargo test --manifest-path native/graphreader-engine/Cargo.toml --target-dir artifacts/native-engine --offline --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Rust worker tests failed.' }
+          ./packaging/native-engine/Build-NativeEngine.ps1
+          cargo build --manifest-path native/graphreader-engine/Cargo.toml --target-dir artifacts/native-engine --example blocking_test_worker --offline --locked
+          if ($LASTEXITCODE -ne 0) { throw 'Rust cancellation fixture build failed.' }
+          "GRAPHREADER_RUST_WORKER=${{ github.workspace }}\artifacts\native-engine\release\graphreader-engine.exe" |
+              Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "GRAPHREADER_RUST_BLOCKING_WORKER=${{ github.workspace }}\artifacts\native-engine\debug\examples\blocking_test_worker.exe" |
+              Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Restore
         shell: pwsh
         run: dotnet restore GraphAutoReader.slnx

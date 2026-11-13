@@ -85,10 +85,12 @@ workload. Vendor phone timings are not Windows timings.
 
 ## Retention
 
-The local review directory is
-`artifacts/cactus-review-20261111` in the active worktree. It contains one model,
-the downloaded runtime artifacts, local provenance and small probe outputs.
-No source image was copied. Keep it only until this report is pushed and the
-diagnostic consumer finishes, then remove the disposable review directory under
-[artifact retention](ARTIFACT-RETENTION.md). The existing application models and
-the original owned input remain current dependencies.
+After this report reached `origin/main` at
+`22c0c6586d39bf940d6fb296cdfb1c645a94fe70`, the completed local review directory
+`artifacts/cactus-review-20261111` was retired: 27 files, 26,061,210 bytes.
+Containment, reparse-point and active-consumer checks passed before removal.
+The original owned input's SHA-256 remained unchanged. No source image had been
+copied. Runtime/model downloads, local provenance, scripts and raw responses
+from this closed probe no longer remain locally. The existing application
+models and original owned input remain current dependencies under
+[artifact retention](ARTIFACT-RETENTION.md).

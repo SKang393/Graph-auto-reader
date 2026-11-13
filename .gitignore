@@ -21,6 +21,7 @@ coverage/
 *.trx
 
 # Native/runtime output
+native/**/target/
 *.dll
 *.exe
 *.pdb

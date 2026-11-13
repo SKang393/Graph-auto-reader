@@ -77,6 +77,12 @@ The GUI is outside the worker's job. Long-running inference will require this
 same isolation before claiming the whole application is resource capped.
 Microsoft documents the [CPU rate semantics](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_cpu_rate_control_information).
 
+The [2026-11-13 assistance batch](RUST-AXIS-ASSISTANCE-20261113.md) completed the
+native proposal -> confirmed calibration -> point -> export -> reopen check.
+DXGI inventory and explicit adapter selection are implemented and tested;
+measured automatic backend selection and UI integration remain pending.
+Recognition-only timing is the next product step, reusing the licensed reader.
+
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
 model accuracy thresholds or run expensive training to compensate for a UI,
