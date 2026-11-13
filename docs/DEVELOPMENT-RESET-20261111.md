@@ -111,6 +111,13 @@ unresolved and is recorded separately from the confirmed license declaration.
 No Cactus component is bundled or approved. Adoption requires measured OCR
 quality and latency; core work continues while that comparison is performed.
 
+The [2026-11-13 Windows probe](CACTUS-WINDOWS-PROBE-20261113.md) loaded the
+published runtime and Mirage model, but two capped default image calls failed
+the publisher's JSON response contract. The diagnostic call emitted
+`-nan(ind)` in a text confidence field and took 14.738 seconds. Defer Cactus
+integration for this batch and continue the existing licensed OCR reader.
+This is an interface failure on one owned image, not an OCR accuracy comparison.
+
 ## Storage and completion
 
 Follow [artifact retention](ARTIFACT-RETENTION.md): push source and concise
