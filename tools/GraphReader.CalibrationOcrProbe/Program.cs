@@ -40,17 +40,58 @@ internal static class Program
         bool markerShapeCheck = args.Length > 0 && args[0] == "--marker-shape-control-check";
         bool markerWorkflow = args.Length > 0 && args[0] == "--marker-workflow-check";
         bool panelCrop = args.Length > 0 && args[0] == "--panel-crop-check";
-        int seconds = panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        bool realDevCalibration = args.Length > 0 && args[0] == "--real-dev-calibration-check";
+        bool realDevSelfTest = args.Length == 1 && args[0] == "--real-dev-calibration-self-test";
+        bool cpuBudgetSelfTest = args.Length == 1 && args[0] == "--cpu-budget-self-test";
+        bool cpuBudgetChildSelfTest = args.Length == 1 && args[0] == "--cpu-budget-child-self-test";
+        int seconds = cpuBudgetSelfTest ? 15 : cpuBudgetChildSelfTest ? 10 : realDevCalibration ? 900 : panelCrop ? 25 : markerWorkflow ? 95 : markerShapeCheck ? 65 : markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(cpuBudgetSelfTest ? 20 : cpuBudgetChildSelfTest ? 12 : realDevCalibration ? 905 : panelCrop ? 30 : markerWorkflow ? 100 : markerShapeCheck ? 70 : markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (cpuBudgetSelfTest)
+            {
+                Emit(await CpuBudgetJob.RunChildBudgetSelfTestAsync(deadline.Token));
+                return 0;
+            }
+            if (cpuBudgetChildSelfTest)
+            {
+                using CpuBudgetJob childBudget = CpuBudgetJob.Apply();
+                Emit(new { childBudget.LogicalProcessors, childBudget.Rate, childBudget.MaximumLogicalCores,
+                    childBudget.SilentBreakawayVerified, priority_class = "BelowNormal" });
+                byte[] acknowledgement = new byte[1];
+                return await Console.OpenStandardInput().ReadAsync(acknowledgement, deadline.Token) == 1 ? 0 : 1;
+            }
+            if (realDevSelfTest)
+            {
+                Emit(RealDevCalibrationCheck.SelfTest());
+                return 0;
+            }
+            if (realDevCalibration)
+            {
+                // Every failure in this private mode is sanitized here, before the owned-mode handler.
+                try
+                {
+                    if (args.Length != 6 || args[5] != "--explicit-opt-in")
+                        throw new InvalidDataException();
+                    using CpuBudgetJob parentBudget = CpuBudgetJob.Apply(allowChildBreakaway: true);
+                    Emit(await RealDevCalibrationCheck.RunAsync(args[1], args[2], args[3], args[4], parentBudget, deadline.Token));
+                    return 0;
+                }
+                catch (Exception)
+                {
+                    Emit(new { schema = "graphreader.real-dev-calibration-assistance-diagnostic.v1",
+                        status = "blocked_preflight_or_runtime", error = "REAL_DEV_CALIBRATION_CHECK_FAILED",
+                        denominator = 120, sealed_payload_reads = 0, review_only = true, production_approved = false });
+                    return 1;
+                }
+            }
             if (args is ["--panel-crop-check", var cropOutput])
             {
                 Emit(await PanelCropCheck.RunAsync(cropOutput, deadline.Token));
@@ -153,6 +194,11 @@ internal static class Program
         }
         catch (Exception error)
         {
+            if (realDevCalibration)
+            {
+                Emit(new { error = "REAL_DEV_CALIBRATION_CHECK_FAILED", review_only = true });
+                return 1;
+            }
             Emit(new { error = error.GetType().Name, detail = error.Message[..Math.Min(error.Message.Length, 512)], review_only = true });
             return 1;
         }

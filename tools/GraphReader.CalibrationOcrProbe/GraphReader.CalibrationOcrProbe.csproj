@@ -10,5 +10,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\GraphReader.App\GraphReader.App.csproj" />
+    <Compile Include="../GraphReader.RealAcceptance.Ocr/FrozenRealCorpusInventory.cs" Link="RealDev/FrozenRealCorpusInventory.cs" />
+    <Compile Include="../GraphReader.RealAcceptance.Ocr/FrozenDevTrainingSelector.cs" Link="RealDev/FrozenDevTrainingSelector.cs" />
+    <Compile Include="../GraphReader.RealAcceptance.Ocr/EngaugeDevSourceMaterializer.cs" Link="RealDev/EngaugeDevSourceMaterializer.cs" />
+    <Compile Include="../GraphReader.RealAcceptance.Ocr/EngaugeDigWholeWorkflowTruthAdapter.cs" Link="RealDev/EngaugeDigWholeWorkflowTruthAdapter.cs" />
+    <Compile Include="../GraphReader.RealAcceptance.Ocr/WholeWorkflowCsvEvaluator.cs" Link="RealDev/WholeWorkflowCsvEvaluator.cs" />
   </ItemGroup>
 </Project>

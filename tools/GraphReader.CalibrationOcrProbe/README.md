@@ -3,6 +3,60 @@
 
 # Calibration OCR probe
 
+`--real-dev-calibration-check <absolute-corpus-root> <absolute-packaged-App-exe> <absolute-assets-root> <absolute-Rust-worker> --explicit-opt-in`
+is one fixed diagnostic of all **120 frozen real-dev projects**, with no sealed
+payload reads. Its denominator is fixed before results. The App 0.4.42 DLL,
+packaged executable, Rust worker and existing reader/manifest/license hashes are
+checked before payload reads. All 21 supporting libraries have fixed delivered
+hashes; all 14 managed libraries must also match at their actual loaded paths.
+Restage the packaged libraries after a probe-only compile. No App rebuild or
+replacement candidate is implied.
+
+The existing metadata selector and locked Engauge reader revalidate membership
+and opened-handle paths before reading each source. A single aggregate digest
+binds first-observed project and embedded-image hashes; individual hashes,
+paths, IDs, texts, polygons and predictions are never emitted. One source is
+held at a time, without copied images, datasets, cache or per-case output.
+The diagnostic parent receives the existing half-core Job cap and below-normal
+priority before private preprocessing. This mode alone sets and queries
+`JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK` on the parent's extended job limits.
+Rust and CPU OCR children escape that parent job and establish independent
+caps instead of multiplying nested CPU quotas. Other probe modes retain their
+non-breakaway default. The parent cap covers parent preprocessing, not the
+combined CPU of all independent child jobs.
+One persistent CPU OCR session is reused; cancellation can restart
+the same fixed reader for a subsequent case, not select another candidate.
+
+Inference receives only original embedded pixels and Rust-detected geometry.
+Manual anchors are used afterward to report continuous absolute affine graph
+residuals normalized by the manual-anchor graph ranges, without a pass threshold.
+Every unsupported, failed or incomplete case remains in the 120-project
+denominator. The JSON reports reason counts, coverage, separate cold/reused OCR
+latencies and sampled parent/combined memory. Sampling does not prove a hard
+memory ceiling. Output is limited to 1 MB; no images or datasets are written.
+Cases have a 45-second deadline, with 900 seconds overall and a 905-second hard
+watchdog. Partial deadline results explicitly report incomplete status.
+
+This corpus has known development exposure and imperfect manual calibration;
+it lacks tick-transcription truth. Results are not independent OCR accuracy,
+model selection, an automatic calibration application or production promotion.
+`--real-dev-calibration-self-test` checks owned aggregate/residual/privacy
+behavior without opening any corpus payload or invoking inference. The real
+mode requires explicit root review and execution authorization; it is not a
+routine test or an automatic part of the build.
+
+`--cpu-budget-self-test` starts one owned child without images, corpus or models.
+It queries the parent's breakaway flag, verifies the live child is outside that
+parent job, and checks the child's independently queried cap and below-normal
+priority. The child holds its job until acknowledgement; no busy-loop benchmark
+or timing-sensitive performance gate is used. Parent/child deadlines and owned
+process cleanup are bounded. The stopped nested-quota attempt is plumbing-void,
+with no valid metric or selection result. The fixed candidate, model, 120-case
+denominator and zero sealed budget remain unchanged for the plumbing retry.
+
+Microsoft documents [parent-relative nested CPU quotas](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_cpu_rate_control_information)
+and the [extended-limit silent-breakaway flag](https://learn.microsoft.com/en-us/windows/win32/api/winnt/ns-winnt-jobobject_basic_limit_information).
+
 `--marker-workflow-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker> <absolute-empty-output-root> [prepared-crop]`
 checks the owned control through actual geometry, OCR, explicit simulated review,
 marker suggestions, export and save/reopen. The optional `prepared-crop` embeds

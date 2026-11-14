@@ -113,9 +113,10 @@ budget. No model or threshold changed. Diagnostic-only compilation took
 
 This outcome is based on `000b6118f44059c2914c95028b53e073f4d4bb3f`
 plus the crop implementation committed with this record. Final independent
-production-diff review reported no material finding. Version 0.4.42 is prepared
-for the meaningful integrated preview; packaging does not imply native QA or
-production approval.
+production-diff review reported no material finding. Version 0.4.42 is delivered
+and retained, with the packaged workflow and hosted CI recorded in the
+[delivery record](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0442).
+Packaging does not imply native QA or production approval.
 
 No GUI acceptance was performed. The maintainer authorized resuming native
 checks, but the next window-list call immediately reported a physical Escape

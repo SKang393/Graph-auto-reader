@@ -355,9 +355,16 @@ accuracy, native interaction or production approval.
 Native checks remain waiting after the window-list tool reported an Escape stop
 immediately after the maintainer authorized resumption. No subsequent native
 inputs were issued. No installer, public release, tag, clean-machine acceptance
-or production activation is claimed. The temporary package-verification inputs
-remain under `artifacts/hosted-442-check` and `artifacts/panel-crop-check` until
-the ledger is pushed and replacement finishes. The 33-byte version-policy log
+or production activation is claimed. After the ledger and outcome reached
+`origin/main` at `0cfecd315adf1793a80477d44f23ab6ddc7a17a9`, the latest pointer
+was switched to 0.4.42. Guarded cleanup retired the superseded 0.4.41 directory
+and ZIP, its pointer backup, and the completed `artifacts/hosted-442-check`
+and `artifacts/panel-crop-check` directories. A subsequent filesystem check
+confirmed all five targets absent, exactly one 0.4.42 build directory and one
+87,524,277-byte ZIP present, and the pointer bound to the verified executable.
+The cleanup command's output was lost during context rollover; no exact deleted
+file/byte total is claimed. Shared user Data and active QA/model dependencies
+were excluded. The 33-byte version-policy log
 was retired after its tested correction record `47debc19` reached main.
 The new 442 ledger entry passed the existing 62 version-policy checks in
 52.128 seconds. Its public and cadence eligibility are both false, derived

@@ -145,9 +145,18 @@ lineage and reversible coordinates. Existing automatic overlap checks remain
 intact. Oversized panels direct users to Crop panel before marker work starts.
 The measured 4-megapixel crop took 43.978 ms; actual cropped Rust/OCR/marker
 review through export/reopen took 5.537 s on an owned control. Native interaction
-is still waiting under REV-011. Next deliver this meaningful integrated crop
-increment, complete the native interaction checks when Computer Use resumes,
-and address observed workflow defects before further model work.
+is still waiting under REV-011. The integrated
+[0.4.42 preview](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0442) is
+uploaded, downloaded and verified. Its packaged cropped workflow took 5.292 s;
+source CI passed 2,626 .NET tests, 10 Rust tests and 68 packaging checks. The
+[fixed real-dev diagnostic](REAL-DEV-CALIBRATION-DIAGNOSTIC-20261114.md) then
+completed all 120 projects in 209.084 s: geometry on 36, 298 numeric readings,
+and zero complete calibration proposals. Reused OCR median was 4.132 s;
+recognition dominated its cost. No sealed payload was read and no training ran.
+Prioritize diagnosing geometry coverage and recognition cost, with repairs
+reproduced on owned/synthetic inputs and no private-answer tuning. Preserve
+scientific cross-checks and the manual fallback. Complete native interaction
+checks when Computer Use resumes, and fix observed workflow defects in parallel.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.
