@@ -245,7 +245,7 @@ The [gridline source repair](GRIDLINE-AXIS-RECOVERY-20261114.md) now resolves an
 independently reproduced owned failure using unique outward tick evidence,
 bounded search and rejection of multiple possible panels. All 37 Rust tests
 pass; the actual Rust/OCR control returns six measured pairs in 3.193 s.
-It is not yet packaged. Do not infer that it explains private failures or tune
+It is included in preview 0.4.47. Do not infer that it explains private failures or tune
 thresholds/models against private answers. Native acceptance remains waiting.
 The [small-plot caption repair](CAPTION-AXIS-RECOVERY-20261114.md) also passes
 41 Rust tests and an actual six-pair owned OCR control in 3.338 s. The
@@ -256,9 +256,28 @@ and review. The initial local App run passed 1,006 checks and timed out in two
 off-screen screenshot hosts; both passed in an isolated process with the same
 binary. No test or timeout was weakened. The actual prepared-crop workflow
 exported and reopened three points in 4.889 s. Version 0.4.47 is prepared for
-this combined batch; require fresh hosted validation and downloaded-byte
-verification before replacing 0.4.46. No further feature work starts before
-that delivery and storage closeout.
+this combined batch. Its hosted and downloaded package checks now pass,
+including all 2,700 source-CI .NET tests and 41 Rust tests. The packaged
+prepared-crop workflow exported and reopened three points in 4.770 seconds.
+The fixed [447 real-dev confirmation](REAL-DEV-CALIBRATION-447-CONFIRMATION-20261114.md)
+returned geometry/OCR on 37/120, five partial-axis drafts and zero complete
+measured or estimated calibrations; reused OCR median was 2.506 seconds.
+Finish ledger/pointer replacement and storage closeout before another feature
+batch. Additional isolated controls have not established complete real-world
+calibration coverage.
+
+Next, diagnose the preparation path using the unchanged 447 package. The
+current whole-image diagnostic bypasses the application's Prepare/panelization
+step; the Rust worker intentionally rejects competing plots. That mismatch is
+verified in source, but is not a proven cause of the observed failures. First
+check existing preparation on owned single-plot, two-plot and caption-margin
+controls. A bounded follow-up must retain every returned panel, report source
+and panel denominators separately, preserve original coordinate transforms,
+and use no manual answers to crop, select a panel or infer calibration. Keep
+the existing reader, thresholds, strict fit checks, independent worker caps and
+fixed 120-source assignment. Report stage failures and runtime as aggregate
+diagnostics, not target-panel association or accuracy. Do not start model
+training or select another detector to explain an unmeasured preparation gap.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

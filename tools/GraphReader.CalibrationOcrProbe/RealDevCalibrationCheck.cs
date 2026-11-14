@@ -16,24 +16,24 @@ namespace GraphReader.CalibrationOcrProbe;
 internal static class RealDevCalibrationCheck
 {
     private const int Denominator = 120;
-    private const string AppDllHash = "634d5121dc73d1c18282581b2623def039d86089712d124f9fb260a85c194d03";
-    private const string AppExeHash = "3085c125bdaf9b6271363e3593341dc8d7cd2b9761e1be22282f04389c30c5f7";
-    private const string RustHash = "71455f26d241aec90bf2b88b4267e272028a286dd2b8e7fbc5f86ab8d27fdfa0";
-    // Exact delivered 0.4.46 libraries from the ZIP-entry-verified package, not caller-selected identities.
+    private const string AppDllHash = "5fa629e7a01b40ec58fb4ab136dd21b0f5b3ff5cc61e286b1c45a7642317d039";
+    private const string AppExeHash = "a2824381f3b9d19caad083b19f031e45dd50f8f02bdda41a01eb38433177d12f";
+    private const string RustHash = "44258191be06bae2fa9536ebd84cca69631d7732fd3237bc6b001d71440a673d";
+    // Exact delivered 0.4.47 libraries from the ZIP-entry-verified package, not caller-selected identities.
     private static readonly FrozenDictionary<string, string> DeliveredLibraries = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["GraphReader.App.dll"] = AppDllHash,
-        ["GraphReader.Axis.dll"] = "42562598e489d7558f282ab58207eca490019576366aad4f8b299be4d0223cee",
-        ["GraphReader.Domain.dll"] = "631a22bd8c98a282f66d326048c8136f1c8029985f84b9b3d56e21cb743495cc",
-        ["GraphReader.Export.dll"] = "4c4142341b4f69177989f4a7450f2b96848cdfcf2bcb995f4b8d3d5f16050251",
-        ["GraphReader.Imaging.dll"] = "9f02bc56cc46e65a385b8aa72ed50fed1c3de8688b507c8f8557595d8c6242a0",
-        ["GraphReader.Inference.dll"] = "e1030470781eb4b533f314910ee694167a2bc9d975ae05c9cd320ae4e6430686",
-        ["GraphReader.Legends.dll"] = "0a6d4484ded97954f7a9eb48c027544db502c37d02551fae769b6bcf92b05353",
-        ["GraphReader.Markers.dll"] = "0003e4f54e2b4ddf72176b96821b1c62c3e4e60f4601b5646c4253e871c52595",
-        ["GraphReader.Ocr.dll"] = "05441a279f04c38452b8746c7ab2a8e2d1dda6237b45558c8355c2cca7e01b72",
-        ["GraphReader.Pdf.dll"] = "cc92604446808a4fcf919f516584c84772357dd03562150455f8704a954a6a5e",
-        ["GraphReader.Phases.dll"] = "8e2f27461d31f2b6eebbe9b055fcd205af0c53a80d89b971642285dc3443cf33",
-        ["GraphReader.SuperResolution.dll"] = "af64f365fb82df4a7d587665330c12193dc1a08dfac4b983338383017f8e0a83",
+        ["GraphReader.Axis.dll"] = "7dd0572505a990b4d14e773d5919fd69d29dc51e32493f21db062aa0a49476e1",
+        ["GraphReader.Domain.dll"] = "ec35fbfe890494b7e5a210b615a7b0f7f9e8fb114fbb44dfb934b4b0a9cc9217",
+        ["GraphReader.Export.dll"] = "91b87a496a433d56e73b791504967ea908ed6769477c2cb7f93497ad91d8db79",
+        ["GraphReader.Imaging.dll"] = "494ddb6af0c96d01f01df2c00cd976fbbcaf64c644f2dacf5e88083f4c0afbdf",
+        ["GraphReader.Inference.dll"] = "7e14061c54278ca31376d9bace49e23373f56877d610334d113362edc597e7a6",
+        ["GraphReader.Legends.dll"] = "b8e52a1f5079c38cede7658cda051bc26f0b0b758859b76d1c59b596a6f451c0",
+        ["GraphReader.Markers.dll"] = "6d9fef2de12c4ffb19e5bc266757512a91467bedda58ab206173d43f17ac1ae2",
+        ["GraphReader.Ocr.dll"] = "ea29ca9034c2cc37c5ed731040f5f1f6a1bdc3b4b6d7fb06307dbf3a6d168ceb",
+        ["GraphReader.Pdf.dll"] = "eae29b4c2cd8a977c597ba9ee9f992ea9ee85750dc05f7d55b70e462e60a9a8f",
+        ["GraphReader.Phases.dll"] = "6b35f733bafe0d79361331a998228a9a2e8f23bb91336df7074bdfc81e177cc4",
+        ["GraphReader.SuperResolution.dll"] = "4f9d67e9861e9843554f1a35e7ad1c46e885a715d90780f133a55c26d317270e",
         ["Microsoft.ML.OnnxRuntime.dll"] = "5e83437cb5c97d17fc959f35982ce1f0e90281515dafbacbc158b27bc2e972a3",
         ["onnxruntime.dll"] = "e7eedec6a6f26dc39dc948276a75ef6d2bee3fff944d874ceed0bbd3b97bff40",
         ["onnxruntime_providers_shared.dll"] = "265c8daf29637cb259cac8be9f08f2cd45f3883f0f0e4949cbfddd5b4cbec3b6",
@@ -179,7 +179,7 @@ internal static class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-geometry-properties-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { version = "0.4.46", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
+        protocol = new { version = "0.4.47", scope = "all_frozen_real_dev", sealed_payload_reads = 0,
             ocr_calls = 0, model_selection = false, review_only = true, production_approved = false,
             per_case_output = false, image_writes = false, persistent_cache = false,
             empty_ticks_mean = "unavailable_or_ambiguous_not_absence", case_deadline_seconds = 45, overall_deadline_seconds = 900 },
@@ -389,7 +389,7 @@ internal static class RealDevCalibrationCheck
     {
         schema = "graphreader.real-dev-calibration-assistance-diagnostic.v1",
         status = totals.Attempted == Denominator && !totals.Reasons.ContainsKey("OVERALL_DEADLINE_CASE") ? "completed" : "incomplete_deadline",
-        protocol = new { fixed_candidate = true, version = "0.4.46", denominator = Denominator,
+        protocol = new { fixed_candidate = true, version = "0.4.47", denominator = Denominator,
             scope = "all_frozen_real_dev", sealed_payload_reads = 0, train_optimizer_steps = 0, model_selection = false,
             independent_accuracy = false, production_approved = false, review_only = true, applied = false,
             manual_truth_used_for_inference = false, case_deadline_seconds = 45, overall_deadline_seconds = 900,

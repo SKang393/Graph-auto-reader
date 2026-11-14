@@ -479,7 +479,7 @@ job `132391344353`, succeeded: 1,167 tests passed, 7 skipped, 0 failed.
 - Extraction verified all 477 files, totaling 196,101,767 bytes. Build directory: `0.4.46-20261114T083718338Z-42b0d9e2`.
 - App EXE SHA-256 `3085c125bdaf9b6271363e3593341dc8d7cd2b9761e1be22282f04389c30c5f7`; App DLL `634d5121dc73d1c18282581b2623def039d86089712d124f9fb260a85c194d03`; Rust worker `71455f26d241aec90bf2b88b4267e272028a286dd2b8e7fbc5f86ab8d27fdfa0`.
 
-The exact-source CI run [43576357311](https://github.com/SKang393/Graph-auto-reader/actions/runs/43576357311), job `132391339949`, also succeeded: 2,693 .NET tests passed, 30 skipped, 0 failed across 13 suites; 31 Rust tests, 68 packaging checks, and 62 version-policy checks passed. The App build reported 0 warnings/errors; release jobs were skipped. Isolated portable smoke returned `Production=0`, `2`, with measured times `1186.1482 ms` and `447.0042 ms`.
+The exact-source CI run [43576357311](https://github.com/SKang393/Graph-auto-reader/actions/runs/43576357311), job `132391339949`, also succeeded: 2,693 .NET tests passed, 30 skipped, 0 failed across 13 suites; 31 Rust tests, 68 packaging checks, and 62 version-policy checks passed. The App build reported 0 warnings/errors; release jobs were skipped. Isolated portable smoke returned `ManualPreview=0`, `Production=2`, with measured times `1186.1482 ms` and `447.0042 ms`.
 
 Packaging verification restaged and hash-checked all 21 packaged libraries at 26 destinations. The probe-only build completed in `7.2263391 s` with 0 warnings/errors. Adapter and CPU-budget self-tests passed without private-data reads.
 
@@ -498,3 +498,35 @@ switched to 446. At 2026-11-14T08:57:44Z, guarded cleanup retired the superseded
 shared Data files retained their hashes. Original corpus, current models,
 shared validation output, native QA data and the active gridline control were
 preserved. No new package was needed for this diagnostic and delivery update.
+
+## Verified build 447 delivery
+
+Internal ManualPreview `0.4.47` was built from clean source
+`76204ba4231d3c05236c03fe7adae6b29fd51677` at
+`2026-11-14T09:38:50.7266729Z`. Hosted preview run
+[43581173267](https://github.com/SKang393/Graph-auto-reader/actions/runs/43581173267),
+job `132406013589`, succeeded with 1,174 tests passed, 7 skipped, 0 failed.
+
+- [Artifact 14108591941](https://github.com/SKang393/Graph-auto-reader/actions/runs/43581173267/artifacts/14108591941): 87,281,252 bytes, SHA-256 `5a9c4b27f03662767ec75f8f145f07bd9c569687333429dd7051faa4dc609150`. Created `2026-11-14T09:39:14Z`; expires `2027-02-12T09:34:12Z`.
+- Inner `GraphAutoReader-0.4.47-win-x64-internal-preview.zip`: 87,538,539 bytes, SHA-256 `8cdb6e9e523f0c157cc5114d7ed699bbbf765c7a26df068800a3b80803f4a319`.
+- Verification checked 477 files totaling 196,111,495 bytes. App EXE SHA-256 `a2824381f3b9d19caad083b19f031e45dd50f8f02bdda41a01eb38433177d12f`; App DLL `5fa629e7a01b40ec58fb4ab136dd21b0f5b3ff5cc61e286b1c45a7642317d039`; Rust worker `44258191be06bae2fa9536ebd84cca69631d7732fd3237bc6b001d71440a673d`.
+
+Exact-source CI run [43581172901](https://github.com/SKang393/Graph-auto-reader/actions/runs/43581172901), job `132406009571`, succeeded at `2026-11-14T09:47:20Z`: 2,700 .NET tests passed, 30 skipped, 0 failed across 13 suites; 41 Rust tests, 68 packaging checks, and 62 version-policy checks passed. The App build had 0 warnings/errors; release jobs were skipped. Verification re-staged and hash-checked 21 packaged libraries at 26 destinations. The probe-only build completed in `10.5230321 s`; owned CPU-budget and real-dev self-tests passed with zero private reads. Portable smoke exited 0 (`1636.6127 ms`); production-runtime smoke exited 2 (`452.742 ms`).
+
+Packaged grid and caption controls each returned 6 measured pairs: pipeline times were `6509.0336 ms` and `3009.7998 ms`; wrapper process times were not retained, so no process timing is reported. The wrapper did not create the required empty output directory for its initial full-workflow preflight; that failure is recorded in `artifacts/hosted-preview-447/packaged-workflow-preflight.json`. The corrected retry completed in `4769.519 ms` process time (`4198.218 ms` pipeline), exported and reopened 3 points, and retained 3 manual anchors with 0 tick IDs. Report SHA-256 `b059e761f107913ce164cafc458e268227d59a6c3f069fecd34f24b45f6d8cf5`; CSV SHA-256 `249b49a16b036e5be69191a4aea4a867e75d4cdbe0ac6fd31fa2568a23b3edee`. The model and notices are unchanged.
+
+The [fixed real-dev confirmation](REAL-DEV-CALIBRATION-447-CONFIRMATION-20261114.md) completed all 120 inputs in 198.553 seconds: 37 geometry/OCR results, 300 numeric readings, five partial-axis drafts and zero complete measured or estimated calibrations. Reused OCR median was 2.506 seconds. This does not establish automatic calibration readiness or an accuracy improvement. Native UI acceptance remains unverified. This is an internal portable preview only, with no installer, public release, tag, production approval or clean-machine acceptance.
+
+Retention after the delivery ledger is pushed and consumers finish: switch the
+latest pointer to 447, then retire the superseded 446 build/ZIP, hosted-447
+download and validation staging, grid/caption/refit controls, the aggregate
+real-dev-447 scratch, and eight owned off-screen test PNGs under the active
+worktree's .codex/full-build/evidence (1,598,017 bytes). Preserve shared Data,
+private originals, current model/runtime dependencies and separate native QA
+data. The old budget-stop resume checkpoint and compact completed-cleanup
+journal are also disposable after their facts are pushed. Final cleanup will
+be recorded separately after execution.
+
+The appended 447 ledger passed all 62 existing version-policy checks locally
+in 48.876 seconds with exit 0. No package was rebuilt for diagnostic pins or
+delivery documentation.

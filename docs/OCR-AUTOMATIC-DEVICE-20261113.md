@@ -103,9 +103,12 @@ Expected temporary output is below 2 MB for logs/profile records. Reuse
 `artifacts/hardware-final-build` for routine compilation. The historical
 `artifacts/hardware-device-assets` staging is no longer a current input:
 current probes load the verified 0.4.46 package's `review-assistance/ocr` assets.
-All four staged files (7,867,699 path bytes) match that keeper, including the
-reader, recognizer manifest and notices. Retire this staging after the new
-source/outcome record is pushed and the scoped process check is empty.
+All four staged files (7,867,699 path bytes) matched that keeper, including
+the reader, recognizer manifest and notices. The staging was retired after
+record `76204ba4231d3c05236c03fe7adae6b29fd51677` was pushed and the scoped
+process check returned zero. The completed cleanup also retired the 19-file
+caption geometry scratch: 23 files and 21,418,652 path bytes total, at
+`2026-11-14T09:36:17.7157569Z`.
 E: had 360,323,801,088 bytes free before this batch. Do not duplicate
 models or environments. Retire completed logs after this source/outcome is
 pushed; retain active QA App dependencies until that App is closed by the user.
