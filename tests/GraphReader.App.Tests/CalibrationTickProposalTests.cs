@@ -92,10 +92,28 @@ public sealed class CalibrationTickProposalTests
     }
 
     [TestMethod]
-    public void AnUnlabelledMeasuredEndpointCannotBeExtrapolated()
+    [DataRow(false)]
+    [DataRow(true)]
+    public void UnlabelledOuterAndMinorTicksNeverCreateValuesOrMoveObservedAnchors(bool reviewDraft)
     {
-        RustAxisGeometry geometry = Geometry() with { XTickPositions = [100, 200, 300, 340] };
-        AssertRejected(geometry, Labels(), CalibrationTickProposalReasons.MissingEndpoint);
+        RustAxisGeometry geometry = Geometry() with
+        {
+            XTickPositions = [80, 100, 150, 200, 250, 300, 340],
+            YTickPositions = [30, 50, 100, 150, 200, 250, 270],
+        };
+        CalibrationOcrResponse response = Response(Labels());
+        CalibrationTickProposalResult result = reviewDraft
+            ? CalibrationTickProposal.CreateReviewDraft(geometry, response)
+            : CalibrationTickProposal.Create(geometry, response);
+        Assert.IsTrue(result.IsComplete, string.Join(",", result.Reasons));
+        Assert.AreEqual(new CalibrationOcrPoint(100, 250), result.Anchors!.FirstSessionY0);
+        Assert.AreEqual(new CalibrationOcrPoint(100, 50), result.Anchors.FirstSessionYMaximum);
+        Assert.AreEqual(new CalibrationOcrPoint(300, 250), result.Anchors.FinalSessionY0);
+        Assert.AreEqual(0d, result.PairedTicks.Single(pair => pair.Axis == "Y" && pair.PixelPosition == 250).Value);
+        Assert.HasCount(6, result.PairedTicks);
+        Assert.IsFalse(result.PairedTicks.Any(pair => pair.Axis == "X"
+            ? pair.PixelPosition is 80 or 150 or 250 or 340
+            : pair.PixelPosition is 30 or 100 or 200 or 270));
     }
 
     [TestMethod]
@@ -191,7 +209,6 @@ public sealed class CalibrationTickProposalTests
     [TestMethod]
     [DataRow("invalid-numeric")]
     [DataRow("duplicate-position")]
-    [DataRow("missing-endpoint")]
     [DataRow("nonlinear")]
     [DataRow("wrong-side")]
     [DataRow("invalid-range")]
@@ -206,9 +223,6 @@ public sealed class CalibrationTickProposalTests
                 break;
             case "duplicate-position":
                 labels = [.. labels, labels[0] with { RegionId = "duplicate" }];
-                break;
-            case "missing-endpoint":
-                geometry = geometry with { XTickPositions = [100, 200, 300, 340] };
                 break;
             case "nonlinear": labels[2] = Value(labels[2], 12); break;
             case "wrong-side":

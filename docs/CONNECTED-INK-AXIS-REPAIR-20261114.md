@@ -81,5 +81,17 @@ the reopened project SHA-256 is
 `155815fce751c7942b519392127de6ad79c49366ad15d85a5e36fffa9cdc23a1`,
 and the CSV SHA-256 is
 `a5cab504b91b88ae3c3f6ff976e298cc3d75e47139102400dc64c0e335635302`.
-The verification scripts, source, result and workflow artifacts remain in the
-active `artifacts/connected-ink-check` directory for the integrator.
+To regenerate the integrated control, run the tracked
+`tools/GraphReader.CalibrationOcrProbe/New-TickCalibrationFixture.ps1 -GridLines`
+into a fresh owned-input path. Paint x=100, y=200..204 white, then paint a
+one-pixel black rectangle outline from (96,199) to (105,205). Use its updated
+SHA-256 in an owned request with crop (0,0,640,480) and plot (100,80,580,380),
+then run the existing `--marker-workflow-check` with the 0.4.48 App/assets and
+the repaired local worker. The harness draws its deterministic marker row
+before reading the axes; compare that processed Gray8 frame, not the untouched
+PNG, when reproducing the two-worker geometry check. The persistent Rust tests
+recreate both geometry-only orientations and their empty-gap negatives.
+
+The generated scripts, frames and reports in `artifacts/connected-ink-check`
+are disposable after this outcome and source commit are pushed and the
+integrator's consumer finishes. They are not runtime inputs.

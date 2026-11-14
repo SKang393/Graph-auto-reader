@@ -162,8 +162,8 @@ public static class CalibrationTickProposal
         CalibrationPairedTick[] x = paired.Where(pair => pair.Axis == "X").OrderBy(pair => pair.PixelPosition).ToArray();
         CalibrationPairedTick[] y = paired.Where(pair => pair.Axis == "Y").OrderBy(pair => pair.PixelPosition).ToArray();
         int xLabelErrors = xReasons.Count, yLabelErrors = yReasons.Count;
-        CheckAxis(x, xTicks, true, xReasons);
-        CheckAxis(y, yTicks, false, yReasons);
+        CheckAxis(x, true, xReasons);
+        CheckAxis(y, false, yReasons);
         reasons.AddRange(xReasons.Skip(xLabelErrors));
         reasons.AddRange(yReasons.Skip(yLabelErrors));
         // Every row on an axis must pass, not just a fit's preferred subset.
@@ -196,7 +196,7 @@ public static class CalibrationTickProposal
     private static bool ValidTicks(int[] ticks, int minimum, int maximum) => ticks.Length <= 128 &&
         ticks.All(tick => tick >= minimum && tick <= maximum) && ticks.Zip(ticks.Skip(1)).All(pair => pair.First < pair.Second);
 
-    private static void CheckAxis(CalibrationPairedTick[] pairs, int[] measured, bool xAxis, List<string> reasons)
+    private static void CheckAxis(CalibrationPairedTick[] pairs, bool xAxis, List<string> reasons)
     {
         if (pairs.Length < 3 || pairs.Select(pair => pair.Value).Distinct().Count() < 3 ||
             pairs.Select(pair => pair.PixelPosition).Distinct().Count() != pairs.Length ||
@@ -205,9 +205,6 @@ public static class CalibrationTickProposal
             reasons.Add(CalibrationTickProposalReasons.InsufficientPairs);
             return;
         }
-        bool estimated = measured.Length == 0 && pairs.All(pair => pair.IsEstimated);
-        if (!estimated && (measured.Length == 0 || pairs[0].PixelPosition != measured[0] || pairs[^1].PixelPosition != measured[^1]))
-            reasons.Add(CalibrationTickProposalReasons.MissingEndpoint);
         TickCandidate[] candidates = pairs.Select(pair => new TickCandidate(pair.Label.RegionId, pair.PixelPosition, pair.Value, pair.Label.Confidence)).ToArray();
         TickResolutionResult sequence = MonotonicTickResolver.Resolve(candidates,
             xAxis ? TickAxisDirection.IncreasingWithPixels : TickAxisDirection.DecreasingWithPixels);

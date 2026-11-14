@@ -326,6 +326,12 @@ Rust tests passed. The actual repaired worker plus 0.4.48 App/OCR completed one
 owned workflow with six measured label pairs, export and reopen in 5.518 seconds.
 The retained package remains unchanged; this source repair will join the next
 meaningful integration batch. General axis accuracy remains unmeasured.
+The [unlabelled-tick correction](UNLABELLED-TICK-CALIBRATION-20261114.md) also
+keeps valid observed anchor pairs when additional outer/minor ticks lack
+labels. It passed 52 focused proposal/review tests and an owned actual-worker
+export/reopen check in 5.263 seconds, without assigning values to those ticks.
+One fixed real-dev confirmation will assess these owned-defect repairs after
+their source identities are frozen; it will not select models or thresholds.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

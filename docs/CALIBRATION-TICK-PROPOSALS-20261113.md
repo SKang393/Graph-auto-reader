@@ -20,6 +20,24 @@ or inconsistent evidence leaves the proposal incomplete with review reasons.
 It does not extrapolate an endpoint, invent zero/session 1, or substitute a
 label center for a measured tick.
 
+### 2026-11-14 amendment: observed anchor pairs
+
+The original outermost-tick rule above was stricter than the scientific
+requirement. `AnUnlabelledMeasuredEndpointCannotBeExtrapolated` reproduced a
+rejection with valid label/tick pairs at 100, 200 and 300 solely because an
+additional tick at 340 had no label. Anchor construction already used the
+paired positions, so accepting those same anchors requires no extrapolation.
+
+Reviewed proposals may use three or more consistent observed pairs without
+labels on every outer tick. The first and last *paired* positions define the
+proposed anchors. No numeric value or evidence pair is assigned to an unlabeled
+tick, and the proposal does not claim that its anchors span the full plot.
+This applies to measured proposals and reviewed drafts. Source identity,
+unambiguous associations, literal numeric values, monotonicity, all-inlier fit,
+observed Y zero, valid ranges and explicit review/Apply remain required.
+This is a correction to a local feature restriction, not a model threshold,
+frozen schema change or production-approval decision.
+
 The native UI gains a single Suggest calibration action through the existing
 axis and OCR workers. Its values and anchors remain editable proposals. The
 review confirmation remains mandatory; generation does not apply calibration,
