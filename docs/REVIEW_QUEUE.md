@@ -223,7 +223,12 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
   was established. The maintainer reported no visible access prompt. A second
   window-list call worked, but launch stalled for 517.3 seconds and the lead
   interrupted it; that was not another physical Escape event. No further launch
-  retries are planned. See the [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
+  retries are planned. The maintainer then reported that double-clicking the
+  449 launcher produced no response. A missing retained-ledger `directory`
+  prevented process creation; it is corrected in `53c6e45d`, with a passing
+  actual-launcher headless smoke and a new ledger regression check. The
+  maintainer has been asked to reopen the corrected launcher. See the
+  [native attempt](NATIVE-PREVIEW-448-CHECK-20261114.md).
   Owned headless package checks passed, but do not replace these visual checks
 - **Files:** [hardware and worker outcome](OCR-HARDWARE-CHECK-20261113.md),
   [automatic device-profile outcome](OCR-AUTOMATIC-DEVICE-20261113.md),
@@ -238,18 +243,19 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 
 ## REV-012 - identify the existing Windows test laptop
 
-- **Status:** open; remote host diagnostic waiting
-- **Blocks:** current reachability check and exact-package smoke on the previously
-  authorized Windows test laptop; source work and local validation continue
-- **Effort:** about 1 minute
-- **Action:** provide the existing laptop's SSH host alias or address, or state
-  that it is unavailable. Do not send passwords or private keys
+- **Status:** resolved; existing authenticated SSH access recovered
+- **Resolution:** the maintainer identified `flex5laptop`. Existing project-local
+  trust and the validation identity successfully verified `FLEX5LAPTOP`,
+  Windows version `10.0.26200.0`, without credential or trust changes
+- **Blocks:** none requiring maintainer action; exact-package host smoke proceeds
+- **Effort:** complete
+- **Action:** no additional hostname, password or private key is needed
 - **Why:** the earlier host/guest preparation is documented, but scoped project
   metadata and SSH configuration do not identify the connection target. Reuse
   existing infrastructure before installing or downloading another VM setup
 - **Files:** [current resume record](WINDOWS-VALIDATION-RESUME-20261114.md),
   [historical host preparation](CLEAN-WINDOWS-HOST-PREPARATION-20261030.md),
   [guest requirements](../packaging/clean-machine/README.md)
-- **Unblocks when:** a known authorized host can be addressed and its existing
-  authentication works. An existing-host smoke is diagnostic only and does not
+- **Unblocks when:** resolved by verified existing authentication. An
+  existing-host smoke is diagnostic only and does not
   establish clean-guest or installer release acceptance
