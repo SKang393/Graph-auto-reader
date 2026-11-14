@@ -80,8 +80,26 @@ The source App DLL was
 was `568bdb140d1163e614364009405d9929ce17faf293401d3cdf6d5bfb91bc4462`.
 Nine third-party runtime libraries were checked at 14 destinations. These are
 source-check identities, not a packaged-build claim. Temporary outputs remain
-for the upcoming package verification consumer and should be retired after it
-finishes and the outcome is pushed.
+through package verification and should be retired after it finishes, this
+outcome is pushed, and active consumers finish.
+
+## Packaged 0.4.48 workflow check
+
+The same owned prepared-crop control was exercised against the internal
+`0.4.48` package (ZIP SHA-256
+`da416932e73d3408b0346400eb1a4098d3c0282f7c4473ca7ee7444447ac11db`). Geometry
+was supplied by the user; the Rust axis worker was not invoked. OCR produced 6
+estimated label pairs and 0 measured pairs. After simulated explicit review,
+the reopened project recorded a user-confirmed manual three-anchor calibration
+with 0 tick IDs. Three points were exported and reopened. The check exited 0
+with empty stderr in `5.1540688 s` process time (`4410.2178 ms` pipeline).
+Workflow report SHA-256 is
+`164d86e51a394463dd38a3321548fbde284c5eadc8147a6caf9595dbfd1c6e76`; CSV
+SHA-256 remains
+`249b49a16b036e5be69191a4aea4a867e75d4cdbe0ac6fd31fa2568a23b3edee`.
+
+This verifies an owned packaged workflow, not independent accuracy, native UI
+interaction, or production approval. Visual acceptance remains unchecked.
 
 ## Limits
 

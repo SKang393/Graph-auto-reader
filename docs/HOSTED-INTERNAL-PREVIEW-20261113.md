@@ -533,3 +533,25 @@ The compact cleanup journals are disposable after this confirmation is pushed.
 The appended 447 ledger passed all 62 existing version-policy checks locally
 in 48.876 seconds with exit 0. No package was rebuilt for diagnostic pins or
 delivery documentation.
+
+## Verified build 448 delivery
+
+Internal ManualPreview `0.4.48` was built from clean source
+`b669e1e5b85b067beda54301ad7a11451e3bce36`. Hosted preview run
+[43626749780](https://github.com/SKang393/Graph-auto-reader/actions/runs/43626749780),
+job `132544216898`, succeeded with 1,180 tests passed, 7 skipped, 0 failed.
+
+- [Artifact 14126736791](https://github.com/SKang393/Graph-auto-reader/actions/runs/43626749780/artifacts/14126736791): 87,286,887 bytes, SHA-256 `ffa51a08a358fb2b44865a16bb0f600a35a3460282a210179190ebaa48cfdff5`. Created `2026-11-14T18:32:23Z`; expires `2027-02-12T18:28:05Z`.
+- Inner `GraphAutoReader-0.4.48-win-x64-internal-preview.zip`: 87,544,288 bytes, SHA-256 `da416932e73d3408b0346400eb1a4098d3c0282f7c4473ca7ee7444447ac11db`.
+- Verification compared all 477 ZIP entries before moving the same verified archive. A ZIP-handle move retry occurred in the wrapper after byte verification; the handle was disposed and the same archive moved without rebuilding or re-extracting. App EXE SHA-256 `68a341f302fe3ea914b2864ac11b077fc0208d9831253c9d8fadc5e2f6d263b6`; App DLL `8aadff0269f88e64627c826543bf453acf65bd84d3ef038cb6eaaaa9aefe1994`; Rust worker `99cb320d3f9674d856c638a0fb7af5dbd9d565004f3b32ec1760588facd4e830`.
+
+Exact-source CI run [43626750029](https://github.com/SKang393/Graph-auto-reader/actions/runs/43626750029) succeeded: 2,706 .NET tests passed, 30 skipped, 0 failed across 13 suites; 44 Rust tests, 68 packaging checks, and 62 version-policy checks passed. The portable smoke exited 0 (`1184.5639 ms`); production-runtime smoke exited 2 (`501.9381 ms`). Runtime verification checked 21 libraries at 26 destinations. Probe-only build completed in `7.9329694 s`.
+
+The packaged owned prepared-crop workflow used manual geometry, did not invoke the Rust axis worker, and returned 6 estimated label pairs with 0 measured pairs. Simulated explicit review saved and reopened a user-confirmed manual three-anchor calibration with 0 tick IDs; 3 points exported and reopened. The run exited 0 with empty stderr in `5.1540688 s` process time (`4410.2178 ms` pipeline). Report SHA-256 `164d86e51a394463dd38a3321548fbde284c5eadc8147a6caf9595dbfd1c6e76`; CSV SHA-256 `249b49a16b036e5be69191a4aea4a867e75d4cdbe0ac6fd31fa2568a23b3edee`.
+
+This is an internal portable preview, with no public-release or production-approval claim. The record does not claim latest-pointer activation or cleanup.
+
+The appended 448 ledger passed all 62 version-policy checks on the normal host
+in `45.0442603 s`, exit 0. The initial sandbox attempt failed during temporary
+Git initialization before tests ran; the successful host run is the validation
+result. No package rebuild was needed for this ledger update.

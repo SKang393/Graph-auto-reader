@@ -313,8 +313,14 @@ now passes 1,014 App tests. An owned prepared-crop check used actual OCR and
 marker workers with no Rust axis call, then exported and reopened three points
 in 4.844 seconds. Its six label positions remain explicitly estimated, and
 saved calibration remains user-confirmed manual anchors with no tick evidence.
-Internal preview 0.4.48 is prepared for delivery. Native interaction and private
-automatic-calibration accuracy remain unverified by these source checks.
+Internal preview 0.4.48 is uploaded and verified: its packaged prepared-crop
+workflow exported and reopened three points in 5.154 seconds, with six estimated
+labels and no Rust axis call. Exact-source CI passed 2,706 .NET tests and 44 Rust
+tests. Delivery closeout records the pointer switch and cleanup separately.
+Native interaction and private automatic-calibration accuracy remain unverified.
+The next bounded repair addresses observed ink connecting a marker outline
+across an axis stroke. Owned positive and empty-gap negative controls reproduce
+the defect; preserve dark intersections, tick provenance and request work limits.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.
