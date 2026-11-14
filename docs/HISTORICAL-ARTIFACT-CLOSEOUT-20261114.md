@@ -100,7 +100,7 @@ path bytes** of completed output were retired. Other historical trees still
 require individual consumer/outcome review; this is not a claim that total
 disposable storage is below 1 GB.
 
-## Planned third retirement batch: 20261001 evaluations
+## Completed third retirement batch: 20261001 evaluations
 
 The completed inventory identifies three more generated evaluation trees
 under `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/`:
@@ -117,10 +117,10 @@ zero private/sealed reads and production approval false. Exact current source,
 tool, and package consumers were not found. The left-axis path appears in
 closed V32–V37 candidate records, whose evaluation outputs were retired in the
 previous batch. Aggregate outcomes and hashes remain in Git; only local replay
-outputs are proposed for retirement. This batch remains pending the lead's
-pre-removal process, containment, and reparse checks; no deletion is claimed.
+outputs were proposed for retirement. They were removed with the fourth batch
+after the pushed closeout record and the lead's pre-removal checks.
 
-## Planned fourth retirement batch: server OCR comparison outputs
+## Completed fourth retirement batch: server OCR comparison outputs
 
 The completed inventory measured
 `artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/server-ocr-comparison-v4`
@@ -162,12 +162,45 @@ consumer. The two CenterBinding tools reference only the recognizer manifest
 here; the notice and conversion dependencies above remain preserved elsewhere.
 The ignored inventory `artifacts/storage-retention-check/server-disposable.json`
 (SHA-256 `d43f6304ebc0132158ae0b3b73975b154d8e01848283e897b4e9de090a07d85f`)
-contains exact counts and hashes. This partial-tree retirement is pending the
-lead's pre-removal consumer, process, containment, and reparse checks. No
-deletion is claimed.
+contains exact sibling counts and hashes. After closeout `5f263f04` reached
+`origin/main`, the lead repeated consumer, process, containment, and reparse
+checks. The guarded cleanup completed at `2026-11-14T20:12:22.4065316Z` with
+zero old consumers: **20,738 files / 27,085,998,897 path bytes** removed across
+these two batches. All target paths were absent afterward. The server OCR tree
+now contains only the required recognizer manifest; its conversion model and
+license/notice dependencies remain at their referenced paths.
 
-The first removal attempt stopped at its inventory-hash check before deleting
-anything. The earlier captured digest differed from the completed inventory;
-the cause was not established. The lead re-reviewed all 17 exact sibling paths,
-counts and bytes, reconciled the same 7,800-file scope, and checked all four
-preserved dependency identities. The digest above binds that reviewed inventory.
+The initial removal attempt stopped at its inventory-hash check before deleting
+anything. The earlier captured digest differed from the final reviewed
+inventory; the cause was not established. The lead re-reviewed all 17 sibling
+paths and the same 7,800-file scope, then revalidated all four preserved
+dependency identities before cleanup. Ten protected keeper hashes remained
+unchanged, including the retained recognizer and its three external
+dependencies. The retained 0.4.48 executable hash and original corpus were
+preserved. Free E: space changed from 401,206,902,784 to 428,369,891,328 bytes;
+this is an observed drive change, not exact physical attribution. Across all
+four batches, **67,891,687,239 path bytes** of completed output were retired.
+
+## Planned fifth retirement batch: 20261001 evaluation outputs
+
+The complete inventory identifies five more completed evaluation trees under
+`artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs/`:
+
+| Output directory | Files | Path bytes | Pushed outcome |
+| --- | ---: | ---: | --- |
+| `compact-header-orientation-evaluation-20261001-v1` | 4,300 | 5,416,039,580 | [`GOAL-22-COMPACT-HEADER-ORIENTATION.json`](GOAL-22-COMPACT-HEADER-ORIENTATION.json) |
+| `marker-suppression-recovery-evaluation-20261001-v3` | 4,289 | 5,394,624,047 | [`GOAL-22-MARKER-SUPPRESSION-RECOVERY.json`](GOAL-22-MARKER-SUPPRESSION-RECOVERY.json) |
+| `phase-role-vocabulary-evaluation-20261001-v1` | 4,243 | 5,393,853,062 | [`GOAL-22-PHASE-ROLE-VOCABULARY-REPAIR.json`](GOAL-22-PHASE-ROLE-VOCABULARY-REPAIR.json) |
+| `overlapping-caption-bracket-evaluation-20261001-v2` | 4,242 | 5,393,283,930 | [`GOAL-22-OVERLAPPING-CAPTION-BRACKET-REPAIR.json`](GOAL-22-OVERLAPPING-CAPTION-BRACKET-REPAIR.json) |
+| `overlapping-caption-bracket-evaluation-20261001-v1` | 4,238 | 5,392,920,117 | [`GOAL-22-OVERLAPPING-CAPTION-BRACKET-REPAIR.json`](GOAL-22-OVERLAPPING-CAPTION-BRACKET-REPAIR.json) |
+| **Total** | **21,312** | **26,990,720,736** | |
+
+The pushed outcomes record accuracy-incomplete or retention-failed results,
+zero private/sealed reads, and production approval false. License reviews say
+no dependency, model, or license changes; fixed payloads, manifests, and license
+inputs were checksum verified. Exact directory references were found only in
+tracked outcome/diagnosis documents and plan context, not current executable
+source, tools, or packaging. No active model keeper is located in these trees;
+the current V44/V27/reviewed-parent inputs remain outside them. This batch is
+planned only, pending the lead's active-consumer, process, containment, and
+reparse checks. No deletion is claimed.
