@@ -7,6 +7,7 @@ param(
     [switch]$TransparentBackground,
     [switch]$LeftAxisContinuation,
     [switch]$NoTickMarks,
+    [switch]$DenseXTicks,
     [ValidateRange(0, 1700)][int]$WhiteMarginPixels = 0
 )
 $ErrorActionPreference = 'Stop'
@@ -31,7 +32,7 @@ try {
     $axisStart = if ($LeftAxisContinuation) { 50 } else { 100 }
     $graphics.DrawLine($pen, $axisStart, 380, 580, 380)
     $graphics.DrawLine($pen, 100, 80, 100, 380)
-    $xPositions = @(140, 340, 540)
+    $xPositions = if ($DenseXTicks) { @(140, 160, 180) } else { @(140, 340, 540) }
     $xLabels = @('1', '2', '3')
     for ($index = 0; $index -lt $xPositions.Count; $index++) {
         $x = $xPositions[$index]
@@ -77,5 +78,6 @@ finally {
     left_axis_continuation = [bool]$LeftAxisContinuation
     white_margin_pixels = $WhiteMarginPixels
     tick_marks_drawn = -not $NoTickMarks
+    x_label_positions = $xPositions
     renderer = 'Windows System.Drawing with installed Segoe UI; no font binary copied'
 } | ConvertTo-Json -Compress

@@ -226,6 +226,16 @@ other axis is incomplete, and use measured tick separation for the owned
 reproduction where nearby X labels merge into one OCR crop. Keep every
 scientific check and explicit review; do not tune thresholds or models against
 private answers. Native visual acceptance remains waiting.
+The [partial-axis and label-grouping batch](PARTIAL-AXIS-REVIEW-AND-TICK-LABEL-GROUPING-20261114.md)
+now passes 1,001 App tests and 859 OCR tests, with 16 existing model-dependent
+OCR checks skipped. An actual owned dense-label run changed from one merged
+`1 2 3` reading interpreted as 123 to six measured pairs and a complete review
+proposal in 3.299 s. Without measured ticks, the ambiguous text remains
+nonnumeric while the valid Y draft is retained. The tickless prepared-crop
+workflow still exported and reopened three manually confirmed points in
+4.735 s. Package this meaningful integration as 0.4.46, then confirm its fixed
+delivered behavior. This is source-level owned evidence, not real-data accuracy
+or native visual acceptance. No threshold or model tuning is justified by it.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

@@ -94,6 +94,8 @@
   <sys:String x:Key="Manual.CalibrationTicks.Status">Review-only tick pairing status</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.Complete">{0} tick labels matched. Check the anchors and values, then confirm and apply.</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.Incomplete">Some tick labels are missing or inconsistent. Review the image and enter the calibration values.</sys:String>
+  <sys:String x:Key="Manual.CalibrationTicks.PartialX">X range filled. Y calibration is incomplete. Set its anchor pixels and maximum value, then review before applying.</sys:String>
+  <sys:String x:Key="Manual.CalibrationTicks.PartialY">Y range filled. X calibration is incomplete. Set its first and final session values and anchor pixels, then review before applying.</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.PairedRows">Paired axis tick values and source pixel positions</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.PairedRow">{0} value {1}, measured tick at original pixel coordinate {2}</sys:String>
   <sys:String x:Key="Manual.CalibrationTicks.EstimatedRow">{0} value {1}, position estimated from label at original pixel coordinate {2}</sys:String>

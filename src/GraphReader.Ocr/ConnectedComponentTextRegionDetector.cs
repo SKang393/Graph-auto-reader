@@ -24,6 +24,9 @@ public sealed record ConnectedComponentTextRegionDetectorOptions
     public bool GroupComponentsIntoLines { get; init; } = true;
 }
 
+/// <summary>Optional original-pixel X ticks and plot edge for conservative axis-label grouping.</summary>
+public sealed record OcrMeasuredTickGrouping(IReadOnlyList<int> XTicks, double PlotBottom);
+
 /// <summary>
 /// Finds bounded dark connected components and groups nearby glyphs into text
 /// lines. Recognition remains a separate region-first stage.
@@ -46,6 +49,10 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
     public ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
         OcrImage image,
         CancellationToken cancellationToken)
+        => DetectAsync(image, null, cancellationToken);
+
+    public ValueTask<IReadOnlyList<OcrDetectedRegion>> DetectAsync(
+        OcrImage image, OcrMeasuredTickGrouping? grouping, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(image);
         ValidateImage(image);
@@ -53,7 +60,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
 
         var threshold = _options.ForegroundThreshold ?? EstimateThreshold(image, cancellationToken);
         var components = FindComponents(image, threshold, cancellationToken);
-        var lines = (_options.GroupComponentsIntoLines ? GroupIntoLines(components) : components).ToArray();
+        var lines = (_options.GroupComponentsIntoLines ? GroupIntoLines(components, image, grouping, cancellationToken) : components).ToArray();
         var regions = lines
             .OrderBy(static line => line.Top)
             .ThenBy(static line => line.Left)
@@ -146,8 +153,49 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
         return components;
     }
 
-    private List<ComponentBounds> GroupIntoLines(List<ComponentBounds> components)
+    private List<ComponentBounds> GroupIntoLines(List<ComponentBounds> components, OcrImage image, OcrMeasuredTickGrouping? grouping, CancellationToken cancellationToken)
     {
+        // Invalid or non-identity context cannot safely describe these pixel components.
+        (int Left, int Right, double Position)[] cuts = grouping is not null && image.OriginalToImage == OcrFrameTransform.Identity &&
+            grouping.XTicks is { Count: >= 2 and <= 128 } ticks && double.IsFinite(grouping.PlotBottom) &&
+            grouping.PlotBottom >= 0 && grouping.PlotBottom < image.Height &&
+            ticks.All(tick => tick >= 0 && tick < image.Width) &&
+            ticks.Zip(ticks.Skip(1)).All(pair => pair.First < pair.Second)
+            ? ticks.Zip(ticks.Skip(1), (a, b) => (Left: a, Right: b, Position: (a + (double)b) / 2)).ToArray() : [];
+        // Cache the relevant sets once per cut; lower caption rows must not veto a label row.
+        var evidence = new List<(double Position, ComponentBounds[] Crossing, ComponentBounds[] Left, ComponentBounds[] Right)>();
+        foreach (var cut in cuts)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var crossing = new List<ComponentBounds>(); var left = new List<ComponentBounds>(); var right = new List<ComponentBounds>();
+            foreach (ComponentBounds component in components)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (component.Top <= grouping!.PlotBottom) continue;
+                if (component.Left < cut.Position && component.Right + 1 > cut.Position) crossing.Add(component);
+                if (component.Left <= cut.Left && component.Right >= cut.Left) left.Add(component);
+                if (component.Left <= cut.Right && component.Right >= cut.Right) right.Add(component);
+            }
+            evidence.Add((cut.Position, crossing.ToArray(), left.ToArray(), right.ToArray()));
+        }
+        bool RowOverlaps(ComponentBounds[] items, int top, int bottom)
+        {
+            foreach (ComponentBounds component in items)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (component.Top <= bottom && component.Bottom >= top) return true;
+            }
+            return false;
+        }
+        bool RowCovers(ComponentBounds[] items, int top, int bottom)
+        {
+            foreach (ComponentBounds component in items)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (component.Top <= top && component.Bottom >= bottom) return true;
+            }
+            return false;
+        }
         var remaining = components
             .OrderBy(static component => component.Top)
             .ThenBy(static component => component.Left)
@@ -163,6 +211,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                 changed = false;
                 for (var index = remaining.Count - 1; index >= 0; index--)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var candidate = remaining[index];
                     var verticalOverlap = Math.Max(0, Math.Min(line.Bottom, candidate.Bottom) - Math.Max(line.Top, candidate.Top) + 1);
                     var overlapFraction = verticalOverlap / (double)Math.Max(1, Math.Min(line.Height, candidate.Height));
@@ -172,7 +221,17 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                             ? line.Left - candidate.Right - 1
                             : 0;
                     var maximumGap = Math.Max(line.Height, candidate.Height) * _options.MaximumLineGapHeightRatio;
-                    if (overlapFraction >= _options.MinimumVerticalOverlapFraction && horizontalGap <= maximumGap)
+                    cancellationToken.ThrowIfCancellationRequested();
+                    int rowTop = Math.Max(line.Top, candidate.Top), rowBottom = Math.Min(line.Bottom, candidate.Bottom);
+                    bool separated = grouping is not null && rowTop <= rowBottom && line.Top > grouping.PlotBottom && candidate.Top > grouping.PlotBottom &&
+                        horizontalGap > Math.Max(line.Width, candidate.Width) &&
+                        evidence.Any(cut =>
+                            ((line.Right < cut.Position && candidate.Left >= cut.Position) ||
+                             (candidate.Right < cut.Position && line.Left >= cut.Position)) &&
+                            !RowOverlaps(cut.Crossing, rowTop, rowBottom) &&
+                            RowCovers(cut.Left, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)) &&
+                            RowCovers(cut.Right, Math.Min(line.Top, candidate.Top), Math.Max(line.Bottom, candidate.Bottom)));
+                    if (!separated && overlapFraction >= _options.MinimumVerticalOverlapFraction && horizontalGap <= maximumGap)
                     {
                         line = line.Merge(candidate);
                         remaining.RemoveAt(index);
@@ -184,10 +243,10 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
             lines.Add(line);
         }
 
-        return GroupVerticalGlyphs(lines);
+        return GroupVerticalGlyphs(lines, cancellationToken);
     }
 
-    private List<ComponentBounds> GroupVerticalGlyphs(List<ComponentBounds> horizontalLines)
+    private List<ComponentBounds> GroupVerticalGlyphs(List<ComponentBounds> horizontalLines, CancellationToken cancellationToken)
     {
         var remaining = horizontalLines
             .OrderBy(static component => component.Left)
@@ -210,6 +269,7 @@ public sealed class ConnectedComponentTextRegionDetector : ITextRegionDetector
                 changed = false;
                 for (var index = remaining.Count - 1; index >= 0; index--)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var candidate = remaining[index];
                     if (!IsRotatedGlyphCandidate(candidate))
                     {

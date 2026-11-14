@@ -153,6 +153,109 @@ public sealed class CalibrationTickProposalTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void ReviewDraftRetainsValidXWhenYHasNoObservedZero(bool estimatedX)
+    {
+        CalibrationOcrProposal[] labels = Labels().Select(row => row.SuggestedAxis == "Y"
+            ? Value(row, row.NumericValue!.Value + 2) : row).ToArray();
+        RustAxisGeometry geometry = estimatedX ? Geometry() with { XTickPositions = [] } : Geometry();
+
+        CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(geometry, Response(labels));
+
+        Assert.IsFalse(draft.IsComplete);
+        Assert.IsNull(draft.Anchors);
+        Assert.IsNull(draft.FirstSession);
+        Assert.IsNull(draft.YMaximum);
+        Assert.AreEqual(new CalibrationXReviewDraft(100, 300, 1, 7, estimatedX), draft.XReviewDraft);
+        Assert.IsNull(draft.YReviewDraft);
+        CollectionAssert.Contains(draft.Reasons.ToArray(), CalibrationTickProposalReasons.ObservedZeroRequired);
+        Assert.HasCount(6, draft.PairedTicks);
+        CalibrationTickProposalResult measured = CalibrationTickProposal.Create(geometry, Response(labels));
+        Assert.IsNull(measured.XReviewDraft, "Measured-only Create keeps its strict whole-proposal result.");
+        Assert.IsNull(measured.YReviewDraft);
+    }
+
+    [TestMethod]
+    public void ReviewDraftRetainsValidYWhenXIsNonmonotonic()
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        labels[1] = Value(labels[1], 0);
+        CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(Geometry(), Response(labels));
+        Assert.IsFalse(draft.IsComplete);
+        Assert.IsNull(draft.XReviewDraft);
+        Assert.AreEqual(new CalibrationYReviewDraft(250, 50, 10, false), draft.YReviewDraft);
+        CollectionAssert.Contains(draft.Reasons.ToArray(), CalibrationTickProposalReasons.Nonmonotonic);
+    }
+
+    [TestMethod]
+    [DataRow("invalid-numeric")]
+    [DataRow("duplicate-position")]
+    [DataRow("missing-endpoint")]
+    [DataRow("nonlinear")]
+    [DataRow("wrong-side")]
+    [DataRow("invalid-range")]
+    public void PartialAxisCannotHideAnyInvalidRowOrFit(string defect)
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        RustAxisGeometry geometry = Geometry();
+        switch (defect)
+        {
+            case "invalid-numeric":
+                labels = [.. labels, labels[0] with { RegionId = "invalid", NumericLiteral = false }];
+                break;
+            case "duplicate-position":
+                labels = [.. labels, labels[0] with { RegionId = "duplicate" }];
+                break;
+            case "missing-endpoint":
+                geometry = geometry with { XTickPositions = [100, 200, 300, 340] };
+                break;
+            case "nonlinear": labels[2] = Value(labels[2], 12); break;
+            case "wrong-side":
+                labels = [.. labels, labels[0] with { RegionId = "inside", Polygon =
+                    [new(95, 100), new(105, 100), new(105, 110), new(95, 110)] }];
+                break;
+            case "invalid-range": labels = Labels(first: 0); break;
+            default: throw new ArgumentOutOfRangeException(nameof(defect));
+        }
+
+        CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(geometry, Response(labels));
+
+        Assert.IsFalse(draft.IsComplete);
+        Assert.IsNull(draft.XReviewDraft);
+        Assert.IsNotNull(draft.YReviewDraft);
+        Assert.IsTrue(draft.Reasons.Count > 0);
+    }
+
+    [TestMethod]
+    [DataRow("duplicate-id")]
+    [DataRow("wrong-axis-identity")]
+    [DataRow("stale-plot")]
+    [DataRow("invalid-measured-geometry")]
+    [DataRow("failed-response")]
+    public void GlobalEvidenceFailuresPublishNeitherPartialAxis(string defect)
+    {
+        CalibrationOcrProposal[] labels = Labels();
+        RustAxisGeometry geometry = Geometry();
+        CalibrationOcrResponse response = Response(labels);
+        switch (defect)
+        {
+            case "duplicate-id": labels[3] = labels[3] with { RegionId = labels[0].RegionId }; break;
+            case "wrong-axis-identity": labels[0] = labels[0] with { SuggestedAxis = "Y" }; break;
+            case "stale-plot": response = response with { Request = response.Request! with { Plot = new(71, 20, 350, 280) } }; break;
+            case "invalid-measured-geometry": geometry = geometry with { XTickPositions = [200, 100, 300] }; break;
+            case "failed-response": response = response with { FailureCode = CalibrationOcrReasonCodes.InvalidInput }; break;
+            default: throw new ArgumentOutOfRangeException(nameof(defect));
+        }
+
+        CalibrationTickProposalResult draft = CalibrationTickProposal.CreateReviewDraft(geometry, response);
+
+        Assert.IsFalse(draft.IsComplete);
+        Assert.IsNull(draft.XReviewDraft);
+        Assert.IsNull(draft.YReviewDraft);
+    }
+
+    [TestMethod]
     public void ReviewDraftEstimatesOnlyMissingAxesAndPrefersMeasuredResult()
     {
         CalibrationOcrResponse response = Response(Labels());

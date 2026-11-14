@@ -81,7 +81,8 @@ public partial class ManualPreviewWorkspaceService
         byte[] image = _originalPanelBytesByTab[suggestion.TabId].Copy();
         var request = new CalibrationOcrRequest(Guid.NewGuid().ToString("N"), suggestion.Binding, source.Sha256,
             Convert.ToHexString(SHA256.HashData(image)).ToLowerInvariant(), tab.PixelWidth, tab.PixelHeight,
-            new CalibrationOcrPlot(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom));
+            new CalibrationOcrPlot(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom))
+        { MeasuredXTicks = geometry.XTickPositions.Count > 0 ? geometry.XTickPositions.ToArray() : null };
         CalibrationOcrResponse response = await _calibrationOcrSuggestionService!.SuggestAsync(request, image, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         if (!IsAxisSuggestionCurrent(suggestion) || !CalibrationOcrWorkerClient.IsValidResponse(request, response)) return null;

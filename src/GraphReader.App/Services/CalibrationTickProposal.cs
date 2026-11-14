@@ -7,6 +7,10 @@ namespace GraphReader.App.Services;
 
 public sealed record CalibrationTickAnchors(CalibrationOcrPoint FirstSessionY0,
     CalibrationOcrPoint FirstSessionYMaximum, CalibrationOcrPoint FinalSessionY0);
+public sealed record CalibrationXReviewDraft(int FirstPixelPosition, int FinalPixelPosition,
+    int FirstSession, double FinalSession, bool UsesEstimatedPositions);
+public sealed record CalibrationYReviewDraft(int ZeroPixelPosition, int MaximumPixelPosition,
+    double YMaximum, bool UsesEstimatedPositions);
 public sealed record CalibrationPairedTick(string Axis, int PixelPosition, double Value, CalibrationOcrProposal Label)
 {
     public bool IsEstimated { get; init; }
@@ -14,6 +18,8 @@ public sealed record CalibrationPairedTick(string Axis, int PixelPosition, doubl
 public sealed record CalibrationTickProposalResult(CalibrationTickAnchors? Anchors, int? FirstSession,
     double? FinalSession, double? YMaximum, IReadOnlyList<CalibrationPairedTick> PairedTicks, IReadOnlyList<string> Reasons)
 {
+    public CalibrationXReviewDraft? XReviewDraft { get; init; }
+    public CalibrationYReviewDraft? YReviewDraft { get; init; }
     public bool UsesEstimatedPositions => PairedTicks.Any(pair => pair.IsEstimated);
     public bool IsComplete => Anchors is not null && FirstSession is not null && FinalSession is not null &&
         YMaximum is not null && Reasons.Count == 0;
@@ -42,17 +48,12 @@ public static class CalibrationTickProposal
     public static CalibrationTickProposalResult Create(RustAxisGeometry geometry, CalibrationOcrResponse response) =>
         CreateCore(geometry, response, estimateEmptyAxes: false);
 
-    /// <summary>Creates a review-only draft using glyph centers only where no measured ticks exist.</summary>
-    public static CalibrationTickProposalResult CreateReviewDraft(RustAxisGeometry geometry, CalibrationOcrResponse response)
-    {
-        CalibrationTickProposalResult measured = Create(geometry, response);
-        if (measured.IsComplete || measured.Reasons.Count == 0 || measured.Reasons.Any(reason =>
-            reason is not CalibrationTickProposalReasons.UnpairedLabel and not CalibrationTickProposalReasons.InsufficientPairs))
-            return measured;
-        return CreateCore(geometry, response, estimateEmptyAxes: true);
-    }
+    /// <summary>Retains independently validated axes for manual review, estimating only axes without measured ticks.</summary>
+    public static CalibrationTickProposalResult CreateReviewDraft(RustAxisGeometry geometry, CalibrationOcrResponse response) =>
+        CreateCore(geometry, response, estimateEmptyAxes: true, publishPartialAxes: true);
 
-    private static CalibrationTickProposalResult CreateCore(RustAxisGeometry geometry, CalibrationOcrResponse response, bool estimateEmptyAxes)
+    private static CalibrationTickProposalResult CreateCore(RustAxisGeometry geometry, CalibrationOcrResponse response,
+        bool estimateEmptyAxes, bool publishPartialAxes = false)
     {
         ArgumentNullException.ThrowIfNull(geometry);
         ArgumentNullException.ThrowIfNull(response);
@@ -68,24 +69,38 @@ public static class CalibrationTickProposal
             return Failure(paired, [CalibrationTickProposalReasons.InvalidMeasuredTicks]);
 
         var ids = new HashSet<string>(StringComparer.Ordinal);
+        var xReasons = new List<string>();
+        var yReasons = new List<string>();
+        bool identityConflict = false;
         var estimatedIntervals = new Dictionary<string, List<(double Start, double End)>>(StringComparer.Ordinal);
         foreach (CalibrationOcrProposal row in response.Proposals.Where(row => row.Role is "XTick" or "YTick"))
         {
             string axis = row.Role == "XTick" ? "X" : "Y";
+            List<string> axisReasons = axis == "X" ? xReasons : yReasons;
+            void AddReason(string reason)
+            {
+                reasons.Add(reason);
+                axisReasons.Add(reason);
+            }
             if (row.SuggestedAxis != axis)
             {
-                reasons.Add(CalibrationTickProposalReasons.WrongAxis);
+                identityConflict = true;
+                AddReason(CalibrationTickProposalReasons.WrongAxis);
                 continue;
             }
-            if (!ids.Add(row.RegionId)) reasons.Add(CalibrationTickProposalReasons.DuplicateAssociation);
-            if (!row.NumericLiteral || row.FailureCode is not null || !GraphNumericParser.IsLiteralGraphNumber(row.Text) ||
+            if (!ids.Add(row.RegionId))
+            {
+                identityConflict = true;
+                AddReason(CalibrationTickProposalReasons.DuplicateAssociation);
+            }
+            if (!row.NumericLiteral || row.FailureCode is not null || !CalibrationNumericLiteral.IsLiteral(row.Text) ||
                 row.NumericValue is not { } value || !double.IsFinite(value) ||
                 !double.IsFinite(row.Confidence) || row.Confidence is <= 0 or > 1 ||
                 GraphNumericParser.Parse(row.Text).Value != value || row.Polygon.Count < 3 ||
                 row.Polygon.Any(point => !double.IsFinite(point.X) || !double.IsFinite(point.Y) ||
                     point.X < 0 || point.Y < 0 || point.X > request.Width || point.Y > request.Height))
             {
-                reasons.Add(CalibrationTickProposalReasons.InvalidNumericLabel);
+                AddReason(CalibrationTickProposalReasons.InvalidNumericLabel);
                 continue;
             }
             double left = row.Polygon.Min(point => point.X), right = row.Polygon.Max(point => point.X);
@@ -93,7 +108,7 @@ public static class CalibrationTickProposal
             if (left >= right || top >= bottom ||
                 (axis == "X" ? (top + bottom) / 2 <= geometry.Bottom : (left + right) / 2 >= geometry.Left))
             {
-                reasons.Add(CalibrationTickProposalReasons.WrongAxis);
+                AddReason(CalibrationTickProposalReasons.WrongAxis);
                 continue;
             }
             int[] ticks = axis == "X" ? xTicks : yTicks;
@@ -101,7 +116,7 @@ public static class CalibrationTickProposal
             {
                 if (!estimateEmptyAxes)
                 {
-                    reasons.Add(CalibrationTickProposalReasons.UnpairedLabel);
+                    AddReason(CalibrationTickProposalReasons.UnpairedLabel);
                     continue;
                 }
                 double start = axis == "X" ? left : top, end = axis == "X" ? right : bottom;
@@ -111,11 +126,11 @@ public static class CalibrationTickProposal
                 // Glyph centers are explicitly approximate; they are not measured tick pixels.
                 int center = (int)Math.Round((start + end) / 2, MidpointRounding.AwayFromZero);
                 if (end < axisStart || start > axisEnd || center < 0 || center >= imageLimit)
-                { reasons.Add(CalibrationTickProposalReasons.UnpairedLabel); continue; }
+                { AddReason(CalibrationTickProposalReasons.UnpairedLabel); continue; }
                 if (!estimatedIntervals.TryGetValue(axis, out var intervals))
                     estimatedIntervals.Add(axis, intervals = []);
                 if (intervals.Count >= 128 || intervals.Any(interval => start <= interval.End && end >= interval.Start))
-                { reasons.Add(CalibrationTickProposalReasons.AmbiguousAssociation); continue; }
+                { AddReason(CalibrationTickProposalReasons.AmbiguousAssociation); continue; }
                 intervals.Add((start, end));
                 paired.Add(new CalibrationPairedTick(axis, center, value,
                     row with { Polygon = Array.AsReadOnly(row.Polygon.ToArray()) }) { IsEstimated = true });
@@ -126,7 +141,7 @@ public static class CalibrationTickProposal
             int[] nearest = ticks.Where(tick => Math.Abs(Math.Abs(tick - position) - nearestDistance) <= 1e-9).ToArray();
             if (nearest.Length != 1)
             {
-                reasons.Add(CalibrationTickProposalReasons.AmbiguousAssociation);
+                AddReason(CalibrationTickProposalReasons.AmbiguousAssociation);
                 continue;
             }
             int tickIndex = Array.IndexOf(ticks, nearest[0]);
@@ -136,30 +151,47 @@ public static class CalibrationTickProposal
             double labelTolerance = axis == "X" ? Math.Max((right - left) / 2, bottom - top) : bottom - top;
             if (nearestDistance > Math.Min(labelTolerance, neighbor / 2))
             {
-                reasons.Add(CalibrationTickProposalReasons.UnpairedLabel);
+                AddReason(CalibrationTickProposalReasons.UnpairedLabel);
                 continue;
             }
             if (paired.Any(pair => pair.Axis == axis && pair.PixelPosition == nearest[0]))
-                reasons.Add(CalibrationTickProposalReasons.DuplicateAssociation);
+                AddReason(CalibrationTickProposalReasons.DuplicateAssociation);
             paired.Add(new(axis, nearest[0], value, row with { Polygon = Array.AsReadOnly(row.Polygon.ToArray()) }));
         }
 
         CalibrationPairedTick[] x = paired.Where(pair => pair.Axis == "X").OrderBy(pair => pair.PixelPosition).ToArray();
         CalibrationPairedTick[] y = paired.Where(pair => pair.Axis == "Y").OrderBy(pair => pair.PixelPosition).ToArray();
-        CheckAxis(x, xTicks, true, reasons);
-        CheckAxis(y, yTicks, false, reasons);
-        if (reasons.Count > 0) return Failure(paired, reasons);
+        int xLabelErrors = xReasons.Count, yLabelErrors = yReasons.Count;
+        CheckAxis(x, xTicks, true, xReasons);
+        CheckAxis(y, yTicks, false, yReasons);
+        reasons.AddRange(xReasons.Skip(xLabelErrors));
+        reasons.AddRange(yReasons.Skip(yLabelErrors));
+        // Every row on an axis must pass, not just a fit's preferred subset.
+        // Conflicting region identities cannot establish either partial result.
+        CalibrationXReviewDraft? xDraft = publishPartialAxes && !identityConflict && xReasons.Count == 0 &&
+            ValidXRange(x[0].Value, x[^1].Value)
+                ? new(x[0].PixelPosition, x[^1].PixelPosition, (int)x[0].Value, x[^1].Value,
+                    x.Any(pair => pair.IsEstimated)) : null;
+        CalibrationYReviewDraft? yDraft = publishPartialAxes && !identityConflict && yReasons.Count == 0 &&
+            y[^1].Value == 0 && y.Min(pair => pair.Value) == 0 &&
+            y[0].Value > 0 && y[0].Value == y.Max(pair => pair.Value)
+                ? new(y[^1].PixelPosition, y[0].PixelPosition, y[0].Value,
+                    y.Any(pair => pair.IsEstimated)) : null;
+        if (reasons.Count > 0) return Failure(paired, reasons, xDraft, yDraft);
 
         double first = x[0].Value, final = x[^1].Value, maximum = y[0].Value;
         if (y[^1].Value != 0 || y.Min(pair => pair.Value) != 0)
             reasons.Add(CalibrationTickProposalReasons.ObservedZeroRequired);
-        if (first < 1 || first > int.MaxValue || first != Math.Truncate(first) || final <= first || maximum <= 0 ||
+        if (!ValidXRange(first, final) || maximum <= 0 ||
             maximum != y.Max(pair => pair.Value)) reasons.Add(CalibrationTickProposalReasons.InvalidRange);
-        if (reasons.Count > 0) return Failure(paired, reasons);
-        return new(new(new(x[0].PixelPosition, y[^1].PixelPosition), new(x[0].PixelPosition, y[0].PixelPosition),
+        if (reasons.Count > 0) return Failure(paired, reasons, xDraft, yDraft);
+        return new CalibrationTickProposalResult(new(new(x[0].PixelPosition, y[^1].PixelPosition), new(x[0].PixelPosition, y[0].PixelPosition),
                 new(x[^1].PixelPosition, y[^1].PixelPosition)), (int)first, final, maximum,
-            Array.AsReadOnly(paired.ToArray()), Array.Empty<string>());
+            Array.AsReadOnly(paired.ToArray()), Array.Empty<string>()) { XReviewDraft = xDraft, YReviewDraft = yDraft };
     }
+
+    private static bool ValidXRange(double first, double final) =>
+        first >= 1 && first <= int.MaxValue && first == Math.Truncate(first) && final > first;
 
     private static bool ValidTicks(int[] ticks, int minimum, int maximum) => ticks.Length <= 128 &&
         ticks.All(tick => tick >= minimum && tick <= maximum) && ticks.Zip(ticks.Skip(1)).All(pair => pair.First < pair.Second);
@@ -188,7 +220,8 @@ public static class CalibrationTickProposal
             reasons.Add(CalibrationTickProposalReasons.InconsistentSpacing);
     }
 
-    private static CalibrationTickProposalResult Failure(List<CalibrationPairedTick> pairs, IEnumerable<string> reasons) =>
+    private static CalibrationTickProposalResult Failure(List<CalibrationPairedTick> pairs, IEnumerable<string> reasons,
+        CalibrationXReviewDraft? xDraft = null, CalibrationYReviewDraft? yDraft = null) =>
         new(null, null, null, null, Array.AsReadOnly(pairs.ToArray()),
-            Array.AsReadOnly(reasons.Distinct(StringComparer.Ordinal).ToArray()));
+            Array.AsReadOnly(reasons.Distinct(StringComparer.Ordinal).ToArray())) { XReviewDraft = xDraft, YReviewDraft = yDraft };
 }

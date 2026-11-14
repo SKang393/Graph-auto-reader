@@ -69,7 +69,8 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
 
             stage.Restart();
             IReadOnlyList<OcrDetectedRegion> components = await new ConnectedComponentTextRegionDetector()
-                .DetectAsync(image, token).ConfigureAwait(false);
+                .DetectAsync(image, item.Request.MeasuredXTicks is { Length: >= 2 } ticks
+                    ? new OcrMeasuredTickGrouping(ticks, item.Request.Plot.Bottom) : null, token).ConfigureAwait(false);
             OcrDetectedRegion[] candidates = components.Where(region => AxisFor(region, bounds) is "X" or "Y").ToArray();
             if (candidates.Length > 128) throw new CalibrationOcrException(CalibrationOcrReasonCodes.TooManyCandidates);
             double component = stage.Elapsed.TotalMilliseconds;
@@ -171,7 +172,7 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
         double confidence = best?.Confidence ?? 0;
         bool valid = double.IsFinite(confidence) && confidence is >= 0 and <= 1 && reading.SourceImage == OcrSourceImage.Original;
         string? failure = reading.Failure is not null || !valid ? CalibrationOcrReasonCodes.RecognitionFailed : null;
-        bool literal = failure is null && GraphNumericParser.IsLiteralGraphNumber(text);
+        bool literal = failure is null && CalibrationNumericLiteral.IsLiteral(text);
         NumericParseResult? parsed = literal ? GraphNumericParser.Parse(text) : null;
         return new(candidate.RegionId, candidate.Polygon.Points.Select(point => new CalibrationOcrPoint(point.X, point.Y)).ToArray(),
             text, valid ? confidence : 0, parsed?.Value, parsed?.NormalizedText, literal,
@@ -197,7 +198,7 @@ internal sealed class CalibrationOcrSession : IAsyncDisposable
             !double.IsFinite(request.Plot.Left) || !double.IsFinite(request.Plot.Top) ||
             !double.IsFinite(request.Plot.Right) || !double.IsFinite(request.Plot.Bottom) ||
             request.Plot.Left < 0 || request.Plot.Top < 0 || request.Plot.Right >= request.Width || request.Plot.Bottom >= request.Height ||
-            request.Plot.Left >= request.Plot.Right || request.Plot.Top >= request.Plot.Bottom ||
+            request.Plot.Left >= request.Plot.Right || request.Plot.Top >= request.Plot.Bottom || !request.ValidMeasuredXTicks() ||
             !string.Equals(Hash(item.EncodedImage), request.PanelImageSha256, StringComparison.OrdinalIgnoreCase))
             throw new CalibrationOcrException(CalibrationOcrReasonCodes.InvalidInput);
     }

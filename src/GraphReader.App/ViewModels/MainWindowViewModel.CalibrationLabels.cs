@@ -282,7 +282,9 @@ public sealed partial class MainWindowViewModel
 
     private void StartAxisCalibrationCorrection()
     {
-        ClearCalibrationLabelResults(clearPickedValues: true);
+        bool preservePartialValues = _calibrationTickProposal is { IsComplete: false } proposal &&
+            (proposal.XReviewDraft is not null || proposal.YReviewDraft is not null);
+        ClearCalibrationLabelResults(clearPickedValues: !preservePartialValues);
         BeginCalibration();
     }
 }

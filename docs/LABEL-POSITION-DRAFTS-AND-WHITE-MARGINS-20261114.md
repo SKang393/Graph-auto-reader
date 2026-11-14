@@ -86,9 +86,12 @@ native GUI acceptance or private-corpus accuracy evidence. No private candidate
 run was made for this batch, and the App change has not been shown to improve
 real calibration accuracy.
 
-The under-1-MB raw scratch in `artifacts/axis-margin-check` remains until the
-0.4.45 package consumers finish and this record is pushed. Then retire the
-scratch; preserve original data and current runtime assets.
+The under-1-MB raw scratch in `artifacts/axis-margin-check` was retired in the
+0.4.45 cleanup after record `c20d0577ed26fd73f1f80633f6896d1033716651` was
+pushed and package consumers finished. Preserve original data and current
+runtime assets. The owned controls can be regenerated from the tracked
+`tools/GraphReader.CalibrationOcrProbe/New-TickCalibrationFixture.ps1` options
+documented in its README.
 
 ## Packaged 0.4.45 workflow
 

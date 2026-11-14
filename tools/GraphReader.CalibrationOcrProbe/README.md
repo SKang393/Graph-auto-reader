@@ -132,6 +132,11 @@ that implements this API; historical packaged controls used their recorded
 adapter versions. `New-TickCalibrationFixture.ps1 -NoTickMarks` creates an owned
 tickless control; `-WhiteMarginPixels 640` translates the ordinary control
 inside white margins without resampling it.
+`-DenseXTicks` places the three owned X labels at pixels 140, 160 and 180 to
+reproduce merging of neighboring values. The current owned probe supplies
+Rust-measured X ticks to the matching-build worker; absent measured ticks retain
+the generic grouping path. Calibration rejects internal whitespace as a numeric
+literal and can retain a separately validated partial axis without applying it.
 
 `--automatic-device-check <absolute-App-exe> <absolute-assets> <absolute-empty-settings-root>`
 uses the real in-memory owned benchmark and checks automatic profile persistence,

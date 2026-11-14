@@ -41,7 +41,8 @@ internal static class TickProposalCheck
             return new { review_only = true, axis.ErrorCode, geometry_milliseconds = geometryMilliseconds };
         var request = new CalibrationOcrRequest("tick-proposal-check", binding, source.ImageSha256,
             Program.Hash(panel), image.Width, image.Height,
-            new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom));
+            new(geometry.Left, geometry.Top, geometry.Right, geometry.Bottom))
+        { MeasuredXTicks = geometry.XTickPositions.Count > 0 ? geometry.XTickPositions.ToArray() : null };
         // Use detected geometry, never the known plot in an older diagnostic request.
         await using var reader = new CalibrationOcrWorkerClient(appExe, assetRoot);
         CalibrationOcrResponse response = await reader.SuggestAsync(request, panel, token);

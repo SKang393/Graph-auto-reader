@@ -58,12 +58,16 @@ public sealed partial class MainWindowViewModel
         SetEstimatedCalibrationPositions(proposal.UsesEstimatedPositions);
         if (!proposal.IsComplete)
         {
+            PopulatePartialCalibrationAxes(proposal);
             _calibrationTickProposal = proposal;
             PopulateCalibrationPairedTickRows(proposal);
-            _calibrationTickProposalStatusText = GetLocalizedString(LocalizationKeys.ManualCalibrationTicksIncomplete);
+            _calibrationTickProposalStatusText = GetLocalizedString(proposal.XReviewDraft is not null
+                ? LocalizationKeys.ManualCalibrationTicksPartialX : proposal.YReviewDraft is not null
+                    ? LocalizationKeys.ManualCalibrationTicksPartialY : LocalizationKeys.ManualCalibrationTicksIncomplete);
             OnPropertyChanged(nameof(HasCalibrationTickProposal));
             OnPropertyChanged(nameof(CalibrationTickProposalStatusText));
             OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
+            RelayCommand.RaiseCanExecuteChanged();
             return;
         }
 
@@ -89,6 +93,29 @@ public sealed partial class MainWindowViewModel
         OnPropertyChanged(nameof(HasCalibrationTickProposalStatus));
         OnPropertyChanged(nameof(AxisSuggestionSummary));
         RelayCommand.RaiseCanExecuteChanged();
+    }
+
+    private void PopulatePartialCalibrationAxes(CalibrationTickProposalResult proposal)
+    {
+        SuggestedFirstSession = proposal.XReviewDraft?.FirstSession.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        SuggestedFinalSession = proposal.XReviewDraft?.FinalSession.ToString("R", CultureInfo.InvariantCulture) ?? string.Empty;
+        SuggestedYMaximum = proposal.YReviewDraft?.YMaximum.ToString("R", CultureInfo.InvariantCulture) ?? string.Empty;
+        AxisSuggestionReviewed = false;
+        if (_suggestedAnchors.Length != 3) return;
+        if (proposal.XReviewDraft is { } x)
+        {
+            _suggestedAnchors[0] = new(x.FirstPixelPosition, _suggestedAnchors[0].Y);
+            _suggestedAnchors[1] = new(x.FirstPixelPosition, _suggestedAnchors[1].Y);
+            _suggestedAnchors[2] = new(x.FinalPixelPosition, _suggestedAnchors[2].Y);
+        }
+        if (proposal.YReviewDraft is { } y)
+        {
+            _suggestedAnchors[0] = new(_suggestedAnchors[0].X, y.ZeroPixelPosition);
+            _suggestedAnchors[1] = new(_suggestedAnchors[1].X, y.MaximumPixelPosition);
+            _suggestedAnchors[2] = new(_suggestedAnchors[2].X, y.ZeroPixelPosition);
+        }
+        UpdateAxisSuggestionOverlay();
+        OnPropertyChanged(nameof(AxisSuggestionSummary));
     }
 
     private void PopulateCalibrationPairedTickRows(CalibrationTickProposalResult proposal)

@@ -37,8 +37,13 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
     }
 
     public Task<CalibrationOcrResponse> SuggestAsync(CalibrationOcrRequest request,
-        ReadOnlyMemory<byte> encodedOriginalPanel, CancellationToken cancellationToken) =>
-        Task.Run(() => SuggestCoreAsync(request, encodedOriginalPanel, cancellationToken), CancellationToken.None);
+        ReadOnlyMemory<byte> encodedOriginalPanel, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        // Snapshot mutable optional evidence before scheduling or waiting for the request gate.
+        CalibrationOcrRequest snapshot = request with { MeasuredXTicks = request.MeasuredXTicks?.ToArray() };
+        return Task.Run(() => SuggestCoreAsync(snapshot, encodedOriginalPanel, cancellationToken), CancellationToken.None);
+    }
 
     private async Task<CalibrationOcrResponse> SuggestCoreAsync(CalibrationOcrRequest request,
         ReadOnlyMemory<byte> image, CancellationToken cancellationToken)
@@ -152,16 +157,16 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
         request is not null && request.ProtocolVersion == 1 && !string.IsNullOrWhiteSpace(request.RequestId) &&
         IsSha(request.Binding) && IsSha(request.SourceFileSha256) && IsSha(request.PanelImageSha256) &&
         image.Length is > 0 and <= CalibrationOcrWire.MaximumImageBytes &&
-        string.Equals(Convert.ToHexString(SHA256.HashData(image.Span)), request.PanelImageSha256, StringComparison.OrdinalIgnoreCase) &&
         request.Width > 0 && request.Height > 0 && request.Plot is { } plot &&
         double.IsFinite(plot.Left) && double.IsFinite(plot.Top) && double.IsFinite(plot.Right) && double.IsFinite(plot.Bottom) &&
         plot.Left >= 0 && plot.Top >= 0 && plot.Right < request.Width && plot.Bottom < request.Height &&
-        plot.Left < plot.Right && plot.Top < plot.Bottom;
+        plot.Left < plot.Right && plot.Top < plot.Bottom && request.ValidMeasuredXTicks() &&
+        string.Equals(Convert.ToHexString(SHA256.HashData(image.Span)), request.PanelImageSha256, StringComparison.OrdinalIgnoreCase);
 
     internal static bool IsValidResponse(CalibrationOcrRequest request, CalibrationOcrResponse? response,
         CalibrationOcrDeviceSelection? selection = null)
     {
-        if (response is null || response.Request != request || response.Proposals is null) return false;
+        if (response is null || !request.Matches(response.Request) || response.Proposals is null) return false;
         if (response.FailureCode is not null)
             return IsKnownFailure(response.FailureCode) && response.Proposals.Count == 0 && response.XSequence is null &&
                 response.YSequence is null && response.Timings is null && response.Runtime is null;
@@ -177,7 +182,7 @@ public sealed class CalibrationOcrWorkerClient : ICalibrationOcrSuggestionServic
                 proposal.Polygon.Count is < 3 or > 4 || proposal.Polygon.Any(point => point is null ||
                     !double.IsFinite(point.X) || !double.IsFinite(point.Y) || point.X < 0 || point.Y < 0 ||
                     point.X > request.Width || point.Y > request.Height)) return false;
-            bool literal = proposal.FailureCode is null && GraphNumericParser.IsLiteralGraphNumber(proposal.Text);
+            bool literal = proposal.FailureCode is null && CalibrationNumericLiteral.IsLiteral(proposal.Text);
             if (literal != proposal.NumericLiteral) return false;
             if (!literal)
             {

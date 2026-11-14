@@ -157,14 +157,18 @@ public sealed class CalibrationTickViewModelTests
     }
 
     [TestMethod]
-    public void MissingObservedZeroLeavesValuesBlankAndShowsIncompleteStatus()
+    public void MissingObservedZeroRetainsValidXAndLeavesYUnconfirmed()
     {
         WithImage(path =>
         {
-            var proposals = ValidProposals().Where(proposal => proposal.RegionId != "y-zero")
-                .Append(Proposal("y-low", "1", 1, "YTick", "Y", 100, 2)).ToArray();
+            var proposals = ValidProposals();
+            proposals[3] = Proposal("y-max", "12", 12, "YTick", "Y", 20, 2);
+            proposals[4] = Proposal("y-mid", "7", 7, "YTick", "Y", 60, 2);
+            proposals[5] = Proposal("y-low", "2", 2, "YTick", "Y", 100, 2);
             using var workspace = CreateWorkspace(path, proposals);
-            using var vm = new MainWindowViewModel(workspace);
+            Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+            var localization = new LocalizationService(new ResourceDictionary());
+            using var vm = new MainWindowViewModel(workspace, localization);
             WorkspaceTabViewModel tab = vm.SelectedTab!;
 
             Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
@@ -172,22 +176,87 @@ public sealed class CalibrationTickViewModelTests
             Assert.IsTrue(vm.HasCalibrationTickProposal);
             Assert.IsTrue(vm.HasCalibrationTickProposalStatus);
             Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
-            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
-            Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
+            Assert.AreEqual("1", vm.SuggestedFirstSession);
+            Assert.AreEqual("24", vm.SuggestedFinalSession);
+            Assert.AreEqual(localization.GetString(LocalizationKeys.ManualCalibrationTicksPartialX), vm.CalibrationTickProposalStatusText);
+            Assert.AreEqual(string.Format(CultureInfo.CurrentCulture, localization.GetString(LocalizationKeys.ManualAxisPositions),
+                20d, 110d, 20d, 5d, 140d, 110d), vm.AxisSuggestionSummary,
+                "Only validated X components replace the original geometry.");
             Assert.IsFalse(vm.AxisSuggestionReviewed);
             Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
             Assert.IsNull(tab.Calibration);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null), "Review cannot supply the missing Y range.");
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.IsNull(tab.Calibration);
+            vm.StartCalibrationCommand.Execute(null);
+            Assert.AreEqual(ManualEditorMode.Calibration, vm.EditorMode);
+            Assert.AreEqual("1", vm.SuggestedFirstSession, "Anchor correction retains the validated partial range.");
+            Assert.AreEqual("24", vm.SuggestedFinalSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedYMaximum);
+            Assert.IsFalse(vm.HasCalibrationTickProposal);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
         });
     }
 
     [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
-    public void StaleBindingDuringTickReadCannotPublishOrApplyProposal(bool estimated)
+    public void ValidYRetainsItsPositionsWhileInvalidXNeedsManualValues(bool estimatedY)
     {
         WithImage(path =>
         {
-            var reader = new OcrStub(ValidProposals()) { Pending = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+            var proposals = ValidProposals();
+            proposals[1] = Proposal("x-mid", "0", 0, "XTick", "X", 80, 112);
+            var geometry = new RustAxisGeometry(8, 110, 155, 5, .9)
+                { XTickPositions = [20, 80, 140], YTickPositions = estimatedY ? [] : [20, 60, 100] };
+            using var workspace = CreateWorkspace(path, proposals, geometry);
+            Application.ResourceAssembly ??= typeof(MainWindow).Assembly;
+            var localization = new LocalizationService(new ResourceDictionary());
+            using var vm = new MainWindowViewModel(workspace, localization);
+
+            Pump(vm.SuggestCalibrationFromTicksAsync(CancellationToken.None));
+
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
+            Assert.AreEqual(localization.GetString(LocalizationKeys.ManualCalibrationTicksPartialY), vm.CalibrationTickProposalStatusText);
+            Assert.AreEqual(string.Format(CultureInfo.CurrentCulture, localization.GetString(LocalizationKeys.ManualAxisPositions),
+                8d, 100d, 8d, 20d, 155d, 100d), vm.AxisSuggestionSummary);
+            Assert.AreEqual(estimatedY, vm.HasEstimatedCalibrationPositions);
+            vm.AxisSuggestionReviewed = true;
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Pump(vm.ApplyAxisSuggestionAsync(CancellationToken.None));
+            Assert.IsNull(vm.SelectedTab!.Calibration);
+            vm.StartCalibrationCommand.Execute(null);
+            Assert.AreEqual("10", vm.SuggestedYMaximum);
+            Assert.AreEqual(string.Empty, vm.SuggestedFirstSession);
+            Assert.AreEqual(string.Empty, vm.SuggestedFinalSession);
+            Assert.IsFalse(vm.HasCalibrationTickProposal);
+            Assert.IsFalse(vm.AxisSuggestionReviewed);
+            Assert.AreEqual(estimatedY, vm.HasEstimatedCalibrationPositions);
+
+            vm.SuggestedFirstSession = "1";
+            vm.SuggestedFinalSession = "24";
+
+            Assert.IsFalse(vm.AxisSuggestionReviewed, "Manually completing values requires a fresh review.");
+            Assert.IsFalse(vm.ApplyAxisSuggestionCommand.CanExecute(null));
+            Assert.AreEqual(estimatedY, vm.HasEstimatedCalibrationPositions);
+            Assert.IsNull(vm.SelectedTab.Calibration);
+        });
+    }
+
+    [TestMethod]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    public void StaleBindingDuringTickReadCannotPublishOrApplyProposal(bool estimated, bool partial)
+    {
+        WithImage(path =>
+        {
+            CalibrationOcrProposal[] proposals = partial
+                ? ValidProposals().Where(row => row.RegionId != "y-zero").ToArray() : ValidProposals();
+            var reader = new OcrStub(proposals) { Pending = new(TaskCreationOptions.RunContinuationsAsynchronously) };
             using var workspace = CreateWorkspace(path, reader, estimated ? EstimatedGeometry() : null);
             using var vm = new MainWindowViewModel(workspace);
             WorkspaceTabViewModel tab = vm.SelectedTab!;
@@ -197,7 +266,7 @@ public sealed class CalibrationTickViewModelTests
             Assert.IsNotNull(reader.LastRequest);
             workspace.Calibrate(tab.TabId, new(new(11, 100), new(11, 20), new(150, 100), 10, 24, 1));
             var changedCalibration = tab.Calibration;
-            reader.Pending!.SetResult(Response(reader.LastRequest!, ValidProposals()));
+            reader.Pending!.SetResult(Response(reader.LastRequest!, proposals));
             Pump(pending);
 
             Assert.IsFalse(vm.HasCalibrationTickProposal);

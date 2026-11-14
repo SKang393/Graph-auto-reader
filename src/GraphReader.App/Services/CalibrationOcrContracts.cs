@@ -19,6 +19,19 @@ public sealed record CalibrationOcrRequest(string RequestId, string Binding, str
     string PanelImageSha256, int Width, int Height, CalibrationOcrPlot Plot)
 {
     public int ProtocolVersion { get; init; } = 1;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int[]? MeasuredXTicks { get; init; }
+
+    internal bool ValidMeasuredXTicks() => MeasuredXTicks is null ||
+        (MeasuredXTicks.Length <= 128 && Plot is not null &&
+         MeasuredXTicks.All(x => x >= Plot.Left && x <= Plot.Right && x >= 0 && x < Width) &&
+         MeasuredXTicks.Zip(MeasuredXTicks.Skip(1)).All(pair => pair.First < pair.Second));
+
+    internal bool Matches(CalibrationOcrRequest? other) => other is not null &&
+        (this with { MeasuredXTicks = null }) == (other with { MeasuredXTicks = null }) &&
+        ((MeasuredXTicks is null && other.MeasuredXTicks is null) ||
+         (MeasuredXTicks is not null && other.MeasuredXTicks is not null && MeasuredXTicks.SequenceEqual(other.MeasuredXTicks)));
+
 }
 
 public sealed record CalibrationOcrProposal(string RegionId, IReadOnlyList<CalibrationOcrPoint> Polygon,
