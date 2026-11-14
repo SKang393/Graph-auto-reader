@@ -95,6 +95,29 @@ public static class LocalizationKeys
     public const string ManualCalibrationTicksPairedRow = "Manual.CalibrationTicks.PairedRow";
     public const string ManualCalibrationTicksAxisX = "Manual.CalibrationTicks.AxisX";
     public const string ManualCalibrationTicksAxisY = "Manual.CalibrationTicks.AxisY";
+    public const string ManualMarkerExemplarTitle = "Manual.MarkerExemplar.Title";
+    public const string ManualMarkerExemplarExampleSize = "Manual.MarkerExemplar.ExampleSize";
+    public const string ManualMarkerExemplarFind = "Manual.MarkerExemplar.Find";
+    public const string ManualMarkerExemplarAdd = "Manual.MarkerExemplar.Add";
+    public const string ManualMarkerExemplarRemove = "Manual.MarkerExemplar.Remove";
+    public const string ManualMarkerExemplarRow = "Manual.MarkerExemplar.Row";
+    public const string ManualMarkerExemplarDuplicate = "Manual.MarkerExemplar.Duplicate";
+    public const string ManualMarkerExemplarReady = "Manual.MarkerExemplar.Ready";
+    public const string ManualMarkerExemplarInvalidSize = "Manual.MarkerExemplar.InvalidSize";
+    public const string ManualMarkerExemplarUnavailable = "Manual.MarkerExemplar.Unavailable";
+    public const string ManualMarkerExemplarSearching = "Manual.MarkerExemplar.Searching";
+    public const string ManualMarkerExemplarNoMatches = "Manual.MarkerExemplar.NoMatches";
+    public const string ManualMarkerExemplarCount = "Manual.MarkerExemplar.Count";
+    public const string ManualMarkerExemplarReviewAdvice = "Manual.MarkerExemplar.ReviewAdvice";
+    public const string ManualMarkerExemplarFailure = "Manual.MarkerExemplar.Failure";
+    public const string ManualMarkerExemplarFailureInvalidInput = "Manual.MarkerExemplar.Failure.InvalidInput";
+    public const string ManualMarkerExemplarFailureInvalidFrame = "Manual.MarkerExemplar.Failure.InvalidFrame";
+    public const string ManualMarkerExemplarFailureResourceUnavailable = "Manual.MarkerExemplar.Failure.ResourceUnavailable";
+    public const string ManualMarkerExemplarFailureUnavailable = "Manual.MarkerExemplar.Failure.Unavailable";
+    public const string ManualMarkerExemplarFailureTimeout = "Manual.MarkerExemplar.Failure.Timeout";
+    public const string ManualMarkerExemplarFailureUninformative = "Manual.MarkerExemplar.Failure.Uninformative";
+    public const string ManualMarkerExemplarFailureTooManyCandidates = "Manual.MarkerExemplar.Failure.TooManyCandidates";
+    public const string ManualMarkerExemplarFailureMatching = "Manual.MarkerExemplar.Failure.Matching";
     public const string ManualCalibrationLabelsTitle = "Manual.CalibrationLabels.Title";
     public const string ManualCalibrationLabelsRead = "Manual.CalibrationLabels.Read";
     public const string ManualCalibrationLabelsList = "Manual.CalibrationLabels.List";
@@ -460,6 +483,29 @@ public static class LocalizationKeys
         ManualCalibrationTicksPairedRow,
         ManualCalibrationTicksAxisX,
         ManualCalibrationTicksAxisY,
+        ManualMarkerExemplarTitle,
+        ManualMarkerExemplarExampleSize,
+        ManualMarkerExemplarFind,
+        ManualMarkerExemplarAdd,
+        ManualMarkerExemplarRemove,
+        ManualMarkerExemplarRow,
+        ManualMarkerExemplarDuplicate,
+        ManualMarkerExemplarReady,
+        ManualMarkerExemplarInvalidSize,
+        ManualMarkerExemplarUnavailable,
+        ManualMarkerExemplarSearching,
+        ManualMarkerExemplarNoMatches,
+        ManualMarkerExemplarCount,
+        ManualMarkerExemplarReviewAdvice,
+        ManualMarkerExemplarFailure,
+        ManualMarkerExemplarFailureInvalidInput,
+        ManualMarkerExemplarFailureInvalidFrame,
+        ManualMarkerExemplarFailureResourceUnavailable,
+        ManualMarkerExemplarFailureUnavailable,
+        ManualMarkerExemplarFailureTimeout,
+        ManualMarkerExemplarFailureUninformative,
+        ManualMarkerExemplarFailureTooManyCandidates,
+        ManualMarkerExemplarFailureMatching,
         ManualModeSelect,
         ManualModeCalibrate,
         ManualModePoints,

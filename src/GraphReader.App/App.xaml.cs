@@ -5,6 +5,7 @@ using System.Windows;
 using GraphReader.App.Appearance;
 using GraphReader.App.Integration;
 using GraphReader.App.Integration.CalibrationOcr;
+using GraphReader.App.Integration.MarkerExemplar;
 using GraphReader.App.Integration.Runtime;
 using GraphReader.App.Integration.Workflow;
 using GraphReader.App.Localization;
@@ -43,6 +44,19 @@ public partial class App : Application, IDisposable
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        if (e.Args.Any(argument => string.Equals(argument, "--marker-exemplar-worker", StringComparison.OrdinalIgnoreCase)))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            try
+            {
+                if (e.Args.Length != 1) { Shutdown(2); return; }
+                int exitCode = await Task.Run(() => MarkerExemplarWorker.RunAsync(
+                    RuntimeModeSelector.SelectBuildDefault(), Console.OpenStandardInput(), Console.OpenStandardOutput()));
+                Shutdown(exitCode);
+            }
+            catch (Exception) { Shutdown(2); }
+            return;
+        }
         if (e.Args.Any(argument => string.Equals(argument, "--calibration-ocr-worker", StringComparison.OrdinalIgnoreCase)))
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;

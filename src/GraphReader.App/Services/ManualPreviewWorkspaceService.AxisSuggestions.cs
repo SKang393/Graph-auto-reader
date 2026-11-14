@@ -99,6 +99,8 @@ public partial class ManualPreviewWorkspaceService
     {
         if (Interlocked.Exchange(ref _calibrationOcrDisposed, 1) == 0 && _calibrationOcrSuggestionService is not null)
             _calibrationOcrSuggestionService.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        if (Interlocked.Exchange(ref _markerExemplarDisposed, 1) == 0 && _markerExemplarSuggestionService is not null)
+            _markerExemplarSuggestionService.DisposeAsync().AsTask().GetAwaiter().GetResult();
         GC.SuppressFinalize(this);
     }
 

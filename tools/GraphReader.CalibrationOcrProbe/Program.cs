@@ -36,17 +36,24 @@ internal static class Program
         bool hardwareChild = args.Length > 0 && args[0] == "--hardware-child";
         bool automaticCheck = args.Length > 0 && args[0] == "--automatic-device-check";
         bool tickCheck = args.Length > 0 && args[0] == "--tick-proposal-check";
-        int seconds = tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
+        bool markerCheck = args.Length > 0 && args[0] == "--marker-exemplar-check";
+        int seconds = markerCheck ? 43 : tickCheck ? 75 : automaticCheck ? 99 : workerCheck ? 360 : hardwareCheck ? 149 : hardwareChild ? 43 : 170;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         using var watchdog = new Timer(_ =>
         {
             Emit(new { error = "DEADLINE_EXCEEDED", review_only = true });
             Environment.Exit(3);
-        }, null, TimeSpan.FromSeconds(tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
+        }, null, TimeSpan.FromSeconds(markerCheck ? 45 : tickCheck ? 80 : automaticCheck ? 100 : hardwareCheck ? 150 : hardwareChild ? 44 : workerCheck ? 365 : 175), Timeout.InfiniteTimeSpan);
         ConsoleCancelEventHandler cancel = (_, e) => { e.Cancel = true; deadline.Cancel(); };
         Console.CancelKeyPress += cancel;
         try
         {
+            if (args is ["--marker-exemplar-check", var markerApp])
+            {
+                Emit(await MarkerExemplarCheck.RunAsync(markerApp, deadline.Token));
+                return 0;
+            }
+            if (markerCheck) throw new InvalidDataException("Usage: --marker-exemplar-check <absolute-App-exe>");
             if (args is ["--tick-proposal-check", var tickRequest, var tickApp, var tickAssets, var tickWorker])
             {
                 byte[] input = ReadBounded(tickRequest, 32_768);

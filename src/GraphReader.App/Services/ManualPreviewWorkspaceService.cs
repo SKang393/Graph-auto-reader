@@ -39,7 +39,7 @@ namespace GraphReader.App.Services;
 /// Real-data manual workspace. It intentionally begins empty and never supplies
 /// recorded detections when production models are absent.
 /// </summary>
-public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspaceEditStateSink, IAxisSuggestionWorkspace, ICalibrationLabelSuggestionWorkspace, IDisposable
+public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IWorkspaceEditStateSink, IAxisSuggestionWorkspace, ICalibrationLabelSuggestionWorkspace, IMarkerExemplarWorkspace, IDisposable
 {
     private const string ProductionProjectionAuditKind = "production_review_projection";
     private const string ProductionAddAuditKind = "production_point_added";
@@ -114,7 +114,8 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         Func<CancellationToken, Task<RealEsrganBackendResolution>>? enhancementResolver = null,
         IPdfImportService? pdfImportService = null,
         IAxisProposalService? axisProposalService = null,
-        ICalibrationOcrSuggestionService? calibrationOcrSuggestionService = null)
+        ICalibrationOcrSuggestionService? calibrationOcrSuggestionService = null,
+        IMarkerExemplarSuggestionService? markerExemplarSuggestionService = null)
     {
         if (runtimeEnvironment == WorkflowRuntimeEnvironment.RecordedFake)
         {
@@ -128,6 +129,7 @@ public partial class ManualPreviewWorkspaceService : IManualWorkspaceService, IW
         _pdfImportService = pdfImportService;
         _axisProposalService = axisProposalService;
         _calibrationOcrSuggestionService = calibrationOcrSuggestionService;
+        _markerExemplarSuggestionService = markerExemplarSuggestionService;
         _projectFileStore = projectFileStore ?? new ProjectFileStore();
         _exportService = exportService ?? new ExportService();
         _phaseEditor = phaseEditor ?? new PhaseManualEditor();

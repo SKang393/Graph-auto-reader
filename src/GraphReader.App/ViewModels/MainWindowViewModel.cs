@@ -270,6 +270,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             parameter => parameter is WorkspaceTabViewModel || SelectedTab is not null);
         StartCalibrationCommand = new RelayCommand(_ => StartAxisCalibrationCorrection(), _ => CanStartCalibration());
         InitializeAxisSuggestionCommands();
+        InitializeMarkerExemplarCommands();
         SelectEditorModeCommand = new RelayCommand(
             _ => EditorMode = ManualEditorMode.Select,
             _ => SelectedTab is not null);
@@ -355,6 +356,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 }
                 // A pending canvas action belongs to its original panel.
                 // Cancel it before publishing the new selection to bindings.
+                ClearMarkerExemplarProposals(updateSample: false);
                 ClearAxisSuggestion();
                 bool canceledEdit = EditorMode != ManualEditorMode.Select;
                 _calibrationAnchors.Clear();
@@ -380,6 +382,9 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                 Magnifier.GraphPosition = null;
                 Magnifier.NearestDetectionName = null;
                 Magnifier.NearestDetectionConfidence = null;
+                OnPropertyChanged(nameof(CanShowMarkerExemplar));
+                OnPropertyChanged(nameof(MarkerExemplarStatusText));
+                OnPropertyChanged(nameof(HasMarkerExemplarStatus));
                 if (value is not null)
                 {
                     EnsureEditHistory(value);
@@ -578,6 +583,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (SetProperty(ref _selectedPointId, value))
             {
+                InvalidateMarkerExemplarInputs();
                 DataPreviewRowViewModel? row = value is null
                     ? null
                     : DataPreviewRows.FirstOrDefault(candidate => string.Equals(
@@ -600,6 +606,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (SetProperty(ref _selectedSeriesId, value))
             {
+                InvalidateMarkerExemplarInputs();
                 LoadSelectedSeriesEditor();
                 RefreshSeriesRelationChoices();
                 RelayCommand.RaiseCanExecuteChanged();
@@ -637,6 +644,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
             if (SetProperty(ref _editorMode, value))
             {
                 OnPropertyChanged(nameof(EditorInstruction));
+                InvalidateMarkerExemplarInputs();
             }
         }
     }
@@ -1197,6 +1205,7 @@ public sealed partial class MainWindowViewModel : ObservableObject, IDisposable
                             ManualYMaximum,
                             ManualXMaximum,
                             ManualFirstVisibleSession));
+                    ClearMarkerExemplarProposals(updateSample: true);
                     EditorMode = ManualEditorMode.Select;
                     SetStatus(FormatLocalizedString(
                         LocalizationKeys.ManualCalibrationSaved,

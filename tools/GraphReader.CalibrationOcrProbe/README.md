@@ -3,6 +3,16 @@
 
 # Calibration OCR probe
 
+`--marker-exemplar-check <absolute-App-exe>` runs the actual capped marker
+worker on a 1280 x 800 project-owned connected-symbol image generated in memory.
+It reports proposals, control-center errors, budget and timing only. No image
+file is created, no proposal is applied, and this is not an accuracy test.
+It then observes the next owned child process, cancels its request, requires
+`OperationCanceledException` and verifies that exact process exits within two
+seconds. A final normal request reports restart results. Finishing before the
+child can be observed fails the lifecycle check rather than claiming cancellation.
+The parent cancels at 43 seconds and has a 45-second hard watchdog.
+
 `--tick-proposal-check <owned-request.json> <absolute-App-exe> <absolute-assets> <absolute-Rust-worker>`
 runs the Rust geometry worker and the actual OCR child against the same owned
 crop, then reports tick-label pairing and a review-only calibration proposal.

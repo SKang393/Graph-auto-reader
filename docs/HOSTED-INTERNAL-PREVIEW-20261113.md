@@ -169,12 +169,17 @@ Control and incomplete JSON hashes were respectively
 `0ba4ec63a35f845dcf7c2d279a43bcc46551d7db948f140707555072984ad05d`
 and `5cd43b6066d95b23155285dce1eecaa469568eadef819f6b5e8ba4e2961c5b5f`.
 
-After this ledger/outcome reaches main, switch the latest pointer and retire
-the superseded 0.4.38 extracted build/ZIP, the outer download, receipt, smoke
-scratch and tick-check request/control/results. Shared user Data, the original
+After this ledger/outcome reached main at `a039f669a3360392bdae1d238280bebe6bcc67c2`,
+the latest pointer was atomically switched to 0.4.39. Contained, reparse-free
+cleanup retired 490 files totaling 370,485,937 path bytes: the superseded
+0.4.38 extracted build/ZIP, outer download, receipt, smoke scratch, pointer
+backup and tick-check request/control/results. One extracted build and one ZIP
+remained; no process was running from either package before replacement.
+Shared user Data, the original
 owned source image and the still-open earlier QA App and its dependencies are
 preserved. The current hardware-assets model is a hard link, so removing the old
-build path must not remove that active input. Future hosted builds now use the
+build path did not remove that active input, whose SHA-256 was rechecked.
+Future hosted builds now use the
 verified 0.4.39 artifact as their reviewed runtime input. This is an internal
 ZIP only. Native saved-choice and Suggest calibration interaction remain waiting
 after the user stopped Computer Use (REV-011); no installer, public release,

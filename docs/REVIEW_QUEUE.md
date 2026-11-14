@@ -191,14 +191,17 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 ## REV-011 - resume native device preference verification
 
 - **Status:** open; native phase waiting
-- **Blocks:** native acceptance of saved OCR device choice and fresh-process
-  restoration; headless development and validation continue
-- **Effort:** about 3 minutes when the desktop is available
+- **Blocks:** native acceptance of saved OCR device choice, fresh-process
+  restoration, calibration proposals and marker example review; headless
+  development and validation continue
+- **Effort:** about 5 minutes when the desktop is available
 - **Action:** resume native checks in this chat when convenient. Verify selecting
   a GPU, reading labels, changing back to CPU and reopening with the saved
   preference in the next integrated source build. Also verify Automatic,
   Check devices, Cancel and interruption by foreground work
-  and the new Suggest calibration action through confirmation and Apply
+  and the new Suggest calibration action through confirmation and Apply.
+  Verify a placed marker example, visible matches, individual Add/Remove and
+  undo using the next integrated preview
 - **Why:** the user stopped Computer Use with physical Escape. Initial native
   CPU/default and adapter-list display was observed; saved-choice verification
   was not completed. The actual worker lifecycle and headless persistence tests
@@ -206,6 +209,7 @@ do not invent earlier 1.x tags or renumber existing artifacts. See
 - **Files:** [hardware and worker outcome](OCR-HARDWARE-CHECK-20261113.md),
   [automatic device-profile outcome](OCR-AUTOMATIC-DEVICE-20261113.md),
   [measured-tick proposal outcome](CALIBRATION-TICK-PROPOSALS-20261113.md),
+  [marker example outcome](MARKER-EXEMPLAR-ASSISTANCE-20261113.md),
   [current implementation plan](DEVELOPMENT-RESET-20261111.md)
 - **Unblocks when:** native save, subsequent read, device-change restart and
   fresh-process restoration are observed without claiming unperformed checks

@@ -1135,6 +1135,65 @@
                        Foreground="{DynamicResource App.Brush.TextMuted}"
                        Text="{Binding EditorInstruction}"
                        TextWrapping="Wrap" />
+            <StackPanel Margin="0,0,0,8" Visibility="{Binding CanShowMarkerExemplar, Converter={StaticResource BooleanToVisibilityConverter}}">
+              <TextBlock Margin="0,0,0,4" FontWeight="SemiBold"
+                         Text="{DynamicResource Manual.MarkerExemplar.Title}"
+                         automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Title"
+                         automation:AutomationProperties.Name="{DynamicResource Manual.MarkerExemplar.Title}" />
+              <Grid Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="72" />
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" Text="{DynamicResource Manual.MarkerExemplar.ExampleSize}"
+                           TextWrapping="Wrap" />
+                <TextBox Grid.Column="1" Text="{Binding MarkerExemplarExampleSizeText, UpdateSourceTrigger=PropertyChanged}"
+                         automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.ExampleSize"
+                         automation:AutomationProperties.Name="{DynamicResource Manual.MarkerExemplar.ExampleSize}" />
+              </Grid>
+              <Button Margin="0,0,0,4" Command="{Binding FindMarkerExemplarsCommand}"
+                      Content="{DynamicResource Manual.MarkerExemplar.Find}" Style="{DynamicResource App.Style.Button}"
+                      automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Find"
+                      automation:AutomationProperties.Name="{DynamicResource Manual.MarkerExemplar.Find}" />
+              <TextBlock Margin="0,0,0,4" Text="{Binding MarkerExemplarStatusText}" TextWrapping="Wrap"
+                         Visibility="{Binding HasMarkerExemplarStatus, Converter={StaticResource BooleanToVisibilityConverter}}"
+                         automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Status"
+                         automation:AutomationProperties.Name="{Binding MarkerExemplarStatusText}" />
+              <TextBlock Margin="0,0,0,4" Text="{DynamicResource Manual.MarkerExemplar.ReviewAdvice}" TextWrapping="Wrap"
+                         Foreground="{DynamicResource App.Brush.TextMuted}"
+                         Visibility="{Binding HasMarkerExemplarCandidates, Converter={StaticResource BooleanToVisibilityConverter}}" />
+              <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto"
+                            Visibility="{Binding HasMarkerExemplarCandidates, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ItemsControl ItemsSource="{Binding MarkerExemplarCandidates}"
+                              automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Candidates"
+                              automation:AutomationProperties.Name="{DynamicResource Manual.MarkerExemplar.Title}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,2,0,4">
+                        <TextBlock Text="{Binding DisplayText}" TextWrapping="Wrap"
+                                   automation:AutomationProperties.Name="{Binding DisplayText}" />
+                        <TextBlock Text="{DynamicResource Manual.MarkerExemplar.Duplicate}" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource App.Brush.Warning}"
+                                   Visibility="{Binding IsDuplicate, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <WrapPanel>
+                          <Button Margin="0,0,4,0" Command="{Binding DataContext.AcceptMarkerExemplarCandidateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                  CommandParameter="{Binding}" Content="{DynamicResource Manual.MarkerExemplar.Add}"
+                                  Style="{DynamicResource App.Style.Button}"
+                                  IsEnabled="{Binding CanAccept}"
+                                  automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Candidate.Add"
+                                  automation:AutomationProperties.Name="{DynamicResource Manual.MarkerExemplar.Add}" />
+                          <Button Command="{Binding DataContext.RemoveMarkerExemplarCandidateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                  CommandParameter="{Binding}" Content="{DynamicResource Manual.MarkerExemplar.Remove}"
+                                  Style="{DynamicResource App.Style.Button}"
+                                  automation:AutomationProperties.AutomationId="Manual.MarkerExemplar.Candidate.Remove"
+                                  automation:AutomationProperties.Name="{DynamicResource Manual.MarkerExemplar.Remove}" />
+                        </WrapPanel>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </StackPanel>
             <WrapPanel Margin="0,0,0,8">
               <Button x:Name="CalibrationButton"
                       Margin="0,0,6,6"

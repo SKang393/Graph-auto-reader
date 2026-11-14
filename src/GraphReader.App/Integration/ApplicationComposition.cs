@@ -308,7 +308,9 @@ public static class ApplicationComposition
                     pdfImportService: pdf.PdfImporter,
                     axisProposalService: new RustAxisProposalService(
                         Path.Combine(applicationRoot, "native", "graphreader-engine.exe")),
-                    calibrationOcrSuggestionService: calibrationService),
+                    calibrationOcrSuggestionService: calibrationService,
+                    markerExemplarSuggestionService: File.Exists(Path.Combine(applicationRoot, "GraphReader.App.exe"))
+                        ? new MarkerExemplarWorkerClient(Path.GetFullPath(Path.Combine(applicationRoot, "GraphReader.App.exe"))) : null),
                 null,
                 CalibrationOcrDevices: calibrationDevices,
                 CalibrationDeviceOptimizer: calibrationOptimizer),

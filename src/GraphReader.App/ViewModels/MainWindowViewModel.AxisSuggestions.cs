@@ -143,6 +143,7 @@ public sealed partial class MainWindowViewModel
             new(_suggestedAnchors[0].X, _suggestedAnchors[0].Y),
             new(_suggestedAnchors[1].X, _suggestedAnchors[1].Y),
             new(_suggestedAnchors[2].X, _suggestedAnchors[2].Y), y, final, first));
+        ClearMarkerExemplarProposals(updateSample: true);
         ManualYMaximum = y;
         ManualXMaximum = final;
         ManualFirstVisibleSessionText = first.ToString(CultureInfo.InvariantCulture);

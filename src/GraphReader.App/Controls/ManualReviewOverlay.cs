@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 using GraphReader.App.Models;
+using GraphReader.App.Services;
 using GraphReader.App.ViewModels;
 using GraphReader.Domain;
 using AppGraphPoint = GraphReader.App.Models.GraphPoint;
@@ -19,10 +20,19 @@ public sealed class ManualReviewOverlay : FrameworkElement
     private readonly ObservableCollection<SeriesCardViewModel> _series;
     private readonly ObservableCollection<EditablePhaseDivider> _dividers;
     private Point[] _axisProposal = [];
+    private MarkerExemplarRectangle? _markerExemplar;
+    private Point[] _markerCandidates = [];
 
     public void SetAxisProposal(IEnumerable<Point> anchors)
     {
         _axisProposal = anchors.ToArray();
+        InvalidateVisual();
+    }
+
+    public void SetMarkerExemplar(MarkerExemplarRectangle? exemplar, IEnumerable<MarkerExemplarPoint> candidates)
+    {
+        _markerExemplar = exemplar;
+        _markerCandidates = candidates.Select(candidate => new Point(candidate.X, candidate.Y)).ToArray();
         InvalidateVisual();
     }
 
@@ -68,6 +78,21 @@ public sealed class ManualReviewOverlay : FrameworkElement
             drawingContext.DrawLine(axisPen, _axisProposal[0], _axisProposal[2]);
             foreach (Point anchor in _axisProposal)
                 drawingContext.DrawEllipse(Brushes.White, new Pen(Brushes.Black, 2), anchor, 5, 5);
+        }
+        if (_markerExemplar is { } exemplar)
+        {
+            var samplePen = new Pen(Brushes.Gold, 1.5) { DashStyle = DashStyles.Dash };
+            drawingContext.DrawRectangle(Brushes.Transparent, samplePen,
+                new Rect(exemplar.X, exemplar.Y, exemplar.Width, exemplar.Height));
+        }
+        var candidatePen = new Pen(Brushes.OrangeRed, 2);
+        foreach (Point candidate in _markerCandidates)
+        {
+            drawingContext.DrawEllipse(Brushes.Transparent, candidatePen, candidate, 6, 6);
+            drawingContext.DrawLine(candidatePen, new Point(candidate.X - 3, candidate.Y),
+                new Point(candidate.X + 3, candidate.Y));
+            drawingContext.DrawLine(candidatePen, new Point(candidate.X, candidate.Y - 3),
+                new Point(candidate.X, candidate.Y + 3));
         }
         var dividerPen = new Pen(Brushes.DarkSlateGray, 1) { DashStyle = DashStyles.Dash };
         foreach (EditablePhaseDivider divider in _dividers)

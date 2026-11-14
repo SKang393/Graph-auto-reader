@@ -23,9 +23,10 @@ Manual import, calibration, point editing, save, CSV/audit export and fresh-proc
 reopen have native evidence in [the QA record](MANUAL-PREVIEW-NATIVE-QA-20261111.md).
 The saved-form correction at `facfabf76ccf0305153dc2daddabcb9f91ff4e76`
 also passed [Windows CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/43109029138).
-That source fix is newer than the retained 0.4.37 package.
+That source fix was newer than the retained 0.4.37 package at the initial audit;
+it is now included in the delivered 0.4.39 preview.
 
-The [current OCR diagnostic](COMPOSED-OCR-BASELINE-20261111.md) took 93.612 seconds
+The [initial OCR diagnostic](COMPOSED-OCR-BASELINE-20261111.md) took 93.612 seconds
 for 23 images, about 4.07 seconds per source. This is a CPU, one-thread,
 optimization-disabled evidence configuration, not a measured best production
 configuration. It does not isolate detector, recognition, preprocessing or startup
@@ -110,9 +111,18 @@ label centers alone must not become calibration anchors. The
 combines both workers through one Suggest calibration action with explicit
 review. Its complete-label control returned a proposal in 3.10 s; an incomplete
 owned panel remained uncalibrated in 3.90 s. Native display/interaction remains
-queued. The next deliverable is one integrated internal preview containing
-device profiles and reviewed calibration proposals, followed by editable marker
-assistance without reviving rejected model training runs.
+queued. The integrated [0.4.39 preview](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0439)
+is uploaded, downloaded, verified and retained. Its packaged complete control
+took 3.833 s and its incomplete control stayed uncalibrated in 4.103 s.
+The [marker example assistance batch](MARKER-EXEMPLAR-ASSISTANCE-20261113.md)
+matches a user-selected original-pixel example inside the confirmed plot and
+requires individual acceptance through existing point editing. Its 911 App
+tests passed; a 1280 x 800 control took 0.649 s for the first request and
+0.545 s after verified cancellation. This reuses the existing native correlation
+kernel and keeps rejected model training paused. Deliver one integrated 0.4.40
+preview next. Native interaction remains queued; the next independent product
+slice is reviewed phase-divider assistance using original pixels and existing
+phase editing, with no inferred experimental semantics.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new
