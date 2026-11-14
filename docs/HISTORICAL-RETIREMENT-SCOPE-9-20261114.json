@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "scopeStatus": "lead_reviewed_disposable_scope_pending_runtime_guards",
+  "inventory": "artifacts/storage-retention-check/ninth-candidates.json",
+  "sourceRoot": "E:/Graph-auto-reader/artifacts/goal22-worktrees/resume-20260908/artifacts/goal22-runs",
+  "selection": "Nine completed historical outputs with pushed aggregate outcomes; excludes current runtime and model inputs.",
+  "consumerSearch": {
+    "checkouts": [
+      "E:/Graph-auto-reader",
+      "E:/Graph-auto-reader/artifacts/goal22-worktrees/resume-20261111-phase2"
+    ],
+    "paths": [
+      "src",
+      "tools",
+      "packaging",
+      "ml"
+    ],
+    "exactNameMatches": 0,
+    "description": "Zero active executable/config consumers. The crowded-center v30 tracked P1 result contains 17 historical paths, which are outcome references, not active consumers."
+  },
+  "privacy": "Tracked outcomes report zero private and sealed reads; no private payloads are included.",
+  "license": "Local retirement only; no redistribution or license grant is implied.",
+  "noDeletionPerformed": true,
+  "entries": [
+    {
+      "name": "raster-connected-context-v1",
+      "files": 928,
+      "bytes": 414623715,
+      "outcome": "docs/GOAL-22-CONNECTED-RASTER-CONTEXT.json",
+      "outcomeBlob": "0570133d6b89a582465379bc7376213c9506b234",
+      "status": "development outcome",
+      "privateEvidence": 0,
+      "sealedEvidence": 0,
+      "productionApproval": false,
+      "licenseNote": "Local retirement only; no redistribution or new license grant inferred.",
+      "currentConsumer": "No exact reference in primary or active src/tools/packaging/ml source/config."
+    },
+    {
+      "name": "small-image-padding-evaluation-v1",
+      "files": 2087,
+      "bytes": 404076384,
+      "outcome": "docs/GOAL-22-OCR-SCALE-COVERAGE-DIAGNOSIS.json",
+      "outcomeBlob": "61c4d816254c4cecfca499b7da3feff167d7ae16",
+      "status": "diagnosis_not_accuracy_acceptance",
+      "privateEvidence": 0,
+      "sealedEvidence": 0,
+      "productionApproval": false,
+      "licenseNote": "Local retirement only; no redistribution or new license grant inferred.",
+      "currentConsumer": "No exact reference in primary or active src/tools/packaging/ml source/config."
+    },
+    {
+      "name": "crowded-center-v30-evaluation-v1",
+      "files": 1991,
+      "bytes": 402259744,
+      "outcome": "ml/markers/center/crowded_coverage_v30/P1_RESULT.json",
+      "outcomeBlob": "c32c36f836549264272f8d7296106a6abf9bf715",
+      "status": "failed_dev_unconsumed",
+      "privateEvidence": 0,
+      "sealedEvidence": 0,
+      "productionApproval": false,
+      "licenseNote": "Local retirement only; no redistribution or new license grant inferred.",
+      "currentConsumer": "Name occurs only in its tracked P1_RESULT; no executable/config consumer in primary or active src/tools/packaging/ml."
+    },
+    {
+      "name": "axis-corner-checks-v1",
+      "files": 843,
+      "bytes": 401637116,
+      "outcome": "docs/GOAL-22-NATIVE-MARKER-INPUT-AND-CORNER-REPAIR.json",
+      "outcomeBlob": "d447d8ad311a9ae08fda2cd621106497c8ad45c4",
+      "status": "verified_development_repair_not_product_acceptance",
+      "privateEvidence": 0,
+      "sealedEvidence": 0,
+      "productionApproval": false,
+      "licenseNote": "Local retirement only; no redistribution or new license grant inferred.",
+      "currentConsumer": "No exact reference in primary or active src/tools/packaging/ml source/config."
+    },
+    {
+      "name": "participant-word-evaluation-v1",
+      "files": 2086,
+      "bytes": 401529276,
+      "outcome": "docs/GOAL-22-PARTICIPANT-WORD-COMPLETION.json",
+      "outcomeBlob": "df32005a84ea356d35846a86b3b6b6dc660d731b",
+      "status": "evaluated_accuracy_incomplete",
+      "privateEvidence": 0,
+      "sealedEvidence": 0,
+      "productionApproval": false,
+      "licenseNote": "Local retirement only; no redistribution or new license grant inferred.",
+      "currentConsumer": "No exact reference in primary or active src/tools/packaging/ml source/config."
+    },
+    {
+      "name": "native-axis-extent-repair-v1",
+      "files": 842,
+      "bytes": 401500814,
+      "outcome": "docs/GOAL-22-AXIS-MARKER-BOUNDARY-REPAIR.json",
+      "outcomeBlob": "28d5e76e131e5c227501cef90ac713be68a36c7f",
+      "status": "verified_development_repair_not_product_acceptance",
+      "privateEvidence": 0,
+      "sealedEvidence": 0,
+      "productionApproval": false,
+      "licenseNote": "Local retirement only; no redistribution or new license grant inferred.",
+      "currentConsumer": "No exact reference in primary or active src/tools/packaging/ml source/config."
+    },
+    {
+      "name": "axis-endpoint-evaluation-v2",
+      "files": 2067,
+      "bytes": 401262164,
+      "outcome": "docs/GOAL-22-AXIS-ENDPOINT-REPAIR.json",
+      "outcomeBlob": "1a8a56abca3a49a3f2d91a7ff65dcc2dc2ddf949",
+      "status": "repair_verified_accuracy_incomplete",
+      "privateEvidence": 0,
+      "sealedEvidence": 0,
+      "productionApproval": false,
+      "licenseNote": "Local retirement only; no redistribution or new license grant inferred.",
+      "currentConsumer": "No exact reference in primary or active src/tools/packaging/ml source/config."
+    },
+    {
+      "name": "tick-revalidation-evaluation-v2",
+      "files": 2075,
+      "bytes": 401165655,
+      "outcome": "docs/GOAL-22-RECOVERED-TICK-REVALIDATION.json",
+      "outcomeBlob": "53c72e7222cdebc969f74e2dddd1d72b73bfb288",
+      "status": "repair_verified_accuracy_incomplete",
+      "privateEvidence": 0,
+      "sealedEvidence": 0,
+      "productionApproval": false,
+      "licenseNote": "Local retirement only; no redistribution or new license grant inferred.",
+      "currentConsumer": "No exact reference in primary or active src/tools/packaging/ml source/config."
+    },
+    {
+      "name": "axis-endpoint-evaluation-v1",
+      "files": 2063,
+      "bytes": 401096560,
+      "outcome": "docs/GOAL-22-AXIS-ENDPOINT-REPAIR.json",
+      "outcomeBlob": "1a8a56abca3a49a3f2d91a7ff65dcc2dc2ddf949",
+      "status": "repair_verified_accuracy_incomplete",
+      "privateEvidence": 0,
+      "sealedEvidence": 0,
+      "productionApproval": false,
+      "licenseNote": "Local retirement only; no redistribution or new license grant inferred.",
+      "currentConsumer": "No exact reference in primary or active src/tools/packaging/ml source/config."
+    }
+  ],
+  "totals": {
+    "files": 14982,
+    "bytes": 3629151428
+  },
+  "leadChecks": [
+    "Push this exact reviewed scope before executing.",
+    "Recheck exact inventories, process consumers, reparse points, protected keepers, retained package and original data."
+  ]
+}
