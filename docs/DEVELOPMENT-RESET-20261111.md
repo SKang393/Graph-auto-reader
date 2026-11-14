@@ -134,9 +134,16 @@ the latter took 4.889 s. The subsequent
 the fixed changing-slope control from 0/4 to 4/4 at the same 0.9 threshold;
 horizontal and hollow controls also returned 4/4 with no false proposals in the
 four controls. Thirty-seven focused tests passed. A near-limit 4.096-megapixel
-worker request took 0.976 s and cancelled in 0.097 s. Deliver one integrated
-0.4.41 internal preview next. These owned checks do not establish representative
-accuracy, native interaction or final production approval.
+worker request took 0.976 s and cancelled in 0.097 s. The integrated
+[0.4.41 preview](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0441) is
+uploaded, downloaded and verified; its packaged four controls reproduced the
+expected results. These checks do not establish representative accuracy, native
+interaction or final production approval. Next implement a native Prepare crop
+that creates a new uncalibrated graph panel while retaining the parent image/PDF,
+source hashes, reversible coordinates, and exact save/reopen provenance. Clarify
+oversized-panel assistance limits before allocating work. Existing automatic
+PDF/raster overlap checks must remain intact; retained manual children need an
+explicit authenticated parent relationship rather than weakened validation.
 Defer phase-divider assistance: current manual insertion is already one click,
 while a new detection/review action would add work for ordinary visible dividers.
 No new worker protocol or model is justified without a demonstrated benefit.

@@ -138,9 +138,10 @@ Candidate SHA-256 identities, before version-only preparation:
 | Near-limit JSON | `232fcff19d7bdd20d308e56f443c318789b17770e0f329cf1db725c00ec0a347` |
 | Small/large process measurements | `f5f6cd741bdac9009eaa691d1825efd82882b2b28a811310655b5d6f46ca74de` / `f3925fc3507c97586106270288b7bd98892e6e25059604b76155ead41f78a62a` |
 
-After this combined source/outcome is pushed, retire all 19 files (66,268 bytes)
-in `artifacts/marker-shape-check`, including baseline/candidate logs and test
-results. Pixels existed only in memory. Keep the isolated diagnostic compiler
-output for verification of the downloaded replacement package; retire its
-disposable outputs after that consumer finishes. Until replacement succeeds,
-0.4.40 remains the only retained package identity.
+After combined source/outcome `a7f7394cd72c6777ae71c27a12d185f401548dca` reached
+main, all 19 files (66,268 bytes) in `artifacts/marker-shape-check` were retired
+after containment and active-worker checks. Pixels existed only in memory.
+The [0.4.41 package](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0441)
+is now uploaded, downloaded and verified with the same controlled outcomes.
+The isolated diagnostic compiler output is reused for the active Prepare/crop
+batch after package verification; no second compiler tree is created.

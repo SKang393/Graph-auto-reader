@@ -88,7 +88,7 @@ checks, bounded OCR host self-tests, Rust/application tests and all packaging
 validation. Release build/publish jobs were correctly skipped. This CI run did
 not dispatch the separate hosted internal-preview packaging workflow.
 
-GitHub artifacts expire. The current workflow pins the verified 0.4.40 input;
+GitHub artifacts expire. The current workflow pins the verified 0.4.41 input;
 future deliveries must update that pin before the artifact expires. Build numbers
 still advance once per actual packaged build, and public release cadence and
 final product approval remain governed by VERSIONING.md.
@@ -238,3 +238,55 @@ and its dependencies were preserved. Native device, calibration and marker inter
 remain waiting under REV-011 after the user stopped Computer Use. This is an
 internal ZIP, with no installer, public release, clean-machine pass or
 production approval.
+
+## Hosted delivery 0.4.41
+
+[Build 43550712713](https://github.com/SKang393/Graph-auto-reader/actions/runs/43550712713)
+completed from `a7f7394cd72c6777ae71c27a12d185f401548dca`. The integrated
+preview adds reviewed marker batches with one Undo/autosave, plot-boundary
+examples, and weighted matching that reduces connection-context interference.
+Hosted App/Domain/integration checks passed 1,094 tests with seven opt-in skips.
+[Source CI 43550580261](https://github.com/SKang393/Graph-auto-reader/actions/runs/43550580261)
+passed 2,610 .NET tests with 30 skips across 13 projects, ten Rust tests, and
+packaging/evidence/localization validation. Public release jobs were skipped.
+
+- [Artifact 14096875686](https://github.com/SKang393/Graph-auto-reader/actions/runs/43550712713/artifacts/14096875686):
+  87,254,531 bytes, SHA-256
+  `4694900154956250e9fb5a851bd2827d770b9b9b8f7b30b73c85707e24289dcb`.
+- Inner ZIP `GraphAutoReader-0.4.41-win-x64-internal-preview.zip`:
+  87,511,587 bytes, SHA-256
+  `ae26e86e86f26ce56b19aa8af335c52c74fdd8f14e95ab1d93266f97039d2bf0`.
+- Extraction `0.4.41-20261114T032017592Z-a7f7394c`: 477 files,
+  196,034,695 bytes. Every extracted entry matched its ZIP bytes; safe-entry
+  validation passed. Artifact expiry is 2027-02-12.
+- Receipt SHA-256: `7afefd508d4026f51ff71e009580ce6cb78274f681b6e67dab7d74ff9914ed30`.
+  Build-info SHA-256: `0954d50120a9834a61f379cd7b3df4a3c49ed419d0eddd88e9a0d690f4733d97`.
+  Executable SHA-256: `a05c8a50ee57a2ac56d4570ba3e09313e660c54848e960d8ed688a7f2473cef3`.
+  App DLL SHA-256: `f7253dd9d529f7f8b8f192727c07d15be33d454ab9336f13658378f731c45b0e`.
+- Rust, reviewed OpenCV, OCR reader/manifest and all required notices retained
+  the verified identities above. Isolated ManualPreview smoke exited 0;
+  unavailable Production smoke exited 2. No normal window was opened.
+
+The existing diagnostic binary ran against the downloaded package's App and
+native DLL. Horizontal, changing-slope and hollow controls each returned 4/4
+expected matches, with no false proposals; the marker-free remainder control
+returned none. Wall times were 750.783, 628.339, 829.131 and 724.837 ms.
+The near-limit 2,560 x 1,600 control returned two centers with zero pixel error
+in 1,042.365 ms; restart took 1,113.021 ms. The exact observed child cancelled
+and exited in 17.140 ms. Both probes exited 0. Runtime reported algorithm
+`original-panel-user-exemplar-gaussian-single-scale-v2`, one OpenCV thread,
+BelowNormal priority and the verified 416/10000 CPU job budget on 12 logical
+processors (0.4992 core). These are owned execution controls, not representative
+accuracy or native UI acceptance. Shape and near-limit JSON hashes were
+`d7d817635c0c4b55f4d23b47316b4f15cb6b30aad450931d192cabb3c21e71ba`
+and `2440aafc0e886e6616cf9a0371bd344cec081fb7dc64a866ee70d6793a61c697`.
+
+After this verified ledger/outcome is pushed, atomically switch the latest
+pointer and retire the superseded 0.4.40 build/ZIP, outer download, receipt,
+isolated smoke/probe scratch and pointer backup. Preserve shared user Data,
+the earlier QA App and its dependencies. The isolated compiler output is reused
+for the active Prepare/crop implementation rather than copied to another build
+tree. Although 441 is a release-eligible ordinal, this is an internal ZIP only:
+no tag, installer, public release, clean-machine pass or production activation.
+Native device, calibration and marker/batch interactions remain waiting under
+REV-011 after the user stopped Computer Use.
