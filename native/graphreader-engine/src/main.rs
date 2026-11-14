@@ -208,10 +208,12 @@ fn y_tick_positions(
 }
 
 fn is_dark(pixels: &[u8], i: usize, channels: usize) -> bool {
+    // Black ink covering at least half of a white pixel can decode to 127.
+    // Use a fixed majority-coverage boundary for both supported input formats.
     if channels == 1 {
-        pixels[i] < 96
+        pixels[i] < 128
     } else {
-        (pixels[i] as u32 + pixels[i + 1] as u32 + pixels[i + 2] as u32) < 288
+        (pixels[i] as u32 + pixels[i + 1] as u32 + pixels[i + 2] as u32) < 384
     }
 }
 
@@ -1209,6 +1211,48 @@ mod tests {
             }
         }
         assert_eq!(propose(128, 128, 1, &a).unwrap().ticks, None);
+    }
+    #[test]
+    fn owned_majority_coverage_axes_preserve_original_coordinates() {
+        let width = 640;
+        let height = 480;
+        for (first, second) in [(0, 255), (63, 191), (127, 127), (191, 63)] {
+            let mut gray = vec![255; width * height];
+            for x in 99..=540 { gray[379 * width + x] = first; gray[380 * width + x] = second; }
+            for y in 80..=380 {
+                gray[y * width + 99] = gray[y * width + 99].min(first);
+                gray[y * width + 100] = gray[y * width + 100].min(second);
+            }
+            for channels in [1, 3] {
+                let pixels = if channels == 1 { gray.clone() } else { gray.iter().flat_map(|&v| [v, v, v]).collect() };
+                let p = propose(width, height, channels, &pixels).expect("owned black axis coverage");
+                assert!(p.left.abs_diff(100) <= 1 && p.bottom.abs_diff(380) <= 1);
+                assert!(p.right.abs_diff(540) <= 1 && p.top.abs_diff(80) <= 1);
+                assert!(p.x_ticks.is_empty() && p.y_ticks.is_empty());
+            }
+        }
+    }
+    #[test]
+    fn faint_strokes_and_gray_competing_axes_remain_rejected() {
+        assert!(is_dark(&[127], 0, 1));
+        assert!(!is_dark(&[128], 0, 1));
+        assert!(is_dark(&[127, 128, 128], 0, 3));
+        assert!(!is_dark(&[128, 128, 128], 0, 3));
+        let mut faint = vec![255; 128 * 128];
+        for x in 20..=115 { faint[100 * 128 + x] = 128; }
+        for y in 10..=100 { faint[y * 128 + 20] = 128; }
+        assert!(propose(128, 128, 1, &faint).is_err());
+        let mut competing = vec![255; 64 * 64];
+        for x in 0..64 { competing[50 * 64 + x] = 127; competing[56 * 64 + x] = 127; }
+        assert_eq!(propose(64, 64, 1, &competing), Err("AMBIGUOUS_AXIS"));
+        let grid = grid_pixels();
+        let mut panels = padded_pixels(&grid, 256, 0, 0);
+        for y in 0..128 {
+            let start = (y + 128) * 256 + 128;
+            panels[start..start + 128].copy_from_slice(&grid[y * 128..(y + 1) * 128]);
+        }
+        for pixel in &mut panels { if *pixel == 0 { *pixel = 127; } }
+        assert_eq!(propose(256, 256, 1, &panels), Err("AMBIGUOUS_AXIS"));
     }
     #[test]
     fn irregular_measured_x_ticks_preserve_original_positions() {
