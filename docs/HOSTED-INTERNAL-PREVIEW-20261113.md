@@ -88,7 +88,7 @@ checks, bounded OCR host self-tests, Rust/application tests and all packaging
 validation. Release build/publish jobs were correctly skipped. This CI run did
 not dispatch the separate hosted internal-preview packaging workflow.
 
-GitHub artifacts expire. The current workflow pins the verified 0.4.39 input;
+GitHub artifacts expire. The current workflow pins the verified 0.4.40 input;
 future deliveries must update that pin before the artifact expires. Build numbers
 still advance once per actual packaged build, and public release cadence and
 final product approval remain governed by VERSIONING.md.
@@ -184,3 +184,54 @@ verified 0.4.39 artifact as their reviewed runtime input. This is an internal
 ZIP only. Native saved-choice and Suggest calibration interaction remain waiting
 after the user stopped Computer Use (REV-011); no installer, public release,
 clean-machine pass or production approval is claimed.
+
+## Hosted delivery 0.4.40
+
+[Build 43545166216](https://github.com/SKang393/Graph-auto-reader/actions/runs/43545166216)
+completed from `19edf74d927ec6fad839c31031292c885facf02f`. This preview adds
+bounded marker matching from a user-selected original-pixel example, visible
+proposals and individual acceptance through existing point editing. Hosted
+App, Domain and integration checks passed 1,077 tests with seven opt-in skips.
+The separate [source CI](https://github.com/SKang393/Graph-auto-reader/actions/runs/43545111607)
+passed 2,593 .NET tests with 30 skips across 13 projects, ten Rust tests and
+packaging/localization checks. Compiler warnings and errors were zero.
+
+- [Artifact 14094395240](https://github.com/SKang393/Graph-auto-reader/actions/runs/43545166216/artifacts/14094395240):
+  87,252,726 bytes, SHA-256
+  `f5872fee4bb6ff040f25afb43ec9926419e9e0128683d29846d66279cde3364a`.
+- Inner ZIP `GraphAutoReader-0.4.40-win-x64-internal-preview.zip`:
+  87,509,475 bytes, SHA-256
+  `4321c500efd107fc776b24717a7b434e177a17945af1d1e5ea2e57c3ca26331e`.
+- Extracted build `0.4.40-20261114T021827354Z-19edf74d`: 477 files,
+  196,029,063 bytes. Safe entry checks and every extracted-file hash matched.
+- Receipt SHA-256: `2661c19d761e97f55d8131b070e5aff22a8add70a30539758821f7322c4eaf1e`.
+  Build-info SHA-256: `3fd34ea8b5db19fc7e5e062e247822e96657a7d09b8bfda1df091e44642c4ea7`.
+  Executable SHA-256: `662e859fc16b1a50d53da4477836e1e59207335f1851a5775e139b1727a8b5fd`.
+  App DLL SHA-256: `59cc202cf8dc9c9a6cc386e74fbdce216314300b992f4206f7a761b2a89b00c3`.
+- Rust, reviewed OpenCV, OCR model/manifest and their required notices retained
+  the verified 0.4.39 identities above. Hosted materialization reproduced the
+  same OCR reader. Artifact expiry is 2027-02-12.
+- Isolated local ManualPreview smoke exited 0; unavailable Production smoke
+  exited 2. No normal window was opened.
+
+The existing `--marker-exemplar-check` probe ran against the downloaded App
+and its own native DLL on the in-memory 1,280 x 800 owned control in
+[the marker assistance record](MARKER-EXEMPLAR-ASSISTANCE-20261113.md).
+Two matches were returned at (640, 400) and (960, 400), both with zero pixel
+error. First request wall time was 571.506 ms, including 26.723 ms decoding and
+80.459 ms matching. Cancellation of the observed child completed in 96.896 ms;
+the exact child exited. Restart took 556.601 ms and returned the same matches.
+Whole probe wall time was 1.539 s with exit 0 and no owned process left.
+The runtime reported one OpenCV thread, BelowNormal priority and a verified
+416/10000 Windows job CPU budget on 12 logical processors (0.4992 core).
+Result JSON SHA-256 is
+`b1c31615931bcda1c7655ac65a735a20cfe6a5fe4e01acc3c4f59249b406f40f`.
+These are controlled execution/lifecycle observations, not accuracy evidence.
+
+After this record is pushed, atomically replace the latest pointer, then retire
+the superseded 0.4.39 extraction/ZIP and the 0.4.40 outer archive, receipt,
+smoke/probe scratch and pointer backup. Shared user Data and the earlier open
+QA App remain protected. Native device, calibration and marker interaction
+remain waiting under REV-011 after the user stopped Computer Use. This is an
+internal ZIP, with no installer, public release, clean-machine pass or
+production approval.

@@ -119,10 +119,16 @@ matches a user-selected original-pixel example inside the confirmed plot and
 requires individual acceptance through existing point editing. Its 911 App
 tests passed; a 1280 x 800 control took 0.649 s for the first request and
 0.545 s after verified cancellation. This reuses the existing native correlation
-kernel and keeps rejected model training paused. Deliver one integrated 0.4.40
-preview next. Native interaction remains queued; the next independent product
-slice is reviewed phase-divider assistance using original pixels and existing
-phase editing, with no inferred experimental semantics.
+kernel and keeps rejected model training paused. The integrated
+[0.4.40 preview](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0440)
+is uploaded, downloaded and verified; its actual packaged marker request took
+0.572 s and cancellation took 0.097 s. Native interaction remains queued.
+The next independent product slice is one explicit action to add the remaining
+reviewed matches, preserving one Undo action, autosave and atomic rollback.
+Follow with one owned-input calibration-to-marker-to-export/reopen check.
+Defer phase-divider assistance: current manual insertion is already one click,
+while a new detection/review action would add work for ordinary visible dividers.
+No new worker protocol or model is justified without a demonstrated benefit.
 
 Measure median and tail latency, cold startup, cancellation and CPU/GPU use on
 representative owned inputs. Report failures alongside timings. Do not add new

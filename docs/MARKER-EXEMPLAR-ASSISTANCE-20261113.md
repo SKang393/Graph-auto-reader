@@ -109,8 +109,10 @@ that this copied the ordinary NuGet OpenCV DLL and stopped before execution.
 Restaging the reviewed DLL and checking the unchanged App hash preceded the
 successful run. App tests were not repeated for the diagnostic-only fixture
 change. Native interaction remains waiting under REV-011 after the user stopped
-Computer Use. One meaningful 0.4.40 preview is prepared; hosted verification must
-bind that package before replacement. No installer, public release, model
+Computer Use. The [0.4.40 preview](HOSTED-INTERNAL-PREVIEW-20261113.md#hosted-delivery-0440)
+has now been uploaded, downloaded and verified. Its actual packaged matcher
+returned the two expected larger-control centers in 571.506 ms, cancelled in
+96.896 ms and restarted in 556.601 ms. No installer, public release, model
 approval or complete automatic pipeline is claimed.
 
 ## Limitations and retention
@@ -120,7 +122,9 @@ can reduce similarity or create false matches. The user must review candidates.
 Matching is CPU-only; the separately measured device profile applies to OCR.
 No private corpus, model training, sealed split or threshold selection is used.
 
-Reuse the isolated compiler output. Keep only bounded temporary test logs under
-`artifacts/marker-exemplar-check` until their aggregate outcome is pushed, then
-retire them. The probe's owned pixels exist only in memory. The retained 0.4.39
-package and the user's earlier QA App remain untouched during implementation.
+After source/outcome commit `19edf74d927ec6fad839c31031292c885facf02f` reached
+main, `artifacts/marker-exemplar-check` was retired: 19 files, 1,298,278 bytes.
+The probe's owned pixels exist only in memory. The isolated compiler output
+is an active input to packaged-worker verification and the next batch-edit
+integration check. Retire its disposable results after those consumers finish.
+The user's earlier QA App and its dependencies remain protected.
